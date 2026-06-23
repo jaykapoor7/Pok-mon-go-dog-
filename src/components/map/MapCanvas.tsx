@@ -19,7 +19,7 @@ const DogMap = dynamic(() => import("./DogMap").then((m) => m.DogMap), {
 
 export function MapCanvas(props: {
   dogs: Dog[];
-  onAction?: (dog: Dog, kind: "saw" | "fed") => void;
+  onSelect?: (dog: Dog) => void;
 }) {
   return <DogMap {...props} />;
 }

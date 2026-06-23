@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import Map, {
   Source,
   Layer,
-  Popup,
   NavigationControl,
   GeolocateControl,
   type MapRef,
@@ -12,8 +11,8 @@ import Map, {
 } from "react-map-gl";
 import type { CircleLayer, SymbolLayer } from "react-map-gl";
 import { DELHI_CENTER } from "@/lib/delhi";
-import { STATUS_META, type Dog } from "@/lib/types";
-import { DogQuickCard } from "./DogQuickCard";
+import { markerMetaFor } from "@/lib/marker-state";
+import type { Dog } from "@/lib/types";
 
 const clusterLayer: CircleLayer = {
   id: "clusters",
@@ -70,27 +69,25 @@ const unclusteredEmoji: SymbolLayer = {
 export function MapboxMap({
   token,
   dogs,
-  onAction,
+  onSelect,
 }: {
   token: string;
   dogs: Dog[];
-  onAction?: (dog: Dog, kind: "saw" | "fed") => void;
+  onSelect?: (dog: Dog) => void;
 }) {
   const mapRef = useRef<MapRef>(null);
-  const [selected, setSelected] = useState<Dog | null>(null);
 
   const geojson = useMemo(
     () => ({
       type: "FeatureCollection" as const,
-      features: dogs.map((d) => ({
-        type: "Feature" as const,
-        properties: {
-          id: d.id,
-          color: STATUS_META[d.status].color,
-          emoji: STATUS_META[d.status].emoji,
-        },
-        geometry: { type: "Point" as const, coordinates: [d.lng, d.lat] },
-      })),
+      features: dogs.map((d) => {
+        const meta = markerMetaFor(d);
+        return {
+          type: "Feature" as const,
+          properties: { id: d.id, color: meta.color, emoji: meta.emoji },
+          geometry: { type: "Point" as const, coordinates: [d.lng, d.lat] },
+        };
+      }),
     }),
     [dogs]
   );
@@ -98,10 +95,7 @@ export function MapboxMap({
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
       const feature = e.features?.[0];
-      if (!feature) {
-        setSelected(null);
-        return;
-      }
+      if (!feature) return;
       const map = mapRef.current;
       if (!map) return;
 
@@ -121,11 +115,11 @@ export function MapboxMap({
         return;
       }
 
-      // Single dog → open card.
+      // Single dog → bubble up to open the bottom sheet.
       const dog = dogs.find((d) => d.id === feature.properties?.id);
-      if (dog) setSelected(dog);
+      if (dog) onSelect?.(dog);
     },
-    [dogs]
+    [dogs, onSelect]
   );
 
   return (
@@ -156,24 +150,6 @@ export function MapboxMap({
         <Layer {...unclusteredCircle} />
         <Layer {...unclusteredEmoji} />
       </Source>
-
-      {selected && (
-        <Popup
-          longitude={selected.lng}
-          latitude={selected.lat}
-          anchor="bottom"
-          offset={20}
-          closeButton
-          closeOnClick={false}
-          onClose={() => setSelected(null)}
-          maxWidth="300px"
-        >
-          <DogQuickCard
-            dog={selected}
-            onAction={(kind) => onAction?.(selected, kind)}
-          />
-        </Popup>
-      )}
     </Map>
   );
 }

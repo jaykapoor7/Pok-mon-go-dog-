@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Minus, Locate } from "lucide-react";
-import { STATUS_META, type Dog } from "@/lib/types";
+import type { Dog } from "@/lib/types";
+import { markerMetaFor } from "@/lib/marker-state";
 import { projectToBox, DELHI_ZONES } from "@/lib/delhi";
-import { DogQuickCard } from "./DogQuickCard";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
@@ -24,12 +23,11 @@ interface Transform {
  */
 export function FallbackMap({
   dogs,
-  onAction,
+  onSelect,
 }: {
   dogs: Dog[];
-  onAction?: (dog: Dog, kind: "saw" | "fed") => void;
+  onSelect?: (dog: Dog) => void;
 }) {
-  const [active, setActive] = useState<Dog | null>(null);
   const [t, setT] = useState<Transform>({ x: 0, y: 0, scale: 1 });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -202,12 +200,12 @@ export function FallbackMap({
         {/* dog pins (counter-scaled so they stay a constant size) */}
         {dogs.map((dog) => {
           const { x, y } = projectToBox(dog.lat, dog.lng);
-          const meta = STATUS_META[dog.status];
+          const meta = markerMetaFor(dog);
           return (
             <button
               key={dog.id}
               onClick={() => {
-                if (!moved.current) setActive(dog);
+                if (!moved.current) onSelect?.(dog);
               }}
               className="absolute transition-transform hover:z-20 focus:z-20"
               style={{
@@ -235,13 +233,15 @@ export function FallbackMap({
       </div>
 
       {/* legend */}
-      <div className="pointer-events-none absolute left-3 top-3 glass rounded-2xl px-3 py-2 text-[10px] shadow-card">
-        <p className="mb-0.5 font-semibold text-bark-700">Interactive map</p>
+      <div className="pointer-events-none absolute bottom-4 left-3 glass rounded-2xl px-3 py-2 text-[10px] shadow-card">
+        <p className="mb-0.5 font-semibold text-bark-700 dark:text-bark-100">
+          Interactive map
+        </p>
         <p className="text-bark-400">Drag to pan · pinch / ⌘-scroll to zoom</p>
       </div>
 
       {/* zoom controls */}
-      <div className="absolute right-3 top-20 z-20 flex flex-col gap-1.5">
+      <div className="absolute right-3 top-32 z-20 flex flex-col gap-1.5">
         <button
           onClick={() => buttonZoom(1.4)}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-bark-700 shadow-card hover:bg-paw-50"
@@ -264,26 +264,6 @@ export function FallbackMap({
           <Locate className="h-4 w-4" />
         </button>
       </div>
-
-      {/* quick card */}
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-30 flex items-end justify-center bg-black/30 p-4 sm:items-center"
-            onClick={() => setActive(null)}
-          >
-            <div onClick={(e) => e.stopPropagation()}>
-              <DogQuickCard
-                dog={active}
-                onAction={(kind) => onAction?.(active, kind)}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

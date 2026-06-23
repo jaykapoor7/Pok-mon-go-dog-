@@ -8,17 +8,17 @@ const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 /**
  * Chooses the live Mapbox map when a token is available, otherwise the
- * stylised fallback. Both share the same DogQuickCard interaction.
+ * interactive stylised fallback. Both bubble a tapped dog up via onSelect.
  */
 export function DogMap({
   dogs,
-  onAction,
+  onSelect,
 }: {
   dogs: Dog[];
-  onAction?: (dog: Dog, kind: "saw" | "fed") => void;
+  onSelect?: (dog: Dog) => void;
 }) {
   if (TOKEN) {
-    return <MapboxMap token={TOKEN} dogs={dogs} onAction={onAction} />;
+    return <MapboxMap token={TOKEN} dogs={dogs} onSelect={onSelect} />;
   }
-  return <FallbackMap dogs={dogs} onAction={onAction} />;
+  return <FallbackMap dogs={dogs} onSelect={onSelect} />;
 }

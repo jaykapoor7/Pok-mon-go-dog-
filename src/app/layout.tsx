@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { BottomNav } from "@/components/nav/BottomNav";
-import { TopBar } from "@/components/nav/TopBar";
-import { SiteFooter } from "@/components/nav/SiteFooter";
+import { FloatingTopBar } from "@/components/nav/FloatingTopBar";
+import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -66,12 +66,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
-      <body className="flex min-h-dvh flex-col font-sans">
-        <TopBar />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
-        <BottomNav />
+    <html lang="en" className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
+      <body className="min-h-dvh font-sans">
+        <ThemeProvider>
+          <AuthProvider>
+            <FloatingTopBar />
+            <main>{children}</main>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

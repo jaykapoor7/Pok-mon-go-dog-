@@ -51,7 +51,7 @@ export default async function DashboardPage() {
   const contributors = topContributors(recentSightings);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <div className="mx-auto max-w-6xl px-4 pb-12 pt-24 sm:px-6">
       <header className="mb-6">
         <p className="text-sm font-semibold text-paw-600">NGO Dashboard</p>
         <h1 className="font-display text-2xl font-extrabold sm:text-3xl">

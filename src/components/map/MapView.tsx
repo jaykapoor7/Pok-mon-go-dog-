@@ -1,101 +1,128 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { PlusCircle } from "lucide-react";
 import { MapCanvas } from "@/components/map/MapCanvas";
+import { DogBottomSheet } from "@/components/map/DogBottomSheet";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
-import { filterDogs } from "@/lib/data";
+import { useAuth } from "@/components/auth/AuthProvider";
+import {
+  markerStateFor,
+  MARKER_META,
+  MARKER_ORDER,
+  type MarkerState,
+} from "@/lib/marker-state";
 import { cn } from "@/lib/utils";
-import type { Dog, MapFilter } from "@/lib/types";
+import type { Dog } from "@/lib/types";
 
-const FILTERS: { key: MapFilter; label: string; emoji: string }[] = [
-  { key: "all", label: "All dogs", emoji: "🗺️" },
-  { key: "recent", label: "Recent", emoji: "🕒" },
-  { key: "friendly", label: "Friendly", emoji: "🥰" },
-  { key: "needs_help", label: "Needs help", emoji: "🚑" },
-  { key: "sterilised", label: "Sterilised", emoji: "✂️" },
-  { key: "vaccinated", label: "Vaccinated", emoji: "💉" },
-];
+type Filter = "all" | MarkerState;
 
 export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
-  const [filter, setFilter] = useState<MapFilter>("all");
-  const [toast, setToast] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [selected, setSelected] = useState<Dog | null>(null);
+  const { requireAuth } = useAuth();
+  const router = useRouter();
 
-  const dogs = useMemo(() => filterDogs(allDogs, filter), [allDogs, filter]);
+  const dogs = useMemo(
+    () =>
+      filter === "all"
+        ? allDogs
+        : allDogs.filter((d) => markerStateFor(d) === filter),
+    [allDogs, filter]
+  );
 
   function handleAction(dog: Dog, kind: "saw" | "fed") {
     celebrate();
-    setToast(
-      kind === "fed"
-        ? `You logged a meal for ${dog.name} 🍗`
-        : `Thanks! ${dog.name}'s last-seen was updated 🐾`
-    );
-    // Persist (best-effort; no-ops in local/demo mode).
     (kind === "fed" ? logFeed(dog.id) : logSeen(dog.id)).catch(() => {});
-    setTimeout(() => setToast(null), 2600);
+  }
+
+  function report() {
+    requireAuth(() => router.push("/report"));
   }
 
   return (
-    <div className="relative h-[calc(100dvh-4rem)] w-full">
-      <div className="absolute inset-x-0 top-0 z-20 px-3 pt-3">
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={cn(
-                "chip shrink-0 border shadow-card transition-all",
-                filter === f.key
-                  ? "border-paw-300 bg-paw-500 text-white"
-                  : "border-white/60 bg-white/90 text-bark-700 hover:bg-white"
-              )}
-            >
-              <span aria-hidden>{f.emoji}</span>
-              {f.label}
-            </button>
+    <div className="relative h-[100dvh] w-full overflow-hidden">
+      {/* state filter rail (sits just below the floating top bar) */}
+      <div className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-20 px-3">
+        <div className="no-scrollbar pointer-events-auto flex gap-2 overflow-x-auto">
+          <FilterChip
+            active={filter === "all"}
+            onClick={() => setFilter("all")}
+            label="All"
+            emoji="🗺️"
+          />
+          {MARKER_ORDER.map((s) => (
+            <FilterChip
+              key={s}
+              active={filter === s}
+              onClick={() => setFilter(s)}
+              label={MARKER_META[s].label}
+              emoji={MARKER_META[s].emoji}
+            />
           ))}
         </div>
       </div>
 
-      <div className="absolute bottom-28 right-3 z-20 md:bottom-4">
-        <span className="chip bg-bark-900/85 text-white shadow-card">
-          {dogs.length} {dogs.length === 1 ? "dog" : "dogs"} shown
-        </span>
-      </div>
+      <MapCanvas dogs={dogs} onSelect={setSelected} />
 
-      <MapCanvas dogs={dogs} onAction={handleAction} />
+      {/* count pill */}
+      {allDogs.length > 0 && (
+        <div className="absolute bottom-4 right-3 z-20">
+          <span className="chip bg-bark-900/85 text-white shadow-card">
+            {dogs.length} {dogs.length === 1 ? "dog" : "dogs"}
+          </span>
+        </div>
+      )}
 
+      {/* empty state */}
       {allDogs.length === 0 && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center p-6">
-          <div className="pointer-events-auto max-w-xs rounded-3xl bg-white/95 p-6 text-center shadow-warm">
-            <div className="mb-2 text-4xl">🐾</div>
-            <h2 className="font-display text-lg font-bold">No dogs yet</h2>
-            <p className="mt-1 text-sm text-bark-500">
-              This map is fresh. Add the first sighting to drop a pin on Delhi.
-            </p>
-            <Link href="/report" className="btn-primary mt-4 px-5 py-2.5 text-sm">
-              Report a dog
-            </Link>
+          <div className="pointer-events-auto max-w-xs rounded-3xl bg-white/95 p-6 text-center shadow-warm dark:bg-bark-900/95">
+            <h2 className="font-display text-lg font-bold">
+              No sightings yet
+            </h2>
+            <p className="mt-1 text-sm text-bark-500">Add the first one 🐕</p>
+            <button onClick={report} className="btn-primary mt-4 px-5 py-2.5 text-sm">
+              <PlusCircle className="h-4 w-4" /> Report a sighting
+            </button>
           </div>
         </div>
       )}
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.9 }}
-            className="absolute bottom-28 left-1/2 z-30 -translate-x-1/2 md:bottom-6"
-          >
-            <div className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-bark-800 shadow-warm">
-              {toast}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <DogBottomSheet
+        dog={selected}
+        onClose={() => setSelected(null)}
+        onAction={handleAction}
+      />
     </div>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  label,
+  emoji,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  emoji: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "chip shrink-0 border shadow-card transition-all",
+        active
+          ? "border-paw-300 bg-paw-500 text-white"
+          : "border-white/60 bg-white/90 text-bark-700 hover:bg-white dark:border-bark-700 dark:bg-bark-800 dark:text-bark-100"
+      )}
+    >
+      <span aria-hidden>{emoji}</span>
+      {label}
+    </button>
   );
 }

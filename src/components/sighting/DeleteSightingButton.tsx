@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import { deleteSighting } from "@/lib/actions";
 import { ownsSighting } from "@/lib/ownership";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,6 +23,7 @@ export function DeleteSightingButton({
   variant?: "icon" | "text";
   className?: string;
 }) {
+  const { isAuthed } = useAuth();
   const [owned, setOwned] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,8 @@ export function DeleteSightingButton({
     setOwned(ownsSighting(sightingId));
   }, [sightingId]);
 
-  if (!owned) return null;
+  // Editing/deleting your own posts requires being signed in.
+  if (!owned || !isAuthed) return null;
 
   async function handleDelete() {
     if (busy) return;

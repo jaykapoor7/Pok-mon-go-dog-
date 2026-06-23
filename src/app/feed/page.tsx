@@ -14,7 +14,7 @@ export default async function FeedPage() {
   const sightings = await getAllSightings();
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-6 sm:px-6">
+    <div className="mx-auto max-w-xl px-4 pb-12 pt-24 sm:px-6">
       <header className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="font-display text-2xl font-extrabold sm:text-3xl">

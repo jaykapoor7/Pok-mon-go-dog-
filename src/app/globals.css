@@ -21,6 +21,31 @@
     background-attachment: fixed;
   }
 
+  /* ── Dark theme ───────────────────────────────────────────── */
+  .dark body {
+    @apply bg-bark-950 text-bark-100;
+    background-image:
+      radial-gradient(at 12% 8%, rgba(234, 88, 12, 0.12) 0px, transparent 50%),
+      radial-gradient(at 88% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 45%);
+  }
+
+  /* Centralised surface remaps — more specific than the base utilities,
+     so the app themes broadly without per-component dark: classes. */
+  .dark .bg-white { background-color: #1c1917; }
+  .dark .bg-bark-50,
+  .dark .bg-bark-100 { background-color: #292524; }
+  .dark .border-bark-100,
+  .dark .border-bark-200 { border-color: #292524; }
+  .dark .text-bark-900,
+  .dark .text-bark-800,
+  .dark .text-bark-700 { color: #e7e5e4; }
+  .dark .text-bark-600,
+  .dark .text-bark-500 { color: #a8a29e; }
+  .dark input,
+  .dark textarea { color: #fafaf9; }
+  .dark input::placeholder,
+  .dark textarea::placeholder { color: #78716c; }
+
   ::selection {
     @apply bg-paw-200 text-paw-900;
   }
@@ -52,6 +77,19 @@
 
   .card {
     @apply rounded-3xl bg-white shadow-card border border-bark-100/80;
+  }
+
+  .dark .glass {
+    background-color: rgba(28, 25, 23, 0.72);
+    border-color: #292524;
+  }
+  .dark .card {
+    background-color: #1c1917;
+    border-color: #292524;
+  }
+  .dark .btn-ghost {
+    background-color: #292524;
+    border-color: #44403c;
   }
 
   .skeleton {
