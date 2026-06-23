@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: "Inter", system-ui, sans-serif;
+    --font-display: "Poppins", system-ui, sans-serif;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paw-50 text-bark-900 antialiased;
+    background-image:
+      radial-gradient(at 12% 8%, rgba(253, 186, 116, 0.18) 0px, transparent 50%),
+      radial-gradient(at 88% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 45%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-paw-200 text-paw-900;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/60;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold
+           transition-all duration-200 active:scale-95 disabled:opacity-50
+           disabled:pointer-events-none select-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-paw-500 text-white shadow-warm hover:bg-paw-600 hover:shadow-lg;
+  }
+
+  .btn-ghost {
+    @apply btn bg-white/80 text-bark-800 border border-bark-200 hover:bg-white hover:border-paw-300;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium
+           transition-colors whitespace-nowrap;
+  }
+
+  .card {
+    @apply rounded-3xl bg-white shadow-card border border-bark-100/80;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden bg-bark-100 rounded-xl;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Mapbox tweaks — hide default attribution clutter on mobile, keep it clean. */
+.mapboxgl-ctrl-logo {
+  opacity: 0.5;
+}
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 1.25rem !important;
+  overflow: hidden;
+  box-shadow: 0 10px 40px -12px rgba(28, 25, 23, 0.4) !important;
+}
+.mapboxgl-popup-close-button {
+  font-size: 1.25rem;
+  padding: 0.25rem 0.5rem;
+  color: white;
+  z-index: 10;
+}
