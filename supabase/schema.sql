@@ -77,10 +77,12 @@ create table if not exists sightings (
   trust_score   int default 50,
   likes         int default 0,
   owner_hash    text,            -- SHA-256 of the reporter's local delete token
+  status        text not null default 'pending' check (status in ('pending','live')),
   created_at    timestamptz default now()
 );
 create index if not exists sightings_dog_idx on sightings (dog_id);
 create index if not exists sightings_created_idx on sightings (created_at desc);
+create index if not exists sightings_status_idx on sightings (status);
 
 -- ── Feed events ─────────────────────────────────────────────────
 create table if not exists feed_events (
@@ -141,9 +143,9 @@ $$;
 
 -- ════════════════════════════════════════════════════════════════
 -- report_sighting — the core write.
--- Matches the new sighting to a nearby dog (within ~200 m) or creates a new
--- dog profile, inserts the sighting, and updates the dog's aggregates.
--- Returns the affected dog row.
+-- Inserts the sighting as PENDING and does NOT touch the public `dogs`
+-- table. Dog creation / matching happens only when the sighting is approved
+-- (see approve_sighting). This keeps unmoderated content fully invisible.
 -- ════════════════════════════════════════════════════════════════
 create or replace function report_sighting(
   p_photo_url     text,
@@ -162,66 +164,106 @@ security definer
 set search_path = public
 as $$
 declare
-  v_dog        dogs;
-  v_status     dog_status := 'seen';
-  v_needs_help boolean := false;
-  v_friendly   boolean := true;
-  v_trust      int;
-  v_sighting   uuid;
+  v_trust    int;
+  v_sighting uuid;
 begin
-  -- Derive status / flags from mood tags.
-  if 'injured' = any(p_mood_tags) then
-    v_status := 'injured'; v_needs_help := true;
-  elsif 'hungry' = any(p_mood_tags) then
-    v_status := 'hungry'; v_needs_help := true;
-  end if;
-  v_friendly := 'friendly' = any(p_mood_tags) or not ('shy' = any(p_mood_tags));
-
-  -- Trust score for this sighting (0–100).
   v_trust := least(100, 40
     + 20                                              -- has photo (always)
     + case when coalesce(p_notes,'') <> '' then 10 else 0 end
     + case when coalesce(p_nickname,'') <> '' then 8 else 0 end
     + 12);
 
-  -- Try to match an existing dog within 200 m.
+  insert into sightings (dog_id, reporter_name, photo_url, lat, lng, zone,
+                         nickname, mood_tags, notes, trust_score, owner_hash,
+                         status)
+  values (null, p_reporter_name, p_photo_url, p_lat, p_lng, p_zone,
+          p_nickname, p_mood_tags, p_notes, v_trust, p_owner_hash, 'pending')
+  returning id into v_sighting;
+
+  return json_build_object(
+    'dog_id', null,
+    'sighting_id', v_sighting,
+    'status', 'pending',
+    'trust_score', v_trust
+  );
+end;
+$$;
+
+-- ════════════════════════════════════════════════════════════════
+-- approve_sighting — admin action. Marks a pending sighting LIVE and only
+-- THEN matches it to a nearby dog (≤200 m) or creates a new dog profile,
+-- updating aggregates. Idempotent. Admin-only (granted to service_role).
+-- ════════════════════════════════════════════════════════════════
+create or replace function approve_sighting(p_sighting_id uuid)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  s            sightings;
+  v_dog        dogs;
+  v_status     dog_status := 'seen';
+  v_needs_help boolean := false;
+  v_friendly   boolean := true;
+begin
+  select * into s from sightings where id = p_sighting_id;
+  if not found then
+    return json_build_object('ok', false, 'error', 'not found');
+  end if;
+  if s.status = 'live' then
+    return json_build_object('ok', true, 'already', true, 'dog_id', s.dog_id);
+  end if;
+
+  if 'injured' = any(s.mood_tags) then
+    v_status := 'injured'; v_needs_help := true;
+  elsif 'hungry' = any(s.mood_tags) then
+    v_status := 'hungry'; v_needs_help := true;
+  end if;
+  v_friendly := 'friendly' = any(s.mood_tags) or not ('shy' = any(s.mood_tags));
+
   select * into v_dog
   from dogs
-  where haversine_m(p_lat, p_lng, lat, lng) <= 200
-  order by haversine_m(p_lat, p_lng, lat, lng)
+  where haversine_m(s.lat, s.lng, lat, lng) <= 200
+  order by haversine_m(s.lat, s.lng, lat, lng)
   limit 1;
 
   if found then
     update dogs set
-      last_seen       = now(),
+      last_seen       = greatest(last_seen, s.created_at),
       sightings_count = sightings_count + 1,
       status          = case when v_needs_help then v_status else status end,
       needs_help      = needs_help or v_needs_help,
-      name            = coalesce(name, p_nickname),
-      cover_photo     = coalesce(cover_photo, p_photo_url),
-      trust_score     = least(99, (trust_score + v_trust) / 2 + 2)
+      name            = coalesce(name, s.nickname),
+      cover_photo     = coalesce(cover_photo, s.photo_url),
+      trust_score     = least(99, (trust_score + s.trust_score) / 2 + 2)
     where id = v_dog.id
     returning * into v_dog;
   else
     insert into dogs (name, zone, lat, lng, status, cover_photo,
                       is_friendly, needs_help, trust_score,
                       sightings_count, first_seen, last_seen)
-    values (p_nickname, p_zone, p_lat, p_lng, v_status, p_photo_url,
-            v_friendly, v_needs_help, v_trust, 1, now(), now())
+    values (s.nickname, s.zone, s.lat, s.lng, v_status, s.photo_url,
+            v_friendly, v_needs_help, s.trust_score, 1, s.created_at, s.created_at)
     returning * into v_dog;
   end if;
 
-  insert into sightings (dog_id, reporter_name, photo_url, lat, lng, zone,
-                         nickname, mood_tags, notes, trust_score, owner_hash)
-  values (v_dog.id, p_reporter_name, p_photo_url, p_lat, p_lng, p_zone,
-          p_nickname, p_mood_tags, p_notes, v_trust, p_owner_hash)
-  returning id into v_sighting;
+  update sightings set status = 'live', dog_id = v_dog.id where id = p_sighting_id;
 
-  return json_build_object(
-    'dog_id', v_dog.id,
-    'sighting_id', v_sighting,
-    'trust_score', v_dog.trust_score
-  );
+  return json_build_object('ok', true, 'dog_id', v_dog.id, 'sighting_id', p_sighting_id);
+end;
+$$;
+
+-- reject_sighting — admin action. Permanently removes a pending sighting.
+create or replace function reject_sighting(p_sighting_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from sightings where id = p_sighting_id and status = 'pending';
+  return found;
 end;
 $$;
 
@@ -235,29 +277,35 @@ security definer
 set search_path = public
 as $$
 declare
-  v_dog   uuid;
+  s       sightings;
   v_count int;
 begin
-  select dog_id into v_dog
+  -- Verify ownership (works for both pending and live sightings).
+  select * into s
   from sightings
   where id = p_sighting_id
     and owner_hash is not null
     and owner_hash = p_owner_hash;
 
-  if v_dog is null then
+  if not found then
     return false;
   end if;
 
   delete from sightings where id = p_sighting_id;
 
-  select count(*) into v_count from sightings where dog_id = v_dog;
-  if v_count = 0 then
-    delete from dogs where id = v_dog;
-  else
-    update dogs set
-      sightings_count = v_count,
-      last_seen = (select max(created_at) from sightings where dog_id = v_dog)
-    where id = v_dog;
+  -- Only live sightings are linked to a dog; fix that dog's aggregates.
+  if s.dog_id is not null then
+    select count(*) into v_count
+    from sightings where dog_id = s.dog_id and status = 'live';
+    if v_count = 0 then
+      delete from dogs where id = s.dog_id;
+    else
+      update dogs set
+        sightings_count = v_count,
+        last_seen = (select max(created_at) from sightings
+                     where dog_id = s.dog_id and status = 'live')
+      where id = s.dog_id;
+    end if;
   end if;
 
   return true;
@@ -316,7 +364,8 @@ returns json language sql stable as $$
     'dogsVaccinated',  (select count(*) from dogs where vaccinated),
     'needsHelp',       (select count(*) from dogs where needs_help),
     'volunteers',      (select count(distinct reporter_name)
-                          from sightings where reporter_name is not null)
+                          from sightings
+                          where reporter_name is not null and status = 'live')
   );
 $$;
 
@@ -331,11 +380,11 @@ alter table sterilisations enable row level security;
 alter table comments       enable row level security;
 alter table ngos           enable row level security;
 
--- Public read everywhere.
+-- Public read everywhere (except sightings, handled below).
 do $$
 declare t text;
 begin
-  foreach t in array array['dogs','sightings','feed_events','vaccinations',
+  foreach t in array array['dogs','feed_events','vaccinations',
                            'sterilisations','comments','ngos']
   loop
     execute format('drop policy if exists %I_read on %I;', t, t);
@@ -343,10 +392,20 @@ begin
   end loop;
 end $$;
 
+-- Sightings: only LIVE (moderated) ones are publicly readable. Pending
+-- sightings stay invisible until approved. (Owner deletion still works because
+-- delete_sighting is SECURITY DEFINER and bypasses this policy.)
+drop policy if exists sightings_read on sightings;
+create policy sightings_read on sightings for select using (status = 'live');
+
 -- Direct writes are blocked; all writes flow through the functions above.
 -- Grant execution of those functions to the anonymous (and authed) roles.
 grant execute on function report_sighting(text,float,float,text,text,text[],text,text,text) to anon, authenticated, service_role;
 grant execute on function delete_sighting(uuid,text) to anon, authenticated, service_role;
+-- Moderation actions are admin-only (called via the protected /api/admin route
+-- using the service role). Not granted to anon/authenticated.
+grant execute on function approve_sighting(uuid) to service_role;
+grant execute on function reject_sighting(uuid)  to service_role;
 grant execute on function log_feed(uuid,text,text)   to anon, authenticated;
 grant execute on function log_seen(uuid)             to anon, authenticated;
 grant execute on function add_comment(uuid,text,text) to anon, authenticated;

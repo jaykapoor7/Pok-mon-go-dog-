@@ -70,6 +70,7 @@ function mapSighting(row: any): Sighting {
     notes: row.notes ?? null,
     trust_score: row.trust_score ?? 50,
     likes: row.likes ?? 0,
+    status: (row.status ?? "live") as "pending" | "live",
     created_at: row.created_at,
   };
 }
@@ -156,6 +157,7 @@ export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
     const { data } = await supa
       .from("sightings")
       .select("*")
+      .eq("status", "live")
       .order("created_at", { ascending: false })
       .limit(limit);
     if (data) return data.map(mapSighting);
@@ -169,6 +171,7 @@ export async function getAllSightings(limit = 100): Promise<Sighting[]> {
     const { data } = await supa
       .from("sightings")
       .select("*")
+      .eq("status", "live")
       .order("created_at", { ascending: false })
       .limit(limit);
     if (data) return data.map(mapSighting);
@@ -187,7 +190,7 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
 
     const [sightingsRes, feedRes, vaccRes, sterRes, commentsRes, allDogsRes] =
       await Promise.all([
-        supa.from("sightings").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
+        supa.from("sightings").select("*").eq("dog_id", id).eq("status", "live").order("created_at", { ascending: false }),
         supa.from("feed_events").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
         supa.from("vaccinations").select("*").eq("dog_id", id),
         supa.from("sterilisations").select("*").eq("dog_id", id),

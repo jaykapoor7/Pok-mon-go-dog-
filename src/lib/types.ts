@@ -52,6 +52,7 @@ export interface Sighting {
   notes: string | null;
   trust_score: number; // 0–100 confidence this sighting is accurate
   likes: number;
+  status: "pending" | "live"; // moderation state; only "live" is public
   created_at: string;
 }
 

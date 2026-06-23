@@ -170,6 +170,7 @@ function buildDogs(): {
         notes: sr("note") > 0.5 ? pick(NOTE_POOL, `${id}-s${s}-n`) : null,
         trust_score: 50 + Math.floor(reporter.trust_level * 0.4) + Math.floor(sr("ts") * 12),
         likes: Math.floor(sr("likes") * 240),
+        status: "live",
         created_at: createdAt,
       });
     }

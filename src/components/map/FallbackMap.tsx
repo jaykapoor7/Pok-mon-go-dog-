@@ -204,9 +204,8 @@ export function FallbackMap({
           return (
             <button
               key={dog.id}
-              onClick={() => {
-                if (!moved.current) onSelect?.(dog);
-              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onSelect?.(dog)}
               className="absolute transition-transform hover:z-20 focus:z-20"
               style={{
                 left: `${x * 100}%`,
@@ -240,8 +239,12 @@ export function FallbackMap({
         <p className="text-bark-400">Drag to pan · pinch / ⌘-scroll to zoom</p>
       </div>
 
-      {/* zoom controls */}
-      <div className="absolute right-3 top-32 z-20 flex flex-col gap-1.5">
+      {/* zoom controls — stop pointer events bubbling to the pan/zoom surface
+          so the container's pointer capture doesn't swallow the button click. */}
+      <div
+        className="absolute right-3 top-32 z-20 flex flex-col gap-1.5"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <button
           onClick={() => buttonZoom(1.4)}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-bark-700 shadow-card hover:bg-paw-50"

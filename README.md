@@ -97,6 +97,27 @@ can't be skipped by a bot hitting the API directly.
 If these keys are absent the form still works — it just isn't spam-protected,
 which is fine for local development.
 
+### Moderation (sightings are reviewed before going public)
+
+New sightings are created as **`pending`** and are invisible everywhere public.
+A sighting only appears on the map/feed — and its dog profile is created or
+matched — once it's **approved**. Existing sightings are migrated to `live`.
+
+> **Already ran `schema.sql`?** Run [`supabase/add-moderation.sql`](./supabase/add-moderation.sql)
+> once in the SQL Editor.
+
+Approve/reject without a UI, either way:
+
+- **SQL Editor:** `select approve_sighting('<sighting-uuid>');` (or `reject_sighting(...)`).
+- **Protected endpoint** (set `ADMIN_SECRET` + `SUPABASE_SERVICE_ROLE_KEY`):
+  ```bash
+  # list pending
+  curl -H "Authorization: Bearer $ADMIN_SECRET" https://<site>/api/admin/sightings
+  # approve / reject
+  curl -X POST -H "Authorization: Bearer $ADMIN_SECRET" -H "Content-Type: application/json" \
+       -d '{"action":"approve","id":"<sighting-uuid>"}' https://<site>/api/admin/sightings
+  ```
+
 ### Deleting your own sightings (no login)
 
 People can delete sightings **they created**, with no account. On upload the
