@@ -23,6 +23,7 @@ export interface ReportInput {
   moods: string[];
   notes?: string;
   reporterName?: string;
+  token?: string | null; // Cloudflare Turnstile token
 }
 
 export interface ReportResult {
@@ -53,26 +54,38 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
     return { dogId: null, trust: Math.min(100, trust) };
   }
 
+  // Upload the photo to storage (client-side, anon).
   let photoUrl = input.fallbackPhotoUrl ?? "";
   if (input.file) {
     photoUrl = await uploadPhoto(input.file);
   }
   if (!photoUrl) throw new Error("A photo is required");
 
-  const { data, error } = await supa.rpc("report_sighting", {
-    p_photo_url: photoUrl,
-    p_lat: input.lat,
-    p_lng: input.lng,
-    p_zone: input.zone,
-    p_nickname: input.nickname || null,
-    p_mood_tags: input.moods,
-    p_notes: input.notes || null,
-    p_reporter_name: input.reporterName || null,
+  // Persist through the Turnstile-protected API route (server verifies the
+  // token, then writes with elevated privileges).
+  const res = await fetch("/api/report", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: input.token ?? null,
+      photoUrl,
+      lat: input.lat,
+      lng: input.lng,
+      zone: input.zone,
+      nickname: input.nickname || null,
+      moods: input.moods,
+      notes: input.notes || null,
+      reporterName: input.reporterName || null,
+    }),
   });
-  if (error) throw error;
 
-  const dog = data as any;
-  return { dogId: dog?.id ?? null, trust: dog?.trust_score ?? 60 };
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: "Upload failed" }));
+    throw new Error(error || "Could not save your sighting. Please try again.");
+  }
+
+  const result = (await res.json()) as ReportResult;
+  return result;
 }
 
 export async function logFeed(dogId: string, reporterName?: string, foodType?: string) {

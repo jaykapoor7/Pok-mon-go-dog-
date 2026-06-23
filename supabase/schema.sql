@@ -298,7 +298,7 @@ end $$;
 
 -- Direct writes are blocked; all writes flow through the functions above.
 -- Grant execution of those functions to the anonymous (and authed) roles.
-grant execute on function report_sighting(text,float,float,text,text,text[],text,text) to anon, authenticated;
+grant execute on function report_sighting(text,float,float,text,text,text[],text,text) to anon, authenticated, service_role;
 grant execute on function log_feed(uuid,text,text)   to anon, authenticated;
 grant execute on function log_seen(uuid)             to anon, authenticated;
 grant execute on function add_comment(uuid,text,text) to anon, authenticated;

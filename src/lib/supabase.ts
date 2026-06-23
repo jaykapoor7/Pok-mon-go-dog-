@@ -21,3 +21,17 @@ export function getSupabase(): SupabaseClient | null {
   }
   return client;
 }
+
+/**
+ * Server-only client using the service role key. Used by the protected
+ * /api/report route so writes happen with elevated privileges after the
+ * Turnstile check passes. Never import this into client components — the
+ * service role key is not exposed to the browser.
+ */
+export function getSupabaseAdmin(): SupabaseClient | null {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}

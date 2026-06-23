@@ -73,6 +73,30 @@ NEXT_PUBLIC_MAPBOX_TOKEN=         # Mapbox token (else: stylised fallback map)
 > through `SECURITY DEFINER` database functions, so the browser can only call
 > the exact operations the app allows — it can't read or mutate anything else.
 
+### Spam protection (recommended before sharing widely)
+
+The report form can be gated with **Cloudflare Turnstile** (free, privacy-
+friendly). It's verified **server-side** in the `/api/report` route, so it
+can't be skipped by a bot hitting the API directly.
+
+1. **Create a Turnstile site** at
+   [dash.cloudflare.com → Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile)
+   → *Add site*. You'll get a **Site key** and a **Secret key**.
+2. **Add three env vars** in Vercel:
+   ```bash
+   NEXT_PUBLIC_TURNSTILE_SITE_KEY=   # Turnstile site key (public)
+   TURNSTILE_SECRET_KEY=             # Turnstile secret key (server only)
+   SUPABASE_SERVICE_ROLE_KEY=        # Supabase → Settings → API → service_role
+   ```
+3. **Redeploy.** The form now shows a human check and the server rejects any
+   submission that fails it.
+4. **(Optional, defence-in-depth)** run [`supabase/secure-writes.sql`](./supabase/secure-writes.sql)
+   to revoke direct anon access to the write function, so the *only* path to
+   create a sighting is the Turnstile-protected route.
+
+If these keys are absent the form still works — it just isn't spam-protected,
+which is fine for local development.
+
 ### Local development
 
 ```bash

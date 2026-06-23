@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -16,6 +16,7 @@ import { celebrate, pawBurst } from "@/lib/celebrate";
 import { MOOD_META, type MoodTag } from "@/lib/types";
 import { nearestZone, DELHI_CENTER, DELHI_ZONES } from "@/lib/delhi";
 import { reportSighting } from "@/lib/actions";
+import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { cn } from "@/lib/utils";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
@@ -38,6 +39,9 @@ export default function ReportPage() {
   const [trust, setTrust] = useState(0);
   const [dogId, setDogId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+
+  const handleVerify = useCallback((t: string | null) => setToken(t), []);
 
   function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
@@ -83,7 +87,8 @@ export default function ReportPage() {
     );
   }
 
-  const canSubmit = !!photo && !!coords && status === "idle";
+  const canSubmit =
+    !!photo && !!coords && status === "idle" && (!HAS_TURNSTILE || !!token);
 
   async function submit() {
     if (!canSubmit || !coords) return;
@@ -101,6 +106,7 @@ export default function ReportPage() {
         moods,
         notes: notes.trim(),
         reporterName: reporterName.trim(),
+        token,
       });
       setTrust(result.trust);
       setDogId(result.dogId);
@@ -128,6 +134,7 @@ export default function ReportPage() {
     setNotes("");
     setDogId(null);
     setError(null);
+    setToken(null);
   }
 
   return (
@@ -294,6 +301,15 @@ export default function ReportPage() {
             className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
           />
         </div>
+
+        {HAS_TURNSTILE && (
+          <div className="flex flex-col items-center gap-1">
+            <Turnstile onVerify={handleVerify} />
+            <p className="text-[10px] text-bark-400">
+              A quick check to keep out spam — protected by Cloudflare Turnstile.
+            </p>
+          </div>
+        )}
 
         {error && (
           <p className="rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
