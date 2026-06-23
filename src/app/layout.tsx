@@ -4,6 +4,7 @@ import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { TopBar } from "@/components/nav/TopBar";
+import { SiteFooter } from "@/components/nav/SiteFooter";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,7 +19,12 @@ const poppins = Poppins({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "StrayPaw Delhi — Every dog has a story",
   description:
     "A community-powered map to discover, track and care for Delhi's street dogs. Report sightings, follow dog profiles, and help NGOs feed, vaccinate and sterilise.",
@@ -37,6 +43,13 @@ export const metadata: Metadata = {
     description:
       "Discover, explore and upload sightings of Delhi's street dogs. Build a living database of every good boy and girl in the city.",
     type: "website",
+    siteName: "StrayPaw Delhi",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StrayPaw Delhi — Every dog has a story",
+    description:
+      "A community map for Delhi's street dogs. Spot a dog, snap a photo, help track feeding, vaccination & rescue.",
   },
 };
 
@@ -54,9 +67,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
-      <body className="min-h-dvh font-sans">
+      <body className="flex min-h-dvh flex-col font-sans">
         <TopBar />
-        <main className="pb-24 md:pb-0">{children}</main>
+        <main className="flex-1">{children}</main>
+        <SiteFooter />
         <BottomNav />
       </body>
     </html>

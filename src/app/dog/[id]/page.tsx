@@ -28,9 +28,16 @@ export async function generateMetadata({
   const { id } = await params;
   const profile = await getDogProfile(id);
   if (!profile) return { title: "Dog not found — StrayPaw Delhi" };
+  const { dog } = profile;
+  const title = `${dog.name} — StrayPaw Delhi`;
+  const description = `Follow ${dog.name}, a street dog around ${dog.zone}. ${dog.sightings_count} sightings tracked by the community.`;
+  // Use the dog's own photo as the share image when available.
+  const images = dog.cover_photo ? [dog.cover_photo] : undefined;
   return {
-    title: `${profile.dog.name} — StrayPaw Delhi`,
-    description: `Follow ${profile.dog.name}, a street dog around ${profile.dog.zone}. ${profile.dog.sightings_count} sightings tracked by the community.`,
+    title,
+    description,
+    openGraph: { title, description, images, type: "article" },
+    twitter: { card: "summary_large_image", title, description, images },
   };
 }
 

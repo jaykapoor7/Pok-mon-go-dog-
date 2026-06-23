@@ -130,15 +130,6 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
-
-      <footer className="border-t border-bark-100 py-8 text-center text-sm text-bark-400">
-        <p>
-          StrayPaw Delhi — built with 🧡 for the city&apos;s street dogs.
-        </p>
-        <p className="mt-1 text-xs">
-          A community map · feeding · vaccination · sterilisation · rescue
-        </p>
-      </footer>
     </div>
   );
 }
