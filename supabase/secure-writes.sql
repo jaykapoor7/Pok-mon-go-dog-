@@ -15,8 +15,8 @@
 -- Safe to skip if you're comfortable with the Turnstile-only protection.
 -- ════════════════════════════════════════════════════════════════
 
-revoke execute on function report_sighting(text,float,float,text,text,text[],text,text)
+revoke execute on function report_sighting(text,float,float,text,text,text[],text,text,text)
   from anon, authenticated;
 
-grant execute on function report_sighting(text,float,float,text,text,text[],text,text)
+grant execute on function report_sighting(text,float,float,text,text,text[],text,text,text)
   to service_role;

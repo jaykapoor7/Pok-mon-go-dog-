@@ -76,6 +76,7 @@ create table if not exists sightings (
   notes         text,
   trust_score   int default 50,
   likes         int default 0,
+  owner_hash    text,            -- SHA-256 of the reporter's local delete token
   created_at    timestamptz default now()
 );
 create index if not exists sightings_dog_idx on sightings (dog_id);
@@ -152,9 +153,10 @@ create or replace function report_sighting(
   p_nickname      text default null,
   p_mood_tags     text[] default '{}',
   p_notes         text default null,
-  p_reporter_name text default null
+  p_reporter_name text default null,
+  p_owner_hash    text default null
 )
-returns dogs
+returns json
 language plpgsql
 security definer
 set search_path = public
@@ -165,6 +167,7 @@ declare
   v_needs_help boolean := false;
   v_friendly   boolean := true;
   v_trust      int;
+  v_sighting   uuid;
 begin
   -- Derive status / flags from mood tags.
   if 'injured' = any(p_mood_tags) then
@@ -209,11 +212,55 @@ begin
   end if;
 
   insert into sightings (dog_id, reporter_name, photo_url, lat, lng, zone,
-                         nickname, mood_tags, notes, trust_score)
+                         nickname, mood_tags, notes, trust_score, owner_hash)
   values (v_dog.id, p_reporter_name, p_photo_url, p_lat, p_lng, p_zone,
-          p_nickname, p_mood_tags, p_notes, v_trust);
+          p_nickname, p_mood_tags, p_notes, v_trust, p_owner_hash)
+  returning id into v_sighting;
 
-  return v_dog;
+  return json_build_object(
+    'dog_id', v_dog.id,
+    'sighting_id', v_sighting,
+    'trust_score', v_dog.trust_score
+  );
+end;
+$$;
+
+-- delete_sighting — token-gated deletion. Verifies the SHA-256 owner hash,
+-- deletes the sighting, and keeps the dog's aggregates correct (removing the
+-- dog if that was its last sighting).
+create or replace function delete_sighting(p_sighting_id uuid, p_owner_hash text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_dog   uuid;
+  v_count int;
+begin
+  select dog_id into v_dog
+  from sightings
+  where id = p_sighting_id
+    and owner_hash is not null
+    and owner_hash = p_owner_hash;
+
+  if v_dog is null then
+    return false;
+  end if;
+
+  delete from sightings where id = p_sighting_id;
+
+  select count(*) into v_count from sightings where dog_id = v_dog;
+  if v_count = 0 then
+    delete from dogs where id = v_dog;
+  else
+    update dogs set
+      sightings_count = v_count,
+      last_seen = (select max(created_at) from sightings where dog_id = v_dog)
+    where id = v_dog;
+  end if;
+
+  return true;
 end;
 $$;
 
@@ -298,7 +345,8 @@ end $$;
 
 -- Direct writes are blocked; all writes flow through the functions above.
 -- Grant execution of those functions to the anonymous (and authed) roles.
-grant execute on function report_sighting(text,float,float,text,text,text[],text,text) to anon, authenticated, service_role;
+grant execute on function report_sighting(text,float,float,text,text,text[],text,text,text) to anon, authenticated, service_role;
+grant execute on function delete_sighting(uuid,text) to anon, authenticated, service_role;
 grant execute on function log_feed(uuid,text,text)   to anon, authenticated;
 grant execute on function log_seen(uuid)             to anon, authenticated;
 grant execute on function add_comment(uuid,text,text) to anon, authenticated;

@@ -10,6 +10,12 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
+import {
+  newOwnerToken,
+  rememberOwner,
+  getOwnerToken,
+  forgetOwner,
+} from "./ownership";
 
 export const IS_LIVE = !!getSupabase();
 
@@ -28,6 +34,7 @@ export interface ReportInput {
 
 export interface ReportResult {
   dogId: string | null;
+  sightingId: string | null;
   trust: number;
 }
 
@@ -51,7 +58,7 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
     await wait(900);
     const trust =
       40 + 20 + (input.notes ? 10 : 0) + (input.nickname ? 8 : 0) + 12;
-    return { dogId: null, trust: Math.min(100, trust) };
+    return { dogId: null, sightingId: null, trust: Math.min(100, trust) };
   }
 
   // Upload the photo to storage (client-side, anon).
@@ -61,6 +68,10 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
   }
   if (!photoUrl) throw new Error("A photo is required");
 
+  // A secret ownership token — sent raw to the server (which stores only its
+  // hash) and kept locally so this device can later delete the sighting.
+  const ownerToken = newOwnerToken();
+
   // Persist through the Turnstile-protected API route (server verifies the
   // token, then writes with elevated privileges).
   const res = await fetch("/api/report", {
@@ -68,6 +79,7 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       token: input.token ?? null,
+      ownerToken,
       photoUrl,
       lat: input.lat,
       lng: input.lng,
@@ -85,7 +97,34 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
   }
 
   const result = (await res.json()) as ReportResult;
+  if (result.sightingId) rememberOwner(result.sightingId, ownerToken);
   return result;
+}
+
+/**
+ * Delete a sighting this device created. Sends the locally-stored token; the
+ * server hashes it and only deletes if it matches the stored owner hash.
+ */
+export async function deleteSighting(sightingId: string): Promise<boolean> {
+  const ownerToken = getOwnerToken(sightingId);
+  if (!ownerToken) return false; // not the owner on this device
+
+  if (!getSupabase()) {
+    forgetOwner(sightingId);
+    return true; // simulate in local/no-config mode
+  }
+
+  const res = await fetch("/api/sighting/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sightingId, ownerToken }),
+  });
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: "Delete failed" }));
+    throw new Error(error || "Could not delete this sighting.");
+  }
+  forgetOwner(sightingId);
+  return true;
 }
 
 export async function logFeed(dogId: string, reporterName?: string, foodType?: string) {

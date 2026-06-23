@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { getSupabaseAdmin, getSupabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function sha256(value: string) {
+  return createHash("sha256").update(value).digest("hex");
+}
 
 const SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
@@ -68,6 +73,9 @@ export async function POST(req: Request) {
   }
 
   const moods = Array.isArray(body.moods) ? (body.moods as string[]) : [];
+  const ownerHash = body.ownerToken
+    ? sha256(String(body.ownerToken))
+    : null;
   const { data, error } = await supa.rpc("report_sighting", {
     p_photo_url: photoUrl,
     p_lat: lat,
@@ -77,6 +85,7 @@ export async function POST(req: Request) {
     p_mood_tags: moods,
     p_notes: body.notes ? String(body.notes) : null,
     p_reporter_name: body.reporterName ? String(body.reporterName) : null,
+    p_owner_hash: ownerHash,
   });
 
   if (error) {
@@ -92,9 +101,12 @@ export async function POST(req: Request) {
     );
   }
 
-  const dog = data as { id?: string; trust_score?: number } | null;
+  const result = data as
+    | { dog_id?: string; sighting_id?: string; trust_score?: number }
+    | null;
   return NextResponse.json({
-    dogId: dog?.id ?? null,
-    trust: dog?.trust_score ?? 60,
+    dogId: result?.dog_id ?? null,
+    sightingId: result?.sighting_id ?? null,
+    trust: result?.trust_score ?? 60,
   });
 }

@@ -8,11 +8,15 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
 import { timeAgo, formatNumber, cn } from "@/lib/utils";
 import { likeSighting } from "@/lib/actions";
+import { DeleteSightingButton } from "@/components/sighting/DeleteSightingButton";
 import type { Sighting } from "@/lib/types";
 
 export function SightingCard({ sighting }: { sighting: Sighting }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(sighting.likes);
+  const [deleted, setDeleted] = useState(false);
+
+  if (deleted) return null;
 
   function toggleLike() {
     if (!liked) likeSighting(sighting.id).catch(() => {});
@@ -52,6 +56,10 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
             <MapPin className="h-3 w-3" /> {sighting.zone} · {timeAgo(sighting.created_at)}
           </p>
         </div>
+        <DeleteSightingButton
+          sightingId={sighting.id}
+          onDeleted={() => setDeleted(true)}
+        />
       </div>
 
       {/* photo */}

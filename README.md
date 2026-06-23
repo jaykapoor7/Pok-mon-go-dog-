@@ -97,6 +97,20 @@ can't be skipped by a bot hitting the API directly.
 If these keys are absent the form still works — it just isn't spam-protected,
 which is fine for local development.
 
+### Deleting your own sightings (no login)
+
+People can delete sightings **they created**, with no account. On upload the
+browser generates a secret token, keeps it in `localStorage`, and the server
+stores only a **SHA-256 hash** of it on the row. Deleting requires presenting
+the token (the server re-hashes and compares), so the database never holds the
+secret and only the original device can delete. A delete button appears on
+owned sightings in the feed and on the dog profile timeline.
+
+> **Already ran `schema.sql`?** Run the migration
+> [`supabase/add-deletion.sql`](./supabase/add-deletion.sql) once in the SQL
+> Editor to add the `owner_hash` column and the `delete_sighting` function.
+> (Fresh installs of `schema.sql` already include it.)
+
 ### Local development
 
 ```bash
