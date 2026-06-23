@@ -39,7 +39,7 @@ async function uploadPhoto(file: File): Promise<string> {
   const { error } = await supa.storage
     .from("sightings")
     .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
-  if (error) throw error;
+  if (error) throw new Error(`Photo upload failed: ${error.message}`);
   return supa.storage.from("sightings").getPublicUrl(path).data.publicUrl;
 }
 

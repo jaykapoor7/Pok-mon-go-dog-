@@ -80,8 +80,16 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    console.error("report_sighting failed:", error.message);
-    return NextResponse.json({ error: "Could not save sighting." }, { status: 500 });
+    console.error("report_sighting failed:", error);
+    // Surface the real reason so setup issues (missing schema, permissions)
+    // are obvious instead of a generic message.
+    const detail = [error.message, error.hint, error.code]
+      .filter(Boolean)
+      .join(" · ");
+    return NextResponse.json(
+      { error: `Could not save sighting: ${detail || "database error"}` },
+      { status: 500 }
+    );
   }
 
   const dog = data as { id?: string; trust_score?: number } | null;
