@@ -4,8 +4,9 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Utensils, Flag, GitMerge } from "lucide-react";
 import { celebrate } from "@/lib/celebrate";
+import { logSeen, logFeed } from "@/lib/actions";
 
-export function DogActions({ name }: { name: string }) {
+export function DogActions({ dogId, name }: { dogId: string; name: string }) {
   const [toast, setToast] = useState<string | null>(null);
 
   function fire(message: string, party = true) {
@@ -18,13 +19,19 @@ export function DogActions({ name }: { name: string }) {
     <>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <button
-          onClick={() => fire(`Updated — you saw ${name} 🐾`)}
+          onClick={() => {
+            logSeen(dogId).catch(() => {});
+            fire(`Updated — you saw ${name} 🐾`);
+          }}
           className="btn-ghost flex-col gap-1 py-3 text-xs"
         >
           <Heart className="h-5 w-5 text-status-friendly" />I saw this dog
         </button>
         <button
-          onClick={() => fire(`Meal logged for ${name} 🍗`)}
+          onClick={() => {
+            logFeed(dogId).catch(() => {});
+            fire(`Meal logged for ${name} 🍗`);
+          }}
           className="btn-ghost flex-col gap-1 py-3 text-xs"
         >
           <Utensils className="h-5 w-5 text-status-hungry" />I fed this dog

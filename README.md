@@ -31,32 +31,56 @@ StrayPaw balances two goals:
 - **Tailwind CSS** — warm, emotional design system
 - **Framer Motion** — smooth animations & microinteractions
 - **Mapbox GL** (`react-map-gl`) — clustered map (with a stylised fallback when no token)
-- **Supabase** — auth + Postgres (PostGIS) + storage
+- **Supabase** — Postgres + storage, anonymous (no-login) writes via secure functions
 - **canvas-confetti** — celebration effects
 - Mobile-first, deploys to **Vercel**
 
 ---
 
-## 🚀 Getting started
+## 🚀 Launch checklist (≈10 minutes)
+
+This is a **real, public app** — uploads persist, photos are stored, and stats
+reflect actual usage. No login is required for anyone to contribute.
+
+**1. Create a Supabase project** — free tier at [app.supabase.com](https://app.supabase.com).
+
+**2. Run the schema.** In the Supabase dashboard → **SQL Editor**, paste and run
+[`supabase/schema.sql`](./supabase/schema.sql). This creates every table, the
+photo storage bucket, Row Level Security, and the secure write functions
+(`report_sighting`, `log_feed`, `get_city_stats`, …).
+
+**3. (Optional) Seed real starter dogs** so the map isn't empty on day one —
+run [`supabase/seed.sql`](./supabase/seed.sql). Every row is a genuine record,
+so stats stay honest.
+
+**4. Get a Mapbox token** — free at
+[account.mapbox.com](https://account.mapbox.com/access-tokens/).
+
+**5. Add environment variables** in Vercel → Project → Settings →
+Environment Variables (copy from [`.env.example`](./.env.example)):
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=         # Supabase → Settings → API → Project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=    # Supabase → Settings → API → anon public key
+NEXT_PUBLIC_MAPBOX_TOKEN=         # Mapbox token (else: stylised fallback map)
+```
+
+**6. Redeploy.** Done — people can start reporting dogs.
+
+> **Privacy & safety:** the anon key is meant to be public. All writes go
+> through `SECURITY DEFINER` database functions, so the browser can only call
+> the exact operations the app allows — it can't read or mutate anything else.
+
+### Local development
 
 ```bash
 npm install
 npm run dev          # → http://localhost:3000
 ```
 
-That's it — the app runs in a **rich demo mode** with a full city of seeded dogs, sightings, NGOs and events. **No keys required.**
-
-### Going live (optional)
-
-Copy `.env.example` → `.env.local` and fill in:
-
-```bash
-NEXT_PUBLIC_MAPBOX_TOKEN=        # live Mapbox map (else: stylised fallback)
-NEXT_PUBLIC_SUPABASE_URL=        # live database (else: in-memory demo data)
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
-
-Then apply the schema in [`supabase/schema.sql`](./supabase/schema.sql) (tables, PostGIS, RLS, storage bucket and a `dogs_near` nearby-search function).
+With no keys set, the app falls back to built-in demo data so you can develop
+the UI offline (uploads won't persist in that mode). Add `.env.local` with the
+three values above to develop against your live Supabase project.
 
 ---
 
@@ -76,8 +100,9 @@ src/
 └── lib/
     ├── types.ts          # domain model (mirrors the SQL schema)
     ├── aggregation.ts    # 🧠 trust scoring, duplicate detection, merge & clustering
-    ├── data.ts           # data-access layer (Supabase ↔ demo)
-    ├── demo-data.ts      # deterministic seeded city of dogs
+    ├── data.ts           # read layer (Supabase ↔ demo fallback)
+    ├── actions.ts        # write layer: photo upload + secure RPC calls
+    ├── demo-data.ts      # deterministic seeded city of dogs (local fallback)
     ├── delhi.ts          # Delhi bounds, zones, projection
     └── celebrate.ts      # confetti + paw burst
 ```

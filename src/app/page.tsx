@@ -23,10 +23,14 @@ const STEPS = [
   },
 ];
 
-export default function HomePage() {
-  const dogs = getAllDogs();
-  const stats = getCityStats();
-  const recent = getRecentSightings(6);
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [dogs, stats, recent] = await Promise.all([
+    getAllDogs(),
+    getCityStats(),
+    getRecentSightings(6),
+  ]);
 
   return (
     <div>

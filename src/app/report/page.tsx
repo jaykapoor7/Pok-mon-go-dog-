@@ -15,36 +15,42 @@ import {
 import { celebrate, pawBurst } from "@/lib/celebrate";
 import { MOOD_META, type MoodTag } from "@/lib/types";
 import { nearestZone, DELHI_CENTER, DELHI_ZONES } from "@/lib/delhi";
-import { scoreSighting } from "@/lib/aggregation";
+import { reportSighting } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
+const SAMPLE_PHOTO =
+  "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=800&q=80&auto=format&fit=crop";
 
 type Status = "idle" | "locating" | "submitting" | "done";
 
 export default function ReportPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [zone, setZone] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
+  const [reporterName, setReporterName] = useState("");
   const [moods, setMoods] = useState<MoodTag[]>([]);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [trust, setTrust] = useState(0);
+  const [dogId, setDogId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPhoto(URL.createObjectURL(file));
+    const picked = e.target.files?.[0];
+    if (picked) {
+      setFile(picked);
+      setPhoto(URL.createObjectURL(picked));
       pawBurst();
     }
   }
 
   function useDemoPhoto() {
-    setPhoto(
-      "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=800&q=80&auto=format&fit=crop"
-    );
+    setFile(null);
+    setPhoto(SAMPLE_PHOTO);
     pawBurst();
   }
 
@@ -79,24 +85,49 @@ export default function ReportPage() {
 
   const canSubmit = !!photo && !!coords && status === "idle";
 
-  function submit() {
-    if (!canSubmit) return;
+  async function submit() {
+    if (!canSubmit || !coords) return;
     setStatus("submitting");
+    setError(null);
 
-    const score = scoreSighting({
-      reporterTrust: 72,
-      hasPhoto: !!photo,
-      hasNotes: notes.trim().length > 0,
-      createdAt: new Date().toISOString(),
-    });
-
-    // Simulate the upload + clustering pipeline.
-    setTimeout(() => {
-      setTrust(score);
+    try {
+      const result = await reportSighting({
+        file,
+        fallbackPhotoUrl: photo ?? undefined,
+        lat: coords.lat,
+        lng: coords.lng,
+        zone: zone ?? nearestZone(coords.lat, coords.lng),
+        nickname: nickname.trim(),
+        moods,
+        notes: notes.trim(),
+        reporterName: reporterName.trim(),
+      });
+      setTrust(result.trust);
+      setDogId(result.dogId);
       setStatus("done");
       celebrate();
       setTimeout(pawBurst, 250);
-    }, 1100);
+    } catch (e) {
+      console.error(e);
+      setError(
+        e instanceof Error ? e.message : "Something went wrong. Please try again."
+      );
+      setStatus("idle");
+    }
+  }
+
+  function resetForm() {
+    setStatus("idle");
+    setPhoto(null);
+    setFile(null);
+    setCoords(null);
+    setZone(null);
+    setNickname("");
+    setReporterName("");
+    setMoods([]);
+    setNotes("");
+    setDogId(null);
+    setError(null);
   }
 
   return (
@@ -248,6 +279,28 @@ export default function ReportPage() {
           />
         </div>
 
+        {/* your name */}
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-bark-700">
+            Your name{" "}
+            <span className="font-normal text-bark-400">
+              (optional — no login needed)
+            </span>
+          </label>
+          <input
+            value={reporterName}
+            onChange={(e) => setReporterName(e.target.value)}
+            placeholder="So we can credit your help"
+            className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
+          />
+        </div>
+
+        {error && (
+          <p className="rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
+            {error}
+          </p>
+        )}
+
         <button
           onClick={submit}
           disabled={!canSubmit}
@@ -263,7 +316,7 @@ export default function ReportPage() {
             </>
           )}
         </button>
-        {!photo && (
+        {!canSubmit && status !== "submitting" && (
           <p className="text-center text-xs text-bark-400">
             Add a photo and location to submit.
           </p>
@@ -302,21 +355,20 @@ export default function ReportPage() {
               </p>
 
               <div className="mt-6 space-y-2">
-                <Link href="/map" className="btn-primary w-full py-3">
-                  See it on the map <ArrowRight className="h-4 w-4" />
+                {dogId ? (
+                  <Link href={`/dog/${dogId}`} className="btn-primary w-full py-3">
+                    View {nickname || "this dog"}&apos;s profile{" "}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : (
+                  <Link href="/map" className="btn-primary w-full py-3">
+                    See it on the map <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
+                <Link href="/map" className="btn-ghost w-full py-3">
+                  Explore the map
                 </Link>
-                <button
-                  onClick={() => {
-                    setStatus("idle");
-                    setPhoto(null);
-                    setCoords(null);
-                    setZone(null);
-                    setNickname("");
-                    setMoods([]);
-                    setNotes("");
-                  }}
-                  className="btn-ghost w-full py-3"
-                >
+                <button onClick={resetForm} className="btn-ghost w-full py-3">
                   Report another dog
                 </button>
               </div>

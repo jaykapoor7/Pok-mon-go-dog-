@@ -14,12 +14,10 @@ import {
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge, TrustRing, MoodChip } from "@/components/ui/Badges";
 import { DogActions } from "@/components/dog/DogActions";
-import { getAllDogs, getDogProfile } from "@/lib/data";
+import { getDogProfile } from "@/lib/data";
 import { timeAgo, formatDate, formatNumber } from "@/lib/utils";
 
-export function generateStaticParams() {
-  return getAllDogs().map((d) => ({ id: d.id }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -27,7 +25,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const profile = getDogProfile(id);
+  const profile = await getDogProfile(id);
   if (!profile) return { title: "Dog not found — StrayPaw Delhi" };
   return {
     title: `${profile.dog.name} — StrayPaw Delhi`,
@@ -41,7 +39,7 @@ export default async function DogProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const profile = getDogProfile(id);
+  const profile = await getDogProfile(id);
   if (!profile) notFound();
 
   const { dog, sightings, feedEvents, vaccinations, sterilisations, comments, matchSuggestions } =
@@ -103,7 +101,7 @@ export default async function DogProfilePage({
 
       {/* actions */}
       <div className="mt-5">
-        <DogActions name={dog.name ?? "this dog"} />
+        <DogActions dogId={dog.id} name={dog.name ?? "this dog"} />
       </div>
 
       {/* health */}

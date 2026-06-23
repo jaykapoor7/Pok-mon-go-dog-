@@ -7,6 +7,7 @@ import { Heart, MapPin, MessageCircle, Share2 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
 import { timeAgo, formatNumber, cn } from "@/lib/utils";
+import { likeSighting } from "@/lib/actions";
 import type { Sighting } from "@/lib/types";
 
 export function SightingCard({ sighting }: { sighting: Sighting }) {
@@ -14,6 +15,7 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
   const [likes, setLikes] = useState(sighting.likes);
 
   function toggleLike() {
+    if (!liked) likeSighting(sighting.id).catch(() => {});
     setLiked((v) => !v);
     setLikes((n) => (liked ? n - 1 : n + 1));
   }

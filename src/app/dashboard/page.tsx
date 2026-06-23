@@ -12,9 +12,25 @@ import {
   getDogsNeedingHelp,
   getZoneCoverage,
   getNGOs,
+  getRecentSightings,
 } from "@/lib/data";
-import { DEMO_USERS } from "@/lib/demo-data";
 import { formatNumber, timeAgo } from "@/lib/utils";
+import type { Sighting } from "@/lib/types";
+
+/** Build a contributor leaderboard from real sighting reporters. */
+function topContributors(sightings: Sighting[]) {
+  const map = new Map<string, { name: string; count: number; last: string }>();
+  for (const s of sightings) {
+    const name = s.user_name || "Someone in Delhi";
+    const e = map.get(name) ?? { name, count: 0, last: s.created_at };
+    e.count += 1;
+    if (+new Date(s.created_at) > +new Date(e.last)) e.last = s.created_at;
+    map.set(name, e);
+  }
+  return Array.from(map.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+}
 
 export const metadata = {
   title: "NGO Dashboard — StrayPaw Delhi",
@@ -22,11 +38,17 @@ export const metadata = {
     "Impact dashboard for NGOs: help queue, sterilisation & vaccination tracking, volunteer activity and an underserved-area heatmap.",
 };
 
-export default function DashboardPage() {
-  const m = getDashboardMetrics();
-  const needHelp = getDogsNeedingHelp();
-  const zones = getZoneCoverage();
-  const ngos = getNGOs();
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const [m, needHelp, zones, ngos, recentSightings] = await Promise.all([
+    getDashboardMetrics(),
+    getDogsNeedingHelp(),
+    getZoneCoverage(),
+    getNGOs(),
+    getRecentSightings(80),
+  ]);
+  const contributors = topContributors(recentSightings);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
@@ -132,30 +154,32 @@ export default function DashboardPage() {
               <Users className="h-5 w-5 text-paw-500" />
               <h3 className="font-display font-bold">Volunteer activity</h3>
             </div>
-            <ul className="space-y-3">
-              {DEMO_USERS.slice(0, 5).map((u) => (
-                <li key={u.id} className="flex items-center gap-3">
-                  {u.avatar_url ? (
-                    <img
-                      src={u.avatar_url}
-                      alt={u.name}
-                      className="h-9 w-9 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="h-9 w-9 rounded-full bg-paw-200" />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{u.name}</p>
-                    <p className="text-xs text-bark-400">
-                      {u.sightings_count} sightings · trust {u.trust_level}
-                    </p>
-                  </div>
-                  <span className="text-xs text-bark-400">
-                    {timeAgo(u.created_at)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            {contributors.length === 0 ? (
+              <p className="text-sm text-bark-400">
+                No contributors yet — share the app to get the first sightings in.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {contributors.map((u) => (
+                  <li key={u.name} className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-paw-200 text-xs font-bold text-paw-700">
+                      {u.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .slice(0, 2)
+                        .join("")}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{u.name}</p>
+                      <p className="text-xs text-bark-400">
+                        {u.count} {u.count === 1 ? "sighting" : "sightings"}
+                      </p>
+                    </div>
+                    <span className="text-xs text-bark-400">{timeAgo(u.last)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* partner NGOs */}

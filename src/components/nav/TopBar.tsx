@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PawPrint, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DEMO_MODE } from "@/lib/data";
+import { isSupabaseConfigured } from "@/lib/supabase";
+
+const DEMO_MODE = !isSupabaseConfigured;
 
 const LINKS = [
   { href: "/map", label: "Map" },

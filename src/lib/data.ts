@@ -1,16 +1,13 @@
 // ─────────────────────────────────────────────────────────────
-// Data access layer.
+// Data access layer (read side).
 //
-// Every read/write goes through here. When Supabase is configured the
-// functions query the live database; otherwise they serve the deterministic
-// demo dataset. The UI is identical in both modes.
-//
-// (The Supabase branches are intentionally thin — wiring them up is a matter
-//  of filling in the table queries against /supabase/schema.sql.)
+// When Supabase is configured every read hits the live database; otherwise it
+// serves the deterministic demo dataset so the app still runs locally with no
+// configuration. All functions are async and the UI is identical in both modes.
 // ─────────────────────────────────────────────────────────────
 
 import { DEMO, DEMO_NGOS, DEMO_USERS } from "./demo-data";
-import { isSupabaseConfigured } from "./supabase";
+import { getSupabase, isSupabaseConfigured } from "./supabase";
 import { suggestMerges } from "./aggregation";
 import type {
   Dog,
@@ -19,30 +16,105 @@ import type {
   DogProfile,
   MapFilter,
   NGO,
+  DogStatus,
+  DogSize,
+  MoodTag,
 } from "./types";
 
 export const DEMO_MODE = !isSupabaseConfigured;
 
-export function getCityStats(): CityStats {
-  const dogs = DEMO.dogs;
+// ── Row mappers ──────────────────────────────────────────────
+
+function mapDog(row: any): Dog {
   return {
-    dogsSpotted: dogs.length * 137 + 482, // scaled to feel city-wide
-    dogsFed: DEMO.feedEvents.length * 96 + 1240,
-    dogsSterilised: dogs.filter((d) => d.sterilised).length * 142 + 310,
-    dogsVaccinated: dogs.filter((d) => d.vaccinated).length * 168 + 540,
-    needsHelp: dogs.filter((d) => d.needs_help).length * 12 + 47,
-    volunteers: DEMO_USERS.length * 86 + 312,
+    id: row.id,
+    name: row.name ?? null,
+    zone: row.zone ?? "Delhi",
+    lat: row.lat,
+    lng: row.lng,
+    status: (row.status ?? "seen") as DogStatus,
+    cover_photo: row.cover_photo ?? "",
+    photos: row.cover_photo ? [row.cover_photo] : [],
+    size: (row.size ?? "medium") as DogSize,
+    color: row.color ?? "Brown",
+    is_friendly: row.is_friendly ?? true,
+    needs_help: row.needs_help ?? false,
+    sterilised: row.sterilised ?? false,
+    vaccinated: row.vaccinated ?? false,
+    trust_score: row.trust_score ?? 50,
+    sightings_count: row.sightings_count ?? 1,
+    feed_count: row.feed_count ?? 0,
+    first_seen: row.first_seen ?? row.created_at,
+    last_seen: row.last_seen ?? row.created_at,
+    community_notes: [],
   };
 }
 
-export function getAllDogs(): Dog[] {
+function mapSighting(row: any): Sighting {
+  return {
+    id: row.id,
+    dog_id: row.dog_id ?? null,
+    user_id: "",
+    user_name: row.reporter_name ?? "Someone in Delhi",
+    user_avatar: null,
+    photo_url: row.photo_url,
+    lat: row.lat,
+    lng: row.lng,
+    zone: row.zone ?? "Delhi",
+    nickname: row.nickname ?? null,
+    mood_tags: (row.mood_tags ?? []) as MoodTag[],
+    notes: row.notes ?? null,
+    trust_score: row.trust_score ?? 50,
+    likes: row.likes ?? 0,
+    created_at: row.created_at,
+  };
+}
+
+// ── Stats ────────────────────────────────────────────────────
+
+export async function getCityStats(): Promise<CityStats> {
+  const supa = getSupabase();
+  if (supa) {
+    const { data } = await supa.rpc("get_city_stats");
+    if (data) return data as CityStats;
+  }
+  // Honest demo counts — no inflated multipliers.
+  const dogs = DEMO.dogs;
+  return {
+    dogsSpotted: dogs.length,
+    dogsFed: DEMO.feedEvents.length,
+    dogsSterilised: dogs.filter((d) => d.sterilised).length,
+    dogsVaccinated: dogs.filter((d) => d.vaccinated).length,
+    needsHelp: dogs.filter((d) => d.needs_help).length,
+    volunteers: DEMO_USERS.length,
+  };
+}
+
+// ── Dogs ─────────────────────────────────────────────────────
+
+export async function getAllDogs(): Promise<Dog[]> {
+  const supa = getSupabase();
+  if (supa) {
+    const { data } = await supa
+      .from("dogs")
+      .select("*")
+      .order("last_seen", { ascending: false })
+      .limit(2000);
+    if (data) return data.map(mapDog);
+  }
   return DEMO.dogs;
 }
 
-export function getDogById(id: string): Dog | undefined {
-  return DEMO.dogs.find((d) => d.id === id);
+export async function getDogById(id: string): Promise<Dog | null> {
+  const supa = getSupabase();
+  if (supa) {
+    const { data } = await supa.from("dogs").select("*").eq("id", id).single();
+    return data ? mapDog(data) : null;
+  }
+  return DEMO.dogs.find((d) => d.id === id) ?? null;
 }
 
+/** Pure, client-safe filter applied to an already-fetched list. */
 export function filterDogs(dogs: Dog[], filter: MapFilter): Dog[] {
   switch (filter) {
     case "recent":
@@ -62,16 +134,106 @@ export function filterDogs(dogs: Dog[], filter: MapFilter): Dog[] {
   }
 }
 
-export function getRecentSightings(limit = 12): Sighting[] {
+// ── Sightings ────────────────────────────────────────────────
+
+export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
+  const supa = getSupabase();
+  if (supa) {
+    const { data } = await supa
+      .from("sightings")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (data) return data.map(mapSighting);
+  }
   return DEMO.sightings.slice(0, limit);
 }
 
-export function getAllSightings(): Sighting[] {
+export async function getAllSightings(limit = 100): Promise<Sighting[]> {
+  const supa = getSupabase();
+  if (supa) {
+    const { data } = await supa
+      .from("sightings")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (data) return data.map(mapSighting);
+  }
   return DEMO.sightings;
 }
 
-export function getDogProfile(id: string): DogProfile | null {
-  const dog = getDogById(id);
+// ── Dog profile (aggregate) ──────────────────────────────────
+
+export async function getDogProfile(id: string): Promise<DogProfile | null> {
+  const supa = getSupabase();
+
+  if (supa) {
+    const dog = await getDogById(id);
+    if (!dog) return null;
+
+    const [sightingsRes, feedRes, vaccRes, sterRes, commentsRes, allDogsRes] =
+      await Promise.all([
+        supa.from("sightings").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
+        supa.from("feed_events").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
+        supa.from("vaccinations").select("*").eq("dog_id", id),
+        supa.from("sterilisations").select("*").eq("dog_id", id),
+        supa.from("comments").select("*").eq("dog_id", id).order("created_at", { ascending: true }),
+        supa.from("dogs").select("*").limit(2000),
+      ]);
+
+    const sightings = (sightingsRes.data ?? []).map(mapSighting);
+    const allDogs = (allDogsRes.data ?? []).map(mapDog);
+
+    // Enrich the profile with photos + notes drawn from its sightings.
+    dog.photos = Array.from(
+      new Set([dog.cover_photo, ...sightings.map((s) => s.photo_url)].filter(Boolean))
+    ).slice(0, 6);
+    dog.community_notes = Array.from(
+      new Set(sightings.map((s) => s.notes).filter(Boolean) as string[])
+    ).slice(0, 4);
+
+    return {
+      dog,
+      sightings,
+      feedEvents: (feedRes.data ?? []).map((f: any) => ({
+        id: f.id,
+        dog_id: f.dog_id,
+        user_id: "",
+        user_name: f.reporter_name ?? "Someone",
+        food_type: f.food_type ?? null,
+        created_at: f.created_at,
+      })),
+      vaccinations: (vaccRes.data ?? []).map((v: any) => ({
+        id: v.id,
+        dog_id: v.dog_id,
+        vaccine: v.vaccine,
+        administered_by: v.administered_by ?? null,
+        ngo_id: null,
+        date: v.date,
+      })),
+      sterilisations: (sterRes.data ?? []).map((s: any) => ({
+        id: s.id,
+        dog_id: s.dog_id,
+        status: s.status,
+        performed_by: s.performed_by ?? null,
+        ngo_id: null,
+        date: s.date,
+      })),
+      comments: (commentsRes.data ?? []).map((c: any) => ({
+        id: c.id,
+        dog_id: c.dog_id,
+        user_id: "",
+        user_name: c.reporter_name ?? "Someone",
+        user_avatar: null,
+        body: c.body,
+        created_at: c.created_at,
+      })),
+      matchSuggestions: suggestMerges(dog, allDogs),
+    };
+  }
+
+  // Demo fallback.
+  const dog = DEMO.dogs.find((d) => d.id === id);
   if (!dog) return null;
   return {
     dog,
@@ -92,52 +254,57 @@ export function getDogProfile(id: string): DogProfile | null {
 
 // ── NGO dashboard reads ──────────────────────────────────────
 
-export function getNGOs(): NGO[] {
+export async function getNGOs(): Promise<NGO[]> {
+  const supa = getSupabase();
+  if (supa) {
+    const { data } = await supa
+      .from("ngos")
+      .select("*")
+      .order("dogs_helped", { ascending: false });
+    if (data && data.length) {
+      return data.map((n: any) => ({
+        id: n.id,
+        name: n.name,
+        area: n.area ?? "",
+        logo_url: n.logo_url ?? null,
+        dogs_helped: n.dogs_helped ?? 0,
+        verified: n.verified ?? false,
+      }));
+    }
+  }
   return DEMO_NGOS;
 }
 
-export function getDogsNeedingHelp(): Dog[] {
-  return DEMO.dogs
+export async function getDogsNeedingHelp(): Promise<Dog[]> {
+  const dogs = await getAllDogs();
+  return dogs
     .filter((d) => d.needs_help)
     .sort((a, b) => +new Date(b.last_seen) - +new Date(a.last_seen));
 }
 
-export function getSterilisationQueue() {
-  return DEMO.sterilisations
-    .filter((s) => s.status === "scheduled")
-    .map((s) => ({ ...s, dog: getDogById(s.dog_id) }))
-    .filter((s) => s.dog);
-}
-
-export function getDashboardMetrics() {
-  const dogs = DEMO.dogs;
-  const total = dogs.length;
+export async function getDashboardMetrics() {
+  const dogs = await getAllDogs();
+  const stats = await getCityStats();
+  const total = Math.max(1, dogs.length);
   return {
-    totalTracked: total,
+    totalTracked: dogs.length,
     needsHelp: dogs.filter((d) => d.needs_help).length,
     sterilised: dogs.filter((d) => d.sterilised).length,
     vaccinated: dogs.filter((d) => d.vaccinated).length,
-    sterilisedPct: Math.round(
-      (dogs.filter((d) => d.sterilised).length / total) * 100
-    ),
-    vaccinatedPct: Math.round(
-      (dogs.filter((d) => d.vaccinated).length / total) * 100
-    ),
-    feedEventsThisMonth: DEMO.feedEvents.length,
-    activeVolunteers: DEMO_USERS.length,
+    sterilisedPct: Math.round((dogs.filter((d) => d.sterilised).length / total) * 100),
+    vaccinatedPct: Math.round((dogs.filter((d) => d.vaccinated).length / total) * 100),
+    feedEventsThisMonth: stats.dogsFed,
+    activeVolunteers: stats.volunteers,
   };
 }
 
-/**
- * Zone-level aggregation for the underserved-area heatmap. A zone is
- * "underserved" when many dogs need help and few are sterilised.
- */
-export function getZoneCoverage() {
+export async function getZoneCoverage() {
+  const dogs = await getAllDogs();
   const byZone = new Map<
     string,
     { zone: string; lat: number; lng: number; total: number; help: number; sterilised: number }
   >();
-  for (const d of DEMO.dogs) {
+  for (const d of dogs) {
     const e =
       byZone.get(d.zone) ??
       { zone: d.zone, lat: d.lat, lng: d.lng, total: 0, help: 0, sterilised: 0 };
@@ -149,7 +316,6 @@ export function getZoneCoverage() {
   return Array.from(byZone.values())
     .map((z) => ({
       ...z,
-      // 0 (well served) → 1 (underserved)
       underserved: Math.min(
         1,
         z.help / Math.max(1, z.total) + (1 - z.sterilised / Math.max(1, z.total)) * 0.5

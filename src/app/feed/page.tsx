@@ -8,8 +8,10 @@ export const metadata = {
   description: "An Instagram-style feed of street dog sightings across Delhi.",
 };
 
-export default function FeedPage() {
-  const sightings = getAllSightings();
+export const dynamic = "force-dynamic";
+
+export default async function FeedPage() {
+  const sightings = await getAllSightings();
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6 sm:px-6">
@@ -27,11 +29,24 @@ export default function FeedPage() {
         </Link>
       </header>
 
-      <div className="space-y-6">
-        {sightings.map((s) => (
-          <SightingCard key={s.id} sighting={s} />
-        ))}
-      </div>
+      {sightings.length === 0 ? (
+        <div className="card mt-4 p-10 text-center">
+          <div className="mb-3 text-5xl">🐾</div>
+          <h2 className="font-display text-lg font-bold">No sightings yet</h2>
+          <p className="mt-1 text-sm text-bark-500">
+            Be the very first to put a Delhi street dog on the map.
+          </p>
+          <Link href="/report" className="btn-primary mt-5 px-6 py-3">
+            <PlusCircle className="h-4 w-4" /> Report a dog
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {sightings.map((s) => (
+            <SightingCard key={s.id} sighting={s} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
