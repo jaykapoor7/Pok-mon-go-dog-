@@ -20,11 +20,13 @@ const clusterLayer: CircleLayer = {
   source: "dogs",
   filter: ["has", "point_count"],
   paint: {
-    "circle-color": "#f97316",
-    "circle-opacity": 0.85,
-    "circle-radius": ["step", ["get", "point_count"], 18, 5, 24, 15, 32],
-    "circle-stroke-width": 4,
-    "circle-stroke-color": "#ffedd5",
+    // High-contrast, premium neutral clusters.
+    "circle-color": "#101012",
+    "circle-opacity": 0.92,
+    "circle-radius": ["step", ["get", "point_count"], 17, 5, 22, 15, 28],
+    "circle-stroke-width": 3,
+    "circle-stroke-color": "#ffffff",
+    "circle-stroke-opacity": 0.9,
   },
 };
 
@@ -35,10 +37,25 @@ const clusterCountLayer: SymbolLayer = {
   filter: ["has", "point_count"],
   layout: {
     "text-field": "{point_count_abbreviated}",
-    "text-size": 14,
+    "text-size": 13,
     "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
   },
   paint: { "text-color": "#ffffff" },
+};
+
+// Soft shadow under each point for subtle elevation.
+const unclusteredShadow: CircleLayer = {
+  id: "unclustered-shadow",
+  type: "circle",
+  source: "dogs",
+  filter: ["!", ["has", "point_count"]],
+  paint: {
+    "circle-color": "#101012",
+    "circle-opacity": 0.18,
+    "circle-radius": 13,
+    "circle-blur": 0.8,
+    "circle-translate": [0, 1],
+  },
 };
 
 const unclusteredCircle: CircleLayer = {
@@ -48,8 +65,8 @@ const unclusteredCircle: CircleLayer = {
   filter: ["!", ["has", "point_count"]],
   paint: {
     "circle-color": ["get", "color"],
-    "circle-radius": 14,
-    "circle-stroke-width": 3,
+    "circle-radius": 11,
+    "circle-stroke-width": 2.5,
     "circle-stroke-color": "#ffffff",
   },
 };
@@ -61,7 +78,7 @@ const unclusteredEmoji: SymbolLayer = {
   filter: ["!", ["has", "point_count"]],
   layout: {
     "text-field": ["get", "emoji"],
-    "text-size": 14,
+    "text-size": 12,
     "text-allow-overlap": true,
   },
 };
@@ -147,6 +164,7 @@ export function MapboxMap({
       >
         <Layer {...clusterLayer} />
         <Layer {...clusterCountLayer} />
+        <Layer {...unclusteredShadow} />
         <Layer {...unclusteredCircle} />
         <Layer {...unclusteredEmoji} />
       </Source>

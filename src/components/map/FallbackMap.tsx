@@ -221,7 +221,7 @@ export function FallbackMap({
                 />
               )}
               <span
-                className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm shadow-md"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-[13px] ring-[3px] ring-white shadow-[0_3px_10px_rgba(17,17,19,0.28)] dark:ring-bark-900"
                 style={{ backgroundColor: meta.color }}
               >
                 {meta.emoji}

@@ -14,28 +14,29 @@
   }
 
   body {
-    @apply bg-paw-50 text-bark-900 antialiased;
-    background-image:
-      radial-gradient(at 12% 8%, rgba(253, 186, 116, 0.18) 0px, transparent 50%),
-      radial-gradient(at 88% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 45%);
-    background-attachment: fixed;
+    @apply text-bark-900 antialiased;
+    background-color: #f5f4f3; /* calm warm-neutral — premium, not noisy */
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
   }
 
-  /* ── Dark theme ───────────────────────────────────────────── */
+  /* Tight, intentional display typography (single family, heavier weight). */
+  .font-display {
+    letter-spacing: -0.025em;
+  }
+
+  /* ── Dark theme — deep, high-contrast, near-flat ──────────── */
   .dark body {
-    @apply bg-bark-950 text-bark-100;
-    background-image:
-      radial-gradient(at 12% 8%, rgba(234, 88, 12, 0.12) 0px, transparent 50%),
-      radial-gradient(at 88% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 45%);
+    @apply text-bark-100;
+    background-color: #0b0b0c;
   }
 
   /* Centralised surface remaps — more specific than the base utilities,
      so the app themes broadly without per-component dark: classes. */
-  .dark .bg-white { background-color: #1c1917; }
+  .dark .bg-white { background-color: #141416; }
   .dark .bg-bark-50,
-  .dark .bg-bark-100 { background-color: #292524; }
+  .dark .bg-bark-100 { background-color: #1c1c1f; }
   .dark .border-bark-100,
-  .dark .border-bark-200 { border-color: #292524; }
+  .dark .border-bark-200 { border-color: rgba(255, 255, 255, 0.07); }
   .dark .text-bark-900,
   .dark .text-bark-800,
   .dark .text-bark-700 { color: #e7e5e4; }
@@ -53,43 +54,52 @@
 
 @layer components {
   .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-white/60;
+    @apply bg-white/75 backdrop-blur-2xl border border-black/[0.06];
   }
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold
-           transition-all duration-200 active:scale-95 disabled:opacity-50
-           disabled:pointer-events-none select-none;
+           tracking-tight transition-[transform,background-color,box-shadow,border-color]
+           duration-150 ease-out active:scale-[0.97] disabled:opacity-40
+           disabled:pointer-events-none select-none
+           focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-paw-400/40 focus-visible:ring-offset-0;
   }
 
   .btn-primary {
-    @apply btn bg-paw-500 text-white shadow-warm hover:bg-paw-600 hover:shadow-lg;
+    @apply btn bg-paw-500 text-white shadow-warm
+           hover:bg-paw-600 active:bg-paw-600;
   }
 
   .btn-ghost {
-    @apply btn bg-white/80 text-bark-800 border border-bark-200 hover:bg-white hover:border-paw-300;
+    @apply btn bg-bark-900/[0.04] text-bark-800 border border-black/[0.07]
+           hover:bg-bark-900/[0.07] hover:border-black/10;
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium
-           transition-colors whitespace-nowrap;
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium
+           tracking-tight transition-colors whitespace-nowrap;
   }
 
   .card {
-    @apply rounded-3xl bg-white shadow-card border border-bark-100/80;
+    @apply rounded-3xl bg-white shadow-card border border-black/[0.05];
   }
 
   .dark .glass {
-    background-color: rgba(28, 25, 23, 0.72);
-    border-color: #292524;
+    background-color: rgba(20, 20, 22, 0.72);
+    border-color: rgba(255, 255, 255, 0.07);
   }
   .dark .card {
-    background-color: #1c1917;
-    border-color: #292524;
+    background-color: #141416;
+    border-color: rgba(255, 255, 255, 0.06);
   }
   .dark .btn-ghost {
-    background-color: #292524;
-    border-color: #44403c;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.09);
+    color: #f5f5f4;
+  }
+  .dark .btn-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
   .skeleton {

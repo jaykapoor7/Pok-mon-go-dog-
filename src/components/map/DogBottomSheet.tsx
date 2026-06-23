@@ -80,61 +80,63 @@ export function DogBottomSheet({
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 32, stiffness: 320 }}
+            transition={{ type: "spring", damping: 34, stiffness: 340 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md overflow-hidden rounded-t-3xl bg-white shadow-warm dark:bg-bark-900 sm:rounded-3xl"
+            className="w-full max-w-md overflow-hidden rounded-t-[28px] bg-white shadow-sheet dark:bg-bark-900 sm:rounded-[28px]"
           >
             {/* grab handle */}
-            <div className="flex justify-center pt-2.5">
-              <span className="h-1.5 w-10 rounded-full bg-bark-200 dark:bg-bark-700" />
+            <div className="flex justify-center pb-1 pt-3">
+              <span className="h-1 w-9 rounded-full bg-bark-300/70 dark:bg-bark-600" />
             </div>
 
             {/* image */}
-            <div className="relative mx-3 mt-2 overflow-hidden rounded-2xl">
+            <div className="relative mx-4 mt-2 overflow-hidden rounded-[20px]">
               <DogPhoto
                 src={dog.cover_photo}
                 alt={dog.name ?? "Street dog"}
                 seed={dog.id}
-                className="h-44 w-full"
+                className="h-48 w-full"
               />
               <span
-                className="chip absolute left-2 top-2 text-white shadow"
-                style={{ backgroundColor: meta.color }}
+                className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md"
               >
-                <span aria-hidden>{meta.emoji}</span>
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: meta.color }}
+                />
                 {meta.label}
               </span>
               <button
                 onClick={onClose}
                 aria-label="Close"
-                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white"
+                className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-md transition-colors hover:bg-black/60"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-3 p-4">
+            <div className="space-y-5 p-5">
               <div>
-                <h2 className="font-display text-xl font-extrabold">
+                <h2 className="font-display text-[26px] font-bold leading-tight tracking-tightest">
                   {dog.name ?? "Unnamed dog"}
                 </h2>
-                <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-bark-500">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" /> {dog.zone}
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-bark-500">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4" /> {dog.zone}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" /> Last seen {timeAgo(dog.last_seen)}
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="h-4 w-4" /> Seen {timeAgo(dog.last_seen)}
                   </span>
                 </div>
               </div>
 
               {/* tags */}
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {tags.map((t) => (
                     <span
                       key={t}
-                      className="chip bg-bark-100 text-bark-600 dark:bg-bark-800 dark:text-bark-200"
+                      className="chip bg-bark-900/[0.05] text-bark-600 dark:bg-white/[0.06] dark:text-bark-200"
                     >
                       {t}
                     </span>
@@ -142,38 +144,34 @@ export function DogBottomSheet({
                 </div>
               )}
 
-              {/* share + report */}
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={share} className="btn-ghost py-2.5 text-sm">
+              <Link href={`/dog/${dog.id}`} className="btn-primary w-full py-3.5">
+                View full profile <ArrowRight className="h-4 w-4" />
+              </Link>
+
+              {/* actions */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button onClick={share} className="btn-ghost py-3 text-sm">
                   <Share2 className="h-4 w-4" /> Share
                 </button>
                 <button
                   onClick={() => flash("Thanks — flagged for review 🙏")}
-                  className="btn-ghost py-2.5 text-sm"
+                  className="btn-ghost py-3 text-sm"
                 >
                   <Flag className="h-4 w-4" /> Report
                 </button>
-              </div>
-
-              {/* secondary quick actions */}
-              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => onAction?.(dog, "saw")}
-                  className="btn-ghost py-2.5 text-sm"
+                  className="btn-ghost py-3 text-sm"
                 >
                   <Heart className="h-4 w-4 text-status-friendly" /> I saw this
                 </button>
                 <button
                   onClick={() => onAction?.(dog, "fed")}
-                  className="btn-ghost py-2.5 text-sm"
+                  className="btn-ghost py-3 text-sm"
                 >
                   <Utensils className="h-4 w-4 text-status-hungry" /> I fed this
                 </button>
               </div>
-
-              <Link href={`/dog/${dog.id}`} className="btn-primary w-full py-3">
-                View full profile <ArrowRight className="h-4 w-4" />
-              </Link>
             </div>
           </motion.div>
 

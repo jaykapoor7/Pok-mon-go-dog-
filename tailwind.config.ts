@@ -45,11 +45,17 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
+        display: ["var(--font-sans)", "system-ui", "sans-serif"],
+      },
+      letterSpacing: {
+        tightest: "-0.03em",
       },
       boxShadow: {
-        warm: "0 10px 40px -12px rgba(234, 88, 12, 0.35)",
-        card: "0 4px 24px -6px rgba(28, 25, 23, 0.12)",
+        // Soft, minimal elevation — premium, never noisy.
+        warm: "0 8px 24px -10px rgba(234, 88, 12, 0.32)",
+        card: "0 1px 2px rgba(17, 17, 19, 0.04), 0 14px 34px -18px rgba(17, 17, 19, 0.18)",
+        sheet: "0 -8px 40px -16px rgba(17, 17, 19, 0.28)",
+        pop: "0 12px 36px -14px rgba(17, 17, 19, 0.30)",
       },
       keyframes: {
         "paw-pop": {

@@ -69,8 +69,8 @@ export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
 
       {/* count pill */}
       {allDogs.length > 0 && (
-        <div className="absolute bottom-4 right-3 z-20">
-          <span className="chip bg-bark-900/85 text-white shadow-card">
+        <div className="absolute bottom-5 right-4 z-20">
+          <span className="chip bg-bark-900/90 px-3.5 py-2 font-semibold text-white shadow-pop backdrop-blur-md dark:bg-white/90 dark:text-bark-900">
             {dogs.length} {dogs.length === 1 ? "dog" : "dogs"}
           </span>
         </div>
@@ -79,12 +79,12 @@ export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
       {/* empty state */}
       {allDogs.length === 0 && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center p-6">
-          <div className="pointer-events-auto max-w-xs rounded-3xl bg-white/95 p-6 text-center shadow-warm dark:bg-bark-900/95">
-            <h2 className="font-display text-lg font-bold">
+          <div className="glass pointer-events-auto max-w-xs rounded-[28px] px-7 py-8 text-center shadow-pop">
+            <h2 className="font-display text-xl font-bold tracking-tightest">
               No sightings yet
             </h2>
-            <p className="mt-1 text-sm text-bark-500">Add the first one 🐕</p>
-            <button onClick={report} className="btn-primary mt-4 px-5 py-2.5 text-sm">
+            <p className="mt-1.5 text-sm text-bark-500">Add the first one 🐕</p>
+            <button onClick={report} className="btn-primary mt-5 px-5 py-3 text-sm">
               <PlusCircle className="h-4 w-4" /> Report a sighting
             </button>
           </div>
@@ -115,13 +115,15 @@ function FilterChip({
     <button
       onClick={onClick}
       className={cn(
-        "chip shrink-0 border shadow-card transition-all",
+        "chip shrink-0 px-3.5 py-2 transition-[background-color,color,box-shadow] duration-150",
         active
-          ? "border-paw-300 bg-paw-500 text-white"
-          : "border-white/60 bg-white/90 text-bark-700 hover:bg-white dark:border-bark-700 dark:bg-bark-800 dark:text-bark-100"
+          ? "bg-bark-900 text-white shadow-pop dark:bg-white dark:text-bark-900"
+          : "glass text-bark-700 shadow-card hover:bg-white dark:text-bark-100"
       )}
     >
-      <span aria-hidden>{emoji}</span>
+      <span aria-hidden className="opacity-90">
+        {emoji}
+      </span>
       {label}
     </button>
   );

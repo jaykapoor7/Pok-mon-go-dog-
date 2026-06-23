@@ -23,18 +23,18 @@ export function FloatingTopBar() {
   return (
     <>
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50 px-3 pt-3">
-        <div className="pointer-events-auto mx-auto flex max-w-3xl items-center justify-between gap-2 rounded-2xl border border-white/60 bg-white/80 px-3 py-2 shadow-card backdrop-blur-xl dark:border-bark-800 dark:bg-bark-900/80">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-paw-500 text-white shadow-warm">
+        <div className="glass pointer-events-auto mx-auto flex max-w-3xl items-center justify-between gap-2 rounded-[20px] px-2.5 py-2 shadow-card">
+          <Link href="/" className="flex items-center gap-2.5 pl-1">
+            <span className="flex h-7 w-7 items-center justify-center rounded-[10px] bg-paw-500 text-white">
               <PawPrint className="h-4 w-4" />
             </span>
-            <span className="font-display text-base font-extrabold tracking-tight">
-              StrayPaw<span className="text-paw-500"> Delhi</span>
+            <span className="font-display text-[15px] font-bold tracking-tightest">
+              StrayPaw<span className="text-bark-400"> Delhi</span>
             </span>
           </Link>
 
           <div className="flex items-center gap-2">
-            <button onClick={report} className="btn-primary px-3 py-2 text-sm">
+            <button onClick={report} className="btn-primary px-3.5 py-2 text-sm">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Report Sighting</span>
               <span className="sm:hidden">Report</span>
@@ -42,7 +42,7 @@ export function FloatingTopBar() {
             <button
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-bark-200 bg-white text-bark-700 hover:bg-bark-50 dark:border-bark-700 dark:bg-bark-800 dark:text-bark-100"
+              className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-black/[0.07] bg-bark-900/[0.04] text-bark-700 transition-colors hover:bg-bark-900/[0.07] dark:border-white/10 dark:bg-white/[0.06] dark:text-bark-100"
             >
               <Menu className="h-5 w-5" />
             </button>
