@@ -23,6 +23,10 @@ import type {
 
 export const DEMO_MODE = !isSupabaseConfigured;
 
+// Demo data is OFF by default — the app starts fresh and empty, and fills up
+// only with real sightings. Opt back in for local UI work with NEXT_PUBLIC_DEMO=1.
+const ALLOW_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+
 // ── Row mappers ──────────────────────────────────────────────
 
 function mapDog(row: any): Dog {
@@ -78,6 +82,16 @@ export async function getCityStats(): Promise<CityStats> {
     const { data } = await supa.rpc("get_city_stats");
     if (data) return data as CityStats;
   }
+  if (!ALLOW_DEMO) {
+    return {
+      dogsSpotted: 0,
+      dogsFed: 0,
+      dogsSterilised: 0,
+      dogsVaccinated: 0,
+      needsHelp: 0,
+      volunteers: 0,
+    };
+  }
   // Honest demo counts — no inflated multipliers.
   const dogs = DEMO.dogs;
   return {
@@ -102,7 +116,7 @@ export async function getAllDogs(): Promise<Dog[]> {
       .limit(2000);
     if (data) return data.map(mapDog);
   }
-  return DEMO.dogs;
+  return ALLOW_DEMO ? DEMO.dogs : [];
 }
 
 export async function getDogById(id: string): Promise<Dog | null> {
@@ -111,7 +125,7 @@ export async function getDogById(id: string): Promise<Dog | null> {
     const { data } = await supa.from("dogs").select("*").eq("id", id).single();
     return data ? mapDog(data) : null;
   }
-  return DEMO.dogs.find((d) => d.id === id) ?? null;
+  return ALLOW_DEMO ? DEMO.dogs.find((d) => d.id === id) ?? null : null;
 }
 
 /** Pure, client-safe filter applied to an already-fetched list. */
@@ -146,7 +160,7 @@ export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
       .limit(limit);
     if (data) return data.map(mapSighting);
   }
-  return DEMO.sightings.slice(0, limit);
+  return ALLOW_DEMO ? DEMO.sightings.slice(0, limit) : [];
 }
 
 export async function getAllSightings(limit = 100): Promise<Sighting[]> {
@@ -159,7 +173,7 @@ export async function getAllSightings(limit = 100): Promise<Sighting[]> {
       .limit(limit);
     if (data) return data.map(mapSighting);
   }
-  return DEMO.sightings;
+  return ALLOW_DEMO ? DEMO.sightings : [];
 }
 
 // ── Dog profile (aggregate) ──────────────────────────────────
@@ -232,7 +246,8 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
     };
   }
 
-  // Demo fallback.
+  // Demo fallback (off unless explicitly enabled).
+  if (!ALLOW_DEMO) return null;
   const dog = DEMO.dogs.find((d) => d.id === id);
   if (!dog) return null;
   return {
@@ -272,7 +287,7 @@ export async function getNGOs(): Promise<NGO[]> {
       }));
     }
   }
-  return DEMO_NGOS;
+  return ALLOW_DEMO ? DEMO_NGOS : [];
 }
 
 export async function getDogsNeedingHelp(): Promise<Dog[]> {

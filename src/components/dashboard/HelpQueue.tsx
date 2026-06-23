@@ -125,7 +125,7 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
         })}
         {visible.length === 0 && (
           <li className="p-8 text-center text-sm text-bark-400">
-            🎉 Queue cleared — every flagged dog has been handled.
+            No dogs flagged for help right now.
           </li>
         )}
       </ul>

@@ -185,6 +185,9 @@ export default async function DashboardPage() {
           {/* partner NGOs */}
           <div className="card p-5">
             <h3 className="mb-3 font-display font-bold">Partner NGOs</h3>
+            {ngos.length === 0 && (
+              <p className="text-sm text-bark-400">No partner NGOs added yet.</p>
+            )}
             <ul className="space-y-2">
               {ngos.map((n) => (
                 <li

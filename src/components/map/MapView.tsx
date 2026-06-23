@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { celebrate } from "@/lib/celebrate";
@@ -65,6 +66,21 @@ export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
       </div>
 
       <MapCanvas dogs={dogs} onAction={handleAction} />
+
+      {allDogs.length === 0 && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center p-6">
+          <div className="pointer-events-auto max-w-xs rounded-3xl bg-white/95 p-6 text-center shadow-warm">
+            <div className="mb-2 text-4xl">🐾</div>
+            <h2 className="font-display text-lg font-bold">No dogs yet</h2>
+            <p className="mt-1 text-sm text-bark-500">
+              This map is fresh. Add the first sighting to drop a pin on Delhi.
+            </p>
+            <Link href="/report" className="btn-primary mt-4 px-5 py-2.5 text-sm">
+              Report a dog
+            </Link>
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {toast && (

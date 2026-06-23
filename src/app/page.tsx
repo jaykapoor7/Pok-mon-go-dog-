@@ -79,17 +79,34 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {recent.map((s) => (
-            <SightingCard key={s.id} sighting={s} />
-          ))}
-        </div>
-
-        <div className="mt-8 flex justify-center sm:hidden">
-          <Link href="/feed" className="btn-ghost px-6 py-3">
-            See the full feed <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+        {recent.length === 0 ? (
+          <div className="card p-10 text-center">
+            <div className="mb-3 text-5xl">🐾</div>
+            <h3 className="font-display text-lg font-bold">
+              No sightings yet — the map is wide open
+            </h3>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-bark-500">
+              Be the first to put a Delhi street dog on the map. Every story
+              starts with one photo.
+            </p>
+            <Link href="/report" className="btn-primary mt-5 px-6 py-3">
+              Report the first dog <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {recent.map((s) => (
+                <SightingCard key={s.id} sighting={s} />
+              ))}
+            </div>
+            <div className="mt-8 flex justify-center sm:hidden">
+              <Link href="/feed" className="btn-ghost px-6 py-3">
+                See the full feed <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </>
+        )}
       </section>
 
       {/* closing CTA */}

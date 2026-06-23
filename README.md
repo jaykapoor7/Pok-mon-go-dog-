@@ -50,8 +50,10 @@ photo storage bucket, Row Level Security, and the secure write functions
 (`report_sighting`, `log_feed`, `get_city_stats`, …).
 
 **3. (Optional) Seed real starter dogs** so the map isn't empty on day one —
-run [`supabase/seed.sql`](./supabase/seed.sql). Every row is a genuine record,
-so stats stay honest.
+run [`supabase/seed.sql`](./supabase/seed.sql). **Skip this to launch
+completely fresh** — the app starts empty and fills with real sightings.
+Already seeded and want a clean slate? Run [`supabase/reset.sql`](./supabase/reset.sql)
+to wipe all data (schema is kept).
 
 **4. Get a Mapbox token** — free at
 [account.mapbox.com](https://account.mapbox.com/access-tokens/).
@@ -78,9 +80,9 @@ npm install
 npm run dev          # → http://localhost:3000
 ```
 
-With no keys set, the app falls back to built-in demo data so you can develop
-the UI offline (uploads won't persist in that mode). Add `.env.local` with the
-three values above to develop against your live Supabase project.
+By default the app starts **fresh and empty** — it shows only real data from
+your Supabase project. To explore the UI offline with built-in sample dogs,
+set `NEXT_PUBLIC_DEMO=1` in `.env.local` (never set this in production).
 
 ---
 
