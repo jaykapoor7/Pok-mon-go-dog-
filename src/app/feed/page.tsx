@@ -2,6 +2,8 @@ import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { SightingCard } from "@/components/feed/SightingCard";
 import { getAllSightings } from "@/lib/data";
+import { DEMO_MODE } from "@/lib/config";
+import { demoFeedSightings } from "@/lib/demo-sightings";
 
 export const metadata = {
   title: "Sightings Feed — StrayPaw Delhi",
@@ -11,10 +13,14 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function FeedPage() {
-  const sightings = await getAllSightings();
+  const realSightings = await getAllSightings();
+  // Demo sightings (read-only, isolated) keep the feed active at launch.
+  const sightings = DEMO_MODE
+    ? [...realSightings, ...demoFeedSightings]
+    : realSightings;
 
   return (
-    <div className="mx-auto max-w-xl px-4 pb-12 pt-24 sm:px-6">
+    <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="font-display text-2xl font-extrabold sm:text-3xl">

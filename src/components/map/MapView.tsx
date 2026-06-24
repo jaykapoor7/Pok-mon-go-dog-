@@ -98,23 +98,23 @@ export function MapView({
 
       <MapCanvas dogs={dogs} onSelect={setSelected} />
 
-      {/* Demo mode on/off toggle */}
-      <div className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
+      {/* Demo mode on/off toggle (raised so it clears the bottom nav) */}
+      <div className="absolute bottom-[5.5rem] left-3 z-20">
         <button
           onClick={toggleDemo}
           aria-pressed={demoOn}
           className={cn(
-            "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-pop backdrop-blur-md transition-colors",
+            "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold shadow-pop backdrop-blur-md transition-colors",
             demoOn
               ? "bg-paw-500 text-white"
               : "bg-white/90 text-bark-700 dark:bg-bark-900/85 dark:text-bark-100"
           )}
         >
           <Sparkles className="h-3.5 w-3.5" />
-          Demo mode
+          Demo
           <span
             className={cn(
-              "ml-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold",
+              "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
               demoOn ? "bg-white/25 text-white" : "bg-bark-900/10 text-bark-500 dark:bg-white/15 dark:text-bark-200"
             )}
           >
@@ -122,15 +122,6 @@ export function MapView({
           </span>
         </button>
       </div>
-
-      {/* count pill */}
-      {allDogs.length > 0 && (
-        <div className="absolute bottom-5 right-4 z-20">
-          <span className="chip bg-bark-900/90 px-3.5 py-2 font-semibold text-white shadow-pop backdrop-blur-md dark:bg-white/90 dark:text-bark-900">
-            {dogs.length} {dogs.length === 1 ? "dog" : "dogs"}
-          </span>
-        </div>
-      )}
 
       {/* empty state */}
       {allDogs.length === 0 && (

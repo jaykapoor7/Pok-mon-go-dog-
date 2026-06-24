@@ -146,6 +146,7 @@ export async function logSeen(dogId: string) {
 }
 
 export async function likeSighting(sightingId: string) {
+  if (sightingId.startsWith("demo-")) return; // demo sightings are never written
   const supa = getSupabase();
   if (!supa) return;
   await supa.rpc("like_sighting", { p_sighting_id: sightingId });

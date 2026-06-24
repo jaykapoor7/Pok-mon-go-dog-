@@ -64,7 +64,7 @@ export default async function DogProfilePage({
   const scheduled = sterilisations.find((s) => s.status === "scheduled");
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-12 pt-24 sm:px-6">
+    <div className="mx-auto max-w-3xl px-4 pb-32 pt-24 sm:px-6">
       {/* cover */}
       <div className="relative overflow-hidden rounded-[2rem] shadow-card">
         <DogPhoto

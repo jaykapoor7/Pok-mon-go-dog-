@@ -11,7 +11,7 @@ export default async function CasesPage() {
   const cases = await getCases();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-16 pt-24 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-5 flex items-end justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">

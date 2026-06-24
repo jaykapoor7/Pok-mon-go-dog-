@@ -172,7 +172,7 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-16 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-5">
         <h1 className="font-display text-2xl font-extrabold sm:text-3xl">
           Report a sighting 🐾

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { FloatingTopBar } from "@/components/nav/FloatingTopBar";
+import { BottomNav } from "@/components/nav/BottomNav";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 
@@ -40,12 +41,21 @@ export const metadata: Metadata = {
       "Discover, explore and upload sightings of Delhi's street dogs. Build a living database of every good boy and girl in the city.",
     type: "website",
     siteName: "StrayPaw Delhi",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "StrayPaw Delhi — Every dog has a story. Start seeing them.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "StrayPaw Delhi — Every dog has a story",
     description:
       "A community map for Delhi's street dogs. Spot a dog, snap a photo, help track feeding, vaccination & rescue.",
+    images: ["/og.png"],
   },
 };
 
@@ -71,6 +81,7 @@ export default function RootLayout({
           <AuthProvider>
             <FloatingTopBar />
             <main>{children}</main>
+            <BottomNav />
           </AuthProvider>
         </ThemeProvider>
       </body>

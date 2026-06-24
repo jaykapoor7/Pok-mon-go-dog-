@@ -37,7 +37,7 @@ export default async function CasePage({
   const cat = CASE_CATEGORY_META[c.category];
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-16 pt-24 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 pb-32 pt-24 sm:px-6">
       <Link
         href="/cases"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"

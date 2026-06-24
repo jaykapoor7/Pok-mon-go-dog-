@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { Plus, Minus, Locate } from "lucide-react";
 import type { Dog } from "@/lib/types";
 import { projectToBox, DELHI_ZONES, DELHI_CENTER } from "@/lib/delhi";
-import { DogMarker } from "./DogMarker";
+import { PhotoMarker } from "./PhotoMarker";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
@@ -234,8 +234,8 @@ export function FallbackMap({
           );
         })()}
 
-        {/* dog markers — playful, animated; counter-scaled to stay constant. */}
-        {dogs.map((dog, i) => {
+        {/* dog markers — meowmbai-style photo thumbnails; counter-scaled. */}
+        {dogs.map((dog) => {
           const { x, y } = projectToBox(dog.lat, dog.lng);
           return (
             <div
@@ -245,10 +245,18 @@ export function FallbackMap({
               style={{
                 left: `${x * 100}%`,
                 top: `${y * 100}%`,
-                transform: `translate(-50%, -100%) scale(${1 / t.scale})`,
+                transform: `translate(-50%, -50%) scale(${1 / t.scale})`,
               }}
             >
-              <DogMarker dog={dog} onSelect={onSelect} delay={Math.min(i * 35, 700)} />
+              <PhotoMarker
+                photo={dog.cover_photo}
+                seed={dog.id}
+                count={dog.sightings_count}
+                urgent={dog.needs_help}
+                size={44}
+                label={dog.name ?? "Dog"}
+                onClick={() => onSelect?.(dog)}
+              />
             </div>
           );
         })}

@@ -1,24 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { PawPrint, Menu, Plus } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { PawPrint, Menu } from "lucide-react";
+import { DEMO_MODE } from "@/lib/config";
+import { demoDogs } from "@/lib/demo-sightings";
 import { MenuDrawer } from "./MenuDrawer";
 
 /**
- * Floating top bar overlaid on the map-first UI.
- * Left: brand. Right: Report Sighting (login-gated) + hamburger menu.
+ * Floating top bar (meowmbai-style): brand on the left, a live dog count and
+ * the hamburger menu on the right. Reporting now lives in the bottom nav.
  */
 export function FloatingTopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { requireAuth } = useAuth();
-  const router = useRouter();
+  const [count, setCount] = useState<number | null>(null);
 
-  function report() {
-    requireAuth(() => router.push("/report"));
-  }
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive) setCount((d.dogs ?? 0) + (DEMO_MODE ? demoDogs.length : 0));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <>
@@ -34,11 +42,12 @@ export function FloatingTopBar() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <button onClick={report} className="btn-primary px-3.5 py-2 text-sm">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Report Sighting</span>
-              <span className="sm:hidden">Report</span>
-            </button>
+            {count !== null && (
+              <span className="flex items-center gap-1 px-1 text-sm font-semibold text-bark-600 dark:text-bark-300">
+                <span className="text-paw-600">{count.toLocaleString("en-IN")}</span>
+                dogs
+              </span>
+            )}
             <button
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"

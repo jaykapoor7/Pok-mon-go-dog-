@@ -1,21 +1,19 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Map, {
   Marker,
   NavigationControl,
   GeolocateControl,
   type MapRef,
 } from "react-map-gl";
-import type { MapboxEvent } from "mapbox-gl";
+import Supercluster from "supercluster";
+import type { PointFeature } from "supercluster";
 import { DELHI_CENTER } from "@/lib/delhi";
-import { DogMarker } from "./DogMarker";
+import { PhotoMarker } from "./PhotoMarker";
 import type { Dog } from "@/lib/types";
 
-// Symbol/label layers to hide for a calm "canvas" base map.
-const NOISE = /poi|transit|ferry|airport|natural-point|road-(number|exit)|road-label-(small|medium)/i;
-const DIM_LABELS = /label|place|settlement|state|country/i;
-const ROADS = /road|bridge|tunnel|street/i;
+type Props = { id: string; cover: string; urgent: boolean; sightings: number };
 
 export function MapboxMap({
   token,
@@ -30,22 +28,44 @@ export function MapboxMap({
   const [isDark] = useState(
     () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   );
+  const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
+  const [zoom, setZoom] = useState(11.2);
 
-  // Declutter the base style into a calm canvas under the playful markers.
-  const onLoad = useCallback((e: MapboxEvent) => {
-    const map = e.target;
-    for (const l of map.getStyle().layers ?? []) {
-      try {
-        if (l.type === "symbol") {
-          if (NOISE.test(l.id)) map.setLayoutProperty(l.id, "visibility", "none");
-          else if (DIM_LABELS.test(l.id)) map.setPaintProperty(l.id, "text-opacity", 0.55);
-        } else if (l.type === "line" && ROADS.test(l.id)) {
-          map.setPaintProperty(l.id, "line-opacity", 0.45);
-        }
-      } catch {
-        /* layer not paintable — skip */
-      }
-    }
+  const byId = useMemo(() => {
+    const m: Record<string, Dog> = {};
+    for (const d of dogs) m[d.id] = d;
+    return m;
+  }, [dogs]);
+
+  // Build the cluster index from the dogs.
+  const index = useMemo(() => {
+    const points: PointFeature<Props>[] = dogs.map((d) => ({
+      type: "Feature",
+      properties: {
+        id: d.id,
+        cover: d.cover_photo,
+        urgent: d.needs_help,
+        sightings: d.sightings_count,
+      },
+      geometry: { type: "Point", coordinates: [d.lng, d.lat] },
+    }));
+    const sc = new Supercluster<Props>({ radius: 70, maxZoom: 16 });
+    sc.load(points);
+    return sc;
+  }, [dogs]);
+
+  const clusters = useMemo(
+    () => (bounds ? index.getClusters(bounds, Math.floor(zoom)) : []),
+    [index, bounds, zoom]
+  );
+
+  // Recompute clusters only when movement settles → smooth, no jank.
+  const sync = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const b = map.getBounds();
+    if (b) setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+    setZoom(map.getZoom());
   }, []);
 
   return (
@@ -53,31 +73,58 @@ export function MapboxMap({
       ref={mapRef}
       mapboxAccessToken={token}
       initialViewState={{ ...DELHI_CENTER, zoom: 11.2 }}
-      mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11"}
-      onLoad={onLoad}
+      mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
+      onLoad={sync}
+      onMoveEnd={sync}
       style={{ width: "100%", height: "100%" }}
       attributionControl={false}
-      fadeDuration={300}
       reuseMaps
     >
       <GeolocateControl
-        position="bottom-left"
+        position="bottom-right"
         trackUserLocation
-        showUserHeading
         positionOptions={{ enableHighAccuracy: true }}
       />
-      <NavigationControl position="bottom-left" showCompass={false} />
+      <NavigationControl position="bottom-right" showCompass={false} />
 
-      {dogs.map((dog, i) => (
-        <Marker
-          key={dog.id}
-          longitude={dog.lng}
-          latitude={dog.lat}
-          anchor="bottom"
-        >
-          <DogMarker dog={dog} onSelect={onSelect} delay={Math.min(i * 35, 700)} />
-        </Marker>
-      ))}
+      {clusters.map((c) => {
+        const [lng, lat] = c.geometry.coordinates;
+
+        if ("cluster" in c.properties) {
+          const clusterId = c.properties.cluster_id;
+          const count = c.properties.point_count;
+          const leaf = index.getLeaves(clusterId, 1)[0] as PointFeature<Props>;
+          return (
+            <Marker key={`cluster-${clusterId}`} longitude={lng} latitude={lat} anchor="center">
+              <PhotoMarker
+                photo={leaf?.properties.cover}
+                seed={`cluster-${clusterId}`}
+                count={count}
+                label={`${count} dogs here`}
+                onClick={() => {
+                  const z = Math.min(index.getClusterExpansionZoom(clusterId), 16);
+                  mapRef.current?.easeTo({ center: [lng, lat], zoom: z, duration: 500 });
+                }}
+              />
+            </Marker>
+          );
+        }
+
+        const props = c.properties;
+        const dog = byId[props.id];
+        return (
+          <Marker key={props.id} longitude={lng} latitude={lat} anchor="center">
+            <PhotoMarker
+              photo={props.cover}
+              seed={props.id}
+              count={props.sightings}
+              urgent={props.urgent}
+              label={dog?.name ?? "Dog"}
+              onClick={() => dog && onSelect?.(dog)}
+            />
+          </Marker>
+        );
+      })}
     </Map>
   );
 }

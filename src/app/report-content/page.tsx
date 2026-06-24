@@ -39,7 +39,7 @@ export default function ReportContentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-20 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
       <Link
         href="/"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"

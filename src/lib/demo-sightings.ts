@@ -14,7 +14,7 @@ import { DELHI_BOUNDS, nearestZone } from "./delhi";
 import { DOG_PHOTOS } from "./photos";
 import { seededRandom } from "./utils";
 import { DEMO_ID_PREFIX } from "./config";
-import type { Dog, DogProfile, DogSize } from "./types";
+import type { Dog, DogProfile, DogSize, Sighting, MoodTag } from "./types";
 
 export type DemoTag = "hungry" | "injured" | "friendly" | "sleeping" | "roaming";
 
@@ -193,3 +193,37 @@ export function getDemoProfile(id: string): DogProfile | null {
     matchSuggestions: [],
   };
 }
+
+// ── Demo sightings for the FEED (so /feed looks active too) ───────
+const REPORTERS = ["Aarav", "Priya", "Kabir", "Ishita", "Rohan", "Neha", "Sara", "Arjun"];
+const TAG_TO_MOOD: Partial<Record<DemoTag, MoodTag>> = {
+  hungry: "hungry",
+  injured: "injured",
+  friendly: "friendly",
+  sleeping: "sleeping",
+};
+
+export const demoFeedSightings: Sighting[] = demoSightings
+  .map((s): Sighting => {
+    const dog = byId.get(s.id)!;
+    const mood = TAG_TO_MOOD[s.tag];
+    return {
+      id: `${s.id}-feed`,
+      dog_id: s.id,
+      user_id: "",
+      user_name: REPORTERS[Math.floor(seededRandom(`${s.id}-rep`) * REPORTERS.length)],
+      user_avatar: null,
+      photo_url: dog.cover_photo,
+      lat: s.latitude,
+      lng: s.longitude,
+      zone: dog.zone,
+      nickname: dog.name,
+      mood_tags: mood ? [mood] : [],
+      notes: s.note ?? null,
+      trust_score: dog.trust_score,
+      likes: Math.floor(seededRandom(`${s.id}-likes`) * 180),
+      status: "live",
+      created_at: s.timestamp,
+    };
+  })
+  .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));

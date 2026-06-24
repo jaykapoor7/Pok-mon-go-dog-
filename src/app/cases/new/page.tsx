@@ -95,7 +95,7 @@ function NewCaseInner() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-16 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
       <Link
         href="/cases"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
