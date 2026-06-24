@@ -1,7 +1,6 @@
 import { MapView } from "@/components/map/MapView";
 import { getAllDogs } from "@/lib/data";
 import { DEMO_MODE } from "@/lib/config";
-import { demoDogs } from "@/lib/demo-sightings";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +10,9 @@ export const metadata = {
     "A live, community-powered map of Delhi's street dogs. Browse sightings, then report your own.",
 };
 
-// Map-first: the home screen IS the interactive map.
+// Map-first: the home screen IS the interactive map. Demo dogs are merged
+// client-side in MapView so they can be toggled on/off live.
 export default async function HomePage() {
   const realDogs = await getAllDogs();
-  // Demo dogs are read-only and isolated; they only ride along on the map view.
-  const dogs = DEMO_MODE ? [...realDogs, ...demoDogs] : realDogs;
-  return <MapView dogs={dogs} demoMode={DEMO_MODE} />;
+  return <MapView dogs={realDogs} demoDefault={DEMO_MODE} />;
 }

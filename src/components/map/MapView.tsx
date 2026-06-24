@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Sparkles } from "lucide-react";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogBottomSheet } from "@/components/map/DogBottomSheet";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { demoDogs } from "@/lib/demo-sightings";
 import {
   markerStateFor,
   MARKER_META,
@@ -18,18 +19,43 @@ import { cn } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 type Filter = "all" | MarkerState;
+const DEMO_PREF_KEY = "straypaw.demo_on";
 
 export function MapView({
-  dogs: allDogs,
-  demoMode = false,
+  dogs: realDogs,
+  demoDefault = false,
 }: {
   dogs: Dog[];
-  demoMode?: boolean;
+  demoDefault?: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
+  const [demoOn, setDemoOn] = useState(demoDefault);
   const { requireAuth } = useAuth();
   const router = useRouter();
+
+  // Restore the user's last demo on/off choice (client-only, no flicker).
+  useEffect(() => {
+    const saved = localStorage.getItem(DEMO_PREF_KEY);
+    if (saved !== null) setDemoOn(saved === "1");
+  }, []);
+
+  function toggleDemo() {
+    setDemoOn((on) => {
+      const next = !on;
+      try {
+        localStorage.setItem(DEMO_PREF_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
+
+  const allDogs = useMemo(
+    () => (demoOn ? [...realDogs, ...demoDogs] : realDogs),
+    [realDogs, demoOn]
+  );
 
   const dogs = useMemo(
     () =>
@@ -57,7 +83,6 @@ export function MapView({
             active={filter === "all"}
             onClick={() => setFilter("all")}
             label="All"
-            emoji="🗺️"
           />
           {MARKER_ORDER.map((s) => (
             <FilterChip
@@ -65,7 +90,7 @@ export function MapView({
               active={filter === s}
               onClick={() => setFilter(s)}
               label={MARKER_META[s].label}
-              emoji={MARKER_META[s].emoji}
+              color={MARKER_META[s].color}
             />
           ))}
         </div>
@@ -73,15 +98,30 @@ export function MapView({
 
       <MapCanvas dogs={dogs} onSelect={setSelected} />
 
-      {/* subtle "Demo Mode Active" indicator */}
-      {demoMode && (
-        <div className="pointer-events-none absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-bark-900/80 px-3 py-1.5 text-[11px] font-medium text-white/90 backdrop-blur-md dark:bg-white/85 dark:text-bark-900">
-            <span className="h-1.5 w-1.5 rounded-full bg-paw-400" />
-            Demo Mode Active
+      {/* Demo mode on/off toggle */}
+      <div className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
+        <button
+          onClick={toggleDemo}
+          aria-pressed={demoOn}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-pop backdrop-blur-md transition-colors",
+            demoOn
+              ? "bg-paw-500 text-white"
+              : "bg-white/90 text-bark-700 dark:bg-bark-900/85 dark:text-bark-100"
+          )}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Demo mode
+          <span
+            className={cn(
+              "ml-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold",
+              demoOn ? "bg-white/25 text-white" : "bg-bark-900/10 text-bark-500 dark:bg-white/15 dark:text-bark-200"
+            )}
+          >
+            {demoOn ? "ON" : "OFF"}
           </span>
-        </div>
-      )}
+        </button>
+      </div>
 
       {/* count pill */}
       {allDogs.length > 0 && (
@@ -99,7 +139,7 @@ export function MapView({
             <h2 className="font-display text-xl font-bold tracking-tightest">
               No sightings yet
             </h2>
-            <p className="mt-1.5 text-sm text-bark-500">Add the first one 🐕</p>
+            <p className="mt-1.5 text-sm text-bark-500">Add the first one.</p>
             <button onClick={report} className="btn-primary mt-5 px-5 py-3 text-sm">
               <PlusCircle className="h-4 w-4" /> Report a sighting
             </button>
@@ -120,12 +160,12 @@ function FilterChip({
   active,
   onClick,
   label,
-  emoji,
+  color,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
-  emoji: string;
+  color?: string;
 }) {
   return (
     <button
@@ -137,9 +177,13 @@ function FilterChip({
           : "glass text-bark-700 shadow-card hover:bg-white dark:text-bark-100"
       )}
     >
-      <span aria-hidden className="opacity-90">
-        {emoji}
-      </span>
+      {color && (
+        <span
+          aria-hidden
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: color }}
+        />
+      )}
       {label}
     </button>
   );

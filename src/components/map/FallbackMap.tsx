@@ -228,10 +228,8 @@ export function FallbackMap({
               className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
               style={{ left: `${x * 100}%`, top: `${y * 100}%`, transform: `translate(-50%, -50%) scale(${1 / t.scale})` }}
             >
-              <span className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paw-500/25 animate-pulse-ring" />
-              <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-paw-500 text-[11px] text-white ring-[3px] ring-white shadow-md dark:ring-bark-900">
-                🐾
-              </span>
+              <span className="absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paw-500/15" />
+              <span className="relative block h-3.5 w-3.5 rounded-full bg-paw-500 ring-[3px] ring-white shadow-md dark:ring-bark-900" />
             </div>
           );
         })()}
