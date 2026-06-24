@@ -1,14 +1,15 @@
 "use client";
 
-import { FallbackMap } from "./FallbackMap";
 import { MapboxMap } from "./MapboxMap";
+import { MapLibreMap } from "./MapLibreMap";
 import type { Dog } from "@/lib/types";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 /**
- * Chooses the live Mapbox map when a token is available, otherwise the
- * interactive stylised fallback. Both bubble a tapped dog up via onSelect.
+ * Real, scrollable map. Uses Mapbox when a token is configured; otherwise a
+ * keyless OpenStreetMap (MapLibre + OpenFreeMap) so a full Google-Maps-style
+ * map always renders. Both bubble a tapped dog up via onSelect.
  */
 export function DogMap({
   dogs,
@@ -20,5 +21,5 @@ export function DogMap({
   if (TOKEN) {
     return <MapboxMap token={TOKEN} dogs={dogs} onSelect={onSelect} />;
   }
-  return <FallbackMap dogs={dogs} onSelect={onSelect} />;
+  return <MapLibreMap dogs={dogs} onSelect={onSelect} />;
 }

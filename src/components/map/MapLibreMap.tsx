@@ -6,28 +6,26 @@ import Map, {
   NavigationControl,
   GeolocateControl,
   type MapRef,
-} from "react-map-gl";
+} from "react-map-gl/maplibre";
 import Supercluster from "supercluster";
 import type { PointFeature } from "supercluster";
 import { DELHI_CENTER } from "@/lib/delhi";
 import { PhotoMarker } from "./PhotoMarker";
 import type { Dog } from "@/lib/types";
 
+// Free, keyless, full-detail OpenStreetMap vector style (Google-Maps-like).
+const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+
 type Props = { id: string; cover: string; urgent: boolean; sightings: number };
 
-export function MapboxMap({
-  token,
+export function MapLibreMap({
   dogs,
   onSelect,
 }: {
-  token: string;
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
 }) {
   const mapRef = useRef<MapRef>(null);
-  const [isDark] = useState(
-    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-  );
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
   const [zoom, setZoom] = useState(10.5);
 
@@ -37,7 +35,6 @@ export function MapboxMap({
     return m;
   }, [dogs]);
 
-  // Build the cluster index from the dogs.
   const index = useMemo(() => {
     const points: PointFeature<Props>[] = dogs.map((d) => ({
       type: "Feature",
@@ -59,7 +56,6 @@ export function MapboxMap({
     [index, bounds, zoom]
   );
 
-  // Recompute clusters only when movement settles → smooth, no jank.
   const sync = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -71,9 +67,8 @@ export function MapboxMap({
   return (
     <Map
       ref={mapRef}
-      mapboxAccessToken={token}
       initialViewState={{ ...DELHI_CENTER, zoom: 10.5 }}
-      mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
+      mapStyle={STYLE_URL}
       onLoad={sync}
       onMoveEnd={sync}
       style={{ width: "100%", height: "100%" }}

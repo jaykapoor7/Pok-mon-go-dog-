@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { FloatingTopBar } from "@/components/nav/FloatingTopBar";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";

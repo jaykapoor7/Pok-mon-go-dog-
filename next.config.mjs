@@ -8,8 +8,8 @@ const nextConfig = {
       { protocol: "https", hostname: "*.supabase.co" },
     ],
   },
-  // mapbox-gl ships untranspiled ESM in places; keep it happy in the bundle.
-  transpilePackages: ["react-map-gl", "mapbox-gl"],
+  // mapbox-gl / maplibre-gl ship untranspiled ESM in places; keep them happy.
+  transpilePackages: ["react-map-gl", "mapbox-gl", "maplibre-gl"],
 };
 
 export default nextConfig;
