@@ -15,6 +15,9 @@
 export const DEMO_MODE =
   (process.env.NEXT_PUBLIC_DEMO_MODE ?? "true").toLowerCase() === "true";
 
+/** localStorage key for the user's demo on/off choice (shared across the app). */
+export const DEMO_PREF_KEY = "straypaw.demo_on";
+
 /** All demo records carry this id prefix so writes can safely ignore them. */
 export const DEMO_ID_PREFIX = "demo-";
 

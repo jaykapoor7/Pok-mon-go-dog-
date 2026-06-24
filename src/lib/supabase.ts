@@ -1,23 +1,41 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
-/** True when real Supabase credentials are configured. */
+/** Only accept a well-formed http(s) URL — guards against bad/empty env values
+ *  that would otherwise crash createClient (and the build). */
+function validUrl(u?: string): string | null {
+  if (!u) return null;
+  try {
+    const p = new URL(u);
+    return p.protocol === "http:" || p.protocol === "https:" ? u : null;
+  } catch {
+    return null;
+  }
+}
+
+const url = validUrl(rawUrl);
+
+/** True when valid Supabase credentials are configured. */
 export const isSupabaseConfigured = Boolean(url && anonKey);
 
 let client: SupabaseClient | null = null;
 
 /**
- * Returns a Supabase client, or null when running in demo mode.
- * The data layer (lib/data.ts) transparently falls back to demo data.
+ * Returns a Supabase client, or null when not configured / misconfigured.
+ * Never throws — the data layer transparently falls back to demo data.
  */
 export function getSupabase(): SupabaseClient | null {
   if (!isSupabaseConfigured) return null;
   if (!client) {
-    client = createClient(url!, anonKey!, {
-      auth: { persistSession: true, autoRefreshToken: true },
-    });
+    try {
+      client = createClient(url!, anonKey!, {
+        auth: { persistSession: true, autoRefreshToken: true },
+      });
+    } catch {
+      return null;
+    }
   }
   return client;
 }
@@ -29,9 +47,13 @@ export function getSupabase(): SupabaseClient | null {
  * service role key is not exposed to the browser.
  */
 export function getSupabaseAdmin(): SupabaseClient | null {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!url || !serviceKey) return null;
-  return createClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  try {
+    return createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  } catch {
+    return null;
+  }
 }

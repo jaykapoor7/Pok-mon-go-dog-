@@ -67,7 +67,7 @@ export function MapLibreMap({
   return (
     <Map
       ref={mapRef}
-      initialViewState={{ ...DELHI_CENTER, zoom: 10.5 }}
+      initialViewState={{ longitude: DELHI_CENTER.lng, latitude: DELHI_CENTER.lat, zoom: 10.5 }}
       mapStyle={STYLE_URL}
       onLoad={sync}
       onMoveEnd={sync}

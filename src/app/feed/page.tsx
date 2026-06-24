@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
-import { SightingCard } from "@/components/feed/SightingCard";
+import { FeedList } from "@/components/feed/FeedList";
 import { getAllSightings } from "@/lib/data";
-import { DEMO_MODE } from "@/lib/config";
 import { demoFeedSightings } from "@/lib/demo-sightings";
 
 export const metadata = {
@@ -14,45 +13,20 @@ export const dynamic = "force-dynamic";
 
 export default async function FeedPage() {
   const realSightings = await getAllSightings();
-  // Demo sightings (read-only, isolated) keep the feed active at launch.
-  const sightings = DEMO_MODE
-    ? [...realSightings, ...demoFeedSightings]
-    : realSightings;
 
   return (
     <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
-      <header className="mb-6 flex items-end justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold sm:text-3xl">
-            Sightings
-          </h1>
-          <p className="text-sm text-bark-500">
-            {sightings.length} moments from Delhi&apos;s streets
-          </p>
-        </div>
+      <header className="mb-5 flex items-center justify-between">
+        <h1 className="font-display text-2xl font-extrabold sm:text-3xl">
+          Sightings
+        </h1>
         <Link href="/report" className="btn-primary px-4 py-2 text-sm">
           <PlusCircle className="h-4 w-4" /> Add
         </Link>
       </header>
 
-      {sightings.length === 0 ? (
-        <div className="card mt-4 p-10 text-center">
-          <div className="mb-3 text-5xl">🐾</div>
-          <h2 className="font-display text-lg font-bold">No sightings yet</h2>
-          <p className="mt-1 text-sm text-bark-500">
-            Be the very first to put a Delhi street dog on the map.
-          </p>
-          <Link href="/report" className="btn-primary mt-5 px-6 py-3">
-            <PlusCircle className="h-4 w-4" /> Report a dog
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {sightings.map((s) => (
-            <SightingCard key={s.id} sighting={s} />
-          ))}
-        </div>
-      )}
+      {/* Demo sightings are merged client-side only when Demo Mode is on. */}
+      <FeedList real={realSightings} demo={demoFeedSightings} />
     </div>
   );
 }

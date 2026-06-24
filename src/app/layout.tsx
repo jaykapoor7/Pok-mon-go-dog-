@@ -7,6 +7,7 @@ import { FloatingTopBar } from "@/components/nav/FloatingTopBar";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { DemoModeProvider } from "@/components/demo/DemoModeProvider";
 
 // One restrained family across the app (regular + semibold). Display tier is
 // the same family at a heavier weight — premium, minimal, no font clutter.
@@ -80,9 +81,11 @@ export default function RootLayout({
       <body className="min-h-dvh font-sans">
         <ThemeProvider>
           <AuthProvider>
-            <FloatingTopBar />
-            <main>{children}</main>
-            <BottomNav />
+            <DemoModeProvider>
+              <FloatingTopBar />
+              <main>{children}</main>
+              <BottomNav />
+            </DemoModeProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

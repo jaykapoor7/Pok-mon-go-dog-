@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PawPrint, Menu } from "lucide-react";
-import { DEMO_MODE } from "@/lib/config";
 import { demoDogs } from "@/lib/demo-sightings";
+import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import { MenuDrawer } from "./MenuDrawer";
 
 /**
@@ -13,20 +13,25 @@ import { MenuDrawer } from "./MenuDrawer";
  */
 export function FloatingTopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [count, setCount] = useState<number | null>(null);
+  const [realCount, setRealCount] = useState<number | null>(null);
+  const { demoOn } = useDemoMode();
 
   useEffect(() => {
     let alive = true;
     fetch("/api/stats")
       .then((r) => r.json())
       .then((d) => {
-        if (alive) setCount((d.dogs ?? 0) + (DEMO_MODE ? demoDogs.length : 0));
+        if (alive) setRealCount(d.dogs ?? 0);
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
   }, []);
+
+  // Count reflects what's on the map: real dogs, plus demo when it's on.
+  const count =
+    realCount === null ? null : realCount + (demoOn ? demoDogs.length : 0);
 
   return (
     <>

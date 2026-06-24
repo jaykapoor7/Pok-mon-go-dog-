@@ -72,7 +72,7 @@ export function MapboxMap({
     <Map
       ref={mapRef}
       mapboxAccessToken={token}
-      initialViewState={{ ...DELHI_CENTER, zoom: 10.5 }}
+      initialViewState={{ longitude: DELHI_CENTER.lng, latitude: DELHI_CENTER.lat, zoom: 10.5 }}
       mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       onLoad={sync}
       onMoveEnd={sync}

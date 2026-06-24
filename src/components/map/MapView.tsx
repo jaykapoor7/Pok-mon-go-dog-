@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlusCircle, Sparkles } from "lucide-react";
 import { MapCanvas } from "@/components/map/MapCanvas";
@@ -8,6 +8,7 @@ import { DogBottomSheet } from "@/components/map/DogBottomSheet";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import { demoDogs } from "@/lib/demo-sightings";
 import {
   markerStateFor,
@@ -19,38 +20,13 @@ import { cn } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 type Filter = "all" | MarkerState;
-const DEMO_PREF_KEY = "straypaw.demo_on";
 
-export function MapView({
-  dogs: realDogs,
-  demoDefault = false,
-}: {
-  dogs: Dog[];
-  demoDefault?: boolean;
-}) {
+export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
-  const [demoOn, setDemoOn] = useState(demoDefault);
+  const { demoOn, toggle: toggleDemo } = useDemoMode();
   const { requireAuth } = useAuth();
   const router = useRouter();
-
-  // Restore the user's last demo on/off choice (client-only, no flicker).
-  useEffect(() => {
-    const saved = localStorage.getItem(DEMO_PREF_KEY);
-    if (saved !== null) setDemoOn(saved === "1");
-  }, []);
-
-  function toggleDemo() {
-    setDemoOn((on) => {
-      const next = !on;
-      try {
-        localStorage.setItem(DEMO_PREF_KEY, next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  }
 
   const allDogs = useMemo(
     () => (demoOn ? [...realDogs, ...demoDogs] : realDogs),
