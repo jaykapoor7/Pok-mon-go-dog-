@@ -182,3 +182,116 @@ export type MapFilter =
   | "needs_help"
   | "sterilised"
   | "vaccinated";
+
+// ─────────────────────────────────────────────────────────────
+// NGO operations layer (cases) — mirrors /supabase/cases.sql
+// ─────────────────────────────────────────────────────────────
+
+export type CaseStatus =
+  | "unverified"
+  | "assigned"
+  | "in_progress"
+  | "resolved"
+  | "closed";
+
+export type CaseSeverity = "low" | "normal" | "high" | "critical";
+
+export type CaseCategory =
+  | "injury"
+  | "sterilisation"
+  | "rescue"
+  | "vaccination"
+  | "other";
+
+export type CaseResolution = "sterilized" | "rescued" | "treated";
+
+export type CaseUpdateType =
+  | "created"
+  | "claimed"
+  | "assigned"
+  | "status_changed"
+  | "note"
+  | "reopened";
+
+export interface Volunteer {
+  id: string;
+  name: string;
+  phone: string | null;
+  ngo_id: string | null;
+}
+
+export interface Case {
+  id: string;
+  dog_id: string | null;
+  title: string;
+  description: string | null;
+  zone: string | null;
+  lat: number | null;
+  lng: number | null;
+  severity: CaseSeverity;
+  category: CaseCategory;
+  tags: string[];
+  status: CaseStatus;
+  resolution: CaseResolution | null;
+  assignee_id: string | null;
+  assignee_name: string | null;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+  last_activity_at: string;
+  due_at: string | null;
+}
+
+export interface CaseUpdate {
+  id: string;
+  case_id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  type: CaseUpdateType;
+  from_status: CaseStatus | null;
+  to_status: CaseStatus | null;
+  note: string | null;
+  created_at: string;
+}
+
+export const CASE_STATUS_META: Record<
+  CaseStatus,
+  { label: string; color: string }
+> = {
+  unverified: { label: "Unverified", color: "#64748b" },
+  assigned: { label: "Assigned", color: "#3b82f6" },
+  in_progress: { label: "In Progress", color: "#f59e0b" },
+  resolved: { label: "Resolved", color: "#10b981" },
+  closed: { label: "Closed", color: "#78716c" },
+};
+
+export const CASE_SEVERITY_META: Record<
+  CaseSeverity,
+  { label: string; color: string }
+> = {
+  low: { label: "Low", color: "#94a3b8" },
+  normal: { label: "Normal", color: "#64748b" },
+  high: { label: "High", color: "#f97316" },
+  critical: { label: "Critical", color: "#ef4444" },
+};
+
+export const CASE_CATEGORY_META: Record<
+  CaseCategory,
+  { label: string; emoji: string }
+> = {
+  injury: { label: "Injury", emoji: "🚑" },
+  sterilisation: { label: "Sterilisation", emoji: "✂️" },
+  rescue: { label: "Rescue", emoji: "🆘" },
+  vaccination: { label: "Vaccination", emoji: "💉" },
+  other: { label: "Other", emoji: "📋" },
+};
+
+/** Days without activity before a case is considered overdue. */
+export const OVERDUE_DAYS = 5;
+
+export function isOverdue(c: Case): boolean {
+  if (c.status === "resolved" || c.status === "closed") return false;
+  const days = (Date.now() - +new Date(c.last_activity_at)) / 86_400_000;
+  return days >= OVERDUE_DAYS;
+}

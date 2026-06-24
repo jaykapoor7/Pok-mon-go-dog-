@@ -10,6 +10,7 @@ import {
   Quote,
   GitMerge,
   ArrowRight,
+  ClipboardList,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge, TrustRing } from "@/components/ui/Badges";
@@ -111,6 +112,14 @@ export default async function DogProfilePage({
       <div className="mt-5">
         <DogActions dogId={dog.id} name={dog.name ?? "this dog"} />
       </div>
+
+      {/* NGO continuity: open an operational case for this dog */}
+      <Link
+        href={`/cases/new?dog=${dog.id}`}
+        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-bark-700 transition-colors hover:border-black/20 dark:border-white/10 dark:text-bark-200"
+      >
+        <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for {dog.name}
+      </Link>
 
       {/* health */}
       <Section title="Health & care">

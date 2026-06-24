@@ -7,6 +7,7 @@ import {
   Map as MapIcon,
   Images,
   LayoutDashboard,
+  ClipboardList,
   Moon,
   Sun,
   LogOut,
@@ -18,8 +19,9 @@ import { useAuth } from "@/components/auth/AuthProvider";
 
 const PRIMARY = [
   { href: "/", label: "Explore map", icon: MapIcon },
-  { href: "/feed", label: "Sightings feed", icon: Images },
+  { href: "/cases", label: "Cases", icon: ClipboardList },
   { href: "/dashboard", label: "NGO dashboard", icon: LayoutDashboard },
+  { href: "/feed", label: "Sightings feed", icon: Images },
 ];
 
 const INFO = [

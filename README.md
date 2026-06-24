@@ -97,6 +97,25 @@ can't be skipped by a bot hitting the API directly.
 If these keys are absent the form still works — it just isn't spam-protected,
 which is fine for local development.
 
+### NGO operations — Cases (Phase 1: lifecycle + ownership)
+
+An operational layer for NGOs, separate from the public map. A **Case** is a
+unit of work (injury, sterilisation, rescue…) optionally linked to a dog for
+continuity. Each case has a lifecycle (`unverified → assigned → in_progress →
+resolved → closed`, plus reopen), an **assignee** (claim / ownership badge),
+and a full **audit trail** (`case_updates`). Only the assignee can change a
+case's status; every change records who/what/when.
+
+- Run [`supabase/cases.sql`](./supabase/cases.sql) once in the SQL Editor.
+- Reachable at **`/cases`** (and from the menu). Open a case from any dog
+  profile via "Open a case".
+- Identity reuses the existing lightweight sign-in (no new auth). Enforcement
+  is server-recorded but soft (no passwords) — upgrade to Supabase Auth for
+  hard enforcement later.
+
+> Phases 2–5 (daily command dashboard, rule-based alerts, impact/CSV export,
+> deeper dog continuity) build on this foundation.
+
 ### Moderation (sightings are reviewed before going public)
 
 New sightings are created as **`pending`** and are invisible everywhere public.
