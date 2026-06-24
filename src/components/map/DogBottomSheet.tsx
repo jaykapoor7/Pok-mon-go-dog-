@@ -143,6 +143,13 @@ export function DogBottomSheet({
                 </div>
               </div>
 
+              {/* note (human-written) */}
+              {dog.community_notes[0] && (
+                <p className="rounded-2xl bg-bark-900/[0.04] px-4 py-3 text-sm text-bark-700 dark:bg-white/[0.05] dark:text-bark-200">
+                  “{dog.community_notes[0]}”
+                </p>
+              )}
+
               {/* tags */}
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">

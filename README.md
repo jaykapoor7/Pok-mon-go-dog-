@@ -97,6 +97,19 @@ can't be skipped by a bot hitting the API directly.
 If these keys are absent the form still works — it just isn't spam-protected,
 which is fine for local development.
 
+### Demo Mode (make the map look active)
+
+`DEMO_MODE` (`src/lib/config.ts`, toggle via `NEXT_PUBLIC_DEMO_MODE`) overlays
+~42 realistic sample sightings spread evenly across Delhi — organic timestamps
+(1–14 days), human notes, varied states. They render with the **exact same
+markers and bottom-sheet UI** as real dogs.
+
+Strictly isolated: all demo records use the `demo-` id prefix, live only in
+`src/lib/demo-sightings.ts`, are **read-only**, and every write path (feed, see,
+case-linking) skips them — they can never mix into real data. A subtle
+"Demo Mode Active" pill shows on the map. Set `NEXT_PUBLIC_DEMO_MODE=false` to
+turn it off.
+
 ### NGO operations — Cases (Phase 1: lifecycle + ownership)
 
 An operational layer for NGOs, separate from the public map. A **Case** is a

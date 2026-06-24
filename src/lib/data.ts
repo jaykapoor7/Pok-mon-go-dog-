@@ -9,6 +9,8 @@
 import { DEMO, DEMO_NGOS, DEMO_USERS } from "./demo-data";
 import { getSupabase, isSupabaseConfigured } from "./supabase";
 import { suggestMerges } from "./aggregation";
+import { DEMO_MODE as DEMO_OVERLAY, isDemoId } from "./config";
+import { getDemoDogById, getDemoProfile } from "./demo-sightings";
 import type {
   Dog,
   Sighting,
@@ -122,6 +124,8 @@ export async function getAllDogs(): Promise<Dog[]> {
 }
 
 export async function getDogById(id: string): Promise<Dog | null> {
+  // Isolated demo dogs resolve without touching the database.
+  if (DEMO_OVERLAY && isDemoId(id)) return getDemoDogById(id) ?? null;
   const supa = getSupabase();
   if (supa) {
     const { data } = await supa.from("dogs").select("*").eq("id", id).single();
@@ -183,6 +187,7 @@ export async function getAllSightings(limit = 100): Promise<Sighting[]> {
 // ── Dog profile (aggregate) ──────────────────────────────────
 
 export async function getDogProfile(id: string): Promise<DogProfile | null> {
+  if (DEMO_OVERLAY && isDemoId(id)) return getDemoProfile(id);
   const supa = getSupabase();
 
   if (supa) {

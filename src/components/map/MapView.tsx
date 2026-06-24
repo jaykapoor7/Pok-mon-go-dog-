@@ -19,7 +19,13 @@ import type { Dog } from "@/lib/types";
 
 type Filter = "all" | MarkerState;
 
-export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
+export function MapView({
+  dogs: allDogs,
+  demoMode = false,
+}: {
+  dogs: Dog[];
+  demoMode?: boolean;
+}) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
   const { requireAuth } = useAuth();
@@ -66,6 +72,16 @@ export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
       </div>
 
       <MapCanvas dogs={dogs} onSelect={setSelected} />
+
+      {/* subtle "Demo Mode Active" indicator */}
+      {demoMode && (
+        <div className="pointer-events-none absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-bark-900/80 px-3 py-1.5 text-[11px] font-medium text-white/90 backdrop-blur-md dark:bg-white/85 dark:text-bark-900">
+            <span className="h-1.5 w-1.5 rounded-full bg-paw-400" />
+            Demo Mode Active
+          </span>
+        </div>
+      )}
 
       {/* count pill */}
       {allDogs.length > 0 && (

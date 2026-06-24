@@ -51,10 +51,12 @@ export async function createCase(
   const supa = getSupabase();
   if (!supa) return "demo-case";
   await ensureVolunteer(actor);
+  // Demo dogs don't exist in the DB — never link a case to one.
+  const dogId = input.dogId && !input.dogId.startsWith("demo-") ? input.dogId : null;
   const { data, error } = await supa.rpc("create_case", {
     p_title: input.title,
     p_description: input.description || null,
-    p_dog_id: input.dogId || null,
+    p_dog_id: dogId,
     p_zone: input.zone || null,
     p_lat: input.lat ?? null,
     p_lng: input.lng ?? null,

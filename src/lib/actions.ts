@@ -128,6 +128,7 @@ export async function deleteSighting(sightingId: string): Promise<boolean> {
 }
 
 export async function logFeed(dogId: string, reporterName?: string, foodType?: string) {
+  if (dogId.startsWith("demo-")) return; // demo dogs are never written
   const supa = getSupabase();
   if (!supa) return;
   await supa.rpc("log_feed", {
@@ -138,6 +139,7 @@ export async function logFeed(dogId: string, reporterName?: string, foodType?: s
 }
 
 export async function logSeen(dogId: string) {
+  if (dogId.startsWith("demo-")) return; // demo dogs are never written
   const supa = getSupabase();
   if (!supa) return;
   await supa.rpc("log_seen", { p_dog_id: dogId });
