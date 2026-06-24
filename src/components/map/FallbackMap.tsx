@@ -29,6 +29,29 @@ export function FallbackMap({
   onSelect?: (dog: Dog) => void;
 }) {
   const [t, setT] = useState<Transform>({ x: 0, y: 0, scale: 1 });
+  const [isDark] = useState(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+  );
+  // Calm, muted canvas palette (light / dark).
+  const P = isDark
+    ? {
+        base: "#0d0d0f",
+        terrain: "radial-gradient(circle at 30% 20%, #131316 0, #0d0d0f 62%)",
+        grid: "rgba(255,255,255,0.022)",
+        river: "rgba(120,150,180,0.30)",
+        green: "rgba(120,150,110,0.14)",
+        ring: "#0d0d0f",
+        label: "rgba(255,255,255,0.34)",
+      }
+    : {
+        base: "#eceeec",
+        terrain: "radial-gradient(circle at 30% 20%, #f4f5f3 0, #e7eae7 62%)",
+        grid: "rgba(0,0,0,0.018)",
+        river: "rgba(150,178,200,0.45)",
+        green: "rgba(150,178,150,0.30)",
+        ring: "#ffffff",
+        label: "rgba(60,55,50,0.40)",
+      };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -132,8 +155,8 @@ export function FallbackMap({
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full touch-none select-none overflow-hidden bg-[#e8efe6]"
-      style={{ cursor: t.scale > 1 ? "grab" : "default" }}
+      className="relative h-full w-full touch-none select-none overflow-hidden"
+      style={{ cursor: t.scale > 1 ? "grab" : "default", backgroundColor: P.base }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -148,15 +171,14 @@ export function FallbackMap({
           transform: `translate(${t.x}px, ${t.y}px) scale(${t.scale})`,
         }}
       >
-        {/* faux terrain */}
+        {/* faux terrain — muted canvas with a barely-there grid */}
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 30% 20%, #f0f4ec 0, #e3ebe0 60%), repeating-linear-gradient(0deg, rgba(0,0,0,0.025) 0 1px, transparent 1px 40px), repeating-linear-gradient(90deg, rgba(0,0,0,0.025) 0 1px, transparent 1px 40px)",
+            backgroundImage: `${P.terrain}, repeating-linear-gradient(0deg, ${P.grid} 0 1px, transparent 1px 56px), repeating-linear-gradient(90deg, ${P.grid} 0 1px, transparent 1px 56px)`,
           }}
         />
-        {/* Yamuna river */}
+        {/* Yamuna river + a soft green belt, gently understated */}
         <svg
           className="absolute inset-0 h-full w-full"
           viewBox="0 0 100 100"
@@ -164,18 +186,17 @@ export function FallbackMap({
         >
           <path
             d="M62 0 C 58 20, 70 35, 64 50 C 58 65, 68 85, 60 100"
-            stroke="#a5c8e1"
-            strokeWidth="3.5"
+            stroke={P.river}
+            strokeWidth="2.6"
             fill="none"
-            opacity="0.7"
             strokeLinecap="round"
           />
           <path
             d="M0 70 C 25 64, 45 72, 70 60 C 85 53, 95 58, 100 54"
-            stroke="#cdd9c4"
-            strokeWidth="6"
+            stroke={P.green}
+            strokeWidth="7"
             fill="none"
-            opacity="0.5"
+            strokeLinecap="round"
           />
         </svg>
 
@@ -185,11 +206,12 @@ export function FallbackMap({
           return (
             <span
               key={z.name}
-              className="pointer-events-none absolute -translate-x-1/2 font-medium text-bark-400"
+              className="pointer-events-none absolute -translate-x-1/2 font-medium tracking-tight"
               style={{
                 left: `${x * 100}%`,
                 top: `${y * 100}%`,
                 fontSize: `${9 / t.scale}px`,
+                color: P.label,
               }}
             >
               {z.name}
@@ -197,16 +219,19 @@ export function FallbackMap({
           );
         })}
 
-        {/* dog pins (counter-scaled so they stay a constant size) */}
+        {/* dog markers — soft donuts; urgent gets a calm glow + weight.
+            Counter-scaled so they stay a constant size while the map zooms. */}
         {dogs.map((dog) => {
           const { x, y } = projectToBox(dog.lat, dog.lng);
           const meta = markerMetaFor(dog);
+          const urgent = dog.needs_help;
+          const size = urgent ? 16 : 13;
           return (
             <button
               key={dog.id}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => onSelect?.(dog)}
-              className="absolute transition-transform hover:z-20 focus:z-20"
+              className="group absolute transition-transform duration-200 hover:z-20 focus:z-20"
               style={{
                 left: `${x * 100}%`,
                 top: `${y * 100}%`,
@@ -214,54 +239,56 @@ export function FallbackMap({
               }}
               aria-label={`${dog.name} — ${meta.label}`}
             >
-              {dog.needs_help && (
+              {urgent && (
                 <span
-                  className="absolute inset-0 -z-10 rounded-full animate-pulse-ring"
-                  style={{ backgroundColor: meta.color }}
+                  className="absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
+                  style={{ height: 34, width: 34, backgroundColor: meta.color, opacity: 0.32 }}
                 />
               )}
               <span
-                className="flex h-7 w-7 items-center justify-center rounded-full text-[13px] ring-[3px] ring-white shadow-[0_3px_10px_rgba(17,17,19,0.28)] dark:ring-bark-900"
-                style={{ backgroundColor: meta.color }}
+                className="block rounded-full transition-transform duration-200 group-hover:scale-110"
+                style={{
+                  height: size,
+                  width: size,
+                  backgroundColor: meta.color,
+                  boxShadow: `0 0 0 ${urgent ? 3 : 2.5}px ${P.ring}, 0 3px 8px rgba(17,17,19,0.22)`,
+                }}
               >
-                {meta.emoji}
+                <span
+                  className="block rounded-full bg-white/90"
+                  style={{ height: 4, width: 4, margin: (size - 4) / 2 }}
+                />
               </span>
             </button>
           );
         })}
       </div>
 
-      {/* legend */}
-      <div className="pointer-events-none absolute bottom-4 left-3 glass rounded-2xl px-3 py-2 text-[10px] shadow-card">
-        <p className="mb-0.5 font-semibold text-bark-700 dark:text-bark-100">
-          Interactive map
-        </p>
-        <p className="text-bark-400">Drag to pan · pinch / ⌘-scroll to zoom</p>
-      </div>
-
-      {/* zoom controls — stop pointer events bubbling to the pan/zoom surface
-          so the container's pointer capture doesn't swallow the button click. */}
+      {/* zoom controls — premium glass; stop pointer events bubbling to the
+          pan surface so its pointer capture doesn't swallow the button click. */}
       <div
-        className="absolute right-3 top-32 z-20 flex flex-col gap-1.5"
+        className="glass absolute right-3 top-32 z-20 flex flex-col overflow-hidden rounded-2xl shadow-card"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => buttonZoom(1.4)}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-bark-700 shadow-card hover:bg-paw-50"
+          className="flex h-9 w-9 items-center justify-center text-bark-600 transition-colors hover:bg-black/[0.04] dark:text-bark-200 dark:hover:bg-white/[0.06]"
           aria-label="Zoom in"
         >
           <Plus className="h-4 w-4" />
         </button>
+        <span className="mx-2 h-px bg-black/[0.06] dark:bg-white/[0.08]" />
         <button
           onClick={() => buttonZoom(1 / 1.4)}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-bark-700 shadow-card hover:bg-paw-50"
+          className="flex h-9 w-9 items-center justify-center text-bark-600 transition-colors hover:bg-black/[0.04] dark:text-bark-200 dark:hover:bg-white/[0.06]"
           aria-label="Zoom out"
         >
           <Minus className="h-4 w-4" />
         </button>
+        <span className="mx-2 h-px bg-black/[0.06] dark:bg-white/[0.08]" />
         <button
           onClick={reset}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-bark-700 shadow-card hover:bg-paw-50"
+          className="flex h-9 w-9 items-center justify-center text-bark-600 transition-colors hover:bg-black/[0.04] dark:text-bark-200 dark:hover:bg-white/[0.06]"
           aria-label="Reset view"
         >
           <Locate className="h-4 w-4" />
