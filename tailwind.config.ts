@@ -74,12 +74,29 @@ const config: Config = {
         shimmer: {
           "100%": { transform: "translateX(100%)" },
         },
+        // Pokémon-Go-style floating markers.
+        bob: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
+        "marker-pop": {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "70%": { transform: "scale(1.18)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "ground-shadow": {
+          "0%, 100%": { transform: "scaleX(1)", opacity: "0.32" },
+          "50%": { transform: "scaleX(0.68)", opacity: "0.18" },
+        },
       },
       animation: {
         "paw-pop": "paw-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
         "float-up": "float-up 1.6s ease-out forwards",
         "pulse-ring": "pulse-ring 1.8s ease-out infinite",
         shimmer: "shimmer 1.5s infinite",
+        bob: "bob 2.6s ease-in-out infinite",
+        "marker-pop": "marker-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        "ground-shadow": "ground-shadow 2.6s ease-in-out infinite",
       },
     },
   },

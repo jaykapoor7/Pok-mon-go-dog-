@@ -56,6 +56,7 @@ create table if not exists dogs (
   feed_count      int default 0,
   first_seen      timestamptz default now(),
   last_seen       timestamptz default now(),
+  last_fed_at     timestamptz,
   created_at      timestamptz default now()
 );
 create index if not exists dogs_geo_idx on dogs (lat, lng);
@@ -322,7 +323,11 @@ returns void language plpgsql security definer set search_path = public as $$
 begin
   insert into feed_events (dog_id, reporter_name, food_type)
   values (p_dog_id, p_reporter_name, p_food_type);
-  update dogs set feed_count = feed_count + 1, last_seen = now() where id = p_dog_id;
+  update dogs
+  set feed_count = feed_count + 1,
+      last_fed_at = now(),
+      last_seen = now()
+  where id = p_dog_id;
 end;
 $$;
 

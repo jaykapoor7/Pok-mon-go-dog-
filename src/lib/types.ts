@@ -131,6 +131,7 @@ export interface Dog {
   feed_count: number;
   first_seen: string;
   last_seen: string;
+  last_fed_at: string | null;
   community_notes: string[];
 }
 

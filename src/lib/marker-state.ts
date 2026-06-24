@@ -38,13 +38,28 @@ export const MARKER_ORDER: MarkerState[] = [
   "adoptable",
 ];
 
+/** Dogs are "Fed" only within this window — after that they need feeding again. */
+export const FED_WINDOW_HOURS = 10;
+
+/** Hours since the dog was last fed, or null if never fed. */
+export function hoursSinceFed(dog: Dog): number | null {
+  if (!dog.last_fed_at) return null;
+  return (Date.now() - +new Date(dog.last_fed_at)) / 3_600_000;
+}
+
+/** Fed recently enough to still count as "Fed". */
+export function fedRecently(dog: Dog): boolean {
+  const h = hoursSinceFed(dog);
+  return h !== null && h <= FED_WINDOW_HOURS;
+}
+
 /** Derive the single display state for a dog from existing fields. */
 export function markerStateFor(dog: Dog): MarkerState {
   if (dog.needs_help) return "needs_help";
   // Healthy, fixed, vaccinated & friendly dogs are adoption-ready.
   if (dog.is_friendly && dog.sterilised && dog.vaccinated) return "adoptable";
   if (dog.sterilised) return "sterilised";
-  if (dog.feed_count > 0) return "fed";
+  if (fedRecently(dog)) return "fed"; // decays — see FED_WINDOW_HOURS
   return "seen";
 }
 

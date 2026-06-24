@@ -50,6 +50,7 @@ function mapDog(row: any): Dog {
     feed_count: row.feed_count ?? 0,
     first_seen: row.first_seen ?? row.created_at,
     last_seen: row.last_seen ?? row.created_at,
+    last_fed_at: row.last_fed_at ?? null,
     community_notes: [],
   };
 }

@@ -3,8 +3,8 @@
 import { useCallback, useRef, useState } from "react";
 import { Plus, Minus, Locate } from "lucide-react";
 import type { Dog } from "@/lib/types";
-import { markerMetaFor } from "@/lib/marker-state";
-import { projectToBox, DELHI_ZONES } from "@/lib/delhi";
+import { projectToBox, DELHI_ZONES, DELHI_CENTER } from "@/lib/delhi";
+import { DogMarker } from "./DogMarker";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
@@ -219,47 +219,39 @@ export function FallbackMap({
           );
         })}
 
-        {/* dog markers — soft donuts; urgent gets a calm glow + weight.
-            Counter-scaled so they stay a constant size while the map zooms. */}
-        {dogs.map((dog) => {
-          const { x, y } = projectToBox(dog.lat, dog.lng);
-          const meta = markerMetaFor(dog);
-          const urgent = dog.needs_help;
-          const size = urgent ? 16 : 13;
+        {/* player "you are here" avatar (decorative, Pokémon-Go style) */}
+        {(() => {
+          const { x, y } = projectToBox(DELHI_CENTER.lat, DELHI_CENTER.lng);
           return (
-            <button
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${x * 100}%`, top: `${y * 100}%`, transform: `translate(-50%, -50%) scale(${1 / t.scale})` }}
+            >
+              <span className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paw-500/25 animate-pulse-ring" />
+              <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-paw-500 text-[11px] text-white ring-[3px] ring-white shadow-md dark:ring-bark-900">
+                🐾
+              </span>
+            </div>
+          );
+        })()}
+
+        {/* dog markers — playful, animated; counter-scaled to stay constant. */}
+        {dogs.map((dog, i) => {
+          const { x, y } = projectToBox(dog.lat, dog.lng);
+          return (
+            <div
               key={dog.id}
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => onSelect?.(dog)}
-              className="group absolute transition-transform duration-200 hover:z-20 focus:z-20"
+              className="absolute hover:z-20 focus-within:z-20"
               style={{
                 left: `${x * 100}%`,
                 top: `${y * 100}%`,
-                transform: `translate(-50%, -50%) scale(${1 / t.scale})`,
+                transform: `translate(-50%, -100%) scale(${1 / t.scale})`,
               }}
-              aria-label={`${dog.name} — ${meta.label}`}
             >
-              {urgent && (
-                <span
-                  className="absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
-                  style={{ height: 34, width: 34, backgroundColor: meta.color, opacity: 0.32 }}
-                />
-              )}
-              <span
-                className="block rounded-full transition-transform duration-200 group-hover:scale-110"
-                style={{
-                  height: size,
-                  width: size,
-                  backgroundColor: meta.color,
-                  boxShadow: `0 0 0 ${urgent ? 3 : 2.5}px ${P.ring}, 0 3px 8px rgba(17,17,19,0.22)`,
-                }}
-              >
-                <span
-                  className="block rounded-full bg-white/90"
-                  style={{ height: 4, width: 4, margin: (size - 4) / 2 }}
-                />
-              </span>
-            </button>
+              <DogMarker dog={dog} onSelect={onSelect} delay={Math.min(i * 35, 700)} />
+            </div>
           );
         })}
       </div>

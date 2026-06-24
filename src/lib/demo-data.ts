@@ -265,6 +265,11 @@ function buildDogs(): {
       feed_count: feedCount,
       first_seen: daysAgo(firstSeenDays),
       last_seen: lastSeenIso,
+      // Some fed within the recency window, others gone stale → "needs feeding".
+      last_fed_at:
+        feedCount > 0
+          ? daysAgo(0, Math.floor(r("fedh") * 26))
+          : null,
       community_notes: notes,
     });
   }

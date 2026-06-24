@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { markerMetaFor } from "@/lib/marker-state";
+import { markerMetaFor, fedRecently } from "@/lib/marker-state";
 import { timeAgo } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
@@ -127,6 +127,19 @@ export function DogBottomSheet({
                   <span className="flex items-center gap-1.5">
                     <Clock className="h-4 w-4" /> Seen {timeAgo(dog.last_seen)}
                   </span>
+                </div>
+                {/* time-aware feeding status */}
+                <div className="mt-2">
+                  {fedRecently(dog) ? (
+                    <span className="chip bg-status-vaccinated/15 font-semibold text-status-vaccinated">
+                      <Utensils className="h-3.5 w-3.5" /> Fed {timeAgo(dog.last_fed_at!)}
+                    </span>
+                  ) : (
+                    <span className="chip bg-status-hungry/15 font-semibold text-status-hungry">
+                      <Utensils className="h-3.5 w-3.5" />
+                      {dog.last_fed_at ? `Needs feeding · last fed ${timeAgo(dog.last_fed_at)}` : "Not fed yet"}
+                    </span>
+                  )}
                 </div>
               </div>
 
