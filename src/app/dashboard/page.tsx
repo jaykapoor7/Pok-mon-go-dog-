@@ -7,6 +7,8 @@ import {
   Flame,
 } from "lucide-react";
 import { HelpQueue } from "@/components/dashboard/HelpQueue";
+import { CommandCenter } from "@/components/cases/CommandCenter";
+import { CaseReporting } from "@/components/cases/CaseReporting";
 import {
   getDashboardMetrics,
   getDogsNeedingHelp,
@@ -14,6 +16,7 @@ import {
   getNGOs,
   getRecentSightings,
 } from "@/lib/data";
+import { getCases } from "@/lib/cases";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import type { Sighting } from "@/lib/types";
 
@@ -41,12 +44,13 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [m, needHelp, zones, ngos, recentSightings] = await Promise.all([
+  const [m, needHelp, zones, ngos, recentSightings, cases] = await Promise.all([
     getDashboardMetrics(),
     getDogsNeedingHelp(),
     getZoneCoverage(),
     getNGOs(),
     getRecentSightings(80),
+    getCases(),
   ]);
   const contributors = topContributors(recentSightings);
 
@@ -54,13 +58,27 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-6xl px-4 pb-12 pt-24 sm:px-6">
       <header className="mb-6">
         <p className="text-sm font-semibold text-paw-600">NGO Dashboard</p>
-        <h1 className="font-display text-2xl font-extrabold sm:text-3xl">
-          Impact at a glance
+        <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">
+          Operations
         </h1>
         <p className="text-sm text-bark-500">
-          Track care work across Delhi and act where it&apos;s needed most.
+          What needs attention, who owns it, and your impact — in one place.
         </p>
       </header>
+
+      {/* Phase 2–4: operational command center + reporting */}
+      <CommandCenter cases={cases} />
+      <CaseReporting cases={cases} />
+
+      {/* ── Map-side impact (existing) ── */}
+      <div className="mb-4">
+        <h2 className="font-display text-xl font-bold tracking-tightest sm:text-2xl">
+          Map impact
+        </h2>
+        <p className="text-sm text-bark-500">
+          Community tracking across Delhi.
+        </p>
+      </div>
 
       {/* metric cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

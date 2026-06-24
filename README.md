@@ -113,8 +113,15 @@ case's status; every change records who/what/when.
   is server-recorded but soft (no passwords) — upgrade to Supabase Auth for
   hard enforcement later.
 
-> Phases 2–5 (daily command dashboard, rule-based alerts, impact/CSV export,
-> deeper dog continuity) build on this foundation.
+**The full operations suite is built:**
+- **Daily command dashboard** (`/dashboard`, top): "what needs attention today" —
+  Unassigned / Overdue / Critical / Recently-updated queues + per-volunteer
+  active workload.
+- **Rule-based alerts**: urgent-unassigned, overdue (5+ days), area clusters
+  (3+ open cases in a zone), and long-pending sterilisation escalations.
+- **Impact & reporting**: case counts, resolution and category breakdowns, plus
+  **CSV export** (`/api/cases/export`) and a print-to-PDF report.
+- **Dog continuity**: every dog profile lists its cases over time.
 
 ### Moderation (sightings are reviewed before going public)
 

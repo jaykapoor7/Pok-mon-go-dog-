@@ -69,6 +69,19 @@ export async function getCases(): Promise<Case[]> {
   return ALLOW_DEMO ? DEMO_CASES.cases : [];
 }
 
+export async function getCasesForDog(dogId: string): Promise<Case[]> {
+  const supa = getSupabase();
+  if (supa) {
+    const { data } = await supa
+      .from("cases")
+      .select("*")
+      .eq("dog_id", dogId)
+      .order("last_activity_at", { ascending: false });
+    if (data) return data.map(mapCase);
+  }
+  return ALLOW_DEMO ? DEMO_CASES.cases.filter((c) => c.dog_id === dogId) : [];
+}
+
 export async function getCaseById(
   id: string
 ): Promise<{ case: Case; updates: CaseUpdate[] } | null> {

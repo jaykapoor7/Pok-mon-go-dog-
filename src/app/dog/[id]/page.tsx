@@ -16,7 +16,9 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge, TrustRing } from "@/components/ui/Badges";
 import { DogActions } from "@/components/dog/DogActions";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
+import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
+import { getCasesForDog } from "@/lib/cases";
 import { timeAgo, formatDate, formatNumber } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +50,10 @@ export default async function DogProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const profile = await getDogProfile(id);
+  const [profile, dogCases] = await Promise.all([
+    getDogProfile(id),
+    getCasesForDog(id),
+  ]);
   if (!profile) notFound();
 
   const { dog, sightings, feedEvents, vaccinations, sterilisations, comments, matchSuggestions } =
@@ -113,13 +118,22 @@ export default async function DogProfilePage({
         <DogActions dogId={dog.id} name={dog.name ?? "this dog"} />
       </div>
 
-      {/* NGO continuity: open an operational case for this dog */}
-      <Link
-        href={`/cases/new?dog=${dog.id}`}
-        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-bark-700 transition-colors hover:border-black/20 dark:border-white/10 dark:text-bark-200"
-      >
-        <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for {dog.name}
-      </Link>
+      {/* NGO continuity: cases linked to this dog over time */}
+      <Section title="Cases">
+        {dogCases.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {dogCases.map((c) => (
+              <CaseCard key={c.id} c={c} />
+            ))}
+          </div>
+        )}
+        <Link
+          href={`/cases/new?dog=${dog.id}`}
+          className="flex items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-bark-700 transition-colors hover:border-black/20 dark:border-white/10 dark:text-bark-200"
+        >
+          <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for {dog.name}
+        </Link>
+      </Section>
 
       {/* health */}
       <Section title="Health & care">
