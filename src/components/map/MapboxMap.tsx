@@ -9,7 +9,7 @@ import Map, {
 } from "react-map-gl";
 import Supercluster from "supercluster";
 import type { PointFeature } from "supercluster";
-import { DELHI_CENTER } from "@/lib/delhi";
+import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
 import { PhotoMarker } from "./PhotoMarker";
 import type { Dog } from "@/lib/types";
 
@@ -29,7 +29,7 @@ export function MapboxMap({
     () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   );
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
-  const [zoom, setZoom] = useState(10.5);
+  const [zoom, setZoom] = useState(INDIA_ZOOM);
 
   const byId = useMemo(() => {
     const m: Record<string, Dog> = {};
@@ -72,7 +72,7 @@ export function MapboxMap({
     <Map
       ref={mapRef}
       mapboxAccessToken={TOKEN}
-      initialViewState={{ longitude: DELHI_CENTER.lng, latitude: DELHI_CENTER.lat, zoom: 10.5 }}
+      initialViewState={{ longitude: INDIA_CENTER.lng, latitude: INDIA_CENTER.lat, zoom: INDIA_ZOOM }}
       mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       onLoad={sync}
       onMoveEnd={sync}
