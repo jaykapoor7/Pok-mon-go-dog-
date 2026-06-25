@@ -9,6 +9,7 @@ import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { DemoModeProvider } from "@/components/demo/DemoModeProvider";
 import { Haptics } from "@/components/ux/Haptics";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // One restrained family across the app (regular + semibold). Display tier is
 // the same family at a heavier weight — premium, minimal, no font clutter.
@@ -90,6 +91,7 @@ export default function RootLayout({
             </DemoModeProvider>
           </AuthProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
