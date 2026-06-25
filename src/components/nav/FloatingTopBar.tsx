@@ -35,7 +35,7 @@ export function FloatingTopBar() {
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 px-3 pt-3">
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 px-3 pt-3 lg:pl-[5.75rem]">
         <div className="glass pointer-events-auto mx-auto flex max-w-3xl items-center justify-between gap-2 rounded-[20px] px-2.5 py-2 shadow-card">
           <Link href="/" className="flex items-center gap-2.5 pl-1">
             <span className="flex h-7 w-7 items-center justify-center rounded-[10px] bg-paw-500 text-white">

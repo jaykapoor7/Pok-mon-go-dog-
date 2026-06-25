@@ -53,7 +53,7 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
       {/* state filter rail (sits just below the floating top bar) */}
-      <div className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-20 px-3">
+      <div className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-20 px-3 lg:pl-24">
         <div className="no-scrollbar pointer-events-auto flex gap-2 overflow-x-auto">
           <FilterChip
             active={filter === "all"}
@@ -75,7 +75,7 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
       <MapCanvas dogs={dogs} onSelect={setSelected} />
 
       {/* Demo mode on/off toggle (raised so it clears the bottom nav) */}
-      <div className="absolute bottom-[5.5rem] left-3 z-20">
+      <div className="absolute bottom-[5.5rem] left-3 z-20 lg:bottom-6 lg:left-24">
         <button
           onClick={toggleDemo}
           aria-pressed={demoOn}
