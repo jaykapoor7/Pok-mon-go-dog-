@@ -15,6 +15,7 @@ import {
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge, TrustRing } from "@/components/ui/Badges";
 import { DogActions } from "@/components/dog/DogActions";
+import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
@@ -117,6 +118,21 @@ export default async function DogProfilePage({
       <div className="mt-5">
         <DogActions dogId={dog.id} name={dog.name ?? "this dog"} />
       </div>
+
+      {/* status editing — only shown to signed-in contributors */}
+      <DogStatusEditor
+        dogId={dog.id}
+        contributorIds={Array.from(
+          new Set(sightings.map((s) => s.user_id).filter(Boolean))
+        )}
+        initial={{
+          status: dog.status,
+          needs_help: dog.needs_help,
+          vaccinated: dog.vaccinated,
+          sterilised: dog.sterilised,
+          is_friendly: dog.is_friendly,
+        }}
+      />
 
       {/* NGO continuity: cases linked to this dog over time */}
       <Section title="Cases">

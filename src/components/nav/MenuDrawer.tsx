@@ -80,22 +80,32 @@ export function MenuDrawer({
               {/* account */}
               <div className="mb-4 rounded-2xl bg-paw-50 p-3 dark:bg-bark-800">
                 {isAuthed ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-paw-200 text-xs font-bold text-paw-700">
-                        {user!.name.slice(0, 2).toUpperCase()}
-                      </span>
-                      <div>
-                        <p className="text-xs text-bark-400">Signed in as</p>
-                        <p className="text-sm font-semibold">{user!.name}</p>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-paw-200 text-xs font-bold text-paw-700">
+                          {user!.name.slice(0, 2).toUpperCase()}
+                        </span>
+                        <div>
+                          <p className="text-xs text-bark-400">Signed in as</p>
+                          <p className="text-sm font-semibold">{user!.name}</p>
+                        </div>
                       </div>
+                      <button
+                        onClick={signOut}
+                        className="flex items-center gap-1 text-xs font-semibold text-status-injured"
+                      >
+                        <LogOut className="h-3.5 w-3.5" /> Sign out
+                      </button>
                     </div>
-                    <button
-                      onClick={signOut}
-                      className="flex items-center gap-1 text-xs font-semibold text-status-injured"
+                    <Link
+                      href="/account"
+                      onClick={onClose}
+                      className="mt-3 flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm font-semibold text-paw-700 dark:bg-bark-900"
                     >
-                      <LogOut className="h-3.5 w-3.5" /> Sign out
-                    </button>
+                      My sightings
+                      <ChevronRight className="h-4 w-4 text-bark-300" />
+                    </Link>
                   </div>
                 ) : (
                   <button

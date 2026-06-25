@@ -2,54 +2,59 @@
 
 import { useEffect, useState } from "react";
 import { Trash2, Loader2 } from "lucide-react";
-import { deleteSighting } from "@/lib/actions";
+import { deleteSighting, deleteMySighting } from "@/lib/actions";
 import { ownsSighting } from "@/lib/ownership";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 /**
- * Shows a delete control only for sightings created on this device (proved by
- * a local ownership token). Confirms, deletes, then calls onDeleted so the
- * parent can remove it from the UI immediately.
+ * Delete control for a sighting you own — either because you created it on this
+ * device (per-device token) or because it's attached to your signed-in account
+ * (cross-device). Confirms, deletes, then calls onDeleted so the parent can
+ * remove it from the UI immediately.
  */
 export function DeleteSightingButton({
   sightingId,
+  ownerUserId,
   onDeleted,
   variant = "icon",
   className,
 }: {
   sightingId: string;
+  ownerUserId?: string | null;
   onDeleted: () => void;
   variant?: "icon" | "text";
   className?: string;
 }) {
-  const { isAuthed } = useAuth();
-  const [owned, setOwned] = useState(false);
+  const { user } = useAuth();
+  const [deviceOwned, setDeviceOwned] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // localStorage is client-only — resolve ownership after mount to avoid
-  // a hydration mismatch.
+  // localStorage is client-only — resolve device ownership after mount to
+  // avoid a hydration mismatch.
   useEffect(() => {
-    setOwned(ownsSighting(sightingId));
+    setDeviceOwned(ownsSighting(sightingId));
   }, [sightingId]);
 
-  // Editing/deleting your own posts requires being signed in.
-  if (!owned || !isAuthed) return null;
+  const accountOwned = Boolean(user && ownerUserId && user.id === ownerUserId);
+  if (!deviceOwned && !accountOwned) return null;
 
   async function handleDelete() {
     if (busy) return;
-    const ok = window.confirm(
-      "Delete this sighting? This can't be undone."
-    );
+    const ok = window.confirm("Delete this sighting? This can't be undone.");
     if (!ok) return;
     setBusy(true);
     setError(null);
     try {
-      await deleteSighting(sightingId);
+      if (accountOwned) await deleteMySighting(sightingId);
+      else await deleteSighting(sightingId);
+      haptic("success");
       onDeleted();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not delete.");
+      haptic("error");
       setBusy(false);
     }
   }

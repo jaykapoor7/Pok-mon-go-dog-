@@ -3,19 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MapPin, MessageCircle, Share2 } from "lucide-react";
+import { Heart, MapPin, MessageCircle, Share2, Pencil } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
 import { timeAgo, formatNumber, cn } from "@/lib/utils";
 import { likeSighting } from "@/lib/actions";
 import { haptic } from "@/lib/haptics";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { DeleteSightingButton } from "@/components/sighting/DeleteSightingButton";
-import type { Sighting } from "@/lib/types";
+import { EditSightingSheet } from "@/components/sighting/EditSightingSheet";
+import type { MoodTag, Sighting } from "@/lib/types";
 
 export function SightingCard({ sighting }: { sighting: Sighting }) {
+  const { user } = useAuth();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(sighting.likes);
   const [deleted, setDeleted] = useState(false);
+  const [editing, setEditing] = useState(false);
+  // Editable fields kept in local state so saved edits show immediately.
+  const [nickname, setNickname] = useState(sighting.nickname);
+  const [moods, setMoods] = useState<MoodTag[]>(sighting.mood_tags);
+  const [notes, setNotes] = useState(sighting.notes);
+
+  const accountOwned = Boolean(
+    user && sighting.user_id && user.id === sighting.user_id
+  );
 
   if (deleted) return null;
 
@@ -62,10 +74,23 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
             <MapPin className="h-3 w-3" /> {sighting.zone} · {timeAgo(sighting.created_at)}
           </p>
         </div>
-        <DeleteSightingButton
-          sightingId={sighting.id}
-          onDeleted={() => setDeleted(true)}
-        />
+        <div className="flex items-center gap-1.5">
+          {accountOwned && (
+            <button
+              onClick={() => setEditing(true)}
+              aria-label="Edit your sighting"
+              title="Edit your sighting"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-bark-600 shadow-sm transition-colors hover:bg-bark-900 hover:text-white"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
+          <DeleteSightingButton
+            sightingId={sighting.id}
+            ownerUserId={sighting.user_id}
+            onDeleted={() => setDeleted(true)}
+          />
+        </div>
       </div>
 
       {/* photo */}
@@ -73,13 +98,13 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
         <div className="relative">
           <DogPhoto
             src={sighting.photo_url}
-            alt={sighting.nickname ?? "Street dog sighting"}
+            alt={nickname ?? "Street dog sighting"}
             seed={sighting.id}
             className="aspect-square w-full"
           />
-          {sighting.nickname && (
+          {nickname && (
             <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white backdrop-blur">
-              {sighting.nickname}
+              {nickname}
             </span>
           )}
         </div>
@@ -120,18 +145,32 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
 
       {/* caption */}
       <div className="space-y-2 p-3 pt-2">
-        {sighting.notes && (
+        {notes && (
           <p className="text-sm text-bark-700">
             <span className="font-semibold">{sighting.user_name.split(" ")[0]}</span>{" "}
-            {sighting.notes}
+            {notes}
           </p>
         )}
         <div className="flex flex-wrap gap-1.5">
-          {sighting.mood_tags.map((m) => (
+          {moods.map((m) => (
             <MoodChip key={m} mood={m} />
           ))}
         </div>
       </div>
+
+      {accountOwned && (
+        <EditSightingSheet
+          open={editing}
+          sightingId={sighting.id}
+          initial={{ nickname, mood_tags: moods, notes }}
+          onClose={() => setEditing(false)}
+          onSaved={(next) => {
+            setNickname(next.nickname);
+            setMoods(next.mood_tags);
+            setNotes(next.notes);
+          }}
+        />
+      )}
     </motion.article>
   );
 }

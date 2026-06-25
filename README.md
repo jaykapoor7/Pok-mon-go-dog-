@@ -171,6 +171,28 @@ owned sightings in the feed and on the dog profile timeline.
 > Editor to add the `owner_hash` column and the `delete_sighting` function.
 > (Fresh installs of `schema.sql` already include it.)
 
+### Accounts & sign-in (manage your sightings from any device)
+
+Posting stays open to everyone — **no account required**. But signing in lets a
+reporter **edit or delete their sightings** and **update a dog's status** from
+any device, not just the one they posted from.
+
+Sign-in uses **Supabase Auth — email magic link** (passwordless). No extra
+provider setup is needed: the built-in email provider works out of the box.
+
+1. **Run the migration** [`supabase/auth-accounts.sql`](./supabase/auth-accounts.sql)
+   once in the SQL Editor. It adds a nullable `user_id` to `sightings`
+   (anonymous posts keep `user_id = NULL`), teaches `report_sighting` to attach
+   the account, and adds `update_my_sighting`, `delete_my_sighting` and
+   `update_dog_status` — each authorised server-side by `auth.uid()`.
+2. In **Supabase → Authentication → URL Configuration**, set the **Site URL** to
+   your domain (e.g. `https://straypaw.kapoorjay.com`) and add it under
+   **Redirect URLs**, so magic links land back on the app.
+3. That's it. Signed-in users get an **edit** (✏️) button on their own
+   sightings, a **status editor** on dogs they've contributed to, and a
+   **/account** page ("My sightings" in the menu) listing every post — including
+   ones still pending review.
+
 ### Local development
 
 ```bash

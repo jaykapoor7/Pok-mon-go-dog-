@@ -61,7 +61,7 @@ function mapSighting(row: any): Sighting {
   return {
     id: row.id,
     dog_id: row.dog_id ?? null,
-    user_id: "",
+    user_id: row.user_id ?? "",
     user_name: row.reporter_name ?? "Someone in Delhi",
     user_avatar: null,
     photo_url: row.photo_url,

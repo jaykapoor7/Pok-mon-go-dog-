@@ -72,6 +72,11 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
   // hash) and kept locally so this device can later delete the sighting.
   const ownerToken = newOwnerToken();
 
+  // If the reporter is signed in, send their access token so the server can
+  // verify it and attach the sighting to their account (cross-device ownership).
+  const { data: sessionData } = await supa.auth.getSession();
+  const accessToken = sessionData.session?.access_token ?? null;
+
   // Persist through the Turnstile-protected API route (server verifies the
   // token, then writes with elevated privileges).
   const res = await fetch("/api/report", {
@@ -80,6 +85,7 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
     body: JSON.stringify({
       token: input.token ?? null,
       ownerToken,
+      accessToken,
       photoUrl,
       lat: input.lat,
       lng: input.lng,
@@ -125,6 +131,85 @@ export async function deleteSighting(sightingId: string): Promise<boolean> {
   }
   forgetOwner(sightingId);
   return true;
+}
+
+// ── Account-owned management (signed-in users) ───────────────
+// These call SECURITY DEFINER RPCs that authorise by auth.uid(), so the
+// logged-in user's session (carried by the anon client) is what proves
+// ownership — works from any device, not just the one that posted.
+
+export interface SightingEdit {
+  nickname: string | null;
+  moods: string[];
+  notes: string | null;
+}
+
+/** Edit your own sighting. Returns true on success. */
+export async function updateMySighting(
+  sightingId: string,
+  edit: SightingEdit
+): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return false;
+  const { data, error } = await supa.rpc("update_my_sighting", {
+    p_sighting_id: sightingId,
+    p_nickname: edit.nickname,
+    p_mood_tags: edit.moods,
+    p_notes: edit.notes,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+/** Delete your own sighting (account ownership). Returns true on success. */
+export async function deleteMySighting(sightingId: string): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return false;
+  const { data, error } = await supa.rpc("delete_my_sighting", {
+    p_sighting_id: sightingId,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+export interface DogStatusEdit {
+  status: string;
+  needs_help: boolean;
+  vaccinated: boolean;
+  sterilised: boolean;
+  is_friendly: boolean;
+}
+
+/** Update the care status of a dog you've contributed a sighting for. */
+export async function updateDogStatus(
+  dogId: string,
+  edit: DogStatusEdit
+): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return false;
+  const { data, error } = await supa.rpc("update_dog_status", {
+    p_dog_id: dogId,
+    p_status: edit.status,
+    p_needs_help: edit.needs_help,
+    p_vaccinated: edit.vaccinated,
+    p_sterilised: edit.sterilised,
+    p_is_friendly: edit.is_friendly,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+/** Fetch the signed-in user's own sightings (including pending ones). */
+export async function getMySightings(userId: string) {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa
+    .from("sightings")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) return [];
+  return data ?? [];
 }
 
 export async function logFeed(dogId: string, reporterName?: string, foodType?: string) {

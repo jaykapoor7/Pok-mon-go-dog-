@@ -76,6 +76,16 @@ export async function POST(req: Request) {
   const ownerHash = body.ownerToken
     ? sha256(String(body.ownerToken))
     : null;
+
+  // If the reporter is signed in, verify their access token server-side and
+  // attach the sighting to their account so they can manage it from any device.
+  let userId: string | null = null;
+  const accessToken = body.accessToken ? String(body.accessToken) : null;
+  if (accessToken) {
+    const { data: userData } = await supa.auth.getUser(accessToken);
+    userId = userData.user?.id ?? null;
+  }
+
   const { data, error } = await supa.rpc("report_sighting", {
     p_photo_url: photoUrl,
     p_lat: lat,
@@ -86,6 +96,7 @@ export async function POST(req: Request) {
     p_notes: body.notes ? String(body.notes) : null,
     p_reporter_name: body.reporterName ? String(body.reporterName) : null,
     p_owner_hash: ownerHash,
+    p_user_id: userId,
   });
 
   if (error) {
