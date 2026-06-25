@@ -149,3 +149,21 @@
   color: white;
   z-index: 10;
 }
+
+/* Interactive cards get a subtle lift on hover/press — premium depth. */
+.card-interactive {
+  @apply transition-[transform,box-shadow] duration-200 ease-out
+         hover:-translate-y-0.5 hover:shadow-pop active:translate-y-0 active:scale-[0.995];
+}
+
+/* Respect reduced-motion: keep the UI calm and instant for those who ask. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

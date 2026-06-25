@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Lock,
   LogIn,
@@ -13,6 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { haptic } from "@/lib/haptics";
 import { timeAgo } from "@/lib/utils";
 
 const KEY = "straypaw.admin_secret";
@@ -91,11 +93,14 @@ export function AdminClient() {
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         setError(j.error || "Action failed.");
+        haptic("error");
         return;
       }
+      haptic(action === "approve" ? "success" : "light");
       setItems((prev) => prev.filter((x) => x.id !== id));
     } catch {
       setError("Network error.");
+      haptic("error");
     } finally {
       setBusyId(null);
     }
@@ -201,8 +206,17 @@ export function AdminClient() {
         </div>
       ) : (
         <div className="space-y-4">
+          <AnimatePresence initial={false}>
           {items.map((s) => (
-            <div key={s.id} className="card overflow-hidden">
+            <motion.div
+              key={s.id}
+              layout
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="card overflow-hidden"
+            >
               <div className="flex gap-3 p-3">
                 <DogPhoto
                   src={s.photo_url}
@@ -262,8 +276,9 @@ export function AdminClient() {
                   Approve
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
+          </AnimatePresence>
         </div>
       )}
     </div>

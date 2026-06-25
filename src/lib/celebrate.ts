@@ -1,11 +1,13 @@
 "use client";
 
 import confetti from "canvas-confetti";
+import { haptic } from "@/lib/haptics";
 
 const WARM = ["#f97316", "#fb923c", "#f59e0b", "#ec4899", "#fcd34d"];
 
 /** A warm burst of confetti for successful helpful actions. */
 export function celebrate() {
+  haptic("success");
   confetti({
     particleCount: 90,
     spread: 75,
@@ -34,6 +36,7 @@ export function celebrate() {
 
 /** Paw-shaped emoji confetti — used on a fresh sighting upload. */
 export function pawBurst() {
+  haptic("success");
   const paw = confetti.shapeFromText
     ? confetti.shapeFromText({ text: "🐾", scalar: 2 })
     : undefined;

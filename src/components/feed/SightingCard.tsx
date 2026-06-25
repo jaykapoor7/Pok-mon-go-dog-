@@ -8,6 +8,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
 import { timeAgo, formatNumber, cn } from "@/lib/utils";
 import { likeSighting } from "@/lib/actions";
+import { haptic } from "@/lib/haptics";
 import { DeleteSightingButton } from "@/components/sighting/DeleteSightingButton";
 import type { Sighting } from "@/lib/types";
 
@@ -19,7 +20,12 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
   if (deleted) return null;
 
   function toggleLike() {
-    if (!liked) likeSighting(sighting.id).catch(() => {});
+    if (!liked) {
+      likeSighting(sighting.id).catch(() => {});
+      haptic("success");
+    } else {
+      haptic("select");
+    }
     setLiked((v) => !v);
     setLikes((n) => (liked ? n - 1 : n + 1));
   }
@@ -83,14 +89,22 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
       <div className="flex items-center gap-4 px-3 pt-3">
         <button
           onClick={toggleLike}
+          aria-pressed={liked}
           className="flex items-center gap-1.5 text-sm font-medium"
         >
-          <Heart
-            className={cn(
-              "h-6 w-6 transition-all",
-              liked ? "fill-status-injured text-status-injured scale-110" : "text-bark-600"
-            )}
-          />
+          <motion.span
+            key={liked ? "on" : "off"}
+            initial={false}
+            animate={{ scale: liked ? [1, 1.35, 1] : 1 }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
+          >
+            <Heart
+              className={cn(
+                "h-6 w-6 transition-colors",
+                liked ? "fill-status-injured text-status-injured" : "text-bark-600"
+              )}
+            />
+          </motion.span>
           {formatNumber(likes)}
         </button>
         <Link

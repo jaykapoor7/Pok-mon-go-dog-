@@ -17,7 +17,7 @@ export function CaseCard({ c }: { c: Case }) {
   return (
     <Link
       href={`/cases/${c.id}`}
-      className="card block p-4 transition-colors hover:border-black/10 dark:hover:border-white/10"
+      className="card card-interactive block p-4 hover:border-black/10 dark:hover:border-white/10"
     >
       <div className="flex items-start gap-3">
         <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-bark-900/[0.05] text-base dark:bg-white/[0.06]">

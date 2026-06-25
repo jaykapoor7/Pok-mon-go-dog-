@@ -15,12 +15,12 @@ import type { Dog } from "@/lib/types";
 
 type Props = { id: string; cover: string; urgent: boolean; sightings: number };
 
+const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+
 export function MapboxMap({
-  token,
   dogs,
   onSelect,
 }: {
-  token: string;
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
 }) {
@@ -71,7 +71,7 @@ export function MapboxMap({
   return (
     <Map
       ref={mapRef}
-      mapboxAccessToken={token}
+      mapboxAccessToken={TOKEN}
       initialViewState={{ longitude: DELHI_CENTER.lng, latitude: DELHI_CENTER.lat, zoom: 10.5 }}
       mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       onLoad={sync}
