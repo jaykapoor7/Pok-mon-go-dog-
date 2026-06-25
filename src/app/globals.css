@@ -15,7 +15,7 @@
 
   body {
     @apply text-bark-900 antialiased;
-    background-color: #f5f4f3; /* calm warm-neutral — premium, not noisy */
+    background-color: #FBF8EE; /* paper — warm cream, on-brand */
     font-feature-settings: "cv02", "cv03", "cv04", "ss01";
   }
 
@@ -24,17 +24,17 @@
     letter-spacing: -0.025em;
   }
 
-  /* ── Dark theme — deep, high-contrast, near-flat ──────────── */
+  /* ── Dark theme — warm ink (not near-black), per the olive brand ── */
   .dark body {
     @apply text-bark-100;
-    background-color: #0b0b0c;
+    background-color: #1C1D17; /* --ink */
   }
 
   /* Centralised surface remaps — more specific than the base utilities,
      so the app themes broadly without per-component dark: classes. */
-  .dark .bg-white { background-color: #141416; }
+  .dark .bg-white { background-color: #26271E; } /* --ink-surface */
   .dark .bg-bark-50,
-  .dark .bg-bark-100 { background-color: #1c1c1f; }
+  .dark .bg-bark-100 { background-color: #222318; }
   .dark .border-bark-100,
   .dark .border-bark-200 { border-color: rgba(255, 255, 255, 0.07); }
   .dark .text-bark-900,
@@ -86,11 +86,11 @@
   }
 
   .dark .glass {
-    background-color: rgba(20, 20, 22, 0.72);
+    background-color: rgba(38, 39, 30, 0.72); /* ink-surface */
     border-color: rgba(255, 255, 255, 0.07);
   }
   .dark .card {
-    background-color: #141416;
+    background-color: #26271E; /* --ink-surface */
     border-color: rgba(255, 255, 255, 0.06);
   }
   .dark .btn-ghost {

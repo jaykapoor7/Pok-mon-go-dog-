@@ -10,6 +10,7 @@ import Map, {
 import Supercluster from "supercluster";
 import type { PointFeature } from "supercluster";
 import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
+import { markerMetaFor } from "@/lib/marker-state";
 import { PhotoMarker } from "./PhotoMarker";
 import type { Dog } from "@/lib/types";
 
@@ -88,12 +89,14 @@ export function MapLibreMap({
           const clusterId = c.properties.cluster_id;
           const count = c.properties.point_count;
           const leaf = index.getLeaves(clusterId, 1)[0] as PointFeature<Props>;
+          const leafDog = leaf ? byId[leaf.properties.id] : undefined;
           return (
             <Marker key={`cluster-${clusterId}`} longitude={lng} latitude={lat} anchor="center">
               <PhotoMarker
                 photo={leaf?.properties.cover}
                 seed={`cluster-${clusterId}`}
                 count={count}
+                ringColor={leafDog ? markerMetaFor(leafDog).color : "#9A9C88"}
                 label={`${count} dogs here`}
                 onClick={() => {
                   const z = Math.min(index.getClusterExpansionZoom(clusterId), 16);
@@ -112,7 +115,7 @@ export function MapLibreMap({
               photo={props.cover}
               seed={props.id}
               count={props.sightings}
-              urgent={props.urgent}
+              ringColor={dog ? markerMetaFor(dog).color : "#9A9C88"}
               label={dog?.name ?? "Dog"}
               onClick={() => dog && onSelect?.(dog)}
             />

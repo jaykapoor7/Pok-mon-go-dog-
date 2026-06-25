@@ -23,11 +23,11 @@ export interface MarkerMeta {
 }
 
 export const MARKER_META: Record<MarkerState, MarkerMeta> = {
-  needs_help: { key: "needs_help", label: "Needs Help", emoji: "🚑", color: "#ef4444" },
-  adoptable: { key: "adoptable", label: "Adoptable", emoji: "🏡", color: "#ec4899" },
-  sterilised: { key: "sterilised", label: "Sterilised", emoji: "✂️", color: "#8b5cf6" },
-  fed: { key: "fed", label: "Fed", emoji: "🍗", color: "#f59e0b" },
-  seen: { key: "seen", label: "Seen", emoji: "🐕", color: "#64748b" },
+  needs_help: { key: "needs_help", label: "Needs Help", emoji: "🚑", color: "#C0492E" },
+  adoptable: { key: "adoptable", label: "Adoptable", emoji: "🏡", color: "#C06A86" },
+  sterilised: { key: "sterilised", label: "Sterilised", emoji: "✂️", color: "#3E8473" },
+  fed: { key: "fed", label: "Fed", emoji: "🍗", color: "#D9A441" },
+  seen: { key: "seen", label: "Seen", emoji: "🐕", color: "#9A9C88" },
 };
 
 export const MARKER_ORDER: MarkerState[] = [

@@ -5,12 +5,12 @@ import { PawPrint } from "lucide-react";
 import { cn, seededRandom } from "@/lib/utils";
 
 const GRADIENTS = [
-  ["#fb923c", "#f97316"],
-  ["#f59e0b", "#ef4444"],
-  ["#ec4899", "#f97316"],
-  ["#8b5cf6", "#ec4899"],
-  ["#10b981", "#f59e0b"],
-  ["#f97316", "#7c2d12"],
+  ["#8f9c5f", "#515C30"],
+  ["#D9A441", "#6E7A45"],
+  ["#3E8473", "#515C30"],
+  ["#C06A86", "#6E7A45"],
+  ["#4E8A5F", "#3D4522"],
+  ["#6E7A45", "#232711"],
 ];
 
 /**

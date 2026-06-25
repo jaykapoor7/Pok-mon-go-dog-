@@ -68,25 +68,25 @@ export function CommandCenter({ cases }: { cases: Case[] }) {
         <Queue
           title="Unassigned"
           icon={<UserPlus className="h-4 w-4" />}
-          tone="#3b82f6"
+          tone="#4E7C8A"
           cases={q.unassigned}
         />
         <Queue
           title="Overdue"
           icon={<Clock className="h-4 w-4" />}
-          tone="#ef4444"
+          tone="#C0492E"
           cases={q.overdue}
         />
         <Queue
           title="Critical"
           icon={<Flame className="h-4 w-4" />}
-          tone="#f97316"
+          tone="#C0492E"
           cases={q.critical}
         />
         <Queue
           title="Recently updated"
           icon={<Activity className="h-4 w-4" />}
-          tone="#10b981"
+          tone="#3E8473"
           cases={q.recent}
         />
       </div>

@@ -42,7 +42,7 @@ export function TrustRing({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const offset = c - (score / 100) * c;
-  const color = score >= 80 ? "#10b981" : score >= 60 ? "#f59e0b" : "#ef4444";
+  const color = score >= 80 ? "#3E8473" : score >= 60 ? "#D9A441" : "#C0492E";
 
   return (
     <div

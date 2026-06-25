@@ -159,11 +159,11 @@ export const STATUS_META: Record<
   DogStatus,
   { label: string; emoji: string; color: string }
 > = {
-  seen: { label: "Seen", emoji: "🐕", color: "#64748b" },
-  hungry: { label: "Hungry", emoji: "🍗", color: "#f59e0b" },
-  injured: { label: "Injured", emoji: "🚑", color: "#ef4444" },
-  sterilised: { label: "Sterilised", emoji: "✂️", color: "#8b5cf6" },
-  vaccinated: { label: "Vaccinated", emoji: "💉", color: "#10b981" },
+  seen: { label: "Seen", emoji: "🐕", color: "#9A9C88" },
+  hungry: { label: "Hungry", emoji: "🍗", color: "#D9A441" },
+  injured: { label: "Injured", emoji: "🚑", color: "#C0492E" },
+  sterilised: { label: "Sterilised", emoji: "✂️", color: "#3E8473" },
+  vaccinated: { label: "Vaccinated", emoji: "💉", color: "#4E8A5F" },
 };
 
 export const MOOD_META: Record<MoodTag, { label: string; emoji: string }> = {
@@ -260,21 +260,21 @@ export const CASE_STATUS_META: Record<
   CaseStatus,
   { label: string; color: string }
 > = {
-  unverified: { label: "Unverified", color: "#64748b" },
-  assigned: { label: "Assigned", color: "#3b82f6" },
-  in_progress: { label: "In Progress", color: "#f59e0b" },
-  resolved: { label: "Resolved", color: "#10b981" },
-  closed: { label: "Closed", color: "#78716c" },
+  unverified: { label: "Unverified", color: "#9A9C88" },
+  assigned: { label: "Assigned", color: "#4E7C8A" },
+  in_progress: { label: "In Progress", color: "#D9A441" },
+  resolved: { label: "Resolved", color: "#3E8473" },
+  closed: { label: "Closed", color: "#7A7C6A" },
 };
 
 export const CASE_SEVERITY_META: Record<
   CaseSeverity,
   { label: string; color: string }
 > = {
-  low: { label: "Low", color: "#94a3b8" },
-  normal: { label: "Normal", color: "#64748b" },
-  high: { label: "High", color: "#f97316" },
-  critical: { label: "Critical", color: "#ef4444" },
+  low: { label: "Low", color: "#9A9C88" },
+  normal: { label: "Normal", color: "#6E7A45" },
+  high: { label: "High", color: "#D9A441" },
+  critical: { label: "Critical", color: "#C0492E" },
 };
 
 export const CASE_CATEGORY_META: Record<

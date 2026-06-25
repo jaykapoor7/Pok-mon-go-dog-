@@ -121,12 +121,12 @@ export default async function DashboardPage() {
             <Progress
               label="Sterilisation coverage"
               pct={m.sterilisedPct}
-              color="#8b5cf6"
+              color="#3E8473"
             />
             <Progress
               label="Vaccination coverage"
               pct={m.vaccinatedPct}
-              color="#10b981"
+              color="#4E8A5F"
             />
             <p className="mt-3 text-xs text-bark-400">
               {m.feedEventsThisMonth} feeding events logged · {m.activeVolunteers}{" "}
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
                       className="h-full rounded-full"
                       style={{
                         width: `${Math.round(z.underserved * 100)}%`,
-                        background: `linear-gradient(90deg, #f59e0b, #ef4444)`,
+                        background: `linear-gradient(90deg, #D9A441, #C0492E)`,
                       }}
                     />
                   </div>
