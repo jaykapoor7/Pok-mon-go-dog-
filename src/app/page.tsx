@@ -1,17 +1,16 @@
-import { MapView } from "@/components/map/MapView";
-import { getAllDogs } from "@/lib/data";
+import { TodayClient } from "@/components/today/TodayClient";
+import { getAllDogs, getAllSightings } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "StrayPaw — the street dog map",
+  title: "StrayPaw — Today",
   description:
-    "A live, community-powered map of India's street dogs. Browse sightings, then report your own.",
+    "Dogs near you who need help, this week's top guardians, and live community activity for India's street dogs.",
 };
 
-// Map-first: the home screen IS the interactive map. Demo dogs are merged
-// client-side in MapView (via DemoModeProvider) so they toggle on/off live.
+// Home is now a "Today" mission dashboard; the immersive map lives at /map.
 export default async function HomePage() {
-  const realDogs = await getAllDogs();
-  return <MapView dogs={realDogs} />;
+  const [dogs, sightings] = await Promise.all([getAllDogs(), getAllSightings(60)]);
+  return <TodayClient dogs={dogs} sightings={sightings} />;
 }

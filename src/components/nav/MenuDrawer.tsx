@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
+  Home,
   Map as MapIcon,
   Images,
   LayoutDashboard,
@@ -19,7 +20,8 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const PRIMARY = [
-  { href: "/", label: "Explore map", icon: MapIcon },
+  { href: "/", label: "Today", icon: Home },
+  { href: "/map", label: "Explore map", icon: MapIcon },
   { href: "/help", label: "Help a dog", icon: HandHelping },
   { href: "/feed", label: "Sightings feed", icon: Images },
   { href: "/cases", label: "Cases", icon: ClipboardList },

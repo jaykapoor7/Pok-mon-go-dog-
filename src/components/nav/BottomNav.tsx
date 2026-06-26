@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Map as MapIcon, HandHelping, Plus, HeartHandshake } from "lucide-react";
+import { Home, Map as MapIcon, HandHelping, Plus, HeartHandshake } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 
@@ -17,9 +17,10 @@ type Item = {
 };
 
 const ITEMS: Item[] = [
-  { key: "map", href: "/", label: "Map", icon: MapIcon },
-  { key: "help", href: "/help", label: "Help", icon: HandHelping },
+  { key: "today", href: "/", label: "Today", icon: Home },
+  { key: "map", href: "/map", label: "Map", icon: MapIcon },
   { key: "report", href: "/report", label: "Report", icon: Plus, gated: true },
+  { key: "help", href: "/help", label: "Help", icon: HandHelping },
   { key: "partners", href: "/dashboard", label: "Partners", icon: HeartHandshake },
 ];
 
