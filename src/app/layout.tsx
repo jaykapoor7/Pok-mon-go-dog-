@@ -38,27 +38,20 @@ export const metadata: Metadata = {
     "feeding",
     "sterilisation",
   ],
+  // og:image + twitter:image are provided by the generated app/opengraph-image.tsx
+  // (absolute URL via metadataBase), so no static image is referenced here.
   openGraph: {
     title: "StrayPaw — Every dog has a story",
     description:
       "Discover, explore and upload sightings of India's street dogs. Build a living database of every good boy and girl in your city.",
     type: "website",
     siteName: "StrayPaw",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "StrayPaw — Every dog has a story. Start seeing them.",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "StrayPaw — Every dog has a story",
     description:
       "A community map for India's street dogs. Spot a dog, snap a photo, help track feeding, vaccination & rescue.",
-    images: ["/og.png"],
   },
 };
 
