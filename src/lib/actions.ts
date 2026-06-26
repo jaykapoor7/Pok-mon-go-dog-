@@ -199,6 +199,36 @@ export async function updateDogStatus(
   return data === true;
 }
 
+export interface HelperInput {
+  name: string;
+  contact: string;
+  message?: string;
+  isNgo?: boolean;
+  ngoName?: string;
+  dogId?: string | null;
+  zone?: string | null;
+}
+
+/** Submit a "can you help?" volunteer or NGO sign-up. */
+export async function submitHelper(input: HelperInput): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) {
+    await wait(700); // local/no-config: simulate success
+    return true;
+  }
+  const { error } = await supa.rpc("submit_helper", {
+    p_name: input.name,
+    p_contact: input.contact,
+    p_message: input.message || null,
+    p_is_ngo: input.isNgo ?? false,
+    p_ngo_name: input.ngoName || null,
+    p_dog_id: input.dogId || null,
+    p_zone: input.zone || null,
+  });
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 /** Is the signed-in user a verified partner NGO (may merge profiles, see exact pins)? */
 export async function isNgoMember(): Promise<boolean> {
   const supa = getSupabase();
