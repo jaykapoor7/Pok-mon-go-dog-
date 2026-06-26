@@ -92,7 +92,7 @@ export default function RootLayout({
             <DemoModeProvider>
               <Haptics />
               <FloatingTopBar />
-              <main className="lg:pl-20">{children}</main>
+              <main className="lg:pl-60">{children}</main>
               <BottomNav />
             </DemoModeProvider>
           </AuthProvider>

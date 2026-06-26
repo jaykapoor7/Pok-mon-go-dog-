@@ -27,10 +27,10 @@ export function FloatingTopBar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.06] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85 lg:pl-20">
-        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.06] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85 lg:hidden">
+        <div className="mx-auto flex h-[4.5rem] max-w-3xl items-center justify-between px-4">
           <Link href="/" aria-label="StrayPaw home" className="flex items-center">
-            <img src="/logo.png" alt="StrayPaw" className="h-12 w-auto" />
+            <img src="/logo.png" alt="StrayPaw" className="h-14 w-auto" />
           </Link>
 
           <button
