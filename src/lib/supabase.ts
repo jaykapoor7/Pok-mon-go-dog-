@@ -31,7 +31,16 @@ export function getSupabase(): SupabaseClient | null {
   if (!client) {
     try {
       client = createClient(url!, anonKey!, {
-        auth: { persistSession: true, autoRefreshToken: true },
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          // Implicit flow puts the token in the URL hash, so a magic link works
+          // even when opened on a different device/browser than it was
+          // requested from (PKCE needs the original browser's verifier and
+          // otherwise fails with "string did not match the expected pattern").
+          flowType: "implicit",
+        },
       });
     } catch {
       return null;
