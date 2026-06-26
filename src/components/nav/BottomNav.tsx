@@ -118,9 +118,7 @@ function DesktopRail() {
       className="fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center border-r border-black/[0.07] bg-paper/95 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-ink/95 lg:flex"
     >
       <Link href="/" aria-label="StrayPaw home" className="mb-8">
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-paw-500 text-white shadow-warm">
-          <MapIcon className="h-5 w-5" />
-        </span>
+        <img src="/logo.png" alt="StrayPaw" className="h-11 w-auto" />
       </Link>
 
       <ul className="flex flex-1 flex-col items-center gap-1">

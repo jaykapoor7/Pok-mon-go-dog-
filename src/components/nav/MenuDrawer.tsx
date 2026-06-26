@@ -64,9 +64,7 @@ export function MenuDrawer({
             className="fixed inset-y-0 right-0 z-[61] flex w-[85%] max-w-sm flex-col bg-white shadow-2xl dark:bg-bark-900"
           >
             <div className="flex items-center justify-between border-b border-bark-100 p-4 dark:border-bark-800">
-              <span className="font-display text-lg font-extrabold">
-                Stray<span className="text-paw-500">Paw</span>
-              </span>
+              <img src="/logo.png" alt="StrayPaw" className="h-9 w-auto" />
               <button
                 onClick={onClose}
                 className="rounded-full p-2 text-bark-500 hover:bg-bark-100 dark:hover:bg-bark-800"
