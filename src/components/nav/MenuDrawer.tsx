@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { SocialLinks } from "./SocialLinks";
 
 const PRIMARY = [
   { href: "/", label: "Today", icon: Home },
@@ -184,16 +185,9 @@ export function MenuDrawer({
                 Open-sourcing stray-dog care
               </p>
               <p className="mt-0.5 text-[11px] text-bark-400">
-                For the people, by the people · Built by{" "}
-                <a
-                  href="https://kapoorjay.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-paw-600 hover:underline"
-                >
-                  Jay
-                </a>
+                For the people, by the people
               </p>
+              <SocialLinks className="mt-3 justify-center" />
             </div>
           </motion.aside>
         </>

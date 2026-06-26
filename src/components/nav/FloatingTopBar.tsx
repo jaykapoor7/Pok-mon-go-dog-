@@ -29,7 +29,7 @@ export function FloatingTopBar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.06] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85 lg:pl-60">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.06] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85 lg:left-60">
         <div className="mx-auto flex h-[4.5rem] max-w-3xl items-center gap-2 px-3 lg:max-w-5xl lg:px-6">
           <Link
             href="/"

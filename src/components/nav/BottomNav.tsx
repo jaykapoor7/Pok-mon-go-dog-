@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { INFO } from "./MenuDrawer";
+import { SocialLinks } from "./SocialLinks";
 import { cn } from "@/lib/utils";
 
 // Route keys stay stable (/report was "spot", /dashboard was "ngo") — only the
@@ -197,19 +198,9 @@ function DesktopRail() {
           </ul>
         </nav>
 
-        {/* credit pinned to the bottom */}
+        {/* contact pinned to the bottom */}
         <div className="mt-auto pt-4">
-          <p className="px-1 text-[11px] text-bark-400">
-            Built by{" "}
-            <a
-              href="https://kapoorjay.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-paw-600 hover:underline"
-            >
-              Jay
-            </a>
-          </p>
+          <SocialLinks className="px-1" />
         </div>
       </nav>
     </>
