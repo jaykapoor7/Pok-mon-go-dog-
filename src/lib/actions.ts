@@ -199,6 +199,26 @@ export async function updateDogStatus(
   return data === true;
 }
 
+/** Is the signed-in user a verified partner NGO (may merge profiles, see exact pins)? */
+export async function isNgoMember(): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return false;
+  const { data } = await supa.rpc("is_ngo_member");
+  return data === true;
+}
+
+/** Merge a duplicate dog profile into the one we're keeping (NGO-only). */
+export async function mergeDogs(keepId: string, removeId: string): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return false;
+  const { data, error } = await supa.rpc("merge_dogs", {
+    p_keep: keepId,
+    p_remove: removeId,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
 /** Fetch the signed-in user's own sightings (including pending ones). */
 export async function getMySightings(userId: string) {
   const supa = getSupabase();

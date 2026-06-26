@@ -8,7 +8,6 @@ import {
   Scissors,
   Calendar,
   Quote,
-  GitMerge,
   ArrowRight,
   ClipboardList,
 } from "lucide-react";
@@ -17,6 +16,7 @@ import { StatusBadge, TrustRing } from "@/components/ui/Badges";
 import { DogActions } from "@/components/dog/DogActions";
 import { DogLocation } from "@/components/dog/DogLocation";
 import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
+import { MergeSuggestions } from "@/components/dog/MergeSuggestions";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
@@ -241,30 +241,7 @@ export default async function DogProfilePage({
           <p className="mb-3 -mt-2 text-xs text-bark-400">
             Our matching engine found nearby profiles that might be the same dog.
           </p>
-          <div className="space-y-2">
-            {matchSuggestions.map((m) => (
-              <Link
-                key={m.dog.id}
-                href={`/dog/${m.dog.id}`}
-                className="flex items-center gap-3 rounded-2xl border border-bark-100 p-2.5 transition-colors hover:border-paw-300 hover:bg-paw-50"
-              >
-                <DogPhoto
-                  src={m.dog.cover_photo}
-                  alt={dogLabel(m.dog)}
-                  seed={m.dog.id}
-                  className="h-12 w-12 rounded-xl"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold">{dogLabel(m.dog)}</p>
-                  <p className="truncate text-xs text-bark-400">{m.reason}</p>
-                </div>
-                <span className="chip bg-status-sterilised/15 text-status-sterilised">
-                  <GitMerge className="h-3 w-3" />
-                  {Math.round(m.confidence * 100)}%
-                </span>
-              </Link>
-            ))}
-          </div>
+          <MergeSuggestions keepId={dog.id} suggestions={matchSuggestions} />
         </Section>
       )}
 
