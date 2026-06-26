@@ -9,7 +9,6 @@ import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { DemoModeProvider } from "@/components/demo/DemoModeProvider";
 import { Haptics } from "@/components/ux/Haptics";
-import { IntroSplash } from "@/components/ux/IntroSplash";
 
 // Body / UI text: a clean, restrained sans.
 const inter = Inter({
@@ -92,7 +91,6 @@ export default function RootLayout({
           <AuthProvider>
             <DemoModeProvider>
               <Haptics />
-              <IntroSplash />
               <FloatingTopBar />
               <main className="lg:pl-20">{children}</main>
               <BottomNav />
