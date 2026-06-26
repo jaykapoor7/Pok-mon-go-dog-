@@ -80,7 +80,7 @@ export function TodayClient({
       {/* one-line hero: what StrayPaw is, for first-time visitors */}
       <p className="mb-5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
         Spot a street dog → drop a pin → your neighbourhood sees who needs feeding,
-        vaccinating and care. <span className="font-semibold text-bark-700 dark:text-bark-100">Open-sourcing stray-dog care, for the people, by the people.</span>
+        vaccinating and care.
       </p>
 
       <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
