@@ -179,9 +179,13 @@ export function MenuDrawer({
               </div>
             </div>
 
-            <div className="border-t border-bark-100 p-4 text-center text-xs text-bark-400 dark:border-bark-800">
-              Built in India by{" "}
-              <span className="font-semibold text-paw-600">Jay</span>
+            <div className="border-t border-bark-100 p-4 text-center dark:border-bark-800">
+              <p className="text-xs font-semibold text-paw-600">
+                Open-sourcing stray-dog care
+              </p>
+              <p className="mt-0.5 text-[11px] text-bark-400">
+                For the people, by the people · Built in India by Jay
+              </p>
             </div>
           </motion.aside>
         </>

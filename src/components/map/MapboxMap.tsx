@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, {
   Marker,
   NavigationControl,
@@ -22,11 +22,24 @@ const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 export function MapboxMap({
   dogs,
   onSelect,
+  center,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
+  center?: { lat: number; lng: number } | null;
 }) {
   const mapRef = useRef<MapRef>(null);
+
+  // Fly to a searched place when it changes.
+  useEffect(() => {
+    if (center) {
+      mapRef.current?.easeTo({
+        center: [center.lng, center.lat],
+        zoom: 13,
+        duration: 900,
+      });
+    }
+  }, [center?.lat, center?.lng]);
   const [isDark] = useState(
     () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   );
@@ -74,7 +87,11 @@ export function MapboxMap({
     <Map
       ref={mapRef}
       mapboxAccessToken={TOKEN}
-      initialViewState={{ longitude: INDIA_CENTER.lng, latitude: INDIA_CENTER.lat, zoom: INDIA_ZOOM }}
+      initialViewState={{
+        longitude: center?.lng ?? INDIA_CENTER.lng,
+        latitude: center?.lat ?? INDIA_CENTER.lat,
+        zoom: center ? 13 : INDIA_ZOOM,
+      }}
       mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       onLoad={sync}
       onMoveEnd={sync}

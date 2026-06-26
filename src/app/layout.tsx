@@ -35,14 +35,16 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "StrayPaw — Every dog has a story",
+  title: "StrayPaw — Open-sourcing stray-dog care",
   description:
-    "A community-powered map to discover, track and care for India's street dogs. Report sightings, follow dog profiles, and help NGOs feed, vaccinate and sterilise.",
+    "An open, community-run map for India's street dogs — anyone can track, report and care. Coverage and care stats NGOs usually keep closed, opened up for the people, by the people.",
   keywords: [
     "street dogs",
     "India",
     "stray dogs",
     "animal welfare",
+    "open source",
+    "community",
     "dog map",
     "NGO",
     "feeding",
@@ -51,17 +53,17 @@ export const metadata: Metadata = {
   // og:image + twitter:image are provided by the generated app/opengraph-image.tsx
   // (absolute URL via metadataBase), so no static image is referenced here.
   openGraph: {
-    title: "StrayPaw — Every dog has a story",
+    title: "StrayPaw — Open-sourcing stray-dog care",
     description:
-      "Discover, explore and upload sightings of India's street dogs. Build a living database of every good boy and girl in your city.",
+      "An open, community-run map for India's street dogs. Transparent care + coverage data, for the people, by the people.",
     type: "website",
     siteName: "StrayPaw",
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw — Every dog has a story",
+    title: "StrayPaw — Open-sourcing stray-dog care",
     description:
-      "A community map for India's street dogs. Spot a dog, snap a photo, help track feeding, vaccination & rescue.",
+      "An open, community-run map for India's street dogs. The care stats NGOs keep closed — opened up, for the people, by the people.",
   },
 };
 

@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { PlaceSearch } from "@/components/search/PlaceSearch";
 import { MenuDrawer } from "./MenuDrawer";
 import { cn } from "@/lib/utils";
 
@@ -127,9 +128,14 @@ function DesktopRail() {
         aria-label="Primary"
         className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-black/[0.07] bg-paper/95 px-4 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-ink/95 lg:flex"
       >
-        <Link href="/" aria-label="StrayPaw home" className="mb-8 px-2">
+        <Link href="/" aria-label="StrayPaw home" className="mb-7 block px-2">
           <img src="/logo.png" alt="StrayPaw" className="h-14 w-auto" />
+          <p className="mt-1.5 text-[11px] font-medium leading-tight text-bark-400">
+            Open-sourcing stray-dog care · for the people, by the people
+          </p>
         </Link>
+
+        <PlaceSearch className="mb-4" />
 
         <ul className="flex flex-1 flex-col gap-1">
           {ITEMS.map((item) => {

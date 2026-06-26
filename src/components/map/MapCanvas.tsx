@@ -32,6 +32,7 @@ const MapEngine = dynamic(
 export function MapCanvas(props: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
+  center?: { lat: number; lng: number } | null;
 }) {
   return <MapEngine {...props} />;
 }

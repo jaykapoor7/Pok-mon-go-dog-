@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, {
   Marker,
   NavigationControl,
@@ -23,13 +23,26 @@ type Props = { id: string; cover: string; urgent: boolean; sightings: number };
 export function MapLibreMap({
   dogs,
   onSelect,
+  center,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
+  center?: { lat: number; lng: number } | null;
 }) {
   const mapRef = useRef<MapRef>(null);
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
   const [zoom, setZoom] = useState(INDIA_ZOOM);
+
+  // Fly to a searched place when it changes.
+  useEffect(() => {
+    if (center) {
+      mapRef.current?.easeTo({
+        center: [center.lng, center.lat],
+        zoom: 13,
+        duration: 900,
+      });
+    }
+  }, [center?.lat, center?.lng]);
 
   const byId = useMemo(() => {
     const m: Record<string, Dog> = {};
@@ -69,7 +82,11 @@ export function MapLibreMap({
   return (
     <Map
       ref={mapRef}
-      initialViewState={{ longitude: INDIA_CENTER.lng, latitude: INDIA_CENTER.lat, zoom: INDIA_ZOOM }}
+      initialViewState={{
+        longitude: center?.lng ?? INDIA_CENTER.lng,
+        latitude: center?.lat ?? INDIA_CENTER.lat,
+        zoom: center ? 13 : INDIA_ZOOM,
+      }}
       mapStyle={STYLE_URL}
       onLoad={sync}
       onMoveEnd={sync}

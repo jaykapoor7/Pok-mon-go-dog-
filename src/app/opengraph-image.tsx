@@ -63,14 +63,25 @@ export default function OpengraphImage() {
         )}
         <div
           style={{
-            marginTop: 28,
-            fontSize: 36,
-            fontWeight: 600,
+            marginTop: 26,
+            fontSize: 40,
+            fontWeight: 700,
+            color: "#515C30",
+            textAlign: "center",
+          }}
+        >
+          Open-sourcing stray-dog care
+        </div>
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: 28,
+            fontWeight: 500,
             color: "#6E7A45",
             textAlign: "center",
           }}
         >
-          Every dog has a story. Start seeing them.
+          For the people, by the people.
         </div>
       </div>
     ),

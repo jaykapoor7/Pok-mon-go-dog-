@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PlusCircle, Sparkles } from "lucide-react";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogBottomSheet } from "@/components/map/DogBottomSheet";
@@ -27,6 +27,13 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
   const { demoOn, toggle: toggleDemo } = useDemoMode();
   const { requireAuth, user } = useAuth();
   const router = useRouter();
+
+  // A searched place (?lat&lng) recenters the map.
+  const params = useSearchParams();
+  const sLat = parseFloat(params.get("lat") ?? "");
+  const sLng = parseFloat(params.get("lng") ?? "");
+  const center =
+    Number.isFinite(sLat) && Number.isFinite(sLng) ? { lat: sLat, lng: sLng } : null;
 
   const allDogs = useMemo(
     () => (demoOn ? [...realDogs, ...demoDogs] : realDogs),
@@ -72,7 +79,7 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
         </div>
       </div>
 
-      <MapCanvas dogs={dogs} onSelect={setSelected} />
+      <MapCanvas dogs={dogs} onSelect={setSelected} center={center} />
 
       {/* Demo mode on/off toggle (raised so it clears the bottom nav) */}
       <div className="absolute bottom-[5.5rem] left-3 z-20 lg:bottom-6">
