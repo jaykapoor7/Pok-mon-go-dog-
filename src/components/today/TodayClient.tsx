@@ -13,6 +13,7 @@ import {
   Medal,
 } from "lucide-react";
 import { useDemoMode } from "@/components/demo/DemoModeProvider";
+import { DemoToggle } from "@/components/demo/DemoToggle";
 import { demoDogs, demoFeedSightings } from "@/lib/demo-sightings";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogPhoto } from "@/components/ui/DogPhoto";
@@ -58,12 +59,18 @@ export function TodayClient({
   );
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6">
-      <header className="mb-5">
-        <p className="text-sm font-semibold text-paw-600">{greeting()}</p>
-        <h1 className="font-display text-3xl font-extrabold tracking-tightest">Today</h1>
+    <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6 lg:max-w-6xl">
+      <header className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-paw-600">{greeting()}</p>
+          <h1 className="font-display text-4xl font-extrabold tracking-tightest">Today</h1>
+        </div>
+        <DemoToggle className="mt-1" />
       </header>
 
+      <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+        {/* main column */}
+        <div className="lg:col-span-2">
       {/* impact strip */}
       <div className="mb-5 grid grid-cols-3 gap-2">
         <Stat icon={<Users className="h-4 w-4" />} value={cov.tracked} label="tracked" />
@@ -73,7 +80,7 @@ export function TodayClient({
 
       {/* minimised live map preview → tap to open full map */}
       <div className="mb-6">
-        <div className="relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10">
+        <div className="relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
           <MapCanvas dogs={dogs} />
           {/* transparent overlay: the whole preview opens the full map */}
           <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
@@ -120,7 +127,11 @@ export function TodayClient({
           </div>
         )}
       </Section>
+        </div>
+        {/* end main column */}
 
+        {/* sidebar */}
+        <div className="lg:sticky lg:top-20">
       {/* top guardians */}
       <Section title="This week's top guardians" icon={<Trophy className="h-4 w-4 text-status-hungry" />}>
         {guardians.length === 0 ? (
@@ -156,6 +167,9 @@ export function TodayClient({
           </div>
         )}
       </Section>
+        </div>
+        {/* end sidebar */}
+      </div>
     </div>
   );
 }
