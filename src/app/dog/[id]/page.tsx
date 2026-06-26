@@ -73,6 +73,7 @@ export default async function DogProfilePage({
           src={dog.cover_photo}
           alt={dog.name ?? "Street dog"}
           seed={dog.id}
+          fit="contain"
           className="h-64 w-full sm:h-80"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />

@@ -110,6 +110,7 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
             src={sighting.photo_url}
             alt={nickname ?? "Street dog sighting"}
             seed={sighting.id}
+            fit="contain"
             className="aspect-square w-full"
           />
           {nickname && (

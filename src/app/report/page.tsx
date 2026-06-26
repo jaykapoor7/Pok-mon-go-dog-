@@ -190,9 +190,20 @@ export default function ReportPage() {
             {photo ? (
               <button
                 onClick={() => fileRef.current?.click()}
-                className="relative block aspect-square w-full overflow-hidden rounded-3xl"
+                className="relative block aspect-square w-full overflow-hidden rounded-3xl bg-bark-100 dark:bg-bark-800"
               >
-                <img src={photo} alt="Selected dog" className="h-full w-full object-cover" />
+                {/* blurred fill + full photo so the dog is never cropped */}
+                <img
+                  src={photo}
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl"
+                />
+                <img
+                  src={photo}
+                  alt="Selected dog"
+                  className="relative h-full w-full object-contain"
+                />
                 <span className="absolute bottom-3 right-3 chip bg-black/60 text-white">
                   <Camera className="h-3.5 w-3.5" /> Change
                 </span>
