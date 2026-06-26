@@ -173,11 +173,13 @@ export async function deleteMySighting(sightingId: string): Promise<boolean> {
 }
 
 export interface DogStatusEdit {
-  status: string;
-  needs_help: boolean;
-  vaccinated: boolean;
-  sterilised: boolean;
-  is_friendly: boolean;
+  // Nulls are allowed for partial edits — the RPC coalesces each field, keeping
+  // the current value when null (so a single flag can be flipped on its own).
+  status: string | null;
+  needs_help: boolean | null;
+  vaccinated: boolean | null;
+  sterilised: boolean | null;
+  is_friendly: boolean | null;
 }
 
 /** Update the care status of a dog you've contributed a sighting for. */

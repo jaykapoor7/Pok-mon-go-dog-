@@ -17,6 +17,7 @@ import { DogActions } from "@/components/dog/DogActions";
 import { DogLocation } from "@/components/dog/DogLocation";
 import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
 import { MergeSuggestions } from "@/components/dog/MergeSuggestions";
+import { ShareDog } from "@/components/dog/ShareDog";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
@@ -120,6 +121,11 @@ export default async function DogProfilePage({
       {/* actions */}
       <div className="mt-5">
         <DogActions dogId={dog.id} name={dogLabel(dog)} />
+      </div>
+
+      {/* share card — drives a rich preview via the dog's OG image */}
+      <div className="mt-3">
+        <ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone} />
       </div>
 
       {/* location — general area for all, exact for partner NGOs */}

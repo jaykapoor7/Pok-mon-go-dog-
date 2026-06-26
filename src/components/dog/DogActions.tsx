@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, Utensils, Flag, GitMerge } from "lucide-react";
+import { Heart, Utensils, Siren } from "lucide-react";
 import { celebrate } from "@/lib/celebrate";
-import { logSeen, logFeed } from "@/lib/actions";
+import { logSeen, logFeed, updateDogStatus } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export function DogActions({ dogId, name }: { dogId: string; name: string }) {
-  const { user } = useAuth();
+  const { user, requireAuth } = useAuth();
   const [toast, setToast] = useState<string | null>(null);
 
   // Attribution shown on the action toast (and persisted for "fed").
@@ -17,12 +17,37 @@ export function DogActions({ dogId, name }: { dogId: string; name: string }) {
   function fire(message: string, party = true) {
     if (party) celebrate();
     setToast(message);
-    setTimeout(() => setToast(null), 2600);
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  function flagForHelp() {
+    requireAuth(async () => {
+      try {
+        const ok = await updateDogStatus(dogId, {
+          status: null,
+          needs_help: true,
+          vaccinated: null,
+          sterilised: null,
+          is_friendly: null,
+        });
+        if (ok) {
+          fire(`Flagged for help — rescuers can see ${name} now 🆘`);
+        } else {
+          // The RPC only lets verified contributors change a dog's status.
+          fire(
+            "Log a sighting for this dog first — then you can flag it for help.",
+            false
+          );
+        }
+      } catch {
+        fire("Couldn't flag right now. Please try again.", false);
+      }
+    });
   }
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2">
         <button
           onClick={() => {
             logSeen(dogId).catch(() => {});
@@ -42,16 +67,10 @@ export function DogActions({ dogId, name }: { dogId: string; name: string }) {
           <Utensils className="h-5 w-5 text-status-hungry" />I fed this dog
         </button>
         <button
-          onClick={() => fire(`Issue reported for ${name}. NGOs notified.`, false)}
+          onClick={flagForHelp}
           className="btn-ghost flex-col gap-1 py-3 text-xs"
         >
-          <Flag className="h-5 w-5 text-status-injured" />Report issue
-        </button>
-        <button
-          onClick={() => fire(`Merge suggested — thanks for the tip!`, false)}
-          className="btn-ghost flex-col gap-1 py-3 text-xs"
-        >
-          <GitMerge className="h-5 w-5 text-status-sterilised" />Same dog?
+          <Siren className="h-5 w-5 text-status-injured" />Flag for help
         </button>
       </div>
 

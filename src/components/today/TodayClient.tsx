@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Map as MapIcon,
@@ -19,7 +19,7 @@ import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
 import { coverage, topContributors } from "@/lib/dashboard-metrics";
-import { dogLabel, timeAgo } from "@/lib/utils";
+import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import type { Dog, Sighting } from "@/lib/types";
 
 export function TodayClient({
@@ -30,6 +30,16 @@ export function TodayClient({
   sightings: Sighting[];
 }) {
   const { demoOn } = useDemoMode();
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { timeout: 5000 }
+    );
+  }, []);
 
   const dogs = useMemo(
     () => (demoOn ? [...realDogs, ...demoDogs] : realDogs),
@@ -41,15 +51,14 @@ export function TodayClient({
   );
 
   const cov = coverage(dogs);
-  const needy = useMemo(
-    () =>
-      dogs
-        .filter((d) => d.needs_help)
-        .sort((a, b) => +new Date(b.last_seen) - +new Date(a.last_seen))
-        .slice(0, 10),
-    [dogs]
-  );
-  const guardians = useMemo(() => topContributors(sightings), [sightings]);
+  const needy = useMemo(() => {
+    const list = dogs.filter((d) => d.needs_help);
+    const sorted = coords
+      ? [...list].sort((a, b) => distanceMeters(coords, a) - distanceMeters(coords, b))
+      : [...list].sort((a, b) => +new Date(b.last_seen) - +new Date(a.last_seen));
+    return sorted.slice(0, 10);
+  }, [dogs, coords]);
+  const guardians = useMemo(() => topContributors(sightings, 7), [sightings]);
   const activity = useMemo(
     () =>
       [...sightings]
@@ -60,13 +69,19 @@ export function TodayClient({
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6 lg:max-w-6xl">
-      <header className="mb-5 flex items-start justify-between gap-3">
+      <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-paw-600">{greeting()}</p>
           <h1 className="font-display text-4xl font-extrabold tracking-tightest">Today</h1>
         </div>
         <DemoToggle className="mt-1" />
       </header>
+
+      {/* one-line hero: what StrayPaw is, for first-time visitors */}
+      <p className="mb-5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
+        Spot a street dog → drop a pin → your neighbourhood sees who needs feeding,
+        vaccinating and care. <span className="font-semibold text-bark-700 dark:text-bark-100">Open-sourcing stray-dog care, for the people, by the people.</span>
+      </p>
 
       <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
         {/* main column */}
@@ -95,7 +110,7 @@ export function TodayClient({
       </div>
 
       {/* near you need help */}
-      <Section title="Near you · need help" href="/help" cta="See all">
+      <Section title={coords ? "Near you · need help" : "Needs help now"} href="/help" cta="See all">
         {needy.length === 0 ? (
           <p className="text-sm text-bark-400">No dogs flagged as needing help right now.</p>
         ) : (

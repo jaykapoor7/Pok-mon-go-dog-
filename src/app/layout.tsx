@@ -9,6 +9,7 @@ import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { DemoModeProvider } from "@/components/demo/DemoModeProvider";
 import { Haptics } from "@/components/ux/Haptics";
+import { InstallPrompt } from "@/components/ux/InstallPrompt";
 
 // Body / UI text: a clean, restrained sans.
 const inter = Inter({
@@ -65,6 +66,16 @@ export const metadata: Metadata = {
     description:
       "An open, community-run map for India's street dogs. The care stats NGOs keep closed — opened up, for the people, by the people.",
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "StrayPaw",
+  },
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -96,6 +107,7 @@ export default function RootLayout({
               <FloatingTopBar />
               <main className="lg:pl-60">{children}</main>
               <BottomNav />
+              <InstallPrompt />
             </DemoModeProvider>
           </AuthProvider>
         </ThemeProvider>

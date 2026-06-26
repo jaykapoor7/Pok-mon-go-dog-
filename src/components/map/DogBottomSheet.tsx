@@ -174,12 +174,9 @@ export function DogBottomSheet({
                 <button onClick={share} className="btn-ghost py-3 text-sm">
                   <Share2 className="h-4 w-4" /> Share
                 </button>
-                <button
-                  onClick={() => flash("Thanks — flagged for review 🙏")}
-                  className="btn-ghost py-3 text-sm"
-                >
+                <Link href={`/dog/${dog.id}`} className="btn-ghost py-3 text-sm">
                   <Flag className="h-4 w-4" /> Report
-                </button>
+                </Link>
                 <button
                   onClick={() => onAction?.(dog, "saw")}
                   className="btn-ghost py-3 text-sm"

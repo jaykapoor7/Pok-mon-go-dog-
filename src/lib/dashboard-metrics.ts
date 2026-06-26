@@ -83,9 +83,11 @@ export function medianResponseDays(cases: Case[]): number | null {
   return Math.round(median * 10) / 10;
 }
 
-export function topContributors(sightings: Sighting[]) {
+export function topContributors(sightings: Sighting[], sinceDays?: number) {
+  const cutoff = sinceDays ? Date.now() - sinceDays * 86_400_000 : null;
   const map = new Map<string, { name: string; count: number; last: string }>();
   for (const s of sightings) {
+    if (cutoff && +new Date(s.created_at) < cutoff) continue;
     const name = s.user_name || "Anonymous";
     const e = map.get(name) ?? { name, count: 0, last: s.created_at };
     e.count += 1;
