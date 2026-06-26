@@ -8,8 +8,10 @@ import { PlaceSearch } from "@/components/search/PlaceSearch";
 import { MenuDrawer } from "./MenuDrawer";
 
 /**
- * Mobile top bar (hidden on desktop, where the sidebar takes over): logo, a
- * place search that flies the map to any area, and a tappable account chip.
+ * Top bar on every viewport: a place search that flies the map to any area and
+ * a tappable account chip. On mobile it also carries the logo; on desktop the
+ * logo lives in the sidebar, so the bar is offset to sit beside it (lg:pl-60)
+ * and shows just the search + account — the same concept as the phone.
  */
 export function FloatingTopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,13 +29,17 @@ export function FloatingTopBar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.06] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85 lg:hidden">
-        <div className="mx-auto flex h-[4.5rem] max-w-3xl items-center gap-2 px-3">
-          <Link href="/" aria-label="StrayPaw home" className="flex shrink-0 items-center">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.06] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85 lg:pl-60">
+        <div className="mx-auto flex h-[4.5rem] max-w-3xl items-center gap-2 px-3 lg:max-w-5xl lg:px-6">
+          <Link
+            href="/"
+            aria-label="StrayPaw home"
+            className="flex shrink-0 items-center lg:hidden"
+          >
             <img src="/logo.png" alt="StrayPaw" className="h-12 w-auto" />
           </Link>
 
-          <PlaceSearch className="min-w-0 flex-1" />
+          <PlaceSearch className="min-w-0 flex-1 lg:max-w-xl" />
 
           <button
             onClick={() => setMenuOpen(true)}

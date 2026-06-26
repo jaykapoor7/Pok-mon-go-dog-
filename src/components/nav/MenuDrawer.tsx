@@ -28,7 +28,7 @@ const PRIMARY = [
   { href: "/dashboard", label: "NGO dashboard", icon: LayoutDashboard },
 ];
 
-const INFO = [
+export const INFO = [
   { href: "/about", label: "About" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms" },
@@ -184,7 +184,15 @@ export function MenuDrawer({
                 Open-sourcing stray-dog care
               </p>
               <p className="mt-0.5 text-[11px] text-bark-400">
-                For the people, by the people · Built in India by Jay
+                For the people, by the people · Built by{" "}
+                <a
+                  href="https://kapoorjay.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-paw-600 hover:underline"
+                >
+                  Jay
+                </a>
               </p>
             </div>
           </motion.aside>

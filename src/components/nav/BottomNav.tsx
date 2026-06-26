@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -9,11 +8,9 @@ import {
   HandHelping,
   Plus,
   HeartHandshake,
-  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { PlaceSearch } from "@/components/search/PlaceSearch";
-import { MenuDrawer } from "./MenuDrawer";
+import { INFO } from "./MenuDrawer";
 import { cn } from "@/lib/utils";
 
 // Route keys stay stable (/report was "spot", /dashboard was "ngo") — only the
@@ -109,18 +106,13 @@ function MobileBar() {
   );
 }
 
-// Wide, labeled desktop sidebar: brand on top, full nav with labels, account at
-// the bottom. Replaces both the slim rail and the (now hidden) desktop top bar.
+// Wide, labeled desktop sidebar: brand on top, full nav with labels, info
+// links + credit at the bottom. Search and account live in the top bar (the
+// same concept as the phone), so the rail stays focused on navigation.
 function DesktopRail() {
   const isActive = useActive();
   const router = useRouter();
-  const { requireAuth, user } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const firstName = user?.name?.split(" ")[0];
-  const initials = user?.name
-    ? user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
-    : null;
+  const { requireAuth } = useAuth();
 
   return (
     <>
@@ -135,9 +127,7 @@ function DesktopRail() {
           </p>
         </Link>
 
-        <PlaceSearch className="mb-4" />
-
-        <ul className="flex flex-1 flex-col gap-1">
+        <ul className="flex flex-col gap-1">
           {ITEMS.map((item) => {
             const active = isActive(item.href);
             const Icon = item.icon;
@@ -188,25 +178,40 @@ function DesktopRail() {
           })}
         </ul>
 
-        {/* account */}
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="mt-2 flex items-center gap-3 rounded-2xl border border-black/[0.07] bg-white/70 px-3 py-2.5 text-left transition-colors hover:bg-white dark:border-white/10 dark:bg-bark-900/60"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-paw-500 text-sm font-bold text-white">
-            {initials ?? firstName?.[0]?.toUpperCase() ?? "S"}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-semibold">
-              {firstName ?? "Sign in"}
-            </span>
-            <span className="block text-xs text-bark-400">Account & menu</span>
-          </span>
-          <ChevronRight className="h-4 w-4 text-bark-400" />
-        </button>
-      </nav>
+        {/* info links — fill the space */}
+        <nav aria-label="More" className="mt-5 border-t border-black/[0.06] pt-4 dark:border-white/10">
+          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
+            More
+          </p>
+          <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+            {INFO.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block truncate text-xs text-bark-500 transition-colors hover:text-paw-600 dark:text-bark-400"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-      <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
+        {/* credit pinned to the bottom */}
+        <div className="mt-auto pt-4">
+          <p className="px-1 text-[11px] text-bark-400">
+            Built by{" "}
+            <a
+              href="https://kapoorjay.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-paw-600 hover:underline"
+            >
+              Jay
+            </a>
+          </p>
+        </div>
+      </nav>
     </>
   );
 }
