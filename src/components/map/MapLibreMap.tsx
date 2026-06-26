@@ -11,6 +11,7 @@ import Supercluster from "supercluster";
 import type { PointFeature } from "supercluster";
 import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
 import { markerMetaFor } from "@/lib/marker-state";
+import { dogLabel } from "@/lib/utils";
 import { PhotoMarker } from "./PhotoMarker";
 import type { Dog } from "@/lib/types";
 
@@ -116,7 +117,7 @@ export function MapLibreMap({
               seed={props.id}
               count={props.sightings}
               ringColor={dog ? markerMetaFor(dog).color : "#9A9C88"}
-              label={dog?.name ?? "Dog"}
+              label={dog ? dogLabel(dog) : "Dog"}
               onClick={() => dog && onSelect?.(dog)}
             />
           </Marker>

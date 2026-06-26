@@ -67,3 +67,14 @@ export function seededRandom(seed: string): number {
 export function pluralize(n: number, singular: string, plural?: string) {
   return n === 1 ? singular : plural ?? `${singular}s`;
 }
+
+/**
+ * Display label for a (stray) dog. Most street dogs have no name, so we identify
+ * them by area. A genuinely user-given nickname is still honoured when present.
+ */
+export function dogLabel(dog: { name?: string | null; zone?: string | null }): string {
+  const name = dog.name?.trim();
+  if (name) return name;
+  const zone = dog.zone?.trim();
+  return zone ? `Dog near ${zone}` : "Street dog";
+}

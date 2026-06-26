@@ -7,7 +7,7 @@ import { Check, Syringe, Scissors, Utensils } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge } from "@/components/ui/Badges";
 import { celebrate } from "@/lib/celebrate";
-import { timeAgo, cn } from "@/lib/utils";
+import { timeAgo, cn, dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 const BULK = [
@@ -104,7 +104,7 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
               </button>
               <DogPhoto
                 src={dog.cover_photo}
-                alt={dog.name ?? "dog"}
+                alt="dog"
                 seed={dog.id}
                 className="h-12 w-12 shrink-0 rounded-xl"
               />
@@ -113,7 +113,7 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
                   href={`/dog/${dog.id}`}
                   className="text-sm font-semibold hover:text-paw-600"
                 >
-                  {dog.name}
+                  {dogLabel(dog)}
                 </Link>
                 <p className="text-xs text-bark-400">
                   {dog.zone} · seen {timeAgo(dog.last_seen)}

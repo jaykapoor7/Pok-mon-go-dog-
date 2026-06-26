@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { DOG_PHOTOS } from "./photos";
-import { seededRandom } from "./utils";
+import { seededRandom, dogLabel } from "./utils";
 import { DEMO_ID_PREFIX } from "./config";
 import type {
   Dog,
@@ -75,11 +75,6 @@ const NOTES: Record<DemoTag, string[]> = {
   ],
 };
 
-const NAMES = [
-  "Bruno", "Sheru", "Moti", "Laali", "Tommy", "Brownie", "Goldie", "Raja",
-  "Coco", "Simba", "Rani", "Bablu", "Snowy", "Hira", "Mowgli", "Kaalu",
-  "Pinky", "Jackie", "Lucy", "Champ", "Dabbu", "Gabbar",
-];
 const COLORS = ["Brown", "Black & Tan", "White", "Golden", "Brindle", "Black"];
 const SIZES: DogSize[] = ["puppy", "small", "medium", "large"];
 
@@ -186,7 +181,7 @@ function toDog(s: DemoSighting): Dog {
 
   return {
     id: s.id,
-    name: pick(NAMES, `${s.id}-name`),
+    name: null, // strays are identified by area, not names
     zone: s.colony,
     colony: s.colony,
     city: s.city,
@@ -363,7 +358,7 @@ function buildCases(): { cases: Case[]; updates: CaseUpdate[] } {
     cases.push({
       id,
       dog_id: dog.id,
-      title: `${category[0].toUpperCase() + category.slice(1)} — ${dog.name}`,
+      title: `${category[0].toUpperCase() + category.slice(1)} — ${dogLabel(dog)}`,
       description: dog.community_notes[0] ?? "Reported by the community.",
       zone: dog.colony ?? dog.zone,
       lat: dog.lat,

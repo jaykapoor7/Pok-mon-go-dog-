@@ -228,7 +228,9 @@ export function AdminClient() {
                   className="h-24 w-24 shrink-0 rounded-2xl"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold">{s.nickname || "Unnamed dog"}</p>
+                  <p className="font-semibold">
+                    {s.nickname || (s.zone ? `Dog near ${s.zone}` : "Street dog")}
+                  </p>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-bark-500">
                     {s.zone && (
                       <span className="flex items-center gap-1">

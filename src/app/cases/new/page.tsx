@@ -13,7 +13,7 @@ import {
   type CaseCategory,
   type CaseSeverity,
 } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, dogLabel } from "@/lib/utils";
 
 const CATEGORIES = Object.keys(CASE_CATEGORY_META) as CaseCategory[];
 const SEVERITIES: CaseSeverity[] = ["low", "normal", "high", "critical"];
@@ -44,7 +44,7 @@ function NewCaseInner() {
       if (!dog) return;
       setZone(dog.zone);
       setCoords({ lat: dog.lat, lng: dog.lng });
-      setTitle((t) => t || `${dog.needs_help ? "Injury" : "Check-up"} — ${dog.name}`);
+      setTitle((t) => t || `${dog.needs_help ? "Injury" : "Check-up"} — ${dogLabel(dog)}`);
       if (dog.needs_help) setSeverity("high");
     });
   }, [dogId]);

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerMetaFor, fedRecently } from "@/lib/marker-state";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 export function DogBottomSheet({
@@ -34,8 +34,8 @@ export function DogBottomSheet({
     if (!dog) return;
     const url = `${window.location.origin}/dog/${dog.id}`;
     const data = {
-      title: `${dog.name} — StrayPaw`,
-      text: `Meet ${dog.name}, a street dog around ${dog.zone}.`,
+      title: `${dogLabel(dog)} — StrayPaw`,
+      text: `Meet this street dog around ${dog.zone}.`,
       url,
     };
     try {
@@ -93,8 +93,9 @@ export function DogBottomSheet({
             <div className="relative mx-4 mt-2 overflow-hidden rounded-[20px]">
               <DogPhoto
                 src={dog.cover_photo}
-                alt={dog.name ?? "Street dog"}
+                alt="Street dog"
                 seed={dog.id}
+                fit="contain"
                 className="h-48 w-full"
               />
               <span
@@ -118,7 +119,7 @@ export function DogBottomSheet({
             <div className="space-y-5 p-5">
               <div>
                 <h2 className="font-display text-[26px] font-bold leading-tight tracking-tightest">
-                  {dog.name ?? "Unnamed dog"}
+                  {dogLabel(dog)}
                 </h2>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-bark-500">
                   <span className="flex items-center gap-1.5">

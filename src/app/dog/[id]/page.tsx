@@ -21,7 +21,7 @@ import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
-import { timeAgo, formatDate, formatNumber } from "@/lib/utils";
+import { timeAgo, formatDate, formatNumber, dogLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +34,9 @@ export async function generateMetadata({
   const profile = await getDogProfile(id);
   if (!profile) return { title: "Dog not found — StrayPaw" };
   const { dog } = profile;
-  const title = `${dog.name} — StrayPaw`;
-  const description = `Follow ${dog.name}, a street dog around ${dog.zone}. ${dog.sightings_count} sightings tracked by the community.`;
+  const label = dogLabel(dog);
+  const title = `${label} — StrayPaw`;
+  const description = `Follow this street dog around ${dog.zone}. ${dog.sightings_count} sightings tracked by the community.`;
   // Use the dog's own photo as the share image when available.
   const images = dog.cover_photo ? [dog.cover_photo] : undefined;
   return {
@@ -85,7 +86,7 @@ export default async function DogProfilePage({
         </div>
         <div className="absolute inset-x-4 bottom-4 flex items-end justify-between text-white">
           <div>
-            <h1 className="font-display text-3xl font-extrabold">{dog.name}</h1>
+            <h1 className="font-display text-3xl font-extrabold">{dogLabel(dog)}</h1>
             <p className="flex items-center gap-1.5 text-sm opacity-90">
               <MapPin className="h-4 w-4" /> Around {dog.zone} · {dog.size} · {dog.color}
             </p>
@@ -100,7 +101,7 @@ export default async function DogProfilePage({
             <DogPhoto
               key={i}
               src={p}
-              alt={`${dog.name} photo ${i + 1}`}
+              alt={`Street dog photo ${i + 1}`}
               seed={`${dog.id}-${i}`}
               className="aspect-square rounded-2xl"
             />
@@ -118,7 +119,7 @@ export default async function DogProfilePage({
 
       {/* actions */}
       <div className="mt-5">
-        <DogActions dogId={dog.id} name={dog.name ?? "this dog"} />
+        <DogActions dogId={dog.id} name={dogLabel(dog)} />
       </div>
 
       {/* location — general area for all, exact for partner NGOs */}
@@ -154,7 +155,7 @@ export default async function DogProfilePage({
           href={`/cases/new?dog=${dog.id}`}
           className="flex items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-bark-700 transition-colors hover:border-black/20 dark:border-white/10 dark:text-bark-200"
         >
-          <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for {dog.name}
+          <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for this dog
         </Link>
       </Section>
 
@@ -238,7 +239,7 @@ export default async function DogProfilePage({
       {matchSuggestions.length > 0 && (
         <Section title="Possibly the same dog?">
           <p className="mb-3 -mt-2 text-xs text-bark-400">
-            Our matching engine found nearby profiles that might be {dog.name}.
+            Our matching engine found nearby profiles that might be the same dog.
           </p>
           <div className="space-y-2">
             {matchSuggestions.map((m) => (
@@ -249,12 +250,12 @@ export default async function DogProfilePage({
               >
                 <DogPhoto
                   src={m.dog.cover_photo}
-                  alt={m.dog.name ?? "dog"}
+                  alt={dogLabel(m.dog)}
                   seed={m.dog.id}
                   className="h-12 w-12 rounded-xl"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold">{m.dog.name}</p>
+                  <p className="text-sm font-semibold">{dogLabel(m.dog)}</p>
                   <p className="truncate text-xs text-bark-400">{m.reason}</p>
                 </div>
                 <span className="chip bg-status-sterilised/15 text-status-sterilised">
