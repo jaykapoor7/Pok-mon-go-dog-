@@ -19,9 +19,11 @@ const inter = Inter({
   display: "swap",
 });
 
+// Canonical site URL. Prefer the explicit env var; otherwise the production
+// domain (NOT the per-deployment Vercel URL, which is auth-walled and makes
+// crawlers like Twitterbot fail → gray preview).
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.kapoorjay.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
