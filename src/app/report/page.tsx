@@ -384,6 +384,16 @@ export default function ReportPage() {
                 Thank you for helping track India&apos;s street dogs. We&apos;ll
                 publish it to the map once it clears a quick review.
               </p>
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-bark-100 px-3 py-1 text-xs font-medium text-bark-500 dark:bg-bark-800">
+                <Clock className="h-3.5 w-3.5" />
+                Reported{user?.name ? ` by ${user.name}` : ""} ·{" "}
+                {new Date().toLocaleString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
               <div className="mt-6 space-y-2">
                 <Link href="/" className="btn-primary w-full py-3">
                   Back to the map <ArrowRight className="h-4 w-4" />

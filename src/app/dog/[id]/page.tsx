@@ -15,6 +15,7 @@ import {
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge, TrustRing } from "@/components/ui/Badges";
 import { DogActions } from "@/components/dog/DogActions";
+import { DogLocation } from "@/components/dog/DogLocation";
 import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { CaseCard } from "@/components/cases/CaseCard";
@@ -117,6 +118,11 @@ export default async function DogProfilePage({
       {/* actions */}
       <div className="mt-5">
         <DogActions dogId={dog.id} name={dog.name ?? "this dog"} />
+      </div>
+
+      {/* location — general area for all, exact for partner NGOs */}
+      <div className="mt-3">
+        <DogLocation dogId={dog.id} zone={dog.zone} />
       </div>
 
       {/* status editing — only shown to signed-in contributors */}

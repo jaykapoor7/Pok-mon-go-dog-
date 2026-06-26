@@ -29,6 +29,17 @@ export const DEMO_MODE = !isSupabaseConfigured;
 // only with real sightings. Opt back in for local UI work with NEXT_PUBLIC_DEMO=1.
 const ALLOW_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
+// ── Location privacy ─────────────────────────────────────────
+// Public surfaces (map, feed, profiles) only ever receive a GENERAL area —
+// coordinates rounded to ~1km. Exact coordinates stay server-side and are
+// available to verified partner NGOs via the get_precise_locations RPC
+// (see supabase/location-privacy.sql). This rounding runs in the read mappers,
+// which feed the server-rendered pages, so exact coords never reach the browser
+// through the app.
+function coarse(v: number): number {
+  return Math.round(v * 100) / 100; // 2 decimals ≈ 1.1 km
+}
+
 // ── Row mappers ──────────────────────────────────────────────
 
 function mapDog(row: any): Dog {
@@ -38,8 +49,8 @@ function mapDog(row: any): Dog {
     zone: row.zone ?? "India",
     colony: row.colony ?? null,
     city: row.city ?? null,
-    lat: row.lat,
-    lng: row.lng,
+    lat: coarse(row.lat),
+    lng: coarse(row.lng),
     status: (row.status ?? "seen") as DogStatus,
     cover_photo: row.cover_photo ?? "",
     photos: row.cover_photo ? [row.cover_photo] : [],
@@ -67,8 +78,8 @@ function mapSighting(row: any): Sighting {
     user_name: row.reporter_name ?? "Someone in India",
     user_avatar: null,
     photo_url: row.photo_url,
-    lat: row.lat,
-    lng: row.lng,
+    lat: coarse(row.lat),
+    lng: coarse(row.lng),
     zone: row.zone ?? "India",
     nickname: row.nickname ?? null,
     mood_tags: (row.mood_tags ?? []) as MoodTag[],

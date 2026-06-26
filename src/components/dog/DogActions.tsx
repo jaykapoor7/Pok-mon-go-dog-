@@ -5,9 +5,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Utensils, Flag, GitMerge } from "lucide-react";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export function DogActions({ dogId, name }: { dogId: string; name: string }) {
+  const { user } = useAuth();
   const [toast, setToast] = useState<string | null>(null);
+
+  // Attribution shown on the action toast (and persisted for "fed").
+  const by = user?.name ? `by ${user.name}` : "";
 
   function fire(message: string, party = true) {
     if (party) celebrate();
@@ -21,7 +26,7 @@ export function DogActions({ dogId, name }: { dogId: string; name: string }) {
         <button
           onClick={() => {
             logSeen(dogId).catch(() => {});
-            fire(`Updated — you saw ${name} 🐾`);
+            fire(`Seen ${name} ${by} · just now 🐾`);
           }}
           className="btn-ghost flex-col gap-1 py-3 text-xs"
         >
@@ -29,8 +34,8 @@ export function DogActions({ dogId, name }: { dogId: string; name: string }) {
         </button>
         <button
           onClick={() => {
-            logFeed(dogId).catch(() => {});
-            fire(`Meal logged for ${name} 🍗`);
+            logFeed(dogId, user?.name).catch(() => {});
+            fire(`Meal logged for ${name} ${by} · just now 🍗`);
           }}
           className="btn-ghost flex-col gap-1 py-3 text-xs"
         >

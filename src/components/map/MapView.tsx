@@ -25,7 +25,7 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
   const { demoOn, toggle: toggleDemo } = useDemoMode();
-  const { requireAuth } = useAuth();
+  const { requireAuth, user } = useAuth();
   const router = useRouter();
 
   const allDogs = useMemo(
@@ -43,7 +43,7 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
 
   function handleAction(dog: Dog, kind: "saw" | "fed") {
     celebrate();
-    (kind === "fed" ? logFeed(dog.id) : logSeen(dog.id)).catch(() => {});
+    (kind === "fed" ? logFeed(dog.id, user?.name) : logSeen(dog.id)).catch(() => {});
   }
 
   function report() {
