@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import { demoDogs, demoFeedSightings } from "@/lib/demo-sightings";
+import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
 import { coverage, topContributors } from "@/lib/dashboard-metrics";
@@ -70,20 +71,21 @@ export function TodayClient({
         <Stat icon={<ShieldCheck className="h-4 w-4" />} value={`${cov.sterilisedPct}%`} label="sterilised" tone="sterilised" />
       </div>
 
-      {/* open full map */}
-      <Link
-        href="/map"
-        className="card card-interactive mb-6 flex items-center gap-4 overflow-hidden p-4"
-      >
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-paw-500 text-white shadow-warm">
-          <MapIcon className="h-6 w-6" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-lg font-bold">Open the full map</p>
-          <p className="text-sm text-bark-500">Explore every dog across India, live.</p>
+      {/* minimised live map preview → tap to open full map */}
+      <div className="mb-6">
+        <div className="relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10">
+          <MapCanvas dogs={dogs} />
+          {/* transparent overlay: the whole preview opens the full map */}
+          <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
+          <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Live map
+          </span>
         </div>
-        <ArrowRight className="h-5 w-5 text-paw-500" />
-      </Link>
+        <Link href="/map" className="btn-primary mt-3 w-full py-3">
+          <MapIcon className="h-4 w-4" /> Open the full map
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
 
       {/* near you need help */}
       <Section title="Near you · need help" href="/help" cta="See all">
