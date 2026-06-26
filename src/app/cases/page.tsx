@@ -5,7 +5,7 @@ import { CasesList } from "@/components/cases/CasesList";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Cases — StrayPaw Delhi" };
+export const metadata = { title: "Cases — StrayPaw" };
 
 export default async function CasesPage() {
   const cases = await getCases();

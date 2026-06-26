@@ -34,7 +34,7 @@ export function DogBottomSheet({
     if (!dog) return;
     const url = `${window.location.origin}/dog/${dog.id}`;
     const data = {
-      title: `${dog.name} — StrayPaw Delhi`,
+      title: `${dog.name} — StrayPaw`,
       text: `Meet ${dog.name}, a street dog around ${dog.zone}.`,
       url,
     };

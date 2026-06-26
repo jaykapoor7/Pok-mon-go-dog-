@@ -65,7 +65,7 @@ export function MenuDrawer({
           >
             <div className="flex items-center justify-between border-b border-bark-100 p-4 dark:border-bark-800">
               <span className="font-display text-lg font-extrabold">
-                StrayPaw <span className="text-paw-500">Delhi</span>
+                Stray<span className="text-paw-500">Paw</span>
               </span>
               <button
                 onClick={onClose}
@@ -178,7 +178,7 @@ export function MenuDrawer({
             </div>
 
             <div className="border-t border-bark-100 p-4 text-center text-xs text-bark-400 dark:border-bark-800">
-              Built in Delhi by{" "}
+              Built in India by{" "}
               <span className="font-semibold text-paw-600">Jay</span>
             </div>
           </motion.aside>

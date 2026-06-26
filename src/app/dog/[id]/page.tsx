@@ -31,9 +31,9 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const profile = await getDogProfile(id);
-  if (!profile) return { title: "Dog not found — StrayPaw Delhi" };
+  if (!profile) return { title: "Dog not found — StrayPaw" };
   const { dog } = profile;
-  const title = `${dog.name} — StrayPaw Delhi`;
+  const title = `${dog.name} — StrayPaw`;
   const description = `Follow ${dog.name}, a street dog around ${dog.zone}. ${dog.sightings_count} sightings tracked by the community.`;
   // Use the dog's own photo as the share image when available.
   const images = dog.cover_photo ? [dog.cover_photo] : undefined;

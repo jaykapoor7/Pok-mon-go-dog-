@@ -25,12 +25,12 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "StrayPaw Delhi — Every dog has a story",
+  title: "StrayPaw — Every dog has a story",
   description:
-    "A community-powered map to discover, track and care for Delhi's street dogs. Report sightings, follow dog profiles, and help NGOs feed, vaccinate and sterilise.",
+    "A community-powered map to discover, track and care for India's street dogs. Report sightings, follow dog profiles, and help NGOs feed, vaccinate and sterilise.",
   keywords: [
     "street dogs",
-    "Delhi",
+    "India",
     "stray dogs",
     "animal welfare",
     "dog map",
@@ -39,31 +39,31 @@ export const metadata: Metadata = {
     "sterilisation",
   ],
   openGraph: {
-    title: "StrayPaw Delhi — Every dog has a story",
+    title: "StrayPaw — Every dog has a story",
     description:
-      "Discover, explore and upload sightings of Delhi's street dogs. Build a living database of every good boy and girl in the city.",
+      "Discover, explore and upload sightings of India's street dogs. Build a living database of every good boy and girl in your city.",
     type: "website",
-    siteName: "StrayPaw Delhi",
+    siteName: "StrayPaw",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "StrayPaw Delhi — Every dog has a story. Start seeing them.",
+        alt: "StrayPaw — Every dog has a story. Start seeing them.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw Delhi — Every dog has a story",
+    title: "StrayPaw — Every dog has a story",
     description:
-      "A community map for Delhi's street dogs. Spot a dog, snap a photo, help track feeding, vaccination & rescue.",
+      "A community map for India's street dogs. Spot a dog, snap a photo, help track feeding, vaccination & rescue.",
     images: ["/og.png"],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f97316",
+  themeColor: "#6E7A45",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -85,7 +85,7 @@ export default function RootLayout({
             <DemoModeProvider>
               <Haptics />
               <FloatingTopBar />
-              <main>{children}</main>
+              <main className="lg:pl-20">{children}</main>
               <BottomNav />
             </DemoModeProvider>
           </AuthProvider>

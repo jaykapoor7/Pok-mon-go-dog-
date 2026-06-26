@@ -10,37 +10,44 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Warm, emotional palette — sunset & street-dog tones.
+        // Olive brand palette (from the StrayPaw logo). `paw` stays the token
+        // name so the whole app re-skins from here without per-component edits.
         paw: {
-          50: "#fff7ed",
-          100: "#ffedd5",
-          200: "#fed7aa",
-          300: "#fdba74",
-          400: "#fb923c",
-          500: "#f97316",
-          600: "#ea580c",
-          700: "#c2410c",
-          800: "#9a3412",
-          900: "#7c2d12",
+          50: "#f3f5ec",
+          100: "#E9ECD9", // --olive-tint
+          200: "#d7ddbd",
+          300: "#b9c391",
+          400: "#8f9c5f",
+          500: "#6E7A45", // --olive (primary)
+          600: "#515C30", // --olive-deep (active/hover)
+          700: "#3D4522", // --olive-ink
+          800: "#2f351a",
+          900: "#232711",
         },
         bark: {
-          50: "#f6f5f4",
-          100: "#e7e5e4",
-          200: "#d6d3d1",
-          400: "#a8a29e",
-          600: "#57534e",
-          700: "#44403c",
-          800: "#292524",
-          900: "#1c1917",
-          950: "#0f0d0c",
+          50: "#f6f5f0",
+          100: "#e7e6dd",
+          200: "#d6d4c7",
+          400: "#a3a292",
+          600: "#54564a",
+          700: "#3f4138",
+          800: "#26271E", // --ink-surface
+          900: "#1C1D17", // --ink (warm dark bg)
+          950: "#121309",
         },
+        // Brand surfaces.
+        cream: "#F4F0E1",
+        paper: "#FBF8EE",
+        ink: "#1C1D17",
+        "ink-surface": "#26271E",
+        // Status system (olive-compatible). Markers + badges read from here.
         status: {
-          seen: "#64748b",
-          hungry: "#f59e0b",
-          injured: "#ef4444",
-          sterilised: "#8b5cf6",
-          vaccinated: "#10b981",
-          friendly: "#ec4899",
+          seen: "#9A9C88",
+          hungry: "#D9A441", // fed/amber
+          injured: "#C0492E", // needs-help
+          sterilised: "#3E8473",
+          vaccinated: "#4E8A5F",
+          friendly: "#C06A86", // adoptable
         },
       },
       fontFamily: {
@@ -52,7 +59,7 @@ const config: Config = {
       },
       boxShadow: {
         // Soft, minimal elevation — premium, never noisy.
-        warm: "0 8px 24px -10px rgba(234, 88, 12, 0.32)",
+        warm: "0 8px 24px -10px rgba(81, 92, 48, 0.34)",
         card: "0 1px 2px rgba(17, 17, 19, 0.04), 0 14px 34px -18px rgba(17, 17, 19, 0.18)",
         sheet: "0 -8px 40px -16px rgba(17, 17, 19, 0.28)",
         pop: "0 12px 36px -14px rgba(17, 17, 19, 0.30)",

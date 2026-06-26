@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { pawBurst } from "@/lib/celebrate";
 import { MOOD_META, type MoodTag } from "@/lib/types";
-import { nearestZone, DELHI_CENTER, DELHI_ZONES } from "@/lib/delhi";
+import { nearestCity, reverseGeocode, INDIA_CENTER } from "@/lib/delhi";
 import { reportSighting } from "@/lib/actions";
 import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -101,20 +101,21 @@ export default function ReportPage() {
     setStatus("locating");
     const finish = (lat: number, lng: number) => {
       setCoords({ lat, lng });
-      setZone(nearestZone(lat, lng));
+      setZone(nearestCity(lat, lng)); // instant label
       setStatus("idle");
+      // Upgrade to a precise "Locality, City" via reverse geocoding (any city).
+      reverseGeocode(lat, lng)
+        .then((place) => setZone(place))
+        .catch(() => {});
     };
     if (typeof navigator !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => finish(pos.coords.latitude, pos.coords.longitude),
-        () => {
-          const z = DELHI_ZONES[Math.floor(Math.random() * DELHI_ZONES.length)];
-          finish(z.lat, z.lng);
-        },
+        () => finish(INDIA_CENTER.lat, INDIA_CENTER.lng),
         { timeout: 6000 }
       );
     } else {
-      finish(DELHI_CENTER.lat, DELHI_CENTER.lng);
+      finish(INDIA_CENTER.lat, INDIA_CENTER.lng);
     }
   }
 
@@ -139,7 +140,7 @@ export default function ReportPage() {
         fallbackPhotoUrl: photo ?? undefined,
         lat: coords.lat,
         lng: coords.lng,
-        zone: zone ?? nearestZone(coords.lat, coords.lng),
+        zone: zone ?? nearestCity(coords.lat, coords.lng),
         nickname: nickname.trim(),
         moods,
         notes: notes.trim(),
@@ -200,11 +201,11 @@ export default function ReportPage() {
           {/* photo */}
           <div>
             <label className="mb-2 block text-sm font-semibold">Photo</label>
+            {/* No `capture` attribute → the picker offers camera OR gallery/files. */}
             <input
               ref={fileRef}
               type="file"
               accept="image/*"
-              capture="environment"
               className="hidden"
               onChange={onPickPhoto}
             />
@@ -419,7 +420,7 @@ export default function ReportPage() {
                 Your sighting is pending review
               </h2>
               <p className="mt-2 text-sm text-bark-500">
-                Thank you for helping track Delhi&apos;s street dogs. We&apos;ll
+                Thank you for helping track India&apos;s street dogs. We&apos;ll
                 publish it to the map once it clears a quick review.
               </p>
               <div className="mt-6 space-y-2">

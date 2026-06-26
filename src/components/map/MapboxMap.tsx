@@ -9,7 +9,8 @@ import Map, {
 } from "react-map-gl";
 import Supercluster from "supercluster";
 import type { PointFeature } from "supercluster";
-import { DELHI_CENTER } from "@/lib/delhi";
+import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
+import { markerMetaFor } from "@/lib/marker-state";
 import { PhotoMarker } from "./PhotoMarker";
 import type { Dog } from "@/lib/types";
 
@@ -29,7 +30,7 @@ export function MapboxMap({
     () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   );
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
-  const [zoom, setZoom] = useState(10.5);
+  const [zoom, setZoom] = useState(INDIA_ZOOM);
 
   const byId = useMemo(() => {
     const m: Record<string, Dog> = {};
@@ -72,7 +73,7 @@ export function MapboxMap({
     <Map
       ref={mapRef}
       mapboxAccessToken={TOKEN}
-      initialViewState={{ longitude: DELHI_CENTER.lng, latitude: DELHI_CENTER.lat, zoom: 10.5 }}
+      initialViewState={{ longitude: INDIA_CENTER.lng, latitude: INDIA_CENTER.lat, zoom: INDIA_ZOOM }}
       mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       onLoad={sync}
       onMoveEnd={sync}
@@ -93,12 +94,14 @@ export function MapboxMap({
           const clusterId = c.properties.cluster_id;
           const count = c.properties.point_count;
           const leaf = index.getLeaves(clusterId, 1)[0] as PointFeature<Props>;
+          const leafDog = leaf ? byId[leaf.properties.id] : undefined;
           return (
             <Marker key={`cluster-${clusterId}`} longitude={lng} latitude={lat} anchor="center">
               <PhotoMarker
                 photo={leaf?.properties.cover}
                 seed={`cluster-${clusterId}`}
                 count={count}
+                ringColor={leafDog ? markerMetaFor(leafDog).color : "#9A9C88"}
                 label={`${count} dogs here`}
                 onClick={() => {
                   const z = Math.min(index.getClusterExpansionZoom(clusterId), 16);
@@ -117,7 +120,7 @@ export function MapboxMap({
               photo={props.cover}
               seed={props.id}
               count={props.sightings}
-              urgent={props.urgent}
+              ringColor={dog ? markerMetaFor(dog).color : "#9A9C88"}
               label={dog?.name ?? "Dog"}
               onClick={() => dog && onSelect?.(dog)}
             />

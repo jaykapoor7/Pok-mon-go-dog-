@@ -23,7 +23,7 @@ export function FeedList({ real, demo }: { real: Sighting[]; demo: Sighting[] })
         <div className="mb-3 text-5xl">🐾</div>
         <h2 className="font-display text-lg font-bold">No sightings yet</h2>
         <p className="mt-1 text-sm text-bark-500">
-          Be the very first to put a Delhi street dog on the map.
+          Be the very first to put a street dog on the map.
         </p>
         <Link href="/report" className="btn-primary mt-5 px-6 py-3">
           <PlusCircle className="h-4 w-4" /> Report a dog
@@ -35,7 +35,7 @@ export function FeedList({ real, demo }: { real: Sighting[]; demo: Sighting[] })
   return (
     <>
       <p className="mb-5 text-sm text-bark-500">
-        {sightings.length} moments from Delhi&apos;s streets
+        {sightings.length} moments from India&apos;s streets
       </p>
       <div className="space-y-6">
         {sightings.map((s) => (

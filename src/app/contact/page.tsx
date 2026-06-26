@@ -1,7 +1,7 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 import { Mail } from "lucide-react";
 
-export const metadata = { title: "Contact — StrayPaw Delhi" };
+export const metadata = { title: "Contact — StrayPaw" };
 
 export default function ContactPage() {
   return (
@@ -12,10 +12,10 @@ export default function ContactPage() {
       </p>
       <H2>Get in touch</H2>
       <a
-        href="mailto:hello@straypaw.delhi"
+        href="mailto:jaykapoor7@outlook.com"
         className="inline-flex items-center gap-2 rounded-2xl bg-paw-500 px-5 py-3 font-semibold text-white shadow-warm hover:bg-paw-600"
       >
-        <Mail className="h-4 w-4" /> hello@straypaw.delhi
+        <Mail className="h-4 w-4" /> jaykapoor7@outlook.com
       </a>
       <H2>For NGOs &amp; rescuers</H2>
       <p>
@@ -23,7 +23,7 @@ export default function ContactPage() {
         dashboard for ground operations, mention &ldquo;NGO&rdquo; in your
         message and we&apos;ll get you set up.
       </p>
-      <p className="text-sm text-bark-400">Built in Delhi by Jay.</p>
+      <p className="text-sm text-bark-400">Built in India by Jay.</p>
     </InfoPage>
   );
 }
