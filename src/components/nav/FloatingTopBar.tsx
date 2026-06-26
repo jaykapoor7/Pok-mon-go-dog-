@@ -42,7 +42,7 @@ export function FloatingTopBar() {
               <PawPrint className="h-4 w-4" />
             </span>
             <span className="font-display text-[15px] font-bold tracking-tightest">
-              StrayPaw<span className="text-bark-400"> Delhi</span>
+              StrayPaw
             </span>
           </Link>
 

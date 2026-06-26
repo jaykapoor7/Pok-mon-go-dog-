@@ -5,8 +5,8 @@ import { getAllSightings } from "@/lib/data";
 import { demoFeedSightings } from "@/lib/demo-sightings";
 
 export const metadata = {
-  title: "Sightings Feed — StrayPaw Delhi",
-  description: "An Instagram-style feed of street dog sightings across Delhi.",
+  title: "Sightings Feed — StrayPaw",
+  description: "An Instagram-style feed of street dog sightings across India.",
 };
 
 export const dynamic = "force-dynamic";

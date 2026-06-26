@@ -17,7 +17,7 @@ function mapRow(row: any, userId: string): Sighting {
     photo_url: row.photo_url,
     lat: row.lat,
     lng: row.lng,
-    zone: row.zone ?? "Delhi",
+    zone: row.zone ?? "India",
     nickname: row.nickname ?? null,
     mood_tags: (row.mood_tags ?? []) as MoodTag[],
     notes: row.notes ?? null,

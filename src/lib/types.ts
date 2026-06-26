@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// StrayPaw Delhi — domain types
+// StrayPaw — domain types
 // These mirror the Supabase schema in /supabase/schema.sql
 // ─────────────────────────────────────────────────────────────
 

@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     p_photo_url: photoUrl,
     p_lat: lat,
     p_lng: lng,
-    p_zone: String(body.zone ?? "Delhi"),
+    p_zone: String(body.zone ?? "India"),
     p_nickname: body.nickname ? String(body.nickname) : null,
     p_mood_tags: moods,
     p_notes: body.notes ? String(body.notes) : null,

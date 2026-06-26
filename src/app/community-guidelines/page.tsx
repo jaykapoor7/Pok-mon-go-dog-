@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Community Guidelines — StrayPaw Delhi" };
+export const metadata = { title: "Community Guidelines — StrayPaw" };
 
 export default function GuidelinesPage() {
   return (

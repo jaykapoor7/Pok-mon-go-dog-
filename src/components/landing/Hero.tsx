@@ -16,7 +16,7 @@ export function Hero({ dogs }: { dogs: Dog[] }) {
             animate={{ opacity: 1, y: 0 }}
             className="chip mb-5 bg-white text-paw-600 shadow-card"
           >
-            <PawPrint className="h-3.5 w-3.5" /> Delhi&apos;s community dog map
+            <PawPrint className="h-3.5 w-3.5" /> India&apos;s community dog map
           </motion.span>
 
           <motion.h1
@@ -38,8 +38,8 @@ export function Hero({ dogs }: { dogs: Dog[] }) {
             className="mx-auto mt-5 max-w-md text-pretty text-base text-bark-600 md:mx-0 md:text-lg"
           >
             Spot a street dog? Snap a photo. Every sighting builds a living map
-            that helps volunteers and NGOs feed, vaccinate and rescue Delhi&apos;s
-            dogs.
+            that helps volunteers and NGOs feed, vaccinate and rescue India&apos;s
+            street dogs.
           </motion.p>
 
           <motion.div
@@ -68,7 +68,7 @@ export function Hero({ dogs }: { dogs: Dog[] }) {
             <MapCanvas dogs={dogs} />
           </div>
           <div className="pointer-events-none absolute -bottom-4 -left-4 hidden rotate-[-6deg] rounded-2xl bg-white px-4 py-2 shadow-card sm:block">
-            <p className="text-xs font-semibold text-bark-700">🐾 Live in Delhi</p>
+            <p className="text-xs font-semibold text-bark-700">🐾 Live across India</p>
             <p className="text-[10px] text-bark-400">tap a pin to meet a dog</p>
           </div>
         </motion.div>

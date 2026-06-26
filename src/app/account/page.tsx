@@ -1,7 +1,7 @@
 import { AccountClient } from "@/components/account/AccountClient";
 
 export const metadata = {
-  title: "Your sightings — StrayPaw Delhi",
+  title: "Your sightings — StrayPaw",
   robots: { index: false, follow: false },
 };
 

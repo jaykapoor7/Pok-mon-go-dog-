@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Deterministic demo dataset for StrayPaw Delhi.
+// Deterministic demo dataset for StrayPaw.
 //
 // Generates a believable city-wide network of dogs, sightings, feed events,
 // vaccinations, comments and NGOs so the entire product is explorable with

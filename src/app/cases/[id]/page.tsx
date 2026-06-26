@@ -22,7 +22,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const data = await getCaseById(id);
-  return { title: data ? `${data.case.title} — StrayPaw Delhi` : "Case not found" };
+  return { title: data ? `${data.case.title} — StrayPaw` : "Case not found" };
 }
 
 export default async function CasePage({

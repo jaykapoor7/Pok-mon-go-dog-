@@ -1,12 +1,12 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Terms — StrayPaw Delhi" };
+export const metadata = { title: "Terms — StrayPaw" };
 
 export default function TermsPage() {
   return (
     <InfoPage title="Terms of Use" updated="June 2026">
       <p>
-        By using StrayPaw Delhi you agree to these terms. The service is
+        By using StrayPaw you agree to these terms. The service is
         provided as-is to support community care of street dogs.
       </p>
       <H2>Acceptable use</H2>
