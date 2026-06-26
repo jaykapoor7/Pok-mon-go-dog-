@@ -156,21 +156,55 @@
          hover:-translate-y-0.5 hover:shadow-pop active:translate-y-0 active:scale-[0.995];
 }
 
-/* Funder report: when printing, show ONLY the report page so the browser's
-   "Save as PDF" produces a clean one-pager. */
+/* Funder report: when printing, show ONLY the report and let it flow as a
+   single normal block (the modal's fixed/scroll overlay would otherwise inflate
+   the document to several blank pages). */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
 @media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
   body * {
     visibility: hidden !important;
+  }
+  /* Neutralise the modal overlay/wrapper so nothing constrains or scrolls. */
+  #fr-overlay {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none !important;
+    backdrop-filter: none !important;
+  }
+  #fr-wrap {
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
   }
   #funder-report,
   #funder-report * {
     visibility: visible !important;
   }
   #funder-report {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: static !important;
     width: 100%;
+    margin: 0 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Don't split a block across a page break. */
+  #funder-report .fr-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
 

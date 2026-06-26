@@ -39,6 +39,10 @@ function mapCase(r: any): Case {
     updated_at: r.updated_at ?? r.created_at,
     last_activity_at: r.last_activity_at ?? r.created_at,
     due_at: r.due_at ?? null,
+    resolved_at: r.resolved_at ?? null,
+    before_url: r.before_url ?? null,
+    after_url: r.after_url ?? null,
+    outcome_note: r.outcome_note ?? null,
   };
 }
 

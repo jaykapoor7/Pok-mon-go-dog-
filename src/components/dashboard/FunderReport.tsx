@@ -37,18 +37,20 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
       <AnimatePresence>
         {open && (
           <motion.div
+            id="fr-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] flex justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm print:bg-white print:p-0"
+            className="fixed inset-0 z-[80] flex justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           >
             <motion.div
+              id="fr-wrap"
               initial={{ y: 24, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 24, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="my-6 h-fit w-full max-w-2xl print:my-0 print:max-w-none"
+              className="my-6 h-fit w-full max-w-2xl"
             >
               {/* controls (hidden when printing) */}
               <div className="mb-3 flex flex-wrap items-center gap-2 print:hidden">
@@ -79,10 +81,10 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
               {/* the printable page */}
               <div
                 id="funder-report"
-                className="rounded-2xl bg-white p-8 text-bark-900 shadow-pop print:rounded-none print:shadow-none"
+                className="rounded-2xl bg-white p-6 text-bark-900 shadow-pop print:rounded-none print:shadow-none"
               >
                 {/* co-branded header */}
-                <div className="flex items-center justify-between border-b border-black/10 pb-4">
+                <div className="fr-avoid flex items-center justify-between border-b border-black/10 pb-4">
                   <div className="flex items-center gap-3">
                     {logo ? (
                       <img src={logo} alt="" className="h-12 w-12 rounded-xl object-contain" />
@@ -107,7 +109,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 </div>
 
                 {/* hero coverage stats */}
-                <div className="mt-5 grid grid-cols-4 gap-3">
+                <div className="fr-avoid mt-5 grid grid-cols-4 gap-3">
                   <Stat big value={`${c.sterilisedPct}%`} label="Sterilised" />
                   <Stat big value={`${c.vaccinatedPct}%`} label="Vaccinated" />
                   <Stat big value={`${c.tracked}`} label="Dogs tracked" />
@@ -121,7 +123,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 </p>
 
                 {/* secondary stats */}
-                <div className="mt-5 grid grid-cols-3 gap-3">
+                <div className="fr-avoid mt-5 grid grid-cols-3 gap-3">
                   <Stat value={`${resolved.length}`} label="Cases resolved" />
                   <Stat value={`${c.needsHelp}`} label="Need help now" />
                   <Stat
@@ -132,13 +134,13 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
 
                 {/* before/after proof */}
                 {proof.length > 0 && (
-                  <div className="mt-6">
+                  <div className="fr-avoid mt-6">
                     <h3 className="mb-2 font-display text-sm font-bold">
                       Outcomes — before &amp; after
                     </h3>
                     <div className="grid grid-cols-3 gap-3">
                       {proof.map((p) => (
-                        <div key={p.id} className="overflow-hidden rounded-xl border border-black/10">
+                        <div key={p.id} className="fr-avoid overflow-hidden rounded-xl border border-black/10">
                           <div className="grid grid-cols-2">
                             <DogPhoto src={p.before_url!} alt="before" seed={`${p.id}fb`} className="aspect-square w-full" />
                             <DogPhoto src={p.after_url!} alt="after" seed={`${p.id}fa`} className="aspect-square w-full" />

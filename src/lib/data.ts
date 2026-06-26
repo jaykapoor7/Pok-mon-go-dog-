@@ -36,6 +36,8 @@ function mapDog(row: any): Dog {
     id: row.id,
     name: row.name ?? null,
     zone: row.zone ?? "India",
+    colony: row.colony ?? null,
+    city: row.city ?? null,
     lat: row.lat,
     lng: row.lng,
     status: (row.status ?? "seen") as DogStatus,
