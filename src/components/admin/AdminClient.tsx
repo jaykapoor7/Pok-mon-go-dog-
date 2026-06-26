@@ -47,14 +47,17 @@ export function AdminClient() {
         headers: { Authorization: `Bearer ${s}` },
         cache: "no-store",
       });
-      if (res.status === 401) {
-        setError("Wrong password.");
-        setAuthed(false);
-        return;
-      }
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        setError(j.error || "Could not load. Is ADMIN_SECRET set in Vercel?");
+        // 401 = wrong password; anything else (e.g. 503 unset, 500 service role)
+        // carries a specific server message worth showing verbatim.
+        setError(
+          j.error ||
+            (res.status === 401
+              ? "Wrong password."
+              : "Could not load. Is ADMIN_SECRET set in Vercel?")
+        );
+        if (res.status === 401) setAuthed(false);
         return;
       }
       const j = await res.json();

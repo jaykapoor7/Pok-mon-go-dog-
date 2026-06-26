@@ -12,19 +12,34 @@ export const dynamic = "force-dynamic";
 //   POST /api/admin/sightings            → { action: "approve"|"reject", id }
 // ─────────────────────────────────────────────────────────────
 
-function authorized(req: Request): boolean {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) return false; // disabled until configured
+type AuthState = "ok" | "unset" | "bad";
+
+function authState(req: Request): AuthState {
+  const secret = process.env.ADMIN_SECRET?.trim();
+  if (!secret) return "unset"; // not configured on the server
   const auth = req.headers.get("authorization");
-  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
-  const key = new URL(req.url).searchParams.get("key");
-  return bearer === secret || key === secret;
+  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+  const key = new URL(req.url).searchParams.get("key")?.trim();
+  return bearer === secret || key === secret ? "ok" : "bad";
+}
+
+/** Distinct responses so a missing env var doesn't masquerade as a bad password. */
+function authReject(state: AuthState) {
+  if (state === "unset") {
+    return NextResponse.json(
+      {
+        error:
+          "Admin login isn't configured on the server. Set ADMIN_SECRET in Vercel → Settings → Environment Variables (Production) and redeploy.",
+      },
+      { status: 503 }
+    );
+  }
+  return NextResponse.json({ error: "Wrong password." }, { status: 401 });
 }
 
 export async function GET(req: Request) {
-  if (!authorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const state = authState(req);
+  if (state !== "ok") return authReject(state);
   const supa = getSupabaseAdmin();
   if (!supa) {
     return NextResponse.json(
@@ -46,9 +61,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!authorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const state = authState(req);
+  if (state !== "ok") return authReject(state);
   const supa = getSupabaseAdmin();
   if (!supa) {
     return NextResponse.json(
