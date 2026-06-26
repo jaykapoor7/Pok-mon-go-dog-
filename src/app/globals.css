@@ -156,6 +156,24 @@
          hover:-translate-y-0.5 hover:shadow-pop active:translate-y-0 active:scale-[0.995];
 }
 
+/* Funder report: when printing, show ONLY the report page so the browser's
+   "Save as PDF" produces a clean one-pager. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #funder-report,
+  #funder-report * {
+    visibility: visible !important;
+  }
+  #funder-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+
 /* Respect reduced-motion: keep the UI calm and instant for those who ask. */
 @media (prefers-reduced-motion: reduce) {
   *,

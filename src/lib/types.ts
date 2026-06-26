@@ -115,6 +115,8 @@ export interface Dog {
   id: string;
   name: string | null; // aggregated nickname
   zone: string;
+  colony?: string | null; // named colony grouping (ABC/grant unit)
+  city?: string | null;
   lat: number; // centroid of sightings
   lng: number;
   status: DogStatus;
@@ -242,6 +244,10 @@ export interface Case {
   updated_at: string;
   last_activity_at: string;
   due_at: string | null;
+  resolved_at?: string | null; // when it moved to resolved (for response time)
+  before_url?: string | null; // before/after proof on resolved cases
+  after_url?: string | null;
+  outcome_note?: string | null;
 }
 
 export interface CaseUpdate {
