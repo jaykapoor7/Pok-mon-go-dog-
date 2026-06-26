@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -9,13 +9,22 @@ import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { DemoModeProvider } from "@/components/demo/DemoModeProvider";
 import { Haptics } from "@/components/ux/Haptics";
+import { IntroSplash } from "@/components/ux/IntroSplash";
 
-// One restrained family across the app (regular + semibold). Display tier is
-// the same family at a heavier weight — premium, minimal, no font clutter.
+// Body / UI text: a clean, restrained sans.
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+// Headings: Fraunces — a warm, distinctive display serif that gives StrayPaw
+// its own editorial personality (and reads great on the olive palette).
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -70,7 +79,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${fraunces.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
@@ -79,6 +92,7 @@ export default function RootLayout({
           <AuthProvider>
             <DemoModeProvider>
               <Haptics />
+              <IntroSplash />
               <FloatingTopBar />
               <main className="lg:pl-20">{children}</main>
               <BottomNav />

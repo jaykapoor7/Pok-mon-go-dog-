@@ -122,8 +122,17 @@ export function MapboxMap({
               seed={props.id}
               count={props.sightings}
               ringColor={dog ? markerMetaFor(dog).color : "#9A9C88"}
+              urgent={props.urgent}
               label={dog ? dogLabel(dog) : "Dog"}
-              onClick={() => dog && onSelect?.(dog)}
+              onClick={() => {
+                if (!dog) return;
+                mapRef.current?.easeTo({
+                  center: [lng, lat],
+                  zoom: Math.max(zoom, 13.5),
+                  duration: 650,
+                });
+                onSelect?.(dog);
+              }}
             />
           </Marker>
         );

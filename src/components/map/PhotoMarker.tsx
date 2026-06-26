@@ -13,6 +13,7 @@ export function PhotoMarker({
   seed,
   count = 1,
   ringColor = "#9A9C88",
+  urgent = false,
   size = 54,
   onClick,
   label,
@@ -22,6 +23,8 @@ export function PhotoMarker({
   count?: number;
   /** status colour for the ring (from MARKER_META) */
   ringColor?: string;
+  /** needs-help dogs get a soft attention pulse */
+  urgent?: boolean;
   size?: number;
   onClick?: () => void;
   label?: string;
@@ -36,6 +39,14 @@ export function PhotoMarker({
       className="relative block transition-transform duration-150 hover:z-10 hover:scale-110 active:scale-95"
       style={{ width: size, height: size }}
     >
+      {/* attention pulse for dogs that need help */}
+      {urgent && (
+        <span
+          aria-hidden
+          className="absolute inset-0 rounded-full animate-pulse-ring"
+          style={{ backgroundColor: ringColor }}
+        />
+      )}
       {/* colored status ring */}
       <span
         className="block h-full w-full rounded-full"

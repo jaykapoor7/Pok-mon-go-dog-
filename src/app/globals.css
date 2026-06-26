@@ -19,9 +19,9 @@
     font-feature-settings: "cv02", "cv03", "cv04", "ss01";
   }
 
-  /* Tight, intentional display typography (single family, heavier weight). */
+  /* Display typography — Fraunces serif, near-normal tracking. */
   .font-display {
-    letter-spacing: -0.025em;
+    letter-spacing: -0.01em;
   }
 
   /* ── Dark theme — warm ink (not near-black), per the olive brand ── */

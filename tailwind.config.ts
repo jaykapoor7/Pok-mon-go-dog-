@@ -52,10 +52,10 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
       },
       letterSpacing: {
-        tightest: "-0.03em",
+        tightest: "-0.012em",
       },
       boxShadow: {
         // Soft, minimal elevation — premium, never noisy.
