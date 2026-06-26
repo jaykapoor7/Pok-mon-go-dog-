@@ -18,6 +18,44 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
   const [ngoName, setNgoName] = useState("");
   const [logo, setLogo] = useState("");
 
+  // Print the report in a fresh, isolated window — no app chrome, so the PDF is
+  // a single clean page (printing the live page kept blank layout → many pages).
+  function printReport() {
+    const node = document.getElementById("funder-report");
+    if (!node || typeof window === "undefined") return;
+    const win = window.open("", "_blank", "width=820,height=1160");
+    if (!win) {
+      window.print(); // popup blocked — fall back
+      return;
+    }
+    const headStyles = Array.from(
+      document.querySelectorAll('link[rel="stylesheet"], style')
+    )
+      .map((el) => el.outerHTML)
+      .join("\n");
+    win.document.write(
+      `<!doctype html><html><head><meta charset="utf-8">${headStyles}` +
+        `<style>` +
+        `@page{size:A4 portrait;margin:12mm;}` +
+        `html,body{background:#fff!important;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}` +
+        `#funder-report{box-shadow:none!important;border-radius:0!important;width:100%!important;}` +
+        `.fr-avoid{break-inside:avoid;page-break-inside:avoid;}` +
+        `</style></head><body>${node.outerHTML}</body></html>`
+    );
+    win.document.close();
+    let printed = false;
+    const run = () => {
+      if (printed || win.closed) return;
+      printed = true;
+      win.focus();
+      win.print();
+      setTimeout(() => !win.closed && win.close(), 300);
+    };
+    // Wait for the copied stylesheets + images to settle (with a fallback).
+    win.onload = () => setTimeout(run, 350);
+    setTimeout(run, 1200);
+  }
+
   const c = coverage(dogs);
   const median = medianResponseDays(cases);
   const resolved = cases.filter((x) => x.status === "resolved" || x.status === "closed");
@@ -66,7 +104,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                   placeholder="Logo image URL (optional)"
                   className="min-w-[10rem] flex-1 rounded-xl border border-white/30 bg-white/95 px-3 py-2 text-sm outline-none"
                 />
-                <button onClick={() => window.print()} className="btn-primary px-4 py-2 text-sm">
+                <button onClick={printReport} className="btn-primary px-4 py-2 text-sm">
                   <Printer className="h-4 w-4" /> Save as PDF
                 </button>
                 <button

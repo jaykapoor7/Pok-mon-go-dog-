@@ -5,20 +5,19 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Camera,
-  MapPin,
   Loader2,
   Check,
   PawPrint,
   ArrowRight,
   ArrowLeft,
-  Crosshair,
   Clock,
   LogIn,
 } from "lucide-react";
 import { pawBurst } from "@/lib/celebrate";
 import { MOOD_META, type MoodTag } from "@/lib/types";
-import { nearestCity, reverseGeocode, INDIA_CENTER } from "@/lib/delhi";
+import { nearestCity } from "@/lib/delhi";
 import { reportSighting } from "@/lib/actions";
+import { LocationPicker } from "@/components/report/LocationPicker";
 import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
@@ -97,27 +96,6 @@ export default function ReportPage() {
     pawBurst();
   }
 
-  function detectLocation() {
-    setStatus("locating");
-    const finish = (lat: number, lng: number) => {
-      setCoords({ lat, lng });
-      setZone(nearestCity(lat, lng)); // instant label
-      setStatus("idle");
-      // Upgrade to a precise "Locality, City" via reverse geocoding (any city).
-      reverseGeocode(lat, lng)
-        .then((place) => setZone(place))
-        .catch(() => {});
-    };
-    if (typeof navigator !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => finish(pos.coords.latitude, pos.coords.longitude),
-        () => finish(INDIA_CENTER.lat, INDIA_CENTER.lng),
-        { timeout: 6000 }
-      );
-    } else {
-      finish(INDIA_CENTER.lat, INDIA_CENTER.lng);
-    }
-  }
 
   function toggleMood(m: MoodTag) {
     setMoods((prev) =>
@@ -239,34 +217,17 @@ export default function ReportPage() {
             )}
           </div>
 
-          {/* location */}
+          {/* location — search, current GPS, or drag the pin */}
           <div>
             <label className="mb-2 block text-sm font-semibold">Location</label>
-            {coords ? (
-              <div className="flex items-center justify-between rounded-2xl bg-status-vaccinated/10 px-4 py-3">
-                <span className="flex items-center gap-2 text-sm font-medium">
-                  <MapPin className="h-4 w-4 text-status-vaccinated" />
-                  {zone} · {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
-                </span>
-                <Check className="h-4 w-4 text-status-vaccinated" />
-              </div>
-            ) : (
-              <button
-                onClick={detectLocation}
-                disabled={status === "locating"}
-                className="btn-ghost w-full py-3"
-              >
-                {status === "locating" ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Locating…
-                  </>
-                ) : (
-                  <>
-                    <Crosshair className="h-4 w-4" /> Use my current location
-                  </>
-                )}
-              </button>
-            )}
+            <LocationPicker
+              value={coords}
+              zone={zone}
+              onChange={({ lat, lng, zone: z }) => {
+                setCoords({ lat, lng });
+                setZone(z);
+              }}
+            />
           </div>
 
           {/* nickname */}
