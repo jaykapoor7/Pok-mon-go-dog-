@@ -64,10 +64,10 @@ export function HelpClient({ dogs: realDogs }: { dogs: Dog[] }) {
               ? `${needy.length} ${needy.length === 1 ? "dog" : "dogs"} flagged as needing care${coords ? " near you" : ""}. Even a small hand counts.`
               : "Offer to volunteer or register your rescue — we'll connect you when a dog nearby needs help."}
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2.5">
             <button
               onClick={helpGeneral}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-paw-700"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-paw-700 shadow-warm transition-transform active:scale-95"
             >
               <HandHelping className="h-4 w-4" /> I can help
             </button>
@@ -76,7 +76,7 @@ export function HelpClient({ dogs: realDogs }: { dogs: Dog[] }) {
                 setTarget(null);
                 setFormOpen(true);
               }}
-              className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2.5 text-sm font-semibold text-white"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/15 active:scale-95"
             >
               <HeartHandshake className="h-4 w-4" /> Register an NGO
             </button>
