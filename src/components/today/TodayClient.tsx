@@ -13,6 +13,7 @@ import {
   Medal,
 } from "lucide-react";
 import { useDemoMode } from "@/components/demo/DemoModeProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { DemoToggle } from "@/components/demo/DemoToggle";
 import { demoDogs, demoFeedSightings } from "@/lib/demo-sightings";
 import { MapCanvas } from "@/components/map/MapCanvas";
@@ -30,6 +31,8 @@ export function TodayClient({
   sightings: Sighting[];
 }) {
   const { demoOn } = useDemoMode();
+  const { user } = useAuth();
+  const firstName = user?.name?.trim().split(/\s+/)[0] || null;
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
@@ -71,8 +74,12 @@ export function TodayClient({
     <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6 lg:max-w-6xl">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-paw-600">{greeting()}</p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tightest">Today</h1>
+          <p className="text-sm font-semibold text-paw-600">
+            {greeting()}{firstName ? `, ${firstName}` : ""}
+          </p>
+          <h1 className="font-display text-4xl font-extrabold tracking-tightest">
+            Today&rsquo;s insights
+          </h1>
         </div>
         <DemoToggle className="mt-1" />
       </header>
