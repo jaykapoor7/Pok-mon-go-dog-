@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Printer, FileText, PawPrint } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { coverage, medianResponseDays, HERD_THRESHOLD } from "@/lib/dashboard-metrics";
 import { formatDate } from "@/lib/utils";
 import type { Case, Dog } from "@/lib/types";
@@ -14,6 +15,7 @@ import type { Case, Dog } from "@/lib/types";
  * funders. Separate from the analyst CSV.
  */
 export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [ngoName, setNgoName] = useState("");
   const [logo, setLogo] = useState("");
@@ -56,13 +58,19 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
     setTimeout(run, 1200);
   }
 
+  // Community coverage is area-wide (a single dog isn't owned by one NGO), so it
+  // stays the same for everyone and is labelled as such.
   const c = coverage(dogs);
-  const median = medianResponseDays(cases);
-  const resolved = cases.filter((x) => x.status === "resolved" || x.status === "closed");
-  const proof = resolved.filter((x) => x.before_url && x.after_url).slice(0, 3);
 
-  // Period range from the data.
-  const times = cases.map((x) => +new Date(x.created_at)).filter(Boolean);
+  // "Your cases" is scoped to the signed-in operator's own claimed cases — this
+  // is what makes each NGO's report individual.
+  const myCases = user ? cases.filter((x) => x.assignee_id === user.id) : [];
+  const myResolved = myCases.filter((x) => x.status === "resolved" || x.status === "closed");
+  const myMedian = medianResponseDays(myCases);
+  const proof = myResolved.filter((x) => x.before_url && x.after_url).slice(0, 3);
+
+  // Period range from this NGO's cases (falls back to "now" when there are none).
+  const times = myCases.map((x) => +new Date(x.created_at)).filter(Boolean);
   const from = times.length ? new Date(Math.min(...times)) : new Date();
   const to = new Date();
 
@@ -146,36 +154,31 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                   </div>
                 </div>
 
-                {/* hero coverage stats */}
-                <div className="fr-avoid mt-5 grid grid-cols-4 gap-3">
-                  <Stat big value={`${c.sterilisedPct}%`} label="Sterilised" />
-                  <Stat big value={`${c.vaccinatedPct}%`} label="Vaccinated" />
-                  <Stat big value={`${c.tracked}`} label="Dogs tracked" />
-                  <Stat big value={median != null ? `${median}d` : "—"} label="Median response" />
+                {/* ── Your cases — scoped to this NGO's own work ── */}
+                <h3 className="fr-avoid mt-5 flex items-center gap-2 font-display text-sm font-bold">
+                  <span className="inline-block h-2 w-2 rounded-full bg-paw-500" />
+                  {ngoName ? `${ngoName}'s cases` : "Your cases"}
+                </h3>
+                <div className="fr-avoid mt-2 grid grid-cols-3 gap-3">
+                  <Stat big value={`${myCases.length}`} label="Cases handled" />
+                  <Stat big value={`${myResolved.length}`} label="Resolved" />
+                  <Stat big value={myMedian != null ? `${myMedian}d` : "—"} label="Median response" />
                 </div>
 
-                <p className="mt-3 rounded-xl bg-paw-50 px-4 py-2 text-xs text-bark-600">
-                  Coverage measured against the WHO ~{HERD_THRESHOLD}% herd-immunity
-                  threshold for rabies control. {resolved.length} cases resolved
-                  this period.
-                </p>
+                {myCases.length === 0 && (
+                  <p className="mt-3 rounded-xl bg-bark-50 px-4 py-2 text-xs text-bark-500">
+                    {user
+                      ? "No cases assigned to your account yet. Claim cases on the board and resolve them — your outcomes (and before/after proof) will appear here automatically."
+                      : "Sign in and claim cases on the board to build your own impact section."}
+                  </p>
+                )}
 
-                {/* secondary stats */}
-                <div className="fr-avoid mt-5 grid grid-cols-3 gap-3">
-                  <Stat value={`${resolved.length}`} label="Cases resolved" />
-                  <Stat value={`${c.needsHelp}`} label="Need help now" />
-                  <Stat
-                    value={`${cases.length}`}
-                    label="Total cases handled"
-                  />
-                </div>
-
-                {/* before/after proof */}
+                {/* before/after proof — this NGO's own resolved outcomes */}
                 {proof.length > 0 && (
-                  <div className="fr-avoid mt-6">
-                    <h3 className="mb-2 font-display text-sm font-bold">
+                  <div className="fr-avoid mt-4">
+                    <h4 className="mb-2 text-xs font-bold text-bark-600">
                       Outcomes — before &amp; after
-                    </h3>
+                    </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {proof.map((p) => (
                         <div key={p.id} className="fr-avoid overflow-hidden rounded-xl border border-black/10">
@@ -191,6 +194,24 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                     </div>
                   </div>
                 )}
+
+                {/* ── Community coverage — area-wide context ── */}
+                <h3 className="fr-avoid mt-6 flex items-center gap-2 font-display text-sm font-bold">
+                  <span className="inline-block h-2 w-2 rounded-full bg-bark-300" />
+                  Community coverage <span className="text-xs font-medium text-bark-400">· area-wide</span>
+                </h3>
+                <div className="fr-avoid mt-2 grid grid-cols-4 gap-3">
+                  <Stat big value={`${c.sterilisedPct}%`} label="Sterilised" />
+                  <Stat big value={`${c.vaccinatedPct}%`} label="Vaccinated" />
+                  <Stat big value={`${c.tracked}`} label="Dogs tracked" />
+                  <Stat big value={`${c.needsHelp}`} label="Need help now" />
+                </div>
+                <p className="mt-3 rounded-xl bg-paw-50 px-4 py-2 text-xs text-bark-600">
+                  Area-wide figures across the whole StrayPaw community map, measured
+                  against the WHO ~{HERD_THRESHOLD}% herd-immunity threshold for rabies
+                  control — shown as the context {ngoName || "your NGO"} operates in,
+                  not attributed to one organisation.
+                </p>
 
                 <p className="mt-6 border-t border-black/10 pt-3 text-center text-[10px] text-bark-400">
                   Generated by StrayPaw · community-verified street-dog data · straypaw.kapoorjay.com
