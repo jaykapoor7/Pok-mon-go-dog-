@@ -5,6 +5,7 @@ import Map, {
   Marker,
   NavigationControl,
   GeolocateControl,
+  AttributionControl,
   type MapRef,
 } from "react-map-gl/maplibre";
 import Supercluster from "supercluster";
@@ -109,13 +110,24 @@ export function MapLibreMap({
       onMoveEnd={drift ? undefined : sync}
       style={{ width: "100%", height: "100%" }}
       reuseMaps
+      // Disable the default full-width bar; the full map adds a compact,
+      // collapsible attribution below so OSM/MapLibre stay credited without the
+      // bulky end-to-end strip (which looked oversized on the small preview).
+      attributionControl={false}
     >
-      <GeolocateControl
-        position="bottom-right"
-        trackUserLocation
-        positionOptions={{ enableHighAccuracy: true }}
-      />
-      <NavigationControl position="bottom-right" showCompass={false} />
+      {/* The home preview is non-interactive, so it skips the map controls
+          and attribution; the full map keeps both. */}
+      {!drift && (
+        <>
+          <GeolocateControl
+            position="bottom-right"
+            trackUserLocation
+            positionOptions={{ enableHighAccuracy: true }}
+          />
+          <NavigationControl position="bottom-right" showCompass={false} />
+          <AttributionControl compact position="bottom-left" />
+        </>
+      )}
 
       {clusters.map((c) => {
         const [lng, lat] = c.geometry.coordinates;
