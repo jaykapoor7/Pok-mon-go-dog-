@@ -150,6 +150,16 @@
   z-index: 10;
 }
 
+/* On phones, lift the bottom-right map controls (zoom + locate) above the fixed
+   bottom nav so they stay tappable. The nav is desktop-hidden, so only do this
+   below the lg breakpoint. */
+@media (max-width: 1023px) {
+  .maplibregl-ctrl-bottom-right,
+  .mapboxgl-ctrl-bottom-right {
+    bottom: calc(5.25rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 /* Interactive cards get a subtle lift on hover/press — premium depth. */
 .card-interactive {
   @apply transition-[transform,box-shadow] duration-200 ease-out
