@@ -101,14 +101,19 @@ export function TodayClient({
         <Stat icon={<ShieldCheck className="h-4 w-4" />} value={`${cov.sterilisedPct}%`} label="sterilised" tone="sterilised" />
       </div>
 
-      {/* minimised live map preview → tap to open full map */}
+      {/* minimised live map preview → tap to open full map (gentle idle drift) */}
       <div className="mb-6">
-        <div className="relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
-          <MapCanvas dogs={dogs} />
+        <div className="group relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
+          <MapCanvas dogs={dogs} drift />
           {/* transparent overlay: the whole preview opens the full map */}
           <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
           <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Live map
+          </span>
+          {/* clearer "open map" cue — a pill that nudges on hover */}
+          <span className="pointer-events-none absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-bark-800 shadow-pop transition-transform group-hover:translate-x-0.5 dark:bg-bark-900/90 dark:text-bark-100">
+            <MapIcon className="h-3.5 w-3.5 text-paw-600" /> Tap to explore
+            <ArrowRight className="h-3.5 w-3.5" />
           </span>
         </div>
         <Link href="/map" className="btn-primary mt-3 w-full py-3">

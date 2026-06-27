@@ -24,10 +24,12 @@ export function MapLibreMap({
   dogs,
   onSelect,
   center,
+  drift,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
   center?: { lat: number; lng: number } | null;
+  drift?: boolean;
 }) {
   const mapRef = useRef<MapRef>(null);
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
@@ -43,6 +45,21 @@ export function MapLibreMap({
       });
     }
   }, [center?.lat, center?.lng]);
+
+  // Gentle idle rotation for the non-interactive home preview — keeps the map
+  // feeling alive without trapping page scroll. Centre stays put (markers never
+  // leave view); we just ease the bearing round very slowly.
+  useEffect(() => {
+    if (!drift) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      mapRef.current?.setBearing(((now - start) / 1000) * 0.7); // ~0.7°/sec
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [drift]);
 
   const byId = useMemo(() => {
     const m: Record<string, Dog> = {};
@@ -89,7 +106,7 @@ export function MapLibreMap({
       }}
       mapStyle={STYLE_URL}
       onLoad={sync}
-      onMoveEnd={sync}
+      onMoveEnd={drift ? undefined : sync}
       style={{ width: "100%", height: "100%" }}
       reuseMaps
     >

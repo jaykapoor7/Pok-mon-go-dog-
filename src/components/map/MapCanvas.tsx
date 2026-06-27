@@ -33,6 +33,8 @@ export function MapCanvas(props: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
   center?: { lat: number; lng: number } | null;
+  /** Slowly rotate the view when idle — used for the non-interactive home preview. */
+  drift?: boolean;
 }) {
   return <MapEngine {...props} />;
 }
