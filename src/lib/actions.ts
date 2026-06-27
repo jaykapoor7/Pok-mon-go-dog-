@@ -38,7 +38,7 @@ export interface ReportResult {
   trust: number;
 }
 
-async function uploadPhoto(file: File): Promise<string> {
+export async function uploadPhoto(file: File): Promise<string> {
   const supa = getSupabase();
   if (!supa) throw new Error("not configured");
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";

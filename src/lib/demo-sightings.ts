@@ -380,6 +380,9 @@ function buildCases(): { cases: Case[]; updates: CaseUpdate[] } {
       before_url: resolved ? dog.cover_photo : null,
       after_url: resolved ? DOG_PHOTOS[Math.floor(r("af") * DOG_PHOTOS.length)] : null,
       outcome_note: resolved ? pick(OUTCOME_NOTES, `${id}-out`) : null,
+      // Demo resolutions read as already verified so the dashboard/report look live.
+      proof_verified: resolved,
+      verified_at: resolved ? resolvedAt : null,
     });
 
     updates.push({

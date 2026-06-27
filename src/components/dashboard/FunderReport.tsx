@@ -65,9 +65,12 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
   // "Your cases" is scoped to the signed-in operator's own claimed cases — this
   // is what makes each NGO's report individual.
   const myCases = user ? cases.filter((x) => x.assignee_id === user.id) : [];
-  const myResolved = myCases.filter((x) => x.status === "resolved" || x.status === "closed");
-  const myMedian = medianResponseDays(myCases);
-  const proof = myResolved.filter((x) => x.before_url && x.after_url).slice(0, 3);
+  // Only StrayPaw-verified outcomes count toward the impact figures.
+  const myResolved = myCases.filter(
+    (x) => (x.status === "resolved" || x.status === "closed") && x.proof_verified
+  );
+  const myMedian = medianResponseDays(myResolved);
+  const proof = myResolved.filter((x) => x.after_url).slice(0, 3);
 
   // Period range from this NGO's cases (falls back to "now" when there are none).
   const times = myCases.map((x) => +new Date(x.created_at)).filter(Boolean);

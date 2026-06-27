@@ -248,6 +248,8 @@ export interface Case {
   before_url?: string | null; // before/after proof on resolved cases
   after_url?: string | null;
   outcome_note?: string | null;
+  proof_verified?: boolean; // a StrayPaw admin has verified the outcome proof
+  verified_at?: string | null;
 }
 
 export interface CaseUpdate {

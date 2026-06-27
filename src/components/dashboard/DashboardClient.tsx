@@ -124,7 +124,10 @@ function Impact({
   ngos: NGO[];
   helperCounts: HelperCounts;
 }) {
-  const resolved = cases.filter((c) => c.status === "resolved" || c.status === "closed");
+  // Only StrayPaw-verified outcomes count as resolved in impact figures.
+  const resolved = cases.filter(
+    (c) => (c.status === "resolved" || c.status === "closed") && c.proof_verified
+  );
 
   // 7-day trend on resolutions.
   const now = Date.now();

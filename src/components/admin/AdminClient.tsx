@@ -47,7 +47,20 @@ interface Helper {
   created_at: string;
 }
 
-type Tab = "queue" | "volunteers" | "ngos";
+interface PendingCase {
+  id: string;
+  title: string;
+  zone: string | null;
+  resolution: string | null;
+  outcome_note: string | null;
+  before_url: string | null;
+  after_url: string | null;
+  assignee_name: string | null;
+  resolved_at: string | null;
+  dog_id: string | null;
+}
+
+type Tab = "queue" | "verify" | "volunteers" | "ngos";
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
 function ContactLink({ contact }: { contact: string }) {
@@ -71,6 +84,7 @@ export function AdminClient() {
   const [items, setItems] = useState<Pending[]>([]);
   const [volunteers, setVolunteers] = useState<Helper[]>([]);
   const [ngos, setNgos] = useState<Helper[]>([]);
+  const [pendingCases, setPendingCases] = useState<PendingCase[]>([]);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +104,21 @@ export function AdminClient() {
       setNgos(j.ngos ?? []);
     } catch {
       /* ignore — keep the queue usable */
+    }
+  }, []);
+
+  // Resolved cases awaiting outcome-proof verification.
+  const loadCases = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/cases", {
+        headers: { Authorization: `Bearer ${s}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      setPendingCases(j.pending ?? []);
+    } catch {
+      /* ignore — keep moderation usable */
     }
   }, []);
 
@@ -125,13 +154,14 @@ export function AdminClient() {
           /* ignore */
         }
         loadHelpers(s);
+        loadCases(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers]
+    [loadHelpers, loadCases]
   );
 
   useEffect(() => {
@@ -167,6 +197,31 @@ export function AdminClient() {
     }
   }
 
+  async function verify(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/cases", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify", id }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        return;
+      }
+      haptic("success");
+      setPendingCases((prev) => prev.filter((x) => x.id !== id));
+    } catch {
+      setError("Network error.");
+      haptic("error");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   function lock() {
     try {
       localStorage.removeItem(KEY);
@@ -176,6 +231,7 @@ export function AdminClient() {
     setSecret("");
     setAuthed(false);
     setItems([]);
+    setPendingCases([]);
     setInput("");
   }
 
@@ -251,6 +307,7 @@ export function AdminClient() {
       {/* tabs */}
       <div className="mb-5 flex gap-1.5 rounded-2xl bg-black/[0.04] p-1 dark:bg-white/[0.05]">
         <TabButton active={tab === "queue"} onClick={() => setTab("queue")} icon={<Clock className="h-4 w-4" />} label="Queue" count={items.length} />
+        <TabButton active={tab === "verify"} onClick={() => setTab("verify")} icon={<ShieldCheck className="h-4 w-4" />} label="Verify" count={pendingCases.length} />
         <TabButton active={tab === "volunteers"} onClick={() => setTab("volunteers")} icon={<HandHelping className="h-4 w-4" />} label="Volunteers" count={volunteers.length} />
         <TabButton active={tab === "ngos"} onClick={() => setTab("ngos")} icon={<HeartHandshake className="h-4 w-4" />} label="NGOs" count={ngos.length} />
       </div>
@@ -261,6 +318,9 @@ export function AdminClient() {
         </p>
       )}
 
+      {tab === "verify" && (
+        <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
+      )}
       {tab === "volunteers" && <HelperList helpers={volunteers} kind="volunteer" />}
       {tab === "ngos" && <HelperList helpers={ngos} kind="ngo" />}
 
@@ -451,6 +511,105 @@ function HelperList({ helpers, kind }: { helpers: Helper[]; kind: "volunteer" | 
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+function VerifyList({
+  cases,
+  busyId,
+  onVerify,
+}: {
+  cases: PendingCase[];
+  busyId: string | null;
+  onVerify: (id: string) => void;
+}) {
+  if (cases.length === 0) {
+    return (
+      <div className="card p-10 text-center">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <ShieldCheck className="h-7 w-7" />
+        </span>
+        <h2 className="font-display text-lg font-bold">Nothing to verify</h2>
+        <p className="mt-1 text-sm text-bark-500">
+          Resolved cases awaiting outcome-proof verification will appear here.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-4">
+      {cases.map((c) => (
+        <div key={c.id} className="card overflow-hidden">
+          <div className="p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-semibold">{c.title}</p>
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-bark-500">
+                  {c.zone && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" /> {c.zone}
+                    </span>
+                  )}
+                  {c.resolution && <span className="capitalize">{c.resolution}</span>}
+                  {c.resolved_at && <span>{timeAgo(c.resolved_at)}</span>}
+                </p>
+                {c.assignee_name && (
+                  <p className="mt-0.5 text-xs text-bark-400">by {c.assignee_name}</p>
+                )}
+              </div>
+              {c.dog_id && (
+                <a
+                  href={`/dog/${c.dog_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 text-xs font-semibold text-paw-600 hover:underline"
+                >
+                  Dog →
+                </a>
+              )}
+            </div>
+
+            {/* before/after proof */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Proof label="Before" url={c.before_url} seed={`${c.id}b`} />
+              <Proof label="After" url={c.after_url} seed={`${c.id}a`} />
+            </div>
+
+            {c.outcome_note && (
+              <p className="mt-2 rounded-xl bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
+                {c.outcome_note}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => onVerify(c.id)}
+            disabled={busyId === c.id}
+            className="flex w-full items-center justify-center gap-1.5 border-t border-black/[0.06] bg-white py-3 text-sm font-semibold text-status-vaccinated transition-colors hover:bg-status-vaccinated/5 disabled:opacity-50 dark:border-white/[0.08] dark:bg-bark-900"
+          >
+            {busyId === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            Verify outcome
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Proof({ label, url, seed }: { label: string; url: string | null; seed: string }) {
+  if (!url) {
+    return (
+      <div className="flex aspect-square items-center justify-center rounded-xl bg-bark-100 text-xs text-bark-400 dark:bg-bark-800">
+        No {label.toLowerCase()}
+      </div>
+    );
+  }
+  return (
+    <div className="relative overflow-hidden rounded-xl">
+      <DogPhoto src={url} alt={label} seed={seed} className="aspect-square w-full" />
+      <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
+        {label}
+      </span>
     </div>
   );
 }

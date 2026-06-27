@@ -43,6 +43,8 @@ function mapCase(r: any): Case {
     before_url: r.before_url ?? null,
     after_url: r.after_url ?? null,
     outcome_note: r.outcome_note ?? null,
+    proof_verified: r.proof_verified ?? false,
+    verified_at: r.verified_at ?? null,
   };
 }
 

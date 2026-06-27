@@ -92,7 +92,13 @@ export async function updateCaseStatus(
   caseId: string,
   toStatus: CaseStatus,
   actor: Actor,
-  opts: { resolution?: CaseResolution; note?: string } = {}
+  opts: {
+    resolution?: CaseResolution;
+    note?: string;
+    beforeUrl?: string | null;
+    afterUrl?: string | null;
+    outcomeNote?: string | null;
+  } = {}
 ): Promise<StatusResult> {
   const supa = getSupabase();
   if (!supa) return { ok: true };
@@ -103,6 +109,9 @@ export async function updateCaseStatus(
     p_actor_name: actor.name,
     p_resolution: opts.resolution ?? null,
     p_note: opts.note ?? null,
+    p_before_url: opts.beforeUrl ?? null,
+    p_after_url: opts.afterUrl ?? null,
+    p_outcome_note: opts.outcomeNote ?? null,
   });
   if (error) throw new Error(error.message);
   return (data as StatusResult) ?? { ok: false, error: "Unknown error" };
