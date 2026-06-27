@@ -17,6 +17,7 @@ import {
   HeartHandshake,
   HandHelping,
   MessageSquare,
+  CheckCircle2,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -45,6 +46,7 @@ interface Helper {
   dog_id: string | null;
   zone: string | null;
   created_at: string;
+  acknowledged: boolean;
 }
 
 interface PendingCase {
@@ -222,6 +224,40 @@ export function AdminClient() {
     }
   }
 
+  // Tick a volunteer/NGO as reached-out. The row STAYS (unlike queue/verify),
+  // just flips its acknowledged state.
+  async function toggleAck(id: string, next: boolean) {
+    setBusyId(id);
+    setError(null);
+    const apply = (list: Helper[]) =>
+      list.map((h) => (h.id === id ? { ...h, acknowledged: next } : h));
+    setVolunteers(apply);
+    setNgos(apply);
+    try {
+      const res = await fetch("/api/admin/helpers", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: next ? "acknowledge" : "unacknowledge", id }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        // revert on failure
+        const revert = (list: Helper[]) =>
+          list.map((h) => (h.id === id ? { ...h, acknowledged: !next } : h));
+        setVolunteers(revert);
+        setNgos(revert);
+        return;
+      }
+      haptic(next ? "success" : "light");
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   function lock() {
     try {
       localStorage.removeItem(KEY);
@@ -232,6 +268,8 @@ export function AdminClient() {
     setAuthed(false);
     setItems([]);
     setPendingCases([]);
+    setVolunteers([]);
+    setNgos([]);
     setInput("");
   }
 
@@ -321,8 +359,12 @@ export function AdminClient() {
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
       )}
-      {tab === "volunteers" && <HelperList helpers={volunteers} kind="volunteer" />}
-      {tab === "ngos" && <HelperList helpers={ngos} kind="ngo" />}
+      {tab === "volunteers" && (
+        <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
+      )}
+      {tab === "ngos" && (
+        <HelperList helpers={ngos} kind="ngo" busyId={busyId} onToggle={toggleAck} />
+      )}
 
       {tab === "queue" && (items.length === 0 ? (
         <div className="card p-10 text-center">
@@ -448,7 +490,17 @@ function TabButton({
   );
 }
 
-function HelperList({ helpers, kind }: { helpers: Helper[]; kind: "volunteer" | "ngo" }) {
+function HelperList({
+  helpers,
+  kind,
+  busyId,
+  onToggle,
+}: {
+  helpers: Helper[];
+  kind: "volunteer" | "ngo";
+  busyId: string | null;
+  onToggle: (id: string, next: boolean) => void;
+}) {
   if (helpers.length === 0) {
     return (
       <div className="card p-10 text-center">
@@ -465,10 +517,16 @@ function HelperList({ helpers, kind }: { helpers: Helper[]; kind: "volunteer" | 
   return (
     <div className="space-y-3">
       {helpers.map((h) => (
-        <div key={h.id} className="card p-4">
+        <div
+          key={h.id}
+          className={`card p-4 transition-opacity ${h.acknowledged ? "opacity-60" : ""}`}
+        >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-semibold">
+              <p className="flex items-center gap-1.5 font-semibold">
+                {h.acknowledged && (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-status-vaccinated" />
+                )}
                 {kind === "ngo" && h.ngo_name ? h.ngo_name : h.name}
               </p>
               {kind === "ngo" && h.ngo_name && (
@@ -509,6 +567,23 @@ function HelperList({ helpers, kind }: { helpers: Helper[]; kind: "volunteer" | 
               {h.message}
             </p>
           )}
+
+          <button
+            onClick={() => onToggle(h.id, !h.acknowledged)}
+            disabled={busyId === h.id}
+            className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+              h.acknowledged
+                ? "bg-status-vaccinated/15 text-status-vaccinated hover:bg-status-vaccinated/25"
+                : "bg-paw-500 text-white hover:bg-paw-600"
+            }`}
+          >
+            {busyId === h.id ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            )}
+            {h.acknowledged ? "Reached out · undo" : "Mark reached out"}
+          </button>
         </div>
       ))}
     </div>
