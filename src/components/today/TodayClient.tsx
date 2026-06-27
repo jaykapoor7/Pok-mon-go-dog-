@@ -110,16 +110,12 @@ export function TodayClient({
           <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Live map
           </span>
-          {/* clearer "open map" cue — a pill that nudges on hover */}
-          <span className="pointer-events-none absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-bark-800 shadow-pop transition-transform group-hover:translate-x-0.5 dark:bg-bark-900/90 dark:text-bark-100">
-            <MapIcon className="h-3.5 w-3.5 text-paw-600" /> Tap to explore
-            <ArrowRight className="h-3.5 w-3.5" />
+          {/* single "open map" cue — a pill that nudges on hover */}
+          <span className="pointer-events-none absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-sm font-bold text-bark-800 shadow-pop transition-transform group-hover:translate-x-0.5 dark:bg-bark-900/90 dark:text-bark-100">
+            <MapIcon className="h-4 w-4 text-paw-600" /> Open full map
+            <ArrowRight className="h-4 w-4" />
           </span>
         </div>
-        <Link href="/map" className="btn-primary mt-3 w-full py-3">
-          <MapIcon className="h-4 w-4" /> Open the full map
-          <ArrowRight className="h-4 w-4" />
-        </Link>
       </div>
 
       {/* near you need help */}
