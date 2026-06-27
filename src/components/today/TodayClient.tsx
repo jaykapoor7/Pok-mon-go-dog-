@@ -74,11 +74,8 @@ export function TodayClient({
     <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6 lg:max-w-6xl">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-paw-600">
+          <h1 className="font-display text-3xl font-extrabold tracking-tightest sm:text-4xl">
             {greeting()}{firstName ? `, ${firstName}` : ""}
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tightest">
-            Today&rsquo;s insights
           </h1>
         </div>
         <DemoToggle className="mt-1" />
