@@ -75,8 +75,13 @@ export function TodayClient({
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tightest sm:text-4xl">
-            {greeting()}{firstName ? `, ${firstName}` : ""}
+            {greeting()}
           </h1>
+          {firstName && (
+            <p className="mt-0.5 font-display text-lg font-bold text-paw-600 dark:text-paw-400">
+              {firstName}
+            </p>
+          )}
         </div>
         <DemoToggle className="mt-1" />
       </header>
