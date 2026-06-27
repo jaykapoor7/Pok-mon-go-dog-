@@ -10,6 +10,7 @@ import {
   SeverityBadge,
   OwnershipBadge,
   OverdueBadge,
+  VerifiedBadge,
 } from "./CaseBadges";
 
 export function CaseCard({ c }: { c: Case }) {
@@ -39,6 +40,7 @@ export function CaseCard({ c }: { c: Case }) {
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
+            <VerifiedBadge c={c} />
             <OwnershipBadge name={c.assignee_name} />
             <SeverityBadge severity={c.severity} />
             <OverdueBadge c={c} />

@@ -1,4 +1,4 @@
-import { User, AlertTriangle, Clock } from "lucide-react";
+import { User, AlertTriangle, Clock, ShieldCheck, ShieldQuestion } from "lucide-react";
 import {
   CASE_STATUS_META,
   CASE_SEVERITY_META,
@@ -54,6 +54,26 @@ export function OverdueBadge({ c }: { c: Case }) {
   return (
     <span className="chip bg-status-injured/15 font-semibold text-status-injured">
       <Clock className="h-3 w-3" /> Overdue
+    </span>
+  );
+}
+
+/**
+ * Verification badge for resolved cases — visible to everyone so the outcome's
+ * credibility is public. Only shows on resolved/closed cases.
+ */
+export function VerifiedBadge({ c }: { c: Case }) {
+  if (c.status !== "resolved" && c.status !== "closed") return null;
+  if (c.proof_verified) {
+    return (
+      <span className="chip bg-status-sterilised/15 font-semibold text-status-sterilised">
+        <ShieldCheck className="h-3 w-3" /> Verified
+      </span>
+    );
+  }
+  return (
+    <span className="chip bg-status-hungry/15 font-semibold text-status-hungry">
+      <ShieldQuestion className="h-3 w-3" /> Proof pending
     </span>
   );
 }

@@ -9,6 +9,7 @@ import {
   SeverityBadge,
   OwnershipBadge,
   OverdueBadge,
+  VerifiedBadge,
 } from "@/components/cases/CaseBadges";
 import { CaseControls } from "@/components/cases/CaseControls";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
@@ -70,6 +71,7 @@ export default async function CasePage({
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           <CaseStatusBadge status={c.status} />
+          <VerifiedBadge c={c} />
           <OwnershipBadge name={c.assignee_name} />
           <SeverityBadge severity={c.severity} />
           <OverdueBadge c={c} />
