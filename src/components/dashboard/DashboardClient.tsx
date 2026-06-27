@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Users, HeartPulse, ShieldCheck, Timer, ListChecks, BarChart3 } from "lucide-react";
+import Link from "next/link";
+import { Users, HeartPulse, ShieldCheck, Timer, ListChecks, BarChart3, HandHelping, HeartHandshake, ArrowRight } from "lucide-react";
 import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import {
   demoDogs,
   demoCases,
   demoNGOs,
-  demoFeedSightings,
 } from "@/lib/demo-sightings";
 import { CommandCenter } from "@/components/cases/CommandCenter";
 import { CaseReporting } from "@/components/cases/CaseReporting";
@@ -19,23 +19,24 @@ import { FunderReport } from "@/components/dashboard/FunderReport";
 import {
   coverage,
   medianResponseDays,
-  topContributors,
 } from "@/lib/dashboard-metrics";
-import { cn, formatNumber, timeAgo } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import type { Case, Dog, NGO, Sighting } from "@/lib/types";
 
 type Tab = "operate" | "impact";
+type HelperCounts = { volunteers: number; ngos: number };
 
 export function DashboardClient({
   dogs: realDogs,
   cases: realCases,
   ngos: realNGOs,
-  sightings: realSightings,
+  helperCounts,
 }: {
   dogs: Dog[];
   cases: Case[];
   ngos: NGO[];
   sightings: Sighting[];
+  helperCounts: HelperCounts;
 }) {
   const { demoOn } = useDemoMode();
   const [tab, setTab] = useState<Tab>("operate");
@@ -44,10 +45,6 @@ export function DashboardClient({
   const dogs = useMemo(() => (demoOn ? [...realDogs, ...demoDogs] : realDogs), [demoOn, realDogs]);
   const cases = useMemo(() => (demoOn ? [...realCases, ...demoCases] : realCases), [demoOn, realCases]);
   const ngos = useMemo(() => (demoOn ? [...realNGOs, ...demoNGOs] : realNGOs), [demoOn, realNGOs]);
-  const sightings = useMemo(
-    () => (demoOn ? [...realSightings, ...demoFeedSightings] : realSightings),
-    [demoOn, realSightings]
-  );
 
   const cov = coverage(dogs);
   const median = medianResponseDays(cases);
@@ -83,7 +80,7 @@ export function DashboardClient({
       {tab === "operate" ? (
         <Operate dogs={dogs} cases={cases} />
       ) : (
-        <Impact dogs={dogs} cases={cases} ngos={ngos} sightings={sightings} />
+        <Impact dogs={dogs} cases={cases} ngos={ngos} helperCounts={helperCounts} />
       )}
     </div>
   );
@@ -120,14 +117,13 @@ function Impact({
   dogs,
   cases,
   ngos,
-  sightings,
+  helperCounts,
 }: {
   dogs: Dog[];
   cases: Case[];
   ngos: NGO[];
-  sightings: Sighting[];
+  helperCounts: HelperCounts;
 }) {
-  const contributors = topContributors(sightings);
   const resolved = cases.filter((c) => c.status === "resolved" || c.status === "closed");
 
   // 7-day trend on resolutions.
@@ -208,28 +204,37 @@ function Impact({
           )}
         </div>
 
-        <div className="card p-5">
-          <h3 className="mb-3 font-display font-bold">Volunteer activity</h3>
-          {contributors.length === 0 ? (
-            <p className="text-sm text-bark-400">No contributors yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {contributors.map((u) => (
-                <li key={u.name} className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-paw-200 text-xs font-bold text-paw-700">
-                    {u.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{u.name}</p>
-                    <p className="text-xs text-bark-400">
-                      {u.count} {u.count === 1 ? "sighting" : "sightings"}
-                    </p>
-                  </div>
-                  <span className="text-xs text-bark-400">{timeAgo(u.last)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        {/* Real "Can you help?" sign-ups (contacts live in the moderation panel,
+            so we only show counts here — no PII on the public dashboard). */}
+        <div className="card flex flex-col p-5">
+          <h3 className="mb-3 font-display font-bold">Help-form sign-ups</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-paw-50 p-4 dark:bg-bark-800">
+              <span className="mb-1 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-700">
+                <HandHelping className="h-4 w-4" />
+              </span>
+              <p className="font-display text-2xl font-extrabold leading-none">
+                {formatNumber(helperCounts.volunteers)}
+              </p>
+              <p className="mt-0.5 text-xs text-bark-500">volunteers</p>
+            </div>
+            <div className="rounded-2xl bg-paw-50 p-4 dark:bg-bark-800">
+              <span className="mb-1 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-700">
+                <HeartHandshake className="h-4 w-4" />
+              </span>
+              <p className="font-display text-2xl font-extrabold leading-none">
+                {formatNumber(helperCounts.ngos)}
+              </p>
+              <p className="mt-0.5 text-xs text-bark-500">NGOs registered</p>
+            </div>
+          </div>
+          <Link
+            href="/moderate"
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-paw-600 hover:underline"
+          >
+            View &amp; contact them in moderation
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
     </div>
