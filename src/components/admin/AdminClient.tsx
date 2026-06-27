@@ -12,6 +12,11 @@ import {
   Clock,
   Loader2,
   ShieldCheck,
+  Mail,
+  Phone,
+  HeartHandshake,
+  HandHelping,
+  MessageSquare,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -30,51 +35,104 @@ interface Pending {
   created_at: string;
 }
 
+interface Helper {
+  id: string;
+  name: string;
+  contact: string;
+  message: string | null;
+  is_ngo: boolean;
+  ngo_name: string | null;
+  dog_id: string | null;
+  zone: string | null;
+  created_at: string;
+}
+
+type Tab = "queue" | "volunteers" | "ngos";
+
+/** A phone-or-email contact → a tappable mailto:/tel: link. */
+function ContactLink({ contact }: { contact: string }) {
+  const isEmail = contact.includes("@");
+  const href = isEmail ? `mailto:${contact}` : `tel:${contact.replace(/\s+/g, "")}`;
+  return (
+    <a
+      href={href}
+      className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
+    >
+      {isEmail ? <Mail className="h-3.5 w-3.5" /> : <Phone className="h-3.5 w-3.5" />}
+      {contact}
+    </a>
+  );
+}
+
 export function AdminClient() {
   const [secret, setSecret] = useState("");
   const [authed, setAuthed] = useState(false);
   const [input, setInput] = useState("");
   const [items, setItems] = useState<Pending[]>([]);
+  const [volunteers, setVolunteers] = useState<Helper[]>([]);
+  const [ngos, setNgos] = useState<Helper[]>([]);
+  const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const load = useCallback(async (s: string) => {
-    setLoading(true);
-    setError(null);
+  // Helper sign-ups load alongside the queue; a failure here (e.g. helpers.sql
+  // not yet run) is non-fatal — it just leaves those tabs empty.
+  const loadHelpers = useCallback(async (s: string) => {
     try {
-      const res = await fetch("/api/admin/sightings", {
+      const res = await fetch("/api/admin/helpers", {
         headers: { Authorization: `Bearer ${s}` },
         cache: "no-store",
       });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        // 401 = wrong password; anything else (e.g. 503 unset, 500 service role)
-        // carries a specific server message worth showing verbatim.
-        setError(
-          j.error ||
-            (res.status === 401
-              ? "Wrong password."
-              : "Could not load. Is ADMIN_SECRET set in Vercel?")
-        );
-        if (res.status === 401) setAuthed(false);
-        return;
-      }
+      if (!res.ok) return;
       const j = await res.json();
-      setItems(j.pending ?? []);
-      setSecret(s);
-      setAuthed(true);
-      try {
-        localStorage.setItem(KEY, s);
-      } catch {
-        /* ignore */
-      }
+      setVolunteers(j.volunteers ?? []);
+      setNgos(j.ngos ?? []);
     } catch {
-      setError("Network error.");
-    } finally {
-      setLoading(false);
+      /* ignore — keep the queue usable */
     }
   }, []);
+
+  const load = useCallback(
+    async (s: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/admin/sightings", {
+          headers: { Authorization: `Bearer ${s}` },
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          // 401 = wrong password; anything else (e.g. 503 unset, 500 service role)
+          // carries a specific server message worth showing verbatim.
+          setError(
+            j.error ||
+              (res.status === 401
+                ? "Wrong password."
+                : "Could not load. Is ADMIN_SECRET set in Vercel?")
+          );
+          if (res.status === 401) setAuthed(false);
+          return;
+        }
+        const j = await res.json();
+        setItems(j.pending ?? []);
+        setSecret(s);
+        setAuthed(true);
+        try {
+          localStorage.setItem(KEY, s);
+        } catch {
+          /* ignore */
+        }
+        loadHelpers(s);
+      } catch {
+        setError("Network error.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loadHelpers]
+  );
 
   useEffect(() => {
     const saved = localStorage.getItem(KEY);
@@ -167,15 +225,10 @@ export function AdminClient() {
   // ── Queue ─────────────────────────────────────────────────
   return (
     <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
-      <header className="mb-5 flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">
-            Pending review
-          </h1>
-          <p className="text-sm text-bark-500">
-            {items.length} {items.length === 1 ? "sighting" : "sightings"} waiting
-          </p>
-        </div>
+      <header className="mb-4 flex items-center justify-between">
+        <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">
+          Moderation
+        </h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => load(secret)}
@@ -195,13 +248,23 @@ export function AdminClient() {
         </div>
       </header>
 
+      {/* tabs */}
+      <div className="mb-5 flex gap-1.5 rounded-2xl bg-black/[0.04] p-1 dark:bg-white/[0.05]">
+        <TabButton active={tab === "queue"} onClick={() => setTab("queue")} icon={<Clock className="h-4 w-4" />} label="Queue" count={items.length} />
+        <TabButton active={tab === "volunteers"} onClick={() => setTab("volunteers")} icon={<HandHelping className="h-4 w-4" />} label="Volunteers" count={volunteers.length} />
+        <TabButton active={tab === "ngos"} onClick={() => setTab("ngos")} icon={<HeartHandshake className="h-4 w-4" />} label="NGOs" count={ngos.length} />
+      </div>
+
       {error && (
         <p className="mb-4 rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
           {error}
         </p>
       )}
 
-      {items.length === 0 ? (
+      {tab === "volunteers" && <HelperList helpers={volunteers} kind="volunteer" />}
+      {tab === "ngos" && <HelperList helpers={ngos} kind="ngo" />}
+
+      {tab === "queue" && (items.length === 0 ? (
         <div className="card p-10 text-center">
           <div className="mb-2 text-4xl">🎉</div>
           <h2 className="font-display text-lg font-bold">All caught up</h2>
@@ -285,7 +348,109 @@ export function AdminClient() {
           ))}
           </AnimatePresence>
         </div>
-      )}
+      ))}
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  icon,
+  label,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-colors sm:text-sm ${
+        active
+          ? "bg-white text-paw-700 shadow-card dark:bg-bark-900 dark:text-paw-300"
+          : "text-bark-500 hover:text-bark-700 dark:text-bark-400"
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+      <span
+        className={`rounded-full px-1.5 text-[11px] font-bold ${
+          active ? "bg-paw-100 text-paw-700" : "bg-black/[0.06] text-bark-500 dark:bg-white/10"
+        }`}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
+function HelperList({ helpers, kind }: { helpers: Helper[]; kind: "volunteer" | "ngo" }) {
+  if (helpers.length === 0) {
+    return (
+      <div className="card p-10 text-center">
+        <div className="mb-2 text-4xl">{kind === "ngo" ? "🤝" : "🐾"}</div>
+        <h2 className="font-display text-lg font-bold">
+          No {kind === "ngo" ? "NGO registrations" : "volunteers"} yet
+        </h2>
+        <p className="mt-1 text-sm text-bark-500">
+          Sign-ups from the “Can you help?” form will appear here.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {helpers.map((h) => (
+        <div key={h.id} className="card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold">
+                {kind === "ngo" && h.ngo_name ? h.ngo_name : h.name}
+              </p>
+              {kind === "ngo" && h.ngo_name && (
+                <p className="text-xs text-bark-400">Contact: {h.name}</p>
+              )}
+              <p className="mt-1 text-sm">
+                <ContactLink contact={h.contact} />
+              </p>
+            </div>
+            <span className="shrink-0 whitespace-nowrap text-xs text-bark-400">
+              {timeAgo(h.created_at)}
+            </span>
+          </div>
+
+          {(h.zone || h.dog_id) && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-bark-500">
+              {h.zone && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" /> {h.zone}
+                </span>
+              )}
+              {h.dog_id && (
+                <a
+                  href={`/dog/${h.dog_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-paw-600 hover:underline"
+                >
+                  Offered to help a specific dog →
+                </a>
+              )}
+            </div>
+          )}
+
+          {h.message && (
+            <p className="mt-2 flex gap-1.5 rounded-xl bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
+              <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-bark-400" />
+              {h.message}
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
