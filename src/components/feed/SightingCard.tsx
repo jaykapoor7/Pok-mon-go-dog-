@@ -103,8 +103,8 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
         </div>
       </div>
 
-      {/* photo */}
-      <Link href={sighting.dog_id ? `/dog/${sighting.dog_id}` : "#"}>
+      {/* photo (links to the dog profile once one exists; pending sightings have none) */}
+      <PhotoWrap dogId={sighting.dog_id}>
         <div className="relative">
           <DogPhoto
             src={sighting.photo_url}
@@ -119,7 +119,7 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
             </span>
           )}
         </div>
-      </Link>
+      </PhotoWrap>
 
       {/* actions */}
       <div className="flex items-center gap-4 px-3 pt-3">
@@ -143,12 +143,14 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
           </motion.span>
           {formatNumber(likes)}
         </button>
-        <Link
-          href={sighting.dog_id ? `/dog/${sighting.dog_id}` : "#"}
-          className="flex items-center gap-1.5 text-sm font-medium text-bark-600"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Link>
+        {sighting.dog_id && (
+          <Link
+            href={`/dog/${sighting.dog_id}`}
+            className="flex items-center gap-1.5 text-sm font-medium text-bark-600"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Link>
+        )}
         <button
           onClick={shareWhatsApp}
           aria-label="Share on WhatsApp"
@@ -189,6 +191,11 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
       )}
     </motion.article>
   );
+}
+
+/** Wraps the photo in a link to the dog profile when one exists, else a plain div. */
+function PhotoWrap({ dogId, children }: { dogId: string | null; children: React.ReactNode }) {
+  return dogId ? <Link href={`/dog/${dogId}`}>{children}</Link> : <div>{children}</div>;
 }
 
 function WhatsAppIcon({ className }: { className?: string }) {

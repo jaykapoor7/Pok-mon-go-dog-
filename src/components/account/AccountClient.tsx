@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LogIn, Loader2, Clock, LogOut } from "lucide-react";
+import { LogIn, Loader2, Clock, LogOut, PawPrint, PlusCircle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMySightings } from "@/lib/actions";
 import { SightingCard } from "@/components/feed/SightingCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { MoodTag, Sighting } from "@/lib/types";
 
 function mapRow(row: any, userId: string): Sighting {
@@ -111,13 +112,12 @@ export function AccountClient() {
           <Loader2 className="h-6 w-6 animate-spin text-paw-500" />
         </div>
       ) : sightings.length === 0 ? (
-        <div className="card p-10 text-center">
-          <div className="mb-2 text-4xl">🐾</div>
-          <h2 className="font-display text-lg font-bold">No sightings yet</h2>
-          <p className="mt-1 text-sm text-bark-500">
-            Spot a dog and report it — it&apos;ll show up here.
-          </p>
-        </div>
+        <EmptyState
+          icon={<PawPrint className="h-7 w-7" />}
+          title="No sightings yet"
+          description="Spot a dog and report it — it'll show up here."
+          action={{ href: "/report", label: "Report a dog", icon: <PlusCircle className="h-4 w-4" /> }}
+        />
       ) : (
         <div className="space-y-4">
           {sightings.map((s) => (

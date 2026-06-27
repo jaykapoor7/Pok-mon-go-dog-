@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { PlusCircle } from "lucide-react";
+import { PawPrint, PlusCircle } from "lucide-react";
 import { SightingCard } from "@/components/feed/SightingCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import type { Sighting } from "@/lib/types";
 
@@ -19,16 +19,12 @@ export function FeedList({ real, demo }: { real: Sighting[]; demo: Sighting[] })
 
   if (sightings.length === 0) {
     return (
-      <div className="card mt-2 p-10 text-center">
-        <div className="mb-3 text-5xl">🐾</div>
-        <h2 className="font-display text-lg font-bold">No sightings yet</h2>
-        <p className="mt-1 text-sm text-bark-500">
-          Be the very first to put a street dog on the map.
-        </p>
-        <Link href="/report" className="btn-primary mt-5 px-6 py-3">
-          <PlusCircle className="h-4 w-4" /> Report a dog
-        </Link>
-      </div>
+      <EmptyState
+        icon={<PawPrint className="h-7 w-7" />}
+        title="No sightings yet"
+        description="Be the very first to put a street dog on the map."
+        action={{ href: "/report", label: "Report a dog", icon: <PlusCircle className="h-4 w-4" /> }}
+      />
     );
   }
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ClipboardList } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { isOverdue, type Case } from "@/lib/types";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { CaseCard } from "./CaseCard";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +60,7 @@ export function CasesList({ cases }: { cases: Case[] }) {
             className={cn(
               "chip shrink-0 px-3.5 py-2 transition-colors",
               tab === t.key
-                ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900"
+                ? "bg-paw-500 text-white shadow-warm"
                 : "bg-bark-900/[0.05] text-bark-600 hover:bg-bark-900/[0.08] dark:bg-white/[0.06] dark:text-bark-300"
             )}
           >
@@ -69,9 +71,11 @@ export function CasesList({ cases }: { cases: Case[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card p-10 text-center">
-          <p className="text-sm text-bark-500">No cases in this view.</p>
-        </div>
+        <EmptyState
+          icon={<ClipboardList className="h-7 w-7" />}
+          title="No cases in this view"
+          description="Cases you open or get assigned will show up here."
+        />
       ) : (
         <div className="space-y-3">
           {filtered.map((c) => (
