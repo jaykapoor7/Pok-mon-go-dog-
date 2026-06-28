@@ -19,6 +19,7 @@ import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
 import { MergeSuggestions } from "@/components/dog/MergeSuggestions";
 import { ShareDog } from "@/components/dog/ShareDog";
 import { FollowButton } from "@/components/dog/FollowButton";
+import { AddComment } from "@/components/dog/AddComment";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
@@ -122,7 +123,7 @@ export default async function DogProfilePage({
 
       {/* actions */}
       <div className="mt-5">
-        <DogActions dogId={dog.id} name={dogLabel(dog)} />
+        <DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help} />
       </div>
 
       {/* share card — drives a rich preview via the dog's OG image */}
@@ -255,6 +256,7 @@ export default async function DogProfilePage({
 
       {/* comments */}
       <Section title={`Community (${comments.length})`}>
+        <AddComment dogId={dog.id} />
         {comments.length === 0 ? (
           <p className="text-sm text-bark-400">
             No notes yet — be the first to add one.

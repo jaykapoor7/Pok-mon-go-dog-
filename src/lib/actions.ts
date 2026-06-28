@@ -289,6 +289,7 @@ export async function likeSighting(sightingId: string) {
 }
 
 export async function addComment(dogId: string, body: string, reporterName?: string) {
+  if (dogId.startsWith("demo-")) return; // demo dogs are never written
   const supa = getSupabase();
   if (!supa) return;
   await supa.rpc("add_comment", {

@@ -2,45 +2,92 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, Utensils, Siren } from "lucide-react";
+import { Heart, Utensils, Siren, Loader2 } from "lucide-react";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed, updateDogStatus } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { cn } from "@/lib/utils";
 
-export function DogActions({ dogId, name }: { dogId: string; name: string }) {
+export function DogActions({
+  dogId,
+  name,
+  needsHelp = false,
+}: {
+  dogId: string;
+  name: string;
+  needsHelp?: boolean;
+}) {
   const { user, requireAuth } = useAuth();
   const [toast, setToast] = useState<string | null>(null);
 
-  // Attribution shown on the action toast (and persisted for "fed").
+  // Saw/Fed are activity logs — kept as session toggles so a mis-tap can be
+  // undone (the log fires once; "undo" just clears your tap state).
+  const [seen, setSeen] = useState(false);
+  const [fed, setFed] = useState(false);
+  // Needs-help is a real, persisted toggle (server-gated to contributors/NGOs).
+  const [help, setHelp] = useState(needsHelp);
+  const [busy, setBusy] = useState(false);
+
   const by = user?.name ? `by ${user.name}` : "";
 
   function fire(message: string, party = true) {
     if (party) celebrate();
     setToast(message);
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 2800);
   }
 
-  function flagForHelp() {
+  function toggleSeen() {
+    if (!seen) {
+      logSeen(dogId).catch(() => {});
+      setSeen(true);
+      fire(`Seen ${name} ${by} · just now 🐾`);
+    } else {
+      setSeen(false);
+      fire(`Undid “saw ${name}”.`, false);
+    }
+  }
+
+  function toggleFed() {
+    if (!fed) {
+      logFeed(dogId, user?.name).catch(() => {});
+      setFed(true);
+      fire(`Meal logged for ${name} ${by} · just now 🍗`);
+    } else {
+      setFed(false);
+      fire(`Undid “fed ${name}”.`, false);
+    }
+  }
+
+  function toggleHelp() {
     requireAuth(async () => {
+      const next = !help;
+      setBusy(true);
       try {
         const ok = await updateDogStatus(dogId, {
           status: null,
-          needs_help: true,
+          needs_help: next,
           vaccinated: null,
           sterilised: null,
           is_friendly: null,
         });
         if (ok) {
-          fire(`Flagged for help — rescuers can see ${name} now 🆘`);
+          setHelp(next);
+          fire(
+            next
+              ? `Flagged for help — rescuers can see ${name} now 🆘`
+              : `Cleared the help flag for ${name}.`,
+            next
+          );
         } else {
-          // The RPC only lets verified contributors change a dog's status.
           fire(
             "Log a sighting for this dog first — then you can flag it for help.",
             false
           );
         }
       } catch {
-        fire("Couldn't flag right now. Please try again.", false);
+        fire("Couldn't update right now. Please try again.", false);
+      } finally {
+        setBusy(false);
       }
     });
   }
@@ -48,30 +95,19 @@ export function DogActions({ dogId, name }: { dogId: string; name: string }) {
   return (
     <>
       <div className="grid grid-cols-3 gap-2">
-        <button
-          onClick={() => {
-            logSeen(dogId).catch(() => {});
-            fire(`Seen ${name} ${by} · just now 🐾`);
-          }}
-          className="btn-ghost flex-col gap-1 py-3 text-xs"
+        <ActionButton active={seen} onClick={toggleSeen} icon={<Heart className="h-5 w-5 text-status-friendly" />}>
+          {seen ? "Saw it · undo" : "I saw this dog"}
+        </ActionButton>
+        <ActionButton active={fed} onClick={toggleFed} icon={<Utensils className="h-5 w-5 text-status-hungry" />}>
+          {fed ? "Fed it · undo" : "I fed this dog"}
+        </ActionButton>
+        <ActionButton
+          active={help}
+          onClick={toggleHelp}
+          icon={busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Siren className="h-5 w-5 text-status-injured" />}
         >
-          <Heart className="h-5 w-5 text-status-friendly" />I saw this dog
-        </button>
-        <button
-          onClick={() => {
-            logFeed(dogId, user?.name).catch(() => {});
-            fire(`Meal logged for ${name} ${by} · just now 🍗`);
-          }}
-          className="btn-ghost flex-col gap-1 py-3 text-xs"
-        >
-          <Utensils className="h-5 w-5 text-status-hungry" />I fed this dog
-        </button>
-        <button
-          onClick={flagForHelp}
-          className="btn-ghost flex-col gap-1 py-3 text-xs"
-        >
-          <Siren className="h-5 w-5 text-status-injured" />Flag for help
-        </button>
+          {help ? "Needs help · clear" : "Flag for help"}
+        </ActionButton>
       </div>
 
       <AnimatePresence>
@@ -89,5 +125,31 @@ export function DogActions({ dogId, name }: { dogId: string; name: string }) {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function ActionButton({
+  active,
+  onClick,
+  icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "btn-ghost flex-col gap-1 py-3 text-xs transition-colors",
+        active && "border-paw-300 bg-paw-50 text-paw-700 dark:bg-bark-800"
+      )}
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
