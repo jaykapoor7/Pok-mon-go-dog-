@@ -74,6 +74,7 @@ interface AdminDog {
   vaccinated: boolean;
   sterilised: boolean;
   is_friendly: boolean;
+  ear_notch: string | null;
   cover_photo: string | null;
   last_seen: string | null;
 }
@@ -828,6 +829,29 @@ function DogsList({
             <Flag label="Vaccinated" on={d.vaccinated} busy={busyId === d.id} onClick={() => onPatch(d.id, { vaccinated: !d.vaccinated })} />
             <Flag label="Sterilised" on={d.sterilised} busy={busyId === d.id} onClick={() => onPatch(d.id, { sterilised: !d.sterilised })} />
             <Flag label="Friendly" on={d.is_friendly} busy={busyId === d.id} onClick={() => onPatch(d.id, { is_friendly: !d.is_friendly })} />
+          </div>
+
+          {/* ear-notch (sterilisation mark) */}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-bark-400">Ear-notch</span>
+            {(["none", "left", "right", "both"] as const).map((v) => {
+              const val = v === "none" ? null : v;
+              const active = (d.ear_notch ?? null) === val;
+              return (
+                <button
+                  key={v}
+                  onClick={() => !active && onPatch(d.id, { ear_notch: val })}
+                  disabled={busyId === d.id}
+                  className={`chip border transition-colors disabled:opacity-50 ${
+                    active
+                      ? "border-paw-400 bg-paw-100 text-paw-700"
+                      : "border-bark-200 text-bark-500 hover:border-paw-300 dark:border-white/10"
+                  }`}
+                >
+                  {v === "none" ? "None" : v.charAt(0).toUpperCase() + v.slice(1)}
+                </button>
+              );
+            })}
           </div>
         </div>
       ))}

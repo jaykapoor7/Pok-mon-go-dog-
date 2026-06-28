@@ -148,6 +148,7 @@ export default async function DogProfilePage({
           vaccinated: dog.vaccinated,
           sterilised: dog.sterilised,
           is_friendly: dog.is_friendly,
+          ear_notch: dog.ear_notch ?? null,
         }}
       />
 
@@ -200,6 +201,13 @@ export default async function DogProfilePage({
             sub={sterilisation?.performed_by ?? scheduled?.performed_by ?? undefined}
           />
         </div>
+        {dog.ear_notch && (
+          <p className="mt-3 flex items-center gap-2 rounded-2xl bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-status-sterilised">
+            <Scissors className="h-4 w-4" />
+            Ear-notched ({dog.ear_notch}) — the recognised sterilisation mark, so this
+            dog isn&apos;t caught again.
+          </p>
+        )}
       </Section>
 
       {/* community notes */}

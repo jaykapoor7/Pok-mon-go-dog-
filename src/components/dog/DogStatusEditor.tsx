@@ -17,7 +17,15 @@ interface DogStatusState {
   vaccinated: boolean;
   sterilised: boolean;
   is_friendly: boolean;
+  ear_notch: string | null;
 }
+
+const NOTCH_OPTIONS: { value: string | null; label: string }[] = [
+  { value: null, label: "None" },
+  { value: "left", label: "Left" },
+  { value: "right", label: "Right" },
+  { value: "both", label: "Both" },
+];
 
 /**
  * Lets a signed-in contributor (someone who has reported a sighting for this
@@ -51,7 +59,8 @@ export function DogStatusEditor({
     setBusy(true);
     setError(null);
     try {
-      const ok = await updateDogStatus(dogId, state);
+      // null notch → "" so the RPC clears it (null would leave it unchanged).
+      const ok = await updateDogStatus(dogId, { ...state, ear_notch: state.ear_notch ?? "" });
       if (!ok) {
         setError("Only contributors can update this dog (sign in on the device you posted from).");
         haptic("error");
@@ -132,6 +141,29 @@ export function DogStatusEditor({
                   on={state.is_friendly}
                   onChange={(v) => set("is_friendly", v)}
                 />
+              </div>
+
+              <div>
+                <p className="mb-1.5 text-xs font-semibold text-bark-500">
+                  Ear-notch <span className="font-normal text-bark-400">· sterilisation mark</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {NOTCH_OPTIONS.map((o) => (
+                    <button
+                      key={o.label}
+                      type="button"
+                      onClick={() => set("ear_notch", o.value)}
+                      className={cn(
+                        "chip border transition-colors",
+                        state.ear_notch === o.value
+                          ? "border-paw-400 bg-paw-100 text-paw-700"
+                          : "border-bark-200 text-bark-600 dark:border-white/10 dark:text-bark-200"
+                      )}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {error && (

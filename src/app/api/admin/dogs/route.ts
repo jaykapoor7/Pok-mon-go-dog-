@@ -35,7 +35,7 @@ function authReject(state: AuthState) {
   return NextResponse.json({ error: "Wrong password." }, { status: 401 });
 }
 
-const ALLOWED = ["status", "needs_help", "vaccinated", "sterilised", "is_friendly"] as const;
+const ALLOWED = ["status", "needs_help", "vaccinated", "sterilised", "is_friendly", "ear_notch"] as const;
 
 export async function GET(req: Request) {
   const state = authState(req);
@@ -50,7 +50,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supa
     .from("dogs")
-    .select("id, name, zone, status, needs_help, vaccinated, sterilised, is_friendly, cover_photo, last_seen")
+    .select("id, name, zone, status, needs_help, vaccinated, sterilised, is_friendly, ear_notch, cover_photo, last_seen")
     .order("needs_help", { ascending: false })
     .order("last_seen", { ascending: false })
     .limit(300);

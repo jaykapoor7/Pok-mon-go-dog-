@@ -60,6 +60,7 @@ function mapDog(row: any): Dog {
     needs_help: row.needs_help ?? false,
     sterilised: row.sterilised ?? false,
     vaccinated: row.vaccinated ?? false,
+    ear_notch: row.ear_notch ?? null,
     trust_score: row.trust_score ?? 50,
     sightings_count: row.sightings_count ?? 1,
     feed_count: row.feed_count ?? 0,

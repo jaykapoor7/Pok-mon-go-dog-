@@ -180,6 +180,8 @@ export interface DogStatusEdit {
   vaccinated: boolean | null;
   sterilised: boolean | null;
   is_friendly: boolean | null;
+  // 'left' | 'right' | 'both' to set, '' to clear, null/undefined to leave as-is.
+  ear_notch?: string | null;
 }
 
 /** Update the care status of a dog you've contributed a sighting for. */
@@ -196,6 +198,7 @@ export async function updateDogStatus(
     p_vaccinated: edit.vaccinated,
     p_sterilised: edit.sterilised,
     p_is_friendly: edit.is_friendly,
+    p_ear_notch: edit.ear_notch ?? null,
   });
   if (error) throw new Error(error.message);
   return data === true;

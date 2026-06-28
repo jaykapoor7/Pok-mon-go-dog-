@@ -128,6 +128,7 @@ export interface Dog {
   needs_help: boolean;
   sterilised: boolean;
   vaccinated: boolean;
+  ear_notch?: string | null; // ABC sterilisation mark: 'left' | 'right' | 'both'
   trust_score: number; // aggregate confidence of the profile
   sightings_count: number;
   feed_count: number;

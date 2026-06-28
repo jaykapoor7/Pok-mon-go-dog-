@@ -98,6 +98,28 @@ export default async function CasePage({
         )}
       </div>
 
+      {/* catch & return location — street dogs are territorial */}
+      {c.lat != null && c.lng != null && (
+        <div className="mt-5 rounded-2xl border border-status-hungry/30 bg-status-hungry/10 p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-bark-800 dark:text-bark-100">
+            <MapPin className="h-4 w-4 text-status-hungry" /> Catch &amp; return location
+          </p>
+          <p className="mt-1 text-xs text-bark-600 dark:text-bark-300">
+            If this dog is taken for treatment or sterilisation, return it to the
+            <span className="font-semibold"> exact spot it was caught</span> — street
+            dogs are territorial, and relocating one risks its welfare and recovery.
+          </p>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-paw-600 hover:underline"
+          >
+            <MapPin className="h-4 w-4" /> Open in Maps
+          </a>
+        </div>
+      )}
+
       {/* controls */}
       <section className="mt-5">
         <CaseControls c={c} />

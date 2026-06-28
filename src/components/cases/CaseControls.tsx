@@ -48,6 +48,7 @@ export function CaseControls({ c }: { c: Case }) {
   const [outcomeNote, setOutcomeNote] = useState("");
   const [beforeFile, setBeforeFile] = useState<File | null>(null);
   const [afterFile, setAfterFile] = useState<File | null>(null);
+  const [returnedToCatch, setReturnedToCatch] = useState(false);
 
   const actor = user ? { id: user.id, name: user.name } : null;
   const isAssignee = !!actor && c.assignee_id === actor.id;
@@ -95,11 +96,14 @@ export function CaseControls({ c }: { c: Case }) {
     try {
       const afterUrl = await uploadPhoto(afterFile);
       const beforeUrl = beforeFile ? await uploadPhoto(beforeFile) : null;
+      const fullNote =
+        outcomeNote.trim() +
+        (returnedToCatch ? "\n✓ Returned to the exact catch location." : "");
       const res = await updateCaseStatus(c.id, "resolved", actor, {
         resolution,
         afterUrl,
         beforeUrl,
-        outcomeNote: outcomeNote.trim(),
+        outcomeNote: fullNote,
       });
       if (!res.ok) {
         setError(res.error ?? "Action failed.");
@@ -232,6 +236,21 @@ export function CaseControls({ c }: { c: Case }) {
                   placeholder="Outcome note — what was done and the result…"
                   className="w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
                 />
+
+                {/* Territorial dislocation — return the dog where it was caught. */}
+                <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-status-hungry/30 bg-status-hungry/10 px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    checked={returnedToCatch}
+                    onChange={(e) => setReturnedToCatch(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-paw-500"
+                  />
+                  <span className="text-xs text-bark-700 dark:text-bark-200">
+                    <span className="font-semibold">Returned to the exact catch location.</span>{" "}
+                    Street dogs are territorial — releasing one elsewhere risks its
+                    welfare and post-op recovery.
+                  </span>
+                </label>
 
                 <p className="text-[11px] text-bark-400">
                   Proof is required and will be verified by StrayPaw before it counts
