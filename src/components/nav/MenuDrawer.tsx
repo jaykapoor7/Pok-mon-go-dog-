@@ -30,6 +30,7 @@ const PRIMARY = [
 ];
 
 export const INFO = [
+  { href: "/donate", label: "Donate" },
   { href: "/about", label: "About" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms" },

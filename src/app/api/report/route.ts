@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { getSupabaseAdmin, getSupabase } from "@/lib/supabase";
+import { notifyTelegram, moderateUrl } from "@/lib/telegram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -115,6 +116,15 @@ export async function POST(req: Request) {
   const result = data as
     | { dog_id?: string; sighting_id?: string; trust_score?: number }
     | null;
+
+  // Ping the operator so the moderation queue gets looked at (best-effort).
+  const who = body.reporterName ? String(body.reporterName) : "A guest";
+  notifyTelegram(
+    `🐾 <b>New sighting to review</b>\n${who} reported a dog near ${String(
+      body.zone ?? "India"
+    )}.\nReview → ${moderateUrl}`
+  );
+
   return NextResponse.json({
     dogId: result?.dog_id ?? null,
     sightingId: result?.sighting_id ?? null,

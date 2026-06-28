@@ -11,9 +11,11 @@ import {
   Users,
   Activity,
   Medal,
+  Star,
 } from "lucide-react";
 import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useFollows } from "@/lib/follows";
 import { DemoToggle } from "@/components/demo/DemoToggle";
 import { demoDogs, demoFeedSightings } from "@/lib/demo-sightings";
 import { MapCanvas } from "@/components/map/MapCanvas";
@@ -32,6 +34,7 @@ export function TodayClient({
 }) {
   const { demoOn } = useDemoMode();
   const { user } = useAuth();
+  const { isFollowing } = useFollows();
   const firstName = user?.name?.trim().split(/\s+/)[0] || null;
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -62,6 +65,10 @@ export function TodayClient({
     return sorted.slice(0, 10);
   }, [dogs, coords]);
   const guardians = useMemo(() => topContributors(sightings, 7), [sightings]);
+  const following = useMemo(
+    () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
+    [dogs, isFollowing]
+  );
   const activity = useMemo(
     () =>
       [...sightings]
@@ -90,6 +97,38 @@ export function TodayClient({
       <p className="mb-5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
         Spot a dog → drop a pin → partner NGOs take it from there.
       </p>
+
+      {/* dogs you follow (device-local) */}
+      {following.length > 0 && (
+        <Section title="Dogs you follow" icon={<Star className="h-4 w-4 text-status-hungry" />}>
+          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+            {following.map((dog) => {
+              const meta = MARKER_META[markerStateFor(dog)];
+              return (
+                <Link
+                  key={dog.id}
+                  href={`/dog/${dog.id}`}
+                  className="w-36 shrink-0 overflow-hidden rounded-2xl bg-white shadow-card dark:bg-bark-900"
+                >
+                  <div className="relative">
+                    <DogPhoto src={dog.cover_photo} alt="Followed dog" seed={dog.id} className="h-24 w-full" />
+                    <span
+                      className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                      style={{ backgroundColor: meta.color }}
+                    >
+                      {meta.label}
+                    </span>
+                  </div>
+                  <div className="p-2.5">
+                    <p className="truncate text-sm font-semibold">{dogLabel(dog)}</p>
+                    <p className="truncate text-xs text-bark-400">{dog.zone}</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
         {/* main column */}

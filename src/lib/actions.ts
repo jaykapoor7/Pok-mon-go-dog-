@@ -211,23 +211,22 @@ export interface HelperInput {
   zone?: string | null;
 }
 
-/** Submit a "can you help?" volunteer or NGO sign-up. */
+/** Submit a "can you help?" volunteer or NGO sign-up (via the server route so
+ *  the operator gets a Telegram alert). */
 export async function submitHelper(input: HelperInput): Promise<boolean> {
-  const supa = getSupabase();
-  if (!supa) {
+  if (!getSupabase()) {
     await wait(700); // local/no-config: simulate success
     return true;
   }
-  const { error } = await supa.rpc("submit_helper", {
-    p_name: input.name,
-    p_contact: input.contact,
-    p_message: input.message || null,
-    p_is_ngo: input.isNgo ?? false,
-    p_ngo_name: input.ngoName || null,
-    p_dog_id: input.dogId || null,
-    p_zone: input.zone || null,
+  const res = await fetch("/api/helper", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
   });
-  if (error) throw new Error(error.message);
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: "Could not submit." }));
+    throw new Error(error || "Could not submit.");
+  }
   return true;
 }
 

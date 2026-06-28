@@ -18,6 +18,7 @@ import { DogLocation } from "@/components/dog/DogLocation";
 import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
 import { MergeSuggestions } from "@/components/dog/MergeSuggestions";
 import { ShareDog } from "@/components/dog/ShareDog";
+import { FollowButton } from "@/components/dog/FollowButton";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
@@ -85,13 +86,14 @@ export default async function DogProfilePage({
         <div className="absolute right-4 top-4 rounded-full bg-white/90 p-1">
           <TrustRing score={dog.trust_score} size={48} />
         </div>
-        <div className="absolute inset-x-4 bottom-4 flex items-end justify-between text-white">
-          <div>
+        <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
+          <div className="min-w-0">
             <h1 className="font-display text-3xl font-extrabold">{dogLabel(dog)}</h1>
             <p className="flex items-center gap-1.5 text-sm opacity-90">
               <MapPin className="h-4 w-4" /> Around {dog.zone} · {dog.size} · {dog.color}
             </p>
           </div>
+          <FollowButton dogId={dog.id} className="shrink-0" />
         </div>
       </div>
 
