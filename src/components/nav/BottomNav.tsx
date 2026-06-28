@@ -9,7 +9,6 @@ import {
   Plus,
   HeartHandshake,
 } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { INFO } from "./MenuDrawer";
 import { SocialLinks } from "./SocialLinks";
 import { cn } from "@/lib/utils";
@@ -50,7 +49,6 @@ export function BottomNav() {
 function MobileBar() {
   const isActive = useActive();
   const router = useRouter();
-  const { requireAuth } = useAuth();
 
   return (
     <nav
@@ -66,7 +64,7 @@ function MobileBar() {
             return (
               <li key={item.key} className="relative flex flex-1 justify-center">
                 <button
-                  onClick={() => requireAuth(() => router.push(item.href))}
+                  onClick={() => router.push(item.href)}
                   aria-label="Report a sighting"
                   aria-current={active ? "page" : undefined}
                   className="absolute -top-5 flex h-14 w-14 items-center justify-center rounded-full bg-paw-500 text-white shadow-pop ring-4 ring-paper transition-transform active:scale-95 dark:ring-ink"
@@ -112,8 +110,6 @@ function MobileBar() {
 // same concept as the phone), so the rail stays focused on navigation.
 function DesktopRail() {
   const isActive = useActive();
-  const router = useRouter();
-  const { requireAuth } = useAuth();
 
   return (
     <>
@@ -161,35 +157,25 @@ function DesktopRail() {
 
             return (
               <li key={item.key}>
-                {item.gated ? (
-                  <button
-                    onClick={() => requireAuth(() => router.push(item.href))}
-                    aria-current={active ? "page" : undefined}
-                    className={cls}
-                  >
-                    {inner}
-                  </button>
-                ) : (
-                  <Link href={item.href} aria-current={active ? "page" : undefined} className={cls}>
-                    {inner}
-                  </Link>
-                )}
+                <Link href={item.href} aria-current={active ? "page" : undefined} className={cls}>
+                  {inner}
+                </Link>
               </li>
             );
           })}
         </ul>
 
-        {/* info links — fill the space */}
-        <nav aria-label="More" className="mt-5 border-t border-black/[0.06] pt-4 dark:border-white/10">
-          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
+        {/* info links — a comfortable single-column list that fills the rail */}
+        <nav aria-label="More" className="mt-6 flex-1 border-t border-black/[0.06] pt-4 dark:border-white/10">
+          <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
             More
           </p>
-          <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+          <ul className="space-y-0.5">
             {INFO.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="block truncate text-xs text-bark-500 transition-colors hover:text-paw-600 dark:text-bark-400"
+                  className="block rounded-xl px-2 py-1.5 text-sm text-bark-500 transition-colors hover:bg-black/[0.04] hover:text-paw-600 dark:text-bark-400 dark:hover:bg-white/[0.05]"
                 >
                   {item.label}
                 </Link>
@@ -199,7 +185,7 @@ function DesktopRail() {
         </nav>
 
         {/* contact pinned to the bottom */}
-        <div className="mt-auto pt-4">
+        <div className="pt-4">
           <SocialLinks className="px-1" />
         </div>
       </nav>

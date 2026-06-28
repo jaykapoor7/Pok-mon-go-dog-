@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -51,35 +51,8 @@ export default function ReportPage() {
 
   const handleVerify = useCallback((t: string | null) => setToken(t), []);
 
-  // Auth gate — viewing the map is open, but reporting needs a name.
-  useEffect(() => {
-    if (ready && !isAuthed) openSignIn();
-  }, [ready, isAuthed, openSignIn]);
-
-  if (ready && !isAuthed) {
-    return (
-      <div className="mx-auto max-w-md px-4 pt-24 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-paw-100 text-paw-600">
-          <LogIn className="h-7 w-7" />
-        </span>
-        <h1 className="font-display text-2xl font-extrabold">
-          Sign in to report a dog
-        </h1>
-        <p className="mt-2 text-sm text-bark-500">
-          Anyone can browse the map. To add and manage sightings, add a name
-          first — no password needed.
-        </p>
-        <button onClick={openSignIn} className="btn-primary mt-5 px-6 py-3">
-          <LogIn className="h-4 w-4" /> Sign in
-        </button>
-        <div className="mt-3">
-          <Link href="/" className="text-sm font-medium text-bark-500 underline">
-            Back to the map
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Reporting is open to everyone (guests included). Signing in just lets you
+  // edit/delete the sighting later from any device — see the banner below.
 
   function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
@@ -156,13 +129,34 @@ export default function ReportPage() {
         <h1 className="font-display text-2xl font-extrabold sm:text-3xl">
           Report a sighting 🐾
         </h1>
-        <p className="text-sm text-bark-500">
-          Signed in as{" "}
-          <span className="font-semibold text-bark-700 dark:text-bark-200">
-            {user?.name}
-          </span>
-        </p>
+        {isAuthed ? (
+          <p className="text-sm text-bark-500">
+            Signed in as{" "}
+            <span className="font-semibold text-bark-700 dark:text-bark-200">
+              {user?.name}
+            </span>
+          </p>
+        ) : (
+          <p className="text-sm text-bark-500">Reporting as a guest</p>
+        )}
       </header>
+
+      {/* Guest warning — reporting works, but editing later needs an account. */}
+      {ready && !isAuthed && (
+        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
+          <p className="flex-1 text-sm text-bark-700 dark:text-bark-200">
+            <span className="font-semibold">Heads up:</span> you can report without
+            signing in, but you won&apos;t be able to edit this sighting later from
+            another device.
+          </p>
+          <button
+            onClick={openSignIn}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-paw-500 px-4 py-2 text-sm font-semibold text-white"
+          >
+            <LogIn className="h-4 w-4" /> Sign in
+          </button>
+        </div>
+      )}
 
       {/* stepper */}
       <div className="mb-6 flex items-center gap-2">

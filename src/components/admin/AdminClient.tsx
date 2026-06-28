@@ -18,10 +18,13 @@ import {
   HandHelping,
   MessageSquare,
   CheckCircle2,
+  PawPrint,
+  HeartPulse,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
 import { timeAgo } from "@/lib/utils";
+import { STATUS_META, type DogStatus } from "@/lib/types";
 
 const KEY = "straypaw.admin_secret";
 
@@ -62,7 +65,20 @@ interface PendingCase {
   dog_id: string | null;
 }
 
-type Tab = "queue" | "verify" | "volunteers" | "ngos";
+interface AdminDog {
+  id: string;
+  name: string | null;
+  zone: string | null;
+  status: DogStatus;
+  needs_help: boolean;
+  vaccinated: boolean;
+  sterilised: boolean;
+  is_friendly: boolean;
+  cover_photo: string | null;
+  last_seen: string | null;
+}
+
+type Tab = "queue" | "verify" | "dogs" | "volunteers" | "ngos";
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
 function ContactLink({ contact }: { contact: string }) {
@@ -87,6 +103,7 @@ export function AdminClient() {
   const [volunteers, setVolunteers] = useState<Helper[]>([]);
   const [ngos, setNgos] = useState<Helper[]>([]);
   const [pendingCases, setPendingCases] = useState<PendingCase[]>([]);
+  const [dogs, setDogs] = useState<AdminDog[]>([]);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +141,21 @@ export function AdminClient() {
     }
   }, []);
 
+  // All dogs (master editor).
+  const loadDogs = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/dogs", {
+        headers: { Authorization: `Bearer ${s}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      setDogs(j.dogs ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const load = useCallback(
     async (s: string) => {
       setLoading(true);
@@ -157,13 +189,14 @@ export function AdminClient() {
         }
         loadHelpers(s);
         loadCases(s);
+        loadDogs(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers, loadCases]
+    [loadHelpers, loadCases, loadDogs]
   );
 
   useEffect(() => {
@@ -258,6 +291,33 @@ export function AdminClient() {
     }
   }
 
+  // Master edit of any dog (status / needs-help / care flags).
+  async function patchDog(id: string, patch: Partial<AdminDog>) {
+    setBusyId(id);
+    setError(null);
+    setDogs((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+    try {
+      const res = await fetch("/api/admin/dogs", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ id, patch }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        loadDogs(secret); // re-sync truth
+        return;
+      }
+      haptic("success");
+    } catch {
+      setError("Network error.");
+      loadDogs(secret);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   function lock() {
     try {
       localStorage.removeItem(KEY);
@@ -268,6 +328,7 @@ export function AdminClient() {
     setAuthed(false);
     setItems([]);
     setPendingCases([]);
+    setDogs([]);
     setVolunteers([]);
     setNgos([]);
     setInput("");
@@ -346,6 +407,7 @@ export function AdminClient() {
       <div className="mb-5 flex gap-1.5 rounded-2xl bg-black/[0.04] p-1 dark:bg-white/[0.05]">
         <TabButton active={tab === "queue"} onClick={() => setTab("queue")} icon={<Clock className="h-4 w-4" />} label="Queue" count={items.length} />
         <TabButton active={tab === "verify"} onClick={() => setTab("verify")} icon={<ShieldCheck className="h-4 w-4" />} label="Verify" count={pendingCases.length} />
+        <TabButton active={tab === "dogs"} onClick={() => setTab("dogs")} icon={<PawPrint className="h-4 w-4" />} label="Dogs" count={dogs.length} />
         <TabButton active={tab === "volunteers"} onClick={() => setTab("volunteers")} icon={<HandHelping className="h-4 w-4" />} label="Volunteers" count={volunteers.length} />
         <TabButton active={tab === "ngos"} onClick={() => setTab("ngos")} icon={<HeartHandshake className="h-4 w-4" />} label="NGOs" count={ngos.length} />
       </div>
@@ -358,6 +420,9 @@ export function AdminClient() {
 
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
+      )}
+      {tab === "dogs" && (
+        <DogsList dogs={dogs} busyId={busyId} onPatch={patchDog} />
       )}
       {tab === "volunteers" && (
         <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
@@ -668,6 +733,122 @@ function VerifyList({
         </div>
       ))}
     </div>
+  );
+}
+
+const DOG_STATUSES = Object.keys(STATUS_META) as DogStatus[];
+
+function DogsList({
+  dogs,
+  busyId,
+  onPatch,
+}: {
+  dogs: AdminDog[];
+  busyId: string | null;
+  onPatch: (id: string, patch: Partial<AdminDog>) => void;
+}) {
+  if (dogs.length === 0) {
+    return (
+      <div className="card p-10 text-center">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <PawPrint className="h-7 w-7" />
+        </span>
+        <h2 className="font-display text-lg font-bold">No dogs yet</h2>
+        <p className="mt-1 text-sm text-bark-500">
+          Approved dogs will appear here for editing.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-bark-400">
+        Master editor — changes apply to any dog immediately (needs-help first).
+      </p>
+      {dogs.map((d) => (
+        <div key={d.id} className="card p-3">
+          <div className="flex items-center gap-3">
+            <DogPhoto
+              src={d.cover_photo ?? ""}
+              alt=""
+              seed={d.id}
+              className="h-12 w-12 shrink-0 rounded-xl"
+            />
+            <div className="min-w-0 flex-1">
+              <a
+                href={`/dog/${d.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-sm font-semibold hover:text-paw-600"
+              >
+                {d.name || (d.zone ? `Dog near ${d.zone}` : "Street dog")}
+              </a>
+              <p className="truncate text-xs text-bark-400">
+                {d.zone} · {d.last_seen ? timeAgo(d.last_seen) : "—"}
+              </p>
+            </div>
+            <button
+              onClick={() => onPatch(d.id, { needs_help: !d.needs_help })}
+              disabled={busyId === d.id}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                d.needs_help
+                  ? "bg-status-injured/15 text-status-injured hover:bg-status-injured/25"
+                  : "bg-black/[0.05] text-bark-500 dark:bg-white/10"
+              }`}
+            >
+              {busyId === d.id ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <HeartPulse className="h-3.5 w-3.5" />
+              )}
+              {d.needs_help ? "Needs help · clear" : "Mark needs help"}
+            </button>
+          </div>
+
+          {/* status chips */}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {DOG_STATUSES.map((s) => (
+              <button
+                key={s}
+                onClick={() => d.status !== s && onPatch(d.id, { status: s })}
+                disabled={busyId === d.id}
+                className={`chip border transition-colors disabled:opacity-50 ${
+                  d.status === s
+                    ? "border-paw-400 bg-paw-100 text-paw-700"
+                    : "border-bark-200 text-bark-600 hover:border-paw-300 dark:border-white/10 dark:text-bark-300"
+                }`}
+              >
+                {STATUS_META[s].emoji} {STATUS_META[s].label}
+              </button>
+            ))}
+          </div>
+
+          {/* care flags */}
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <Flag label="Vaccinated" on={d.vaccinated} busy={busyId === d.id} onClick={() => onPatch(d.id, { vaccinated: !d.vaccinated })} />
+            <Flag label="Sterilised" on={d.sterilised} busy={busyId === d.id} onClick={() => onPatch(d.id, { sterilised: !d.sterilised })} />
+            <Flag label="Friendly" on={d.is_friendly} busy={busyId === d.id} onClick={() => onPatch(d.id, { is_friendly: !d.is_friendly })} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Flag({ label, on, busy, onClick }: { label: string; on: boolean; busy: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={busy}
+      className={`chip border transition-colors disabled:opacity-50 ${
+        on
+          ? "border-status-vaccinated/40 bg-status-vaccinated/15 text-status-vaccinated"
+          : "border-bark-200 text-bark-400 hover:border-bark-300 dark:border-white/10"
+      }`}
+    >
+      {on ? <Check className="h-3 w-3" /> : null}
+      {label}
+    </button>
   );
 }
 
