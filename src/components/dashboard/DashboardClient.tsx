@@ -50,7 +50,7 @@ export function DashboardClient({
   const median = medianResponseDays(cases);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-6xl overflow-x-clip px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-4">
         <p className="text-sm font-semibold text-paw-600">Partners</p>
         <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">

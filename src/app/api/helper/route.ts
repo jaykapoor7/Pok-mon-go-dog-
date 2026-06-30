@@ -35,13 +35,16 @@ export async function POST(req: Request) {
   }
 
   const isNgo = Boolean(body.isNgo);
+  // Demo dogs don't exist in the DB and aren't real UUIDs — never send their id.
+  const dogId =
+    body.dogId && !String(body.dogId).startsWith("demo-") ? String(body.dogId) : null;
   const { error } = await supa.rpc("submit_helper", {
     p_name: name,
     p_contact: contact,
     p_message: body.message ? String(body.message) : null,
     p_is_ngo: isNgo,
     p_ngo_name: body.ngoName ? String(body.ngoName) : null,
-    p_dog_id: body.dogId ? String(body.dogId) : null,
+    p_dog_id: dogId,
     p_zone: body.zone ? String(body.zone) : null,
   });
 

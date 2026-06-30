@@ -42,6 +42,9 @@
   .dark .text-bark-700 { color: #e7e5e4; }
   .dark .text-bark-600,
   .dark .text-bark-500 { color: #a8a29e; }
+  /* Keep muted text light on dark surfaces (it's darkened in the light palette
+     for AA contrast on cream). */
+  .dark .text-bark-400 { color: #a3a292; }
   .dark input,
   .dark textarea { color: #fafaf9; }
   .dark input::placeholder,

@@ -28,7 +28,8 @@ const config: Config = {
           50: "#f6f5f0",
           100: "#e7e6dd",
           200: "#d6d4c7",
-          400: "#a3a292",
+          300: "#a3a292",
+          400: "#6b6c5e", // darkened for AA contrast on cream; dark mode re-lightens it (globals.css)
           600: "#54564a",
           700: "#3f4138",
           800: "#26271E", // --ink-surface
