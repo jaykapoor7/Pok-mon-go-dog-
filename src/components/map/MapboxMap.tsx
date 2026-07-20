@@ -32,9 +32,9 @@ export function MapboxMap({
 }) {
   const mapRef = useRef<MapRef>(null);
 
-  // Fly to a searched place when it changes.
+  // Fly to a searched place when it changes (not on the static preview).
   useEffect(() => {
-    if (center) {
+    if (center && !preview) {
       mapRef.current?.easeTo({
         center: [center.lng, center.lat],
         zoom: 13,
@@ -92,7 +92,7 @@ export function MapboxMap({
       initialViewState={{
         longitude: center?.lng ?? INDIA_CENTER.lng,
         latitude: center?.lat ?? INDIA_CENTER.lat,
-        zoom: center ? 13 : INDIA_ZOOM,
+        zoom: center ? (preview ? 10.5 : 13) : INDIA_ZOOM,
       }}
       mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       onLoad={sync}

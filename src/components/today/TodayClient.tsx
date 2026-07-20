@@ -60,6 +60,23 @@ export function TodayClient({
     () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
     [dogs, isFollowing]
   );
+  // Frame the preview on the busiest covered city (so it isn't a near-empty map
+  // of all India). Auto-adjusts as more areas fill in.
+  const focus = useMemo(() => {
+    if (dogs.length === 0) return null;
+    const groups = new Map<string, { lat: number; lng: number; n: number }>();
+    for (const d of dogs) {
+      const key = d.city || d.zone || "in";
+      const g = groups.get(key) ?? { lat: 0, lng: 0, n: 0 };
+      g.lat += d.lat;
+      g.lng += d.lng;
+      g.n += 1;
+      groups.set(key, g);
+    }
+    let best: { lat: number; lng: number; n: number } | null = null;
+    for (const g of groups.values()) if (!best || g.n > best.n) best = g;
+    return best ? { lat: best.lat / best.n, lng: best.lng / best.n } : null;
+  }, [dogs]);
   const activity = useMemo(
     () =>
       [...sightings]
@@ -177,7 +194,7 @@ export function TodayClient({
       {/* minimised live map preview → tap to open full map (gentle idle drift) */}
       <div className="mb-6">
         <div className="group relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
-          <MapCanvas dogs={dogs} preview />
+          <MapCanvas dogs={dogs} preview center={focus} />
           {/* transparent overlay: the whole preview opens the full map */}
           <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
           <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">

@@ -36,9 +36,10 @@ export function MapLibreMap({
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
   const [zoom, setZoom] = useState(INDIA_ZOOM);
 
-  // Fly to a searched place when it changes.
+  // Fly to a searched place when it changes (not on the static preview, which
+  // is already framed via initialViewState).
   useEffect(() => {
-    if (center) {
+    if (center && !preview) {
       mapRef.current?.easeTo({
         center: [center.lng, center.lat],
         zoom: 13,
@@ -88,7 +89,9 @@ export function MapLibreMap({
       initialViewState={{
         longitude: center?.lng ?? INDIA_CENTER.lng,
         latitude: center?.lat ?? INDIA_CENTER.lat,
-        zoom: center ? 13 : INDIA_ZOOM,
+        // Preview frames a covered city (wider than a search fly); full map
+        // opens to all India unless a place was searched.
+        zoom: center ? (preview ? 10.5 : 13) : INDIA_ZOOM,
       }}
       mapStyle={STYLE_URL}
       onLoad={sync}
