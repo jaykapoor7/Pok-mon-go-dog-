@@ -1,6 +1,6 @@
 import { TodayClient } from "@/components/today/TodayClient";
 import { getAllDogs, getAllSightings } from "@/lib/data";
-import { getNews } from "@/lib/news";
+import { getNewsTeaser } from "@/lib/news";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default async function HomePage() {
   const [dogs, sightings, news] = await Promise.all([
     getAllDogs(),
     getAllSightings(60),
-    getNews(3),
+    getNewsTeaser(3),
   ]);
   return <TodayClient dogs={dogs} sightings={sightings} news={news} />;
 }
