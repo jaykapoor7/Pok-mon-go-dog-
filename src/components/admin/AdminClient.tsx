@@ -20,6 +20,9 @@ import {
   CheckCircle2,
   PawPrint,
   HeartPulse,
+  Newspaper,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -79,7 +82,18 @@ interface AdminDog {
   last_seen: string | null;
 }
 
-type Tab = "queue" | "verify" | "dogs" | "volunteers" | "ngos";
+interface AdminNews {
+  id: string;
+  title: string;
+  source_name: string | null;
+  source_url: string | null;
+  category: string;
+  published_at: string | null;
+  is_published: boolean;
+  auto: boolean;
+}
+
+type Tab = "queue" | "verify" | "dogs" | "news" | "volunteers" | "ngos";
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
 function ContactLink({ contact }: { contact: string }) {
@@ -105,6 +119,8 @@ export function AdminClient() {
   const [ngos, setNgos] = useState<Helper[]>([]);
   const [pendingCases, setPendingCases] = useState<PendingCase[]>([]);
   const [dogs, setDogs] = useState<AdminDog[]>([]);
+  const [news, setNews] = useState<AdminNews[]>([]);
+  const [refreshingNews, setRefreshingNews] = useState(false);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +173,20 @@ export function AdminClient() {
     }
   }, []);
 
+  const loadNews = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/news", {
+        headers: { Authorization: `Bearer ${s}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      setNews(j.news ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const load = useCallback(
     async (s: string) => {
       setLoading(true);
@@ -191,13 +221,14 @@ export function AdminClient() {
         loadHelpers(s);
         loadCases(s);
         loadDogs(s);
+        loadNews(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers, loadCases, loadDogs]
+    [loadHelpers, loadCases, loadDogs, loadNews]
   );
 
   useEffect(() => {
@@ -319,6 +350,59 @@ export function AdminClient() {
     }
   }
 
+  async function refreshNews() {
+    setRefreshingNews(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/news/refresh", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}` },
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Refresh failed.");
+        haptic("error");
+      } else {
+        haptic("success");
+        await loadNews(secret);
+      }
+    } catch {
+      setError("Network error.");
+    } finally {
+      setRefreshingNews(false);
+    }
+  }
+
+  async function newsAction(payload: Record<string, unknown>, id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/news", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        return;
+      }
+      haptic("success");
+      if (payload.action === "delete") {
+        setNews((prev) => prev.filter((n) => n.id !== id));
+      } else {
+        setNews((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, is_published: Boolean(payload.is_published) } : n))
+        );
+      }
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   function lock() {
     try {
       localStorage.removeItem(KEY);
@@ -330,6 +414,7 @@ export function AdminClient() {
     setItems([]);
     setPendingCases([]);
     setDogs([]);
+    setNews([]);
     setVolunteers([]);
     setNgos([]);
     setInput("");
@@ -409,6 +494,7 @@ export function AdminClient() {
         <TabButton active={tab === "queue"} onClick={() => setTab("queue")} icon={<Clock className="h-4 w-4" />} label="Queue" count={items.length} />
         <TabButton active={tab === "verify"} onClick={() => setTab("verify")} icon={<ShieldCheck className="h-4 w-4" />} label="Verify" count={pendingCases.length} />
         <TabButton active={tab === "dogs"} onClick={() => setTab("dogs")} icon={<PawPrint className="h-4 w-4" />} label="Dogs" count={dogs.length} />
+        <TabButton active={tab === "news"} onClick={() => setTab("news")} icon={<Newspaper className="h-4 w-4" />} label="News" count={news.length} />
         <TabButton active={tab === "volunteers"} onClick={() => setTab("volunteers")} icon={<HandHelping className="h-4 w-4" />} label="Volunteers" count={volunteers.length} />
         <TabButton active={tab === "ngos"} onClick={() => setTab("ngos")} icon={<HeartHandshake className="h-4 w-4" />} label="NGOs" count={ngos.length} />
       </div>
@@ -424,6 +510,16 @@ export function AdminClient() {
       )}
       {tab === "dogs" && (
         <DogsList dogs={dogs} busyId={busyId} onPatch={patchDog} />
+      )}
+      {tab === "news" && (
+        <NewsList
+          news={news}
+          busyId={busyId}
+          refreshing={refreshingNews}
+          onRefresh={refreshNews}
+          onToggle={(id, pub) => newsAction({ action: "toggle", id, is_published: pub }, id)}
+          onDelete={(id) => newsAction({ action: "delete", id }, id)}
+        />
       )}
       {tab === "volunteers" && (
         <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
@@ -873,6 +969,96 @@ function Flag({ label, on, busy, onClick }: { label: string; on: boolean; busy: 
       {on ? <Check className="h-3 w-3" /> : null}
       {label}
     </button>
+  );
+}
+
+function NewsList({
+  news,
+  busyId,
+  refreshing,
+  onRefresh,
+  onToggle,
+  onDelete,
+}: {
+  news: AdminNews[];
+  busyId: string | null;
+  refreshing: boolean;
+  onRefresh: () => void;
+  onToggle: (id: string, published: boolean) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <button
+        onClick={onRefresh}
+        disabled={refreshing}
+        className="btn-primary w-full py-3 text-sm"
+      >
+        {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+        Refresh from news sources
+      </button>
+      <p className="text-xs text-bark-400">
+        Auto-fetched from Google News (India). Unpublish anything off-topic — hidden
+        items stay out of the public feed.
+      </p>
+
+      {news.length === 0 ? (
+        <div className="card p-8 text-center text-sm text-bark-500">
+          No news yet. Tap “Refresh from news sources”.
+        </div>
+      ) : (
+        news.map((n) => (
+          <div
+            key={n.id}
+            className={`card p-3 ${n.is_published ? "" : "opacity-60"}`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-semibold leading-snug">{n.title}</p>
+              <button
+                onClick={() => onDelete(n.id)}
+                disabled={busyId === n.id}
+                aria-label="Delete"
+                className="shrink-0 rounded-full p-1.5 text-bark-400 hover:bg-status-injured/10 hover:text-status-injured disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-bark-400">
+              {n.source_name && <span>{n.source_name}</span>}
+              {n.published_at && <span>{timeAgo(n.published_at)}</span>}
+              <span className="capitalize">{n.category}</span>
+              {n.auto && <span className="text-paw-500">auto</span>}
+              {n.source_url && (
+                <a
+                  href={n.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-0.5 font-semibold text-paw-600"
+                >
+                  source <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
+            <button
+              onClick={() => onToggle(n.id, !n.is_published)}
+              disabled={busyId === n.id}
+              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
+                n.is_published
+                  ? "bg-status-vaccinated/15 text-status-vaccinated"
+                  : "bg-black/[0.06] text-bark-500 dark:bg-white/10"
+              }`}
+            >
+              {busyId === n.id ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
+              {n.is_published ? "Published · hide" : "Hidden · publish"}
+            </button>
+          </div>
+        ))
+      )}
+    </div>
   );
 }
 

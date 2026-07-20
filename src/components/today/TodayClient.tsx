@@ -12,6 +12,7 @@ import {
   Activity,
   Medal,
   Star,
+  Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFollows } from "@/lib/follows";
@@ -20,14 +21,17 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
 import { coverage, topContributors } from "@/lib/dashboard-metrics";
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
+import { newsCategory, type NewsItem } from "@/lib/news";
 import type { Dog, Sighting } from "@/lib/types";
 
 export function TodayClient({
   dogs,
   sightings,
+  news = [],
 }: {
   dogs: Dog[];
   sightings: Sighting[];
+  news?: NewsItem[];
 }) {
   const { user } = useAuth();
   const { isFollowing } = useFollows();
@@ -181,6 +185,34 @@ export function TodayClient({
 
         {/* sidebar */}
         <div className="lg:sticky lg:top-20">
+      {/* news & orders */}
+      {news.length > 0 && (
+        <Section title="News & orders" icon={<Newspaper className="h-4 w-4 text-paw-500" />} href="/news" cta="All news">
+          <div className="card divide-y divide-black/[0.05] dark:divide-white/[0.06]">
+            {news.map((n) => {
+              const cat = newsCategory(n.category);
+              return (
+                <a
+                  key={n.id}
+                  href={n.source_url ?? "/news"}
+                  target={n.source_url ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className="block p-3"
+                >
+                  <p className="text-[11px] font-semibold text-paw-600">
+                    {cat.emoji} {cat.label}
+                    {n.published_at && (
+                      <span className="ml-1.5 font-normal text-bark-400">{timeAgo(n.published_at)}</span>
+                    )}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug">{n.title}</p>
+                </a>
+              );
+            })}
+          </div>
+        </Section>
+      )}
+
       {/* top guardians */}
       <Section title="This week's top guardians" icon={<Trophy className="h-4 w-4 text-status-hungry" />}>
         {guardians.length === 0 ? (

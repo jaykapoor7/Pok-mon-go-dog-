@@ -1879,3 +1879,39 @@ $$;
 grant execute on function update_dog_status(uuid,dog_status,boolean,boolean,boolean,boolean,text)
   to authenticated;
 
+
+-- ┌──────────────────────────────────────────────────────────────
+-- │ news.sql
+-- └──────────────────────────────────────────────────────────────
+-- ════════════════════════════════════════════════════════════════
+-- StrayPaw — verified news / government orders about street dogs in India.
+--
+-- Run ONCE in the Supabase SQL editor (idempotent). Admin-curated: each item is
+-- posted from the moderation panel with a source link, so it's verifiable.
+-- Public can read PUBLISHED items only; all writes go through the service role.
+-- ════════════════════════════════════════════════════════════════
+
+create table if not exists news (
+  id           uuid primary key default gen_random_uuid(),
+  title        text not null,
+  summary      text,
+  source_name  text,                       -- e.g. "Supreme Court", "The Hindu"
+  source_url   text,                       -- link to the order/article to verify
+  category     text not null default 'other', -- govt-order | policy | welfare | community | other
+  image_url    text,
+  published_at date,                        -- date of the news/order
+  is_published boolean not null default true,
+  created_at   timestamptz not null default now()
+);
+create index if not exists news_pub_idx on news (is_published, published_at desc);
+
+alter table news enable row level security;
+drop policy if exists news_read on news;
+create policy news_read on news for select using (is_published = true);
+-- No public write policy — the moderation panel writes via the service role.
+
+
+-- news.sql addendum (auto flag + scraper dedupe key)
+alter table news add column if not exists auto boolean not null default false;
+create unique index if not exists news_source_url_uniq on news (source_url) where source_url is not null;
+
