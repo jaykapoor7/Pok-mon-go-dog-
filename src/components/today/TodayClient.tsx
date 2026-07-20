@@ -88,6 +88,50 @@ export function TodayClient({
         Spot a dog → drop a pin → partner NGOs take it from there.
       </p>
 
+      {/* News & orders — prominent, full-width band near the top */}
+      {news.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-2.5 flex items-center justify-between">
+            <h2 className="flex items-center gap-1.5 font-display text-lg font-bold tracking-tightest">
+              <Newspaper className="h-4 w-4 text-paw-500" /> News &amp; orders
+            </h2>
+            <Link href="/news" className="text-xs font-semibold text-paw-600">
+              All news
+            </Link>
+          </div>
+          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+            {news.map((n) => {
+              const cat = newsCategory(n.category);
+              return (
+                <a
+                  key={n.id}
+                  href={n.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="card card-interactive flex w-64 shrink-0 flex-col p-4 sm:w-72"
+                >
+                  <span className="mb-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-bold text-paw-700">
+                    {cat.emoji} {cat.label}
+                  </span>
+                  <p className="line-clamp-3 text-sm font-semibold leading-snug">{n.title}</p>
+                  <p className="mt-auto pt-2 text-[11px] text-bark-400">
+                    {n.source_name ?? "Source"}
+                    {n.published_at && ` · ${timeAgo(n.published_at)}`}
+                  </p>
+                </a>
+              );
+            })}
+            <Link
+              href="/news"
+              className="card card-interactive flex w-40 shrink-0 flex-col items-center justify-center gap-1.5 p-4 text-center text-paw-600"
+            >
+              <Newspaper className="h-6 w-6" />
+              <span className="text-sm font-bold">See all news</span>
+            </Link>
+          </div>
+        </section>
+      )}
+
       {/* dogs you follow (device-local) */}
       {following.length > 0 && (
         <Section title="Dogs you follow" icon={<Star className="h-4 w-4 text-status-hungry" />}>
@@ -185,34 +229,6 @@ export function TodayClient({
 
         {/* sidebar */}
         <div className="lg:sticky lg:top-20">
-      {/* news & orders */}
-      {news.length > 0 && (
-        <Section title="News & orders" icon={<Newspaper className="h-4 w-4 text-paw-500" />} href="/news" cta="All news">
-          <div className="card divide-y divide-black/[0.05] dark:divide-white/[0.06]">
-            {news.map((n) => {
-              const cat = newsCategory(n.category);
-              return (
-                <a
-                  key={n.id}
-                  href={n.source_url ?? "/news"}
-                  target={n.source_url ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  className="block p-3"
-                >
-                  <p className="text-[11px] font-semibold text-paw-600">
-                    {cat.emoji} {cat.label}
-                    {n.published_at && (
-                      <span className="ml-1.5 font-normal text-bark-400">{timeAgo(n.published_at)}</span>
-                    )}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug">{n.title}</p>
-                </a>
-              );
-            })}
-          </div>
-        </Section>
-      )}
-
       {/* top guardians */}
       <Section title="This week's top guardians" icon={<Trophy className="h-4 w-4 text-status-hungry" />}>
         {guardians.length === 0 ? (
