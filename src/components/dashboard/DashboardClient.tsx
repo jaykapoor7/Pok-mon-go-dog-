@@ -1,14 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Users, HeartPulse, ShieldCheck, Timer, ListChecks, BarChart3, HandHelping, HeartHandshake, ArrowRight } from "lucide-react";
-import { useDemoMode } from "@/components/demo/DemoModeProvider";
-import {
-  demoDogs,
-  demoCases,
-  demoNGOs,
-} from "@/lib/demo-sightings";
 import { CommandCenter } from "@/components/cases/CommandCenter";
 import { CaseReporting } from "@/components/cases/CaseReporting";
 import { HelpQueue } from "@/components/dashboard/HelpQueue";
@@ -27,9 +21,9 @@ type Tab = "operate" | "impact";
 type HelperCounts = { volunteers: number; ngos: number };
 
 export function DashboardClient({
-  dogs: realDogs,
-  cases: realCases,
-  ngos: realNGOs,
+  dogs,
+  cases,
+  ngos,
   helperCounts,
 }: {
   dogs: Dog[];
@@ -38,13 +32,7 @@ export function DashboardClient({
   sightings: Sighting[];
   helperCounts: HelperCounts;
 }) {
-  const { demoOn } = useDemoMode();
   const [tab, setTab] = useState<Tab>("operate");
-
-  // Same seed that drives the map — overlaid only when Demo mode is on.
-  const dogs = useMemo(() => (demoOn ? [...realDogs, ...demoDogs] : realDogs), [demoOn, realDogs]);
-  const cases = useMemo(() => (demoOn ? [...realCases, ...demoCases] : realCases), [demoOn, realCases]);
-  const ngos = useMemo(() => (demoOn ? [...realNGOs, ...demoNGOs] : realNGOs), [demoOn, realNGOs]);
 
   const cov = coverage(dogs);
   const median = medianResponseDays(cases);

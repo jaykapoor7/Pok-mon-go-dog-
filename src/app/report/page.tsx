@@ -23,8 +23,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
-const SAMPLE_PHOTO =
-  "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=800&q=80&auto=format&fit=crop";
 
 type Status = "idle" | "locating" | "submitting" | "done";
 
@@ -61,12 +59,6 @@ export default function ReportPage() {
       setPhoto(URL.createObjectURL(picked));
       pawBurst();
     }
-  }
-
-  function useDemoPhoto() {
-    setFile(null);
-    setPhoto(SAMPLE_PHOTO);
-    pawBurst();
   }
 
 
@@ -210,14 +202,6 @@ export default function ReportPage() {
                 <Camera className="h-10 w-10" />
                 <span className="font-semibold">Take or upload a photo</span>
                 <span className="text-xs text-paw-400">Tap to open camera / gallery</span>
-              </button>
-            )}
-            {!photo && (
-              <button
-                onClick={useDemoPhoto}
-                className="mt-2 text-xs font-medium text-paw-600 underline"
-              >
-                No photo handy? Use a sample
               </button>
             )}
           </div>

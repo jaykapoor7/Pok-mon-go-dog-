@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PlusCircle, Sparkles } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogBottomSheet } from "@/components/map/DogBottomSheet";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useDemoMode } from "@/components/demo/DemoModeProvider";
-import { demoDogs } from "@/lib/demo-sightings";
 import {
   markerStateFor,
   MARKER_META,
@@ -21,10 +19,9 @@ import type { Dog } from "@/lib/types";
 
 type Filter = "all" | MarkerState;
 
-export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
+export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
-  const { demoOn, toggle: toggleDemo } = useDemoMode();
   const { requireAuth, user } = useAuth();
   const router = useRouter();
 
@@ -34,11 +31,6 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
   const sLng = parseFloat(params.get("lng") ?? "");
   const center =
     Number.isFinite(sLat) && Number.isFinite(sLng) ? { lat: sLat, lng: sLng } : null;
-
-  const allDogs = useMemo(
-    () => (demoOn ? [...realDogs, ...demoDogs] : realDogs),
-    [realDogs, demoOn]
-  );
 
   const dogs = useMemo(
     () =>
@@ -80,31 +72,6 @@ export function MapView({ dogs: realDogs }: { dogs: Dog[] }) {
       </div>
 
       <MapCanvas dogs={dogs} onSelect={setSelected} center={center} />
-
-      {/* Demo mode on/off toggle (raised so it clears the bottom nav) */}
-      <div className="absolute bottom-[5.5rem] left-3 z-20 lg:bottom-6">
-        <button
-          onClick={toggleDemo}
-          aria-pressed={demoOn}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold shadow-pop backdrop-blur-md transition-colors",
-            demoOn
-              ? "bg-paw-500 text-white"
-              : "bg-white/90 text-bark-700 dark:bg-bark-900/85 dark:text-bark-100"
-          )}
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          Demo
-          <span
-            className={cn(
-              "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
-              demoOn ? "bg-white/25 text-white" : "bg-bark-900/10 text-bark-500 dark:bg-white/15 dark:text-bark-200"
-            )}
-          >
-            {demoOn ? "ON" : "OFF"}
-          </span>
-        </button>
-      </div>
 
       {/* empty state */}
       {allDogs.length === 0 && (

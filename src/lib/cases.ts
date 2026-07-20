@@ -1,11 +1,8 @@
 // ─────────────────────────────────────────────────────────────
-// Cases data access (read side). Mirrors lib/data.ts conventions: live
-// Supabase when configured, deterministic demo data otherwise.
+// Cases data access (read side). Live Supabase when configured; empty otherwise.
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase, isSupabaseConfigured } from "./supabase";
-import { DEMO } from "./demo-data";
-import { seededRandom } from "./utils";
 import type {
   Case,
   CaseUpdate,
@@ -14,7 +11,6 @@ import type {
   CaseCategory,
 } from "./types";
 
-const ALLOW_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 export const CASES_LIVE = isSupabaseConfigured;
 
 function mapCase(r: any): Case {
@@ -72,7 +68,7 @@ export async function getCases(): Promise<Case[]> {
       .limit(500);
     if (data) return data.map(mapCase);
   }
-  return ALLOW_DEMO ? DEMO_CASES.cases : [];
+  return [];
 }
 
 export async function getCasesForDog(dogId: string): Promise<Case[]> {
@@ -85,7 +81,7 @@ export async function getCasesForDog(dogId: string): Promise<Case[]> {
       .order("last_activity_at", { ascending: false });
     if (data) return data.map(mapCase);
   }
-  return ALLOW_DEMO ? DEMO_CASES.cases.filter((c) => c.dog_id === dogId) : [];
+  return [];
 }
 
 export async function getCaseById(
@@ -104,114 +100,6 @@ export async function getCaseById(
     if (!c) return null;
     return { case: mapCase(c), updates: (u ?? []).map(mapUpdate) };
   }
-  if (!ALLOW_DEMO) return null;
-  const c = DEMO_CASES.cases.find((x) => x.id === id);
-  if (!c) return null;
-  return {
-    case: c,
-    updates: DEMO_CASES.updates
-      .filter((x) => x.case_id === id)
-      .sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at)),
-  };
+  return null;
 }
 
-// ── Deterministic demo cases (local dev only) ────────────────
-
-const VOLUNTEERS = [
-  { id: "vol-aarav", name: "Aarav Sharma" },
-  { id: "vol-priya", name: "Priya Nair" },
-  { id: "vol-kabir", name: "Kabir Singh" },
-];
-const CATS: CaseCategory[] = ["injury", "sterilisation", "rescue", "vaccination", "other"];
-const SEVS: CaseSeverity[] = ["low", "normal", "high", "critical"];
-const STATUSES: CaseStatus[] = ["unverified", "assigned", "in_progress", "resolved", "closed"];
-
-function daysAgoIso(d: number) {
-  return new Date(Date.now() - d * 86_400_000).toISOString();
-}
-
-function buildDemoCases() {
-  const cases: Case[] = [];
-  const updates: CaseUpdate[] = [];
-  const dogs = DEMO.dogs.slice(0, 14);
-
-  dogs.forEach((dog, i) => {
-    const r = (k: string) => seededRandom(`case-${dog.id}-${k}`);
-    const status = STATUSES[Math.floor(r("st") * STATUSES.length)];
-    const severity = SEVS[Math.floor(r("sv") * SEVS.length)];
-    const category = dog.needs_help
-      ? r("c") > 0.5 ? "injury" : "rescue"
-      : CATS[Math.floor(r("c2") * CATS.length)];
-    const assigned = status !== "unverified";
-    const vol = VOLUNTEERS[Math.floor(r("v") * VOLUNTEERS.length)];
-    // Some cases are intentionally stale to demo "overdue".
-    const lastActivity = daysAgoIso(Math.floor(r("la") * 11));
-    const createdAt = daysAgoIso(10 + Math.floor(r("ca") * 30));
-    const id = `case-${i + 1}`;
-
-    cases.push({
-      id,
-      dog_id: dog.id,
-      title: `${category[0].toUpperCase() + category.slice(1)} — ${dog.name}`,
-      description: dog.community_notes[0] ?? "Reported by the community.",
-      zone: dog.zone,
-      lat: dog.lat,
-      lng: dog.lng,
-      severity,
-      category: category as CaseCategory,
-      tags: dog.needs_help ? ["urgent"] : [],
-      status,
-      resolution: status === "resolved" ? "treated" : null,
-      assignee_id: assigned ? vol.id : null,
-      assignee_name: assigned ? vol.name : null,
-      created_by_id: "vol-aarav",
-      created_by_name: "Aarav Sharma",
-      created_at: createdAt,
-      updated_at: lastActivity,
-      last_activity_at: lastActivity,
-      due_at: null,
-    });
-
-    updates.push({
-      id: `${id}-u0`,
-      case_id: id,
-      actor_id: "vol-aarav",
-      actor_name: "Aarav Sharma",
-      type: "created",
-      from_status: null,
-      to_status: "unverified",
-      note: "Case opened",
-      created_at: createdAt,
-    });
-    if (assigned) {
-      updates.push({
-        id: `${id}-u1`,
-        case_id: id,
-        actor_id: vol.id,
-        actor_name: vol.name,
-        type: "claimed",
-        from_status: "unverified",
-        to_status: "assigned",
-        note: `${vol.name} claimed this case`,
-        created_at: daysAgoIso(9 + Math.floor(r("u1") * 20)),
-      });
-    }
-    if (status === "in_progress" || status === "resolved" || status === "closed") {
-      updates.push({
-        id: `${id}-u2`,
-        case_id: id,
-        actor_id: vol.id,
-        actor_name: vol.name,
-        type: "status_changed",
-        from_status: "assigned",
-        to_status: "in_progress",
-        note: "On the ground",
-        created_at: lastActivity,
-      });
-    }
-  });
-
-  return { cases, updates };
-}
-
-const DEMO_CASES = buildDemoCases();

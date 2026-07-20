@@ -7,7 +7,6 @@ import { FloatingTopBar } from "@/components/nav/FloatingTopBar";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import { DemoModeProvider } from "@/components/demo/DemoModeProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
 
@@ -102,13 +101,11 @@ export default function RootLayout({
       <body className="min-h-dvh font-sans">
         <ThemeProvider>
           <AuthProvider>
-            <DemoModeProvider>
-              <Haptics />
-              <FloatingTopBar />
-              <main className="lg:pl-60">{children}</main>
-              <BottomNav />
-              <InstallPrompt />
-            </DemoModeProvider>
+            <Haptics />
+            <FloatingTopBar />
+            <main className="lg:pl-60">{children}</main>
+            <BottomNav />
+            <InstallPrompt />
           </AuthProvider>
         </ThemeProvider>
       </body>

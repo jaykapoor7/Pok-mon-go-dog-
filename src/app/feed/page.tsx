@@ -2,7 +2,6 @@ import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { FeedList } from "@/components/feed/FeedList";
 import { getAllSightings } from "@/lib/data";
-import { demoFeedSightings } from "@/lib/demo-sightings";
 
 export const metadata = {
   title: "Sightings Feed — StrayPaw",
@@ -25,8 +24,7 @@ export default async function FeedPage() {
         </Link>
       </header>
 
-      {/* Demo sightings are merged client-side only when Demo Mode is on. */}
-      <FeedList real={realSightings} demo={demoFeedSightings} />
+      <FeedList real={realSightings} />
     </div>
   );
 }

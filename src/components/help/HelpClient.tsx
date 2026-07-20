@@ -3,16 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { HeartHandshake, MapPin, HandHelping } from "lucide-react";
-import { useDemoMode } from "@/components/demo/DemoModeProvider";
-import { demoDogs } from "@/lib/demo-sightings";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { HelperForm, type HelperTarget } from "@/components/help/HelperForm";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
 import { distanceMeters, dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
-export function HelpClient({ dogs: realDogs }: { dogs: Dog[] }) {
-  const { demoOn } = useDemoMode();
+export function HelpClient({ dogs }: { dogs: Dog[] }) {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [target, setTarget] = useState<HelperTarget | null>(null);
@@ -25,11 +22,6 @@ export function HelpClient({ dogs: realDogs }: { dogs: Dog[] }) {
       { timeout: 5000 }
     );
   }, []);
-
-  const dogs = useMemo(
-    () => (demoOn ? [...realDogs, ...demoDogs] : realDogs),
-    [demoOn, realDogs]
-  );
 
   // Dogs that need help, nearest first (or most recent if no location).
   const needy = useMemo(() => {

@@ -13,11 +13,8 @@ import {
   Medal,
   Star,
 } from "lucide-react";
-import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFollows } from "@/lib/follows";
-import { DemoToggle } from "@/components/demo/DemoToggle";
-import { demoDogs, demoFeedSightings } from "@/lib/demo-sightings";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
@@ -26,13 +23,12 @@ import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import type { Dog, Sighting } from "@/lib/types";
 
 export function TodayClient({
-  dogs: realDogs,
-  sightings: realSightings,
+  dogs,
+  sightings,
 }: {
   dogs: Dog[];
   sightings: Sighting[];
 }) {
-  const { demoOn } = useDemoMode();
   const { user } = useAuth();
   const { isFollowing } = useFollows();
   const firstName = user?.name?.trim().split(/\s+/)[0] || null;
@@ -46,15 +42,6 @@ export function TodayClient({
       { timeout: 5000 }
     );
   }, []);
-
-  const dogs = useMemo(
-    () => (demoOn ? [...realDogs, ...demoDogs] : realDogs),
-    [demoOn, realDogs]
-  );
-  const sightings = useMemo(
-    () => (demoOn ? [...realSightings, ...demoFeedSightings] : realSightings),
-    [demoOn, realSightings]
-  );
 
   const cov = coverage(dogs);
   const needy = useMemo(() => {
@@ -90,7 +77,6 @@ export function TodayClient({
             </p>
           )}
         </div>
-        <DemoToggle className="mt-1" />
       </header>
 
       {/* one-line hero: what StrayPaw is, for first-time visitors */}
@@ -143,7 +129,7 @@ export function TodayClient({
       {/* minimised live map preview → tap to open full map (gentle idle drift) */}
       <div className="mb-6">
         <div className="group relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
-          <MapCanvas dogs={dogs} drift />
+          <MapCanvas dogs={dogs} preview />
           {/* transparent overlay: the whole preview opens the full map */}
           <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
           <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">

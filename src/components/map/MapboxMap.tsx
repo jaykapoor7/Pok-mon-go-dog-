@@ -23,12 +23,12 @@ export function MapboxMap({
   dogs,
   onSelect,
   center,
-  drift,
+  preview,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
   center?: { lat: number; lng: number } | null;
-  drift?: boolean;
+  preview?: boolean;
 }) {
   const mapRef = useRef<MapRef>(null);
 
@@ -42,19 +42,6 @@ export function MapboxMap({
       });
     }
   }, [center?.lat, center?.lng]);
-
-  // Gentle idle rotation for the non-interactive home preview.
-  useEffect(() => {
-    if (!drift) return;
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      mapRef.current?.setBearing(((now - start) / 1000) * 0.7);
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [drift]);
   const [isDark] = useState(
     () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   );
@@ -109,16 +96,20 @@ export function MapboxMap({
       }}
       mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       onLoad={sync}
-      onMoveEnd={drift ? undefined : sync}
+      onMoveEnd={sync}
       style={{ width: "100%", height: "100%" }}
       reuseMaps
     >
-      <GeolocateControl
-        position="bottom-right"
-        trackUserLocation
-        positionOptions={{ enableHighAccuracy: true }}
-      />
-      <NavigationControl position="bottom-right" showCompass={false} />
+      {!preview && (
+        <>
+          <GeolocateControl
+            position="bottom-right"
+            trackUserLocation
+            positionOptions={{ enableHighAccuracy: true }}
+          />
+          <NavigationControl position="bottom-right" showCompass={false} />
+        </>
+      )}
 
       {clusters.map((c) => {
         const [lng, lat] = c.geometry.coordinates;

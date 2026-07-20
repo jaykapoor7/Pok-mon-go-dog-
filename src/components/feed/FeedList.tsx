@@ -3,17 +3,10 @@
 import { PawPrint, PlusCircle } from "lucide-react";
 import { SightingCard } from "@/components/feed/SightingCard";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import type { Sighting } from "@/lib/types";
 
-/**
- * Renders the feed. Demo sightings are only included when Demo Mode is on
- * (shared toggle), so turning demo off removes them here too.
- */
-export function FeedList({ real, demo }: { real: Sighting[]; demo: Sighting[] }) {
-  const { demoOn } = useDemoMode();
-
-  const sightings = (demoOn ? [...real, ...demo] : real).sort(
+export function FeedList({ real }: { real: Sighting[] }) {
+  const sightings = [...real].sort(
     (a, b) => +new Date(b.created_at) - +new Date(a.created_at)
   );
 

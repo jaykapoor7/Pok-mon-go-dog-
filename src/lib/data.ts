@@ -1,16 +1,10 @@
 // ─────────────────────────────────────────────────────────────
-// Data access layer (read side).
-//
-// When Supabase is configured every read hits the live database; otherwise it
-// serves the deterministic demo dataset so the app still runs locally with no
-// configuration. All functions are async and the UI is identical in both modes.
+// Data access layer (read side). Every read hits the live Supabase database;
+// with no config the reads simply return empty. All functions are async.
 // ─────────────────────────────────────────────────────────────
 
-import { DEMO, DEMO_NGOS, DEMO_USERS } from "./demo-data";
-import { getSupabase, isSupabaseConfigured } from "./supabase";
+import { getSupabase } from "./supabase";
 import { suggestMerges } from "./aggregation";
-import { isDemoId } from "./config";
-import { getDemoDogById, getDemoProfile } from "./demo-sightings";
 import type {
   Dog,
   Sighting,
@@ -22,12 +16,6 @@ import type {
   DogSize,
   MoodTag,
 } from "./types";
-
-export const DEMO_MODE = !isSupabaseConfigured;
-
-// Demo data is OFF by default — the app starts fresh and empty, and fills up
-// only with real sightings. Opt back in for local UI work with NEXT_PUBLIC_DEMO=1.
-const ALLOW_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
 // ── Location privacy ─────────────────────────────────────────
 // Public surfaces (map, feed, profiles) only ever receive a GENERAL area —
@@ -100,25 +88,13 @@ export async function getCityStats(): Promise<CityStats> {
     const { data } = await supa.rpc("get_city_stats");
     if (data) return data as CityStats;
   }
-  if (!ALLOW_DEMO) {
-    return {
-      dogsSpotted: 0,
-      dogsFed: 0,
-      dogsSterilised: 0,
-      dogsVaccinated: 0,
-      needsHelp: 0,
-      volunteers: 0,
-    };
-  }
-  // Honest demo counts — no inflated multipliers.
-  const dogs = DEMO.dogs;
   return {
-    dogsSpotted: dogs.length,
-    dogsFed: DEMO.feedEvents.length,
-    dogsSterilised: dogs.filter((d) => d.sterilised).length,
-    dogsVaccinated: dogs.filter((d) => d.vaccinated).length,
-    needsHelp: dogs.filter((d) => d.needs_help).length,
-    volunteers: DEMO_USERS.length,
+    dogsSpotted: 0,
+    dogsFed: 0,
+    dogsSterilised: 0,
+    dogsVaccinated: 0,
+    needsHelp: 0,
+    volunteers: 0,
   };
 }
 
@@ -134,19 +110,16 @@ export async function getAllDogs(): Promise<Dog[]> {
       .limit(2000);
     if (data) return data.map(mapDog);
   }
-  return ALLOW_DEMO ? DEMO.dogs : [];
+  return [];
 }
 
 export async function getDogById(id: string): Promise<Dog | null> {
-  // Isolated demo dogs always resolve (safe, static data) so shared/clicked
-  // demo links never 404, regardless of the build-time demo flag.
-  if (isDemoId(id)) return getDemoDogById(id) ?? null;
   const supa = getSupabase();
   if (supa) {
     const { data } = await supa.from("dogs").select("*").eq("id", id).single();
     return data ? mapDog(data) : null;
   }
-  return ALLOW_DEMO ? DEMO.dogs.find((d) => d.id === id) ?? null : null;
+  return null;
 }
 
 /** Pure, client-safe filter applied to an already-fetched list. */
@@ -182,7 +155,7 @@ export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
       .limit(limit);
     if (data) return data.map(mapSighting);
   }
-  return ALLOW_DEMO ? DEMO.sightings.slice(0, limit) : [];
+  return [];
 }
 
 export async function getAllSightings(limit = 100): Promise<Sighting[]> {
@@ -196,13 +169,12 @@ export async function getAllSightings(limit = 100): Promise<Sighting[]> {
       .limit(limit);
     if (data) return data.map(mapSighting);
   }
-  return ALLOW_DEMO ? DEMO.sightings : [];
+  return [];
 }
 
 // ── Dog profile (aggregate) ──────────────────────────────────
 
 export async function getDogProfile(id: string): Promise<DogProfile | null> {
-  if (isDemoId(id)) return getDemoProfile(id);
   const supa = getSupabase();
 
   if (supa) {
@@ -270,25 +242,7 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
     };
   }
 
-  // Demo fallback (off unless explicitly enabled).
-  if (!ALLOW_DEMO) return null;
-  const dog = DEMO.dogs.find((d) => d.id === id);
-  if (!dog) return null;
-  return {
-    dog,
-    sightings: DEMO.sightings
-      .filter((s) => s.dog_id === id)
-      .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)),
-    feedEvents: DEMO.feedEvents
-      .filter((f) => f.dog_id === id)
-      .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)),
-    vaccinations: DEMO.vaccinations.filter((v) => v.dog_id === id),
-    sterilisations: DEMO.sterilisations.filter((s) => s.dog_id === id),
-    comments: DEMO.comments
-      .filter((c) => c.dog_id === id)
-      .sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at)),
-    matchSuggestions: suggestMerges(dog, DEMO.dogs),
-  };
+  return null;
 }
 
 // ── NGO dashboard reads ──────────────────────────────────────
@@ -311,7 +265,7 @@ export async function getNGOs(): Promise<NGO[]> {
       }));
     }
   }
-  return ALLOW_DEMO ? DEMO_NGOS : [];
+  return [];
 }
 
 export async function getDogsNeedingHelp(): Promise<Dog[]> {
