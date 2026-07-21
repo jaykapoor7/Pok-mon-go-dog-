@@ -16,10 +16,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFollows } from "@/lib/follows";
-import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
-import { DELHI_CENTER } from "@/lib/delhi";
 import { coverage, topContributors } from "@/lib/dashboard-metrics";
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import { newsCategory, type NewsItem } from "@/lib/news";
@@ -61,6 +59,20 @@ export function TodayClient({
     () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
     [dogs, isFollowing]
   );
+  // Photo mosaic hero — recent real sighting photos (warmer than an empty map).
+  const mosaic = useMemo(() => {
+    const tiles: { id: string; photo: string; href: string }[] = [];
+    for (const s of sightings) {
+      if (!s.photo_url) continue;
+      tiles.push({
+        id: s.id,
+        photo: s.photo_url,
+        href: s.dog_id ? `/dog/${s.dog_id}` : "/feed",
+      });
+      if (tiles.length >= 9) break;
+    }
+    return tiles;
+  }, [sightings]);
   const activity = useMemo(
     () =>
       [...sightings]
@@ -131,21 +143,37 @@ export function TodayClient({
         <Stat icon={<ShieldCheck className="h-4 w-4" />} value={`${cov.sterilisedPct}%`} label="sterilised" tone="sterilised" />
       </div>
 
-      {/* minimised live map preview → tap to open full map (gentle idle drift) */}
+      {/* photo mosaic hero → the map is one tap away */}
       <div className="mb-6">
-        <div className="group relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
-          <MapCanvas dogs={dogs} preview center={DELHI_CENTER} />
-          {/* transparent overlay: the whole preview opens the full map */}
-          <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
-          <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Live map
-          </span>
-          {/* single "open map" cue — a pill that nudges on hover */}
-          <span className="pointer-events-none absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-sm font-bold text-bark-800 shadow-pop transition-transform group-hover:translate-x-0.5 dark:bg-bark-900/90 dark:text-bark-100">
-            <MapIcon className="h-4 w-4 text-paw-600" /> Open full map
-            <ArrowRight className="h-4 w-4" />
-          </span>
-        </div>
+        {mosaic.length > 0 ? (
+          <div className="overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10">
+            <div className="grid grid-cols-3 gap-0.5">
+              {mosaic.map((t) => (
+                <Link key={t.id} href={t.href} className="group relative block aspect-square overflow-hidden">
+                  <DogPhoto
+                    src={t.photo}
+                    alt="Street dog"
+                    seed={t.id}
+                    className="h-full w-full transition-transform duration-300 group-hover:scale-105"
+                  />
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="card flex flex-col items-center justify-center gap-3 p-10 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+              <MapIcon className="h-7 w-7" />
+            </span>
+            <p className="text-sm text-bark-500">
+              No street dogs mapped near you yet — be the first to add one.
+            </p>
+          </div>
+        )}
+        <Link href="/map" className="btn-primary mt-3 w-full py-3">
+          <MapIcon className="h-4 w-4" /> Open the full map
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
 
       {/* near you need help */}
