@@ -66,10 +66,10 @@ export function MapboxMap({
       },
       geometry: { type: "Point", coordinates: [d.lng, d.lat] },
     }));
-    const sc = new Supercluster<Props>({ radius: 70, maxZoom: 16 });
+    const sc = new Supercluster<Props>({ radius: preview ? 160 : 70, maxZoom: 16 });
     sc.load(points);
     return sc;
-  }, [dogs]);
+  }, [dogs, preview]);
 
   const clusters = useMemo(
     () => (bounds ? index.getClusters(bounds, Math.floor(zoom)) : []),

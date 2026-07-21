@@ -60,6 +60,19 @@ export function TodayClient({
     () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
     [dogs, isFollowing]
   );
+  // Covered cities (busiest first) for the map caption.
+  const cities = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const d of dogs) {
+      const c = d.city || d.zone;
+      if (c) counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([c]) => c);
+  }, [dogs]);
+  const citiesLabel =
+    cities.length === 0
+      ? ""
+      : cities.slice(0, 2).join(" & ") + (cities.length > 2 ? ` +${cities.length - 2}` : "");
   const activity = useMemo(
     () =>
       [...sightings]
@@ -139,6 +152,12 @@ export function TodayClient({
           <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Live map
           </span>
+          {cov.tracked > 0 && (
+            <span className="pointer-events-none absolute bottom-3 left-3 z-20 max-w-[70%] truncate rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-bark-800 shadow-pop dark:bg-bark-900/90 dark:text-bark-100">
+              Tracking {cov.tracked} {cov.tracked === 1 ? "dog" : "dogs"}
+              {citiesLabel && ` · ${citiesLabel}`}
+            </span>
+          )}
           {/* single "open map" cue — a pill that nudges on hover */}
           <span className="pointer-events-none absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-sm font-bold text-bark-800 shadow-pop transition-transform group-hover:translate-x-0.5 dark:bg-bark-900/90 dark:text-bark-100">
             <MapIcon className="h-4 w-4 text-paw-600" /> Open full map
