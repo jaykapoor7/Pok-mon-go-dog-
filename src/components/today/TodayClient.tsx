@@ -60,23 +60,6 @@ export function TodayClient({
     () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
     [dogs, isFollowing]
   );
-  // Frame the preview on the busiest covered city (so it isn't a near-empty map
-  // of all India). Auto-adjusts as more areas fill in.
-  const focus = useMemo(() => {
-    if (dogs.length === 0) return null;
-    const groups = new Map<string, { lat: number; lng: number; n: number }>();
-    for (const d of dogs) {
-      const key = d.city || d.zone || "in";
-      const g = groups.get(key) ?? { lat: 0, lng: 0, n: 0 };
-      g.lat += d.lat;
-      g.lng += d.lng;
-      g.n += 1;
-      groups.set(key, g);
-    }
-    let best: { lat: number; lng: number; n: number } | null = null;
-    for (const g of groups.values()) if (!best || g.n > best.n) best = g;
-    return best ? { lat: best.lat / best.n, lng: best.lng / best.n } : null;
-  }, [dogs]);
   const activity = useMemo(
     () =>
       [...sightings]
@@ -104,50 +87,6 @@ export function TodayClient({
       <p className="mb-5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
         Spot a dog → drop a pin → partner NGOs take it from there.
       </p>
-
-      {/* News & orders — prominent, full-width band near the top */}
-      {news.length > 0 && (
-        <section className="mb-6">
-          <div className="mb-2.5 flex items-center justify-between">
-            <h2 className="flex items-center gap-1.5 font-display text-lg font-bold tracking-tightest">
-              <Newspaper className="h-4 w-4 text-paw-500" /> News &amp; orders
-            </h2>
-            <Link href="/news" className="text-xs font-semibold text-paw-600">
-              All news
-            </Link>
-          </div>
-          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-            {news.map((n) => {
-              const cat = newsCategory(n.category);
-              return (
-                <a
-                  key={n.id}
-                  href={n.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="card card-interactive flex w-64 shrink-0 flex-col p-4 sm:w-72"
-                >
-                  <span className="mb-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-bold text-paw-700">
-                    {cat.emoji} {cat.label}
-                  </span>
-                  <p className="line-clamp-3 text-sm font-semibold leading-snug">{n.title}</p>
-                  <p className="mt-auto pt-2 text-[11px] text-bark-400">
-                    {n.source_name ?? "Source"}
-                    {n.published_at && ` · ${timeAgo(n.published_at)}`}
-                  </p>
-                </a>
-              );
-            })}
-            <Link
-              href="/news"
-              className="card card-interactive flex w-40 shrink-0 flex-col items-center justify-center gap-1.5 p-4 text-center text-paw-600"
-            >
-              <Newspaper className="h-6 w-6" />
-              <span className="text-sm font-bold">See all news</span>
-            </Link>
-          </div>
-        </section>
-      )}
 
       {/* dogs you follow (device-local) */}
       {following.length > 0 && (
@@ -194,7 +133,7 @@ export function TodayClient({
       {/* minimised live map preview → tap to open full map (gentle idle drift) */}
       <div className="mb-6">
         <div className="group relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
-          <MapCanvas dogs={dogs} preview center={focus} />
+          <MapCanvas dogs={dogs} preview />
           {/* transparent overlay: the whole preview opens the full map */}
           <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
           <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
@@ -207,6 +146,42 @@ export function TodayClient({
           </span>
         </div>
       </div>
+
+      {/* News & orders — below the map */}
+      {news.length > 0 && (
+        <Section title="News & orders" icon={<Newspaper className="h-4 w-4 text-paw-500" />} href="/news" cta="All news">
+          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+            {news.map((n) => {
+              const cat = newsCategory(n.category);
+              return (
+                <a
+                  key={n.id}
+                  href={n.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="card card-interactive flex w-64 shrink-0 flex-col p-4 sm:w-72"
+                >
+                  <span className="mb-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-bold text-paw-700">
+                    {cat.emoji} {cat.label}
+                  </span>
+                  <p className="line-clamp-3 text-sm font-semibold leading-snug">{n.title}</p>
+                  <p className="mt-auto pt-2 text-[11px] text-bark-400">
+                    {n.source_name ?? "Source"}
+                    {n.published_at && ` · ${timeAgo(n.published_at)}`}
+                  </p>
+                </a>
+              );
+            })}
+            <Link
+              href="/news"
+              className="card card-interactive flex w-40 shrink-0 flex-col items-center justify-center gap-1.5 p-4 text-center text-paw-600"
+            >
+              <Newspaper className="h-6 w-6" />
+              <span className="text-sm font-bold">See all news</span>
+            </Link>
+          </div>
+        </Section>
+      )}
 
       {/* near you need help */}
       <Section title={coords ? "Near you · need help" : "Needs help now"} href="/help" cta="See all">
