@@ -65,12 +65,10 @@ export function MapLibreMap({
       },
       geometry: { type: "Point", coordinates: [d.lng, d.lat] },
     }));
-    // On the small preview, cluster aggressively so a whole city collapses into
-    // one bold count-bubble (reads as an active hub, not scattered dots).
-    const sc = new Supercluster<Props>({ radius: preview ? 160 : 70, maxZoom: 16 });
+    const sc = new Supercluster<Props>({ radius: 70, maxZoom: 16 });
     sc.load(points);
     return sc;
-  }, [dogs, preview]);
+  }, [dogs]);
 
   const clusters = useMemo(
     () => (bounds ? index.getClusters(bounds, Math.floor(zoom)) : []),

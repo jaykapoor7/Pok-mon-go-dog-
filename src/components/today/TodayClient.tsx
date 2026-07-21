@@ -19,6 +19,7 @@ import { useFollows } from "@/lib/follows";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
+import { DELHI_CENTER } from "@/lib/delhi";
 import { coverage, topContributors } from "@/lib/dashboard-metrics";
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import { newsCategory, type NewsItem } from "@/lib/news";
@@ -133,7 +134,7 @@ export function TodayClient({
       {/* minimised live map preview → tap to open full map (gentle idle drift) */}
       <div className="mb-6">
         <div className="group relative h-52 overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10 lg:h-[24rem]">
-          <MapCanvas dogs={dogs} preview />
+          <MapCanvas dogs={dogs} preview center={DELHI_CENTER} />
           {/* transparent overlay: the whole preview opens the full map */}
           <Link href="/map" className="absolute inset-0 z-10" aria-label="Open the full map" />
           <span className="pointer-events-none absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
