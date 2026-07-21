@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Syringe, Scissors, Utensils } from "lucide-react";
+import { Check, Syringe, Scissors, Utensils, ClipboardList } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge } from "@/components/ui/Badges";
 import { celebrate } from "@/lib/celebrate";
@@ -120,6 +120,12 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
                 </p>
               </div>
               <StatusBadge status={dog.status} />
+              <Link
+                href={`/cases/new?dog=${dog.id}`}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-paw-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-paw-600"
+              >
+                <ClipboardList className="h-3.5 w-3.5" /> Open case
+              </Link>
             </li>
           );
         })}

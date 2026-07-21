@@ -83,18 +83,21 @@ function Operate({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
     <div className="space-y-8">
       <CommandCenter cases={cases} />
 
+      {/* Dogs flagged as needing help — most urgent, so shown before the case
+          pipeline. 'Open case' turns one into a tracked case in the pipeline. */}
+      <section>
+        <HelpQueue dogs={needHelp} />
+      </section>
+
       <section>
         <h2 className="mb-1 font-display text-xl font-bold tracking-tightest sm:text-2xl">
           Case pipeline
         </h2>
         <p className="mb-3 text-sm text-bark-500">
-          Reported → assigned → in treatment → resolved, with owners.
+          Reported → assigned → in treatment → resolved, with owners. Open a case
+          from a dog above to add it here.
         </p>
         <CasePipeline cases={cases} />
-      </section>
-
-      <section>
-        <HelpQueue dogs={needHelp} />
       </section>
     </div>
   );
