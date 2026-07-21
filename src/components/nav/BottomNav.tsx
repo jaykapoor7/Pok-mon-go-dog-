@@ -7,7 +7,7 @@ import {
   Map as MapIcon,
   HandHelping,
   Plus,
-  Newspaper,
+  HeartHandshake,
 } from "lucide-react";
 import { INFO } from "./MenuDrawer";
 import { SocialLinks } from "./SocialLinks";
@@ -28,7 +28,7 @@ const ITEMS: Item[] = [
   { key: "map", href: "/map", label: "Map", icon: MapIcon },
   { key: "report", href: "/report", label: "Report", icon: Plus, gated: true },
   { key: "help", href: "/help", label: "Help", icon: HandHelping },
-  { key: "news", href: "/news", label: "News", icon: Newspaper },
+  { key: "partners", href: "/dashboard", label: "Partners", icon: HeartHandshake },
 ];
 
 function useActive() {

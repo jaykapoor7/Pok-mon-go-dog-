@@ -166,7 +166,41 @@ export function TodayClient({
         </div>
       </div>
 
-      {/* News & orders — below the map */}
+      {/* near you need help */}
+      <Section title={coords ? "Near you · need help" : "Needs help now"} href="/help" cta="See all">
+        {needy.length === 0 ? (
+          <p className="text-sm text-bark-400">No dogs flagged as needing help right now.</p>
+        ) : (
+          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+            {needy.map((dog) => {
+              const meta = MARKER_META[markerStateFor(dog)];
+              return (
+                <Link
+                  key={dog.id}
+                  href={`/dog/${dog.id}`}
+                  className="w-40 shrink-0 overflow-hidden rounded-2xl bg-white shadow-card dark:bg-bark-900"
+                >
+                  <div className="relative">
+                    <DogPhoto src={dog.cover_photo} alt="Dog needing help" seed={dog.id} className="h-28 w-full" />
+                    <span
+                      className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                      style={{ backgroundColor: meta.color }}
+                    >
+                      {meta.label}
+                    </span>
+                  </div>
+                  <div className="p-2.5">
+                    <p className="truncate text-sm font-semibold">{dogLabel(dog)}</p>
+                    <p className="truncate text-xs text-bark-400">{dog.zone}</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </Section>
+
+      {/* News & orders — below the needs-help row */}
       {news.length > 0 && (
         <Section title="News & orders" icon={<Newspaper className="h-4 w-4 text-paw-500" />} href="/news" cta="All news">
           <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
@@ -201,40 +235,6 @@ export function TodayClient({
           </div>
         </Section>
       )}
-
-      {/* near you need help */}
-      <Section title={coords ? "Near you · need help" : "Needs help now"} href="/help" cta="See all">
-        {needy.length === 0 ? (
-          <p className="text-sm text-bark-400">No dogs flagged as needing help right now.</p>
-        ) : (
-          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-            {needy.map((dog) => {
-              const meta = MARKER_META[markerStateFor(dog)];
-              return (
-                <Link
-                  key={dog.id}
-                  href={`/dog/${dog.id}`}
-                  className="w-40 shrink-0 overflow-hidden rounded-2xl bg-white shadow-card dark:bg-bark-900"
-                >
-                  <div className="relative">
-                    <DogPhoto src={dog.cover_photo} alt="Dog needing help" seed={dog.id} className="h-28 w-full" />
-                    <span
-                      className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      {meta.label}
-                    </span>
-                  </div>
-                  <div className="p-2.5">
-                    <p className="truncate text-sm font-semibold">{dogLabel(dog)}</p>
-                    <p className="truncate text-xs text-bark-400">{dog.zone}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </Section>
         </div>
         {/* end main column */}
 
