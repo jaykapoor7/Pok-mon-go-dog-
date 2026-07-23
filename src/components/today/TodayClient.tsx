@@ -5,20 +5,19 @@ import Link from "next/link";
 import {
   Map as MapIcon,
   ArrowRight,
-  Trophy,
   HeartPulse,
   ShieldCheck,
   Users,
   Activity,
-  Medal,
   Star,
   Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFollows } from "@/lib/follows";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { TiltCard } from "@/components/ux/TiltCard";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
-import { coverage, topContributors } from "@/lib/dashboard-metrics";
+import { coverage } from "@/lib/dashboard-metrics";
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import { newsCategory, type NewsItem } from "@/lib/news";
 import type { Dog, Sighting } from "@/lib/types";
@@ -54,7 +53,6 @@ export function TodayClient({
       : [...list].sort((a, b) => +new Date(b.last_seen) - +new Date(a.last_seen));
     return sorted.slice(0, 10);
   }, [dogs, coords]);
-  const guardians = useMemo(() => topContributors(sightings, 7), [sightings]);
   const following = useMemo(
     () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
     [dogs, isFollowing]
@@ -146,7 +144,7 @@ export function TodayClient({
       {/* photo mosaic hero → the map is one tap away */}
       <div className="mb-6">
         {mosaic.length > 0 ? (
-          <div className="overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10">
+          <TiltCard max={7} className="overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10">
             <div className="grid grid-cols-3 gap-0.5">
               {mosaic.map((t) => (
                 <Link key={t.id} href={t.href} className="group relative block aspect-square overflow-hidden">
@@ -159,7 +157,7 @@ export function TodayClient({
                 </Link>
               ))}
             </div>
-          </div>
+          </TiltCard>
         ) : (
           <div className="card flex flex-col items-center justify-center gap-3 p-10 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
@@ -250,29 +248,6 @@ export function TodayClient({
 
         {/* sidebar */}
         <div className="lg:sticky lg:top-20">
-      {/* top guardians */}
-      <Section title="This week's top guardians" icon={<Trophy className="h-4 w-4 text-status-hungry" />}>
-        {guardians.length === 0 ? (
-          <p className="text-sm text-bark-400">No activity yet — be the first guardian.</p>
-        ) : (
-          <ol className="space-y-1.5">
-            {guardians.map((g, i) => (
-              <li key={g.name} className="card flex items-center gap-3 p-3">
-                <Rank i={i} />
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-paw-200 text-xs font-bold text-paw-700">
-                  {g.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{g.name}</p>
-                  <p className="text-xs text-bark-400">{g.count} {g.count === 1 ? "sighting" : "sightings"}</p>
-                </div>
-                <span className="font-display text-lg font-extrabold text-paw-600">{g.count}</span>
-              </li>
-            ))}
-          </ol>
-        )}
-      </Section>
-
       {/* live activity */}
       <Section title="Live activity" icon={<Activity className="h-4 w-4 text-status-sterilised" />}>
         {activity.length === 0 ? (
@@ -350,14 +325,6 @@ function Section({
       {children}
     </section>
   );
-}
-
-function Rank({ i }: { i: number }) {
-  if (i < 3) {
-    const colors = ["#D9A441", "#9A9C88", "#C0492E"];
-    return <Medal className="h-5 w-5" style={{ color: colors[i] }} />;
-  }
-  return <span className="w-5 text-center text-sm font-bold text-bark-400">{i + 1}</span>;
 }
 
 function ActivityRow({ s }: { s: Sighting }) {
