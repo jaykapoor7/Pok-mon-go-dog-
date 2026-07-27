@@ -9,6 +9,7 @@ import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
+import { Analytics } from "@vercel/analytics/next";
 
 // Body / UI text: a clean, restrained sans.
 const inter = Inter({
@@ -108,6 +109,7 @@ export default function RootLayout({
             <InstallPrompt />
           </AuthProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
