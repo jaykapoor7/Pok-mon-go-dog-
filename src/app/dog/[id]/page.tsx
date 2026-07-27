@@ -16,7 +16,6 @@ import { StatusBadge, TrustRing } from "@/components/ui/Badges";
 import { DogActions } from "@/components/dog/DogActions";
 import { DogLocation } from "@/components/dog/DogLocation";
 import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
-import { MergeSuggestions } from "@/components/dog/MergeSuggestions";
 import { ShareDog } from "@/components/dog/ShareDog";
 import { FollowButton } from "@/components/dog/FollowButton";
 import { AddComment } from "@/components/dog/AddComment";
@@ -62,7 +61,7 @@ export default async function DogProfilePage({
   ]);
   if (!profile) notFound();
 
-  const { dog, sightings, feedEvents, vaccinations, sterilisations, comments, matchSuggestions } =
+  const { dog, sightings, feedEvents, vaccinations, sterilisations, comments } =
     profile;
 
   const lastVaccine = vaccinations[0];
@@ -249,16 +248,6 @@ export default async function DogProfilePage({
               </div>
             ))}
           </div>
-        </Section>
-      )}
-
-      {/* merge suggestions — smart system */}
-      {matchSuggestions.length > 0 && (
-        <Section title="Possibly the same dog?">
-          <p className="mb-3 -mt-2 text-xs text-bark-400">
-            Our matching engine found nearby profiles that might be the same dog.
-          </p>
-          <MergeSuggestions keepId={dog.id} suggestions={matchSuggestions} />
         </Section>
       )}
 
