@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Map, {
   Marker,
   NavigationControl,
@@ -14,7 +15,8 @@ import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
 import { markerMetaFor } from "@/lib/marker-state";
 import { dogLabel } from "@/lib/utils";
 import { PhotoMarker } from "./PhotoMarker";
-import type { Dog } from "@/lib/types";
+import { FeedingMarker } from "./FeedingMarker";
+import type { Dog, FeedingZone } from "@/lib/types";
 
 // Free, keyless, full-detail OpenStreetMap vector style (Google-Maps-like).
 const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
@@ -26,13 +28,16 @@ export function MapLibreMap({
   onSelect,
   center,
   preview,
+  feedingZones = [],
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
   center?: { lat: number; lng: number } | null;
   preview?: boolean;
+  feedingZones?: FeedingZone[];
 }) {
   const mapRef = useRef<MapRef>(null);
+  const router = useRouter();
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
   const [zoom, setZoom] = useState(INDIA_ZOOM);
 
@@ -166,6 +171,12 @@ export function MapLibreMap({
           </Marker>
         );
       })}
+
+      {feedingZones.map((z) => (
+        <Marker key={z.id} longitude={z.lng} latitude={z.lat} anchor="center">
+          <FeedingMarker label={z.name} onClick={() => router.push(`/feeding/${z.id}`)} />
+        </Marker>
+      ))}
     </Map>
   );
 }

@@ -1,5 +1,6 @@
 import { MapView } from "@/components/map/MapView";
 import { getAllDogs } from "@/lib/data";
+import { getFeedingZones } from "@/lib/feeding-zones";
 
 export const dynamic = "force-dynamic";
 
@@ -8,8 +9,8 @@ export const metadata = {
   description: "The immersive, full-screen map of India's street dogs.",
 };
 
-// The immersive full-screen map. Demo dogs are merged client-side in MapView.
+// The immersive full-screen map.
 export default async function MapPage() {
-  const realDogs = await getAllDogs();
-  return <MapView dogs={realDogs} />;
+  const [dogs, feedingZones] = await Promise.all([getAllDogs(), getFeedingZones()]);
+  return <MapView dogs={dogs} feedingZones={feedingZones} />;
 }

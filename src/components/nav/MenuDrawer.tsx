@@ -16,6 +16,7 @@ import {
   UserPlus,
   ChevronRight,
   Newspaper,
+  Utensils,
 } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -25,6 +26,7 @@ const PRIMARY = [
   { href: "/", label: "Today", icon: Home },
   { href: "/map", label: "Explore map", icon: MapIcon },
   { href: "/help", label: "Help a dog", icon: HandHelping },
+  { href: "/feeding", label: "Feeding zones", icon: Utensils },
   { href: "/news", label: "News & orders", icon: Newspaper },
   { href: "/feed", label: "Sightings feed", icon: Images },
   { href: "/cases", label: "Cases", icon: ClipboardList },

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { HeartHandshake, MapPin, HandHelping } from "lucide-react";
+import { HeartHandshake, MapPin, HandHelping, Utensils, ArrowRight } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { HelperForm, type HelperTarget } from "@/components/help/HelperForm";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
@@ -75,6 +75,23 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
           </div>
         </div>
       </div>
+
+      {/* feeding zones cross-link */}
+      <Link
+        href="/feeding"
+        className="card card-interactive mt-4 flex items-center gap-3 p-4"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <Utensils className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold">Feeding zones</p>
+          <p className="text-xs text-bark-500">
+            Sign up to feed an existing spot, or mark one fed today.
+          </p>
+        </div>
+        <ArrowRight className="h-4 w-4 shrink-0 text-bark-400" />
+      </Link>
 
       {/* needy feed */}
       <div className="mt-6 space-y-3">

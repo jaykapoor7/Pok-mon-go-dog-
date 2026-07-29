@@ -15,13 +15,20 @@ import {
   type MarkerState,
 } from "@/lib/marker-state";
 import { cn } from "@/lib/utils";
-import type { Dog } from "@/lib/types";
+import type { Dog, FeedingZone } from "@/lib/types";
 
 type Filter = "all" | MarkerState;
 
-export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
+export function MapView({
+  dogs: allDogs,
+  feedingZones = [],
+}: {
+  dogs: Dog[];
+  feedingZones?: FeedingZone[];
+}) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
+  const [showFeeding, setShowFeeding] = useState(false);
   const { requireAuth, user } = useAuth();
   const router = useRouter();
 
@@ -68,10 +75,22 @@ export function MapView({ dogs: allDogs }: { dogs: Dog[] }) {
               color={MARKER_META[s].color}
             />
           ))}
+          {feedingZones.length > 0 && (
+            <FilterChip
+              active={showFeeding}
+              onClick={() => setShowFeeding((v) => !v)}
+              label={`🥣 Feeding zones (${feedingZones.length})`}
+            />
+          )}
         </div>
       </div>
 
-      <MapCanvas dogs={dogs} onSelect={setSelected} center={center} />
+      <MapCanvas
+        dogs={dogs}
+        onSelect={setSelected}
+        center={center}
+        feedingZones={showFeeding ? feedingZones : []}
+      />
 
       {/* empty state */}
       {allDogs.length === 0 && (

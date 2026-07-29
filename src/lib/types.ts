@@ -265,6 +265,42 @@ export interface CaseUpdate {
   created_at: string;
 }
 
+export const FEEDING_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+export type FeedingDay = (typeof FEEDING_DAYS)[number];
+
+export interface FeedingZone {
+  id: string;
+  name: string;
+  description: string | null;
+  zone: string | null;
+  lat: number;
+  lng: number;
+  photo_url: string | null;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  last_fed_at: string | null;
+  volunteer_count: number;
+}
+
+export interface FeedingZoneVolunteer {
+  id: string;
+  feeding_zone_id: string;
+  user_id: string;
+  user_name: string;
+  days: FeedingDay[];
+  created_at: string;
+}
+
+export interface FeedingZoneCheckin {
+  id: string;
+  feeding_zone_id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  note: string | null;
+  created_at: string;
+}
+
 export const CASE_STATUS_META: Record<
   CaseStatus,
   { label: string; color: string }

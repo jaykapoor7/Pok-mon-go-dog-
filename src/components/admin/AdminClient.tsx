@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   PawPrint,
   HeartPulse,
+  Utensils,
+  Trash2,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -79,7 +81,17 @@ interface AdminDog {
   last_seen: string | null;
 }
 
-type Tab = "queue" | "verify" | "dogs" | "volunteers" | "ngos";
+interface AdminFeedingZone {
+  id: string;
+  name: string;
+  zone: string | null;
+  created_by_name: string | null;
+  volunteer_count: number;
+  last_fed_at: string | null;
+  created_at: string;
+}
+
+type Tab = "queue" | "verify" | "dogs" | "feeding" | "volunteers" | "ngos";
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
 function ContactLink({ contact }: { contact: string }) {
@@ -105,6 +117,7 @@ export function AdminClient() {
   const [ngos, setNgos] = useState<Helper[]>([]);
   const [pendingCases, setPendingCases] = useState<PendingCase[]>([]);
   const [dogs, setDogs] = useState<AdminDog[]>([]);
+  const [feedingZones, setFeedingZones] = useState<AdminFeedingZone[]>([]);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +170,21 @@ export function AdminClient() {
     }
   }, []);
 
+  // Feeding zones (moderation — they can be added by guests).
+  const loadFeedingZones = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/feeding-zones", {
+        headers: { Authorization: `Bearer ${s}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      setFeedingZones(j.zones ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const load = useCallback(
     async (s: string) => {
       setLoading(true);
@@ -191,13 +219,14 @@ export function AdminClient() {
         loadHelpers(s);
         loadCases(s);
         loadDogs(s);
+        loadFeedingZones(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers, loadCases, loadDogs]
+    [loadHelpers, loadCases, loadDogs, loadFeedingZones]
   );
 
   useEffect(() => {
@@ -319,6 +348,31 @@ export function AdminClient() {
     }
   }
 
+  // Remove a spam/duplicate feeding zone.
+  async function deleteFeedingZone(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/feeding-zones", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        return;
+      }
+      haptic("success");
+      setFeedingZones((prev) => prev.filter((z) => z.id !== id));
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   function lock() {
     try {
       localStorage.removeItem(KEY);
@@ -330,6 +384,7 @@ export function AdminClient() {
     setItems([]);
     setPendingCases([]);
     setDogs([]);
+    setFeedingZones([]);
     setVolunteers([]);
     setNgos([]);
     setInput("");
@@ -409,6 +464,7 @@ export function AdminClient() {
         <TabButton active={tab === "queue"} onClick={() => setTab("queue")} icon={<Clock className="h-4 w-4" />} label="Queue" count={items.length} />
         <TabButton active={tab === "verify"} onClick={() => setTab("verify")} icon={<ShieldCheck className="h-4 w-4" />} label="Verify" count={pendingCases.length} />
         <TabButton active={tab === "dogs"} onClick={() => setTab("dogs")} icon={<PawPrint className="h-4 w-4" />} label="Dogs" count={dogs.length} />
+        <TabButton active={tab === "feeding"} onClick={() => setTab("feeding")} icon={<Utensils className="h-4 w-4" />} label="Feeding" count={feedingZones.length} />
         <TabButton active={tab === "volunteers"} onClick={() => setTab("volunteers")} icon={<HandHelping className="h-4 w-4" />} label="Volunteers" count={volunteers.length} />
         <TabButton active={tab === "ngos"} onClick={() => setTab("ngos")} icon={<HeartHandshake className="h-4 w-4" />} label="NGOs" count={ngos.length} />
       </div>
@@ -424,6 +480,9 @@ export function AdminClient() {
       )}
       {tab === "dogs" && (
         <DogsList dogs={dogs} busyId={busyId} onPatch={patchDog} />
+      )}
+      {tab === "feeding" && (
+        <FeedingZonesModList zones={feedingZones} busyId={busyId} onDelete={deleteFeedingZone} />
       )}
       {tab === "volunteers" && (
         <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
@@ -853,6 +912,66 @@ function DogsList({
               );
             })}
           </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FeedingZonesModList({
+  zones,
+  busyId,
+  onDelete,
+}: {
+  zones: AdminFeedingZone[];
+  busyId: string | null;
+  onDelete: (id: string) => void;
+}) {
+  if (zones.length === 0) {
+    return (
+      <div className="card p-10 text-center">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <Utensils className="h-7 w-7" />
+        </span>
+        <h2 className="font-display text-lg font-bold">No feeding zones yet</h2>
+        <p className="mt-1 text-sm text-bark-500">
+          Community-added feeding spots will appear here for moderation.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {zones.map((z) => (
+        <div key={z.id} className="card flex items-center gap-3 p-3">
+          <div className="min-w-0 flex-1">
+            <a
+              href={`/feeding/${z.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold hover:text-paw-600"
+            >
+              {z.name}
+            </a>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-bark-400">
+              {z.zone && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" /> {z.zone}
+                </span>
+              )}
+              <span>{z.volunteer_count} volunteers</span>
+              {z.created_by_name && <span>by {z.created_by_name}</span>}
+              <span>{timeAgo(z.created_at)}</span>
+            </p>
+          </div>
+          <button
+            onClick={() => onDelete(z.id)}
+            disabled={busyId === z.id}
+            aria-label="Delete"
+            className="shrink-0 rounded-full p-1.5 text-bark-400 hover:bg-status-injured/10 hover:text-status-injured disabled:opacity-50"
+          >
+            {busyId === z.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          </button>
         </div>
       ))}
     </div>
