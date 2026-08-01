@@ -241,6 +241,24 @@ export async function isNgoMember(): Promise<boolean> {
   return data === true;
 }
 
+/** NGO-only: update a dog's care flags from the dashboard (returns false if not
+ *  a verified member — the RPC enforces it). */
+export async function ngoSetDogCare(
+  dogId: string,
+  patch: { vaccinated?: boolean; sterilised?: boolean; needs_help?: boolean }
+): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return false;
+  const { data, error } = await supa.rpc("ngo_set_dog_care", {
+    p_dog_id: dogId,
+    p_vaccinated: patch.vaccinated ?? null,
+    p_sterilised: patch.sterilised ?? null,
+    p_needs_help: patch.needs_help ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
 /** Merge a duplicate dog profile into the one we're keeping (NGO-only). */
 export async function mergeDogs(keepId: string, removeId: string): Promise<boolean> {
   const supa = getSupabase();

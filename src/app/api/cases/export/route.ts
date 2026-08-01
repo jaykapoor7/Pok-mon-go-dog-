@@ -1,4 +1,6 @@
+import { NextResponse } from "next/server";
 import { getCases } from "@/lib/cases";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,8 +10,37 @@ function csvCell(v: unknown): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-// GET /api/cases/export → CSV of all cases (NGO report).
-export async function GET() {
+// Authorised if the admin secret is presented (?key= / Bearer), OR a verified
+// NGO member's Supabase access token is presented as a Bearer token.
+async function authorized(req: Request): Promise<boolean> {
+  const secret = process.env.ADMIN_SECRET?.trim();
+  const auth = req.headers.get("authorization");
+  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+  const key = new URL(req.url).searchParams.get("key")?.trim();
+  if (secret && (bearer === secret || key === secret)) return true;
+
+  // NGO-member access token path.
+  const supa = getSupabaseAdmin();
+  if (supa && bearer) {
+    const { data } = await supa.auth.getUser(bearer);
+    const uid = data.user?.id;
+    if (uid) {
+      const { data: member } = await supa
+        .from("ngo_members")
+        .select("user_id")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (member) return true;
+    }
+  }
+  return false;
+}
+
+// GET /api/cases/export → CSV of all cases (admin or verified NGO members).
+export async function GET(req: Request) {
+  if (!(await authorized(req))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const cases = await getCases();
 
   const headers = [

@@ -19,6 +19,31 @@ export default function ReportContentPage() {
   const [details, setDetails] = useState("");
   const [link, setLink] = useState("");
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    if (!reason || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/report-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason, details: details.trim(), link: link.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Couldn't submit. Please try again.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (sent) {
     return (
@@ -97,12 +122,18 @@ export default function ReportContentPage() {
           />
         </div>
 
+        {error && (
+          <p className="rounded-xl bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
+            {error}
+          </p>
+        )}
+
         <button
-          onClick={() => setSent(true)}
-          disabled={!reason}
+          onClick={submit}
+          disabled={!reason || busy}
           className="btn-primary w-full py-4 text-base"
         >
-          <Flag className="h-5 w-5" /> Submit report
+          <Flag className="h-5 w-5" /> {busy ? "Submitting…" : "Submit report"}
         </button>
       </div>
     </div>

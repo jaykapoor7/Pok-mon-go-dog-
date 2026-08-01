@@ -29,7 +29,7 @@ export function MapView({
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
   const [showFeeding, setShowFeeding] = useState(false);
-  const { requireAuth, user } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   // A searched place (?lat&lng) recenters the map.
@@ -53,7 +53,8 @@ export function MapView({
   }
 
   function report() {
-    requireAuth(() => router.push("/report"));
+    // Reporting is open to guests (matches /report), so don't gate the FAB.
+    router.push("/report");
   }
 
   return (

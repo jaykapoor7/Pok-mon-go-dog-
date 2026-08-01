@@ -10,6 +10,7 @@ import { CasePipeline } from "@/components/dashboard/CasePipeline";
 import { CoverageHero } from "@/components/dashboard/CoverageHero";
 import { Resolutions } from "@/components/dashboard/Resolutions";
 import { FunderReport } from "@/components/dashboard/FunderReport";
+import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import {
   coverage,
   medianResponseDays,
@@ -155,9 +156,7 @@ function Impact({
           <p className="text-xs text-bark-500">Share your impact</p>
           <div className="flex flex-wrap items-center gap-2">
             <FunderReport dogs={dogs} cases={cases} />
-            <a href="/api/cases/export" download className="btn-ghost px-4 py-2.5 text-sm">
-              Export CSV
-            </a>
+            <ExportCsvButton />
           </div>
           <p className="text-[11px] text-bark-400">
             PDF is the co-branded funder one-pager. CSV is the raw case data for analysts.

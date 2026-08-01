@@ -2,24 +2,27 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Syringe, Scissors, Utensils, ClipboardList } from "lucide-react";
+import { Check, Syringe, Scissors, HeartPulse, ClipboardList, Loader2 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge } from "@/components/ui/Badges";
 import { celebrate } from "@/lib/celebrate";
+import { ngoSetDogCare } from "@/lib/actions";
 import { timeAgo, cn, dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 const BULK = [
-  { key: "fed", label: "Mark fed", icon: Utensils },
-  { key: "vaccinated", label: "Mark vaccinated", icon: Syringe },
-  { key: "sterilised", label: "Mark sterilised", icon: Scissors },
+  { key: "vaccinated", label: "Mark vaccinated", icon: Syringe, patch: { vaccinated: true } },
+  { key: "sterilised", label: "Mark sterilised", icon: Scissors, patch: { sterilised: true } },
+  { key: "cleared", label: "Clear needs-help", icon: HeartPulse, patch: { needs_help: false } },
 ] as const;
 
 export function HelpQueue({ dogs }: { dogs: Dog[] }) {
+  const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [resolved, setResolved] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -29,16 +32,35 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
     });
   }
 
-  function applyBulk(label: string) {
-    if (selected.size === 0) return;
-    setResolved((prev) => new Set([...prev, ...selected]));
-    setToast(`${label} · ${selected.size} dog records updated`);
-    celebrate();
-    setSelected(new Set());
-    setTimeout(() => setToast(null), 2800);
+  async function applyBulk(
+    label: string,
+    patch: { vaccinated?: boolean; sterilised?: boolean; needs_help?: boolean }
+  ) {
+    if (selected.size === 0 || busy) return;
+    setBusy(true);
+    try {
+      const ids = [...selected];
+      const results = await Promise.all(
+        ids.map((id) => ngoSetDogCare(id, patch).catch(() => false))
+      );
+      const ok = results.filter(Boolean).length;
+      if (ok === 0) {
+        setToast("Verified partners only — sign in as an NGO to update records.");
+      } else {
+        setToast(`${label} · ${ok} dog ${ok === 1 ? "record" : "records"} updated`);
+        celebrate();
+        setSelected(new Set());
+        router.refresh(); // reflect DB truth
+      }
+    } catch {
+      setToast("Couldn't update. Please try again.");
+    } finally {
+      setBusy(false);
+      setTimeout(() => setToast(null), 3000);
+    }
   }
 
-  const visible = dogs.filter((d) => !resolved.has(d.id));
+  const visible = dogs;
 
   return (
     <div className="card overflow-hidden">
@@ -66,10 +88,11 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
                 return (
                   <button
                     key={b.key}
-                    onClick={() => applyBulk(b.label)}
-                    className="chip border border-paw-200 bg-white text-paw-700 hover:bg-paw-100"
+                    onClick={() => applyBulk(b.label, b.patch)}
+                    disabled={busy}
+                    className="chip border border-paw-200 bg-white text-paw-700 hover:bg-paw-100 disabled:opacity-50"
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Icon className="h-3.5 w-3.5" />}
                     {b.label}
                   </button>
                 );

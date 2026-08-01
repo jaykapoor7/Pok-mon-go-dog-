@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "StrayPaw — Today",
   description:
-    "Dogs near you who need help, this week's top guardians, and live community activity for India's street dogs.",
+    "Dogs near you who need help, feeding zones, verified news, and live community activity for India's street dogs.",
 };
 
 // Home is now a "Today" mission dashboard; the immersive map lives at /map.
