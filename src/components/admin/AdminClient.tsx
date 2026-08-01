@@ -81,6 +81,17 @@ interface AdminDog {
   last_seen: string | null;
 }
 
+interface AdminPartnerRequest {
+  id: string;
+  user_id: string;
+  org_name: string;
+  area: string | null;
+  contact: string | null;
+  message: string | null;
+  email: string | null;
+  created_at: string;
+}
+
 interface AdminFeedingZone {
   id: string;
   name: string;
@@ -91,7 +102,7 @@ interface AdminFeedingZone {
   created_at: string;
 }
 
-type Tab = "queue" | "verify" | "dogs" | "feeding" | "volunteers" | "ngos";
+type Tab = "queue" | "partners" | "verify" | "dogs" | "feeding" | "volunteers" | "ngos";
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
 function ContactLink({ contact }: { contact: string }) {
@@ -118,6 +129,7 @@ export function AdminClient() {
   const [pendingCases, setPendingCases] = useState<PendingCase[]>([]);
   const [dogs, setDogs] = useState<AdminDog[]>([]);
   const [feedingZones, setFeedingZones] = useState<AdminFeedingZone[]>([]);
+  const [partnerRequests, setPartnerRequests] = useState<AdminPartnerRequest[]>([]);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -185,6 +197,21 @@ export function AdminClient() {
     }
   }, []);
 
+  // Pending NGO partner-access requests.
+  const loadPartners = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/partners", {
+        headers: { Authorization: `Bearer ${s}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      setPartnerRequests(j.requests ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const load = useCallback(
     async (s: string) => {
       setLoading(true);
@@ -220,13 +247,14 @@ export function AdminClient() {
         loadCases(s);
         loadDogs(s);
         loadFeedingZones(s);
+        loadPartners(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers, loadCases, loadDogs, loadFeedingZones]
+    [loadHelpers, loadCases, loadDogs, loadFeedingZones, loadPartners]
   );
 
   useEffect(() => {
@@ -348,6 +376,31 @@ export function AdminClient() {
     }
   }
 
+  // Approve / reject an NGO partner-access request.
+  async function partnerAction(id: string, action: "approve" | "reject") {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/partners", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action, id }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        return;
+      }
+      haptic(action === "approve" ? "success" : "light");
+      setPartnerRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   // Remove a spam/duplicate feeding zone.
   async function deleteFeedingZone(id: string) {
     setBusyId(id);
@@ -385,6 +438,7 @@ export function AdminClient() {
     setPendingCases([]);
     setDogs([]);
     setFeedingZones([]);
+    setPartnerRequests([]);
     setVolunteers([]);
     setNgos([]);
     setInput("");
@@ -462,6 +516,7 @@ export function AdminClient() {
       {/* tabs */}
       <div className="mb-5 flex gap-1.5 rounded-2xl bg-black/[0.04] p-1 dark:bg-white/[0.05]">
         <TabButton active={tab === "queue"} onClick={() => setTab("queue")} icon={<Clock className="h-4 w-4" />} label="Queue" count={items.length} />
+        <TabButton active={tab === "partners"} onClick={() => setTab("partners")} icon={<HeartHandshake className="h-4 w-4" />} label="Partners" count={partnerRequests.length} />
         <TabButton active={tab === "verify"} onClick={() => setTab("verify")} icon={<ShieldCheck className="h-4 w-4" />} label="Verify" count={pendingCases.length} />
         <TabButton active={tab === "dogs"} onClick={() => setTab("dogs")} icon={<PawPrint className="h-4 w-4" />} label="Dogs" count={dogs.length} />
         <TabButton active={tab === "feeding"} onClick={() => setTab("feeding")} icon={<Utensils className="h-4 w-4" />} label="Feeding" count={feedingZones.length} />
@@ -475,6 +530,9 @@ export function AdminClient() {
         </p>
       )}
 
+      {tab === "partners" && (
+        <PartnerRequestsList requests={partnerRequests} busyId={busyId} onAction={partnerAction} />
+      )}
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
       )}
@@ -911,6 +969,82 @@ function DogsList({
                 </button>
               );
             })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PartnerRequestsList({
+  requests,
+  busyId,
+  onAction,
+}: {
+  requests: AdminPartnerRequest[];
+  busyId: string | null;
+  onAction: (id: string, action: "approve" | "reject") => void;
+}) {
+  if (requests.length === 0) {
+    return (
+      <div className="card p-10 text-center">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <HeartHandshake className="h-7 w-7" />
+        </span>
+        <h2 className="font-display text-lg font-bold">No partner requests</h2>
+        <p className="mt-1 text-sm text-bark-500">
+          NGO access requests from the partner console appear here. Approving one
+          grants the verified-partner tools.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {requests.map((r) => (
+        <div key={r.id} className="card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold">{r.org_name}</p>
+              <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-bark-400">
+                {r.area && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" /> {r.area}
+                  </span>
+                )}
+                <span>{timeAgo(r.created_at)}</span>
+              </p>
+              {(r.email || r.contact) && (
+                <p className="mt-1 text-sm">
+                  <ContactLink contact={r.email || r.contact || ""} />
+                  {r.email && r.contact && r.email !== r.contact && (
+                    <span className="ml-2 text-xs text-bark-400">· {r.contact}</span>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+          {r.message && (
+            <p className="mt-2 rounded-xl bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
+              {r.message}
+            </p>
+          )}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              onClick={() => onAction(r.id, "approve")}
+              disabled={busyId === r.id}
+              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-status-vaccinated/15 py-2 text-sm font-semibold text-status-vaccinated disabled:opacity-50"
+            >
+              {busyId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Approve as partner
+            </button>
+            <button
+              onClick={() => onAction(r.id, "reject")}
+              disabled={busyId === r.id}
+              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black/[0.05] py-2 text-sm font-semibold text-bark-500 disabled:opacity-50 dark:bg-white/10"
+            >
+              <X className="h-4 w-4" /> Reject
+            </button>
           </div>
         </div>
       ))}

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Printer, FileText, PawPrint } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getMyNgo } from "@/lib/actions";
 import { coverage, medianResponseDays, HERD_THRESHOLD } from "@/lib/dashboard-metrics";
 import { formatDate } from "@/lib/utils";
 import type { Case, Dog } from "@/lib/types";
@@ -19,6 +20,20 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
   const [open, setOpen] = useState(false);
   const [ngoName, setNgoName] = useState("");
   const [logo, setLogo] = useState("");
+  const [ngoId, setNgoId] = useState<string | null>(null);
+
+  // Auto-fill the org name/logo and scope cases to the whole org (not just this
+  // one operator) for verified partners.
+  useEffect(() => {
+    getMyNgo()
+      .then((n) => {
+        if (!n) return;
+        setNgoId(n.id);
+        setNgoName((cur) => cur || n.name);
+        if (n.logo_url) setLogo((cur) => cur || n.logo_url!);
+      })
+      .catch(() => {});
+  }, [user?.id]);
 
   // Print the report in a fresh, isolated window — no app chrome, so the PDF is
   // a single clean page (printing the live page kept blank layout → many pages).
@@ -62,9 +77,14 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
   // stays the same for everyone and is labelled as such.
   const c = coverage(dogs);
 
-  // "Your cases" is scoped to the signed-in operator's own claimed cases — this
-  // is what makes each NGO's report individual.
-  const myCases = user ? cases.filter((x) => x.assignee_id === user.id) : [];
+  // "Your cases" is scoped to the whole ORG (all cases claimed by any member of
+  // your NGO) once you're a verified partner; falls back to the individual
+  // operator's own claimed cases if org attribution isn't set yet.
+  const myCases = ngoId
+    ? cases.filter((x) => x.ngo_id === ngoId)
+    : user
+    ? cases.filter((x) => x.assignee_id === user.id)
+    : [];
   // Only StrayPaw-verified outcomes count toward the impact figures.
   const myResolved = myCases.filter(
     (x) => (x.status === "resolved" || x.status === "closed") && x.proof_verified

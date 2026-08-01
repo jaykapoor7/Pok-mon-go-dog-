@@ -239,6 +239,7 @@ export interface Case {
   resolution: CaseResolution | null;
   assignee_id: string | null;
   assignee_name: string | null;
+  ngo_id: string | null; // claiming NGO's org (per-org attribution)
   created_by_id: string | null;
   created_by_name: string | null;
   created_at: string;

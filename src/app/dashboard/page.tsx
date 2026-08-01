@@ -1,4 +1,5 @@
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
+import { PartnerGate } from "@/components/partner/PartnerGate";
 import { getAllDogs, getNGOs, getRecentSightings } from "@/lib/data";
 import { getCases } from "@/lib/cases";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -31,8 +32,7 @@ async function getHelperCounts(): Promise<{ volunteers: number; ngos: number }> 
 }
 
 export default async function DashboardPage() {
-  // Real data (empty until there are live sightings/cases). The client overlays
-  // the shared demo seed when Demo mode is on — same source the map uses.
+  // Shared community pool (empty until there are live sightings/cases).
   const [dogs, ngos, sightings, cases, helperCounts] = await Promise.all([
     getAllDogs(),
     getNGOs(),
@@ -42,12 +42,14 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <DashboardClient
-      dogs={dogs}
-      cases={cases}
-      ngos={ngos}
-      sightings={sightings}
-      helperCounts={helperCounts}
-    />
+    <PartnerGate title="Partner console">
+      <DashboardClient
+        dogs={dogs}
+        cases={cases}
+        ngos={ngos}
+        sightings={sightings}
+        helperCounts={helperCounts}
+      />
+    </PartnerGate>
   );
 }

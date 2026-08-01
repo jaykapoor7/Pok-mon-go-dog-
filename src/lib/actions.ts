@@ -241,6 +241,54 @@ export async function isNgoMember(): Promise<boolean> {
   return data === true;
 }
 
+export interface PartnerRequestInput {
+  orgName: string;
+  area?: string;
+  contact?: string;
+  message?: string;
+}
+
+/** Submit (or re-submit) a request for verified-partner access. */
+export async function requestPartnerAccess(input: PartnerRequestInput): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { error } = await supa.rpc("request_partner_access", {
+    p_org_name: input.orgName,
+    p_area: input.area || null,
+    p_contact: input.contact || null,
+    p_message: input.message || null,
+  });
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+/** Does the signed-in user have a pending partner request? */
+export async function getMyPartnerRequestStatus(): Promise<string | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data } = await supa
+    .from("partner_requests")
+    .select("status")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data?.status as string) ?? null;
+}
+
+/** The signed-in member's org (ngos) row, for funder-report auto-fill + badge. */
+export async function getMyNgo(): Promise<{ id: string; name: string; logo_url: string | null } | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data: ngoId } = await supa.rpc("my_ngo");
+  if (!ngoId) return null;
+  const { data } = await supa
+    .from("ngos")
+    .select("id, name, logo_url")
+    .eq("id", ngoId)
+    .maybeSingle();
+  return data ? { id: data.id, name: data.name, logo_url: data.logo_url ?? null } : null;
+}
+
 /** NGO-only: update a dog's care flags from the dashboard (returns false if not
  *  a verified member — the RPC enforces it). */
 export async function ngoSetDogCare(

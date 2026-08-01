@@ -158,8 +158,11 @@ export function CaseControls({ c }: { c: Case }) {
             <Lock className="h-4 w-4 text-paw-500" /> Verified partners only
           </p>
           <p className="mt-1 text-bark-500">
-            Claiming and resolving cases is limited to verified partner NGOs. Register
-            your rescue from the Help page and we&apos;ll get you set up.
+            Claiming and resolving cases is limited to verified partner NGOs.{" "}
+            <a href="/dashboard" className="font-semibold text-paw-600 hover:underline">
+              Request partner access
+            </a>{" "}
+            and we&apos;ll set you up.
           </p>
         </div>
       )}

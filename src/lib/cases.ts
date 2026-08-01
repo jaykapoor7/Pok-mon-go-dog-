@@ -29,6 +29,7 @@ function mapCase(r: any): Case {
     resolution: r.resolution ?? null,
     assignee_id: r.assignee_id ?? null,
     assignee_name: r.assignee_name ?? null,
+    ngo_id: r.ngo_id ?? null,
     created_by_id: r.created_by_id ?? null,
     created_by_name: r.created_by_name ?? null,
     created_at: r.created_at,
