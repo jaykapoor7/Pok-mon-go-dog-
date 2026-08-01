@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { sendSightingLiveEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,6 +90,22 @@ export async function POST(req: Request) {
       p_sighting_id: body.id,
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Notify the reporter if they left an email (best-effort; never blocks).
+    try {
+      const { data: s } = await supa
+        .from("sightings")
+        .select("reporter_email, reporter_name, dog_id")
+        .eq("id", body.id)
+        .single();
+      const dogId = s?.dog_id ?? (data as { dog_id?: string } | null)?.dog_id ?? null;
+      if (s?.reporter_email && dogId) {
+        void sendSightingLiveEmail(s.reporter_email, s.reporter_name ?? null, dogId);
+      }
+    } catch {
+      /* email is non-critical */
+    }
+
     return NextResponse.json({ ok: true, result: data });
   }
 

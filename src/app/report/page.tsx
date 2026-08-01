@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -38,6 +38,7 @@ export default function ReportPage() {
   const [nickname, setNickname] = useState("");
   const [moods, setMoods] = useState<MoodTag[]>([]);
   const [notes, setNotes] = useState("");
+  const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -48,6 +49,11 @@ export default function ReportPage() {
   const [c3, setC3] = useState(false);
 
   const handleVerify = useCallback((t: string | null) => setToken(t), []);
+
+  // Pre-fill the notify email for signed-in users (they can clear it).
+  useEffect(() => {
+    if (user?.email) setEmail((cur) => cur || user.email!);
+  }, [user?.email]);
 
   // Reporting is open to everyone (guests included). Signing in just lets you
   // edit/delete the sighting later from any device — see the banner below.
@@ -88,6 +94,7 @@ export default function ReportPage() {
         moods,
         notes: notes.trim(),
         reporterName: user?.name ?? "",
+        reporterEmail: email.trim() || undefined,
         token,
       });
       setStatus("done");
@@ -108,6 +115,7 @@ export default function ReportPage() {
     setNickname("");
     setMoods([]);
     setNotes("");
+    setEmail(user?.email ?? "");
     setToken(null);
     setC1(false);
     setC2(false);
@@ -269,6 +277,25 @@ export default function ReportPage() {
               placeholder="Seen near the chai stall, limps slightly, very friendly…"
               className="w-full resize-none rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
             />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold">
+              Email me when it&apos;s live{" "}
+              <span className="font-normal text-bark-400">(optional)</span>
+            </label>
+            <input
+              type="email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@email.com"
+              className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
+            />
+            <p className="mt-1.5 text-xs text-bark-400">
+              We&apos;ll email you once this sighting is approved and on the map. Only
+              about your reports — no spam.
+            </p>
           </div>
 
           <button

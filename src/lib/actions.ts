@@ -29,6 +29,7 @@ export interface ReportInput {
   moods: string[];
   notes?: string;
   reporterName?: string;
+  reporterEmail?: string; // optional — notify when the sighting goes live
   token?: string | null; // Cloudflare Turnstile token
 }
 
@@ -105,6 +106,7 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
       moods: input.moods,
       notes: input.notes || null,
       reporterName: input.reporterName || null,
+      reporterEmail: input.reporterEmail || null,
     }),
   });
 

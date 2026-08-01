@@ -98,6 +98,7 @@ export async function POST(req: Request) {
     p_reporter_name: body.reporterName ? String(body.reporterName) : null,
     p_owner_hash: ownerHash,
     p_user_id: userId,
+    p_reporter_email: body.reporterEmail ? String(body.reporterEmail) : null,
   });
 
   if (error) {
