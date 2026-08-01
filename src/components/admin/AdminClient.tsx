@@ -130,6 +130,7 @@ export function AdminClient() {
   const [dogs, setDogs] = useState<AdminDog[]>([]);
   const [feedingZones, setFeedingZones] = useState<AdminFeedingZone[]>([]);
   const [partnerRequests, setPartnerRequests] = useState<AdminPartnerRequest[]>([]);
+  const [exportingEmails, setExportingEmails] = useState(false);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -376,6 +377,34 @@ export function AdminClient() {
     }
   }
 
+  // Download the opted-in reporter email list as CSV.
+  async function exportEmails() {
+    setExportingEmails(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/emails", {
+        headers: { Authorization: `Bearer ${secret}` },
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Export failed.");
+        haptic("error");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `straypaw-reporters-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Network error.");
+    } finally {
+      setExportingEmails(false);
+    }
+  }
+
   // Approve / reject an NGO partner-access request.
   async function partnerAction(id: string, action: "approve" | "reject") {
     setBusyId(id);
@@ -495,6 +524,16 @@ export function AdminClient() {
           Moderation
         </h1>
         <div className="flex items-center gap-2">
+          <button
+            onClick={exportEmails}
+            disabled={exportingEmails}
+            aria-label="Export reporter emails"
+            title="Export reporter emails (CSV)"
+            className="flex h-10 items-center justify-center gap-1.5 rounded-2xl border border-black/10 px-3 text-xs font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+          >
+            {exportingEmails ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+            Emails
+          </button>
           <button
             onClick={() => load(secret)}
             disabled={loading}

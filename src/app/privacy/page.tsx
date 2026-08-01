@@ -13,8 +13,15 @@ export default function PrivacyPage() {
       <p>
         When you report a sighting we store the photo you upload, the location
         you attach, any tags or notes you add, and the display name you choose.
-        We do not require an email or password, and we do not collect precise
+        Reporting requires no email or password, and we do not collect precise
         device identifiers for advertising.
+      </p>
+      <p>
+        You may optionally leave an email address so we can notify you when your
+        sighting is approved and goes live. If you do, we keep that email to send
+        you updates about your own reports and, occasionally, about StrayPaw. We
+        never sell it or share it with advertisers. To have your email removed,
+        contact us via the Contact page.
       </p>
       <H2>What stays on your device</H2>
       <p>
