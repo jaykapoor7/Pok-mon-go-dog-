@@ -38,9 +38,20 @@ export interface ReportResult {
   trust: number;
 }
 
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8 MB
+const ALLOWED_IMAGE = /^image\/(jpe?g|png|webp|heic|heif|gif)$/i;
+
 export async function uploadPhoto(file: File): Promise<string> {
   const supa = getSupabase();
   if (!supa) throw new Error("not configured");
+  // Constrain anonymous uploads (type + size) to curb spam/cost. A matching
+  // bucket policy in Supabase Storage should enforce the same server-side.
+  if (file.type && !ALLOWED_IMAGE.test(file.type)) {
+    throw new Error("Please upload an image (JPG, PNG, WebP or HEIC).");
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    throw new Error("That image is over 8 MB — please pick a smaller one.");
+  }
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supa.storage
