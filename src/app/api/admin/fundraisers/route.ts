@@ -88,6 +88,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, id: data?.id });
   }
 
+  if (body.action === "approve") {
+    if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
+    const { error } = await supa
+      .from("fundraisers")
+      .update({ status: "active" })
+      .eq("id", body.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
   if (body.action === "feature") {
     if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
     const { error } = await supa

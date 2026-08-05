@@ -146,6 +146,7 @@ export function AdminClient() {
   const [feedingZones, setFeedingZones] = useState<AdminFeedingZone[]>([]);
   const [partnerRequests, setPartnerRequests] = useState<AdminPartnerRequest[]>([]);
   const [fundraisers, setFundraisers] = useState<AdminFundraiser[]>([]);
+  const [discoveringFunds, setDiscoveringFunds] = useState(false);
   const [exportingEmails, setExportingEmails] = useState(false);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
@@ -462,6 +463,60 @@ export function AdminClient() {
     }
   }
 
+  // Discover candidate campaigns from the web → pending review queue.
+  async function discoverFundraisers() {
+    setDiscoveringFunds(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/fundraisers/discover", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}` },
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(j.error || "Discovery failed.");
+        haptic("error");
+        return;
+      }
+      haptic("success");
+      await loadFundraisers(secret);
+      if ((j.inserted ?? 0) === 0) {
+        setError(
+          j.found ? "Found candidates but all were already in the list." : "No new candidates found this run."
+        );
+      }
+    } catch {
+      setError("Network error.");
+    } finally {
+      setDiscoveringFunds(false);
+    }
+  }
+
+  // Approve a pending (discovered) campaign → publish it.
+  async function approveFundraiser(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/fundraisers", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "approve", id }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        return;
+      }
+      haptic("success");
+      setFundraisers((prev) => prev.map((f) => (f.id === id ? { ...f, status: "active" } : f)));
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   // Curate a reputable rescue's existing campaign.
   async function createCuratedFundraiser(payload: Record<string, unknown>): Promise<boolean> {
     setError(null);
@@ -692,6 +747,9 @@ export function AdminClient() {
         <FundraisersModList
           fundraisers={fundraisers}
           busyId={busyId}
+          discovering={discoveringFunds}
+          onDiscover={discoverFundraisers}
+          onApprove={approveFundraiser}
           onCreate={createCuratedFundraiser}
           onToggleFeature={toggleFeatureFundraiser}
           onDelete={deleteFundraiser}
@@ -1210,16 +1268,24 @@ function PartnerRequestsList({
 function FundraisersModList({
   fundraisers,
   busyId,
+  discovering,
+  onDiscover,
+  onApprove,
   onCreate,
   onToggleFeature,
   onDelete,
 }: {
   fundraisers: AdminFundraiser[];
   busyId: string | null;
+  discovering: boolean;
+  onDiscover: () => void;
+  onApprove: (id: string) => void;
   onCreate: (payload: Record<string, unknown>) => Promise<boolean>;
   onToggleFeature: (id: string, featured: boolean) => void;
   onDelete: (id: string) => void;
 }) {
+  const pending = fundraisers.filter((f) => f.status === "pending");
+  const live = fundraisers.filter((f) => f.status !== "pending");
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -1251,11 +1317,65 @@ function FundraisersModList({
 
   return (
     <div className="space-y-3">
-      {!adding ? (
-        <button onClick={() => setAdding(true)} className="btn-primary w-full py-3 text-sm">
-          <HeartHandshake className="h-4 w-4" /> Add a reputable campaign
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={onDiscover} disabled={discovering} className="btn-ghost py-3 text-sm">
+          {discovering ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          Discover from web
         </button>
-      ) : (
+        {!adding && (
+          <button onClick={() => setAdding(true)} className="btn-primary py-3 text-sm">
+            <HeartHandshake className="h-4 w-4" /> Add campaign
+          </button>
+        )}
+      </div>
+
+      {/* pending review queue (discovered candidates — not public yet) */}
+      {pending.length > 0 && (
+        <div className="card p-3">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-status-hungry">
+            To review · {pending.length} discovered
+          </p>
+          <div className="space-y-2">
+            {pending.map((f) => (
+              <div key={f.id} className="rounded-xl bg-black/[0.03] p-3 dark:bg-white/[0.04]">
+                <p className="text-sm font-semibold leading-snug">{f.title}</p>
+                <p className="mt-0.5 text-xs text-bark-400">{f.created_by_name}</p>
+                <a
+                  href={f.donate_url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="mt-1 inline-flex items-center gap-0.5 break-all text-xs font-semibold text-paw-600"
+                >
+                  {f.donate_url} <ExternalLink className="h-3 w-3 shrink-0" />
+                </a>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => onApprove(f.id)}
+                    disabled={busyId === f.id}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-status-vaccinated/15 py-2 text-xs font-semibold text-status-vaccinated disabled:opacity-50"
+                  >
+                    {busyId === f.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    Approve &amp; publish
+                  </button>
+                  <button
+                    onClick={() => onDelete(f.id)}
+                    disabled={busyId === f.id}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black/[0.05] py-2 text-xs font-semibold text-bark-500 disabled:opacity-50 dark:bg-white/10"
+                  >
+                    <X className="h-3.5 w-3.5" /> Dismiss
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] text-bark-400">
+            Discovered from the web — check each is a legit rescue before publishing;
+            approving badges it as a StrayPaw pick.
+          </p>
+        </div>
+      )}
+
+      {adding && (
         <div className="card space-y-2.5 p-4">
           <p className="text-sm font-semibold">Curate a reputable rescue&apos;s campaign</p>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Campaign title" className={field} />
@@ -1273,12 +1393,12 @@ function FundraisersModList({
         </div>
       )}
 
-      {fundraisers.length === 0 ? (
+      {live.length === 0 ? (
         <div className="card p-8 text-center text-sm text-bark-500">
-          No fundraisers yet. Add a reputable campaign above, or wait for partners to post.
+          No live fundraisers yet. Discover candidates or add one above, or wait for partners.
         </div>
       ) : (
-        fundraisers.map((f) => (
+        live.map((f) => (
           <div key={f.id} className={`card p-4 ${f.status !== "active" ? "opacity-60" : ""}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
