@@ -32,12 +32,18 @@ export default function DonatePage() {
         </a>
       )}
 
-      <H2>Back a rescue directly</H2>
+      <H2>Fund a rescue directly</H2>
       <p>
         The biggest impact is supporting the NGOs doing the on-ground work —
-        feeding, vaccinating, sterilising and rescuing. Find verified partners and
-        their outcomes on the dashboard.
+        clearing vet bills, sterilisation drives and emergencies. Their live
+        fundraisers link straight to each rescue&apos;s own donation channel.
       </p>
+      <Link
+        href="/fundraisers"
+        className="btn-primary mt-1 inline-flex w-full items-center justify-center gap-2 py-3 text-base"
+      >
+        <HeartHandshake className="h-5 w-5" /> See NGO fundraisers
+      </Link>
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"

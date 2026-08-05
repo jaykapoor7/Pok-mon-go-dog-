@@ -302,6 +302,38 @@ export interface FeedingZoneCheckin {
   created_at: string;
 }
 
+export interface Fundraiser {
+  id: string;
+  ngo_id: string | null;
+  title: string;
+  story: string | null;
+  category: string;
+  goal_amount: number | null;
+  currency: string;
+  donate_url: string;
+  cover_photo: string | null;
+  deadline: string | null;
+  raised_reported: number | null;
+  status: string;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export const FUNDRAISER_CATEGORIES: { value: string; label: string; emoji: string }[] = [
+  { value: "medical", label: "Medical", emoji: "🏥" },
+  { value: "bills", label: "Pending bills", emoji: "🧾" },
+  { value: "sterilisation", label: "Sterilisation", emoji: "✂️" },
+  { value: "food", label: "Food", emoji: "🍗" },
+  { value: "shelter", label: "Shelter", emoji: "🏠" },
+  { value: "emergency", label: "Emergency", emoji: "🚨" },
+  { value: "other", label: "General", emoji: "🐾" },
+];
+
+export function fundraiserCategory(value: string) {
+  return FUNDRAISER_CATEGORIES.find((c) => c.value === value) ?? FUNDRAISER_CATEGORIES[6];
+}
+
 export const CASE_STATUS_META: Record<
   CaseStatus,
   { label: string; color: string }

@@ -22,6 +22,7 @@ import {
   HeartPulse,
   Utensils,
   Trash2,
+  ExternalLink,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -102,7 +103,19 @@ interface AdminFeedingZone {
   created_at: string;
 }
 
-type Tab = "queue" | "partners" | "verify" | "dogs" | "feeding" | "volunteers" | "ngos";
+interface AdminFundraiser {
+  id: string;
+  title: string;
+  category: string;
+  goal_amount: number | null;
+  raised_reported: number | null;
+  donate_url: string;
+  created_by_name: string | null;
+  status: string;
+  created_at: string;
+}
+
+type Tab = "queue" | "partners" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
 function ContactLink({ contact }: { contact: string }) {
@@ -130,6 +143,7 @@ export function AdminClient() {
   const [dogs, setDogs] = useState<AdminDog[]>([]);
   const [feedingZones, setFeedingZones] = useState<AdminFeedingZone[]>([]);
   const [partnerRequests, setPartnerRequests] = useState<AdminPartnerRequest[]>([]);
+  const [fundraisers, setFundraisers] = useState<AdminFundraiser[]>([]);
   const [exportingEmails, setExportingEmails] = useState(false);
   const [tab, setTab] = useState<Tab>("queue");
   const [loading, setLoading] = useState(false);
@@ -198,6 +212,21 @@ export function AdminClient() {
     }
   }, []);
 
+  // NGO fundraisers (moderation / takedown).
+  const loadFundraisers = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/fundraisers", {
+        headers: { Authorization: `Bearer ${s}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      setFundraisers(j.fundraisers ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   // Pending NGO partner-access requests.
   const loadPartners = useCallback(async (s: string) => {
     try {
@@ -249,13 +278,14 @@ export function AdminClient() {
         loadDogs(s);
         loadFeedingZones(s);
         loadPartners(s);
+        loadFundraisers(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers, loadCases, loadDogs, loadFeedingZones, loadPartners]
+    [loadHelpers, loadCases, loadDogs, loadFeedingZones, loadPartners, loadFundraisers]
   );
 
   useEffect(() => {
@@ -430,6 +460,31 @@ export function AdminClient() {
     }
   }
 
+  // Take down a fundraiser (spam / fraud / resolved).
+  async function deleteFundraiser(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/fundraisers", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        return;
+      }
+      haptic("success");
+      setFundraisers((prev) => prev.filter((f) => f.id !== id));
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   // Remove a spam/duplicate feeding zone.
   async function deleteFeedingZone(id: string) {
     setBusyId(id);
@@ -468,6 +523,7 @@ export function AdminClient() {
     setDogs([]);
     setFeedingZones([]);
     setPartnerRequests([]);
+    setFundraisers([]);
     setVolunteers([]);
     setNgos([]);
     setInput("");
@@ -559,6 +615,7 @@ export function AdminClient() {
         <TabButton active={tab === "verify"} onClick={() => setTab("verify")} icon={<ShieldCheck className="h-4 w-4" />} label="Verify" count={pendingCases.length} />
         <TabButton active={tab === "dogs"} onClick={() => setTab("dogs")} icon={<PawPrint className="h-4 w-4" />} label="Dogs" count={dogs.length} />
         <TabButton active={tab === "feeding"} onClick={() => setTab("feeding")} icon={<Utensils className="h-4 w-4" />} label="Feeding" count={feedingZones.length} />
+        <TabButton active={tab === "fundraisers"} onClick={() => setTab("fundraisers")} icon={<HeartHandshake className="h-4 w-4" />} label="Funds" count={fundraisers.length} />
         <TabButton active={tab === "volunteers"} onClick={() => setTab("volunteers")} icon={<HandHelping className="h-4 w-4" />} label="Volunteers" count={volunteers.length} />
         <TabButton active={tab === "ngos"} onClick={() => setTab("ngos")} icon={<HeartHandshake className="h-4 w-4" />} label="NGOs" count={ngos.length} />
       </div>
@@ -580,6 +637,9 @@ export function AdminClient() {
       )}
       {tab === "feeding" && (
         <FeedingZonesModList zones={feedingZones} busyId={busyId} onDelete={deleteFeedingZone} />
+      )}
+      {tab === "fundraisers" && (
+        <FundraisersModList fundraisers={fundraisers} busyId={busyId} onDelete={deleteFundraiser} />
       )}
       {tab === "volunteers" && (
         <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
@@ -1083,6 +1143,72 @@ function PartnerRequestsList({
               className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black/[0.05] py-2 text-sm font-semibold text-bark-500 disabled:opacity-50 dark:bg-white/10"
             >
               <X className="h-4 w-4" /> Reject
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FundraisersModList({
+  fundraisers,
+  busyId,
+  onDelete,
+}: {
+  fundraisers: AdminFundraiser[];
+  busyId: string | null;
+  onDelete: (id: string) => void;
+}) {
+  if (fundraisers.length === 0) {
+    return (
+      <div className="card p-10 text-center">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <HeartHandshake className="h-7 w-7" />
+        </span>
+        <h2 className="font-display text-lg font-bold">No fundraisers</h2>
+        <p className="mt-1 text-sm text-bark-500">
+          Partner NGO fundraisers appear here. Take down anything that looks off.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {fundraisers.map((f) => (
+        <div key={f.id} className={`card p-4 ${f.status !== "active" ? "opacity-60" : ""}`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <a
+                href={`/fundraisers/${f.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold hover:text-paw-600"
+              >
+                {f.title}
+              </a>
+              <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-bark-400">
+                <span className="capitalize">{f.category}</span>
+                {f.created_by_name && <span>{f.created_by_name}</span>}
+                {f.status !== "active" && <span className="uppercase">{f.status}</span>}
+                <span>{timeAgo(f.created_at)}</span>
+              </p>
+              <a
+                href={f.donate_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="mt-1 inline-flex items-center gap-0.5 break-all text-xs font-semibold text-paw-600"
+              >
+                {f.donate_url} <ExternalLink className="h-3 w-3 shrink-0" />
+              </a>
+            </div>
+            <button
+              onClick={() => onDelete(f.id)}
+              disabled={busyId === f.id}
+              aria-label="Take down"
+              className="shrink-0 rounded-full p-1.5 text-bark-400 hover:bg-status-injured/10 hover:text-status-injured disabled:opacity-50"
+            >
+              {busyId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             </button>
           </div>
         </div>

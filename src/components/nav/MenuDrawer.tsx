@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Newspaper,
   Utensils,
+  HeartHandshake,
 } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -26,6 +27,7 @@ const PRIMARY = [
   { href: "/", label: "Today", icon: Home },
   { href: "/map", label: "Explore map", icon: MapIcon },
   { href: "/help", label: "Help a dog", icon: HandHelping },
+  { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake },
   { href: "/feeding", label: "Feeding zones", icon: Utensils },
   { href: "/news", label: "News & orders", icon: Newspaper },
   { href: "/feed", label: "Sightings feed", icon: Images },
