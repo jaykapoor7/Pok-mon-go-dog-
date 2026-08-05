@@ -27,17 +27,17 @@ export default async function FundraisersPage() {
       <header className="mb-5">
         <h1 className="font-display text-3xl font-extrabold tracking-tightest">Fundraisers</h1>
         <p className="mt-1 text-sm text-bark-500">
-          Help verified rescues cover vet bills, sterilisation and emergencies. Every
-          campaign links straight to the NGO&apos;s own donation channel — StrayPaw
-          never handles the money.
+          Reputable rescues raising for vet bills, sterilisation and emergencies —
+          partner NGOs and campaigns we&apos;ve vetted. Every one links straight to
+          the rescue&apos;s own donation channel; StrayPaw never handles the money.
         </p>
       </header>
 
       {fundraisers.length === 0 ? (
         <EmptyState
           icon={<HeartHandshake className="h-7 w-7" />}
-          title="No active fundraisers"
-          description="When a verified partner NGO starts a campaign, it'll appear here."
+          title="No active fundraisers yet"
+          description="Vetted rescue campaigns and partner NGO fundraisers will appear here soon."
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

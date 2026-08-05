@@ -315,6 +315,7 @@ export interface Fundraiser {
   deadline: string | null;
   raised_reported: number | null;
   status: string;
+  featured: boolean;
   created_by_id: string | null;
   created_by_name: string | null;
   created_at: string;

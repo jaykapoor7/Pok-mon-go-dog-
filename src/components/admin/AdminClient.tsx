@@ -110,8 +110,10 @@ interface AdminFundraiser {
   goal_amount: number | null;
   raised_reported: number | null;
   donate_url: string;
+  created_by_id: string | null;
   created_by_name: string | null;
   status: string;
+  featured: boolean;
   created_at: string;
 }
 
@@ -460,6 +462,54 @@ export function AdminClient() {
     }
   }
 
+  // Curate a reputable rescue's existing campaign.
+  async function createCuratedFundraiser(payload: Record<string, unknown>): Promise<boolean> {
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/fundraisers", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create", ...payload }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Couldn't add campaign.");
+        haptic("error");
+        return false;
+      }
+      haptic("success");
+      await loadFundraisers(secret);
+      return true;
+    } catch {
+      setError("Network error.");
+      return false;
+    }
+  }
+
+  async function toggleFeatureFundraiser(id: string, featured: boolean) {
+    setBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/fundraisers", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "feature", id, featured }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Action failed.");
+        haptic("error");
+        return;
+      }
+      haptic("success");
+      setFundraisers((prev) => prev.map((f) => (f.id === id ? { ...f, featured } : f)));
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   // Take down a fundraiser (spam / fraud / resolved).
   async function deleteFundraiser(id: string) {
     setBusyId(id);
@@ -639,7 +689,13 @@ export function AdminClient() {
         <FeedingZonesModList zones={feedingZones} busyId={busyId} onDelete={deleteFeedingZone} />
       )}
       {tab === "fundraisers" && (
-        <FundraisersModList fundraisers={fundraisers} busyId={busyId} onDelete={deleteFundraiser} />
+        <FundraisersModList
+          fundraisers={fundraisers}
+          busyId={busyId}
+          onCreate={createCuratedFundraiser}
+          onToggleFeature={toggleFeatureFundraiser}
+          onDelete={deleteFundraiser}
+        />
       )}
       {tab === "volunteers" && (
         <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
@@ -1154,65 +1210,109 @@ function PartnerRequestsList({
 function FundraisersModList({
   fundraisers,
   busyId,
+  onCreate,
+  onToggleFeature,
   onDelete,
 }: {
   fundraisers: AdminFundraiser[];
   busyId: string | null;
+  onCreate: (payload: Record<string, unknown>) => Promise<boolean>;
+  onToggleFeature: (id: string, featured: boolean) => void;
   onDelete: (id: string) => void;
 }) {
-  if (fundraisers.length === 0) {
-    return (
-      <div className="card p-10 text-center">
-        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-          <HeartHandshake className="h-7 w-7" />
-        </span>
-        <h2 className="font-display text-lg font-bold">No fundraisers</h2>
-        <p className="mt-1 text-sm text-bark-500">
-          Partner NGO fundraisers appear here. Take down anything that looks off.
-        </p>
-      </div>
-    );
+  const [adding, setAdding] = useState(false);
+  const [title, setTitle] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [donateUrl, setDonateUrl] = useState("");
+  const [cover, setCover] = useState("");
+  const [story, setStory] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (!title.trim() || !orgName.trim() || !donateUrl.trim()) return;
+    setBusy(true);
+    const ok = await onCreate({
+      title: title.trim(),
+      orgName: orgName.trim(),
+      donateUrl: donateUrl.trim(),
+      coverPhoto: cover.trim() || undefined,
+      story: story.trim() || undefined,
+      category: "other",
+    });
+    setBusy(false);
+    if (ok) {
+      setTitle(""); setOrgName(""); setDonateUrl(""); setCover(""); setStory("");
+      setAdding(false);
+    }
   }
+
+  const field =
+    "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+
   return (
     <div className="space-y-3">
-      {fundraisers.map((f) => (
-        <div key={f.id} className={`card p-4 ${f.status !== "active" ? "opacity-60" : ""}`}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <a
-                href={`/fundraisers/${f.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold hover:text-paw-600"
-              >
-                {f.title}
-              </a>
-              <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-bark-400">
-                <span className="capitalize">{f.category}</span>
-                {f.created_by_name && <span>{f.created_by_name}</span>}
-                {f.status !== "active" && <span className="uppercase">{f.status}</span>}
-                <span>{timeAgo(f.created_at)}</span>
-              </p>
-              <a
-                href={f.donate_url}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className="mt-1 inline-flex items-center gap-0.5 break-all text-xs font-semibold text-paw-600"
-              >
-                {f.donate_url} <ExternalLink className="h-3 w-3 shrink-0" />
-              </a>
-            </div>
-            <button
-              onClick={() => onDelete(f.id)}
-              disabled={busyId === f.id}
-              aria-label="Take down"
-              className="shrink-0 rounded-full p-1.5 text-bark-400 hover:bg-status-injured/10 hover:text-status-injured disabled:opacity-50"
-            >
-              {busyId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+      {!adding ? (
+        <button onClick={() => setAdding(true)} className="btn-primary w-full py-3 text-sm">
+          <HeartHandshake className="h-4 w-4" /> Add a reputable campaign
+        </button>
+      ) : (
+        <div className="card space-y-2.5 p-4">
+          <p className="text-sm font-semibold">Curate a reputable rescue&apos;s campaign</p>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Campaign title" className={field} />
+          <input value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="NGO / rescue name" className={field} />
+          <input value={donateUrl} onChange={(e) => setDonateUrl(e.target.value)} placeholder="Their campaign / donation link (Milaap, Ketto, GiveIndia…)" className={field} />
+          <input value={cover} onChange={(e) => setCover(e.target.value)} placeholder="Cover image URL (optional)" className={field} />
+          <textarea value={story} onChange={(e) => setStory(e.target.value)} rows={3} placeholder="Short description / why you trust them (optional)" className={`${field} resize-none`} />
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => setAdding(false)} className="btn-ghost py-2.5 text-sm">Cancel</button>
+            <button onClick={submit} disabled={busy || !title.trim() || !orgName.trim() || !donateUrl.trim()} className="btn-primary py-2.5 text-sm">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Publish (featured)
             </button>
           </div>
         </div>
-      ))}
+      )}
+
+      {fundraisers.length === 0 ? (
+        <div className="card p-8 text-center text-sm text-bark-500">
+          No fundraisers yet. Add a reputable campaign above, or wait for partners to post.
+        </div>
+      ) : (
+        fundraisers.map((f) => (
+          <div key={f.id} className={`card p-4 ${f.status !== "active" ? "opacity-60" : ""}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <a href={`/fundraisers/${f.id}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-paw-600">
+                  {f.title}
+                </a>
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-bark-400">
+                  <span className="capitalize">{f.category}</span>
+                  {f.created_by_name && <span>{f.created_by_name}</span>}
+                  <span className="text-paw-500">{f.created_by_id ? "partner" : "curated"}</span>
+                  {f.status !== "active" && <span className="uppercase">{f.status}</span>}
+                  <span>{timeAgo(f.created_at)}</span>
+                </p>
+                <a href={f.donate_url} target="_blank" rel="noopener noreferrer nofollow" className="mt-1 inline-flex items-center gap-0.5 break-all text-xs font-semibold text-paw-600">
+                  {f.donate_url} <ExternalLink className="h-3 w-3 shrink-0" />
+                </a>
+              </div>
+              <button onClick={() => onDelete(f.id)} disabled={busyId === f.id} aria-label="Take down" className="shrink-0 rounded-full p-1.5 text-bark-400 hover:bg-status-injured/10 hover:text-status-injured disabled:opacity-50">
+                {busyId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              </button>
+            </div>
+            <button
+              onClick={() => onToggleFeature(f.id, !f.featured)}
+              disabled={busyId === f.id}
+              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
+                f.featured ? "bg-paw-500 text-white" : "bg-black/[0.06] text-bark-500 dark:bg-white/10"
+              }`}
+            >
+              <Check className="h-3.5 w-3.5" />
+              {f.featured ? "Featured · unfeature" : "Feature this"}
+            </button>
+          </div>
+        ))
+      )}
     </div>
   );
 }

@@ -48,10 +48,13 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         <span className="chip bg-paw-100 font-semibold text-paw-700">
           {cat.emoji} {cat.label}
         </span>
-        {f.created_by_name && (
-          <span className="inline-flex items-center gap-1 font-semibold text-status-sterilised">
-            <ShieldCheck className="h-3.5 w-3.5" /> {f.created_by_name}
+        {f.featured && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-paw-500 px-2.5 py-1 font-bold text-white">
+            <ShieldCheck className="h-3.5 w-3.5" /> StrayPaw pick
           </span>
+        )}
+        {f.created_by_name && (
+          <span className="font-semibold text-bark-600 dark:text-bark-300">{f.created_by_name}</span>
         )}
       </div>
 

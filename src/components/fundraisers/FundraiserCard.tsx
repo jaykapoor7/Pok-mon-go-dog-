@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock } from "lucide-react";
+import { Clock, BadgeCheck } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { formatINR } from "@/lib/fundraisers";
 import { timeAgo } from "@/lib/utils";
@@ -13,10 +13,22 @@ export function FundraiserCard({ f }: { f: Fundraiser }) {
       : null;
 
   return (
-    <Link href={`/fundraisers/${f.id}`} className="card card-interactive block overflow-hidden">
-      {f.cover_photo && (
-        <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="h-40 w-full" />
-      )}
+    <Link
+      href={`/fundraisers/${f.id}`}
+      className={`card card-interactive block overflow-hidden ${
+        f.featured ? "ring-1 ring-paw-300 dark:ring-paw-500/40" : ""
+      }`}
+    >
+      <div className="relative">
+        {f.cover_photo && (
+          <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="h-40 w-full" />
+        )}
+        {f.featured && (
+          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
+            <BadgeCheck className="h-3.5 w-3.5" /> StrayPaw pick
+          </span>
+        )}
+      </div>
       <div className="p-4">
         <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
           <span className="chip bg-paw-100 font-semibold text-paw-700">

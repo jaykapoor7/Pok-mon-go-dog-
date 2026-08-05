@@ -21,6 +21,7 @@ function mapFundraiser(r: any): Fundraiser {
     deadline: r.deadline ?? null,
     raised_reported: r.raised_reported ?? null,
     status: r.status ?? "active",
+    featured: r.featured ?? false,
     created_by_id: r.created_by_id ?? null,
     created_by_name: r.created_by_name ?? null,
     created_at: r.created_at,
@@ -34,6 +35,7 @@ export async function getFundraisers(limit = 100): Promise<Fundraiser[]> {
     .from("fundraisers")
     .select("*")
     .eq("status", "active")
+    .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
   return (data ?? []).map(mapFundraiser);
