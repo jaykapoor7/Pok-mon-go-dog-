@@ -15,12 +15,14 @@ import {
   ShieldCheck,
   ShieldQuestion,
   Camera,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   claimCase,
   updateCaseStatus,
   addCaseNote,
+  setCaseCost,
 } from "@/lib/case-actions";
 import { isNgoMember, uploadPhoto } from "@/lib/actions";
 import type { Case, CaseResolution, CaseStatus } from "@/lib/types";
@@ -42,6 +44,11 @@ export function CaseControls({ c }: { c: Case }) {
 
   // Verified-partner-NGO gate (claim/update is restricted to ngo_members).
   const [ngoMember, setNgoMember] = useState<boolean | null>(null);
+
+  // Cost tracking (handler / NGO member).
+  const [costOpen, setCostOpen] = useState(false);
+  const [estimate, setEstimate] = useState(c.cost_estimate?.toString() ?? "");
+  const [spent, setSpent] = useState(c.cost_spent?.toString() ?? "");
 
   // Resolution proof.
   const [resolution, setResolution] = useState<CaseResolution | null>(null);
@@ -329,6 +336,49 @@ export function CaseControls({ c }: { c: Case }) {
           <Send className="h-4 w-4" />
         </button>
       </div>
+
+      {/* cost — handler or verified NGO member */}
+      {(ngoMember || c.assignee_id === user?.id) && (
+        <div className="rounded-2xl border border-black/[0.06] dark:border-white/10">
+          <button
+            onClick={() => setCostOpen((o) => !o)}
+            className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-bark-700 dark:text-bark-200"
+          >
+            <span className="flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-paw-600" /> Cost tracking
+            </span>
+            <span className="text-xs text-bark-400">{costOpen ? "Hide" : "Edit"}</span>
+          </button>
+          {costOpen && (
+            <div className="space-y-3 border-t border-black/[0.06] p-4 dark:border-white/10">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-bark-500">Estimated (₹)</label>
+                  <input type="number" inputMode="numeric" value={estimate} onChange={(e) => setEstimate(e.target.value)} className="w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-bark-500">Spent so far (₹)</label>
+                  <input type="number" inputMode="numeric" value={spent} onChange={(e) => setSpent(e.target.value)} className="w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
+                </div>
+              </div>
+              <button
+                onClick={() =>
+                  run(() =>
+                    setCaseCost(c.id, {
+                      estimate: estimate === "" ? null : Math.max(0, parseInt(estimate, 10) || 0),
+                      spent: spent === "" ? null : Math.max(0, parseInt(spent, 10) || 0),
+                    })
+                  )
+                }
+                disabled={busy}
+                className="btn-primary w-full py-2.5 text-sm"
+              >
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Save cost
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

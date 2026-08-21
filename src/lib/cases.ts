@@ -42,6 +42,8 @@ function mapCase(r: any): Case {
     outcome_note: r.outcome_note ?? null,
     proof_verified: r.proof_verified ?? false,
     verified_at: r.verified_at ?? null,
+    cost_estimate: r.cost_estimate ?? null,
+    cost_spent: r.cost_spent ?? null,
   };
 }
 

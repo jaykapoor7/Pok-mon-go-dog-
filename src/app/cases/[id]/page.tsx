@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin, Clock, Dog as DogIcon } from "lucide-react";
 import { getCaseById } from "@/lib/cases";
 import { CASE_CATEGORY_META } from "@/lib/types";
+import { formatINR } from "@/lib/fundraisers";
 import { timeAgo, formatDate } from "@/lib/utils";
 import {
   CaseStatusBadge,
@@ -97,6 +98,24 @@ export default async function CasePage({
           </Link>
         )}
       </div>
+
+      {/* cost — transparency on what the rescue takes */}
+      {(c.cost_estimate != null || c.cost_spent != null) && (
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-bark-900">
+            <p className="text-xs text-bark-500">Estimated cost</p>
+            <p className="mt-0.5 font-display text-xl font-extrabold tracking-tightest">
+              {c.cost_estimate != null ? formatINR(c.cost_estimate) : "—"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-bark-900">
+            <p className="text-xs text-bark-500">Spent so far</p>
+            <p className="mt-0.5 font-display text-xl font-extrabold tracking-tightest">
+              {c.cost_spent != null ? formatINR(c.cost_spent) : "—"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* catch & return location — street dogs are territorial */}
       {c.lat != null && c.lng != null && (

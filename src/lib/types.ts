@@ -266,6 +266,8 @@ export interface Case {
   outcome_note?: string | null;
   proof_verified?: boolean; // a StrayPaw admin has verified the outcome proof
   verified_at?: string | null;
+  cost_estimate?: number | null; // planned cost, INR
+  cost_spent?: number | null; // spent to date, INR
 }
 
 export interface CaseUpdate {

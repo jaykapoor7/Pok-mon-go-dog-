@@ -127,3 +127,19 @@ export async function addCaseNote(caseId: string, actor: Actor, note: string) {
     p_note: note,
   });
 }
+
+/** Handler/NGO-only: set the estimated and/or spent cost for a case (INR). */
+export async function setCaseCost(
+  caseId: string,
+  patch: { estimate?: number | null; spent?: number | null }
+): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("set_case_cost", {
+    p_case_id: caseId,
+    p_estimate: patch.estimate ?? null,
+    p_spent: patch.spent ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
