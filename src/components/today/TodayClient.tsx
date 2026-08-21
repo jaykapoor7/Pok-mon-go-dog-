@@ -81,23 +81,18 @@ export function TodayClient({
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6 lg:max-w-6xl">
-      <header className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tightest sm:text-4xl">
-            {greeting()}
-          </h1>
+      <header className="mb-5">
+        <h1 className="font-display text-3xl font-extrabold tracking-tightest sm:text-4xl">
+          {greeting()}
           {firstName && (
-            <p className="mt-0.5 font-display text-lg font-bold text-paw-600 dark:text-paw-400">
-              {firstName}
-            </p>
+            <span className="text-paw-600 dark:text-paw-400">, {firstName}</span>
           )}
-        </div>
+        </h1>
+        {/* one-line hero: what StrayPaw is, for first-time visitors */}
+        <p className="mt-1.5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
+          Spot a dog → drop a pin → partner NGOs take it from there.
+        </p>
       </header>
-
-      {/* one-line hero: what StrayPaw is, for first-time visitors */}
-      <p className="mb-5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
-        Spot a dog → drop a pin → partner NGOs take it from there.
-      </p>
 
       {/* dogs you follow (device-local) */}
       {following.length > 0 && (
