@@ -88,7 +88,7 @@ export default async function DogProfilePage({
         </div>
         <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
           <div className="min-w-0">
-            <h1 className="font-display text-3xl font-extrabold">{dogLabel(dog)}</h1>
+            <h1 className="font-display text-3xl font-extrabold tracking-tightest">{dogLabel(dog)}</h1>
             <p className="flex items-center gap-1.5 text-sm opacity-90">
               <MapPin className="h-4 w-4" /> Around {dog.zone} · {dog.size} · {dog.color}
             </p>
