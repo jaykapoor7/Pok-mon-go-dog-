@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin, getSupabase } from "@/lib/supabase";
 import { notifyTelegram, moderateUrl } from "@/lib/telegram";
+import { allowRequest, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,14 @@ export async function POST(req: Request) {
   const contact = (body.contact ?? "").trim();
   if (!name || !contact) {
     return NextResponse.json({ error: "Name and contact are required." }, { status: 400 });
+  }
+
+  // Throttle: max 5 sign-ups per IP per hour.
+  if (!(await allowRequest(clientIp(req), "helper", 5, 3600))) {
+    return NextResponse.json(
+      { error: "Too many submissions. Please try again later." },
+      { status: 429 }
+    );
   }
 
   const supa = getSupabaseAdmin() ?? getSupabase();

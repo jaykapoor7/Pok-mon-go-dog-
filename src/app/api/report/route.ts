@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { getSupabaseAdmin, getSupabase } from "@/lib/supabase";
 import { notifyTelegram, moderateUrl } from "@/lib/telegram";
+import { allowRequest } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,14 @@ export async function POST(req: Request) {
     req.headers.get("CF-Connecting-IP") ??
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     null;
+
+  // Throttle: max 8 reports per IP per 10 minutes.
+  if (!(await allowRequest(ip, "report", 8, 600))) {
+    return NextResponse.json(
+      { error: "You're reporting very fast. Please wait a moment and try again." },
+      { status: 429 }
+    );
+  }
 
   const ok = await verifyTurnstile((body.token as string) ?? null, ip);
   if (!ok) {

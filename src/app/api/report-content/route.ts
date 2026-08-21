@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin, getSupabase } from "@/lib/supabase";
 import { notifyTelegram, moderateUrl } from "@/lib/telegram";
+import { allowRequest, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,14 @@ export async function POST(req: Request) {
   const reason = (body.reason ?? "").trim();
   if (!reason) {
     return NextResponse.json({ error: "A reason is required." }, { status: 400 });
+  }
+
+  // Throttle: max 10 reports per IP per hour.
+  if (!(await allowRequest(clientIp(req), "report_content", 10, 3600))) {
+    return NextResponse.json(
+      { error: "Too many reports. Please try again later." },
+      { status: 429 }
+    );
   }
 
   const supa = getSupabaseAdmin() ?? getSupabase();
