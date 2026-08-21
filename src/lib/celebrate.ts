@@ -3,7 +3,7 @@
 import confetti from "canvas-confetti";
 import { haptic } from "@/lib/haptics";
 
-const WARM = ["#2f5fa6", "#5a8fcf", "#D9A441", "#C06A86", "#3E8473"];
+const WARM = ["#0e7bcc", "#369ae0", "#D9A441", "#C06A86", "#3E8473"];
 
 /** A warm burst of confetti for successful helpful actions. */
 export function celebrate() {

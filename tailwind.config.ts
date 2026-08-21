@@ -10,20 +10,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Azure-on-cream brand palette. `paw` stays the token name so the whole
-        // app re-skins from here without per-component edits — a confident,
-        // trustworthy azure that reads premium against warm cream surfaces.
+        // Cerulean-on-cream brand palette. `paw` stays the token name so the
+        // whole app re-skins from here — a bright, clean azure that feels fresh
+        // and distinctive against warm cream (not a dull corporate navy).
         paw: {
-          50: "#eff4fb",
-          100: "#dbe8f7", // --azure-tint
-          200: "#bcd3ef",
-          300: "#8fb4e2",
-          400: "#5a8fcf",
-          500: "#2f5fa6", // --azure (primary)
-          600: "#254b84", // --azure-deep (active/hover)
-          700: "#1f3f6d", // --azure-ink
-          800: "#1b3459",
-          900: "#172a48",
+          50: "#ecf6fd",
+          100: "#d2eafb", // --azure-tint
+          200: "#a9d5f6",
+          300: "#72baed",
+          400: "#369ae0",
+          500: "#0e7bcc", // --azure (primary, AA on white)
+          600: "#0c65a8", // --azure-deep (active/hover)
+          700: "#0d5488", // --azure-ink
+          800: "#114972",
+          900: "#123c5e",
         },
         bark: {
           // Warm neutral greige — pairs a cool azure accent with warmth, the
@@ -63,7 +63,7 @@ const config: Config = {
       },
       boxShadow: {
         // Soft, minimal elevation — premium, never noisy.
-        warm: "0 8px 24px -10px rgba(37, 75, 132, 0.30)",
+        warm: "0 8px 24px -10px rgba(14, 123, 204, 0.30)",
         card: "0 1px 2px rgba(17, 17, 19, 0.04), 0 14px 34px -18px rgba(17, 17, 19, 0.18)",
         sheet: "0 -8px 40px -16px rgba(17, 17, 19, 0.28)",
         pop: "0 12px 36px -14px rgba(17, 17, 19, 0.30)",

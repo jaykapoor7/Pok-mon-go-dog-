@@ -54,7 +54,7 @@ export default function OpengraphImage() {
               fontSize: 132,
               fontWeight: 800,
               letterSpacing: "-0.04em",
-              color: "#254b84",
+              color: "#0c65a8",
               lineHeight: 1,
             }}
           >
@@ -66,7 +66,7 @@ export default function OpengraphImage() {
             marginTop: 26,
             fontSize: 40,
             fontWeight: 700,
-            color: "#254b84",
+            color: "#0c65a8",
             textAlign: "center",
           }}
         >
@@ -77,7 +77,7 @@ export default function OpengraphImage() {
             marginTop: 10,
             fontSize: 28,
             fontWeight: 500,
-            color: "#2f5fa6",
+            color: "#0e7bcc",
             textAlign: "center",
           }}
         >
