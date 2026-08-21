@@ -411,7 +411,7 @@ export default function ReportPage() {
                 })}
               </p>
               <div className="mt-6 space-y-2">
-                <Link href="/" className="btn-primary w-full py-3">
+                <Link href="/app" className="btn-primary w-full py-3">
                   Back to the map <ArrowRight className="h-4 w-4" />
                 </Link>
                 <button onClick={resetForm} className="btn-ghost w-full py-3">

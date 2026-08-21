@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -24,7 +25,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { SocialLinks } from "./SocialLinks";
 
 const PRIMARY = [
-  { href: "/", label: "Today", icon: Home },
+  { href: "/app", label: "Today", icon: Home },
   { href: "/map", label: "Explore map", icon: MapIcon },
   { href: "/help", label: "Help a dog", icon: HandHelping },
   { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake },
@@ -76,7 +77,7 @@ export function MenuDrawer({
             className="fixed inset-y-0 right-0 z-[61] flex w-[85%] max-w-sm flex-col bg-white shadow-2xl dark:bg-bark-900"
           >
             <div className="flex items-center justify-between border-b border-bark-100 p-4 dark:border-bark-800">
-              <img src="/logo.png" alt="StrayPaw" className="h-9 w-auto" />
+              <Logo size="md" />
               <button
                 onClick={onClose}
                 className="rounded-full p-2 text-bark-500 hover:bg-bark-100 dark:hover:bg-bark-800"

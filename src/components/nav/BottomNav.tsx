@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -24,7 +25,7 @@ type Item = {
 };
 
 const ITEMS: Item[] = [
-  { key: "today", href: "/", label: "Today", icon: Home },
+  { key: "today", href: "/app", label: "Today", icon: Home },
   { key: "map", href: "/map", label: "Map", icon: MapIcon },
   { key: "report", href: "/report", label: "Report", icon: Plus, gated: true },
   { key: "help", href: "/help", label: "Help", icon: HandHelping },
@@ -34,7 +35,7 @@ const ITEMS: Item[] = [
 function useActive() {
   const pathname = usePathname();
   return (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+    href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 }
 
 export function BottomNav() {
@@ -117,9 +118,9 @@ function DesktopRail() {
         aria-label="Primary"
         className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-black/[0.07] bg-paper/95 px-4 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-ink/95 lg:flex"
       >
-        <Link href="/" aria-label="StrayPaw home" className="mb-7 block px-2">
-          <img src="/logo.png" alt="StrayPaw" className="h-14 w-auto" />
-          <p className="mt-1.5 text-[11px] font-medium leading-tight text-bark-400">
+        <Link href="/app" aria-label="StrayPaw home" className="mb-7 block px-2">
+          <Logo size="lg" />
+          <p className="mt-2 text-[11px] font-medium leading-tight text-bark-400">
             Open-sourcing stray-dog care · for the people, by the people
           </p>
         </Link>

@@ -3,8 +3,7 @@ import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { FloatingTopBar } from "@/components/nav/FloatingTopBar";
-import { BottomNav } from "@/components/nav/BottomNav";
+import { Chrome } from "@/components/nav/Chrome";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
@@ -78,7 +77,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6E7A45",
+  themeColor: "#2f5fa6",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -102,9 +101,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <Haptics />
-            <FloatingTopBar />
-            <main className="lg:pl-60">{children}</main>
-            <BottomNav />
+            <Chrome>{children}</Chrome>
             <InstallPrompt />
           </AuthProvider>
         </ThemeProvider>

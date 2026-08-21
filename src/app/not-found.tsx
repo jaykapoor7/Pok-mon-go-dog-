@@ -13,7 +13,7 @@ export default function NotFound() {
         back to the dogs.
       </p>
       <div className="mt-6 flex gap-3">
-        <Link href="/" className="btn-primary px-6 py-3">
+        <Link href="/app" className="btn-primary px-6 py-3">
           <ArrowLeft className="h-4 w-4" /> Home
         </Link>
         <Link href="/map" className="btn-ghost px-6 py-3">

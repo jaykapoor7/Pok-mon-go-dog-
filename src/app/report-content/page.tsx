@@ -56,7 +56,7 @@ export default function ReportContentPage() {
           Thank you. Our team will review this and take action if it breaks our
           Community Guidelines.
         </p>
-        <Link href="/" className="btn-primary mt-5 px-6 py-3">
+        <Link href="/app" className="btn-primary mt-5 px-6 py-3">
           Back to the map
         </Link>
       </div>
@@ -66,7 +66,7 @@ export default function ReportContentPage() {
   return (
     <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
       <Link
-        href="/"
+        href="/app"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
       >
         <ArrowLeft className="h-4 w-4" /> Back to the map

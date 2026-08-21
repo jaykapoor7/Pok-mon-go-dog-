@@ -10,37 +10,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Olive brand palette (from the StrayPaw logo). `paw` stays the token
-        // name so the whole app re-skins from here without per-component edits.
+        // Azure-on-cream brand palette. `paw` stays the token name so the whole
+        // app re-skins from here without per-component edits — a confident,
+        // trustworthy azure that reads premium against warm cream surfaces.
         paw: {
-          50: "#f3f5ec",
-          100: "#E9ECD9", // --olive-tint
-          200: "#d7ddbd",
-          300: "#b9c391",
-          400: "#8f9c5f",
-          500: "#6E7A45", // --olive (primary)
-          600: "#515C30", // --olive-deep (active/hover)
-          700: "#3D4522", // --olive-ink
-          800: "#2f351a",
-          900: "#232711",
+          50: "#eff4fb",
+          100: "#dbe8f7", // --azure-tint
+          200: "#bcd3ef",
+          300: "#8fb4e2",
+          400: "#5a8fcf",
+          500: "#2f5fa6", // --azure (primary)
+          600: "#254b84", // --azure-deep (active/hover)
+          700: "#1f3f6d", // --azure-ink
+          800: "#1b3459",
+          900: "#172a48",
         },
         bark: {
-          50: "#f6f5f0",
-          100: "#e7e6dd",
-          200: "#d6d4c7",
-          300: "#a3a292",
-          400: "#6b6c5e", // darkened for AA contrast on cream; dark mode re-lightens it (globals.css)
-          600: "#54564a",
-          700: "#3f4138",
-          800: "#26271E", // --ink-surface
-          900: "#1C1D17", // --ink (warm dark bg)
-          950: "#121309",
+          // Warm neutral greige — pairs a cool azure accent with warmth, the
+          // premium "warm neutrals + cool accent" combination.
+          50: "#f7f5f0",
+          100: "#eceae3",
+          200: "#dcd9d0",
+          300: "#a8a49a",
+          400: "#6f6c64", // darkened for AA contrast on cream; dark mode re-lightens it (globals.css)
+          600: "#57544d",
+          700: "#413f39",
+          800: "#1f222b", // --ink-surface
+          900: "#14161c", // --ink (deep slate bg)
+          950: "#0d0f14",
         },
         // Brand surfaces.
         cream: "#F4F0E1",
-        paper: "#FBF8EE",
-        ink: "#1C1D17",
-        "ink-surface": "#26271E",
+        paper: "#FAF7F0",
+        ink: "#14161c",
+        "ink-surface": "#1f222b",
         // Status system (olive-compatible). Markers + badges read from here.
         status: {
           seen: "#9A9C88",
@@ -60,7 +63,7 @@ const config: Config = {
       },
       boxShadow: {
         // Soft, minimal elevation — premium, never noisy.
-        warm: "0 8px 24px -10px rgba(81, 92, 48, 0.34)",
+        warm: "0 8px 24px -10px rgba(37, 75, 132, 0.30)",
         card: "0 1px 2px rgba(17, 17, 19, 0.04), 0 14px 34px -18px rgba(17, 17, 19, 0.18)",
         sheet: "0 -8px 40px -16px rgba(17, 17, 19, 0.28)",
         pop: "0 12px 36px -14px rgba(17, 17, 19, 0.30)",

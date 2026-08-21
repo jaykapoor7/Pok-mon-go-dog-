@@ -69,7 +69,7 @@ export default function DonatePage() {
         the map more useful for the dogs and the rescues that help them.
       </p>
       <Link
-        href="/"
+        href="/app"
         className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
       >
         <Share2 className="h-4 w-4" /> Back to the map
