@@ -330,8 +330,23 @@ export interface Fundraiser {
   raised_reported: number | null;
   status: string;
   featured: boolean;
+  budget: BudgetLine[];
+  outcome: string | null;
   created_by_id: string | null;
   created_by_name: string | null;
+  created_at: string;
+}
+
+export interface BudgetLine {
+  label: string;
+  amount: number;
+}
+
+export interface FundraiserUpdate {
+  id: string;
+  fundraiser_id: string;
+  body: string;
+  photo_url: string | null;
   created_at: string;
 }
 

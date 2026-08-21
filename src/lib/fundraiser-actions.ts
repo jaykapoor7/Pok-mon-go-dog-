@@ -1,6 +1,7 @@
 "use client";
 
 import { getSupabase } from "./supabase";
+import type { BudgetLine } from "./types";
 
 export interface Actor {
   id: string;
@@ -59,6 +60,39 @@ export async function updateFundraiser(
     p_donate_url: patch.donateUrl ?? null,
     p_deadline: patch.deadline ?? null,
     p_status: patch.status ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+/** Owner-only: post a progress update (optionally with a photo). */
+export async function addFundraiserUpdate(
+  fundraiserId: string,
+  body: string,
+  photoUrl?: string | null
+): Promise<string | null> {
+  const supa = getSupabase();
+  if (!supa) return "demo-update";
+  const { data, error } = await supa.rpc("add_fundraiser_update", {
+    p_fundraiser_id: fundraiserId,
+    p_body: body,
+    p_photo_url: photoUrl ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return (data as string) ?? null;
+}
+
+/** Owner-only: set the use-of-funds budget and/or the outcome note. */
+export async function setFundraiserDetails(
+  id: string,
+  patch: { budget?: BudgetLine[]; outcome?: string | null }
+): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("set_fundraiser_details", {
+    p_id: id,
+    p_budget: patch.budget ?? null,
+    p_outcome: patch.outcome ?? null,
   });
   if (error) throw new Error(error.message);
   return data === true;

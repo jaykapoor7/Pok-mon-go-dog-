@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Clock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ExternalLink, Clock, ShieldCheck, Wallet, CheckCircle2, Megaphone } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { Logo } from "@/components/brand/Logo";
+import { VerifiedBadge } from "@/components/org/VerifiedBadge";
 import { FundraiserOwnerControls } from "@/components/fundraisers/FundraiserOwnerControls";
-import { getFundraiserById, formatINR } from "@/lib/fundraisers";
+import { getFundraiserById, getFundraiserUpdates, formatINR } from "@/lib/fundraisers";
+import { getOrgById } from "@/lib/data";
 import { fundraiserCategory } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -23,13 +26,19 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function FundraiserPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const f = await getFundraiserById(id);
-  if (!f || f.status !== "active") notFound();
+  if (!f || (f.status !== "active" && f.status !== "closed")) notFound();
+
+  const [org, updates] = await Promise.all([
+    f.ngo_id ? getOrgById(f.ngo_id) : Promise.resolve(null),
+    getFundraiserUpdates(f.id),
+  ]);
 
   const cat = fundraiserCategory(f.category);
   const pct =
     f.goal_amount && f.raised_reported
       ? Math.min(100, Math.round((f.raised_reported / f.goal_amount) * 100))
       : null;
+  const budgetTotal = f.budget.reduce((s, l) => s + (l.amount || 0), 0);
 
   return (
     <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
@@ -59,6 +68,34 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       </div>
 
       <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tightest">{f.title}</h1>
+
+      {/* Who's running this — the credibility link */}
+      {org && (
+        <Link
+          href={`/org/${org.slug ?? org.id}`}
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-white p-3 dark:border-white/10 dark:bg-bark-900"
+        >
+          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-black/[0.06] bg-white dark:border-white/10 dark:bg-bark-900">
+            {org.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={org.logo_url} alt={org.name} className="h-full w-full object-cover" />
+            ) : (
+              <Logo size="sm" showWordmark={false} />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-bark-900 dark:text-bark-50">{org.name}</p>
+            <p className="text-xs text-bark-500">View organization</p>
+          </div>
+          <VerifiedBadge verified={org.verified} size="sm" />
+        </Link>
+      )}
+
+      {f.status === "closed" && (
+        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-bark-100 px-3 py-1 text-xs font-semibold text-bark-500 dark:bg-bark-800">
+          This campaign has closed
+        </p>
+      )}
 
       {f.goal_amount != null && (
         <div className="mt-4">
@@ -90,6 +127,67 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-bark-700 dark:text-bark-200">
           {f.story}
         </p>
+      )}
+
+      {/* Use of funds — the transparency a funder looks for */}
+      {f.budget.length > 0 && (
+        <section className="mt-6">
+          <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tightest">
+            <Wallet className="h-4 w-4 text-paw-600" /> Use of funds
+          </h2>
+          <div className="mt-3 overflow-hidden rounded-2xl border border-black/[0.06] dark:border-white/10">
+            {f.budget.map((line, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-3 border-b border-black/[0.05] px-4 py-3 text-sm last:border-0 dark:border-white/10"
+              >
+                <span className="text-bark-700 dark:text-bark-200">{line.label}</span>
+                <span className="font-semibold text-bark-900 dark:text-bark-50">{formatINR(line.amount)}</span>
+              </div>
+            ))}
+            {budgetTotal > 0 && (
+              <div className="flex items-center justify-between gap-3 bg-bark-50 px-4 py-3 text-sm font-bold dark:bg-bark-800">
+                <span>Total</span>
+                <span>{formatINR(budgetTotal)}</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Outcome — shown once the org reports it */}
+      {f.outcome && (
+        <section className="mt-6 rounded-2xl border border-status-vaccinated/30 bg-status-vaccinated/10 p-4">
+          <h2 className="flex items-center gap-2 font-display text-base font-extrabold tracking-tight text-status-vaccinated">
+            <CheckCircle2 className="h-4 w-4" /> Outcome
+          </h2>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-bark-700 dark:text-bark-200">
+            {f.outcome}
+          </p>
+        </section>
+      )}
+
+      {/* Updates — the running story supporters follow */}
+      {updates.length > 0 && (
+        <section className="mt-6">
+          <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tightest">
+            <Megaphone className="h-4 w-4 text-paw-600" /> Updates
+          </h2>
+          <div className="mt-3 space-y-4 border-l-2 border-black/[0.06] pl-4 dark:border-white/10">
+            {updates.map((u) => (
+              <div key={u.id} className="relative">
+                <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-paw-500" />
+                <p className="text-xs text-bark-400">{formatDate(u.created_at)}</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-bark-700 dark:text-bark-200">
+                  {u.body}
+                </p>
+                {u.photo_url && (
+                  <DogPhoto src={u.photo_url} alt="update" seed={u.id} className="mt-2 aspect-video w-full rounded-2xl" />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Donate — links out to the NGO's own channel */}

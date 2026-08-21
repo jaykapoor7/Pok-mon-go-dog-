@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
-import type { Fundraiser } from "./types";
+import type { Fundraiser, FundraiserUpdate } from "./types";
 
 export function mapFundraiser(r: any): Fundraiser {
   return {
@@ -22,6 +22,8 @@ export function mapFundraiser(r: any): Fundraiser {
     raised_reported: r.raised_reported ?? null,
     status: r.status ?? "active",
     featured: r.featured ?? false,
+    budget: Array.isArray(r.budget) ? r.budget : [],
+    outcome: r.outcome ?? null,
     created_by_id: r.created_by_id ?? null,
     created_by_name: r.created_by_name ?? null,
     created_at: r.created_at,
@@ -59,6 +61,23 @@ export async function getFundraiserById(id: string): Promise<Fundraiser | null> 
   if (!supa) return null;
   const { data } = await supa.from("fundraisers").select("*").eq("id", id).maybeSingle();
   return data ? mapFundraiser(data) : null;
+}
+
+export async function getFundraiserUpdates(fundraiserId: string): Promise<FundraiserUpdate[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa
+    .from("fundraiser_updates")
+    .select("id, fundraiser_id, body, photo_url, created_at")
+    .eq("fundraiser_id", fundraiserId)
+    .order("created_at", { ascending: false });
+  return (data ?? []).map((u: any) => ({
+    id: u.id,
+    fundraiser_id: u.fundraiser_id,
+    body: u.body,
+    photo_url: u.photo_url ?? null,
+    created_at: u.created_at,
+  }));
 }
 
 /** Format an INR amount for display, e.g. ₹12,500. */
