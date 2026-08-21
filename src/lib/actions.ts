@@ -10,6 +10,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
+import { mapOrg } from "./data";
+import { mapFundraiser } from "./fundraisers";
+import type { NGO, Fundraiser } from "./types";
 import {
   newOwnerToken,
   rememberOwner,
@@ -300,6 +303,67 @@ export async function getMyNgo(): Promise<{ id: string; name: string; logo_url: 
     .eq("id", ngoId)
     .maybeSingle();
   return data ? { id: data.id, name: data.name, logo_url: data.logo_url ?? null } : null;
+}
+
+/** The caller's full organization profile (verified members only). */
+export async function getMyOrg(): Promise<NGO | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data: ngoId } = await supa.rpc("my_ngo");
+  if (!ngoId) return null;
+  const { data } = await supa.from("ngos").select("*").eq("id", ngoId).maybeSingle();
+  return data ? mapOrg(data) : null;
+}
+
+/** All campaigns owned by the caller's org (any status). */
+export async function getMyOrgCampaigns(): Promise<Fundraiser[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data: ngoId } = await supa.rpc("my_ngo");
+  if (!ngoId) return [];
+  const { data } = await supa
+    .from("fundraisers")
+    .select("*")
+    .eq("ngo_id", ngoId)
+    .order("created_at", { ascending: false });
+  return (data ?? []).map(mapFundraiser);
+}
+
+export interface OrgProfilePatch {
+  mission?: string;
+  about?: string;
+  website?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  city?: string;
+  state?: string;
+  areas_of_work?: string[];
+  logo_url?: string;
+  cover_photo?: string;
+  founded_year?: number | null;
+  registration_no?: string;
+}
+
+/** NGO-only: update the caller's own org profile (the RPC enforces membership). */
+export async function updateMyOrg(patch: OrgProfilePatch): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return false;
+  const { data, error } = await supa.rpc("ngo_update_profile", {
+    p_mission: patch.mission ?? null,
+    p_about: patch.about ?? null,
+    p_website: patch.website ?? null,
+    p_contact_email: patch.contact_email ?? null,
+    p_contact_phone: patch.contact_phone ?? null,
+    p_city: patch.city ?? null,
+    p_state: patch.state ?? null,
+    p_areas_of_work: patch.areas_of_work ?? null,
+    p_logo_url: patch.logo_url ?? null,
+    p_cover_photo: patch.cover_photo ?? null,
+    p_founded_year: patch.founded_year ?? null,
+    p_registration_no: patch.registration_no ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return (data as any)?.ok === true;
 }
 
 /** NGO-only: update a dog's care flags from the dashboard (returns false if not

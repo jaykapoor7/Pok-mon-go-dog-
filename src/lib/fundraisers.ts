@@ -7,7 +7,7 @@
 import { getSupabase } from "./supabase";
 import type { Fundraiser } from "./types";
 
-function mapFundraiser(r: any): Fundraiser {
+export function mapFundraiser(r: any): Fundraiser {
   return {
     id: r.id,
     ngo_id: r.ngo_id ?? null,

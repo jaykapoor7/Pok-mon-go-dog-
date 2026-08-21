@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Users, HeartPulse, ShieldCheck, Timer, ListChecks, BarChart3, HandHelping, HeartHandshake, ArrowRight } from "lucide-react";
+import { Users, HeartPulse, ShieldCheck, Timer, ListChecks, BarChart3, HandHelping, HeartHandshake, ArrowRight, Building2 } from "lucide-react";
+import { OrgManager } from "@/components/dashboard/OrgManager";
 import { CommandCenter } from "@/components/cases/CommandCenter";
 import { CaseReporting } from "@/components/cases/CaseReporting";
 import { HelpQueue } from "@/components/dashboard/HelpQueue";
@@ -18,7 +19,7 @@ import {
 import { cn, formatNumber } from "@/lib/utils";
 import type { Case, Dog, NGO, Sighting } from "@/lib/types";
 
-type Tab = "operate" | "impact";
+type Tab = "org" | "operate" | "impact";
 type HelperCounts = { volunteers: number; ngos: number };
 
 export function DashboardClient({
@@ -33,7 +34,7 @@ export function DashboardClient({
   sightings: Sighting[];
   helperCounts: HelperCounts;
 }) {
-  const [tab, setTab] = useState<Tab>("operate");
+  const [tab, setTab] = useState<Tab>("org");
 
   const cov = coverage(dogs);
   const median = medianResponseDays(cases);
@@ -56,8 +57,11 @@ export function DashboardClient({
         <Strip icon={<Timer className="h-4 w-4" />} value={median != null ? `${median}d` : "—"} label="median response" />
       </div>
 
-      {/* Operate / Impact toggle (internal to Partners, not a nav item). */}
-      <div className="mb-6 inline-flex rounded-full bg-bark-100 p-1 dark:bg-bark-800">
+      {/* Organization / Operate / Impact toggle (internal to Partners). */}
+      <div className="mb-6 inline-flex flex-wrap rounded-full bg-bark-100 p-1 dark:bg-bark-800">
+        <TabButton active={tab === "org"} onClick={() => setTab("org")} icon={<Building2 className="h-4 w-4" />}>
+          Organization
+        </TabButton>
         <TabButton active={tab === "operate"} onClick={() => setTab("operate")} icon={<ListChecks className="h-4 w-4" />}>
           Operate
         </TabButton>
@@ -66,7 +70,9 @@ export function DashboardClient({
         </TabButton>
       </div>
 
-      {tab === "operate" ? (
+      {tab === "org" ? (
+        <OrgManager />
+      ) : tab === "operate" ? (
         <Operate dogs={dogs} cases={cases} />
       ) : (
         <Impact dogs={dogs} cases={cases} ngos={ngos} helperCounts={helperCounts} />
