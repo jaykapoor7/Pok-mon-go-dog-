@@ -313,6 +313,7 @@ export default async function LandingPage() {
           <Logo size="sm" />
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-bark-500">
             <Link href="/app" className="hover:text-paw-600">Open app</Link>
+            <Link href="/orgs" className="hover:text-paw-600">Organizations</Link>
             <Link href="/fundraisers" className="hover:text-paw-600">Fundraisers</Link>
             <Link href="/about" className="hover:text-paw-600">About</Link>
             <Link href="/privacy" className="hover:text-paw-600">Privacy</Link>

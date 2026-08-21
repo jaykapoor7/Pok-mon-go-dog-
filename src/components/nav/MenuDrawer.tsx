@@ -19,6 +19,7 @@ import {
   Newspaper,
   Utensils,
   HeartHandshake,
+  Building2,
 } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -28,6 +29,7 @@ const PRIMARY = [
   { href: "/app", label: "Today", icon: Home },
   { href: "/map", label: "Explore map", icon: MapIcon },
   { href: "/help", label: "Help a dog", icon: HandHelping },
+  { href: "/orgs", label: "Organizations", icon: Building2 },
   { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake },
   { href: "/feeding", label: "Feeding zones", icon: Utensils },
   { href: "/news", label: "News & orders", icon: Newspaper },

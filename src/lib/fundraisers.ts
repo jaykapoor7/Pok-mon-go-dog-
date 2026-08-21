@@ -41,6 +41,19 @@ export async function getFundraisers(limit = 100): Promise<Fundraiser[]> {
   return (data ?? []).map(mapFundraiser);
 }
 
+/** Active campaigns for one organization (public — for its profile page). */
+export async function getFundraisersByOrg(ngoId: string): Promise<Fundraiser[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa
+    .from("fundraisers")
+    .select("*")
+    .eq("ngo_id", ngoId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
+  return (data ?? []).map(mapFundraiser);
+}
+
 export async function getFundraiserById(id: string): Promise<Fundraiser | null> {
   const supa = getSupabase();
   if (!supa) return null;

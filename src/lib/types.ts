@@ -100,6 +100,20 @@ export interface NGO {
   logo_url: string | null;
   dogs_helped: number;
   verified: boolean;
+  // Profile fields (org-profiles.sql). All optional — an org fills these in.
+  slug?: string | null;
+  mission?: string | null;
+  about?: string | null;
+  website?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  city?: string | null;
+  state?: string | null;
+  areas_of_work?: string[];
+  cover_photo?: string | null;
+  founded_year?: number | null;
+  registration_no?: string | null;
+  verified_at?: string | null;
 }
 
 export interface DogMatch {

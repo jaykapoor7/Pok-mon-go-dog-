@@ -255,17 +255,79 @@ export async function getNGOs(): Promise<NGO[]> {
       .select("*")
       .order("dogs_helped", { ascending: false });
     if (data && data.length) {
-      return data.map((n: any) => ({
-        id: n.id,
-        name: n.name,
-        area: n.area ?? "",
-        logo_url: n.logo_url ?? null,
-        dogs_helped: n.dogs_helped ?? 0,
-        verified: n.verified ?? false,
-      }));
+      return data.map(mapOrg);
     }
   }
   return [];
+}
+
+// Full org-profile mapper — used by the directory and public profile pages.
+export function mapOrg(n: any): NGO {
+  return {
+    id: n.id,
+    name: n.name,
+    area: n.area ?? "",
+    logo_url: n.logo_url ?? null,
+    dogs_helped: n.dogs_helped ?? 0,
+    verified: n.verified ?? false,
+    slug: n.slug ?? null,
+    mission: n.mission ?? null,
+    about: n.about ?? null,
+    website: n.website ?? null,
+    contact_email: n.contact_email ?? null,
+    contact_phone: n.contact_phone ?? null,
+    city: n.city ?? null,
+    state: n.state ?? null,
+    areas_of_work: n.areas_of_work ?? [],
+    cover_photo: n.cover_photo ?? null,
+    founded_year: n.founded_year ?? null,
+    registration_no: n.registration_no ?? null,
+    verified_at: n.verified_at ?? null,
+  };
+}
+
+// Public org directory — verified orgs first, then by impact.
+export async function getOrgs(): Promise<NGO[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa
+    .from("ngos")
+    .select("*")
+    .order("verified", { ascending: false })
+    .order("dogs_helped", { ascending: false });
+  return (data ?? []).map(mapOrg);
+}
+
+export async function getOrgBySlug(slug: string): Promise<NGO | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data } = await supa.from("ngos").select("*").eq("slug", slug).maybeSingle();
+  return data ? mapOrg(data) : null;
+}
+
+export async function getOrgById(id: string): Promise<NGO | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data } = await supa.from("ngos").select("*").eq("id", id).maybeSingle();
+  return data ? mapOrg(data) : null;
+}
+
+// Lightweight impact numbers for an org's public profile — real counts only.
+export async function getOrgImpact(
+  ngoId: string
+): Promise<{ casesResolved: number; casesActive: number; campaignsActive: number }> {
+  const supa = getSupabase();
+  if (!supa) return { casesResolved: 0, casesActive: 0, campaignsActive: 0 };
+  const [resolved, active, campaigns] = await Promise.all([
+    supa.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status", "resolved"),
+    supa.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).neq("status", "resolved"),
+    supa.from("fundraisers").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status", "active"),
+  ]);
+  return {
+    casesResolved: resolved.count ?? 0,
+    casesActive: active.count ?? 0,
+    campaignsActive: campaigns.count ?? 0,
+  };
 }
 
 export async function getDogsNeedingHelp(): Promise<Dog[]> {
