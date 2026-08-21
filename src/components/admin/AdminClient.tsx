@@ -23,6 +23,7 @@ import {
   Utensils,
   Trash2,
   ExternalLink,
+  Building2,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -677,20 +678,40 @@ export function AdminClient() {
     );
   }
 
-  // ── Queue ─────────────────────────────────────────────────
+  // ── Console ───────────────────────────────────────────────
+  const TABS: { key: Tab; label: string; icon: React.ReactNode; count: number }[] = [
+    { key: "queue", label: "Sightings", icon: <Clock className="h-4 w-4" />, count: items.length },
+    { key: "partners", label: "Partner requests", icon: <HeartHandshake className="h-4 w-4" />, count: partnerRequests.length },
+    { key: "verify", label: "Verify outcomes", icon: <ShieldCheck className="h-4 w-4" />, count: pendingCases.length },
+    { key: "dogs", label: "Dogs", icon: <PawPrint className="h-4 w-4" />, count: dogs.length },
+    { key: "feeding", label: "Feeding zones", icon: <Utensils className="h-4 w-4" />, count: feedingZones.length },
+    { key: "fundraisers", label: "Fundraisers", icon: <HeartHandshake className="h-4 w-4" />, count: fundraisers.length },
+    { key: "volunteers", label: "Volunteers", icon: <HandHelping className="h-4 w-4" />, count: volunteers.length },
+    { key: "ngos", label: "NGO leads", icon: <Building2 className="h-4 w-4" />, count: ngos.length },
+  ];
+  const activeTab = TABS.find((t) => t.key === tab);
+
   return (
-    <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">
-          Moderation
-        </h1>
+    <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-paw-500 text-white shadow-warm">
+            <ShieldCheck className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="font-display text-2xl font-extrabold tracking-tightest sm:text-3xl">
+              Moderation console
+            </h1>
+            <p className="text-xs text-bark-500">Review, verify and curate everything on StrayPaw.</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={exportEmails}
             disabled={exportingEmails}
             aria-label="Export reporter emails"
             title="Export reporter emails (CSV)"
-            className="flex h-10 items-center justify-center gap-1.5 rounded-2xl border border-black/10 px-3 text-xs font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+            className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-black/10 px-3 text-xs font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
           >
             {exportingEmails ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
             Emails
@@ -699,39 +720,49 @@ export function AdminClient() {
             onClick={() => load(secret)}
             disabled={loading}
             aria-label="Refresh"
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
           <button
             onClick={lock}
             aria-label="Lock"
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
           >
             <Lock className="h-4 w-4" />
           </button>
         </div>
       </header>
 
-      {/* tabs */}
-      <div className="mb-5 flex gap-1.5 rounded-2xl bg-black/[0.04] p-1 dark:bg-white/[0.05]">
-        <TabButton active={tab === "queue"} onClick={() => setTab("queue")} icon={<Clock className="h-4 w-4" />} label="Queue" count={items.length} />
-        <TabButton active={tab === "partners"} onClick={() => setTab("partners")} icon={<HeartHandshake className="h-4 w-4" />} label="Partners" count={partnerRequests.length} />
-        <TabButton active={tab === "verify"} onClick={() => setTab("verify")} icon={<ShieldCheck className="h-4 w-4" />} label="Verify" count={pendingCases.length} />
-        <TabButton active={tab === "dogs"} onClick={() => setTab("dogs")} icon={<PawPrint className="h-4 w-4" />} label="Dogs" count={dogs.length} />
-        <TabButton active={tab === "feeding"} onClick={() => setTab("feeding")} icon={<Utensils className="h-4 w-4" />} label="Feeding" count={feedingZones.length} />
-        <TabButton active={tab === "fundraisers"} onClick={() => setTab("fundraisers")} icon={<HeartHandshake className="h-4 w-4" />} label="Funds" count={fundraisers.length} />
-        <TabButton active={tab === "volunteers"} onClick={() => setTab("volunteers")} icon={<HandHelping className="h-4 w-4" />} label="Volunteers" count={volunteers.length} />
-        <TabButton active={tab === "ngos"} onClick={() => setTab("ngos")} icon={<HeartHandshake className="h-4 w-4" />} label="NGOs" count={ngos.length} />
-      </div>
+      <div className="lg:grid lg:grid-cols-[232px_1fr] lg:gap-8">
+        {/* sidebar nav — vertical on desktop, horizontal scroll on mobile */}
+        <aside className="no-scrollbar -mx-4 mb-5 flex gap-1.5 overflow-x-auto px-4 lg:mx-0 lg:mb-0 lg:flex-col lg:overflow-visible lg:px-0">
+          {TABS.map((t) => (
+            <TabButton
+              key={t.key}
+              active={tab === t.key}
+              onClick={() => setTab(t.key)}
+              icon={t.icon}
+              label={t.label}
+              count={t.count}
+            />
+          ))}
+        </aside>
 
-      {error && (
-        <p className="mb-4 rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
-          {error}
-        </p>
-      )}
+        {/* content column */}
+        <div className="min-w-0">
+          <div className="mb-4 hidden items-baseline gap-2 lg:flex">
+            <h2 className="font-display text-lg font-extrabold tracking-tightest">{activeTab?.label}</h2>
+            <span className="text-sm text-bark-400">{activeTab?.count ?? 0}</span>
+          </div>
 
-      {tab === "partners" && (
+          {error && (
+            <p className="mb-4 rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
+              {error}
+            </p>
+          )}
+
+          {tab === "partners" && (
         <PartnerRequestsList requests={partnerRequests} busyId={busyId} onAction={partnerAction} />
       )}
       {tab === "verify" && (
@@ -847,6 +878,8 @@ export function AdminClient() {
           </AnimatePresence>
         </div>
       ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -867,17 +900,17 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-colors sm:text-sm ${
+      className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full ${
         active
-          ? "bg-white text-paw-700 shadow-card dark:bg-bark-900 dark:text-paw-300"
-          : "text-bark-500 hover:text-bark-700 dark:text-bark-400"
+          ? "bg-paw-500 text-white shadow-warm"
+          : "text-bark-600 hover:bg-black/[0.05] dark:text-bark-300 dark:hover:bg-white/[0.06]"
       }`}
     >
       {icon}
-      <span>{label}</span>
+      <span className="lg:flex-1 lg:text-left">{label}</span>
       <span
         className={`rounded-full px-1.5 text-[11px] font-bold ${
-          active ? "bg-paw-100 text-paw-700" : "bg-black/[0.06] text-bark-500 dark:bg-white/10"
+          active ? "bg-white/25 text-white" : "bg-black/[0.06] text-bark-500 dark:bg-white/10 dark:text-bark-300"
         }`}
       >
         {count}
