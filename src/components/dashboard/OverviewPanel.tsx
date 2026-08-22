@@ -6,6 +6,7 @@ import { ArrowRight, Circle, CalendarClock, Activity } from "lucide-react";
 import { isOverdue, speciesLabel, type Case, type Dog, type Sighting } from "@/lib/types";
 import { timeAgo, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { TasksSection } from "@/components/partner/TasksSection";
 
 const isOpen = (c: Case) => c.status !== "resolved" && c.status !== "closed";
 
@@ -66,6 +67,9 @@ export function OverviewPanel({
         <Metric label="Follow-ups due" value={m.followDue} tone={m.followDue ? "text-status-hungry" : undefined} />
         <Metric label="Resolved · 30d" value={m.resolved30} tone={m.resolved30 ? "text-status-vaccinated" : undefined} />
       </div>
+
+      {/* Tasks — create + assign right here */}
+      {hrefBase === "/partner" && <TasksSection compact />}
 
       {/* Needs attention */}
       <Section title="Needs attention" href={casesHref} cta="All cases">

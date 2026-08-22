@@ -4,6 +4,7 @@ import { getCases } from "@/lib/cases";
 import { isOverdue, speciesLabel, type Case } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { CampsSection } from "@/components/partner/CampsSection";
+import { TasksSection } from "@/components/partner/TasksSection";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Field Work — StrayPaw Partner" };
@@ -48,7 +49,9 @@ export default async function PartnerFieldPage() {
       </header>
 
       <div className="space-y-8">
-        <Section title={`Tasks due (${tasks.length})`}>
+        <TasksSection />
+
+        <Section title={`Case follow-ups due (${tasks.length})`}>
           {tasks.length === 0 ? <Empty>No scheduled field tasks.</Empty> : (
             <List>
               {tasks.map((c) => {
