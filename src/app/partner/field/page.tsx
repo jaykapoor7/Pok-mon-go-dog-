@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Field Work — StrayPaw Partner" };
 
 const isOpen = (c: Case) => c.status !== "resolved" && c.status !== "closed";
+const isUrgent = (c: Case) => isOpen(c) && (c.severity === "critical" || c.severity === "high" || isOverdue(c));
 
 export default async function PartnerFieldPage() {
   const cases = await getCases();
@@ -22,6 +23,22 @@ export default async function PartnerFieldPage() {
   const byWorker = new Map<string, number>();
   for (const c of open) if (c.assignee_name) byWorker.set(c.assignee_name, (byWorker.get(c.assignee_name) ?? 0) + 1);
   const workers = [...byWorker.entries()].sort((a, b) => b[1] - a[1]);
+
+  // High-need areas — rank zones by open load, weighting urgent cases, so the
+  // org can plan camps and allocate resources where the need is greatest.
+  const byZone = new Map<string, { total: number; urgent: number }>();
+  for (const c of open) {
+    const z = (c.zone ?? "").trim() || "Unspecified";
+    const cur = byZone.get(z) ?? { total: 0, urgent: 0 };
+    cur.total += 1;
+    if (isUrgent(c)) cur.urgent += 1;
+    byZone.set(z, cur);
+  }
+  const areas = [...byZone.entries()]
+    .map(([zone, v]) => ({ zone, ...v, score: v.urgent * 2 + v.total }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8);
+  const maxScore = areas[0]?.score ?? 1;
 
   return (
     <div>
@@ -82,6 +99,25 @@ export default async function PartnerFieldPage() {
             </List>
           )}
         </Section>
+
+        <section>
+          <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">High-need areas</h2>
+          {areas.length === 0 ? <Empty>No open cases to rank.</Empty> : (
+            <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
+              {areas.map((a) => (
+                <div key={a.zone} className="border-b border-black/[0.06] px-4 py-3 last:border-0 dark:border-white/[0.06]">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{a.zone}</span>
+                    <span className="shrink-0 text-[12px] text-bark-400">{a.total} open{a.urgent > 0 ? ` · ${a.urgent} urgent` : ""}</span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-bark-100 dark:bg-bark-800">
+                    <div className="h-full rounded-full bg-paw-500" style={{ width: `${Math.round((a.score / maxScore) * 100)}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <CampsSection />
       </div>
