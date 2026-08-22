@@ -166,7 +166,7 @@ export function CaseControls({ c }: { c: Case }) {
           </p>
           <p className="mt-1 text-bark-500">
             Claiming and resolving cases is limited to verified partner NGOs.{" "}
-            <a href="/dashboard" className="font-semibold text-paw-600 hover:underline">
+            <a href="/partner" className="font-semibold text-paw-600 hover:underline">
               Request partner access
             </a>{" "}
             and we&apos;ll set you up.

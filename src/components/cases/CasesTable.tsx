@@ -27,7 +27,7 @@ function statusTone(c: Case): { dot: string; label: string } {
   return map[c.status];
 }
 
-export function CasesTable({ cases }: { cases: Case[] }) {
+export function CasesTable({ cases, hrefBase = "/cases" }: { cases: Case[]; hrefBase?: string }) {
   const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>("open");
   const [q, setQ] = useState("");
@@ -125,7 +125,7 @@ export function CasesTable({ cases }: { cases: Case[] }) {
               return (
                 <li key={c.id} className="border-b border-black/[0.06] last:border-0 dark:border-white/[0.06]">
                   <Link
-                    href={`/cases/${c.id}`}
+                    href={`${hrefBase}/${c.id}`}
                     className="grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03] sm:grid-cols-[1fr_120px_140px_110px] sm:gap-4"
                   >
                     {/* case */}

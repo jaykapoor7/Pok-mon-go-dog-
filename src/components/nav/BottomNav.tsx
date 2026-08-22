@@ -29,7 +29,7 @@ const ITEMS: Item[] = [
   { key: "map", href: "/map", label: "Map", icon: MapIcon },
   { key: "report", href: "/report", label: "Report", icon: Plus, gated: true },
   { key: "help", href: "/help", label: "Help", icon: HandHelping },
-  { key: "partners", href: "/dashboard", label: "Partners", icon: HeartHandshake },
+  { key: "partners", href: "/partner", label: "Partners", icon: HeartHandshake },
 ];
 
 function useActive() {

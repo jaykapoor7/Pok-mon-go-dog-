@@ -39,7 +39,17 @@ function statusTone(c: Case): { dot: string; label: string } {
   return map[c.status];
 }
 
-export function CaseWorkspace({ c, updates }: { c: Case; updates: CaseUpdate[] }) {
+export function CaseWorkspace({
+  c,
+  updates,
+  backHref = "/cases",
+  bare = false,
+}: {
+  c: Case;
+  updates: CaseUpdate[];
+  backHref?: string;
+  bare?: boolean;
+}) {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("overview");
   const [ngoMember, setNgoMember] = useState(false);
@@ -61,8 +71,8 @@ export function CaseWorkspace({ c, updates }: { c: Case; updates: CaseUpdate[] }
   ];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-32 pt-24 sm:px-6">
-      <Link href="/cases" className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
+    <div className={cn("mx-auto max-w-3xl", bare ? "pb-8" : "px-4 pb-32 pt-24 sm:px-6")}>
+      <Link href={backHref} className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
         <ArrowLeft className="h-4 w-4" /> Cases
       </Link>
 

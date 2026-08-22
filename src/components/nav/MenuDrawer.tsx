@@ -37,7 +37,7 @@ const PRIMARY = [
   { href: "/feed", label: "Sightings feed", icon: Images },
   { href: "/cases", label: "Cases", icon: ClipboardList },
   { href: "/surveys", label: "Surveys & census", icon: ClipboardCheck },
-  { href: "/dashboard", label: "NGO dashboard", icon: LayoutDashboard },
+  { href: "/partner", label: "NGO dashboard", icon: LayoutDashboard },
 ];
 
 export const INFO = [

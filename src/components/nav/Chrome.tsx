@@ -10,7 +10,9 @@ const BARE_ROUTES = new Set<string>(["/", "/what-we-do", "/journey"]);
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (BARE_ROUTES.has(pathname)) return <>{children}</>;
+  // Bare = no consumer shell: the marketing pages and the Partner OS (which
+  // renders its own operational rail via src/app/partner/layout.tsx).
+  if (BARE_ROUTES.has(pathname) || pathname.startsWith("/partner")) return <>{children}</>;
 
   return (
     <>

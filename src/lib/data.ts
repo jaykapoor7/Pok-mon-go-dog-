@@ -56,7 +56,26 @@ function mapDog(row: any): Dog {
     last_seen: row.last_seen ?? row.created_at,
     last_fed_at: row.last_fed_at ?? null,
     community_notes: [],
+    species: row.species ?? "dog",
+    ngo_id: row.ngo_id ?? null,
+    code: row.code ?? null,
+    assignee_id: row.assignee_id ?? null,
+    assignee_name: row.assignee_name ?? null,
+    intake_notes: row.intake_notes ?? null,
   };
+}
+
+// Animals owned by an organization (the partner registry).
+export async function getOrgAnimals(ngoId: string): Promise<Dog[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa
+    .from("dogs")
+    .select("*")
+    .eq("ngo_id", ngoId)
+    .order("last_seen", { ascending: false })
+    .limit(1000);
+  return (data ?? []).map(mapDog);
 }
 
 function mapSighting(row: any): Sighting {

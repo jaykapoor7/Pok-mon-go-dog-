@@ -13,11 +13,14 @@ export function OverviewPanel({
   cases,
   dogs,
   sightings,
+  hrefBase = "",
 }: {
   cases: Case[];
   dogs: Dog[];
   sightings: Sighting[];
+  hrefBase?: string;
 }) {
+  const casesHref = `${hrefBase}/cases`;
   const m = useMemo(() => {
     const open = cases.filter(isOpen);
     const now = Date.now();
@@ -65,13 +68,13 @@ export function OverviewPanel({
       </div>
 
       {/* Needs attention */}
-      <Section title="Needs attention" href="/cases" cta="All cases">
+      <Section title="Needs attention" href={casesHref} cta="All cases">
         {attention.length === 0 ? (
           <Empty>Nothing urgent. Nice.</Empty>
         ) : (
           <ul className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
             {attention.map((c) => (
-              <CaseRow key={c.id} c={c} />
+              <CaseRow key={c.id} c={c} hrefBase={hrefBase} />
             ))}
           </ul>
         )}
@@ -85,7 +88,7 @@ export function OverviewPanel({
               const overdue = +new Date(c.follow_up_at!) < Date.now();
               return (
                 <li key={c.id} className="border-b border-black/[0.06] last:border-0 dark:border-white/[0.06]">
-                  <Link href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
+                  <Link href={`${casesHref}/${c.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
                     <CalendarClock className={cn("h-4 w-4 shrink-0", overdue ? "text-status-injured" : "text-status-hungry")} />
                     <span className="min-w-0 flex-1 truncate text-[14px] text-bark-800 dark:text-bark-100">{c.title}</span>
                     <span className={cn("shrink-0 text-[12px] tabular-nums", overdue ? "text-status-injured" : "text-bark-400")}>
@@ -132,7 +135,7 @@ function Metric({ label, value, tone }: { label: string; value: number; tone?: s
   );
 }
 
-function CaseRow({ c }: { c: Case }) {
+function CaseRow({ c, hrefBase }: { c: Case; hrefBase: string }) {
   const tone = isOverdue(c)
     ? "text-status-injured"
     : c.severity === "critical" || c.severity === "high"
@@ -140,7 +143,7 @@ function CaseRow({ c }: { c: Case }) {
     : "text-bark-300";
   return (
     <li className="border-b border-black/[0.06] last:border-0 dark:border-white/[0.06]">
-      <Link href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
+      <Link href={`${hrefBase}/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
         <Circle className={cn("h-2.5 w-2.5 shrink-0 fill-current", tone)} strokeWidth={0} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{c.title}</p>

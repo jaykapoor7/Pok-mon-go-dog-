@@ -150,6 +150,13 @@ export interface Dog {
   last_seen: string;
   last_fed_at: string | null;
   community_notes: string[];
+  // Animal registry (animals.sql) — org-owned longitudinal records.
+  species?: string;
+  ngo_id?: string | null;
+  code?: string | null;
+  assignee_id?: string | null;
+  assignee_name?: string | null;
+  intake_notes?: string | null;
 }
 
 // Convenience aggregate returned by the dog-profile builder.
