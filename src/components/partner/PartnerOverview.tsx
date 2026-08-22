@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Plus, ClipboardList, PawPrint, HeartHandshake, ClipboardCheck } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrg } from "@/lib/actions";
 import { MapCanvas } from "@/components/map/MapCanvas";
