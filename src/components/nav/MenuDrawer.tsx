@@ -20,6 +20,7 @@ import {
   Utensils,
   HeartHandshake,
   Building2,
+  ClipboardCheck,
 } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -35,6 +36,7 @@ const PRIMARY = [
   { href: "/news", label: "News & orders", icon: Newspaper },
   { href: "/feed", label: "Sightings feed", icon: Images },
   { href: "/cases", label: "Cases", icon: ClipboardList },
+  { href: "/surveys", label: "Surveys & census", icon: ClipboardCheck },
   { href: "/dashboard", label: "NGO dashboard", icon: LayoutDashboard },
 ];
 

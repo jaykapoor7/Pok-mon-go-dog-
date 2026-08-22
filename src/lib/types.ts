@@ -290,6 +290,43 @@ export function speciesLabel(id: string | null | undefined): string {
   return SPECIES.find((s) => s.id === id)?.label ?? "Animal";
 }
 
+// ── Surveys / census ─────────────────────────────────────────
+export interface Survey {
+  id: string;
+  ngo_id: string | null;
+  title: string;
+  species: string;
+  description: string | null;
+  status: string;
+  created_by_id: string | null;
+  created_at: string;
+}
+
+export interface SurveyArea {
+  id: string;
+  survey_id: string;
+  name: string;
+  code: string | null;
+  target_count: number | null;
+  status: string;
+  response_count?: number; // derived
+  animal_count?: number; // derived (sum of response.count)
+}
+
+export interface SurveyResponse {
+  id: string;
+  survey_id: string;
+  area_id: string | null;
+  lat: number | null;
+  lng: number | null;
+  photo_url: string | null;
+  species: string | null;
+  count: number;
+  attributes: Record<string, unknown>;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface CaseUpdate {
   id: string;
   case_id: string;
