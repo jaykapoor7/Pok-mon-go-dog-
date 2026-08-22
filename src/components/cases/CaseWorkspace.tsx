@@ -19,7 +19,8 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { CaseControls } from "@/components/cases/CaseControls";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { isNgoMember, uploadPhoto } from "@/lib/actions";
-import { setCaseMedical, addCasePhoto, setCaseFollowup } from "@/lib/case-actions";
+import { setCaseMedical, addCasePhoto, setCaseFollowup, assignCase } from "@/lib/case-actions";
+import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
 import { formatINR } from "@/lib/fundraisers";
 import { speciesLabel, isOverdue, type Case, type CaseStatus, type CaseUpdate } from "@/lib/types";
 import { formatDate, timeAgo } from "@/lib/utils";
@@ -134,6 +135,41 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+// Reassign a case to a teammate.
+function AssignControl({ c }: { c: Case }) {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [members, setMembers] = useState<OrgMember[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { getMyOrgMembers().then(setMembers).catch(() => {}); }, []);
+
+  async function assign(userId: string) {
+    if (!user) return;
+    const m = members.find((x) => x.user_id === userId);
+    if (!m) return;
+    setBusy(true);
+    try {
+      await assignCase(c.id, { id: m.user_id, name: m.name }, { id: user.id, name: user.name });
+      router.refresh();
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <select
+      value={c.assignee_id ?? ""}
+      onChange={(e) => e.target.value && assign(e.target.value)}
+      disabled={busy}
+      className="rounded-md border border-black/[0.1] bg-transparent px-2 py-1 text-[13px] outline-none focus:border-paw-400 dark:border-white/[0.12]"
+    >
+      <option value="">Unassigned</option>
+      {members.map((m) => (
+        <option key={m.user_id} value={m.user_id}>{m.name}{m.user_id === user?.id ? " (you)" : ""}</option>
+      ))}
+    </select>
+  );
+}
+
 function Overview({ c, canEdit }: { c: Case; canEdit: boolean }) {
   return (
     <div className="space-y-6">
@@ -141,7 +177,9 @@ function Overview({ c, canEdit }: { c: Case; canEdit: boolean }) {
         <Row label="Species">{speciesLabel(c.species)}</Row>
         <Row label="Category"><span className="capitalize">{c.category}</span></Row>
         <Row label="Severity"><span className="capitalize">{c.severity}</span></Row>
-        <Row label="Assignee">{c.assignee_name ?? <span className="text-bark-400">Unassigned</span>}</Row>
+        <Row label="Assignee">
+          {canEdit ? <AssignControl c={c} /> : (c.assignee_name ?? <span className="text-bark-400">Unassigned</span>)}
+        </Row>
         <Row label="Opened">{formatDate(c.created_at)}</Row>
         {(c.cost_estimate != null || c.cost_spent != null) && (
           <>

@@ -155,6 +155,20 @@ export async function updateCaseStatus(
   return (data as StatusResult) ?? { ok: false, error: "Unknown error" };
 }
 
+/** Assign (or reassign) a case to a teammate. */
+export async function assignCase(caseId: string, assignee: { id: string; name: string }, actor: Actor): Promise<void> {
+  const supa = getSupabase();
+  if (!supa) return;
+  const { error } = await supa.rpc("assign_case", {
+    p_case_id: caseId,
+    p_assignee_id: assignee.id,
+    p_assignee_name: assignee.name,
+    p_actor_id: actor.id,
+    p_actor_name: actor.name,
+  });
+  if (error) throw new Error(error.message);
+}
+
 export async function addCaseNote(caseId: string, actor: Actor, note: string) {
   const supa = getSupabase();
   if (!supa) return;

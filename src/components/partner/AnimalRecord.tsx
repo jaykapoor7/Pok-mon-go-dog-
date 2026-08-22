@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, MapPin, Circle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Plus, MapPin, Circle, Pencil, Loader2, Check } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { speciesLabel, STATUS_META, isOverdue, type Dog, type Sighting, type Case } from "@/lib/types";
+import { isNgoMember } from "@/lib/actions";
+import { updateAnimal } from "@/lib/animal-actions";
+import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
+import { speciesLabel, STATUS_META, isOverdue, type Dog, type Sighting, type Case, type DogStatus } from "@/lib/types";
 import { formatDate, timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+
+const DOG_STATUSES: DogStatus[] = ["seen", "hungry", "injured", "sterilised", "vaccinated"];
 
 type Tab = "overview" | "cases" | "timeline" | "photos";
 
 export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: Sighting[]; cases: Case[] }) {
   const [tab, setTab] = useState<Tab>("overview");
+  const [member, setMember] = useState(false);
+  const [editing, setEditing] = useState(false);
   const st = STATUS_META[dog.status];
+
+  useEffect(() => { isNgoMember().then(setMember).catch(() => {}); }, []);
 
   const TABS: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },
@@ -55,7 +65,14 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
             {dog.assignee_name && <span>· {dog.assignee_name}</span>}
           </p>
         </div>
+        {member && (
+          <button onClick={() => setEditing((v) => !v)} className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-black/[0.08] px-2.5 py-1.5 text-[13px] font-semibold text-bark-700 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200">
+            <Pencil className="h-3.5 w-3.5" /> {editing ? "Close" : "Edit"}
+          </button>
+        )}
       </div>
+
+      {editing && <AnimalEdit dog={dog} onDone={() => setEditing(false)} />}
 
       {/* tabs */}
       <div className="no-scrollbar -mx-1 mt-4 mb-5 flex gap-1 overflow-x-auto px-1">
@@ -145,6 +162,57 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
     <div className="flex items-baseline justify-between gap-4 border-b border-black/[0.06] py-2.5 last:border-0 dark:border-white/[0.06]">
       <span className="text-[13px] text-bark-500">{label}</span>
       <span className="text-right text-[14px] font-medium text-bark-900 dark:text-bark-50">{children}</span>
+    </div>
+  );
+}
+
+function AnimalEdit({ dog, onDone }: { dog: Dog; onDone: () => void }) {
+  const router = useRouter();
+  const [name, setName] = useState(dog.name ?? "");
+  const [code, setCode] = useState(dog.code ?? "");
+  const [status, setStatus] = useState<DogStatus>(dog.status);
+  const [notes, setNotes] = useState(dog.intake_notes ?? "");
+  const [assigneeId, setAssigneeId] = useState(dog.assignee_id ?? "");
+  const [members, setMembers] = useState<OrgMember[]>([]);
+  const [busy, setBusy] = useState(false);
+  const INPUT = "w-full rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-sm outline-none focus:border-paw-400 dark:border-white/[0.12]";
+
+  useEffect(() => { getMyOrgMembers().then(setMembers).catch(() => {}); }, []);
+
+  async function save() {
+    setBusy(true);
+    try {
+      const m = members.find((x) => x.user_id === assigneeId);
+      await updateAnimal(dog.id, {
+        name: name.trim(), code: code.trim(), status,
+        intakeNotes: notes.trim(),
+        assigneeId: assigneeId || undefined,
+        assigneeName: m?.name ?? undefined,
+      });
+      router.refresh();
+      onDone();
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="mt-4 space-y-3 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className={INPUT} />
+        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Animal ID" className={INPUT} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <select value={status} onChange={(e) => setStatus(e.target.value as DogStatus)} className={INPUT}>
+          {DOG_STATUSES.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
+        </select>
+        <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className={INPUT}>
+          <option value="">Unassigned</option>
+          {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.name}</option>)}
+        </select>
+      </div>
+      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Intake notes" className={cn(INPUT, "min-h-[60px] resize-y")} />
+      <button onClick={save} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-4 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Save
+      </button>
     </div>
   );
 }
