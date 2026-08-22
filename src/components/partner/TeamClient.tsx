@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, UserPlus, Check, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrgMembers, setMemberRole, addOrgMember, removeOrgMember, type OrgMember } from "@/lib/team-actions";
+import { getCases } from "@/lib/cases";
 import { cn } from "@/lib/utils";
 
 const ROLES = [
@@ -17,9 +18,23 @@ export function TeamClient() {
   const [members, setMembers] = useState<OrgMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [workload, setWorkload] = useState<Map<string, number>>(new Map());
 
   const load = () => getMyOrgMembers().then(setMembers).finally(() => setLoading(false));
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    getCases().then((cases) => {
+      const m = new Map<string, number>();
+      for (const c of cases) if (c.assignee_name && c.status !== "resolved" && c.status !== "closed") m.set(c.assignee_name, (m.get(c.assignee_name) ?? 0) + 1);
+      setWorkload(m);
+    }).catch(() => {});
+  }, []);
+
+  const stats = useMemo(() => {
+    const assigned = [...workload.values()].reduce((a, b) => a + b, 0);
+    return { members: members.length, assigned, avg: members.length ? (assigned / members.length).toFixed(1) : "0", fieldWorkers: members.filter((m) => m.role === "field_worker").length };
+  }, [members, workload]);
+  const maxLoad = Math.max(1, ...workload.values());
 
   // Only the team lead (admin) manages members. Bootstrap: if no admin exists
   // yet, any member can manage (so a fresh org isn't locked out).
@@ -40,8 +55,16 @@ export function TeamClient() {
     <div>
       <header className="mb-6">
         <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Team</h1>
-        <p className="mt-0.5 text-[13px] text-bark-500">Add members, set roles, and manage who works in your organization.</p>
+        <p className="mt-0.5 text-[13px] text-bark-500">Availability and workload across your response team.</p>
       </header>
+
+      {/* Stat dividers */}
+      <div className="mb-8 grid grid-cols-2 gap-y-5 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-4">
+        <TeamStat label="Team members" value={stats.members} detail="in your org" />
+        <TeamStat label="Assigned cases" value={stats.assigned} detail="open, across the team" />
+        <TeamStat label="Avg. workload" value={stats.avg} detail="cases per member" />
+        <TeamStat label="Field workers" value={stats.fieldWorkers} detail="on the ground" />
+      </div>
 
       {canManage ? (
         <AddMember onDone={load} />
@@ -62,7 +85,12 @@ export function TeamClient() {
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-bark-100 text-[12px] font-semibold text-bark-500 dark:bg-bark-800">{m.name.slice(0, 2).toUpperCase()}</span>
               <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">
                 {m.name}{m.user_id === user?.id ? " (you)" : ""}
+                <span className="ml-2 text-[12px] font-normal capitalize text-bark-400">{m.role.replace("_", " ")}</span>
               </span>
+              <div className="hidden w-32 items-center gap-2 sm:flex" title="Open cases assigned">
+                <div className="h-1.5 flex-1 rounded-full bg-bark-100 dark:bg-bark-800"><div className="h-full rounded-full bg-paw-500" style={{ width: `${((workload.get(m.name) ?? 0) / maxLoad) * 100}%` }} /></div>
+                <span className="w-4 text-right text-[12px] tabular-nums text-bark-400">{workload.get(m.name) ?? 0}</span>
+              </div>
               {!canManage ? (
                 <span className="rounded-full bg-bark-100 px-2 py-0.5 text-[12px] font-medium capitalize text-bark-500 dark:bg-bark-800">{m.role.replace("_", " ")}</span>
               ) : busy === m.user_id ? <Loader2 className="h-4 w-4 animate-spin text-bark-400" /> : (
@@ -87,6 +115,16 @@ export function TeamClient() {
       <p className="mt-4 text-[12px] text-bark-400">
         Members must have signed in to StrayPaw at least once (magic link) before you can add them by email.
       </p>
+    </div>
+  );
+}
+
+function TeamStat({ label, value, detail }: { label: string; value: number | string; detail: string }) {
+  return (
+    <div className="border-l border-black/[0.08] pl-4 first:border-l-0 first:pl-0 dark:border-white/[0.1]">
+      <div className="mb-2 text-[12px] text-bark-500">{label}</div>
+      <div className="text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{value}</div>
+      <div className="mt-1 text-[12px] text-bark-400">{detail}</div>
     </div>
   );
 }
