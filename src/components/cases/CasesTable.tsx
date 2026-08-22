@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Circle } from "lucide-react";
+import { Search, Circle, Download } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { isOverdue, speciesLabel, type Case, type CaseStatus } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
+import { downloadCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "open" | "unassigned" | "mine" | "urgent" | "overdue";
@@ -95,14 +96,25 @@ export function CasesTable({ cases, hrefBase = "/cases" }: { cases: Case[]; href
             </button>
           ))}
         </div>
-        <div className="relative sm:w-64">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search cases…"
-            className="w-full rounded-md border border-black/[0.09] bg-transparent py-2 pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-bark-400 focus:border-paw-400 dark:border-white/[0.12]"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative sm:w-64">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search cases…"
+              className="w-full rounded-md border border-black/[0.09] bg-transparent py-2 pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-bark-400 focus:border-paw-400 dark:border-white/[0.12]"
+            />
+          </div>
+          {rows.length > 0 && (
+            <button
+              onClick={() => downloadCsv("cases.csv", rows.map((c) => ({ title: c.title, species: speciesLabel(c.species), category: c.category, severity: c.severity, status: c.status, assignee: c.assignee_name ?? "", location: c.zone ?? "", follow_up: c.follow_up_at ?? "", last_activity: c.last_activity_at })))}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-black/[0.09] text-bark-500 hover:bg-black/[0.04] dark:border-white/[0.12]"
+              title="Export CSV"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
