@@ -1,6 +1,7 @@
 import { getCases } from "@/lib/cases";
 import { speciesLabel } from "@/lib/types";
 import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
+import { PrintButton } from "@/components/partner/PrintButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Reports — StrayPaw Partner" };
@@ -43,7 +44,7 @@ export default async function PartnerReportsPage() {
           <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Analytics</h1>
           <p className="mt-0.5 text-[13px] text-bark-500">The numbers you send to donors, funders and municipalities.</p>
         </div>
-        <ExportCsvButton />
+        <div className="flex items-center gap-2"><PrintButton /><ExportCsvButton /></div>
       </header>
 
       <div className="grid grid-cols-2 divide-x divide-y divide-black/[0.07] overflow-hidden rounded-lg border border-black/[0.08] sm:grid-cols-4 sm:divide-y-0 dark:divide-white/[0.08] dark:border-white/[0.1]">
