@@ -68,9 +68,7 @@ export default async function LandingPage() {
         </div>
       </main>
 
-      <footer className="relative flex items-center justify-center gap-x-5 gap-y-1 pb-5 text-xs text-bark-400">
-        <Link href="/what-we-do" className="hover:text-paw-600">What we do</Link>
-        <Link href="/journey" className="hover:text-paw-600">Our journey</Link>
+      <footer className="relative flex items-center justify-center gap-4 pb-5 text-xs text-bark-400">
         <Link href="/orgs" className="hover:text-paw-600">Organizations</Link>
         <span>© {new Date().getFullYear()} StrayPaw</span>
       </footer>

@@ -10,40 +10,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Cerulean-on-cream brand palette. `paw` stays the token name so the
-        // whole app re-skins from here — a bright, clean azure that feels fresh
-        // and distinctive against warm cream (not a dull corporate navy).
+        // Warm terracotta accent on stone. `paw` stays the token name so the
+        // whole app re-skins from here — a restrained, earthy clay used sparingly
+        // for primary actions/selected states, over near-monochrome warm stone.
         paw: {
-          50: "#ecf6fd",
-          100: "#d2eafb", // --azure-tint
-          200: "#a9d5f6",
-          300: "#72baed",
-          400: "#369ae0",
-          500: "#0e7bcc", // --azure (primary, AA on white)
-          600: "#0c65a8", // --azure-deep (active/hover)
-          700: "#0d5488", // --azure-ink
-          800: "#114972",
-          900: "#123c5e",
+          50: "#fbf4ef",
+          100: "#f5e3d7", // --clay-tint
+          200: "#eac6b2",
+          300: "#dba184",
+          400: "#cb7a56",
+          500: "#b4552d", // --clay (primary, AA on white)
+          600: "#97431f", // --clay-deep (active/hover)
+          700: "#78371b", // --clay-ink
+          800: "#5e2c17",
+          900: "#4c2513",
         },
         bark: {
-          // Warm neutral greige — pairs a cool azure accent with warmth, the
-          // premium "warm neutrals + cool accent" combination.
-          50: "#f7f5f0",
-          100: "#eceae3",
-          200: "#dcd9d0",
-          300: "#a8a49a",
-          400: "#6f6c64", // darkened for AA contrast on cream; dark mode re-lightens it (globals.css)
-          600: "#57544d",
-          700: "#413f39",
-          800: "#1f222b", // --ink-surface
-          900: "#14161c", // --ink (deep slate bg)
-          950: "#0d0f14",
+          // Warm stone neutrals — near-monochrome base; hue is reserved for the
+          // accent and semantic status, per the operational design bar.
+          50: "#f7f6f2",
+          100: "#eeece5",
+          200: "#ddd9cf",
+          300: "#a8a396",
+          400: "#726c60", // darkened for AA contrast on stone; dark mode re-lightens it (globals.css)
+          600: "#57524a",
+          700: "#413d37",
+          800: "#211f1a", // --ink-surface
+          900: "#17150f", // --ink (warm charcoal bg)
+          950: "#100e0a",
         },
         // Brand surfaces.
-        cream: "#F4F0E1",
-        paper: "#FAF7F0",
-        ink: "#14161c",
-        "ink-surface": "#1f222b",
+        cream: "#F1ECE0",
+        paper: "#F8F6F1",
+        ink: "#17150f",
+        "ink-surface": "#211f1a",
         // Status system (olive-compatible). Markers + badges read from here.
         status: {
           seen: "#9A9C88",
@@ -63,7 +63,7 @@ const config: Config = {
       },
       boxShadow: {
         // Soft, minimal elevation — premium, never noisy.
-        warm: "0 8px 24px -10px rgba(14, 123, 204, 0.30)",
+        warm: "0 8px 24px -10px rgba(180, 85, 45, 0.26)",
         card: "0 1px 2px rgba(17, 17, 19, 0.04), 0 14px 34px -18px rgba(17, 17, 19, 0.18)",
         sheet: "0 -8px 40px -16px rgba(17, 17, 19, 0.28)",
         pop: "0 12px 36px -14px rgba(17, 17, 19, 0.30)",

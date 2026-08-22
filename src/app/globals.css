@@ -15,7 +15,7 @@
 
   body {
     @apply text-bark-900 antialiased;
-    background-color: #FAF7F0; /* paper — warm cream, on-brand */
+    background-color: #F8F6F1; /* paper — warm cream, on-brand */
     font-feature-settings: "cv02", "cv03", "cv04", "ss01";
   }
 
@@ -27,14 +27,14 @@
   /* ── Dark theme — deep slate (not near-black), per the azure brand ── */
   .dark body {
     @apply text-bark-100;
-    background-color: #14161c; /* --ink */
+    background-color: #17150f; /* --ink */
   }
 
   /* Centralised surface remaps — more specific than the base utilities,
      so the app themes broadly without per-component dark: classes. */
-  .dark .bg-white { background-color: #1f222b; } /* --ink-surface */
+  .dark .bg-white { background-color: #211f1a; } /* --ink-surface */
   .dark .bg-bark-50,
-  .dark .bg-bark-100 { background-color: #1b1e26; }
+  .dark .bg-bark-100 { background-color: #201d17; }
   .dark .border-bark-100,
   .dark .border-bark-200 { border-color: rgba(255, 255, 255, 0.07); }
   .dark .text-bark-900,
@@ -89,11 +89,11 @@
   }
 
   .dark .glass {
-    background-color: rgba(31, 34, 43, 0.72); /* ink-surface */
+    background-color: rgba(33, 31, 26, 0.72); /* ink-surface */
     border-color: rgba(255, 255, 255, 0.07);
   }
   .dark .card {
-    background-color: #1f222b; /* --ink-surface */
+    background-color: #211f1a; /* --ink-surface */
     border-color: rgba(255, 255, 255, 0.06);
   }
   .dark .btn-ghost {

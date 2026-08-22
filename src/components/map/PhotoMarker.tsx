@@ -64,7 +64,7 @@ export function PhotoMarker({
       {count > 1 && (
         <span
           className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-bold leading-none text-white ring-2 ring-white"
-          style={{ backgroundColor: "#14161c" }}
+          style={{ backgroundColor: "#17150f" }}
         >
           {count}
         </span>

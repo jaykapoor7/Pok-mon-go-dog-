@@ -40,14 +40,14 @@ export async function sendSightingLiveEmail(
   const dogUrl = `${SITE}/dog/${dogId}`;
   const hi = reporterName ? `Hi ${reporterName},` : "Hi,";
   const html = `
-  <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#14161c">
-    <div style="font-size:22px;font-weight:800;color:#0c65a8">🐾 StrayPaw</div>
+  <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#17150f">
+    <div style="font-size:22px;font-weight:800;color:#97431f">🐾 StrayPaw</div>
     <p style="font-size:16px;line-height:1.5;margin-top:16px">${hi}</p>
     <p style="font-size:16px;line-height:1.5">Great news — the street dog you reported is now <b>live on the map</b>. Thank you for helping keep track of the dogs in your area.</p>
     <p style="margin:24px 0">
-      <a href="${dogUrl}" style="background:#0e7bcc;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:700;display:inline-block">See the dog on StrayPaw →</a>
+      <a href="${dogUrl}" style="background:#b4552d;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:700;display:inline-block">See the dog on StrayPaw →</a>
     </p>
-    <p style="font-size:14px;color:#54564a;line-height:1.5">Spotted another dog? <a href="${SITE}/report" style="color:#0e7bcc">Report it here.</a></p>
+    <p style="font-size:14px;color:#54564a;line-height:1.5">Spotted another dog? <a href="${SITE}/report" style="color:#b4552d">Report it here.</a></p>
     <hr style="border:none;border-top:1px solid #e7e6dd;margin:24px 0">
     <p style="font-size:12px;color:#a3a292">You got this because you left your email when reporting a sighting on StrayPaw. We only email you about your reports.</p>
   </div>`;
