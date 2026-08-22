@@ -12,6 +12,8 @@ export interface AnimalRow {
   cover_photo: string;
   assignee_name: string | null;
   last_seen: string;
+  lat: number;
+  lng: number;
 }
 
 export interface CreateAnimalInput {
@@ -80,7 +82,7 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
   if (!ngoId) return [];
   const { data } = await supa
     .from("dogs")
-    .select("id, name, code, species, zone, status, cover_photo, assignee_name, last_seen")
+    .select("id, name, code, species, zone, status, cover_photo, assignee_name, last_seen, lat, lng")
     .eq("ngo_id", ngoId)
     .order("last_seen", { ascending: false })
     .limit(1000);
@@ -94,5 +96,7 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
     cover_photo: r.cover_photo ?? "",
     assignee_name: r.assignee_name ?? null,
     last_seen: r.last_seen,
+    lat: r.lat ?? 0,
+    lng: r.lng ?? 0,
   }));
 }
