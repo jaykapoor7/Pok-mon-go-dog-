@@ -21,6 +21,12 @@ export function TeamClient() {
   const load = () => getMyOrgMembers().then(setMembers).finally(() => setLoading(false));
   useEffect(() => { load(); }, []);
 
+  // Only the team lead (admin) manages members. Bootstrap: if no admin exists
+  // yet, any member can manage (so a fresh org isn't locked out).
+  const myRole = members.find((mm) => mm.user_id === user?.id)?.role;
+  const hasAdmin = members.some((mm) => mm.role === "admin");
+  const canManage = myRole === "admin" || !hasAdmin;
+
   async function change(userId: string, role: string) {
     setBusy(userId);
     try { await setMemberRole(userId, role); await load(); } finally { setBusy(null); }
@@ -37,7 +43,13 @@ export function TeamClient() {
         <p className="mt-0.5 text-[13px] text-bark-500">Add members, set roles, and manage who works in your organization.</p>
       </header>
 
-      <AddMember onDone={load} />
+      {canManage ? (
+        <AddMember onDone={load} />
+      ) : (
+        <p className="mb-5 rounded-lg border border-black/[0.08] bg-bark-50 px-4 py-3 text-[13px] text-bark-500 dark:border-white/[0.1] dark:bg-white/[0.02]">
+          Only your organization&apos;s team lead (admin) can add or manage members.
+        </p>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-paw-500" /></div>
@@ -51,7 +63,9 @@ export function TeamClient() {
               <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">
                 {m.name}{m.user_id === user?.id ? " (you)" : ""}
               </span>
-              {busy === m.user_id ? <Loader2 className="h-4 w-4 animate-spin text-bark-400" /> : (
+              {!canManage ? (
+                <span className="rounded-full bg-bark-100 px-2 py-0.5 text-[12px] font-medium capitalize text-bark-500 dark:bg-bark-800">{m.role.replace("_", " ")}</span>
+              ) : busy === m.user_id ? <Loader2 className="h-4 w-4 animate-spin text-bark-400" /> : (
                 <div className="flex items-center gap-1">
                   {ROLES.map((r) => (
                     <button key={r.key} onClick={() => change(m.user_id, r.key)} className={cn("rounded-md px-2 py-1 text-[12px] font-medium", m.role === r.key ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>

@@ -170,9 +170,36 @@ function AssignControl({ c }: { c: Case }) {
   );
 }
 
+const CASE_STEPS: { key: CaseStatus; label: string }[] = [
+  { key: "unverified", label: "Reported" },
+  { key: "assigned", label: "Assigned" },
+  { key: "in_progress", label: "In progress" },
+  { key: "resolved", label: "Resolved" },
+];
+
+function CaseStepper({ status }: { status: CaseStatus }) {
+  const current = status === "closed" ? 3 : Math.max(0, CASE_STEPS.findIndex((s) => s.key === status));
+  return (
+    <div className="flex items-center">
+      {CASE_STEPS.map((s, i) => (
+        <div key={s.key} className="flex flex-1 items-center last:flex-none">
+          <div className="flex flex-col items-center gap-1.5">
+            <span className={cn("grid h-7 w-7 place-items-center rounded-full border-2 text-[12px] font-semibold", i <= current ? "border-paw-500 bg-paw-500 text-white" : "border-bark-200 bg-transparent text-bark-400 dark:border-white/15")}>
+              {i < current ? <Check className="h-3.5 w-3.5" /> : i + 1}
+            </span>
+            <span className={cn("text-[11px]", i <= current ? "font-medium text-bark-700 dark:text-bark-200" : "text-bark-400")}>{s.label}</span>
+          </div>
+          {i < CASE_STEPS.length - 1 && <div className={cn("mx-2 h-px flex-1 -translate-y-2.5", i < current ? "bg-paw-500" : "bg-bark-200 dark:bg-white/15")} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Overview({ c, canEdit }: { c: Case; canEdit: boolean }) {
   return (
     <div className="space-y-6">
+      <CaseStepper status={c.status} />
       <div>
         <Row label="Species">{speciesLabel(c.species)}</Row>
         <Row label="Category"><span className="capitalize">{c.category}</span></Row>

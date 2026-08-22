@@ -3271,3 +3271,18 @@ end $$;
 
 grant execute on function add_org_member(text,text) to authenticated;
 grant execute on function remove_org_member(uuid) to authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- ▼ access-grants.sql — audit log of granted partner access
+-- ════════════════════════════════════════════════════════════════
+create table if not exists access_grants (
+  id         uuid primary key default gen_random_uuid(),
+  email      text,
+  org_name   text,
+  ngo_id     uuid,
+  created_at timestamptz not null default now()
+);
+create index if not exists access_grants_created_idx on access_grants (created_at desc);
+
+alter table access_grants enable row level security; -- service role only (no policy)

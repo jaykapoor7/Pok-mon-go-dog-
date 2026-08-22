@@ -146,6 +146,7 @@ export function AdminClient() {
   const [dogs, setDogs] = useState<AdminDog[]>([]);
   const [feedingZones, setFeedingZones] = useState<AdminFeedingZone[]>([]);
   const [partnerRequests, setPartnerRequests] = useState<AdminPartnerRequest[]>([]);
+  const [grants, setGrants] = useState<{ id: string; email: string; org_name: string; created_at: string }[]>([]);
   const [fundraisers, setFundraisers] = useState<AdminFundraiser[]>([]);
   const [discoveringFunds, setDiscoveringFunds] = useState(false);
   const [exportingEmails, setExportingEmails] = useState(false);
@@ -241,6 +242,7 @@ export function AdminClient() {
       if (!res.ok) return;
       const j = await res.json();
       setPartnerRequests(j.requests ?? []);
+      setGrants(j.grants ?? []);
     } catch {
       /* ignore */
     }
@@ -776,7 +778,7 @@ export function AdminClient() {
           )}
 
           {tab === "partners" && (
-        <PartnerRequestsList requests={partnerRequests} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} />
+        <PartnerRequestsList requests={partnerRequests} grants={grants} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} />
       )}
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
@@ -1237,11 +1239,13 @@ function DogsList({
 
 function PartnerRequestsList({
   requests,
+  grants,
   busyId,
   onAction,
   onGrant,
 }: {
   requests: AdminPartnerRequest[];
+  grants: { id: string; email: string; org_name: string; created_at: string }[];
   busyId: string | null;
   onAction: (id: string, action: "approve" | "reject") => void;
   onGrant: (email: string, orgName: string, area: string) => Promise<string | null>;
@@ -1249,6 +1253,19 @@ function PartnerRequestsList({
   return (
     <div className="space-y-4">
       <GrantAccessForm onGrant={onGrant} />
+      {grants.length > 0 && (
+        <div className="card p-4">
+          <p className="mb-2 text-sm font-semibold">Granted access ({grants.length})</p>
+          <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
+            {grants.map((g) => (
+              <li key={g.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <span className="min-w-0"><span className="font-medium">{g.org_name}</span> <span className="text-bark-400">· {g.email}</span></span>
+                <span className="shrink-0 text-xs text-bark-400">{timeAgo(g.created_at)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {requests.length === 0 ? (
         <div className="card p-8 text-center">
           <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">

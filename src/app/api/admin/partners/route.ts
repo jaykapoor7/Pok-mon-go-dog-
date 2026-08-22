@@ -68,7 +68,14 @@ export async function GET(req: Request) {
     })
   );
 
-  return NextResponse.json({ requests });
+  // Recent grants (audit trail).
+  let grants: any[] = [];
+  try {
+    const { data: g } = await supa.from("access_grants").select("*").order("created_at", { ascending: false }).limit(50);
+    grants = g ?? [];
+  } catch { /* table may not exist yet */ }
+
+  return NextResponse.json({ requests, grants });
 }
 
 export async function POST(req: Request) {
@@ -121,6 +128,8 @@ export async function POST(req: Request) {
       .from("ngo_members")
       .upsert({ user_id: userId, ngo_id: org!.id, role: "admin" }, { onConflict: "user_id" });
     if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
+    // Audit record of the grant.
+    await supa.from("access_grants").insert({ email, org_name: orgName, ngo_id: org!.id }).then(() => {}, () => {});
     return NextResponse.json({ ok: true, ngo_id: org!.id });
   }
 
