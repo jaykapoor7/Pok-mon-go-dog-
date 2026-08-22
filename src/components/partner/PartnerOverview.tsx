@@ -37,6 +37,7 @@ export function PartnerOverview({ cases }: { cases: Case[] }) {
     return {
       active: open.length,
       urgent: open.filter((c) => c.severity === "critical" || c.severity === "high" || isOverdue(c)).length,
+      followDue: open.filter((c) => c.follow_up_at && +new Date(c.follow_up_at) <= now + 3 * 86_400_000).length,
       resolvedWeek: resolved.filter((c) => c.resolved_at && +new Date(c.resolved_at) > now - 7 * 86_400_000).length,
       rate: cases.length ? Math.round((resolved.length / cases.length) * 100) : 0,
     };
@@ -76,30 +77,18 @@ export function PartnerOverview({ cases }: { cases: Case[] }) {
       </div>
 
       {/* Stat dividers (not cards) */}
-      <div className="grid grid-cols-2 gap-y-6 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-y-6 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-3 lg:grid-cols-5">
         <Stat label="Active cases" value={m.active} detail="open right now" />
         <Stat label="Urgent cases" value={m.urgent} detail="need a decision" tone={m.urgent ? "text-status-injured" : undefined} />
+        <Stat label="Follow-ups due" value={m.followDue} detail="next 3 days" tone={m.followDue ? "text-status-hungry" : undefined} />
         <Stat label="Resolved this week" value={m.resolvedWeek} detail="last 7 days" />
         <Stat label="Resolution rate" value={`${m.rate}%`} detail="all-time" tone="text-paw-600" />
       </div>
 
-      {/* Quick actions */}
-      <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto">
-        <QuickAction href="/cases/new" icon={ClipboardList} label="New case" />
-        <QuickAction href="/partner/animals" icon={PawPrint} label="New animal" />
-        <QuickAction href="/fundraisers/new" icon={HeartHandshake} label="New campaign" />
-        <QuickAction href="/partner/surveys" icon={ClipboardCheck} label="New survey" />
-        <QuickAction href="/partner/field" icon={Activity} label="New task" />
-      </div>
-
-      <div className="mt-8">
-        <TasksSection compact />
-      </div>
-
       {/* Operational focus + Response health */}
-      <div className="mt-8 grid gap-8 xl:grid-cols-[1.4fr_1fr]">
+      <div className="mt-8 grid gap-8 xl:grid-cols-[1.45fr_1fr]">
         <section>
-          <SectionHead title="Operational focus" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="All cases" />
+          <SectionHead title="Operational focus" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all cases" />
           {attention.length === 0 ? <Empty>Nothing urgent right now.</Empty> : (
             <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
               {attention.map((c) => <CaseRow key={c.id} c={c} />)}
@@ -107,19 +96,31 @@ export function PartnerOverview({ cases }: { cases: Case[] }) {
           )}
         </section>
         <section>
-          <SectionHead title="Case volume" sub="New cases · last 12 weeks." />
+          <SectionHead title="Response health" sub="New cases logged over time." />
           <div className="rounded-lg border border-black/[0.08] p-5 dark:border-white/[0.1]">
-            <div className="text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{cases.length}<span className="ml-2 text-[13px] font-normal text-bark-400">total cases</span></div>
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{cases.length}</div>
+                <div className="mt-1 text-[13px] text-bark-500">Total cases logged</div>
+              </div>
+              <div className="text-right text-[13px] font-medium text-paw-600">{m.rate}%<div className="text-[11px] font-normal text-bark-400">resolved</div></div>
+            </div>
             <div className="mt-6 flex h-24 items-end gap-1.5">
               {weeks.map((w, i) => <div key={i} className={cn("flex-1 rounded-t-sm", i >= 9 ? "bg-paw-500" : "bg-paw-500/25")} style={{ height: `${Math.max(3, (w / weekMax) * 100)}%` }} title={`${w}`} />)}
             </div>
+            <div className="mt-2 flex justify-between text-[10px] text-bark-400"><span>12 wks ago</span><span>now</span></div>
           </div>
         </section>
       </div>
 
-      {/* Recent activity */}
+      {/* Tasks */}
       <section className="mt-10">
-        <SectionHead title="Recent activity" sub="Latest across your cases." href="/partner/cases" cta="Case queue" />
+        <TasksSection compact />
+      </section>
+
+      {/* Recent reports */}
+      <section className="mt-10">
+        <SectionHead title="Recent reports" sub="The latest activity across your cases." href="/partner/cases" cta="Open case queue" />
         {activity.length === 0 ? <Empty>No cases yet.</Empty> : (
           <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
             {activity.map((c) => <CaseRow key={c.id} c={c} />)}

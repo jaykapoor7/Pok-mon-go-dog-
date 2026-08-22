@@ -112,8 +112,8 @@ export function CasesTable({ cases, hrefBase = "/cases" }: { cases: Case[]; href
       </div>
 
       <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
-        <div className="hidden grid-cols-[44px_1fr_140px_100px_110px] items-center gap-4 border-b border-black/[0.08] bg-bark-50 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/[0.1] dark:bg-white/[0.02] sm:grid">
-          <span></span><span>Animal</span><span>Location</span><span>Priority</span><span>Status</span>
+        <div className="hidden grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] items-center gap-4 border-b border-black/[0.08] bg-bark-50 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/[0.1] dark:bg-white/[0.02] md:grid">
+          <span></span><span>Report</span><span>Location</span><span>Urgency</span><span>Status</span><span>Assigned to</span>
         </div>
 
         {rows.length === 0 ? (
@@ -125,7 +125,7 @@ export function CasesTable({ cases, hrefBase = "/cases" }: { cases: Case[]; href
               const pr = priority(c);
               return (
                 <li key={c.id} className="border-b border-black/[0.06] last:border-0 dark:border-white/[0.06]">
-                  <Link href={`${hrefBase}/${c.id}`} className="grid grid-cols-[44px_1fr_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03] sm:grid-cols-[44px_1fr_140px_100px_110px] sm:gap-4">
+                  <Link href={`${hrefBase}/${c.id}`} className="grid grid-cols-[44px_1fr_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03] md:grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] md:gap-4">
                     <div className="h-10 w-10 overflow-hidden rounded-md bg-bark-100 dark:bg-bark-800">
                       <DogPhoto src={c.photos?.[0] ?? ""} alt={c.title} seed={c.id} className="h-full w-full" />
                     </div>
@@ -134,15 +134,16 @@ export function CasesTable({ cases, hrefBase = "/cases" }: { cases: Case[]; href
                         {speciesLabel(c.species)} · <span className="capitalize text-bark-500">{c.category}</span>
                       </p>
                       <p className="truncate text-[12px] text-bark-400">{c.title}</p>
-                      <div className="mt-1 flex items-center gap-2 sm:hidden">
+                      <div className="mt-1 flex items-center gap-2 md:hidden">
                         <span className={cn("text-[11px] font-bold", pr.cls)}>{pr.label}</span>
                         <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", st.cls)}>{st.label}</span>
                         {c.zone && <span className="truncate text-[11px] text-bark-400">{c.zone}</span>}
                       </div>
                     </div>
-                    <span className="hidden truncate text-[13px] text-bark-500 sm:block">{c.zone || "—"}</span>
-                    <span className={cn("hidden text-[12px] font-bold sm:block", pr.cls)}>{pr.label}</span>
-                    <span className="hidden sm:block"><span className={cn("rounded-full px-2 py-0.5 text-[12px] font-semibold", st.cls)}>{st.label}</span></span>
+                    <span className="hidden truncate text-[13px] text-bark-500 md:block">{c.zone || "—"}</span>
+                    <span className={cn("hidden text-[12px] font-bold md:block", pr.cls)}>{pr.label}</span>
+                    <span className="hidden md:block"><span className={cn("rounded-full px-2 py-0.5 text-[12px] font-semibold", st.cls)}>{st.label}</span></span>
+                    <span className={cn("hidden truncate text-[13px] md:block", c.assignee_name ? "text-bark-700 dark:text-bark-200" : "text-bark-400")}>{c.assignee_name ?? "Unassigned"}</span>
                   </Link>
                 </li>
               );

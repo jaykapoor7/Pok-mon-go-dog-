@@ -29,11 +29,18 @@ export default async function PartnerReportsPage() {
   }).reverse();
   const weekMax = Math.max(1, ...weeks);
 
+  // Outcomes donut segments.
+  const oTot = (byResolution.treated + byResolution.sterilized + byResolution.rescued) || 0;
+  const oSafe = oTot ? Math.round((byResolution.rescued / oTot) * 100) : 0;
+  const oTreat = oTot ? Math.round((byResolution.treated / oTot) * 100) : 0;
+  const oSter = Math.max(0, 100 - oSafe - oTreat);
+  const donut = `conic-gradient(#b4552d 0 ${oSafe}%, #D9A441 ${oSafe}% ${oSafe + oTreat}%, #3E8473 ${oSafe + oTreat}% 100%)`;
+
   return (
     <div>
       <header className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Reports</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Analytics</h1>
           <p className="mt-0.5 text-[13px] text-bark-500">The numbers you send to donors, funders and municipalities.</p>
         </div>
         <ExportCsvButton />
@@ -59,17 +66,37 @@ export default async function PartnerReportsPage() {
         </div>
       </section>
 
-      <section className="mt-8">
-        <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">Cases by type</h2>
-        <ul className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
-          {[...byCategory.entries()].sort((a, b) => b[1] - a[1]).map(([cat, n]) => (
-            <li key={cat} className="flex items-center justify-between border-b border-black/[0.06] px-4 py-2.5 last:border-0 dark:border-white/[0.06]">
-              <span className="text-[14px] capitalize text-bark-700 dark:text-bark-200">{cat}</span>
-              <span className="text-[14px] font-medium tabular-nums text-bark-900 dark:text-bark-50">{n}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        {oTot > 0 && (
+          <section className="rounded-lg border border-black/[0.08] p-5 dark:border-white/[0.1]">
+            <h2 className="text-[15px] font-semibold text-bark-900 dark:text-bark-50">Outcomes</h2>
+            <p className="mt-0.5 text-[13px] text-bark-500">What happened to resolved cases</p>
+            <div className="mt-6 flex items-center gap-7">
+              <div className="relative grid size-32 place-items-center rounded-full" style={{ background: donut }}>
+                <div className="grid size-20 place-items-center rounded-full bg-paper text-center dark:bg-ink">
+                  <span className="text-xl font-semibold text-bark-900 dark:text-bark-50">{resolved.length}<span className="block text-[10px] font-normal text-bark-400">resolved</span></span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2.5 text-[13px]">
+                <span className="flex items-center gap-2"><i className="inline-block size-2 rounded-full" style={{ background: "#b4552d" }} /> Rescued <b className="ml-auto tabular-nums">{oSafe}%</b></span>
+                <span className="flex items-center gap-2"><i className="inline-block size-2 rounded-full" style={{ background: "#D9A441" }} /> Treated <b className="ml-auto tabular-nums">{oTreat}%</b></span>
+                <span className="flex items-center gap-2"><i className="inline-block size-2 rounded-full" style={{ background: "#3E8473" }} /> Sterilised <b className="ml-auto tabular-nums">{oSter}%</b></span>
+              </div>
+            </div>
+          </section>
+        )}
+        <section>
+          <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">Cases by type</h2>
+          <ul className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
+            {[...byCategory.entries()].sort((a, b) => b[1] - a[1]).map(([cat, n]) => (
+              <li key={cat} className="flex items-center justify-between border-b border-black/[0.06] px-4 py-2.5 last:border-0 dark:border-white/[0.06]">
+                <span className="text-[14px] capitalize text-bark-700 dark:text-bark-200">{cat}</span>
+                <span className="text-[14px] font-medium tabular-nums text-bark-900 dark:text-bark-50">{n}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
 
       {bySpecies.size > 1 && (
         <section className="mt-8">
