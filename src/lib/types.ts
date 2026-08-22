@@ -270,6 +270,8 @@ export interface Case {
   cost_spent?: number | null; // spent to date, INR
   species?: string; // 'dog' | 'donkey' | 'mule' | 'cat' | 'cattle' | ...
   follow_up_at?: string | null;
+  medical_notes?: string | null;
+  photos?: string[];
 }
 
 // Species registry — the core is species-agnostic; 'dog' is the default so

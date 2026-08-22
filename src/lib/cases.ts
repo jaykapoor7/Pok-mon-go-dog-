@@ -46,6 +46,8 @@ function mapCase(r: any): Case {
     cost_spent: r.cost_spent ?? null,
     species: r.species ?? "dog",
     follow_up_at: r.follow_up_at ?? null,
+    medical_notes: r.medical_notes ?? null,
+    photos: r.photos ?? [],
   };
 }
 

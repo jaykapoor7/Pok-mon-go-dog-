@@ -42,6 +42,7 @@ export interface CreateCaseInput {
   severity: CaseSeverity;
   category: CaseCategory;
   tags?: string[];
+  species?: string;
 }
 
 export async function createCase(
@@ -65,9 +66,46 @@ export async function createCase(
     p_tags: input.tags ?? [],
     p_actor_id: actor.id,
     p_actor_name: actor.name,
+    p_species: input.species ?? "dog",
   });
   if (error) throw new Error(error.message);
   return (data as string) ?? null;
+}
+
+/** Handler/NGO-only: set a case's medical notes. */
+export async function setCaseMedical(caseId: string, medicalNotes: string): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("set_case_medical", {
+    p_case_id: caseId,
+    p_medical_notes: medicalNotes,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+/** Handler/NGO-only: append a photo to a case. */
+export async function addCasePhoto(caseId: string, url: string): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("add_case_photo", {
+    p_case_id: caseId,
+    p_url: url,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+/** Handler/NGO-only: set or clear a case's follow-up date (YYYY-MM-DD | null). */
+export async function setCaseFollowup(caseId: string, followUpAt: string | null): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("set_case_followup", {
+    p_case_id: caseId,
+    p_follow_up_at: followUpAt,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
 }
 
 export async function claimCase(caseId: string, actor: Actor): Promise<boolean> {

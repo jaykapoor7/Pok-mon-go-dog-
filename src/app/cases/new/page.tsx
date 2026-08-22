@@ -10,6 +10,7 @@ import { getDogById } from "@/lib/data";
 import {
   CASE_CATEGORY_META,
   CASE_SEVERITY_META,
+  SPECIES,
   type CaseCategory,
   type CaseSeverity,
 } from "@/lib/types";
@@ -29,6 +30,7 @@ function NewCaseInner() {
   const [zone, setZone] = useState("");
   const [category, setCategory] = useState<CaseCategory>("injury");
   const [severity, setSeverity] = useState<CaseSeverity>("normal");
+  const [species, setSpecies] = useState("dog");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +85,7 @@ function NewCaseInner() {
           lng: coords?.lng ?? null,
           severity,
           category,
+          species,
         },
         { id: user.id, name: user.name }
       );
@@ -117,6 +120,16 @@ function NewCaseInner() {
             placeholder="e.g. Injured leg near Hauz Khas metro"
             className={inputCls}
           />
+        </Field>
+
+        <Field label="Species">
+          <div className="flex flex-wrap gap-2">
+            {SPECIES.filter((s) => s.id !== "other").map((s) => (
+              <Chip key={s.id} active={species === s.id} onClick={() => setSpecies(s.id)}>
+                {s.label}
+              </Chip>
+            ))}
+          </div>
         </Field>
 
         <Field label="Category">
