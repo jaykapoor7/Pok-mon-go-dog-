@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Camera, Crosshair, Minus, Plus, Loader2, Check, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Camera, Crosshair, Minus, Plus, Loader2, Check, CheckCircle2, WifiOff, RefreshCw } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { uploadPhoto } from "@/lib/actions";
 import { submitSurveyResponse } from "@/lib/survey-actions";
@@ -29,9 +29,38 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
   const [recorded, setRecorded] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  const [pending, setPending] = useState(0);
+  const [online, setOnline] = useState(true);
+  const QKEY = `straypaw:survey-queue:${survey.id}`;
+
   useEffect(() => {
     if (ready && !isAuthed) openSignIn();
   }, [ready, isAuthed, openSignIn]);
+
+  function readQ(): any[] { try { return JSON.parse(localStorage.getItem(QKEY) || "[]"); } catch { return []; } }
+  function writeQ(arr: any[]) { try { localStorage.setItem(QKEY, JSON.stringify(arr)); } catch {} setPending(arr.length); }
+
+  async function flush() {
+    const q = readQ();
+    if (!q.length) return;
+    const remaining: any[] = [];
+    for (const item of q) {
+      try { await submitSurveyResponse(item); } catch { remaining.push(item); }
+    }
+    writeQ(remaining);
+  }
+
+  useEffect(() => {
+    setPending(readQ().length);
+    setOnline(typeof navigator !== "undefined" ? navigator.onLine : true);
+    const on = () => { setOnline(true); flush(); };
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    flush();
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function locate() {
     if (!navigator.geolocation) return;
@@ -54,26 +83,21 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
   async function submit() {
     setBusy(true);
     setError(null);
+    const attributes: Record<string, unknown> = {};
+    if (sterilised !== null) attributes.sterilised = sterilised;
+    const payload = {
+      surveyId: survey.id, areaId, lat: coords?.lat ?? null, lng: coords?.lng ?? null,
+      photoUrl: photo, species, count, attributes, notes: notes.trim() || null,
+    };
     try {
-      const attributes: Record<string, unknown> = {};
-      if (sterilised !== null) attributes.sterilised = sterilised;
-      await submitSurveyResponse({
-        surveyId: survey.id,
-        areaId,
-        lat: coords?.lat ?? null,
-        lng: coords?.lng ?? null,
-        photoUrl: photo,
-        species,
-        count,
-        attributes,
-        notes: notes.trim() || null,
-      });
-      setRecorded((n) => n + 1);
-      // reset the per-animal fields, keep area + GPS for speed
-      setCount(1); setSterilised(null); setPhoto(null); setNotes("");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save. Check your connection.");
+      if (typeof navigator !== "undefined" && !navigator.onLine) throw new Error("offline");
+      await submitSurveyResponse(payload);
+    } catch {
+      // Offline or failed → queue locally; it syncs when back online.
+      const q = readQ(); q.push(payload); writeQ(q);
     } finally {
+      setRecorded((n) => n + 1);
+      setCount(1); setSterilised(null); setPhoto(null); setNotes("");
       setBusy(false);
     }
   }
@@ -83,6 +107,16 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
       <Link href={`/surveys/${survey.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
         <ArrowLeft className="h-4 w-4" /> {survey.title}
       </Link>
+
+      {(!online || pending > 0) && (
+        <div className={cn("mb-3 flex items-center gap-2 rounded-md px-3 py-2 text-[13px]", online ? "bg-status-hungry/10 text-status-hungry" : "bg-bark-100 text-bark-500 dark:bg-bark-800")}>
+          {online ? <RefreshCw className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+          <span className="flex-1">
+            {online ? `${pending} saved offline · syncing…` : `Offline — ${pending} saved on this device`}
+          </span>
+          {online && pending > 0 && <button onClick={flush} className="font-semibold underline">Sync now</button>}
+        </div>
+      )}
 
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-semibold tracking-tight">Record an animal</h1>

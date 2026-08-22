@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Loader2, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Plus, Loader2, ClipboardCheck, Download } from "lucide-react";
 import { isNgoMember } from "@/lib/actions";
 import { addSurveyArea } from "@/lib/survey-actions";
 import { getSurveyResponses } from "@/lib/surveys";
+import { downloadCsv } from "@/lib/csv";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { speciesLabel, type Survey, type SurveyArea, type SurveyResponse, type Dog } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyArea[] }) {
   const router = useRouter();
@@ -80,6 +81,40 @@ export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyA
           </div>
           <p className="mt-1.5 text-[12px] text-bark-400">{responseMarkers.length} geo-tagged observations.</p>
         </div>
+      )}
+
+      {/* observations */}
+      {responses.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-[13px] font-semibold uppercase tracking-wide text-bark-400">Observations ({responses.length})</h2>
+            <button
+              onClick={() => {
+                const areaName = new Map(areas.map((a) => [a.id, a.name]));
+                downloadCsv(`${survey.title.replace(/\W+/g, "-").toLowerCase()}-responses.csv`, responses.map((r) => ({
+                  date: r.created_at, area: r.area_id ? areaName.get(r.area_id) ?? "" : "", species: speciesLabel(r.species),
+                  count: r.count, lat: r.lat ?? "", lng: r.lng ?? "", sterilised: (r.attributes as any)?.sterilised ?? "", notes: r.notes ?? "",
+                })));
+              }}
+              className="inline-flex items-center gap-1 text-[13px] font-medium text-paw-600 hover:underline"
+            >
+              <Download className="h-3.5 w-3.5" /> Export CSV
+            </button>
+          </div>
+          <ul className="max-h-72 overflow-y-auto rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
+            {responses.slice(0, 100).map((r) => {
+              const areaName = areas.find((a) => a.id === r.area_id)?.name;
+              return (
+                <li key={r.id} className="flex items-center gap-3 border-b border-black/[0.06] px-4 py-2 text-[13px] last:border-0 dark:border-white/[0.06]">
+                  <span className="min-w-0 flex-1 truncate text-bark-800 dark:text-bark-100">
+                    {speciesLabel(r.species)}{r.count > 1 ? ` ×${r.count}` : ""}{areaName ? ` · ${areaName}` : ""}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-bark-400">{formatDate(r.created_at)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
 
       {/* areas */}

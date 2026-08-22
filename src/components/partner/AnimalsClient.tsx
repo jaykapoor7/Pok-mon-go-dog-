@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Loader2, Camera, Crosshair, Check } from "lucide-react";
+import { Plus, Search, Loader2, Camera, Crosshair, Check, Download } from "lucide-react";
 import { getMyAnimals, createAnimal, type AnimalRow } from "@/lib/animal-actions";
 import { uploadPhoto } from "@/lib/actions";
+import { downloadCsv } from "@/lib/csv";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { SPECIES, speciesLabel, STATUS_META } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
@@ -33,9 +34,19 @@ export function AnimalsClient() {
           <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Animals</h1>
           <p className="mt-0.5 text-[13px] text-bark-500">Your organization&apos;s animal records — the longitudinal registry.</p>
         </div>
-        <button onClick={() => setCreating((v) => !v)} className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
-          <Plus className="h-4 w-4" /> New animal
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {animals.length > 0 && (
+            <button
+              onClick={() => downloadCsv("animals.csv", animals.map((a) => ({ code: a.code, name: a.name, species: a.species, status: a.status, location: a.zone, assignee: a.assignee_name, last_seen: a.last_seen })))}
+              className="inline-flex items-center gap-1.5 rounded-md border border-black/[0.1] px-3 py-2 text-[13px] font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/[0.12] dark:text-bark-200"
+            >
+              <Download className="h-4 w-4" /> Export
+            </button>
+          )}
+          <button onClick={() => setCreating((v) => !v)} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
+            <Plus className="h-4 w-4" /> New animal
+          </button>
+        </div>
       </header>
 
       {creating && <CreateAnimal onDone={() => { setCreating(false); load(); }} />}
