@@ -62,6 +62,8 @@ function mapDog(row: any): Dog {
     assignee_id: row.assignee_id ?? null,
     assignee_name: row.assignee_name ?? null,
     intake_notes: row.intake_notes ?? null,
+    owner_name: row.owner_name ?? null,
+    owner_contact: row.owner_contact ?? null,
   };
 }
 

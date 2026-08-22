@@ -158,6 +158,30 @@ export interface Dog {
   assignee_id?: string | null;
   assignee_name?: string | null;
   intake_notes?: string | null;
+  owner_name?: string | null;
+  owner_contact?: string | null;
+}
+
+export const MEDICAL_KINDS: { id: string; label: string }[] = [
+  { id: "vaccination", label: "Vaccination" },
+  { id: "deworming", label: "Deworming" },
+  { id: "sterilisation", label: "Sterilisation" },
+  { id: "wound", label: "Wound care" },
+  { id: "treatment", label: "Treatment" },
+  { id: "rescue", label: "Rescue" },
+  { id: "rehabilitation", label: "Rehabilitation" },
+  { id: "checkup", label: "Check-up" },
+];
+
+export interface MedicalEvent {
+  id: string;
+  dog_id: string | null;
+  case_id: string | null;
+  kind: string;
+  event_date: string;
+  notes: string | null;
+  performed_by: string | null;
+  created_at: string;
 }
 
 // Convenience aggregate returned by the dog-profile builder.

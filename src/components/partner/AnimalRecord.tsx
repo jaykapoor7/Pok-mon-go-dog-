@@ -6,26 +6,33 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, MapPin, Circle, Pencil, Loader2, Check } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { isNgoMember } from "@/lib/actions";
-import { updateAnimal } from "@/lib/animal-actions";
+import { updateAnimal, getMedicalEvents, addMedicalEvent, setAnimalOwner } from "@/lib/animal-actions";
 import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
-import { speciesLabel, STATUS_META, isOverdue, type Dog, type Sighting, type Case, type DogStatus } from "@/lib/types";
+import { speciesLabel, STATUS_META, isOverdue, MEDICAL_KINDS, type Dog, type Sighting, type Case, type DogStatus, type MedicalEvent } from "@/lib/types";
 import { formatDate, timeAgo } from "@/lib/utils";
+import { Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DOG_STATUSES: DogStatus[] = ["seen", "hungry", "injured", "sterilised", "vaccinated"];
+const kindLabel = (k: string) => MEDICAL_KINDS.find((m) => m.id === k)?.label ?? k;
 
-type Tab = "overview" | "cases" | "timeline" | "photos";
+type Tab = "overview" | "medical" | "cases" | "timeline" | "photos";
 
 export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: Sighting[]; cases: Case[] }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [member, setMember] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [medical, setMedical] = useState<MedicalEvent[]>([]);
   const st = STATUS_META[dog.status];
 
-  useEffect(() => { isNgoMember().then(setMember).catch(() => {}); }, []);
+  useEffect(() => {
+    isNgoMember().then(setMember).catch(() => {});
+    getMedicalEvents(dog.id).then(setMedical).catch(() => {});
+  }, [dog.id]);
 
   const TABS: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },
+    { key: "medical", label: `Medical (${medical.length})` },
     { key: "cases", label: `Cases (${cases.length})` },
     { key: "timeline", label: "Timeline" },
     { key: "photos", label: "Photos" },
@@ -91,6 +98,10 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
             <Row label="Status">{st.label}</Row>
             <Row label="Location">{dog.zone || "—"}</Row>
             <Row label="Responsible">{dog.assignee_name ?? "Unassigned"}</Row>
+            {(dog.vaccinated || dog.sterilised) && (
+              <Row label="Health">{[dog.vaccinated && "Vaccinated", dog.sterilised && "Sterilised"].filter(Boolean).join(" · ")}</Row>
+            )}
+            {dog.owner_name && <Row label="Owner">{dog.owner_name}{dog.owner_contact ? ` · ${dog.owner_contact}` : ""}</Row>}
             <Row label="Open cases">{cases.filter((c) => c.status !== "resolved" && c.status !== "closed").length}</Row>
             <Row label="First recorded">{formatDate(dog.first_seen)}</Row>
           </div>
@@ -102,6 +113,8 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
           )}
         </div>
       )}
+
+      {tab === "medical" && <MedicalPanel dog={dog} canEdit={member} events={medical} onAdded={() => getMedicalEvents(dog.id).then(setMedical)} />}
 
       {tab === "cases" && (
         <div>
@@ -173,6 +186,8 @@ function AnimalEdit({ dog, onDone }: { dog: Dog; onDone: () => void }) {
   const [status, setStatus] = useState<DogStatus>(dog.status);
   const [notes, setNotes] = useState(dog.intake_notes ?? "");
   const [assigneeId, setAssigneeId] = useState(dog.assignee_id ?? "");
+  const [ownerName, setOwnerName] = useState(dog.owner_name ?? "");
+  const [ownerContact, setOwnerContact] = useState(dog.owner_contact ?? "");
   const [members, setMembers] = useState<OrgMember[]>([]);
   const [busy, setBusy] = useState(false);
   const INPUT = "w-full rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-sm outline-none focus:border-paw-400 dark:border-white/[0.12]";
@@ -189,6 +204,7 @@ function AnimalEdit({ dog, onDone }: { dog: Dog; onDone: () => void }) {
         assigneeId: assigneeId || undefined,
         assigneeName: m?.name ?? undefined,
       });
+      await setAnimalOwner(dog.id, ownerName.trim(), ownerContact.trim());
       router.refresh();
       onDone();
     } finally { setBusy(false); }
@@ -209,10 +225,76 @@ function AnimalEdit({ dog, onDone }: { dog: Dog; onDone: () => void }) {
           {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.name}</option>)}
         </select>
       </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Owner / community (optional)" className={INPUT} />
+        <input value={ownerContact} onChange={(e) => setOwnerContact(e.target.value)} placeholder="Owner contact" className={INPUT} />
+      </div>
       <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Intake notes" className={cn(INPUT, "min-h-[60px] resize-y")} />
       <button onClick={save} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-4 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Save
       </button>
+    </div>
+  );
+}
+
+function MedicalPanel({ dog, canEdit, events, onAdded }: { dog: Dog; canEdit: boolean; events: MedicalEvent[]; onAdded: () => void }) {
+  const [adding, setAdding] = useState(false);
+  const [kind, setKind] = useState("vaccination");
+  const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [by, setBy] = useState("");
+  const [busy, setBusy] = useState(false);
+  const INPUT = "rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-sm outline-none focus:border-paw-400 dark:border-white/[0.12]";
+
+  async function submit() {
+    setBusy(true);
+    try {
+      await addMedicalEvent({ dogId: dog.id, kind, eventDate: date || null, notes: notes.trim() || undefined, performedBy: by.trim() || undefined });
+      setAdding(false); setNotes(""); setBy(""); setDate("");
+      onAdded();
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div>
+      {canEdit && (
+        <div className="mb-3">
+          <button onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
+            <Stethoscope className="h-4 w-4" /> Log medical event
+          </button>
+        </div>
+      )}
+      {adding && (
+        <div className="mb-4 space-y-2 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
+          <div className="flex flex-wrap gap-2">
+            <select value={kind} onChange={(e) => setKind(e.target.value)} className={INPUT}>
+              {MEDICAL_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
+            </select>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={INPUT} />
+            <input value={by} onChange={(e) => setBy(e.target.value)} placeholder="Performed by (vet/worker)" className={cn(INPUT, "min-w-0 flex-1")} />
+          </div>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (medicine, dosage, findings…)" className={cn(INPUT, "min-h-[56px] w-full resize-y")} />
+          <button onClick={submit} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-4 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Save event
+          </button>
+        </div>
+      )}
+      {events.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-black/[0.1] py-10 text-center text-[14px] text-bark-400 dark:border-white/[0.12]">No medical events logged.</p>
+      ) : (
+        <div className="space-y-3 border-l-2 border-black/[0.06] pl-4 dark:border-white/[0.1]">
+          {events.map((e) => (
+            <div key={e.id} className="relative">
+              <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-paw-500" />
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-paw-50 px-2 py-0.5 text-[11px] font-semibold text-paw-700 dark:bg-paw-900/30 dark:text-paw-300">{kindLabel(e.kind)}</span>
+                <span className="text-[12px] text-bark-400">{formatDate(e.event_date)}{e.performed_by ? ` · ${e.performed_by}` : ""}</span>
+              </div>
+              {e.notes && <p className="mt-1 text-[14px] leading-relaxed text-bark-700 dark:text-bark-200">{e.notes}</p>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

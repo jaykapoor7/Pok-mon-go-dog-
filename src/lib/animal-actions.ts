@@ -100,3 +100,36 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
     lng: r.lng ?? 0,
   }));
 }
+
+import type { MedicalEvent } from "./types";
+
+export async function getMedicalEvents(dogId: string): Promise<MedicalEvent[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa.from("medical_events").select("*").eq("dog_id", dogId).order("event_date", { ascending: false });
+  return (data ?? []).map((r: any) => ({
+    id: r.id, dog_id: r.dog_id ?? null, case_id: r.case_id ?? null, kind: r.kind,
+    event_date: r.event_date, notes: r.notes ?? null, performed_by: r.performed_by ?? null, created_at: r.created_at,
+  }));
+}
+
+export async function addMedicalEvent(input: {
+  dogId?: string | null; caseId?: string | null; kind: string; eventDate?: string | null; notes?: string; performedBy?: string;
+}): Promise<string | null> {
+  const supa = getSupabase();
+  if (!supa) return "demo-event";
+  const { data, error } = await supa.rpc("add_medical_event", {
+    p_dog_id: input.dogId ?? null, p_case_id: input.caseId ?? null, p_kind: input.kind,
+    p_event_date: input.eventDate ?? null, p_notes: input.notes ?? null, p_performed_by: input.performedBy ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return (data as string) ?? null;
+}
+
+export async function setAnimalOwner(dogId: string, ownerName: string, ownerContact: string): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("set_animal_owner", { p_dog_id: dogId, p_owner_name: ownerName, p_owner_contact: ownerContact });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
