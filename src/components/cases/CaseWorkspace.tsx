@@ -12,6 +12,7 @@ import {
   CalendarClock,
   ExternalLink,
   Dog as DogIcon,
+  HeartHandshake,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DogPhoto } from "@/components/ui/DogPhoto";
@@ -103,7 +104,7 @@ export function CaseWorkspace({ c, updates }: { c: Case; updates: CaseUpdate[] }
         ))}
       </div>
 
-      {tab === "overview" && <Overview c={c} />}
+      {tab === "overview" && <Overview c={c} canEdit={canEdit} />}
       {tab === "medical" && <Medical c={c} canEdit={canEdit} />}
       {tab === "photos" && <Photos c={c} canEdit={canEdit} />}
       {tab === "timeline" && <CaseTimeline updates={updates} />}
@@ -123,7 +124,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function Overview({ c }: { c: Case }) {
+function Overview({ c, canEdit }: { c: Case; canEdit: boolean }) {
   return (
     <div className="space-y-6">
       <div>
@@ -166,6 +167,15 @@ function Overview({ c }: { c: Case }) {
         <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-bark-400">Actions</h2>
         <CaseControls c={c} />
       </div>
+
+      {canEdit && (
+        <Link
+          href={`/fundraisers/new?title=${encodeURIComponent(c.title)}`}
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-paw-600 hover:underline"
+        >
+          <HeartHandshake className="h-4 w-4" /> Raise funds for this case
+        </Link>
+      )}
     </div>
   );
 }

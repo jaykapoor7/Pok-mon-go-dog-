@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Camera, Loader2, HeartHandshake } from "lucide-react";
@@ -16,6 +16,11 @@ export function NewFundraiserForm() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
+  // Prefill from a linked case (e.g. "Raise funds for this case").
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("title");
+    if (t) setTitle(t);
+  }, []);
   const [category, setCategory] = useState("bills");
   const [story, setStory] = useState("");
   const [goal, setGoal] = useState("");
