@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Users, HeartPulse, ShieldCheck, Timer, ListChecks, BarChart3, HandHelping, HeartHandshake, ArrowRight, Building2 } from "lucide-react";
 import { OrgManager } from "@/components/dashboard/OrgManager";
+import { OverviewPanel } from "@/components/dashboard/OverviewPanel";
 import { CommandCenter } from "@/components/cases/CommandCenter";
 import { CaseReporting } from "@/components/cases/CaseReporting";
 import { HelpQueue } from "@/components/dashboard/HelpQueue";
@@ -19,13 +20,14 @@ import {
 import { cn, formatNumber } from "@/lib/utils";
 import type { Case, Dog, NGO, Sighting } from "@/lib/types";
 
-type Tab = "org" | "operate" | "impact";
+type Tab = "overview" | "impact" | "org";
 type HelperCounts = { volunteers: number; ngos: number };
 
 export function DashboardClient({
   dogs,
   cases,
   ngos,
+  sightings,
   helperCounts,
 }: {
   dogs: Dog[];
@@ -34,48 +36,34 @@ export function DashboardClient({
   sightings: Sighting[];
   helperCounts: HelperCounts;
 }) {
-  const [tab, setTab] = useState<Tab>("org");
-
-  const cov = coverage(dogs);
-  const median = medianResponseDays(cases);
+  const [tab, setTab] = useState<Tab>("overview");
 
   return (
-    <div className="mx-auto max-w-6xl overflow-x-clip px-4 pb-32 pt-24 sm:px-6">
-      <header className="mb-4">
-        <p className="text-sm font-semibold text-paw-600">Partners</p>
-        <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">
-          NGO command center
-        </h1>
+    <div className="mx-auto max-w-5xl overflow-x-clip px-4 pb-32 pt-24 sm:px-6">
+      <header className="mb-4 border-b border-black/[0.08] pb-4 dark:border-white/[0.1]">
+        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Workspace</h1>
+        <p className="mt-0.5 text-[13px] text-bark-500">What needs your attention across your organization.</p>
       </header>
 
-      {/* Health summary strip — the at-a-glance public-health line. */}
-      <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl bg-paw-500 px-5 py-3.5 text-white shadow-warm">
-        <Strip icon={<Users className="h-4 w-4" />} value={formatNumber(cov.tracked)} label="tracked" />
-        <Strip icon={<HeartPulse className="h-4 w-4" />} value={formatNumber(cov.needsHelp)} label="need help" />
-        <Strip icon={<ShieldCheck className="h-4 w-4" />} value={`${cov.sterilisedPct}%`} label="sterilised" />
-        <Strip icon={<ShieldCheck className="h-4 w-4" />} value={`${cov.vaccinatedPct}%`} label="vaccinated" />
-        <Strip icon={<Timer className="h-4 w-4" />} value={median != null ? `${median}d` : "—"} label="median response" />
-      </div>
-
-      {/* Organization / Operate / Impact toggle (internal to Partners). */}
-      <div className="mb-6 inline-flex flex-wrap rounded-full bg-bark-100 p-1 dark:bg-bark-800">
-        <TabButton active={tab === "org"} onClick={() => setTab("org")} icon={<Building2 className="h-4 w-4" />}>
-          Organization
-        </TabButton>
-        <TabButton active={tab === "operate"} onClick={() => setTab("operate")} icon={<ListChecks className="h-4 w-4" />}>
-          Operate
+      {/* Understated segmented nav (operational, not marketing). */}
+      <div className="no-scrollbar -mx-1 mb-6 flex gap-1 overflow-x-auto px-1">
+        <TabButton active={tab === "overview"} onClick={() => setTab("overview")} icon={<ListChecks className="h-4 w-4" />}>
+          Overview
         </TabButton>
         <TabButton active={tab === "impact"} onClick={() => setTab("impact")} icon={<BarChart3 className="h-4 w-4" />}>
           Impact
         </TabButton>
+        <TabButton active={tab === "org"} onClick={() => setTab("org")} icon={<Building2 className="h-4 w-4" />}>
+          Organization
+        </TabButton>
       </div>
 
-      {tab === "org" ? (
-        <OrgManager />
-      ) : tab === "operate" ? (
-        <Operate dogs={dogs} cases={cases} />
-      ) : (
+      {tab === "overview" ? (
+        <OverviewPanel cases={cases} dogs={dogs} sightings={sightings} />
+      ) : tab === "impact" ? (
         <Impact dogs={dogs} cases={cases} ngos={ngos} helperCounts={helperCounts} />
+      ) : (
+        <OrgManager />
       )}
     </div>
   );
