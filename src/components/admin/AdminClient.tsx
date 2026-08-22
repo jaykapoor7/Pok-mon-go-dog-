@@ -464,6 +464,19 @@ export function AdminClient() {
     }
   }
 
+  // Directly grant partner access to an existing account by email.
+  async function grantPartner(email: string, orgName: string, area: string): Promise<string | null> {
+    const res = await fetch("/api/admin/partners", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "grant", email, orgName, area }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) return j.error || "Grant failed.";
+    haptic("success");
+    return null;
+  }
+
   // Discover candidate campaigns from the web → pending review queue.
   async function discoverFundraisers() {
     setDiscoveringFunds(true);
@@ -763,7 +776,7 @@ export function AdminClient() {
           )}
 
           {tab === "partners" && (
-        <PartnerRequestsList requests={partnerRequests} busyId={busyId} onAction={partnerAction} />
+        <PartnerRequestsList requests={partnerRequests} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} />
       )}
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
@@ -1226,26 +1239,27 @@ function PartnerRequestsList({
   requests,
   busyId,
   onAction,
+  onGrant,
 }: {
   requests: AdminPartnerRequest[];
   busyId: string | null;
   onAction: (id: string, action: "approve" | "reject") => void;
+  onGrant: (email: string, orgName: string, area: string) => Promise<string | null>;
 }) {
-  if (requests.length === 0) {
-    return (
-      <div className="card p-10 text-center">
-        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-          <HeartHandshake className="h-7 w-7" />
-        </span>
-        <h2 className="font-display text-lg font-bold">No partner requests</h2>
-        <p className="mt-1 text-sm text-bark-500">
-          NGO access requests from the partner console appear here. Approving one
-          grants the verified-partner tools.
-        </p>
-      </div>
-    );
-  }
   return (
+    <div className="space-y-4">
+      <GrantAccessForm onGrant={onGrant} />
+      {requests.length === 0 ? (
+        <div className="card p-8 text-center">
+          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+            <HeartHandshake className="h-6 w-6" />
+          </span>
+          <h2 className="font-display text-base font-bold">No pending requests</h2>
+          <p className="mt-1 text-sm text-bark-500">
+            NGO access requests appear here. Or grant access directly above.
+          </p>
+        </div>
+      ) : (
     <div className="space-y-3">
       {requests.map((r) => (
         <div key={r.id} className="card p-4">
@@ -1294,6 +1308,43 @@ function PartnerRequestsList({
           </div>
         </div>
       ))}
+    </div>
+      )}
+    </div>
+  );
+}
+
+function GrantAccessForm({ onGrant }: { onGrant: (email: string, orgName: string, area: string) => Promise<string | null> }) {
+  const [email, setEmail] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [area, setArea] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function submit() {
+    if (!email.trim() || !orgName.trim()) return;
+    setBusy(true);
+    setMsg(null);
+    const err = await onGrant(email.trim(), orgName.trim(), area.trim());
+    setBusy(false);
+    if (err) setMsg({ ok: false, text: err });
+    else { setMsg({ ok: true, text: `${orgName} now has partner access.` }); setEmail(""); setOrgName(""); setArea(""); }
+  }
+
+  const input = "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900";
+  return (
+    <div className="card p-4">
+      <p className="mb-2 text-sm font-semibold">Grant partner access directly</p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="NGO account email" className={input} />
+        <input value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="Organisation name" className={input} />
+        <input value={area} onChange={(e) => setArea(e.target.value)} placeholder="Area (optional)" className={input} />
+      </div>
+      <button onClick={submit} disabled={busy || !email.trim() || !orgName.trim()} className="btn-primary mt-2 px-4 py-2 text-sm">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Grant access
+      </button>
+      {msg && <p className={`mt-2 text-sm font-medium ${msg.ok ? "text-status-vaccinated" : "text-status-injured"}`}>{msg.text}</p>}
+      <p className="mt-1 text-xs text-bark-400">The person must have signed in to StrayPaw once (magic link) first. Creates a verified org + makes them its admin.</p>
     </div>
   );
 }

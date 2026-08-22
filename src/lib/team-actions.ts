@@ -22,3 +22,20 @@ export async function setMemberRole(userId: string, role: string): Promise<boole
   if (error) throw new Error(error.message);
   return data === true;
 }
+
+export async function addOrgMember(email: string, role = "member"): Promise<void> {
+  const supa = getSupabase();
+  if (!supa) return;
+  const { data, error } = await supa.rpc("add_org_member", { p_email: email, p_role: role });
+  if (error) throw new Error(error.message);
+  const res = data as { ok?: boolean; error?: string } | null;
+  if (!res?.ok) throw new Error(res?.error ?? "Could not add member.");
+}
+
+export async function removeOrgMember(userId: string): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("remove_org_member", { p_user_id: userId });
+  if (error) throw new Error(error.message);
+  return data === true;
+}

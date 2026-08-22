@@ -82,12 +82,48 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { action?: string; id?: string };
+  let body: { action?: string; id?: string; email?: string; orgName?: string; area?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+
+  // Directly grant partner access to an existing account by email (no request
+  // needed) — creates a verified org + makes the user its admin member.
+  if (body.action === "grant") {
+    const email = (body.email ?? "").trim().toLowerCase();
+    const orgName = (body.orgName ?? "").trim();
+    if (!email || !orgName) {
+      return NextResponse.json({ error: "Email and organisation name are required." }, { status: 400 });
+    }
+    let userId: string | null = null;
+    for (let page = 1; page <= 10 && !userId; page++) {
+      const { data: list } = await supa.auth.admin.listUsers({ page, perPage: 200 });
+      const u = list?.users?.find((x) => (x.email ?? "").toLowerCase() === email);
+      if (u) userId = u.id;
+      if (!list?.users?.length || list.users.length < 200) break;
+    }
+    if (!userId) {
+      return NextResponse.json(
+        { error: "No StrayPaw account with that email. Ask them to sign in once (magic link), then grant." },
+        { status: 404 }
+      );
+    }
+    const slug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).slice(2, 6);
+    const { data: org, error: e1 } = await supa
+      .from("ngos")
+      .insert({ name: orgName, area: body.area ?? null, verified: true, verified_at: new Date().toISOString(), slug })
+      .select("id")
+      .single();
+    if (e1) return NextResponse.json({ error: e1.message }, { status: 500 });
+    const { error: e2 } = await supa
+      .from("ngo_members")
+      .upsert({ user_id: userId, ngo_id: org!.id, role: "admin" }, { onConflict: "user_id" });
+    if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
+    return NextResponse.json({ ok: true, ngo_id: org!.id });
+  }
+
   if (!body.id || (body.action !== "approve" && body.action !== "reject")) {
     return NextResponse.json({ error: "Provide { action: 'approve' | 'reject', id }" }, { status: 400 });
   }
