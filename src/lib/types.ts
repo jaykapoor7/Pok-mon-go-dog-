@@ -268,6 +268,24 @@ export interface Case {
   verified_at?: string | null;
   cost_estimate?: number | null; // planned cost, INR
   cost_spent?: number | null; // spent to date, INR
+  species?: string; // 'dog' | 'donkey' | 'mule' | 'cat' | 'cattle' | ...
+  follow_up_at?: string | null;
+}
+
+// Species registry — the core is species-agnostic; 'dog' is the default so
+// existing data and the community app are unchanged.
+export const SPECIES: { id: string; label: string; plural: string }[] = [
+  { id: "dog", label: "Dog", plural: "Dogs" },
+  { id: "donkey", label: "Donkey", plural: "Donkeys" },
+  { id: "mule", label: "Mule", plural: "Mules" },
+  { id: "cat", label: "Cat", plural: "Cats" },
+  { id: "cattle", label: "Cattle", plural: "Cattle" },
+  { id: "horse", label: "Horse", plural: "Horses" },
+  { id: "other", label: "Animal", plural: "Animals" },
+];
+
+export function speciesLabel(id: string | null | undefined): string {
+  return SPECIES.find((s) => s.id === id)?.label ?? "Animal";
 }
 
 export interface CaseUpdate {

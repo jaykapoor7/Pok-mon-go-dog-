@@ -44,6 +44,8 @@ function mapCase(r: any): Case {
     verified_at: r.verified_at ?? null,
     cost_estimate: r.cost_estimate ?? null,
     cost_spent: r.cost_spent ?? null,
+    species: r.species ?? "dog",
+    follow_up_at: r.follow_up_at ?? null,
   };
 }
 
