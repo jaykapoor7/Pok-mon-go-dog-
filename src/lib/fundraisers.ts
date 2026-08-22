@@ -24,6 +24,7 @@ export function mapFundraiser(r: any): Fundraiser {
     featured: r.featured ?? false,
     budget: Array.isArray(r.budget) ? r.budget : [],
     outcome: r.outcome ?? null,
+    case_id: r.case_id ?? null,
     created_by_id: r.created_by_id ?? null,
     created_by_name: r.created_by_name ?? null,
     created_at: r.created_at,

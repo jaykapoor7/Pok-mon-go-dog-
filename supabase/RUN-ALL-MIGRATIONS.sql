@@ -3049,3 +3049,102 @@ end $$;
 
 grant execute on function create_animal(text,text,text,text,double precision,double precision,text,text) to authenticated;
 grant execute on function update_animal(uuid,text,text,text,text,uuid,text,dog_status,text) to authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- ▼ camps.sql — veterinary camp planning (Phase 2)
+-- ════════════════════════════════════════════════════════════════
+create table if not exists vet_camps (
+  id            uuid primary key default gen_random_uuid(),
+  ngo_id        uuid,
+  name          text not null,
+  village       text,
+  district      text,
+  lat           double precision,
+  lng           double precision,
+  camp_date     date,
+  status        text not null default 'planned', -- planned | done | cancelled
+  notes         text,
+  created_by_id uuid,
+  created_at    timestamptz not null default now()
+);
+create index if not exists vet_camps_ngo_idx on vet_camps (ngo_id);
+
+alter table vet_camps enable row level security;
+drop policy if exists vet_camps_read on vet_camps;
+create policy vet_camps_read on vet_camps for select using (true);
+
+create or replace function create_vet_camp(
+  p_name text, p_village text default null, p_district text default null,
+  p_lat double precision default null, p_lng double precision default null,
+  p_camp_date date default null, p_notes text default null
+) returns uuid language plpgsql security definer set search_path = public as $$
+declare v_id uuid; v_ngo uuid;
+begin
+  select my_ngo() into v_ngo;
+  if v_ngo is null then raise exception 'Not a partner organization'; end if;
+  insert into vet_camps (ngo_id, name, village, district, lat, lng, camp_date, notes, created_by_id)
+  values (v_ngo, p_name, p_village, p_district, p_lat, p_lng, p_camp_date, p_notes, auth.uid())
+  returning id into v_id;
+  return v_id;
+end $$;
+
+create or replace function set_vet_camp_status(p_id uuid, p_status text)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  update vet_camps set status = p_status where id = p_id and ngo_id = my_ngo();
+  return found;
+end $$;
+
+grant execute on function create_vet_camp(text,text,text,double precision,double precision,date,text) to authenticated;
+grant execute on function set_vet_camp_status(uuid,text) to authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- ▼ fundraisers-case-link.sql — campaign ↔ case link (Phase 4)
+-- ════════════════════════════════════════════════════════════════
+alter table fundraisers add column if not exists case_id uuid;
+
+-- Recreate create_fundraiser with a trailing p_case_id (drop old signature so
+-- PostgREST resolves the new one unambiguously).
+drop function if exists create_fundraiser(text,text,text,integer,text,text,date,uuid,text);
+
+create or replace function create_fundraiser(
+  p_title       text,
+  p_story       text,
+  p_category    text,
+  p_goal_amount integer,
+  p_donate_url  text,
+  p_cover_photo text default null,
+  p_deadline    date default null,
+  p_actor_id    uuid default null,
+  p_actor_name  text default null,
+  p_case_id     uuid default null
+)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_id uuid;
+begin
+  if not is_ngo_member() then
+    raise exception 'Only verified partner NGOs can start a fundraiser.';
+  end if;
+  if coalesce(btrim(p_title), '') = '' then
+    raise exception 'A title is required.';
+  end if;
+  if p_donate_url is null or lower(btrim(p_donate_url)) not like 'http%' then
+    raise exception 'A valid donation link (starting with https://) is required.';
+  end if;
+
+  insert into fundraisers (ngo_id, title, story, category, goal_amount, donate_url,
+                           cover_photo, deadline, created_by_id, created_by_name, case_id)
+  values ((select ngo_id from ngo_members where user_id = auth.uid()),
+          btrim(p_title),
+          nullif(btrim(coalesce(p_story,'')), ''),
+          coalesce(nullif(p_category, ''), 'other'),
+          p_goal_amount, btrim(p_donate_url), p_cover_photo, p_deadline,
+          p_actor_id, p_actor_name, p_case_id)
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+
+grant execute on function create_fundraiser(text,text,text,integer,text,text,date,uuid,text,uuid) to authenticated, service_role;

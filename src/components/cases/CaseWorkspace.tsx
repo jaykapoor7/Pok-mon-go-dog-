@@ -180,7 +180,7 @@ function Overview({ c, canEdit }: { c: Case; canEdit: boolean }) {
 
       {canEdit && (
         <Link
-          href={`/fundraisers/new?title=${encodeURIComponent(c.title)}`}
+          href={`/fundraisers/new?title=${encodeURIComponent(c.title)}&case=${c.id}`}
           className="inline-flex items-center gap-1.5 text-[13px] font-medium text-paw-600 hover:underline"
         >
           <HeartHandshake className="h-4 w-4" /> Raise funds for this case

@@ -3,6 +3,7 @@ import { CalendarClock, Circle, User } from "lucide-react";
 import { getCases } from "@/lib/cases";
 import { isOverdue, speciesLabel, type Case } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { CampsSection } from "@/components/partner/CampsSection";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Field Work — StrayPaw Partner" };
@@ -81,6 +82,8 @@ export default async function PartnerFieldPage() {
             </List>
           )}
         </Section>
+
+        <CampsSection />
       </div>
     </div>
   );

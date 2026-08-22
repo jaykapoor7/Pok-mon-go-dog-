@@ -23,17 +23,21 @@ import type { NGO } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/partner", label: "Overview", icon: LayoutGrid, exact: true },
-  { href: "/partner/cases", label: "Cases", icon: ClipboardList },
-  { href: "/partner/animals", label: "Animals", icon: PawPrint },
-  { href: "/partner/field", label: "Field Work", icon: Users },
-  { href: "/partner/map", label: "Map", icon: MapIcon },
-  { href: "/partner/surveys", label: "Surveys", icon: ClipboardCheck },
-  { href: "/partner/medical", label: "Medical", icon: Stethoscope },
-  { href: "/partner/fundraising", label: "Fundraising", icon: HeartHandshake },
-  { href: "/partner/reports", label: "Reports", icon: FileBarChart },
-  { href: "/partner/settings", label: "Organization", icon: Settings },
+  { key: "overview", href: "/partner", label: "Overview", icon: LayoutGrid, exact: true },
+  { key: "cases", href: "/partner/cases", label: "Cases", icon: ClipboardList },
+  { key: "animals", href: "/partner/animals", label: "Animals", icon: PawPrint },
+  { key: "field", href: "/partner/field", label: "Field Work", icon: Users },
+  { key: "map", href: "/partner/map", label: "Map", icon: MapIcon },
+  { key: "surveys", href: "/partner/surveys", label: "Surveys", icon: ClipboardCheck },
+  { key: "medical", href: "/partner/medical", label: "Medical", icon: Stethoscope },
+  { key: "fundraising", href: "/partner/fundraising", label: "Fundraising", icon: HeartHandshake },
+  { key: "reports", href: "/partner/reports", label: "Reports", icon: FileBarChart },
+  { key: "settings", href: "/partner/settings", label: "Organization", icon: Settings },
 ];
+
+// Overview + Organization are always shown; the rest can be gated by
+// ngos.config.modules (empty/absent config = show everything).
+const ALWAYS = new Set(["overview", "settings"]);
 
 function useActive() {
   const pathname = usePathname();
@@ -50,9 +54,12 @@ export function PartnerRail() {
     getMyOrg().then(setOrg).catch(() => {});
   }, []);
 
+  const enabled = org?.config?.modules;
+  const nav = enabled && enabled.length ? NAV.filter((n) => ALWAYS.has(n.key) || enabled.includes(n.key)) : NAV;
+
   const items = (
     <ul className="space-y-0.5">
-      {NAV.map((n) => {
+      {nav.map((n) => {
         const active = isActive(n.href, n.exact);
         const Icon = n.icon;
         return (

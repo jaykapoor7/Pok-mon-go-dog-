@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Clock, ShieldCheck, Wallet, CheckCircle2, Megaphone } from "lucide-react";
+import { ArrowLeft, ExternalLink, Clock, ShieldCheck, Wallet, CheckCircle2, Megaphone, ClipboardList } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { Logo } from "@/components/brand/Logo";
 import { VerifiedBadge } from "@/components/org/VerifiedBadge";
@@ -95,6 +95,12 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-bark-100 px-3 py-1 text-xs font-semibold text-bark-500 dark:bg-bark-800">
           This campaign has closed
         </p>
+      )}
+
+      {f.case_id && (
+        <Link href={`/cases/${f.case_id}`} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-paw-600 hover:underline">
+          <ClipboardList className="h-4 w-4" /> View the case this funds
+        </Link>
       )}
 
       {f.goal_amount != null && (

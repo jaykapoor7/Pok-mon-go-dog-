@@ -114,6 +114,7 @@ export interface NGO {
   founded_year?: number | null;
   registration_no?: string | null;
   verified_at?: string | null;
+  config?: { modules?: string[]; animal_noun?: string } | null;
 }
 
 export interface DogMatch {
@@ -320,6 +321,19 @@ export interface SurveyArea {
   animal_count?: number; // derived (sum of response.count)
 }
 
+export interface VetCamp {
+  id: string;
+  name: string;
+  village: string | null;
+  district: string | null;
+  lat: number | null;
+  lng: number | null;
+  camp_date: string | null;
+  status: string;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface SurveyResponse {
   id: string;
   survey_id: string;
@@ -398,6 +412,7 @@ export interface Fundraiser {
   featured: boolean;
   budget: BudgetLine[];
   outcome: string | null;
+  case_id?: string | null;
   created_by_id: string | null;
   created_by_name: string | null;
   created_at: string;

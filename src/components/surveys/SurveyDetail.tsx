@@ -6,17 +6,30 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Loader2, ClipboardCheck } from "lucide-react";
 import { isNgoMember } from "@/lib/actions";
 import { addSurveyArea } from "@/lib/survey-actions";
-import { speciesLabel, type Survey, type SurveyArea } from "@/lib/types";
+import { getSurveyResponses } from "@/lib/surveys";
+import { MapCanvas } from "@/components/map/MapCanvas";
+import { speciesLabel, type Survey, type SurveyArea, type SurveyResponse, type Dog } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyArea[] }) {
   const router = useRouter();
   const [member, setMember] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [responses, setResponses] = useState<SurveyResponse[]>([]);
 
   useEffect(() => {
     isNgoMember().then(setMember).catch(() => {});
-  }, []);
+    getSurveyResponses(survey.id).then(setResponses).catch(() => {});
+  }, [survey.id]);
+
+  const responseMarkers: Dog[] = responses
+    .filter((r) => r.lat && r.lng)
+    .map((r) => ({
+      id: r.id, name: speciesLabel(r.species), zone: "", lat: r.lat as number, lng: r.lng as number,
+      status: "seen", cover_photo: r.photo_url ?? "", photos: [], size: "medium", color: "", is_friendly: true,
+      needs_help: false, sterilised: false, vaccinated: false, trust_score: 50, sightings_count: 1, feed_count: 0,
+      first_seen: r.created_at, last_seen: r.created_at, last_fed_at: null, community_notes: [],
+    }));
 
   const totals = areas.reduce(
     (acc, a) => {
@@ -57,6 +70,17 @@ export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyA
       >
         <ClipboardCheck className="h-4 w-4" /> Collect data in the field
       </Link>
+
+      {/* geographic coverage */}
+      {responseMarkers.length > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">Coverage map</h2>
+          <div className="h-72 overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
+            <MapCanvas dogs={responseMarkers} />
+          </div>
+          <p className="mt-1.5 text-[12px] text-bark-400">{responseMarkers.length} geo-tagged observations.</p>
+        </div>
+      )}
 
       {/* areas */}
       <div className="mt-8 mb-2 flex items-center justify-between">

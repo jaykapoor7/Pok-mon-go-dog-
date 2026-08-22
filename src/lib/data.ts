@@ -302,6 +302,7 @@ export function mapOrg(n: any): NGO {
     founded_year: n.founded_year ?? null,
     registration_no: n.registration_no ?? null,
     verified_at: n.verified_at ?? null,
+    config: n.config ?? {},
   };
 }
 

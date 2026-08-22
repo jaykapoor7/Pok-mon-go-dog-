@@ -16,10 +16,13 @@ export function NewFundraiserForm() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
+  const [caseId, setCaseId] = useState<string | null>(null);
   // Prefill from a linked case (e.g. "Raise funds for this case").
   useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get("title");
+    const p = new URLSearchParams(window.location.search);
+    const t = p.get("title");
     if (t) setTitle(t);
+    setCaseId(p.get("case"));
   }, []);
   const [category, setCategory] = useState("bills");
   const [story, setStory] = useState("");
@@ -63,6 +66,7 @@ export function NewFundraiserForm() {
           donateUrl: normalizedUrl(),
           coverPhoto,
           deadline: deadline || null,
+          caseId,
         },
         { id: user.id, name: user.name }
       );

@@ -16,6 +16,7 @@ export interface CreateFundraiserInput {
   donateUrl: string;
   coverPhoto?: string | null;
   deadline?: string | null;
+  caseId?: string | null;
 }
 
 export async function createFundraiser(
@@ -34,6 +35,7 @@ export async function createFundraiser(
     p_deadline: input.deadline || null,
     p_actor_id: actor.id,
     p_actor_name: actor.name,
+    p_case_id: input.caseId ?? null,
   });
   if (error) throw new Error(error.message);
   return (data as string) ?? null;
