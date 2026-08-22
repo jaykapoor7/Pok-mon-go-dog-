@@ -70,7 +70,7 @@ export function PartnerMap({ cases }: { cases: Case[] }) {
   const selectedAnimal = sel?.kind === "animals" ? animals.find((a) => a.id === sel.id) : null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 top-14 lg:left-56 lg:top-0">
+    <div className="fixed bottom-0 left-0 right-0 top-14 lg:left-56">
       <MapCanvas dogs={markers} onSelect={(d) => setSel({ kind: layer, id: d.id })} />
 
       {/* filter bar */}

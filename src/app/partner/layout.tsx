@@ -1,4 +1,5 @@
 import { PartnerRail } from "@/components/partner/PartnerRail";
+import { PartnerTopBar } from "@/components/partner/PartnerTopBar";
 import { PartnerGate } from "@/components/partner/PartnerGate";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
     <div className="min-h-dvh bg-paper dark:bg-ink">
       <PartnerRail />
       <div className="pt-14 lg:pl-56 lg:pt-0">
+        <PartnerTopBar />
         <PartnerGate title="Partner workspace">
           <div className="mx-auto max-w-5xl px-4 py-6 sm:px-8">{children}</div>
         </PartnerGate>
