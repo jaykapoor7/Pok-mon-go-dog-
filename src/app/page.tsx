@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Mail } from "lucide-react";
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { getCityStats } from "@/lib/data";
+import { FlipBoard } from "@/components/marketing/FlipBoard";
 
 export const dynamic = "force-dynamic";
 
@@ -78,9 +79,9 @@ export default async function LandingPage() {
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div>
-      <div className="font-display text-2xl font-extrabold tracking-tightest">{value}</div>
-      <div className="text-xs text-bark-500">{label}</div>
+    <div className="text-center">
+      <FlipBoard value={value} className="text-xl font-bold tabular-nums sm:text-2xl" />
+      <div className="mt-2 text-xs text-bark-500">{label}</div>
     </div>
   );
 }

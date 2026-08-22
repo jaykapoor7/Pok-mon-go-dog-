@@ -18,7 +18,7 @@ const NAV = [
   { key: "overview", href: "/partner", label: "Overview", icon: LayoutGrid, exact: true },
   { key: "cases", href: "/partner/cases", label: "Cases", icon: ClipboardList, badge: "cases" },
   { key: "animals", href: "/partner/animals", label: "Animals", icon: PawPrint },
-  { key: "field", href: "/partner/field", label: "Field Work", icon: Users, badge: "tasks" },
+  { key: "field", href: "/partner/field", label: "Field operations", icon: Users, badge: "tasks" },
   { key: "team", href: "/partner/team", label: "Team", icon: UsersRound },
   { key: "map", href: "/partner/map", label: "Map", icon: MapIcon },
   { key: "surveys", href: "/partner/surveys", label: "Surveys", icon: ClipboardCheck },
