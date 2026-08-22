@@ -11,7 +11,7 @@ export const metadata = {
     "A community-run map and toolkit for India's street animals. Report sightings, track rescues, and back the organizations doing the work.",
 };
 
-const MAILTO = "mailto:jaykapoor7@outlook.com?subject=Partnering%20with%20StrayPaw";
+const MAILTO = "/contact";
 
 export default async function LandingPage() {
   const stats = await getCityStats();

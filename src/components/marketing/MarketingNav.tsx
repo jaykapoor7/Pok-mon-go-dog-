@@ -2,12 +2,10 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 
-const CONTACT_EMAIL = "jaykapoor7@outlook.com";
-
 const LINKS = [
   { label: "What we do", href: "/what-we-do" },
   { label: "Our journey", href: "/journey" },
-  { label: "Contact", href: `mailto:${CONTACT_EMAIL}?subject=StrayPaw` },
+  { label: "Contact", href: "/contact" },
 ];
 
 /** Floating "bubble" nav shared across the marketing surface. */

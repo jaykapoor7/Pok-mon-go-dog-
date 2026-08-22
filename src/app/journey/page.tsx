@@ -10,7 +10,7 @@ export const metadata = {
     "Why StrayPaw exists: making the invisible work of street-animal care visible, counted, and shared.",
 };
 
-const MAILTO = "mailto:jaykapoor7@outlook.com?subject=Partnering%20with%20StrayPaw";
+const MAILTO = "/contact";
 
 export default function JourneyPage() {
   return (

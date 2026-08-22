@@ -1,5 +1,5 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
-import { Mail } from "lucide-react";
+import { EmailDisplay } from "@/components/contact/EmailDisplay";
 
 export const metadata = { title: "Contact — StrayPaw" };
 
@@ -11,12 +11,8 @@ export default function ContactPage() {
         longer delete yourself? We&apos;d love to hear from you.
       </p>
       <H2>Get in touch</H2>
-      <a
-        href="mailto:jaykapoor7@outlook.com"
-        className="inline-flex items-center gap-2 rounded-2xl bg-paw-500 px-5 py-3 font-semibold text-white shadow-warm hover:bg-paw-600"
-      >
-        <Mail className="h-4 w-4" /> jaykapoor7@outlook.com
-      </a>
+      <p className="text-sm text-bark-500">Email us at:</p>
+      <EmailDisplay email="jaykapoor7@outlook.com" />
       <H2>For NGOs &amp; rescuers</H2>
       <p>
         If your organisation would like to be listed as a partner or use the
