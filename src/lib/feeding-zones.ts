@@ -86,3 +86,34 @@ export async function getFeedingZoneCheckins(zoneId: string, limit = 20): Promis
     .limit(limit);
   return (data ?? []).map(mapCheckin);
 }
+
+// ── Org-owned feeding zones (partner dashboard) ─────────────────────────────
+export interface OrgFeedingZone {
+  id: string; name: string; description: string | null; zone: string | null;
+  lat: number; lng: number; photo_url: string | null;
+  last_fed_at: string | null; created_at: string; volunteer_count: number;
+}
+
+export async function createOrgFeedingZone(input: {
+  name: string; description?: string; zone?: string; lat: number; lng: number; photoUrl?: string | null;
+}): Promise<string | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data, error } = await supa.rpc("create_org_feeding_zone", {
+    p_name: input.name, p_description: input.description ?? null, p_zone: input.zone ?? null,
+    p_lat: input.lat, p_lng: input.lng, p_photo_url: input.photoUrl ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return (data as string) ?? null;
+}
+
+export async function getMyOrgFeedingZones(): Promise<OrgFeedingZone[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa.rpc("my_org_feeding_zones");
+  return (data ?? []).map((r: any) => ({
+    id: r.id, name: r.name, description: r.description ?? null, zone: r.zone ?? null,
+    lat: r.lat, lng: r.lng, photo_url: r.photo_url ?? null,
+    last_fed_at: r.last_fed_at ?? null, created_at: r.created_at, volunteer_count: Number(r.volunteer_count ?? 0),
+  }));
+}

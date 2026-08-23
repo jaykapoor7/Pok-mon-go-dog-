@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutGrid, ClipboardList, PawPrint, Users, UsersRound, Map as MapIcon, ClipboardCheck,
-  Stethoscope, HeartHandshake, HandHelping, FileBarChart, Settings, ChevronLeft, ChevronDown, Menu, X,
+  Stethoscope, HeartHandshake, HandHelping, Utensils, FileBarChart, Settings, ChevronLeft, ChevronDown, Menu, X,
   CircleHelp, MoreHorizontal,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -22,6 +22,7 @@ const NAV = [
   { key: "field", href: "/partner/field", label: "Field operations", icon: Users, badge: "tasks" },
   { key: "team", href: "/partner/team", label: "Team", icon: UsersRound },
   { key: "volunteers", href: "/partner/volunteers", label: "Volunteers", icon: HandHelping },
+  { key: "feeding", href: "/partner/feeding", label: "Feeding zones", icon: Utensils },
   { key: "map", href: "/partner/map", label: "Map", icon: MapIcon },
   { key: "surveys", href: "/partner/surveys", label: "Surveys", icon: ClipboardCheck },
   { key: "medical", href: "/partner/medical", label: "Medical", icon: Stethoscope },
