@@ -78,7 +78,7 @@ function Operate({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
     <div className="space-y-8">
       <CommandCenter cases={cases} />
 
-      {/* Dogs flagged as needing help — most urgent, so shown before the case
+      {/* Dogs flagged as needing help, most urgent, so shown before the case
           pipeline. 'Open case' turns one into a tracked case in the pipeline. */}
       <section>
         <HelpQueue dogs={needHelp} />
@@ -164,7 +164,7 @@ function Impact({
       {/* Before/after proof (P4) */}
       <section>
         <h2 className="mb-3 font-display text-xl font-bold tracking-tightest sm:text-2xl">
-          Outcomes — before &amp; after
+          Outcomes, before &amp; after
         </h2>
         <Resolutions cases={cases} />
       </section>
@@ -192,7 +192,7 @@ function Impact({
         </div>
 
         {/* Real "Can you help?" sign-ups (contacts live in the moderation panel,
-            so we only show counts here — no PII on the public dashboard). */}
+            so we only show counts here, no PII on the public dashboard). */}
         <div className="card flex flex-col p-5">
           <h3 className="mb-3 font-display font-bold">Help-form sign-ups</h3>
           <div className="grid grid-cols-2 gap-3">

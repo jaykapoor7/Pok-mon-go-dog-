@@ -5,7 +5,7 @@ import { getFeedingZones } from "@/lib/feeding-zones";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Map — StrayPaw",
+  title: "Map, StrayPaw",
   description: "The immersive, full-screen map of India's street dogs.",
 };
 

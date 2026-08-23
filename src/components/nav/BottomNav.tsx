@@ -17,7 +17,7 @@ import { INFO } from "./MenuDrawer";
 import { SocialLinks } from "./SocialLinks";
 import { cn } from "@/lib/utils";
 
-// Route keys stay stable (/report was "spot", /dashboard was "ngo") — only the
+// Route keys stay stable (/report was "spot", /dashboard was "ngo"), only the
 // display labels changed, so deep links and any future analytics keep working.
 type Item = {
   key: string;
@@ -169,7 +169,7 @@ function DesktopRail() {
           })}
         </ul>
 
-        {/* Explore — quick access to surfaces that used to hide in the drawer */}
+        {/* Explore, quick access to surfaces that used to hide in the drawer */}
         <nav aria-label="Explore" className="mt-6 border-t border-black/[0.06] pt-4 dark:border-white/10">
           <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
             Explore
@@ -200,7 +200,7 @@ function DesktopRail() {
           </ul>
         </nav>
 
-        {/* info links — a comfortable single-column list that fills the rail */}
+        {/* info links, a comfortable single-column list that fills the rail */}
         <nav aria-label="More" className="mt-4 flex-1 border-t border-black/[0.06] pt-4 dark:border-white/10">
           <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
             More

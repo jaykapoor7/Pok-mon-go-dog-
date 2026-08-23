@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
-/** Shows an email address as selectable text with a copy button — never opens
+/** Shows an email address as selectable text with a copy button, never opens
  *  a mail client (no mailto), per request. */
 export function EmailDisplay({ email }: { email: string }) {
   const [copied, setCopied] = useState(false);
@@ -14,7 +14,7 @@ export function EmailDisplay({ email }: { email: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
-      /* clipboard unavailable — the text is still selectable */
+      /* clipboard unavailable, the text is still selectable */
     }
   }
 

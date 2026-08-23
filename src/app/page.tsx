@@ -5,9 +5,9 @@ import { getCityStats } from "@/lib/data";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "StrayPaw — every stray has a name, a story, and people who care",
+  title: "StrayPaw, every stray has a name, a story, and people who care",
   description:
-    "StrayPaw connects community members, street animals, and welfare organizations on a shared platform — tracking every sighting, feeding, and care event in real time across Delhi NCR.",
+    "StrayPaw connects community members, street animals, and welfare organizations on one platform, tracking every sighting, feeding, and care event in real time, across India.",
 };
 
 export default async function LandingPage() {

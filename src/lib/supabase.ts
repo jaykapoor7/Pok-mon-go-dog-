@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
-/** Only accept a well-formed http(s) URL — guards against bad/empty env values
+/** Only accept a well-formed http(s) URL, guards against bad/empty env values
  *  that would otherwise crash createClient (and the build). */
 function validUrl(u?: string): string | null {
   if (!u) return null;
@@ -24,7 +24,7 @@ let client: SupabaseClient | null = null;
 
 /**
  * Returns a Supabase client, or null when not configured / misconfigured.
- * Never throws — the data layer transparently falls back to demo data.
+ * Never throws, the data layer transparently falls back to demo data.
  */
 export function getSupabase(): SupabaseClient | null {
   if (!isSupabaseConfigured) return null;
@@ -52,7 +52,7 @@ export function getSupabase(): SupabaseClient | null {
 /**
  * Server-only client using the service role key. Used by the protected
  * /api/report route so writes happen with elevated privileges after the
- * Turnstile check passes. Never import this into client components — the
+ * Turnstile check passes. Never import this into client components, the
  * service role key is not exposed to the browser.
  */
 export function getSupabaseAdmin(): SupabaseClient | null {

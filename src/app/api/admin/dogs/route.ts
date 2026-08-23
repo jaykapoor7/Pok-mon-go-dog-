@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // ─────────────────────────────────────────────────────────────
-// Master editor — full edit access to any dog (service role). Same admin auth.
+// Master editor, full edit access to any dog (service role). Same admin auth.
 //   GET  /api/admin/dogs            → dogs (needs-help first)
 //   POST /api/admin/dogs  { id, patch: { status?, needs_help?, vaccinated?,
 //                                        sterilised?, is_friendly? } }

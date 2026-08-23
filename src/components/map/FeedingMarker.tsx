@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Feeding-zone map pin — a bowl icon in a colored circle, visually distinct
+ * Feeding-zone map pin, a bowl icon in a colored circle, visually distinct
  * from dog PhotoMarkers so the two layers never get confused.
  */
 export function FeedingMarker({ label, onClick }: { label: string; onClick?: () => void }) {

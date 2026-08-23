@@ -1,7 +1,7 @@
 import { AdminClient } from "@/components/admin/AdminClient";
 
 export const metadata = {
-  title: "Moderation — StrayPaw",
+  title: "Moderation, StrayPaw",
   robots: { index: false, follow: false },
 };
 

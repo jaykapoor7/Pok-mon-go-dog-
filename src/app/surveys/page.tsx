@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/utils";
 import { SurveyCreate } from "@/components/surveys/SurveyCreate";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Surveys & census — StrayPaw" };
+export const metadata = { title: "Surveys & census, StrayPaw" };
 
 export default async function SurveysPage() {
   const surveys = await getSurveys();

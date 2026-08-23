@@ -1,12 +1,12 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Safety — StrayPaw" };
+export const metadata = { title: "Safety, StrayPaw" };
 
 export default function SafetyPage() {
   return (
     <InfoPage title="Safety">
       <p>
-        Helping street dogs is wonderful — please stay safe while you do it,
+        Helping street dogs is wonderful, please stay safe while you do it,
         for your sake and theirs.
       </p>
       <H2>Approaching dogs</H2>
@@ -14,7 +14,7 @@ export default function SafetyPage() {
         <li>Move slowly and let the dog approach you first.</li>
         <li>Never corner, chase, or wake a sleeping dog suddenly.</li>
         <li>Be extra cautious around mothers with puppies.</li>
-        <li>Photograph from a comfortable distance — zoom rather than crowd.</li>
+        <li>Photograph from a comfortable distance, zoom rather than crowd.</li>
       </ul>
       <H2>Injured or aggressive dogs</H2>
       <p>

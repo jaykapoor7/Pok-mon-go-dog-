@@ -139,7 +139,7 @@ export function OrgManager() {
           <div className="card flex flex-col items-center gap-2 p-8 text-center">
             <HeartHandshake className="h-7 w-7 text-paw-400" />
             <p className="text-sm text-bark-500">
-              No campaigns yet. Start one for a real need — vet bills, a
+              No campaigns yet. Start one for a real need, vet bills, a
               sterilisation drive, an ambulance.
             </p>
           </div>
@@ -380,7 +380,7 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
       </div>
 
       <div>
-        <span className={LABEL}>About (full story — optional)</span>
+        <span className={LABEL}>About (full story, optional)</span>
         <textarea
           className={cn(INPUT, "min-h-[100px] resize-y")}
           value={form.about}

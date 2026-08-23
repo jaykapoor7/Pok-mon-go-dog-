@@ -15,7 +15,7 @@ export interface HelperTarget {
 }
 
 /**
- * "Can you help?" sheet — collects a volunteer's (or NGO's) contact details, for
+ * "Can you help?" sheet, collects a volunteer's (or NGO's) contact details, for
  * a specific dog or in general. Writes to the helpers table via submit_helper.
  */
 export function HelperForm({
@@ -121,7 +121,7 @@ export function HelperForm({
                   {target?.label ? `Help ${target.label}` : "Can you help?"}
                 </h2>
                 <p className="mt-1 text-sm text-bark-500">
-                  Leave your details — feed, foster, transport, vet help, or just
+                  Leave your details, feed, foster, transport, vet help, or just
                   keep an eye out. We&apos;ll connect you.
                 </p>
 

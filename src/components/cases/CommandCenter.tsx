@@ -161,7 +161,7 @@ function Queue({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{c.title}</p>
                   <p className="text-xs text-bark-400">
-                    {c.zone ?? "—"} · {timeAgo(c.last_activity_at)}
+                    {c.zone ?? "-"} · {timeAgo(c.last_activity_at)}
                     {isOverdue(c) && (
                       <span className="ml-1 font-semibold text-status-injured">overdue</span>
                     )}

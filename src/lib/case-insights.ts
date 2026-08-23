@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pure, rule-based insights over a list of cases. Shared by the NGO command
 // dashboard (Phase 2), the alert strip (Phase 3) and reporting (Phase 4).
-// No I/O — deterministic functions over Case[].
+// No I/O, deterministic functions over Case[].
 // ─────────────────────────────────────────────────────────────
 
 import { isOverdue, OVERDUE_DAYS, type Case, type CaseResolution } from "./types";
@@ -88,7 +88,7 @@ export function caseAlerts(cases: Case[]): CaseAlert[] {
     alerts.push({
       id: "urgent",
       title: `${urgent.length} urgent case${urgent.length > 1 ? "s" : ""} unassigned`,
-      detail: "High-severity cases with no owner — assign now.",
+      detail: "High-severity cases with no owner, assign now.",
       tone: "critical",
       count: urgent.length,
     });
@@ -111,7 +111,7 @@ export function caseAlerts(cases: Case[]): CaseAlert[] {
     alerts.push({
       id: "cluster",
       title: `Cluster in ${cluster[0]}`,
-      detail: `${cluster[1]} open cases in one area — consider a focused drive.`,
+      detail: `${cluster[1]} open cases in one area, consider a focused drive.`,
       tone: "warning",
       count: cluster[1],
     });
@@ -124,7 +124,7 @@ export function caseAlerts(cases: Case[]): CaseAlert[] {
     alerts.push({
       id: "escalation",
       title: `${escal.length} sterilisation case${escal.length > 1 ? "s" : ""} pending 14+ days`,
-      detail: "Long-pending — escalate scheduling.",
+      detail: "Long-pending, escalate scheduling.",
       tone: "warning",
       count: escal.length,
     });

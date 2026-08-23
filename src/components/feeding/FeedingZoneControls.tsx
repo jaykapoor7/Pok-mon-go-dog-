@@ -161,7 +161,7 @@ export function FeedingZoneControls({
           Rotation · {volunteers.length} {volunteers.length === 1 ? "volunteer" : "volunteers"}
         </p>
         {volunteers.length === 0 ? (
-          <p className="text-sm text-bark-400">No one signed up yet — be the first.</p>
+          <p className="text-sm text-bark-400">No one signed up yet, be the first.</p>
         ) : (
           <div className="space-y-2">
             {volunteers.map((v) => (

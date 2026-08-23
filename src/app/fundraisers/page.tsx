@@ -5,9 +5,9 @@ import { FundraiserCard } from "@/components/fundraisers/FundraiserCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export const metadata = {
-  title: "Fundraisers — support rescues | StrayPaw",
+  title: "Fundraisers, support rescues | StrayPaw",
   description:
-    "Back verified street-dog rescues in India — vet bills, sterilisation drives and emergencies. Donations go directly to each NGO.",
+    "Back verified street-dog rescues in India, vet bills, sterilisation drives and emergencies. Donations go directly to each NGO.",
 };
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function FundraisersPage() {
       <header className="mb-5">
         <h1 className="font-display text-3xl font-extrabold tracking-tightest">Fundraisers</h1>
         <p className="mt-1 text-sm text-bark-500">
-          Reputable rescues raising for vet bills, sterilisation and emergencies —
+          Reputable rescues raising for vet bills, sterilisation and emergencies,
           partner NGOs and campaigns we&apos;ve vetted. Every one links straight to
           the rescue&apos;s own donation channel; StrayPaw never handles the money.
         </p>

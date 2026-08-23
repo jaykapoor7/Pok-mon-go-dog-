@@ -12,7 +12,7 @@ import { MenuDrawer } from "./MenuDrawer";
  * Top bar on every viewport: a place search that flies the map to any area and
  * a tappable account chip. On mobile it also carries the logo; on desktop the
  * logo lives in the sidebar, so the bar is offset to sit beside it (lg:pl-60)
- * and shows just the search + account — the same concept as the phone.
+ * and shows just the search + account, the same concept as the phone.
  */
 export function FloatingTopBar() {
   const [menuOpen, setMenuOpen] = useState(false);

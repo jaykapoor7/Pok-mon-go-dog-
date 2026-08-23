@@ -9,7 +9,7 @@ import { submitSurveyResponse } from "@/lib/survey-actions";
 import { SPECIES, type Survey, type SurveyArea } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-// Field capture — radically simpler than the admin UI. Large controls, one
+// Field capture, radically simpler than the admin UI. Large controls, one
 // column, works on a phone outdoors. Keeps area + GPS between entries so a
 // worker can log animal after animal quickly.
 export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyArea[] }) {
@@ -112,7 +112,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
         <div className={cn("mb-3 flex items-center gap-2 rounded-md px-3 py-2 text-[13px]", online ? "bg-status-hungry/10 text-status-hungry" : "bg-bark-100 text-bark-500 dark:bg-bark-800")}>
           {online ? <RefreshCw className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
           <span className="flex-1">
-            {online ? `${pending} saved offline · syncing…` : `Offline — ${pending} saved on this device`}
+            {online ? `${pending} saved offline · syncing…` : `Offline, ${pending} saved on this device`}
           </span>
           {online && pending > 0 && <button onClick={flush} className="font-semibold underline">Sync now</button>}
         </div>

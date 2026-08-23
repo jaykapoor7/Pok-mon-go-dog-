@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Fundraisers data access (read side). Live Supabase when configured; empty
 // otherwise. StrayPaw only hosts campaigns + links out to each NGO's own
-// donation channel — it never handles money.
+// donation channel, it never handles money.
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
@@ -44,7 +44,7 @@ export async function getFundraisers(limit = 100): Promise<Fundraiser[]> {
   return (data ?? []).map(mapFundraiser);
 }
 
-/** Active campaigns for one organization (public — for its profile page). */
+/** Active campaigns for one organization (public, for its profile page). */
 export async function getFundraisersByOrg(ngoId: string): Promise<Fundraiser[]> {
   const supa = getSupabase();
   if (!supa) return [];

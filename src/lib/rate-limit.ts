@@ -12,7 +12,7 @@ export function clientIp(req: Request): string | null {
 
 /**
  * Sliding-window rate limit backed by Supabase (see supabase/rate-limits.sql).
- * Fails OPEN — if Supabase isn't configured or the check errors, we allow the
+ * Fails OPEN, if Supabase isn't configured or the check errors, we allow the
  * request rather than block legitimate users. Returns true = allowed.
  */
 export async function allowRequest(

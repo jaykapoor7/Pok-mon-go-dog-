@@ -101,7 +101,7 @@ function AddTask({ members, onDone }: { members: OrgMember[]; onDone: () => void
 
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-black/[0.08] p-3 dark:border-white/[0.1]">
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task — e.g. Deworm donkeys in Sagroli" className={cn(INPUT, "min-w-0 flex-1")} />
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task, e.g. Deworm donkeys in Sagroli" className={cn(INPUT, "min-w-0 flex-1")} />
       <select value={assignee} onChange={(e) => setAssignee(e.target.value)} className={INPUT}>
         <option value="">Assign to…</option>
         {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.name}</option>)}

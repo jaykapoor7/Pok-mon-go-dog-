@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   }
 
   const isNgo = Boolean(body.isNgo);
-  // Demo dogs don't exist in the DB and aren't real UUIDs — never send their id.
+  // Demo dogs don't exist in the DB and aren't real UUIDs, never send their id.
   const dogId =
     body.dogId && !String(body.dogId).startsWith("demo-") ? String(body.dogId) : null;
   const { error } = await supa.rpc("submit_helper", {
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 
   notifyTelegram(
     `${isNgo ? "🤝 <b>New NGO registration</b>" : "🙋 <b>New volunteer</b>"}\n${
-      isNgo && body.ngoName ? `${body.ngoName} — ` : ""
+      isNgo && body.ngoName ? `${body.ngoName}, ` : ""
     }${name} · ${contact}${body.zone ? `\nArea: ${body.zone}` : ""}\nView → ${moderateUrl}`
   );
 

@@ -5,7 +5,7 @@ import { MarketingShell } from "@/components/marketing/MarketingShell";
 export const dynamic = "force-static";
 
 export const metadata = {
-  title: "What we do — StrayPaw",
+  title: "What we do, StrayPaw",
   description:
     "How StrayPaw works: report street animals, track rescues, run transparent campaigns, and map feeding zones.",
 };
@@ -14,7 +14,7 @@ const ITEMS = [
   {
     icon: MapPin,
     title: "Spot & report",
-    body: "A photo and a location puts any street animal on one shared, public map — in seconds, no account needed.",
+    body: "A photo and a location puts any street animal on one shared, public map, in seconds, no account needed.",
   },
   {
     icon: ClipboardList,
@@ -24,7 +24,7 @@ const ITEMS = [
   {
     icon: HeartHandshake,
     title: "Back the work",
-    body: "Verified organizations run campaigns for real needs — vet bills, sterilisation drives, an ambulance — that link straight to their own donation channel.",
+    body: "Verified organizations run campaigns for real needs, vet bills, sterilisation drives, an ambulance, that link straight to their own donation channel.",
   },
   {
     icon: Utensils,
@@ -43,7 +43,7 @@ export default function WhatWeDoPage() {
     <MarketingShell
       eyebrow="What we do"
       title="One place for the whole journey of care."
-      intro="From the first sighting on the street to a resolved case with a clear outcome — StrayPaw keeps it visible, shared and accountable."
+      intro="From the first sighting on the street to a resolved case with a clear outcome, StrayPaw keeps it visible, shared and accountable."
     >
       <div className="grid gap-4 sm:grid-cols-2">
         {ITEMS.map((it) => {

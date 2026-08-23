@@ -27,7 +27,7 @@ function write(map: OwnerMap) {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(map));
   } catch {
-    /* storage full / disabled — non-fatal */
+    /* storage full / disabled, non-fatal */
   }
 }
 

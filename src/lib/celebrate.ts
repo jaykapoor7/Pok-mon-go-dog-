@@ -34,7 +34,7 @@ export function celebrate() {
   }, 150);
 }
 
-/** Paw-shaped emoji confetti — used on a fresh sighting upload. */
+/** Paw-shaped emoji confetti, used on a fresh sighting upload. */
 export function pawBurst() {
   haptic("success");
   const paw = confetti.shapeFromText

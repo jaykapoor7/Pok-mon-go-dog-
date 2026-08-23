@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // Feeding zones data access (read side). Live Supabase when configured; empty
-// otherwise. Volunteer contact info is never fetched here — the safe view
+// otherwise. Volunteer contact info is never fetched here, the safe view
 // (feeding_zone_volunteer_public) never exposes it. See feeding-zones.sql.
 // ─────────────────────────────────────────────────────────────
 

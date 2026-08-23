@@ -5,7 +5,7 @@ import { MarketingShell } from "@/components/marketing/MarketingShell";
 export const dynamic = "force-static";
 
 export const metadata = {
-  title: "Our journey — StrayPaw",
+  title: "Our journey, StrayPaw",
   description:
     "Why StrayPaw exists: making the invisible work of street-animal care visible, counted, and shared.",
 };
@@ -21,7 +21,7 @@ export default function JourneyPage() {
       <div className="space-y-5 text-lg leading-relaxed text-bark-700 dark:text-bark-200">
         <p>
           StrayPaw started with a simple frustration. The people who care for
-          street animals — feeders, rescuers, small NGOs — do extraordinary work.
+          street animals, feeders, rescuers, small NGOs, do extraordinary work.
           But that work lives in WhatsApp groups and paper notebooks: invisible,
           uncounted, and impossible to build on.
         </p>
@@ -37,10 +37,10 @@ export default function JourneyPage() {
           Now organizations are joining to document their cases and raise for the
           needs that matter, on a platform their supporters can trust. Each
           rescue becomes a record. Each campaign becomes a page you can share.
-          That&apos;s the next chapter — and it&apos;s just beginning.
+          That&apos;s the next chapter, and it&apos;s just beginning.
         </p>
         <p className="font-display text-xl font-bold tracking-tight text-paw-600 dark:text-paw-300">
-          For the animals — for the people, by the people.
+          For the animals, for the people, by the people.
         </p>
       </div>
 

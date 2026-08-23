@@ -46,7 +46,7 @@ function NewCaseInner() {
       if (!dog) return;
       setZone(dog.zone);
       setCoords({ lat: dog.lat, lng: dog.lng });
-      setTitle((t) => t || `${dog.needs_help ? "Injury" : "Check-up"} — ${dogLabel(dog)}`);
+      setTitle((t) => t || `${dog.needs_help ? "Injury" : "Check-up"}, ${dogLabel(dog)}`);
       if (dog.needs_help) setSeverity("high");
     });
   }, [dogId]);

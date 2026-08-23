@@ -13,7 +13,7 @@ import type { Dog } from "@/lib/types";
 type Suggestion = { dog: Dog; confidence: number; reason: string };
 
 /**
- * "Possibly the same dog?" — anyone can open a candidate profile. Verified
+ * "Possibly the same dog?", anyone can open a candidate profile. Verified
  * partner NGOs additionally get a Merge action that folds the duplicate's
  * sightings into THIS profile's timeline (so one dog isn't split across
  * multiple profiles), via the merge_dogs RPC.
@@ -42,7 +42,7 @@ export function MergeSuggestions({
     try {
       const ok = await mergeDogs(keepId, removeId);
       if (!ok) {
-        setError("Merge failed — partner-NGO access is required.");
+        setError("Merge failed, partner-NGO access is required.");
         haptic("error");
         return;
       }

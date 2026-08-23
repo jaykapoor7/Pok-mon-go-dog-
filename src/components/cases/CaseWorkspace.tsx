@@ -64,14 +64,14 @@ export function CaseWorkspace({
         <div className="space-y-7">
           <Photos c={c} canEdit={canEdit} />
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-black/[0.08] py-4 dark:border-white/[0.1]">
-            <Fact k="Location" v={c.zone || "—"} />
+            <Fact k="Location" v={c.zone || "-"} />
             <Fact k="Assigned team" v={canEdit ? <AssignControl c={c} /> : (c.assignee_name ?? "Unassigned")} />
             <Fact k="Species" v={speciesLabel(c.species)} />
             <Fact k="Category" v={<span className="capitalize">{c.category}</span>} />
             {(c.cost_estimate != null || c.cost_spent != null) && (
               <>
-                <Fact k="Estimated cost" v={c.cost_estimate != null ? formatINR(c.cost_estimate) : "—"} />
-                <Fact k="Spent so far" v={c.cost_spent != null ? formatINR(c.cost_spent) : "—"} />
+                <Fact k="Estimated cost" v={c.cost_estimate != null ? formatINR(c.cost_estimate) : "-"} />
+                <Fact k="Spent so far" v={c.cost_spent != null ? formatINR(c.cost_spent) : "-"} />
               </>
             )}
             {c.dog_id && (
@@ -264,7 +264,7 @@ function Location({ c }: { c: Case }) {
           <MapPin className="h-4 w-4 text-status-hungry" /> Catch &amp; return location
         </p>
         <p className="mt-1 text-[13px] text-bark-600 dark:text-bark-300">
-          If this animal is moved for treatment, return it to the exact spot it was found — territorial animals depend on it.
+          If this animal is moved for treatment, return it to the exact spot it was found, territorial animals depend on it.
         </p>
       </div>
       <a href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`} target="_blank" rel="noopener noreferrer"

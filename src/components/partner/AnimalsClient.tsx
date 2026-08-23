@@ -32,7 +32,7 @@ export function AnimalsClient() {
       <header className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Animals</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">Your organization&apos;s animal records — the longitudinal registry.</p>
+          <p className="mt-0.5 text-[13px] text-bark-500">Your organization&apos;s animal records, the longitudinal registry.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {animals.length > 0 && (
@@ -76,12 +76,12 @@ export function AnimalsClient() {
                     <div className="h-8 w-8 overflow-hidden rounded-md bg-bark-100 dark:bg-bark-800">
                       <DogPhoto src={a.cover_photo} alt={a.name ?? "Animal"} seed={a.id} className="h-full w-full" />
                     </div>
-                    <span className="hidden truncate text-[13px] font-medium tabular-nums text-bark-500 sm:block">{a.code ?? "—"}</span>
+                    <span className="hidden truncate text-[13px] font-medium tabular-nums text-bark-500 sm:block">{a.code ?? "-"}</span>
                     <div className="min-w-0">
                       <p className="truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{a.name || speciesLabel(a.species)}</p>
                       <p className="truncate text-[12px] text-bark-400 sm:hidden">{a.code ? `${a.code} · ` : ""}{a.zone}</p>
                     </div>
-                    <span className="hidden truncate text-[13px] text-bark-500 sm:block">{a.zone || "—"}</span>
+                    <span className="hidden truncate text-[13px] text-bark-500 sm:block">{a.zone || "-"}</span>
                     <span className="shrink-0 text-right text-[12px] tabular-nums text-bark-400">{timeAgo(a.last_seen)}</span>
                   </Link>
                 </li>
@@ -130,7 +130,7 @@ function CreateAnimal({ onDone }: { onDone: () => void }) {
     <div className="mb-5 space-y-3 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
       <div className="grid gap-3 sm:grid-cols-2">
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
-        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Animal ID — e.g. DDS-00421" className={INPUT} />
+        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Animal ID, e.g. DDS-00421" className={INPUT} />
       </div>
       <div className="flex flex-wrap gap-2">
         {SPECIES.filter((s) => s.id !== "other").map((s) => (

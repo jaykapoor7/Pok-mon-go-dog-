@@ -157,7 +157,7 @@ export function AdminClient() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   // Helper sign-ups load alongside the queue; a failure here (e.g. helpers.sql
-  // not yet run) is non-fatal — it just leaves those tabs empty.
+  // not yet run) is non-fatal, it just leaves those tabs empty.
   const loadHelpers = useCallback(async (s: string) => {
     try {
       const res = await fetch("/api/admin/helpers", {
@@ -169,7 +169,7 @@ export function AdminClient() {
       setVolunteers(j.volunteers ?? []);
       setNgos(j.ngos ?? []);
     } catch {
-      /* ignore — keep the queue usable */
+      /* ignore, keep the queue usable */
     }
   }, []);
 
@@ -184,7 +184,7 @@ export function AdminClient() {
       const j = await res.json();
       setPendingCases(j.pending ?? []);
     } catch {
-      /* ignore — keep moderation usable */
+      /* ignore, keep moderation usable */
     }
   }, []);
 
@@ -203,7 +203,7 @@ export function AdminClient() {
     }
   }, []);
 
-  // Feeding zones (moderation — they can be added by guests).
+  // Feeding zones (moderation, they can be added by guests).
   const loadFeedingZones = useCallback(async (s: string) => {
     try {
       const res = await fetch("/api/admin/feeding-zones", {
@@ -767,7 +767,7 @@ export function AdminClient() {
       </header>
 
       <div className="lg:grid lg:grid-cols-[232px_1fr] lg:gap-8">
-        {/* sidebar nav — vertical on desktop, horizontal scroll on mobile */}
+        {/* sidebar nav, vertical on desktop, horizontal scroll on mobile */}
         <aside className="no-scrollbar -mx-4 mb-5 flex gap-1.5 overflow-x-auto px-4 lg:mx-0 lg:mb-0 lg:flex-col lg:overflow-visible lg:px-0">
           {TABS.map((t) => (
             <TabButton
@@ -1159,7 +1159,7 @@ function DogsList({
   return (
     <div className="space-y-3">
       <p className="text-xs text-bark-400">
-        Master editor — changes apply to any dog immediately (needs-help first).
+        Master editor, changes apply to any dog immediately (needs-help first).
       </p>
       {dogs.map((d) => (
         <div key={d.id} className="card p-3">
@@ -1180,7 +1180,7 @@ function DogsList({
                 {d.name || (d.zone ? `Dog near ${d.zone}` : "Street dog")}
               </a>
               <p className="truncate text-xs text-bark-400">
-                {d.zone} · {d.last_seen ? timeAgo(d.last_seen) : "—"}
+                {d.zone} · {d.last_seen ? timeAgo(d.last_seen) : "-"}
               </p>
             </div>
             <button
@@ -1434,7 +1434,7 @@ function AddMemberForm({ orgs, onAddMember }: { orgs: AdminOrg[]; onAddMember: (
     <div className="card p-4">
       <p className="mb-2 text-sm font-semibold">Add a member to an organisation</p>
       {orgs.length === 0 ? (
-        <p className="text-sm text-bark-400">No organisations yet — create one above first.</p>
+        <p className="text-sm text-bark-400">No organisations yet, create one above first.</p>
       ) : (
         <>
           <div className="grid gap-2 sm:grid-cols-4">
@@ -1524,7 +1524,7 @@ function FundraisersModList({
         )}
       </div>
 
-      {/* pending review queue (discovered candidates — not public yet) */}
+      {/* pending review queue (discovered candidates, not public yet) */}
       {pending.length > 0 && (
         <div className="card p-3">
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-status-hungry">
@@ -1564,7 +1564,7 @@ function FundraisersModList({
             ))}
           </div>
           <p className="mt-2 text-[11px] text-bark-400">
-            Discovered from the web — check each is a legit rescue before publishing;
+            Discovered from the web, check each is a legit rescue before publishing;
             approving badges it as a StrayPaw pick.
           </p>
         </div>

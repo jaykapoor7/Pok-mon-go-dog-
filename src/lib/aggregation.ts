@@ -2,10 +2,10 @@
 // Smart system: the logic that turns a stream of raw sightings into
 // structured dog profiles.
 //
-//  • trust scoring        — how reliable is a single sighting / a profile
-//  • duplicate detection  — could two sightings be the same dog?
-//  • merge suggestions    — which existing dogs might be one dog
-//  • clustering           — group loose sightings into candidate dogs
+//  • trust scoring       , how reliable is a single sighting / a profile
+//  • duplicate detection , could two sightings be the same dog?
+//  • merge suggestions   , which existing dogs might be one dog
+//  • clustering          , group loose sightings into candidate dogs
 // ─────────────────────────────────────────────────────────────
 
 import { distanceMeters } from "./utils";
@@ -57,11 +57,11 @@ const MOOD_SIGNATURE: MoodTag[] = ["friendly", "puppies", "injured"];
  * descriptive similarity (nickname + mood overlap).
  */
 export function sightingSimilarity(a: Sighting, b: Sighting): number {
-  // Spatial — same dog usually roams within a few hundred metres.
+  // Spatial, same dog usually roams within a few hundred metres.
   const d = distanceMeters(a, b);
   const spatial = d < 150 ? 1 : d < 400 ? 0.7 : d < 800 ? 0.4 : d < 1500 ? 0.15 : 0;
 
-  // Descriptive — shared nickname is a very strong signal.
+  // Descriptive, shared nickname is a very strong signal.
   let descriptive = 0;
   if (a.nickname && b.nickname) {
     descriptive = a.nickname.toLowerCase() === b.nickname.toLowerCase() ? 1 : 0.1;

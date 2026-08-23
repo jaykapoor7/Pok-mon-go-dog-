@@ -20,7 +20,7 @@ export function DogActions({
   const { user, requireAuth } = useAuth();
   const [toast, setToast] = useState<string | null>(null);
 
-  // Saw/Fed are activity logs — kept as session toggles so a mis-tap can be
+  // Saw/Fed are activity logs, kept as session toggles so a mis-tap can be
   // undone (the log fires once; "undo" just clears your tap state).
   const [seen, setSeen] = useState(false);
   const [fed, setFed] = useState(false);
@@ -74,13 +74,13 @@ export function DogActions({
           setHelp(next);
           fire(
             next
-              ? `Flagged for help — rescuers can see ${name} now 🆘`
+              ? `Flagged for help, rescuers can see ${name} now 🆘`
               : `Cleared the help flag for ${name}.`,
             next
           );
         } else {
           fire(
-            "Log a sighting for this dog first — then you can flag it for help.",
+            "Log a sighting for this dog first, then you can flag it for help.",
             false
           );
         }

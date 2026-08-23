@@ -17,7 +17,7 @@ const inter = Inter({
   display: "swap",
 });
 
-// Headings + wordmark: Plus Jakarta Sans — a modern, premium geometric sans that
+// Headings + wordmark: Plus Jakarta Sans, a modern, premium geometric sans that
 // pairs cleanly with Inter and suits the light blue-and-white brand.
 const display = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -34,9 +34,9 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "StrayPaw — Open-sourcing stray-animal care",
+  title: "StrayPaw, Open-sourcing stray-animal care",
   description:
-    "An open, community-run map for India's street animals — anyone can track, report and care. Coverage and care stats NGOs usually keep closed, opened up for the people, by the people.",
+    "An open, community-run map for India's street animals, anyone can track, report and care. Coverage and care stats NGOs usually keep closed, opened up for the people, by the people.",
   keywords: [
     "street animals",
     "stray animals",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   // og:image + twitter:image are provided by the generated app/opengraph-image.tsx
   // (absolute URL via metadataBase), so no static image is referenced here.
   openGraph: {
-    title: "StrayPaw — Open-sourcing stray-animal care",
+    title: "StrayPaw, Open-sourcing stray-animal care",
     description:
       "An open, community-run map for India's street animals. Transparent care + coverage data, for the people, by the people.",
     type: "website",
@@ -61,9 +61,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw — Open-sourcing stray-animal care",
+    title: "StrayPaw, Open-sourcing stray-animal care",
     description:
-      "An open, community-run map for India's street animals. The care stats NGOs keep closed — opened up, for the people, by the people.",
+      "An open, community-run map for India's street animals. The care stats NGOs keep closed, opened up, for the people, by the people.",
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {

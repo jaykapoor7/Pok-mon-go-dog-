@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   // The function returns false when the token doesn't match.
   if (data !== true) {
     return NextResponse.json(
-      { error: "Not allowed — you can only delete sightings you created." },
+      { error: "Not allowed, you can only delete sightings you created." },
       { status: 403 }
     );
   }

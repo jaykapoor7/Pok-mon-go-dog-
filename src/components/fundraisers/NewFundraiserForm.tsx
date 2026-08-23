@@ -92,7 +92,7 @@ export function NewFundraiserForm() {
       <header className="mb-5">
         <h1 className="font-display text-2xl font-extrabold sm:text-3xl">Start a fundraiser 💛</h1>
         <p className="text-sm text-bark-500">
-          Donors give directly through your own link — StrayPaw just hosts the
+          Donors give directly through your own link, StrayPaw just hosts the
           campaign and sends people your way.
         </p>
       </header>

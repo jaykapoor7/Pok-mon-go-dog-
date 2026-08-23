@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Community Guidelines — StrayPaw" };
+export const metadata = { title: "Community Guidelines, StrayPaw" };
 
 export default function GuidelinesPage() {
   return (
@@ -12,7 +12,7 @@ export default function GuidelinesPage() {
       <H2>Do</H2>
       <ul className="list-disc space-y-1 pl-5">
         <li>Post clear photos of street dogs and their location.</li>
-        <li>Add honest notes — health, temperament, feeding routine.</li>
+        <li>Add honest notes, health, temperament, feeding routine.</li>
         <li>Flag dogs that genuinely need help so NGOs can act.</li>
         <li>Be gentle and patient with the dogs you photograph.</li>
       </ul>

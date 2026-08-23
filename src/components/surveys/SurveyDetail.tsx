@@ -131,7 +131,7 @@ export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyA
 
       {areas.length === 0 ? (
         <p className="rounded-lg border border-dashed border-black/[0.1] py-10 text-center text-[14px] text-bark-400 dark:border-white/[0.12]">
-          No areas yet{member ? " — add wards or villages to divide the survey." : "."}
+          No areas yet{member ? ", add wards or villages to divide the survey." : "."}
         </p>
       ) : (
         <ul className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">

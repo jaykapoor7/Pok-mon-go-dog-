@@ -1,9 +1,9 @@
 import { ImageResponse } from "next/og";
 
-// Dynamically generated share card — always fetchable by crawlers (fixes the
+// Dynamically generated share card, always fetchable by crawlers (fixes the
 // gray/blank preview) and fully on-brand (cerulean, no raster dependency).
 export const runtime = "nodejs";
-export const alt = "StrayPaw — a home for India's street animals";
+export const alt = "StrayPaw, a home for India's street animals";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

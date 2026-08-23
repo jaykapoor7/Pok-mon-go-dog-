@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "About — StrayPaw" };
+export const metadata = { title: "About, StrayPaw" };
 
 export default function AboutPage() {
   return (
@@ -16,7 +16,7 @@ export default function AboutPage() {
         India is home to tens of millions of street dogs. Feeders,
         rescuers and NGOs do incredible work, but they often lack a shared,
         real-time picture of the ground. StrayPaw turns everyday sightings into
-        that picture — so feeding, vaccination, sterilisation and rescue can be
+        that picture, so feeding, vaccination, sterilisation and rescue can be
         targeted where they matter most.
       </p>
       <H2>How it works</H2>

@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Case } from "@/lib/types";
 
-/** Before/after proof on resolved cases — the funder-facing outcome evidence. */
+/** Before/after proof on resolved cases, the funder-facing outcome evidence. */
 export function Resolutions({ cases }: { cases: Case[] }) {
   const resolved = cases
     .filter((c) => (c.status === "resolved" || c.status === "closed") && c.before_url && c.after_url)

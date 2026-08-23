@@ -67,7 +67,7 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
             {dog.name || speciesLabel(dog.species)}
           </h1>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-bark-500">
-            <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {dog.zone || "—"}</span>
+            <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {dog.zone || "-"}</span>
             <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: st.color }} /> {st.label}</span>
             {dog.assignee_name && <span>· {dog.assignee_name}</span>}
           </p>
@@ -94,9 +94,9 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
         <div className="space-y-5">
           <div>
             <Row label="Species">{speciesLabel(dog.species)}</Row>
-            <Row label="Animal ID">{dog.code ?? "—"}</Row>
+            <Row label="Animal ID">{dog.code ?? "-"}</Row>
             <Row label="Status">{st.label}</Row>
-            <Row label="Location">{dog.zone || "—"}</Row>
+            <Row label="Location">{dog.zone || "-"}</Row>
             <Row label="Responsible">{dog.assignee_name ?? "Unassigned"}</Row>
             {(dog.vaccinated || dog.sterilised) && (
               <Row label="Health">{[dog.vaccinated && "Vaccinated", dog.sterilised && "Sterilised"].filter(Boolean).join(" · ")}</Row>

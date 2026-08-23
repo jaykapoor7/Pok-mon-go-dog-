@@ -3,7 +3,7 @@
 import { useRef, useState, type ReactNode } from "react";
 
 /**
- * Lightweight 3D tilt — the card leans toward the pointer (mouse on desktop,
+ * Lightweight 3D tilt, the card leans toward the pointer (mouse on desktop,
  * finger drag on touch). Pure CSS transforms, no library, and it respects
  * users who prefer reduced motion.
  */

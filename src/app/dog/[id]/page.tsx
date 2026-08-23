@@ -34,10 +34,10 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const profile = await getDogProfile(id);
-  if (!profile) return { title: "Dog not found — StrayPaw" };
+  if (!profile) return { title: "Dog not found, StrayPaw" };
   const { dog } = profile;
   const label = dogLabel(dog);
-  const title = `${label} — StrayPaw`;
+  const title = `${label}, StrayPaw`;
   const description = `Follow this street dog around ${dog.zone}. ${dog.sightings_count} sightings tracked by the community.`;
   // Use the dog's own photo as the share image when available.
   const images = dog.cover_photo ? [dog.cover_photo] : undefined;
@@ -125,17 +125,17 @@ export default async function DogProfilePage({
         <DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help} />
       </div>
 
-      {/* share card — drives a rich preview via the dog's OG image */}
+      {/* share card, drives a rich preview via the dog's OG image */}
       <div className="mt-3">
         <ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone} />
       </div>
 
-      {/* location — general area for all, exact for partner NGOs */}
+      {/* location, general area for all, exact for partner NGOs */}
       <div className="mt-3">
         <DogLocation dogId={dog.id} zone={dog.zone} />
       </div>
 
-      {/* status editing — only shown to signed-in contributors */}
+      {/* status editing, only shown to signed-in contributors */}
       <DogStatusEditor
         dogId={dog.id}
         contributorIds={Array.from(
@@ -203,7 +203,7 @@ export default async function DogProfilePage({
         {dog.ear_notch && (
           <p className="mt-3 flex items-center gap-2 rounded-2xl bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-status-sterilised">
             <Scissors className="h-4 w-4" />
-            Ear-notched ({dog.ear_notch}) — the recognised sterilisation mark, so this
+            Ear-notched ({dog.ear_notch}), the recognised sterilisation mark, so this
             dog isn&apos;t caught again.
           </p>
         )}
@@ -256,7 +256,7 @@ export default async function DogProfilePage({
         <AddComment dogId={dog.id} />
         {comments.length === 0 ? (
           <p className="text-sm text-bark-400">
-            No notes yet — be the first to add one.
+            No notes yet, be the first to add one.
           </p>
         ) : (
           <div className="space-y-3">

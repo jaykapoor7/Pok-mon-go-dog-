@@ -54,7 +54,7 @@ export function SurveyCreate() {
 
   return (
     <div className="mt-4 space-y-3 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Survey title — e.g. Bengaluru Stray Dog Census 2026" className={INPUT} />
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Survey title, e.g. Bengaluru Stray Dog Census 2026" className={INPUT} />
       <div className="flex flex-wrap gap-2">
         {SPECIES.filter((s) => s.id !== "other").map((s) => (
           <button

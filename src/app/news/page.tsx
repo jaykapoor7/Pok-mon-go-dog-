@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export const metadata = {
-  title: "News — street dogs in India | StrayPaw",
+  title: "News, street dogs in India | StrayPaw",
   description:
     "The latest news and government orders on India's street dogs, aggregated from Indian news sources and linked to each source.",
 };
@@ -37,7 +37,7 @@ export default async function NewsPage() {
         <EmptyState
           icon={<Newspaper className="h-7 w-7" />}
           title="Couldn’t load news right now"
-          description="The news feed is temporarily unavailable — please check back shortly."
+          description="The news feed is temporarily unavailable, please check back shortly."
         />
       ) : (
         <div className="space-y-8">

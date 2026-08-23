@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-// Device-local "followed dogs" — no account needed, so it works for guests too
+// Device-local "followed dogs", no account needed, so it works for guests too
 // (mirrors how report ownership is kept on-device). Synced across components on
 // the page via a custom event, and across tabs via the storage event.
 const KEY = "straypaw.follows";

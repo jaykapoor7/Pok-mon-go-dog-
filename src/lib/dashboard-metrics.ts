@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pure dashboard metric helpers. Computed client-side from whatever dataset is
 // active (real, or real+demo when Demo mode is on) so the NGO dashboard lights
-// up with the SAME seed that drives the map — and falls back to clean empty
+// up with the SAME seed that drives the map, and falls back to clean empty
 // states when Demo is off and there's no real data yet.
 // ─────────────────────────────────────────────────────────────
 
@@ -99,7 +99,7 @@ export function topContributors(sightings: Sighting[], sinceDays?: number) {
     .slice(0, 5);
 }
 
-/** Underserved colonies — high need + low sterilisation (legacy heatmap). */
+/** Underserved colonies, high need + low sterilisation (legacy heatmap). */
 export function underservedZones(dogs: Dog[]) {
   return colonyCoverage(dogs)
     .map((z) => ({

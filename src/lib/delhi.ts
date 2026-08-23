@@ -1,4 +1,4 @@
-// Delhi geography helpers — bounds, centre, and well-known localities used
+// Delhi geography helpers, bounds, centre, and well-known localities used
 // for the map view, the stylised fallback map, and reverse-geocode demos.
 
 export const DELHI_CENTER = { lat: 28.6139, lng: 77.209 };
@@ -17,7 +17,7 @@ export interface Zone {
   lng: number;
 }
 
-// A spread of recognisable Delhi localities — anchors for clustered sightings.
+// A spread of recognisable Delhi localities, anchors for clustered sightings.
 export const DELHI_ZONES: Zone[] = [
   { name: "Connaught Place", lat: 28.6315, lng: 77.2167 },
   { name: "Hauz Khas", lat: 28.5494, lng: 77.2001 },
@@ -73,7 +73,7 @@ function clamp01(n: number) {
 // the whole country and locations are resolved by real reverse geocoding.
 // ─────────────────────────────────────────────────────────────
 
-/** Geographic centre of India — the default map camera. */
+/** Geographic centre of India, the default map camera. */
 export const INDIA_CENTER = { lat: 22.5, lng: 79.5 };
 
 /** Zoom that frames roughly the whole country on a phone. */
@@ -85,7 +85,7 @@ export interface City {
   lng: number;
 }
 
-/** Major metros — used as a graceful fallback label when reverse geocoding is
+/** Major metros, used as a graceful fallback label when reverse geocoding is
  *  unavailable (offline / blocked). */
 export const CITIES: City[] = [
   { name: "Delhi", lat: 28.6139, lng: 77.209 },
@@ -110,7 +110,7 @@ export const CITIES: City[] = [
   { name: "Guwahati", lat: 26.1445, lng: 91.7362 },
 ];
 
-/** Nearest known metro to a coordinate — a synchronous fallback label. */
+/** Nearest known metro to a coordinate, a synchronous fallback label. */
 export function nearestCity(lat: number, lng: number): string {
   let best = CITIES[0];
   let bestD = Infinity;

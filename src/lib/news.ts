@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // Live news feed. Fetches India street-dog news straight from Google News RSS
-// (free, keyless) on the server when a page renders — no database, no cron.
+// (free, keyless) on the server when a page renders, no database, no cron.
 // Responses are cached ~30 min so the section stays fresh but light.
 // ─────────────────────────────────────────────────────────────
 

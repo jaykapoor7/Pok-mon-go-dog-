@@ -32,7 +32,7 @@ export interface ReportInput {
   moods: string[];
   notes?: string;
   reporterName?: string;
-  reporterEmail?: string; // optional — notify when the sighting goes live
+  reporterEmail?: string; // optional, notify when the sighting goes live
   token?: string | null; // Cloudflare Turnstile token
 }
 
@@ -54,7 +54,7 @@ export async function uploadPhoto(file: File): Promise<string> {
     throw new Error("Please upload an image (JPG, PNG, WebP or HEIC).");
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    throw new Error("That image is over 8 MB — please pick a smaller one.");
+    throw new Error("That image is over 8 MB, please pick a smaller one.");
   }
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${ext}`;
@@ -83,7 +83,7 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
   }
   if (!photoUrl) throw new Error("A photo is required");
 
-  // A secret ownership token — sent raw to the server (which stores only its
+  // A secret ownership token, sent raw to the server (which stores only its
   // hash) and kept locally so this device can later delete the sighting.
   const ownerToken = newOwnerToken();
 
@@ -152,7 +152,7 @@ export async function deleteSighting(sightingId: string): Promise<boolean> {
 // ── Account-owned management (signed-in users) ───────────────
 // These call SECURITY DEFINER RPCs that authorise by auth.uid(), so the
 // logged-in user's session (carried by the anon client) is what proves
-// ownership — works from any device, not just the one that posted.
+// ownership, works from any device, not just the one that posted.
 
 export interface SightingEdit {
   nickname: string | null;
@@ -189,7 +189,7 @@ export async function deleteMySighting(sightingId: string): Promise<boolean> {
 }
 
 export interface DogStatusEdit {
-  // Nulls are allowed for partial edits — the RPC coalesces each field, keeping
+  // Nulls are allowed for partial edits, the RPC coalesces each field, keeping
   // the current value when null (so a single flag can be flipped on its own).
   status: string | null;
   needs_help: boolean | null;
@@ -367,7 +367,7 @@ export async function updateMyOrg(patch: OrgProfilePatch): Promise<boolean> {
 }
 
 /** NGO-only: update a dog's care flags from the dashboard (returns false if not
- *  a verified member — the RPC enforces it). */
+ *  a verified member, the RPC enforces it). */
 export async function ngoSetDogCare(
   dogId: string,
   patch: { vaccinated?: boolean; sterilised?: boolean; needs_help?: boolean }

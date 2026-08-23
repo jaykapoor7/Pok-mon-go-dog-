@@ -29,7 +29,7 @@ export function PartnerFundraising() {
       <header className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Fundraising</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">Turn real needs into campaigns. StrayPaw links out — it never holds the money.</p>
+          <p className="mt-0.5 text-[13px] text-bark-500">Turn real needs into campaigns. StrayPaw links out, it never holds the money.</p>
         </div>
         <Link href="/fundraisers/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
           <Plus className="h-4 w-4" /> New campaign

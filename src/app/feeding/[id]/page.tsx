@@ -15,9 +15,9 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const zone = await getFeedingZoneById(id);
-  if (!zone) return { title: "Feeding zone not found — StrayPaw" };
+  if (!zone) return { title: "Feeding zone not found, StrayPaw" };
   return {
-    title: `${zone.name} — Feeding zone | StrayPaw`,
+    title: `${zone.name}, Feeding zone | StrayPaw`,
     description: `Feeding zone near ${zone.zone ?? "your city"}. ${zone.volunteer_count} volunteers covering it.`,
   };
 }

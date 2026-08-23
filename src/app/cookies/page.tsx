@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Cookies — StrayPaw" };
+export const metadata = { title: "Cookies, StrayPaw" };
 
 export default function CookiesPage() {
   return (
@@ -12,14 +12,14 @@ export default function CookiesPage() {
       <H2>What we store locally</H2>
       <ul className="list-disc space-y-1 pl-5">
         <li>
-          <strong>Theme</strong> — your light/dark preference.
+          <strong>Theme</strong>, your light/dark preference.
         </li>
         <li>
-          <strong>Display name</strong> — so you stay &ldquo;signed in&rdquo; on
+          <strong>Display name</strong>, so you stay &ldquo;signed in&rdquo; on
           this device.
         </li>
         <li>
-          <strong>Sighting tokens</strong> — secret keys that let you delete
+          <strong>Sighting tokens</strong>, secret keys that let you delete
           your own posts.
         </li>
       </ul>

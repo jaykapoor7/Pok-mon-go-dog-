@@ -59,7 +59,7 @@ export function OverdueBadge({ c }: { c: Case }) {
 }
 
 /**
- * Verification badge for resolved cases — visible to everyone so the outcome's
+ * Verification badge for resolved cases, visible to everyone so the outcome's
  * credibility is public. Only shows on resolved/closed cases.
  */
 export function VerifiedBadge({ c }: { c: Case }) {

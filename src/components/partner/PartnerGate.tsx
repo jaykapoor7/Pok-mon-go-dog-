@@ -68,7 +68,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
         </span>
         <h1 className="font-display text-2xl font-extrabold">{title}</h1>
         <p className="mx-auto mt-2 max-w-sm text-sm text-bark-500">
-          The partner console is for verified rescues &amp; NGOs — claim and resolve
+          The partner console is for verified rescues &amp; NGOs, claim and resolve
           cases, coverage &amp; herd-immunity stats, and your own funder report.
         </p>
 
@@ -79,7 +79,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
         ) : reqStatus === "pending" ? (
           <div className="mt-5 rounded-2xl bg-status-hungry/10 px-4 py-3 text-sm font-medium text-bark-700 dark:text-bark-200">
             <Check className="mr-1 inline h-4 w-4 text-status-vaccinated" />
-            Request received — we&apos;ll review and enable your access shortly.
+            Request received, we&apos;ll review and enable your access shortly.
           </div>
         ) : reqStatus === "rejected" ? (
           <div className="mt-5 space-y-3">

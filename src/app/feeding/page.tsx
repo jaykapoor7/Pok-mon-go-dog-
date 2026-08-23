@@ -5,9 +5,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FeedingZoneCard } from "@/components/feeding/FeedingZoneCard";
 
 export const metadata = {
-  title: "Feeding zones — StrayPaw",
+  title: "Feeding zones, StrayPaw",
   description:
-    "Community feeding spots for street dogs — see who's covering each one and sign up to feed.",
+    "Community feeding spots for street dogs, see who's covering each one and sign up to feed.",
 };
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export default async function FeedingZonesPage() {
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tightest">Feeding zones</h1>
           <p className="mt-1 text-sm text-bark-500">
-            Regular feeding spots the community keeps going — see who&apos;s covering
+            Regular feeding spots the community keeps going, see who&apos;s covering
             each one, sign up for a day, or mark one fed today.
           </p>
         </div>
@@ -42,7 +42,7 @@ export default async function FeedingZonesPage() {
         <EmptyState
           icon={<Utensils className="h-7 w-7" />}
           title="No feeding zones yet"
-          description="Add an existing spot the community feeds — a colony, a corner, a market backside."
+          description="Add an existing spot the community feeds, a colony, a corner, a market backside."
           action={{ href: "/feeding/new", label: "Add the first one", icon: <Plus className="h-4 w-4" /> }}
         />
       ) : (

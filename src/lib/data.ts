@@ -18,7 +18,7 @@ import type {
 } from "./types";
 
 // ── Location privacy ─────────────────────────────────────────
-// Public surfaces (map, feed, profiles) only ever receive a GENERAL area —
+// Public surfaces (map, feed, profiles) only ever receive a GENERAL area,
 // coordinates rounded to ~1km. Exact coordinates stay server-side and are
 // available to verified partner NGOs via the get_precise_locations RPC
 // (see supabase/location-privacy.sql). This rounding runs in the read mappers,
@@ -282,7 +282,7 @@ export async function getNGOs(): Promise<NGO[]> {
   return [];
 }
 
-// Full org-profile mapper — used by the directory and public profile pages.
+// Full org-profile mapper, used by the directory and public profile pages.
 export function mapOrg(n: any): NGO {
   return {
     id: n.id,
@@ -308,7 +308,7 @@ export function mapOrg(n: any): NGO {
   };
 }
 
-// Public org directory — verified orgs first, then by impact.
+// Public org directory, verified orgs first, then by impact.
 export async function getOrgs(): Promise<NGO[]> {
   const supa = getSupabase();
   if (!supa) return [];
@@ -334,7 +334,7 @@ export async function getOrgById(id: string): Promise<NGO | null> {
   return data ? mapOrg(data) : null;
 }
 
-// Lightweight impact numbers for an org's public profile — real counts only.
+// Lightweight impact numbers for an org's public profile, real counts only.
 export async function getOrgImpact(
   ngoId: string
 ): Promise<{ casesResolved: number; casesActive: number; campaignsActive: number }> {

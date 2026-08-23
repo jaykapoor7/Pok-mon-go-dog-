@@ -23,9 +23,9 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const org = await getOrgBySlug(slug);
-  if (!org) return { title: "Organization not found — StrayPaw" };
+  if (!org) return { title: "Organization not found, StrayPaw" };
   return {
-    title: `${org.name} — Animal welfare on StrayPaw`,
+    title: `${org.name}, Animal welfare on StrayPaw`,
     description:
       org.mission?.slice(0, 150) ??
       `${org.name} documents rescue cases and runs transparent campaigns on StrayPaw.`,
@@ -115,7 +115,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
           </p>
         )}
 
-        {/* Impact — real counts only */}
+        {/* Impact, real counts only */}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Stat value={impact.casesResolved} label="cases resolved" icon={CheckCircle2} />
           <Stat value={impact.casesActive} label="active cases" icon={Activity} />

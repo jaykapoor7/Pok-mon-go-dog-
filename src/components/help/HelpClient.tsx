@@ -54,7 +54,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
           <p className="mt-1 text-sm text-white/85">
             {needy.length > 0
               ? `${needy.length} ${needy.length === 1 ? "dog" : "dogs"} flagged as needing care${coords ? " near you" : ""}. Even a small hand counts.`
-              : "Offer to volunteer or register your rescue — we'll connect you when a dog nearby needs help."}
+              : "Offer to volunteer or register your rescue, we'll connect you when a dog nearby needs help."}
           </p>
           <div className="mt-4 flex flex-wrap gap-2.5">
             <button
@@ -97,7 +97,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
       <div className="mt-6 space-y-3">
         {needy.length === 0 ? (
           <div className="card p-8 text-center text-sm text-bark-500">
-            No dogs are flagged as needing help right now. Thank you for caring —
+            No dogs are flagged as needing help right now. Thank you for caring,
             tap “I can help” to be on call for when one is.
           </div>
         ) : (

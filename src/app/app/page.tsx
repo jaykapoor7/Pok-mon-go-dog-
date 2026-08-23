@@ -5,7 +5,7 @@ import { getNewsTeaser } from "@/lib/news";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "StrayPaw — Today",
+  title: "StrayPaw, Today",
   description:
     "Dogs near you who need help, feeding zones, verified news, and live community activity for India's street dogs.",
 };

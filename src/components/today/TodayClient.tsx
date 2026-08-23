@@ -61,7 +61,7 @@ export function TodayClient({
     () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
     [dogs, isFollowing]
   );
-  // Photo mosaic hero — recent real sighting photos (warmer than an empty map).
+  // Photo mosaic hero, recent real sighting photos (warmer than an empty map).
   const mosaic = useMemo(() => {
     const tiles: { id: string; photo: string; href: string }[] = [];
     for (const s of sightings) {
@@ -98,7 +98,7 @@ export function TodayClient({
         </p>
       </header>
 
-      {/* Explore — prominent quick access to the surfaces that used to be buried
+      {/* Explore, prominent quick access to the surfaces that used to be buried
           in the menu (sightings feed, fundraisers, feeding zones, orgs). */}
       <div className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {[
@@ -185,7 +185,7 @@ export function TodayClient({
               <MapIcon className="h-7 w-7" />
             </span>
             <p className="text-sm text-bark-500">
-              No street animals mapped near you yet — be the first to add one.
+              No street animals mapped near you yet, be the first to add one.
             </p>
           </div>
         )}
@@ -229,7 +229,7 @@ export function TodayClient({
         )}
       </Section>
 
-      {/* News & orders — below the needs-help row */}
+      {/* News & orders, below the needs-help row */}
       {news.length > 0 && (
         <Section title="News & orders" icon={<Newspaper className="h-4 w-4 text-paw-500" />} href="/news" cta="All news">
           <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">

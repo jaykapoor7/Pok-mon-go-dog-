@@ -1,7 +1,7 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 import { EmailDisplay } from "@/components/contact/EmailDisplay";
 
-export const metadata = { title: "Contact — StrayPaw" };
+export const metadata = { title: "Contact, StrayPaw" };
 
 export default function ContactPage() {
   return (

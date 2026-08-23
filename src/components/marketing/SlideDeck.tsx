@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/** A paged, interactive slide deck for the landing — arrows, dots, keyboard,
+/** A paged, interactive slide deck for the landing, arrows, dots, keyboard,
  *  and swipe, so the story is stepped through instead of scrolled. */
 export function SlideDeck({ slides }: { slides: React.ReactNode[] }) {
   const [[i, dir], setState] = useState<[number, number]>([0, 0]);

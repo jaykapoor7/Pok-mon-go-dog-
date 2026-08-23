@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const p = await getDogProfile(id);
-  return { title: p ? `${p.dog.code ?? p.dog.name ?? "Animal"} — StrayPaw Partner` : "Animal not found" };
+  return { title: p ? `${p.dog.code ?? p.dog.name ?? "Animal"}, StrayPaw Partner` : "Animal not found" };
 }
 
 export default async function PartnerAnimalPage({ params }: { params: Promise<{ id: string }> }) {

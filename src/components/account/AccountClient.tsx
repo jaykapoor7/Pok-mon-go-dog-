@@ -67,7 +67,7 @@ export function AccountClient() {
           Your sightings
         </h1>
         <p className="mt-2 text-sm text-bark-500">
-          Sign in to see, edit and delete the sightings you&apos;ve posted —
+          Sign in to see, edit and delete the sightings you&apos;ve posted,
           from any device.
         </p>
         <button onClick={openSignIn} className="btn-primary mt-5 px-6 py-3">
@@ -115,7 +115,7 @@ export function AccountClient() {
         <EmptyState
           icon={<PawPrint className="h-7 w-7" />}
           title="No sightings yet"
-          description="Spot a dog and report it — it'll show up here."
+          description="Spot a dog and report it, it'll show up here."
           action={{ href: "/report", label: "Report a dog", icon: <PlusCircle className="h-4 w-4" /> }}
         />
       ) : (

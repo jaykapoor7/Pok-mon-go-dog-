@@ -147,7 +147,7 @@ export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases
                         {c.zone && <span className="truncate text-[11px] text-bark-400">{c.zone}</span>}
                       </div>
                     </div>
-                    <span className="hidden truncate text-[13px] text-bark-500 md:block">{c.zone || "—"}</span>
+                    <span className="hidden truncate text-[13px] text-bark-500 md:block">{c.zone || "-"}</span>
                     <span className={cn("hidden text-[12px] font-bold md:block", pr.cls)}>{pr.label}</span>
                     <span className="hidden md:block"><span className={cn("rounded-full px-2 py-0.5 text-[12px] font-semibold", st.cls)}>{st.label}</span></span>
                     <span className={cn("hidden truncate text-[13px] md:block", c.assignee_name ? "text-bark-700 dark:text-bark-200" : "text-bark-400")}>{c.assignee_name ?? "Unassigned"}</span>

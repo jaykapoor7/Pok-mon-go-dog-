@@ -4,7 +4,7 @@ import { PartnerGate } from "@/components/partner/PartnerGate";
 
 export const dynamic = "force-dynamic";
 
-// The Partner OS — a dedicated operational workspace with its own rail, gated
+// The Partner OS, a dedicated operational workspace with its own rail, gated
 // to verified organization members. Consumer chrome is suppressed for
 // /partner/* in src/components/nav/Chrome.tsx.
 export default function PartnerLayout({ children }: { children: React.ReactNode }) {

@@ -38,7 +38,7 @@ export function InstallPrompt() {
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
 
-    // iOS never fires beforeinstallprompt — detect it and show the manual hint.
+    // iOS never fires beforeinstallprompt, detect it and show the manual hint.
     const ua = window.navigator.userAgent;
     const isIos = /iphone|ipad|ipod/i.test(ua);
     const isSafari = /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
@@ -77,7 +77,7 @@ export function InstallPrompt() {
               Tap <Share className="inline h-3.5 w-3.5" /> then “Add to Home Screen”.
             </p>
           ) : (
-            <p className="mt-0.5 text-xs text-bark-500">Open it like an app — one tap away.</p>
+            <p className="mt-0.5 text-xs text-bark-500">Open it like an app, one tap away.</p>
           )}
         </div>
         {!iosHint && (

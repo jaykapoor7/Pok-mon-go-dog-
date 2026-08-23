@@ -5,10 +5,10 @@ import { speciesLabel, type Case } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Medical — StrayPaw Partner" };
+export const metadata = { title: "Medical, StrayPaw Partner" };
 
-// Focused on animal-welfare medical work — treatment, vaccination, deworming,
-// wound care — surfaced from cases, not a generic hospital EHR.
+// Focused on animal-welfare medical work, treatment, vaccination, deworming,
+// wound care, surfaced from cases, not a generic hospital EHR.
 const MEDICAL_CATEGORIES = new Set(["injury", "vaccination", "sterilisation"]);
 const isMedical = (c: Case) => !!c.medical_notes || MEDICAL_CATEGORIES.has(c.category);
 

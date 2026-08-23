@@ -34,7 +34,7 @@ export function DogBottomSheet({
     if (!dog) return;
     const url = `${window.location.origin}/dog/${dog.id}`;
     const data = {
-      title: `${dogLabel(dog)} — StrayPaw`,
+      title: `${dogLabel(dog)}, StrayPaw`,
       text: `Meet this street dog around ${dog.zone}.`,
       url,
     };
@@ -46,7 +46,7 @@ export function DogBottomSheet({
       await navigator.clipboard.writeText(url);
       flash("Link copied to clipboard");
     } catch {
-      /* user dismissed share sheet — ignore */
+      /* user dismissed share sheet, ignore */
     }
   }
 

@@ -66,7 +66,7 @@ export function CasePipeline({ cases }: { cases: Case[] }) {
                 </p>
               )}
               {items.length === 0 && (
-                <p className="px-1 py-2 text-[11px] text-bark-300">—</p>
+                <p className="px-1 py-2 text-[11px] text-bark-300">-</p>
               )}
             </div>
           </div>

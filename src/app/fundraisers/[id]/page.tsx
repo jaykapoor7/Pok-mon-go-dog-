@@ -15,9 +15,9 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const f = await getFundraiserById(id);
-  if (!f) return { title: "Fundraiser not found — StrayPaw" };
+  if (!f) return { title: "Fundraiser not found, StrayPaw" };
   return {
-    title: `${f.title} — Fundraiser | StrayPaw`,
+    title: `${f.title}, Fundraiser | StrayPaw`,
     description: f.story?.slice(0, 150) ?? `Support ${f.created_by_name ?? "a rescue"} on StrayPaw.`,
     ...(f.cover_photo ? { openGraph: { images: [f.cover_photo] } } : {}),
   };
@@ -69,7 +69,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
 
       <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tightest">{f.title}</h1>
 
-      {/* Who's running this — the credibility link */}
+      {/* Who's running this, the credibility link */}
       {org && (
         <Link
           href={`/org/${org.slug ?? org.id}`}
@@ -135,7 +135,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         </p>
       )}
 
-      {/* Use of funds — the transparency a funder looks for */}
+      {/* Use of funds, the transparency a funder looks for */}
       {f.budget.length > 0 && (
         <section className="mt-6">
           <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tightest">
@@ -161,7 +161,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      {/* Outcome — shown once the org reports it */}
+      {/* Outcome, shown once the org reports it */}
       {f.outcome && (
         <section className="mt-6 rounded-2xl border border-status-vaccinated/30 bg-status-vaccinated/10 p-4">
           <h2 className="flex items-center gap-2 font-display text-base font-extrabold tracking-tight text-status-vaccinated">
@@ -173,7 +173,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      {/* Updates — the running story supporters follow */}
+      {/* Updates, the running story supporters follow */}
       {updates.length > 0 && (
         <section className="mt-6">
           <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tightest">
@@ -196,7 +196,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      {/* Donate — links out to the NGO's own channel */}
+      {/* Donate, links out to the NGO's own channel */}
       <a
         href={f.donate_url}
         target="_blank"
@@ -207,7 +207,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       </a>
       <p className="mt-2 text-center text-xs text-bark-400">
         Opens the NGO&apos;s own donation page. StrayPaw doesn&apos;t process or hold the
-        payment — your money goes directly to them.
+        payment, your money goes directly to them.
       </p>
 
       <FundraiserOwnerControls fundraiser={f} />

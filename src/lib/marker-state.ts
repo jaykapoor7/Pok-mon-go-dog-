@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 // Map marker display states.
 //
-// The product surfaces five marker states — Seen, Fed, Needs Help, Sterilised,
-// Adoptable — derived from the existing data model (no backend change). The
+// The product surfaces five marker states, Seen, Fed, Needs Help, Sterilised,
+// Adoptable, derived from the existing data model (no backend change). The
 // derivation is a simple priority cascade over the dog's existing flags.
 // ─────────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ export const MARKER_ORDER: MarkerState[] = [
   "adoptable",
 ];
 
-/** Dogs are "Fed" only within this window — after that they need feeding again. */
+/** Dogs are "Fed" only within this window, after that they need feeding again. */
 export const FED_WINDOW_HOURS = 10;
 
 /** Hours since the dog was last fed, or null if never fed. */
@@ -59,7 +59,7 @@ export function markerStateFor(dog: Dog): MarkerState {
   // Healthy, fixed, vaccinated & friendly dogs are adoption-ready.
   if (dog.is_friendly && dog.sterilised && dog.vaccinated) return "adoptable";
   if (dog.sterilised) return "sterilised";
-  if (fedRecently(dog)) return "fed"; // decays — see FED_WINDOW_HOURS
+  if (fedRecently(dog)) return "fed"; // decays, see FED_WINDOW_HOURS
   return "seen";
 }
 

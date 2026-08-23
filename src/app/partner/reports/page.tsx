@@ -4,7 +4,7 @@ import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import { PrintButton } from "@/components/partner/PrintButton";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Reports — StrayPaw Partner" };
+export const metadata = { title: "Reports, StrayPaw Partner" };
 
 export default async function PartnerReportsPage() {
   const cases = await getCases();
@@ -114,7 +114,7 @@ export default async function PartnerReportsPage() {
       )}
 
       <p className="mt-6 text-[12px] text-bark-400">
-        Deeper reporting — vaccination/deworming/sterilisation totals, cases by location, survey/census results and fundraising impact — builds on this foundation.
+        Deeper reporting, vaccination/deworming/sterilisation totals, cases by location, survey/census results and fundraising impact, builds on this foundation.
       </p>
     </div>
   );

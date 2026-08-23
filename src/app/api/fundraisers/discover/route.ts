@@ -11,7 +11,7 @@ export const maxDuration = 60;
 // Cron sends Bearer $CRON_SECRET; manual triggers use ?key=$ADMIN_SECRET.
 //
 // Reality check: crowdfunding platforms have no clean API/RSS and vary in how
-// scrapeable they are, so yield is best-effort — the human approval step is
+// scrapeable they are, so yield is best-effort, the human approval step is
 // what makes this safe AND useful.
 // ─────────────────────────────────────────────────────────────
 

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, MapPin, Shield, Users, Check, ChevronDown } from "lucide-react";
 
-// Palette (StrayPaw v2 tokens — premium light: white + soft azure).
+// Palette (StrayPaw v2 tokens, premium light: white + soft azure).
 export const C = {
   paper: "#fbfdff",
   cream: "#eaf1fb",
@@ -197,7 +197,7 @@ export function DashboardPreview() {
     <div style={{ background: C.inkSurface, borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div style={{ background: C.ink950, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "flex", gap: 6 }}>{["#ff5f57", "#febc2e", "#28c840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: 9999, background: c }} />)}</div>
-        <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.3)", fontFamily: C.mono }}>Paws Delhi — Partner OS</div>
+        <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.3)", fontFamily: C.mono }}>Paws Delhi, Partner OS</div>
         <div />
       </div>
       <div style={{ display: "flex", height: 380 }}>
@@ -223,7 +223,7 @@ export function DashboardPreview() {
               <span style={{ fontSize: "0.6875rem", fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>Active cases</span>
               <span style={{ fontSize: "0.5625rem", color: "rgba(255,255,255,0.3)", fontFamily: C.mono }}>3 CRITICAL</span>
             </div>
-            {[{ title: "Kali — hind leg injury", zone: "Lajpat Nagar", severity: "Critical" }, { title: "Raju — neck wound", zone: "GK-II", severity: "Critical" }, { title: "Puppy — possible parvo", zone: "Saket", severity: "High" }, { title: "Tiger — sterilisation", zone: "Malviya Nagar", severity: "Normal" }].map(({ title, zone, severity }) => (
+            {[{ title: "Kali, hind leg injury", zone: "Lajpat Nagar", severity: "Critical" }, { title: "Raju, neck wound", zone: "GK-II", severity: "Critical" }, { title: "Puppy, possible parvo", zone: "Saket", severity: "High" }, { title: "Tiger, sterilisation", zone: "Malviya Nagar", severity: "Normal" }].map(({ title, zone, severity }) => (
               <div key={title} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderBottom: "1px solid rgba(255,255,255,0.04)", fontSize: "0.6875rem" }}>
                 <div style={{ flex: 1, color: "rgba(255,255,255,0.8)", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
                 <div style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>{zone}</div>
@@ -238,16 +238,16 @@ export function DashboardPreview() {
 }
 
 export const HOW_STEPS = [
-  { n: "01", title: "Community spots an animal", body: "Anyone can open StrayPaw and report a sighting in under a minute — photo, location, and a note about the animal's condition." },
+  { n: "01", title: "Community spots an animal", body: "Anyone can open StrayPaw and report a sighting in under a minute, photo, location, and a note about the animal's condition." },
   { n: "02", title: "Animal gets a living profile", body: "Each animal builds a profile with sighting history, health status, feeding log, and community notes. The map updates in real time." },
-  { n: "03", title: "NGO partners take action", body: "Welfare organizations see cases in their dashboard — sorted by severity and location. They assign vets, schedule visits, and update status." },
+  { n: "03", title: "NGO partners take action", body: "Welfare organizations see cases in their dashboard, sorted by severity and location. They assign vets, schedule visits, and update status." },
   { n: "04", title: "Community tracks the outcome", body: "Reporters can follow cases and receive updates when an animal is treated, sterilised, or adopted. Every action is logged." },
 ];
 
 export const SURFACE_CARDS = [
   { icon: Users, eyebrow: "Community", title: "Every person is a welfare advocate", body: "Community members report sightings, log feeding, flag injuries, and follow the animals they care about. No account required for basic reporting.", color: C.paw500 },
-  { icon: MapPin, eyebrow: "Map", title: "A live view of every street animal", body: "The community map shows every tracked animal with status, feeding history, and case alerts — updated by sightings in real time.", color: "#3e8473" },
-  { icon: Shield, eyebrow: "Partner OS", title: "Operations software for NGOs", body: "Welfare organizations manage incoming reports, open cases, coordinate vets, run sterilisation drives, and track outcomes — all from one dashboard.", color: "#4e8a5f" },
+  { icon: MapPin, eyebrow: "Map", title: "A live view of every street animal", body: "The community map shows every tracked animal with status, feeding history, and case alerts, updated by sightings in real time.", color: "#3e8473" },
+  { icon: Shield, eyebrow: "Partner OS", title: "Operations software for NGOs", body: "Welfare organizations manage incoming reports, open cases, coordinate vets, run sterilisation drives, and track outcomes, all from one dashboard.", color: "#4e8a5f" },
 ];
 
 export default function LandingV2({ stats }: { stats: LandingStats }) {
@@ -263,7 +263,7 @@ export default function LandingV2({ stats }: { stats: LandingStats }) {
               Every stray <em style={{ color: C.paw400, fontStyle: "italic" }}>has a name,</em> a story, and people who care.
             </h1>
             <p style={{ fontSize: "1.0625rem", color: "rgba(255,255,255,0.55)", maxWidth: 480, lineHeight: 1.65, marginBottom: "2.5rem" }}>
-              StrayPaw connects community members, street animals, and welfare organizations on a shared platform — tracking every sighting, feeding, and care event in real time.
+              StrayPaw connects community members, street animals, and welfare organizations on a shared platform, tracking every sighting, feeding, and care event in real time.
             </p>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               <Link href="/app" className="btn btn-primary btn-primary-lg">Open the app <ArrowRight size={16} /></Link>
@@ -290,7 +290,7 @@ export default function LandingV2({ stats }: { stats: LandingStats }) {
           <div style={{ maxWidth: 560, marginBottom: "4rem" }}>
             <div className="eyebrow" style={{ marginBottom: "0.75rem" }}>What StrayPaw does</div>
             <h2 className="display-md" style={{ marginBottom: "1rem", color: C.ink }}>Three surfaces. One connected welfare system.</h2>
-            <p style={{ color: C.bark500, lineHeight: 1.7, fontSize: "1rem" }}>Community reporting, a live map, and NGO operations — built together so data flows between them automatically.</p>
+            <p style={{ color: C.bark500, lineHeight: 1.7, fontSize: "1rem" }}>Community reporting, a live map, and NGO operations, built together so data flows between them automatically.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5px", background: C.bark100, borderRadius: 16, overflow: "hidden" }}>
             {SURFACE_CARDS.map(({ icon: Icon, eyebrow, title, body, color }) => (
@@ -335,9 +335,9 @@ export default function LandingV2({ stats }: { stats: LandingStats }) {
             <div>
               <div className="eyebrow" style={{ marginBottom: "1rem" }}>Community experience</div>
               <h2 className="display-md" style={{ marginBottom: "1.25rem", color: C.ink }}>Designed for people walking past, every day</h2>
-              <p style={{ color: C.bark500, lineHeight: 1.7, marginBottom: "2rem", fontSize: "0.9375rem" }}>The community app is mobile-first and fast. Report a sighting in under 60 seconds — photo, location, condition. No signup required.</p>
+              <p style={{ color: C.bark500, lineHeight: 1.7, marginBottom: "2rem", fontSize: "0.9375rem" }}>The community app is mobile-first and fast. Report a sighting in under 60 seconds, photo, location, condition. No signup required.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
-                {["Spot and report street animals", "Log feeding — contribute to the care record", "Flag injuries and open urgent cases", "Follow animals and track case outcomes", "Discover nearby feeding zones"].map(item => (
+                {["Spot and report street animals", "Log feeding, contribute to the care record", "Flag injuries and open urgent cases", "Follow animals and track case outcomes", "Discover nearby feeding zones"].map(item => (
                   <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
                     <div style={{ width: 20, height: 20, borderRadius: 9999, background: C.paw100, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                       <Check size={11} color={C.paw600} strokeWidth={2.5} />
@@ -360,11 +360,11 @@ export default function LandingV2({ stats }: { stats: LandingStats }) {
           <div style={{ marginBottom: "3rem" }}>
             <div className="eyebrow" style={{ color: C.paw400, marginBottom: "0.75rem" }}>Community map</div>
             <h2 className="display-md" style={{ color: "#fff", maxWidth: 540 }}>A live map of every tracked animal in the city</h2>
-            <p style={{ color: "rgba(255,255,255,0.45)", marginTop: "1rem", maxWidth: 480, lineHeight: 1.65, fontSize: "0.9375rem" }}>Animal markers update with every sighting. Filter by status — needs help, sterilised, adoptable. Tap any marker to see the full profile and case history.</p>
+            <p style={{ color: "rgba(255,255,255,0.45)", marginTop: "1rem", maxWidth: 480, lineHeight: 1.65, fontSize: "0.9375rem" }}>Animal markers update with every sighting. Filter by status, needs help, sterilised, adoptable. Tap any marker to see the full profile and case history.</p>
           </div>
           <MapPreview />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "2rem", marginTop: "3rem" }}>
-            {[{ color: "#c0492e", label: "Needs help", desc: "Injured or sick — flagged for NGO action" }, { color: "#3e8473", label: "Sterilised", desc: "Part of the ABC programme" }, { color: "#8b5ea8", label: "Adoptable", desc: "Friendly, vaccinated, looking for a home" }, { color: "#d9a441", label: "Recently fed", desc: "Fed within the last 10 hours" }].map(({ color, label, desc }) => (
+            {[{ color: "#c0492e", label: "Needs help", desc: "Injured or sick, flagged for NGO action" }, { color: "#3e8473", label: "Sterilised", desc: "Part of the ABC programme" }, { color: "#8b5ea8", label: "Adoptable", desc: "Friendly, vaccinated, looking for a home" }, { color: "#d9a441", label: "Recently fed", desc: "Fed within the last 10 hours" }].map(({ color, label, desc }) => (
               <div key={label} style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
                 <div style={{ width: 12, height: 12, borderRadius: 9999, background: color, flexShrink: 0, marginTop: 3 }} />
                 <div>
@@ -384,7 +384,7 @@ export default function LandingV2({ stats }: { stats: LandingStats }) {
             <div>
               <div className="eyebrow" style={{ marginBottom: "1rem" }}>NGO / Partner OS</div>
               <h2 className="display-md" style={{ marginBottom: "1.25rem", color: C.ink }}>Operations software built for animal welfare organizations</h2>
-              <p style={{ color: C.bark500, lineHeight: 1.7, marginBottom: "2rem", fontSize: "0.9375rem" }}>The partner dashboard is purpose-built for NGOs managing large caseloads — not a generic admin panel, but a real operations tool.</p>
+              <p style={{ color: C.bark500, lineHeight: 1.7, marginBottom: "2rem", fontSize: "0.9375rem" }}>The partner dashboard is purpose-built for NGOs managing large caseloads, not a generic admin panel, but a real operations tool.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
                 {["Incoming community reports, sorted by severity", "Case assignment and status tracking", "Animal registry with full health records", "Field operations and vet camp management", "Team coordination and task management", "Fundraising and campaign management", "Analytics and case resolution metrics"].map(item => (
                   <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
@@ -426,7 +426,7 @@ export default function LandingV2({ stats }: { stats: LandingStats }) {
         <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontFamily: C.mono, fontSize: "0.6875rem", fontWeight: 500, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", marginBottom: "1rem" }}>Join the community</div>
           <h2 className="display-md" style={{ color: "#fff", marginBottom: "1.25rem" }}>Every sighting matters. Start here.</h2>
-          <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.65)", lineHeight: 1.65, marginBottom: "2.5rem" }}>You don&apos;t need to be a welfare expert. Reporting what you see — a dog limping, a puppy alone — creates the data that helps NGOs act.</p>
+          <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.65)", lineHeight: 1.65, marginBottom: "2.5rem" }}>You don&apos;t need to be a welfare expert. Reporting what you see, a dog limping, a puppy alone, creates the data that helps NGOs act.</p>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/app" className="btn btn-primary-dark btn-primary-lg">Report a sighting</Link>
             <Link href="/map" className="btn btn-secondary-dark btn-primary-lg">Open the map</Link>

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// StrayPaw — domain types
+// StrayPaw, domain types
 // These mirror the Supabase schema in /supabase/schema.sql
 // ─────────────────────────────────────────────────────────────
 
@@ -100,7 +100,7 @@ export interface NGO {
   logo_url: string | null;
   dogs_helped: number;
   verified: boolean;
-  // Profile fields (org-profiles.sql). All optional — an org fills these in.
+  // Profile fields (org-profiles.sql). All optional, an org fills these in.
   slug?: string | null;
   mission?: string | null;
   about?: string | null;
@@ -151,7 +151,7 @@ export interface Dog {
   last_seen: string;
   last_fed_at: string | null;
   community_notes: string[];
-  // Animal registry (animals.sql) — org-owned longitudinal records.
+  // Animal registry (animals.sql), org-owned longitudinal records.
   species?: string;
   ngo_id?: string | null;
   code?: string | null;
@@ -234,7 +234,7 @@ export type MapFilter =
   | "vaccinated";
 
 // ─────────────────────────────────────────────────────────────
-// NGO operations layer (cases) — mirrors /supabase/cases.sql
+// NGO operations layer (cases), mirrors /supabase/cases.sql
 // ─────────────────────────────────────────────────────────────
 
 export type CaseStatus =
@@ -306,7 +306,7 @@ export interface Case {
   photos?: string[];
 }
 
-// Species registry — the core is species-agnostic; 'dog' is the default so
+// Species registry, the core is species-agnostic; 'dog' is the default so
 // existing data and the community app are unchanged.
 export const SPECIES: { id: string; label: string; plural: string }[] = [
   { id: "dog", label: "Dog", plural: "Dogs" },

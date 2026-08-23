@@ -32,7 +32,7 @@ export function ShareDog({
         await navigator.share({ title: `${label} · StrayPaw`, text, url });
         return;
       } catch {
-        /* user cancelled — fall through to inline options */
+        /* user cancelled, fall through to inline options */
       }
     }
     copyLink();

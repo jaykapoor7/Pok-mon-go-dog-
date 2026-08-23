@@ -60,7 +60,7 @@ export function OverviewPanel({
 
   return (
     <div className="space-y-8">
-      {/* compact metric row — one bordered strip, not eight cards */}
+      {/* compact metric row, one bordered strip, not eight cards */}
       <div className="grid grid-cols-2 divide-x divide-y divide-black/[0.07] overflow-hidden rounded-lg border border-black/[0.08] sm:grid-cols-4 sm:divide-y-0 dark:divide-white/[0.08] dark:border-white/[0.1]">
         <Metric label="Open cases" value={m.open} />
         <Metric label="Urgent" value={m.urgent} tone={m.urgent ? "text-status-injured" : undefined} />
@@ -68,7 +68,7 @@ export function OverviewPanel({
         <Metric label="Resolved · 30d" value={m.resolved30} tone={m.resolved30 ? "text-status-vaccinated" : undefined} />
       </div>
 
-      {/* Tasks — create + assign right here */}
+      {/* Tasks, create + assign right here */}
       {hrefBase === "/partner" && <TasksSection compact />}
 
       {/* Needs attention */}

@@ -6,7 +6,7 @@ import { PartnerGate } from "@/components/partner/PartnerGate";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Cases — StrayPaw" };
+export const metadata = { title: "Cases, StrayPaw" };
 
 export default async function CasesPage() {
   const cases = await getCases();

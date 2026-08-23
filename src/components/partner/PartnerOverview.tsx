@@ -76,7 +76,7 @@ export function PartnerOverview({ cases: initialCases }: { cases: Case[] }) {
           <h1 className="text-2xl font-semibold tracking-tight text-bark-900 dark:text-bark-50 sm:text-3xl">
             {greeting()}{firstName ? `, ${firstName}` : ""}
           </h1>
-          <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Partner workspace"}{location ? ` · ${location}` : ""} — here&apos;s what needs attention today.</p>
+          <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Partner workspace"}{location ? ` · ${location}` : ""}, here&apos;s what needs attention today.</p>
         </div>
         <Link href="/cases/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"><Plus className="h-4 w-4" /> New case</Link>
       </div>
@@ -182,7 +182,7 @@ function CaseRow({ c }: { c: Case }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{speciesLabel(c.species)} · <span className="capitalize text-bark-500">{c.category}</span></p>
-        <p className="truncate text-[12px] text-bark-400">{c.zone || "—"} · {timeAgo(c.last_activity_at)}</p>
+        <p className="truncate text-[12px] text-bark-400">{c.zone || "-"} · {timeAgo(c.last_activity_at)}</p>
       </div>
       <span className="hidden shrink-0 items-center gap-1.5 text-[12px] text-bark-500 sm:inline-flex">
         <span className={cn("h-1.5 w-1.5 rounded-full", dotFor(c))} /> {STATUS_LABEL[c.status]}

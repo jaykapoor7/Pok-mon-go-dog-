@@ -45,7 +45,7 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
       );
       const ok = results.filter(Boolean).length;
       if (ok === 0) {
-        setToast("Verified partners only — sign in as an NGO to update records.");
+        setToast("Verified partners only, sign in as an NGO to update records.");
       } else {
         setToast(`${label} · ${ok} dog ${ok === 1 ? "record" : "records"} updated`);
         celebrate();

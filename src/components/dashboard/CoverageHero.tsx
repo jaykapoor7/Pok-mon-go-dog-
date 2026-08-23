@@ -61,7 +61,7 @@ export function CoverageHero({ dogs }: { dogs: Dog[] }) {
               <span>
                 {below.length}{" "}
                 {below.length === 1 ? "colony is" : "colonies are"} below the 70%
-                threshold —{" "}
+                threshold{" "}
                 <span className="font-semibold">
                   {below
                     .slice(0, 3)

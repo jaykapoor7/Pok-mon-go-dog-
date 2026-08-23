@@ -127,7 +127,7 @@ export function FundraiserOwnerControls({ fundraiser }: { fundraiser: Fundraiser
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Share progress — a rescue completed, a milestone hit, a thank-you to supporters."
+                placeholder="Share progress, a rescue completed, a milestone hit, a thank-you to supporters."
                 className={cn(INPUT, "min-h-[90px] resize-y")}
               />
               <div className="flex items-center gap-3">

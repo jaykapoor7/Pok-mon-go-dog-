@@ -4,7 +4,7 @@ import { FeedList } from "@/components/feed/FeedList";
 import { getAllSightings } from "@/lib/data";
 
 export const metadata = {
-  title: "Sightings Feed — StrayPaw",
+  title: "Sightings Feed, StrayPaw",
   description: "An Instagram-style feed of street dog sightings across India.",
 };
 

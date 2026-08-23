@@ -7,7 +7,7 @@ import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Field Work — StrayPaw Partner" };
+export const metadata = { title: "Field Work, StrayPaw Partner" };
 
 const isOpen = (c: Case) => c.status !== "resolved" && c.status !== "closed";
 const isUrgent = (c: Case) => isOpen(c) && (c.severity === "critical" || c.severity === "high" || isOverdue(c));
@@ -25,7 +25,7 @@ export default async function PartnerFieldPage() {
   for (const c of open) if (c.assignee_name) byWorker.set(c.assignee_name, (byWorker.get(c.assignee_name) ?? 0) + 1);
   const workers = [...byWorker.entries()].sort((a, b) => b[1] - a[1]);
 
-  // High-need areas — rank zones by open load, weighting urgent cases, so the
+  // High-need areas, rank zones by open load, weighting urgent cases, so the
   // org can plan camps and allocate resources where the need is greatest.
   const byZone = new Map<string, { total: number; urgent: number }>();
   for (const c of open) {

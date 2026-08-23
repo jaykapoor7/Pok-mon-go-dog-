@@ -79,7 +79,7 @@ export async function getCases(): Promise<Case[]> {
 }
 
 /**
- * Cases scoped to the signed-in partner's org — their own claimed cases plus
+ * Cases scoped to the signed-in partner's org, their own claimed cases plus
  * the shared pool of unclaimed community reports. Runs client-side with the
  * authenticated session (my_org_cases uses my_ngo()), so each NGO sees only
  * their own data. Falls back to the shared list on older DBs without the RPC.

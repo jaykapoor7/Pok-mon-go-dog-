@@ -10,22 +10,22 @@
 
   body {
     @apply text-bark-900 antialiased;
-    background-color: #fbfdff; /* paper — cool near-white, on-brand */
+    background-color: #fbfdff; /* paper, cool near-white, on-brand */
     font-feature-settings: "cv02", "cv03", "cv04", "ss01";
   }
 
-  /* Display typography — Fraunces serif, near-normal tracking. */
+  /* Display typography, Fraunces serif, near-normal tracking. */
   .font-display {
     letter-spacing: -0.01em;
   }
 
-  /* ── Dark theme — deep navy-slate ── */
+  /* ── Dark theme, deep navy-slate ── */
   .dark body {
     @apply text-bark-100;
     background-color: #0f1626; /* --ink */
   }
 
-  /* Centralised surface remaps — more specific than the base utilities,
+  /* Centralised surface remaps, more specific than the base utilities,
      so the app themes broadly without per-component dark: classes. */
   .dark .bg-white { background-color: #1b2436; } /* --ink-surface */
   .dark .bg-bark-50,
@@ -191,7 +191,7 @@
   }
 }
 
-/* Mapbox tweaks — hide default attribution clutter on mobile, keep it clean. */
+/* Mapbox tweaks, hide default attribution clutter on mobile, keep it clean. */
 .mapboxgl-ctrl-logo {
   opacity: 0.5;
 }
@@ -218,7 +218,7 @@
   }
 }
 
-/* Interactive cards get a subtle lift on hover/press — premium depth. */
+/* Interactive cards get a subtle lift on hover/press, premium depth. */
 .card-interactive {
   @apply transition-[transform,box-shadow] duration-200 ease-out
          hover:-translate-y-0.5 hover:shadow-pop active:translate-y-0 active:scale-[0.995];

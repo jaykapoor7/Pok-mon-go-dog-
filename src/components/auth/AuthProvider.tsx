@@ -18,7 +18,7 @@ import { getSupabase } from "@/lib/supabase";
 // Viewing the map needs no identity. Reporting works anonymously too. But
 // *signing in* (email + password, via Supabase Auth) gives you a real account
 // so you can edit / delete your sightings and update a dog's status from ANY
-// device — and it's how partner NGOs log into their dashboard.
+// device, and it's how partner NGOs log into their dashboard.
 //
 // When Supabase isn't configured (local dev with no backend) we fall back to a
 // minimal name-only identity kept in localStorage, so the flow still works.
@@ -262,7 +262,7 @@ function SignInSheet({
       const msg = err instanceof Error ? err.message : "Something went wrong. Try again.";
       setError(
         /invalid login/i.test(msg) ? "Wrong email or password." :
-        /already registered/i.test(msg) ? "That email already has an account — sign in instead." :
+        /already registered/i.test(msg) ? "That email already has an account, sign in instead." :
         msg
       );
     } finally {
@@ -320,7 +320,7 @@ function SignInSheet({
             <p className="mt-1 text-sm text-bark-500">
               {mode === "reset"
                 ? "Enter your email and we'll send a link to set a new password."
-                : "Sign in to edit your sightings, follow dogs, and — for partner NGOs — open your dashboard."}
+                : "Sign in to edit your sightings, follow dogs, and, for partner NGOs, open your dashboard."}
             </p>
 
             <form onSubmit={submit} className="mt-4 space-y-3">

@@ -15,7 +15,7 @@ const WORD: Record<Size, string> = {
 
 let uid = 0;
 
-/** StrayPaw "Badge" mark — a light-blue gradient tile wrapping a bold white
+/** StrayPaw "Badge" mark, a light-blue gradient tile wrapping a bold white
  *  DOG head: a rounded face, two floppy ears hanging at the sides, a snout with
  *  a nose, and expressive eyes that reveal the gradient through the head. Inline
  *  SVG, so it stays crisp at any size. */
@@ -34,13 +34,13 @@ export function AnimalMark({ className }: { className?: string }) {
       <rect width="100" height="100" rx="23" fill={`url(#${id})`} />
       {/* Inner ring */}
       <rect x="6" y="6" width="88" height="88" rx="18" stroke="white" strokeWidth="1.5" strokeOpacity="0.2" fill="none" />
-      {/* Floppy ears — drawn first so the head tucks over their tops (drop down
+      {/* Floppy ears, drawn first so the head tucks over their tops (drop down
           the sides, unmistakably a dog, not tall rabbit ears) */}
       <path d="M 33 34 C 16 30 11 44 13 58 C 14 70 24 74 33 68 C 30 58 30 44 33 34 Z" fill="white" />
       <path d="M 67 34 C 84 30 89 44 87 58 C 86 70 76 74 67 68 C 70 58 70 44 67 34 Z" fill="white" />
       {/* Head */}
       <circle cx="50" cy="54" r="25" fill="white" />
-      {/* Snout — a rounded muzzle protruding at the bottom of the face */}
+      {/* Snout, a rounded muzzle protruding at the bottom of the face */}
       <ellipse cx="50" cy="70" rx="15" ry="12" fill="white" />
       {/* Eyes reveal the gradient through the white head */}
       <ellipse cx="41" cy="50" rx="3.4" ry="4" fill={`url(#${id})`} />

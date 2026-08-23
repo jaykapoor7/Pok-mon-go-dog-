@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const s = await getSurveyById(id);
-  return { title: s ? `${s.title} — StrayPaw` : "Survey not found" };
+  return { title: s ? `${s.title}, StrayPaw` : "Survey not found" };
 }
 
 export default async function SurveyPage({ params }: { params: Promise<{ id: string }> }) {

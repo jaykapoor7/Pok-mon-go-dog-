@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────────
 // Server-only transactional email via Resend (https://resend.com).
-// No SDK — just the REST API. No-ops silently when RESEND_API_KEY is unset, so
+// No SDK, just the REST API. No-ops silently when RESEND_API_KEY is unset, so
 // email COLLECTION works immediately and SENDING switches on once you add the
 // key (+ a verified sending domain) and set EMAIL_FROM.
-//   RESEND_API_KEY  — from Resend dashboard
-//   EMAIL_FROM      — e.g. "StrayPaw <hello@straypaw.kapoorjay.com>"
+//   RESEND_API_KEY , from Resend dashboard
+//   EMAIL_FROM     , e.g. "StrayPaw <hello@straypaw.kapoorjay.com>"
 // ─────────────────────────────────────────────────────────────
 
 const SITE =
@@ -18,7 +18,7 @@ export async function sendEmail(opts: {
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY?.trim();
   const from = process.env.EMAIL_FROM?.trim() || "StrayPaw <hello@straypaw.kapoorjay.com>";
-  if (!key) return false; // not configured — collection still works
+  if (!key) return false; // not configured, collection still works
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -43,7 +43,7 @@ export async function sendSightingLiveEmail(
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#141821">
     <div style="font-size:22px;font-weight:800;color:#2f4fc0">🐾 StrayPaw</div>
     <p style="font-size:16px;line-height:1.5;margin-top:16px">${hi}</p>
-    <p style="font-size:16px;line-height:1.5">Great news — the street dog you reported is now <b>live on the map</b>. Thank you for helping keep track of the dogs in your area.</p>
+    <p style="font-size:16px;line-height:1.5">Great news, the street dog you reported is now <b>live on the map</b>. Thank you for helping keep track of the dogs in your area.</p>
     <p style="margin:24px 0">
       <a href="${dogUrl}" style="background:#3b63e0;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:700;display:inline-block">See the dog on StrayPaw →</a>
     </p>
@@ -51,6 +51,6 @@ export async function sendSightingLiveEmail(
     <hr style="border:none;border-top:1px solid #e7e6dd;margin:24px 0">
     <p style="font-size:12px;color:#a3a292">You got this because you left your email when reporting a sighting on StrayPaw. We only email you about your reports.</p>
   </div>`;
-  const text = `${hi}\n\nThe street dog you reported is now live on the map: ${dogUrl}\n\nThank you for helping. Spotted another dog? Report it: ${SITE}/report\n\n— StrayPaw`;
+  const text = `${hi}\n\nThe street dog you reported is now live on the map: ${dogUrl}\n\nThank you for helping. Spotted another dog? Report it: ${SITE}/report\n\nStrayPaw`;
   return sendEmail({ to, subject: "Your StrayPaw sighting is now live 🐾", html, text });
 }

@@ -56,7 +56,7 @@ export default function ReportPage() {
   }, [user?.email]);
 
   // Reporting is open to everyone (guests included). Signing in just lets you
-  // edit/delete the sighting later from any device — see the banner below.
+  // edit/delete the sighting later from any device, see the banner below.
 
   function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
@@ -141,7 +141,7 @@ export default function ReportPage() {
         )}
       </header>
 
-      {/* Guest warning — reporting works, but editing later needs an account. */}
+      {/* Guest warning, reporting works, but editing later needs an account. */}
       {ready && !isAuthed && (
         <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
           <p className="flex-1 text-sm text-bark-700 dark:text-bark-200">
@@ -214,7 +214,7 @@ export default function ReportPage() {
             )}
           </div>
 
-          {/* location — search, current GPS, or drag the pin */}
+          {/* location, search, current GPS, or drag the pin */}
           <div>
             <label className="mb-2 block text-sm font-semibold">Location</label>
             <LocationPicker
@@ -294,7 +294,7 @@ export default function ReportPage() {
             />
             <p className="mt-1.5 text-xs text-bark-400">
               We&apos;ll email you once this sighting is approved and on the map. Only
-              about your reports — no spam.
+              about your reports, no spam.
             </p>
           </div>
 
@@ -332,7 +332,7 @@ export default function ReportPage() {
             <div className="flex flex-col items-center gap-1">
               <Turnstile onVerify={handleVerify} />
               <p className="text-[10px] text-bark-400">
-                A quick check to keep out spam — protected by Cloudflare Turnstile.
+                A quick check to keep out spam, protected by Cloudflare Turnstile.
               </p>
             </div>
           )}

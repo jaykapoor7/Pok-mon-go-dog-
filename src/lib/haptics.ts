@@ -1,5 +1,5 @@
 // Lightweight haptic feedback (Android/Chromium support navigator.vibrate;
-// iOS Safari ignores it — degrades gracefully). Respects reduced-motion.
+// iOS Safari ignores it, degrades gracefully). Respects reduced-motion.
 
 type Kind = "light" | "medium" | "select" | "success" | "error";
 
@@ -18,6 +18,6 @@ export function haptic(kind: Kind = "light") {
   try {
     navigator.vibrate(PATTERNS[kind]);
   } catch {
-    /* not supported — ignore */
+    /* not supported, ignore */
   }
 }

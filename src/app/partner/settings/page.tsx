@@ -1,7 +1,7 @@
 import { OrgManager } from "@/components/dashboard/OrgManager";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Settings — StrayPaw Partner" };
+export const metadata = { title: "Settings, StrayPaw Partner" };
 
 export default function PartnerSettingsPage() {
   return (

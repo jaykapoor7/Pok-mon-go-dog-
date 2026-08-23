@@ -55,7 +55,7 @@ export default function ResetPasswordPage() {
           <>
             <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
             <h1 className="font-display text-2xl font-extrabold">Password updated</h1>
-            <p className="mt-1.5 text-sm text-bark-500">You&apos;re all set — you can use your new password to sign in.</p>
+            <p className="mt-1.5 text-sm text-bark-500">You&apos;re all set, you can use your new password to sign in.</p>
             <Link href="/app" className="btn-primary mt-5 w-full py-3">Go to the app</Link>
           </>
         ) : hasSession ? (

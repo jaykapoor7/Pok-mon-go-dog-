@@ -3,7 +3,7 @@ import { HeartHandshake, HandHelping, Share2, ArrowRight } from "lucide-react";
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
 export const metadata = {
-  title: "Support StrayPaw — Donate & sponsor",
+  title: "Support StrayPaw, Donate & sponsor",
   description:
     "StrayPaw is free and open. Support street-dog care by donating, sponsoring a rescue, volunteering or spreading the word.",
 };
@@ -16,7 +16,7 @@ export default function DonatePage() {
   return (
     <InfoPage title="Support StrayPaw">
       <p>
-        StrayPaw is free, open and community-run — there&apos;s no paywall and no
+        StrayPaw is free, open and community-run, there&apos;s no paywall and no
         ads. If it&apos;s helped you or a dog near you, here are a few ways to keep
         it going and get more dogs cared for.
       </p>
@@ -34,7 +34,7 @@ export default function DonatePage() {
 
       <H2>Fund a rescue directly</H2>
       <p>
-        The biggest impact is supporting the NGOs doing the on-ground work —
+        The biggest impact is supporting the NGOs doing the on-ground work,
         clearing vet bills, sterilisation drives and emergencies. Their live
         fundraisers link straight to each rescue&apos;s own donation channel.
       </p>
@@ -65,7 +65,7 @@ export default function DonatePage() {
 
       <H2>Spread the word</H2>
       <p>
-        Sharing StrayPaw puts more eyes on the street — every new reporter makes
+        Sharing StrayPaw puts more eyes on the street, every new reporter makes
         the map more useful for the dogs and the rescues that help them.
       </p>
       <Link
@@ -76,7 +76,7 @@ export default function DonatePage() {
       </Link>
 
       <p className="mt-6 text-sm text-bark-400">
-        Open-sourcing stray-dog care — for the people, by the people.
+        Open-sourcing stray-dog care, for the people, by the people.
       </p>
     </InfoPage>
   );

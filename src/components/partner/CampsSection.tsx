@@ -40,7 +40,7 @@ export function CampsSection() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{c.name}</p>
                 <p className="truncate text-[12px] text-bark-400">
-                  {[c.village, c.district].filter(Boolean).join(", ") || "—"}{c.camp_date ? ` · ${formatDate(c.camp_date)}` : ""}
+                  {[c.village, c.district].filter(Boolean).join(", ") || "-"}{c.camp_date ? ` · ${formatDate(c.camp_date)}` : ""}
                 </p>
               </div>
               <button
@@ -75,7 +75,7 @@ function AddCamp({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="mb-3 space-y-2 rounded-lg border border-black/[0.08] p-3 dark:border-white/[0.1]">
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Camp name — e.g. Marathwada deworming camp" className={cn(INPUT, "w-full")} />
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Camp name, e.g. Marathwada deworming camp" className={cn(INPUT, "w-full")} />
       <div className="flex flex-wrap gap-2">
         <input value={village} onChange={(e) => setVillage(e.target.value)} placeholder="Village" className={cn(INPUT, "min-w-0 flex-1")} />
         <input value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="District" className={cn(INPUT, "min-w-0 flex-1")} />

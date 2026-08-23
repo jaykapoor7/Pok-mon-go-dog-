@@ -19,7 +19,7 @@ const loading = () => (
  * Map engines touch `window`, so they're client-only. We ship only ONE engine
  * to the browser: Mapbox when a token is configured, otherwise the keyless
  * MapLibre/OpenFreeMap map. The untaken `import()` is never fetched, so its
- * (large) chunk stays off the wire — a big perceived-load win.
+ * (large) chunk stays off the wire, a big perceived-load win.
  */
 const MapEngine = dynamic(
   () =>

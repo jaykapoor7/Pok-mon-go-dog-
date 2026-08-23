@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Trust badge for an organization. Shows "Verified partner" ONLY when the
- * backend actually flags the org verified — otherwise it states, plainly, that
+ * backend actually flags the org verified, otherwise it states, plainly, that
  * verification is pending. We never imply trust the data doesn't support.
  */
 export function VerifiedBadge({

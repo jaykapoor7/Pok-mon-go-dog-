@@ -8,7 +8,7 @@ import { getOrgs } from "@/lib/data";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Organizations — animal-welfare partners | StrayPaw",
+  title: "Organizations, animal-welfare partners | StrayPaw",
   description:
     "Discover the animal-welfare organizations documenting rescue cases and running transparent campaigns on StrayPaw.",
 };

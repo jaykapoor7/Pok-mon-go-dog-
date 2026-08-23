@@ -1,11 +1,11 @@
 // ─────────────────────────────────────────────────────────────
 // Server-only Telegram notifier. Pings the operator when something needs
 // attention (new report, NGO/volunteer sign-up). No-ops silently when the
-// bot isn't configured, and never throws — notifications must not break a write.
+// bot isn't configured, and never throws, notifications must not break a write.
 //
 // Setup (Vercel → Environment Variables, server-side, NOT NEXT_PUBLIC):
-//   TELEGRAM_BOT_TOKEN  — from @BotFather
-//   TELEGRAM_CHAT_ID    — your chat id (message the bot, then read it from
+//   TELEGRAM_BOT_TOKEN , from @BotFather
+//   TELEGRAM_CHAT_ID   , your chat id (message the bot, then read it from
 //                         https://api.telegram.org/bot<token>/getUpdates)
 // ─────────────────────────────────────────────────────────────
 
@@ -29,7 +29,7 @@ export async function notifyTelegram(text: string): Promise<void> {
       }),
     });
   } catch {
-    /* never throw — alerts are best-effort */
+    /* never throw, alerts are best-effort */
   }
 }
 

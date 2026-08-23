@@ -11,7 +11,7 @@ import { formatDate } from "@/lib/utils";
 import type { Case, Dog } from "@/lib/types";
 
 /**
- * Co-branded funder report — a designed one-page impact summary the NGO can put
+ * Co-branded funder report, a designed one-page impact summary the NGO can put
  * their own logo + name on and "Save as PDF" (browser print) to hand to CSR
  * funders. Separate from the analyst CSV.
  */
@@ -35,14 +35,14 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
       .catch(() => {});
   }, [user?.id]);
 
-  // Print the report in a fresh, isolated window — no app chrome, so the PDF is
+  // Print the report in a fresh, isolated window, no app chrome, so the PDF is
   // a single clean page (printing the live page kept blank layout → many pages).
   function printReport() {
     const node = document.getElementById("funder-report");
     if (!node || typeof window === "undefined") return;
     const win = window.open("", "_blank", "width=820,height=1160");
     if (!win) {
-      window.print(); // popup blocked — fall back
+      window.print(); // popup blocked, fall back
       return;
     }
     const headStyles = Array.from(
@@ -177,7 +177,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                   </div>
                 </div>
 
-                {/* ── Your cases — scoped to this NGO's own work ── */}
+                {/* ── Your cases, scoped to this NGO's own work ── */}
                 <h3 className="fr-avoid mt-5 flex items-center gap-2 font-display text-sm font-bold">
                   <span className="inline-block h-2 w-2 rounded-full bg-paw-500" />
                   {ngoName ? `${ngoName}'s cases` : "Your cases"}
@@ -185,22 +185,22 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 <div className="fr-avoid mt-2 grid grid-cols-3 gap-3">
                   <Stat big value={`${myCases.length}`} label="Cases handled" />
                   <Stat big value={`${myResolved.length}`} label="Resolved" />
-                  <Stat big value={myMedian != null ? `${myMedian}d` : "—"} label="Median response" />
+                  <Stat big value={myMedian != null ? `${myMedian}d` : "-"} label="Median response" />
                 </div>
 
                 {myCases.length === 0 && (
                   <p className="mt-3 rounded-xl bg-bark-50 px-4 py-2 text-xs text-bark-500">
                     {user
-                      ? "No cases assigned to your account yet. Claim cases on the board and resolve them — your outcomes (and before/after proof) will appear here automatically."
+                      ? "No cases assigned to your account yet. Claim cases on the board and resolve them, your outcomes (and before/after proof) will appear here automatically."
                       : "Sign in and claim cases on the board to build your own impact section."}
                   </p>
                 )}
 
-                {/* before/after proof — this NGO's own resolved outcomes */}
+                {/* before/after proof, this NGO's own resolved outcomes */}
                 {proof.length > 0 && (
                   <div className="fr-avoid mt-4">
                     <h4 className="mb-2 text-xs font-bold text-bark-600">
-                      Outcomes — before &amp; after
+                      Outcomes, before &amp; after
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {proof.map((p) => (
@@ -218,7 +218,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                   </div>
                 )}
 
-                {/* ── Community coverage — area-wide context ── */}
+                {/* ── Community coverage, area-wide context ── */}
                 <h3 className="fr-avoid mt-6 flex items-center gap-2 font-display text-sm font-bold">
                   <span className="inline-block h-2 w-2 rounded-full bg-bark-300" />
                   Community coverage <span className="text-xs font-medium text-bark-400">· area-wide</span>
@@ -232,7 +232,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 <p className="mt-3 rounded-xl bg-paw-50 px-4 py-2 text-xs text-bark-600">
                   Area-wide figures across the whole StrayPaw community map, measured
                   against the WHO ~{HERD_THRESHOLD}% herd-immunity threshold for rabies
-                  control — shown as the context {ngoName || "your NGO"} operates in,
+                  control, shown as the context {ngoName || "your NGO"} operates in,
                   not attributed to one organisation.
                 </p>
 

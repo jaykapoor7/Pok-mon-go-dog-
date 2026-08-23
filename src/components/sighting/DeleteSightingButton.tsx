@@ -9,7 +9,7 @@ import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 /**
- * Delete control for a sighting you own — either because you created it on this
+ * Delete control for a sighting you own, either because you created it on this
  * device (per-device token) or because it's attached to your signed-in account
  * (cross-device). Confirms, deletes, then calls onDeleted so the parent can
  * remove it from the UI immediately.
@@ -32,7 +32,7 @@ export function DeleteSightingButton({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // localStorage is client-only — resolve device ownership after mount to
+  // localStorage is client-only, resolve device ownership after mount to
   // avoid a hydration mismatch.
   useEffect(() => {
     setDeviceOwned(ownsSighting(sightingId));
