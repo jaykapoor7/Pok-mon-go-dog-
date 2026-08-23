@@ -8,6 +8,8 @@ import { haptic } from "@/lib/haptics";
 import { celebrate } from "@/lib/celebrate";
 import { cn } from "@/lib/utils";
 
+const FIELD = "w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+
 export interface HelperTarget {
   dogId?: string | null;
   zone?: string | null;
@@ -30,11 +32,12 @@ export function HelperForm({
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [message, setMessage] = useState("");
-  const [isNgo, setIsNgo] = useState(false);
-  const [ngoName, setNgoName] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleSkill = (s: string) => setSkills((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,12 +48,12 @@ export function HelperForm({
     setBusy(true);
     setError(null);
     try {
+      const skillLine = skills.length ? `Can help with: ${skills.join(", ")}.` : "";
       await submitHelper({
         name,
         contact,
-        message,
-        isNgo,
-        ngoName: isNgo ? ngoName : undefined,
+        message: [skillLine, message.trim()].filter(Boolean).join("\n"),
+        isNgo: false,
         dogId: target?.dogId ?? null,
         zone: target?.zone ?? null,
       });
@@ -72,8 +75,7 @@ export function HelperForm({
       setName("");
       setContact("");
       setMessage("");
-      setIsNgo(false);
-      setNgoName("");
+      setSkills([]);
       setError(null);
     }, 300);
   }
@@ -118,70 +120,37 @@ export function HelperForm({
             ) : (
               <>
                 <h2 className="font-display text-xl font-extrabold">
-                  {target?.label ? `Help ${target.label}` : "Can you help?"}
+                  {target?.label ? `Help ${target.label}` : "Register to volunteer"}
                 </h2>
                 <p className="mt-1 text-sm text-bark-500">
-                  Leave your details, feed, foster, transport, vet help, or just
-                  keep an eye out. We&apos;ll connect you.
+                  Leave your details and how you can help. Partner NGOs can see
+                  volunteers in their area and will reach out when there&apos;s a need.
                 </p>
 
                 <form onSubmit={submit} className="mt-4 space-y-3">
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                    className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
-                  />
-                  <input
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    placeholder="Phone or email"
-                    className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
-                  />
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    rows={2}
-                    placeholder="How can you help? (optional)"
-                    className="w-full resize-none rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
-                  />
+                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={FIELD} />
+                  <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Phone or email" className={FIELD} />
 
-                  <button
-                    type="button"
-                    onClick={() => setIsNgo((v) => !v)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-bark-200 px-4 py-3 text-left text-sm dark:border-white/10"
-                  >
-                    <span className="font-medium">I represent an NGO / rescue</span>
-                    <span
-                      className={cn(
-                        "relative h-6 w-11 rounded-full transition-colors",
-                        isNgo ? "bg-paw-500" : "bg-bark-200 dark:bg-bark-700"
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-                          isNgo ? "translate-x-[1.375rem]" : "translate-x-0.5"
-                        )}
-                      />
-                    </span>
-                  </button>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-bark-500">How can you help?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Feeding", "Transport", "Fostering", "Vet visits", "Rescue", "Fundraising", "Awareness"].map((s) => (
+                        <button key={s} type="button" onClick={() => toggleSkill(s)} className={cn("chip border transition-all", skills.includes(s) ? "border-paw-300 bg-paw-500 text-white" : "border-bark-200 bg-white text-bark-600 hover:border-paw-300 dark:bg-bark-900")}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                  {isNgo && (
-                    <input
-                      value={ngoName}
-                      onChange={(e) => setNgoName(e.target.value)}
-                      placeholder="NGO / rescue name"
-                      className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
-                    />
-                  )}
+                  <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={2} placeholder="Anything else, availability, area you cover (optional)" className={`${FIELD} resize-none`} />
 
                   {error && <p className="text-sm font-medium text-status-injured">{error}</p>}
 
                   <button type="submit" disabled={busy} className="btn-primary w-full py-3">
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <HeartHandshake className="h-4 w-4" />}
-                    {isNgo ? "Register our NGO" : "I want to help"}
+                    Register to volunteer
                   </button>
+                  <p className="text-center text-[11px] text-bark-400">Run an organisation? <a href="/partnerships" className="font-semibold text-paw-600">Partner with StrayPaw</a> instead.</p>
                 </form>
               </>
             )}

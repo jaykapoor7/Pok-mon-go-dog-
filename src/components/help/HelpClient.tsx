@@ -62,17 +62,14 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
               onClick={helpGeneral}
               className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-paw-700 shadow-warm transition-transform active:scale-95"
             >
-              <HandHelping className="h-4 w-4" /> I can help
+              <HandHelping className="h-4 w-4" /> Register to volunteer
             </button>
-            <button
-              onClick={() => {
-                setTarget(null);
-                setFormOpen(true);
-              }}
+            <Link
+              href="/partnerships"
               className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/15 active:scale-95"
             >
-              <HeartHandshake className="h-4 w-4" /> Register an NGO
-            </button>
+              <HeartHandshake className="h-4 w-4" /> Are you an NGO?
+            </Link>
           </div>
         </div>
       </div>

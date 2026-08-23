@@ -32,6 +32,23 @@ export async function addOrgMember(email: string, role = "member"): Promise<void
   if (!res?.ok) throw new Error(res?.error ?? "Could not add member.");
 }
 
+export interface Volunteer {
+  id: string;
+  name: string;
+  contact: string;
+  message: string | null;
+  zone: string | null;
+  dog_id: string | null;
+  created_at: string;
+}
+
+export async function getOrgVolunteers(): Promise<Volunteer[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa.rpc("org_volunteers");
+  return (data ?? []) as Volunteer[];
+}
+
 export async function removeOrgMember(userId: string): Promise<boolean> {
   const supa = getSupabase();
   if (!supa) return true;
