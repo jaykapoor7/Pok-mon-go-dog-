@@ -496,6 +496,32 @@ export function AdminClient() {
     return null;
   }
 
+  async function removeOrgMember(ngoId: string, email: string): Promise<string | null> {
+    const res = await fetch("/api/admin/partners", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "remove_member", ngoId, email }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) return j.error || "Could not remove member.";
+    haptic("success");
+    await loadPartners(secret);
+    return null;
+  }
+
+  async function deleteOrg(ngoId: string): Promise<string | null> {
+    const res = await fetch("/api/admin/partners", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete_org", ngoId }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) return j.error || "Could not delete organisation.";
+    haptic("success");
+    await loadPartners(secret);
+    return null;
+  }
+
   // Discover candidate campaigns from the web → pending review queue.
   async function discoverFundraisers() {
     setDiscoveringFunds(true);
@@ -795,7 +821,7 @@ export function AdminClient() {
           )}
 
           {tab === "partners" && (
-        <PartnerRequestsList requests={partnerRequests} grants={grants} orgs={orgs} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} onAddMember={addOrgMember} />
+        <PartnerRequestsList requests={partnerRequests} grants={grants} orgs={orgs} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} onAddMember={addOrgMember} onRemoveMember={removeOrgMember} onDeleteOrg={deleteOrg} />
       )}
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
@@ -1262,6 +1288,8 @@ function PartnerRequestsList({
   onAction,
   onGrant,
   onAddMember,
+  onRemoveMember,
+  onDeleteOrg,
 }: {
   requests: AdminPartnerRequest[];
   grants: { id: string; email: string; org_name: string; created_at: string }[];
@@ -1270,11 +1298,13 @@ function PartnerRequestsList({
   onAction: (id: string, action: "approve" | "reject") => void;
   onGrant: (email: string, orgName: string, area: string) => Promise<string | null>;
   onAddMember: (ngoId: string, email: string, role: string) => Promise<string | null>;
+  onRemoveMember: (ngoId: string, email: string) => Promise<string | null>;
+  onDeleteOrg: (ngoId: string) => Promise<string | null>;
 }) {
   return (
     <div className="space-y-4">
       <GrantAccessForm onGrant={onGrant} />
-      <AddMemberForm orgs={orgs} onAddMember={onAddMember} />
+      <AddMemberForm orgs={orgs} onAddMember={onAddMember} onRemoveMember={onRemoveMember} />
       {orgs.length > 0 && (
         <div className="card p-4">
           <p className="mb-2 text-sm font-semibold">Organisations ({orgs.length})</p>
@@ -1285,8 +1315,14 @@ function PartnerRequestsList({
                   <span className="font-medium">{o.name}</span>
                   {o.area && <span className="text-bark-400"> · {o.area}</span>}
                 </span>
-                <span className="shrink-0 text-xs text-bark-400">
-                  {o.members} member{o.members === 1 ? "" : "s"} · {o.leads} lead{o.leads === 1 ? "" : "s"}
+                <span className="flex shrink-0 items-center gap-3 text-xs text-bark-400">
+                  <span>{o.members} member{o.members === 1 ? "" : "s"} · {o.leads} lead{o.leads === 1 ? "" : "s"}</span>
+                  <button
+                    onClick={async () => { if (confirm(`Delete "${o.name}" and remove all its members? This cannot be undone.`)) { const e = await onDeleteOrg(o.id); if (e) alert(e); } }}
+                    className="rounded-md px-2 py-1 font-semibold text-status-injured hover:bg-status-injured/10"
+                  >
+                    Delete
+                  </button>
                 </span>
               </li>
             ))}
@@ -1408,7 +1444,7 @@ function GrantAccessForm({ onGrant }: { onGrant: (email: string, orgName: string
 
 type AdminOrg = { id: string; name: string; area: string | null; verified: boolean; members: number; leads: number };
 
-function AddMemberForm({ orgs, onAddMember }: { orgs: AdminOrg[]; onAddMember: (ngoId: string, email: string, role: string) => Promise<string | null> }) {
+function AddMemberForm({ orgs, onAddMember, onRemoveMember }: { orgs: AdminOrg[]; onAddMember: (ngoId: string, email: string, role: string) => Promise<string | null>; onRemoveMember: (ngoId: string, email: string) => Promise<string | null> }) {
   const [ngoId, setNgoId] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -1427,6 +1463,16 @@ function AddMemberForm({ orgs, onAddMember }: { orgs: AdminOrg[]; onAddMember: (
       setMsg({ ok: true, text: `Added to ${org?.name ?? "the org"} as ${role === "admin" ? "team lead" : role.replace("_", " ")}.` });
       setEmail("");
     }
+  }
+
+  async function remove() {
+    if (!ngoId || !email.trim()) return;
+    setBusy(true);
+    setMsg(null);
+    const err = await onRemoveMember(ngoId, email.trim());
+    setBusy(false);
+    if (err) setMsg({ ok: false, text: err });
+    else { setMsg({ ok: true, text: `Removed ${email.trim()} from the org.` }); setEmail(""); }
   }
 
   const input = "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900";
@@ -1449,11 +1495,16 @@ function AddMemberForm({ orgs, onAddMember }: { orgs: AdminOrg[]; onAddMember: (
               <option value="admin">Team lead</option>
             </select>
           </div>
-          <button onClick={submit} disabled={busy || !ngoId || !email.trim()} className="btn-primary mt-2 px-4 py-2 text-sm">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Add member
-          </button>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button onClick={submit} disabled={busy || !ngoId || !email.trim()} className="btn-primary px-4 py-2 text-sm">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Add member
+            </button>
+            <button onClick={remove} disabled={busy || !ngoId || !email.trim()} className="inline-flex items-center gap-1.5 rounded-full border border-status-injured/30 px-4 py-2 text-sm font-semibold text-status-injured hover:bg-status-injured/10 disabled:opacity-50">
+              Remove from org
+            </button>
+          </div>
           {msg && <p className={`mt-2 text-sm font-medium ${msg.ok ? "text-status-vaccinated" : "text-status-injured"}`}>{msg.text}</p>}
-          <p className="mt-1 text-xs text-bark-400">The member must have a StrayPaw account. Pick <span className="font-semibold">Team lead</span> to give them management powers.</p>
+          <p className="mt-1 text-xs text-bark-400">The member must have a StrayPaw account. Pick <span className="font-semibold">Team lead</span> to give them management powers, or remove them from the org.</p>
         </>
       )}
     </div>

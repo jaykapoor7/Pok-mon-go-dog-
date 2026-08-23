@@ -182,8 +182,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  // Remove a member from an org (by email).
+  if (body.action === "remove_member") {
+    const email = (body.email ?? "").trim().toLowerCase();
+    const ngoId = (body.ngoId ?? "").trim();
+    if (!email || !ngoId) return NextResponse.json({ error: "Email and organisation are required." }, { status: 400 });
+    const userId = await findUserId(supa, email);
+    if (!userId) return NextResponse.json({ error: noAccount }, { status: 404 });
+    const { error } = await supa.from("ngo_members").delete().eq("user_id", userId).eq("ngo_id", ngoId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
+  // Delete an organisation and all its memberships.
+  if (body.action === "delete_org") {
+    const ngoId = (body.ngoId ?? "").trim();
+    if (!ngoId) return NextResponse.json({ error: "Organisation is required." }, { status: 400 });
+    await supa.from("ngo_members").delete().eq("ngo_id", ngoId);
+    const { error } = await supa.from("ngos").delete().eq("id", ngoId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
   if (!body.id || (body.action !== "approve" && body.action !== "reject")) {
-    return NextResponse.json({ error: "Provide { action: 'approve' | 'reject', id }" }, { status: 400 });
+    return NextResponse.json({ error: "Provide a valid action." }, { status: 400 });
   }
 
   if (body.action === "approve") {
