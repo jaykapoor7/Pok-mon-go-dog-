@@ -485,7 +485,7 @@ export const CASE_SEVERITY_META: Record<
   { label: string; color: string }
 > = {
   low: { label: "Low", color: "#9A9C88" },
-  normal: { label: "Normal", color: "#b4552d" },
+  normal: { label: "Normal", color: "#3b63e0" },
   high: { label: "High", color: "#D9A441" },
   critical: { label: "Critical", color: "#C0492E" },
 };

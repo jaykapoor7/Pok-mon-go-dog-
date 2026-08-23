@@ -44,7 +44,7 @@ export function FlipBoard({ value, className }: { value: string; className?: str
       <style>{`
         .flip-board{display:inline-flex;gap:3px;align-items:stretch;perspective:320px}
         .flip-cell{position:relative;display:inline-grid;place-items:center;min-width:0.72em;padding:0.06em 0.05em;
-          border-radius:5px;background:#1a1712;color:#f4ede2;overflow:hidden;
+          border-radius:5px;background:#1f232c;color:#f2f4f8;overflow:hidden;
           box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.35)}
         .flip-cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.5);z-index:2}
         .flip-char{display:block;line-height:1;transform-origin:center;animation:flip-in .18s cubic-bezier(.3,.7,.4,1)}

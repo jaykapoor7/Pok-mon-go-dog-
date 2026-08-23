@@ -35,7 +35,7 @@ export default async function PartnerReportsPage() {
   const oSafe = oTot ? Math.round((byResolution.rescued / oTot) * 100) : 0;
   const oTreat = oTot ? Math.round((byResolution.treated / oTot) * 100) : 0;
   const oSter = Math.max(0, 100 - oSafe - oTreat);
-  const donut = `conic-gradient(#b4552d 0 ${oSafe}%, #D9A441 ${oSafe}% ${oSafe + oTreat}%, #3E8473 ${oSafe + oTreat}% 100%)`;
+  const donut = `conic-gradient(#3b63e0 0 ${oSafe}%, #D9A441 ${oSafe}% ${oSafe + oTreat}%, #3E8473 ${oSafe + oTreat}% 100%)`;
 
   return (
     <div>
@@ -79,7 +79,7 @@ export default async function PartnerReportsPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-2.5 text-[13px]">
-                <span className="flex items-center gap-2"><i className="inline-block size-2 rounded-full" style={{ background: "#b4552d" }} /> Rescued <b className="ml-auto tabular-nums">{oSafe}%</b></span>
+                <span className="flex items-center gap-2"><i className="inline-block size-2 rounded-full" style={{ background: "#3b63e0" }} /> Rescued <b className="ml-auto tabular-nums">{oSafe}%</b></span>
                 <span className="flex items-center gap-2"><i className="inline-block size-2 rounded-full" style={{ background: "#D9A441" }} /> Treated <b className="ml-auto tabular-nums">{oTreat}%</b></span>
                 <span className="flex items-center gap-2"><i className="inline-block size-2 rounded-full" style={{ background: "#3E8473" }} /> Sterilised <b className="ml-auto tabular-nums">{oSter}%</b></span>
               </div>

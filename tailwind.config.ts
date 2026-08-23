@@ -10,40 +10,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Warm terracotta accent on stone. `paw` stays the token name so the
-        // whole app re-skins from here — a restrained, earthy clay used sparingly
-        // for primary actions/selected states, over near-monochrome warm stone.
+        // Blue-on-white brand (v2). `paw` stays the token name so the whole app
+        // re-skins from here — a clean, modern indigo-blue used sparingly for
+        // primary actions/selected states, over a light, neutral cool-grey base.
         paw: {
-          50: "#fbf4ef",
-          100: "#f5e3d7", // --clay-tint
-          200: "#eac6b2",
-          300: "#dba184",
-          400: "#cb7a56",
-          500: "#b4552d", // --clay (primary, AA on white)
-          600: "#97431f", // --clay-deep (active/hover)
-          700: "#78371b", // --clay-ink
-          800: "#5e2c17",
-          900: "#4c2513",
+          50: "#eef3ff",
+          100: "#dce7ff", // --blue-tint
+          200: "#bcd0ff",
+          300: "#8fb0fb",
+          400: "#5b86f0",
+          500: "#3b63e0", // --blue (primary, AA on white)
+          600: "#2f4fc0", // --blue-deep (active/hover)
+          700: "#2842a0", // --blue-ink
+          800: "#233a82",
+          900: "#1f3168",
         },
         bark: {
-          // Warm stone neutrals — near-monochrome base; hue is reserved for the
-          // accent and semantic status, per the operational design bar.
-          50: "#f7f6f2",
-          100: "#eeece5",
-          200: "#ddd9cf",
-          300: "#a8a396",
-          400: "#726c60", // darkened for AA contrast on stone; dark mode re-lightens it (globals.css)
-          600: "#57524a",
-          700: "#413d37",
-          800: "#211f1a", // --ink-surface
-          900: "#17150f", // --ink (warm charcoal bg)
-          950: "#100e0a",
+          // Cool neutral greys — near-monochrome light base; hue is reserved for
+          // the blue accent and semantic status.
+          50: "#f7f8fa",
+          100: "#eef0f4",
+          200: "#e0e3ea",
+          300: "#a8adba",
+          400: "#6b7180", // AA muted on white; dark mode re-lightens it (globals.css)
+          600: "#4b5160",
+          700: "#363b47",
+          800: "#1f232c", // --ink-surface
+          900: "#141821", // --ink (deep slate bg)
+          950: "#0d1017",
         },
         // Brand surfaces.
-        cream: "#F1ECE0",
-        paper: "#F8F6F1",
-        ink: "#17150f",
-        "ink-surface": "#211f1a",
+        cream: "#EEF2F8",
+        paper: "#FBFCFE",
+        ink: "#141821",
+        "ink-surface": "#1f232c",
         // Status system (olive-compatible). Markers + badges read from here.
         status: {
           seen: "#9A9C88",
@@ -63,7 +63,7 @@ const config: Config = {
       },
       boxShadow: {
         // Soft, minimal elevation — premium, never noisy.
-        warm: "0 8px 24px -10px rgba(180, 85, 45, 0.26)",
+        warm: "0 8px 24px -10px rgba(59, 99, 224, 0.24)",
         card: "0 1px 2px rgba(17, 17, 19, 0.04), 0 14px 34px -18px rgba(17, 17, 19, 0.18)",
         sheet: "0 -8px 40px -16px rgba(17, 17, 19, 0.28)",
         pop: "0 12px 36px -14px rgba(17, 17, 19, 0.30)",

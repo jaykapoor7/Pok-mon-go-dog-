@@ -9,6 +9,7 @@ import {
   CircleHelp, MoreHorizontal,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { AnimalMark } from "@/components/brand/Logo";
 import { getMyOrg } from "@/lib/actions";
 import { getSupabase } from "@/lib/supabase";
 import type { NGO } from "@/lib/types";
@@ -88,7 +89,7 @@ export function PartnerRail() {
     <>
       {/* brand */}
       <div className="flex h-16 items-center gap-3 border-b border-black/[0.08] px-5 dark:border-white/[0.08]">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paw-500 text-white"><PawPrint className="h-5 w-5" /></span>
+        <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg"><AnimalMark className="h-full w-full" /></span>
         <div>
           <div className="text-[14px] font-semibold tracking-tight text-bark-900 dark:text-bark-50">StrayPaw</div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-bark-400">Partner network</div>
@@ -134,7 +135,7 @@ export function PartnerRail() {
 
       <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-2 border-b border-black/[0.08] bg-paper/90 px-3 backdrop-blur dark:border-white/[0.08] dark:bg-ink/90 lg:hidden">
         <button onClick={() => setOpenMobile(true)} className="grid h-9 w-9 place-items-center rounded-md hover:bg-black/[0.04]" aria-label="Open menu"><Menu className="h-5 w-5" /></button>
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-paw-500 text-white"><PawPrint className="h-4 w-4" /></span>
+        <span className="h-7 w-7 shrink-0 overflow-hidden rounded-md"><AnimalMark className="h-full w-full" /></span>
         <span className="text-[14px] font-semibold">StrayPaw</span>
       </div>
       {openMobile && (
