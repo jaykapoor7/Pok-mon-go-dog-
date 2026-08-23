@@ -10,8 +10,12 @@ import { cn } from "@/lib/utils";
 const ROLES = [
   { key: "member", label: "Member" },
   { key: "field_worker", label: "Field worker" },
-  { key: "admin", label: "Admin" },
+  { key: "admin", label: "Team lead" },
 ];
+
+function roleLabel(role: string) {
+  return role === "admin" ? "Team lead" : role === "field_worker" ? "Field worker" : "Member";
+}
 
 export function TeamClient() {
   const { user } = useAuth();
@@ -85,14 +89,18 @@ export function TeamClient() {
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-bark-100 text-[12px] font-semibold text-bark-500 dark:bg-bark-800">{m.name.slice(0, 2).toUpperCase()}</span>
               <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">
                 {m.name}{m.user_id === user?.id ? " (you)" : ""}
-                <span className="ml-2 text-[12px] font-normal capitalize text-bark-400">{m.role.replace("_", " ")}</span>
+                {m.role === "admin" ? (
+                  <span className="ml-2 rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-semibold text-paw-700 dark:bg-bark-800 dark:text-paw-300">Team lead</span>
+                ) : (
+                  <span className="ml-2 text-[12px] font-normal text-bark-400">{roleLabel(m.role)}</span>
+                )}
               </span>
               <div className="hidden w-32 items-center gap-2 sm:flex" title="Open cases assigned">
                 <div className="h-1.5 flex-1 rounded-full bg-bark-100 dark:bg-bark-800"><div className="h-full rounded-full bg-paw-500" style={{ width: `${((workload.get(m.name) ?? 0) / maxLoad) * 100}%` }} /></div>
                 <span className="w-4 text-right text-[12px] tabular-nums text-bark-400">{workload.get(m.name) ?? 0}</span>
               </div>
               {!canManage ? (
-                <span className="rounded-full bg-bark-100 px-2 py-0.5 text-[12px] font-medium capitalize text-bark-500 dark:bg-bark-800">{m.role.replace("_", " ")}</span>
+                <span className="rounded-full bg-bark-100 px-2 py-0.5 text-[12px] font-medium text-bark-500 dark:bg-bark-800">{roleLabel(m.role)}</span>
               ) : busy === m.user_id ? <Loader2 className="h-4 w-4 animate-spin text-bark-400" /> : (
                 <div className="flex items-center gap-1">
                   {ROLES.map((r) => (
