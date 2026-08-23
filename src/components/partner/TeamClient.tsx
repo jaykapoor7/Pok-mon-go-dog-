@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, UserPlus, Check, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrgMembers, setMemberRole, addOrgMember, removeOrgMember, type OrgMember } from "@/lib/team-actions";
-import { getCases } from "@/lib/cases";
+import { getPartnerCases } from "@/lib/cases";
 import { cn } from "@/lib/utils";
 
 const ROLES = [
@@ -27,7 +27,7 @@ export function TeamClient() {
   const load = () => getMyOrgMembers().then(setMembers).finally(() => setLoading(false));
   useEffect(() => {
     load();
-    getCases().then((cases) => {
+    getPartnerCases().then((cases) => {
       const m = new Map<string, number>();
       for (const c of cases) if (c.assignee_name && c.status !== "resolved" && c.status !== "closed") m.set(c.assignee_name, (m.get(c.assignee_name) ?? 0) + 1);
       setWorkload(m);

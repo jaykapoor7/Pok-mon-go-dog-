@@ -8,6 +8,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { isOverdue, speciesLabel, type Case, type CaseStatus } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { downloadCsv } from "@/lib/csv";
+import { getPartnerCases } from "@/lib/cases";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "urgent" | "assigned" | "in_progress" | "resolved";
@@ -42,7 +43,13 @@ function priority(c: Case): { label: string; cls: string } {
   return { label: "NORMAL", cls: "text-bark-400" };
 }
 
-export function CasesTable({ cases, hrefBase = "/cases" }: { cases: Case[]; hrefBase?: string }) {
+export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases: Case[]; hrefBase?: string }) {
+  // Both cases surfaces are partner-gated; re-fetch scoped to the signed-in org
+  // (own cases + unclaimed pool) so each NGO sees only their own data.
+  const [cases, setCases] = useState<Case[]>(initialCases);
+  useEffect(() => {
+    getPartnerCases().then((c) => { if (c.length) setCases(c); }).catch(() => {});
+  }, []);
   const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");

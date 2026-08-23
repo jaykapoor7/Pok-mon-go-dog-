@@ -78,6 +78,20 @@ export async function getCases(): Promise<Case[]> {
   return [];
 }
 
+/**
+ * Cases scoped to the signed-in partner's org — their own claimed cases plus
+ * the shared pool of unclaimed community reports. Runs client-side with the
+ * authenticated session (my_org_cases uses my_ngo()), so each NGO sees only
+ * their own data. Falls back to the shared list on older DBs without the RPC.
+ */
+export async function getPartnerCases(): Promise<Case[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.rpc("my_org_cases");
+  if (error) return getCases(); // RPC not deployed yet → shared list
+  return (data ?? []).map(mapCase);
+}
+
 export async function getCasesForDog(dogId: string): Promise<Case[]> {
   const supa = getSupabase();
   if (supa) {

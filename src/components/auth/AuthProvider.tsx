@@ -9,16 +9,16 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { PawPrint, X, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { PawPrint, X, Loader2, CheckCircle2, LogIn, UserPlus } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
 //
 // Viewing the map needs no identity. Reporting works anonymously too. But
-// *signing in* (email magic link, via Supabase Auth) gives you a real account
+// *signing in* (email + password, via Supabase Auth) gives you a real account
 // so you can edit / delete your sightings and update a dog's status from ANY
-// device — not just the one you posted from.
+// device — and it's how partner NGOs log into their dashboard.
 //
 // When Supabase isn't configured (local dev with no backend) we fall back to a
 // minimal name-only identity kept in localStorage, so the flow still works.
@@ -179,7 +179,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Sign-in sheet ─────────────────────────────────────────────
+// ── Sign-in sheet (email + password) ──────────────────────────
+type Mode = "signin" | "signup" | "reset";
+
 function SignInSheet({
   live,
   onClose,
@@ -190,16 +192,21 @@ function SignInSheet({
   onLocalSignIn: (name: string) => void;
 }) {
   const supa = getSupabase();
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [notice, setNotice] = useState<"confirm" | "reset" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
+    // Local fallback (no backend): name-only identity.
     if (!live || !supa) {
       const trimmed = name.trim();
       if (trimmed.length < 2) return;
@@ -207,27 +214,64 @@ function SignInSheet({
       return;
     }
 
-    const trimmedEmail = email.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmedEmail)) {
+    if (!emailOk) {
       setError("Enter a valid email address.");
       return;
     }
+
     setBusy(true);
-    const { error: err } = await supa.auth.signInWithOtp({
-      email: trimmedEmail,
-      options: {
-        emailRedirectTo:
-          typeof window !== "undefined" ? window.location.origin : undefined,
-        data: name.trim() ? { display_name: name.trim() } : undefined,
-      },
-    });
-    setBusy(false);
-    if (err) {
-      setError(err.message || "Could not send the link. Try again.");
-      return;
+    try {
+      if (mode === "reset") {
+        const { error: err } = await supa.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: typeof window !== "undefined" ? `${window.location.origin}/reset-password` : undefined,
+        });
+        if (err) throw err;
+        setNotice("reset");
+        return;
+      }
+
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        return;
+      }
+
+      if (mode === "signup") {
+        const { data, error: err } = await supa.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: name.trim() ? { display_name: name.trim() } : undefined },
+        });
+        if (err) throw err;
+        // If email confirmation is required, no session is returned yet.
+        if (!data.session) {
+          setNotice("confirm");
+          return;
+        }
+        // Otherwise onAuthStateChange signs us straight in.
+        return;
+      }
+
+      // signin
+      const { error: err } = await supa.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (err) throw err;
+      // onAuthStateChange closes the sheet + resolves pending actions.
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong. Try again.";
+      setError(
+        /invalid login/i.test(msg) ? "Wrong email or password." :
+        /already registered/i.test(msg) ? "That email already has an account — sign in instead." :
+        msg
+      );
+    } finally {
+      setBusy(false);
     }
-    setSent(true);
   }
+
+  const field =
+    "w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
 
   return (
     <motion.div
@@ -248,76 +292,75 @@ function SignInSheet({
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-paw-100 text-paw-600">
             <PawPrint className="h-5 w-5" />
           </span>
-          <button
-            onClick={onClose}
-            className="rounded-full p-1 text-bark-400 hover:bg-bark-100"
-            aria-label="Close"
-          >
+          <button onClick={onClose} className="rounded-full p-1 text-bark-400 hover:bg-bark-100" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {sent ? (
+        {notice ? (
           <div className="py-2 text-center">
             <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
-            <h2 className="font-display text-xl font-extrabold">Check your email</h2>
+            <h2 className="font-display text-xl font-extrabold">
+              {notice === "confirm" ? "Confirm your email" : "Check your email"}
+            </h2>
             <p className="mt-1.5 text-sm text-bark-500">
-              We sent a magic link to{" "}
-              <span className="font-semibold text-bark-700 dark:text-bark-200">
-                {email.trim()}
-              </span>
-              . Open it on this device to finish signing in.
+              {notice === "confirm" ? (
+                <>We sent a confirmation link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>. Open it, then come back and sign in.</>
+              ) : (
+                <>We sent a password-reset link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.</>
+              )}
             </p>
-            <button onClick={onClose} className="btn-ghost mt-5 w-full py-3">
-              Done
-            </button>
+            <button onClick={onClose} className="btn-ghost mt-5 w-full py-3">Done</button>
           </div>
         ) : (
           <>
-            <h2 className="font-display text-xl font-extrabold">Sign in to StrayPaw</h2>
+            <h2 className="font-display text-xl font-extrabold">
+              {mode === "signup" ? "Create your account" : mode === "reset" ? "Reset password" : "Sign in to StrayPaw"}
+            </h2>
             <p className="mt-1 text-sm text-bark-500">
-              Browsing and reporting are open to everyone. Sign in to edit or
-              delete your sightings and update a dog&apos;s status from any device.
+              {mode === "reset"
+                ? "Enter your email and we'll send a link to set a new password."
+                : "Sign in to edit your sightings, follow dogs, and — for partner NGOs — open your dashboard."}
             </p>
+
             <form onSubmit={submit} className="mt-4 space-y-3">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name (optional)"
-                className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
-              />
-              {live ? (
-                <input
-                  autoFocus
-                  type="email"
-                  inputMode="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@email.com"
-                  className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
-                />
-              ) : null}
-              <button
-                type="submit"
-                disabled={busy}
-                className="btn-primary w-full py-3"
-              >
-                {busy ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : live ? (
-                  <Mail className="h-4 w-4" />
-                ) : null}
-                {live ? "Email me a magic link" : "Continue"}
+              {live && mode === "signup" && (
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
+              )}
+              {!live && (
+                <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
+              )}
+              {live && (
+                <input autoFocus={mode !== "signup"} type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
+              )}
+              {live && mode !== "reset" && (
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={mode === "signup" ? "Choose a password (min 6)" : "Password"} className={field} />
+              )}
+
+              <button type="submit" disabled={busy} className="btn-primary w-full py-3">
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? <UserPlus className="h-4 w-4" /> : mode === "signin" ? <LogIn className="h-4 w-4" /> : null}
+                {!live ? "Continue" : mode === "signup" ? "Create account" : mode === "reset" ? "Send reset link" : "Sign in"}
               </button>
             </form>
-            {error && (
-              <p className="mt-3 text-sm font-medium text-status-injured">{error}</p>
+
+            {error && <p className="mt-3 text-sm font-medium text-status-injured">{error}</p>}
+
+            {live && (
+              <div className="mt-4 flex items-center justify-between text-[13px]">
+                {mode === "signin" ? (
+                  <>
+                    <button onClick={() => { setMode("signup"); setError(null); }} className="font-semibold text-paw-600 hover:underline">Create an account</button>
+                    <button onClick={() => { setMode("reset"); setError(null); }} className="text-bark-500 hover:text-paw-600">Forgot password?</button>
+                  </>
+                ) : (
+                  <button onClick={() => { setMode("signin"); setError(null); }} className="font-semibold text-paw-600 hover:underline">← Back to sign in</button>
+                )}
+              </div>
             )}
-            <p className="mt-3 text-center text-[11px] text-bark-400">
-              {live
-                ? "No password needed — we email you a one-tap sign-in link."
-                : "No password needed. We only store your name on this device."}
-            </p>
+
+            {!live && (
+              <p className="mt-3 text-center text-[11px] text-bark-400">We only store your name on this device.</p>
+            )}
           </>
         )}
       </motion.div>

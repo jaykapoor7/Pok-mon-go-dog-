@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, Plus, ClipboardList, PawPrint, HeartHandshake, ClipboardCheck, Activity } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrg } from "@/lib/actions";
+import { getPartnerCases } from "@/lib/cases";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { isOverdue, speciesLabel, type Case, type CaseStatus, type Dog, type NGO } from "@/lib/types";
@@ -18,12 +19,16 @@ const dotFor = (c: Case) => isOverdue(c) ? "bg-status-injured" : c.status === "r
 
 function greeting() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
 
-export function PartnerOverview({ cases }: { cases: Case[] }) {
+export function PartnerOverview({ cases: initialCases }: { cases: Case[] }) {
   const { user } = useAuth();
   const [org, setOrg] = useState<NGO | null>(null);
   const [dateLabel, setDateLabel] = useState("");
+  // Re-fetch scoped to the signed-in org (own cases + unclaimed pool), so each
+  // NGO sees a personalised dashboard rather than the shared list.
+  const [cases, setCases] = useState<Case[]>(initialCases);
   useEffect(() => {
     getMyOrg().then(setOrg).catch(() => {});
+    getPartnerCases().then((c) => { if (c.length) setCases(c); }).catch(() => {});
     setDateLabel(new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
   }, []);
 

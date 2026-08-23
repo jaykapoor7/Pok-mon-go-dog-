@@ -147,6 +147,7 @@ export function AdminClient() {
   const [feedingZones, setFeedingZones] = useState<AdminFeedingZone[]>([]);
   const [partnerRequests, setPartnerRequests] = useState<AdminPartnerRequest[]>([]);
   const [grants, setGrants] = useState<{ id: string; email: string; org_name: string; created_at: string }[]>([]);
+  const [orgs, setOrgs] = useState<AdminOrg[]>([]);
   const [fundraisers, setFundraisers] = useState<AdminFundraiser[]>([]);
   const [discoveringFunds, setDiscoveringFunds] = useState(false);
   const [exportingEmails, setExportingEmails] = useState(false);
@@ -243,6 +244,7 @@ export function AdminClient() {
       const j = await res.json();
       setPartnerRequests(j.requests ?? []);
       setGrants(j.grants ?? []);
+      setOrgs(j.orgs ?? []);
     } catch {
       /* ignore */
     }
@@ -476,6 +478,21 @@ export function AdminClient() {
     const j = await res.json().catch(() => ({}));
     if (!res.ok) return j.error || "Grant failed.";
     haptic("success");
+    await loadPartners(secret);
+    return null;
+  }
+
+  // Add an existing account to an existing org (role "admin" = team lead).
+  async function addOrgMember(ngoId: string, email: string, role: string): Promise<string | null> {
+    const res = await fetch("/api/admin/partners", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "add_member", ngoId, email, role }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) return j.error || "Could not add member.";
+    haptic("success");
+    await loadPartners(secret);
     return null;
   }
 
@@ -778,7 +795,7 @@ export function AdminClient() {
           )}
 
           {tab === "partners" && (
-        <PartnerRequestsList requests={partnerRequests} grants={grants} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} />
+        <PartnerRequestsList requests={partnerRequests} grants={grants} orgs={orgs} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} onAddMember={addOrgMember} />
       )}
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
@@ -1240,19 +1257,42 @@ function DogsList({
 function PartnerRequestsList({
   requests,
   grants,
+  orgs,
   busyId,
   onAction,
   onGrant,
+  onAddMember,
 }: {
   requests: AdminPartnerRequest[];
   grants: { id: string; email: string; org_name: string; created_at: string }[];
+  orgs: AdminOrg[];
   busyId: string | null;
   onAction: (id: string, action: "approve" | "reject") => void;
   onGrant: (email: string, orgName: string, area: string) => Promise<string | null>;
+  onAddMember: (ngoId: string, email: string, role: string) => Promise<string | null>;
 }) {
   return (
     <div className="space-y-4">
       <GrantAccessForm onGrant={onGrant} />
+      <AddMemberForm orgs={orgs} onAddMember={onAddMember} />
+      {orgs.length > 0 && (
+        <div className="card p-4">
+          <p className="mb-2 text-sm font-semibold">Organisations ({orgs.length})</p>
+          <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
+            {orgs.map((o) => (
+              <li key={o.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <span className="min-w-0 truncate">
+                  <span className="font-medium">{o.name}</span>
+                  {o.area && <span className="text-bark-400"> · {o.area}</span>}
+                </span>
+                <span className="shrink-0 text-xs text-bark-400">
+                  {o.members} member{o.members === 1 ? "" : "s"} · {o.leads} lead{o.leads === 1 ? "" : "s"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {grants.length > 0 && (
         <div className="card p-4">
           <p className="mb-2 text-sm font-semibold">Granted access ({grants.length})</p>
@@ -1361,7 +1401,61 @@ function GrantAccessForm({ onGrant }: { onGrant: (email: string, orgName: string
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Grant access
       </button>
       {msg && <p className={`mt-2 text-sm font-medium ${msg.ok ? "text-status-vaccinated" : "text-status-injured"}`}>{msg.text}</p>}
-      <p className="mt-1 text-xs text-bark-400">The person must have signed in to StrayPaw once (magic link) first. Creates a verified org + makes them its admin.</p>
+      <p className="mt-1 text-xs text-bark-400">The person must have created a StrayPaw account (sign up) first. Creates a verified org and makes them its <span className="font-semibold">team lead</span>.</p>
+    </div>
+  );
+}
+
+type AdminOrg = { id: string; name: string; area: string | null; verified: boolean; members: number; leads: number };
+
+function AddMemberForm({ orgs, onAddMember }: { orgs: AdminOrg[]; onAddMember: (ngoId: string, email: string, role: string) => Promise<string | null> }) {
+  const [ngoId, setNgoId] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("member");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function submit() {
+    if (!ngoId || !email.trim()) return;
+    setBusy(true);
+    setMsg(null);
+    const err = await onAddMember(ngoId, email.trim(), role);
+    setBusy(false);
+    if (err) setMsg({ ok: false, text: err });
+    else {
+      const org = orgs.find((o) => o.id === ngoId);
+      setMsg({ ok: true, text: `Added to ${org?.name ?? "the org"} as ${role === "admin" ? "team lead" : role.replace("_", " ")}.` });
+      setEmail("");
+    }
+  }
+
+  const input = "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900";
+  return (
+    <div className="card p-4">
+      <p className="mb-2 text-sm font-semibold">Add a member to an organisation</p>
+      {orgs.length === 0 ? (
+        <p className="text-sm text-bark-400">No organisations yet — create one above first.</p>
+      ) : (
+        <>
+          <div className="grid gap-2 sm:grid-cols-4">
+            <select value={ngoId} onChange={(e) => setNgoId(e.target.value)} className={`${input} sm:col-span-2`}>
+              <option value="">Choose organisation…</option>
+              {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Member account email" className={input} />
+            <select value={role} onChange={(e) => setRole(e.target.value)} className={input}>
+              <option value="member">Member</option>
+              <option value="field_worker">Field worker</option>
+              <option value="admin">Team lead</option>
+            </select>
+          </div>
+          <button onClick={submit} disabled={busy || !ngoId || !email.trim()} className="btn-primary mt-2 px-4 py-2 text-sm">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Add member
+          </button>
+          {msg && <p className={`mt-2 text-sm font-medium ${msg.ok ? "text-status-vaccinated" : "text-status-injured"}`}>{msg.text}</p>}
+          <p className="mt-1 text-xs text-bark-400">The member must have a StrayPaw account. Pick <span className="font-semibold">Team lead</span> to give them management powers.</p>
+        </>
+      )}
     </div>
   );
 }
