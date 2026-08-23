@@ -4,14 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Camera,
-  Loader2,
-  Check,
-  PawPrint,
-  ArrowRight,
-  ArrowLeft,
-  Clock,
-  LogIn,
+  Camera, Loader2, Check, PawPrint, ArrowRight, ArrowLeft, Clock, LogIn, MapPin, Tag,
 } from "lucide-react";
 import { pawBurst } from "@/lib/celebrate";
 import { MOOD_META, type MoodTag } from "@/lib/types";
@@ -23,14 +16,15 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
+const STEPS = ["Photo", "Location", "Details", "Confirm"] as const;
 
-type Status = "idle" | "locating" | "submitting" | "done";
+type Status = "idle" | "submitting" | "done";
 
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState(0); // 0..3
   const [photo, setPhoto] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -42,60 +36,37 @@ export default function ReportPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-
-  // consent (step 2)
   const [c1, setC1] = useState(false);
   const [c2, setC2] = useState(false);
   const [c3, setC3] = useState(false);
 
   const handleVerify = useCallback((t: string | null) => setToken(t), []);
-
-  // Pre-fill the notify email for signed-in users (they can clear it).
-  useEffect(() => {
-    if (user?.email) setEmail((cur) => cur || user.email!);
-  }, [user?.email]);
-
-  // Reporting is open to everyone (guests included). Signing in just lets you
-  // edit/delete the sighting later from any device, see the banner below.
+  useEffect(() => { if (user?.email) setEmail((cur) => cur || user.email!); }, [user?.email]);
 
   function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
-    if (picked) {
-      setFile(picked);
-      setPhoto(URL.createObjectURL(picked));
-      pawBurst();
-    }
+    if (picked) { setFile(picked); setPhoto(URL.createObjectURL(picked)); pawBurst(); }
   }
-
-
   function toggleMood(m: MoodTag) {
-    setMoods((prev) =>
-      prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]
-    );
+    setMoods((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
   }
 
-  const step1Done = !!photo && !!coords;
   const consentDone = c1 && c2 && c3;
-  const canSubmit =
-    step1Done && consentDone && status === "idle" && (!HAS_TURNSTILE || !!token);
+  const canAdvance = step === 0 ? !!photo : step === 1 ? !!coords : true;
+  const canSubmit = !!photo && !!coords && consentDone && status === "idle" && (!HAS_TURNSTILE || !!token);
+
+  function next() { if (canAdvance) setStep((s) => Math.min(STEPS.length - 1, s + 1)); }
+  function back() { setStep((s) => Math.max(0, s - 1)); }
 
   async function submit() {
     if (!canSubmit || !coords) return;
-    setStatus("submitting");
-    setError(null);
+    setStatus("submitting"); setError(null);
     try {
       await reportSighting({
-        file,
-        fallbackPhotoUrl: photo ?? undefined,
-        lat: coords.lat,
-        lng: coords.lng,
-        zone: zone ?? nearestCity(coords.lat, coords.lng),
-        nickname: nickname.trim(),
-        moods,
-        notes: notes.trim(),
-        reporterName: user?.name ?? "",
-        reporterEmail: email.trim() || undefined,
-        token,
+        file, fallbackPhotoUrl: photo ?? undefined,
+        lat: coords.lat, lng: coords.lng, zone: zone ?? nearestCity(coords.lat, coords.lng),
+        nickname: nickname.trim(), moods, notes: notes.trim(),
+        reporterName: user?.name ?? "", reporterEmail: email.trim() || undefined, token,
       });
       setStatus("done");
     } catch (e) {
@@ -106,317 +77,165 @@ export default function ReportPage() {
   }
 
   function resetForm() {
-    setStep(1);
-    setStatus("idle");
-    setPhoto(null);
-    setFile(null);
-    setCoords(null);
-    setZone(null);
-    setNickname("");
-    setMoods([]);
-    setNotes("");
-    setEmail(user?.email ?? "");
-    setToken(null);
-    setC1(false);
-    setC2(false);
-    setC3(false);
-    setError(null);
+    setStep(0); setStatus("idle"); setPhoto(null); setFile(null); setCoords(null); setZone(null);
+    setNickname(""); setMoods([]); setNotes(""); setEmail(user?.email ?? ""); setToken(null);
+    setC1(false); setC2(false); setC3(false); setError(null);
   }
+
+  const field = "w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
   return (
     <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
-      <header className="mb-5">
-        <h1 className="font-display text-2xl font-extrabold sm:text-3xl">
-          Report a sighting 🐾
-        </h1>
-        {isAuthed ? (
-          <p className="text-sm text-bark-500">
-            Signed in as{" "}
-            <span className="font-semibold text-bark-700 dark:text-bark-200">
-              {user?.name}
-            </span>
-          </p>
-        ) : (
-          <p className="text-sm text-bark-500">Reporting as a guest</p>
-        )}
+      <header className="mb-4">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Report a sighting</h1>
+        <p className="mt-1 text-sm text-bark-500">
+          {isAuthed ? <>Signed in as <span className="font-semibold text-bark-700 dark:text-bark-200">{user?.name}</span></> : "Reporting as a guest"}
+        </p>
       </header>
 
-      {/* Guest warning, reporting works, but editing later needs an account. */}
-      {ready && !isAuthed && (
+      {/* progress */}
+      <div className="mb-6">
+        <div className="mb-2 flex items-center justify-between text-[12px] font-medium">
+          <span className="text-paw-600 dark:text-paw-300">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
+          <span className="text-bark-400">{Math.round(((step + 1) / STEPS.length) * 100)}%</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-bark-100 dark:bg-bark-800">
+          <div className="h-full rounded-full bg-paw-500 transition-all duration-300" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+        </div>
+      </div>
+
+      {ready && !isAuthed && step === 0 && (
         <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
           <p className="flex-1 text-sm text-bark-700 dark:text-bark-200">
-            <span className="font-semibold">Heads up:</span> you can report without
-            signing in, but you won&apos;t be able to edit this sighting later from
-            another device.
+            <span className="font-semibold">Heads up:</span> you can report without signing in, but you won&apos;t be able to edit it later from another device.
           </p>
-          <button
-            onClick={openSignIn}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-paw-500 px-4 py-2 text-sm font-semibold text-white"
-          >
+          <button onClick={openSignIn} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-paw-500 px-4 py-2 text-sm font-semibold text-white">
             <LogIn className="h-4 w-4" /> Sign in
           </button>
         </div>
       )}
 
-      {/* stepper */}
-      <div className="mb-6 flex items-center gap-2">
-        <StepDot n={1} label="Details" active={step === 1} done={step > 1} />
-        <span className="h-px flex-1 bg-bark-200" />
-        <StepDot n={2} label="Consent" active={step === 2} done={false} />
-        <span className="h-px flex-1 bg-bark-200" />
-        <StepDot n={3} label="Done" active={false} done={status === "done"} />
-      </div>
-
-      {/* ── Step 1: details ── */}
-      {step === 1 && (
-        <div className="space-y-5">
-          {/* photo */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold">Photo</label>
-            {/* No `capture` attribute → the picker offers camera OR gallery/files. */}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={onPickPhoto}
-            />
-            {photo ? (
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="relative block aspect-square w-full overflow-hidden rounded-3xl bg-bark-100 dark:bg-bark-800"
-              >
-                {/* blurred fill + full photo so the dog is never cropped */}
-                <img
-                  src={photo}
-                  alt=""
-                  aria-hidden
-                  className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl"
-                />
-                <img
-                  src={photo}
-                  alt="Selected dog"
-                  className="relative h-full w-full object-contain"
-                />
-                <span className="absolute bottom-3 right-3 chip bg-black/60 text-white">
-                  <Camera className="h-3.5 w-3.5" /> Change
-                </span>
-              </button>
-            ) : (
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-paw-300 bg-paw-50 text-paw-500 transition-colors hover:bg-paw-100 dark:bg-bark-800"
-              >
-                <Camera className="h-10 w-10" />
-                <span className="font-semibold">Take or upload a photo</span>
-                <span className="text-xs text-paw-400">Tap to open camera / gallery</span>
-              </button>
-            )}
-          </div>
-
-          {/* location, search, current GPS, or drag the pin */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold">Location</label>
-            <LocationPicker
-              value={coords}
-              zone={zone}
-              onChange={({ lat, lng, zone: z }) => {
-                setCoords({ lat, lng });
-                setZone(z);
-              }}
-            />
-          </div>
-
-          {/* nickname */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold">
-              Nickname <span className="font-normal text-bark-400">(optional)</span>
-            </label>
-            <input
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="e.g. Bruno, Laali, Brownie…"
-              className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
-            />
-          </div>
-
-          {/* tags */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold">Tags</label>
-            <div className="flex flex-wrap gap-2">
-              {MOODS.map((m) => {
-                const active = moods.includes(m);
-                return (
-                  <button
-                    key={m}
-                    onClick={() => toggleMood(m)}
-                    className={cn(
-                      "chip border transition-all",
-                      active
-                        ? "border-paw-300 bg-paw-500 text-white"
-                        : "border-bark-200 bg-white text-bark-600 hover:border-paw-300"
-                    )}
-                  >
-                    <span aria-hidden>{MOOD_META[m].emoji}</span>
-                    {MOOD_META[m].label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* notes */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold">
-              Notes <span className="font-normal text-bark-400">(optional)</span>
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              placeholder="Seen near the chai stall, limps slightly, very friendly…"
-              className="w-full resize-none rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold">
-              Email me when it&apos;s live{" "}
-              <span className="font-normal text-bark-400">(optional)</span>
-            </label>
-            <input
-              type="email"
-              inputMode="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@email.com"
-              className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
-            />
-            <p className="mt-1.5 text-xs text-bark-400">
-              We&apos;ll email you once this sighting is approved and on the map. Only
-              about your reports, no spam.
-            </p>
-          </div>
-
-          <button
-            onClick={() => setStep(2)}
-            disabled={!step1Done}
-            className="btn-primary w-full py-4 text-base"
-          >
-            Continue <ArrowRight className="h-5 w-5" />
-          </button>
-          {!step1Done && (
-            <p className="text-center text-xs text-bark-400">
-              Add a photo and location to continue.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* ── Step 2: consent ── */}
-      {step === 2 && (
-        <div className="space-y-5">
-          <div className="space-y-3">
-            <Consent checked={c1} onChange={setC1}>
-              I confirm I have permission to upload this image.
-            </Consent>
-            <Consent checked={c2} onChange={setC2}>
-              No private or sensitive information is visible in the photo.
-            </Consent>
-            <Consent checked={c3} onChange={setC3}>
-              I understand content may be reviewed before publishing.
-            </Consent>
-          </div>
-
-          {HAS_TURNSTILE && (
-            <div className="flex flex-col items-center gap-1">
-              <Turnstile onVerify={handleVerify} />
-              <p className="text-[10px] text-bark-400">
-                A quick check to keep out spam, protected by Cloudflare Turnstile.
-              </p>
-            </div>
-          )}
-
-          {error && (
-            <p className="rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
-              {error}
-            </p>
-          )}
-
-          <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="btn-ghost px-5 py-4">
-              <ArrowLeft className="h-5 w-5" /> Back
-            </button>
-            <button
-              onClick={submit}
-              disabled={!canSubmit}
-              className="btn-primary flex-1 py-4 text-base"
-            >
-              {status === "submitting" ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" /> Submitting…
-                </>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {/* ── Step 0: photo ── */}
+          {step === 0 && (
+            <div>
+              <StepTitle icon={<Camera className="h-4 w-4" />} title="Add a photo" hint="A clear photo helps NGOs identify and find the animal." />
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickPhoto} />
+              {photo ? (
+                <button onClick={() => fileRef.current?.click()} className="relative block aspect-square w-full overflow-hidden rounded-3xl bg-bark-100 dark:bg-bark-800">
+                  <img src={photo} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl" />
+                  <img src={photo} alt="Selected animal" className="relative h-full w-full object-contain" />
+                  <span className="absolute bottom-3 right-3 chip bg-black/60 text-white"><Camera className="h-3.5 w-3.5" /> Change</span>
+                </button>
               ) : (
-                <>
-                  <PawPrint className="h-5 w-5" /> Submit sighting
-                </>
+                <button onClick={() => fileRef.current?.click()} className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-paw-300 bg-paw-50 text-paw-600 transition-colors hover:bg-paw-100 dark:border-paw-500/40 dark:bg-bark-800">
+                  <Camera className="h-10 w-10" />
+                  <span className="font-semibold">Take or upload a photo</span>
+                  <span className="text-xs text-bark-400">Opens your camera or gallery</span>
+                </button>
               )}
-            </button>
-          </div>
-          {!consentDone && (
-            <p className="text-center text-xs text-bark-400">
-              Please confirm all three to submit.
-            </p>
+            </div>
           )}
-        </div>
-      )}
 
-      {/* ── Step 3: pending review ── */}
+          {/* ── Step 1: location ── */}
+          {step === 1 && (
+            <div>
+              <StepTitle icon={<MapPin className="h-4 w-4" />} title="Where is it?" hint="Search, use your current location, or drag the pin to be precise." />
+              <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); }} />
+            </div>
+          )}
+
+          {/* ── Step 2: details ── */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <StepTitle icon={<Tag className="h-4 w-4" />} title="A few details" hint="All optional, but they help. Skip anything you're unsure of." />
+              <div>
+                <label className="mb-2 block text-sm font-semibold">Nickname</label>
+                <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="e.g. Bruno, Laali, Brownie" className={field} />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {MOODS.map((m) => {
+                    const active = moods.includes(m);
+                    return (
+                      <button key={m} onClick={() => toggleMood(m)} className={cn("chip border transition-all", active ? "border-paw-300 bg-paw-500 text-white" : "border-bark-200 bg-white text-bark-600 hover:border-paw-300 dark:bg-bark-900")}>
+                        <span aria-hidden>{MOOD_META[m].emoji}</span> {MOOD_META[m].label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold">Notes</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Seen near the chai stall, limps slightly, very friendly." className={`${field} resize-none`} />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold">Email me when it&apos;s live</label>
+                <input type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
+                <p className="mt-1.5 text-xs text-bark-400">We&apos;ll email you once it&apos;s approved and on the map. Only about your reports, no spam.</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: confirm ── */}
+          {step === 3 && (
+            <div className="space-y-4">
+              <StepTitle icon={<Check className="h-4 w-4" />} title="Confirm and submit" hint="A quick check before it goes to review." />
+              <Consent checked={c1} onChange={setC1}>I have permission to upload this image.</Consent>
+              <Consent checked={c2} onChange={setC2}>No private or sensitive information is visible in the photo.</Consent>
+              <Consent checked={c3} onChange={setC3}>I understand content may be reviewed before publishing.</Consent>
+              {HAS_TURNSTILE && (
+                <div className="flex flex-col items-center gap-1 pt-1">
+                  <Turnstile onVerify={handleVerify} />
+                  <p className="text-[10px] text-bark-400">A quick check to keep out spam, by Cloudflare Turnstile.</p>
+                </div>
+              )}
+              {error && <p className="rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">{error}</p>}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* footer nav */}
+      <div className="mt-7 flex gap-3">
+        {step > 0 && (
+          <button onClick={back} className="btn-ghost px-5 py-3.5"><ArrowLeft className="h-5 w-5" /> Back</button>
+        )}
+        {step < STEPS.length - 1 ? (
+          <button onClick={next} disabled={!canAdvance} className="btn-primary flex-1 py-3.5 text-base">
+            Next <ArrowRight className="h-5 w-5" />
+          </button>
+        ) : (
+          <button onClick={submit} disabled={!canSubmit} className="btn-primary flex-1 py-3.5 text-base">
+            {status === "submitting" ? <><Loader2 className="h-5 w-5 animate-spin" /> Submitting</> : <><PawPrint className="h-5 w-5" /> Submit sighting</>}
+          </button>
+        )}
+      </div>
+      {step === 0 && !photo && <p className="mt-2 text-center text-xs text-bark-400">Add a photo to continue.</p>}
+      {step === 1 && !coords && <p className="mt-2 text-center text-xs text-bark-400">Set a location to continue.</p>}
+      {step === 3 && !consentDone && <p className="mt-2 text-center text-xs text-bark-400">Please confirm all three to submit.</p>}
+
+      {/* ── Success overlay ── */}
       <AnimatePresence>
         {status === "done" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-bark-950/60 p-6 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.85, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="w-full max-w-sm rounded-[2rem] bg-white p-8 text-center shadow-warm dark:bg-bark-900"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
-                className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-paw-100 text-paw-600"
-              >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] flex items-center justify-center bg-bark-950/60 p-6 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.85, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-sm rounded-[2rem] bg-white p-8 text-center shadow-warm dark:bg-bark-900">
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.1 }} className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
                 <Clock className="h-9 w-9" />
               </motion.div>
-              <h2 className="font-display text-2xl font-extrabold">
-                Your sighting is pending review
-              </h2>
-              <p className="mt-2 text-sm text-bark-500">
-                Thank you for helping track India&apos;s street dogs. We&apos;ll
-                publish it to the map once it clears a quick review.
-              </p>
-              <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-bark-100 px-3 py-1 text-xs font-medium text-bark-500 dark:bg-bark-800">
-                <Clock className="h-3.5 w-3.5" />
-                Reported{user?.name ? ` by ${user.name}` : ""} ·{" "}
-                {new Date().toLocaleString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
+              <h2 className="font-display text-2xl font-extrabold">Your sighting is pending review</h2>
+              <p className="mt-2 text-sm text-bark-500">Thank you for helping track India&apos;s street animals. We&apos;ll publish it to the map once it clears a quick review.</p>
               <div className="mt-6 space-y-2">
-                <Link href="/app" className="btn-primary w-full py-3">
-                  Back to the map <ArrowRight className="h-4 w-4" />
-                </Link>
-                <button onClick={resetForm} className="btn-ghost w-full py-3">
-                  Report another dog
-                </button>
+                <Link href="/app" className="btn-primary w-full py-3">Back to the map <ArrowRight className="h-4 w-4" /></Link>
+                <button onClick={resetForm} className="btn-ghost w-full py-3">Report another animal</button>
               </div>
             </motion.div>
           </motion.div>
@@ -426,68 +245,22 @@ export default function ReportPage() {
   );
 }
 
-function StepDot({
-  n,
-  label,
-  active,
-  done,
-}: {
-  n: number;
-  label: string;
-  active: boolean;
-  done: boolean;
-}) {
+function StepTitle({ icon, title, hint }: { icon: React.ReactNode; title: string; hint: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <span
-        className={cn(
-          "flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold",
-          done
-            ? "bg-status-vaccinated text-white"
-            : active
-              ? "bg-paw-500 text-white"
-              : "bg-bark-200 text-bark-500"
-        )}
-      >
-        {done ? <Check className="h-4 w-4" /> : n}
-      </span>
-      <span
-        className={cn(
-          "text-xs font-medium",
-          active ? "text-bark-800 dark:text-bark-100" : "text-bark-400"
-        )}
-      >
-        {label}
-      </span>
+    <div className="mb-4">
+      <h2 className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">{icon}</span>
+        {title}
+      </h2>
+      <p className="mt-1.5 text-sm text-bark-500">{hint}</p>
     </div>
   );
 }
 
-function Consent({
-  checked,
-  onChange,
-  children,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  children: React.ReactNode;
-}) {
+function Consent({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
   return (
-    <button
-      onClick={() => onChange(!checked)}
-      className={cn(
-        "flex w-full items-start gap-3 rounded-2xl border p-4 text-left text-sm transition-colors",
-        checked
-          ? "border-paw-300 bg-paw-50 dark:bg-bark-800"
-          : "border-bark-200 bg-white"
-      )}
-    >
-      <span
-        className={cn(
-          "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
-          checked ? "border-paw-500 bg-paw-500 text-white" : "border-bark-300"
-        )}
-      >
+    <button onClick={() => onChange(!checked)} className={cn("flex w-full items-start gap-3 rounded-2xl border p-4 text-left text-sm transition-colors", checked ? "border-paw-300 bg-paw-50 dark:border-paw-500/40 dark:bg-bark-800" : "border-bark-200 bg-white dark:bg-bark-900")}>
+      <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors", checked ? "border-paw-500 bg-paw-500 text-white" : "border-bark-300")}>
         {checked && <Check className="h-3.5 w-3.5" />}
       </span>
       <span className="text-bark-700 dark:text-bark-200">{children}</span>

@@ -56,10 +56,10 @@ function Timeline({ steps, offset }: { steps: Step[]; offset: number }) {
             {!last && (
               <span
                 aria-hidden
-                className="absolute left-5 top-11 h-[calc(100%-2.75rem)] w-px -translate-x-1/2 bg-gradient-to-b from-paw-300/70 to-paw-200/0 dark:from-paw-500/40"
+                className="absolute left-5 top-11 h-[calc(100%-2.75rem)] w-px -translate-x-1/2 bg-paw-200 dark:bg-paw-500/30"
               />
             )}
-            <span className="relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-paw-400 to-paw-600 text-white shadow-warm">
+            <span className="relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-paw-600 text-white shadow-warm">
               <Icon className="h-[18px] w-[18px]" />
             </span>
             <div className="flex-1 pt-0.5">

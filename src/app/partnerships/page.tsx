@@ -44,7 +44,7 @@ export default function PartnershipsPage() {
           const Icon = o.icon;
           return (
             <div key={o.title} className="rounded-2xl border border-black/[0.06] bg-white/60 p-5 dark:border-white/10 dark:bg-bark-900/40">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-paw-400 to-paw-600 text-white shadow-warm">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-paw-600 text-white shadow-warm">
                 <Icon className="h-[18px] w-[18px]" />
               </span>
               <h2 className="mt-3 font-semibold tracking-tight text-bark-900 dark:text-bark-50">{o.title}</h2>
@@ -73,7 +73,7 @@ export default function PartnershipsPage() {
             const last = idx === STEPS.length - 1;
             return (
               <li key={s.n} className="relative flex gap-4 pb-6 last:pb-0">
-                {!last && <span aria-hidden className="absolute left-5 top-11 h-[calc(100%-2.75rem)] w-px -translate-x-1/2 bg-gradient-to-b from-paw-300/70 to-paw-200/0 dark:from-paw-500/40" />}
+                {!last && <span aria-hidden className="absolute left-5 top-11 h-[calc(100%-2.75rem)] w-px -translate-x-1/2 bg-paw-200 dark:bg-paw-500/30" />}
                 <span className="relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-paw-50 font-mono text-[12px] font-semibold text-paw-600 dark:bg-paw-900/30 dark:text-paw-300">{s.n}</span>
                 <div className="flex-1 pt-1.5">
                   <h3 className="font-semibold tracking-tight text-bark-900 dark:text-bark-50">{s.t}</h3>

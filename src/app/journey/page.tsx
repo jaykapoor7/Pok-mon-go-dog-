@@ -46,9 +46,9 @@ export default function JourneyPage() {
           return (
             <li key={c.year} className="relative flex gap-5 pb-9 last:pb-0">
               {!last && (
-                <span aria-hidden className="absolute left-[7px] top-5 h-full w-px bg-gradient-to-b from-paw-300/70 to-paw-200/0 dark:from-paw-500/40" />
+                <span aria-hidden className="absolute left-[7px] top-5 h-full w-px bg-paw-200 dark:bg-paw-500/30" />
               )}
-              <span className="relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full bg-gradient-to-br from-paw-400 to-paw-600 ring-4 ring-paper dark:ring-ink" />
+              <span className="relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full bg-paw-600 ring-4 ring-paper dark:ring-ink" />
               <div className="flex-1">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{c.year}</p>
                 <h2 className="mt-1 font-display text-xl font-bold tracking-tight text-bark-900 dark:text-bark-50">{c.title}</h2>

@@ -5,7 +5,7 @@ import { getAllSightings } from "@/lib/data";
 
 export const metadata = {
   title: "Sightings Feed, StrayPaw",
-  description: "An Instagram-style feed of street dog sightings across India.",
+  description: "A live feed of street-animal sightings from across India.",
 };
 
 export const dynamic = "force-dynamic";
@@ -15,14 +15,13 @@ export default async function FeedPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
-      <header className="mb-5 flex items-end justify-between gap-3">
+      <header className="mb-6 flex items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tightest sm:text-3xl">
-            Sightings
-          </h1>
-          <p className="mt-1 text-sm text-bark-500">Fresh street-dog moments from across India.</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Community</p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Sightings feed</h1>
+          <p className="mt-1 text-sm text-bark-500">Fresh street-animal moments from across India.</p>
         </div>
-        <Link href="/report" className="btn-primary shrink-0 px-4 py-2 text-sm">
+        <Link href="/report" className="btn-primary shrink-0 px-4 py-2.5 text-sm">
           <PlusCircle className="h-4 w-4" /> Add
         </Link>
       </header>

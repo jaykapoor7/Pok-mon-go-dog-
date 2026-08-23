@@ -77,9 +77,7 @@ export function TodayClient({
   return (
     <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6 lg:max-w-6xl">
       {/* ── Welcome hero ─────────────────────────────────────────── */}
-      <section className="relative mb-6 overflow-hidden rounded-3xl border border-black/[0.06] bg-gradient-to-br from-paw-50 via-white to-white p-6 shadow-card dark:border-white/10 dark:from-paw-900/25 dark:via-bark-900 dark:to-bark-900 sm:p-8">
-        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-paw-200/50 blur-3xl dark:bg-paw-500/15" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-paw-100/60 blur-3xl dark:bg-paw-600/10" />
+      <section className="relative mb-6 overflow-hidden rounded-3xl border border-black/[0.06] bg-paw-50 p-6 shadow-card dark:border-white/10 dark:bg-bark-900 sm:p-8">
         <div className="relative">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{dateLabel || "Today"}</p>
           <h1 className="mt-1.5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -218,7 +216,7 @@ function Section({ title, icon, href, cta, children }: { title: string; icon?: R
     <section className="mb-8">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-          <span className="h-4 w-1 rounded-full bg-gradient-to-b from-paw-400 to-paw-600" />
+          <span className="h-4 w-1 rounded-full bg-paw-500" />
           {icon}
           {title}
         </h2>

@@ -47,14 +47,15 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
     <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6">
       {/* hero */}
       <div className="card overflow-hidden">
-        <div className="bg-paw-500 p-6 text-white">
-          <h1 className="font-display text-2xl font-extrabold tracking-tightest sm:text-3xl">
-            Dogs near you need help
+        <div className="bg-paw-600 p-6 text-white sm:p-7">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">Lend a hand</p>
+          <h1 className="mt-1.5 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Animals near you need help
           </h1>
-          <p className="mt-1 text-sm text-white/85">
+          <p className="mt-1.5 text-sm text-white/85">
             {needy.length > 0
-              ? `${needy.length} ${needy.length === 1 ? "dog" : "dogs"} flagged as needing care${coords ? " near you" : ""}. Even a small hand counts.`
-              : "Offer to volunteer or register your rescue, we'll connect you when a dog nearby needs help."}
+              ? `${needy.length} ${needy.length === 1 ? "animal" : "animals"} flagged as needing care${coords ? " near you" : ""}. Even a small hand counts.`
+              : "Offer to volunteer or register your rescue, and we'll connect you when an animal nearby needs help."}
           </p>
           <div className="mt-4 flex flex-wrap gap-2.5">
             <button

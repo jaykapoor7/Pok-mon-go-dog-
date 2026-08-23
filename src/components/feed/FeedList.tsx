@@ -15,8 +15,8 @@ export function FeedList({ real }: { real: Sighting[] }) {
       <EmptyState
         icon={<PawPrint className="h-7 w-7" />}
         title="No sightings yet"
-        description="Be the very first to put a street dog on the map."
-        action={{ href: "/report", label: "Report a dog", icon: <PlusCircle className="h-4 w-4" /> }}
+        description="Be the very first to put a street animal on the map."
+        action={{ href: "/report", label: "Report an animal", icon: <PlusCircle className="h-4 w-4" /> }}
       />
     );
   }
