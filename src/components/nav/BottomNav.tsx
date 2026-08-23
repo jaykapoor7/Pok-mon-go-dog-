@@ -3,7 +3,6 @@
 import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import {
   Home,
   Map as MapIcon,
@@ -13,27 +12,10 @@ import {
   Images,
   Utensils,
   Building2,
-  LayoutDashboard,
 } from "lucide-react";
 import { INFO } from "./MenuDrawer";
 import { SocialLinks } from "./SocialLinks";
-import { isNgoMember } from "@/lib/actions";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
-
-// True only for verified NGO members, so the dashboard entry appears for
-// partners without a community user ever stumbling into the console.
-function useIsPartner() {
-  const { user, ready } = useAuth();
-  const [member, setMember] = useState(false);
-  useEffect(() => {
-    if (!ready || !user) { setMember(false); return; }
-    let alive = true;
-    isNgoMember().then((ok) => alive && setMember(ok)).catch(() => {});
-    return () => { alive = false; };
-  }, [ready, user?.id]);
-  return member;
-}
 
 // Route keys stay stable (/report was "spot", /dashboard was "ngo"), only the
 // display labels changed, so deep links and any future analytics keep working.
@@ -50,7 +32,7 @@ const ITEMS: Item[] = [
   { key: "map", href: "/map", label: "Map", icon: MapIcon },
   { key: "report", href: "/report", label: "Report", icon: Plus, gated: true },
   { key: "help", href: "/help", label: "Help", icon: HandHelping },
-  { key: "feed", href: "/feed", label: "Feed", icon: Images },
+  { key: "partners", href: "/partner", label: "Partners", icon: HeartHandshake },
 ];
 
 function useActive() {
@@ -68,13 +50,10 @@ export function BottomNav() {
   );
 }
 
-const DASHBOARD_ITEM: Item = { key: "dashboard", href: "/partner", label: "Dashboard", icon: LayoutDashboard };
-
 function MobileBar() {
   const isActive = useActive();
   const router = useRouter();
-  const isPartner = useIsPartner();
-  const items = isPartner ? [...ITEMS, DASHBOARD_ITEM] : ITEMS;
+  const items = ITEMS;
 
   return (
     <nav
@@ -136,8 +115,7 @@ function MobileBar() {
 // same concept as the phone), so the rail stays focused on navigation.
 function DesktopRail() {
   const isActive = useActive();
-  const isPartner = useIsPartner();
-  const items = isPartner ? [...ITEMS, DASHBOARD_ITEM] : ITEMS;
+  const items = ITEMS;
 
   return (
     <>
