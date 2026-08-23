@@ -93,8 +93,8 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
         </div>
         <div style={{ marginTop: "2.5rem", display: "flex", gap: "2.5rem", flexWrap: "wrap" }}>
           <HeroStat target={stats.dogsSpotted} label="Animals tracked" />
-          <HeroStat target={stats.dogsFed} label="Care actions logged" />
-          <HeroStat target={stats.dogsSterilised} label="Sterilisations" />
+          {stats.dogsFed > 0 && <HeroStat target={stats.dogsFed} label="Care actions logged" />}
+          {stats.dogsSterilised > 0 && <HeroStat target={stats.dogsSterilised} label="Sterilisations" />}
         </div>
       </div>
       <div className="deck-hero-phone"><PhoneMockup /></div>
@@ -163,9 +163,13 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
     <div key="impact" style={{ maxWidth: 1040, margin: "0 auto", width: "100%" }}>
       <Eyebrow>Impact</Eyebrow>
       <h2 className="display-md" style={{ color: C.ink, marginBottom: "1.75rem", maxWidth: 460 }}>Real outcomes for real animals</h2>
-      <div className="deck-cards" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem" }}>
-        {[{ val: stats.dogsSpotted.toLocaleString("en-IN"), label: "Animals tracked", desc: "Unique profiles across India" }, { val: stats.dogsFed.toLocaleString("en-IN"), label: "Care actions", desc: "Sightings, feedings & treatments" }, { val: stats.dogsSterilised.toLocaleString("en-IN"), label: "Sterilisations", desc: "Part of the ABC programme" }, { val: "340+", label: "Adoptions", desc: "Facilitated through the platform" }].map(({ val, label, desc }) => (
-          <div key={label} style={{ background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", border: `1px solid ${C.bark200}`, borderRadius: 18, padding: "1.6rem 1.4rem" }}>
+      <div className="deck-impact" style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+        {[
+          { n: stats.dogsSpotted, val: stats.dogsSpotted.toLocaleString("en-IN"), label: "Animals tracked", desc: "Unique profiles across India" },
+          { n: stats.dogsFed, val: stats.dogsFed.toLocaleString("en-IN"), label: "Care actions", desc: "Sightings, feedings & treatments" },
+          { n: stats.dogsSterilised, val: stats.dogsSterilised.toLocaleString("en-IN"), label: "Sterilisations", desc: "Part of the ABC programme" },
+        ].filter((s) => s.n > 0).map(({ val, label, desc }) => (
+          <div key={label} style={{ flex: "1 1 220px", maxWidth: 300, background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", border: `1px solid ${C.bark200}`, borderRadius: 18, padding: "1.6rem 1.4rem" }}>
             <div style={{ fontFamily: C.display, fontSize: "clamp(1.6rem,3vw,2.25rem)", fontWeight: 700, color: C.paw600, letterSpacing: "-0.02em", lineHeight: 1 }}>{val}</div>
             <div style={{ fontWeight: 600, fontSize: "0.875rem", color: C.ink, marginTop: "0.6rem" }}>{label}</div>
             <div style={{ fontSize: "0.8125rem", color: C.bark600, marginTop: "0.25rem", lineHeight: 1.5 }}>{desc}</div>
