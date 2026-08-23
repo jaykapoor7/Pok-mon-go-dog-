@@ -97,7 +97,7 @@ export function TodayClient({
             </Link>
           </div>
 
-          <div className="mt-6 flex items-stretch gap-5 border-t border-black/[0.06] pt-5 dark:border-white/10 sm:gap-8">
+          <div className="mt-6 flex items-stretch gap-4 border-t border-black/[0.06] pt-5 dark:border-white/10 sm:gap-8">
             <HeroStat icon={<Users className="h-4 w-4" />} value={cov.tracked} label="tracked" />
             <span className="w-px self-stretch bg-black/[0.06] dark:bg-white/10" />
             <HeroStat icon={<HeartPulse className="h-4 w-4" />} value={cov.needsHelp} label="need help" tone="injured" />
@@ -205,7 +205,7 @@ function HeroStat({ icon, value, label, tone = "paw" }: { icon: React.ReactNode;
   return (
     <div className="min-w-0">
       <span className={`mb-1 inline-flex ${color}`}>{icon}</span>
-      <div className="font-display text-2xl font-extrabold leading-none tracking-tight sm:text-3xl">{value}</div>
+      <div className="font-display text-xl font-extrabold leading-none tracking-tight sm:text-3xl">{value}</div>
       <div className="mt-1 text-[11px] font-medium uppercase tracking-wide text-bark-400">{label}</div>
     </div>
   );

@@ -12,6 +12,7 @@
     @apply text-bark-900 antialiased;
     background-color: #fbfdff; /* paper, cool near-white, on-brand */
     font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+    overflow-x: clip; /* kill stray horizontal scroll on phones (keeps sticky working) */
   }
 
   /* Display typography, Fraunces serif, near-normal tracking. */
