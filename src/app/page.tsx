@@ -1,5 +1,5 @@
 import { MarketingNav } from "@/components/marketing/MarketingNav";
-import LandingV2 from "@/components/marketing/LandingV2";
+import LandingDeck from "@/components/marketing/LandingDeck";
 import { getCityStats } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export default async function LandingPage() {
   return (
     <>
       <MarketingNav />
-      <LandingV2
+      <LandingDeck
         stats={{
           dogsSpotted: stats.dogsSpotted,
           dogsFed: stats.dogsFed,

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowRight, MapPin, Shield, Users, Check, ChevronDown } from "lucide-react";
 
 // Palette (StrayPaw v2 tokens — premium light: white + soft azure).
-const C = {
+export const C = {
   paper: "#fbfdff",
   cream: "#eaf1fb",
   ink: "#0f1626",
@@ -32,7 +32,7 @@ const C = {
 export type LandingStats = { dogsSpotted: number; dogsFed: number; dogsSterilised: number };
 
 // ── Animated count-up stat ──────────────────────────────────────────────────
-function AnimatedStat({ target, label, suffix = "" }: { target: number; label: string; suffix?: string }) {
+export function AnimatedStat({ target, label, suffix = "" }: { target: number; label: string; suffix?: string }) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     let start = 0;
@@ -57,7 +57,7 @@ function AnimatedStat({ target, label, suffix = "" }: { target: number; label: s
 }
 
 // ── Phone mockup ─────────────────────────────────────────────────────────────
-function PhoneMockup() {
+export function PhoneMockup() {
   return (
     <div style={{ width: 280, flexShrink: 0 }}>
       <div style={{ background: "#1a1814", borderRadius: 40, padding: "10px", boxShadow: "0 32px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1)" }}>
@@ -133,7 +133,7 @@ function PhoneMockup() {
 }
 
 // ── Map preview ──────────────────────────────────────────────────────────────
-function MapPreview() {
+export function MapPreview() {
   const markers = [
     { x: "22%", y: "38%", type: "needs_help", label: "Kali" },
     { x: "55%", y: "28%", type: "sterilised", label: "Bhura" },
@@ -192,7 +192,7 @@ function MapPreview() {
 }
 
 // ── Dashboard preview ────────────────────────────────────────────────────────
-function DashboardPreview() {
+export function DashboardPreview() {
   return (
     <div style={{ background: C.inkSurface, borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div style={{ background: C.ink950, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -237,14 +237,14 @@ function DashboardPreview() {
   );
 }
 
-const HOW_STEPS = [
+export const HOW_STEPS = [
   { n: "01", title: "Community spots an animal", body: "Anyone can open StrayPaw and report a sighting in under a minute — photo, location, and a note about the animal's condition." },
   { n: "02", title: "Animal gets a living profile", body: "Each animal builds a profile with sighting history, health status, feeding log, and community notes. The map updates in real time." },
   { n: "03", title: "NGO partners take action", body: "Welfare organizations see cases in their dashboard — sorted by severity and location. They assign vets, schedule visits, and update status." },
   { n: "04", title: "Community tracks the outcome", body: "Reporters can follow cases and receive updates when an animal is treated, sterilised, or adopted. Every action is logged." },
 ];
 
-const SURFACE_CARDS = [
+export const SURFACE_CARDS = [
   { icon: Users, eyebrow: "Community", title: "Every person is a welfare advocate", body: "Community members report sightings, log feeding, flag injuries, and follow the animals they care about. No account required for basic reporting.", color: C.paw500 },
   { icon: MapPin, eyebrow: "Map", title: "A live view of every street animal", body: "The community map shows every tracked animal with status, feeding history, and case alerts — updated by sightings in real time.", color: "#3e8473" },
   { icon: Shield, eyebrow: "Partner OS", title: "Operations software for NGOs", body: "Welfare organizations manage incoming reports, open cases, coordinate vets, run sterilisation drives, and track outcomes — all from one dashboard.", color: "#4e8a5f" },

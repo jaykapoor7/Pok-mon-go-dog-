@@ -9,6 +9,9 @@ import {
   HandHelping,
   Plus,
   HeartHandshake,
+  Images,
+  Utensils,
+  Building2,
 } from "lucide-react";
 import { INFO } from "./MenuDrawer";
 import { SocialLinks } from "./SocialLinks";
@@ -166,8 +169,39 @@ function DesktopRail() {
           })}
         </ul>
 
+        {/* Explore — quick access to surfaces that used to hide in the drawer */}
+        <nav aria-label="Explore" className="mt-6 border-t border-black/[0.06] pt-4 dark:border-white/10">
+          <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
+            Explore
+          </p>
+          <ul className="space-y-0.5">
+            {[
+              { href: "/feed", label: "Sightings feed", icon: Images },
+              { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake },
+              { href: "/feeding", label: "Feeding zones", icon: Utensils },
+              { href: "/orgs", label: "Organizations", icon: Building2 },
+            ].map(({ href, label, icon: Icon }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  aria-current={isActive(href) ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                    isActive(href)
+                      ? "bg-paw-100 text-paw-700 dark:bg-bark-800 dark:text-paw-300"
+                      : "text-bark-600 hover:bg-black/[0.04] hover:text-paw-600 dark:text-bark-300 dark:hover:bg-white/[0.05]"
+                  )}
+                >
+                  <Icon className="h-[18px] w-[18px]" />
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
         {/* info links — a comfortable single-column list that fills the rail */}
-        <nav aria-label="More" className="mt-6 flex-1 border-t border-black/[0.06] pt-4 dark:border-white/10">
+        <nav aria-label="More" className="mt-4 flex-1 border-t border-black/[0.06] pt-4 dark:border-white/10">
           <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
             More
           </p>

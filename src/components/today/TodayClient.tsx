@@ -11,6 +11,10 @@ import {
   Activity,
   Star,
   Newspaper,
+  Images,
+  HeartHandshake,
+  Utensils,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFollows } from "@/lib/follows";
@@ -93,6 +97,28 @@ export function TodayClient({
           Spot a dog → drop a pin → partner NGOs take it from there.
         </p>
       </header>
+
+      {/* Explore — prominent quick access to the surfaces that used to be buried
+          in the menu (sightings feed, fundraisers, feeding zones, orgs). */}
+      <div className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        {[
+          { href: "/feed", label: "Sightings feed", icon: Images, tone: "text-paw-600 bg-paw-100 dark:bg-bark-800 dark:text-paw-300" },
+          { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake, tone: "text-status-injured bg-[#c0492e]/10" },
+          { href: "/feeding", label: "Feeding zones", icon: Utensils, tone: "text-status-hungry bg-[#d9a441]/15" },
+          { href: "/orgs", label: "Organizations", icon: Building2, tone: "text-status-sterilised bg-[#3e8473]/12" },
+        ].map(({ href, label, icon: Icon, tone }) => (
+          <Link
+            key={href}
+            href={href}
+            className="card card-interactive flex flex-col items-start gap-2 p-3.5"
+          >
+            <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}>
+              <Icon className="h-[18px] w-[18px]" />
+            </span>
+            <span className="text-[13px] font-semibold leading-tight">{label}</span>
+          </Link>
+        ))}
+      </div>
 
       {/* dogs you follow (device-local) */}
       {following.length > 0 && (
