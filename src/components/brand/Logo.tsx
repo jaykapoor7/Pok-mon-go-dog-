@@ -25,9 +25,9 @@ export function AnimalMark({ className }: { className?: string }) {
     <svg viewBox="0 0 100 100" className={className} fill="none" aria-hidden="true">
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFCC00" />
-          <stop offset="42%" stopColor="#FF7234" />
-          <stop offset="100%" stopColor="#C0321A" />
+          <stop offset="0%" stopColor="#93c1fd" />
+          <stop offset="45%" stopColor="#3b7de6" />
+          <stop offset="100%" stopColor="#1e50b0" />
         </linearGradient>
       </defs>
       {/* Tile */}

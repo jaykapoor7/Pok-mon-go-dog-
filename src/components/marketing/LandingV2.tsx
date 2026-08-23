@@ -5,26 +5,26 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, MapPin, Shield, Users, Check, ChevronDown } from "lucide-react";
 
-// Palette (StrayPaw Figma @theme tokens, inlined for style objects).
+// Palette (StrayPaw v2 tokens — premium light: white + soft azure).
 const C = {
-  paper: "#f8f6f1",
-  cream: "#f1ece0",
-  ink: "#17150f",
-  inkSurface: "#211f1a",
-  ink950: "#100e0a",
-  paw100: "#f5e3d7",
-  paw200: "#eac6b2",
-  paw400: "#cb7a56",
-  paw500: "#b4552d",
-  paw600: "#97431f",
-  paw700: "#78371b",
-  bark50: "#f7f6f2",
-  bark100: "#eeece5",
-  bark200: "#ddd9cf",
-  bark400: "#a8a396",
-  bark500: "#726c60",
-  bark600: "#57524a",
-  bark700: "#413d37",
+  paper: "#fbfdff",
+  cream: "#eaf1fb",
+  ink: "#0f1626",
+  inkSurface: "#1b2436",
+  ink950: "#0a0f1a",
+  paw100: "#dbe9ff",
+  paw200: "#bdd7ff",
+  paw400: "#5f9af5",
+  paw500: "#3b7de6",
+  paw600: "#2f63c2",
+  paw700: "#274f9c",
+  bark50: "#f6f8fb",
+  bark100: "#eef1f6",
+  bark200: "#e1e6ef",
+  bark400: "#97a0b2",
+  bark500: "#6b7484",
+  bark600: "#4d5564",
+  bark700: "#39404e",
   display: "var(--font-display), Georgia, serif",
   mono: 'ui-monospace, "JetBrains Mono", monospace',
 };
@@ -203,7 +203,7 @@ function DashboardPreview() {
       <div style={{ display: "flex", height: 380 }}>
         <div style={{ width: 140, background: "#1a1814", borderRight: "1px solid rgba(255,255,255,0.06)", padding: "12px 0", display: "flex", flexDirection: "column", gap: 2 }}>
           {[{ label: "Overview", active: true }, { label: "Cases", badge: "7" }, { label: "Animals" }, { label: "Field Ops" }, { label: "Team" }].map(({ label, active, badge }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", borderRadius: 6, margin: "0 6px", background: active ? "rgba(180,85,45,0.18)" : "transparent", color: active ? C.paw400 : "rgba(255,255,255,0.4)", fontSize: "0.6875rem", fontWeight: 500 }}>
+            <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", borderRadius: 6, margin: "0 6px", background: active ? "rgba(59,125,230,0.20)" : "transparent", color: active ? C.paw400 : "rgba(255,255,255,0.4)", fontSize: "0.6875rem", fontWeight: 500 }}>
               <span>{label}</span>
               {badge && <span style={{ background: C.paw600, color: "#fff", fontSize: "0.5rem", borderRadius: 9999, padding: "1px 5px", fontWeight: 700 }}>{badge}</span>}
             </div>
@@ -255,7 +255,7 @@ export default function LandingV2({ stats }: { stats: LandingStats }) {
     <div style={{ background: C.paper, overflowX: "hidden" }}>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="hero-ground" style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "8rem 1.5rem 5rem", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 60% at 70% 50%, rgba(180,85,45,0.1) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 60% at 70% 50%, rgba(59,125,230,0.16) 0%, transparent 70%)", pointerEvents: "none" }} />
         <div className="hero-grid" style={{ maxWidth: 1200, margin: "0 auto", width: "100%", display: "grid", gridTemplateColumns: "1fr auto", gap: "4rem", alignItems: "center", position: "relative" }}>
           <div>
             <div className="eyebrow" style={{ color: C.paw400, marginBottom: "1.5rem" }}>Street animal welfare · Delhi NCR</div>

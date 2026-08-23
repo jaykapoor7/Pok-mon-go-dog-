@@ -10,40 +10,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // StrayPaw brand (Figma source of truth). `paw` = warm terracotta/rust —
-        // the whole app re-skins from here. Values are lifted 1:1 from the Figma
-        // Make design system (@theme tokens).
+        // StrayPaw v2 brand — premium light: soft azure `paw` accent over cool
+        // near-white neutrals. Keeps the Figma layout; recolours the whole app
+        // from these tokens.
         paw: {
-          50: "#fbf4ef",
-          100: "#f5e3d7",
-          200: "#eac6b2",
-          300: "#dba184",
-          400: "#cb7a56",
-          500: "#b4552d", // primary
-          600: "#97431f", // hover/active
-          700: "#78371b",
-          800: "#5e2c17",
-          900: "#4c2513",
+          50: "#f0f6ff",
+          100: "#dbe9ff",
+          200: "#bdd7ff",
+          300: "#90bcff",
+          400: "#5f9af5",
+          500: "#3b7de6", // primary (AA: white text)
+          600: "#2f63c2", // hover/active
+          700: "#274f9c",
+          800: "#223f78",
+          900: "#1e3560",
         },
         bark: {
-          // Structural — warm gray/brown neutrals.
-          50: "#f7f6f2",
-          100: "#eeece5",
-          200: "#ddd9cf",
-          300: "#c4bfb3",
-          400: "#a8a396",
-          500: "#726c60",
-          600: "#57524a",
-          700: "#413d37",
-          800: "#211f1a", // --ink-surface
-          900: "#17150f", // --ink
-          950: "#100e0a",
+          // Structural — cool near-white greys.
+          50: "#f6f8fb",
+          100: "#eef1f6",
+          200: "#e1e6ef",
+          300: "#c6cddb",
+          400: "#97a0b2",
+          500: "#6b7484",
+          600: "#4d5564",
+          700: "#39404e",
+          800: "#1b2436", // --ink-surface
+          900: "#0f1626", // --ink (deep navy-slate)
+          950: "#0a0f1a",
         },
         // Brand surfaces.
-        cream: "#f1ece0",
-        paper: "#f8f6f1",
-        ink: "#17150f",
-        "ink-surface": "#211f1a",
+        cream: "#eaf1fb",
+        paper: "#fbfdff",
+        ink: "#0f1626",
+        "ink-surface": "#1b2436",
         // Status system. Markers + badges read from here.
         status: {
           seen: "#9a9c88",
@@ -63,7 +63,7 @@ const config: Config = {
       },
       boxShadow: {
         // Soft, minimal elevation — premium, never noisy.
-        warm: "0 1px 2px rgba(180, 85, 45, 0.2), 0 8px 24px -12px rgba(180, 85, 45, 0.22)",
+        warm: "0 1px 2px rgba(59, 125, 230, 0.18), 0 8px 24px -12px rgba(59, 125, 230, 0.22)",
         card: "0 1px 2px rgba(17, 17, 19, 0.04), 0 14px 34px -18px rgba(17, 17, 19, 0.18)",
         sheet: "0 -8px 40px -16px rgba(17, 17, 19, 0.28)",
         pop: "0 12px 36px -14px rgba(17, 17, 19, 0.30)",
