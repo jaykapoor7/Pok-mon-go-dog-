@@ -18,6 +18,7 @@ export default function ReportContentPage() {
   const [reason, setReason] = useState<string | null>(null);
   const [details, setDetails] = useState("");
   const [link, setLink] = useState("");
+  const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export default function ReportContentPage() {
       const res = await fetch("/api/report-content", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason, details: details.trim(), link: link.trim() }),
+        body: JSON.stringify({ reason, details: details.trim(), link: link.trim(), email: email.trim() }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -120,6 +121,21 @@ export default function ReportContentPage() {
             placeholder="Tell us what's wrong…"
             className="w-full resize-none rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
           />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-semibold">
+            Your email <span className="font-normal text-bark-400">(optional)</span>
+          </label>
+          <input
+            type="email"
+            inputMode="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@email.com"
+            className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
+          />
+          <p className="mt-1.5 text-xs text-bark-400">Leave your email and we&apos;ll let you know once your report has been reviewed.</p>
         </div>
 
         {error && (
