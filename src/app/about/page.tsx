@@ -7,13 +7,13 @@ export default function AboutPage() {
     <InfoPage title="About StrayPaw">
       <p>
         StrayPaw is a community-powered map for discovering and caring for
-        the city&apos;s street dogs. Every sighting people add builds a living
+        the city&apos;s street animals. Every sighting people add builds a living
         record of where dogs are, how they&apos;re doing, and what help they
         need over time.
       </p>
       <H2>Why it exists</H2>
       <p>
-        India is home to tens of millions of street dogs. Feeders,
+        India is home to tens of millions of street animals. Feeders,
         rescuers and NGOs do incredible work, but they often lack a shared,
         real-time picture of the ground. StrayPaw turns everyday sightings into
         that picture, so feeding, vaccination, sterilisation and rescue can be

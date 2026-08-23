@@ -239,7 +239,10 @@ function SignInSheet({
         const { data, error: err } = await supa.auth.signUp({
           email: email.trim(),
           password,
-          options: { data: name.trim() ? { display_name: name.trim() } : undefined },
+          options: {
+            data: name.trim() ? { display_name: name.trim() } : undefined,
+            emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/app` : undefined,
+          },
         });
         if (err) throw err;
         // If email confirmation is required, no session is returned yet.
@@ -305,12 +308,21 @@ function SignInSheet({
             </h2>
             <p className="mt-1.5 text-sm text-bark-500">
               {notice === "confirm" ? (
-                <>We sent a confirmation link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>. Open it, then come back and sign in.</>
+                <>We sent a confirmation link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>. Open it, then come back and sign in. Check spam if it doesn&apos;t arrive in a minute.</>
               ) : (
                 <>We sent a password-reset link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.</>
               )}
             </p>
-            <button onClick={onClose} className="btn-ghost mt-5 w-full py-3">Done</button>
+            {notice === "confirm" && (
+              <button
+                onClick={async () => { if (!supa) return; setBusy(true); try { await supa.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/app` : undefined } }); } finally { setBusy(false); } }}
+                disabled={busy}
+                className="btn-ghost mt-4 w-full py-3"
+              >
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Resend confirmation email
+              </button>
+            )}
+            <button onClick={onClose} className="btn-ghost mt-2 w-full py-3">Done</button>
           </div>
         ) : (
           <>

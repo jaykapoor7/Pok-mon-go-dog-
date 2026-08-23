@@ -6,7 +6,7 @@ export default function SafetyPage() {
   return (
     <InfoPage title="Safety">
       <p>
-        Helping street dogs is wonderful, please stay safe while you do it,
+        Helping street animals is wonderful, please stay safe while you do it,
         for your sake and theirs.
       </p>
       <H2>Approaching dogs</H2>

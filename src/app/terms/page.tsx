@@ -7,12 +7,12 @@ export default function TermsPage() {
     <InfoPage title="Terms of Use" updated="June 2026">
       <p>
         By using StrayPaw you agree to these terms. The service is
-        provided as-is to support community care of street dogs.
+        provided as-is to support community care of street animals.
       </p>
       <H2>Acceptable use</H2>
       <p>
         Only upload photos you have the right to share, and that genuinely
-        depict street dogs and their surroundings. Do not upload content that is
+        depict street animals and their surroundings. Do not upload content that is
         abusive, misleading, or that exposes private information about people.
       </p>
       <H2>Your content</H2>

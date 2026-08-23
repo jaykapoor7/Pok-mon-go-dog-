@@ -11,7 +11,7 @@ export default function GuidelinesPage() {
       </p>
       <H2>Do</H2>
       <ul className="list-disc space-y-1 pl-5">
-        <li>Post clear photos of street dogs and their location.</li>
+        <li>Post clear photos of street animals and their location.</li>
         <li>Add honest notes, health, temperament, feeding routine.</li>
         <li>Flag dogs that genuinely need help so NGOs can act.</li>
         <li>Be gentle and patient with the dogs you photograph.</li>
