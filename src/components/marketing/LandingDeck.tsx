@@ -80,13 +80,6 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
     // 1 — Hero ------------------------------------------------------------
     <div key="hero" className="deck-hero" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3.5rem", alignItems: "center", maxWidth: 1120, margin: "0 auto", width: "100%" }}>
       <div>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 9999, border: `1px solid ${C.bark200}`, background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)", padding: "6px 13px", fontSize: 12, fontWeight: 600, color: C.bark600, marginBottom: "1.25rem" }}>
-          <span style={{ position: "relative", display: "inline-flex", width: 8, height: 8 }}>
-            <span className="sp-ping" style={{ position: "absolute", inset: 0, borderRadius: 9999, background: C.paw400 }} />
-            <span style={{ position: "relative", width: 8, height: 8, borderRadius: 9999, background: C.paw500 }} />
-          </span>
-          Built in India · community-run · open
-        </span>
         <h1 className="display-xl" style={{ color: C.ink, maxWidth: 640, marginBottom: "1rem" }}>
           The shared platform for <em style={{ color: C.paw500, fontStyle: "normal" }}>India&apos;s street animals.</em>
         </h1>
