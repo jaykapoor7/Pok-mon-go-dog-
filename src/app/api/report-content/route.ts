@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 // Public "Report content" flag. Persists + alerts the operator on Telegram.
 export async function POST(req: Request) {
-  let body: { reason?: string; details?: string; link?: string };
+  let body: { reason?: string; details?: string; link?: string; email?: string };
   try {
     body = await req.json();
   } catch {
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     p_reason: reason,
     p_details: body.details ? String(body.details) : null,
     p_link: body.link ? String(body.link) : null,
+    p_email: body.email ? String(body.email) : null,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

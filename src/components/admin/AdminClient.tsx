@@ -24,6 +24,7 @@ import {
   Trash2,
   ExternalLink,
   Building2,
+  Flag as FlagIcon,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -118,7 +119,12 @@ interface AdminFundraiser {
   created_at: string;
 }
 
-type Tab = "queue" | "partners" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
+type Tab = "queue" | "partners" | "reports" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
+
+type AdminContentReport = {
+  id: string; reason: string; details: string | null; link: string | null;
+  reporter_email: string | null; status: string; created_at: string;
+};
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
 function ContactLink({ contact }: { contact: string }) {
@@ -148,6 +154,7 @@ export function AdminClient() {
   const [partnerRequests, setPartnerRequests] = useState<AdminPartnerRequest[]>([]);
   const [grants, setGrants] = useState<{ id: string; email: string; org_name: string; created_at: string }[]>([]);
   const [orgs, setOrgs] = useState<AdminOrg[]>([]);
+  const [reports, setReports] = useState<AdminContentReport[]>([]);
   const [fundraisers, setFundraisers] = useState<AdminFundraiser[]>([]);
   const [discoveringFunds, setDiscoveringFunds] = useState(false);
   const [exportingEmails, setExportingEmails] = useState(false);
@@ -250,6 +257,27 @@ export function AdminClient() {
     }
   }, []);
 
+  const loadReports = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/reports", { headers: { Authorization: `Bearer ${s}` }, cache: "no-store" });
+      if (!res.ok) return;
+      const j = await res.json();
+      setReports(j.reports ?? []);
+    } catch { /* ignore */ }
+  }, []);
+
+  async function resolveReport(id: string, action: "actioned" | "dismissed") {
+    setBusyId(id);
+    try {
+      const res = await fetch("/api/admin/reports", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+      if (res.ok) { haptic("success"); await loadReports(secret); }
+    } finally { setBusyId(null); }
+  }
+
   const load = useCallback(
     async (s: string) => {
       setLoading(true);
@@ -287,13 +315,14 @@ export function AdminClient() {
         loadFeedingZones(s);
         loadPartners(s);
         loadFundraisers(s);
+        loadReports(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers, loadCases, loadDogs, loadFeedingZones, loadPartners, loadFundraisers]
+    [loadHelpers, loadCases, loadDogs, loadFeedingZones, loadPartners, loadFundraisers, loadReports]
   );
 
   useEffect(() => {
@@ -740,6 +769,7 @@ export function AdminClient() {
   const TABS: { key: Tab; label: string; icon: React.ReactNode; count: number }[] = [
     { key: "queue", label: "Sightings", icon: <Clock className="h-4 w-4" />, count: items.length },
     { key: "partners", label: "Partner requests", icon: <HeartHandshake className="h-4 w-4" />, count: partnerRequests.length },
+    { key: "reports", label: "Content reports", icon: <FlagIcon className="h-4 w-4" />, count: reports.filter((r) => r.status === "open").length },
     { key: "verify", label: "Verify outcomes", icon: <ShieldCheck className="h-4 w-4" />, count: pendingCases.length },
     { key: "dogs", label: "Dogs", icon: <PawPrint className="h-4 w-4" />, count: dogs.length },
     { key: "feeding", label: "Feeding zones", icon: <Utensils className="h-4 w-4" />, count: feedingZones.length },
@@ -822,6 +852,9 @@ export function AdminClient() {
 
           {tab === "partners" && (
         <PartnerRequestsList requests={partnerRequests} grants={grants} orgs={orgs} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} onAddMember={addOrgMember} onRemoveMember={removeOrgMember} onDeleteOrg={deleteOrg} />
+      )}
+      {tab === "reports" && (
+        <ContentReportsList reports={reports} busyId={busyId} onResolve={resolveReport} />
       )}
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
@@ -1507,6 +1540,48 @@ function AddMemberForm({ orgs, onAddMember, onRemoveMember }: { orgs: AdminOrg[]
           <p className="mt-1 text-xs text-bark-400">The member must have a StrayPaw account. Pick <span className="font-semibold">Team lead</span> to give them management powers, or remove them from the org.</p>
         </>
       )}
+    </div>
+  );
+}
+
+function ContentReportsList({ reports, busyId, onResolve }: { reports: AdminContentReport[]; busyId: string | null; onResolve: (id: string, action: "actioned" | "dismissed") => void }) {
+  if (reports.length === 0) {
+    return (
+      <div className="card p-8 text-center">
+        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300"><FlagIcon className="h-6 w-6" /></span>
+        <h2 className="font-display text-base font-bold">No content reports</h2>
+        <p className="mt-1 text-sm text-bark-500">Flagged content from the community appears here.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {reports.map((r) => (
+        <div key={r.id} className="card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold">{r.reason}</p>
+              {r.details && <p className="mt-1 text-sm text-bark-600 dark:text-bark-300">{r.details}</p>}
+              <p className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-bark-400">
+                {r.link && <a href={r.link} className="inline-flex items-center gap-1 text-paw-600 hover:underline"><ExternalLink className="h-3.5 w-3.5" /> View</a>}
+                {r.reporter_email && <span>{r.reporter_email}</span>}
+                <span>{timeAgo(r.created_at)}</span>
+                <span className={`rounded-full px-2 py-0.5 font-medium ${r.status === "open" ? "bg-status-hungry/15 text-status-hungry" : r.status === "actioned" ? "bg-status-vaccinated/15 text-status-vaccinated" : "bg-bark-100 text-bark-500 dark:bg-bark-800"}`}>{r.status}</span>
+              </p>
+            </div>
+          </div>
+          {r.status === "open" && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button onClick={() => onResolve(r.id, "actioned")} disabled={busyId === r.id} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-status-vaccinated/15 py-2 text-sm font-semibold text-status-vaccinated disabled:opacity-50">
+                {busyId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Actioned &amp; notify
+              </button>
+              <button onClick={() => onResolve(r.id, "dismissed")} disabled={busyId === r.id} className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black/[0.05] py-2 text-sm font-semibold text-bark-500 disabled:opacity-50 dark:bg-white/10">
+                <X className="h-4 w-4" /> Dismiss
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
