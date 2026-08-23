@@ -4,9 +4,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, MapPin, Shield, Users, Check, ChevronLeft, ChevronRight, HeartHandshake, Rss, Utensils } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, HeartHandshake, Rss, Utensils } from "lucide-react";
 import {
-  C, LandingStats, PhoneMockup, MapPreview, DashboardPreview, SURFACE_CARDS,
+  C, LandingStats, PhoneMockup, MapPreview, DashboardPreview,
 } from "@/components/marketing/LandingV2";
 
 // ── Count-up stat (dark text, for the light deck) ────────────────────────────
@@ -80,12 +80,18 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
     // 1 — Hero ------------------------------------------------------------
     <div key="hero" className="deck-hero" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3.5rem", alignItems: "center", maxWidth: 1120, margin: "0 auto", width: "100%" }}>
       <div>
-        <Eyebrow>Street animal welfare · India</Eyebrow>
-        <h1 className="display-xl" style={{ color: C.ink, maxWidth: 620, marginBottom: "1.25rem" }}>
-          Every stray <em style={{ color: C.paw500, fontStyle: "italic" }}>has a name,</em> a story, and people who care.
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 9999, border: `1px solid ${C.bark200}`, background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)", padding: "6px 13px", fontSize: 12, fontWeight: 600, color: C.bark600, marginBottom: "1.25rem" }}>
+          <span style={{ position: "relative", display: "inline-flex", width: 8, height: 8 }}>
+            <span className="sp-ping" style={{ position: "absolute", inset: 0, borderRadius: 9999, background: C.paw400 }} />
+            <span style={{ position: "relative", width: 8, height: 8, borderRadius: 9999, background: C.paw500 }} />
+          </span>
+          Built in India · community-run · open
+        </span>
+        <h1 className="display-xl" style={{ color: C.ink, maxWidth: 640, marginBottom: "1rem" }}>
+          The shared platform for <em style={{ color: C.paw500, fontStyle: "normal" }}>India&apos;s street animals.</em>
         </h1>
-        <p style={{ fontSize: "1.0625rem", color: C.bark600, maxWidth: 480, lineHeight: 1.65, marginBottom: "2rem" }}>
-          StrayPaw connects community members, street animals, and welfare organizations on a shared platform — tracking every sighting, feeding, and care event in real time.
+        <p style={{ fontSize: "1.0625rem", color: C.bark600, maxWidth: 500, lineHeight: 1.6, marginBottom: "2rem" }}>
+          Report a street animal in under a minute. Verified NGOs pick it up, treat it, and log every step — so care is finally counted, coordinated, and funded, out in the open.
         </p>
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           <Link href="/app" className="btn btn-primary btn-primary-lg">Open the app <ArrowRight size={16} /></Link>
@@ -100,22 +106,45 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
       <div className="deck-hero-phone"><PhoneMockup /></div>
     </div>,
 
-    // 2 — What we do ------------------------------------------------------
-    <div key="what" style={{ maxWidth: 1040, margin: "0 auto", width: "100%" }}>
+    // 2 — The problem -----------------------------------------------------
+    <div key="problem" style={{ maxWidth: 900, margin: "0 auto", width: "100%" }}>
+      <Eyebrow>The problem</Eyebrow>
+      <h2 className="display-md" style={{ color: C.ink, marginBottom: "1rem", maxWidth: 720 }}>
+        The work of caring for street animals is invisible — and uncounted.
+      </h2>
+      <p style={{ fontSize: "1.0625rem", color: C.bark600, lineHeight: 1.65, maxWidth: 620, marginBottom: "2rem" }}>
+        The people who feed, rescue, and treat India&apos;s street animals do extraordinary work — but it lives in WhatsApp groups and paper notebooks. It&apos;s siloed, hard to fund, and impossible to coordinate at scale.
+      </p>
+      <div className="deck-cards" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
+        {[
+          "No shared record of who was treated, vaccinated, or sterilised",
+          "NGOs buried in reports, with no way to triage the urgent ones",
+          "Donors can't see where help is needed — or what their money did",
+        ].map((t) => (
+          <div key={t} style={{ background: "rgba(255,255,255,0.6)", backdropFilter: "blur(8px)", border: `1px solid ${C.bark200}`, borderRadius: 16, padding: "1.4rem" }}>
+            <p style={{ fontSize: "0.9375rem", color: C.bark700, lineHeight: 1.55, margin: 0 }}>{t}</p>
+          </div>
+        ))}
+      </div>
+    </div>,
+
+    // 3 — How it works ----------------------------------------------------
+    <div key="how" style={{ maxWidth: 1000, margin: "0 auto", width: "100%" }}>
       <div style={{ maxWidth: 560, marginBottom: "2.25rem" }}>
-        <Eyebrow>What StrayPaw does</Eyebrow>
-        <h2 className="display-md" style={{ color: C.ink, marginBottom: "0.75rem" }}>Three surfaces. One connected welfare system.</h2>
-        <p style={{ color: C.bark600, lineHeight: 1.65 }}>Community reporting, a live map, and NGO operations — built together so data flows between them automatically.</p>
+        <Eyebrow>How it works</Eyebrow>
+        <h2 className="display-md" style={{ color: C.ink }}>From a street sighting to a resolved case.</h2>
       </div>
       <div className="deck-cards" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
-        {SURFACE_CARDS.map(({ icon: Icon, eyebrow, title, body, color }) => (
-          <div key={eyebrow} style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", border: `1px solid ${C.bark200}`, borderRadius: 18, padding: "1.75rem" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 11, background: color + "1f", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem" }}>
-              <Icon size={18} color={color} />
-            </div>
-            <div className="eyebrow" style={{ color, marginBottom: "0.4rem" }}>{eyebrow}</div>
-            <h3 style={{ fontFamily: C.display, fontSize: "1.125rem", fontWeight: 700, letterSpacing: "-0.01em", color: C.ink, marginBottom: "0.5rem", lineHeight: 1.2 }}>{title}</h3>
-            <p style={{ fontSize: "0.875rem", color: C.bark600, lineHeight: 1.6 }}>{body}</p>
+        {[
+          { n: "01", t: "Spot & report", b: "Anyone adds a street animal with a photo and a location in under a minute — no account needed." },
+          { n: "02", t: "NGOs take action", b: "Verified organizations triage cases by severity, assign vets, and update status on their dashboard." },
+          { n: "03", t: "Track & back the work", b: "Follow every outcome, and fund the rescues that need it — transparently, on one open platform." },
+        ].map(({ n, t, b }) => (
+          <div key={n} style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", border: `1px solid ${C.bark200}`, borderRadius: 18, padding: "1.75rem" }}>
+            <div style={{ fontFamily: C.mono, fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: C.paw500, marginBottom: "0.9rem" }}>{n}</div>
+            <div style={{ height: 1, background: C.bark200, marginBottom: "1.1rem" }} />
+            <h3 style={{ fontFamily: C.display, fontSize: "1.125rem", fontWeight: 700, letterSpacing: "-0.01em", color: C.ink, marginBottom: "0.5rem", lineHeight: 1.2 }}>{t}</h3>
+            <p style={{ fontSize: "0.875rem", color: C.bark600, lineHeight: 1.6 }}>{b}</p>
           </div>
         ))}
       </div>
@@ -286,6 +315,8 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
         @keyframes sp-f1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6%,4%) scale(1.12)}}
         @keyframes sp-f2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5%,6%) scale(1.15)}}
         @keyframes sp-f3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-4%,-5%) scale(0.9)}}
+        .sp-ping{animation:sp-ping 1.8s cubic-bezier(0,0,.2,1) infinite}
+        @keyframes sp-ping{75%,100%{transform:scale(2.2);opacity:0}}
 
         .deck-hero-phone{display:flex;justify-content:flex-end}
         .deck-dash{width:100%}
