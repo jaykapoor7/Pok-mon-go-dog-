@@ -5,6 +5,7 @@ import { Logo } from "@/components/brand/Logo";
 const LINKS = [
   { label: "What we do", href: "/what-we-do" },
   { label: "Our journey", href: "/journey" },
+  { label: "Partnerships", href: "/partnerships" },
   { label: "Contact", href: "/contact" },
 ];
 
