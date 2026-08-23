@@ -81,6 +81,12 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
     // 1, Hero ------------------------------------------------------------
     <div key="hero" className="deck-hero" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3.5rem", alignItems: "center", maxWidth: 1120, margin: "0 auto", width: "100%" }}>
       <div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 12, marginBottom: "1.5rem" }}>
+          <span style={{ width: 52, height: 52, display: "inline-flex" }}><AnimalMark className="h-full w-full" /></span>
+          <span style={{ fontFamily: C.display, fontSize: 30, letterSpacing: "-0.02em", lineHeight: 1 }}>
+            <span style={{ fontWeight: 600, color: C.ink }}>Stray</span><span style={{ fontWeight: 800, color: C.paw600 }}>Paw</span>
+          </span>
+        </div>
         <h1 className="display-lg" style={{ color: C.ink, maxWidth: 620, marginBottom: "0.85rem" }}>
           Care for India&apos;s street animals, <em style={{ color: C.paw500, fontStyle: "normal" }}>all in one place.</em>
         </h1>
@@ -89,7 +95,7 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
         </p>
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           <Link href="/app" className="btn btn-primary btn-primary-lg">Open the app <ArrowRight size={16} /></Link>
-          <Link href="/partner" className="btn btn-secondary btn-primary-lg">For NGOs &amp; partners</Link>
+          <Link href="/partnerships" className="btn btn-secondary btn-primary-lg">For NGOs &amp; partners</Link>
         </div>
         <div style={{ marginTop: "1.75rem", display: "flex", gap: "2.5rem", flexWrap: "wrap" }}>
           <HeroStat target={stats.dogsSpotted} label="Animals tracked" />
