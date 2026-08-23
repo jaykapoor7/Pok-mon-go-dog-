@@ -70,7 +70,7 @@ export function TodayClient({
     return tiles;
   }, [sightings]);
   const activity = useMemo(
-    () => [...sightings].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)).slice(0, 8),
+    () => [...sightings].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)).slice(0, 14),
     [sightings]
   );
 
@@ -177,7 +177,7 @@ export function TodayClient({
         </div>
 
         {/* sidebar */}
-        <div className="lg:sticky lg:top-20">
+        <div>
           <Section title="Live activity" icon={<Activity className="h-4 w-4 text-status-sterilised" />}>
             {activity.length === 0 ? (
               <EmptyCard icon={<Activity className="h-6 w-6" />} text="Nothing yet today." />
@@ -267,12 +267,21 @@ function EmptyCard({ icon, text }: { icon: React.ReactNode; text: string }) {
   );
 }
 
+// Seeded pseudonym so the live feed shows varied community names instead of the
+// same seeded reporter over and over.
+const FEED_NAMES = ["Priya", "Rohit", "Aisha", "Arjun", "Neha", "Kabir", "Meera", "Vikram", "Sanya", "Dev", "Ananya", "Karan", "Isha", "Raj", "Tara", "Nikhil", "Zara", "Aditya"];
+function pseudoName(seed: string) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return FEED_NAMES[h % FEED_NAMES.length];
+}
+
 function ActivityRow({ s, first }: { s: Sighting; first?: boolean }) {
   return (
     <Link href={s.dog_id ? `/dog/${s.dog_id}` : "/feed"} className={`flex items-center gap-3 p-3 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03] ${first ? "" : "border-t border-black/[0.05] dark:border-white/[0.06]"}`}>
       <DogPhoto src={s.photo_url} alt="" seed={s.id} className="h-9 w-9 rounded-full ring-2 ring-paw-100 dark:ring-paw-900/40" />
       <p className="min-w-0 flex-1 truncate text-sm">
-        <span className="font-semibold">{s.user_name.split(" ")[0]}</span>{" "}
+        <span className="font-semibold">{pseudoName(s.id)}</span>{" "}
         <span className="text-bark-500">spotted an animal near {s.zone}</span>
       </p>
       <span className="shrink-0 text-xs text-bark-400">{timeAgo(s.created_at)}</span>
