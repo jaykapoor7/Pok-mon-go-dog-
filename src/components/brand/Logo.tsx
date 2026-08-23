@@ -15,30 +15,37 @@ const WORD: Record<Size, string> = {
 
 let uid = 0;
 
-/** StrayPaw animal-head mark — a rounded tile with a blue gradient and a white
- *  head whose eyes reveal the gradient through it. Inline SVG, so it stays
- *  crisp at any size and re-colours from the brand tokens. */
+/** StrayPaw "Badge" mark (Figma Direction 01) — a warm gradient tile (gold →
+ *  orange → rust) wrapping a bold white animal head: rounded ears, a soft muzzle,
+ *  and expressive eyes that reveal the gradient through the head. Inline SVG, so
+ *  it stays crisp at any size. */
 export function AnimalMark({ className }: { className?: string }) {
   const id = `sp-mark-${(uid = (uid + 1) % 100000)}`;
   return (
-    <svg viewBox="0 0 512 512" className={className} aria-hidden="true">
+    <svg viewBox="0 0 100 100" className={className} fill="none" aria-hidden="true">
       <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#5b86f0" />
-          <stop offset="1" stopColor="#2842a0" />
+        <linearGradient id={id} x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FFCC00" />
+          <stop offset="42%" stopColor="#FF7234" />
+          <stop offset="100%" stopColor="#C0321A" />
         </linearGradient>
       </defs>
-      <rect width="512" height="512" rx="128" fill={`url(#${id})`} />
-      {/* white head: two pointed ears + a rounded face narrowing to a chin */}
-      <path
-        fill="#fff"
-        d="M150 96 C158 168 176 196 205 214 C168 244 156 300 190 356 C214 396 254 420 256 420 C258 420 298 396 322 356 C356 300 344 244 307 214 C336 196 354 168 362 96 C318 118 282 150 262 176 C258 168 254 168 250 176 C230 150 194 118 150 96 Z"
-      />
-      {/* eyes reveal the gradient through the white head */}
-      <g fill={`url(#${id})`}>
-        <ellipse cx="221" cy="250" rx="15" ry="20" />
-        <ellipse cx="291" cy="250" rx="15" ry="20" />
-      </g>
+      {/* Tile */}
+      <rect width="100" height="100" rx="23" fill={`url(#${id})`} />
+      {/* Inner ring */}
+      <rect x="6" y="6" width="88" height="88" rx="18" stroke="white" strokeWidth="1.5" strokeOpacity="0.22" fill="none" />
+      {/* Ears */}
+      <path d="M 20 56 L 31 15 Q 34 10 38 14 L 49 42" fill="white" />
+      <path d="M 80 56 L 69 15 Q 66 10 62 14 L 51 42" fill="white" />
+      {/* Head */}
+      <circle cx="50" cy="63" r="28" fill="white" />
+      {/* Muzzle — semi-transparent so the gradient warms through */}
+      <ellipse cx="50" cy="77" rx="13.5" ry="9.5" fill="white" fillOpacity="0.42" />
+      {/* Eyes reveal the gradient through the white head */}
+      <circle cx="41" cy="58" r="3.5" fill={`url(#${id})`} />
+      <circle cx="59" cy="58" r="3.5" fill={`url(#${id})`} />
+      <circle cx="42.5" cy="56.5" r="1.2" fill="white" fillOpacity="0.85" />
+      <circle cx="60.5" cy="56.5" r="1.2" fill="white" fillOpacity="0.85" />
     </svg>
   );
 }
@@ -58,8 +65,8 @@ export function Logo({
         <AnimalMark className="h-full w-full" />
       </span>
       {showWordmark && (
-        <span className={cn("font-display font-extrabold tracking-tightest text-bark-900 dark:text-bark-50", WORD[size])}>
-          Stray<span className="text-paw-600 dark:text-paw-300">Paw</span>
+        <span className={cn("font-display tracking-tight text-bark-900 dark:text-bark-50", WORD[size])}>
+          <span className="font-light">Stray</span><span className="font-extrabold">Paw</span>
         </span>
       )}
     </span>

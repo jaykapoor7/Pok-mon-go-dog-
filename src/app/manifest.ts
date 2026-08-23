@@ -10,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "An open, community-run map for India's street dogs — spot, report and care.",
     start_url: "/app",
     display: "standalone",
-    background_color: "#FBFCFE",
-    theme_color: "#3b63e0",
+    background_color: "#f8f6f1",
+    theme_color: "#b4552d",
     orientation: "portrait",
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
