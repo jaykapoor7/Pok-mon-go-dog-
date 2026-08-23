@@ -31,7 +31,7 @@ export function PartnerFundraising() {
           <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Fundraising</h1>
           <p className="mt-0.5 text-[13px] text-bark-500">Turn real needs into campaigns. StrayPaw links out, it never holds the money.</p>
         </div>
-        <Link href="/fundraisers/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
+        <Link href="/partner/fundraisers/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
           <Plus className="h-4 w-4" /> New campaign
         </Link>
       </header>
@@ -40,7 +40,7 @@ export function PartnerFundraising() {
         <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">Start from a need</h2>
         <div className="flex flex-wrap gap-2">
           {NEEDS.map((n) => (
-            <Link key={n} href={`/fundraisers/new?title=${encodeURIComponent(n)}`} className="rounded-md border border-black/[0.1] px-3 py-1.5 text-[13px] font-medium text-bark-600 hover:border-paw-400 hover:text-paw-700 dark:border-white/[0.12] dark:text-bark-300">
+            <Link key={n} href={`/partner/fundraisers/new?title=${encodeURIComponent(n)}`} className="rounded-md border border-black/[0.1] px-3 py-1.5 text-[13px] font-medium text-bark-600 hover:border-paw-400 hover:text-paw-700 dark:border-white/[0.12] dark:text-bark-300">
               {n}
             </Link>
           ))}

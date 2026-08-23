@@ -118,7 +118,7 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
 
       {tab === "cases" && (
         <div>
-          <Link href={`/cases/new?dog=${dog.id}`} className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
+          <Link href={`/partner/cases/new?dog=${dog.id}`} className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
             <Plus className="h-4 w-4" /> New case for this animal
           </Link>
           {cases.length === 0 ? (

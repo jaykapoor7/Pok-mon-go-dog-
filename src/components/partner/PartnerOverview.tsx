@@ -78,7 +78,7 @@ export function PartnerOverview({ cases: initialCases }: { cases: Case[] }) {
           </h1>
           <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Partner workspace"}{location ? ` · ${location}` : ""}, here&apos;s what needs attention today.</p>
         </div>
-        <Link href="/cases/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"><Plus className="h-4 w-4" /> New case</Link>
+        <Link href="/partner/cases/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"><Plus className="h-4 w-4" /> New case</Link>
       </div>
 
       {/* Stat dividers (not cards) */}
