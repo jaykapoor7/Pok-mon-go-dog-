@@ -7,11 +7,13 @@ export function MarketingShell({
   eyebrow,
   title,
   intro,
+  wide,
   children,
 }: {
   eyebrow?: string;
   title: string;
   intro?: string;
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -19,9 +21,9 @@ export function MarketingShell({
       <MarketingNav />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-paw-100/60 to-transparent dark:from-paw-900/20"
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-paw-50/70 dark:bg-paw-900/15"
       />
-      <main className="relative mx-auto max-w-2xl px-5 pb-24 pt-28 sm:pt-32">
+      <main className={`relative mx-auto px-5 pb-24 pt-28 sm:pt-32 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600">
           <ArrowLeft className="h-4 w-4" /> Home
         </Link>
