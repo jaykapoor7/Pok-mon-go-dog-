@@ -15,6 +15,7 @@ import {
   HeartHandshake,
   Utensils,
   Building2,
+  Plus,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFollows } from "@/lib/follows";
@@ -39,8 +40,10 @@ export function TodayClient({
   const { isFollowing } = useFollows();
   const firstName = user?.name?.trim().split(/\s+/)[0] || null;
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [dateLabel, setDateLabel] = useState("");
 
   useEffect(() => {
+    setDateLabel(new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }));
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (p) => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
@@ -61,228 +64,156 @@ export function TodayClient({
     () => dogs.filter((d) => isFollowing(d.id)).slice(0, 12),
     [dogs, isFollowing]
   );
-  // Photo mosaic hero, recent real sighting photos (warmer than an empty map).
   const mosaic = useMemo(() => {
     const tiles: { id: string; photo: string; href: string }[] = [];
     for (const s of sightings) {
       if (!s.photo_url) continue;
-      tiles.push({
-        id: s.id,
-        photo: s.photo_url,
-        href: s.dog_id ? `/dog/${s.dog_id}` : "/feed",
-      });
+      tiles.push({ id: s.id, photo: s.photo_url, href: s.dog_id ? `/dog/${s.dog_id}` : "/feed" });
       if (tiles.length >= 9) break;
     }
     return tiles;
   }, [sightings]);
   const activity = useMemo(
-    () =>
-      [...sightings]
-        .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
-        .slice(0, 8),
+    () => [...sightings].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)).slice(0, 8),
     [sightings]
   );
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6 lg:max-w-6xl">
-      <header className="mb-5">
-        <h1 className="font-display text-3xl font-extrabold tracking-tightest sm:text-4xl">
-          {greeting()}
-          {firstName && (
-            <span className="text-paw-600 dark:text-paw-400">, {firstName}</span>
-          )}
-        </h1>
-        {/* one-line hero: what StrayPaw is, for first-time visitors */}
-        <p className="mt-1.5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
-          Spot an animal → drop a pin → partner NGOs take it from there.
-        </p>
-      </header>
+      {/* ── Welcome hero ─────────────────────────────────────────── */}
+      <section className="relative mb-6 overflow-hidden rounded-3xl border border-black/[0.06] bg-gradient-to-br from-paw-50 via-white to-white p-6 shadow-card dark:border-white/10 dark:from-paw-900/25 dark:via-bark-900 dark:to-bark-900 sm:p-8">
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-paw-200/50 blur-3xl dark:bg-paw-500/15" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-paw-100/60 blur-3xl dark:bg-paw-600/10" />
+        <div className="relative">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{dateLabel || "Today"}</p>
+          <h1 className="mt-1.5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+            {greeting()}
+            {firstName && <span className="text-paw-600 dark:text-paw-400">, {firstName}</span>}
+          </h1>
+          <p className="mt-2 max-w-md text-[15px] leading-snug text-bark-600 dark:text-bark-300">
+            Spot an animal, drop a pin, and partner NGOs take it from there.
+          </p>
 
-      {/* Explore, prominent quick access to the surfaces that used to be buried
-          in the menu (sightings feed, fundraisers, feeding zones, orgs). */}
-      <div className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <Link href="/report" className="btn-primary px-5 py-3 text-[15px]">
+              <Plus className="h-4 w-4" /> Report a sighting
+            </Link>
+            <Link href="/map" className="btn-ghost px-5 py-3 text-[15px]">
+              <MapIcon className="h-4 w-4" /> Open the map
+            </Link>
+          </div>
+
+          <div className="mt-6 flex items-stretch gap-5 border-t border-black/[0.06] pt-5 dark:border-white/10 sm:gap-8">
+            <HeroStat icon={<Users className="h-4 w-4" />} value={cov.tracked} label="tracked" />
+            <span className="w-px self-stretch bg-black/[0.06] dark:bg-white/10" />
+            <HeroStat icon={<HeartPulse className="h-4 w-4" />} value={cov.needsHelp} label="need help" tone="injured" />
+            <span className="w-px self-stretch bg-black/[0.06] dark:bg-white/10" />
+            <HeroStat icon={<ShieldCheck className="h-4 w-4" />} value={`${cov.sterilisedPct}%`} label="sterilised" tone="sterilised" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Explore ──────────────────────────────────────────────── */}
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { href: "/feed", label: "Sightings feed", icon: Images, tone: "text-paw-600 bg-paw-100 dark:bg-bark-800 dark:text-paw-300" },
-          { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake, tone: "text-status-injured bg-[#c0492e]/10" },
-          { href: "/feeding", label: "Feeding zones", icon: Utensils, tone: "text-status-hungry bg-[#d9a441]/15" },
-          { href: "/orgs", label: "Organizations", icon: Building2, tone: "text-status-sterilised bg-[#3e8473]/12" },
-        ].map(({ href, label, icon: Icon, tone }) => (
-          <Link
-            key={href}
-            href={href}
-            className="card card-interactive flex flex-col items-start gap-2 p-3.5"
-          >
-            <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}>
+          { href: "/feed", label: "Sightings feed", icon: Images, from: "from-paw-400", to: "to-paw-600" },
+          { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake, from: "from-[#e0745e]", to: "to-[#c0492e]" },
+          { href: "/feeding", label: "Feeding zones", icon: Utensils, from: "from-[#e6b85a]", to: "to-[#c88f1e]" },
+          { href: "/orgs", label: "Organizations", icon: Building2, from: "from-[#57a894]", to: "to-[#2f6b5c]" },
+        ].map(({ href, label, icon: Icon, from, to }) => (
+          <Link key={href} href={href} className="group relative overflow-hidden rounded-2xl border border-black/[0.06] bg-white/70 p-4 transition-all hover:-translate-y-0.5 hover:shadow-pop dark:border-white/10 dark:bg-bark-900/50">
+            <span className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${from} ${to} text-white shadow-warm`}>
               <Icon className="h-[18px] w-[18px]" />
             </span>
-            <span className="text-[13px] font-semibold leading-tight">{label}</span>
+            <span className="mt-3 flex items-center justify-between text-[13.5px] font-semibold tracking-tight text-bark-900 dark:text-bark-50">
+              {label}
+              <ArrowRight className="h-4 w-4 text-bark-300 transition-transform group-hover:translate-x-0.5 group-hover:text-paw-500" />
+            </span>
           </Link>
         ))}
       </div>
 
-      {/* dogs you follow (device-local) */}
+      {/* dogs you follow */}
       {following.length > 0 && (
         <Section title="Dogs you follow" icon={<Star className="h-4 w-4 text-status-hungry" />}>
-          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-            {following.map((dog) => {
-              const meta = MARKER_META[markerStateFor(dog)];
-              return (
-                <Link
-                  key={dog.id}
-                  href={`/dog/${dog.id}`}
-                  className="w-36 shrink-0 overflow-hidden rounded-2xl bg-white shadow-card dark:bg-bark-900"
-                >
-                  <div className="relative">
-                    <DogPhoto src={dog.cover_photo} alt="Followed dog" seed={dog.id} className="h-24 w-full" />
-                    <span
-                      className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      {meta.label}
-                    </span>
-                  </div>
-                  <div className="p-2.5">
-                    <p className="truncate text-sm font-semibold">{dogLabel(dog)}</p>
-                    <p className="truncate text-xs text-bark-400">{dog.zone}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+          <CardRow>
+            {following.map((dog) => <DogCard key={dog.id} dog={dog} width="w-36" photo="h-24" />)}
+          </CardRow>
         </Section>
       )}
 
       <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
         {/* main column */}
         <div className="lg:col-span-2">
-      {/* impact strip */}
-      <div className="mb-5 grid grid-cols-3 gap-2">
-        <Stat icon={<Users className="h-4 w-4" />} value={cov.tracked} label="tracked" />
-        <Stat icon={<HeartPulse className="h-4 w-4" />} value={cov.needsHelp} label="need help" tone="injured" />
-        <Stat icon={<ShieldCheck className="h-4 w-4" />} value={`${cov.sterilisedPct}%`} label="sterilised" tone="sterilised" />
-      </div>
-
-      {/* photo mosaic hero → the map is one tap away */}
-      <div className="mb-6">
-        {mosaic.length > 0 ? (
-          <TiltCard max={7} className="overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10">
-            <div className="grid grid-cols-3 gap-0.5">
-              {mosaic.map((t) => (
-                <Link key={t.id} href={t.href} className="group relative block aspect-square overflow-hidden">
-                  <DogPhoto
-                    src={t.photo}
-                    alt="Street dog"
-                    seed={t.id}
-                    className="h-full w-full transition-transform duration-300 group-hover:scale-105"
-                  />
-                </Link>
-              ))}
-            </div>
-          </TiltCard>
-        ) : (
-          <div className="card flex flex-col items-center justify-center gap-3 p-10 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-              <MapIcon className="h-7 w-7" />
-            </span>
-            <p className="text-sm text-bark-500">
-              No street animals mapped near you yet, be the first to add one.
-            </p>
-          </div>
-        )}
-        <Link href="/map" className="btn-primary mt-3 w-full py-3">
-          <MapIcon className="h-4 w-4" /> Open the full map
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-
-      {/* near you need help */}
-      <Section title={coords ? "Near you · need help" : "Needs help now"} href="/help" cta="See all">
-        {needy.length === 0 ? (
-          <p className="text-sm text-bark-400">No dogs flagged as needing help right now.</p>
-        ) : (
-          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-            {needy.map((dog) => {
-              const meta = MARKER_META[markerStateFor(dog)];
-              return (
-                <Link
-                  key={dog.id}
-                  href={`/dog/${dog.id}`}
-                  className="w-40 shrink-0 overflow-hidden rounded-2xl bg-white shadow-card dark:bg-bark-900"
-                >
-                  <div className="relative">
-                    <DogPhoto src={dog.cover_photo} alt="Dog needing help" seed={dog.id} className="h-28 w-full" />
-                    <span
-                      className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      {meta.label}
-                    </span>
-                  </div>
-                  <div className="p-2.5">
-                    <p className="truncate text-sm font-semibold">{dogLabel(dog)}</p>
-                    <p className="truncate text-xs text-bark-400">{dog.zone}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </Section>
-
-      {/* News & orders, below the needs-help row */}
-      {news.length > 0 && (
-        <Section title="News & orders" icon={<Newspaper className="h-4 w-4 text-paw-500" />} href="/news" cta="All news">
-          <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-            {news.map((n) => {
-              const cat = newsCategory(n.category);
-              return (
-                <a
-                  key={n.id}
-                  href={n.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="card card-interactive flex w-64 shrink-0 flex-col p-4 sm:w-72"
-                >
-                  <span className="mb-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-bold text-paw-700">
-                    {cat.emoji} {cat.label}
-                  </span>
-                  <p className="line-clamp-3 text-sm font-semibold leading-snug">{n.title}</p>
-                  <p className="mt-auto pt-2 text-[11px] text-bark-400">
-                    {n.source_name ?? "Source"}
-                    {n.published_at && ` · ${timeAgo(n.published_at)}`}
-                  </p>
-                </a>
-              );
-            })}
-            <Link
-              href="/news"
-              className="card card-interactive flex w-40 shrink-0 flex-col items-center justify-center gap-1.5 p-4 text-center text-paw-600"
-            >
-              <Newspaper className="h-6 w-6" />
-              <span className="text-sm font-bold">See all news</span>
+          {/* photo mosaic → the map */}
+          <Section title="Fresh from the street" href="/feed" cta="See feed">
+            {mosaic.length > 0 ? (
+              <TiltCard max={6} className="overflow-hidden rounded-3xl border border-black/[0.06] shadow-card dark:border-white/10">
+                <div className="grid grid-cols-3 gap-0.5">
+                  {mosaic.map((t) => (
+                    <Link key={t.id} href={t.href} className="group relative block aspect-square overflow-hidden">
+                      <DogPhoto src={t.photo} alt="Street animal" seed={t.id} className="h-full w-full transition-transform duration-300 group-hover:scale-105" />
+                      <span className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                    </Link>
+                  ))}
+                </div>
+              </TiltCard>
+            ) : (
+              <EmptyCard icon={<MapIcon className="h-7 w-7" />} text="No street animals mapped near you yet. Be the first to add one." />
+            )}
+            <Link href="/map" className="btn-primary mt-3 w-full py-3.5 text-[15px]">
+              <MapIcon className="h-4 w-4" /> Open the full map <ArrowRight className="h-4 w-4" />
             </Link>
-          </div>
-        </Section>
-      )}
+          </Section>
+
+          {/* near you need help */}
+          <Section title={coords ? "Near you · need help" : "Needs help now"} icon={<HeartPulse className="h-4 w-4 text-status-injured" />} href="/help" cta="See all">
+            {needy.length === 0 ? (
+              <EmptyCard icon={<ShieldCheck className="h-6 w-6" />} text="No animals flagged as needing help right now." />
+            ) : (
+              <CardRow>
+                {needy.map((dog) => (
+                  <DogCard key={dog.id} dog={dog} width="w-40" photo="h-28" dist={coords ? distanceMeters(coords, dog) : null} />
+                ))}
+              </CardRow>
+            )}
+          </Section>
+
+          {/* news */}
+          {news.length > 0 && (
+            <Section title="News & orders" icon={<Newspaper className="h-4 w-4 text-paw-500" />} href="/news" cta="All news">
+              <CardRow>
+                {news.map((n) => {
+                  const cat = newsCategory(n.category);
+                  return (
+                    <a key={n.id} href={n.source_url} target="_blank" rel="noopener noreferrer" className="flex w-64 shrink-0 flex-col rounded-2xl border border-black/[0.06] bg-white/70 p-4 transition-all hover:-translate-y-0.5 hover:shadow-pop dark:border-white/10 dark:bg-bark-900/50 sm:w-72">
+                      <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-bold text-paw-700 dark:bg-paw-900/30 dark:text-paw-300">
+                        {cat.emoji} {cat.label}
+                      </span>
+                      <p className="line-clamp-3 text-sm font-semibold leading-snug">{n.title}</p>
+                      <p className="mt-auto pt-2 text-[11px] text-bark-400">
+                        {n.source_name ?? "Source"}{n.published_at && ` · ${timeAgo(n.published_at)}`}
+                      </p>
+                    </a>
+                  );
+                })}
+              </CardRow>
+            </Section>
+          )}
         </div>
-        {/* end main column */}
 
         {/* sidebar */}
         <div className="lg:sticky lg:top-20">
-      {/* live activity */}
-      <Section title="Live activity" icon={<Activity className="h-4 w-4 text-status-sterilised" />}>
-        {activity.length === 0 ? (
-          <p className="text-sm text-bark-400">Nothing yet today.</p>
-        ) : (
-          <div className="card divide-y divide-black/[0.05] dark:divide-white/[0.06]">
-            {activity.map((s) => (
-              <ActivityRow key={s.id} s={s} />
-            ))}
-          </div>
-        )}
-      </Section>
+          <Section title="Live activity" icon={<Activity className="h-4 w-4 text-status-sterilised" />}>
+            {activity.length === 0 ? (
+              <EmptyCard icon={<Activity className="h-6 w-6" />} text="Nothing yet today." />
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white/70 dark:border-white/10 dark:bg-bark-900/50">
+                {activity.map((s, idx) => <ActivityRow key={s.id} s={s} first={idx === 0} />)}
+              </div>
+            )}
+          </Section>
         </div>
-        {/* end sidebar */}
       </div>
     </div>
   );
@@ -295,51 +226,29 @@ function greeting() {
   return "Good evening";
 }
 
-function Stat({
-  icon,
-  value,
-  label,
-  tone = "paw",
-}: {
-  icon: React.ReactNode;
-  value: string | number;
-  label: string;
-  tone?: "paw" | "injured" | "sterilised";
-}) {
-  const color =
-    tone === "injured" ? "text-status-injured" : tone === "sterilised" ? "text-status-sterilised" : "text-paw-600";
+function HeroStat({ icon, value, label, tone = "paw" }: { icon: React.ReactNode; value: string | number; label: string; tone?: "paw" | "injured" | "sterilised" }) {
+  const color = tone === "injured" ? "text-status-injured" : tone === "sterilised" ? "text-status-sterilised" : "text-paw-600 dark:text-paw-400";
   return (
-    <div className="card flex flex-col items-center gap-0.5 p-3 text-center">
-      <span className={color}>{icon}</span>
-      <span className="font-display text-xl font-extrabold leading-none">{value}</span>
-      <span className="text-[10px] text-bark-400">{label}</span>
+    <div className="min-w-0">
+      <span className={`mb-1 inline-flex ${color}`}>{icon}</span>
+      <div className="font-display text-2xl font-extrabold leading-none tracking-tight sm:text-3xl">{value}</div>
+      <div className="mt-1 text-[11px] font-medium uppercase tracking-wide text-bark-400">{label}</div>
     </div>
   );
 }
 
-function Section({
-  title,
-  icon,
-  href,
-  cta,
-  children,
-}: {
-  title: string;
-  icon?: React.ReactNode;
-  href?: string;
-  cta?: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, icon, href, cta, children }: { title: string; icon?: React.ReactNode; href?: string; cta?: string; children: React.ReactNode }) {
   return (
-    <section className="mb-6">
-      <div className="mb-2.5 flex items-center justify-between">
-        <h2 className="flex items-center gap-1.5 font-display text-lg font-bold tracking-tightest">
+    <section className="mb-8">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+          <span className="h-4 w-1 rounded-full bg-gradient-to-b from-paw-400 to-paw-600" />
           {icon}
           {title}
         </h2>
         {href && cta && (
-          <Link href={href} className="text-xs font-semibold text-paw-600">
-            {cta}
+          <Link href={href} className="inline-flex items-center gap-1 text-xs font-semibold text-paw-600 hover:text-paw-700 dark:text-paw-300">
+            {cta} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         )}
       </div>
@@ -348,16 +257,49 @@ function Section({
   );
 }
 
-function ActivityRow({ s }: { s: Sighting }) {
+function CardRow({ children }: { children: React.ReactNode }) {
+  return <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">{children}</div>;
+}
+
+function DogCard({ dog, width, photo, dist }: { dog: Dog; width: string; photo: string; dist?: number | null }) {
+  const meta = MARKER_META[markerStateFor(dog)];
   return (
-    <Link
-      href={s.dog_id ? `/dog/${s.dog_id}` : "/feed"}
-      className="flex items-center gap-3 p-3"
-    >
-      <DogPhoto src={s.photo_url} alt="" seed={s.id} className="h-9 w-9 rounded-full" />
+    <Link href={`/dog/${dog.id}`} className={`${width} group shrink-0 overflow-hidden rounded-2xl border border-black/[0.06] bg-white transition-all hover:-translate-y-0.5 hover:shadow-pop dark:border-white/10 dark:bg-bark-900`}>
+      <div className="relative">
+        <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className={`${photo} w-full transition-transform duration-300 group-hover:scale-105`} />
+        <span className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow-sm" style={{ backgroundColor: meta.color }}>
+          {meta.label}
+        </span>
+        {dist != null && (
+          <span className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            {dist < 1000 ? `${Math.round(dist)} m` : `${(dist / 1000).toFixed(1)} km`}
+          </span>
+        )}
+      </div>
+      <div className="p-2.5">
+        <p className="truncate text-sm font-semibold">{dogLabel(dog)}</p>
+        <p className="truncate text-xs text-bark-400">{dog.zone}</p>
+      </div>
+    </Link>
+  );
+}
+
+function EmptyCard({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-black/[0.1] bg-white/40 p-10 text-center dark:border-white/10 dark:bg-bark-900/30">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">{icon}</span>
+      <p className="max-w-xs text-sm text-bark-500">{text}</p>
+    </div>
+  );
+}
+
+function ActivityRow({ s, first }: { s: Sighting; first?: boolean }) {
+  return (
+    <Link href={s.dog_id ? `/dog/${s.dog_id}` : "/feed"} className={`flex items-center gap-3 p-3 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03] ${first ? "" : "border-t border-black/[0.05] dark:border-white/[0.06]"}`}>
+      <DogPhoto src={s.photo_url} alt="" seed={s.id} className="h-9 w-9 rounded-full ring-2 ring-paw-100 dark:ring-paw-900/40" />
       <p className="min-w-0 flex-1 truncate text-sm">
         <span className="font-semibold">{s.user_name.split(" ")[0]}</span>{" "}
-        <span className="text-bark-500">spotted a dog near {s.zone}</span>
+        <span className="text-bark-500">spotted an animal near {s.zone}</span>
       </p>
       <span className="shrink-0 text-xs text-bark-400">{timeAgo(s.created_at)}</span>
     </Link>
