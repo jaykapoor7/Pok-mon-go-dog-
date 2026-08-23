@@ -25,7 +25,7 @@ export const C = {
   bark500: "#6b7484",
   bark600: "#4d5564",
   bark700: "#39404e",
-  display: "var(--font-display), Georgia, serif",
+  display: "var(--font-display), ui-sans-serif, system-ui, sans-serif",
   mono: 'ui-monospace, "JetBrains Mono", monospace',
 };
 
@@ -60,7 +60,7 @@ export function AnimatedStat({ target, label, suffix = "" }: { target: number; l
 export function PhoneMockup() {
   return (
     <div style={{ width: 280, flexShrink: 0 }}>
-      <div style={{ background: "#1a1814", borderRadius: 40, padding: "10px", boxShadow: "0 32px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1)" }}>
+      <div style={{ background: "#0f1626", borderRadius: 40, padding: "10px", boxShadow: "0 32px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1)" }}>
         <div style={{ background: C.paper, borderRadius: 32, overflow: "hidden", height: 520, position: "relative" }}>
           <div style={{ background: C.ink, height: 44, display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "0 20px 8px", color: "rgba(255,255,255,0.8)", fontSize: "0.6875rem", fontWeight: 600 }}>
             <span>9:41</span>
@@ -110,7 +110,7 @@ export function PhoneMockup() {
               ))}
             </div>
           </div>
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(248,246,241,0.95)", borderTop: `1px solid ${C.bark100}`, height: 56, display: "flex", alignItems: "center", justifyContent: "space-around", paddingBottom: 4 }}>
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(251,253,255,0.95)", borderTop: `1px solid ${C.bark100}`, height: 56, display: "flex", alignItems: "center", justifyContent: "space-around", paddingBottom: 4 }}>
             {["Today", "Map", "·", "Feed", "NGOs"].map((l, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, opacity: i === 0 ? 1 : 0.4 }}>
                 {l === "·" ? (
@@ -176,10 +176,10 @@ export function MapPreview() {
       ))}
       <div style={{ position: "absolute", top: 12, left: 12, right: 12, display: "flex", gap: 6 }}>
         {["All", "Needs Help", "Sterilised", "Adoptable"].map((f, i) => (
-          <div key={f} style={{ background: i === 0 ? C.ink : "rgba(248,246,241,0.9)", border: "1.5px solid " + (i === 0 ? C.ink : "rgba(221,217,207,0.7)"), borderRadius: 9999, padding: "4px 10px", fontSize: "0.6875rem", fontWeight: 500, color: i === 0 ? "#fff" : C.bark600, backdropFilter: "blur(8px)", whiteSpace: "nowrap" }}>{f}</div>
+          <div key={f} style={{ background: i === 0 ? C.ink : "rgba(251,253,255,0.9)", border: "1.5px solid " + (i === 0 ? C.ink : "rgba(225,230,239,0.7)"), borderRadius: 9999, padding: "4px 10px", fontSize: "0.6875rem", fontWeight: 500, color: i === 0 ? "#fff" : C.bark600, backdropFilter: "blur(8px)", whiteSpace: "nowrap" }}>{f}</div>
         ))}
       </div>
-      <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, background: "rgba(248,246,241,0.95)", backdropFilter: "blur(16px)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, background: "rgba(251,253,255,0.95)", backdropFilter: "blur(16px)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
         <img src="/seed-dogs/dog1.jpg" alt="Kali" style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover" }} />
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: "0.875rem", color: C.ink }}>Kali</div>
@@ -201,7 +201,7 @@ export function DashboardPreview() {
         <div />
       </div>
       <div style={{ display: "flex", height: 380 }}>
-        <div style={{ width: 140, background: "#1a1814", borderRight: "1px solid rgba(255,255,255,0.06)", padding: "12px 0", display: "flex", flexDirection: "column", gap: 2 }}>
+        <div style={{ width: 140, background: "#0f1626", borderRight: "1px solid rgba(255,255,255,0.06)", padding: "12px 0", display: "flex", flexDirection: "column", gap: 2 }}>
           {[{ label: "Overview", active: true }, { label: "Cases", badge: "7" }, { label: "Animals" }, { label: "Field Ops" }, { label: "Team" }].map(({ label, active, badge }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", borderRadius: 6, margin: "0 6px", background: active ? "rgba(59,125,230,0.20)" : "transparent", color: active ? C.paw400 : "rgba(255,255,255,0.4)", fontSize: "0.6875rem", fontWeight: 500 }}>
               <span>{label}</span>

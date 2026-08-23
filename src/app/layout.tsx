@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Fraunces } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -17,11 +17,11 @@ const inter = Inter({
   display: "swap",
 });
 
-// Headings: Fraunces — a warm, distinctive display serif that gives StrayPaw
-// its own editorial personality (and reads great on the olive palette).
-const fraunces = Fraunces({
+// Headings + wordmark: Plus Jakarta Sans — a modern, premium geometric sans that
+// pairs cleanly with Inter and suits the light blue-and-white brand.
+const display = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
+  weight: ["300", "500", "600", "700", "800"],
   variable: "--font-display",
   display: "swap",
 });
@@ -34,17 +34,18 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "StrayPaw — Open-sourcing stray-dog care",
+  title: "StrayPaw — Open-sourcing stray-animal care",
   description:
-    "An open, community-run map for India's street dogs — anyone can track, report and care. Coverage and care stats NGOs usually keep closed, opened up for the people, by the people.",
+    "An open, community-run map for India's street animals — anyone can track, report and care. Coverage and care stats NGOs usually keep closed, opened up for the people, by the people.",
   keywords: [
-    "street dogs",
+    "street animals",
+    "stray animals",
     "India",
-    "stray dogs",
+    "street dogs",
     "animal welfare",
     "open source",
     "community",
-    "dog map",
+    "animal map",
     "NGO",
     "feeding",
     "sterilisation",
@@ -52,17 +53,17 @@ export const metadata: Metadata = {
   // og:image + twitter:image are provided by the generated app/opengraph-image.tsx
   // (absolute URL via metadataBase), so no static image is referenced here.
   openGraph: {
-    title: "StrayPaw — Open-sourcing stray-dog care",
+    title: "StrayPaw — Open-sourcing stray-animal care",
     description:
-      "An open, community-run map for India's street dogs. Transparent care + coverage data, for the people, by the people.",
+      "An open, community-run map for India's street animals. Transparent care + coverage data, for the people, by the people.",
     type: "website",
     siteName: "StrayPaw",
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw — Open-sourcing stray-dog care",
+    title: "StrayPaw — Open-sourcing stray-animal care",
     description:
-      "An open, community-run map for India's street dogs. The care stats NGOs keep closed — opened up, for the people, by the people.",
+      "An open, community-run map for India's street animals. The care stats NGOs keep closed — opened up, for the people, by the people.",
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -91,7 +92,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${fraunces.variable}`}
+      className={`${inter.variable} ${display.variable}`}
       suppressHydrationWarning
     >
       <head>

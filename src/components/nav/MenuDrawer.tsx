@@ -29,7 +29,7 @@ import { SocialLinks } from "./SocialLinks";
 const PRIMARY = [
   { href: "/app", label: "Today", icon: Home },
   { href: "/map", label: "Explore map", icon: MapIcon },
-  { href: "/help", label: "Help a dog", icon: HandHelping },
+  { href: "/help", label: "Help an animal", icon: HandHelping },
   { href: "/orgs", label: "Organizations", icon: Building2 },
   { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake },
   { href: "/feeding", label: "Feeding zones", icon: Utensils },
@@ -194,7 +194,7 @@ export function MenuDrawer({
 
             <div className="border-t border-bark-100 p-4 text-center dark:border-bark-800">
               <p className="text-xs font-semibold text-paw-600">
-                Open-sourcing stray-dog care
+                Open-sourcing stray-animal care
               </p>
               <p className="mt-0.5 text-[11px] text-bark-400">
                 For the people, by the people

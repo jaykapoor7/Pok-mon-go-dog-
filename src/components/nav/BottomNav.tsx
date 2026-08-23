@@ -124,7 +124,7 @@ function DesktopRail() {
         <Link href="/app" aria-label="StrayPaw home" className="mb-7 block px-2">
           <Logo size="lg" />
           <p className="mt-2 text-[11px] font-medium leading-tight text-bark-400">
-            Open-sourcing stray-dog care · for the people, by the people
+            Open-sourcing stray-animal care · for the people, by the people
           </p>
         </Link>
 

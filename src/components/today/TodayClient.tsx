@@ -94,7 +94,7 @@ export function TodayClient({
         </h1>
         {/* one-line hero: what StrayPaw is, for first-time visitors */}
         <p className="mt-1.5 text-[15px] leading-snug text-bark-500 dark:text-bark-300">
-          Spot a dog → drop a pin → partner NGOs take it from there.
+          Spot an animal → drop a pin → partner NGOs take it from there.
         </p>
       </header>
 
@@ -185,7 +185,7 @@ export function TodayClient({
               <MapIcon className="h-7 w-7" />
             </span>
             <p className="text-sm text-bark-500">
-              No street dogs mapped near you yet — be the first to add one.
+              No street animals mapped near you yet — be the first to add one.
             </p>
           </div>
         )}

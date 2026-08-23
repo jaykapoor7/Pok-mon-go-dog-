@@ -80,7 +80,7 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
     // 1 — Hero ------------------------------------------------------------
     <div key="hero" className="deck-hero" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3.5rem", alignItems: "center", maxWidth: 1120, margin: "0 auto", width: "100%" }}>
       <div>
-        <Eyebrow>Street animal welfare · Delhi NCR</Eyebrow>
+        <Eyebrow>Street animal welfare · India</Eyebrow>
         <h1 className="display-xl" style={{ color: C.ink, maxWidth: 620, marginBottom: "1.25rem" }}>
           Every stray <em style={{ color: C.paw500, fontStyle: "italic" }}>has a name,</em> a story, and people who care.
         </h1>
@@ -125,7 +125,7 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
     <div key="map" style={{ maxWidth: 1040, margin: "0 auto", width: "100%" }}>
       <div style={{ maxWidth: 560, marginBottom: "1.75rem" }}>
         <Eyebrow>Community map</Eyebrow>
-        <h2 className="display-md" style={{ color: C.ink }}>A live map of every tracked animal in the city</h2>
+        <h2 className="display-md" style={{ color: C.ink }}>A live map of every tracked animal, across India</h2>
       </div>
       <div className="deck-map" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "2rem", alignItems: "center" }}>
         <MapPreview />
@@ -155,7 +155,7 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
           </div>
           <Link href="/partner" className="btn btn-primary" style={{ marginTop: "1.5rem" }}>Open partner dashboard <ArrowRight size={14} /></Link>
         </div>
-        <DashboardPreview />
+        <div className="deck-dash"><DashboardPreview /></div>
       </div>
     </div>,
 
@@ -164,7 +164,7 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
       <Eyebrow>Impact</Eyebrow>
       <h2 className="display-md" style={{ color: C.ink, marginBottom: "1.75rem", maxWidth: 460 }}>Real outcomes for real animals</h2>
       <div className="deck-cards" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem" }}>
-        {[{ val: stats.dogsSpotted.toLocaleString("en-IN"), label: "Animals tracked", desc: "Unique profiles across Delhi NCR" }, { val: stats.dogsFed.toLocaleString("en-IN"), label: "Care actions", desc: "Sightings, feedings & treatments" }, { val: stats.dogsSterilised.toLocaleString("en-IN"), label: "Sterilisations", desc: "Part of the ABC programme" }, { val: "340+", label: "Adoptions", desc: "Facilitated through the platform" }].map(({ val, label, desc }) => (
+        {[{ val: stats.dogsSpotted.toLocaleString("en-IN"), label: "Animals tracked", desc: "Unique profiles across India" }, { val: stats.dogsFed.toLocaleString("en-IN"), label: "Care actions", desc: "Sightings, feedings & treatments" }, { val: stats.dogsSterilised.toLocaleString("en-IN"), label: "Sterilisations", desc: "Part of the ABC programme" }, { val: "340+", label: "Adoptions", desc: "Facilitated through the platform" }].map(({ val, label, desc }) => (
           <div key={label} style={{ background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", border: `1px solid ${C.bark200}`, borderRadius: 18, padding: "1.6rem 1.4rem" }}>
             <div style={{ fontFamily: C.display, fontSize: "clamp(1.6rem,3vw,2.25rem)", fontWeight: 700, color: C.paw600, letterSpacing: "-0.02em", lineHeight: 1 }}>{val}</div>
             <div style={{ fontWeight: 600, fontSize: "0.875rem", color: C.ink, marginTop: "0.6rem" }}>{label}</div>
@@ -180,7 +180,7 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
         <div style={{ fontFamily: C.mono, fontSize: "0.6875rem", fontWeight: 500, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.65)", marginBottom: "1rem" }}>Join the community</div>
         <h2 className="display-md" style={{ color: "#fff", marginBottom: "1rem" }}>Every sighting matters. Start here.</h2>
         <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.8)", lineHeight: 1.6, marginBottom: "1.75rem", maxWidth: 460, marginInline: "auto" }}>
-          Report what you see — a dog limping, a puppy alone — and create the data that helps NGOs act.
+          Report what you see — an injured animal, a puppy alone — and create the data that helps NGOs act.
         </p>
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
           <Link href="/app" className="btn btn-primary-dark btn-primary-lg">Report a sighting</Link>
@@ -284,11 +284,24 @@ export default function LandingDeck({ stats }: { stats: LandingStats }) {
         @keyframes sp-f3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-4%,-5%) scale(0.9)}}
 
         .deck-hero-phone{display:flex;justify-content:flex-end}
+        .deck-dash{width:100%}
+        /* Scale the tall device mockups down on shorter viewports so a slide
+           never clips or needs to scroll. */
+        @media (max-height:860px){
+          .deck-hero-phone{transform:scale(.86);transform-origin:center right}
+          .deck-dash{transform:scale(.9);transform-origin:top center}
+        }
+        @media (max-height:740px){
+          .deck-hero-phone{transform:scale(.72)}
+          .deck-dash{transform:scale(.8)}
+          .deck-slide{padding-top:5.5rem}
+        }
         @media (max-width:960px){
           .deck-hero{grid-template-columns:1fr !important}
           .deck-hero-phone{display:none !important}
           .deck-map{grid-template-columns:1fr !important;gap:1.5rem !important}
           .deck-cards{grid-template-columns:1fr 1fr !important}
+          .deck-dash{transform:none;max-width:520px;margin:0 auto}
         }
         @media (max-width:600px){
           .deck-cards{grid-template-columns:1fr !important}
