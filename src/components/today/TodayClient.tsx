@@ -11,10 +11,6 @@ import {
   Activity,
   Star,
   Newspaper,
-  Images,
-  HeartHandshake,
-  Utensils,
-  Building2,
   Plus,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -112,26 +108,6 @@ export function TodayClient({
           </div>
         </div>
       </section>
-
-      {/* ── Explore ──────────────────────────────────────────────── */}
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { href: "/feed", label: "Sightings feed", icon: Images, from: "from-paw-400", to: "to-paw-600" },
-          { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake, from: "from-[#e0745e]", to: "to-[#c0492e]" },
-          { href: "/feeding", label: "Feeding zones", icon: Utensils, from: "from-[#e6b85a]", to: "to-[#c88f1e]" },
-          { href: "/orgs", label: "Organizations", icon: Building2, from: "from-[#57a894]", to: "to-[#2f6b5c]" },
-        ].map(({ href, label, icon: Icon, from, to }) => (
-          <Link key={href} href={href} className="group relative overflow-hidden rounded-2xl border border-black/[0.06] bg-white/70 p-4 transition-all hover:-translate-y-0.5 hover:shadow-pop dark:border-white/10 dark:bg-bark-900/50">
-            <span className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${from} ${to} text-white shadow-warm`}>
-              <Icon className="h-[18px] w-[18px]" />
-            </span>
-            <span className="mt-3 flex items-center justify-between text-[13.5px] font-semibold tracking-tight text-bark-900 dark:text-bark-50">
-              {label}
-              <ArrowRight className="h-4 w-4 text-bark-300 transition-transform group-hover:translate-x-0.5 group-hover:text-paw-500" />
-            </span>
-          </Link>
-        ))}
-      </div>
 
       {/* dogs you follow */}
       {following.length > 0 && (
