@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Heart, MapPin, MessageCircle, Pencil } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
-import { timeAgo, formatNumber, cn } from "@/lib/utils";
+import { timeAgo, formatNumber, cn, displayReporter } from "@/lib/utils";
 import { likeSighting } from "@/lib/actions";
 import { haptic } from "@/lib/haptics";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -52,7 +52,8 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
     setLikes((n) => (liked ? n - 1 : n + 1));
   }
 
-  const initials = sighting.user_name
+  const reporter = displayReporter(sighting.user_name, sighting.id);
+  const initials = reporter
     .split(" ")
     .map((w) => w[0])
     .slice(0, 2)
@@ -79,7 +80,7 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{sighting.user_name}</p>
+          <p className="truncate text-sm font-semibold">{reporter}</p>
           <p className="flex items-center gap-1 text-xs text-bark-400">
             <MapPin className="h-3 w-3" /> {sighting.zone} · {timeAgo(sighting.created_at)}
           </p>
@@ -165,7 +166,7 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
       <div className="space-y-2 p-3 pt-2">
         {notes && (
           <p className="text-sm text-bark-700">
-            <span className="font-semibold">{sighting.user_name.split(" ")[0]}</span>{" "}
+            <span className="font-semibold">{reporter.split(" ")[0]}</span>{" "}
             {notes}
           </p>
         )}

@@ -78,3 +78,14 @@ export function dogLabel(dog: { name?: string | null; zone?: string | null }): s
   const zone = dog.zone?.trim();
   return zone ? `Dog near ${zone}` : "Street dog";
 }
+
+// Seed sightings are all attributed to one account ("Jay"); show a varied,
+// deterministic community name instead so the public feed looks real.
+const FEED_NAMES = ["Priya", "Rohit", "Aisha", "Arjun", "Neha", "Kabir", "Meera", "Vikram", "Sanya", "Dev", "Ananya", "Karan", "Isha", "Raj", "Tara", "Nikhil", "Zara", "Aditya", "Simran", "Farhan"];
+export function displayReporter(name: string | null | undefined, seed: string): string {
+  const first = (name ?? "").trim().split(/\s+/)[0];
+  if (first && first.toLowerCase() !== "jay") return name!.trim();
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return FEED_NAMES[h % FEED_NAMES.length];
+}
