@@ -16,18 +16,21 @@ import {
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerMetaFor, fedRecently } from "@/lib/marker-state";
-import { timeAgo, dogLabel } from "@/lib/utils";
+import { timeAgo, dogLabel, distanceMeters } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 export function DogBottomSheet({
   dog,
   onClose,
   onAction,
+  coords,
 }: {
   dog: Dog | null;
   onClose: () => void;
   onAction?: (dog: Dog, kind: "saw" | "fed") => void;
+  coords?: { lat: number; lng: number } | null;
 }) {
+  const dist = dog && coords ? distanceMeters(coords, dog) : null;
   const [note, setNote] = useState<string | null>(null);
 
   async function share() {
@@ -128,6 +131,11 @@ export function DogBottomSheet({
                   <span className="flex items-center gap-1.5">
                     <Clock className="h-4 w-4" /> Seen {timeAgo(dog.last_seen)}
                   </span>
+                  {dist != null && (
+                    <span className="flex items-center gap-1.5 font-medium text-paw-600 dark:text-paw-300">
+                      <MapPin className="h-4 w-4" /> {dist < 1000 ? `${Math.round(dist)} m away` : `${(dist / 1000).toFixed(1)} km away`}
+                    </span>
+                  )}
                 </div>
                 {/* time-aware feeding status */}
                 <div className="mt-2">
