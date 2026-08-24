@@ -170,7 +170,7 @@ function FilterChip({ active, onClick, label, color, count }: { active: boolean;
     <button
       onClick={onClick}
       className={cn(
-        "chip shrink-0 px-3.5 py-2 transition-[background-color,color,box-shadow] duration-150",
+        "chip shrink-0 px-3 py-1.5 text-[13px] transition-[background-color,color,box-shadow] duration-150 sm:px-3.5 sm:py-2",
         active ? "bg-bark-900 text-white shadow-pop dark:bg-white dark:text-bark-900" : "glass text-bark-700 shadow-card hover:bg-white dark:text-bark-100"
       )}
     >

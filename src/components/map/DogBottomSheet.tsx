@@ -85,7 +85,7 @@ export function DogBottomSheet({
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 34, stiffness: 340 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md overflow-hidden rounded-t-[28px] bg-white shadow-sheet dark:bg-bark-900 sm:rounded-[28px]"
+            className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-y-auto overscroll-contain rounded-t-[28px] bg-white shadow-sheet dark:bg-bark-900 sm:max-h-[85dvh] sm:rounded-[28px]"
           >
             {/* grab handle */}
             <div className="flex justify-center pb-1 pt-3">
@@ -99,7 +99,7 @@ export function DogBottomSheet({
                 alt="Street dog"
                 seed={dog.id}
                 fit="contain"
-                className="h-48 w-full"
+                className="h-40 w-full sm:h-48"
               />
               <span
                 className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md"
