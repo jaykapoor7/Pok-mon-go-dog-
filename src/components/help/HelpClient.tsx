@@ -95,8 +95,8 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
       <div className="mt-6 space-y-3">
         {needy.length === 0 ? (
           <div className="card p-8 text-center text-sm text-bark-500">
-            No dogs are flagged as needing help right now. Thank you for caring,
-            tap “I can help” to be on call for when one is.
+            No animals are flagged as needing help right now. Thank you for
+            caring, register to volunteer to be on call for when one is.
           </div>
         ) : (
           needy.map((dog) => {
