@@ -3,7 +3,8 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { PlatformShell } from "@/components/platform/PlatformNav";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
-import { pointsForMetric, nationalRollup, coverageOf } from "@/lib/platform/datasets";
+import { ranked, nationalPoints } from "@/lib/platform/datasets";
+import { ORGS } from "@/lib/platform/orgs";
 import { getCityStats } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -25,11 +26,12 @@ const FLOW = [
 
 export default async function HomePage() {
   const stats = await getCityStats();
-  const abc = nationalRollup("abc_coverage");
-  const arv = nationalRollup("arv_coverage");
-  const pop = nationalRollup("dog_population");
-  const cov = coverageOf("abc_coverage");
-  const belowThreshold = pointsForMetric("arv_coverage").filter((p) => p.value < 70).length;
+  const popPoints = ranked("dog_population", "desc");
+  const popTotal = nationalPoints("dog_population")[0];
+  const rabies = nationalPoints("human_rabies_deaths");
+  const reported = rabies.find((p) => p.confidence === "high");
+  const modelled = rabies.find((p) => p.confidence === "low");
+  const gapMultiple = reported && modelled ? Math.round(modelled.value / reported.value) : null;
 
   return (
     <PlatformShell>
@@ -51,13 +53,13 @@ export default async function HomePage() {
       {/* Statistics */}
       <section className="mt-14 border-y border-black/[0.08] py-8 dark:border-white/[0.1]">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-          <Figure value={`${cov.withData}/${cov.total}`} label="States with coverage data" sub="the rest are data gaps" />
-          <Figure value={`${abc.mean.toFixed(0)}%`} label="Avg. sterilisation coverage" sub="across states with data" tone="text-paw-600 dark:text-paw-400" />
-          <Figure value={`${arv.mean.toFixed(0)}%`} label="Avg. vaccination coverage" sub="WHO target is ~70%" />
+          <Figure value={popTotal ? nf(popTotal.value) : "—"} label="Street dogs, last national count" sub="20th Livestock Census, 2019" />
+          <Figure value={reported ? nf(reported.value) : "—"} label="Reported rabies deaths" sub={reported ? `${reported.year}, officially reported` : undefined} tone="text-status-injured" />
+          <Figure value={String(ORGS.length)} label="Named welfare orgs in our directory" sub="verified, sourced — growing" tone="text-paw-600 dark:text-paw-400" />
           <Figure value={nf(stats.dogsSpotted)} label="Community observations" sub="contributed via StrayPaw" />
         </div>
         <p className="mt-5 flex items-center gap-2 text-[12px] text-bark-400">
-          <SourceBadge type="estimate" sample /> Aggregate figures use sample datasets — illustrative structure, not official statistics.
+          <SourceBadge type="government" /> Government census &amp; surveillance data, combined with StrayPaw&apos;s own community reporting. Every figure is sourced on Explore.
         </p>
       </section>
 
@@ -67,11 +69,11 @@ export default async function HomePage() {
           <div className="flex items-center justify-between">
             <div>
               <SectionLabel>Explore</SectionLabel>
-              <h2 className="mt-1.5 font-display text-xl font-bold tracking-tight">Sterilisation coverage by state</h2>
+              <h2 className="mt-1.5 font-display text-xl font-bold tracking-tight">Street-dog population by state</h2>
             </div>
-            <SourceBadge type="government" sample />
+            <SourceBadge type="government" />
           </div>
-          <div className="mt-5"><RankedBars points={pointsForMetric("abc_coverage")} max={6} unit="%" /></div>
+          <div className="mt-5"><RankedBars points={popPoints} max={8} /></div>
           <Link href="/explore" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-paw-600 hover:text-paw-700 dark:text-paw-300">
             Open the interactive map <ArrowRight className="h-4 w-4" />
           </Link>
@@ -80,7 +82,7 @@ export default async function HomePage() {
         <Link href="/insights" className="group flex flex-col rounded-2xl border border-black/[0.08] bg-paw-50 p-6 transition-colors hover:bg-paw-100/70 dark:border-white/[0.1] dark:bg-paw-900/15">
           <SectionLabel>Featured insight</SectionLabel>
           <p className="mt-3 font-display text-2xl font-bold leading-snug tracking-tight">
-            {belowThreshold} of {pointsForMetric("arv_coverage").length} states with data sit below the ~70% vaccination threshold rabies elimination needs.
+            {reported && modelled ? <>Officially {nf(reported.value)} rabies deaths a year. Modelling puts the real toll {gapMultiple ? `${gapMultiple}x` : "far"} higher.</> : "Reported vs. real rabies burden."}
           </p>
           <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-semibold text-paw-700 dark:text-paw-300">
             See the analysis <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

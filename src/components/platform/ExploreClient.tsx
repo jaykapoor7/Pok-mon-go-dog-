@@ -11,7 +11,7 @@ import { DATASET_BY_METRIC } from "@/lib/platform/datasets";
 import { cn } from "@/lib/utils";
 
 export function ExploreClient() {
-  const [metric, setMetric] = useState("abc_coverage");
+  const [metric, setMetric] = useState("dog_population");
   const def = METRICS.find((m) => m.id === metric)!;
   const dataset = DATASET_BY_METRIC.get(metric);
   const pts = pointsForMetric(metric);
@@ -87,7 +87,7 @@ export function ExploreClient() {
       </div>
 
       <p className="mt-4 text-[12px] text-bark-400">
-        Values shown are sample data with realistic structure. Confidence bars indicate how much to trust each figure. Real datasets normalise into this same view.
+        Every value shown is real, sourced data — never fabricated. Confidence bars indicate how much to trust each figure; states with no data have none published anywhere we could verify, and that gap is shown rather than filled in.
       </p>
 
       <Link href="/insights" className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-paw-600 hover:text-paw-700 dark:text-paw-300">

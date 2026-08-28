@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, MapPin, Building2 } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, ExternalLink } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { VerifiedBadge } from "@/components/org/VerifiedBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getOrgs } from "@/lib/data";
+import { ORGS } from "@/lib/platform/orgs";
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +39,8 @@ export default async function OrgsPage() {
       {orgs.length === 0 ? (
         <EmptyState
           icon={<Building2 className="h-7 w-7" />}
-          title="No organizations yet"
-          description="Verified animal-welfare partners will appear here as they join."
+          title="No StrayPaw partners yet"
+          description="Verified animal-welfare partners running cases and campaigns on StrayPaw will appear here as they join."
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -84,6 +85,36 @@ export default async function OrgsPage() {
           })}
         </div>
       )}
+
+      <section className="mt-10 border-t border-black/[0.08] pt-8 dark:border-white/[0.1]">
+        <h2 className="font-display text-xl font-bold tracking-tight text-bark-900 dark:text-bark-50">Directory</h2>
+        <p className="mt-1 max-w-2xl text-sm text-bark-500">
+          Real, named animal-welfare organisations working across India — sourced from public information, not yet on StrayPaw as partners. Not comprehensive, and not endorsed by these organisations for this listing.
+        </p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {ORGS.map((o) => (
+            <div key={o.id} className="rounded-2xl border border-black/[0.08] p-5 dark:border-white/[0.1]">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-display text-[15px] font-bold leading-snug tracking-tight text-bark-900 dark:text-bark-50">{o.name}</h3>
+                {o.url && (
+                  <a href={o.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-bark-400 hover:text-paw-600">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
+              <p className="mt-1 flex items-center gap-1 text-xs text-bark-500">
+                <MapPin className="h-3.5 w-3.5" /> {o.city}
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-bark-600 dark:text-bark-300">{o.summary}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {o.focus.map((f) => (
+                  <span key={f} className="rounded-full bg-bark-100 px-2 py-0.5 text-[11px] text-bark-500 dark:bg-bark-800">{f}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

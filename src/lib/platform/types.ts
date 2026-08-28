@@ -62,6 +62,9 @@ export interface Dataset {
   /** Whole dataset is illustrative sample data. */
   sample: boolean;
   points: DataPoint[];
+  /** National-level headline figures for this metric, kept separate from the
+   *  state-resolution `points[]` so ranking/coverage math over states stays clean. */
+  national?: DataPoint[];
 }
 
 export interface MetricDef {

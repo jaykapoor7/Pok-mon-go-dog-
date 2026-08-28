@@ -19,7 +19,7 @@ export const STATES: GeoRef[] = [
 
 export const STATE_BY_CODE = new Map(STATES.map((s) => [s.code, s]));
 
-// A few districts/cities to demonstrate deeper resolution where data exists.
+// Cities where StrayPaw has a real, sourced organisation or dataset presence.
 export const DISTRICTS: GeoRef[] = [
   { level: "city", code: "IN-MH-MUMBAI", name: "Mumbai", parent: "IN-MH" },
   { level: "city", code: "IN-MH-PUNE", name: "Pune", parent: "IN-MH" },
@@ -27,6 +27,10 @@ export const DISTRICTS: GeoRef[] = [
   { level: "city", code: "IN-TN-CHENNAI", name: "Chennai", parent: "IN-TN" },
   { level: "city", code: "IN-KA-BENGALURU", name: "Bengaluru", parent: "IN-KA" },
   { level: "city", code: "IN-WB-KOLKATA", name: "Kolkata", parent: "IN-WB" },
+  { level: "city", code: "IN-TG-HYDERABAD", name: "Hyderabad", parent: "IN-TG" },
+  { level: "city", code: "IN-RJ-UDAIPUR", name: "Udaipur", parent: "IN-RJ" },
+  { level: "city", code: "IN-UP-LUCKNOW", name: "Lucknow", parent: "IN-UP" },
+  { level: "city", code: "IN-AP-PUTTAPARTHI", name: "Puttaparthi", parent: "IN-AP" },
 ];
 
 export const METRICS: MetricDef[] = [
