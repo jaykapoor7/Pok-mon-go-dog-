@@ -8,6 +8,7 @@ import { BottomNav } from "./BottomNav";
 // marketing landing gets its own full-bleed chrome and CTA.
 const BARE_ROUTES = new Set<string>([
   "/", "/what-we-do", "/journey", "/partnerships", "/contact", "/partner-apply",
+  "/explore", "/insights", "/research", "/take-action",
 ]);
 
 // Focused flows: keep the top bar but hide the bottom nav so it doesn't collide
