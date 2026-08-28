@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { PlatformShell } from "@/components/platform/PlatformNav";
+import { ConnectionsHero, type ConnectionStop } from "@/components/platform/ConnectionsHero";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
+import { SOURCE_META } from "@/lib/platform/types";
 import { ranked, nationalPoints } from "@/lib/platform/datasets";
 import { ORGS } from "@/lib/platform/orgs";
+import { RESEARCH } from "@/lib/platform/research";
 import { getCityStats } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -15,15 +18,6 @@ export const metadata = {
     "StrayPaw makes fragmented street-dog information understandable — and helps turn better knowledge into better action. Explore data, read the evidence, and act where it matters.",
 };
 
-const FLOW = [
-  { n: "01", t: "Existing data", d: "Government, research, NGO and community sources." },
-  { n: "02", t: "Organise", d: "Normalised to one model with full provenance." },
-  { n: "03", t: "Visualise", d: "Maps, rankings and comparisons by geography." },
-  { n: "04", t: "Analyse", d: "Trends, hotspots and intervention coverage." },
-  { n: "05", t: "Identify gaps", d: "Where data — or care — is missing." },
-  { n: "06", t: "Enable action", d: "Evidence-based next steps, by place." },
-];
-
 export default async function HomePage() {
   const stats = await getCityStats();
   const popPoints = ranked("dog_population", "desc");
@@ -33,22 +27,48 @@ export default async function HomePage() {
   const modelled = rabies.find((p) => p.confidence === "low");
   const gapMultiple = reported && modelled ? Math.round(modelled.value / reported.value) : null;
 
+  const stops: ConnectionStop[] = [
+    {
+      id: "government",
+      label: "Government",
+      dot: SOURCE_META.government.dot,
+      headline: "Census counts, ministry surveillance, court orders.",
+      body: "The 20th Livestock Census, NCDC's rabies surveillance and Supreme Court compliance orders are the backbone of what's officially known — and of what still isn't tracked at all.",
+      stat: popTotal ? nf(popTotal.value) : "—",
+      statLabel: "street dogs counted nationally (2019)",
+    },
+    {
+      id: "ngo",
+      label: "NGO",
+      dot: SOURCE_META.ngo.dot,
+      headline: "Real, named organisations — not assumed.",
+      body: "A growing, verified directory of the welfare organisations actually doing the work, from Chennai to Udaipur, linked by geography so you can find who's near you.",
+      stat: String(ORGS.length),
+      statLabel: "organisations in our directory",
+    },
+    {
+      id: "community",
+      label: "Community",
+      dot: SOURCE_META.community.dot,
+      headline: "Reports from the ground, as they happen.",
+      body: "Sightings, feeding zones and volunteer sign-ups contributed directly through StrayPaw fill in what official data misses.",
+      stat: nf(stats.dogsSpotted),
+      statLabel: "community observations logged",
+    },
+    {
+      id: "research",
+      label: "Research",
+      dot: SOURCE_META.research.dot,
+      headline: "Peer-reviewed studies, cited — not summarised away.",
+      body: "From rabies-burden modelling to national policy documents, every claim on Insights traces back to a real, linkable source.",
+      stat: String(RESEARCH.length),
+      statLabel: "curated sources on Research",
+    },
+  ];
+
   return (
     <PlatformShell>
-      {/* Hero */}
-      <section className="max-w-3xl pt-6 sm:pt-10">
-        <SectionLabel>Street-dog data, intelligence &amp; action · India</SectionLabel>
-        <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
-          Better knowledge, <span className="text-paw-600 dark:text-paw-400">better action</span> for India&apos;s street dogs.
-        </h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-bark-600 dark:text-bark-300">
-          StrayPaw makes fragmented street-dog information understandable. We bring together public, government, research and community data, organise it with full provenance, and turn it into insight you can act on.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link href="/explore" className="btn-primary px-6 py-3 text-base">Explore the data <ArrowRight className="h-4 w-4" /></Link>
-          <Link href="/insights" className="btn-ghost px-6 py-3 text-base">Read the insights</Link>
-        </div>
-      </section>
+      <ConnectionsHero stops={stops} />
 
       {/* Statistics */}
       <section className="mt-14 border-y border-black/[0.08] py-8 dark:border-white/[0.1]">
@@ -88,21 +108,6 @@ export default async function HomePage() {
             See the analysis <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </span>
         </Link>
-      </section>
-
-      {/* Core flow */}
-      <section className="mt-14">
-        <SectionLabel>How StrayPaw works</SectionLabel>
-        <h2 className="mt-2 font-display text-2xl font-bold tracking-tight">From scattered data to action.</h2>
-        <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-black/[0.08] bg-black/[0.06] sm:grid-cols-2 lg:grid-cols-3 dark:border-white/[0.1] dark:bg-white/[0.08]">
-          {FLOW.map((s) => (
-            <div key={s.n} className="bg-paper p-5 dark:bg-ink">
-              <span className="font-mono text-[12px] font-semibold tracking-widest text-paw-500">{s.n}</span>
-              <h3 className="mt-1.5 font-semibold tracking-tight text-bark-900 dark:text-white">{s.t}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-bark-600 dark:text-bark-300">{s.d}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* Footer CTA */}
