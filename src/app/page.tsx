@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { PlatformShell } from "@/components/platform/PlatformNav";
-import { ConnectionsHero, type ConnectionStop } from "@/components/platform/ConnectionsHero";
+import { TangledHero } from "@/components/platform/TangledHero";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
-import { SOURCE_META } from "@/lib/platform/types";
 import { ranked, nationalPoints } from "@/lib/platform/datasets";
 import { ORGS } from "@/lib/platform/orgs";
-import { RESEARCH } from "@/lib/platform/research";
 import { getCityStats } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -27,48 +25,9 @@ export default async function HomePage() {
   const modelled = rabies.find((p) => p.confidence === "low");
   const gapMultiple = reported && modelled ? Math.round(modelled.value / reported.value) : null;
 
-  const stops: ConnectionStop[] = [
-    {
-      id: "government",
-      label: "Government",
-      dot: SOURCE_META.government.dot,
-      headline: "Census counts, ministry surveillance, court orders.",
-      body: "The 20th Livestock Census, NCDC's rabies surveillance and Supreme Court compliance orders are the backbone of what's officially known — and of what still isn't tracked at all.",
-      stat: popTotal ? nf(popTotal.value) : "—",
-      statLabel: "street dogs counted nationally (2019)",
-    },
-    {
-      id: "ngo",
-      label: "NGO",
-      dot: SOURCE_META.ngo.dot,
-      headline: "Real, named organisations — not assumed.",
-      body: "A growing, verified directory of the welfare organisations actually doing the work, from Chennai to Udaipur, linked by geography so you can find who's near you.",
-      stat: String(ORGS.length),
-      statLabel: "organisations in our directory",
-    },
-    {
-      id: "community",
-      label: "Community",
-      dot: SOURCE_META.community.dot,
-      headline: "Reports from the ground, as they happen.",
-      body: "Sightings, feeding zones and volunteer sign-ups contributed directly through StrayPaw fill in what official data misses.",
-      stat: nf(stats.dogsSpotted),
-      statLabel: "community observations logged",
-    },
-    {
-      id: "research",
-      label: "Research",
-      dot: SOURCE_META.research.dot,
-      headline: "Peer-reviewed studies, cited — not summarised away.",
-      body: "From rabies-burden modelling to national policy documents, every claim on Insights traces back to a real, linkable source.",
-      stat: String(RESEARCH.length),
-      statLabel: "curated sources on Research",
-    },
-  ];
-
   return (
     <PlatformShell>
-      <ConnectionsHero stops={stops} />
+      <TangledHero />
 
       {/* Statistics */}
       <section className="mt-14 border-y border-black/[0.08] py-8 dark:border-white/[0.1]">
