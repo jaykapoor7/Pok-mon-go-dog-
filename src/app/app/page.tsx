@@ -1,21 +1,7 @@
-import { TodayClient } from "@/components/today/TodayClient";
-import { getAllDogs, getAllSightings } from "@/lib/data";
-import { getNewsTeaser } from "@/lib/news";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export const metadata = {
-  title: "StrayPaw, Today",
-  description:
-    "Dogs near you who need help, feeding zones, verified news, and live community activity for India's street dogs.",
-};
-
-// Home is now a "Today" mission dashboard; the immersive map lives at /map.
-export default async function HomePage() {
-  const [dogs, sightings, news] = await Promise.all([
-    getAllDogs(),
-    getAllSightings(60),
-    getNewsTeaser(3),
-  ]);
-  return <TodayClient dogs={dogs} sightings={sightings} news={news} />;
+// The community app is now the map + report flow. "/app" is kept only so
+// existing links and bookmarks land somewhere real.
+export default function AppRedirect() {
+  redirect("/map");
 }

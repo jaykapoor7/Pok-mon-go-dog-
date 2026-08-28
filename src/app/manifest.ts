@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "StrayPaw",
     description:
       "An open, community-run map for India's street animals, spot, report and care.",
-    start_url: "/app",
+    start_url: "/map",
     display: "standalone",
     background_color: "#fbfdff",
     theme_color: "#3b7de6",

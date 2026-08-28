@@ -34,7 +34,7 @@ export function PlatformNav() {
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <Link href="/report" className="hidden rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 sm:inline-flex">Report</Link>
-          <Link href="/app" className="hidden text-[13px] font-medium text-bark-500 hover:text-paw-600 lg:inline-flex">Community app</Link>
+          <Link href="/map" className="hidden text-[13px] font-medium text-bark-500 hover:text-paw-600 lg:inline-flex">Map</Link>
           <button onClick={() => setOpen((v) => !v)} className="grid h-9 w-9 place-items-center rounded-md text-bark-600 hover:bg-black/[0.04] md:hidden" aria-label="Menu">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -42,7 +42,7 @@ export function PlatformNav() {
       </div>
       {open && (
         <nav className="border-t border-black/[0.06] px-4 pb-3 pt-1 md:hidden dark:border-white/10">
-          {[...LINKS, { label: "Report", href: "/report" }, { label: "Community app", href: "/app" }].map((l) => (
+          {[...LINKS, { label: "Report", href: "/report" }, { label: "Map", href: "/map" }].map((l) => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className={cn("block rounded-md px-3 py-2.5 text-[15px] font-medium", active(l.href) ? "bg-bark-900/[0.06] text-bark-900 dark:bg-white/10 dark:text-white" : "text-bark-600 dark:text-bark-300")}>
               {l.label}
             </Link>

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
-  Home,
   Map as MapIcon,
+  Plus,
   Images,
   LayoutDashboard,
   ClipboardList,
@@ -21,23 +21,30 @@ import {
   HeartHandshake,
   Building2,
   ClipboardCheck,
+  BarChart3,
 } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { SocialLinks } from "./SocialLinks";
 
+// The app itself is just the map and the report flow now; everything else
+// StrayPaw does — data, insights, volunteering, organisations — lives one
+// tap away here instead of competing for permanent nav space.
 const PRIMARY = [
-  { href: "/app", label: "Today", icon: Home },
-  { href: "/map", label: "Explore map", icon: MapIcon },
-  { href: "/help", label: "Help an animal", icon: HandHelping },
+  { href: "/map", label: "Map", icon: MapIcon },
+  { href: "/report", label: "Report a sighting", icon: Plus },
+  { href: "/", label: "Data & insights", icon: BarChart3 },
+];
+
+const SECONDARY = [
+  { href: "/help", label: "Help an animal / volunteer", icon: HandHelping },
   { href: "/orgs", label: "Organizations", icon: Building2 },
   { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake },
   { href: "/feeding", label: "Feeding zones", icon: Utensils },
-  { href: "/news", label: "News & orders", icon: Newspaper },
   { href: "/feed", label: "Sightings feed", icon: Images },
+  { href: "/news", label: "News & orders", icon: Newspaper },
   { href: "/cases", label: "Cases", icon: ClipboardList },
   { href: "/surveys", label: "Surveys & census", icon: ClipboardCheck },
-  { href: "/partner", label: "NGO dashboard", icon: LayoutDashboard },
 ];
 
 export const INFO = [
@@ -152,6 +159,44 @@ export function MenuDrawer({
                   );
                 })}
               </nav>
+
+              {/* NGO dashboard — a real feature, kept to one light-touch entry */}
+              <Link
+                href="/partner"
+                onClick={onClose}
+                className="mt-3 flex items-center gap-3 rounded-xl border border-black/[0.07] px-3 py-2.5 dark:border-white/10"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-bark-900 text-white dark:bg-white dark:text-bark-900">
+                  <LayoutDashboard className="h-4 w-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">NGO dashboard</span>
+                  <span className="block text-xs text-bark-400">Cases, fundraisers, volunteers — for verified partners</span>
+                </span>
+              </Link>
+
+              {/* secondary — everything else StrayPaw does */}
+              <div className="mt-4 border-t border-bark-100 pt-4 dark:border-bark-800">
+                <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
+                  Also on StrayPaw
+                </p>
+                <nav className="space-y-0.5">
+                  {SECONDARY.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onClose}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-bark-100 dark:hover:bg-bark-800"
+                      >
+                        <Icon className="h-4 w-4 text-bark-400" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
 
               {/* appearance */}
               <div className="mt-4 border-t border-bark-100 pt-4 dark:border-bark-800">

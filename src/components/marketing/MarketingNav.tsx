@@ -30,7 +30,7 @@ export function MarketingNav() {
             </Link>
           ))}
         </div>
-        <Link href="/app" className="btn-primary shrink-0 px-3 py-2 text-[13px] sm:px-4 sm:text-sm">
+        <Link href="/map" className="btn-primary shrink-0 px-3 py-2 text-[13px] sm:px-4 sm:text-sm">
           Open <ArrowRight className="hidden h-4 w-4 sm:block" />
         </Link>
       </nav>

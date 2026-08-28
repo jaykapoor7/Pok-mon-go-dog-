@@ -52,7 +52,7 @@ export function PartnerTopBar() {
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenu(false)} />
               <div className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-lg border border-black/[0.08] bg-white py-1 shadow-lg dark:border-white/[0.1] dark:bg-bark-900">
-                <Link href="/app" onClick={() => setMenu(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"><ArrowLeft className="h-4 w-4 text-bark-400" /> Exit to app</Link>
+                <Link href="/map" onClick={() => setMenu(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"><ArrowLeft className="h-4 w-4 text-bark-400" /> Exit to map</Link>
                 <Link href="/partner/settings" onClick={() => setMenu(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.05]">Organization settings</Link>
                 <button onClick={() => { setMenu(false); signOut(); }} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-status-injured hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"><LogOut className="h-4 w-4" /> Sign out</button>
               </div>

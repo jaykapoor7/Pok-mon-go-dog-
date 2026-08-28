@@ -125,7 +125,7 @@ export function PartnerRail() {
             <div className="truncate text-[13px] font-medium text-bark-900 dark:text-bark-50">{user?.name ?? "Account"}</div>
             <div className="text-[11px] text-bark-400">Partner</div>
           </div>
-          <Link href="/app" className="ml-auto text-bark-400 hover:text-bark-700" title="Exit to app"><ChevronLeft className="h-[17px] w-[17px]" /></Link>
+          <Link href="/map" className="ml-auto text-bark-400 hover:text-bark-700" title="Exit to map"><ChevronLeft className="h-[17px] w-[17px]" /></Link>
         </div>
       </div>
     </>

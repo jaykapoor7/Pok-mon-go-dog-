@@ -56,7 +56,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
   return (
     <div className="mx-auto max-w-md px-4 pb-32 pt-24 sm:px-6">
       <Link
-        href="/app"
+        href="/map"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
       >
         <ArrowLeft className="h-4 w-4" /> Back to the map

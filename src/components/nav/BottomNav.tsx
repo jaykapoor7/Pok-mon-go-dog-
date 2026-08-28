@@ -4,21 +4,18 @@ import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Home,
   Map as MapIcon,
-  HandHelping,
   Plus,
-  HeartHandshake,
-  Images,
-  Utensils,
-  Building2,
+  LayoutDashboard,
+  BarChart3,
 } from "lucide-react";
 import { INFO } from "./MenuDrawer";
 import { SocialLinks } from "./SocialLinks";
 import { cn } from "@/lib/utils";
 
-// Route keys stay stable (/report was "spot", /dashboard was "ngo"), only the
-// display labels changed, so deep links and any future analytics keep working.
+// The app is the map + the report flow; the NGO dashboard gets one light-touch
+// entry point rather than equal billing. Route keys stay stable for any
+// existing deep links/analytics even where labels changed.
 type Item = {
   key: string;
   href: string;
@@ -28,17 +25,14 @@ type Item = {
 };
 
 const ITEMS: Item[] = [
-  { key: "today", href: "/app", label: "Today", icon: Home },
   { key: "map", href: "/map", label: "Map", icon: MapIcon },
   { key: "report", href: "/report", label: "Report", icon: Plus, gated: true },
-  { key: "help", href: "/help", label: "Help", icon: HandHelping },
-  { key: "partners", href: "/partner", label: "Partners", icon: HeartHandshake },
+  { key: "partners", href: "/partner", label: "Dashboard", icon: LayoutDashboard },
 ];
 
 function useActive() {
   const pathname = usePathname();
-  return (href: string) =>
-    href === "/app" ? pathname === "/app" : pathname.startsWith(href);
+  return (href: string) => pathname.startsWith(href);
 }
 
 export function BottomNav() {
@@ -123,7 +117,7 @@ function DesktopRail() {
         aria-label="Primary"
         className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-black/[0.07] bg-paper/95 px-4 py-6 backdrop-blur-xl dark:border-white/10 dark:bg-ink/95 lg:flex"
       >
-        <Link href="/app" aria-label="StrayPaw home" className="mb-7 block px-2">
+        <Link href="/map" aria-label="StrayPaw home" className="mb-7 block px-2">
           <Logo size="lg" />
           <p className="mt-2 text-[11px] font-medium leading-tight text-bark-400">
             Open-sourcing stray-animal care · for the people, by the people
@@ -171,36 +165,14 @@ function DesktopRail() {
           })}
         </ul>
 
-        {/* Explore, quick access to surfaces that used to hide in the drawer */}
-        <nav aria-label="Explore" className="mt-6 border-t border-black/[0.06] pt-4 dark:border-white/10">
-          <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
-            Explore
-          </p>
-          <ul className="space-y-0.5">
-            {[
-              { href: "/feed", label: "Sightings feed", icon: Images },
-              { href: "/fundraisers", label: "Fundraisers", icon: HeartHandshake },
-              { href: "/feeding", label: "Feeding zones", icon: Utensils },
-              { href: "/orgs", label: "Organizations", icon: Building2 },
-            ].map(({ href, label, icon: Icon }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  aria-current={isActive(href) ? "page" : undefined}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-                    isActive(href)
-                      ? "bg-paw-100 text-paw-700 dark:bg-bark-800 dark:text-paw-300"
-                      : "text-bark-600 hover:bg-black/[0.04] hover:text-paw-600 dark:text-bark-300 dark:hover:bg-white/[0.05]"
-                  )}
-                >
-                  <Icon className="h-[18px] w-[18px]" />
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {/* Bridge back to the data platform — Explore/Insights/Research/Take Action */}
+        <Link
+          href="/"
+          className="mt-6 flex items-center gap-3 rounded-2xl border border-black/[0.07] px-3 py-2.5 text-sm font-medium text-bark-600 transition-colors hover:border-paw-300 hover:text-paw-700 dark:border-white/10 dark:text-bark-300 dark:hover:text-paw-300"
+        >
+          <BarChart3 className="h-[18px] w-[18px] text-paw-500" />
+          Data &amp; insights
+        </Link>
 
         {/* info links, a comfortable single-column list that fills the rail */}
         <nav aria-label="More" className="mt-4 flex-1 border-t border-black/[0.06] pt-4 dark:border-white/10">
