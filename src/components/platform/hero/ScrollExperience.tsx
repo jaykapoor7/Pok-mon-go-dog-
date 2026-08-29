@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { HeroCanvas } from "./HeroCanvas";
@@ -9,8 +9,6 @@ import { HeroCanvas } from "./HeroCanvas";
 /* ------------------------------------------------------------------ */
 /*  Full-page scroll-driven hero experience.                          */
 /*  Sticky 3D canvas + text panels that scroll over it.               */
-/*  Covers: Hero → Problem → Notice → Report → Understand →           */
-/*          Connect → Act → Scale                                     */
 /* ------------------------------------------------------------------ */
 
 interface Stage {
@@ -71,6 +69,10 @@ const STAGES: Stage[] = [
   },
 ];
 
+// Per-stage scroll height: 65vh on mobile (<lg), 100vh on desktop.
+// Defined in CSS so there's no hydration mismatch from JS window checks.
+const N = STAGES.length;
+
 function StagePanel({
   stage,
   index,
@@ -83,9 +85,8 @@ function StagePanel({
   const isHero = index === 0;
 
   return (
-    <div
-      className={`flex min-h-screen items-center ${isHero ? "pt-16" : ""}`}
-    >
+    // min-h matches --stage-h defined in <style> below
+    <div className={`scroll-stage flex items-center ${isHero ? "pt-16" : ""}`}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0.15, y: 0 }}
@@ -155,77 +156,82 @@ export function ScrollExperience() {
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     setProgress(v);
-    setActiveStage(Math.min(STAGES.length - 1, Math.floor(v * STAGES.length)));
+    setActiveStage(Math.min(N - 1, Math.floor(v * N)));
   });
 
-  // Total scroll height: number of stages * 100vh
-  const scrollHeight = `${STAGES.length * 100}vh`;
-
   return (
-    <div
-      ref={containerRef}
-      className="relative bg-ink"
-      style={{ height: scrollHeight }}
-    >
-      {/* Sticky 3D canvas */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* Dark gradient overlay for text readability */}
-        <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-ink/80 via-ink/40 to-transparent lg:via-ink/20" />
+    <>
+      {/* CSS: per-stage height responsive without JS hydration mismatch */}
+      <style>{`
+        .scroll-exp { height: calc(65vh * ${N}); }
+        .scroll-stage { min-height: 65vh; }
+        @media (min-width: 1024px) {
+          .scroll-exp { height: calc(100vh * ${N}); }
+          .scroll-stage { min-height: 100vh; }
+        }
+      `}</style>
 
-        {/* Canvas */}
-        {!isMobile && (
-          <HeroCanvas
-            scrollProgress={progress}
-            className="absolute inset-0 h-full w-full"
-          />
-        )}
+      <div ref={containerRef} className="scroll-exp relative bg-ink">
+        {/* Sticky 3D canvas */}
+        <div className="sticky top-0 h-screen w-full overflow-hidden">
+          {/* Dark gradient overlay for text readability */}
+          <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-ink/80 via-ink/40 to-transparent lg:via-ink/20" />
 
-        {/* Mobile: simplified visual */}
-        {isMobile && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative h-64 w-64">
-              <div className="absolute inset-0 rounded-full bg-paw-500/10" />
-              <div className="absolute inset-4 rounded-full bg-paw-500/5 backdrop-blur-sm" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <HeroCanvas
-                  scrollProgress={progress}
-                  className="h-full w-full"
-                />
+          {/* Canvas */}
+          {!isMobile && (
+            <HeroCanvas
+              scrollProgress={progress}
+              className="absolute inset-0 h-full w-full"
+            />
+          )}
+
+          {/* Mobile: simplified visual */}
+          {isMobile && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative h-64 w-64">
+                <div className="absolute inset-0 rounded-full bg-paw-500/10" />
+                <div className="absolute inset-4 rounded-full bg-paw-500/5 backdrop-blur-sm" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <HeroCanvas
+                    scrollProgress={progress}
+                    className="h-full w-full"
+                  />
+                </div>
               </div>
             </div>
+          )}
+
+          {/* Stage indicator dots */}
+          <div className="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2 sm:right-6">
+            {STAGES.map((s, i) => (
+              <div
+                key={s.id}
+                className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
+                  i === activeStage
+                    ? "scale-150 bg-paw-400"
+                    : i < activeStage
+                      ? "bg-white/30"
+                      : "bg-white/10"
+                }`}
+              />
+            ))}
           </div>
-        )}
+        </div>
 
-        {/* Stage indicator dots */}
-        <div className="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2 sm:right-6">
-          {STAGES.map((s, i) => (
-            <div
-              key={s.id}
-              className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
-                i === activeStage
-                  ? "scale-150 bg-paw-400"
-                  : i < activeStage
-                    ? "bg-white/30"
-                    : "bg-white/10"
-              }`}
-            />
-          ))}
+        {/* Scrolling text panels */}
+        <div className="absolute inset-0 z-20">
+          <div className="mx-auto max-w-6xl px-6 sm:px-8 lg:px-12">
+            {STAGES.map((stage, i) => (
+              <StagePanel
+                key={stage.id}
+                stage={stage}
+                index={i}
+                isActive={i === activeStage}
+              />
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Scrolling text panels */}
-      <div className="absolute inset-0 z-20">
-        <div className="mx-auto max-w-6xl px-6 sm:px-8 lg:px-12">
-          {STAGES.map((stage, i) => (
-            <StagePanel
-              key={stage.id}
-              stage={stage}
-              index={i}
-              isActive={i === activeStage}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+    </>
   );
 }

@@ -362,23 +362,15 @@ export default async function HomePage() {
                 who notices and every organisation that participates. The
                 infrastructure gets better the more people use it.
               </p>
-              <div className="mt-8 flex items-center justify-center gap-3 text-sm text-bark-400">
-                <span className="rounded-full bg-paw-100 px-3 py-1 font-medium text-paw-700 dark:bg-paw-900/20 dark:text-paw-300">
-                  Collect
-                </span>
-                <ArrowRight className="h-3.5 w-3.5" />
-                <span className="rounded-full bg-paw-100 px-3 py-1 font-medium text-paw-700 dark:bg-paw-900/20 dark:text-paw-300">
-                  Find
-                </span>
-                <ArrowRight className="h-3.5 w-3.5" />
-                <span className="rounded-full bg-paw-100 px-3 py-1 font-medium text-paw-700 dark:bg-paw-900/20 dark:text-paw-300">
-                  Connect
-                </span>
-                <ArrowRight className="h-3.5 w-3.5" />
-                <span className="rounded-full bg-paw-100 px-3 py-1 font-medium text-paw-700 dark:bg-paw-900/20 dark:text-paw-300">
-                  Present
-                </span>
-                <ArrowRight className="h-3.5 w-3.5" />
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-sm text-bark-400">
+                {["Collect", "Find", "Connect", "Present"].map((step) => (
+                  <span key={step} className="flex items-center gap-2">
+                    <span className="rounded-full bg-paw-100 px-3 py-1 font-medium text-paw-700 dark:bg-paw-900/20 dark:text-paw-300">
+                      {step}
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                  </span>
+                ))}
                 <span className="rounded-full bg-paw-500 px-3 py-1 font-medium text-white">
                   Act
                 </span>

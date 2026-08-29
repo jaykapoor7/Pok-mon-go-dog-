@@ -92,8 +92,13 @@ export default function GetInvolvedPage() {
 
         <FloatingPillNav
           sections={[
-            ...WAYS.map((w) => ({ id: w.id, label: w.title })),
-            { id: "tips", label: "Everyday tips" },
+            { id: "report", label: "Report" },
+            { id: "volunteer", label: "Volunteer" },
+            { id: "support", label: "Donate" },
+            { id: "data", label: "Data" },
+            { id: "awareness", label: "Awareness" },
+            { id: "community", label: "Community" },
+            { id: "tips", label: "Tips" },
             { id: "open-data", label: "Open data" },
           ]}
         />

@@ -79,8 +79,11 @@ export default function LearnPage() {
 
         <FloatingPillNav
           sections={[
-            ...SECTIONS.map((s) => ({ id: s.id, label: s.title })),
-            { id: "sources", label: "Key sources" },
+            { id: "coexist", label: "Coexistence" },
+            { id: "abc", label: "ABC" },
+            { id: "rabies", label: "Rabies" },
+            { id: "legal", label: "Legal" },
+            { id: "sources", label: "Sources" },
           ]}
         />
 
