@@ -34,27 +34,21 @@ export const metadata = {
 
 const PLATFORM_CARDS = [
   {
-    icon: MapPin,
-    title: "Report",
-    body: "Spot a street animal that needs help? One tap creates a shared record.",
-    href: "/report",
-  },
-  {
     icon: Search,
     title: "Find Help",
-    body: "Locate nearby NGOs, vets, shelters, and rescue resources instantly.",
+    body: "Locate nearby NGOs, vets, shelters, and rescue resources in your state.",
     href: "/resources",
   },
   {
     icon: Compass,
-    title: "Explore",
-    body: "Browse the live map of sightings, reports, and community activity.",
-    href: "/map",
+    title: "Explore data",
+    body: "State-by-state population, sterilisation, and rabies data, with visible gaps.",
+    href: "/explore",
   },
   {
     icon: BookOpen,
     title: "Learn",
-    body: "Practical guidance on coexisting with, caring for, and helping street animals.",
+    body: "Coexistence, ABC, rabies prevention, and the legal framework, clearly explained.",
     href: "/learn",
   },
   {
@@ -66,18 +60,23 @@ const PLATFORM_CARDS = [
   {
     icon: Heart,
     title: "Support",
-    body: "Back the organisations doing the work. Every contribution is tracked.",
+    body: "Back the organisations doing the work. Donate directly to verified NGOs.",
+    href: "/get-involved",
+  },
+  {
+    icon: MapPin,
+    title: "Get involved",
+    body: "From data contributions to community feeding rounds, every action helps.",
     href: "/get-involved",
   },
 ];
 
 const INVOLVE_ACTIONS = [
-  { label: "Report a sighting", href: "/report", primary: true },
   { label: "Find an NGO", href: "/resources" },
   { label: "Volunteer", href: "/get-involved" },
-  { label: "Explore the map", href: "/map" },
+  { label: "Donate", href: "/get-involved" },
   { label: "Learn about street animals", href: "/learn" },
-  { label: "Share StrayPaw", href: "/" },
+  { label: "Contribute data", href: "/get-involved" },
 ];
 
 export default async function HomePage() {
@@ -100,7 +99,6 @@ export default async function HomePage() {
             </Link>
             <nav className="ml-2 hidden items-center gap-1 md:flex">
               {[
-                { label: "Map", href: "/map" },
                 { label: "Explore", href: "/explore" },
                 { label: "Resources", href: "/resources" },
                 { label: "Learn", href: "/learn" },
@@ -115,12 +113,18 @@ export default async function HomePage() {
                 </Link>
               ))}
             </nav>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
               <Link
-                href="/report"
-                className="rounded-full bg-paw-500 px-4 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"
+                href="/map"
+                className="hidden rounded-full border border-white/20 px-4 py-2 text-[13px] font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white md:inline-flex"
               >
-                Report
+                Open app
+              </Link>
+              <Link
+                href="/map"
+                className="rounded-full bg-paw-500 px-4 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 md:hidden"
+              >
+                App
               </Link>
             </div>
           </div>
@@ -334,16 +338,32 @@ export default async function HomePage() {
               <Link
                 key={a.label}
                 href={a.href}
-                className={
-                  a.primary
-                    ? "inline-flex items-center gap-2 rounded-full bg-paw-500 px-5 py-3 text-sm font-semibold text-white hover:bg-paw-600"
-                    : "inline-flex items-center gap-2 rounded-full border border-black/[0.08] px-5 py-3 text-sm font-semibold text-bark-800 transition-colors hover:bg-bark-50 dark:border-white/[0.1] dark:text-bark-100 dark:hover:bg-white/[0.05]"
-                }
+                className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] px-5 py-3 text-sm font-semibold text-bark-800 transition-colors hover:bg-bark-50 dark:border-white/[0.1] dark:text-bark-100 dark:hover:bg-white/[0.05]"
               >
                 {a.label}
-                {a.primary && <ArrowRight className="h-4 w-4" />}
               </Link>
             ))}
+          </div>
+
+          {/* Community app entry - clearly separate */}
+          <div className="mt-10 rounded-2xl border border-black/[0.06] bg-bark-50/60 p-6 dark:border-white/[0.08] dark:bg-white/[0.03]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-bark-400">
+              Community tool
+            </p>
+            <h3 className="mt-2 font-display text-lg font-bold tracking-tight text-bark-900 dark:text-bark-50">
+              Report sightings. Explore the live map.
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
+              The StrayPaw community app lets you report a street animal in one
+              tap, track sightings near you, and connect with people helping in
+              your area.
+            </p>
+            <Link
+              href="/map"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-paw-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-paw-600"
+            >
+              Open the community app <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </section>
 
@@ -395,16 +415,16 @@ export default async function HomePage() {
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link
-                  href="/report"
+                  href="/map"
                   className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-base font-semibold text-bark-900 transition-colors hover:bg-bark-100"
                 >
-                  Report a sighting <ArrowRight className="h-4 w-4" />
+                  Open the community app <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                  href="/map"
+                  href="/resources"
                   className="inline-flex items-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-base font-semibold text-white/80 transition-colors hover:border-white/30 hover:text-white"
                 >
-                  Explore the map
+                  Find organisations
                 </Link>
               </div>
             </div>

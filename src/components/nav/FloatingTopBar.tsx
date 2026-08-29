@@ -32,12 +32,24 @@ export function FloatingTopBar() {
     <>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-black/[0.06] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85 lg:left-60">
         <div className="mx-auto flex h-[4.5rem] max-w-3xl items-center gap-2 px-3 lg:max-w-5xl lg:px-6">
+          {/* Logo links back to the platform home, not the map */}
           <Link
-            href="/map"
-            aria-label="StrayPaw home"
+            href="/"
+            aria-label="Back to StrayPaw"
             className="flex shrink-0 items-center lg:hidden"
           >
             <Logo size="md" />
+          </Link>
+
+          {/* Desktop: explicit back-to-platform link */}
+          <Link
+            href="/"
+            className="hidden shrink-0 items-center gap-1 text-sm font-medium text-bark-500 transition-colors hover:text-bark-900 dark:text-bark-400 dark:hover:text-bark-100 lg:flex"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M10.5 12.5L5.5 8l5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+            StrayPaw
           </Link>
 
           <PlaceSearch className="min-w-0 flex-1 lg:max-w-xl" />

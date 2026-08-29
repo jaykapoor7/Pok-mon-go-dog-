@@ -10,7 +10,7 @@ const BARE_ROUTES = new Set<string>([
   "/", "/what-we-do", "/journey", "/partnerships", "/contact", "/partner-apply",
   "/explore", "/insights", "/research", "/take-action",
   "/resources", "/learn", "/get-involved", "/orgs",
-  "/privacy", "/terms", "/safety", "/report-content",
+  "/about", "/privacy", "/terms", "/safety", "/report-content",
 ]);
 
 // Focused flows: keep the top bar but hide the bottom nav so it doesn't collide

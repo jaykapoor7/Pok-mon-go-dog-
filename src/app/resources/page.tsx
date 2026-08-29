@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
 import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
+import { ResourcesDirectory } from "@/components/platform/ResourcesDirectory";
 import { ORGS, ORG_BY_STATE } from "@/lib/platform/orgs";
 import { STATES } from "@/lib/platform/geography";
-import { Building2, ExternalLink, MapPin, Phone, ArrowRight } from "lucide-react";
+import { Phone, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-static";
 export const metadata = {
@@ -130,76 +131,7 @@ export default function ResourcesPage() {
           </ol>
         </section>
 
-        {/* ── Organisation directory ── */}
-        <section id="directory" className="mt-12 scroll-mt-28">
-          <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
-            <Building2 className="h-5 w-5 text-paw-500" />
-            Organisation directory
-          </h2>
-          <p className="mt-1 text-sm text-bark-400">
-            {ORGS.length} verified animal-welfare organisations across all{" "}
-            {statesWithOrgs.length} states. This is a curated list, not a
-            comprehensive registry. See{" "}
-            <Link href="/orgs" className="text-paw-600 underline">
-              /orgs
-            </Link>{" "}
-            for the full searchable directory.
-          </p>
-
-          <div className="mt-6 space-y-8">
-            {statesWithOrgs.map(({ code, name, orgs }) => (
-              <div key={code}>
-                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-bark-400">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {name}
-                </h3>
-                <div className="mt-2 space-y-3">
-                  {orgs.map((org) => (
-                    <div
-                      key={org.id}
-                      className="rounded-lg border border-bark-100 bg-white p-4"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-bark-900">
-                            {org.name}
-                          </p>
-                          <p className="text-xs text-bark-400">
-                            {org.city}
-                            {org.founded ? ` / Est. ${org.founded}` : ""}
-                          </p>
-                        </div>
-                        {org.url && (
-                          <a
-                            href={org.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="shrink-0 text-bark-300 hover:text-paw-500"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
-                      </div>
-                      <p className="mt-2 text-sm text-bark-600">
-                        {org.summary}
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {org.focus.map((f) => (
-                          <span
-                            key={f}
-                            className="rounded-full bg-bark-50 px-2 py-0.5 text-[11px] font-medium text-bark-500"
-                          >
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <ResourcesDirectory statesWithOrgs={statesWithOrgs} totalOrgs={ORGS.length} />
 
         {/* ── Data & research ── */}
         <section id="data" className="mt-12 scroll-mt-28">

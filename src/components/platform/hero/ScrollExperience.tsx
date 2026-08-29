@@ -89,49 +89,52 @@ function StagePanel({
     <div className={`scroll-stage flex items-center ${isHero ? "pt-16" : ""}`}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
-        animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0.15, y: 0 }}
+        animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0.25, y: 0 }}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         className="max-w-lg"
       >
-        <p className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-paw-400">
-          {stage.eyebrow}
-        </p>
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-1 w-4 rounded-full bg-paw-400" />
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-paw-400">
+            {stage.eyebrow}
+          </p>
+        </div>
         <h2
           className={`mt-4 font-display font-extrabold leading-[1.05] tracking-tight text-white ${
             isHero
-              ? "text-4xl sm:text-5xl lg:text-[3.6rem]"
-              : "text-3xl sm:text-4xl lg:text-[2.8rem]"
+              ? "text-5xl sm:text-6xl lg:text-[4rem]"
+              : "text-4xl sm:text-5xl lg:text-[3rem]"
           }`}
           style={{ whiteSpace: "pre-line" }}
         >
           {stage.headline}
         </h2>
-        <p className="mt-5 text-[15px] leading-relaxed text-white/60 sm:text-base">
+        <p className="mt-5 text-base leading-relaxed text-white/80 sm:text-[17px]">
           {stage.body}
         </p>
         {isHero && (
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/report"
+              href="/map"
               className="inline-flex items-center gap-2 rounded-full bg-paw-500 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-paw-600"
             >
-              Report a sighting <ArrowRight className="h-4 w-4" />
+              Open the community app <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/map"
+              href="/explore"
               className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-base font-semibold text-white/80 transition-colors hover:border-white/30 hover:text-white"
             >
-              Open the map
+              Explore the data
             </Link>
           </div>
         )}
         {stage.id === "scale" && (
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/report"
+              href="/map"
               className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-base font-semibold text-bark-900 transition-colors hover:bg-bark-100"
             >
-              See something? Start here. <ArrowRight className="h-4 w-4" />
+              Open the community app <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         )}
@@ -185,33 +188,34 @@ export function ScrollExperience() {
             />
           )}
 
-          {/* Mobile: simplified visual */}
+          {/* Mobile: large data figure as visual weight */}
           {isMobile && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative h-64 w-64">
-                <div className="absolute inset-0 rounded-full bg-paw-500/10" />
-                <div className="absolute inset-4 rounded-full bg-paw-500/5 backdrop-blur-sm" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <HeroCanvas
-                    scrollProgress={progress}
-                    className="h-full w-full"
-                  />
-                </div>
+            <div className="absolute inset-0 flex items-end justify-end pb-12 pr-4">
+              <div className="select-none text-right">
+                <p
+                  className="font-display font-black leading-none text-white opacity-[0.08]"
+                  style={{ fontSize: "clamp(80px, 28vw, 140px)" }}
+                >
+                  35M
+                </p>
+                <p className="mt-1 text-[11px] font-medium uppercase tracking-widest text-white/20">
+                  street dogs in India
+                </p>
               </div>
             </div>
           )}
 
           {/* Stage indicator dots */}
-          <div className="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2 sm:right-6">
+          <div className="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2.5 sm:right-6">
             {STAGES.map((s, i) => (
               <div
                 key={s.id}
-                className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
+                className={`rounded-full transition-all duration-300 ${
                   i === activeStage
-                    ? "scale-150 bg-paw-400"
+                    ? "h-4 w-1.5 bg-paw-400"
                     : i < activeStage
-                      ? "bg-white/30"
-                      : "bg-white/10"
+                      ? "h-1.5 w-1.5 bg-white/40"
+                      : "h-1.5 w-1.5 bg-white/15"
                 }`}
               />
             ))}

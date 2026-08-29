@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Map as MapIcon } from "lucide-react";
+import { ArrowRight, Map as MapIcon, Building2 } from "lucide-react";
 import { SectionLabel } from "@/components/platform/viz";
 import { SourceBadge, ConfidenceBar } from "@/components/platform/DataBadge";
 import { METRICS, STATES } from "@/lib/platform/geography";
@@ -73,8 +73,8 @@ export function ExploreClient() {
       {/* Region rows */}
       <div className="mt-5 overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/[0.1]">
         {rows.map(({ state, dp }, i) => (
-          <div key={state.code} className={cn("flex items-center gap-4 px-5 py-3", i > 0 && "border-t border-black/[0.06] dark:border-white/[0.06]", !dp && "opacity-55")}>
-            <span className="w-40 shrink-0 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{state.name}</span>
+          <div key={state.code} className={cn("group flex items-center gap-3 px-5 py-3", i > 0 && "border-t border-black/[0.06] dark:border-white/[0.06]", !dp && "opacity-55")}>
+            <span className="w-36 shrink-0 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{state.name}</span>
             <div className="hidden h-2 flex-1 rounded-full bg-bark-100 dark:bg-bark-800 sm:block">
               {dp && <div className="h-full rounded-full bg-paw-500" style={{ width: `${(dp.value / peak) * 100}%` }} />}
             </div>
@@ -82,6 +82,14 @@ export function ExploreClient() {
               {dp ? fmt(dp.value) : <span className="text-[12px] font-normal text-bark-400">No data</span>}
             </span>
             <span className="hidden w-10 shrink-0 justify-end sm:flex">{dp && <ConfidenceBar level={dp.confidence} />}</span>
+            <Link
+              href={`/resources?state=${state.code}`}
+              className="hidden shrink-0 items-center gap-1 text-[11px] font-medium text-paw-600 opacity-0 transition-opacity hover:text-paw-700 group-hover:opacity-100 dark:text-paw-300 lg:flex"
+              title={`Find organisations in ${state.name}`}
+            >
+              <Building2 className="h-3 w-3" />
+              Orgs
+            </Link>
           </div>
         ))}
       </div>
