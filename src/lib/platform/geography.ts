@@ -29,8 +29,18 @@ export const DISTRICTS: GeoRef[] = [
   { level: "city", code: "IN-WB-KOLKATA", name: "Kolkata", parent: "IN-WB" },
   { level: "city", code: "IN-TG-HYDERABAD", name: "Hyderabad", parent: "IN-TG" },
   { level: "city", code: "IN-RJ-UDAIPUR", name: "Udaipur", parent: "IN-RJ" },
+  { level: "city", code: "IN-RJ-JAIPUR", name: "Jaipur", parent: "IN-RJ" },
   { level: "city", code: "IN-UP-LUCKNOW", name: "Lucknow", parent: "IN-UP" },
   { level: "city", code: "IN-AP-PUTTAPARTHI", name: "Puttaparthi", parent: "IN-AP" },
+  { level: "city", code: "IN-AP-VISAKHAPATNAM", name: "Visakhapatnam", parent: "IN-AP" },
+  { level: "city", code: "IN-GJ-AHMEDABAD", name: "Ahmedabad", parent: "IN-GJ" },
+  { level: "city", code: "IN-KL-THRISSUR", name: "Thrissur", parent: "IN-KL" },
+  { level: "city", code: "IN-AS-GUWAHATI", name: "Guwahati", parent: "IN-AS" },
+  { level: "city", code: "IN-MP-BHOPAL", name: "Bhopal", parent: "IN-MP" },
+  { level: "city", code: "IN-OR-BHUBANESWAR", name: "Bhubaneswar", parent: "IN-OR" },
+  { level: "city", code: "IN-GA-PANAJI", name: "Panaji", parent: "IN-GA" },
+  { level: "city", code: "IN-BR-PATNA", name: "Patna", parent: "IN-BR" },
+  { level: "city", code: "IN-PB-JALANDHAR", name: "Jalandhar", parent: "IN-PB" },
 ];
 
 export const METRICS: MetricDef[] = [

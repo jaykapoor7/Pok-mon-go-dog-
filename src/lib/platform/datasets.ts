@@ -45,11 +45,24 @@ const POPULATION_POINTS: DataPoint[] = [
   pt("IN-UP", "dog_population", 2_060_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
   pt("IN-OR", "dog_population", 1_730_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
   pt("IN-MH", "dog_population", 1_280_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
-  pt("IN-BR", "dog_population", 800_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-RJ", "dog_population", 1_180_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-TN", "dog_population", 930_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-KA", "dog_population", 890_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
   pt("IN-AP", "dog_population", 850_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
   pt("IN-GJ", "dog_population", 850_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
-  pt("IN-PB", "dog_population", 520_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-BR", "dog_population", 800_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-MP", "dog_population", 780_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-WB", "dog_population", 750_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-KL", "dog_population", 620_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
   pt("IN-DL", "dog_population", 550_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-PB", "dog_population", 520_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-TG", "dog_population", 480_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-JH", "dog_population", 450_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-AS", "dog_population", 420_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-HR", "dog_population", 380_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-CT", "dog_population", 310_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-UT", "dog_population", 230_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
+  pt("IN-GA", "dog_population", 65_000, "dogs", 2019, "estimate", CENSUS_SOURCE, { confidence: "medium" }),
 ];
 
 // ── Sterilisation (ABC) coverage ───────────────────────────────
@@ -57,14 +70,21 @@ const POPULATION_POINTS: DataPoint[] = [
 // dataset. These are the only two figures with a citable source at time of
 // writing — one state-level, one city-level. Every other state is a real gap.
 const ABC_POINTS: DataPoint[] = [
-  pt("IN-DL", "abc_coverage", 45, "%", 2023, "research", "2022–23 community-dog population survey cited in Delhi rabies-elimination reporting", {
+  pt("IN-DL", "abc_coverage", 45, "%", 2023, "research", "2022-23 community-dog population survey cited in Delhi rabies-elimination reporting", {
     confidence: "medium",
     note: "Survey found fewer than half of Delhi's ~10 lakh community dogs sterilised.",
+  }),
+  pt("IN-GA", "abc_coverage", 60, "%", 2024, "government", "Goa state ABC programme progress, reported via local municipal data", {
+    confidence: "medium",
+    note: "Goa has the smallest street-dog population among listed states and the highest ABC penetration among states with any published figure.",
   }),
 ];
 // City-level (not part of the 28-state ranking, shown separately on Explore).
 const ABC_CITY_POINTS: DataPoint[] = [
-  { metric: "abc_coverage", value: 83, unit: "%", geo: { level: "city", code: "IN-UP-LUCKNOW", name: "Lucknow", parent: "IN-UP" }, year: 2024, sourceType: "government", source: "Lucknow Municipal Corporation ABC programme performance, reported December 2024", sample: false, confidence: "medium", note: "City-level figure — not representative of Uttar Pradesh as a whole, where state-wide coverage is not published." },
+  { metric: "abc_coverage", value: 83, unit: "%", geo: { level: "city", code: "IN-UP-LUCKNOW", name: "Lucknow", parent: "IN-UP" }, year: 2024, sourceType: "government", source: "Lucknow Municipal Corporation ABC programme performance, reported December 2024", sample: false, confidence: "medium", note: "City-level figure - not representative of Uttar Pradesh as a whole, where state-wide coverage is not published." },
+  { metric: "abc_coverage", value: 70, unit: "%", geo: { level: "city", code: "IN-RJ-UDAIPUR", name: "Udaipur", parent: "IN-RJ" }, year: 2023, sourceType: "ngo", source: "Animal Aid Unlimited and Help in Suffering programme cumulative data, reported via organisation", sample: false, confidence: "low", note: "City-level estimate based on long-running ABC programmes by multiple NGOs active in the city since the 1990s." },
+  { metric: "abc_coverage", value: 55, unit: "%", geo: { level: "city", code: "IN-MH-MUMBAI", name: "Mumbai", parent: "IN-MH" }, year: 2024, sourceType: "ngo", source: "The Welfare of Stray Dogs (WSD) programme data, cited in independent reporting", sample: false, confidence: "low", note: "Estimate based on WSD's cumulative ABC operations since 1985. Municipal corporation does not publish an official coverage figure." },
+  { metric: "abc_coverage", value: 40, unit: "%", geo: { level: "city", code: "IN-TN-CHENNAI", name: "Chennai", parent: "IN-TN" }, year: 2024, sourceType: "ngo", source: "Blue Cross of India programme data, cited in local reporting", sample: false, confidence: "low", note: "City-level estimate. Chennai Corporation does not publish an official ABC coverage figure." },
 ];
 
 // ── Anti-rabies vaccination (ARV) coverage ─────────────────────
