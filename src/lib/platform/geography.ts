@@ -41,6 +41,18 @@ export const DISTRICTS: GeoRef[] = [
   { level: "city", code: "IN-GA-PANAJI", name: "Panaji", parent: "IN-GA" },
   { level: "city", code: "IN-BR-PATNA", name: "Patna", parent: "IN-BR" },
   { level: "city", code: "IN-PB-JALANDHAR", name: "Jalandhar", parent: "IN-PB" },
+  { level: "city", code: "IN-HR-GURUGRAM", name: "Gurugram", parent: "IN-HR" },
+  { level: "city", code: "IN-HR-FARIDABAD", name: "Faridabad", parent: "IN-HR" },
+  { level: "city", code: "IN-HP-DHARAMSALA", name: "Dharamsala", parent: "IN-HP" },
+  { level: "city", code: "IN-UT-DEHRADUN", name: "Dehradun", parent: "IN-UT" },
+  { level: "city", code: "IN-CT-RAIPUR", name: "Raipur", parent: "IN-CT" },
+  { level: "city", code: "IN-AR-ITANAGAR", name: "Itanagar", parent: "IN-AR" },
+  { level: "city", code: "IN-MN-IMPHAL", name: "Imphal", parent: "IN-MN" },
+  { level: "city", code: "IN-ML-SHILLONG", name: "Shillong", parent: "IN-ML" },
+  { level: "city", code: "IN-MZ-AIZAWL", name: "Aizawl", parent: "IN-MZ" },
+  { level: "city", code: "IN-NL-DIMAPUR", name: "Dimapur", parent: "IN-NL" },
+  { level: "city", code: "IN-SK-GANGTOK", name: "Gangtok", parent: "IN-SK" },
+  { level: "city", code: "IN-TR-AGARTALA", name: "Agartala", parent: "IN-TR" },
 ];
 
 export const METRICS: MetricDef[] = [

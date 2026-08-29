@@ -165,7 +165,7 @@ function DesktopRail() {
           })}
         </ul>
 
-        {/* Bridge back to the data platform — Explore/Insights/Research/Take Action */}
+        {/* Bridge back to the data platform - Explore/Insights/Research/Take Action */}
         <Link
           href="/"
           className="mt-6 flex items-center gap-3 rounded-2xl border border-black/[0.07] px-3 py-2.5 text-sm font-medium text-bark-600 transition-colors hover:border-paw-300 hover:text-paw-700 dark:border-white/10 dark:text-bark-300 dark:hover:text-paw-300"

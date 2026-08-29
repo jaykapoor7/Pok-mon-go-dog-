@@ -28,7 +28,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { SocialLinks } from "./SocialLinks";
 
 // The app itself is just the map and the report flow now; everything else
-// StrayPaw does — data, insights, volunteering, organisations — lives one
+// StrayPaw does - data, insights, volunteering, organisations - lives one
 // tap away here instead of competing for permanent nav space.
 const PRIMARY = [
   { href: "/map", label: "Map", icon: MapIcon },
@@ -160,7 +160,7 @@ export function MenuDrawer({
                 })}
               </nav>
 
-              {/* NGO dashboard — a real feature, kept to one light-touch entry */}
+              {/* NGO dashboard - a real feature, kept to one light-touch entry */}
               <Link
                 href="/partner"
                 onClick={onClose}
@@ -171,11 +171,11 @@ export function MenuDrawer({
                 </span>
                 <span>
                   <span className="block text-sm font-semibold">NGO dashboard</span>
-                  <span className="block text-xs text-bark-400">Cases, fundraisers, volunteers — for verified partners</span>
+                  <span className="block text-xs text-bark-400">Cases, fundraisers, volunteers - for verified partners</span>
                 </span>
               </Link>
 
-              {/* secondary — everything else StrayPaw does */}
+              {/* secondary - everything else StrayPaw does */}
               <div className="mt-4 border-t border-bark-100 pt-4 dark:border-bark-800">
                 <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-bark-400">
                   Also on StrayPaw

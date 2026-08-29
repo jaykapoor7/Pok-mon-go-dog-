@@ -66,7 +66,7 @@ export function TakeActionClient() {
             );
           })}
         </div>
-        <p className="mt-3 text-[12px] text-bark-400">{state.name}: {gapMetrics.length ? "gaps flagged below drive the recommended actions." : "coverage looks relatively strong here — help sustain it."}</p>
+        <p className="mt-3 text-[12px] text-bark-400">{state.name}: {gapMetrics.length ? "gaps flagged below drive the recommended actions." : "coverage looks relatively strong here - help sustain it."}</p>
       </div>
 
       {/* Actions */}
@@ -96,7 +96,7 @@ export function TakeActionClient() {
           <div>
             <h2 className="font-display text-xl font-bold tracking-tight">Who&apos;s working in {state.name}?</h2>
             <p className="mt-1 text-sm text-bark-600 dark:text-bark-300">
-              {orgs.length ? "Real, named organisations in StrayPaw's directory known to work here." : "No organisation in our directory is confirmed to work in this state yet — that's a gap you can help close."}
+              {orgs.length ? "Real, named organisations in StrayPaw's directory known to work here." : "No organisation in our directory is confirmed to work in this state yet - that's a gap you can help close."}
             </p>
           </div>
           <div className="flex shrink-0 gap-3">

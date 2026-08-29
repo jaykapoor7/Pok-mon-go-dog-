@@ -89,7 +89,7 @@ export default async function OrgsPage() {
       <section className="mt-10 border-t border-black/[0.08] pt-8 dark:border-white/[0.1]">
         <h2 className="font-display text-xl font-bold tracking-tight text-bark-900 dark:text-bark-50">Directory</h2>
         <p className="mt-1 max-w-2xl text-sm text-bark-500">
-          Real, named animal-welfare organisations working across India — sourced from public information, not yet on StrayPaw as partners. Not comprehensive, and not endorsed by these organisations for this listing.
+          Real, named animal-welfare organisations working across India - sourced from public information, not yet on StrayPaw as partners. Not comprehensive, and not endorsed by these organisations for this listing.
         </p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {ORGS.map((o) => (

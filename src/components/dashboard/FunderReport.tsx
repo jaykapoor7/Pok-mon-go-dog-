@@ -172,7 +172,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                   <div className="text-right text-xs text-bark-500">
                     <p className="font-semibold text-paw-600">StrayPaw</p>
                     <p>
-                      {formatDate(from.toISOString())} – {formatDate(to.toISOString())}
+                      {formatDate(from.toISOString())} - {formatDate(to.toISOString())}
                     </p>
                   </div>
                 </div>

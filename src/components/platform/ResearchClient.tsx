@@ -25,7 +25,7 @@ export function ResearchClient() {
         <SectionLabel>Research</SectionLabel>
         <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">The evidence base.</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
-          A curated index of government, research and NGO sources on street dogs, rabies and Animal Birth Control in India. These are pointers to primary sources — always verify figures at the source.
+          A curated index of government, research and NGO sources on street dogs, rabies and Animal Birth Control in India. These are pointers to primary sources - always verify figures at the source.
         </p>
       </header>
 

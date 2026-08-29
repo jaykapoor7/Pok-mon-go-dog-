@@ -15,7 +15,7 @@ const WORD: Record<Size, string> = {
 
 let uid = 0;
 
-/** StrayPaw mark — a heart holding a white dog head, in the blue brand palette.
+/** StrayPaw mark - a heart holding a white dog head, in the blue brand palette.
  *  (Heart concept kept from the brand artwork; recoloured to match the app.)
  *  Inline SVG so it stays crisp at any size. */
 export function AnimalMark({ className }: { className?: string }) {

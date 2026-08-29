@@ -45,7 +45,7 @@ export default function PartnershipsPage() {
         <Link href="/partner-apply" className="btn-primary shrink-0 px-6 py-3 text-base">Apply to partner <ArrowRight className="h-4 w-4" /></Link>
       </div>
 
-      {/* offerings — horizontal grid */}
+      {/* offerings - horizontal grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {OFFERINGS.map((o) => (
           <div key={o.title} className="rounded-2xl border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50">
@@ -71,7 +71,7 @@ export default function PartnershipsPage() {
         </div>
       </div>
 
-      {/* How to join — horizontal pathway */}
+      {/* How to join - horizontal pathway */}
       <div className="mt-10">
         <h2 className="font-display text-2xl font-bold tracking-tight">How to join</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">

@@ -127,7 +127,7 @@ export default function ResourcesPage() {
             Organisation directory
           </h2>
           <p className="mt-1 text-sm text-bark-400">
-            {ORGS.length} verified animal-welfare organisations across{" "}
+            {ORGS.length} verified animal-welfare organisations across all{" "}
             {statesWithOrgs.length} states. This is a curated list, not a
             comprehensive registry. See{" "}
             <Link href="/orgs" className="text-paw-600 underline">

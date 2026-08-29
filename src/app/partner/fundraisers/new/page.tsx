@@ -1,7 +1,7 @@
 import { NewFundraiserForm } from "@/components/fundraisers/NewFundraiserForm";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "New campaign — StrayPaw Partner" };
+export const metadata = { title: "New campaign - StrayPaw Partner" };
 
 export default function PartnerNewFundraiserPage() {
   return (

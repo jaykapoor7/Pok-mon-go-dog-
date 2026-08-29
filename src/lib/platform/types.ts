@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════
-// StrayPaw data platform — normalized data model.
+// StrayPaw data platform - normalized data model.
 //
 // Every value in the platform carries full provenance so that reported data,
 // estimates, derived analysis and unknowns are always distinguishable, and so
@@ -7,7 +7,7 @@
 // shape without rebuilding the product.
 // ════════════════════════════════════════════════════════════════
 
-/** Where a number comes from — always shown next to the number. */
+/** Where a number comes from - always shown next to the number. */
 export type SourceType =
   | "government"
   | "research"

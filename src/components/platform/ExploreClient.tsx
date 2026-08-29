@@ -87,7 +87,7 @@ export function ExploreClient() {
       </div>
 
       <p className="mt-4 text-[12px] text-bark-400">
-        Every value shown is real, sourced data — never fabricated. Confidence bars indicate how much to trust each figure; states with no data have none published anywhere we could verify, and that gap is shown rather than filled in.
+        Every value shown is real, sourced data - never fabricated. Confidence bars indicate how much to trust each figure; states with no data have none published anywhere we could verify, and that gap is shown rather than filled in.
       </p>
 
       <Link href="/insights" className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-paw-600 hover:text-paw-700 dark:text-paw-300">

@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   const docs = (row.documents as { name: string; url: string }[]).map((d) => `<li><a href="${esc(d.url)}">${esc(d.name)}</a></li>`).join("");
   await sendEmail({
     to: INBOX,
-    subject: `[StrayPaw] Partnership application — ${org_name}`,
+    subject: `[StrayPaw] Partnership application - ${org_name}`,
     html: `<p><strong>${esc(org_name)}</strong> applied to partner.</p>
       <p>Contact: ${esc(row.contact_name ?? "")} · ${esc(email)} · ${esc(row.phone ?? "")}</p>
       <p>City: ${esc(row.city ?? "")} · Website: ${esc(row.website ?? "")}</p>

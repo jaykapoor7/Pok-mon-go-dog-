@@ -15,7 +15,7 @@ export function ContactForm() {
   const [done, setDone] = useState(false);
 
   const mailtoHref = () => {
-    const body = `${message}\n\n— ${name} (${email})`;
+    const body = `${message}\n\n- ${name} (${email})`;
     return `mailto:${INBOX}?subject=${encodeURIComponent(subject || "Hello StrayPaw")}&body=${encodeURIComponent(body)}`;
   };
 

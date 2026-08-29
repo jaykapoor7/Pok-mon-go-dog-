@@ -2,7 +2,7 @@ import type { SourceType } from "./types";
 
 // Curated references to real, public sources on street dogs, rabies and ABC in
 // India. These are pointers (title, publisher, year, scope) to help people find
-// primary sources — always verify figures at the source. We do not reproduce
+// primary sources - always verify figures at the source. We do not reproduce
 // their content here.
 export interface ResearchEntry {
   id: string;
@@ -45,12 +45,12 @@ export const RESEARCH: ResearchEntry[] = [
     geography: "India (state / district)",
     type: "government",
     topics: ["population", "census"],
-    summary: "National livestock census that includes a count of stray/ownerless dogs, a common baseline for population estimates. Reported ~1.53 crore (15.3 million) stray dogs nationally in 2019 — the last official count.",
+    summary: "National livestock census that includes a count of stray/ownerless dogs, a common baseline for population estimates. Reported ~1.53 crore (15.3 million) stray dogs nationally in 2019 - the last official count.",
     url: "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=1813802&reg=3&lang=2",
   },
   {
     id: "who-rabies",
-    title: "Rabies — Fact sheet & Expert Consultation reports",
+    title: "Rabies: Fact sheet & Expert Consultation reports",
     org: "World Health Organization",
     year: "ongoing",
     geography: "Global / India",
@@ -67,18 +67,18 @@ export const RESEARCH: ResearchEntry[] = [
     geography: "India",
     type: "government",
     topics: ["rabies", "surveillance"],
-    summary: "National programme and surveillance activity for rabies control, including animal-bite and case reporting. 2024 figures: 3.7 million reported dog-bite cases and 54 officially “suspected” human rabies deaths nationwide.",
+    summary: "National programme and surveillance activity for rabies control, including animal-bite and case reporting. 2024 figures: 3.7 million reported dog-bite cases and 54 officially suspected human rabies deaths nationwide.",
     url: "https://rabiesfreeindia.mohfw.gov.in/About-NRCP",
   },
   {
     id: "rabies-burden-modelling-2024",
-    title: "Estimates of the burden of human rabies deaths and animal bites in India, 2022–23",
+    title: "Estimates of the burden of human rabies deaths and animal bites in India, 2022-23",
     org: "Peer-reviewed (community-based cross-sectional survey & probability decision-tree modelling)",
     year: 2024,
     geography: "India",
     type: "research",
     topics: ["rabies", "burden", "methodology"],
-    summary: "Independent modelled estimate of India's true rabies death toll — around 18,000–20,000 deaths a year, roughly 350x the number captured by official passive surveillance. The gap between this and NCDC's reported figures is one of the platform's clearest data-gap findings.",
+    summary: "Independent modelled estimate of India's true rabies death toll, around 18,000-20,000 deaths a year, roughly 350x the number captured by official passive surveillance. The gap between this and NCDC's reported figures is one of the platform's clearest data-gap findings.",
     url: "https://www.sciencedirect.com/science/article/abs/pii/S1473309924004900",
   },
   {
@@ -89,7 +89,7 @@ export const RESEARCH: ResearchEntry[] = [
     geography: "India (state-wise)",
     type: "government",
     topics: ["ABC", "sterilisation", "policy", "surveillance"],
-    summary: "The Supreme Court's 2025 review found persistent gaps in ABC infrastructure and, as of its October 2025 deadline, only 2 of 28 states/UTs had filed the ordered sterilisation-compliance reports — direct evidence of how little state-wise ABC data is currently tracked or published.",
+    summary: "The Supreme Court's 2025 review found persistent gaps in ABC infrastructure and, as of its October 2025 deadline, only 2 of 28 states/UTs had filed the ordered sterilisation-compliance reports - direct evidence of how little state-wise ABC data is currently tracked or published.",
     url: "https://india.mongabay.com/2025/09/street-dogs-in-the-spotlight-as-rabies-eradication-deadline-comes-closer/",
   },
   {
