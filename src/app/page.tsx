@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { PlatformShell } from "@/components/platform/PlatformNav";
-import { TangledHero } from "@/components/platform/TangledHero";
+import { JourneyHero } from "@/components/platform/JourneyHero";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
 import { ranked, nationalPoints } from "@/lib/platform/datasets";
@@ -27,7 +27,32 @@ export default async function HomePage() {
 
   return (
     <PlatformShell>
-      <TangledHero />
+      {/* Hero — text-first placeholder. A custom 3D piece will drop into the
+          right column here later; the section is sized to accept it without
+          disturbing the layout below. */}
+      <section className="grid gap-6 pt-6 sm:pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:pt-14">
+        <div className="flex flex-col justify-center">
+          <SectionLabel>Street-animal platform · India</SectionLabel>
+          <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.4rem]">
+            Where India&apos;s street animals become <span className="text-paw-600 dark:text-paw-400">visible</span>.
+          </h1>
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-bark-600 dark:text-bark-300">
+            Every dog, every sighting, every act of care — on one shared surface. StrayPaw connects the people, places, information and action around India&apos;s street animals, so no observation and no dog is lost between the cracks.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link href="/map" className="btn-primary px-6 py-3 text-base">Open the map <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="#how-we-work" className="btn-ghost px-6 py-3 text-base">See how it works</Link>
+          </div>
+        </div>
+        {/* Reserved slot for the future 3D model — kept explicit so the
+            layout doesn't collapse and the visual space is already sized. */}
+        <div
+          aria-hidden
+          className="hidden min-h-[52vh] items-center justify-center rounded-3xl border border-dashed border-black/[0.08] text-[11px] font-medium uppercase tracking-[0.2em] text-bark-300 dark:border-white/[0.1] lg:flex"
+        >
+          Hero visual — reserved
+        </div>
+      </section>
 
       {/* Statistics */}
       <section className="mt-14 border-y border-black/[0.08] py-8 dark:border-white/[0.1]">
@@ -67,6 +92,22 @@ export default async function HomePage() {
             See the analysis <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </span>
         </Link>
+      </section>
+
+      {/* How we work — the scroll-driven journey of one street animal */}
+      <section id="how-we-work" className="mt-20 border-t border-black/[0.08] pt-10 dark:border-white/[0.1]">
+        <div className="max-w-2xl">
+          <SectionLabel>How we work</SectionLabel>
+          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+            One dog&apos;s journey through the platform.
+          </h2>
+          <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
+            Scroll to follow a single street animal from the first sighting to a shared record on the map. It&apos;s the whole platform in one story.
+          </p>
+        </div>
+        <div className="mt-8">
+          <JourneyHero />
+        </div>
       </section>
 
       {/* Footer CTA */}
