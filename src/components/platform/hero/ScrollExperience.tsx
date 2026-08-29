@@ -70,8 +70,10 @@ const STAGES: Stage[] = [
 const N = STAGES.length;
 
 /* ───────────────────────────────────────────────────────────────────
-   Illustrated dog — expressive brush-stroke style, Indian street dog.
-   Organic paths, floppy ears, gentle face, amber-gold coloring.
+   Illustrated dog — brush-stroke style inspired by loose ink drawing.
+   Key features: angular bracket ears, big round body, minimal face,
+   paws as simple strokes. Colored for warmth. All poses share these
+   design principles: few shapes, bold lines, expressive simplicity.
 ─────────────────────────────────────────────────────────────────── */
 function Dog({
   x = 0,
@@ -86,37 +88,47 @@ function Dog({
   pose?: "sit" | "lie" | "stand" | "lookup";
   col?: string;
 }) {
-  const dark = col === "#F5A623" ? "#C17D11" : col;
+  const dk = "#C17D11";
+  const ink = "#1a0e00";
+
+  /* Shared minimal face */
+  function Face(ex1: number, ey1: number, ex2: number, ey2: number, nx: number, ny: number) {
+    return (
+      <>
+        <circle cx={ex1} cy={ey1} r="3" fill={ink} />
+        <circle cx={ex2} cy={ey2} r="3" fill={ink} />
+        <circle cx={ex1 + 1.2} cy={ey1 - 1.2} r="1.3" fill="white" opacity="0.9" />
+        <circle cx={ex2 + 1.2} cy={ey2 - 1.2} r="1.3" fill="white" opacity="0.9" />
+        <ellipse cx={nx} cy={ny} rx="3.8" ry="2.2" fill={dk} />
+        <path d={`M${nx - 5},${ny + 5} Q${nx},${ny + 9} ${nx + 5},${ny + 5}`}
+          stroke={ink} strokeWidth="2" fill="none" strokeLinecap="round" />
+      </>
+    );
+  }
 
   if (pose === "sit") {
     return (
       <g transform={`translate(${x},${y}) scale(${sc})`}>
-        {/* Tail curling up to the right */}
-        <path d="M52,56 Q68,44 64,26 Q62,16 72,12" stroke={col} strokeWidth="5.5" fill="none" strokeLinecap="round" />
-        {/* Body — fluffy organic blob */}
-        <path d="M8,72 Q2,58 6,44 Q8,30 20,22 Q32,14 46,20 Q58,26 58,42 Q62,56 52,68 Q42,78 24,78 Q10,78 8,72Z" fill={col} />
-        {/* Left ear — floppy, hanging down */}
-        <path d="M12,32 Q2,28 0,44 Q0,58 10,58 Q18,56 16,42 Q14,30 12,32Z" fill={dark} />
-        {/* Right ear — floppy */}
-        <path d="M46,22 Q58,18 62,34 Q64,48 52,50 Q44,48 46,34 Q46,22 46,22Z" fill={dark} />
-        {/* Head overlay — slightly lighter than body */}
-        <path d="M12,30 Q14,16 32,14 Q50,14 54,28 Q56,42 32,46 Q10,46 12,30Z" fill={col} />
-        {/* Shading crease on body */}
-        <path d="M16,54 Q24,60 36,58" stroke={dark} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.5" />
-        {/* Eyes */}
-        <circle cx="23" cy="30" r="3.2" fill="#111" />
-        <circle cx="40" cy="30" r="3.2" fill="#111" />
-        <circle cx="24.2" cy="28.8" r="1.3" fill="white" />
-        <circle cx="41.2" cy="28.8" r="1.3" fill="white" />
-        {/* Nose */}
-        <ellipse cx="32" cy="37" rx="4.5" ry="2.8" fill={dark} />
-        <ellipse cx="32" cy="36" rx="2.8" ry="1.6" fill="#111" />
-        {/* Mouth — gentle */}
-        <path d="M27,41 Q32,46 37,41" stroke="#111" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-        {/* Front paws */}
-        <path d="M14,76 Q10,80 6,82 Q14,84 20,80 Q16,74 14,76Z" fill={dark} />
-        <path d="M34,78 Q30,82 26,84 Q34,86 40,82 Q38,76 34,78Z" fill={dark} />
-        <path d="M52,74 Q56,78 60,80 Q54,82 48,78 Q50,72 52,74Z" fill={dark} />
+        {/* Tail — single confident curved stroke */}
+        <path d="M54,50 Q70,34 66,16 Q64,6 76,2"
+          stroke={col} strokeWidth="7" fill="none" strokeLinecap="round" />
+        {/* Body — one big round organic blob */}
+        <path d="M8,72 Q2,56 6,42 Q10,28 26,20 Q42,14 56,22 Q68,32 64,50 Q60,66 44,76 Q26,80 12,74 Q6,72 8,72Z"
+          fill={col} />
+        {/* Head merging into body */}
+        <path d="M8,38 Q10,18 30,14 Q50,12 58,28 Q62,44 36,50 Q12,52 8,38Z"
+          fill={col} />
+        {/* Left ear — angular bracket flap (the key visual) */}
+        <path d="M10,36 L-4,26 L-4,52 Q-2,64 10,62 Q18,60 16,48 Z"
+          fill={dk} />
+        {/* Right ear — angular bracket flap */}
+        <path d="M52,26 L66,18 L66,44 Q64,56 52,54 Q44,52 46,40 Z"
+          fill={dk} />
+        {Face(22, 32, 40, 30, 32, 38)}
+        {/* Paws — just strokes, like the reference */}
+        <path d="M12,72 Q8,80 6,86" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d="M28,76 Q24,84 22,90" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d="M48,74 Q52,82 54,88" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
       </g>
     );
   }
@@ -124,32 +136,27 @@ function Dog({
   if (pose === "lie") {
     return (
       <g transform={`translate(${x},${y}) scale(${sc})`}>
-        {/* Tail curling behind */}
-        <path d="M72,34 Q84,22 80,10" stroke={col} strokeWidth="5" fill="none" strokeLinecap="round" />
-        {/* Body — elongated resting blob */}
-        <path d="M6,38 Q2,26 10,18 Q22,10 36,14 Q50,18 60,28 Q70,38 68,50 Q64,62 48,66 Q26,70 12,62 Q2,56 6,38Z" fill={col} />
-        {/* Body shading */}
-        <path d="M18,56 Q36,62 54,58" stroke={dark} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4" />
-        {/* Left ear floppy */}
-        <path d="M10,22 Q0,18 -2,30 Q-2,42 8,42 Q14,40 12,30 Q10,20 10,22Z" fill={dark} />
-        {/* Right ear */}
-        <path d="M34,12 Q46,8 48,20 Q50,32 40,32 Q34,30 36,20 Q36,12 34,12Z" fill={dark} />
-        {/* Head */}
-        <path d="M8,22 Q10,10 28,10 Q44,10 46,22 Q48,34 28,36 Q8,36 8,22Z" fill={col} />
-        {/* Eyes */}
-        <circle cx="18" cy="24" r="2.8" fill="#111" />
-        <circle cx="34" cy="22" r="2.8" fill="#111" />
-        <circle cx="19" cy="23" r="1.1" fill="white" />
-        <circle cx="35" cy="21" r="1.1" fill="white" />
-        {/* Nose */}
-        <ellipse cx="28" cy="29" rx="4" ry="2.4" fill={dark} />
-        <ellipse cx="28" cy="28" rx="2.4" ry="1.4" fill="#111" />
-        {/* Mouth */}
-        <path d="M24,33 Q28,37 32,33" stroke="#111" strokeWidth="1.3" fill="none" strokeLinecap="round" />
-        {/* Paws visible */}
-        <path d="M8,62 Q2,66 -2,68 Q6,70 14,66 Q12,60 8,62Z" fill={dark} />
-        <path d="M26,64 Q20,68 16,70 Q24,72 30,68 Q30,62 26,64Z" fill={dark} />
-        <path d="M56,62 Q62,66 66,68 Q60,70 54,66 Q54,60 56,62Z" fill={dark} />
+        {/* Tail */}
+        <path d="M94,42 Q108,28 104,12 Q102,4 114,0"
+          stroke={col} strokeWidth="7" fill="none" strokeLinecap="round" />
+        {/* Hindquarters — back body mass */}
+        <path d="M64,30 Q72,18 88,22 Q106,28 108,48 Q108,64 92,68 Q74,72 64,60 Q56,50 64,30Z"
+          fill={col} />
+        {/* Main front body + head — the dominant big blob */}
+        <path d="M4,28 Q6,10 28,6 Q50,2 62,14 Q74,26 70,46 Q66,64 46,70 Q24,74 10,64 Q0,56 2,42 Q2,36 4,28Z"
+          fill={col} />
+        {/* Left ear — angular bracket */}
+        <path d="M8,26 L-4,18 L-4,40 Q-2,54 10,52 Q18,50 16,38 Z"
+          fill={dk} />
+        {/* Right ear — angular bracket */}
+        <path d="M44,8 L58,4 L60,26 Q58,40 46,40 Q38,38 40,26 Z"
+          fill={dk} />
+        {Face(24, 28, 42, 26, 34, 36)}
+        {/* Front paws — minimal strokes */}
+        <path d="M8,64 Q4,72 2,80" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d="M24,68 Q20,76 18,84" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+        {/* Back paw suggestion */}
+        <path d="M96,66 Q100,72 102,78" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
       </g>
     );
   }
@@ -157,48 +164,61 @@ function Dog({
   if (pose === "stand") {
     return (
       <g transform={`translate(${x},${y}) scale(${sc})`}>
-        <path d="M48,32 Q62,22 58,8" stroke={col} strokeWidth="5.5" fill="none" strokeLinecap="round" />
-        <path d="M6,48 Q2,36 8,24 Q18,12 32,10 Q46,8 54,20 Q62,32 56,46 Q48,58 30,60 Q10,60 6,48Z" fill={col} />
-        <path d="M10,24 Q0,20 -2,34 Q-2,46 8,46 Q16,42 14,32 Q12,22 10,24Z" fill={dark} />
-        <path d="M44,12 Q56,8 58,22 Q60,34 50,36 Q42,32 44,22 Q44,12 44,12Z" fill={dark} />
-        <path d="M10,22 Q12,10 30,8 Q48,8 50,20 Q52,32 30,36 Q10,36 10,22Z" fill={col} />
-        <path d="M16,52 Q28,58 44,54" stroke={dark} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4" />
-        <circle cx="20" cy="22" r="3" fill="#111" />
-        <circle cx="38" cy="22" r="3" fill="#111" />
-        <circle cx="21.2" cy="21" r="1.2" fill="white" />
-        <circle cx="39.2" cy="21" r="1.2" fill="white" />
-        <ellipse cx="30" cy="28" rx="4.2" ry="2.6" fill={dark} />
-        <ellipse cx="30" cy="27" rx="2.6" ry="1.5" fill="#111" />
-        <path d="M26,32 Q30,36 34,32" stroke="#111" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+        {/* Tail */}
+        <path d="M54,24 Q66,12 62,-2"
+          stroke={col} strokeWidth="7" fill="none" strokeLinecap="round" />
+        {/* Body */}
+        <path d="M8,42 Q8,26 22,16 Q36,8 52,14 Q66,22 64,40 Q62,56 46,62 Q28,66 14,56 Q6,50 8,42Z"
+          fill={col} />
+        {/* Head */}
+        <path d="M8,40 Q10,20 30,14 Q50,12 58,28 Q62,44 34,48 Q10,50 8,40Z"
+          fill={col} />
+        {/* Left ear */}
+        <path d="M10,38 L-4,28 L-4,52 Q-2,64 10,62 Q18,60 16,48 Z"
+          fill={dk} />
+        {/* Right ear */}
+        <path d="M52,24 L66,16 L66,40 Q64,52 52,50 Q44,48 46,36 Z"
+          fill={dk} />
+        {Face(20, 30, 38, 28, 30, 36)}
         {/* Legs */}
-        <path d="M10,56 Q8,68 8,78" stroke={dark} strokeWidth="5" strokeLinecap="round" fill="none" />
-        <path d="M22,58 Q20,70 20,80" stroke={dark} strokeWidth="5" strokeLinecap="round" fill="none" />
-        <path d="M38,58 Q38,70 38,80" stroke={dark} strokeWidth="5" strokeLinecap="round" fill="none" />
-        <path d="M50,56 Q52,68 52,78" stroke={dark} strokeWidth="5" strokeLinecap="round" fill="none" />
+        <path d="M12,60 Q10,70 10,80" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d="M26,62 Q24,72 24,82" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d="M42,62 Q42,72 42,82" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d="M56,60 Q58,70 58,80" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
       </g>
     );
   }
 
-  // lookup pose
+  // lookup pose — head tilted up, hopeful eyes
   return (
     <g transform={`translate(${x},${y}) scale(${sc})`}>
-      <path d="M52,60 Q68,48 64,30 Q62,20 70,14" stroke={col} strokeWidth="5.5" fill="none" strokeLinecap="round" />
-      <path d="M8,74 Q2,60 6,46 Q8,32 20,24 Q32,16 46,22 Q58,28 58,44 Q62,58 52,70 Q42,80 24,80 Q10,80 8,74Z" fill={col} />
-      <path d="M12,34 Q2,30 0,46 Q0,60 10,60 Q18,58 16,44 Q14,32 12,34Z" fill={dark} />
-      <path d="M46,24 Q58,20 62,36 Q64,50 52,52 Q44,50 46,36 Q46,24 46,24Z" fill={dark} />
-      <path d="M12,32 Q14,18 32,16 Q50,16 54,30 Q56,44 32,48 Q10,48 12,32Z" fill={col} />
-      <path d="M16,56 Q24,62 36,60" stroke={dark} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4" />
-      {/* Eyes looking up */}
-      <ellipse cx="22" cy="28" rx="3.5" ry="4" fill="#111" />
-      <ellipse cx="40" cy="28" rx="3.5" ry="4" fill="#111" />
-      <circle cx="23.5" cy="26" r="1.5" fill="white" />
-      <circle cx="41.5" cy="26" r="1.5" fill="white" />
-      <ellipse cx="32" cy="38" rx="4.5" ry="2.8" fill={dark} />
-      <ellipse cx="32" cy="37" rx="2.8" ry="1.6" fill="#111" />
-      <path d="M27,43 Q32,48 37,43" stroke="#111" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-      <path d="M14,78 Q10,82 6,84 Q14,86 20,82 Q16,76 14,78Z" fill={dark} />
-      <path d="M36,80 Q32,84 28,86 Q36,88 42,84 Q40,78 36,80Z" fill={dark} />
-      <path d="M54,76 Q58,80 62,82 Q56,84 50,80 Q52,74 54,76Z" fill={dark} />
+      {/* Tail */}
+      <path d="M54,52 Q70,36 66,18 Q64,8 76,4"
+        stroke={col} strokeWidth="7" fill="none" strokeLinecap="round" />
+      {/* Body */}
+      <path d="M8,74 Q2,58 6,44 Q10,30 26,22 Q42,16 56,24 Q68,34 64,52 Q60,68 44,78 Q26,82 12,76 Q6,74 8,74Z"
+        fill={col} />
+      {/* Head — tilted up, eyes high */}
+      <path d="M8,36 Q10,16 30,12 Q50,10 58,26 Q62,42 36,48 Q12,50 8,36Z"
+        fill={col} />
+      {/* Left ear */}
+      <path d="M10,34 L-4,24 L-4,50 Q-2,62 10,60 Q18,58 16,46 Z"
+        fill={dk} />
+      {/* Right ear */}
+      <path d="M52,24 L66,16 L66,42 Q64,54 52,52 Q44,50 46,38 Z"
+        fill={dk} />
+      {/* Eyes looking up — placed higher, slightly taller ellipses */}
+      <ellipse cx="22" cy="26" rx="3.5" ry="4.2" fill={ink} />
+      <ellipse cx="40" cy="24" rx="3.5" ry="4.2" fill={ink} />
+      <circle cx="23.8" cy="23.6" r="1.6" fill="white" opacity="0.9" />
+      <circle cx="41.8" cy="21.6" r="1.6" fill="white" opacity="0.9" />
+      <ellipse cx="32" cy="34" rx="3.8" ry="2.2" fill={dk} />
+      <path d="M27,39 Q32,44 37,39"
+        stroke={ink} strokeWidth="2" fill="none" strokeLinecap="round" />
+      {/* Paws */}
+      <path d="M12,74 Q8,82 6,88" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+      <path d="M28,78 Q24,86 22,92" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
+      <path d="M48,76 Q52,84 54,90" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
     </g>
   );
 }
