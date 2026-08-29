@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
+import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
 import { ORGS, ORG_BY_STATE } from "@/lib/platform/orgs";
 import { STATES } from "@/lib/platform/geography";
 import { Building2, ExternalLink, MapPin, Phone, ArrowRight } from "lucide-react";
@@ -73,8 +74,17 @@ export default function ResourcesPage() {
           helping street animals across India.
         </p>
 
+        <FloatingPillNav
+          sections={[
+            { id: "helplines", label: "Helplines" },
+            { id: "post-bite", label: "Post-bite care" },
+            { id: "directory", label: "Organisations" },
+            { id: "data", label: "Data & research" },
+          ]}
+        />
+
         {/* ── Emergency helplines ── */}
-        <section className="mt-12">
+        <section id="helplines" className="mt-12 scroll-mt-28">
           <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
             <Phone className="h-5 w-5 text-paw-500" />
             Emergency rescue helplines
@@ -100,7 +110,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── Post-bite care ── */}
-        <section className="mt-12">
+        <section id="post-bite" className="mt-12 scroll-mt-28">
           <h2 className="font-display text-xl font-bold text-bark-900">
             What to do after a dog bite
           </h2>
@@ -121,7 +131,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── Organisation directory ── */}
-        <section className="mt-12">
+        <section id="directory" className="mt-12 scroll-mt-28">
           <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
             <Building2 className="h-5 w-5 text-paw-500" />
             Organisation directory
@@ -192,7 +202,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── Data & research ── */}
-        <section className="mt-12">
+        <section id="data" className="mt-12 scroll-mt-28">
           <h2 className="font-display text-xl font-bold text-bark-900">
             Data and research
           </h2>

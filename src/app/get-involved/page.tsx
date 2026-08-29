@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
+import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
 import {
   Heart,
   MapPin,
@@ -19,6 +20,7 @@ export const metadata = {
 
 const WAYS = [
   {
+    id: "report",
     icon: MapPin,
     title: "Report a sighting",
     description:
@@ -26,6 +28,7 @@ const WAYS = [
     action: { label: "Open the community map", href: "/" },
   },
   {
+    id: "volunteer",
     icon: Heart,
     title: "Volunteer with a local organisation",
     description:
@@ -33,6 +36,7 @@ const WAYS = [
     action: { label: "Browse organisations", href: "/resources" },
   },
   {
+    id: "support",
     icon: HandHeart,
     title: "Support financially",
     description:
@@ -40,6 +44,7 @@ const WAYS = [
     action: { label: "Find an organisation to support", href: "/resources" },
   },
   {
+    id: "data",
     icon: Database,
     title: "Contribute data",
     description:
@@ -47,6 +52,7 @@ const WAYS = [
     action: { label: "See current data coverage", href: "/insights" },
   },
   {
+    id: "awareness",
     icon: Megaphone,
     title: "Spread awareness",
     description:
@@ -54,6 +60,7 @@ const WAYS = [
     action: { label: "Learn the basics first", href: "/learn" },
   },
   {
+    id: "community",
     icon: Users,
     title: "Engage your community",
     description:
@@ -83,6 +90,14 @@ export default function GetInvolvedPage() {
           you can make a real difference, starting today.
         </p>
 
+        <FloatingPillNav
+          sections={[
+            ...WAYS.map((w) => ({ id: w.id, label: w.title })),
+            { id: "tips", label: "Everyday tips" },
+            { id: "open-data", label: "Open data" },
+          ]}
+        />
+
         {/* Ways to help */}
         <div className="mt-10 space-y-6">
           {WAYS.map((w) => {
@@ -90,7 +105,8 @@ export default function GetInvolvedPage() {
             return (
               <section
                 key={w.title}
-                className="rounded-lg border border-bark-100 bg-white p-6"
+                id={w.id}
+                className="scroll-mt-28 rounded-lg border border-bark-100 bg-white p-6"
               >
                 <h2 className="flex items-center gap-2 font-display text-lg font-bold text-bark-900">
                   <Icon className="h-5 w-5 text-paw-500" />
@@ -111,7 +127,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Quick tips */}
-        <section className="mt-12">
+        <section id="tips" className="mt-12 scroll-mt-28">
           <h2 className="font-display text-xl font-bold text-bark-900">
             Everyday tips
           </h2>
@@ -131,7 +147,7 @@ export default function GetInvolvedPage() {
         </section>
 
         {/* Data transparency note */}
-        <div className="mt-12 rounded-lg border border-bark-200 bg-bark-50 p-6">
+        <div id="open-data" className="mt-12 scroll-mt-28 rounded-lg border border-bark-200 bg-bark-50 p-6">
           <p className="font-semibold text-bark-900">
             Why open data matters
           </p>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
+import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
 import { RESEARCH, RESEARCH_TOPICS } from "@/lib/platform/research";
 import {
   BookOpen,
@@ -76,30 +77,18 @@ export default function LearnPage() {
           basics to the policies and data shaping their future.
         </p>
 
-        {/* Quick nav */}
-        <nav className="mt-6 flex flex-wrap gap-2">
-          {SECTIONS.map((s) => (
-            <a
-              key={s.id}
-              href={`#${s.id}`}
-              className="rounded-full border border-bark-200 px-3 py-1 text-sm font-medium text-bark-600 hover:border-paw-300 hover:text-paw-600"
-            >
-              {s.title}
-            </a>
-          ))}
-          <a
-            href="#sources"
-            className="rounded-full border border-bark-200 px-3 py-1 text-sm font-medium text-bark-600 hover:border-paw-300 hover:text-paw-600"
-          >
-            Key sources
-          </a>
-        </nav>
+        <FloatingPillNav
+          sections={[
+            ...SECTIONS.map((s) => ({ id: s.id, label: s.title })),
+            { id: "sources", label: "Key sources" },
+          ]}
+        />
 
         {/* Sections */}
         {SECTIONS.map((s) => {
           const Icon = s.icon;
           return (
-            <section key={s.id} id={s.id} className="mt-12">
+            <section key={s.id} id={s.id} className="mt-12 scroll-mt-28">
               <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
                 <Icon className="h-5 w-5 text-paw-500" />
                 {s.title}
@@ -116,7 +105,7 @@ export default function LearnPage() {
         })}
 
         {/* Key sources */}
-        <section id="sources" className="mt-12">
+        <section id="sources" className="mt-12 scroll-mt-28">
           <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
             <BookOpen className="h-5 w-5 text-paw-500" />
             Key sources and further reading
