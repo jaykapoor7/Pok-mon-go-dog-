@@ -2,8 +2,6 @@ import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
 import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
 import { ResourcesDirectory } from "@/components/platform/ResourcesDirectory";
-import { ORGS, ORG_BY_STATE } from "@/lib/platform/orgs";
-import { STATES } from "@/lib/platform/geography";
 import { Phone, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-static";
@@ -54,14 +52,6 @@ const POST_BITE_STEPS = [
   "For deep or bleeding bites, ask about rabies immunoglobulin (RIG) in addition to ARV.",
   "Do not apply turmeric, chilli, or any home remedy to the wound.",
 ];
-
-const statesWithOrgs = [...ORG_BY_STATE.entries()]
-  .map(([code, orgs]) => ({
-    code,
-    name: STATES.find((s) => s.code === code)?.name ?? code,
-    orgs,
-  }))
-  .sort((a, b) => a.name.localeCompare(b.name));
 
 export default function ResourcesPage() {
   return (
@@ -131,7 +121,7 @@ export default function ResourcesPage() {
           </ol>
         </section>
 
-        <ResourcesDirectory statesWithOrgs={statesWithOrgs} totalOrgs={ORGS.length} />
+        <ResourcesDirectory />
 
         {/* ── Data & research ── */}
         <section id="data" className="mt-12 scroll-mt-28">

@@ -4,46 +4,75 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { label: "Home", href: "/" },
   { label: "Explore", href: "/explore" },
-  { label: "Insights", href: "/insights" },
-  { label: "Research", href: "/research" },
-  { label: "Take Action", href: "/take-action" },
+  { label: "Resources", href: "/resources" },
+  { label: "Learn", href: "/learn" },
+  { label: "About", href: "/about" },
 ];
 
-/** Editorial top nav for the data platform. Minimal, calm, data-product feel. */
+/** Unified top nav for all platform pages. Matches the landing page header. */
 export function PlatformNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const active = (href: string) => pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/[0.07] bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85">
+    <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-ink/85 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
-        <Link href="/" aria-label="StrayPaw home" className="shrink-0"><Logo size="sm" /></Link>
+        <Link href="/" className="shrink-0 text-lg font-bold text-white">
+          StrayPaw
+        </Link>
         <nav className="ml-2 hidden items-center gap-1 md:flex">
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className={cn("rounded-md px-3 py-1.5 text-[13.5px] font-medium transition-colors", active(l.href) ? "bg-bark-900/[0.06] text-bark-900 dark:bg-white/10 dark:text-white" : "text-bark-500 hover:text-bark-900 dark:text-bark-300 dark:hover:text-white")}>
+            <Link
+              key={l.href}
+              href={l.href}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-[13.5px] font-medium transition-colors",
+                active(l.href) ? "text-white" : "text-white/50 hover:text-white",
+              )}
+            >
               {l.label}
             </Link>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Link href="/report" className="hidden rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 sm:inline-flex">Report</Link>
-          <Link href="/map" className="hidden text-[13px] font-medium text-bark-500 hover:text-paw-600 lg:inline-flex">Map</Link>
-          <button onClick={() => setOpen((v) => !v)} className="grid h-9 w-9 place-items-center rounded-md text-bark-600 hover:bg-black/[0.04] md:hidden" aria-label="Menu">
+          <Link
+            href="/map"
+            className="hidden rounded-full border border-white/20 px-4 py-2 text-[13px] font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white md:inline-flex"
+          >
+            Open app
+          </Link>
+          <Link
+            href="/map"
+            className="rounded-full bg-paw-500 px-4 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 md:hidden"
+          >
+            App
+          </Link>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="ml-1 grid h-9 w-9 place-items-center rounded-md text-white/60 hover:bg-white/[0.06] md:hidden"
+            aria-label="Menu"
+          >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
       {open && (
-        <nav className="border-t border-black/[0.06] px-4 pb-3 pt-1 md:hidden dark:border-white/10">
-          {[...LINKS, { label: "Report", href: "/report" }, { label: "Map", href: "/map" }].map((l) => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className={cn("block rounded-md px-3 py-2.5 text-[15px] font-medium", active(l.href) ? "bg-bark-900/[0.06] text-bark-900 dark:bg-white/10 dark:text-white" : "text-bark-600 dark:text-bark-300")}>
+        <nav className="border-t border-white/[0.06] px-4 pb-3 pt-1 md:hidden">
+          {[...LINKS, { label: "Open App", href: "/map" }].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className={cn(
+                "block rounded-md px-3 py-2.5 text-[15px] font-medium",
+                active(l.href) ? "text-white" : "text-white/60",
+              )}
+            >
               {l.label}
             </Link>
           ))}
@@ -54,11 +83,19 @@ export function PlatformNav() {
 }
 
 /** Page wrapper for platform pages. */
-export function PlatformShell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function PlatformShell({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="min-h-dvh bg-paper text-bark-900 dark:bg-ink dark:text-bark-50">
+    <div className="min-h-dvh bg-paper text-bark-900">
       <PlatformNav />
-      <main className={cn("mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6", className)}>{children}</main>
+      <main className={cn("mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6", className)}>
+        {children}
+      </main>
     </div>
   );
 }

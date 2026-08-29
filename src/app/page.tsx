@@ -10,7 +10,6 @@ import {
   Building2,
   BadgeCheck,
 } from "lucide-react";
-import { PlatformNav } from "@/components/platform/PlatformNav";
 import { ScrollExperience } from "@/components/platform/hero/ScrollExperience";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
