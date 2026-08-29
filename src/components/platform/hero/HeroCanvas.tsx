@@ -84,12 +84,11 @@ export function HeroCanvas({ scrollProgress, className = "" }: HeroCanvasProps) 
         <Suspense fallback={null}>
           <CameraRig scrollProgress={scrollProgress} />
 
-          {/* Three-point lighting, warm golden hour */}
-          <ambientLight intensity={0.35} color="#f5e6d0" />
-          <directionalLight position={[3, 5, 4]} intensity={1.6} color="#ffecd2" />
-          <directionalLight position={[-3, 2, 2]} intensity={0.5} color="#c4d8f0" />
-          <directionalLight position={[0, 3, -4]} intensity={0.7} color="#ffd4a8" />
-          <directionalLight position={[0, -2, 2]} intensity={0.15} color="#d4c8b8" />
+          <ambientLight intensity={0.3} color="#f0e6d8" />
+          <directionalLight position={[3, 6, 4]} intensity={1.8} color="#ffecd2" />
+          <directionalLight position={[-4, 2, 2]} intensity={0.6} color="#b8d4f0" />
+          <directionalLight position={[0, 4, -5]} intensity={0.9} color="#ffd4a8" />
+          <directionalLight position={[0, -2, 2]} intensity={0.2} color="#d4c8b8" />
 
           <group position={[1.3, 0, 0.3]} rotation={[0, -0.75, 0]}>
             <DogModel mouse={mouse} scrollProgress={scrollProgress} />
@@ -99,10 +98,10 @@ export function HeroCanvas({ scrollProgress, className = "" }: HeroCanvasProps) 
 
           <ContactShadows
             position={[0, -0.6, 0]}
-            opacity={0.3}
-            scale={6}
-            blur={2.5}
-            far={2}
+            opacity={0.25}
+            scale={12}
+            blur={3}
+            far={3}
             color="#1a1510"
           />
         </Suspense>
