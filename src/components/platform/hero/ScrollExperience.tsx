@@ -345,124 +345,257 @@ function Building({
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 0: Hero — dog alone on an Indian street at dusk
+   Shared street-base helper — cinematic Indian street at golden hour.
+   Perspective: horizon y=175, road trapezoid 0,300→400,300→255,175→145,175.
+   Each scene passes its gradient-ID prefix to avoid conflicts.
+─────────────────────────────────────────────────────────────────── */
+function StreetBg({
+  id,
+  warm = true,
+}: {
+  id: string;
+  warm?: boolean;
+}) {
+  const bldCol  = warm ? "#1c0c02" : "#0a1220";
+  const bld2Col = warm ? "#220e04" : "#0e1a28";
+  const winCol  = warm ? "#f0c060" : "#1e4a8a";
+  const shopBg  = warm ? "#0e3010" : "#0a1e40";
+  const awning  = warm ? "#7a3200" : "#0e1e48";
+
+  return (
+    <>
+      <defs>
+        <linearGradient id={`${id}sky`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={warm ? "#0d0418" : "#070d18"} />
+          <stop offset="22%"  stopColor={warm ? "#6e1800" : "#0a1428"} />
+          <stop offset="48%"  stopColor={warm ? "#c25000" : "#0e1f38"} />
+          <stop offset="65%"  stopColor={warm ? "#e6801a" : "#162840"} />
+          <stop offset="82%"  stopColor={warm ? "#c46014" : "#0e1e30"} />
+          <stop offset="100%" stopColor={warm ? "#7a3e10" : "#081018"} />
+        </linearGradient>
+        {warm && (
+          <radialGradient id={`${id}sun`} cx="50%" cy="58%" r="38%">
+            <stop offset="0%"   stopColor="#ffe890" stopOpacity="0.9" />
+            <stop offset="28%"  stopColor="#f5be40" stopOpacity="0.5" />
+            <stop offset="65%"  stopColor="#e6801a" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#e6801a" stopOpacity="0" />
+          </radialGradient>
+        )}
+        <linearGradient id={`${id}road`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={warm ? "#7a4820" : "#3a4255"} />
+          <stop offset="100%" stopColor={warm ? "#2c1508" : "#1a2035"} />
+        </linearGradient>
+        <linearGradient id={`${id}haze`} x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stopColor={warm ? "#e6801a" : "#0e2040"} stopOpacity="0" />
+          <stop offset="40%"  stopColor={warm ? "#e6801a" : "#0e2040"} stopOpacity="0.07" />
+          <stop offset="78%"  stopColor={warm ? "#f5be40" : "#162840"} stopOpacity={warm ? 0.28 : 0.15} />
+          <stop offset="100%" stopColor={warm ? "#ffe080" : "#0e1c30"} stopOpacity={warm ? 0.5  : 0.3} />
+        </linearGradient>
+      </defs>
+
+      {/* Sky */}
+      <rect width="400" height="300" fill={`url(#${id}sky)`} />
+      {warm && <rect width="400" height="300" fill={`url(#${id}sun)`} />}
+
+      {/* Far hazy skyline */}
+      <path d="M0,173 L18,159 L28,165 L44,149 L56,157 L70,141 L82,151 L96,134 L109,142
+               L119,135 L131,141 L143,129 L155,139 L167,129 L182,167 L200,167
+               L218,167 L233,129 L246,139 L258,129 L270,135 L282,141 L294,134
+               L309,142 L322,151 L330,141 L344,157 L356,149 L370,165 L380,159 L400,173
+               L400,182 L0,182Z"
+        fill={warm ? "#5a2f10" : "#101e34"} opacity="0.4" />
+
+      {/* ── LEFT BUILDINGS ── */}
+      {/* Corner building — 4 storeys */}
+      <path d="M0,300 L0,118 L16,112 L16,96 L22,92 L22,78 L56,78 L56,300Z" fill={bldCol} />
+      <rect x="24" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.6" />
+      <rect x="38" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.8" />
+      <rect x="24" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.45" />
+      <rect x="38" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.65" />
+      <rect x="24" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.35" />
+      <rect x="38" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.55" />
+      {/* Water tank on roof */}
+      <rect x="30" y="60" width="18" height="18" rx="2" fill={warm ? "#100804" : "#090f1a"} />
+      {/* Shop front */}
+      <rect x="2"  y="248" width="54" height="52" fill={warm ? "#180a02" : "#0a1220"} />
+      <rect x="4"  y="252" width="22" height="28" fill={shopBg} opacity="0.7" />
+      <rect x="28" y="252" width="22" height="28" fill={shopBg} opacity="0.5" />
+      <rect x="2"  y="244" width="54" height="8"  fill={warm ? "#e6801a" : "#1e3870"} opacity="0.55" />
+
+      {/* Second left building */}
+      <path d="M54,300 L54,108 L70,100 L70,88 L88,84 L88,300Z" fill={bld2Col} />
+      <rect x="57" y="92"  width="12" height="13" rx="1" fill={winCol} opacity="0.5" />
+      <rect x="71" y="92"  width="10" height="13" rx="1" fill={winCol} opacity="0.38" />
+      <rect x="57" y="112" width="12" height="13" rx="1" fill={winCol} opacity="0.65" />
+      <rect x="71" y="112" width="10" height="13" rx="1" fill={winCol} opacity="0.25" />
+
+      {/* Market awning left */}
+      <path d="M0,216 Q44,207 88,211 L88,223 Q44,227 0,236Z" fill={awning} />
+      <path d="M0,218 Q44,209 88,213" stroke={warm ? "#a04400" : "#162060"} strokeWidth="1.2" fill="none" opacity="0.55" />
+
+      {/* ── RIGHT BUILDINGS ── */}
+      <path d="M400,300 L400,118 L384,112 L384,96 L378,92 L378,78 L344,78 L344,300Z" fill={bldCol} />
+      <rect x="364" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.7" />
+      <rect x="350" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.45" />
+      <rect x="364" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.5" />
+      <rect x="350" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.7" />
+      <rect x="364" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.4" />
+      <rect x="350" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.55" />
+      <rect x="352" y="60" width="18" height="18" rx="2" fill={warm ? "#100804" : "#090f1a"} />
+      <rect x="344" y="248" width="56" height="52" fill={warm ? "#180a02" : "#0a1220"} />
+      <rect x="346" y="252" width="22" height="28" fill={warm ? "#0a1830" : shopBg} opacity="0.7" />
+      <rect x="370" y="252" width="22" height="28" fill={warm ? "#0a1830" : shopBg} opacity="0.5" />
+      <rect x="344" y="244" width="56" height="8"  fill={warm ? "#e6801a" : "#1e3870"} opacity="0.5" />
+
+      <path d="M346,300 L346,108 L330,100 L330,88 L312,84 L312,300Z" fill={bld2Col} />
+      <rect x="318" y="92"  width="10" height="13" rx="1" fill={winCol} opacity="0.6" />
+      <rect x="332" y="92"  width="10" height="13" rx="1" fill={winCol} opacity="0.4" />
+      <rect x="318" y="112" width="10" height="13" rx="1" fill={winCol} opacity="0.35" />
+      <rect x="332" y="112" width="10" height="13" rx="1" fill={winCol} opacity="0.72" />
+
+      <path d="M400,216 Q356,207 312,211 L312,223 Q356,227 400,236Z" fill={awning} />
+
+      {/* ── ROAD ── */}
+      {/* Perspective trapezoid */}
+      <path d="M0,300 L400,300 L255,175 L145,175Z" fill={`url(#${id}road)`} />
+      {/* Footpaths */}
+      <path d="M0,300 L0,232 L72,175 L145,175 L0,300Z"   fill={warm ? "#261408" : "#12182c"} opacity="0.65" />
+      <path d="M400,300 L400,232 L328,175 L255,175 L400,300Z" fill={warm ? "#261408" : "#12182c"} opacity="0.65" />
+      {/* Lane markings */}
+      <path d="M200,300 L200,248 M200,234 L200,218 M200,204 L200,190 M200,179 L200,177"
+        stroke={warm ? "#c47818" : "#2a3860"} strokeWidth="2.5" strokeDasharray="14,10" strokeLinecap="round" />
+
+      {/* ── UTILITY POLES ── */}
+      <line x1="74"  y1="300" x2="108" y2="175" stroke="#0c0804" strokeWidth="4.5" />
+      <line x1="62"  y1="252" x2="88"  y2="249" stroke="#0c0804" strokeWidth="3" />
+      <line x1="62"  y1="246" x2="88"  y2="243" stroke="#0c0804" strokeWidth="2" />
+      <line x1="150" y1="268" x2="158" y2="175" stroke="#0c0804" strokeWidth="3" />
+      <line x1="142" y1="232" x2="164" y2="229" stroke="#0c0804" strokeWidth="2.2" />
+
+      <line x1="326" y1="300" x2="292" y2="175" stroke="#0c0804" strokeWidth="4.5" />
+      <line x1="312" y1="252" x2="338" y2="249" stroke="#0c0804" strokeWidth="3" />
+      <line x1="312" y1="246" x2="338" y2="243" stroke="#0c0804" strokeWidth="2" />
+      <line x1="250" y1="268" x2="242" y2="175" stroke="#0c0804" strokeWidth="3" />
+      <line x1="236" y1="232" x2="258" y2="229" stroke="#0c0804" strokeWidth="2.2" />
+
+      {/* ── WIRES (multiple strands with sag) ── */}
+      <path d="M74,252 Q112,241 150,232"  stroke="#080502" strokeWidth="1.5" fill="none" />
+      <path d="M74,248 Q112,237 150,228"  stroke="#080502" strokeWidth="1.3" fill="none" />
+      <path d="M74,244 Q112,233 150,224"  stroke="#080502" strokeWidth="1.1" fill="none" />
+      <path d="M74,240 Q112,229 150,220"  stroke="#080502" strokeWidth="0.9" fill="none" />
+      <path d="M326,252 Q288,241 250,232" stroke="#080502" strokeWidth="1.5" fill="none" />
+      <path d="M326,248 Q288,237 250,228" stroke="#080502" strokeWidth="1.3" fill="none" />
+      <path d="M326,244 Q288,233 250,224" stroke="#080502" strokeWidth="1.1" fill="none" />
+      {/* Cross-street wires */}
+      <path d="M74,246 Q200,230 326,246"  stroke="#080502" strokeWidth="1.0" fill="none" />
+      <path d="M74,240 Q200,224 326,240"  stroke="#080502" strokeWidth="0.8" fill="none" />
+
+      {/* ── TRAFFIC LIGHT ── */}
+      <path d="M74,232 Q200,216 326,232"  stroke="#080502" strokeWidth="1.4" fill="none" />
+      <line x1="200" y1="216" x2="200" y2="233" stroke="#080502" strokeWidth="1.4" />
+      <rect x="193" y="233" width="14" height="28" rx="3" fill="#080502" />
+      <circle cx="200" cy="239" r="3.5" fill="#cc2200" opacity="0.9" />
+      <circle cx="200" cy="247" r="3.5" fill="#444"   opacity="0.45" />
+      <circle cx="200" cy="255" r="3.5" fill="#444"   opacity="0.35" />
+
+      {/* ── HAZE DEPTH OVERLAY ── */}
+      <rect width="400" height="300" fill={`url(#${id}haze)`} />
+    </>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   SCENE 0: Hero — golden-hour Indian street, dog alone
 ─────────────────────────────────────────────────────────────────── */
 function SceneHero({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="s0-sky" cx="50%" cy="0%" r="80%">
-          <stop offset="0%" stopColor="#1a1040" />
-          <stop offset="100%" stopColor="#0a0e1a" />
-        </radialGradient>
-        <radialGradient id="s0-lamp" cx="72%" cy="52%" r="28%">
-          <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id="s0-dog-glow" cx="50%" cy="78%" r="20%">
-          <stop offset="0%" stopColor="#F5A623" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#F5A623" stopOpacity="0" />
-        </radialGradient>
-      </defs>
+      <StreetBg id="h0" warm />
 
-      {/* Sky */}
-      <rect width="400" height="300" fill="url(#s0-sky)" />
+      {/* Background people — small silhouettes, various depths */}
+      {/* Far background, near horizon */}
+      <rect x="162" y="172" width="5"  height="12" rx="2" fill="#3a1a08" opacity="0.5" />
+      <rect x="172" y="171" width="4"  height="13" rx="2" fill="#3a1a08" opacity="0.4" />
+      <rect x="215" y="172" width="5"  height="12" rx="2" fill="#3a1a08" opacity="0.5" />
+      <rect x="224" y="171" width="4"  height="13" rx="2" fill="#3a1a08" opacity="0.45" />
+      {/* Circle heads */}
+      <circle cx="164" cy="170" r="3" fill="#3a1a08" opacity="0.5" />
+      <circle cx="174" cy="169" r="2.5" fill="#3a1a08" opacity="0.4" />
+      <circle cx="217" cy="170" r="3" fill="#3a1a08" opacity="0.5" />
+      <circle cx="226" cy="169" r="2.5" fill="#3a1a08" opacity="0.45" />
 
-      {/* Stars */}
-      {([[22,18],[60,32],[110,14],[170,28],[230,10],[290,36],[350,20],[130,48],[310,52]] as [number,number][]).map(([cx,cy],i)=>(
-        <motion.circle key={i} cx={cx} cy={cy} r={i%3===0?2:1.4} fill="white"
-          animate={active ? {opacity:[0.25,0.9,0.25]} : {opacity:0.3}}
-          transition={{duration:2.4+i*0.3, repeat:Infinity, delay:i*0.28}} />
-      ))}
-
-      {/* City skyline — Indian flat-roof buildings */}
-      <Building x={0} y={140} w={45} h={100} col="#0d1520" windows tank />
-      <Building x={42} y={160} w={30} h={80} col="#0a1220" windows />
-      <Building x={68} y={130} w={55} h={110} col="#0d1520" windows tank />
-      <Building x={290} y={145} w={50} h={95} col="#0d1520" windows />
-      <Building x={336} y={155} w={35} h={85} col="#0a1220" windows tank />
-      <Building x={368} y={135} w={32} h={105} col="#0d1520" windows />
-
-      {/* Lamp post glow */}
-      <rect width="400" height="300" fill="url(#s0-lamp)" />
-      <Lamp x={260} y={148} glowing />
-
-      {/* Street */}
-      <path d="M0,252 Q200,248 400,252 L400,300 L0,300Z" fill="#141e30" />
-      {/* Road lane marks */}
-      <line x1="168" y1="300" x2="184" y2="254" stroke="#2a3a55" strokeWidth="2" strokeDasharray="10 8" />
-      <line x1="210" y1="300" x2="216" y2="254" stroke="#2a3a55" strokeWidth="2" strokeDasharray="10 8" />
-
-      {/* Auto-rickshaw parked in background */}
-      <g opacity="0.6">
-        <AutoRickshaw x={290} y={222} sc={0.75} />
+      {/* Mid-distance: auto-rickshaw on left road */}
+      <g opacity="0.65">
+        <AutoRickshaw x={84} y={196} sc={0.62} />
       </g>
 
-      {/* Background people walking */}
-      <Person x={310} y={210} sc={0.85} walking col="#1a2840" />
-      <Person x={330} y={212} sc={0.72} walking col="#14203a" />
+      {/* Mid-distance: people right side */}
+      <rect x="284" y="190" width="8"  height="20" rx="3" fill="#2a1208" opacity="0.7" />
+      <circle cx="288" cy="187" r="5" fill="#2a1208" opacity="0.7" />
+      <rect x="298" y="194" width="7"  height="18" rx="3" fill="#2a1208" opacity="0.55" />
+      <circle cx="301" cy="191" r="4" fill="#2a1208" opacity="0.55" />
 
-      {/* Dog glow on ground */}
-      <rect width="400" height="300" fill="url(#s0-dog-glow)" />
+      {/* Near: person left side sidewalk — stopped, looking */}
+      <rect x="100" y="220" width="10" height="26" rx="4" fill="#1a0c04" opacity="0.85" />
+      <circle cx="105" cy="216" r="7" fill="#1a0c04" opacity="0.85" />
+      {/* Arm extended toward dog */}
+      <path d="M100,230 Q128,240 156,248" stroke="#1a0c04" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.75" />
 
-      {/* Dog sitting alone under lamp */}
-      <motion.g animate={active ? {y:[0,-4,0]} : {y:0}} transition={{duration:3.5, repeat:Infinity, ease:"easeInOut"}}>
-        <Dog x={150} y={188} sc={1.0} pose="sit" col="#F5A623" />
+      {/* Dog — protagonist, center of road, alone */}
+      <motion.g animate={active ? {y:[0,-3,0]} : {y:0}} transition={{duration:3.5, repeat:Infinity, ease:"easeInOut"}}>
+        <Dog x={140} y={224} sc={0.94} pose="sit" col="#F5A623" />
       </motion.g>
+      {/* Dog shadow */}
+      <ellipse cx="186" cy="274" rx="22" ry="5" fill="#8a4410" opacity="0.18" />
 
-      {/* Dog shadow on ground */}
-      <ellipse cx="196" cy="262" rx="26" ry="5" fill="#F5A623" opacity="0.1" />
-
-      {/* Warm lamplight wash over dog area */}
-      <ellipse cx="280" cy="230" rx="90" ry="50" fill="#F59E0B" opacity="0.05" />
+      {/* Warm golden glow pooling around dog from overhead sun */}
+      <ellipse cx="186" cy="256" rx="50" ry="24" fill="#f5c040" opacity="0.06" />
     </svg>
   );
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 1: Problem — dog alone on street, bubbles showing disconnected help
+   SCENE 1: Problem — same street gone cold, disconnected nodes
 ─────────────────────────────────────────────────────────────────── */
 function SceneProblem({ active }: { active: boolean }) {
   const nodes = [
-    { x: 76,  y: 72,  label: "NGO",       glyph: "⌂", col: "#3b5998" },
-    { x: 328, y: 68,  label: "Vet",        glyph: "+", col: "#27ae60" },
-    { x: 64,  y: 218, label: "Volunteer",  glyph: "♥", col: "#e74c3c" },
-    { x: 338, y: 224, label: "Rescue",     glyph: "⚑", col: "#f39c12" },
-    { x: 200, y: 38,  label: "Citizen",    glyph: "◎", col: "#8e44ad" },
+    { x: 72,  y: 84,  label: "NGO",      glyph: "⌂", col: "#3b82f6" },
+    { x: 332, y: 80,  label: "Vet",       glyph: "+", col: "#22c55e" },
+    { x: 68,  y: 224, label: "Volunteer", glyph: "♥", col: "#ef4444" },
+    { x: 336, y: 228, label: "Rescue",    glyph: "⚑", col: "#f59e0b" },
+    { x: 200, y: 44,  label: "Citizen",   glyph: "◎", col: "#a78bfa" },
   ];
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <rect width="400" height="300" fill="#0c1520" />
-      {/* Faint street behind */}
-      <path d="M0,254 Q200,250 400,254 L400,300 L0,300Z" fill="#141e30" />
-      <Building x={10} y={160} w={40} h={90} col="#0a1220" windows />
-      <Building x={350} y={154} w={40} h={96} col="#0a1220" windows />
+      <StreetBg id="h1" warm={false} />
 
-      {/* Broken dashed lines to centre dog */}
-      {nodes.map((n,i)=>(
-        <motion.line key={i} x1={n.x} y1={n.y} x2="200" y2="165"
-          stroke="#475569" strokeWidth="1.6" strokeDasharray="5 9"
-          animate={active ? {opacity:[0.1,0.35,0.1]} : {opacity:0.18}}
-          transition={{duration:2.8, repeat:Infinity, delay:i*0.48}} />
+      {/* Cold colour wash over street */}
+      <rect width="400" height="300" fill="#0a1830" opacity="0.42" />
+
+      {/* Broken dashed lines to centre — no connection */}
+      {nodes.map((n,i) => (
+        <motion.line key={i} x1={n.x} y1={n.y} x2="200" y2="194"
+          stroke="#334155" strokeWidth="1.8" strokeDasharray="5 10"
+          animate={active ? {opacity:[0.08,0.3,0.08]} : {opacity:0.15}}
+          transition={{duration:2.8, repeat:Infinity, delay:i*0.44}} />
       ))}
 
-      {/* X marks — no signal */}
-      {([[136,110],[248,98],[136,210],[252,204]] as [number,number][]).map(([cx,cy],i)=>(
-        <text key={i} x={cx} y={cy} fontSize="16" fill="#ef4444" opacity="0.55" textAnchor="middle">✕</text>
+      {/* X marks — failed connection */}
+      {([[140,130],[256,118],[138,218],[258,214]] as [number,number][]).map(([cx,cy],i) => (
+        <text key={i} x={cx} y={cy} fontSize="14" fill="#ef4444" opacity="0.5" textAnchor="middle">✕</text>
       ))}
 
-      {/* Dog — desaturated, confused */}
-      <Dog x={148} y={116} sc={0.88} pose="sit" col="#7c8fa8" />
-      <circle cx="200" cy="170" r="34" fill="none" stroke="#334155" strokeWidth="1.2" strokeDasharray="4 6" opacity="0.4" />
+      {/* Dog — desaturated, lost in the cold scene */}
+      <Dog x={148} y={148} sc={0.84} pose="sit" col="#6b7e9c" />
 
-      {/* Helper nodes */}
-      {nodes.map((n,i)=>(
+      {/* Helper nodes — dashed borders, muted */}
+      {nodes.map((n,i) => (
         <motion.g key={i}
-          animate={active ? {opacity:[0.45,1,0.45]} : {opacity:0.55}}
-          transition={{duration:2.4, repeat:Infinity, delay:i*0.42}}>
-          <circle cx={n.x} cy={n.y} r="26" fill="#131e2e" stroke="#334155" strokeWidth="1.6" strokeDasharray="3 4" />
-          <text x={n.x} y={n.y+1} textAnchor="middle" dominantBaseline="middle" fontSize="15" fill={n.col} opacity="0.7">{n.glyph}</text>
-          <text x={n.x} y={n.y+20} textAnchor="middle" fontSize="7.5" fill="#475569">{n.label}</text>
+          animate={active ? {opacity:[0.4,1,0.4]} : {opacity:0.5}}
+          transition={{duration:2.4, repeat:Infinity, delay:i*0.4}}>
+          <circle cx={n.x} cy={n.y} r="27" fill="#0d1828" stroke="#2a3a55" strokeWidth="1.6" strokeDasharray="3 5" />
+          <text x={n.x} y={n.y+2} textAnchor="middle" dominantBaseline="middle" fontSize="14" fill={n.col} opacity="0.65">{n.glyph}</text>
+          <text x={n.x} y={n.y+21} textAnchor="middle" fontSize="7" fill="#4a5e7a">{n.label}</text>
         </motion.g>
       ))}
     </svg>
@@ -470,192 +603,195 @@ function SceneProblem({ active }: { active: boolean }) {
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 2: Notice — person stops walking, looks at dog on street
+   SCENE 2: Notice — golden street, person stops, dog looks up
 ─────────────────────────────────────────────────────────────────── */
 function SceneNotice({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="s2-glow" cx="52%" cy="62%" r="32%">
-          <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#0a0e1a" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="400" height="300" fill="#0a1020" />
-      <rect width="400" height="300" fill="url(#s2-glow)" />
+      <StreetBg id="h2" warm />
 
-      {/* Street */}
-      <path d="M0,248 Q200,244 400,248 L400,300 L0,300Z" fill="#141e30" />
-      {/* Street cracks / texture */}
-      <line x1="0" y1="258" x2="400" y2="258" stroke="#1a2535" strokeWidth="0.6" />
-      <line x1="60" y1="248" x2="80" y2="300" stroke="#1a2535" strokeWidth="0.4" />
-      <line x1="200" y1="248" x2="210" y2="300" stroke="#1a2535" strokeWidth="0.4" />
-      <line x1="320" y1="248" x2="340" y2="300" stroke="#1a2535" strokeWidth="0.4" />
-
-      {/* Lamp on street */}
-      <Lamp x={320} y={155} glowing />
-
-      {/* Building behind */}
-      <Building x={10} y={140} w={60} h={108} col="#0d1520" windows />
-      <Building x={320} y={148} w={80} h={100} col="#0d1520" windows tank />
-
-      {/* Auto-rickshaw passing in bg */}
-      <g opacity="0.5">
-        <AutoRickshaw x={60} y={218} sc={0.7} />
+      {/* Auto-rickshaw passing, mid-ground */}
+      <g opacity="0.55">
+        <AutoRickshaw x={68} y={204} sc={0.66} />
       </g>
 
-      {/* Person who stopped — larger, in foreground */}
-      <motion.g animate={active ? {y:[0,-1,0]} : {y:0}} transition={{duration:3, repeat:Infinity}}>
-        <Person x={258} y={162} sc={2.2} col="#2a4a7a" />
-        {/* Saree/clothes detail suggestion */}
-        <path d="M262,182 Q268,196 264,210 Q260,224 266,232" stroke="#3a6aaa" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.6" />
+      {/* Background pedestrians */}
+      <rect x="280" y="198" width="7" height="18" rx="3" fill="#2a1208" opacity="0.7" />
+      <circle cx="283" cy="195" r="4.5" fill="#2a1208" opacity="0.7" />
+      <rect x="294" y="202" width="6" height="16" rx="3" fill="#2a1208" opacity="0.55" />
+      <circle cx="297" cy="199" r="4" fill="#2a1208" opacity="0.55" />
+
+      {/* Person who stopped — taller, warmer, closer */}
+      <motion.g animate={active ? {y:[0,-1.5,0]} : {y:0}} transition={{duration:3.2, repeat:Infinity}}>
+        {/* Body */}
+        <rect x="246" y="198" width="14" height="36" rx="5" fill="#4a2a10" />
+        {/* Head */}
+        <circle cx="253" cy="193" r="10" fill="#c48257" />
+        {/* Bending-forward arm toward dog */}
+        <path d="M246,212 Q224,226 206,238" stroke="#4a2a10" strokeWidth="5" fill="none" strokeLinecap="round" />
+        <path d="M246,216 Q218,232 202,244" stroke="#4a2a10" strokeWidth="4" fill="none" strokeLinecap="round" />
+        {/* Legs */}
+        <rect x="248" y="232" width="5" height="20" rx="2.5" fill="#2a1808" />
+        <rect x="256" y="232" width="5" height="20" rx="2.5" fill="#2a1808" />
       </motion.g>
 
-      {/* Gaze line from person to dog */}
-      <motion.line x1="264" y1="186" x2="212" y2="232"
-        stroke="#F59E0B" strokeWidth="1.5" strokeDasharray="5 8"
-        animate={active ? {opacity:[0,0.5,0]} : {opacity:0}}
+      {/* Warm gaze / connection glow between them */}
+      <motion.ellipse cx="220" cy="246" rx="36" ry="12"
+        fill="#f5c040"
+        animate={active ? {opacity:[0.06,0.18,0.06], ry:[12,18,12]} : {opacity:0.05}}
+        transition={{duration:2.4, repeat:Infinity}} />
+
+      {/* Dog looking up hopefully */}
+      <motion.g animate={active ? {y:[0,-2,0]} : {y:0}} transition={{duration:2.8, repeat:Infinity}}>
+        <Dog x={142} y={218} sc={0.88} pose="lookup" col="#F5A623" />
+      </motion.g>
+      <ellipse cx="186" cy="268" rx="20" ry="4" fill="#8a4410" opacity="0.15" />
+
+      {/* Gaze line — dashed warm line between eye contact */}
+      <motion.line x1="248" y1="200" x2="192" y2="240"
+        stroke="#f5c040" strokeWidth="1.8" strokeDasharray="6 9"
+        animate={active ? {opacity:[0,0.55,0]} : {opacity:0}}
         transition={{duration:2.2, repeat:Infinity}} />
-
-      {/* Dog looking up at person */}
-      <motion.g animate={active ? {y:[0,-3,0]} : {y:0}} transition={{duration:2.8, repeat:Infinity}}>
-        <Dog x={148} y={196} sc={0.9} pose="lookup" col="#F5A623" />
-      </motion.g>
-
-      {/* Warm glow spot where they connect */}
-      <motion.ellipse cx="234" cy="242" rx="28" ry="8"
-        fill="#F59E0B"
-        animate={active ? {opacity:[0.08,0.2,0.08], rx:[28,36,28]} : {opacity:0.08}}
-        transition={{duration:2.5, repeat:Infinity}} />
     </svg>
   );
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 3: Report — hand on street with phone, dog in background
+   SCENE 3: Report — phone in FG, data layer appears over street
 ─────────────────────────────────────────────────────────────────── */
 function SceneReport({ active }: { active: boolean }) {
   const dataWords = ["location", "photo", "condition", "time", "area"];
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="s3-glow" cx="50%" cy="60%" r="30%">
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#0a0e1a" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="400" height="300" fill="#0a1020" />
-      <rect width="400" height="300" fill="url(#s3-glow)" />
+      <StreetBg id="h3" warm />
 
-      {/* Street */}
-      <path d="M0,252 Q200,248 400,252 L400,300 L0,300Z" fill="#141e30" />
-      <Building x={290} y={148} w={110} h={104} col="#0d1520" windows />
-
-      {/* Dog sitting in background — smaller, further away */}
-      <g opacity="0.6">
-        <Dog x={282} y={208} sc={0.62} pose="sit" col="#F5A623" />
+      {/* Dog in background, smaller */}
+      <g opacity="0.55">
+        <Dog x={170} y={212} sc={0.6} pose="sit" col="#F5A623" />
       </g>
 
-      {/* Person silhouette in background */}
-      <Person x={340} y={188} sc={1.4} col="#1a2840" />
-
-      {/* Hand holding phone — foreground */}
-      {/* Hand */}
-      <path d="M158,260 Q148,240 150,220 Q152,200 160,195 Q168,192 170,200 Q172,195 178,196 Q184,196 182,204 Q188,200 192,204 Q196,208 192,214 Q196,212 198,218 Q200,226 194,230 L186,260Z"
-        fill="#c48257" />
-      {/* Thumb */}
-      <path d="M158,204 Q150,198 148,210 Q146,220 154,224" fill="#c48257" />
-
-      {/* Phone */}
-      <rect x="162" y="108" width="80" height="138" rx="12" fill="#1a2235" stroke="#06b6d4" strokeWidth="1.4" />
-      <rect x="168" y="120" width="68" height="104" rx="6" fill="#0a0e1a" />
-      {/* Notch */}
-      <rect x="188" y="112" width="24" height="6" rx="3" fill="#0a0e1a" />
-
-      {/* Dog photo on screen */}
-      <rect x="170" y="122" width="64" height="58" rx="4" fill="#0e1a2e" />
-      <Dog x={178} y={130} sc={0.52} pose="sit" col="#F5A623" />
-
-      {/* Location pin bouncing */}
-      <motion.g animate={active ? {y:[0,-5,0]} : {y:0}} transition={{duration:1.6, repeat:Infinity}}>
-        <path d="M202,182 Q202,172 197,165 Q190,154 202,150 Q214,154 207,165 Q202,172 202,182Z" fill="#06b6d4" />
-        <circle cx="202" cy="157" r="4.5" fill="#0a0e1a" />
+      {/* Green glowing location pin appearing over dog on street */}
+      <motion.g animate={active ? {y:[0,-6,0]} : {y:0}} transition={{duration:1.8, repeat:Infinity}}>
+        {/* Pin glow */}
+        <motion.circle cx="196" cy="220" r="18" fill="#22c55e"
+          animate={active ? {opacity:[0,0.14,0], r:[14,28,14]} : {opacity:0}}
+          transition={{duration:2.4, repeat:Infinity}} />
+        {/* Pin body */}
+        <path d="M196,240 Q196,228 190,220 Q182,208 196,202 Q210,208 202,220 Q196,228 196,240Z"
+          fill="#22c55e" />
+        <circle cx="196" cy="208" r="5.5" fill="#0a1818" />
       </motion.g>
 
-      {/* Screen info */}
-      <rect x="172" y="188" width="60" height="5" rx="2.5" fill="#06b6d4" opacity="0.35" />
-      <rect x="172" y="197" width="40" height="4" rx="2" fill="#06b6d4" opacity="0.22" />
-      <rect x="178" y="230" width="28" height="5" rx="2.5" fill="#1e2d45" />
+      {/* Hand holding phone — foreground left */}
+      <path d="M48,270 Q38,248 42,226 Q44,206 54,200 Q62,196 64,206 Q66,200 72,200 Q78,202 76,210 Q82,206 86,210 Q90,216 86,222 Q90,220 92,226 Q94,234 88,238 L80,270Z"
+        fill="#c48257" />
 
-      {/* Data flying up */}
+      {/* Phone */}
+      <rect x="52" y="108" width="82" height="142" rx="12" fill="#111827" stroke="#22c55e" strokeWidth="1.5" />
+      <rect x="58" y="120" width="70" height="108" rx="6" fill="#0a0e16" />
+      <rect x="76" y="112" width="26" height="6" rx="3" fill="#0a0e16" />
+
+      {/* Dog photo on screen */}
+      <rect x="60" y="122" width="66" height="58" rx="4" fill="#0e1620" />
+      <Dog x={66} y={130} sc={0.54} pose="sit" col="#F5A623" />
+
+      {/* Location pin on screen */}
+      <motion.g animate={active ? {y:[0,-4,0]} : {y:0}} transition={{duration:1.6, repeat:Infinity}}>
+        <path d="M93,186 Q93,178 88,172 Q82,162 93,158 Q104,162 98,172 Q93,178 93,186Z" fill="#22c55e" />
+        <circle cx="93" cy="165" r="4" fill="#0a0e16" />
+      </motion.g>
+
+      {/* Screen data bars */}
+      <rect x="62" y="194" width="62" height="5" rx="2.5" fill="#22c55e" opacity="0.38" />
+      <rect x="62" y="203" width="42" height="4" rx="2" fill="#22c55e" opacity="0.24" />
+      <rect x="66" y="232" width="30" height="5" rx="2.5" fill="#1e2d45" />
+
+      {/* Data words flying up from phone */}
       {dataWords.map((word, i) => (
-        <motion.text key={i} x={145+i*26} y={0} fontSize="7" fill="#06b6d4" textAnchor="middle"
-          animate={active ? {y:[108,-20], opacity:[0,0.7,0]} : {y:108,opacity:0}}
-          transition={{duration:2.1, repeat:Infinity, delay:i*0.34, ease:"easeOut"}}>
+        <motion.text key={i} x={56 + i * 24} y={0} fontSize="7.5" fill="#22c55e" textAnchor="middle"
+          animate={active ? {y:[108,-24], opacity:[0,0.75,0]} : {y:108, opacity:0}}
+          transition={{duration:2.2, repeat:Infinity, delay:i*0.36, ease:"easeOut"}}>
           {word}
         </motion.text>
       ))}
+
+      {/* Semi-transparent StrayPaw data panel — top right, like image 2 */}
+      <rect x="240" y="30" width="148" height="80" rx="8" fill="#0a1818" opacity="0.82" />
+      <rect x="246" y="36" width="60" height="7" rx="3.5" fill="#22c55e" opacity="0.8" />
+      <rect x="246" y="48" width="130" height="4" rx="2" fill="#22c55e" opacity="0.3" />
+      <rect x="246" y="57" width="100" height="4" rx="2" fill="#22c55e" opacity="0.22" />
+      <rect x="246" y="66" width="114" height="4" rx="2" fill="#22c55e" opacity="0.26" />
+      <text x="247" y="44" fontSize="7" fill="#22c55e" fontWeight="bold">StrayPaw</text>
+      <text x="247" y="56" fontSize="5.5" fill="#5eead4" opacity="0.75">Dog sighting reported</text>
+      <text x="247" y="65" fontSize="5.5" fill="#5eead4" opacity="0.6">Lajpat Nagar, New Delhi</text>
+      <text x="247" y="74" fontSize="5.5" fill="#5eead4" opacity="0.55">Condition: active, alert</text>
+      <rect x="248" y="84" width="28" height="10" rx="5" fill="#22c55e" opacity="0.85" />
+      <text x="262" y="91" fontSize="5.5" fill="#0a1818" textAnchor="middle">View dog</text>
     </svg>
   );
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 4: Understand — dog with data profile forming around them
+   SCENE 4: Understand — dog with data profile, street behind
 ─────────────────────────────────────────────────────────────────── */
 function SceneUnderstand({ active }: { active: boolean }) {
   const tags = [
-    { label:"Healthy", angle:0 },
-    { label:"Lajpat Nagar", angle:52 },
-    { label:"Mar 2024", angle:106 },
-    { label:"Feeder: Priya", angle:160 },
-    { label:"Vaccinated", angle:214 },
-    { label:"3 sightings", angle:268 },
-    { label:"No injuries", angle:318 },
+    { label: "Healthy",      angle: 0 },
+    { label: "Lajpat Nagar", angle: 52 },
+    { label: "Mar 2024",     angle: 106 },
+    { label: "Feeder: Priya",angle: 160 },
+    { label: "Vaccinated",   angle: 214 },
+    { label: "3 sightings",  angle: 268 },
+    { label: "No injuries",  angle: 318 },
   ];
-  const RX = 94, RY = 62;
+  const RX = 90, RY = 60;
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="s4-glow" cx="50%" cy="50%" r="38%">
-          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#0a0e1a" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="400" height="300" fill="#0a0e1a" />
-      <rect width="400" height="300" fill="url(#s4-glow)" />
-      <ellipse cx="200" cy="152" rx={RX} ry={RY} fill="none" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 7" opacity="0.3" />
+      <StreetBg id="h4" warm />
 
-      <Dog x={148} y={100} sc={0.92} pose="sit" col="#a78bfa" />
+      {/* Dark overlay to bring data to foreground */}
+      <rect width="400" height="300" fill="#0a0e1a" opacity="0.55" />
 
-      {tags.map((tag,i)=>{
-        const rad = tag.angle*Math.PI/180;
-        const tx = 200+Math.cos(rad)*RX;
-        const ty = 152+Math.sin(rad)*RY;
-        const len = tag.label.length*4.8+14;
+      {/* Orbit ellipse */}
+      <ellipse cx="200" cy="158" rx={RX} ry={RY}
+        fill="none" stroke="#a78bfa" strokeWidth="1" strokeDasharray="3 8" opacity="0.32" />
+
+      {/* Dog at center */}
+      <Dog x={150} y={108} sc={0.9} pose="sit" col="#a78bfa" />
+
+      {/* Data tags orbiting */}
+      {tags.map((tag, i) => {
+        const rad = (tag.angle * Math.PI) / 180;
+        const tx = 200 + Math.cos(rad) * RX;
+        const ty = 158 + Math.sin(rad) * RY;
+        const len = tag.label.length * 4.8 + 14;
         return (
           <motion.g key={i}
-            animate={active ? {opacity:[0.35,1,0.35]} : {opacity:0.4}}
+            animate={active ? {opacity:[0.3,1,0.3]} : {opacity:0.35}}
             transition={{duration:2.6, repeat:Infinity, delay:i*0.36}}>
-            <line x1="200" y1="152" x2={tx} y2={ty} stroke="#7c3aed" strokeWidth="1" opacity="0.2" />
-            <rect x={tx-len/2} y={ty-7} width={len} height="14" rx="7" fill="#1a103a" stroke="#7c3aed" strokeWidth="1" />
+            <line x1="200" y1="158" x2={tx} y2={ty} stroke="#7c3aed" strokeWidth="1" opacity="0.18" />
+            <rect x={tx-len/2} y={ty-7} width={len} height="14" rx="7" fill="#14083a" stroke="#7c3aed" strokeWidth="1" />
             <text x={tx} y={ty} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" fill="#a78bfa">{tag.label}</text>
           </motion.g>
         );
       })}
 
-      {([30,150,270] as number[]).map((angle,i)=>{
-        const rad=angle*Math.PI/180;
-        const x1=200+Math.cos(rad)*148, y1=152+Math.sin(rad)*108;
-        const x2=200+Math.cos(rad)*112, y2=152+Math.sin(rad)*78;
+      {/* Observer pulses from multiple angles (community sightings) */}
+      {([30, 150, 270] as number[]).map((angle, i) => {
+        const rad = (angle * Math.PI) / 180;
+        const ox = 200 + Math.cos(rad) * 142;
+        const oy = 158 + Math.sin(rad) * 104;
+        const x2 = 200 + Math.cos(rad) * 108;
+        const y2 = 158 + Math.sin(rad) * 76;
         return (
           <motion.g key={i}>
-            <motion.circle cx={x1} cy={y1} r="6" fill="#7c3aed"
-              animate={active ? {opacity:[0,0.6,0]} : {opacity:0}}
-              transition={{duration:2.2, repeat:Infinity, delay:i*0.68}} />
-            <motion.line x1={x1} y1={y1} x2={x2} y2={y2}
-              stroke="#7c3aed" strokeWidth="2.2" strokeLinecap="round"
-              animate={active ? {opacity:[0,0.75,0]} : {opacity:0}}
-              transition={{duration:2.2, repeat:Infinity, delay:i*0.68}} />
+            <motion.circle cx={ox} cy={oy} r="7" fill="#7c3aed"
+              animate={active ? {opacity:[0,0.65,0]} : {opacity:0}}
+              transition={{duration:2.2, repeat:Infinity, delay:i*0.72}} />
+            <motion.line x1={ox} y1={oy} x2={x2} y2={y2}
+              stroke="#7c3aed" strokeWidth="2.4" strokeLinecap="round"
+              animate={active ? {opacity:[0,0.7,0]} : {opacity:0}}
+              transition={{duration:2.2, repeat:Infinity, delay:i*0.72}} />
           </motion.g>
         );
       })}
@@ -664,148 +800,160 @@ function SceneUnderstand({ active }: { active: boolean }) {
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 5: Connect — street scene with threads linking people
+   SCENE 5: Connect — data layer over street, like image 2 reference
 ─────────────────────────────────────────────────────────────────── */
 function SceneConnect({ active }: { active: boolean }) {
+  /* Green location pins scattered on street, like reference image */
+  const pins: [number, number][] = [
+    [100, 230], [180, 220], [200, 194], [260, 228],
+    [310, 212], [148, 258], [240, 260], [338, 240],
+  ];
   const helpers = [
-    { label:"NGO nearby",   glyph:"⌂", angle:322, col:"#34d399" },
-    { label:"Vet clinic",   glyph:"+", angle:44,  col:"#34d399" },
-    { label:"Volunteer",    glyph:"♥", angle:150, col:"#34d399" },
-    { label:"Transport",    glyph:"◈", angle:238, col:"#34d399" },
+    { label:"NGO nearby",  glyph:"⌂", x:72,  y:90 },
+    { label:"Vet clinic",  glyph:"+", x:330, y:86 },
+    { label:"Volunteer",   glyph:"♥", x:64,  y:228 },
+    { label:"Transport",   glyph:"◈", x:338, y:232 },
   ];
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="s5-glow" cx="50%" cy="50%" r="40%">
-          <stop offset="0%" stopColor="#059669" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="#0a0e1a" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="400" height="300" fill="#081410" />
-      <rect width="400" height="300" fill="url(#s5-glow)" />
+      <StreetBg id="h5" warm />
 
-      {/* Faint street */}
-      <path d="M0,256 Q200,252 400,256 L400,300 L0,300Z" fill="#0f1e18" />
-      <Building x={0} y={162} w={44} h={94} col="#0a1810" windows />
-      <Building x={352} y={155} w={48} h={101} col="#0a1810" windows />
+      {/* Dark overlay */}
+      <rect width="400" height="300" fill="#050e0a" opacity="0.5" />
 
-      {/* Threads */}
-      {helpers.map((h,i)=>{
-        const rad=h.angle*Math.PI/180;
-        const x=200+Math.cos(rad)*98, y=152+Math.sin(rad)*80;
+      {/* Network connection lines between pins — teal, like image 2 */}
+      {pins.map(([px,py],i) => {
+        const [nx,ny] = pins[(i+2) % pins.length];
         return (
-          <motion.line key={i} x1="200" y1="152" x2={x} y2={y}
-            stroke="#34d399" strokeWidth="2.2"
-            animate={active ? {opacity:[0.08,0.7,0.08]} : {opacity:0.18}}
-            transition={{duration:2.1, repeat:Infinity, delay:i*0.5}} />
+          <motion.line key={i} x1={px} y1={py} x2={nx} y2={ny}
+            stroke="#34d399" strokeWidth="1.6"
+            animate={active ? {opacity:[0.06,0.55,0.06]} : {opacity:0.08}}
+            transition={{duration:2.4, repeat:Infinity, delay:i*0.32}} />
+        );
+      })}
+      {/* Connect to helper nodes */}
+      {helpers.map((h,i) => {
+        const [px,py] = pins[i*2] ?? [200,200];
+        return (
+          <motion.line key={i} x1={h.x} y1={h.y} x2={px} y2={py}
+            stroke="#34d399" strokeWidth="1.8"
+            animate={active ? {opacity:[0.08,0.65,0.08]} : {opacity:0.1}}
+            transition={{duration:2.2, repeat:Infinity, delay:i*0.5}} />
         );
       })}
 
-      {/* Dog */}
-      <Dog x={148} y={100} sc={0.92} pose="sit" col="#34d399" />
+      {/* Location pins on the street */}
+      {pins.map(([px,py],i) => (
+        <motion.g key={i}
+          animate={active ? {opacity:[0,1]} : {opacity:0}}
+          transition={{duration:0.5, delay:i*0.18}}>
+          <motion.circle cx={px} cy={py} r="12" fill="#22c55e"
+            animate={active ? {opacity:[0.08,0.2,0.08], r:[10,18,10]} : {opacity:0.08}}
+            transition={{duration:2.8, repeat:Infinity, delay:i*0.36}} />
+          <path d={`M${px},${py+10} Q${px},${py+3} ${px-5},${py-4} Q${px-11},${py-15} ${px},${py-20} Q${px+11},${py-15} ${px+5},${py-4} Q${px},${py+3} ${px},${py+10}Z`}
+            fill="#22c55e" />
+          <circle cx={px} cy={py-12} r="3" fill="#0a1818" />
+        </motion.g>
+      ))}
 
-      {/* Pulse */}
-      <motion.circle cx="200" cy="152" r="28" fill="none" stroke="#34d399" strokeWidth="1.6"
-        animate={active ? {r:[28,46,28], opacity:[0.5,0,0.5]} : {opacity:0}}
-        transition={{duration:2.8, repeat:Infinity}} />
+      {/* Dog at centre of the network */}
+      <Dog x={148} y={148} sc={0.84} pose="sit" col="#34d399" />
 
-      {/* Helper nodes */}
-      {helpers.map((h,i)=>{
-        const rad=h.angle*Math.PI/180;
-        const x=200+Math.cos(rad)*98, y=152+Math.sin(rad)*80;
-        return (
-          <motion.g key={i}
-            animate={active ? {scale:[0.92,1.08,0.92]} : {}}
-            transition={{duration:2.2, repeat:Infinity, delay:i*0.5}}
-            style={{transformOrigin:`${x}px ${y}px`}}>
-            <circle cx={x} cy={y} r="27" fill="#081a12" stroke="#34d399" strokeWidth="1.6" />
-            <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="16" fill="#34d399">{h.glyph}</text>
-            <text x={x} y={y+21} textAnchor="middle" fontSize="7" fill="#34d399" opacity="0.75">{h.label}</text>
-          </motion.g>
-        );
-      })}
+      {/* Helper organisation nodes */}
+      {helpers.map((h,i) => (
+        <motion.g key={i}
+          animate={active ? {scale:[0.94,1.06,0.94]} : {}}
+          transition={{duration:2.2, repeat:Infinity, delay:i*0.5}}
+          style={{transformOrigin:`${h.x}px ${h.y}px`}}>
+          <circle cx={h.x} cy={h.y} r="28" fill="#081a10" stroke="#34d399" strokeWidth="1.8" />
+          <text x={h.x} y={h.y+2} textAnchor="middle" dominantBaseline="middle" fontSize="15" fill="#34d399">{h.glyph}</text>
+          <text x={h.x} y={h.y+22} textAnchor="middle" fontSize="7" fill="#34d399" opacity="0.75">{h.label}</text>
+        </motion.g>
+      ))}
     </svg>
   );
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 6: Act — dog being cared for on an Indian street / clinic
+   SCENE 6: Act — warm clinic interior, hands caring for dog
 ─────────────────────────────────────────────────────────────────── */
 function SceneAct({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <radialGradient id="s6-glow" cx="50%" cy="62%" r="40%">
-          <stop offset="0%" stopColor="#ea580c" stopOpacity="0.24" />
-          <stop offset="100%" stopColor="#0a0e1a" stopOpacity="0" />
+        <linearGradient id="h6bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#0e1018" />
+          <stop offset="100%" stopColor="#180c08" />
+        </linearGradient>
+        <radialGradient id="h6warm" cx="50%" cy="60%" r="44%">
+          <stop offset="0%"   stopColor="#ea580c" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#ea580c" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <rect width="400" height="300" fill="#0e0a08" />
-      <rect width="400" height="300" fill="url(#s6-glow)" />
+      <rect width="400" height="300" fill="url(#h6bg)" />
+      <rect width="400" height="300" fill="url(#h6warm)" />
 
-      {/* Indoor / clinic background */}
-      <rect x="0" y="0" width="400" height="220" fill="#0e1218" />
-      {/* Clinic wall stripe */}
-      <rect x="0" y="0" width="400" height="6" fill="#1a2e3a" />
+      {/* Clinic wall */}
+      <rect width="400" height="200" fill="#0e1218" />
+      <rect x="0" y="0" width="400" height="5" fill="#1a2e3a" />
+
       {/* Tile floor */}
-      <path d="M0,220 L400,220 L400,300 L0,300Z" fill="#141e28" />
-      {([0,80,160,240,320] as number[]).map(x=>(
-        <line key={x} x1={x} y1="220" x2={x} y2="300" stroke="#1a2a38" strokeWidth="0.6" />
+      <path d="M0,200 L400,200 L400,300 L0,300Z" fill="#131c26" />
+      {([0,80,160,240,320] as number[]).map(x => (
+        <line key={x} x1={x} y1="200" x2={x} y2="300" stroke="#192530" strokeWidth="0.7" />
       ))}
-      {([240,260,280,300] as number[]).map(y=>(
-        <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#1a2a38" strokeWidth="0.5" />
+      {([220,240,260,280,300] as number[]).map(y => (
+        <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#192530" strokeWidth="0.6" />
       ))}
 
-      {/* Medical cross sign on wall */}
-      <rect x="178" y="20" width="44" height="14" rx="7" fill="#1a2a3a" />
-      <rect x="186" y="8" width="14" height="38" rx="7" fill="#1a2a3a" />
-      <motion.g animate={active ? {opacity:[0.7,1,0.7]} : {opacity:0.7}} transition={{duration:2,repeat:Infinity}}>
-        <rect x="180" y="22" width="40" height="10" rx="5" fill="#ef4444" opacity="0.9" />
-        <rect x="188" y="10" width="10" height="34" rx="5" fill="#ef4444" opacity="0.9" />
+      {/* Medical cross on wall */}
+      <motion.g animate={active ? {opacity:[0.7,1,0.7]} : {opacity:0.7}} transition={{duration:2, repeat:Infinity}}>
+        <rect x="184" y="14" width="32" height="10" rx="5" fill="#ef4444" opacity="0.92" />
+        <rect x="192" y="8"  width="10" height="24" rx="5" fill="#ef4444" opacity="0.92" />
       </motion.g>
 
-      {/* Small table / mat */}
-      <rect x="80" y="212" width="240" height="8" rx="4" fill="#1e3040" />
+      {/* Treatment mat */}
+      <rect x="80" y="206" width="240" height="9" rx="4.5" fill="#1e3040" />
 
-      {/* Dog lying on mat, being cared for */}
-      <motion.g animate={active ? {y:[0,-2,0]} : {y:0}} transition={{duration:4,repeat:Infinity}}>
-        <Dog x={96} y={156} sc={1.08} pose="lie" col="#F5A623" />
-        {/* Bandage on leg */}
-        <rect x="145" y="196" width="32" height="10" rx="5" fill="white" opacity="0.9" />
-        <rect x="157" y="192" width="8" height="18" rx="4" fill="#ef4444" opacity="0.85" />
+      {/* Dog lying — resting, being treated */}
+      <motion.g animate={active ? {y:[0,-2,0]} : {y:0}} transition={{duration:4.5, repeat:Infinity}}>
+        <Dog x={90} y={152} sc={1.1} pose="lie" col="#F5A623" />
+        {/* Bandage */}
+        <rect x="140" y="192" width="36" height="11" rx="5.5" fill="white" opacity="0.92" />
+        <rect x="153" y="188" width="10" height="19" rx="5" fill="#ef4444" opacity="0.88" />
       </motion.g>
 
-      {/* Left caring hand reaching in */}
-      <motion.g animate={active ? {x:[-10,0,-10]} : {x:-10}} transition={{duration:3.2,repeat:Infinity}}>
-        <path d="M36,186 Q68,170 92,180 Q110,186 108,198 Q100,210 80,208 Q56,212 38,202Z" fill="#c48257" />
-        <path d="M60,172 Q64,164 68,172" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M72,170 Q76,162 80,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M84,172 Q88,165 92,172" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Left caring hand */}
+      <motion.g animate={active ? {x:[-12,0,-12]} : {x:-12}} transition={{duration:3.2, repeat:Infinity}}>
+        <path d="M32,184 Q66,168 90,178 Q108,184 106,198 Q98,210 78,208 Q54,212 34,202Z" fill="#c48257" />
+        <path d="M58,170 Q62,162 66,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M70,168 Q74,160 78,168" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M82,170 Q86,163 90,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
       </motion.g>
 
       {/* Right caring hand */}
-      <motion.g animate={active ? {x:[10,0,10]} : {x:10}} transition={{duration:3.2,repeat:Infinity}}>
-        <path d="M364,186 Q332,170 308,180 Q290,186 292,198 Q300,210 320,208 Q344,212 362,202Z" fill="#c48257" />
-        <path d="M340,172 Q336,164 332,172" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M328,170 Q324,162 320,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M316,172 Q312,165 308,172" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <motion.g animate={active ? {x:[12,0,12]} : {x:12}} transition={{duration:3.2, repeat:Infinity}}>
+        <path d="M368,184 Q334,168 310,178 Q292,184 294,198 Q302,210 322,208 Q346,212 366,202Z" fill="#c48257" />
+        <path d="M342,170 Q338,162 334,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M330,168 Q326,160 322,168" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M318,170 Q314,163 310,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
       </motion.g>
 
-      {/* Hearts floating */}
-      {([0,1,2] as number[]).map(i=>(
+      {/* Floating hearts */}
+      {([0,1,2] as number[]).map(i => (
         <motion.text key={i} x={148+i*52} y={0} fontSize="18" textAnchor="middle" fill="#f97316"
-          animate={active ? {y:[170,100],opacity:[0,0.8,0]} : {y:170,opacity:0}}
-          transition={{duration:2.8, repeat:Infinity, delay:i*0.85}}>♥</motion.text>
+          animate={active ? {y:[168,96], opacity:[0,0.85,0]} : {y:168, opacity:0}}
+          transition={{duration:2.8, repeat:Infinity, delay:i*0.88}}>♥</motion.text>
       ))}
     </svg>
   );
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   SCENE 7: Scale — city map from above, dog nodes across the city
+   SCENE 7: Scale — city map from above, dog nodes, India scale
 ─────────────────────────────────────────────────────────────────── */
 function SceneScale({ active }: { active: boolean }) {
-  const nodes: [number,number][] = [
+  const nodes: [number, number][] = [
     [58,54],[104,44],[160,62],[216,44],[268,60],[320,48],[372,60],
     [40,96],[86,108],[136,92],[184,104],[236,90],[284,108],[336,96],[380,104],
     [54,138],[104,130],[156,144],[200,132],[248,140],[298,128],[348,142],
@@ -813,17 +961,16 @@ function SceneScale({ active }: { active: boolean }) {
     [42,220],[92,210],[140,224],[192,214],[244,226],[296,214],[352,226],[388,218],
     [78,258],[136,250],[188,260],[240,252],[302,260],[360,252],
   ];
-  const HERO = 22; // "our dog" highlighted node
-
+  const HERO = 22;
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <rect width="400" height="300" fill="#060c16" />
 
-      {/* City grid — roads */}
-      {([44,88,132,176,220,264] as number[]).map(y=>(
+      {/* City grid */}
+      {([44,88,132,176,220,264] as number[]).map(y => (
         <line key={`h${y}`} x1="0" y1={y} x2="400" y2={y} stroke="#121e32" strokeWidth="1" />
       ))}
-      {([44,100,156,212,268,324,380] as number[]).map(x=>(
+      {([44,100,156,212,268,324,380] as number[]).map(x => (
         <line key={`v${x}`} x1={x} y1="0" x2={x} y2="300" stroke="#121e32" strokeWidth="1" />
       ))}
       {/* Main arteries */}
@@ -839,45 +986,50 @@ function SceneScale({ active }: { active: boolean }) {
          [2,90,116,62],[124,90,74,62],[204,90,94,62],[302,90,96,62],
          [2,156,116,62],[124,156,74,62],[204,156,94,62],[302,156,96,62],
          [2,222,116,76],[124,222,74,76],[204,222,94,76],[302,222,96,76],
-      ] as [number,number,number,number][]).map(([bx,by,bw,bh],i)=>(
+      ] as [number,number,number,number][]).map(([bx,by,bw,bh],i) => (
         <rect key={i} x={bx} y={by} width={bw} height={bh} fill="#0b1522" opacity="0.7" />
       ))}
 
-      {/* Auto-rickshaws on roads — tiny */}
-      <g opacity="0.35">
-        <AutoRickshaw x={140} y={148} sc={0.28} />
-        <AutoRickshaw x={230} y={148} sc={0.28} flip />
-        <AutoRickshaw x={114} y={182} sc={0.25} />
-      </g>
+      {/* Network connection lines between pins */}
+      {nodes.slice(0,12).map(([nx,ny],i) => {
+        const [mx,my] = nodes[(i+5) % nodes.length];
+        return (
+          <motion.line key={i} x1={nx} y1={ny} x2={mx} y2={my}
+            stroke="#22c55e" strokeWidth="1" opacity="0.18"
+            animate={active ? {opacity:[0.04,0.25,0.04]} : {opacity:0.04}}
+            transition={{duration:3.2, repeat:Infinity, delay:i*0.22}} />
+        );
+      })}
 
-      {/* Dog nodes appearing */}
-      {nodes.map(([nx,ny],i)=>(
+      {/* Dog nodes blinking in */}
+      {nodes.map(([nx,ny],i) => (
         <motion.g key={i}
           animate={active ? {opacity:[0,1]} : {opacity:0}}
-          transition={{duration:0.3, delay:i*0.06}}>
-          {i===HERO ? (
+          transition={{duration:0.32, delay:i*0.062}}>
+          {i === HERO ? (
             <>
-              <motion.circle cx={nx} cy={ny} r="10" fill="#4EBDDB" opacity="0.16"
-                animate={active ? {r:[10,20,10]} : {}}
-                transition={{duration:2.6, repeat:Infinity}} />
-              <circle cx={nx} cy={ny} r="5" fill="#4EBDDB" />
-              <motion.text x={nx} y={ny-13} textAnchor="middle" fontSize="6.5" fill="#4EBDDB"
+              <motion.circle cx={nx} cy={ny} r="10" fill="#22c55e" opacity="0.15"
+                animate={active ? {r:[10,22,10]} : {}}
+                transition={{duration:2.8, repeat:Infinity}} />
+              <path d={`M${nx},${ny+8} Q${nx},${ny+2} ${nx-4},${ny-4} Q${nx-9},${ny-12} ${nx},${ny-16} Q${nx+9},${ny-12} ${nx+4},${ny-4} Q${nx},${ny+2} ${nx},${ny+8}Z`}
+                fill="#22c55e" />
+              <circle cx={nx} cy={ny-9} r="2.5" fill="#060c16" />
+              <motion.text x={nx} y={ny-22} textAnchor="middle" fontSize="6.5" fill="#22c55e"
                 animate={active ? {opacity:[0,1]} : {opacity:0}}
-                transition={{delay:nodes.length*0.06+0.5, duration:0.6}}>
+                transition={{delay:nodes.length*0.062+0.5, duration:0.7}}>
                 our dog
               </motion.text>
             </>
           ) : (
-            <circle cx={nx} cy={ny} r={i%5===0?3.5:2.5} fill="#4EBDDB" opacity={0.2+(i%6)*0.09} />
+            <circle cx={nx} cy={ny} r={i%5===0?3.5:2.5} fill="#22c55e" opacity={0.18+(i%6)*0.1} />
           )}
         </motion.g>
       ))}
 
-      {/* Legend */}
-      <motion.text x="200" y="284" textAnchor="middle" fontSize="8.5" fill="#4EBDDB"
+      <motion.text x="200" y="284" textAnchor="middle" fontSize="8.5" fill="#22c55e" opacity="0"
         animate={active ? {opacity:[0,0.55]} : {opacity:0}}
-        transition={{delay:nodes.length*0.06+0.9, duration:0.9}}>
-        35 million dogs across India — every one visible, every one a node
+        transition={{delay:nodes.length*0.062+0.9, duration:1}}>
+        35 million street dogs across India — every one visible, every one a node
       </motion.text>
     </svg>
   );
