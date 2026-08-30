@@ -504,285 +504,235 @@ function StreetBg({
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────
-   SCENE 0: Hero — golden-hour Indian street, dog alone
-─────────────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════
+   SCENE POSITIONING NOTES
+   ViewBox 400×300. Horizon y=175. Road trapezoid: far(145,175→255,175)
+   near(0,300→400,300). Road left edge = 145*(300-y)/125, right = 255+145*(y-175)/125.
+   Dog sit pose: local x[-4,76] y[2,90]. At sc=0.64: 51px wide, 57px tall.
+   Standard mid-ground dog: x=183, y=196 → paws at y=254, within road ✓
+   All elements kept in x=160–260 for mobile portrait visibility.
+═══════════════════════════════════════════════════════════════════ */
+
+/* ─── SCENE 0: Hero — golden-hour street, dog alone ─── */
 function SceneHero({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h0" warm />
 
-      {/* Background people — small silhouettes, various depths */}
-      {/* Far background, near horizon */}
-      <rect x="162" y="172" width="5"  height="12" rx="2" fill="#3a1a08" opacity="0.5" />
-      <rect x="172" y="171" width="4"  height="13" rx="2" fill="#3a1a08" opacity="0.4" />
-      <rect x="215" y="172" width="5"  height="12" rx="2" fill="#3a1a08" opacity="0.5" />
-      <rect x="224" y="171" width="4"  height="13" rx="2" fill="#3a1a08" opacity="0.45" />
-      {/* Circle heads */}
-      <circle cx="164" cy="170" r="3" fill="#3a1a08" opacity="0.5" />
-      <circle cx="174" cy="169" r="2.5" fill="#3a1a08" opacity="0.4" />
-      <circle cx="217" cy="170" r="3" fill="#3a1a08" opacity="0.5" />
-      <circle cx="226" cy="169" r="2.5" fill="#3a1a08" opacity="0.45" />
+      {/* Far pedestrians near horizon — tiny silhouettes */}
+      <rect x="188" y="178" width="4"  height="10" rx="2"   fill="#3a1a08" opacity="0.48" />
+      <circle cx="190" cy="175" r="2.5" fill="#3a1a08" opacity="0.48" />
+      <rect x="208" y="179" width="3"  height="9"  rx="1.5" fill="#3a1a08" opacity="0.36" />
+      <circle cx="209" cy="176" r="2"  fill="#3a1a08" opacity="0.36" />
 
-      {/* Mid-distance: auto-rickshaw on left road */}
-      <g opacity="0.65">
-        <AutoRickshaw x={84} y={196} sc={0.62} />
+      {/* Auto-rickshaw — right side, mid-distance */}
+      <g opacity="0.56">
+        <AutoRickshaw x={246} y={198} sc={0.54} />
       </g>
 
-      {/* Mid-distance: people right side */}
-      <rect x="284" y="190" width="8"  height="20" rx="3" fill="#2a1208" opacity="0.7" />
-      <circle cx="288" cy="187" r="5" fill="#2a1208" opacity="0.7" />
-      <rect x="298" y="194" width="7"  height="18" rx="3" fill="#2a1208" opacity="0.55" />
-      <circle cx="301" cy="191" r="4" fill="#2a1208" opacity="0.55" />
-
-      {/* Near: person left side sidewalk — stopped, looking */}
-      <rect x="100" y="220" width="10" height="26" rx="4" fill="#1a0c04" opacity="0.85" />
-      <circle cx="105" cy="216" r="7" fill="#1a0c04" opacity="0.85" />
-      {/* Arm extended toward dog */}
-      <path d="M100,230 Q128,240 156,248" stroke="#1a0c04" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.75" />
-
-      {/* Dog — protagonist, center of road, alone */}
-      <motion.g animate={active ? {y:[0,-3,0]} : {y:0}} transition={{duration:3.5, repeat:Infinity, ease:"easeInOut"}}>
-        <Dog x={140} y={224} sc={0.94} pose="sit" col="#F5A623" />
+      {/* Dog — protagonist, center of road */}
+      <motion.g
+        animate={active ? {y:[0,-3,0]} : {y:0}}
+        transition={{duration:3.5, repeat:Infinity, ease:"easeInOut"}}>
+        <Dog x={183} y={196} sc={0.64} pose="sit" col="#F5A623" />
       </motion.g>
-      {/* Dog shadow */}
-      <ellipse cx="186" cy="274" rx="22" ry="5" fill="#8a4410" opacity="0.18" />
-
-      {/* Warm golden glow pooling around dog from overhead sun */}
-      <ellipse cx="186" cy="256" rx="50" ry="24" fill="#f5c040" opacity="0.06" />
+      <ellipse cx="204" cy="254" rx="21" ry="4" fill="#8a4410" opacity="0.18" />
+      <ellipse cx="204" cy="238" rx="44" ry="18" fill="#f5c040" opacity="0.07" />
     </svg>
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────
-   SCENE 1: Problem — same street gone cold, disconnected nodes
-─────────────────────────────────────────────────────────────────── */
+/* ─── SCENE 1: Problem — cold street, disconnected ─── */
 function SceneProblem({ active }: { active: boolean }) {
-  const nodes = [
-    { x: 72,  y: 84,  label: "NGO",      glyph: "⌂", col: "#3b82f6" },
-    { x: 332, y: 80,  label: "Vet",       glyph: "+", col: "#22c55e" },
-    { x: 68,  y: 224, label: "Volunteer", glyph: "♥", col: "#ef4444" },
-    { x: 336, y: 228, label: "Rescue",    glyph: "⚑", col: "#f59e0b" },
-    { x: 200, y: 44,  label: "Citizen",   glyph: "◎", col: "#a78bfa" },
+  /* dog visual centre on screen */
+  const dogCx = 204, dogCy = 228;
+  const nodes: [number, number, string][] = [
+    [88,  68,  "#3b82f6"],
+    [312, 64,  "#22c55e"],
+    [76,  240, "#ef4444"],
+    [324, 236, "#f59e0b"],
+    [200, 40,  "#a78bfa"],
   ];
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h1" warm={false} />
+      <rect width="400" height="300" fill="#070f20" opacity="0.4" />
 
-      {/* Cold colour wash over street */}
-      <rect width="400" height="300" fill="#0a1830" opacity="0.42" />
-
-      {/* Broken dashed lines to centre — no connection */}
-      {nodes.map((n,i) => (
-        <motion.line key={i} x1={n.x} y1={n.y} x2="200" y2="194"
-          stroke="#334155" strokeWidth="1.8" strokeDasharray="5 10"
-          animate={active ? {opacity:[0.08,0.3,0.08]} : {opacity:0.15}}
+      {/* Broken dashed lines to dog */}
+      {nodes.map(([nx, ny], i) => (
+        <motion.line key={i} x1={nx} y1={ny} x2={dogCx} y2={dogCy}
+          stroke="#2a3a55" strokeWidth="1.6" strokeDasharray="5 10"
+          animate={active ? {opacity:[0.1,0.32,0.1]} : {opacity:0.14}}
           transition={{duration:2.8, repeat:Infinity, delay:i*0.44}} />
       ))}
 
-      {/* X marks — failed connection */}
-      {([[140,130],[256,118],[138,218],[258,214]] as [number,number][]).map(([cx,cy],i) => (
-        <text key={i} x={cx} y={cy} fontSize="14" fill="#ef4444" opacity="0.5" textAnchor="middle">✕</text>
-      ))}
-
-      {/* Dog — desaturated, lost in the cold scene */}
-      <Dog x={148} y={148} sc={0.84} pose="sit" col="#6b7e9c" />
-
-      {/* Helper nodes — dashed borders, muted */}
-      {nodes.map((n,i) => (
+      {/* Disconnected node circles — no labels */}
+      {nodes.map(([nx, ny, col], i) => (
         <motion.g key={i}
-          animate={active ? {opacity:[0.4,1,0.4]} : {opacity:0.5}}
+          animate={active ? {opacity:[0.38,0.85,0.38]} : {opacity:0.44}}
           transition={{duration:2.4, repeat:Infinity, delay:i*0.4}}>
-          <circle cx={n.x} cy={n.y} r="27" fill="#0d1828" stroke="#2a3a55" strokeWidth="1.6" strokeDasharray="3 5" />
-          <text x={n.x} y={n.y+2} textAnchor="middle" dominantBaseline="middle" fontSize="14" fill={n.col} opacity="0.65">{n.glyph}</text>
-          <text x={n.x} y={n.y+21} textAnchor="middle" fontSize="7" fill="#4a5e7a">{n.label}</text>
+          <circle cx={nx} cy={ny} r="22" fill="#0d1828"
+            stroke="#2a3a55" strokeWidth="1.4" strokeDasharray="3 5" />
+          <circle cx={nx} cy={ny} r="7" fill={col} opacity="0.45" />
         </motion.g>
       ))}
+
+      {/* X marks — broken connection */}
+      {([[183, 218], [228, 212]] as [number, number][]).map(([cx, cy], i) => (
+        <g key={i}>
+          <line x1={cx-6} y1={cy-6} x2={cx+6} y2={cy+6}
+            stroke="#ef4444" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
+          <line x1={cx+6} y1={cy-6} x2={cx-6} y2={cy+6}
+            stroke="#ef4444" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
+        </g>
+      ))}
+
+      {/* Dog — desaturated, isolated */}
+      <Dog x={183} y={196} sc={0.64} pose="sit" col="#6b7e9c" />
     </svg>
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────
-   SCENE 2: Notice — golden street, person stops, dog looks up
-─────────────────────────────────────────────────────────────────── */
+/* ─── SCENE 2: Notice — person stops, dog looks up ─── */
 function SceneNotice({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h2" warm />
 
-      {/* Auto-rickshaw passing, mid-ground */}
-      <g opacity="0.55">
-        <AutoRickshaw x={68} y={204} sc={0.66} />
+      {/* Auto-rickshaw — mid-distance left */}
+      <g opacity="0.5">
+        <AutoRickshaw x={82} y={200} sc={0.5} />
       </g>
 
-      {/* Background pedestrians */}
-      <rect x="280" y="198" width="7" height="18" rx="3" fill="#2a1208" opacity="0.7" />
-      <circle cx="283" cy="195" r="4.5" fill="#2a1208" opacity="0.7" />
-      <rect x="294" y="202" width="6" height="16" rx="3" fill="#2a1208" opacity="0.55" />
-      <circle cx="297" cy="199" r="4" fill="#2a1208" opacity="0.55" />
+      {/* Far background pedestrian */}
+      <rect x="294" y="200" width="6" height="16" rx="3" fill="#2a1208" opacity="0.55" />
+      <circle cx="297" cy="197" r="4" fill="#2a1208" opacity="0.55" />
 
-      {/* Person who stopped — taller, warmer, closer */}
+      {/* Person who stopped — right of dog, facing left */}
       <motion.g animate={active ? {y:[0,-1.5,0]} : {y:0}} transition={{duration:3.2, repeat:Infinity}}>
-        {/* Body */}
-        <rect x="246" y="198" width="14" height="36" rx="5" fill="#4a2a10" />
-        {/* Head */}
-        <circle cx="253" cy="193" r="10" fill="#c48257" />
-        {/* Bending-forward arm toward dog */}
-        <path d="M246,212 Q224,226 206,238" stroke="#4a2a10" strokeWidth="5" fill="none" strokeLinecap="round" />
-        <path d="M246,216 Q218,232 202,244" stroke="#4a2a10" strokeWidth="4" fill="none" strokeLinecap="round" />
-        {/* Legs */}
-        <rect x="248" y="232" width="5" height="20" rx="2.5" fill="#2a1808" />
-        <rect x="256" y="232" width="5" height="20" rx="2.5" fill="#2a1808" />
+        <rect x="252" y="202" width="13" height="32" rx="5" fill="#4a2a10" />
+        <circle cx="258" cy="197" r="9" fill="#c48257" />
+        <path d="M252,215 Q236,224 220,234"
+          stroke="#4a2a10" strokeWidth="5" fill="none" strokeLinecap="round" />
+        <rect x="253" y="232" width="5" height="20" rx="2.5" fill="#2a1808" />
+        <rect x="260" y="232" width="5" height="20" rx="2.5" fill="#2a1808" />
       </motion.g>
 
-      {/* Warm gaze / connection glow between them */}
-      <motion.ellipse cx="220" cy="246" rx="36" ry="12"
+      {/* Warm gaze glow between them */}
+      <motion.ellipse cx="224" cy="248" rx="30" ry="10"
         fill="#f5c040"
-        animate={active ? {opacity:[0.06,0.18,0.06], ry:[12,18,12]} : {opacity:0.05}}
+        animate={active ? {opacity:[0.06,0.18,0.06], ry:[10,15,10]} : {opacity:0.05}}
         transition={{duration:2.4, repeat:Infinity}} />
 
-      {/* Dog looking up hopefully */}
+      {/* Dog looking up */}
       <motion.g animate={active ? {y:[0,-2,0]} : {y:0}} transition={{duration:2.8, repeat:Infinity}}>
-        <Dog x={142} y={218} sc={0.88} pose="lookup" col="#F5A623" />
+        <Dog x={170} y={196} sc={0.64} pose="lookup" col="#F5A623" />
       </motion.g>
-      <ellipse cx="186" cy="268" rx="20" ry="4" fill="#8a4410" opacity="0.15" />
+      <ellipse cx="191" cy="254" rx="19" ry="4" fill="#8a4410" opacity="0.15" />
 
-      {/* Gaze line — dashed warm line between eye contact */}
-      <motion.line x1="248" y1="200" x2="192" y2="240"
+      {/* Dashed gaze line */}
+      <motion.line x1="252" y1="202" x2="196" y2="226"
         stroke="#f5c040" strokeWidth="1.8" strokeDasharray="6 9"
-        animate={active ? {opacity:[0,0.55,0]} : {opacity:0}}
+        animate={active ? {opacity:[0,0.5,0]} : {opacity:0}}
         transition={{duration:2.2, repeat:Infinity}} />
     </svg>
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────
-   SCENE 3: Report — phone in FG, data layer appears over street
-─────────────────────────────────────────────────────────────────── */
+/* ─── SCENE 3: Report — phone foreground, dog in background ─── */
 function SceneReport({ active }: { active: boolean }) {
-  const dataWords = ["location", "photo", "condition", "time", "area"];
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h3" warm />
 
-      {/* Dog in background, smaller */}
-      <g opacity="0.55">
-        <Dog x={170} y={212} sc={0.6} pose="sit" col="#F5A623" />
+      {/* Dog — small, background, visible left of phone */}
+      <g opacity="0.58">
+        <Dog x={152} y={186} sc={0.42} pose="sit" col="#F5A623" />
       </g>
 
-      {/* Green glowing location pin appearing over dog on street */}
-      <motion.g animate={active ? {y:[0,-6,0]} : {y:0}} transition={{duration:1.8, repeat:Infinity}}>
-        {/* Pin glow */}
-        <motion.circle cx="196" cy="220" r="18" fill="#22c55e"
-          animate={active ? {opacity:[0,0.14,0], r:[14,28,14]} : {opacity:0}}
+      {/* Green pin over background dog */}
+      <motion.g animate={active ? {y:[0,-5,0]} : {y:0}} transition={{duration:1.8, repeat:Infinity}}>
+        <motion.circle cx="170" cy="209" r="12" fill="#22c55e"
+          animate={active ? {opacity:[0,0.15,0], r:[10,18,10]} : {opacity:0}}
           transition={{duration:2.4, repeat:Infinity}} />
-        {/* Pin body */}
-        <path d="M196,240 Q196,228 190,220 Q182,208 196,202 Q210,208 202,220 Q196,228 196,240Z"
+        <path d="M170,224 Q170,215 165,208 Q158,198 170,193 Q182,198 175,208 Q170,215 170,224Z"
           fill="#22c55e" />
-        <circle cx="196" cy="208" r="5.5" fill="#0a1818" />
+        <circle cx="170" cy="200" r="4" fill="#0a1818" />
       </motion.g>
 
-      {/* Hand holding phone — foreground left */}
-      <path d="M48,270 Q38,248 42,226 Q44,206 54,200 Q62,196 64,206 Q66,200 72,200 Q78,202 76,210 Q82,206 86,210 Q90,216 86,222 Q90,220 92,226 Q94,234 88,238 L80,270Z"
+      {/* Phone body — right of centre */}
+      <rect x="232" y="60" width="80" height="140" rx="11" fill="#111827" stroke="#22c55e" strokeWidth="1.4" />
+      <rect x="238" y="71" width="68" height="106" rx="5"  fill="#0a0e16" />
+      <rect x="256" y="64" width="24" height="5"   rx="2.5" fill="#0a0e16" />
+
+      {/* Dog photo on phone screen */}
+      <rect x="240" y="73" width="64" height="54" rx="4" fill="#0e1620" />
+      <Dog x={245} y={78} sc={0.52} pose="sit" col="#F5A623" />
+
+      {/* Pin on phone screen */}
+      <motion.g animate={active ? {y:[0,-3,0]} : {y:0}} transition={{duration:1.6, repeat:Infinity}}>
+        <path d="M271,134 Q271,127 267,121 Q262,112 271,108 Q280,112 275,121 Q271,127 271,134Z"
+          fill="#22c55e" />
+        <circle cx="271" cy="115" r="3.5" fill="#0a0e16" />
+      </motion.g>
+
+      {/* Screen info bars — no text */}
+      <rect x="241" y="142" width="62" height="4"  rx="2"   fill="#22c55e" opacity="0.35" />
+      <rect x="241" y="150" width="44" height="3.5" rx="1.8" fill="#22c55e" opacity="0.22" />
+      <rect x="241" y="157" width="50" height="3.5" rx="1.8" fill="#22c55e" opacity="0.18" />
+      {/* Action button shape */}
+      <rect x="243" y="168" width="52" height="10" rx="5" fill="#22c55e" opacity="0.7" />
+
+      {/* Hand holding phone */}
+      <path d="M238,210 Q228,192 230,176 Q232,160 238,158 Q244,156 244,164 Q246,159 250,160 Q254,162 252,168 Q256,164 259,168 Q262,173 258,178 Q262,176 264,181 Q266,188 261,192 L256,210Z"
         fill="#c48257" />
-
-      {/* Phone */}
-      <rect x="52" y="108" width="82" height="142" rx="12" fill="#111827" stroke="#22c55e" strokeWidth="1.5" />
-      <rect x="58" y="120" width="70" height="108" rx="6" fill="#0a0e16" />
-      <rect x="76" y="112" width="26" height="6" rx="3" fill="#0a0e16" />
-
-      {/* Dog photo on screen */}
-      <rect x="60" y="122" width="66" height="58" rx="4" fill="#0e1620" />
-      <Dog x={66} y={130} sc={0.54} pose="sit" col="#F5A623" />
-
-      {/* Location pin on screen */}
-      <motion.g animate={active ? {y:[0,-4,0]} : {y:0}} transition={{duration:1.6, repeat:Infinity}}>
-        <path d="M93,186 Q93,178 88,172 Q82,162 93,158 Q104,162 98,172 Q93,178 93,186Z" fill="#22c55e" />
-        <circle cx="93" cy="165" r="4" fill="#0a0e16" />
-      </motion.g>
-
-      {/* Screen data bars */}
-      <rect x="62" y="194" width="62" height="5" rx="2.5" fill="#22c55e" opacity="0.38" />
-      <rect x="62" y="203" width="42" height="4" rx="2" fill="#22c55e" opacity="0.24" />
-      <rect x="66" y="232" width="30" height="5" rx="2.5" fill="#1e2d45" />
-
-      {/* Data words flying up from phone */}
-      {dataWords.map((word, i) => (
-        <motion.text key={i} x={56 + i * 24} y={0} fontSize="7.5" fill="#22c55e" textAnchor="middle"
-          animate={active ? {y:[108,-24], opacity:[0,0.75,0]} : {y:108, opacity:0}}
-          transition={{duration:2.2, repeat:Infinity, delay:i*0.36, ease:"easeOut"}}>
-          {word}
-        </motion.text>
-      ))}
-
-      {/* Semi-transparent StrayPaw data panel — top right, like image 2 */}
-      <rect x="240" y="30" width="148" height="80" rx="8" fill="#0a1818" opacity="0.82" />
-      <rect x="246" y="36" width="60" height="7" rx="3.5" fill="#22c55e" opacity="0.8" />
-      <rect x="246" y="48" width="130" height="4" rx="2" fill="#22c55e" opacity="0.3" />
-      <rect x="246" y="57" width="100" height="4" rx="2" fill="#22c55e" opacity="0.22" />
-      <rect x="246" y="66" width="114" height="4" rx="2" fill="#22c55e" opacity="0.26" />
-      <text x="247" y="44" fontSize="7" fill="#22c55e" fontWeight="bold">StrayPaw</text>
-      <text x="247" y="56" fontSize="5.5" fill="#5eead4" opacity="0.75">Dog sighting reported</text>
-      <text x="247" y="65" fontSize="5.5" fill="#5eead4" opacity="0.6">Lajpat Nagar, New Delhi</text>
-      <text x="247" y="74" fontSize="5.5" fill="#5eead4" opacity="0.55">Condition: active, alert</text>
-      <rect x="248" y="84" width="28" height="10" rx="5" fill="#22c55e" opacity="0.85" />
-      <text x="262" y="91" fontSize="5.5" fill="#0a1818" textAnchor="middle">View dog</text>
     </svg>
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────
-   SCENE 4: Understand — dog with data profile, street behind
-─────────────────────────────────────────────────────────────────── */
+/* ─── SCENE 4: Understand — dog with data orbit ─── */
 function SceneUnderstand({ active }: { active: boolean }) {
-  const tags = [
-    { label: "Healthy",      angle: 0 },
-    { label: "Lajpat Nagar", angle: 52 },
-    { label: "Mar 2024",     angle: 106 },
-    { label: "Feeder: Priya",angle: 160 },
-    { label: "Vaccinated",   angle: 214 },
-    { label: "3 sightings",  angle: 268 },
-    { label: "No injuries",  angle: 318 },
-  ];
-  const RX = 90, RY = 60;
+  /* orbit centre ≈ dog visual centre */
+  const ocx = 204, ocy = 225;
+  const RX = 84, RY = 50;
+  const dotAngles = [0, 52, 104, 156, 208, 260, 312];
+  const dotCols   = ["#a78bfa","#818cf8","#c4b5fd","#7c3aed","#a78bfa","#6d28d9","#8b5cf6"];
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h4" warm />
-
-      {/* Dark overlay to bring data to foreground */}
-      <rect width="400" height="300" fill="#0a0e1a" opacity="0.55" />
+      <rect width="400" height="300" fill="#0a0e1a" opacity="0.52" />
 
       {/* Orbit ellipse */}
-      <ellipse cx="200" cy="158" rx={RX} ry={RY}
-        fill="none" stroke="#a78bfa" strokeWidth="1" strokeDasharray="3 8" opacity="0.32" />
+      <ellipse cx={ocx} cy={ocy} rx={RX} ry={RY}
+        fill="none" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 8" opacity="0.35" />
 
-      {/* Dog at center */}
-      <Dog x={150} y={108} sc={0.9} pose="sit" col="#a78bfa" />
+      {/* Dog at centre */}
+      <Dog x={183} y={196} sc={0.64} pose="sit" col="#a78bfa" />
 
-      {/* Data tags orbiting */}
-      {tags.map((tag, i) => {
-        const rad = (tag.angle * Math.PI) / 180;
-        const tx = 200 + Math.cos(rad) * RX;
-        const ty = 158 + Math.sin(rad) * RY;
-        const len = tag.label.length * 4.8 + 14;
+      {/* Orbiting data dots — no text, just coloured circles */}
+      {dotAngles.map((angle, i) => {
+        const rad = (angle * Math.PI) / 180;
+        const tx = ocx + Math.cos(rad) * RX;
+        const ty = ocy + Math.sin(rad) * RY;
         return (
           <motion.g key={i}
-            animate={active ? {opacity:[0.3,1,0.3]} : {opacity:0.35}}
+            animate={active ? {opacity:[0.28,1,0.28]} : {opacity:0.35}}
             transition={{duration:2.6, repeat:Infinity, delay:i*0.36}}>
-            <line x1="200" y1="158" x2={tx} y2={ty} stroke="#7c3aed" strokeWidth="1" opacity="0.18" />
-            <rect x={tx-len/2} y={ty-7} width={len} height="14" rx="7" fill="#14083a" stroke="#7c3aed" strokeWidth="1" />
-            <text x={tx} y={ty} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" fill="#a78bfa">{tag.label}</text>
+            <line x1={ocx} y1={ocy} x2={tx} y2={ty}
+              stroke="#7c3aed" strokeWidth="1" opacity="0.15" />
+            <circle cx={tx} cy={ty} r="9"   fill="#14083a" stroke={dotCols[i]} strokeWidth="1.4" />
+            <circle cx={tx} cy={ty} r="3.5" fill={dotCols[i]} opacity="0.7" />
           </motion.g>
         );
       })}
 
-      {/* Observer pulses from multiple angles (community sightings) */}
+      {/* Observer pulses from 3 directions */}
       {([30, 150, 270] as number[]).map((angle, i) => {
         const rad = (angle * Math.PI) / 180;
-        const ox = 200 + Math.cos(rad) * 142;
-        const oy = 158 + Math.sin(rad) * 104;
-        const x2 = 200 + Math.cos(rad) * 108;
-        const y2 = 158 + Math.sin(rad) * 76;
+        const ox = ocx + Math.cos(rad) * 126;
+        const oy = ocy + Math.sin(rad) * 84;
+        const x2 = ocx + Math.cos(rad) * 96;
+        const y2 = ocy + Math.sin(rad) * 62;
         return (
           <motion.g key={i}>
             <motion.circle cx={ox} cy={oy} r="7" fill="#7c3aed"
@@ -799,152 +749,152 @@ function SceneUnderstand({ active }: { active: boolean }) {
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────
-   SCENE 5: Connect — data layer over street, like image 2 reference
-─────────────────────────────────────────────────────────────────── */
+/* ─── SCENE 5: Connect — data layer, pins on street ─── */
 function SceneConnect({ active }: { active: boolean }) {
-  /* Green location pins scattered on street, like reference image */
+  /* Pins verified within road trapezoid at their y values */
   const pins: [number, number][] = [
-    [100, 230], [180, 220], [200, 194], [260, 228],
-    [310, 212], [148, 258], [240, 260], [338, 240],
+    [190, 212], [218, 206], [244, 222], [174, 230],
+    [258, 240], [202, 248], [228, 258],
   ];
-  const helpers = [
-    { label:"NGO nearby",  glyph:"⌂", x:72,  y:90 },
-    { label:"Vet clinic",  glyph:"+", x:330, y:86 },
-    { label:"Volunteer",   glyph:"♥", x:64,  y:228 },
-    { label:"Transport",   glyph:"◈", x:338, y:232 },
+  const orgNodes: [number, number][] = [
+    [82, 74], [318, 70], [68, 242], [332, 238],
   ];
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h5" warm />
+      <rect width="400" height="300" fill="#030e08" opacity="0.46" />
 
-      {/* Dark overlay */}
-      <rect width="400" height="300" fill="#050e0a" opacity="0.5" />
-
-      {/* Network connection lines between pins — teal, like image 2 */}
-      {pins.map(([px,py],i) => {
-        const [nx,ny] = pins[(i+2) % pins.length];
+      {/* Network lines between pins */}
+      {pins.map(([px, py], i) => {
+        const [nx, ny] = pins[(i + 2) % pins.length];
         return (
           <motion.line key={i} x1={px} y1={py} x2={nx} y2={ny}
-            stroke="#34d399" strokeWidth="1.6"
-            animate={active ? {opacity:[0.06,0.55,0.06]} : {opacity:0.08}}
-            transition={{duration:2.4, repeat:Infinity, delay:i*0.32}} />
-        );
-      })}
-      {/* Connect to helper nodes */}
-      {helpers.map((h,i) => {
-        const [px,py] = pins[i*2] ?? [200,200];
-        return (
-          <motion.line key={i} x1={h.x} y1={h.y} x2={px} y2={py}
-            stroke="#34d399" strokeWidth="1.8"
-            animate={active ? {opacity:[0.08,0.65,0.08]} : {opacity:0.1}}
-            transition={{duration:2.2, repeat:Infinity, delay:i*0.5}} />
+            stroke="#22c55e" strokeWidth="1.5"
+            animate={active ? {opacity:[0.06,0.5,0.06]} : {opacity:0.07}}
+            transition={{duration:2.4, repeat:Infinity, delay:i*0.3}} />
         );
       })}
 
-      {/* Location pins on the street */}
-      {pins.map(([px,py],i) => (
+      {/* Lines from corner orgs to nearest pin */}
+      {orgNodes.map(([ox, oy], i) => {
+        const [px, py] = pins[i * 2] ?? [200, 228];
+        return (
+          <motion.line key={i} x1={ox} y1={oy} x2={px} y2={py}
+            stroke="#22c55e" strokeWidth="1.2"
+            animate={active ? {opacity:[0.06,0.42,0.06]} : {opacity:0.06}}
+            transition={{duration:2.6, repeat:Infinity, delay:i*0.48}} />
+        );
+      })}
+
+      {/* Dog */}
+      <Dog x={183} y={196} sc={0.64} pose="sit" col="#4ade80" />
+
+      {/* Location pins */}
+      {pins.map(([px, py], i) => (
         <motion.g key={i}
           animate={active ? {opacity:[0,1]} : {opacity:0}}
-          transition={{duration:0.5, delay:i*0.18}}>
-          <motion.circle cx={px} cy={py} r="12" fill="#22c55e"
-            animate={active ? {opacity:[0.08,0.2,0.08], r:[10,18,10]} : {opacity:0.08}}
-            transition={{duration:2.8, repeat:Infinity, delay:i*0.36}} />
-          <path d={`M${px},${py+10} Q${px},${py+3} ${px-5},${py-4} Q${px-11},${py-15} ${px},${py-20} Q${px+11},${py-15} ${px+5},${py-4} Q${px},${py+3} ${px},${py+10}Z`}
+          transition={{duration:0.5, delay:i*0.2}}>
+          <motion.circle cx={px} cy={py} r="11" fill="#22c55e"
+            animate={active ? {opacity:[0.07,0.2,0.07], r:[9,17,9]} : {opacity:0.07}}
+            transition={{duration:2.8, repeat:Infinity, delay:i*0.38}} />
+          <path d={`M${px},${py+8} Q${px},${py+2} ${px-4},${py-4} Q${px-9},${py-13} ${px},${py-17} Q${px+9},${py-13} ${px+4},${py-4} Q${px},${py+2} ${px},${py+8}Z`}
             fill="#22c55e" />
-          <circle cx={px} cy={py-12} r="3" fill="#0a1818" />
+          <circle cx={px} cy={py-9} r="2.5" fill="#030e08" />
         </motion.g>
       ))}
 
-      {/* Dog at centre of the network */}
-      <Dog x={148} y={148} sc={0.84} pose="sit" col="#34d399" />
-
-      {/* Helper organisation nodes */}
-      {helpers.map((h,i) => (
+      {/* Organisation circles — corners, no labels */}
+      {orgNodes.map(([ox, oy], i) => (
         <motion.g key={i}
-          animate={active ? {scale:[0.94,1.06,0.94]} : {}}
-          transition={{duration:2.2, repeat:Infinity, delay:i*0.5}}
-          style={{transformOrigin:`${h.x}px ${h.y}px`}}>
-          <circle cx={h.x} cy={h.y} r="28" fill="#081a10" stroke="#34d399" strokeWidth="1.8" />
-          <text x={h.x} y={h.y+2} textAnchor="middle" dominantBaseline="middle" fontSize="15" fill="#34d399">{h.glyph}</text>
-          <text x={h.x} y={h.y+22} textAnchor="middle" fontSize="7" fill="#34d399" opacity="0.75">{h.label}</text>
+          animate={active ? {opacity:[0.32,0.82,0.32]} : {opacity:0.38}}
+          transition={{duration:2.2, repeat:Infinity, delay:i*0.5}}>
+          <circle cx={ox} cy={oy} r="24" fill="#081a10" stroke="#22c55e" strokeWidth="1.6" />
+          <circle cx={ox} cy={oy} r="8"  fill="#22c55e" opacity="0.45" />
         </motion.g>
       ))}
     </svg>
   );
 }
 
-/* ───────────────────────────────────────────────────────────────────
-   SCENE 6: Act — warm clinic interior, hands caring for dog
-─────────────────────────────────────────────────────────────────── */
+/* ─── SCENE 6: Act — clinic interior, caring hands ─── */
 function SceneAct({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <linearGradient id="h6bg" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="h6wall" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#0e1018" />
-          <stop offset="100%" stopColor="#180c08" />
+          <stop offset="100%" stopColor="#1a1008" />
         </linearGradient>
-        <radialGradient id="h6warm" cx="50%" cy="60%" r="44%">
-          <stop offset="0%"   stopColor="#ea580c" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#ea580c" stopOpacity="0" />
+        <radialGradient id="h6glow" cx="50%" cy="58%" r="44%">
+          <stop offset="0%"   stopColor="#ea580c" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#ea580c" stopOpacity="0"   />
         </radialGradient>
       </defs>
-      <rect width="400" height="300" fill="url(#h6bg)" />
-      <rect width="400" height="300" fill="url(#h6warm)" />
 
       {/* Clinic wall */}
-      <rect width="400" height="200" fill="#0e1218" />
-      <rect x="0" y="0" width="400" height="5" fill="#1a2e3a" />
+      <rect width="400" height="220" fill="url(#h6wall)" />
+      <rect x="0" y="0" width="400" height="5" fill="#1c2a38" />
+      <rect width="400" height="300" fill="url(#h6glow)" />
 
       {/* Tile floor */}
-      <path d="M0,200 L400,200 L400,300 L0,300Z" fill="#131c26" />
+      <rect x="0" y="220" width="400" height="80" fill="#131c26" />
       {([0,80,160,240,320] as number[]).map(x => (
-        <line key={x} x1={x} y1="200" x2={x} y2="300" stroke="#192530" strokeWidth="0.7" />
+        <line key={x} x1={x} y1="220" x2={x} y2="300" stroke="#192530" strokeWidth="0.7" />
       ))}
-      {([220,240,260,280,300] as number[]).map(y => (
+      {([240,260,280] as number[]).map(y => (
         <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#192530" strokeWidth="0.6" />
       ))}
 
-      {/* Medical cross on wall */}
-      <motion.g animate={active ? {opacity:[0.7,1,0.7]} : {opacity:0.7}} transition={{duration:2, repeat:Infinity}}>
-        <rect x="184" y="14" width="32" height="10" rx="5" fill="#ef4444" opacity="0.92" />
-        <rect x="192" y="8"  width="10" height="24" rx="5" fill="#ef4444" opacity="0.92" />
+      {/* Medical cross */}
+      <motion.g animate={active ? {opacity:[0.7,1,0.7]} : {opacity:0.7}}
+        transition={{duration:2.2, repeat:Infinity}}>
+        <rect x="191" y="16" width="28" height="9"  rx="4.5" fill="#ef4444" opacity="0.9" />
+        <rect x="199" y="10" width="9"  height="24" rx="4.5" fill="#ef4444" opacity="0.9" />
       </motion.g>
 
       {/* Treatment mat */}
-      <rect x="80" y="206" width="240" height="9" rx="4.5" fill="#1e3040" />
+      <rect x="84" y="211" width="232" height="8" rx="4" fill="#1e3040" />
 
-      {/* Dog lying — resting, being treated */}
+      {/* Dog lying — lie pose: local x[0,114] y[0,84], at sc=0.78 → 89×65 px */}
       <motion.g animate={active ? {y:[0,-2,0]} : {y:0}} transition={{duration:4.5, repeat:Infinity}}>
-        <Dog x={90} y={152} sc={1.1} pose="lie" col="#F5A623" />
-        {/* Bandage */}
-        <rect x="140" y="192" width="36" height="11" rx="5.5" fill="white" opacity="0.92" />
-        <rect x="153" y="188" width="10" height="19" rx="5" fill="#ef4444" opacity="0.88" />
+        <Dog x={106} y={165} sc={0.78} pose="lie" col="#F5A623" />
+        {/* Bandage on front leg */}
+        <rect x="142" y="215" width="34" height="10" rx="5"   fill="white"   opacity="0.9"  />
+        <rect x="155" y="211" width="9"  height="18" rx="4.5" fill="#ef4444" opacity="0.88" />
       </motion.g>
 
       {/* Left caring hand */}
-      <motion.g animate={active ? {x:[-12,0,-12]} : {x:-12}} transition={{duration:3.2, repeat:Infinity}}>
-        <path d="M32,184 Q66,168 90,178 Q108,184 106,198 Q98,210 78,208 Q54,212 34,202Z" fill="#c48257" />
-        <path d="M58,170 Q62,162 66,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M70,168 Q74,160 78,168" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M82,170 Q86,163 90,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <motion.g animate={active ? {x:[-10,0,-10]} : {x:-10}} transition={{duration:3.2, repeat:Infinity}}>
+        <path d="M34,190 Q68,174 92,184 Q108,190 106,204 Q98,216 78,214 Q54,218 36,208Z"
+          fill="#c48257" />
+        <path d="M60,176 Q64,168 68,176" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M72,174 Q76,166 80,174" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M84,176 Q88,169 92,176" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
       </motion.g>
 
       {/* Right caring hand */}
-      <motion.g animate={active ? {x:[12,0,12]} : {x:12}} transition={{duration:3.2, repeat:Infinity}}>
-        <path d="M368,184 Q334,168 310,178 Q292,184 294,198 Q302,210 322,208 Q346,212 366,202Z" fill="#c48257" />
-        <path d="M342,170 Q338,162 334,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M330,168 Q326,160 322,168" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M318,170 Q314,163 310,170" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <motion.g animate={active ? {x:[10,0,10]} : {x:10}} transition={{duration:3.2, repeat:Infinity}}>
+        <path d="M366,190 Q332,174 308,184 Q292,190 294,204 Q302,216 322,214 Q346,218 364,208Z"
+          fill="#c48257" />
+        <path d="M340,176 Q336,168 332,176" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M328,174 Q324,166 320,174" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M316,176 Q312,169 308,176" stroke="#b07048" strokeWidth="3" fill="none" strokeLinecap="round" />
       </motion.g>
 
-      {/* Floating hearts */}
-      {([0,1,2] as number[]).map(i => (
-        <motion.text key={i} x={148+i*52} y={0} fontSize="18" textAnchor="middle" fill="#f97316"
-          animate={active ? {y:[168,96], opacity:[0,0.85,0]} : {y:168, opacity:0}}
-          transition={{duration:2.8, repeat:Infinity, delay:i*0.88}}>♥</motion.text>
-      ))}
+      {/* Floating hearts — SVG heart paths, no text */}
+      {([0,1,2] as number[]).map(i => {
+        const hx = 154 + i * 46;
+        return (
+          <motion.g key={i}
+            animate={active ? {y:[0,-72], opacity:[0,0.9,0]} : {y:0, opacity:0}}
+            style={{originY:"168px"}}
+            transition={{duration:2.8, repeat:Infinity, delay:i*0.88}}>
+            <path transform={`translate(${hx},168)`}
+              d="M0,5 C0,0 -8,-4 -8,3 C-8,9 0,16 0,16 C0,16 8,9 8,3 C8,-4 0,0 0,5Z"
+              fill="#f97316" />
+          </motion.g>
+        );
+      })}
     </svg>
   );
 }
@@ -1014,11 +964,6 @@ function SceneScale({ active }: { active: boolean }) {
               <path d={`M${nx},${ny+8} Q${nx},${ny+2} ${nx-4},${ny-4} Q${nx-9},${ny-12} ${nx},${ny-16} Q${nx+9},${ny-12} ${nx+4},${ny-4} Q${nx},${ny+2} ${nx},${ny+8}Z`}
                 fill="#22c55e" />
               <circle cx={nx} cy={ny-9} r="2.5" fill="#060c16" />
-              <motion.text x={nx} y={ny-22} textAnchor="middle" fontSize="6.5" fill="#22c55e"
-                animate={active ? {opacity:[0,1]} : {opacity:0}}
-                transition={{delay:nodes.length*0.062+0.5, duration:0.7}}>
-                our dog
-              </motion.text>
             </>
           ) : (
             <circle cx={nx} cy={ny} r={i%5===0?3.5:2.5} fill="#22c55e" opacity={0.18+(i%6)*0.1} />
@@ -1026,11 +971,6 @@ function SceneScale({ active }: { active: boolean }) {
         </motion.g>
       ))}
 
-      <motion.text x="200" y="284" textAnchor="middle" fontSize="8.5" fill="#22c55e" opacity="0"
-        animate={active ? {opacity:[0,0.55]} : {opacity:0}}
-        transition={{delay:nodes.length*0.062+0.9, duration:1}}>
-        35 million street dogs across India — every one visible, every one a node
-      </motion.text>
     </svg>
   );
 }
