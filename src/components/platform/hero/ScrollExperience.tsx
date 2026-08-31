@@ -354,6 +354,40 @@ function Building({
    Perspective: horizon y=175, road trapezoid 0,300→400,300→255,175→145,175.
    Each scene passes its gradient-ID prefix to avoid conflicts.
 ─────────────────────────────────────────────────────────────────── */
+/* Muted signage palette — color blocks that read as shopfront clutter
+   without any literal text, inspired by dense Indian-street signage rows. */
+const SIGN_COLORS = ["#2f63c2", "#c23f3f", "#2d8659", "#d9a441", "#6b3f90", "#3f9bc2"];
+
+function ShopSign({ x, y, w, h, i }: { x: number; y: number; w: number; h: number; i: number }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx="0.8" fill={SIGN_COLORS[i % SIGN_COLORS.length]} opacity="0.82" />
+      <rect x={x} y={y} width={w} height={h * 0.34} fill="#fff" opacity="0.1" />
+    </g>
+  );
+}
+
+function PottedPlant({ x, y, sc = 1 }: { x: number; y: number; sc?: number }) {
+  return (
+    <g transform={`translate(${x},${y}) scale(${sc})`}>
+      <path d="M-5,0 L5,0 L4,7 L-4,7Z" fill="#8a5a2e" opacity="0.85" />
+      <path d="M0,0 Q-6,-9 -3,-15 Q0,-9 0,-3 Q3,-10 7,-6 Q3,-2 0,0Z" fill="#3e6b3a" opacity="0.8" />
+    </g>
+  );
+}
+
+function ParkedScooter({ x, y, sc = 1 }: { x: number; y: number; sc?: number }) {
+  return (
+    <g transform={`translate(${x},${y}) scale(${sc})`} opacity="0.75">
+      <circle cx="-8" cy="14" r="4.2" fill="#0c0a08" />
+      <circle cx="10" cy="14" r="4.2" fill="#0c0a08" />
+      <path d="M-8,14 L-4,2 L6,2 L10,14" stroke="#1c1a18" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <path d="M-4,2 L-6,-8" stroke="#1c1a18" strokeWidth="2.2" strokeLinecap="round" />
+      <rect x="-2" y="-1" width="9" height="4" rx="2" fill="#2a2622" />
+    </g>
+  );
+}
+
 function StreetBg({
   id,
   warm = true,
@@ -424,8 +458,15 @@ function StreetBg({
       {/* Shop front */}
       <rect x="2"  y="248" width="54" height="52" fill={warm ? "#180a02" : "#0a1220"} />
       <rect x="4"  y="252" width="22" height="28" fill={shopBg} opacity="0.7" />
+      {/* Roller-shutter texture */}
+      {[0,1,2,3,4,5].map((r) => (
+        <line key={r} x1="4" y1={254+r*4} x2="26" y2={254+r*4} stroke="#000" strokeWidth="0.6" opacity="0.3" />
+      ))}
       <rect x="28" y="252" width="22" height="28" fill={shopBg} opacity="0.5" />
-      <rect x="2"  y="244" width="54" height="8"  fill={warm ? "#e6801a" : "#1e3870"} opacity="0.55" />
+      <ShopSign x={2} y={242} w={26} h={7} i={0} />
+      <ShopSign x={30} y={241} w={24} h={8} i={1} />
+      <PottedPlant x={10} y={278} sc={0.9} />
+      <ParkedScooter x={44} y={280} sc={0.8} />
 
       {/* Second left building */}
       <path d="M54,300 L54,108 L70,100 L70,88 L88,84 L88,300Z" fill={bld2Col} />
@@ -437,6 +478,13 @@ function StreetBg({
       {/* Market awning left */}
       <path d="M0,216 Q44,207 88,211 L88,223 Q44,227 0,236Z" fill={awning} />
       <path d="M0,218 Q44,209 88,213" stroke={warm ? "#a04400" : "#162060"} strokeWidth="1.2" fill="none" opacity="0.55" />
+      <ShopSign x={6} y={213} w={20} h={5} i={4} />
+      <ShopSign x={30} y={212} w={18} h={5} i={5} />
+      <PottedPlant x={62} y={98} sc={0.7} />
+      {/* Balcony laundry line — lived-in chawl detail */}
+      <path d="M60,98 Q76,104 86,96" stroke={warm ? "#3a2410" : "#1a2438"} strokeWidth="0.5" fill="none" opacity="0.55" />
+      <rect x="66" y="99" width="5" height="6" fill="#c4a878" opacity="0.5" transform="rotate(4 68 102)" />
+      <rect x="74" y="101" width="4" height="7" fill="#8a5a3a" opacity="0.5" transform="rotate(-3 76 104)" />
 
       {/* ── RIGHT BUILDINGS ── */}
       <path d="M400,300 L400,118 L384,112 L384,96 L378,92 L378,78 L344,78 L344,300Z" fill={bldCol} />
@@ -449,8 +497,14 @@ function StreetBg({
       <rect x="352" y="60" width="18" height="18" rx="2" fill={warm ? "#100804" : "#090f1a"} />
       <rect x="344" y="248" width="56" height="52" fill={warm ? "#180a02" : "#0a1220"} />
       <rect x="346" y="252" width="22" height="28" fill={warm ? "#0a1830" : shopBg} opacity="0.7" />
+      {[0,1,2,3,4,5].map((r) => (
+        <line key={r} x1="370" y1={254+r*4} x2="392" y2={254+r*4} stroke="#000" strokeWidth="0.6" opacity="0.3" />
+      ))}
       <rect x="370" y="252" width="22" height="28" fill={warm ? "#0a1830" : shopBg} opacity="0.5" />
-      <rect x="344" y="244" width="56" height="8"  fill={warm ? "#e6801a" : "#1e3870"} opacity="0.5" />
+      <ShopSign x={344} y={241} w={24} h={8} i={2} />
+      <ShopSign x={370} y={242} w={26} h={7} i={3} />
+      <PottedPlant x={392} y={278} sc={0.9} />
+      <ParkedScooter x={356} y={280} sc={0.8} />
 
       <path d="M346,300 L346,108 L330,100 L330,88 L312,84 L312,300Z" fill={bld2Col} />
       <rect x="318" y="92"  width="10" height="13" rx="1" fill={winCol} opacity="0.6" />
@@ -459,6 +513,9 @@ function StreetBg({
       <rect x="332" y="112" width="10" height="13" rx="1" fill={winCol} opacity="0.72" />
 
       <path d="M400,216 Q356,207 312,211 L312,223 Q356,227 400,236Z" fill={awning} />
+      <ShopSign x={368} y={213} w={20} h={5} i={0} />
+      <ShopSign x={344} y={212} w={18} h={5} i={2} />
+      <PottedPlant x={330} y={98} sc={0.7} />
 
       {/* ── ROAD ── */}
       {/* Perspective trapezoid */}
@@ -494,6 +551,8 @@ function StreetBg({
       {/* Cross-street wires */}
       <path d="M74,246 Q200,230 326,246"  stroke="#080502" strokeWidth="1.0" fill="none" />
       <path d="M74,240 Q200,224 326,240"  stroke="#080502" strokeWidth="0.8" fill="none" />
+      <path d="M108,205 Q200,192 292,205" stroke="#080502" strokeWidth="0.7" fill="none" opacity="0.85" />
+      <path d="M158,196 Q200,188 242,196" stroke="#080502" strokeWidth="0.6" fill="none" opacity="0.7" />
 
       {/* ── TRAFFIC LIGHT ── */}
       <path d="M74,232 Q200,216 326,232"  stroke="#080502" strokeWidth="1.4" fill="none" />
