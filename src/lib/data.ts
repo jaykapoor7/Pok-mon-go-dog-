@@ -134,6 +134,25 @@ export async function getAllDogs(): Promise<Dog[]> {
   return [];
 }
 
+/** Small, real sample of dogs that have a cover photo, for the landing
+ *  page's reported-dogs showcase. Returns an empty array (never fabricated
+ *  entries) when no dogs with photos exist yet. */
+export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa
+    .from("dogs")
+    .select("*")
+    .not("cover_photo", "is", null)
+    .order("last_seen", { ascending: false })
+    .limit(limit * 4);
+  if (!data) return [];
+  return data
+    .map(mapDog)
+    .filter((d) => d.cover_photo.length > 0)
+    .slice(0, limit);
+}
+
 export async function getDogById(id: string): Promise<Dog | null> {
   const supa = getSupabase();
   if (supa) {

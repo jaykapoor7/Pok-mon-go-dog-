@@ -13,9 +13,10 @@ import {
 import { ScrollExperience } from "@/components/platform/hero/ScrollExperience";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
+import { ReportedDogsShowcase } from "@/components/platform/ReportedDogsShowcase";
 import { ranked, nationalPoints } from "@/lib/platform/datasets";
 import { ORGS } from "@/lib/platform/orgs";
-import { getCityStats } from "@/lib/data";
+import { getCityStats, getShowcaseDogs } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +81,7 @@ const INVOLVE_ACTIONS = [
 
 export default async function HomePage() {
   const stats = await getCityStats();
+  const showcaseDogs = await getShowcaseDogs(10);
   const popPoints = ranked("dog_population", "desc");
   const popTotal = nationalPoints("dog_population")[0];
   const rabies = nationalPoints("human_rabies_deaths");
@@ -295,6 +297,29 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* ── 6b. REPORTED DOGS ── real photos, makes the platform feel alive */}
+        <section className="border-y border-black/[0.06] bg-bark-50/50 py-20 dark:border-white/[0.06] dark:bg-ink-surface/50 lg:py-28">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <SectionLabel>From the community</SectionLabel>
+                <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  Real dogs, reported by real people.
+                </h2>
+              </div>
+              <Link
+                href="/map"
+                className="hidden items-center gap-1.5 text-sm font-semibold text-paw-600 hover:text-paw-700 dark:text-paw-300 sm:inline-flex"
+              >
+                See all on the map <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+          <div className="mx-auto mt-10 max-w-6xl px-4 sm:px-6">
+            <ReportedDogsShowcase dogs={showcaseDogs} />
           </div>
         </section>
 
