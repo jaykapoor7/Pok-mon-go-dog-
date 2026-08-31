@@ -5,67 +5,14 @@ import Link from "next/link";
 import { GlobeScene } from "./Globe";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Hero — branded aerial photo, minimal cinematic opener
+   Hero + Globe — one unified sticky section.
+   The globe is visible from the moment the page loads, overlaid on the
+   branded aerial photo. It runs its cinematic sequence (spin → India zoom
+   → particle burst) while the hero text fades in. Scrolling through the
+   300vh section keeps the globe in view through the full burst, then
+   releases into the community section below.
 ───────────────────────────────────────────────────────────────────────── */
-function HeroSection() {
-  return (
-    <section className="relative flex h-screen min-h-[580px] items-end overflow-hidden">
-      {/* Branded aerial photo */}
-      <div
-        className="absolute inset-0 scale-105 bg-cover bg-center"
-        style={{ backgroundImage: "url(/hero/street-branded.jpg)" }}
-      />
-      {/* Vignettes */}
-      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-ink/12" />
-      <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-ink/30 to-transparent" />
-
-      {/* Copy */}
-      <div className="relative z-10 max-w-2xl px-8 pb-16 sm:px-14 sm:pb-20 lg:pb-28">
-        <p className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/75">
-          StrayPaw — Delhi
-        </p>
-        <h1 className="font-display text-5xl font-extrabold leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-7xl">
-          Every stray
-          <br />
-          has a story.
-        </h1>
-        <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-white/60 sm:text-base">
-          We&apos;re building the infrastructure that makes them visible — and
-          connects them to help.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/map"
-            className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-600"
-          >
-            Open the app
-          </Link>
-          <Link
-            href="/explore"
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white/75 transition hover:border-white/40 hover:text-white"
-          >
-            See the data
-          </Link>
-        </div>
-      </div>
-
-      {/* Scroll cue */}
-      <div className="absolute bottom-7 right-7 z-10 flex flex-col items-center gap-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
-          Scroll
-        </span>
-        <div className="h-10 w-px bg-gradient-to-b from-white/25 to-transparent" />
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   Globe — AtomicGlobe + ParticleGlobe3D references
-   Earth → India → Delhi zoom → particle burst.
-   Sticky scroll so the user dwells long enough to see the full sequence.
-───────────────────────────────────────────────────────────────────────── */
-function GlobeSection() {
+function HeroGlobeSection() {
   const wrapperRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(false);
   const [stage, setStage] = useState(-1);
@@ -81,16 +28,18 @@ function GlobeSection() {
     return () => io.disconnect();
   }, []);
 
-  // Text stages timed to match Globe's cinematic sequence:
-  // 0-1s free rotation, 1-1.8s ease to India, 1.8-2.3s zoom, 2.3-2.9s burst
+  // Text stages timed to Globe's cinematic sequence:
+  // 0–1 s  free rotation  →  stage 0 (headline visible)
+  // 1–1.8 s ease to India →  stage 1 (body copy)
+  // 2.3–2.9 s burst       →  stage 2 (payoff line)
   useEffect(() => {
     if (!active) {
       setStage(-1);
       return;
     }
-    const a = setTimeout(() => setStage(0), 150);
-    const b = setTimeout(() => setStage(1), 1200);
-    const c = setTimeout(() => setStage(2), 2450);
+    const a = setTimeout(() => setStage(0), 120);
+    const b = setTimeout(() => setStage(1), 1150);
+    const c = setTimeout(() => setStage(2), 2400);
     return () => {
       clearTimeout(a);
       clearTimeout(b);
@@ -98,58 +47,87 @@ function GlobeSection() {
     };
   }, [active]);
 
-  const visible = (s: number) => ({
+  const vis = (s: number, delay = "0s") => ({
     opacity: stage >= s ? 1 : 0,
     transform: stage >= s ? "translateY(0px)" : "translateY(14px)",
-    transition: "opacity 0.7s ease, transform 0.7s ease",
+    transition: `opacity 0.75s ease ${delay}, transform 0.75s ease ${delay}`,
   });
 
   return (
-    <section ref={wrapperRef} className="relative min-h-[240vh]">
-      <div className="sticky top-0 h-screen overflow-hidden bg-[#050d1a]">
-        {/* Full-screen WebGL globe */}
+    <section ref={wrapperRef} className="relative min-h-[300vh]">
+      <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Branded aerial photo background */}
+        <div
+          className="absolute inset-0 scale-[1.04] bg-cover bg-center"
+          style={{ backgroundImage: "url(/hero/street-branded.jpg)" }}
+        />
+
+        {/* Dark vignettes so text + globe both read clearly */}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/88 via-ink/38 to-ink/14" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/78 via-ink/22 to-transparent" />
+
+        {/* Globe — transparent canvas so photo shows through the sphere */}
         <div className="absolute inset-0">
-          <GlobeScene active={active} />
+          <GlobeScene active={active} transparent />
         </div>
 
-        {/* Left gradient so text is readable over globe */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-3/5 bg-gradient-to-r from-[#050d1a] via-[#050d1a]/65 to-transparent" />
-
-        {/* Text overlay */}
+        {/* Hero copy — left side */}
         <div className="absolute left-0 top-1/2 -translate-y-1/2 max-w-lg px-8 sm:px-14 lg:px-20">
           <p
-            className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/70"
-            style={visible(0)}
+            className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/75"
+            style={vis(0)}
           >
-            The scale
+            StrayPaw — Delhi
           </p>
-          <h2
-            className="font-display text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl"
-            style={visible(0)}
+          <h1
+            className="font-display text-5xl font-extrabold leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-7xl"
+            style={vis(0, "0.05s")}
           >
-            17,400
+            Every stray
             <br />
-            <span className="text-amber-400">preventable</span>
-            <br />
-            deaths a year.
-          </h2>
+            has a story.
+          </h1>
           <p
-            className="mt-4 max-w-sm text-[15px] leading-relaxed text-white/55 sm:text-base"
-            style={{ ...visible(1), transitionDelay: "0.15s" }}
+            className="mt-5 max-w-sm text-[15px] leading-relaxed text-white/60 sm:text-base"
+            style={vis(1, "0.1s")}
           >
-            Canine-mediated rabies. India carries the majority of the global
-            burden — because street-animal welfare infrastructure doesn&apos;t
-            exist yet.
+            17,400 preventable deaths a year. India carries most of the global
+            rabies burden — because the infrastructure to protect street animals
+            doesn&apos;t exist yet.
           </p>
           <p
             className="mt-4 text-base font-semibold text-white"
-            style={{ ...visible(2), transitionDelay: "0.25s" }}
+            style={vis(2, "0.12s")}
           >
-            Visibility is the first step.{" "}
             <span className="text-amber-400">
               StrayPaw is the infrastructure.
             </span>
           </p>
+          <div
+            className="mt-8 flex flex-wrap gap-3"
+            style={vis(0, "0.18s")}
+          >
+            <Link
+              href="/map"
+              className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-600"
+            >
+              Open the app
+            </Link>
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white/75 transition hover:border-white/40 hover:text-white"
+            >
+              See the data
+            </Link>
+          </div>
+        </div>
+
+        {/* Scroll cue */}
+        <div className="absolute bottom-7 right-7 z-10 flex flex-col items-center gap-1.5">
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">
+            Scroll
+          </span>
+          <div className="h-10 w-px bg-gradient-to-b from-white/25 to-transparent" />
         </div>
       </div>
     </section>
@@ -157,9 +135,9 @@ function GlobeSection() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Particle Cube — ParticulerCube reference port
-   6×6×6 node lattice rotating in 3D, representing the community network.
-   Canvas 2D, manual rotation math (no three.js needed for this section).
+   Community — ParticulerCube port.
+   Follows directly after the globe burst. The green node lattice echoes
+   the burst cluster colour (both use #4ade80) for visual continuity.
 ───────────────────────────────────────────────────────────────────────── */
 function ParticleCubeCanvas({ active }: { active: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -260,7 +238,7 @@ function CommunitySection() {
       <div className="sticky top-0 h-screen overflow-hidden bg-[#030810]">
         <ParticleCubeCanvas active={active} />
 
-        {/* Radial mask — darkens centre so text is readable */}
+        {/* Radial mask so centre text reads cleanly */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -294,14 +272,13 @@ function CommunitySection() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Image Tunnel — InfiniteImageTunnel reference port
-   CSS 3D perspective tunnel with real photos rushing toward the viewer.
-   N frames spaced through tunnel depth, looping continuously.
+   Image Tunnel — InfiniteImageTunnel reference port.
+   CSS 3D perspective tunnel, real photos rushing toward the viewer.
 ───────────────────────────────────────────────────────────────────────── */
 const PHOTOS = ["/hero/street-branded.jpg", "/hero/street-real.jpg"];
 const N_FRAMES = 14;
 const DEPTH = 5400;
-const SPEED = 300; // px/s
+const SPEED = 300;
 const NEAR = -380;
 
 function TunnelSection() {
@@ -311,7 +288,6 @@ function TunnelSection() {
   const rafRef = useRef(0);
   const [active, setActive] = useState(false);
 
-  // Seed initial z-depths evenly through the tunnel
   useEffect(() => {
     for (let i = 0; i < N_FRAMES; i++) {
       depthsRef.current[i] = (i / N_FRAMES) * DEPTH;
@@ -360,7 +336,6 @@ function TunnelSection() {
       ref={wrapperRef}
       className="relative h-screen min-h-[580px] overflow-hidden bg-ink"
     >
-      {/* 3D tunnel scene */}
       <div
         className="absolute inset-0"
         style={{ perspective: "820px", perspectiveOrigin: "50% 50%" }}
@@ -417,7 +392,7 @@ function TunnelSection() {
         </div>
       </div>
 
-      {/* Radial vignette — pulls focus to centre text */}
+      {/* Radial vignette */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -426,7 +401,7 @@ function TunnelSection() {
         }}
       />
 
-      {/* Overlay text */}
+      {/* Text */}
       <div className="absolute inset-0 z-10 flex items-center justify-center">
         <div className="px-8 text-center">
           <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/70">
@@ -455,13 +430,11 @@ function TunnelSection() {
 
 /* ─────────────────────────────────────────────────────────────────────────
    LandingJourney — main export
-   Grain overlay is fixed (full page), sections stack below nav.
 ───────────────────────────────────────────────────────────────────────── */
 export function LandingJourney() {
   return (
     <>
-      <HeroSection />
-      <GlobeSection />
+      <HeroGlobeSection />
       <CommunitySection />
       <TunnelSection />
     </>

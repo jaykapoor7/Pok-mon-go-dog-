@@ -295,20 +295,26 @@ function StaticFallback() {
   );
 }
 
-export function GlobeScene({ active }: { active: boolean }) {
+export function GlobeScene({
+  active,
+  transparent = false,
+}: {
+  active: boolean;
+  transparent?: boolean;
+}) {
   const reducedMotion = useReducedMotion();
   const webglOk = useWebGLSupport();
 
   if (!active || reducedMotion || !webglOk) {
-    return <StaticFallback />;
+    return transparent ? null : <StaticFallback />;
   }
 
   return (
-    <div className="h-full w-full bg-[#070f20]">
+    <div className={`h-full w-full ${transparent ? "" : "bg-[#070f20]"}`}>
       <Canvas
         dpr={[1, 1.5]}
         camera={{ position: [0, 0, 3.6], fov: 42, near: 0.1, far: 20 }}
-        gl={{ antialias: true, alpha: false, powerPreference: "low-power" }}
+        gl={{ antialias: true, alpha: transparent, powerPreference: "low-power" }}
       >
         <Suspense fallback={null}>
           <Scene active={active} />
