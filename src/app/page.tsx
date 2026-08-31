@@ -10,7 +10,7 @@ import {
   Building2,
   BadgeCheck,
 } from "lucide-react";
-import { ScrollExperience } from "@/components/platform/hero/ScrollExperience";
+import { LandingJourney } from "@/components/platform/hero/LandingJourney";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
 import { ReportedDogsShowcase } from "@/components/platform/ReportedDogsShowcase";
@@ -134,9 +134,9 @@ export default async function HomePage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* 1-3. HERO + PROBLEM + HOW IT WORKS (scroll-driven 3D)        */}
+      {/* 1-4. GRAIN + HERO + GLOBE + COMMUNITY + TUNNEL               */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <ScrollExperience />
+      <LandingJourney />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* BELOW THE FOLD: light sections                                */}
