@@ -70,6 +70,10 @@ const STAGES: Stage[] = [
 
 const N = STAGES.length;
 
+/** Per-stage accent color, shared between the eyebrow line-draw accent and
+ *  the right-edge stage-dot indicator so both read as one system. */
+const ACCENT = ["#4EBDDB","#64748b","#F59E0B","#06b6d4","#a78bfa","#34d399","#f97316","#4EBDDB"];
+
 /* ───────────────────────────────────────────────────────────────────
    Illustrated dog — brush-stroke style inspired by loose ink drawing.
    Key features: angular bracket ears, big round body, minimal face,
@@ -939,18 +943,34 @@ const SCENES = [
 /* ───────────────────────────────────────────────────────────────────
    Stage text panel — scale + fade animation on scroll
 ─────────────────────────────────────────────────────────────────── */
-function StagePanel({ stage, index, isActive }: { stage: Stage; index: number; isActive: boolean }) {
+function StagePanel({ stage, index, isActive, progress }: { stage: Stage; index: number; isActive: boolean; progress: number }) {
   const isHero = index === 0;
+  const stageProgress = Math.max(0, Math.min(1, progress * N - index));
+  const accent = ACCENT[index];
   return (
     <div className={`scroll-stage flex items-center ${isHero ? "pt-16" : ""}`}>
       <motion.div
         initial={false}
         animate={isActive ? {opacity:1,y:0,scale:1} : {opacity:0.18,y:8,scale:0.96}}
         transition={{duration:0.55, ease:[0.25,0.1,0.25,1]}}
-        className="max-w-lg"
+        className="relative max-w-lg"
       >
+        <motion.div
+          aria-hidden="true"
+          className="absolute -left-4 top-1.5 w-px origin-top"
+          style={{ backgroundColor: accent, height: "calc(100% - 0.5rem)", scaleY: stageProgress, opacity: 0.4 }}
+        />
         <div className="flex items-center gap-2">
-          <span className="inline-block h-1 w-4 rounded-full bg-paw-400" />
+          <svg width="28" height="8" viewBox="0 0 28 8" className="shrink-0" aria-hidden="true">
+            <path d="M1,4 L27,4" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeLinecap="round" />
+            <motion.path
+              d="M1,4 L27,4"
+              stroke={accent}
+              strokeWidth="2"
+              strokeLinecap="round"
+              pathLength={stageProgress}
+            />
+          </svg>
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-paw-400">
             {stage.eyebrow}
           </p>
@@ -1002,10 +1022,6 @@ export function ScrollExperience() {
     setActiveStage(Math.min(N-1, Math.floor(v*N)));
   });
 
-  void progress; // used for future canvas integration
-
-  const ACCENT = ["#4EBDDB","#64748b","#F59E0B","#06b6d4","#a78bfa","#34d399","#f97316","#4EBDDB"];
-
   return (
     <>
       <style>{`
@@ -1049,7 +1065,7 @@ export function ScrollExperience() {
         <div className="absolute inset-0 z-20">
           <div className="mx-auto max-w-6xl px-6 sm:px-8 lg:px-12">
             {STAGES.map((stage, i) => (
-              <StagePanel key={stage.id} stage={stage} index={i} isActive={i===activeStage} />
+              <StagePanel key={stage.id} stage={stage} index={i} isActive={i===activeStage} progress={progress} />
             ))}
           </div>
         </div>
