@@ -77,7 +77,7 @@ const ACCENT = ["#4EBDDB","#64748b","#F59E0B","#06b6d4","#a78bfa","#34d399","#f9
 /** Relative scroll distance given to each stage. The globe (converge+burst)
  *  and connect (node network) stages get real hero-length dwell time
  *  instead of flashing past in a fraction of a second like the rest. */
-const STAGE_WEIGHTS = [1, 1.9, 1, 1, 1, 1.8, 1, 1.3];
+const STAGE_WEIGHTS = [1, 1.9, 1.3, 1.1, 1.3, 1.8, 1.1, 1.3];
 const TOTAL_WEIGHT = STAGE_WEIGHTS.reduce((a, b) => a + b, 0);
 /** Cumulative scroll-fraction boundary where each stage begins; BOUNDS[N] = 1. */
 const BOUNDS = STAGE_WEIGHTS.reduce<number[]>((acc, w) => {
@@ -149,10 +149,12 @@ function Dog({
   }
 
   if (pose === "sit") {
-    /* Naturalistic pariah-dog silhouette: leaner torso, upright alert
-       triangular ears, calm almond eyes. Gradient-shaded (top-lit, warm
-       ambient-occlusion shadow) for a semi-realistic painterly read
-       rather than flat cartoon color fields. */
+    /* Naturalistic pariah-dog silhouette: rounded continuous torso/head
+       silhouette, upright triangular ears (pointed, not rounded — a
+       rounded tip reads as a rabbit/bunny ear rather than a dog's),
+       gentle almond eyes. Gradient-shaded (top-lit, warm ambient-
+       occlusion shadow) for a semi-realistic painterly read rather
+       than flat cartoon color fields. */
     return (
       <g transform={`translate(${x},${y}) scale(${sc})`}>
         <defs>
@@ -172,39 +174,40 @@ function Dog({
           </radialGradient>
         </defs>
         {/* Contact shadow — grounds the dog in the scene */}
-        <ellipse cx="26" cy="90" rx="26" ry="6" fill={`url(#${id}grnd)`} />
+        <ellipse cx="26" cy="90" rx="27" ry="6" fill={`url(#${id}grnd)`} />
         {/* Tail — resting curve, not raised/alert */}
-        <path d="M52,58 Q66,52 68,36 Q69,24 78,20"
-          stroke={shade(col, -0.1)} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d="M50,60 Q65,55 68,40 Q70,27 80,22"
+          stroke={shade(col, -0.1)} strokeWidth="6.5" fill="none" strokeLinecap="round" />
         {/* Haunch shadow (sitting hindquarters, sits low/wide) */}
-        <path d="M14,80 Q6,68 10,52 Q14,40 28,38 Q38,38 40,50 Q42,64 34,76 Q26,84 14,80Z"
-          fill={shadow} opacity="0.65" />
-        {/* Torso — leaner, athletic, narrower at chest, top-lit gradient */}
-        <path d="M10,74 Q2,58 8,42 Q13,26 28,20 Q42,15 52,26 Q60,36 56,50 Q52,64 40,74 Q26,80 10,74Z"
+        <path d="M12,82 Q3,68 8,50 Q13,36 28,35 Q40,35 42,50 Q44,66 34,78 Q24,86 12,82Z"
+          fill={shadow} opacity="0.6" />
+        {/* Torso — single continuous rounded silhouette, chest forward */}
+        <path d="M8,76 Q0,58 6,40 Q11,22 28,15 Q40,10 50,20 Q58,29 55,44 Q52,60 42,73 Q28,82 8,76Z"
           fill={`url(#${id}fur)`} />
         {/* Chest highlight */}
-        <path d="M14,50 Q12,36 22,28 Q30,23 36,30 Q40,38 34,48 Q28,56 18,56 Q14,54 14,50Z"
-          fill={light} opacity="0.45" />
-        {/* Head — smaller, realistic proportion, gentle muzzle */}
-        <path d="M10,40 Q9,24 24,17 Q38,12 48,22 Q54,30 48,40 Q42,48 26,47 Q14,46 10,40Z"
+        <path d="M12,50 Q10,34 20,25 Q28,19 35,26 Q40,34 33,45 Q26,54 16,55 Q12,53 12,50Z"
+          fill={light} opacity="0.4" />
+        {/* Head — rounder, realistic proportion, gentle muzzle */}
+        <path d="M8,36 Q6,20 22,13 Q37,8 47,19 Q53,28 46,38 Q39,46 24,45 Q12,44 8,36Z"
           fill={`url(#${id}head)`} />
         {/* Muzzle */}
-        <path d="M44,28 Q54,28 56,34 Q56,39 49,39 Q44,37 44,28Z" fill={shade(col, 0.1)} />
-        {/* Left ear — upright, alert, pointed (pariah-dog signature) */}
-        <path d="M14,22 L4,2 L20,16 Q22,22 17,25 Q14,25 14,22Z" fill={dk} />
-        <path d="M12,20 L7,7 L16,15Z" fill={shade(dk, -0.25)} opacity="0.6" />
-        {/* Right ear — upright, alert, pointed */}
-        <path d="M32,15 L38,-4 L44,17 Q42,23 36,22 Q32,20 32,15Z" fill={dk} />
-        <path d="M35,14 L39,2 L42,15Z" fill={shade(dk, -0.25)} opacity="0.6" />
+        <path d="M43,25 Q54,24 56,31 Q56,37 48,37 Q43,34 43,25Z" fill={shade(col, 0.1)} />
+        {/* Left ear — upright, pointed (pariah-dog signature), moderate
+            length rather than the earlier blade-like extreme */}
+        <path d="M14,19 L6,4 Q4,1 7,1 Q13,3 18,13 Q19,17 14,19Z" fill={dk} />
+        <path d="M12,16 L7,5 Q11,7 14,13Z" fill={shade(dk, -0.25)} opacity="0.55" />
+        {/* Right ear — upright, pointed */}
+        <path d="M30,13 L39,-1 Q41,-4 43,-1 Q44,5 36,15 Q32,17 30,13Z" fill={dk} />
+        <path d="M33,10 L40,0 Q40,5 34,13Z" fill={shade(dk, -0.25)} opacity="0.55" />
         {/* Almond eyes, calm gaze */}
-        <path d="M20,29 Q23,26 27,29 Q23,32 20,29Z" fill={ink} />
-        <path d="M32,26 Q35,23 39,26 Q35,29 32,26Z" fill={ink} />
-        <ellipse cx="51" cy="33" rx="3" ry="2" fill={dk} />
-        <path d="M51,35 L51,38" stroke={ink} strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M19,27 Q22,24 26,27 Q22,30 19,27Z" fill={ink} />
+        <path d="M31,24 Q34,21 38,24 Q34,27 31,24Z" fill={ink} />
+        <ellipse cx="50" cy="30" rx="3" ry="2" fill={dk} />
+        <path d="M50,32 L50,35" stroke={ink} strokeWidth="1.4" strokeLinecap="round" />
         {/* Legs — slimmer, more defined than a stroke */}
-        <path d="M13,72 Q9,80 8,88 L14,88 Q15,80 18,73Z" fill={dk} />
-        <path d="M27,76 Q25,84 24,90 L30,90 Q31,83 33,77Z" fill={dk} />
-        <path d="M42,72 Q46,80 48,88 L42,89 Q40,81 37,74Z" fill={dk} />
+        <path d="M12,74 Q8,82 7,90 L13,90 Q14,82 17,75Z" fill={dk} />
+        <path d="M25,78 Q23,86 22,92 L28,92 Q29,85 31,79Z" fill={dk} />
+        <path d="M40,74 Q44,82 46,90 L40,91 Q38,83 35,76Z" fill={dk} />
       </g>
     );
   }
@@ -296,6 +299,32 @@ function Dog({
       <path d="M28,78 Q24,86 22,92" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
       <path d="M48,76 Q52,84 54,90" stroke={dk} strokeWidth="6" fill="none" strokeLinecap="round" />
     </g>
+  );
+}
+
+/** AnimatedPath — a hand-drawn connective line that draws itself in via
+ *  pathLength as the scene becomes active, ported from the AnimatedPath
+ *  reference: scroll-driven narrative paths that visually link one story
+ *  beat to the next, rather than a static decoration. Used as the actual
+ *  connective visual inside a scene (person→dog gaze, sighting→profile),
+ *  not just the small StagePanel eyebrow accent. */
+function AnimatedPath({ d, active, color = "#f5c040", width = 2.2, delay = 0, glow = true }:
+  { d: string; active: boolean; color?: string; width?: number; delay?: number; glow?: boolean }) {
+  return (
+    <>
+      {glow && (
+        <motion.path d={d} stroke={color} strokeWidth={width * 3.2} fill="none"
+          strokeLinecap="round" opacity="0.16"
+          initial={false}
+          animate={active ? { pathLength: 1 } : { pathLength: 0 }}
+          transition={{ duration: 1.5, delay, ease: "easeInOut" }} />
+      )}
+      <motion.path d={d} stroke={color} strokeWidth={width} fill="none"
+        strokeLinecap="round"
+        initial={false}
+        animate={active ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
+        transition={{ duration: 1.5, delay, ease: "easeInOut" }} />
+    </>
   );
 }
 
@@ -425,109 +454,6 @@ function Building({
    Perspective: horizon y=175, road trapezoid 0,300→400,300→255,175→145,175.
    Each scene passes its gradient-ID prefix to avoid conflicts.
 ─────────────────────────────────────────────────────────────────── */
-/* Muted signage palette — color blocks that read as shopfront clutter
-   without any literal text, inspired by dense Indian-street signage rows. */
-const SIGN_COLORS = ["#2f63c2", "#c23f3f", "#2d8659", "#d9a441", "#6b3f90", "#3f9bc2"];
-
-function ShopSign({ x, y, w, h, i }: { x: number; y: number; w: number; h: number; i: number }) {
-  return (
-    <g>
-      <rect x={x} y={y} width={w} height={h} rx="0.8" fill={SIGN_COLORS[i % SIGN_COLORS.length]} opacity="0.82" />
-      <rect x={x} y={y} width={w} height={h * 0.34} fill="#fff" opacity="0.1" />
-    </g>
-  );
-}
-
-function PottedPlant({ x, y, sc = 1 }: { x: number; y: number; sc?: number }) {
-  return (
-    <g transform={`translate(${x},${y}) scale(${sc})`}>
-      <path d="M-5,0 L5,0 L4,7 L-4,7Z" fill="#8a5a2e" opacity="0.85" />
-      <path d="M0,0 Q-6,-9 -3,-15 Q0,-9 0,-3 Q3,-10 7,-6 Q3,-2 0,0Z" fill="#3e6b3a" opacity="0.8" />
-    </g>
-  );
-}
-
-function ParkedScooter({ x, y, sc = 1 }: { x: number; y: number; sc?: number }) {
-  return (
-    <g transform={`translate(${x},${y}) scale(${sc})`} opacity="0.75">
-      <circle cx="-8" cy="14" r="4.2" fill="#0c0a08" />
-      <circle cx="10" cy="14" r="4.2" fill="#0c0a08" />
-      <path d="M-8,14 L-4,2 L6,2 L10,14" stroke="#1c1a18" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-      <path d="M-4,2 L-6,-8" stroke="#1c1a18" strokeWidth="2.2" strokeLinecap="round" />
-      <rect x="-2" y="-1" width="9" height="4" rx="2" fill="#2a2622" />
-    </g>
-  );
-}
-
-function RoofClutter({ x, y, sc = 1, warm }: { x: number; y: number; sc?: number; warm: boolean }) {
-  const c = warm ? "#0c0602" : "#070c16";
-  return (
-    <g transform={`translate(${x},${y}) scale(${sc})`} opacity="0.85">
-      {/* Satellite dish */}
-      <path d="M-6,0 A6,6 0 0 1 6,0" fill="none" stroke={c} strokeWidth="1.6" />
-      <line x1="0" y1="0" x2="3" y2="-6" stroke={c} strokeWidth="1" />
-      <circle cx="3" cy="-6" r="1" fill={c} />
-      {/* AC unit box */}
-      <rect x="10" y="-3" width="9" height="6" rx="0.6" fill={c} />
-    </g>
-  );
-}
-
-function BuntingLine({ x1, y1, x2, y2, seed = 0 }: { x1: number; y1: number; x2: number; y2: number; seed?: number }) {
-  const n = 9;
-  const mx = (x1 + x2) / 2, my = Math.max(y1, y2) + 6;
-  const path = `M${x1},${y1} Q${mx},${my} ${x2},${y2}`;
-  const flags = Array.from({ length: n }, (_, i) => {
-    const t = (i + 1) / (n + 1);
-    const bx = x1 + (x2 - x1) * t;
-    const sag = Math.sin(Math.PI * t) * (my - Math.min(y1, y2)) * 0.55;
-    const by = y1 + (y2 - y1) * t + sag;
-    return { bx, by, col: SIGN_COLORS[(i + seed) % SIGN_COLORS.length] };
-  });
-  return (
-    <g opacity="0.8">
-      <path d={path} stroke="#3a2410" strokeWidth="0.4" fill="none" opacity="0.6" />
-      {flags.map((f, i) => (
-        <path key={i} d={`M${f.bx - 2.2},${f.by} L${f.bx + 2.2},${f.by} L${f.bx},${f.by + 4.2}Z`} fill={f.col} opacity="0.85" />
-      ))}
-    </g>
-  );
-}
-
-function CrateStack({ x, y, sc = 1 }: { x: number; y: number; sc?: number }) {
-  return (
-    <g transform={`translate(${x},${y}) scale(${sc})`} opacity="0.8">
-      <rect x="-7" y="-14" width="14" height="7" rx="0.6" fill="#8a5a2e" />
-      <rect x="-6" y="-13" width="12" height="5" fill="none" stroke="#5a3a1a" strokeWidth="0.5" />
-      <rect x="-6" y="-7" width="13" height="7" rx="0.6" fill="#a8702e" />
-      <rect x="-5" y="-6" width="11" height="5" fill="none" stroke="#6a4212" strokeWidth="0.5" />
-    </g>
-  );
-}
-
-/** Small mid-ground building silhouettes, filling the depth gap between the
- *  far hazy skyline and the near buildings. Adds a real sense of a street
- *  corridor receding into distance instead of empty haze. */
-function MidgroundRow({ warm }: { warm: boolean }) {
-  const fill = warm ? "#3a1c0a" : "#0c1826";
-  const blocks: [number, number, number, number][] = [
-    [90, 152, 24, 21], [116, 148, 20, 25], [260, 150, 22, 23], [284, 146, 20, 27],
-  ];
-  return (
-    <g opacity="0.62">
-      {blocks.map(([bx, by, bw, bh], i) => (
-        <g key={i}>
-          <rect x={bx} y={by} width={bw} height={bh} fill={fill} />
-          {[0, 1].map((r) => (
-            <rect key={r} x={bx + 3} y={by + 4 + r * 9} width={bw - 6} height={5}
-              fill={warm ? "#c4863a" : "#3a5a8a"} opacity="0.28" />
-          ))}
-        </g>
-      ))}
-    </g>
-  );
-}
-
 function StreetBg({
   id,
   warm = true,
@@ -535,210 +461,25 @@ function StreetBg({
   id: string;
   warm?: boolean;
 }) {
-  const bldCol   = warm ? "#1c0c02" : "#0a1220";
-  const bld2Col  = warm ? "#220e04" : "#0e1a28";
-  const winCol   = warm ? "#f0c060" : "#1e4a8a";
-  /* Weathered turquoise shutters against ochre walls — chawl reference palette. */
-  const shutterCol = warm ? "#2d8a8a" : "#1a6a8a";
-  const shopBg   = warm ? "#0e3010" : "#0a1e40";
-  const awning   = warm ? "#7a3200" : "#0e1e48";
-
+  /* Real Delhi street photo — the same photograph used in the hero,
+     reused as the background across every scene instead of hand-drawn
+     buildings, so the real street carries the whole journey rather than
+     just the opening frame. `warm` shifts the color grade to distinguish
+     a scene's mood (amber for the street beats, cooler blue for
+     Understand's data moment) instead of swapping illustrated art. */
   return (
     <>
       <defs>
-        <linearGradient id={`${id}sky`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor={warm ? "#0d0418" : "#070d18"} />
-          <stop offset="22%"  stopColor={warm ? "#6e1800" : "#0a1428"} />
-          <stop offset="48%"  stopColor={warm ? "#c25000" : "#0e1f38"} />
-          <stop offset="65%"  stopColor={warm ? "#e6801a" : "#162840"} />
-          <stop offset="82%"  stopColor={warm ? "#c46014" : "#0e1e30"} />
-          <stop offset="100%" stopColor={warm ? "#7a3e10" : "#081018"} />
-        </linearGradient>
-        {warm && (
-          <radialGradient id={`${id}sun`} cx="50%" cy="58%" r="38%">
-            <stop offset="0%"   stopColor="#ffe890" stopOpacity="0.9" />
-            <stop offset="28%"  stopColor="#f5be40" stopOpacity="0.5" />
-            <stop offset="65%"  stopColor="#e6801a" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#e6801a" stopOpacity="0" />
-          </radialGradient>
-        )}
-        <linearGradient id={`${id}road`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor={warm ? "#7a4820" : "#3a4255"} />
-          <stop offset="100%" stopColor={warm ? "#2c1508" : "#1a2035"} />
-        </linearGradient>
-        <linearGradient id={`${id}haze`} x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%"   stopColor={warm ? "#e6801a" : "#0e2040"} stopOpacity="0" />
-          <stop offset="40%"  stopColor={warm ? "#e6801a" : "#0e2040"} stopOpacity="0.07" />
-          <stop offset="78%"  stopColor={warm ? "#f5be40" : "#162840"} stopOpacity={warm ? 0.28 : 0.15} />
-          <stop offset="100%" stopColor={warm ? "#ffe080" : "#0e1c30"} stopOpacity={warm ? 0.5  : 0.3} />
+        <linearGradient id={`${id}grade`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={warm ? "#1a0a02" : "#050a16"} stopOpacity="0.4" />
+          <stop offset="55%"  stopColor={warm ? "#1a0a02" : "#050a16"} stopOpacity="0.12" />
+          <stop offset="100%" stopColor={warm ? "#100602" : "#03060e"} stopOpacity="0.6" />
         </linearGradient>
       </defs>
-
-      {/* Sky */}
-      <rect width="400" height="300" fill={`url(#${id}sky)`} />
-      {warm && <rect width="400" height="300" fill={`url(#${id}sun)`} />}
-
-      {/* Far hazy skyline */}
-      <path d="M0,173 L18,159 L28,165 L44,149 L56,157 L70,141 L82,151 L96,134 L109,142
-               L119,135 L131,141 L143,129 L155,139 L167,129 L182,167 L200,167
-               L218,167 L233,129 L246,139 L258,129 L270,135 L282,141 L294,134
-               L309,142 L322,151 L330,141 L344,157 L356,149 L370,165 L380,159 L400,173
-               L400,182 L0,182Z"
-        fill={warm ? "#5a2f10" : "#101e34"} opacity="0.4" />
-
-      <MidgroundRow warm={warm} />
-
-      {/* ── LEFT BUILDINGS ── */}
-      {/* Corner building — 4 storeys */}
-      <path d="M0,300 L0,118 L16,112 L16,96 L22,92 L22,78 L56,78 L56,300Z" fill={bldCol} />
-      <rect x="24" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.6" />
-      <rect x="38" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.8" />
-      <rect x="24" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.45" />
-      <rect x="38" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.65" />
-      <rect x="24" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.35" />
-      <rect x="38" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.55" />
-      {/* Water tank on roof */}
-      <rect x="30" y="60" width="18" height="18" rx="2" fill={warm ? "#100804" : "#090f1a"} />
-      <RoofClutter x={20} y={70} sc={0.8} warm={warm} />
-      {/* Mid-height windows filling the gap toward the shopfront */}
-      <rect x="24" y="150" width="10" height="12" rx="1" fill={shutterCol} opacity="0.55" />
-      <rect x="38" y="150" width="10" height="12" rx="1" fill={winCol} opacity="0.3" />
-      <rect x="24" y="180" width="10" height="12" rx="1" fill={winCol} opacity="0.4" />
-      <rect x="38" y="180" width="10" height="12" rx="1" fill={shutterCol} opacity="0.6" />
-      {/* Shop front */}
-      <rect x="2"  y="248" width="54" height="52" fill={warm ? "#180a02" : "#0a1220"} />
-      <rect x="4"  y="252" width="22" height="28" fill={shopBg} opacity="0.7" />
-      {/* Roller-shutter texture */}
-      {[0,1,2,3,4,5].map((r) => (
-        <line key={r} x1="4" y1={254+r*4} x2="26" y2={254+r*4} stroke="#000" strokeWidth="0.6" opacity="0.3" />
-      ))}
-      <rect x="28" y="252" width="22" height="28" fill={shopBg} opacity="0.5" />
-      <ShopSign x={2} y={242} w={26} h={7} i={0} />
-      <ShopSign x={30} y={241} w={24} h={8} i={1} />
-      <PottedPlant x={10} y={278} sc={0.9} />
-      <ParkedScooter x={44} y={280} sc={0.8} />
-
-      {/* Second left building */}
-      <path d="M54,300 L54,108 L70,100 L70,88 L88,84 L88,300Z" fill={bld2Col} />
-      <rect x="57" y="92"  width="12" height="13" rx="1" fill={winCol} opacity="0.5" />
-      <rect x="71" y="92"  width="10" height="13" rx="1" fill={winCol} opacity="0.38" />
-      <rect x="57" y="112" width="12" height="13" rx="1" fill={winCol} opacity="0.65" />
-      <rect x="71" y="112" width="10" height="13" rx="1" fill={winCol} opacity="0.25" />
-      <rect x="57" y="132" width="12" height="13" rx="1" fill={shutterCol} opacity="0.5" />
-      <rect x="71" y="132" width="10" height="13" rx="1" fill={winCol} opacity="0.55" />
-      <rect x="57" y="152" width="12" height="13" rx="1" fill={winCol} opacity="0.55" />
-      <rect x="71" y="152" width="10" height="13" rx="1" fill={shutterCol} opacity="0.4" />
-
-      {/* Market awning left */}
-      <path d="M0,216 Q44,207 88,211 L88,223 Q44,227 0,236Z" fill={awning} />
-      <path d="M0,218 Q44,209 88,213" stroke={warm ? "#a04400" : "#162060"} strokeWidth="1.2" fill="none" opacity="0.55" />
-      <ShopSign x={6} y={213} w={20} h={5} i={4} />
-      <ShopSign x={30} y={212} w={18} h={5} i={5} />
-      <PottedPlant x={62} y={98} sc={0.7} />
-      {/* Balcony laundry line — lived-in chawl detail */}
-      <path d="M60,98 Q76,104 86,96" stroke={warm ? "#3a2410" : "#1a2438"} strokeWidth="0.5" fill="none" opacity="0.55" />
-      <rect x="66" y="99" width="5" height="6" fill="#c4a878" opacity="0.5" transform="rotate(4 68 102)" />
-      <rect x="74" y="101" width="4" height="7" fill="#8a5a3a" opacity="0.5" transform="rotate(-3 76 104)" />
-      <BuntingLine x1={40} y1={78} x2={78} y2={84} seed={1} />
-      <CrateStack x={4} y={246} sc={0.9} />
-
-      {/* ── RIGHT BUILDINGS ── */}
-      <path d="M400,300 L400,118 L384,112 L384,96 L378,92 L378,78 L344,78 L344,300Z" fill={bldCol} />
-      <rect x="364" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.7" />
-      <rect x="350" y="82"  width="10" height="12" rx="1" fill={winCol} opacity="0.45" />
-      <rect x="364" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.5" />
-      <rect x="350" y="100" width="10" height="12" rx="1" fill={winCol} opacity="0.7" />
-      <rect x="364" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.4" />
-      <rect x="350" y="118" width="10" height="12" rx="1" fill={winCol} opacity="0.55" />
-      <rect x="352" y="60" width="18" height="18" rx="2" fill={warm ? "#100804" : "#090f1a"} />
-      <RoofClutter x={362} y={70} sc={0.8} warm={warm} />
-      <rect x="364" y="150" width="10" height="12" rx="1" fill={shutterCol} opacity="0.5" />
-      <rect x="350" y="150" width="10" height="12" rx="1" fill={winCol} opacity="0.6" />
-      <rect x="364" y="180" width="10" height="12" rx="1" fill={winCol} opacity="0.35" />
-      <rect x="350" y="180" width="10" height="12" rx="1" fill={shutterCol} opacity="0.55" />
-      <rect x="344" y="248" width="56" height="52" fill={warm ? "#180a02" : "#0a1220"} />
-      <rect x="346" y="252" width="22" height="28" fill={warm ? "#0a1830" : shopBg} opacity="0.7" />
-      {[0,1,2,3,4,5].map((r) => (
-        <line key={r} x1="370" y1={254+r*4} x2="392" y2={254+r*4} stroke="#000" strokeWidth="0.6" opacity="0.3" />
-      ))}
-      <rect x="370" y="252" width="22" height="28" fill={warm ? "#0a1830" : shopBg} opacity="0.5" />
-      <ShopSign x={344} y={241} w={24} h={8} i={2} />
-      <ShopSign x={370} y={242} w={26} h={7} i={3} />
-      <PottedPlant x={392} y={278} sc={0.9} />
-      <ParkedScooter x={356} y={280} sc={0.8} />
-
-      <path d="M346,300 L346,108 L330,100 L330,88 L312,84 L312,300Z" fill={bld2Col} />
-      <rect x="318" y="92"  width="10" height="13" rx="1" fill={winCol} opacity="0.6" />
-      <rect x="332" y="92"  width="10" height="13" rx="1" fill={winCol} opacity="0.4" />
-      <rect x="318" y="112" width="10" height="13" rx="1" fill={winCol} opacity="0.35" />
-      <rect x="332" y="112" width="10" height="13" rx="1" fill={winCol} opacity="0.72" />
-      <rect x="318" y="132" width="10" height="13" rx="1" fill={winCol} opacity="0.6" />
-      <rect x="332" y="132" width="10" height="13" rx="1" fill={winCol} opacity="0.4" />
-      <rect x="318" y="152" width="10" height="13" rx="1" fill={winCol} opacity="0.35" />
-      <rect x="332" y="152" width="10" height="13" rx="1" fill={winCol} opacity="0.55" />
-
-      <path d="M400,216 Q356,207 312,211 L312,223 Q356,227 400,236Z" fill={awning} />
-      <ShopSign x={368} y={213} w={20} h={5} i={0} />
-      <ShopSign x={344} y={212} w={18} h={5} i={2} />
-      <PottedPlant x={330} y={98} sc={0.7} />
-      <BuntingLine x1={360} y1={78} x2={322} y2={84} seed={2} />
-      <CrateStack x={396} y={246} sc={0.9} />
-
-      {/* ── ROAD ── */}
-      {/* Perspective trapezoid */}
-      <path d="M0,300 L400,300 L255,175 L145,175Z" fill={`url(#${id}road)`} />
-      {/* Footpaths */}
-      <path d="M0,300 L0,232 L72,175 L145,175 L0,300Z"   fill={warm ? "#261408" : "#12182c"} opacity="0.65" />
-      <path d="M400,300 L400,232 L328,175 L255,175 L400,300Z" fill={warm ? "#261408" : "#12182c"} opacity="0.65" />
-      {/* Lane markings */}
-      <path d="M200,300 L200,248 M200,234 L200,218 M200,204 L200,190 M200,179 L200,177"
-        stroke={warm ? "#c47818" : "#2a3860"} strokeWidth="2.5" strokeDasharray="14,10" strokeLinecap="round" />
-
-      {/* Foreground roadside clutter — kept in the mobile-visible strip */}
-      <g opacity="0.55">
-        <rect x="168" y="284" width="14" height="3" rx="1.5" fill={warm ? "#8a4a10" : "#2a3860"} />
-        <rect x="168" y="278" width="3" height="9" fill={warm ? "#8a4a10" : "#2a3860"} />
-        <rect x="179" y="278" width="3" height="9" fill={warm ? "#8a4a10" : "#2a3860"} />
-      </g>
-      <CrateStack x={228} y={294} sc={0.6} />
-
-      {/* ── UTILITY POLES ── */}
-      <line x1="74"  y1="300" x2="108" y2="175" stroke="#0c0804" strokeWidth="4.5" />
-      <line x1="62"  y1="252" x2="88"  y2="249" stroke="#0c0804" strokeWidth="3" />
-      <line x1="62"  y1="246" x2="88"  y2="243" stroke="#0c0804" strokeWidth="2" />
-      <line x1="150" y1="268" x2="158" y2="175" stroke="#0c0804" strokeWidth="3" />
-      <line x1="142" y1="232" x2="164" y2="229" stroke="#0c0804" strokeWidth="2.2" />
-
-      <line x1="326" y1="300" x2="292" y2="175" stroke="#0c0804" strokeWidth="4.5" />
-      <line x1="312" y1="252" x2="338" y2="249" stroke="#0c0804" strokeWidth="3" />
-      <line x1="312" y1="246" x2="338" y2="243" stroke="#0c0804" strokeWidth="2" />
-      <line x1="250" y1="268" x2="242" y2="175" stroke="#0c0804" strokeWidth="3" />
-      <line x1="236" y1="232" x2="258" y2="229" stroke="#0c0804" strokeWidth="2.2" />
-
-      {/* ── WIRES (multiple strands with sag) ── */}
-      <path d="M74,252 Q112,241 150,232"  stroke="#080502" strokeWidth="1.5" fill="none" />
-      <path d="M74,248 Q112,237 150,228"  stroke="#080502" strokeWidth="1.3" fill="none" />
-      <path d="M74,244 Q112,233 150,224"  stroke="#080502" strokeWidth="1.1" fill="none" />
-      <path d="M74,240 Q112,229 150,220"  stroke="#080502" strokeWidth="0.9" fill="none" />
-      <path d="M326,252 Q288,241 250,232" stroke="#080502" strokeWidth="1.5" fill="none" />
-      <path d="M326,248 Q288,237 250,228" stroke="#080502" strokeWidth="1.3" fill="none" />
-      <path d="M326,244 Q288,233 250,224" stroke="#080502" strokeWidth="1.1" fill="none" />
-      {/* Cross-street wires */}
-      <path d="M74,246 Q200,230 326,246"  stroke="#080502" strokeWidth="1.0" fill="none" />
-      <path d="M74,240 Q200,224 326,240"  stroke="#080502" strokeWidth="0.8" fill="none" />
-      <path d="M108,205 Q200,192 292,205" stroke="#080502" strokeWidth="0.7" fill="none" opacity="0.85" />
-      <path d="M158,196 Q200,188 242,196" stroke="#080502" strokeWidth="0.6" fill="none" opacity="0.7" />
-
-      {/* ── TRAFFIC LIGHT ── */}
-      <path d="M74,232 Q200,216 326,232"  stroke="#080502" strokeWidth="1.4" fill="none" />
-      <line x1="200" y1="216" x2="200" y2="233" stroke="#080502" strokeWidth="1.4" />
-      <rect x="193" y="233" width="14" height="28" rx="3" fill="#080502" />
-      <circle cx="200" cy="239" r="3.5" fill="#cc2200" opacity="0.9" />
-      <circle cx="200" cy="247" r="3.5" fill="#444"   opacity="0.45" />
-      <circle cx="200" cy="255" r="3.5" fill="#444"   opacity="0.35" />
-
-      {/* ── HAZE DEPTH OVERLAY ── */}
-      <rect width="400" height="300" fill={`url(#${id}haze)`} />
+      <image href="/hero/street-real.jpg" x="0" y="0" width="400" height="300"
+        preserveAspectRatio="xMidYMid slice" />
+      <rect width="400" height="300" fill={warm ? "#7a3a10" : "#0a1830"} opacity={warm ? 0.16 : 0.34} />
+      <rect width="400" height="300" fill={`url(#${id}grade)`} />
     </>
   );
 }
@@ -752,28 +493,50 @@ function StreetBg({
    All elements kept in x=160–260 for mobile portrait visibility.
 ═══════════════════════════════════════════════════════════════════ */
 
-/* ─── SCENE 0: Hero — golden-hour street, dog alone ─── */
+/* ─── SCENE 0: Hero — real Delhi street photo, dogs already in frame ───
+   Opens on real life, not illustration: a real street photograph, the
+   film grain (mounted globally in ScrollExperience) reading against it
+   from the first frame, and a sparse, scroll-drawn sighting overlay —
+   the same pin/connection language that carries through the rest of
+   the journey — introduced here at its quietest, over dogs already
+   visible in the photo rather than a fabricated cartoon dog. */
+const HERO_SIGHTINGS: [number, number][] = [[118, 196], [214, 178], [286, 158], [64, 214]];
+const HERO_LINKS: [number, number][] = [[0, 1], [1, 2], [0, 3]];
+
 function SceneHero({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <StreetBg id="h0" warm />
+    <div className="relative h-full w-full overflow-hidden bg-ink">
+      <motion.div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url(/hero/street-real.jpg)" }}
+        initial={false}
+        animate={active ? { scale: 1.05 } : { scale: 1 }}
+        transition={{ duration: 16, ease: "linear" }}
+      />
+      {/* Depth vignette — keeps stage copy and the sighting overlay legible
+          against a busy real photo without hiding the street itself. */}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink/72 via-transparent to-ink/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/25 to-transparent" />
 
-      {/* Far pedestrians near horizon — tiny silhouettes */}
-      <rect x="188" y="178" width="4"  height="10" rx="2"   fill="#3a1a08" opacity="0.48" />
-      <circle cx="190" cy="175" r="2.5" fill="#3a1a08" opacity="0.48" />
-      <rect x="208" y="179" width="3"  height="9"  rx="1.5" fill="#3a1a08" opacity="0.36" />
-      <circle cx="209" cy="176" r="2"  fill="#3a1a08" opacity="0.36" />
-
-      {/* Auto-rickshaw — right side, mid-distance */}
-      <g opacity="0.56">
-        <AutoRickshaw x={246} y={198} sc={0.54} />
-      </g>
-
-      {/* Dog now handled by the persistent, continuously-moving instance
-          rendered once in ScrollExperience — see PersistentDog. */}
-      <ellipse cx="204" cy="254" rx="21" ry="4" fill="#8a4410" opacity="0.18" />
-      <ellipse cx="204" cy="238" rx="44" ry="18" fill="#f5c040" opacity="0.07" />
-    </svg>
+      <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice">
+        {HERO_LINKS.map(([a, b], i) => (
+          <AnimatedPath key={`l${i}`}
+            d={`M${HERO_SIGHTINGS[a][0]},${HERO_SIGHTINGS[a][1]} L${HERO_SIGHTINGS[b][0]},${HERO_SIGHTINGS[b][1]}`}
+            active={active} color="#F5A623" width={1} delay={0.9 + i * 0.22} glow={false} />
+        ))}
+        {HERO_SIGHTINGS.map(([sx, sy], i) => (
+          <motion.g key={`p${i}`}
+            initial={false}
+            animate={active ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 + i * 0.3 }}>
+            <motion.circle cx={sx} cy={sy} r="10" fill="#F5A623"
+              animate={active ? { opacity: [0.05, 0.22, 0.05], r: [8, 15, 8] } : { opacity: 0 }}
+              transition={{ duration: 2.6, repeat: Infinity, delay: i * 0.4 }} />
+            <circle cx={sx} cy={sy} r="3" fill="#F5A623" />
+          </motion.g>
+        ))}
+      </svg>
+    </div>
   );
 }
 
@@ -817,11 +580,10 @@ function SceneNotice({ active }: { active: boolean }) {
       {/* Dog now handled by the persistent instance. */}
       <ellipse cx="191" cy="254" rx="19" ry="4" fill="#8a4410" opacity="0.15" />
 
-      {/* Dashed gaze line */}
-      <motion.line x1="252" y1="202" x2="196" y2="226"
-        stroke="#f5c040" strokeWidth="1.8" strokeDasharray="6 9"
-        animate={active ? {opacity:[0,0.5,0]} : {opacity:0}}
-        transition={{duration:2.2, repeat:Infinity}} />
+      {/* Gaze becomes a connection — the scroll-drawn narrative path
+          (AnimatedPath reference), not a decorative dashed hint. */}
+      <AnimatedPath d="M252,204 Q232,208 214,220 Q200,228 192,238"
+        active={active} color="#f5c040" width={2.4} delay={0.15} />
     </svg>
   );
 }
@@ -849,9 +611,17 @@ function SceneReport({ active }: { active: boolean }) {
       <rect x="238" y="71" width="68" height="106" rx="5"  fill="#0a0e16" />
       <rect x="256" y="64" width="24" height="5"   rx="2.5" fill="#0a0e16" />
 
-      {/* Dog photo on phone screen */}
+      {/* Photo on phone screen — a real crop of the street photo (a dog
+          already in frame), not an illustration: this is meant to read
+          as an actual reported photo, not decorative art. */}
       <rect x="240" y="73" width="64" height="54" rx="4" fill="#0e1620" />
-      <Dog x={245} y={78} sc={0.52} pose="sit" col="#F5A623" />
+      <defs>
+        <clipPath id="reportPhoneShot">
+          <rect x="240" y="73" width="64" height="54" rx="4" />
+        </clipPath>
+      </defs>
+      <image href="/hero/street-real.jpg" clipPath="url(#reportPhoneShot)"
+        x="0" y="0" width="400" height="300" preserveAspectRatio="xMidYMid slice" />
 
       {/* Pin on phone screen */}
       <motion.g animate={active ? {y:[0,-3,0]} : {y:0}} transition={{duration:1.6, repeat:Infinity}}>
@@ -874,21 +644,27 @@ function SceneReport({ active }: { active: boolean }) {
   );
 }
 
-/* ─── SCENE 4: Understand — dog with data orbit ─── */
+/* ─── SCENE 4: Understand — sightings converge into one profile ─── */
 function SceneUnderstand({ active }: { active: boolean }) {
   /* orbit centre ≈ dog visual centre */
   const ocx = 204, ocy = 225;
   const RX = 84, RY = 50;
+  const orbitD = `M${ocx + RX},${ocy} A${RX},${RY} 0 1 1 ${ocx - RX},${ocy} A${RX},${RY} 0 1 1 ${ocx + RX},${ocy}`;
   const dotAngles = [0, 52, 104, 156, 208, 260, 312];
   const dotCols   = ["#a78bfa","#818cf8","#c4b5fd","#7c3aed","#a78bfa","#6d28d9","#8b5cf6"];
   return (
-    <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
+    <div className="relative h-full w-full">
+      {/* Sightings from strangers, feeders, rescuers — a forming
+          community layer behind the profile, same particle-cube
+          language as Connect, tighter and dimmer since this is one
+          dog's record still coming together, not the full network. */}
+      <NodeLattice active={active} color="#a78bfa" />
+      <svg viewBox="0 0 400 300" className="relative h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h4" warm />
-      <rect width="400" height="300" fill="#0a0e1a" opacity="0.52" />
+      <rect width="400" height="300" fill="#0a0e1a" opacity="0.5" />
 
-      {/* Orbit ellipse */}
-      <ellipse cx={ocx} cy={ocy} rx={RX} ry={RY}
-        fill="none" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 8" opacity="0.35" />
+      {/* Orbit — scroll-drawn, not a static dashed hint */}
+      <AnimatedPath d={orbitD} active={active} color="#7c3aed" width={1.4} delay={0.1} glow={false} />
 
       {/* Dog now handled by the persistent instance, at centre. */}
 
@@ -928,7 +704,8 @@ function SceneUnderstand({ active }: { active: boolean }) {
           </motion.g>
         );
       })}
-    </svg>
+      </svg>
+    </div>
   );
 }
 
@@ -1302,15 +1079,22 @@ function PersistentDog({ scrollYProgress, pointer }: { scrollYProgress: MotionVa
   const yPos = useTransform(scrollYProgress,
     [B0, B1, B2, B3, B4, B5, B6],
     [196, 196, 196, 186, 196, 196, 196]);
+  // Smaller than earlier passes — the real photo backgrounds now carry
+  // real dogs; this illustrated instance reads as a connective marker
+  // across the story rather than a hero visual competing with them.
   const scale = useTransform(scrollYProgress,
     [B0, B1, B2, B3, B4, B5, B6],
-    [0.64, 0.64, 0.64, 0.42, 0.64, 0.64, 0.64]);
+    [0.42, 0.42, 0.42, 0.28, 0.42, 0.42, 0.42]);
   const color = useTransform(scrollYProgress,
     [B0, B1, B2, B3, B4, B5, B6],
     ["#F5A623", "#F5A623", "#F5A623", "#F5A623", "#a78bfa", "#4ade80", "#4ade80"]);
+  // Hidden through hero + globe — the hero now opens on a real photo
+  // (SceneHero) whose own real dogs carry that moment; the illustrated
+  // dog only takes over once the hand-drawn street journey begins,
+  // fading in during the last stretch of the globe's burst.
   const opacity = useTransform(scrollYProgress,
-    [B0, B0 + (B1 - B0) * 0.75, B1, B2 - (B2 - B1) * 0.15, B2, B6 - (B6 - B5) * 0.15, B6],
-    [1, 1, 0, 0, 1, 1, 0]);
+    [B0, B2 - (B2 - B1) * 0.2, B2, B6 - (B6 - B5) * 0.15, B6],
+    [0, 0, 1, 1, 0]);
 
   // Subtle pointer-parallax — the "camera response" language borrowed
   // from Interactive3DViewer, without a literal 3D orbit.
@@ -1353,7 +1137,27 @@ function ForeignDogAt({ x, y, scale, color }: { x: MotionValue<number>; y: Motio
 function DogByColor({ color }: { color: MotionValue<string> }) {
   const [c, setC] = useState(color.get());
   useMotionValueEvent(color, "change", (v) => setC(v));
-  return <Dog x={0} y={0} sc={1} pose="sit" col={c} id="persistentDog" />;
+  return <SightingMarker color={c} />;
+}
+
+/** A tracked sighting marker — the same pin language already used in the
+ *  hero's opening overlay and the Connect stage's location pins, now
+ *  standing in for the dog's thread through the whole story. Real dogs
+ *  are visible in the real photo backgrounds at every stage now; this
+ *  reads as the data/attention layer following one of them, rather than
+ *  a full illustrated body competing with real photography. */
+function SightingMarker({ color }: { color: string }) {
+  return (
+    <g>
+      <ellipse cx="0" cy="28" rx="15" ry="4" fill="#000" opacity="0.26" />
+      <motion.circle cx="0" cy="-4" r="12" fill={color}
+        animate={{ opacity: [0.08, 0.24, 0.08], r: [11, 19, 11] }}
+        transition={{ duration: 2.6, repeat: Infinity }} />
+      <path d="M0,24 Q0,13 -8,4 Q-18,-9 0,-22 Q18,-9 8,4 Q0,13 0,24Z" fill={color} />
+      <circle cx="0" cy="-8" r="5.5" fill="#0a0e16" />
+      <circle cx="0" cy="-8" r="2.2" fill={color} opacity="0.9" />
+    </g>
+  );
 }
 
 function StagePanel({ stage, index, isActive, progress }: { stage: Stage; index: number; isActive: boolean; progress: number }) {
