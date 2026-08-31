@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, type CSSProperties } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -73,6 +73,24 @@ const N = STAGES.length;
 /** Per-stage accent color, shared between the eyebrow line-draw accent and
  *  the right-edge stage-dot indicator so both read as one system. */
 const ACCENT = ["#4EBDDB","#64748b","#F59E0B","#06b6d4","#a78bfa","#34d399","#f97316","#4EBDDB"];
+
+/** Relative scroll distance given to each stage. The globe (converge+burst)
+ *  and connect (node network) stages get real hero-length dwell time
+ *  instead of flashing past in a fraction of a second like the rest. */
+const STAGE_WEIGHTS = [1, 1.9, 1, 1, 1, 1.8, 1, 1.3];
+const TOTAL_WEIGHT = STAGE_WEIGHTS.reduce((a, b) => a + b, 0);
+/** Cumulative scroll-fraction boundary where each stage begins; BOUNDS[N] = 1. */
+const BOUNDS = STAGE_WEIGHTS.reduce<number[]>((acc, w) => {
+  acc.push((acc[acc.length - 1] ?? 0) + w / TOTAL_WEIGHT);
+  return acc;
+}, [0]);
+
+function stageAt(v: number): number {
+  for (let i = N - 1; i >= 0; i--) {
+    if (v >= BOUNDS[i]) return i;
+  }
+  return 0;
+}
 
 /* Hand-drawn vector accents, ported from the supplied Framer "Line 01" and
    "Shape 1" reference components (their literal path geometry, redrawn as
@@ -902,7 +920,9 @@ function SceneConnect({ active }: { active: boolean }) {
     [82, 74], [318, 70], [68, 242], [332, 238],
   ];
   return (
-    <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
+    <div className="relative h-full w-full">
+      <NodeLattice active={active} color="#4ade80" />
+      <svg viewBox="0 0 400 300" className="relative h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h5" warm />
       <rect width="400" height="300" fill="#030e08" opacity="0.46" />
 
@@ -954,7 +974,8 @@ function SceneConnect({ active }: { active: boolean }) {
           <circle cx={ox} cy={oy} r="8"  fill="#22c55e" opacity="0.45" />
         </motion.g>
       ))}
-    </svg>
+      </svg>
+    </div>
   );
 }
 
@@ -1038,17 +1059,31 @@ function SceneAct({ active }: { active: boolean }) {
         );
       })}
 
-      {/* Bloom — one small, hand-drawn positive-outcome moment once the
-          treatment lands, ported from the Shape 1 vector reference. Used
-          sparingly, once per scene, not a recurring effect. */}
-      <motion.g
-        initial={false}
-        animate={active ? {scale:1, opacity:0.92, rotate:0} : {scale:0, opacity:0, rotate:-30}}
-        transition={{duration:0.9, delay:0.6, ease:[0.34,1.56,0.64,1]}}
-        style={{originX:"220px", originY:"196px"}}>
-        <path transform="translate(202,178)" d={SHAPE1_PATH} fill="#f9a8d4" opacity="0.9" />
-        <path transform="translate(202,178) scale(0.5) translate(20,20)" d={SHAPE1_PATH} fill="#fde68a" />
-      </motion.g>
+      {/* Bloom — hand-drawn positive-outcome moment once the treatment
+          lands: a stem draws in, then petals open one by one, ported from
+          HoverBloom's growth spirit (Shape 1 as the petal). Sparing —
+          once per scene, not a recurring effect. */}
+      <g transform="translate(220,196)">
+        <motion.path
+          d="M0,0 Q-2,-10 0,-20"
+          stroke="#6b9b5e" strokeWidth="2" fill="none" strokeLinecap="round"
+          initial={false}
+          animate={active ? {pathLength:1, opacity:0.85} : {pathLength:0, opacity:0}}
+          transition={{duration:0.5, delay:0.4}}
+        />
+        {[0, 1, 2].map((i) => (
+          <motion.g key={i}
+            initial={false}
+            animate={active
+              ? {scale:1, opacity:0.92, rotate:i*120}
+              : {scale:0, opacity:0, rotate:i*120 - 30}}
+            transition={{duration:0.55, delay:0.75 + i*0.12, ease:[0.34,1.56,0.64,1]}}
+            style={{originX:"0px", originY:"-20px"}}>
+            <path transform="translate(-17,-38) scale(0.75)" d={SHAPE1_PATH}
+              fill={i % 2 === 0 ? "#f9a8d4" : "#fde68a"} opacity="0.9" />
+          </motion.g>
+        ))}
+      </g>
     </svg>
   );
 }
@@ -1137,12 +1172,101 @@ const SCENES = [
 /* ───────────────────────────────────────────────────────────────────
    Stage text panel — scale + fade animation on scroll
 ─────────────────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────────────
+   NodeLattice — rotating community/network node cloud, ported from the
+   ParticulerCube reference: a 3D point grid projected with manual
+   rotation + perspective math on a plain 2D canvas (no WebGL). Used as
+   a depth texture behind the Connect stage's pin network.
+─────────────────────────────────────────────────────────────────── */
+function NodeLattice({ active, color = "#4ade80" }: { active: boolean; color?: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !active) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const gridSize = 5;
+    const spacing = 34;
+    const half = (gridSize - 1) / 2;
+    const points: { x: number; y: number; z: number }[] = [];
+    for (let gx = 0; gx < gridSize; gx++) {
+      for (let gy = 0; gy < gridSize; gy++) {
+        for (let gz = 0; gz < gridSize; gz++) {
+          if (Math.random() > 0.42) continue; // sparse cloud, not a solid cube
+          points.push({ x: (gx - half) * spacing, y: (gy - half) * spacing, z: (gz - half) * spacing });
+        }
+      }
+    }
+
+    let start = performance.now();
+
+    const render = (now: number) => {
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width || 300;
+      const height = rect.height || 300;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+      }
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+
+      const elapsed = reduced ? 0.3 : (now - start) * 0.00035;
+      const angleY = elapsed;
+      const angleX = elapsed * 0.6;
+      const cx = width / 2, cy = height / 2, fov = 340;
+      ctx.fillStyle = color;
+
+      const projected = points.map((p) => {
+        let rx = p.x * Math.cos(angleY) + p.z * Math.sin(angleY);
+        let rz = -p.x * Math.sin(angleY) + p.z * Math.cos(angleY);
+        let ry = p.y;
+        const ryFinal = ry * Math.cos(angleX) - rz * Math.sin(angleX);
+        rz = ry * Math.sin(angleX) + rz * Math.cos(angleX);
+        ry = ryFinal;
+        const scale = fov / (fov + rz + 140);
+        return { px: cx + rx * scale, py: cy + ry * scale, pz: rz, scale };
+      });
+      projected.sort((a, b) => b.pz - a.pz);
+      for (const p of projected) {
+        const alpha = Math.max(0.08, Math.min(0.55, (p.pz + 150) / 300));
+        const radius = Math.max(0.6, 1.6 * p.scale);
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(p.px, p.py, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      if (!reduced) rafRef.current = requestAnimationFrame(render);
+    };
+    rafRef.current = requestAnimationFrame(render);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [active, color]);
+
+  if (!active) return null;
+  return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />;
+}
+
 function StagePanel({ stage, index, isActive, progress }: { stage: Stage; index: number; isActive: boolean; progress: number }) {
   const isHero = index === 0;
-  const stageProgress = Math.max(0, Math.min(1, progress * N - index));
+  const span = BOUNDS[index + 1] - BOUNDS[index];
+  const stageProgress = Math.max(0, Math.min(1, (progress - BOUNDS[index]) / span));
   const accent = ACCENT[index];
   return (
-    <div className={`scroll-stage flex items-center ${isHero ? "pt-16" : ""}`}>
+    <div
+      className={`scroll-stage flex items-center ${isHero ? "pt-16" : ""}`}
+      style={{ "--stage-weight": STAGE_WEIGHTS[index] } as CSSProperties}
+    >
       <motion.div
         initial={false}
         animate={isActive ? {opacity:1,y:0,scale:1} : {opacity:0.18,y:8,scale:0.96}}
@@ -1154,6 +1278,19 @@ function StagePanel({ stage, index, isActive, progress }: { stage: Stage; index:
           className="absolute -left-4 top-1.5 w-px origin-top"
           style={{ backgroundColor: accent, height: "calc(100% - 0.5rem)", scaleY: stageProgress, opacity: 0.4 }}
         />
+        {/* Flowing trail — the actual AnimatedPath technique (a bright
+            segment marching continuously along the line), not just a
+            scroll-reveal, so the connective energy reads as alive. */}
+        {stageProgress > 0.25 && (
+          <motion.div
+            aria-hidden="true"
+            className="absolute -left-4 h-4 w-px"
+            style={{ background: `linear-gradient(to bottom, transparent, ${accent}, transparent)`, boxShadow: `0 0 6px ${accent}` }}
+            initial={{ top: "0%", opacity: 0 }}
+            animate={{ top: ["0%", "100%"], opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+          />
+        )}
         <div className="flex items-center gap-2.5">
           <svg width="34" height="3.3" viewBox="0 0 311 30" className="shrink-0" aria-hidden="true">
             <path d={LINE01_PATH} fill="rgba(255,255,255,0.15)" />
@@ -1214,17 +1351,17 @@ export function ScrollExperience() {
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     setProgress(v);
-    setActiveStage(Math.min(N-1, Math.floor(v*N)));
+    setActiveStage(stageAt(v));
   });
 
   return (
     <>
       <style>{`
-        .scroll-exp   { height: calc(50vh * ${N}); }
-        .scroll-stage { min-height: 50vh; }
+        .scroll-exp   { height: calc(50vh * ${TOTAL_WEIGHT}); }
+        .scroll-stage { min-height: calc(50vh * var(--stage-weight, 1)); }
         @media (min-width: 1024px) {
-          .scroll-exp   { height: calc(68vh * ${N}); }
-          .scroll-stage { min-height: 68vh; }
+          .scroll-exp   { height: calc(68vh * ${TOTAL_WEIGHT}); }
+          .scroll-stage { min-height: calc(68vh * var(--stage-weight, 1)); }
         }
       `}</style>
 
@@ -1242,12 +1379,15 @@ export function ScrollExperience() {
           {/* Film grain — restrained documentary texture, ported from the
               Better Grain reference (static, not animated: kept subtle
               rather than noisy per the brief). */}
-          <svg className="pointer-events-none absolute inset-0 z-[6] h-full w-full mix-blend-overlay" aria-hidden="true">
+          <svg className="pointer-events-none absolute inset-0 z-[6] h-full w-full mix-blend-screen" aria-hidden="true">
             <filter id="heroGrain">
-              <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
               <feColorMatrix type="saturate" values="0" />
+              <feComponentTransfer>
+                <feFuncA type="linear" slope="2.2" />
+              </feComponentTransfer>
             </filter>
-            <rect width="100%" height="100%" filter="url(#heroGrain)" opacity="0.05" />
+            <rect width="100%" height="100%" filter="url(#heroGrain)" opacity="0.16" />
           </svg>
 
           {/* Text-side gradient */}

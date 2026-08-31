@@ -117,38 +117,52 @@ function CountryMarker({
   );
 }
 
-const BURST_NODES: [number, number, number][] = [
-  [0.5, 0.32, 0.1],
-  [-0.42, 0.18, 0.36],
-  [0.2, -0.3, 0.42],
-  [-0.28, -0.34, -0.22],
-  [0.46, 0.05, -0.34],
+/* Scattered across the whole visible globe face (StrayPaw's impact goal:
+   a network reaching everywhere, not one small huddle of nodes). */
+const BURST_NODES: [number, number, number][] = (() => {
+  const count = 16;
+  const pts: [number, number, number][] = [];
+  const golden = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < count; i++) {
+    const yy = 1 - (i / (count - 1)) * 1.4; // bias to front-facing hemisphere
+    const r = Math.sqrt(Math.max(0, 1 - yy * yy));
+    const theta = golden * i;
+    const rad = 0.62 + (i % 3) * 0.14;
+    pts.push([Math.cos(theta) * r * rad, yy * rad * 0.75, Math.sin(theta) * r * rad + 0.15]);
+  }
+  return pts;
+})();
+/* Hub-and-spoke: node 0 is the origin dog/sighting, the rest connect back
+   to it and to their nearest neighbour so the web reads as one network. */
+const BURST_ARCS: [number, number][] = [
+  [0, 1], [0, 3], [0, 6], [0, 9], [0, 12],
+  [1, 2], [3, 4], [4, 5], [6, 7], [7, 8], [9, 10], [10, 11], [12, 13], [13, 14], [14, 15],
 ];
 
 function BurstCluster({ burstT }: { burstT: number }) {
-  const raw = Math.max(0, Math.min(1, (burstT - 0.45) / 0.4));
+  const raw = Math.max(0, Math.min(1, (burstT - 0.4) / 0.45));
   return (
     <group>
       {BURST_NODES.map((p, i) => (
         <Beacon
           key={i}
           position={p}
-          appear={0.02 + i * 0.06}
+          appear={0.02 + i * 0.03}
           progress={raw}
           color={i === 0 ? AMBER : "#4ade80"}
           major={i === 0}
-          size={i === 0 ? 1.1 : 0.75}
+          size={i === 0 ? 1.2 : 0.6}
         />
       ))}
-      {BURST_NODES.slice(1).map((p, i) => (
+      {BURST_ARCS.map(([a, b], i) => (
         <Arc
           key={`a${i}`}
-          start={BURST_NODES[0]}
-          end={p}
-          appear={0.18 + i * 0.06}
+          start={BURST_NODES[a]}
+          end={BURST_NODES[b]}
+          appear={0.12 + i * 0.035}
           progress={raw}
-          color="#4ade80"
-          radius={0.008}
+          color={a === 0 ? AMBER : "#4ade80"}
+          radius={0.006}
         />
       ))}
     </group>
@@ -173,21 +187,22 @@ function Scene({ active }: { active: boolean }) {
     elapsed.current += dt;
     const t = elapsed.current;
 
-    // 0–2.4s: free rotation. 2.4–4.6s: ease toward India. 4.6–5.6s: burst.
+    // Compressed timeline so the payoff lands within typical scroll dwell
+    // time: 0–1.0s free rotation, 1.0–2.0s ease toward India, 2.0–2.8s burst.
     if (groupRef.current) {
-      if (t < 2.4) {
-        groupRef.current.rotation.y += dt * 0.35;
+      if (t < 1.0) {
+        groupRef.current.rotation.y += dt * 0.8;
       } else {
         const target = -INDIA_THETA + Math.PI / 2;
-        const ease = Math.min(1, (t - 2.4) / 2.2);
+        const ease = Math.min(1, (t - 1.0) / 1.0);
         const smooth = ease * ease * (3 - 2 * ease);
         const current = groupRef.current.rotation.y;
         const diff = ((target - current + Math.PI) % (Math.PI * 2)) - Math.PI;
-        groupRef.current.rotation.y = current + diff * smooth * 0.06;
+        groupRef.current.rotation.y = current + diff * smooth * 0.14;
       }
     }
 
-    const bt = Math.max(0, Math.min(1, (t - 4.6) / 1.0));
+    const bt = Math.max(0, Math.min(1, (t - 2.0) / 0.8));
     setBurstT(bt);
 
     const fade = 1 - bt;
