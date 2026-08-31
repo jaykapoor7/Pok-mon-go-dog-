@@ -5,65 +5,6 @@ import Link from "next/link";
 import { GlobeScene } from "./Globe";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Film Grain — canvas-based chunky TV noise (BetterGrain reference)
-   Draws at 28% resolution and scales up with CSS, producing the chunky
-   film-grain texture. mix-blend-mode:screen auto-hides on light sections.
-───────────────────────────────────────────────────────────────────────── */
-function GrainCanvas() {
-  const ref = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-
-    let raf = 0;
-    let lastMs = 0;
-    const MS_PER_FRAME = 1000 / 12; // 12 fps
-
-    const resize = () => {
-      canvas.width = Math.ceil(window.innerWidth * 0.27);
-      canvas.height = Math.ceil(window.innerHeight * 0.27);
-    };
-    resize();
-    window.addEventListener("resize", resize, { passive: true });
-
-    const ctx = canvas.getContext("2d")!;
-
-    const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
-      if (now - lastMs < MS_PER_FRAME) return;
-      lastMs = now;
-      const w = canvas.width;
-      const h = canvas.height;
-      const img = ctx.createImageData(w, h);
-      const d = img.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const v = (Math.random() * 195 + 30) | 0;
-        d[i] = v;
-        d[i + 1] = v;
-        d[i + 2] = v;
-        d[i + 3] = 92; // ~36% per-pixel alpha
-      }
-      ctx.putImageData(img, 0, 0);
-    };
-    raf = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={ref}
-      className="pointer-events-none fixed inset-0 z-30 h-full w-full"
-      style={{ mixBlendMode: "screen", opacity: 0.38 }}
-    />
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
    Hero — branded aerial photo, minimal cinematic opener
 ───────────────────────────────────────────────────────────────────────── */
 function HeroSection() {
@@ -519,7 +460,6 @@ function TunnelSection() {
 export function LandingJourney() {
   return (
     <>
-      <GrainCanvas />
       <HeroSection />
       <GlobeSection />
       <CommunitySection />
