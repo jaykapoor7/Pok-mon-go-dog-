@@ -14,6 +14,7 @@ import { ScrollExperience } from "@/components/platform/hero/ScrollExperience";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
 import { ReportedDogsShowcase } from "@/components/platform/ReportedDogsShowcase";
+import { LiveMapPreview } from "@/components/platform/LiveMapPreview";
 import { ranked, nationalPoints } from "@/lib/platform/datasets";
 import { ORGS } from "@/lib/platform/orgs";
 import { getCityStats, getShowcaseDogs } from "@/lib/data";
@@ -369,25 +370,28 @@ export default async function HomePage() {
             ))}
           </div>
 
-          {/* Community app entry - clearly separate */}
-          <div className="mt-10 rounded-2xl border border-black/[0.06] bg-bark-50/60 p-6 dark:border-white/[0.08] dark:bg-white/[0.03]">
-            <p className="text-xs font-semibold uppercase tracking-wider text-bark-400">
-              Community tool
-            </p>
-            <h3 className="mt-2 font-display text-lg font-bold tracking-tight text-bark-900 dark:text-bark-50">
-              Report sightings. Explore the live map.
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
-              The StrayPaw community app lets you report a street animal in one
-              tap, track sightings near you, and connect with people helping in
-              your area.
-            </p>
-            <Link
-              href="/map"
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-paw-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-paw-600"
-            >
-              Open the community app <ArrowRight className="h-4 w-4" />
-            </Link>
+          {/* Community app entry - clearly separate, with the live map as payoff */}
+          <div className="mt-10 grid gap-6 rounded-2xl border border-black/[0.06] bg-bark-50/60 p-6 dark:border-white/[0.08] dark:bg-white/[0.03] lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-bark-400">
+                Community tool
+              </p>
+              <h3 className="mt-2 font-display text-lg font-bold tracking-tight text-bark-900 dark:text-bark-50">
+                Report sightings. Explore the live map.
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
+                The StrayPaw community app lets you report a street animal in one
+                tap, track sightings near you, and connect with people helping in
+                your area.
+              </p>
+              <Link
+                href="/map"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-paw-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-paw-600"
+              >
+                Open the community app <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <LiveMapPreview dogs={showcaseDogs} />
           </div>
         </section>
 
