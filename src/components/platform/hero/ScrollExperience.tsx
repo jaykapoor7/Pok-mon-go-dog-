@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, type CSSProperties } from "react";
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, useTransform, useMotionValue, useSpring, type MotionValue } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { GlobeScene } from "./Globe";
@@ -104,21 +104,34 @@ const SHAPE1_PATH = "M 34.756 1.244 C 31.976 -1.536 25.189 0.502 18 5.778 C 10.8
    paws as simple strokes. Colored for warmth. All poses share these
    design principles: few shapes, bold lines, expressive simplicity.
 ─────────────────────────────────────────────────────────────────── */
+/** Lighten/darken a #rrggbb hex color by a fraction (-1..1). */
+function shade(hex: string, amt: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const f = (c: number) => Math.max(0, Math.min(255, Math.round(c + (amt > 0 ? (255 - c) * amt : c * amt))));
+  r = f(r); g = f(g); b = f(b);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
 function Dog({
   x = 0,
   y = 0,
   sc = 1,
   pose = "sit",
   col = "#F5A623",
+  id = "dog",
 }: {
   x?: number;
   y?: number;
   sc?: number;
   pose?: "sit" | "lie" | "stand" | "lookup";
   col?: string;
+  id?: string;
 }) {
   const dk = "#C17D11";
   const ink = "#1a0e00";
+  const light = shade(col, 0.32);
+  const shadow = shade(col, -0.38);
 
   /* Shared minimal face */
   function Face(ex1: number, ey1: number, ex2: number, ey2: number, nx: number, ny: number) {
@@ -137,31 +150,52 @@ function Dog({
 
   if (pose === "sit") {
     /* Naturalistic pariah-dog silhouette: leaner torso, upright alert
-       triangular ears, calm almond eyes, solid-color shadow layer for
-       form (no gradients). This is the hero's emotional anchor pose. */
+       triangular ears, calm almond eyes. Gradient-shaded (top-lit, warm
+       ambient-occlusion shadow) for a semi-realistic painterly read
+       rather than flat cartoon color fields. */
     return (
       <g transform={`translate(${x},${y}) scale(${sc})`}>
+        <defs>
+          <linearGradient id={`${id}fur`} x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%" stopColor={light} />
+            <stop offset="55%" stopColor={col} />
+            <stop offset="100%" stopColor={shadow} />
+          </linearGradient>
+          <radialGradient id={`${id}head`} cx="35%" cy="25%" r="80%">
+            <stop offset="0%" stopColor={light} />
+            <stop offset="70%" stopColor={col} />
+            <stop offset="100%" stopColor={shadow} />
+          </radialGradient>
+          <radialGradient id={`${id}grnd`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#000" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#000" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {/* Contact shadow — grounds the dog in the scene */}
+        <ellipse cx="26" cy="90" rx="26" ry="6" fill={`url(#${id}grnd)`} />
         {/* Tail — resting curve, not raised/alert */}
         <path d="M52,58 Q66,52 68,36 Q69,24 78,20"
-          stroke={col} strokeWidth="6" fill="none" strokeLinecap="round" />
+          stroke={shade(col, -0.1)} strokeWidth="6" fill="none" strokeLinecap="round" />
         {/* Haunch shadow (sitting hindquarters, sits low/wide) */}
         <path d="M14,80 Q6,68 10,52 Q14,40 28,38 Q38,38 40,50 Q42,64 34,76 Q26,84 14,80Z"
-          fill={dk} opacity="0.55" />
-        {/* Torso — leaner, athletic, narrower at chest */}
+          fill={shadow} opacity="0.65" />
+        {/* Torso — leaner, athletic, narrower at chest, top-lit gradient */}
         <path d="M10,74 Q2,58 8,42 Q13,26 28,20 Q42,15 52,26 Q60,36 56,50 Q52,64 40,74 Q26,80 10,74Z"
-          fill={col} />
+          fill={`url(#${id}fur)`} />
         {/* Chest highlight */}
         <path d="M14,50 Q12,36 22,28 Q30,23 36,30 Q40,38 34,48 Q28,56 18,56 Q14,54 14,50Z"
-          fill={col} opacity="0.55" />
+          fill={light} opacity="0.45" />
         {/* Head — smaller, realistic proportion, gentle muzzle */}
         <path d="M10,40 Q9,24 24,17 Q38,12 48,22 Q54,30 48,40 Q42,48 26,47 Q14,46 10,40Z"
-          fill={col} />
+          fill={`url(#${id}head)`} />
         {/* Muzzle */}
-        <path d="M44,28 Q54,28 56,34 Q56,39 49,39 Q44,37 44,28Z" fill={col} />
+        <path d="M44,28 Q54,28 56,34 Q56,39 49,39 Q44,37 44,28Z" fill={shade(col, 0.1)} />
         {/* Left ear — upright, alert, pointed (pariah-dog signature) */}
         <path d="M14,22 L4,2 L20,16 Q22,22 17,25 Q14,25 14,22Z" fill={dk} />
+        <path d="M12,20 L7,7 L16,15Z" fill={shade(dk, -0.25)} opacity="0.6" />
         {/* Right ear — upright, alert, pointed */}
         <path d="M32,15 L38,-4 L44,17 Q42,23 36,22 Q32,20 32,15Z" fill={dk} />
+        <path d="M35,14 L39,2 L42,15Z" fill={shade(dk, -0.25)} opacity="0.6" />
         {/* Almond eyes, calm gaze */}
         <path d="M20,29 Q23,26 27,29 Q23,32 20,29Z" fill={ink} />
         <path d="M32,26 Q35,23 39,26 Q35,29 32,26Z" fill={ink} />
@@ -735,12 +769,8 @@ function SceneHero({ active }: { active: boolean }) {
         <AutoRickshaw x={246} y={198} sc={0.54} />
       </g>
 
-      {/* Dog — protagonist, center of road */}
-      <motion.g
-        animate={active ? {y:[0,-3,0]} : {y:0}}
-        transition={{duration:3.5, repeat:Infinity, ease:"easeInOut"}}>
-        <Dog x={183} y={196} sc={0.64} pose="sit" col="#F5A623" />
-      </motion.g>
+      {/* Dog now handled by the persistent, continuously-moving instance
+          rendered once in ScrollExperience — see PersistentDog. */}
       <ellipse cx="204" cy="254" rx="21" ry="4" fill="#8a4410" opacity="0.18" />
       <ellipse cx="204" cy="238" rx="44" ry="18" fill="#f5c040" opacity="0.07" />
     </svg>
@@ -784,10 +814,7 @@ function SceneNotice({ active }: { active: boolean }) {
         animate={active ? {opacity:[0.06,0.18,0.06], ry:[10,15,10]} : {opacity:0.05}}
         transition={{duration:2.4, repeat:Infinity}} />
 
-      {/* Dog looking up */}
-      <motion.g animate={active ? {y:[0,-2,0]} : {y:0}} transition={{duration:2.8, repeat:Infinity}}>
-        <Dog x={170} y={196} sc={0.64} pose="lookup" col="#F5A623" />
-      </motion.g>
+      {/* Dog now handled by the persistent instance. */}
       <ellipse cx="191" cy="254" rx="19" ry="4" fill="#8a4410" opacity="0.15" />
 
       {/* Dashed gaze line */}
@@ -805,12 +832,9 @@ function SceneReport({ active }: { active: boolean }) {
     <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
       <StreetBg id="h3" warm />
 
-      {/* Dog — small, background, visible left of phone */}
-      <g opacity="0.58">
-        <Dog x={152} y={186} sc={0.42} pose="sit" col="#F5A623" />
-      </g>
+      {/* Dog now handled by the persistent instance (small, left of phone). */}
 
-      {/* Green pin over background dog */}
+      {/* Green pin over the dog's position */}
       <motion.g animate={active ? {y:[0,-5,0]} : {y:0}} transition={{duration:1.8, repeat:Infinity}}>
         <motion.circle cx="170" cy="209" r="12" fill="#22c55e"
           animate={active ? {opacity:[0,0.15,0], r:[10,18,10]} : {opacity:0}}
@@ -866,8 +890,7 @@ function SceneUnderstand({ active }: { active: boolean }) {
       <ellipse cx={ocx} cy={ocy} rx={RX} ry={RY}
         fill="none" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 8" opacity="0.35" />
 
-      {/* Dog at centre */}
-      <Dog x={183} y={196} sc={0.64} pose="sit" col="#a78bfa" />
+      {/* Dog now handled by the persistent instance, at centre. */}
 
       {/* Orbiting data dots — no text, just coloured circles */}
       {dotAngles.map((angle, i) => {
@@ -948,8 +971,7 @@ function SceneConnect({ active }: { active: boolean }) {
         );
       })}
 
-      {/* Dog */}
-      <Dog x={183} y={196} sc={0.64} pose="sit" col="#4ade80" />
+      {/* Dog now handled by the persistent instance. */}
 
       {/* Location pins */}
       {pins.map(([px, py], i) => (
@@ -1257,6 +1279,83 @@ function NodeLattice({ active, color = "#4ade80" }: { active: boolean; color?: s
   return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />;
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   PersistentDog — the same dog instance, continuously repositioned by
+   scroll instead of being swapped between disconnected per-scene
+   copies. This is the core fix for "no sense of continuity": the
+   camera/story moves, the dog itself does not get replaced. Present
+   for the core notice→report→understand→connect arc (and the hero);
+   fades out for the globe, clinic (lie pose takes over locally) and
+   the aerial scale map, where a street-level dog wouldn't make sense.
+   Ported interaction language from Interactive3DViewer: pointer input
+   drives a subtle depth-parallax offset, standing in for camera
+   response since there's no literal 3D scene to orbit.
+─────────────────────────────────────────────────────────────────── */
+function PersistentDog({ scrollYProgress, pointer }: { scrollYProgress: MotionValue<number>; pointer: { x: MotionValue<number>; y: MotionValue<number> } }) {
+  // Stage starts, for reference: hero=B0..B1, globe=B1..B2, notice=B2..B3,
+  // report=B3..B4, understand=B4..B5, connect=B5..B6, act=B6..B7, scale=B7..1
+  const [B0, B1, B2, B3, B4, B5, B6] = BOUNDS;
+
+  const x = useTransform(scrollYProgress,
+    [B0, B1, B2, B3, B4, B5, B6],
+    [183, 183, 170, 152, 183, 183, 183]);
+  const yPos = useTransform(scrollYProgress,
+    [B0, B1, B2, B3, B4, B5, B6],
+    [196, 196, 196, 186, 196, 196, 196]);
+  const scale = useTransform(scrollYProgress,
+    [B0, B1, B2, B3, B4, B5, B6],
+    [0.64, 0.64, 0.64, 0.42, 0.64, 0.64, 0.64]);
+  const color = useTransform(scrollYProgress,
+    [B0, B1, B2, B3, B4, B5, B6],
+    ["#F5A623", "#F5A623", "#F5A623", "#F5A623", "#a78bfa", "#4ade80", "#4ade80"]);
+  const opacity = useTransform(scrollYProgress,
+    [B0, B0 + (B1 - B0) * 0.75, B1, B2 - (B2 - B1) * 0.15, B2, B6 - (B6 - B5) * 0.15, B6],
+    [1, 1, 0, 0, 1, 1, 0]);
+
+  // Subtle pointer-parallax — the "camera response" language borrowed
+  // from Interactive3DViewer, without a literal 3D orbit.
+  const px = useTransform(pointer.x, (v) => v * 4);
+  const py = useTransform(pointer.y, (v) => v * 2.5);
+
+  return (
+    <motion.svg viewBox="0 0 400 300" className="pointer-events-none absolute inset-0 z-[3] h-full w-full"
+      preserveAspectRatio="xMidYMid slice" style={{ opacity }}>
+      <motion.g style={{ x: px, y: py }}>
+        <ForeignDogAt x={x} y={yPos} scale={scale} color={color} />
+      </motion.g>
+    </motion.svg>
+  );
+}
+
+/** Wraps Dog so its x/y/sc/col can be driven by MotionValues. Deliberately
+ *  NOT using framer-motion's `style.transform` on an SVG <g> — CSS
+ *  transforms on SVG elements scale around the element's own bounding-box
+ *  centre, not the SVG user-space origin, which produced a wildly
+ *  mis-scaled, mis-positioned dog. Using the real SVG `transform`
+ *  ATTRIBUTE (translate/scale around 0,0, matching every other Dog call
+ *  in this file) fixes it — computed via a subscribed motion value. */
+function ForeignDogAt({ x, y, scale, color }: { x: MotionValue<number>; y: MotionValue<number>; scale: MotionValue<number>; color: MotionValue<string> }) {
+  const transformMV = useTransform([x, y, scale], ([xv, yv, sv]: number[]) => `translate(${xv},${yv}) scale(${sv})`);
+  const [transform, setTransform] = useState(transformMV.get());
+  useMotionValueEvent(transformMV, "change", (v) => setTransform(v));
+  return (
+    <g transform={transform}>
+      <motion.g animate={{ y: [0, -1.5, 0] }} transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}>
+        <DogByColor color={color} />
+      </motion.g>
+    </g>
+  );
+}
+
+/** Dog's fill needs a live color MotionValue, but Dog itself takes a plain
+ *  string prop — this small subscriber re-renders only this leaf when the
+ *  interpolated color changes, keeping the rest of the tree static. */
+function DogByColor({ color }: { color: MotionValue<string> }) {
+  const [c, setC] = useState(color.get());
+  useMotionValueEvent(color, "change", (v) => setC(v));
+  return <Dog x={0} y={0} sc={1} pose="sit" col={c} id="persistentDog" />;
+}
+
 function StagePanel({ stage, index, isActive, progress }: { stage: Stage; index: number; isActive: boolean; progress: number }) {
   const isHero = index === 0;
   const span = BOUNDS[index + 1] - BOUNDS[index];
@@ -1349,6 +1448,18 @@ export function ScrollExperience() {
   const [progress, setProgress] = useState(0);
   const [activeStage, setActiveStage] = useState(0);
 
+  // Pointer parallax — Interactive3DViewer's interaction language (pointer
+  // drives subtle depth response) without a literal 3D scene.
+  const pointerXRaw = useMotionValue(0);
+  const pointerYRaw = useMotionValue(0);
+  const pointerX = useSpring(pointerXRaw, { stiffness: 60, damping: 16 });
+  const pointerY = useSpring(pointerYRaw, { stiffness: 60, damping: 16 });
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    pointerXRaw.set(((e.clientX - rect.left) / rect.width) * 2 - 1);
+    pointerYRaw.set(((e.clientY - rect.top) / rect.height) * 2 - 1);
+  };
+
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     setProgress(v);
     setActiveStage(stageAt(v));
@@ -1367,14 +1478,18 @@ export function ScrollExperience() {
 
       <div ref={containerRef} className="scroll-exp relative bg-ink">
         {/* Sticky canvas */}
-        <div className="sticky top-0 h-screen w-full overflow-hidden">
+        <div className="sticky top-0 h-screen w-full overflow-hidden" onPointerMove={handlePointerMove}>
           {SCENES.map((SceneComp, i) => (
             <motion.div key={i} className="absolute inset-0"
               animate={{opacity: i===activeStage ? 1 : 0}}
-              transition={{duration:0.55, ease:"easeInOut"}}>
+              transition={{duration:0.9, ease:"easeInOut"}}>
               <SceneComp active={i===activeStage} />
             </motion.div>
           ))}
+
+          {/* The one continuous dog — see PersistentDog for why this replaced
+              the separate per-scene copies. */}
+          <PersistentDog scrollYProgress={scrollYProgress} pointer={{ x: pointerX, y: pointerY }} />
 
           {/* Film grain — restrained documentary texture, ported from the
               Better Grain reference (static, not animated: kept subtle

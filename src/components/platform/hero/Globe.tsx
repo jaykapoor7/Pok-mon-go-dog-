@@ -187,22 +187,29 @@ function Scene({ active }: { active: boolean }) {
     elapsed.current += dt;
     const t = elapsed.current;
 
-    // Compressed timeline so the payoff lands within typical scroll dwell
-    // time: 0–1.0s free rotation, 1.0–2.0s ease toward India, 2.0–2.8s burst.
+    // Compressed timeline, Earth -> India -> Delhi -> burst, so the payoff
+    // lands within typical scroll dwell time: 0-1.0s free rotation,
+    // 1.0-1.8s ease toward India, 1.8-2.3s zoom in (India -> Delhi-level
+    // detail, AtomicGlobe's geographic-zoom role), 2.3-2.9s burst.
     if (groupRef.current) {
       if (t < 1.0) {
         groupRef.current.rotation.y += dt * 0.8;
       } else {
         const target = -INDIA_THETA + Math.PI / 2;
-        const ease = Math.min(1, (t - 1.0) / 1.0);
+        const ease = Math.min(1, (t - 1.0) / 0.8);
         const smooth = ease * ease * (3 - 2 * ease);
         const current = groupRef.current.rotation.y;
         const diff = ((target - current + Math.PI) % (Math.PI * 2)) - Math.PI;
-        groupRef.current.rotation.y = current + diff * smooth * 0.14;
+        groupRef.current.rotation.y = current + diff * smooth * 0.16;
       }
+      // Delhi-level zoom-in: dolly toward the India marker just before burst.
+      const zoomT = Math.max(0, Math.min(1, (t - 1.8) / 0.5));
+      const zoomEase = zoomT * zoomT * (3 - 2 * zoomT);
+      const zoomScale = 1 + zoomEase * 0.55;
+      groupRef.current.scale.setScalar(zoomScale);
     }
 
-    const bt = Math.max(0, Math.min(1, (t - 2.0) / 0.8));
+    const bt = Math.max(0, Math.min(1, (t - 2.3) / 0.6));
     setBurstT(bt);
 
     const fade = 1 - bt;
