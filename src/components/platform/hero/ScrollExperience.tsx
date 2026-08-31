@@ -461,12 +461,13 @@ function StreetBg({
   id: string;
   warm?: boolean;
 }) {
-  /* Real Delhi street photo — the same photograph used in the hero,
-     reused as the background across every scene instead of hand-drawn
-     buildings, so the real street carries the whole journey rather than
-     just the opening frame. `warm` shifts the color grade to distinguish
-     a scene's mood (amber for the street beats, cooler blue for
-     Understand's data moment) instead of swapping illustrated art. */
+  /* Real Delhi street photo — the same StrayPaw-branded reference image
+     used in the hero, reused as the background across every scene
+     instead of hand-drawn buildings, so the real street carries the
+     whole journey rather than just the opening frame. `warm` shifts the
+     color grade to distinguish a scene's mood (amber for the street
+     beats, cooler blue for Understand's data moment) instead of
+     swapping illustrated art. */
   return (
     <>
       <defs>
@@ -476,7 +477,7 @@ function StreetBg({
           <stop offset="100%" stopColor={warm ? "#100602" : "#03060e"} stopOpacity="0.6" />
         </linearGradient>
       </defs>
-      <image href="/hero/street-real.jpg" x="0" y="0" width="400" height="300"
+      <image href="/hero/street-branded.jpg" x="0" y="0" width="400" height="300"
         preserveAspectRatio="xMidYMid slice" />
       <rect width="400" height="300" fill={warm ? "#7a3a10" : "#0a1830"} opacity={warm ? 0.16 : 0.34} />
       <rect width="400" height="300" fill={`url(#${id}grade)`} />
@@ -508,7 +509,7 @@ function SceneHero({ active }: { active: boolean }) {
     <div className="relative h-full w-full overflow-hidden bg-ink">
       <motion.div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url(/hero/street-real.jpg)" }}
+        style={{ backgroundImage: "url(/hero/street-branded.jpg)" }}
         initial={false}
         animate={active ? { scale: 1.05 } : { scale: 1 }}
         transition={{ duration: 16, ease: "linear" }}
