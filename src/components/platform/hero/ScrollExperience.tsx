@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { GlobeScene } from "./Globe";
 
 /* ------------------------------------------------------------------ */
 /*  Scroll-driven hero — illustrated dog journey through Indian streets */
@@ -25,9 +26,9 @@ const STAGES: Stage[] = [
   },
   {
     id: "problem",
-    eyebrow: "The problem",
-    headline: "The help exists.\nIt's just disconnected.",
-    body: "Citizens notice. NGOs work. Vets treat. Volunteers show up. But none of them share the same picture. Every observation stays in someone's phone. Every effort starts from zero.",
+    eyebrow: "The scale",
+    headline: "India carries more of this\nthan any country on Earth.",
+    body: "Nearly 59,000 people die of rabies every year, almost all of it from dog bites. India's toll is the highest of any single nation, and it's why StrayPaw starts here.",
   },
   {
     id: "notice",
@@ -543,55 +544,10 @@ function SceneHero({ active }: { active: boolean }) {
 }
 
 /* ─── SCENE 1: Problem — cold street, disconnected ─── */
-function SceneProblem({ active }: { active: boolean }) {
-  /* dog visual centre on screen */
-  const dogCx = 204, dogCy = 228;
-  const nodes: [number, number, string][] = [
-    [88,  68,  "#3b82f6"],
-    [312, 64,  "#22c55e"],
-    [76,  240, "#ef4444"],
-    [324, 236, "#f59e0b"],
-    [200, 40,  "#a78bfa"],
-  ];
-  return (
-    <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-      <StreetBg id="h1" warm={false} />
-      <rect width="400" height="300" fill="#070f20" opacity="0.4" />
-
-      {/* Broken dashed lines to dog */}
-      {nodes.map(([nx, ny], i) => (
-        <motion.line key={i} x1={nx} y1={ny} x2={dogCx} y2={dogCy}
-          stroke="#2a3a55" strokeWidth="1.6" strokeDasharray="5 10"
-          animate={active ? {opacity:[0.1,0.32,0.1]} : {opacity:0.14}}
-          transition={{duration:2.8, repeat:Infinity, delay:i*0.44}} />
-      ))}
-
-      {/* Disconnected node circles — no labels */}
-      {nodes.map(([nx, ny, col], i) => (
-        <motion.g key={i}
-          animate={active ? {opacity:[0.38,0.85,0.38]} : {opacity:0.44}}
-          transition={{duration:2.4, repeat:Infinity, delay:i*0.4}}>
-          <circle cx={nx} cy={ny} r="22" fill="#0d1828"
-            stroke="#2a3a55" strokeWidth="1.4" strokeDasharray="3 5" />
-          <circle cx={nx} cy={ny} r="7" fill={col} opacity="0.45" />
-        </motion.g>
-      ))}
-
-      {/* X marks — broken connection */}
-      {([[183, 218], [228, 212]] as [number, number][]).map(([cx, cy], i) => (
-        <g key={i}>
-          <line x1={cx-6} y1={cy-6} x2={cx+6} y2={cy+6}
-            stroke="#ef4444" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
-          <line x1={cx+6} y1={cy-6} x2={cx-6} y2={cy+6}
-            stroke="#ef4444" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
-        </g>
-      ))}
-
-      {/* Dog — desaturated, isolated */}
-      <Dog x={183} y={196} sc={0.64} pose="sit" col="#6b7e9c" />
-    </svg>
-  );
-}
+/* SCENE 1 (globe) lives in ./Globe.tsx — GlobeScene, wired directly into
+   SCENES below. It replaces the old abstract "disconnected nodes" SVG:
+   same narrative job (the scale of the problem), done with real, sourced
+   data instead of decorative dots. */
 
 /* ─── SCENE 2: Notice — person stops, dog looks up ─── */
 function SceneNotice({ active }: { active: boolean }) {
@@ -976,7 +932,7 @@ function SceneScale({ active }: { active: boolean }) {
 }
 
 const SCENES = [
-  SceneHero, SceneProblem, SceneNotice, SceneReport,
+  SceneHero, GlobeScene, SceneNotice, SceneReport,
   SceneUnderstand, SceneConnect, SceneAct, SceneScale,
 ];
 

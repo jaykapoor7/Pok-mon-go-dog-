@@ -20,7 +20,7 @@ function easeOutBack(t: number) {
   return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 }
 
-function Beacon({
+export function Beacon({
   position,
   appear,
   progress,
@@ -130,7 +130,7 @@ function Beacon({
   );
 }
 
-function Arc({
+export function Arc({
   start,
   end,
   appear,
