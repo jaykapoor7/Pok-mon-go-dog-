@@ -43,7 +43,7 @@ const KPI = [
 
 const NAV_ITEMS = [
   { id: "map", label: "MAP", href: "/map", icon: MapIcon },
-  { id: "cases", label: "CASES", href: "/cases", icon: CasesIcon },
+  { id: "cases", label: "CASES", href: "/partner/cases", icon: CasesIcon },
   { id: "resources", label: "RESOURCES", href: "/resources", icon: ResourcesIcon },
   { id: "data", label: "DATA", href: "/insights", icon: DataIcon },
   { id: "learn", label: "LEARN", href: "/learn", icon: LearnIcon },

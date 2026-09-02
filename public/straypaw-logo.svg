@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <defs>
+    <!-- Arc paths for text -->
+    <path id="arc-top" d="M 22,150 A 128,128 0 0,1 278,150"/>
+    <path id="arc-btm" d="M 42,168 A 110,110 0 0,0 258,168"/>
+  </defs>
+
+  <!-- Badge background -->
+  <circle cx="150" cy="150" r="148" fill="#1e3d8f"/>
+
+  <!-- Light blue inner moon circle -->
+  <circle cx="150" cy="140" r="82" fill="#7bbde8"/>
+
+  <!-- Dog left ear (floppy, hangs down) -->
+  <ellipse cx="112" cy="122" rx="20" ry="30" fill="#2356b4" transform="rotate(18 112 122)"/>
+  <!-- Dog right ear -->
+  <ellipse cx="188" cy="122" rx="20" ry="30" fill="#2356b4" transform="rotate(-18 188 122)"/>
+
+  <!-- Dog head -->
+  <ellipse cx="150" cy="122" rx="45" ry="39" fill="#2356b4"/>
+
+  <!-- Dog muzzle area (slightly lighter, rounder snout) -->
+  <ellipse cx="150" cy="135" rx="22" ry="17" fill="#2a60c4"/>
+
+  <!-- Left eye (happy squint curve) -->
+  <path d="M 132,114 Q 138,107 144,114" stroke="white" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+  <!-- Right eye -->
+  <path d="M 156,114 Q 162,107 168,114" stroke="white" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Nose -->
+  <ellipse cx="150" cy="128" rx="6" ry="4.5" fill="white"/>
+  <!-- Smile -->
+  <path d="M 143,136 Q 150,144 157,136" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Dog chest / body (peeks at bottom of circle) -->
+  <ellipse cx="150" cy="195" rx="38" ry="22" fill="#2356b4"/>
+
+  <!-- Left paw (resting on circle edge) -->
+  <ellipse cx="116" cy="188" rx="16" ry="12" fill="#2356b4"/>
+  <!-- Left paw toes -->
+  <ellipse cx="106" cy="181" rx="7" ry="5.5" fill="#2356b4"/>
+  <ellipse cx="98" cy="185" rx="6" ry="5" fill="#2356b4"/>
+
+  <!-- Right paw -->
+  <ellipse cx="184" cy="188" rx="16" ry="12" fill="#2356b4"/>
+  <!-- Right paw toes -->
+  <ellipse cx="194" cy="181" rx="7" ry="5.5" fill="#2356b4"/>
+  <ellipse cx="202" cy="185" rx="6" ry="5" fill="#2356b4"/>
+
+  <!-- "STRAYPAW" arced top -->
+  <text
+    fill="white"
+    font-family="-apple-system, 'SF Pro Rounded', 'Helvetica Neue', Arial, sans-serif"
+    font-weight="800"
+    font-size="28"
+    letter-spacing="4"
+  >
+    <textPath href="#arc-top" startOffset="50%" text-anchor="middle">STRAYPAW</textPath>
+  </text>
+
+  <!-- "SEE. CARE. ACT." arced bottom -->
+  <text
+    fill="#9fd0f0"
+    font-family="-apple-system, 'SF Pro Rounded', 'Helvetica Neue', Arial, sans-serif"
+    font-weight="700"
+    font-size="14"
+    letter-spacing="3"
+  >
+    <textPath href="#arc-btm" startOffset="50%" text-anchor="middle">SEE. CARE. ACT.</textPath>
+  </text>
+</svg>

@@ -20,10 +20,10 @@ export default async function OrgsPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pb-32 pt-24 sm:px-6">
       <Link
-        href="/app"
+        href="/map"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to the app
+        <ArrowLeft className="h-4 w-4" /> Back to app
       </Link>
 
       <header className="mb-6">
