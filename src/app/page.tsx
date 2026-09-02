@@ -2,13 +2,11 @@ import Link from "next/link";
 import {
   ArrowRight,
   MapPin,
-  Search,
-  Compass,
-  BookOpen,
-  Users,
-  Heart,
   Building2,
   BadgeCheck,
+  Activity,
+  TrendingUp,
+  CircleDot,
 } from "lucide-react";
 import { LandingShell } from "@/components/platform/hero/LandingShell";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
@@ -29,54 +27,29 @@ export const metadata = {
 
 /* ------------------------------------------------------------------ */
 /*  V3 Homepage                                                       */
-/*  HERO (3D scroll) -> PLATFORM -> DATA -> RESOURCES -> LEARN ->     */
-/*  GET INVOLVED -> SCALE -> FINAL CTA                                */
+/*  HERO → DEMAND INTELLIGENCE → DATA → MARKETPLACE → REPORTED DOGS  */
+/*  → PARTICIPATE → SCALE → FINAL CTA                                 */
 /* ------------------------------------------------------------------ */
 
-const PLATFORM_CARDS = [
-  {
-    icon: Search,
-    title: "Find Help",
-    body: "Locate nearby NGOs, vets, shelters, and rescue resources in your state.",
-    href: "/resources",
-  },
-  {
-    icon: Compass,
-    title: "Explore data",
-    body: "State-by-state population, sterilisation, and rabies data, with visible gaps.",
-    href: "/explore",
-  },
-  {
-    icon: BookOpen,
-    title: "Learn",
-    body: "Coexistence, ABC, rabies prevention, and the legal framework, clearly explained.",
-    href: "/learn",
-  },
-  {
-    icon: Users,
-    title: "Volunteer",
-    body: "Find where your time matters most. Connect with organisations near you.",
-    href: "/get-involved",
-  },
-  {
-    icon: Heart,
-    title: "Support",
-    body: "Back the organisations doing the work. Donate directly to verified NGOs.",
-    href: "/get-involved",
-  },
-  {
-    icon: MapPin,
-    title: "Get involved",
-    body: "From data contributions to community feeding rounds, every action helps.",
-    href: "/get-involved",
-  },
+const DEMAND_BREAKDOWN = [
+  { label: "Sterilisation", value: 780000, animals: 260, color: "#a8ddd0", pct: 42 },
+  { label: "Vaccination", value: 420000, animals: 320, color: "#e9ac42", pct: 23 },
+  { label: "Medical care", value: 360000, animals: 180, color: "#e06455", pct: 20 },
+  { label: "Medicine / supplies", value: 180000, animals: 440, color: "#6b7280", pct: 10 },
+  { label: "Transport", value: 100000, animals: 120, color: "#8b9eb5", pct: 5 },
+];
+
+const PROVIDER_TIERS = [
+  { name: "NGOs & shelters", count: 18, state: "active", desc: "Animal birth control, emergency rescue, sterilisation camps" },
+  { name: "Veterinary clinics", count: 9, state: "active", desc: "Medical care, surgeries, post-op recovery" },
+  { name: "Community feeders", count: 7, state: "partial", desc: "Daily feeding rounds, first-notice of injured animals" },
 ];
 
 const INVOLVE_ACTIONS = [
   { label: "Find an NGO", href: "/resources" },
   { label: "Volunteer", href: "/get-involved" },
   { label: "Donate", href: "/get-involved" },
-  { label: "Learn about street animals", href: "/learn" },
+  { label: "Report a sighting", href: "/map" },
   { label: "Contribute data", href: "/get-involved" },
 ];
 
@@ -139,41 +112,85 @@ export default async function HomePage() {
       <LandingShell />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* BELOW THE FOLD: light sections                                */}
+      {/* BELOW THE FOLD                                                */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <div className="bg-paper text-bark-900 dark:bg-ink dark:text-bark-50">
-        {/* ── 4. PLATFORM CAPABILITIES ── */}
+
+        {/* ── 4. DEMAND INTELLIGENCE ── */}
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-          <div className="max-w-2xl">
-            <SectionLabel>The platform</SectionLabel>
-            <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.6rem]">
-              One surface. Every capability.
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300 sm:text-base">
-              StrayPaw collects community reports, finds existing resources,
-              connects people to the right help, presents data as actionable
-              intelligence, and enables everyone to act.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {PLATFORM_CARDS.map((c) => (
-              <Link
-                key={c.title}
-                href={c.href}
-                className="group rounded-2xl border border-black/[0.06] p-6 transition-all hover:-translate-y-0.5 hover:border-black/[0.1] hover:shadow-card dark:border-white/[0.08] dark:hover:border-white/[0.15]"
-              >
-                <c.icon className="h-5 w-5 text-paw-500" />
-                <h3 className="mt-3 font-display text-lg font-bold tracking-tight">
-                  {c.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
-                  {c.body}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-paw-600 opacity-0 transition-opacity group-hover:opacity-100 dark:text-paw-300">
-                  Open <ArrowRight className="h-3.5 w-3.5" />
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.15fr] lg:items-start">
+            <div>
+              <SectionLabel>Demand intelligence</SectionLabel>
+              <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.6rem]">
+                Animal need,<br />mapped to ₹ value.
+              </h2>
+              <p className="mt-4 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300 sm:text-base">
+                StrayPaw aggregates community sightings into geographic demand
+                clusters, assigns ₹ cost-to-treat per need type, and surfaces
+                unmet coverage. The result: a procurement-ready view of where
+                animal-health supply needs to go.
+              </p>
+              <div className="mt-8 grid grid-cols-2 gap-6">
+                <Figure value="1,200" label="Community animals tracked" sub="Delhi NCR (illustrative)" />
+                <Figure value="₹18.4L" label="Projected 12-month demand" tone="text-paw-600 dark:text-paw-400" />
+                <Figure value="87%" label="Demand currently matched" />
+                <Figure value="34" label="Active providers" tone="text-paw-600 dark:text-paw-400" />
+              </div>
+              <p className="mt-5 flex items-center gap-2 text-[11px] text-bark-400">
+                <span className="rounded border border-bark-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/10">
+                  ILLUSTRATIVE
                 </span>
+                Demand figures are modelled examples, not live data
+              </p>
+            </div>
+
+            {/* Demand breakdown card */}
+            <div className="rounded-2xl border border-black/[0.06] p-6 dark:border-white/[0.08]">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wider text-bark-400">
+                  ₹ demand breakdown
+                </p>
+                <span className="flex items-center gap-1.5 rounded-full bg-mint/10 px-2.5 py-1 text-[11px] font-semibold text-mint dark:bg-mint/10" style={{ color: '#a8ddd0', background: 'rgba(168,221,208,0.10)' }}>
+                  <Activity className="h-3 w-3" /> NETWORK LIVE
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-bark-400">Delhi NCR · 1,200 animals · 12-month projection · <span className="font-semibold">illustrative</span></p>
+
+              <div className="mt-6 space-y-4">
+                {DEMAND_BREAKDOWN.map((d) => (
+                  <div key={d.label}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 font-medium text-bark-800 dark:text-bark-100">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
+                        {d.label}
+                      </span>
+                      <span className="tabular-nums text-bark-500 dark:text-bark-400">
+                        ₹{(d.value / 100000).toFixed(1)}L
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 w-full rounded-full bg-bark-100 dark:bg-white/[0.07]">
+                      <div
+                        className="h-1.5 rounded-full"
+                        style={{ width: `${d.pct}%`, background: d.color, opacity: 0.85 }}
+                      />
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-bark-400">{d.animals} animals</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex items-center justify-between rounded-xl bg-bark-50/70 px-4 py-3 dark:bg-white/[0.04]">
+                <span className="text-sm font-medium text-bark-700 dark:text-bark-300">Total demand</span>
+                <span className="font-display text-lg font-bold text-bark-900 dark:text-bark-50">₹18.4L</span>
+              </div>
+
+              <Link
+                href="/explore"
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-paw-600 hover:text-paw-700 dark:text-paw-300"
+              >
+                Explore the data <ArrowRight className="h-4 w-4" />
               </Link>
-            ))}
+            </div>
           </div>
         </section>
 
@@ -182,14 +199,14 @@ export default async function HomePage() {
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
             <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
               <div>
-                <SectionLabel>Data + intelligence</SectionLabel>
+                <SectionLabel>Data layer</SectionLabel>
                 <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
                   Community reports become street-level intelligence.
                 </h2>
                 <p className="mt-4 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300 sm:text-base">
-                  Every sighting contributes to maps, statistics, trends, and
-                  geographic insights. Government census data meets real-time
-                  community reporting.
+                  Every sighting is a data point. Aggregated into demand clusters,
+                  matched against provider coverage, and tracked to outcomes.
+                  Government census meets real-time community intelligence.
                 </p>
                 <div className="mt-8 grid grid-cols-2 gap-6">
                   <Figure
@@ -220,7 +237,7 @@ export default async function HomePage() {
               <div className="rounded-2xl border border-black/[0.06] p-6 dark:border-white/[0.08]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <SectionLabel>Explore</SectionLabel>
+                    <SectionLabel>Population</SectionLabel>
                     <h3 className="mt-1.5 font-display text-lg font-bold tracking-tight">
                       Street-dog population by state
                     </h3>
@@ -241,75 +258,88 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── 6. RESOURCES ── */}
+        {/* ── 6. MARKETPLACE ── */}
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
-              <SectionLabel>Resources</SectionLabel>
+              <SectionLabel>Marketplace</SectionLabel>
               <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-                The ecosystem already has pieces. We make them findable.
+                Demand matched to supply. Need routed to providers.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300 sm:text-base">
-                NGOs, vets, shelters, rescuers, sterilisation drives,
-                volunteers. StrayPaw indexes and presents them so anyone can
-                find the right help for their situation.
+                NGOs, vets, and community rescuers are the supply side of this
+                market. StrayPaw indexes them by capacity, geography, and
+                specialisation — then matches incoming demand to the right
+                provider and tracks funded outcomes.
               </p>
               <Link
                 href="/resources"
                 className="mt-6 inline-flex items-center gap-2 rounded-full bg-paw-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-paw-600"
               >
-                Browse resources <ArrowRight className="h-4 w-4" />
+                View provider network <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="space-y-4">
-              {/* Listed NGOs */}
-              <div className="rounded-2xl border border-black/[0.06] p-6 dark:border-white/[0.08]">
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-bark-400" />
-                  <h3 className="font-display text-lg font-bold tracking-tight">
-                    Listed organisations
-                  </h3>
+              {PROVIDER_TIERS.map((tier) => (
+                <div
+                  key={tier.name}
+                  className="rounded-2xl border border-black/[0.06] p-6 dark:border-white/[0.08]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Building2 className="h-5 w-5 text-bark-400" />
+                      <h3 className="font-display text-base font-bold tracking-tight">
+                        {tier.name}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CircleDot
+                        className="h-3.5 w-3.5"
+                        style={{ color: tier.state === 'active' ? '#a8ddd0' : '#e9ac42' }}
+                      />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-bark-400">
+                        {tier.count} {tier.state}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
+                    {tier.desc}
+                  </p>
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
-                  Discoverable public profiles. Any welfare organisation
-                  working with street animals can be listed, making them
-                  findable by people who need them.
-                </p>
-                <p className="mt-3 text-[13px] font-medium text-bark-500">
-                  {ORGS.length} organisations listed
-                </p>
-              </div>
-              {/* Verified/Partnered */}
+              ))}
               <div className="rounded-2xl border border-paw-200 bg-paw-50/50 p-6 dark:border-paw-800/30 dark:bg-paw-900/10">
                 <div className="flex items-center gap-3">
                   <BadgeCheck className="h-5 w-5 text-paw-500" />
-                  <h3 className="font-display text-lg font-bold tracking-tight">
-                    Verified + partnered
+                  <h3 className="font-display text-base font-bold tracking-tight">
+                    Verified providers
                   </h3>
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
-                  Verified badge, optional dashboard access, and deeper
-                  StrayPaw integration. NGOs do not need to adopt StrayPaw
-                  for it to be useful. Verification is an option, not a
-                  requirement.
+                  Verified badge, dashboard access, and direct demand routing.
+                  NGOs do not need to adopt StrayPaw to be listed — verification
+                  unlocks the supply-side tools.
                 </p>
                 <p className="mt-3 text-[13px] font-medium text-paw-600 dark:text-paw-300">
-                  Verification programme launching soon
+                  Provider programme launching soon
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── 6b. REPORTED DOGS ── real photos, makes the platform feel alive */}
+        {/* ── 7. REPORTED DOGS ── real photos, makes the platform feel real */}
         <section className="border-y border-black/[0.06] bg-bark-50/50 py-20 dark:border-white/[0.06] dark:bg-ink-surface/50 lg:py-28">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <SectionLabel>From the community</SectionLabel>
                 <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-                  Real dogs, reported by real people.
+                  Real animals. Real sightings.
                 </h2>
+                <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
+                  Each sighting is a data point that feeds the demand picture.
+                  Each record connects an animal to its care trajectory.
+                </p>
               </div>
               <Link
                 href="/map"
@@ -324,39 +354,16 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── 7. LEARN ── */}
-        <section className="border-y border-black/[0.06] dark:border-white/[0.06]">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-            <div className="mx-auto max-w-2xl text-center">
-              <SectionLabel>Learn</SectionLabel>
-              <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-                Street-animal education that actually helps.
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300 sm:text-base">
-                Practical guidance on coexisting with street animals, what to
-                do when you find an injured dog, how sterilisation drives
-                work, and why this problem needs infrastructure, not just
-                compassion.
-              </p>
-              <Link
-                href="/learn"
-                className="mt-6 inline-flex items-center gap-2 rounded-full border border-black/[0.08] px-5 py-2.5 text-sm font-semibold text-bark-800 transition-colors hover:bg-bark-50 dark:border-white/[0.1] dark:text-bark-100 dark:hover:bg-white/[0.05]"
-              >
-                Start learning <BookOpen className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* ── 8. GET INVOLVED ── */}
+        {/* ── 8. PARTICIPATE ── */}
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-          <SectionLabel>Get involved</SectionLabel>
+          <SectionLabel>Participate</SectionLabel>
           <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Pick your entry point.
+            Every role in the network matters.
           </h2>
           <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-bark-600 dark:text-bark-300 sm:text-base">
-            You do not need to be an expert, a rescuer, or have any
-            experience. Notice something? That is enough.
+            Community members generate the demand signal. NGOs and vets fulfil
+            it. Funders close the gap. Every participant strengthens the
+            infrastructure.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             {INVOLVE_ACTIONS.map((a) => (
@@ -370,19 +377,18 @@ export default async function HomePage() {
             ))}
           </div>
 
-          {/* Community app entry - clearly separate, with the live map as payoff */}
           <div className="mt-10 grid gap-6 rounded-2xl border border-black/[0.06] bg-bark-50/60 p-6 dark:border-white/[0.08] dark:bg-white/[0.03] lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-bark-400">
                 Community tool
               </p>
               <h3 className="mt-2 font-display text-lg font-bold tracking-tight text-bark-900 dark:text-bark-50">
-                Report sightings. Explore the live map.
+                Report sightings. Feed the network.
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">
-                The StrayPaw community app lets you report a street animal in one
-                tap, track sightings near you, and connect with people helping in
-                your area.
+                Each report you submit becomes a data point in the demand layer.
+                The more the community reports, the more precisely need can be
+                matched to supply.
               </p>
               <Link
                 href="/map"
@@ -399,28 +405,28 @@ export default async function HomePage() {
         <section className="border-y border-black/[0.06] bg-bark-50/50 dark:border-white/[0.06] dark:bg-ink-surface/50">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
             <div className="mx-auto max-w-3xl text-center">
-              <SectionLabel>The bigger picture</SectionLabel>
+              <SectionLabel>The infrastructure layer</SectionLabel>
               <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.6rem]">
-                One report. One story. One connection. One action. A bigger
-                ecosystem.
+                Animal → need → demand → ₹ value → match → outcome → data.
               </h2>
               <p className="mt-5 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300 sm:text-base">
-                Every observation feeds the picture. Every connection
-                strengthens the network. StrayPaw grows with every person
-                who notices and every organisation that participates. The
-                infrastructure gets better the more people use it.
+                Every sighting strengthens the demand signal. Every funded
+                outcome validates the model. StrayPaw is the infrastructure that
+                makes each part of that chain legible, matchable, and
+                measurable.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-sm text-bark-400">
-                {["Collect", "Find", "Connect", "Present"].map((step) => (
+                {["Animal", "Need", "Demand", "₹ Value", "Match"].map((step, i) => (
                   <span key={step} className="flex items-center gap-2">
                     <span className="rounded-full bg-paw-100 px-3 py-1 font-medium text-paw-700 dark:bg-paw-900/20 dark:text-paw-300">
                       {step}
                     </span>
-                    <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                    {i < 4 && <ArrowRight className="h-3.5 w-3.5 shrink-0" />}
                   </span>
                 ))}
+                <ArrowRight className="h-3.5 w-3.5 shrink-0" />
                 <span className="rounded-full bg-paw-500 px-3 py-1 font-medium text-white">
-                  Act
+                  Outcome
                 </span>
               </div>
             </div>
@@ -431,28 +437,29 @@ export default async function HomePage() {
         <section className="bg-ink text-white">
           <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-32">
             <div className="mx-auto max-w-2xl text-center">
+              <p className="font-mono text-[10px] tracking-[0.22em] text-saffron/70 uppercase mb-4">
+                STRAYPAW / INFRASTRUCTURE
+              </p>
               <h2 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-[3.2rem]">
-                See something?
-                <br />
-                Start there.
+                The network grows<br />with every signal.
               </h2>
               <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-white/60">
-                You do not need permission to care. If you notice a street
-                animal, that single observation is the beginning of its
-                record and its connection to help.
+                Notice an animal. Report it. That single observation enters the
+                demand layer, gets matched to a provider, and — when funded —
+                becomes an outcome. Infrastructure works when people use it.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link
                   href="/map"
                   className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-base font-semibold text-bark-900 transition-colors hover:bg-bark-100"
                 >
-                  Open the community app <ArrowRight className="h-4 w-4" />
+                  Open the app <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/resources"
                   className="inline-flex items-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-base font-semibold text-white/80 transition-colors hover:border-white/30 hover:text-white"
                 >
-                  Find organisations
+                  Find providers
                 </Link>
               </div>
             </div>

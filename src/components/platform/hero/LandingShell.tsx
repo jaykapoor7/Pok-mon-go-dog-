@@ -38,7 +38,7 @@ function PlatformSection() {
           color: '#e9ac42',
           marginBottom: 16,
         }}>
-          STRAYPAW / OPERATIONS
+          STRAYPAW / DEMAND INTELLIGENCE
         </p>
         <h2 style={{
           fontFamily: 'Space Grotesk, Inter, ui-sans-serif, sans-serif',
@@ -49,7 +49,7 @@ function PlatformSection() {
           color: '#f4f1ea',
           marginBottom: 16,
         }}>
-          Real-time infrastructure<br />for street animals.
+          Animal need mapped<br />to ₹ value and supply.
         </h2>
         <p style={{
           fontSize: 16,
@@ -58,8 +58,9 @@ function PlatformSection() {
           maxWidth: 520,
           marginBottom: 52,
         }}>
-          Every sighting, rescue, and resource connected in one dashboard.
-          NGOs, vets, and volunteers dispatched the moment a case opens.
+          Every animal sighting becomes a measurable need. Needs aggregate
+          into geographic demand. Demand gets matched to providers —
+          NGOs, vets, rescuers — and tracked through to a funded outcome.
         </p>
         <AppConsole visible={visible} />
         <div style={{ display: 'flex', gap: 14, marginTop: 40, flexWrap: 'wrap' }}>

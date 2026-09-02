@@ -268,15 +268,15 @@ export function DelhiCinematic({
   const mapVisible = p > 0.28
   const networkVisible = p > 0.58
   const label =
-    p < 0.24
-      ? 'ONE SIGHTING'
-      : p < 0.42
-      ? 'THE SCALE'
-      : p < 0.58
-      ? 'REPORTS / RESOURCES / GAPS'
-      : p < 0.78
-      ? 'ONE REPORT / ONE CONNECTION / ONE RESCUE'
-      : 'FIND / CONNECT / ACT'
+    p < 0.20
+      ? 'ANIMAL → NEED IDENTIFIED'
+      : p < 0.38
+      ? 'NEED → GEOGRAPHIC DEMAND'
+      : p < 0.56
+      ? 'DEMAND → ₹ VALUE MAPPED'
+      : p < 0.76
+      ? 'DEMAND → PROVIDER MATCHED'
+      : 'MATCH → OUTCOME → INTELLIGENCE'
 
   return (
     <section
