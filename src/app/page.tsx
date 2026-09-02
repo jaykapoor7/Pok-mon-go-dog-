@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnimalMark, StrayPawBadge } from "@/components/brand/Logo";
 import {
   ArrowRight,
   MapPin,
@@ -70,14 +71,9 @@ export default async function HomePage() {
         <header style={{ borderBottom: "1px solid rgba(233,172,66,0.10)", background: "rgba(7,11,17,0.82)", backdropFilter: "blur(18px)" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", height: 52, alignItems: "center", padding: "0 24px", gap: 0 }}>
             {/* Logo */}
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}>
-              <span style={{
-                width: 24, height: 24, borderRadius: 7,
-                background: "linear-gradient(135deg, #e9ac42 0%, #c8892a 100%)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12, color: "#070b11", fontWeight: 800, letterSpacing: "-0.02em",
-              }}>S</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#f4f1ea", letterSpacing: "0.01em" }}>StrayPaw</span>
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", flexShrink: 0 }}>
+              <AnimalMark className="h-8 w-8" />
+              <span style={{ fontSize: 15, fontWeight: 700, color: "#f4f1ea", letterSpacing: "0.01em" }}>StrayPaw</span>
             </Link>
 
             <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)", margin: "0 20px", flexShrink: 0 }} />
@@ -442,9 +438,9 @@ export default async function HomePage() {
         <section className="bg-ink text-white">
           <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-32">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="font-mono text-[10px] tracking-[0.22em] text-saffron/70 uppercase mb-4">
-                STRAYPAW / INFRASTRUCTURE
-              </p>
+              <div className="flex justify-center mb-8">
+                <StrayPawBadge className="h-32 w-32" />
+              </div>
               <h2 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-[3.2rem]">
                 The network grows<br />with every signal.
               </h2>
