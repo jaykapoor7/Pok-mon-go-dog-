@@ -10,7 +10,7 @@ import {
   Building2,
   BadgeCheck,
 } from "lucide-react";
-import { LandingJourney } from "@/components/platform/hero/LandingJourney";
+import { LandingShell } from "@/components/platform/hero/LandingShell";
 import { SectionLabel, Figure, RankedBars, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
 import { ReportedDogsShowcase } from "@/components/platform/ReportedDogsShowcase";
@@ -134,9 +134,9 @@ export default async function HomePage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* 1-4. GRAIN + HERO + GLOBE + COMMUNITY + TUNNEL               */}
+      {/* CINEMATIC: TV Portal → Delhi Street → Platform              */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <LandingJourney />
+      <LandingShell />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/* BELOW THE FOLD: light sections                                */}

@@ -1,0 +1,136 @@
+.delhi-cinematic-section {
+  position: relative;
+  height: 600vh;
+  background: #070b11;
+}
+
+.delhi-cinematic-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: #0d1721;
+}
+
+.delhi-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.cinematic-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(2,5,8,.75) 100%);
+}
+
+.cinematic-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url('/grain-sprite.webp');
+  background-size: 96px 1152px;
+  animation: grain-steps .75s steps(12) infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes grain-steps {
+  from { background-position: 0 0; }
+  to { background-position: 0 -1152px; }
+}
+
+.cinematic-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px 32px;
+  color: #e9ac42;
+  font: 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .18em;
+}
+
+.hud-topline {
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.62;
+}
+
+.hud-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: rgba(168, 221, 208, 0.48);
+  transition: color .4s ease, opacity .4s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.hud-stage.is-bright {
+  color: rgba(168, 221, 208, 0.88);
+}
+
+.hud-bottomline {
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.48;
+}
+
+.hud-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hud-crosshair::before,
+.hud-crosshair::after {
+  content: '';
+  position: absolute;
+  background: rgba(233,172,66,.35);
+}
+.hud-crosshair::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+}
+.hud-crosshair::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.cinematic-accessible-copy {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (max-width: 700px) {
+  .delhi-cinematic-section { height: 400vh; }
+  .cinematic-hud { padding: 18px 20px; font-size: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-grain { animation: none; }
+}
