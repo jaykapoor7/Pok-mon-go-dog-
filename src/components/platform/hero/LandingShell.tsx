@@ -5,14 +5,11 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { AppConsole } from './AppConsole'
 
-// Lazy-load the heavyweight components to keep initial bundle light
-const TvPortal = dynamic(() => import('./TvPortal').then(m => m.TvPortal), { ssr: false })
-const DelhiCinematic = dynamic(() => import('./DelhiCinematic').then(m => m.DelhiCinematic), { ssr: false })
+const CinematicScroll = dynamic(
+  () => import('./CinematicScroll').then(m => m.CinematicScroll),
+  { ssr: false }
+)
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Platform section — shown after the cinematic world fades in.
-   Displays the AppConsole dashboard + narrative copy.
-───────────────────────────────────────────────────────────────────────── */
 function PlatformSection() {
   const ref = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
@@ -38,7 +35,7 @@ function PlatformSection() {
           color: '#e9ac42',
           marginBottom: 16,
         }}>
-          STRAYPAW / DEMAND INTELLIGENCE
+          STRAYPAW / FIELD CONSOLE
         </p>
         <h2 style={{
           fontFamily: 'Space Grotesk, Inter, ui-sans-serif, sans-serif',
@@ -49,7 +46,7 @@ function PlatformSection() {
           color: '#f4f1ea',
           marginBottom: 16,
         }}>
-          Animal need mapped<br />to ₹ value and supply.
+          Every sighting becomes<br />a coordinated response.
         </h2>
         <p style={{
           fontSize: 16,
@@ -58,9 +55,8 @@ function PlatformSection() {
           maxWidth: 520,
           marginBottom: 52,
         }}>
-          Every animal sighting becomes a measurable need. Needs aggregate
-          into geographic demand. Demand gets matched to providers —
-          NGOs, vets, rescuers — and tracked through to a funded outcome.
+          One observation enters the map. The network surfaces the nearest vet,
+          shelter, and volunteer. A route forms. Help arrives.
         </p>
         <AppConsole visible={visible} />
         <div style={{ display: 'flex', gap: 14, marginTop: 40, flexWrap: 'wrap' }}>
@@ -104,28 +100,10 @@ function PlatformSection() {
   )
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   LandingShell — root compositor
-   TV Portal (320vh) → Delhi Cinematic (600vh) → Platform section
-───────────────────────────────────────────────────────────────────────── */
 export function LandingShell() {
-  const [worldEntered, setWorldEntered] = useState(false)
-
   return (
     <div style={{ background: '#070b11' }}>
-      <TvPortal
-        screenSrc="/hero/street-branded.jpg"
-        screenIsImage
-        locationLabel="DELHI / LIVE"
-        onWorldEntered={() => setWorldEntered(true)}
-      />
-
-      <DelhiCinematic
-        dogTexture="/dog-anchor.webp"
-        streetTexture="/delhi-street.webp"
-        onConnection={() => {}}
-      />
-
+      <CinematicScroll />
       <PlatformSection />
     </div>
   )

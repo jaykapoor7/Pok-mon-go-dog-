@@ -2,26 +2,97 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PlusCircle, Map as MapIcon, List, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { MapCanvas } from "@/components/map/MapCanvas";
-import { DogBottomSheet } from "@/components/map/DogBottomSheet";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   markerStateFor,
-  markerMetaFor,
-  MARKER_META,
-  MARKER_ORDER,
   fedRecently,
   type MarkerState,
 } from "@/lib/marker-state";
-import { cn, dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
+import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import type { Dog, FeedingZone } from "@/lib/types";
 
-type Filter = "all" | MarkerState;
+// ── design tokens ──────────────────────────────────────────────────────────
+const INK = "#070b11";
+const NIGHT = "#0d1721";
+const SAFFRON = "#e9ac42";
+const MINT = "#a8ddd0";
+const DANGER = "#e06455";
+const BORDER = "rgba(255,255,255,0.06)";
+const BORDER_MED = "rgba(255,255,255,0.10)";
 
+// ── static demo data ────────────────────────────────────────────────────────
+const LIVE_REPORTS = [
+  { id: "SP-1050", icon: "🐾", text: "Dog sighted near Moolchand", time: "19:45", color: MINT },
+  { id: "SP-1049", icon: "⚠", text: "Injured dog near Masjid Moth", time: "19:43", color: DANGER },
+  { id: "SP-1048", icon: "🐾", text: "Pack of 4 near Sarai Kale Khan", time: "19:41", color: MINT },
+  { id: "SP-1047", icon: "🍲", text: "Food request near CR Park", time: "19:39", color: "#a8ddd0" },
+  { id: "SP-1046", icon: "💉", text: "Rabies vaccination drive today", time: "19:37", color: "#a8ddd0" },
+];
+
+const KPI = [
+  { value: "65", label: "SIGHTINGS", sub: "+12 TODAY", color: MINT },
+  { value: "38", label: "RESOURCES", sub: "ACTIVE", color: "#e9ac42" },
+  { value: "12", label: "ACTIVE CASES", sub: "+2 TODAY", color: "#a8ddd0" },
+  { value: "7", label: "GAPS", sub: "MONITORING", color: DANGER },
+];
+
+const NAV_ITEMS = [
+  { id: "map", label: "MAP", href: "/map", icon: MapIcon },
+  { id: "cases", label: "CASES", href: "/cases", icon: CasesIcon },
+  { id: "resources", label: "RESOURCES", href: "/resources", icon: ResourcesIcon },
+  { id: "data", label: "DATA", href: "/insights", icon: DataIcon },
+  { id: "learn", label: "LEARN", href: "/learn", icon: LearnIcon },
+  { id: "volunteer", label: "VOLUNTEER", href: "/get-involved", icon: VolunteerIcon },
+  { id: "support", label: "SUPPORT", href: "/help", icon: SupportIcon },
+];
+
+// ── icons ───────────────────────────────────────────────────────────────────
+function MapIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4l4-2 4 2 4-2v10l-4 2-4-2-4 2V4z"/><path d="M6 2v10M10 4v10"/></svg>
+}
+function CasesIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="12" height="10" rx="1.5"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8 8v4M6 10h4"/></svg>
+}
+function ResourcesIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2a4 4 0 100 8A4 4 0 008 2z"/><path d="M8 10v4M5 14h6"/></svg>
+}
+function DataIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h2V7H2zM7 12h2V4H7zM12 12h2V9h-2z"/></svg>
+}
+function LearnIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+}
+function VolunteerIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 14s-6-3.5-6-8a4 4 0 018 0 4 4 0 018 0c0 4.5-6 8-6 8z"/></svg>
+}
+function SupportIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11h.01"/></svg>
+}
+function BellIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 13.5a2 2 0 004 0M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z"/></svg>
+}
+function XIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M12 4L4 12M4 4l8 8"/></svg>
+}
+function PawIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor"><ellipse cx="5" cy="4" rx="1.5" ry="2"/><ellipse cx="11" cy="4" rx="1.5" ry="2"/><ellipse cx="3" cy="8" rx="1.5" ry="2"/><ellipse cx="13" cy="8" rx="1.5" ry="2"/><path d="M8 6.5c-2.5 0-5 2-5 4.5 0 1.5 1 2 2.5 2.5a10 10 0 005 0C12 13 13 12.5 13 11c0-2.5-2.5-4.5-5-4.5z"/></svg>
+}
+function ArrowLeftIcon({ size = 14 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 7H3M6 4L3 7l3 3"/></svg>
+}
+function ChevronRight({ size = 14 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3l4 4-4 4"/></svg>
+}
+function UserIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2-5 6-5s6 2 6 5"/></svg>
+}
+
+// ── main component ───────────────────────────────────────────────────────────
 export function MapView({
   dogs: allDogs,
   feedingZones = [],
@@ -29,15 +100,13 @@ export function MapView({
   dogs: Dog[];
   feedingZones?: FeedingZone[];
 }) {
-  const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Dog | null>(null);
-  const [showFeeding, setShowFeeding] = useState(false);
-  const [view, setView] = useState<"map" | "list">("map");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
-
   const params = useSearchParams();
+
   const sLat = parseFloat(params.get("lat") ?? "");
   const sLng = parseFloat(params.get("lng") ?? "");
   const center = Number.isFinite(sLat) && Number.isFinite(sLng) ? { lat: sLat, lng: sLng } : null;
@@ -51,132 +120,533 @@ export function MapView({
     );
   }, []);
 
-  const counts = useMemo(() => {
-    const c = { all: allDogs.length } as Record<string, number>;
-    for (const s of MARKER_ORDER) c[s] = 0;
-    for (const d of allDogs) c[markerStateFor(d)] = (c[markerStateFor(d)] ?? 0) + 1;
-    return c;
-  }, [allDogs]);
+  function handleSelect(dog: Dog | null) {
+    setSelected(dog);
+    setDrawerOpen(!!dog);
+  }
 
-  const dogs = useMemo(
-    () => (filter === "all" ? allDogs : allDogs.filter((d) => markerStateFor(d) === filter)),
-    [allDogs, filter]
-  );
-
-  const listDogs = useMemo(() => {
-    if (!coords) return dogs;
-    return [...dogs].sort((a, b) => distanceMeters(coords, a) - distanceMeters(coords, b));
-  }, [dogs, coords]);
+  function closeDrawer() {
+    setDrawerOpen(false);
+    setTimeout(() => setSelected(null), 300);
+  }
 
   function handleAction(dog: Dog, kind: "saw" | "fed") {
     celebrate();
     (kind === "fed" ? logFeed(dog.id, user?.name) : logSeen(dog.id)).catch(() => {});
   }
 
-  function fmtDist(d: number) {
-    return d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1)} km`;
-  }
+  const dist = selected && coords ? distanceMeters(coords, selected) : null;
+  const fmtDist = (d: number) => d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1)} km`;
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden">
-      {/* filter rail + view toggle */}
-      <div className="pointer-events-none absolute inset-x-0 top-[4.75rem] z-20 flex items-start gap-2 px-3">
-        <div className="no-scrollbar pointer-events-auto flex flex-1 gap-2 overflow-x-auto">
-          <FilterChip active={filter === "all"} onClick={() => setFilter("all")} label="All" count={counts.all} />
-          {MARKER_ORDER.map((s) => (
-            <FilterChip key={s} active={filter === s} onClick={() => setFilter(s)} label={MARKER_META[s].label} color={MARKER_META[s].color} count={counts[s]} />
-          ))}
-          {feedingZones.length > 0 && view === "map" && (
-            <FilterChip active={showFeeding} onClick={() => setShowFeeding((v) => !v)} label={`🥣 Feeding (${feedingZones.length})`} />
-          )}
-        </div>
-        {/* Map / List toggle */}
-        <div className="glass pointer-events-auto flex shrink-0 rounded-full p-1 shadow-card">
-          <button onClick={() => setView("map")} aria-label="Map view" className={cn("flex h-8 w-8 items-center justify-center rounded-full transition-colors", view === "map" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500")}>
-            <MapIcon className="h-4 w-4" />
-          </button>
-          <button onClick={() => setView("list")} aria-label="List view" className={cn("flex h-8 w-8 items-center justify-center rounded-full transition-colors", view === "list" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500")}>
-            <List className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+    <div style={{ display: "flex", height: "100dvh", width: "100%", background: INK, color: "#fff", overflow: "hidden", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>
 
-      {view === "map" ? (
-        <MapCanvas dogs={dogs} onSelect={setSelected} center={center} feedingZones={showFeeding ? feedingZones : []} />
-      ) : (
-        <div className="absolute inset-0 overflow-y-auto bg-paper pb-28 pt-[7.5rem] dark:bg-ink">
-          <div className="mx-auto max-w-xl px-3">
-            <p className="mb-3 px-1 text-[13px] text-bark-500">
-              {listDogs.length} {listDogs.length === 1 ? "animal" : "animals"}{coords ? ", nearest first" : ""}
-            </p>
-            {listDogs.length === 0 ? (
-              <div className="card p-8 text-center">
-                <p className="text-sm text-bark-500">No animals match this filter.</p>
+      {/* ── LEFT RAIL ── */}
+      <nav style={{ width: 148, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: `1px solid ${BORDER}`, background: "rgba(7,11,17,0.96)" }}>
+        {/* Brand */}
+        <div style={{ padding: "20px 16px 16px", borderBottom: `1px solid ${BORDER}` }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+            <span style={{ color: SAFFRON }}>
+              <PawIcon size={18} />
+            </span>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "#fff" }}>StrayPaw</div>
+              <div style={{ fontSize: 8, letterSpacing: "0.16em", color: "rgba(255,255,255,0.35)", marginTop: 1 }}>DELHI COMMUNITY</div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Nav items */}
+        <div style={{ flex: 1, padding: "8px 0", overflow: "auto" }}>
+          {NAV_ITEMS.map((item) => {
+            const isMap = item.id === "map";
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 16px",
+                  fontSize: 10,
+                  letterSpacing: "0.18em",
+                  textDecoration: "none",
+                  color: isMap ? "#fff" : "rgba(255,255,255,0.42)",
+                  background: isMap ? "rgba(233,172,66,0.08)" : "transparent",
+                  borderLeft: isMap ? `2px solid ${SAFFRON}` : "2px solid transparent",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <span style={{ opacity: isMap ? 1 : 0.6 }}><Icon size={14} /></span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Field mode + exit */}
+        <div style={{ borderTop: `1px solid ${BORDER}`, padding: "12px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80", flexShrink: 0 }} />
+            <span style={{ fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.6)" }}>FIELD MODE</span>
+          </div>
+          <div style={{ fontSize: 8, letterSpacing: "0.16em", color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>LIVE SYNC</div>
+          <div style={{ fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.22)", marginBottom: 6 }}>v1.2.0 / INDIE BUILD</div>
+          <Link
+            href="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "7px 10px",
+              fontSize: 9,
+              letterSpacing: "0.14em",
+              color: "rgba(255,255,255,0.4)",
+              border: `1px solid ${BORDER}`,
+              borderRadius: 4,
+              textDecoration: "none",
+              marginTop: 4,
+            }}
+          >
+            <ArrowLeftIcon size={12} />
+            MAIN SITE
+          </Link>
+        </div>
+      </nav>
+
+      {/* ── MAIN AREA ── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+
+        {/* TOP BAR */}
+        <div style={{
+          height: 48,
+          display: "flex",
+          alignItems: "center",
+          borderBottom: `1px solid ${BORDER}`,
+          padding: "0 16px",
+          gap: 12,
+          flexShrink: 0,
+          background: "rgba(7,11,17,0.92)",
+          backdropFilter: "blur(8px)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", flexShrink: 0 }} />
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", color: "#fff", whiteSpace: "nowrap" }}>LIVE DELHI</span>
+            <span style={{ fontSize: 9, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>28.7041° N, 77.1025° E</span>
+          </div>
+
+          {/* Search */}
+          <div style={{ flex: 1, maxWidth: 400, position: "relative" }}>
+            <input
+              placeholder="SEARCH LOCATION, CASE, ID"
+              style={{
+                width: "100%",
+                background: "rgba(255,255,255,0.05)",
+                border: `1px solid ${BORDER}`,
+                borderRadius: 4,
+                padding: "6px 32px 6px 12px",
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                color: "rgba(255,255,255,0.7)",
+                outline: "none",
+                fontFamily: "inherit",
+              }}
+            />
+            <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em" }}>/</span>
+          </div>
+
+          <div style={{ flex: 1 }} />
+
+          {/* Notifications */}
+          <button style={{ position: "relative", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.55)", padding: 4 }}>
+            <BellIcon size={16} />
+            <span style={{ position: "absolute", top: 2, right: 2, width: 6, height: 6, borderRadius: "50%", background: DANGER }} />
+          </button>
+
+          {/* Profile */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${BORDER_MED}` }}>
+              <UserIcon size={14} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 10, letterSpacing: "0.14em", color: "#fff", lineHeight: 1.2 }}>Field Operator</span>
+              <span style={{ fontSize: 8, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)" }}>DELHI UNIT</span>
+            </div>
+          </div>
+        </div>
+
+        {/* MAP + OVERLAYS */}
+        <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+          <MapCanvas
+            dogs={allDogs}
+            onSelect={handleSelect}
+            center={center}
+            feedingZones={feedingZones}
+          />
+
+          {/* Map legend (bottom-left of map) */}
+          <div style={{
+            position: "absolute",
+            left: 12,
+            bottom: 148,
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            padding: "10px 12px",
+            background: "rgba(7,11,17,0.78)",
+            backdropFilter: "blur(8px)",
+            border: `1px solid ${BORDER}`,
+            borderRadius: 4,
+          }}>
+            {[
+              { color: MINT, label: "LIVE SIGHTING", dot: true },
+              { color: SAFFRON, label: "COMMUNITY ROUTE", dot: false, line: true },
+              { color: DANGER, label: "COVERAGE GAP", dot: false, warn: true },
+            ].map((item) => (
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                {item.dot && <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.color, flexShrink: 0 }} />}
+                {item.line && <span style={{ width: 14, height: 1.5, background: item.color, flexShrink: 0 }} />}
+                {item.warn && <span style={{ fontSize: 11, color: item.color, lineHeight: 1 }}>⊘</span>}
+                <span style={{ fontSize: 8, letterSpacing: "0.16em", color: "rgba(255,255,255,0.55)" }}>{item.label}</span>
               </div>
-            ) : (
-              <ul className="space-y-2.5">
-                {listDogs.map((dog) => {
-                  const meta = markerMetaFor(dog);
-                  const dist = coords ? distanceMeters(coords, dog) : null;
-                  return (
-                    <li key={dog.id}>
-                      <button onClick={() => setSelected(dog)} className="card card-interactive flex w-full items-center gap-3 p-2.5 text-left">
-                        <div className="relative shrink-0">
-                          <DogPhoto src={dog.cover_photo} alt="" seed={dog.id} className="h-16 w-16 rounded-2xl" />
-                          <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white dark:border-bark-900" style={{ backgroundColor: meta.color }} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-semibold text-bark-900 dark:text-bark-50">{dogLabel(dog)}</p>
-                          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-bark-500">
-                            <span className="font-medium" style={{ color: meta.color }}>{meta.label}</span>
-                            <span>· {dog.zone}</span>
-                            {dist != null && <span>· {fmtDist(dist)}</span>}
-                          </p>
-                          <p className="mt-0.5 text-[11px] text-bark-400">
-                            Seen {timeAgo(dog.last_seen)}{fedRecently(dog) ? " · fed recently" : dog.needs_help ? " · needs help" : ""}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-bark-300" />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+            ))}
+          </div>
+
+          {/* Map controls */}
+          <div style={{
+            position: "absolute",
+            left: 12,
+            top: 12,
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}>
+            {["⊞", "3D", "+", "−"].map((btn) => (
+              <button key={btn} style={{
+                width: 28, height: 28, background: "rgba(7,11,17,0.78)", border: `1px solid ${BORDER}`,
+                borderRadius: 3, color: "rgba(255,255,255,0.55)", fontSize: btn === "3D" ? 8 : 14,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                letterSpacing: btn === "3D" ? "0.08em" : 0, backdropFilter: "blur(8px)"
+              }}>
+                {btn}
+              </button>
+            ))}
+          </div>
+
+          {/* RIGHT CASE DRAWER */}
+          <div style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            height: "100%",
+            width: 304,
+            background: "rgba(9,12,20,0.95)",
+            backdropFilter: "blur(12px)",
+            borderLeft: `1px solid ${BORDER}`,
+            transform: drawerOpen ? "translateX(0)" : "translateX(104%)",
+            transition: "transform 0.28s cubic-bezier(0.22,1,0.36,1)",
+            zIndex: 30,
+            display: "flex",
+            flexDirection: "column",
+            overflowY: "auto",
+          }}>
+            {selected && (
+              <CaseDrawer
+                dog={selected}
+                dist={dist}
+                fmtDist={fmtDist}
+                onClose={closeDrawer}
+                onAction={handleAction}
+              />
             )}
           </div>
-        </div>
-      )}
 
-      {/* empty state (map) */}
-      {allDogs.length === 0 && view === "map" && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center p-6">
-          <div className="glass pointer-events-auto max-w-xs rounded-[28px] px-7 py-8 text-center shadow-pop">
-            <h2 className="font-display text-xl font-bold tracking-tightest">No sightings yet</h2>
-            <p className="mt-1.5 text-sm text-bark-500">Add the first one.</p>
-            <button onClick={() => router.push("/report")} className="btn-primary mt-5 px-5 py-3 text-sm">
-              <PlusCircle className="h-4 w-4" /> Report a sighting
-            </button>
+          {/* BOTTOM STATS STRIP */}
+          <div style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: drawerOpen ? 304 : 0,
+            height: 140,
+            background: "rgba(7,11,17,0.88)",
+            backdropFilter: "blur(12px)",
+            borderTop: `1px solid ${BORDER}`,
+            transition: "right 0.28s cubic-bezier(0.22,1,0.36,1)",
+            zIndex: 20,
+            display: "flex",
+            gap: 0,
+          }}>
+            {/* Live reports */}
+            <div style={{ flex: "0 0 340px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", overflow: "hidden" }}>
+              <div style={{ fontSize: 8, letterSpacing: "0.18em", color: "rgba(255,255,255,0.38)", marginBottom: 8 }}>LIVE COMMUNITY REPORTS</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {LIVE_REPORTS.slice(0, 5).map((r) => (
+                  <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 9, letterSpacing: "0.08em" }}>
+                    <span style={{ fontSize: 10, color: r.color, width: 12, textAlign: "center", flexShrink: 0 }}>{r.icon}</span>
+                    <span style={{ color: "rgba(255,255,255,0.45)", flexShrink: 0, fontWeight: 600 }}>{r.id}</span>
+                    <span style={{ color: "rgba(255,255,255,0.7)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.text}</span>
+                    <span style={{ color: "rgba(255,255,255,0.28)", flexShrink: 0 }}>{r.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Sightings sparkline */}
+            <div style={{ flex: "0 0 200px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.38)" }}>SIGHTINGS (24H)</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: MINT }}>65</span>
+              </div>
+              <div style={{ flex: 1, position: "relative" }}>
+                <Sparkline />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>19:00</span>
+                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>NOW</span>
+              </div>
+            </div>
+
+            {/* KPI chips */}
+            <div style={{ flex: 1, padding: "10px 14px", display: "flex", alignItems: "center", gap: 0 }}>
+              {KPI.map((k, i) => (
+                <div key={k.label} style={{
+                  flex: 1,
+                  textAlign: "center",
+                  borderRight: i < KPI.length - 1 ? `1px solid ${BORDER}` : "none",
+                  padding: "0 8px",
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: k.color, lineHeight: 1.1, letterSpacing: "-0.02em" }}>{k.value}</div>
+                  <div style={{ fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.55)", marginTop: 3 }}>{k.label}</div>
+                  <div style={{ fontSize: 8, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{k.sub}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
-
-      <DogBottomSheet dog={selected} onClose={() => setSelected(null)} onAction={handleAction} coords={coords} />
+      </div>
     </div>
   );
 }
 
-function FilterChip({ active, onClick, label, color, count }: { active: boolean; onClick: () => void; label: string; color?: string; count?: number }) {
+// ── case drawer ──────────────────────────────────────────────────────────────
+function CaseDrawer({
+  dog,
+  dist,
+  fmtDist,
+  onClose,
+  onAction,
+}: {
+  dog: Dog;
+  dist: number | null;
+  fmtDist: (d: number) => string;
+  onClose: () => void;
+  onAction: (dog: Dog, kind: "saw" | "fed") => void;
+}) {
+  const caseId = `SP-${String(dog.id).slice(-4).toUpperCase().padStart(4, "0")}`;
+  const needsHelp = dog.needs_help;
+
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "chip shrink-0 px-3 py-1.5 text-[13px] transition-[background-color,color,box-shadow] duration-150 sm:px-3.5 sm:py-2",
-        active ? "bg-bark-900 text-white shadow-pop dark:bg-white dark:text-bark-900" : "glass text-bark-700 shadow-card hover:bg-white dark:text-bark-100"
-      )}
-    >
-      {color && <span aria-hidden className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />}
-      {label}
-      {count != null && count > 0 && <span className={cn("ml-0.5 tabular-nums", active ? "opacity-70" : "text-bark-400")}>{count}</span>}
-    </button>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: `1px solid ${BORDER}` }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", color: "#fff" }}>CASE {caseId}</span>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 4 }}>
+          <XIcon size={14} />
+        </button>
+      </div>
+
+      {/* dog photo */}
+      <div style={{ position: "relative", height: 140, flexShrink: 0, overflow: "hidden" }}>
+        <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="w-full h-full object-cover" />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(9,12,20,0.8) 0%, transparent 50%)" }} />
+        <div style={{ position: "absolute", bottom: 10, left: 14 }}>
+          <span style={{
+            display: "inline-block",
+            padding: "4px 8px",
+            fontSize: 8,
+            fontWeight: 700,
+            letterSpacing: "0.18em",
+            background: needsHelp ? SAFFRON : "rgba(255,255,255,0.12)",
+            color: needsHelp ? INK : "#fff",
+            borderRadius: 2,
+          }}>
+            {needsHelp ? "NEEDS FOLLOW-UP" : "MONITORING"}
+          </span>
+        </div>
+      </div>
+
+      {/* body */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
+        {/* last sighting */}
+        <DrawerSection label="LAST SIGHTING">
+          <div style={{ fontSize: 11, color: "#fff", letterSpacing: "0.08em" }}>
+            {new Date(dog.last_seen).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {timeAgo(dog.last_seen)}
+          </div>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", marginTop: 2, letterSpacing: "0.08em" }}>📍 {dog.zone}, New Delhi</div>
+          {dist != null && <div style={{ fontSize: 9, color: MINT, marginTop: 2 }}>{fmtDist(dist)} from you</div>}
+        </DrawerSection>
+
+        {/* nearby vet */}
+        <DrawerSection label="NEARBY VET">
+          <ResourceRow
+            name="Paws & Claws Vet Clinic"
+            detail="0.9 km · Open"
+            color={MINT}
+          />
+        </DrawerSection>
+
+        {/* nearby shelter */}
+        <DrawerSection label="NEARBY SHELTER">
+          <ResourceRow
+            name="Friendicoes, Kailash Colony"
+            detail="1.6 km · Space Available"
+            color={MINT}
+          />
+        </DrawerSection>
+
+        {/* volunteer route */}
+        <DrawerSection label="VOLUNTEER ROUTE">
+          <ResourceRow
+            name="3 volunteers nearby"
+            detail="Est. 12 min arrival"
+            color="#a8ddd0"
+          />
+        </DrawerSection>
+
+        {/* case notes */}
+        {dog.community_notes && dog.community_notes.length > 0 && (
+          <DrawerSection label="CASE NOTES">
+            <p style={{ fontSize: 10, lineHeight: 1.6, color: "rgba(255,255,255,0.65)", letterSpacing: "0.04em" }}>
+              {dog.community_notes[0]}
+            </p>
+          </DrawerSection>
+        )}
+
+        {/* ── PHASE 2: Cost & donation section ── */}
+        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12 }}>
+          <div style={{ fontSize: 8, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", marginBottom: 10 }}>
+            CARE COST  ·  ILLUSTRATIVE
+          </div>
+
+          {/* monthly cost */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.65)", letterSpacing: "0.08em" }}>Monthly care cost</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: SAFFRON, letterSpacing: "0.04em" }}>₹2,400</span>
+          </div>
+
+          {/* neighbourhood need */}
+          <div style={{
+            padding: "10px 12px",
+            background: "rgba(233,172,66,0.06)",
+            border: `1px solid rgba(233,172,66,0.14)`,
+            borderRadius: 4,
+            marginBottom: 12,
+          }}>
+            <div style={{ fontSize: 8, letterSpacing: "0.14em", color: SAFFRON, opacity: 0.7, marginBottom: 4 }}>NEIGHBOURHOOD NEED</div>
+            <div style={{ fontSize: 10, color: "#fff", letterSpacing: "0.06em", lineHeight: 1.5 }}>
+              {dog.zone || "This area"} needs{" "}
+              <span style={{ color: SAFFRON, fontWeight: 700 }}>₹28,800</span>{" "}
+              for next 12 months
+            </div>
+            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", marginTop: 4, letterSpacing: "0.1em" }}>
+              12 animals · vet + food + sterilisation
+            </div>
+          </div>
+
+          {/* donate button */}
+          <button
+            onClick={() => {}}
+            style={{
+              width: "100%",
+              padding: "10px 0",
+              background: "rgba(168,221,208,0.1)",
+              border: `1px solid rgba(168,221,208,0.25)`,
+              borderRadius: 4,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              color: MINT,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            DONATE TO THIS CASE
+          </button>
+        </div>
+      </div>
+
+      {/* connect help CTA */}
+      <div style={{ padding: "12px 14px", borderTop: `1px solid ${BORDER}`, flexShrink: 0 }}>
+        <button
+          onClick={() => onAction(dog, "saw")}
+          style={{
+            width: "100%",
+            padding: "12px 0",
+            background: SAFFRON,
+            border: "none",
+            borderRadius: 4,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.18em",
+            color: INK,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            fontFamily: "inherit",
+          }}
+        >
+          <PawIcon size={14} />
+          CONNECT HELP
+        </button>
+        <div style={{ textAlign: "center", marginTop: 8, fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.28)" }}>
+          (·) ALERT VOLUNTEERS & NGOS
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DrawerSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 8, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>{label}</div>
+      {children}
+    </div>
+  );
+}
+
+function ResourceRow({ name, detail, color }: { name: string; detail: string; color: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div>
+        <div style={{ fontSize: 10, color: "#fff", letterSpacing: "0.06em" }}>{name}</div>
+        <div style={{ fontSize: 9, color: color, marginTop: 2, letterSpacing: "0.08em", opacity: 0.8 }}>{detail}</div>
+      </div>
+      <ChevronRight size={12} />
+    </div>
+  );
+}
+
+function Sparkline() {
+  const pts = [8, 12, 6, 18, 24, 14, 30, 22, 38, 28, 45, 35, 52, 42, 58, 48, 65];
+  const max = Math.max(...pts);
+  const w = 172, h = 60;
+  const d = pts.map((v, i) => {
+    const x = (i / (pts.length - 1)) * w;
+    const y = h - (v / max) * h;
+    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+
+  return (
+    <svg width="100%" height="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ display: "block" }}>
+      <path d={d} fill="none" stroke={MINT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`${d} L${w},${h} L0,${h} Z`} fill={`${MINT}18`} />
+    </svg>
   );
 }

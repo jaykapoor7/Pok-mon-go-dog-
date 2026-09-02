@@ -1,0 +1,84 @@
+.cscroll-section {
+  position: relative;
+  height: 1200vh;
+  background: #070b11;
+}
+
+.cscroll-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: #070b11;
+}
+
+.cscroll-frame {
+  position: absolute;
+  inset: 0;
+  will-change: opacity;
+}
+
+.cscroll-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.cscroll-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 38%, rgba(2, 5, 8, 0.5) 100%);
+}
+
+.cscroll-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px 32px;
+  font: 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.18em;
+  color: #e9ac42;
+}
+
+.cscroll-hud-top {
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.55;
+}
+
+.cscroll-hud-btm {
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.35;
+}
+
+.cscroll-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .cscroll-section { height: 900vh; }
+  .cscroll-hud { padding: 18px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cscroll-section { height: 100svh; }
+  .cscroll-sticky { height: 100svh; }
+}
