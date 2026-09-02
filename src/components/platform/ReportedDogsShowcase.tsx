@@ -48,9 +48,11 @@ function ShowcaseCard({ dog, containerRef }: { dog: Dog; containerRef: React.Ref
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-4">
-          <p className="font-display text-lg font-bold text-white">
-            {dog.name || "Not yet named"}
-          </p>
+          {dog.name && (
+            <p className="font-display text-lg font-bold text-white">
+              {dog.name}
+            </p>
+          )}
           <p className="mt-0.5 flex items-center gap-1 text-xs text-white/70">
             <MapPin className="h-3 w-3" /> {location}
           </p>

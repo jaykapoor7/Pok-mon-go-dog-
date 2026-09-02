@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackToApp } from "@/components/nav/BackToApp";
 import { PlatformShell } from "@/components/platform/PlatformNav";
 import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
 import { RESEARCH, RESEARCH_TOPICS } from "@/lib/platform/research";
@@ -68,6 +69,7 @@ const SECTIONS = [
 export default function LearnPage() {
   return (
     <PlatformShell>
+      <BackToApp />
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-bark-900 sm:text-4xl">
           Learn

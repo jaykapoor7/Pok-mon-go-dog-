@@ -139,7 +139,7 @@ export function MapView({
   const fmtDist = (d: number) => d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1)} km`;
 
   return (
-    <div style={{ display: "flex", height: "100dvh", width: "100%", background: INK, color: "#fff", overflow: "hidden", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>
+    <div style={{ display: "flex", height: "100dvh", width: "100%", background: INK, color: "#fff", overflow: "hidden", fontFamily: "var(--font-sans, Inter, ui-sans-serif, system-ui, sans-serif)" }}>
 
       {/* ── LEFT RAIL ── */}
       <nav style={{ width: 148, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: `1px solid ${BORDER}`, background: "rgba(7,11,17,0.96)" }}>
@@ -165,6 +165,11 @@ export function MapView({
               <Link
                 key={item.id}
                 href={item.href}
+                onClick={() => {
+                  if (!isMap) {
+                    try { sessionStorage.setItem("fromApp", "1"); } catch { /* ignore */ }
+                  }
+                }}
                 style={{
                   display: "flex",
                   alignItems: "center",

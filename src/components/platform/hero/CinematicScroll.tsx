@@ -3,20 +3,16 @@
 import { useEffect, useRef, useState } from 'react'
 import './cinematic-scroll.css'
 
-const TOTAL = 11
-const HOLD = 0.45
+// 5 selected frames from the storyboard: TV → sighting → Delhi aerial → community → final
+const FRAMES = ['01', '04', '05', '09', '11']
+const TOTAL = FRAMES.length
+const HOLD = 0.08 // nearly instant — crossfade feels like video, not slideshow
 
 const HUD: ({ coord: string; stage: string } | null)[] = [
   null,
-  { coord: '28.7041°N  77.1025°E', stage: 'SIGNAL ACQUIRED' },
-  { coord: '28.7041°N  77.1025°E', stage: 'ENTERING THE FIELD' },
   { coord: '28.7041°N  77.1025°E', stage: 'ONE SIGHTING' },
   { coord: 'CITY PULSE ACTIVE', stage: 'THE SCALE' },
-  { coord: '28.7041°N  77.1025°E', stage: 'REPORTS · RESOURCES · GAPS' },
-  { coord: 'INFRASTRUCTURE LAYER', stage: 'ONE REPORT → ONE CONNECTION → ONE RESCUE' },
-  { coord: 'MULTI-CITY ACTIVE', stage: 'NETWORK LIVE' },
-  { coord: '28.7041°N  77.1025°E', stage: 'COMMUNITY · VET · NGO · SHELTER · VOLUNTEER' },
-  { coord: 'OUTCOME TRACKED', stage: 'SEEN → FIND → CONNECT → ACT' },
+  { coord: '28.7041°N  77.1025°E', stage: 'COMMUNITY · VET · NGO · SHELTER' },
   null,
 ]
 
@@ -80,7 +76,7 @@ export function CinematicScroll({ onComplete }: { onComplete?: () => void }) {
             style={{ opacity: op[idx], zIndex: idx }}
           >
             <img
-              src={`/cinematic/frame-${String(idx + 1).padStart(2, '0')}.jpg`}
+              src={`/cinematic/frame-${FRAMES[idx]}.jpg`}
               alt=""
               loading={idx <= 1 ? 'eager' : 'lazy'}
               decoding={idx <= 1 ? 'sync' : 'async'}

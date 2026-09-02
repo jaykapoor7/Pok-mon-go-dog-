@@ -1,6 +1,6 @@
 .cscroll-section {
   position: relative;
-  height: 1200vh;
+  height: 500vh;
   background: #070b11;
 }
 
@@ -74,7 +74,7 @@
 }
 
 @media (max-width: 700px) {
-  .cscroll-section { height: 900vh; }
+  .cscroll-section { height: 380vh; }
   .cscroll-hud { padding: 18px 20px; }
 }
 

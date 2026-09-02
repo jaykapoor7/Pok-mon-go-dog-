@@ -65,14 +65,24 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-dvh">
-      {/* Nav sits on top of the dark hero */}
+      {/* Nav — floats over the dark cinematic */}
       <div className="fixed left-0 right-0 top-0 z-50">
-        <header className="border-b border-white/[0.07] bg-ink/85 backdrop-blur-md">
-          <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
-            <Link href="/" className="shrink-0 text-lg font-bold text-white">
-              StrayPaw
+        <header style={{ borderBottom: "1px solid rgba(233,172,66,0.10)", background: "rgba(7,11,17,0.82)", backdropFilter: "blur(18px)" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", height: 52, alignItems: "center", padding: "0 24px", gap: 0 }}>
+            {/* Logo */}
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}>
+              <span style={{
+                width: 24, height: 24, borderRadius: 7,
+                background: "linear-gradient(135deg, #e9ac42 0%, #c8892a 100%)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 12, color: "#070b11", fontWeight: 800, letterSpacing: "-0.02em",
+              }}>S</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#f4f1ea", letterSpacing: "0.01em" }}>StrayPaw</span>
             </Link>
-            <nav className="ml-2 hidden items-center gap-1 md:flex">
+
+            <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)", margin: "0 20px", flexShrink: 0 }} />
+
+            <nav style={{ display: "flex", gap: 2, flex: 1 }} className="hidden md:flex">
               {[
                 { label: "Explore", href: "/explore" },
                 { label: "Resources", href: "/resources" },
@@ -82,24 +92,19 @@ export default async function HomePage() {
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="rounded-md px-3 py-1.5 text-[13.5px] font-medium text-white/50 transition-colors hover:text-white"
+                  style={{ padding: "6px 12px", fontSize: 13, fontWeight: 500, color: "rgba(244,241,234,0.45)", textDecoration: "none", borderRadius: 6, transition: "color 0.15s" }}
                 >
                   {l.label}
                 </Link>
               ))}
             </nav>
-            <div className="ml-auto flex items-center gap-2">
+
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
               <Link
                 href="/map"
-                className="hidden rounded-full border border-white/20 px-4 py-2 text-[13px] font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white md:inline-flex"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#e9ac42", color: "#070b11", borderRadius: 999, padding: "7px 18px", fontSize: 13, fontWeight: 600, textDecoration: "none", letterSpacing: "0.01em", flexShrink: 0 }}
               >
-                Open app
-              </Link>
-              <Link
-                href="/map"
-                className="rounded-full bg-paw-500 px-4 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 md:hidden"
-              >
-                App
+                Open app ↗
               </Link>
             </div>
           </div>
@@ -334,11 +339,11 @@ export default async function HomePage() {
               <div>
                 <SectionLabel>From the community</SectionLabel>
                 <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-                  Real animals. Real sightings.
+                  Dogs spotted nearby.
                 </h2>
                 <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
-                  Each sighting is a data point that feeds the demand picture.
-                  Each record connects an animal to its care trajectory.
+                  Community members report sightings. Each one goes into the map,
+                  feeds the demand layer, and can be connected to help.
                 </p>
               </div>
               <Link

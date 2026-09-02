@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { FloatingTopBar } from "./FloatingTopBar";
 import { BottomNav } from "./BottomNav";
+import { BackToApp } from "./BackToApp";
 
 // Routes that render WITHOUT the app shell (top bar + nav rail), the public
 // marketing landing gets its own full-bleed chrome and CTA.
@@ -11,6 +12,7 @@ const BARE_ROUTES = new Set<string>([
   "/explore", "/insights", "/research", "/take-action",
   "/resources", "/learn", "/get-involved", "/orgs",
   "/about", "/privacy", "/terms", "/safety", "/report-content",
+  "/map",
 ]);
 
 // Focused flows: keep the top bar but hide the bottom nav so it doesn't collide
@@ -27,6 +29,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <BackToApp />
       <FloatingTopBar />
       <main className="lg:pl-60">{children}</main>
       {!hideBottomNav && <BottomNav />}
