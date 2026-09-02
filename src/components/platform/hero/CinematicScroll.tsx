@@ -3,16 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import './cinematic-scroll.css'
 
-// 5 selected frames from the storyboard: TV → sighting → Delhi aerial → community → final
-const FRAMES = ['01', '04', '05', '09', '11']
+// Narrative: TV hook → problem (scale) → solution (one sighting + dog) → every stray has a story
+const FRAMES = ['01', '05', '04', '11']
 const TOTAL = FRAMES.length
-const HOLD = 0.08 // nearly instant — crossfade feels like video, not slideshow
+const HOLD = 0.05 // nearly zero — crossfade starts almost immediately
 
 const HUD: ({ coord: string; stage: string } | null)[] = [
   null,
-  { coord: '28.7041°N  77.1025°E', stage: 'ONE SIGHTING' },
-  { coord: 'CITY PULSE ACTIVE', stage: 'THE SCALE' },
-  { coord: '28.7041°N  77.1025°E', stage: 'COMMUNITY · VET · NGO · SHELTER' },
+  { coord: 'CITY PULSE ACTIVE', stage: 'THE PROBLEM' },
+  { coord: '28.7041°N  77.1025°E', stage: 'ONE SIGHTING · ONE SOLUTION' },
   null,
 ]
 

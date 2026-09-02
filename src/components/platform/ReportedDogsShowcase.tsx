@@ -24,10 +24,8 @@ function ShowcaseCard({ dog, containerRef }: { dog: Dog; containerRef: React.Ref
     offset: ["start end", "end start"],
   });
 
-  const scale = useTransform(scrollXProgress, [0, 0.5, 1], [0.88, 1, 0.88]);
-  const opacity = useTransform(scrollXProgress, [0, 0.5, 1], [0.45, 1, 0.45]);
-  const blur = useTransform(scrollXProgress, [0, 0.5, 1], [2, 0, 2]);
-  const filter = useTransform(blur, (b) => `blur(${b}px)`);
+  const scale = useTransform(scrollXProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
+  const opacity = useTransform(scrollXProgress, [0, 0.5, 1], [0.5, 1, 0.5]);
 
   const location = dog.zone || dog.city || "India";
 
@@ -38,7 +36,7 @@ function ShowcaseCard({ dog, containerRef }: { dog: Dog; containerRef: React.Ref
       className="group relative shrink-0 snap-center overflow-hidden rounded-2xl border border-white/10"
       style={{ width: "min(78vw, 320px)" }}
     >
-      <motion.div style={{ scale, opacity, filter }} className="relative aspect-[4/5] w-full">
+      <motion.div style={{ scale, opacity }} className="relative aspect-[4/5] w-full">
         <Image
           src={dog.cover_photo}
           alt={dog.name ? `${dog.name}, a street dog in ${location}` : `A street dog in ${location}`}
