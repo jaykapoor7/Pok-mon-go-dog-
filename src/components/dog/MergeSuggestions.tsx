@@ -66,7 +66,7 @@ export function MergeSuggestions({
       {visible.map((m) => (
         <div
           key={m.dog.id}
-          className="flex items-center gap-3 rounded-2xl border border-bark-100 p-2.5 dark:border-white/10"
+          className="flex items-center gap-3 rounded border border-bark-100 p-2.5 dark:border-white/10"
         >
           <Link href={`/dog/${m.dog.id}`} className="flex min-w-0 flex-1 items-center gap-3">
             <DogPhoto src={m.dog.cover_photo} alt={dogLabel(m.dog)} seed={m.dog.id} className="h-12 w-12 rounded-xl" />

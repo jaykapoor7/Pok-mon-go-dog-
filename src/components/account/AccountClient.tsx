@@ -100,7 +100,7 @@ export function AccountClient() {
       </header>
 
       {pending > 0 && (
-        <p className="mb-4 flex items-center gap-2 rounded-2xl bg-status-hungry/10 px-4 py-3 text-sm font-medium text-bark-700 dark:text-bark-200">
+        <p className="mb-4 flex items-center gap-2 rounded bg-status-hungry/10 px-4 py-3 text-sm font-medium text-bark-700 dark:text-bark-200">
           <Clock className="h-4 w-4 text-status-hungry" />
           {pending} {pending === 1 ? "sighting is" : "sightings are"} pending
           review and not public yet.

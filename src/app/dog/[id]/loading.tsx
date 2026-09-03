@@ -1,6 +1,6 @@
 export default function DogLoading() {
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-3xl px-4 sm:px-6">
       <div className="skeleton h-64 w-full rounded-[2rem] sm:h-80" />
       <div className="mt-5 space-y-3">
         <div className="skeleton h-8 w-48" />

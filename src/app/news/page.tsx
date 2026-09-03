@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Newspaper, Scale } from "lucide-react";
+import { ExternalLink, Newspaper, Scale } from "lucide-react";
 import { getStrayNews, newsCategory, type NewsItem } from "@/lib/news";
 import { formatDate } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -17,13 +17,7 @@ export default async function NewsPage() {
   const empty = news.length === 0 && orders.length === 0;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-32 pt-24 sm:px-6">
-      <Link
-        href="/app"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to the map
-      </Link>
+    <div className="mx-auto max-w-2xl px-4 sm:px-6">
 
       <header className="mb-6">
         <h1 className="font-display text-3xl font-extrabold tracking-tightest">News &amp; orders</h1>

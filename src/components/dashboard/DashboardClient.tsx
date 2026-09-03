@@ -196,7 +196,7 @@ function Impact({
         <div className="card flex flex-col p-5">
           <h3 className="mb-3 font-display font-bold">Help-form sign-ups</h3>
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-paw-50 p-4 dark:bg-bark-800">
+            <div className="rounded bg-paw-50 p-4 dark:bg-bark-800">
               <span className="mb-1 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-700">
                 <HandHelping className="h-4 w-4" />
               </span>
@@ -205,7 +205,7 @@ function Impact({
               </p>
               <p className="mt-0.5 text-xs text-bark-500">volunteers</p>
             </div>
-            <div className="rounded-2xl bg-paw-50 p-4 dark:bg-bark-800">
+            <div className="rounded bg-paw-50 p-4 dark:bg-bark-800">
               <span className="mb-1 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-700">
                 <HeartHandshake className="h-4 w-4" />
               </span>

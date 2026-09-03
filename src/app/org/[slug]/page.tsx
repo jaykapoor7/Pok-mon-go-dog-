@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 function Stat({ value, label, icon: Icon }: { value: number; label: string; icon: any }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-bark-900">
+    <div className="flex items-center gap-3 rounded border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-bark-900">
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-paw-50 text-paw-600 dark:bg-paw-900/30 dark:text-paw-300">
         <Icon className="h-5 w-5" />
       </span>
@@ -85,7 +85,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
 
         {/* Header card */}
         <div className="-mt-2 flex flex-col gap-4 sm:flex-row sm:items-end">
-          <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-paper bg-white shadow-card dark:border-ink dark:bg-bark-900 sm:h-24 sm:w-24">
+          <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded border-4 border-paper bg-white shadow-card dark:border-ink dark:bg-bark-900 sm:h-24 sm:w-24">
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={org.logo_url} alt={org.name} className="h-full w-full object-cover" />
@@ -165,7 +165,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
         )}
 
         {/* Contact */}
-        <section className="mt-8 rounded-2xl border border-black/[0.06] bg-white p-5 dark:border-white/10 dark:bg-bark-900">
+        <section className="mt-8 rounded border border-black/[0.06] bg-white p-5 dark:border-white/10 dark:bg-bark-900">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-bark-400">
             Get in touch
           </h2>

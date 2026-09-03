@@ -154,7 +154,7 @@ export function DogBottomSheet({
 
               {/* note (human-written) */}
               {dog.community_notes[0] && (
-                <p className="rounded-2xl bg-bark-900/[0.04] px-4 py-3 text-sm text-bark-700 dark:bg-white/[0.05] dark:text-bark-200">
+                <p className="rounded bg-bark-900/[0.04] px-4 py-3 text-sm text-bark-700 dark:bg-white/[0.05] dark:text-bark-200">
                   “{dog.community_notes[0]}”
                 </p>
               )}

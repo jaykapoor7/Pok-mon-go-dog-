@@ -69,7 +69,7 @@ export default async function DogProfilePage({
   const scheduled = sterilisations.find((s) => s.status === "scheduled");
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-3xl px-4 sm:px-6">
       {/* cover */}
       <div className="relative overflow-hidden rounded-[2rem] shadow-card">
         <DogPhoto
@@ -106,7 +106,7 @@ export default async function DogProfilePage({
               src={p}
               alt={`Street dog photo ${i + 1}`}
               seed={`${dog.id}-${i}`}
-              className="aspect-square rounded-2xl"
+              className="aspect-square rounded"
             />
           ))}
         </div>
@@ -162,7 +162,7 @@ export default async function DogProfilePage({
         )}
         <Link
           href={`/cases/new?dog=${dog.id}`}
-          className="flex items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-bark-700 transition-colors hover:border-black/20 dark:border-white/10 dark:text-bark-200"
+          className="flex items-center justify-center gap-2 rounded border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-bark-700 transition-colors hover:border-black/20 dark:border-white/10 dark:text-bark-200"
         >
           <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for this dog
         </Link>
@@ -201,7 +201,7 @@ export default async function DogProfilePage({
           />
         </div>
         {dog.ear_notch && (
-          <p className="mt-3 flex items-center gap-2 rounded-2xl bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-status-sterilised">
+          <p className="mt-3 flex items-center gap-2 rounded bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-status-sterilised">
             <Scissors className="h-4 w-4" />
             Ear-notched ({dog.ear_notch}), the recognised sterilisation mark, so this
             dog isn&apos;t caught again.
@@ -216,7 +216,7 @@ export default async function DogProfilePage({
             {dog.community_notes.map((note, i) => (
               <div
                 key={i}
-                className="flex gap-2 rounded-2xl bg-paw-50 px-4 py-3 text-sm text-bark-700"
+                className="flex gap-2 rounded bg-paw-50 px-4 py-3 text-sm text-bark-700"
               >
                 <Quote className="h-4 w-4 shrink-0 text-paw-400" />
                 {note}
@@ -238,7 +238,7 @@ export default async function DogProfilePage({
             {feedEvents.slice(0, 6).map((f) => (
               <div
                 key={f.id}
-                className="flex items-center justify-between rounded-2xl bg-status-hungry/10 px-4 py-2.5 text-sm"
+                className="flex items-center justify-between rounded bg-status-hungry/10 px-4 py-2.5 text-sm"
               >
                 <span className="flex items-center gap-2 font-medium text-bark-700">
                   <Utensils className="h-4 w-4 text-status-hungry" />
@@ -271,7 +271,7 @@ export default async function DogProfilePage({
                 ) : (
                   <span className="h-8 w-8 rounded-full bg-paw-200" />
                 )}
-                <div className="rounded-2xl bg-bark-50 px-4 py-2">
+                <div className="rounded bg-bark-50 px-4 py-2">
                   <p className="text-xs font-semibold">
                     {c.user_name}{" "}
                     <span className="font-normal text-bark-400">

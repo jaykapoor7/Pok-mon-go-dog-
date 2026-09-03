@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, HeartHandshake, Plus } from "lucide-react";
+import { HeartHandshake, Plus } from "lucide-react";
 import { getFundraisers } from "@/lib/fundraisers";
 import { FundraiserCard } from "@/components/fundraisers/FundraiserCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -16,13 +16,7 @@ export default async function FundraisersPage() {
   const fundraisers = await getFundraisers();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-32 pt-24 sm:px-6">
-      <Link
-        href="/app"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to the map
-      </Link>
+    <div className="mx-auto max-w-2xl px-4 sm:px-6">
 
       <header className="mb-5">
         <h1 className="font-display text-3xl font-extrabold tracking-tightest">Fundraisers</h1>

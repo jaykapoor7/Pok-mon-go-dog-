@@ -101,7 +101,7 @@ export function PlaceSearch({ className }: { className?: string }) {
       ) : null}
 
       {open && results.length > 0 && (
-        <ul className="absolute z-50 mt-1.5 max-h-72 w-full min-w-[16rem] overflow-auto rounded-2xl border border-black/10 bg-white shadow-pop dark:border-white/10 dark:bg-bark-900">
+        <ul className="absolute z-50 mt-1.5 max-h-72 w-full min-w-[16rem] overflow-auto rounded border border-black/10 bg-white shadow-pop dark:border-white/10 dark:bg-bark-900">
           {results.map((r, i) => (
             <li key={i}>
               <button

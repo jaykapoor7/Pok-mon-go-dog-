@@ -80,12 +80,12 @@ export default function WhatWeDoPage() {
       </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
-        <section className="rounded-2xl border border-black/[0.06] bg-white/60 p-6 dark:border-white/10 dark:bg-bark-900/40">
+        <section className="rounded border border-black/[0.06] bg-white/60 p-6 dark:border-white/10 dark:bg-bark-900/40">
           <GroupHeader kicker="For everyone" title="What the community does" />
           <Timeline steps={COMMUNITY} offset={0} />
         </section>
 
-        <section className="rounded-2xl border border-black/[0.06] bg-white/60 p-6 dark:border-white/10 dark:bg-bark-900/40">
+        <section className="rounded border border-black/[0.06] bg-white/60 p-6 dark:border-white/10 dark:bg-bark-900/40">
           <GroupHeader kicker="For organizations" title="What partner NGOs do" />
           <Timeline steps={ORGS} offset={COMMUNITY.length} />
         </section>

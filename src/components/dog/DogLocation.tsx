@@ -40,7 +40,7 @@ export function DogLocation({ dogId, zone }: { dogId: string; zone: string }) {
           href={`https://www.google.com/maps/search/?api=1&query=${exact.lat},${exact.lng}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 flex items-center justify-between rounded-2xl bg-status-sterilised/10 px-4 py-3 text-sm"
+          className="mt-3 flex items-center justify-between rounded bg-status-sterilised/10 px-4 py-3 text-sm"
         >
           <span className="flex items-center gap-2 font-medium text-status-sterilised">
             <ShieldCheck className="h-4 w-4" /> Exact location (partner NGO)

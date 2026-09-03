@@ -4,7 +4,7 @@ import { PawPrint, ArrowLeft } from "lucide-react";
 export default function NotFound() {
   return (
     <div className="flex min-h-[70dvh] flex-col items-center justify-center px-6 text-center">
-      <span className="mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-paw-100 text-paw-500">
+      <span className="mb-4 flex h-20 w-20 items-center justify-center rounded bg-paw-100 text-paw-500">
         <PawPrint className="h-10 w-10" />
       </span>
       <h1 className="font-display text-3xl font-extrabold">This pup wandered off</h1>

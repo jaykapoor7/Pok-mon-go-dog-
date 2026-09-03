@@ -76,7 +76,7 @@ export function ReportsClient() {
       </div>
 
       {/* Weekly trend */}
-      <section className="mt-6 rounded-2xl border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
+      <section className="mt-6 rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
         <div className="mb-4 flex items-end justify-between">
           <div>
             <h2 className="font-semibold tracking-tight text-bark-900 dark:text-bark-50">New cases over time</h2>
@@ -101,7 +101,7 @@ export function ReportsClient() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* Category bars */}
-        <section className="rounded-2xl border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
+        <section className="rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
           <h2 className="mb-4 font-semibold tracking-tight text-bark-900 dark:text-bark-50">Cases by type</h2>
           {stats.byCat.size === 0 ? <p className="text-[13px] text-bark-400">No cases yet.</p> : (
             <div className="space-y-3">
@@ -119,7 +119,7 @@ export function ReportsClient() {
         </section>
 
         {/* Outcomes donut */}
-        <section className="rounded-2xl border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
+        <section className="rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
           <h2 className="font-semibold tracking-tight text-bark-900 dark:text-bark-50">Outcomes</h2>
           <p className="text-[13px] text-bark-500">What happened to resolved cases</p>
           {oTot === 0 ? <p className="mt-6 text-[13px] text-bark-400">No resolved outcomes yet.</p> : (
@@ -140,7 +140,7 @@ export function ReportsClient() {
       </div>
 
       {stats.bySpecies.size > 1 && (
-        <section className="mt-6 rounded-2xl border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
+        <section className="mt-6 rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
           <h2 className="mb-3 font-semibold tracking-tight text-bark-900 dark:text-bark-50">Cases by species</h2>
           <div className="flex flex-wrap gap-2">
             {[...stats.bySpecies.entries()].sort((a, b) => b[1] - a[1]).map(([s, n]) => (
@@ -157,7 +157,7 @@ export function ReportsClient() {
 
 function Metric({ label, value, accent }: { label: string; value: number | string; accent?: boolean }) {
   return (
-    <div className="rounded-2xl border border-black/[0.08] bg-white/70 px-4 py-4 dark:border-white/[0.1] dark:bg-bark-900/50">
+    <div className="rounded border border-black/[0.08] bg-white/70 px-4 py-4 dark:border-white/[0.1] dark:bg-bark-900/50">
       <div className={`text-2xl font-semibold tabular-nums tracking-tight ${accent ? "text-paw-600" : "text-bark-900 dark:text-bark-50"}`}>{value}</div>
       <div className="mt-0.5 text-[12px] text-bark-500">{label}</div>
     </div>

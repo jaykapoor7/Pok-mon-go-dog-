@@ -89,7 +89,7 @@ export function EditSightingSheet({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 60, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="card w-full max-w-md rounded-b-none rounded-t-3xl p-6 sm:rounded-3xl"
+            className="card w-full max-w-md rounded-b-none rounded-t-3xl p-6 sm:rounded"
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-xl font-extrabold">Edit sighting</h2>
@@ -109,7 +109,7 @@ export function EditSightingSheet({
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               placeholder="e.g. Brownie"
-              className="mb-4 w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
+              className="mb-4 w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
             />
 
             <p className="mb-1.5 text-xs font-semibold text-bark-500">Mood</p>
@@ -142,7 +142,7 @@ export function EditSightingSheet({
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Anything helpful for others…"
-              className="mb-4 w-full resize-none rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
+              className="mb-4 w-full resize-none rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
             />
 
             {error && (

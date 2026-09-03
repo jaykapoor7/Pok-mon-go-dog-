@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Flag, Check } from "lucide-react";
+import { Flag, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const REASONS = [
@@ -49,7 +49,7 @@ export default function ReportContentPage() {
   if (sent) {
     return (
       <div className="mx-auto max-w-md px-4 pt-28 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-status-vaccinated/15 text-status-vaccinated">
+        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-status-vaccinated/15 text-status-vaccinated">
           <Check className="h-8 w-8" />
         </span>
         <h1 className="font-display text-2xl font-extrabold">Report received</h1>
@@ -57,7 +57,7 @@ export default function ReportContentPage() {
           Thank you. Our team will review this and take action if it breaks our
           Community Guidelines.
         </p>
-        <Link href="/app" className="btn-primary mt-5 px-6 py-3">
+        <Link href="/map" className="btn-primary mt-5 px-6 py-3">
           Back to the map
         </Link>
       </div>
@@ -65,13 +65,7 @@ export default function ReportContentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
-      <Link
-        href="/app"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to the map
-      </Link>
+    <div className="mx-auto max-w-lg px-4 sm:px-6">
       <h1 className="font-display text-3xl font-extrabold">Report content</h1>
       <p className="mt-1 text-sm text-bark-500">
         Flag a sighting or photo that breaks our guidelines. Reports are
@@ -108,7 +102,7 @@ export default function ReportContentPage() {
             value={link}
             onChange={(e) => setLink(e.target.value)}
             placeholder="Paste the dog profile or sighting link"
-            className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
+            className="w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
           />
         </div>
 
@@ -119,7 +113,7 @@ export default function ReportContentPage() {
             onChange={(e) => setDetails(e.target.value)}
             rows={4}
             placeholder="Tell us what's wrong…"
-            className="w-full resize-none rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
+            className="w-full resize-none rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
           />
         </div>
 
@@ -133,7 +127,7 @@ export default function ReportContentPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@email.com"
-            className="w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
+            className="w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
           />
           <p className="mt-1.5 text-xs text-bark-400">Leave your email and we&apos;ll let you know once your report has been reviewed.</p>
         </div>

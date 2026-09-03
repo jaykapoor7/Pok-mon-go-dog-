@@ -36,7 +36,7 @@ export function CommandCenter({ cases }: { cases: Case[] }) {
             <Link
               key={a.id}
               href="/cases"
-              className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+              className={`flex items-center gap-3 rounded border px-4 py-3 transition-colors ${
                 a.tone === "critical"
                   ? "border-status-injured/20 bg-status-injured/[0.07] hover:bg-status-injured/10"
                   : "border-status-hungry/20 bg-status-hungry/[0.07] hover:bg-status-hungry/10"

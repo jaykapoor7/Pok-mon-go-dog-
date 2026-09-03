@@ -8,7 +8,7 @@ import { haptic } from "@/lib/haptics";
 import { celebrate } from "@/lib/celebrate";
 import { cn } from "@/lib/utils";
 
-const FIELD = "w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+const FIELD = "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
 export interface HelperTarget {
   dogId?: string | null;
@@ -95,10 +95,10 @@ export function HelperForm({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 60, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="card w-full max-w-md rounded-b-none rounded-t-3xl p-6 sm:rounded-3xl"
+            className="card w-full max-w-md rounded-b-none rounded-t-3xl p-6 sm:rounded"
           >
             <div className="mb-4 flex items-center justify-between">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-paw-100 text-paw-600">
+              <span className="flex h-11 w-11 items-center justify-center rounded bg-paw-100 text-paw-600">
                 <HeartHandshake className="h-5 w-5" />
               </span>
               <button onClick={close} className="rounded-full p-1 text-bark-400 hover:bg-bark-100" aria-label="Close">

@@ -41,7 +41,7 @@ export function ResearchClient() {
         ))}
       </div>
 
-      <div className="mt-6 divide-y divide-black/[0.07] overflow-hidden rounded-2xl border border-black/[0.08] dark:divide-white/[0.06] dark:border-white/[0.1]">
+      <div className="mt-6 divide-y divide-black/[0.07] overflow-hidden rounded border border-black/[0.08] dark:divide-white/[0.06] dark:border-white/[0.1]">
         {rows.map((r) => (
           <article key={r.id} className="p-5">
             <div className="flex flex-wrap items-center gap-2 text-[12px] text-bark-400">

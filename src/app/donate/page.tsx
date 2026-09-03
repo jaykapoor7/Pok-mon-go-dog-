@@ -69,10 +69,10 @@ export default function DonatePage() {
         the map more useful for the dogs and the rescues that help them.
       </p>
       <Link
-        href="/app"
+        href="/map"
         className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
       >
-        <Share2 className="h-4 w-4" /> Back to the map
+        <Share2 className="h-4 w-4" /> Open the living map
       </Link>
 
       <p className="mt-6 text-sm text-bark-400">

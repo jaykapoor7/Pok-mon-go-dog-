@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, MapPin, Building2, ExternalLink } from "lucide-react";
+import { MapPin, Building2, ExternalLink } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { VerifiedBadge } from "@/components/org/VerifiedBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -18,13 +18,7 @@ export default async function OrgsPage() {
   const orgs = await getOrgs();
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-32 pt-24 sm:px-6">
-      <Link
-        href="/map"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to app
-      </Link>
+    <div className="mx-auto max-w-4xl px-4 sm:px-6">
 
       <header className="mb-6">
         <h1 className="font-display text-3xl font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
@@ -93,7 +87,7 @@ export default async function OrgsPage() {
         </p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {ORGS.map((o) => (
-            <div key={o.id} className="rounded-2xl border border-black/[0.08] p-5 dark:border-white/[0.1]">
+            <div key={o.id} className="rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
               <div className="flex items-start justify-between gap-2">
                 <h3 className="font-display text-[15px] font-bold leading-snug tracking-tight text-bark-900 dark:text-bark-50">{o.name}</h3>
                 {o.url && (

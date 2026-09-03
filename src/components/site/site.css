@@ -975,16 +975,21 @@
   }
   .sp-nav.open { display: flex; }
   .sp-menu-btn { display: block; }
-  .sp-hero-copy { padding: 112px 7vw 120px; justify-content: flex-start; }
-  .sp-hero h1 { font-size: 68px; line-height: 0.82; }
-  .sp-hero-img { object-position: 58% center; }
+  .sp-hero-copy { padding: 132px 7vw 120px; justify-content: flex-start; }
+  .sp-hero h1 { font-size: 62px; line-height: 0.84; margin-bottom: 26px; }
+  .sp-hero-img { object-position: 56% 46%; }
+  /* Portrait puts the copy over the frame's centre, so the wash is vertical
+     here rather than a left column — kept light enough to hold the skyline. */
   .sp-hero-wash {
-    background: linear-gradient(90deg, rgba(11, 16, 32, 0.92), rgba(11, 16, 32, 0.4)),
-      linear-gradient(0deg, rgba(11, 16, 32, 0.92), transparent 60%);
+    background: linear-gradient(0deg, rgba(11, 16, 32, 0.72) 12%, rgba(11, 16, 32, 0.34) 52%, rgba(11, 16, 32, 0.62)),
+      linear-gradient(90deg, rgba(11, 16, 32, 0.5), rgba(11, 16, 32, 0.14));
   }
-  .sp-spine { left: 68%; top: 26%; height: 58%; transform: rotateY(-20deg) rotateX(8deg) scale(0.65); }
-  .sp-hero-caption { left: 7vw; right: 7vw; top: 88px; font-size: 8px; }
+  /* The spine collides with the CTAs at this width and the photo already
+     carries its own network lines — drop it. */
+  .sp-spine { display: none; }
+  .sp-hero-caption { left: 7vw; right: 7vw; top: 80px; font-size: 8px; }
   .sp-hero-caption span:last-child { display: none; }
+  .sp-hero-ctas { gap: 4px 12px; }
   .sp-hero-signal { display: none; }
   .sp-hero-foot { left: 7vw; right: 7vw; bottom: 18px; }
   .sp-hero-foot span:last-child { display: none; }

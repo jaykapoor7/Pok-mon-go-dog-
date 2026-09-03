@@ -142,11 +142,11 @@ export function CaseControls({ c }: { c: Case }) {
   const verifiedBadge =
     c.status === "resolved" ? (
       c.proof_verified ? (
-        <div className="flex items-center gap-2 rounded-2xl bg-status-sterilised/10 px-4 py-2.5 text-sm font-semibold text-status-sterilised">
+        <div className="flex items-center gap-2 rounded bg-status-sterilised/10 px-4 py-2.5 text-sm font-semibold text-status-sterilised">
           <ShieldCheck className="h-4 w-4" /> Outcome verified by StrayPaw
         </div>
       ) : (
-        <div className="flex items-center gap-2 rounded-2xl bg-status-hungry/10 px-4 py-2.5 text-sm font-semibold text-bark-600 dark:text-bark-200">
+        <div className="flex items-center gap-2 rounded bg-status-hungry/10 px-4 py-2.5 text-sm font-semibold text-bark-600 dark:text-bark-200">
           <ShieldQuestion className="h-4 w-4 text-status-hungry" /> Proof submitted · pending StrayPaw verification
         </div>
       )
@@ -318,7 +318,7 @@ export function CaseControls({ c }: { c: Case }) {
           onChange={(e) => setNote(e.target.value)}
           rows={1}
           placeholder="Add an update note…"
-          className="min-h-[44px] flex-1 resize-none rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
+          className="min-h-[44px] flex-1 resize-none rounded border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
         />
         <button
           onClick={() =>
@@ -339,7 +339,7 @@ export function CaseControls({ c }: { c: Case }) {
 
       {/* cost, handler or verified NGO member */}
       {(ngoMember || c.assignee_id === user?.id) && (
-        <div className="rounded-2xl border border-black/[0.06] dark:border-white/10">
+        <div className="rounded border border-black/[0.06] dark:border-white/10">
           <button
             onClick={() => setCostOpen((o) => !o)}
             className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-bark-700 dark:text-bark-200"

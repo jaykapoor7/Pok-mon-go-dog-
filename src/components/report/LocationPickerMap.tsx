@@ -45,7 +45,7 @@ export function LocationPickerMap({
   }, [onCenter]);
 
   return (
-    <div className="relative h-56 w-full overflow-hidden rounded-2xl border border-bark-200 dark:border-white/10">
+    <div className="relative h-56 w-full overflow-hidden rounded border border-bark-200 dark:border-white/10">
       <Map
         ref={mapRef}
         initialViewState={{

@@ -14,7 +14,7 @@ export function FeedingZoneCard({ zone }: { zone: FeedingZone }) {
         src={zone.photo_url ?? ""}
         alt={zone.name}
         seed={zone.id}
-        className="h-16 w-16 shrink-0 rounded-2xl"
+        className="h-16 w-16 shrink-0 rounded"
       />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{zone.name}</p>

@@ -37,7 +37,7 @@ export default function PartnershipsPage() {
       intro="Case management, an animal registry, medical records, field operations, fundraising and analytics, built for the way rescues and NGOs actually work. Free for verified partners."
     >
       {/* Free banner */}
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 rounded-2xl border border-paw-200 bg-paw-50 p-6 dark:border-paw-500/30 dark:bg-paw-900/20 sm:flex-row sm:items-center">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 rounded border border-paw-200 bg-paw-50 p-6 dark:border-paw-500/30 dark:bg-paw-900/20 sm:flex-row sm:items-center">
         <div>
           <p className="font-display text-xl font-bold tracking-tight text-bark-900 dark:text-white">Free for verified animal-welfare organisations.</p>
           <p className="mt-1 text-sm text-bark-600 dark:text-bark-300">No subscription, no per-seat fees. Your data stays private to your team.</p>
@@ -48,7 +48,7 @@ export default function PartnershipsPage() {
       {/* offerings - horizontal grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {OFFERINGS.map((o) => (
-          <div key={o.title} className="rounded-2xl border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50">
+          <div key={o.title} className="rounded border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50">
             <h2 className="font-display text-[17px] font-bold tracking-tight text-bark-900 dark:text-white">{o.title}</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-bark-600 dark:text-bark-300">{o.body}</p>
           </div>
@@ -57,13 +57,13 @@ export default function PartnershipsPage() {
 
       {/* who it's for */}
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-black/[0.06] bg-white/70 p-6 dark:border-white/10 dark:bg-bark-900/50">
+        <div className="rounded border border-black/[0.06] bg-white/70 p-6 dark:border-white/10 dark:bg-bark-900/50">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Who it&apos;s for</p>
           <p className="mt-2 text-[15px] leading-relaxed text-bark-700 dark:text-bark-200">
             Street-animal rescues, ABC and vaccination programmes, feeders&apos; collectives, and municipal welfare teams, from a two-person group to a city-wide operation.
           </p>
         </div>
-        <div className="rounded-2xl border border-black/[0.06] bg-white/70 p-6 dark:border-white/10 dark:bg-bark-900/50">
+        <div className="rounded border border-black/[0.06] bg-white/70 p-6 dark:border-white/10 dark:bg-bark-900/50">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Your data, your rules</p>
           <p className="mt-2 text-[15px] leading-relaxed text-bark-700 dark:text-bark-200">
             Each organisation gets a private dashboard. Only your team can see and manage your cases, animals and members. Nothing is shared without you.
@@ -76,7 +76,7 @@ export default function PartnershipsPage() {
         <h2 className="font-display text-2xl font-bold tracking-tight">How to join</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           {STEPS.map((s, idx) => (
-            <div key={s.n} className="relative rounded-2xl border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50">
+            <div key={s.n} className="relative rounded border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50">
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-3xl font-extrabold text-paw-500">{s.n}</span>
                 {idx < STEPS.length - 1 && <ArrowRight className="ml-auto hidden h-5 w-5 text-bark-300 sm:block" />}

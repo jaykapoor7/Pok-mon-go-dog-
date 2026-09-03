@@ -41,7 +41,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
   const budgetTotal = f.budget.reduce((s, l) => s + (l.amount || 0), 0);
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 sm:px-6">
       <Link
         href="/fundraisers"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
@@ -50,7 +50,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       </Link>
 
       {f.cover_photo && (
-        <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="aspect-video w-full rounded-3xl" />
+        <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="aspect-video w-full rounded" />
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
@@ -73,7 +73,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       {org && (
         <Link
           href={`/org/${org.slug ?? org.id}`}
-          className="mt-3 flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-white p-3 dark:border-white/10 dark:bg-bark-900"
+          className="mt-3 flex items-center gap-3 rounded border border-black/[0.06] bg-white p-3 dark:border-white/10 dark:bg-bark-900"
         >
           <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-black/[0.06] bg-white dark:border-white/10 dark:bg-bark-900">
             {org.logo_url ? (
@@ -141,7 +141,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
           <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tightest">
             <Wallet className="h-4 w-4 text-paw-600" /> Use of funds
           </h2>
-          <div className="mt-3 overflow-hidden rounded-2xl border border-black/[0.06] dark:border-white/10">
+          <div className="mt-3 overflow-hidden rounded border border-black/[0.06] dark:border-white/10">
             {f.budget.map((line, i) => (
               <div
                 key={i}
@@ -163,7 +163,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
 
       {/* Outcome, shown once the org reports it */}
       {f.outcome && (
-        <section className="mt-6 rounded-2xl border border-status-vaccinated/30 bg-status-vaccinated/10 p-4">
+        <section className="mt-6 rounded border border-status-vaccinated/30 bg-status-vaccinated/10 p-4">
           <h2 className="flex items-center gap-2 font-display text-base font-extrabold tracking-tight text-status-vaccinated">
             <CheckCircle2 className="h-4 w-4" /> Outcome
           </h2>
@@ -188,7 +188,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
                   {u.body}
                 </p>
                 {u.photo_url && (
-                  <DogPhoto src={u.photo_url} alt="update" seed={u.id} className="mt-2 aspect-video w-full rounded-2xl" />
+                  <DogPhoto src={u.photo_url} alt="update" seed={u.id} className="mt-2 aspect-video w-full rounded" />
                 )}
               </div>
             ))}

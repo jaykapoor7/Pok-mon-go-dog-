@@ -28,14 +28,17 @@ const config: Config = {
         cyan: '#66c5d5',       // field / in-progress
         violet: '#a68cff',     // study / research
 
-        /* legacy tokens retained so existing components keep compiling */
-        night: '#0d1721',
-        saffron: '#e9ac42',
-        mint: '#a8ddd0',
-        danger: '#e06455',
+        /* legacy tokens, remapped onto the new palette so every page that
+           still references them picks up the redesign without edits */
+        night: '#10182b',
+        saffron: '#8fb7ff',
+        mint: '#66c5d5',
+        danger: '#ff6a4f',
+        /* paw = the electric family. 300 is the accent itself; 500/600 run
+           dark enough to carry white text (btn-primary is bg-paw-500). */
         paw: {
-          50: '#f0f6ff', 100: '#dbe9ff', 200: '#bdd7ff', 300: '#90bcff',
-          400: '#5f9af5', 500: '#3b7de6', 600: '#2f63c2', 700: '#274f9c',
+          50: '#f0f5ff', 100: '#dfeaff', 200: '#c4d8ff', 300: '#8fb7ff',
+          400: '#5f8ff5', 500: '#3a6fe0', 600: '#2b56b8', 700: '#244696',
           800: '#223f78', 900: '#1e3560',
         },
         bark: {

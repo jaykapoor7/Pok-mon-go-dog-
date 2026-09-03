@@ -54,7 +54,7 @@ function NewCaseInner() {
   if (ready && !isAuthed) {
     return (
       <div className="mx-auto max-w-md px-4 pt-28 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-paw-100 text-paw-600">
+        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600">
           <LogIn className="h-7 w-7" />
         </span>
         <h1 className="font-display text-2xl font-bold tracking-tightest">
@@ -98,7 +98,7 @@ function NewCaseInner() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 sm:px-6">
       <Link
         href="/cases"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
@@ -172,7 +172,7 @@ function NewCaseInner() {
         </Field>
 
         {error && (
-          <p className="rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
+          <p className="rounded bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
             {error}
           </p>
         )}
@@ -191,7 +191,7 @@ function NewCaseInner() {
 }
 
 const inputCls =
-  "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
+  "w-full rounded border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

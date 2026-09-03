@@ -33,7 +33,7 @@ export default async function FeedingZonePage({ params }: { params: Promise<{ id
   ]);
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 sm:px-6">
       <Link
         href="/feeding"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
@@ -45,7 +45,7 @@ export default async function FeedingZonePage({ params }: { params: Promise<{ id
         src={zone.photo_url ?? ""}
         alt={zone.name}
         seed={zone.id}
-        className="aspect-video w-full rounded-3xl"
+        className="aspect-video w-full rounded"
       />
 
       <header className="mt-4">

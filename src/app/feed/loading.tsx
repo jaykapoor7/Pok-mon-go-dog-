@@ -1,6 +1,6 @@
 export default function FeedLoading() {
   return (
-    <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-xl px-4 sm:px-6">
       <header className="mb-5 flex items-center justify-between">
         <div className="skeleton h-8 w-36" />
         <div className="skeleton h-9 w-20 rounded-full" />

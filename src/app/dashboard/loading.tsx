@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
       <header className="mb-6 space-y-2">
         <div className="skeleton h-3.5 w-28" />
         <div className="skeleton h-8 w-56" />

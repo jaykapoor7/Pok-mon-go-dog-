@@ -150,7 +150,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
               {/* the printable page */}
               <div
                 id="funder-report"
-                className="rounded-2xl bg-white p-6 text-bark-900 shadow-pop print:rounded-none print:shadow-none"
+                className="rounded bg-white p-6 text-bark-900 shadow-pop print:rounded-none print:shadow-none"
               >
                 {/* co-branded header */}
                 <div className="fr-avoid flex items-center justify-between border-b border-black/10 pb-4">

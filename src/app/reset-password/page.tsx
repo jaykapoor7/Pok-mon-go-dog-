@@ -41,12 +41,12 @@ export default function ResetPasswordPage() {
     setDone(true);
   }
 
-  const field = "w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
+  const field = "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-24 sm:px-6">
       <div className="card p-6 text-center">
-        <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600">
+        <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600">
           <KeyRound className="h-7 w-7" />
         </span>
         {!ready ? (

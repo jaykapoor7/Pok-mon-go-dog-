@@ -79,7 +79,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
         href="/feeding"
         className="card card-interactive mt-4 flex items-center gap-3 p-4"
       >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <Utensils className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
@@ -108,7 +108,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
                     src={dog.cover_photo}
                     alt="Street dog needing help"
                     seed={dog.id}
-                    className="h-20 w-20 rounded-2xl"
+                    className="h-20 w-20 rounded"
                   />
                 </Link>
                 <div className="min-w-0 flex-1">
@@ -127,7 +127,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
                 </div>
                 <button
                   onClick={() => helpDog(dog)}
-                  className="shrink-0 self-stretch rounded-2xl bg-paw-500 px-4 text-sm font-semibold text-white transition-transform active:scale-95"
+                  className="shrink-0 self-stretch rounded bg-paw-500 px-4 text-sm font-semibold text-white transition-transform active:scale-95"
                 >
                   I can help
                 </button>

@@ -61,7 +61,7 @@ export default function NewFeedingZonePage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 sm:px-6">
       <Link
         href="/feeding"
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
@@ -77,7 +77,7 @@ export default function NewFeedingZonePage() {
       </header>
 
       {ready && !isAuthed && (
-        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
+        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
           <p className="flex-1 text-sm text-bark-700 dark:text-bark-200">
             <span className="font-semibold">Heads up:</span> you can add a zone without
             signing in, but you won&apos;t be able to edit it later from another device.
@@ -98,7 +98,7 @@ export default function NewFeedingZonePage() {
           {photo ? (
             <button
               onClick={() => fileRef.current?.click()}
-              className="relative block aspect-video w-full overflow-hidden rounded-3xl"
+              className="relative block aspect-video w-full overflow-hidden rounded"
             >
               <img src={photo} alt="" className="h-full w-full object-cover" />
               <span className="absolute bottom-3 right-3 chip bg-black/60 text-white">
@@ -108,7 +108,7 @@ export default function NewFeedingZonePage() {
           ) : (
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-paw-300 bg-paw-50 text-paw-500 transition-colors hover:bg-paw-100 dark:bg-bark-800"
+              className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded border-2 border-dashed border-paw-300 bg-paw-50 text-paw-500 transition-colors hover:bg-paw-100 dark:bg-bark-800"
             >
               <Camera className="h-8 w-8" />
               <span className="text-sm font-semibold">Add a photo of the spot</span>
@@ -122,7 +122,7 @@ export default function NewFeedingZonePage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Behind Lajpat Nagar market"
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
+            className="w-full rounded border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
           />
         </div>
 
@@ -133,7 +133,7 @@ export default function NewFeedingZonePage() {
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             placeholder="How many dogs, best time to feed, access notes…"
-            className="w-full resize-none rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
+            className="w-full resize-none rounded border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
           />
         </div>
 

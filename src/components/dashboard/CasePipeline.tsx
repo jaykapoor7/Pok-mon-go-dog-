@@ -31,7 +31,7 @@ export function CasePipeline({ cases }: { cases: Case[] }) {
       {STAGES.map((stage) => {
         const items = cases.filter((c) => stage.statuses.includes(c.status));
         return (
-          <div key={stage.key} className="rounded-2xl bg-bark-50 p-3 dark:bg-bark-800/60">
+          <div key={stage.key} className="rounded bg-bark-50 p-3 dark:bg-bark-800/60">
             <div className="mb-2 flex items-center justify-between px-1">
               <h4 className="text-sm font-bold">{stage.label}</h4>
               <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-bark-500 dark:bg-bark-900">

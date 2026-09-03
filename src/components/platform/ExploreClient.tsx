@@ -49,7 +49,7 @@ export function ExploreClient() {
       </div>
 
       {/* Metric header */}
-      <div className="mt-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-black/[0.08] p-5 dark:border-white/[0.1]">
+      <div className="mt-5 flex flex-wrap items-start justify-between gap-3 rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
         <div className="max-w-xl">
           <h2 className="font-display text-xl font-bold tracking-tight">{def.label}</h2>
           <p className="mt-1 text-sm text-bark-600 dark:text-bark-300">{def.description}</p>
@@ -71,7 +71,7 @@ export function ExploreClient() {
       </div>
 
       {/* Region rows */}
-      <div className="mt-5 overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/[0.1]">
+      <div className="mt-5 overflow-hidden rounded border border-black/[0.08] dark:border-white/[0.1]">
         {rows.map(({ state, dp }, i) => (
           <div key={state.code} className={cn("group flex items-center gap-3 px-5 py-3", i > 0 && "border-t border-black/[0.06] dark:border-white/[0.06]", !dp && "opacity-55")}>
             <span className="w-36 shrink-0 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{state.name}</span>

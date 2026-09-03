@@ -45,7 +45,7 @@ export function TakeActionClient() {
       </header>
 
       {/* State picker + readings */}
-      <div className="mt-6 rounded-2xl border border-black/[0.08] p-5 dark:border-white/[0.1]">
+      <div className="mt-6 rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
         <label className="flex items-center gap-2 text-[13px] font-medium text-bark-600 dark:text-bark-300">
           <MapPin className="h-4 w-4 text-paw-500" /> Area
           <select value={code} onChange={(e) => setCode(e.target.value)} className="ml-2 rounded-md border border-black/[0.12] bg-transparent px-3 py-1.5 text-sm outline-none focus:border-paw-400 dark:border-white/[0.14]">
@@ -75,7 +75,7 @@ export function TakeActionClient() {
         {prioritised.map((a) => {
           const relevant = a.metric && gapMetrics.includes(a.metric);
           return (
-            <div key={a.id} className={`rounded-2xl border p-5 ${relevant ? "border-paw-300 bg-paw-50 dark:border-paw-500/30 dark:bg-paw-900/15" : "border-black/[0.08] dark:border-white/[0.1]"}`}>
+            <div key={a.id} className={`rounded border p-5 ${relevant ? "border-paw-300 bg-paw-50 dark:border-paw-500/30 dark:bg-paw-900/15" : "border-black/[0.08] dark:border-white/[0.1]"}`}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-semibold uppercase tracking-widest text-bark-400">{a.audience}</span>
                 {relevant && <span className="rounded-full bg-paw-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Priority here</span>}
@@ -91,7 +91,7 @@ export function TakeActionClient() {
       </div>
 
       {/* Who's working here */}
-      <div className="mt-8 rounded-2xl border border-black/[0.08] p-6 dark:border-white/[0.1]">
+      <div className="mt-8 rounded border border-black/[0.08] p-6 dark:border-white/[0.1]">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h2 className="font-display text-xl font-bold tracking-tight">Who&apos;s working in {state.name}?</h2>

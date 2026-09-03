@@ -11,7 +11,7 @@ const PickerMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-56 w-full animate-pulse rounded-2xl bg-bark-100 dark:bg-bark-800" />
+      <div className="h-56 w-full animate-pulse rounded bg-bark-100 dark:bg-bark-800" />
     ),
   }
 );
@@ -132,7 +132,7 @@ export function LocationPicker({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search a place, area or address…"
-            className="w-full rounded-2xl border border-bark-200 bg-white py-3 pl-9 pr-9 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
+            className="w-full rounded border border-bark-200 bg-white py-3 pl-9 pr-9 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
           />
           {searching ? (
             <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-bark-400" />
@@ -151,7 +151,7 @@ export function LocationPicker({
           ) : null}
 
           {results.length > 0 && (
-            <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-2xl border border-bark-200 bg-white shadow-pop dark:border-white/10 dark:bg-bark-900">
+            <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded border border-bark-200 bg-white shadow-pop dark:border-white/10 dark:bg-bark-900">
               {results.map((s, i) => (
                 <li key={i}>
                   <button
@@ -171,7 +171,7 @@ export function LocationPicker({
           type="button"
           onClick={useCurrent}
           disabled={locating}
-          className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-bark-200 px-3 text-sm font-semibold text-bark-700 hover:bg-bark-50 disabled:opacity-50 dark:border-white/10 dark:text-bark-200"
+          className="flex shrink-0 items-center gap-1.5 rounded border border-bark-200 px-3 text-sm font-semibold text-bark-700 hover:bg-bark-50 disabled:opacity-50 dark:border-white/10 dark:text-bark-200"
         >
           {locating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -187,7 +187,7 @@ export function LocationPicker({
 
       {/* confirmation */}
       {value && (
-        <div className="flex items-center gap-2 rounded-2xl bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-bark-700 dark:text-bark-200">
+        <div className="flex items-center gap-2 rounded bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-bark-700 dark:text-bark-200">
           <Check className="h-4 w-4 text-status-sterilised" />
           {zoneLabel ?? "Pinned"} · {value.lat.toFixed(4)}, {value.lng.toFixed(4)}
         </div>

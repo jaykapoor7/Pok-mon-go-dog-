@@ -63,7 +63,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
       </Link>
 
       <div className="card p-6 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <ShieldCheck className="h-8 w-8" />
         </span>
         <h1 className="font-display text-2xl font-extrabold">{title}</h1>
@@ -77,7 +77,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
             <LogIn className="h-4 w-4" /> Sign in to continue
           </button>
         ) : reqStatus === "pending" ? (
-          <div className="mt-5 rounded-2xl bg-status-hungry/10 px-4 py-3 text-sm font-medium text-bark-700 dark:text-bark-200">
+          <div className="mt-5 rounded bg-status-hungry/10 px-4 py-3 text-sm font-medium text-bark-700 dark:text-bark-200">
             <Check className="mr-1 inline h-4 w-4 text-status-vaccinated" />
             Request received, we&apos;ll review and enable your access shortly.
           </div>

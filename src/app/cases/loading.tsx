@@ -1,6 +1,6 @@
 export default function CasesLoading() {
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 sm:px-6">
       <header className="mb-5 flex items-end justify-between">
         <div className="space-y-2">
           <div className="skeleton h-8 w-32" />

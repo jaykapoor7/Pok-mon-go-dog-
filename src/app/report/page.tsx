@@ -82,10 +82,10 @@ export default function ReportPage() {
     setC1(false); setC2(false); setC3(false); setError(null);
   }
 
-  const field = "w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+  const field = "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-lg px-4 sm:px-6">
       <header className="mb-4">
         <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Report a sighting</h1>
         <p className="mt-1 text-sm text-bark-500">
@@ -105,7 +105,7 @@ export default function ReportPage() {
       </div>
 
       {ready && !isAuthed && step === 0 && (
-        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
+        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
           <p className="flex-1 text-sm text-bark-700 dark:text-bark-200">
             <span className="font-semibold">Heads up:</span> you can report without signing in, but you won&apos;t be able to edit it later from another device.
           </p>
@@ -129,13 +129,13 @@ export default function ReportPage() {
               <StepTitle icon={<Camera className="h-4 w-4" />} title="Add a photo" hint="A clear photo helps NGOs identify and find the animal." />
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickPhoto} />
               {photo ? (
-                <button onClick={() => fileRef.current?.click()} className="relative block aspect-square w-full overflow-hidden rounded-3xl bg-bark-100 dark:bg-bark-800">
+                <button onClick={() => fileRef.current?.click()} className="relative block aspect-square w-full overflow-hidden rounded bg-bark-100 dark:bg-bark-800">
                   <img src={photo} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl" />
                   <img src={photo} alt="Selected animal" className="relative h-full w-full object-contain" />
                   <span className="absolute bottom-3 right-3 chip bg-black/60 text-white"><Camera className="h-3.5 w-3.5" /> Change</span>
                 </button>
               ) : (
-                <button onClick={() => fileRef.current?.click()} className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-paw-300 bg-paw-50 text-paw-600 transition-colors hover:bg-paw-100 dark:border-paw-500/40 dark:bg-bark-800">
+                <button onClick={() => fileRef.current?.click()} className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded border-2 border-dashed border-paw-300 bg-paw-50 text-paw-600 transition-colors hover:bg-paw-100 dark:border-paw-500/40 dark:bg-bark-800">
                   <Camera className="h-10 w-10" />
                   <span className="font-semibold">Take or upload a photo</span>
                   <span className="text-xs text-bark-400">Opens your camera or gallery</span>
@@ -198,7 +198,7 @@ export default function ReportPage() {
                   <p className="text-[10px] text-bark-400">A quick check to keep out spam, by Cloudflare Turnstile.</p>
                 </div>
               )}
-              {error && <p className="rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">{error}</p>}
+              {error && <p className="rounded bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">{error}</p>}
             </div>
           )}
         </motion.div>
@@ -234,7 +234,7 @@ export default function ReportPage() {
               <h2 className="font-display text-2xl font-extrabold">Your sighting is pending review</h2>
               <p className="mt-2 text-sm text-bark-500">Thank you for helping track India&apos;s street animals. We&apos;ll publish it to the map once it clears a quick review.</p>
               <div className="mt-6 space-y-2">
-                <Link href="/app" className="btn-primary w-full py-3">Back to the map <ArrowRight className="h-4 w-4" /></Link>
+                <Link href="/map" className="btn-primary w-full py-3">Back to the map <ArrowRight className="h-4 w-4" /></Link>
                 <button onClick={resetForm} className="btn-ghost w-full py-3">Report another animal</button>
               </div>
             </motion.div>
@@ -259,7 +259,7 @@ function StepTitle({ icon, title, hint }: { icon: React.ReactNode; title: string
 
 function Consent({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
   return (
-    <button onClick={() => onChange(!checked)} className={cn("flex w-full items-start gap-3 rounded-2xl border p-4 text-left text-sm transition-colors", checked ? "border-paw-300 bg-paw-50 dark:border-paw-500/40 dark:bg-bark-800" : "border-bark-200 bg-white dark:bg-bark-900")}>
+    <button onClick={() => onChange(!checked)} className={cn("flex w-full items-start gap-3 rounded border p-4 text-left text-sm transition-colors", checked ? "border-paw-300 bg-paw-50 dark:border-paw-500/40 dark:bg-bark-800" : "border-bark-200 bg-white dark:bg-bark-900")}>
       <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors", checked ? "border-paw-500 bg-paw-500 text-white" : "border-bark-300")}>
         {checked && <Check className="h-3.5 w-3.5" />}
       </span>

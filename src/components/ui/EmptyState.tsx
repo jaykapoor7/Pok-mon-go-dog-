@@ -19,7 +19,7 @@ export function EmptyState({
 }) {
   return (
     <div className="card p-10 text-center">
-      <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+      <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
         {icon}
       </span>
       <h2 className="font-display text-lg font-bold">{title}</h2>

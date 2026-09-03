@@ -74,7 +74,7 @@ export function OrgManager() {
         <div className="h-24 bg-gradient-to-br from-paw-500 to-paw-700" />
         <div className="px-5 pb-5">
           <div className="-mt-8 flex items-end gap-3">
-            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-white shadow-card dark:border-bark-900 dark:bg-bark-900">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded border-4 border-white bg-white shadow-card dark:border-bark-900 dark:bg-bark-900">
               {org.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={org.logo_url} alt={org.name} className="h-full w-full object-cover" />
@@ -291,7 +291,7 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
           <button
             type="button"
             onClick={() => logoRef.current?.click()}
-            className="grid h-16 w-16 place-items-center overflow-hidden rounded-2xl border border-dashed border-bark-300 bg-bark-50 text-bark-400 dark:bg-bark-800"
+            className="grid h-16 w-16 place-items-center overflow-hidden rounded border border-dashed border-bark-300 bg-bark-50 text-bark-400 dark:bg-bark-800"
           >
             {uploading === "logo" ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -309,7 +309,7 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
           <button
             type="button"
             onClick={() => coverRef.current?.click()}
-            className="grid h-16 w-full place-items-center overflow-hidden rounded-2xl border border-dashed border-bark-300 bg-bark-50 text-bark-400 dark:bg-bark-800"
+            className="grid h-16 w-full place-items-center overflow-hidden rounded border border-dashed border-bark-300 bg-bark-50 text-bark-400 dark:bg-bark-800"
           >
             {uploading === "cover" ? (
               <Loader2 className="h-5 w-5 animate-spin" />

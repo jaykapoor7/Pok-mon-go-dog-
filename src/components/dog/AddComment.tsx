@@ -37,13 +37,13 @@ export function AddComment({ dogId }: { dogId: string }) {
         onChange={(e) => setText(e.target.value)}
         rows={1}
         placeholder="Add a note about this dog…"
-        className="min-h-[44px] flex-1 resize-none rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
+        className="min-h-[44px] flex-1 resize-none rounded border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
       />
       <button
         onClick={submit}
         disabled={busy || !text.trim()}
         aria-label="Post note"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-paw-500 text-white disabled:opacity-40"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded bg-paw-500 text-white disabled:opacity-40"
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
       </button>

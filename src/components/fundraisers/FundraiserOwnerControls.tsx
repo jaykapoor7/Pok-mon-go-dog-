@@ -68,7 +68,7 @@ export function FundraiserOwnerControls({ fundraiser }: { fundraiser: Fundraiser
     <section className="mt-8 border-t border-black/[0.06] pt-5 dark:border-white/10">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-2xl border border-paw-200 bg-paw-50 px-4 py-3 text-sm font-semibold text-paw-700 dark:border-white/10 dark:bg-bark-800 dark:text-paw-300"
+        className="flex w-full items-center justify-between rounded border border-paw-200 bg-paw-50 px-4 py-3 text-sm font-semibold text-paw-700 dark:border-white/10 dark:bg-bark-800 dark:text-paw-300"
       >
         <span className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4" /> Manage your campaign

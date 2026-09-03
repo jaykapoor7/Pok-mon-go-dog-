@@ -13,7 +13,7 @@ export default async function CasesPage() {
 
   return (
     <PartnerGate title="Cases">
-      <div className="mx-auto max-w-5xl px-4 pb-32 pt-24 sm:px-6">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <header className="mb-5 flex items-center justify-between gap-4 border-b border-black/[0.08] pb-4 dark:border-white/[0.1]">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Cases</h1>

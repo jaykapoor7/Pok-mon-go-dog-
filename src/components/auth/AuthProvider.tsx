@@ -274,7 +274,7 @@ function SignInSheet({
   }
 
   const field =
-    "w-full rounded-2xl border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
+    "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
 
   return (
     <motion.div
@@ -289,10 +289,10 @@ function SignInSheet({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 60, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="card w-full max-w-sm rounded-b-none rounded-t-3xl p-6 sm:rounded-3xl"
+        className="card w-full max-w-sm rounded-b-none rounded-t-3xl p-6 sm:rounded"
       >
         <div className="mb-4 flex items-center justify-between">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-paw-100 text-paw-600">
+          <span className="flex h-11 w-11 items-center justify-center rounded bg-paw-100 text-paw-600">
             <PawPrint className="h-5 w-5" />
           </span>
           <button onClick={onClose} className="rounded-full p-1 text-bark-400 hover:bg-bark-100" aria-label="Close">

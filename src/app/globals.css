@@ -56,8 +56,11 @@
     @apply bg-white/75 backdrop-blur-2xl border border-black/[0.06];
   }
 
+  /* Sharp geometry, flat surfaces — the console language. Radius stays in the
+     2–6px band so these primitives sit beside AppShell panels without a
+     visible seam. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold
+    @apply inline-flex items-center justify-center gap-2 rounded font-semibold
            tracking-tight transition-[transform,background-color,box-shadow,border-color]
            duration-150 ease-out active:scale-[0.97] disabled:opacity-40
            disabled:pointer-events-none select-none
@@ -66,22 +69,22 @@
   }
 
   .btn-primary {
-    @apply btn bg-paw-500 text-white shadow-warm
+    @apply btn bg-paw-500 text-white
            hover:bg-paw-600 active:bg-paw-600;
   }
 
   .btn-ghost {
-    @apply btn bg-bark-900/[0.04] text-bark-800 border border-black/[0.07]
-           hover:bg-bark-900/[0.07] hover:border-black/10;
+    @apply btn bg-transparent text-bark-800 border border-black/[0.12]
+           hover:border-black/25 hover:bg-bark-900/[0.03];
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium
+    @apply inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium
            tracking-tight transition-colors whitespace-nowrap;
   }
 
   .card {
-    @apply rounded-3xl bg-white shadow-card border border-black/[0.05];
+    @apply rounded bg-white border border-black/[0.10];
   }
 
   .dark .glass {

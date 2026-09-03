@@ -67,7 +67,7 @@ export function PartnerApplyForm() {
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-black/[0.06] bg-white/70 p-8 text-center dark:border-white/10 dark:bg-bark-900/50">
+      <div className="rounded border border-black/[0.06] bg-white/70 p-8 text-center dark:border-white/10 dark:bg-bark-900/50">
         <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
         <h3 className="font-display text-xl font-bold">Application received</h3>
         <p className="mx-auto mt-1.5 max-w-md text-sm text-bark-500">
@@ -80,7 +80,7 @@ export function PartnerApplyForm() {
   }
 
   return (
-    <form onSubmit={submit} className="rounded-2xl border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50 sm:p-6">
+    <form onSubmit={submit} className="rounded border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50 sm:p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div><label className={label}>Organisation name *</label><input value={f.org_name} onChange={set("org_name")} placeholder="e.g. Delhi Street Animals" className={field} /></div>
         <div><label className={label}>Your name</label><input value={f.contact_name} onChange={set("contact_name")} placeholder="Contact person" className={field} /></div>

@@ -726,7 +726,7 @@ export function AdminClient() {
   if (!authed) {
     return (
       <div className="mx-auto max-w-sm px-4 pt-28 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-paw-100 text-paw-600">
+        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600">
           <ShieldCheck className="h-8 w-8" />
         </span>
         <h1 className="font-display text-2xl font-bold tracking-tightest">
@@ -747,7 +747,7 @@ export function AdminClient() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Admin password"
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-center text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
+            className="w-full rounded border border-black/10 bg-white px-4 py-3 text-center text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
           />
           <button
             type="submit"
@@ -783,7 +783,7 @@ export function AdminClient() {
     <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-paw-500 text-white shadow-warm">
+          <span className="grid h-11 w-11 place-items-center rounded bg-paw-500 text-white shadow-warm">
             <ShieldCheck className="h-5 w-5" />
           </span>
           <div>
@@ -845,7 +845,7 @@ export function AdminClient() {
           </div>
 
           {error && (
-            <p className="mb-4 rounded-2xl bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
+            <p className="mb-4 rounded bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">
               {error}
             </p>
           )}
@@ -908,7 +908,7 @@ export function AdminClient() {
                   src={s.photo_url}
                   alt={s.nickname ?? "Sighting"}
                   seed={s.id}
-                  className="h-24 w-24 shrink-0 rounded-2xl"
+                  className="h-24 w-24 shrink-0 rounded"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">
@@ -1122,7 +1122,7 @@ function VerifyList({
   if (cases.length === 0) {
     return (
       <div className="card p-10 text-center">
-        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <ShieldCheck className="h-7 w-7" />
         </span>
         <h2 className="font-display text-lg font-bold">Nothing to verify</h2>
@@ -1205,7 +1205,7 @@ function DogsList({
   if (dogs.length === 0) {
     return (
       <div className="card p-10 text-center">
-        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <PawPrint className="h-7 w-7" />
         </span>
         <h2 className="font-display text-lg font-bold">No dogs yet</h2>
@@ -1377,7 +1377,7 @@ function PartnerRequestsList({
       )}
       {requests.length === 0 ? (
         <div className="card p-8 text-center">
-          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
             <HeartHandshake className="h-6 w-6" />
           </span>
           <h2 className="font-display text-base font-bold">No pending requests</h2>
@@ -1548,7 +1548,7 @@ function ContentReportsList({ reports, busyId, onResolve }: { reports: AdminCont
   if (reports.length === 0) {
     return (
       <div className="card p-8 text-center">
-        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300"><FlagIcon className="h-6 w-6" /></span>
+        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300"><FlagIcon className="h-6 w-6" /></span>
         <h2 className="font-display text-base font-bold">No content reports</h2>
         <p className="mt-1 text-sm text-bark-500">Flagged content from the community appears here.</p>
       </div>
@@ -1770,7 +1770,7 @@ function FeedingZonesModList({
   if (zones.length === 0) {
     return (
       <div className="card p-10 text-center">
-        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+        <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <Utensils className="h-7 w-7" />
         </span>
         <h2 className="font-display text-lg font-bold">No feeding zones yet</h2>

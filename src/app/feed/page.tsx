@@ -14,7 +14,7 @@ export default async function FeedPage() {
   const realSightings = await getAllSightings();
 
   return (
-    <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
+    <div className="mx-auto max-w-xl px-4 sm:px-6">
       <header className="mb-6 flex items-end justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Community</p>

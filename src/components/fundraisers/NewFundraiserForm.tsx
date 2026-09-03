@@ -78,7 +78,7 @@ export function NewFundraiserForm() {
   }
 
   const field =
-    "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+    "w-full rounded border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
   return (
     <div className="mx-auto max-w-lg px-4 pb-32 pt-24 sm:px-6">
@@ -102,7 +102,7 @@ export function NewFundraiserForm() {
           <label className="mb-2 block text-sm font-semibold">Cover photo (optional)</label>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickPhoto} />
           {photo ? (
-            <button onClick={() => fileRef.current?.click()} className="relative block aspect-video w-full overflow-hidden rounded-3xl">
+            <button onClick={() => fileRef.current?.click()} className="relative block aspect-video w-full overflow-hidden rounded">
               <img src={photo} alt="" className="h-full w-full object-cover" />
               <span className="absolute bottom-3 right-3 chip bg-black/60 text-white">
                 <Camera className="h-3.5 w-3.5" /> Change
@@ -111,7 +111,7 @@ export function NewFundraiserForm() {
           ) : (
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-paw-300 bg-paw-50 text-paw-500 hover:bg-paw-100 dark:bg-bark-800"
+              className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded border-2 border-dashed border-paw-300 bg-paw-50 text-paw-500 hover:bg-paw-100 dark:bg-bark-800"
             >
               <Camera className="h-8 w-8" />
               <span className="text-sm font-semibold">Add a photo</span>
