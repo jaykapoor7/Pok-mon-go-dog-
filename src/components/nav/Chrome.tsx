@@ -5,14 +5,18 @@ import { FloatingTopBar } from "./FloatingTopBar";
 import { BottomNav } from "./BottomNav";
 import { BackToApp } from "./BackToApp";
 
-// Routes that render WITHOUT the app shell (top bar + nav rail), the public
-// marketing landing gets its own full-bleed chrome and CTA.
+// Routes that render WITHOUT the legacy consumer shell. Two groups live here:
+// the marketing site (its own full-bleed chrome) and the console routes, which
+// carry AppShell — their own sidebar and top bar.
 const BARE_ROUTES = new Set<string>([
+  // marketing
   "/", "/what-we-do", "/journey", "/partnerships", "/contact", "/partner-apply",
+  "/about", "/privacy", "/terms", "/safety", "/report-content",
+  // console (AppShell)
+  "/app", "/map", "/studies", "/outcomes",
+  // platform pages, pending console adoption
   "/explore", "/insights", "/research", "/take-action",
   "/resources", "/learn", "/get-involved", "/orgs",
-  "/about", "/privacy", "/terms", "/safety", "/report-content",
-  "/map",
 ]);
 
 // Focused flows: keep the top bar but hide the bottom nav so it doesn't collide

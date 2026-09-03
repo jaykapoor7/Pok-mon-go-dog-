@@ -15,16 +15,24 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // StrayPaw cinematic brand tokens
-        ink: '#070b11',
+        /* ── StrayPaw: Signal / Street / System ────────────────────────
+           Infrastructure and intelligence, not charity software. */
+        ink: '#0b1020',        // midnight — primary dark ground
+        slate: '#10182b',      // console surface
+        steel: '#17243b',      // raised panel
+        line: '#30496e',       // structural border on dark
+        paper: '#f4f5f7',      // light ground
+        bone: '#dce2e8',       // light secondary surface
+        electric: '#8fb7ff',   // primary accent — signal blue
+        vermilion: '#ff6a4f',  // urgency / gap / attention
+        cyan: '#66c5d5',       // field / in-progress
+        violet: '#a68cff',     // study / research
+
+        /* legacy tokens retained so existing components keep compiling */
         night: '#0d1721',
-        paper: '#f4f1ea',
         saffron: '#e9ac42',
-        saffronBright: '#f6c263',
         mint: '#a8ddd0',
         danger: '#e06455',
-        steel: '#91a0a4',
-        // legacy tokens kept for existing components
         paw: {
           50: '#f0f6ff', 100: '#dbe9ff', 200: '#bdd7ff', 300: '#90bcff',
           400: '#5f9af5', 500: '#3b7de6', 600: '#2f63c2', 700: '#274f9c',
@@ -44,13 +52,14 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'Inter', 'ui-sans-serif', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: ['var(--font-sans)', 'DM Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Instrument Serif', 'ui-serif', 'Georgia', 'serif'],
+        mono: ['var(--font-mono)', 'DM Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       letterSpacing: {
         tightest: '-0.012em',
-        signal: '0.15em',
+        display: '-0.06em',
+        signal: '0.14em',
         micro: '0.2em',
       },
       borderRadius: {
@@ -58,71 +67,66 @@ const config: Config = {
         hud: '2px',
       },
       boxShadow: {
-        'saffron-glow': '0 0 28px rgba(233, 172, 66, 0.42)',
-        'mint-glow': '0 0 24px rgba(168, 221, 208, 0.32)',
-        'danger-glow': '0 0 24px rgba(224, 100, 85, 0.3)',
-        crt: '0 24px 44px rgba(0,0,0,.34), inset 0 0 0 2px rgba(255,255,255,.08)',
-        'hud-inset': 'inset 0 0 0 1px rgba(232,239,232,.16), inset 0 0 28px rgba(0,0,0,.28)',
+        console: '0 30px 55px rgba(11,16,32,.15)',
+        panel: '0 22px 45px rgba(11,16,32,.16)',
+        lift: '0 14px 30px rgba(11,16,32,.14)',
+        modal: '0 30px 80px rgba(0,0,0,.3)',
+        'electric-glow': '0 0 28px rgba(143,183,255,.42)',
+        'vermilion-glow': '0 0 24px rgba(255,106,79,.32)',
+        /* legacy */
         warm: '0 1px 2px rgba(59,125,230,.18), 0 8px 24px -12px rgba(59,125,230,.22)',
         card: '0 1px 2px rgba(17,17,19,.04), 0 14px 34px -18px rgba(17,17,19,.18)',
         sheet: '0 -8px 40px -16px rgba(17,17,19,.28)',
         pop: '0 12px 36px -14px rgba(17,17,19,.30)',
       },
       backgroundImage: {
-        scanlines: 'repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.12) 4px, transparent 5px)',
-        'grid-fine': 'linear-gradient(rgba(168,221,208,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(168,221,208,.08) 1px, transparent 1px)',
-        'cinematic-vignette': 'radial-gradient(ellipse at center, transparent 42%, rgba(2,5,8,.75) 100%)',
+        'grid-fine':
+          'linear-gradient(rgba(143,183,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(143,183,255,.08) 1px, transparent 1px)',
+        'grid-faint':
+          'linear-gradient(rgba(143,183,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(143,183,255,.035) 1px, transparent 1px)',
       },
       backgroundSize: {
+        'grid-18': '18px 18px',
         'grid-32': '32px 32px',
+        'grid-44': '44px 44px',
         'grid-64': '64px 64px',
       },
       transitionTimingFunction: {
-        'signal-out': 'cubic-bezier(0.23, 1, 0.32, 1)',
+        /* causal motion — under 300ms, decisive */
+        signal: 'cubic-bezier(0.23, 1, 0.32, 1)',
         'signal-morph': 'cubic-bezier(0.77, 0, 0.175, 1)',
         'signal-spring': 'cubic-bezier(0.16, 1.36, 0.3, 1)',
-        'signal-inertia': 'cubic-bezier(0.22, 0.61, 0.36, 1)',
       },
       keyframes: {
-        'grain-steps': {
-          from: { backgroundPosition: '0 0' },
-          to: { backgroundPosition: '0 -1152px' },
-        },
-        'rain-drift': { to: { backgroundPosition: '0 180px' } },
         'signal-pulse': {
-          '0%, 100%': { transform: 'scale(0.88)', opacity: '0.5' },
-          '50%': { transform: 'scale(1.12)', opacity: '1' },
+          '0%': { transform: 'scale(.92)', opacity: '.8' },
+          '70%, 100%': { transform: 'scale(1.35)', opacity: '0' },
         },
-        'hud-flicker': {
-          '0%, 100%': { opacity: '1' },
-          '48%': { opacity: '0.82' },
-          '50%': { opacity: '0.42' },
-          '52%': { opacity: '0.94' },
+        'orbit-spin': {
+          from: { transform: 'rotateX(67deg) rotateZ(0deg)' },
+          to: { transform: 'rotateX(67deg) rotateZ(360deg)' },
         },
-        'route-flow': {
-          from: { strokeDashoffset: '1000' },
-          to: { strokeDashoffset: '0' },
+        'core-float': {
+          '0%, 100%': { transform: 'translate3d(0,0,60px)' },
+          '50%': { transform: 'translate3d(0,-12px,88px)' },
         },
-        'paw-pop': {
-          '0%': { transform: 'scale(0) rotate(-20deg)', opacity: '0' },
-          '60%': { transform: 'scale(1.2) rotate(5deg)', opacity: '1' },
-          '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' },
+        'rail-pulse': {
+          '0%, 100%': { opacity: '.22' },
+          '50%': { opacity: '.82' },
+        },
+        'rise-in': {
+          from: { opacity: '0', transform: 'translateY(24px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
         },
         shimmer: { '100%': { transform: 'translateX(100%)' } },
-        bob: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-5px)' },
-        },
       },
       animation: {
-        'grain-steps': 'grain-steps .75s steps(12) infinite',
-        'rain-drift': 'rain-drift 1.2s linear infinite',
-        'signal-pulse': 'signal-pulse 1.8s ease-in-out infinite',
-        'hud-flicker': 'hud-flicker 4.5s steps(1) infinite',
-        'route-flow': 'route-flow 2.4s linear infinite',
-        'paw-pop': 'paw-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards',
+        'signal-pulse': 'signal-pulse 2.8s ease-out infinite',
+        'orbit-spin': 'orbit-spin 20s linear infinite',
+        'core-float': 'core-float 6s ease-in-out infinite',
+        'rail-pulse': 'rail-pulse 3.4s ease-in-out infinite',
+        'rise-in': 'rise-in .7s cubic-bezier(.23,1,.32,1) both',
         shimmer: 'shimmer 1.5s infinite',
-        bob: 'bob 2.6s ease-in-out infinite',
       },
     },
   },

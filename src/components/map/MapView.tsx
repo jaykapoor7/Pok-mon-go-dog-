@@ -17,79 +17,40 @@ import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import type { Dog, FeedingZone } from "@/lib/types";
 
 // ── design tokens ──────────────────────────────────────────────────────────
-const INK = "#070b11";
-const NIGHT = "#0d1721";
-const SAFFRON = "#e9ac42";
-const MINT = "#a8ddd0";
-const DANGER = "#e06455";
-const BORDER = "rgba(255,255,255,0.06)";
-const BORDER_MED = "rgba(255,255,255,0.10)";
+const INK = "#0b1020";
+const NIGHT = "#10182b";
+const SAFFRON = "#8fb7ff"; // primary signal accent
+const MINT = "#66c5d5"; // field / in-progress
+const DANGER = "#ff6a4f"; // gap / urgency
+const VIOLET = "#a68cff"; // study / research
+const BORDER = "rgba(255,255,255,0.07)";
+const BORDER_MED = "rgba(255,255,255,0.12)";
 
 // ── static demo data ────────────────────────────────────────────────────────
 const LIVE_REPORTS = [
   { id: "SP-1050", icon: "🐾", text: "Dog sighted near Moolchand", time: "19:45", color: MINT },
   { id: "SP-1049", icon: "⚠", text: "Injured dog near Masjid Moth", time: "19:43", color: DANGER },
   { id: "SP-1048", icon: "🐾", text: "Pack of 4 near Sarai Kale Khan", time: "19:41", color: MINT },
-  { id: "SP-1047", icon: "🍲", text: "Food request near CR Park", time: "19:39", color: "#a8ddd0" },
-  { id: "SP-1046", icon: "💉", text: "Rabies vaccination drive today", time: "19:37", color: "#a8ddd0" },
+  { id: "SP-1047", icon: "🍲", text: "Food request near CR Park", time: "19:39", color: SAFFRON },
+  { id: "SP-1046", icon: "💉", text: "Rabies vaccination drive today", time: "19:37", color: VIOLET },
 ];
 
 const KPI = [
-  { value: "65", label: "SIGHTINGS", sub: "+12 TODAY", color: MINT },
-  { value: "38", label: "RESOURCES", sub: "ACTIVE", color: "#e9ac42" },
-  { value: "12", label: "ACTIVE CASES", sub: "+2 TODAY", color: "#a8ddd0" },
+  { value: "65", label: "SIGHTINGS", sub: "+12 TODAY", color: SAFFRON },
+  { value: "38", label: "RESOURCES", sub: "ACTIVE", color: MINT },
+  { value: "12", label: "ACTIVE CASES", sub: "+2 TODAY", color: VIOLET },
   { value: "7", label: "GAPS", sub: "MONITORING", color: DANGER },
 ];
 
-const NAV_ITEMS = [
-  { id: "map", label: "MAP", href: "/map", icon: MapIcon },
-  { id: "cases", label: "CASES", href: "/partner/cases", icon: CasesIcon },
-  { id: "resources", label: "RESOURCES", href: "/resources", icon: ResourcesIcon },
-  { id: "data", label: "DATA", href: "/insights", icon: DataIcon },
-  { id: "learn", label: "LEARN", href: "/learn", icon: LearnIcon },
-  { id: "volunteer", label: "VOLUNTEER", href: "/get-involved", icon: VolunteerIcon },
-  { id: "support", label: "SUPPORT", href: "/help", icon: SupportIcon },
-];
-
 // ── icons ───────────────────────────────────────────────────────────────────
-function MapIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4l4-2 4 2 4-2v10l-4 2-4-2-4 2V4z"/><path d="M6 2v10M10 4v10"/></svg>
-}
-function CasesIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="12" height="10" rx="1.5"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M8 8v4M6 10h4"/></svg>
-}
-function ResourcesIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2a4 4 0 100 8A4 4 0 008 2z"/><path d="M8 10v4M5 14h6"/></svg>
-}
-function DataIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h2V7H2zM7 12h2V4H7zM12 12h2V9h-2z"/></svg>
-}
-function LearnIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
-}
-function VolunteerIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 14s-6-3.5-6-8a4 4 0 018 0 4 4 0 018 0c0 4.5-6 8-6 8z"/></svg>
-}
-function SupportIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11h.01"/></svg>
-}
-function BellIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 13.5a2 2 0 004 0M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z"/></svg>
-}
 function XIcon({ size = 16 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M12 4L4 12M4 4l8 8"/></svg>
 }
 function PawIcon({ size = 16 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor"><ellipse cx="5" cy="4" rx="1.5" ry="2"/><ellipse cx="11" cy="4" rx="1.5" ry="2"/><ellipse cx="3" cy="8" rx="1.5" ry="2"/><ellipse cx="13" cy="8" rx="1.5" ry="2"/><path d="M8 6.5c-2.5 0-5 2-5 4.5 0 1.5 1 2 2.5 2.5a10 10 0 005 0C12 13 13 12.5 13 11c0-2.5-2.5-4.5-5-4.5z"/></svg>
 }
-function ArrowLeftIcon({ size = 14 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 7H3M6 4L3 7l3 3"/></svg>
-}
 function ChevronRight({ size = 14 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3l4 4-4 4"/></svg>
-}
-function UserIcon({ size = 16 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2-5 6-5s6 2 6 5"/></svg>
 }
 
 // ── main component ───────────────────────────────────────────────────────────
@@ -139,150 +100,9 @@ export function MapView({
   const fmtDist = (d: number) => d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1)} km`;
 
   return (
-    <div style={{ display: "flex", height: "100dvh", width: "100%", background: INK, color: "#fff", overflow: "hidden", fontFamily: "var(--font-sans, Inter, ui-sans-serif, system-ui, sans-serif)" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", background: INK, color: "#fff", overflow: "hidden", fontFamily: "var(--font-sans, DM Sans, ui-sans-serif, system-ui, sans-serif)" }}>
 
-      {/* ── LEFT RAIL ── */}
-      <nav style={{ width: 148, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: `1px solid ${BORDER}`, background: "rgba(7,11,17,0.96)" }}>
-        {/* Brand */}
-        <div style={{ padding: "20px 16px 16px", borderBottom: `1px solid ${BORDER}` }}>
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <span style={{ color: SAFFRON }}>
-              <PawIcon size={18} />
-            </span>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "#fff" }}>StrayPaw</div>
-              <div style={{ fontSize: 8, letterSpacing: "0.16em", color: "rgba(255,255,255,0.35)", marginTop: 1 }}>DELHI COMMUNITY</div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Nav items */}
-        <div style={{ flex: 1, padding: "8px 0", overflow: "auto" }}>
-          {NAV_ITEMS.map((item) => {
-            const isMap = item.id === "map";
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                onClick={() => {
-                  if (!isMap) {
-                    try { sessionStorage.setItem("fromApp", "1"); } catch { /* ignore */ }
-                  }
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "10px 16px",
-                  fontSize: 10,
-                  letterSpacing: "0.18em",
-                  textDecoration: "none",
-                  color: isMap ? "#fff" : "rgba(255,255,255,0.42)",
-                  background: isMap ? "rgba(233,172,66,0.08)" : "transparent",
-                  borderLeft: isMap ? `2px solid ${SAFFRON}` : "2px solid transparent",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <span style={{ opacity: isMap ? 1 : 0.6 }}><Icon size={14} /></span>
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Field mode + exit */}
-        <div style={{ borderTop: `1px solid ${BORDER}`, padding: "12px 16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80", flexShrink: 0 }} />
-            <span style={{ fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.6)" }}>FIELD MODE</span>
-          </div>
-          <div style={{ fontSize: 8, letterSpacing: "0.16em", color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>LIVE SYNC</div>
-          <div style={{ fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.22)", marginBottom: 6 }}>v1.2.0 / INDIE BUILD</div>
-          <Link
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 10px",
-              fontSize: 9,
-              letterSpacing: "0.14em",
-              color: "rgba(255,255,255,0.4)",
-              border: `1px solid ${BORDER}`,
-              borderRadius: 4,
-              textDecoration: "none",
-              marginTop: 4,
-            }}
-          >
-            <ArrowLeftIcon size={12} />
-            MAIN SITE
-          </Link>
-        </div>
-      </nav>
-
-      {/* ── MAIN AREA ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
-
-        {/* TOP BAR */}
-        <div style={{
-          height: 48,
-          display: "flex",
-          alignItems: "center",
-          borderBottom: `1px solid ${BORDER}`,
-          padding: "0 16px",
-          gap: 12,
-          flexShrink: 0,
-          background: "rgba(7,11,17,0.92)",
-          backdropFilter: "blur(8px)",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", color: "#fff", whiteSpace: "nowrap" }}>LIVE DELHI</span>
-            <span style={{ fontSize: 9, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>28.7041° N, 77.1025° E</span>
-          </div>
-
-          {/* Search */}
-          <div style={{ flex: 1, maxWidth: 400, position: "relative" }}>
-            <input
-              placeholder="SEARCH LOCATION, CASE, ID"
-              style={{
-                width: "100%",
-                background: "rgba(255,255,255,0.05)",
-                border: `1px solid ${BORDER}`,
-                borderRadius: 4,
-                padding: "6px 32px 6px 12px",
-                fontSize: 10,
-                letterSpacing: "0.14em",
-                color: "rgba(255,255,255,0.7)",
-                outline: "none",
-                fontFamily: "inherit",
-              }}
-            />
-            <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em" }}>/</span>
-          </div>
-
-          <div style={{ flex: 1 }} />
-
-          {/* Notifications */}
-          <button style={{ position: "relative", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.55)", padding: 4 }}>
-            <BellIcon size={16} />
-            <span style={{ position: "absolute", top: 2, right: 2, width: 6, height: 6, borderRadius: "50%", background: DANGER }} />
-          </button>
-
-          {/* Profile */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${BORDER_MED}` }}>
-              <UserIcon size={14} />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 10, letterSpacing: "0.14em", color: "#fff", lineHeight: 1.2 }}>Field Operator</span>
-              <span style={{ fontSize: 8, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)" }}>DELHI UNIT</span>
-            </div>
-          </div>
-        </div>
-
-        {/* MAP + OVERLAYS */}
+      {/* MAP + OVERLAYS */}
         <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
           <MapCanvas
             dogs={allDogs}
@@ -432,7 +252,6 @@ export function MapView({
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

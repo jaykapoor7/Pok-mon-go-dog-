@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight, AlertTriangle, GitCompare, Search, ShieldAlert } from "lucide-react";
-import { BackToApp } from "@/components/nav/BackToApp";
 import { PlatformShell } from "@/components/platform/PlatformNav";
 import { SectionLabel, RankedBars, CoverageMeter, Figure, nf } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
@@ -25,7 +24,6 @@ export default function InsightsPage() {
 
   return (
     <PlatformShell>
-      <BackToApp />
       <header className="max-w-3xl">
         <SectionLabel>Insights</SectionLabel>
         <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">What the numbers actually say.</h1>

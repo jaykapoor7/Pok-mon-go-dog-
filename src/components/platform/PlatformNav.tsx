@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppShell } from "@/components/app/AppShell";
 
 const LINKS = [
   { label: "Explore", href: "/explore" },
@@ -83,6 +84,11 @@ export function PlatformNav() {
 }
 
 /** Page wrapper for platform pages. */
+/**
+ * Content pages render inside the console now — one shell for community
+ * reporters and NGO staff alike, so navigating out of the map never drops you
+ * into a different product.
+ */
 export function PlatformShell({
   children,
   className = "",
@@ -91,11 +97,8 @@ export function PlatformShell({
   className?: string;
 }) {
   return (
-    <div className="min-h-dvh bg-paper text-bark-900">
-      <PlatformNav />
-      <main className={cn("mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6", className)}>
-        {children}
-      </main>
-    </div>
+    <AppShell>
+      <div className={cn("mx-auto w-full max-w-5xl", className)}>{children}</div>
+    </AppShell>
   );
 }

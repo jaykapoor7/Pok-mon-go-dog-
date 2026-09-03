@@ -1,16 +1,21 @@
 import { MapView } from "@/components/map/MapView";
+import { AppShell } from "@/components/app/AppShell";
 import { getAllDogs } from "@/lib/data";
 import { getFeedingZones } from "@/lib/feeding-zones";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Map, StrayPaw",
-  description: "The immersive, full-screen map of India's street dogs.",
+  title: "Living map, StrayPaw",
+  description:
+    "Signals, studies, needs and outcomes on one map. Zoom from a city to a cluster and see what is known, what is missing, and who can execute.",
 };
 
-// The immersive full-screen map.
 export default async function MapPage() {
   const [dogs, feedingZones] = await Promise.all([getAllDogs(), getFeedingZones()]);
-  return <MapView dogs={dogs} feedingZones={feedingZones} />;
+  return (
+    <AppShell flush>
+      <MapView dogs={dogs} feedingZones={feedingZones} />
+    </AppShell>
+  );
 }
