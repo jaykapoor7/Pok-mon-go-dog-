@@ -133,7 +133,7 @@ export function MapView({
           <div style={{
             position: "absolute",
             left: 12,
-            bottom: 148,
+            bottom: 180,
             zIndex: 10,
             display: "flex",
             flexDirection: "column",
@@ -152,8 +152,8 @@ export function MapView({
               <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
                 {item.dot && <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.color, flexShrink: 0 }} />}
                 {item.line && <span style={{ width: 14, height: 1.5, background: item.color, flexShrink: 0 }} />}
-                {item.warn && <span style={{ fontSize: 11, color: item.color, lineHeight: 1 }}>⊘</span>}
-                <span style={{ fontSize: 8, letterSpacing: "0.16em", color: "rgba(255,255,255,0.55)" }}>{item.label}</span>
+                {item.warn && <span style={{ fontSize: 12.5, color: item.color, lineHeight: 1 }}>⊘</span>}
+                <span style={{ fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.8)" }}>{item.label}</span>
               </div>
             ))}
           </div>
@@ -171,7 +171,7 @@ export function MapView({
             {["⊞", "3D", "+", "−"].map((btn) => (
               <button key={btn} style={{
                 width: 28, height: 28, background: "rgba(7,11,17,0.78)", border: `1px solid ${BORDER}`,
-                borderRadius: 3, color: "rgba(255,255,255,0.55)", fontSize: btn === "3D" ? 8 : 14,
+                borderRadius: 3, color: "rgba(255,255,255,0.8)", fontSize: btn === "3D" ? 9.5 : 15,
                 cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                 letterSpacing: btn === "3D" ? "0.08em" : 0, backdropFilter: "blur(8px)"
               }}>
@@ -214,7 +214,7 @@ export function MapView({
             bottom: 0,
             left: 0,
             right: drawerOpen ? 304 : 0,
-            height: 140,
+            height: 168,
             background: "rgba(7,11,17,0.88)",
             backdropFilter: "blur(12px)",
             borderTop: `1px solid ${BORDER}`,
@@ -225,14 +225,16 @@ export function MapView({
           }}>
             {/* Live reports */}
             <div style={{ flex: "0 0 340px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", overflow: "hidden" }}>
-              <div style={{ fontSize: 8, letterSpacing: "0.18em", color: "rgba(255,255,255,0.38)", marginBottom: 8 }}>LIVE COMMUNITY REPORTS</div>
+              <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.68)", marginBottom: 8 }}>LIVE COMMUNITY REPORTS</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {/* Tracking stays on the mono ID and timestamp; the message
+                    itself is prose and reads better without it. */}
                 {LIVE_REPORTS.slice(0, 5).map((r) => (
-                  <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 9, letterSpacing: "0.08em" }}>
-                    <span style={{ fontSize: 10, color: r.color, width: 12, textAlign: "center", flexShrink: 0 }}>{r.icon}</span>
-                    <span style={{ color: "rgba(255,255,255,0.45)", flexShrink: 0, fontWeight: 600 }}>{r.id}</span>
-                    <span style={{ color: "rgba(255,255,255,0.7)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.text}</span>
-                    <span style={{ color: "rgba(255,255,255,0.28)", flexShrink: 0 }}>{r.time}</span>
+                  <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5 }}>
+                    <span style={{ fontSize: 12, color: r.color, width: 12, textAlign: "center", flexShrink: 0 }}>{r.icon}</span>
+                    <span style={{ color: r.color, flexShrink: 0, fontWeight: 600, letterSpacing: "0.06em" }}>{r.id}</span>
+                    <span style={{ color: "rgba(255,255,255,0.88)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.text}</span>
+                    <span style={{ color: "rgba(255,255,255,0.55)", flexShrink: 0, letterSpacing: "0.06em" }}>{r.time}</span>
                   </div>
                 ))}
               </div>
@@ -241,15 +243,15 @@ export function MapView({
             {/* Sightings sparkline */}
             <div style={{ flex: "0 0 200px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.38)" }}>SIGHTINGS (24H)</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: MINT }}>65</span>
+                <span style={{ fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.68)" }}>SIGHTINGS (24H)</span>
+                <span style={{ fontSize: 12.0, fontWeight: 700, color: MINT }}>65</span>
               </div>
               <div style={{ flex: 1, position: "relative" }}>
                 <Sparkline />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>19:00</span>
-                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>NOW</span>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: "0.1em" }}>19:00</span>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: "0.1em" }}>NOW</span>
               </div>
             </div>
 
@@ -262,9 +264,9 @@ export function MapView({
                   borderRight: i < KPI.length - 1 ? `1px solid ${BORDER}` : "none",
                   padding: "0 8px",
                 }}>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: k.color, lineHeight: 1.1, letterSpacing: "-0.02em" }}>{k.value}</div>
-                  <div style={{ fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.55)", marginTop: 3 }}>{k.label}</div>
-                  <div style={{ fontSize: 8, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{k.sub}</div>
+                  <div style={{ fontSize: 30, fontWeight: 700, color: k.color, lineHeight: 1.05, letterSpacing: "-0.03em" }}>{k.value}</div>
+                  <div style={{ fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.88)", marginTop: 5, fontWeight: 600 }}>{k.label}</div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{k.sub}</div>
                 </div>
               ))}
             </div>
@@ -295,23 +297,23 @@ function CaseDrawer({
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: `1px solid ${BORDER}` }}>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", color: "#fff" }}>CASE {caseId}</span>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 4 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.11em", color: "#fff" }}>CASE {caseId}</span>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.72)", padding: 4 }}>
           <XIcon size={14} />
         </button>
       </div>
 
       {/* dog photo */}
-      <div style={{ position: "relative", height: 140, flexShrink: 0, overflow: "hidden" }}>
+      <div style={{ position: "relative", height: 168, flexShrink: 0, overflow: "hidden" }}>
         <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="w-full h-full object-cover" />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(9,12,20,0.8) 0%, transparent 50%)" }} />
         <div style={{ position: "absolute", bottom: 10, left: 14 }}>
           <span style={{
             display: "inline-block",
             padding: "4px 8px",
-            fontSize: 8,
+            fontSize: 10.5,
             fontWeight: 700,
-            letterSpacing: "0.18em",
+            letterSpacing: "0.11em",
             background: needsHelp ? SAFFRON : "rgba(255,255,255,0.12)",
             color: needsHelp ? INK : "#fff",
             borderRadius: 2,
@@ -325,11 +327,11 @@ function CaseDrawer({
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
         {/* last sighting */}
         <DrawerSection label="LAST SIGHTING">
-          <div style={{ fontSize: 11, color: "#fff", letterSpacing: "0.08em" }}>
+          <div style={{ fontSize: 12.5, color: "#fff", letterSpacing: "0.08em" }}>
             {new Date(dog.last_seen).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {timeAgo(dog.last_seen)}
           </div>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", marginTop: 2, letterSpacing: "0.08em" }}>📍 {dog.zone}, New Delhi</div>
-          {dist != null && <div style={{ fontSize: 9, color: MINT, marginTop: 2 }}>{fmtDist(dist)} from you</div>}
+          <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.72)", marginTop: 2, letterSpacing: "0.08em" }}>📍 {dog.zone}, New Delhi</div>
+          {dist != null && <div style={{ fontSize: 11.5, color: MINT, marginTop: 2 }}>{fmtDist(dist)} from you</div>}
         </DrawerSection>
 
         {/* nearby vet */}
@@ -362,7 +364,7 @@ function CaseDrawer({
         {/* case notes */}
         {dog.community_notes && dog.community_notes.length > 0 && (
           <DrawerSection label="CASE NOTES">
-            <p style={{ fontSize: 10, lineHeight: 1.6, color: "rgba(255,255,255,0.65)", letterSpacing: "0.04em" }}>
+            <p style={{ fontSize: 12, lineHeight: 1.6, color: "rgba(255,255,255,0.65)", letterSpacing: "0.04em" }}>
               {dog.community_notes[0]}
             </p>
           </DrawerSection>
@@ -370,14 +372,14 @@ function CaseDrawer({
 
         {/* ── PHASE 2: Cost & donation section ── */}
         <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12 }}>
-          <div style={{ fontSize: 8, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", marginBottom: 10 }}>
+          <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.66)", marginBottom: 10 }}>
             CARE COST  ·  ILLUSTRATIVE
           </div>
 
           {/* monthly cost */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.65)", letterSpacing: "0.08em" }}>Monthly care cost</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: SAFFRON, letterSpacing: "0.04em" }}>₹2,400</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", letterSpacing: "0.08em" }}>Monthly care cost</span>
+            <span style={{ fontSize: 12.0, fontWeight: 700, color: SAFFRON, letterSpacing: "0.04em" }}>₹2,400</span>
           </div>
 
           {/* neighbourhood need */}
@@ -388,13 +390,13 @@ function CaseDrawer({
             borderRadius: 4,
             marginBottom: 12,
           }}>
-            <div style={{ fontSize: 8, letterSpacing: "0.14em", color: SAFFRON, opacity: 0.7, marginBottom: 4 }}>NEIGHBOURHOOD NEED</div>
-            <div style={{ fontSize: 10, color: "#fff", letterSpacing: "0.06em", lineHeight: 1.5 }}>
+            <div style={{ fontSize: 10.5, letterSpacing: "0.1em", color: SAFFRON, opacity: 0.7, marginBottom: 4 }}>NEIGHBOURHOOD NEED</div>
+            <div style={{ fontSize: 12, color: "#fff", letterSpacing: "0.06em", lineHeight: 1.5 }}>
               {dog.zone || "This area"} needs{" "}
               <span style={{ color: SAFFRON, fontWeight: 700 }}>₹28,800</span>{" "}
               for next 12 months
             </div>
-            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", marginTop: 4, letterSpacing: "0.1em" }}>
+            <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.66)", marginTop: 4, letterSpacing: "0.1em" }}>
               12 animals · vet + food + sterilisation
             </div>
           </div>
@@ -408,9 +410,9 @@ function CaseDrawer({
               background: "rgba(168,221,208,0.1)",
               border: `1px solid rgba(168,221,208,0.25)`,
               borderRadius: 4,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: "0.18em",
+              letterSpacing: "0.11em",
               color: MINT,
               cursor: "pointer",
               fontFamily: "inherit",
@@ -431,9 +433,9 @@ function CaseDrawer({
             background: SAFFRON,
             border: "none",
             borderRadius: 4,
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 700,
-            letterSpacing: "0.18em",
+            letterSpacing: "0.11em",
             color: INK,
             cursor: "pointer",
             display: "flex",
@@ -446,7 +448,7 @@ function CaseDrawer({
           <PawIcon size={14} />
           CONNECT HELP
         </button>
-        <div style={{ textAlign: "center", marginTop: 8, fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.28)" }}>
+        <div style={{ textAlign: "center", marginTop: 8, fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.84)" }}>
           (·) ALERT VOLUNTEERS & NGOS
         </div>
       </div>
@@ -457,7 +459,7 @@ function CaseDrawer({
 function DrawerSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 8, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.66)", marginBottom: 6 }}>{label}</div>
       {children}
     </div>
   );
@@ -467,8 +469,8 @@ function ResourceRow({ name, detail, color }: { name: string; detail: string; co
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div>
-        <div style={{ fontSize: 10, color: "#fff", letterSpacing: "0.06em" }}>{name}</div>
-        <div style={{ fontSize: 9, color: color, marginTop: 2, letterSpacing: "0.08em", opacity: 0.8 }}>{detail}</div>
+        <div style={{ fontSize: 12, color: "#fff", letterSpacing: "0.06em" }}>{name}</div>
+        <div style={{ fontSize: 11.5, color: color, marginTop: 2, letterSpacing: "0.08em", opacity: 0.8 }}>{detail}</div>
       </div>
       <ChevronRight size={12} />
     </div>

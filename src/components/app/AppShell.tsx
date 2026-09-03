@@ -5,19 +5,24 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
   ArrowUpRight,
+  Bookmark,
   Building2,
+  Calculator,
   ClipboardList,
   Database,
   FileText,
   Heart,
   LayoutGrid,
+  ListChecks,
   MapPin,
   Menu,
   Radio,
+  ScanSearch,
   Search,
   ShieldCheck,
   Stethoscope,
   Users,
+  Wrench,
   X,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
@@ -29,10 +34,20 @@ const COMMUNITY = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/map", label: "Living map", Icon: MapPin },
   { href: "/report", label: "Report an animal", Icon: Radio },
-  { href: "/studies", label: "Studies", Icon: FileText },
-  { href: "/outcomes", label: "Outcomes", Icon: ShieldCheck },
+  { href: "/following", label: "Following", Icon: Bookmark },
   { href: "/orgs", label: "Directory", Icon: Building2 },
   { href: "/get-involved", label: "Volunteer", Icon: Heart },
+];
+
+/* The evidence chain, in the order it actually runs: what is missing, what is
+   outstanding, what it would cost, what is being done, what changed. */
+const EVIDENCE = [
+  { href: "/gaps", label: "Data gaps", Icon: ScanSearch },
+  { href: "/needs", label: "Needs", Icon: ListChecks },
+  { href: "/what-would-it-take", label: "What would it take?", Icon: Calculator },
+  { href: "/studies", label: "Studies", Icon: FileText },
+  { href: "/interventions", label: "Interventions", Icon: Wrench },
+  { href: "/outcomes", label: "Outcomes", Icon: ShieldCheck },
 ];
 
 /* Field-operations surface. Same shell, deeper records. */
@@ -95,6 +110,19 @@ export function AppShell({
           </div>
 
           {COMMUNITY.map(({ href, label, Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={isActive(href) ? "active" : ""}
+              onClick={() => setOpen(false)}
+            >
+              <Icon size={15} />
+              {label}
+            </Link>
+          ))}
+
+          <div className="spa-side-label">Evidence</div>
+          {EVIDENCE.map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
