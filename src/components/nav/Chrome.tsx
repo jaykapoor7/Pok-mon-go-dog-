@@ -1,42 +1,55 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { FloatingTopBar } from "./FloatingTopBar";
-import { BottomNav } from "./BottomNav";
-import { BackToApp } from "./BackToApp";
+import { AppShell } from "@/components/app/AppShell";
 
-// Routes that render WITHOUT the legacy consumer shell. Two groups live here:
-// the marketing site (its own full-bleed chrome) and the console routes, which
-// carry AppShell — their own sidebar and top bar.
-const BARE_ROUTES = new Set<string>([
-  // marketing
-  "/", "/what-we-do", "/journey", "/partnerships", "/contact", "/partner-apply",
-  "/about", "/privacy", "/terms", "/safety", "/report-content",
-  // console (AppShell)
-  "/app", "/map", "/studies", "/outcomes",
-  // platform pages, pending console adoption
-  "/explore", "/insights", "/research", "/take-action",
-  "/resources", "/learn", "/get-involved", "/orgs",
+/**
+ * Marketing and auth pages render their own full-bleed chrome.
+ */
+const OWN_CHROME = new Set<string>([
+  "/",
+  "/about",
+  "/privacy",
+  "/terms",
+  "/safety",
+  "/report-content",
+  "/community-guidelines",
+  "/cookies",
+  "/contact",
+  "/partner-apply",
+  "/what-we-do",
+  "/journey",
+  "/partnerships",
+  "/reset-password",
 ]);
 
-// Focused flows: keep the top bar but hide the bottom nav so it doesn't collide
-// with the wizard controls / detail actions.
-const NO_BOTTOM_NAV = ["/report", "/dog/", "/reset-password"];
+/**
+ * Pages that already mount AppShell themselves — directly, or through
+ * PlatformShell / the partner layout. Wrapping them again would nest the
+ * console inside itself.
+ */
+const SELF_SHELLED = new Set<string>([
+  "/app",
+  "/map",
+  "/studies",
+  "/outcomes",
+  "/explore",
+  "/insights",
+  "/research",
+  "/take-action",
+  "/resources",
+  "/learn",
+  "/get-involved",
+]);
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  // Bare = no consumer shell: the marketing pages and the Partner OS (which
-  // renders its own operational rail via src/app/partner/layout.tsx).
-  if (BARE_ROUTES.has(pathname) || pathname.startsWith("/partner")) return <>{children}</>;
 
-  const hideBottomNav = NO_BOTTOM_NAV.some((p) => pathname.startsWith(p));
+  if (OWN_CHROME.has(pathname)) return <>{children}</>;
+  if (SELF_SHELLED.has(pathname) || pathname.startsWith("/partner")) {
+    return <>{children}</>;
+  }
 
-  return (
-    <>
-      <BackToApp />
-      <FloatingTopBar />
-      <main className="lg:pl-60">{children}</main>
-      {!hideBottomNav && <BottomNav />}
-    </>
-  );
+  // Everything else is an app surface: one console, one shell.
+  return <AppShell>{children}</AppShell>;
 }
