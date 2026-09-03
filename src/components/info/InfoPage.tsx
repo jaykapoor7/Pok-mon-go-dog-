@@ -23,7 +23,7 @@ export function InfoPage({
 
 export function H2({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-lg font-bold text-bark-900 dark:text-bark-50">
+    <h2 className="font-display text-lg text-bark-900 dark:text-bark-50">
       {children}
     </h2>
   );

@@ -78,7 +78,7 @@ export function CoverageHero({ dogs }: { dogs: Dog[] }) {
       {/* per-colony coverage bars with the 70% line */}
       <div className="card p-5">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display font-bold tracking-tight">
+          <h3 className="font-display tracking-tight">
             Coverage by colony
           </h3>
           <span className="text-xs text-bark-400">{colonies.length} colonies</span>
@@ -143,7 +143,7 @@ function HeroStat({
 }) {
   return (
     <div className="border-black/[0.06] p-5 [&:not(:last-child)]:border-r dark:border-white/10">
-      <p className="font-display text-3xl font-extrabold tracking-tightest">
+      <p className="font-display text-3xl tracking-tightest">
         {value}
       </p>
       <p className="mt-0.5 text-xs text-bark-500">{label}</p>

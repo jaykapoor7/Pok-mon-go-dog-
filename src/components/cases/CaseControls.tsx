@@ -215,7 +215,7 @@ export function CaseControls({ c }: { c: Case }) {
                         onClick={() => setResolution(r.key)}
                         disabled={busy}
                         className={cn(
-                          "rounded-xl py-2.5 text-xs font-semibold transition-colors",
+                          "rounded py-2.5 text-xs font-semibold transition-colors",
                           resolution === r.key
                             ? "bg-paw-500 text-white shadow-warm"
                             : "bg-bark-900/[0.05] text-bark-600 hover:bg-bark-900/[0.08] dark:bg-white/[0.06] dark:text-bark-200"
@@ -244,11 +244,11 @@ export function CaseControls({ c }: { c: Case }) {
                   onChange={(e) => setOutcomeNote(e.target.value)}
                   rows={2}
                   placeholder="Outcome note, what was done and the result…"
-                  className="w-full resize-none rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
+                  className="w-full resize-none rounded border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
                 />
 
                 {/* Territorial dislocation, return the dog where it was caught. */}
-                <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-status-hungry/30 bg-status-hungry/10 px-3 py-2.5">
+                <label className="flex cursor-pointer items-start gap-2 rounded border border-status-hungry/30 bg-status-hungry/10 px-3 py-2.5">
                   <input
                     type="checkbox"
                     checked={returnedToCatch}
@@ -306,7 +306,7 @@ export function CaseControls({ c }: { c: Case }) {
         ))}
 
       {error && (
-        <p className="rounded-xl bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
+        <p className="rounded bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
           {error}
         </p>
       )}
@@ -354,11 +354,11 @@ export function CaseControls({ c }: { c: Case }) {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-bark-500">Estimated (₹)</label>
-                  <input type="number" inputMode="numeric" value={estimate} onChange={(e) => setEstimate(e.target.value)} className="w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
+                  <input type="number" inputMode="numeric" value={estimate} onChange={(e) => setEstimate(e.target.value)} className="w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-bark-500">Spent so far (₹)</label>
-                  <input type="number" inputMode="numeric" value={spent} onChange={(e) => setSpent(e.target.value)} className="w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
+                  <input type="number" inputMode="numeric" value={spent} onChange={(e) => setSpent(e.target.value)} className="w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
                 </div>
               </div>
               <button
@@ -397,7 +397,7 @@ function PhotoField({
   return (
     <label
       className={cn(
-        "flex cursor-pointer items-center gap-2 rounded-xl border border-dashed px-3 py-2.5 text-xs font-medium transition-colors",
+        "flex cursor-pointer items-center gap-2 rounded border border-dashed px-3 py-2.5 text-xs font-medium transition-colors",
         file
           ? "border-paw-400 bg-paw-50 text-paw-700 dark:bg-bark-800"
           : "border-black/15 text-bark-500 hover:border-paw-300 dark:border-white/15"

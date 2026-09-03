@@ -8,6 +8,45 @@
     scroll-behavior: smooth;
   }
 
+  /* Keyboard focus baseline. Only .btn carried a focus ring before, which left
+     links, inputs and the console nav invisible to keyboard users. Scoped to
+     :focus-visible so pointer users never see it. */
+  :focus-visible {
+    outline: 2px solid #8fb7ff;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  /* On the dark console the electric blue needs a light halo to stay visible
+     against near-black. */
+  .spa :focus-visible,
+  .sp-hero :focus-visible,
+  .sp-network :focus-visible,
+  .sp-footer :focus-visible {
+    outline-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(143, 183, 255, 0.35);
+  }
+
+  /* Users who tab in should be able to skip the console nav. */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    z-index: 999;
+  }
+  .skip-link:focus {
+    left: 12px;
+    top: 12px;
+    padding: 10px 16px;
+    background: #0b1020;
+    color: #f4f5f7;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+
   body {
     @apply text-bark-900 antialiased;
     background-color: #fbfdff; /* paper, cool near-white, on-brand */

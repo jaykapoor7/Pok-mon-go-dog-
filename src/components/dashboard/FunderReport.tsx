@@ -127,13 +127,13 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                   value={ngoName}
                   onChange={(e) => setNgoName(e.target.value)}
                   placeholder="Your NGO name"
-                  className="min-w-[10rem] flex-1 rounded-xl border border-white/30 bg-white/95 px-3 py-2 text-sm outline-none"
+                  className="min-w-[10rem] flex-1 rounded border border-white/30 bg-white/95 px-3 py-2 text-sm outline-none"
                 />
                 <input
                   value={logo}
                   onChange={(e) => setLogo(e.target.value)}
                   placeholder="Logo image URL (optional)"
-                  className="min-w-[10rem] flex-1 rounded-xl border border-white/30 bg-white/95 px-3 py-2 text-sm outline-none"
+                  className="min-w-[10rem] flex-1 rounded border border-white/30 bg-white/95 px-3 py-2 text-sm outline-none"
                 />
                 <button onClick={printReport} className="btn-primary px-4 py-2 text-sm">
                   <Printer className="h-4 w-4" /> Save as PDF
@@ -156,14 +156,14 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 <div className="fr-avoid flex items-center justify-between border-b border-black/10 pb-4">
                   <div className="flex items-center gap-3">
                     {logo ? (
-                      <img src={logo} alt="" className="h-12 w-12 rounded-xl object-contain" />
+                      <img src={logo} alt="" className="h-12 w-12 rounded object-contain" />
                     ) : (
-                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-paw-500 text-white">
+                      <span className="flex h-12 w-12 items-center justify-center rounded bg-paw-500 text-white">
                         <PawPrint className="h-6 w-6" />
                       </span>
                     )}
                     <div>
-                      <p className="font-display text-xl font-extrabold leading-tight">
+                      <p className="font-display text-xl leading-tight">
                         {ngoName || "Your NGO"}
                       </p>
                       <p className="text-xs text-bark-500">Street-dog welfare impact report</p>
@@ -178,7 +178,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 </div>
 
                 {/* ── Your cases, scoped to this NGO's own work ── */}
-                <h3 className="fr-avoid mt-5 flex items-center gap-2 font-display text-sm font-bold">
+                <h3 className="fr-avoid mt-5 flex items-center gap-2 font-display text-sm">
                   <span className="inline-block h-2 w-2 rounded-full bg-paw-500" />
                   {ngoName ? `${ngoName}'s cases` : "Your cases"}
                 </h3>
@@ -189,7 +189,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 </div>
 
                 {myCases.length === 0 && (
-                  <p className="mt-3 rounded-xl bg-bark-50 px-4 py-2 text-xs text-bark-500">
+                  <p className="mt-3 rounded bg-bark-50 px-4 py-2 text-xs text-bark-500">
                     {user
                       ? "No cases assigned to your account yet. Claim cases on the board and resolve them, your outcomes (and before/after proof) will appear here automatically."
                       : "Sign in and claim cases on the board to build your own impact section."}
@@ -204,7 +204,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {proof.map((p) => (
-                        <div key={p.id} className="fr-avoid overflow-hidden rounded-xl border border-black/10">
+                        <div key={p.id} className="fr-avoid overflow-hidden rounded border border-black/10">
                           <div className="grid grid-cols-2">
                             <DogPhoto src={p.before_url!} alt="before" seed={`${p.id}fb`} className="aspect-square w-full" />
                             <DogPhoto src={p.after_url!} alt="after" seed={`${p.id}fa`} className="aspect-square w-full" />
@@ -219,7 +219,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                 )}
 
                 {/* ── Community coverage, area-wide context ── */}
-                <h3 className="fr-avoid mt-6 flex items-center gap-2 font-display text-sm font-bold">
+                <h3 className="fr-avoid mt-6 flex items-center gap-2 font-display text-sm">
                   <span className="inline-block h-2 w-2 rounded-full bg-bark-300" />
                   Community coverage <span className="text-xs font-medium text-bark-400">· area-wide</span>
                 </h3>
@@ -229,7 +229,7 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
                   <Stat big value={`${c.tracked}`} label="Dogs tracked" />
                   <Stat big value={`${c.needsHelp}`} label="Need help now" />
                 </div>
-                <p className="mt-3 rounded-xl bg-paw-50 px-4 py-2 text-xs text-bark-600">
+                <p className="mt-3 rounded bg-paw-50 px-4 py-2 text-xs text-bark-600">
                   Area-wide figures across the whole StrayPaw community map, measured
                   against the WHO ~{HERD_THRESHOLD}% herd-immunity threshold for rabies
                   control, shown as the context {ngoName || "your NGO"} operates in,
@@ -250,8 +250,8 @@ export function FunderReport({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
 
 function Stat({ value, label, big }: { value: string; label: string; big?: boolean }) {
   return (
-    <div className="rounded-xl bg-bark-50 p-3 text-center">
-      <p className={big ? "font-display text-2xl font-extrabold" : "font-display text-lg font-bold"}>
+    <div className="rounded bg-bark-50 p-3 text-center">
+      <p className={big ? "font-display text-2xl" : "font-display text-lg"}>
         {value}
       </p>
       <p className="text-[10px] text-bark-500">{label}</p>

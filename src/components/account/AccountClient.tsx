@@ -63,7 +63,7 @@ export function AccountClient() {
   if (!isAuthed) {
     return (
       <div className="mx-auto max-w-sm px-4 pt-32 text-center">
-        <h1 className="font-display text-2xl font-bold tracking-tightest">
+        <h1 className="font-display text-2xl tracking-tightest">
           Your sightings
         </h1>
         <p className="mt-2 text-sm text-bark-500">
@@ -83,7 +83,7 @@ export function AccountClient() {
     <div className="mx-auto max-w-xl px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-5 flex items-start justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">
+          <h1 className="font-display text-2xl tracking-tightest sm:text-3xl">
             Your sightings
           </h1>
           <p className="text-sm text-bark-500">

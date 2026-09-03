@@ -136,7 +136,7 @@ export function FeedingZoneControls({
             value={contact}
             onChange={(e) => setContact(e.target.value)}
             placeholder="Phone or email (optional, kept private)"
-            className="w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
+            className="w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900"
           />
           <div className="grid grid-cols-2 gap-2">
             <button onClick={() => setSigningUp(false)} className="btn-ghost py-2.5 text-sm">
@@ -151,7 +151,7 @@ export function FeedingZoneControls({
       )}
 
       {error && (
-        <p className="rounded-xl bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
+        <p className="rounded bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
           {error}
         </p>
       )}

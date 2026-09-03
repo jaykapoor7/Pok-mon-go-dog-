@@ -303,7 +303,7 @@ function SignInSheet({
         {notice ? (
           <div className="py-2 text-center">
             <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
-            <h2 className="font-display text-xl font-extrabold">
+            <h2 className="font-display text-xl">
               {notice === "confirm" ? "Confirm your email" : "Check your email"}
             </h2>
             <p className="mt-1.5 text-sm text-bark-500">
@@ -326,7 +326,7 @@ function SignInSheet({
           </div>
         ) : (
           <>
-            <h2 className="font-display text-xl font-extrabold">
+            <h2 className="font-display text-xl">
               {mode === "signup" ? "Create your account" : mode === "reset" ? "Reset password" : "Sign in to StrayPaw"}
             </h2>
             <p className="mt-1 text-sm text-bark-500">

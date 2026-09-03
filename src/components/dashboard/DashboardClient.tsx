@@ -85,7 +85,7 @@ function Operate({ dogs, cases }: { dogs: Dog[]; cases: Case[] }) {
       </section>
 
       <section>
-        <h2 className="mb-1 font-display text-xl font-bold tracking-tightest sm:text-2xl">
+        <h2 className="mb-1 font-display text-xl tracking-tightest sm:text-2xl">
           Case pipeline
         </h2>
         <p className="mb-3 text-sm text-bark-500">
@@ -128,7 +128,7 @@ function Impact({
     <div className="space-y-8">
       {/* Coverage hero (P3 + colonies P6) */}
       <section>
-        <h2 className="mb-1 font-display text-xl font-bold tracking-tightest sm:text-2xl">
+        <h2 className="mb-1 font-display text-xl tracking-tightest sm:text-2xl">
           Coverage &amp; herd immunity
         </h2>
         <p className="mb-3 text-sm text-bark-500">
@@ -141,7 +141,7 @@ function Impact({
       <section className="grid gap-3 sm:grid-cols-3">
         <div className="card p-5">
           <p className="text-xs text-bark-500">Resolved last 7 days</p>
-          <p className="font-display text-3xl font-extrabold">{last7}</p>
+          <p className="font-display text-3xl">{last7}</p>
           <p className={cn("text-xs font-semibold", delta >= 0 ? "text-status-sterilised" : "text-status-injured")}>
             {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)} vs prior week
           </p>
@@ -163,7 +163,7 @@ function Impact({
 
       {/* Before/after proof (P4) */}
       <section>
-        <h2 className="mb-3 font-display text-xl font-bold tracking-tightest sm:text-2xl">
+        <h2 className="mb-3 font-display text-xl tracking-tightest sm:text-2xl">
           Outcomes, before &amp; after
         </h2>
         <Resolutions cases={cases} />
@@ -172,7 +172,7 @@ function Impact({
       {/* Partners + volunteers */}
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="card p-5">
-          <h3 className="mb-3 font-display font-bold">Partner NGOs</h3>
+          <h3 className="mb-3 font-display">Partner NGOs</h3>
           {ngos.length === 0 ? (
             <p className="text-sm text-bark-400">No partner NGOs yet.</p>
           ) : (
@@ -194,13 +194,13 @@ function Impact({
         {/* Real "Can you help?" sign-ups (contacts live in the moderation panel,
             so we only show counts here, no PII on the public dashboard). */}
         <div className="card flex flex-col p-5">
-          <h3 className="mb-3 font-display font-bold">Help-form sign-ups</h3>
+          <h3 className="mb-3 font-display">Help-form sign-ups</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded bg-paw-50 p-4 dark:bg-bark-800">
               <span className="mb-1 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-700">
                 <HandHelping className="h-4 w-4" />
               </span>
-              <p className="font-display text-2xl font-extrabold leading-none">
+              <p className="font-display text-2xl leading-none">
                 {formatNumber(helperCounts.volunteers)}
               </p>
               <p className="mt-0.5 text-xs text-bark-500">volunteers</p>
@@ -209,7 +209,7 @@ function Impact({
               <span className="mb-1 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-700">
                 <HeartHandshake className="h-4 w-4" />
               </span>
-              <p className="font-display text-2xl font-extrabold leading-none">
+              <p className="font-display text-2xl leading-none">
                 {formatNumber(helperCounts.ngos)}
               </p>
               <p className="mt-0.5 text-xs text-bark-500">NGOs registered</p>
@@ -232,7 +232,7 @@ function Strip({ icon, value, label }: { icon: React.ReactNode; value: string; l
   return (
     <span className="flex items-center gap-1.5">
       {icon}
-      <span className="font-display text-lg font-extrabold leading-none">{value}</span>
+      <span className="font-display text-lg leading-none">{value}</span>
       <span className="text-xs text-white/80">{label}</span>
     </span>
   );

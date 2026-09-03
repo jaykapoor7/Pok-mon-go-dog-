@@ -30,7 +30,7 @@ export function ExploreClient() {
     <div>
       <header className="max-w-3xl">
         <SectionLabel>Explore</SectionLabel>
-        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">The data, by place.</h1>
+        <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">The data, by place.</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
           Choose a layer and read it across India. Where a state has no data, that gap is shown, not hidden. Deeper resolution (district, city, ward) appears as datasets become available.
         </p>
@@ -51,7 +51,7 @@ export function ExploreClient() {
       {/* Metric header */}
       <div className="mt-5 flex flex-wrap items-start justify-between gap-3 rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
         <div className="max-w-xl">
-          <h2 className="font-display text-xl font-bold tracking-tight">{def.label}</h2>
+          <h2 className="font-display text-xl tracking-tight">{def.label}</h2>
           <p className="mt-1 text-sm text-bark-600 dark:text-bark-300">{def.description}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-bark-400">
             {dataset && <SourceBadge type={dataset.sourceType} sample={dataset.sample} />}
@@ -60,13 +60,13 @@ export function ExploreClient() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-5 text-right sm:min-w-[240px]">
-          <div><div className="font-display text-xl font-bold tabular-nums">{cov.withData}<span className="text-bark-300">/{cov.total}</span></div><div className="text-[11px] text-bark-400">states</div></div>
+          <div><div className="font-display text-xl tabular-nums">{cov.withData}<span className="text-bark-300">/{cov.total}</span></div><div className="text-[11px] text-bark-400">states</div></div>
           {def.unit === "%" ? (
-            <div><div className="font-display text-xl font-bold tabular-nums">{roll.mean.toFixed(0)}%</div><div className="text-[11px] text-bark-400">average</div></div>
+            <div><div className="font-display text-xl tabular-nums">{roll.mean.toFixed(0)}%</div><div className="text-[11px] text-bark-400">average</div></div>
           ) : (
-            <div><div className="font-display text-xl font-bold tabular-nums">{new Intl.NumberFormat("en-IN", { notation: "compact" }).format(roll.sum)}</div><div className="text-[11px] text-bark-400">total</div></div>
+            <div><div className="font-display text-xl tabular-nums">{new Intl.NumberFormat("en-IN", { notation: "compact" }).format(roll.sum)}</div><div className="text-[11px] text-bark-400">total</div></div>
           )}
-          <div><div className="font-display text-xl font-bold tabular-nums text-status-injured">{cov.total - cov.withData}</div><div className="text-[11px] text-bark-400">no data</div></div>
+          <div><div className="font-display text-xl tabular-nums text-status-injured">{cov.total - cov.withData}</div><div className="text-[11px] text-bark-400">no data</div></div>
         </div>
       </div>
 

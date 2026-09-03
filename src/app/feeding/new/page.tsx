@@ -70,7 +70,7 @@ export default function NewFeedingZonePage() {
       </Link>
 
       <header className="mb-5">
-        <h1 className="font-display text-2xl font-extrabold sm:text-3xl">Add a feeding zone 🥣</h1>
+        <h1 className="font-display text-2xl sm:text-3xl">Add a feeding zone 🥣</h1>
         <p className="text-sm text-bark-500">
           Mark an existing spot the community feeds, so others can find it and cover it.
         </p>
@@ -149,7 +149,7 @@ export default function NewFeedingZonePage() {
         </div>
 
         {error && (
-          <p className="rounded-xl bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
+          <p className="rounded bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
             {error}
           </p>
         )}

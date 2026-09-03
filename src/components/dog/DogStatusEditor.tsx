@@ -206,7 +206,7 @@ function Toggle({
     <button
       type="button"
       onClick={() => onChange(!on)}
-      className="flex w-full items-center justify-between rounded-xl px-1 py-2 text-sm"
+      className="flex w-full items-center justify-between rounded px-1 py-2 text-sm"
     >
       <span className="font-medium">{label}</span>
       <span

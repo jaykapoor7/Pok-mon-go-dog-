@@ -51,13 +51,13 @@ export function ContactForm() {
   }
 
   const field =
-    "w-full rounded-xl border border-black/[0.1] bg-white px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+    "w-full rounded border border-black/[0.1] bg-white px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
   if (done) {
     return (
       <div className="rounded border border-black/[0.06] bg-white/70 p-8 text-center dark:border-white/10 dark:bg-bark-900/50">
         <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
-        <h3 className="font-display text-xl font-bold">Message sent</h3>
+        <h3 className="font-display text-xl">Message sent</h3>
         <p className="mx-auto mt-1.5 max-w-sm text-sm text-bark-500">
           Thanks for reaching out. We read every message and will get back to you at{" "}
           <span className="font-medium text-bark-700 dark:text-bark-200">{email}</span>.

@@ -30,7 +30,7 @@ export function MarketingShell({
         {eyebrow && (
           <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-paw-600">{eyebrow}</p>
         )}
-        <h1 className="mt-2 font-display text-4xl font-extrabold leading-[1.05] tracking-tightest sm:text-5xl">
+        <h1 className="mt-2 font-display text-4xl leading-[1.05] tracking-tightest sm:text-5xl">
           {title}
         </h1>
         {intro && (

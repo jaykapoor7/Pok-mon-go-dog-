@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Link from "next/link";
-import { Loader2, ShieldCheck, LogIn, HeartHandshake, Check, ArrowLeft } from "lucide-react";
+import { Loader2, ShieldCheck, LogIn, HeartHandshake, Check } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   isNgoMember,
@@ -54,22 +53,16 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
   if (member) return <>{children}</>;
 
   return (
-    <div className="mx-auto max-w-md px-4 pb-32 pt-24 sm:px-6">
-      <Link
-        href="/map"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to the map
-      </Link>
-
-      <div className="card p-6 text-center">
+    <div className="mx-auto max-w-md py-12">
+      <div className="card p-7 text-center">
         <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <ShieldCheck className="h-8 w-8" />
         </span>
-        <h1 className="font-display text-2xl font-extrabold">{title}</h1>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-bark-500">
-          The partner console is for verified rescues &amp; NGOs, claim and resolve
-          cases, coverage &amp; herd-immunity stats, and your own funder report.
+        <h1 className="font-display text-2xl">{title}</h1>
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-bark-600">
+          These records belong to verified organisations. Sign in to claim and
+          resolve cases, track coverage in your area, and report outcomes back to
+          the funders behind them.
         </p>
 
         {!user ? (
@@ -128,7 +121,7 @@ function RequestForm({ onDone }: { onDone: () => void }) {
   }
 
   const field =
-    "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+    "w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
   return (
     <div className="space-y-2.5 text-left">

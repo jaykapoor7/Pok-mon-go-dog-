@@ -121,7 +121,7 @@ export function DogBottomSheet({
 
             <div className="space-y-5 p-5">
               <div>
-                <h2 className="font-display text-[26px] font-bold leading-tight tracking-tightest">
+                <h2 className="font-display text-[26px] leading-tight tracking-tightest">
                   {dogLabel(dog)}
                 </h2>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-bark-500">

@@ -55,7 +55,7 @@ export function CaseTimeline({ updates }: { updates: CaseUpdate[] }) {
               <span className="text-bark-600 dark:text-bark-300">{describe(u)}</span>
             </p>
             {u.type === "note" && u.note && (
-              <p className="mt-0.5 rounded-xl bg-bark-900/[0.04] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.05] dark:text-bark-200">
+              <p className="mt-0.5 rounded bg-bark-900/[0.04] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.05] dark:text-bark-200">
                 {u.note}
               </p>
             )}

@@ -25,7 +25,7 @@ import type { NGO, Fundraiser } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const INPUT =
-  "w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-sm text-bark-900 outline-none transition-colors placeholder:text-bark-400 focus:border-paw-400 focus:ring-2 focus:ring-paw-400/30 dark:border-white/10 dark:bg-bark-900 dark:text-bark-50";
+  "w-full rounded border border-black/[0.08] bg-white px-3.5 py-2.5 text-sm text-bark-900 outline-none transition-colors placeholder:text-bark-400 focus:border-paw-400 focus:ring-2 focus:ring-paw-400/30 dark:border-white/10 dark:bg-bark-900 dark:text-bark-50";
 const LABEL = "mb-1 block text-xs font-semibold text-bark-500";
 
 export function OrgManager() {
@@ -83,7 +83,7 @@ export function OrgManager() {
               )}
             </div>
             <div className="min-w-0 flex-1 pb-1">
-              <h2 className="truncate font-display text-xl font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
+              <h2 className="truncate font-display text-xl tracking-tightest text-bark-900 dark:text-bark-50">
                 {org.name}
               </h2>
               {location && <p className="text-xs text-bark-500">{location}</p>}
@@ -109,7 +109,7 @@ export function OrgManager() {
           </div>
 
           {!editing && !org.mission && (
-            <p className="mt-4 rounded-xl bg-paw-50 px-3.5 py-3 text-sm text-paw-800 dark:bg-paw-900/25 dark:text-paw-200">
+            <p className="mt-4 rounded bg-paw-50 px-3.5 py-3 text-sm text-paw-800 dark:bg-paw-900/25 dark:text-paw-200">
               Your public profile is empty. Add your mission and details so
               supporters trust what they see.
             </p>
@@ -127,7 +127,7 @@ export function OrgManager() {
       {/* Campaigns */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-lg font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
+          <h3 className="font-display text-lg tracking-tightest text-bark-900 dark:text-bark-50">
             Your campaigns
           </h3>
           <Link href="/fundraisers/new" className="btn-primary px-3.5 py-2 text-sm">
@@ -280,7 +280,7 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
 
   return (
     <div className="card space-y-4 p-5">
-      <h3 className="font-display text-lg font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
+      <h3 className="font-display text-lg tracking-tightest text-bark-900 dark:text-bark-50">
         Edit your public profile
       </h3>
 

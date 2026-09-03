@@ -62,14 +62,14 @@ export function PartnerApplyForm() {
     }
   }
 
-  const field = "w-full rounded-xl border border-black/[0.1] bg-white px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+  const field = "w-full rounded border border-black/[0.1] bg-white px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
   const label = "mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300";
 
   if (done) {
     return (
       <div className="rounded border border-black/[0.06] bg-white/70 p-8 text-center dark:border-white/10 dark:bg-bark-900/50">
         <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
-        <h3 className="font-display text-xl font-bold">Application received</h3>
+        <h3 className="font-display text-xl">Application received</h3>
         <p className="mx-auto mt-1.5 max-w-md text-sm text-bark-500">
           Thanks for applying to partner with StrayPaw. We&apos;ll review your details and get in touch at{" "}
           <span className="font-medium text-bark-700 dark:text-bark-200">{f.email}</span> shortly.
@@ -97,7 +97,7 @@ export function PartnerApplyForm() {
       <div className="mt-4">
         <label className={label}>Onboarding documents</label>
         <p className="mb-2 text-xs text-bark-400">Registration certificate, 80G/12A, or anything that helps us verify you. PDFs or images.</p>
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-bark-200 bg-white px-4 py-4 text-sm font-medium text-bark-600 transition-colors hover:border-paw-300 hover:bg-paw-50 dark:border-white/15 dark:bg-bark-900">
+        <label className="flex cursor-pointer items-center justify-center gap-2 rounded border-2 border-dashed border-bark-200 bg-white px-4 py-4 text-sm font-medium text-bark-600 transition-colors hover:border-paw-300 hover:bg-paw-50 dark:border-white/15 dark:bg-bark-900">
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
           {uploading ? "Uploading…" : "Upload documents"}
           <input type="file" multiple accept="application/pdf,image/*" className="hidden" onChange={onFiles} disabled={uploading} />

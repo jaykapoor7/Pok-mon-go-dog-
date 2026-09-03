@@ -92,7 +92,7 @@ export function EditSightingSheet({
             className="card w-full max-w-md rounded-b-none rounded-t-3xl p-6 sm:rounded"
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-xl font-extrabold">Edit sighting</h2>
+              <h2 className="font-display text-xl">Edit sighting</h2>
               <button
                 onClick={onClose}
                 className="rounded-full p-1 text-bark-400 hover:bg-bark-100"

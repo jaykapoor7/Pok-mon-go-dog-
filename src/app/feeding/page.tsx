@@ -20,7 +20,7 @@ export default async function FeedingZonesPage() {
 
       <header className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tightest">Feeding zones</h1>
+          <h1 className="font-display text-3xl tracking-tightest">Feeding zones</h1>
           <p className="mt-1 text-sm text-bark-500">
             Regular feeding spots the community keeps going, see who&apos;s covering
             each one, sign up for a day, or mark one fed today.

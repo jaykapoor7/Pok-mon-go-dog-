@@ -69,7 +69,7 @@ export function MergeSuggestions({
           className="flex items-center gap-3 rounded border border-bark-100 p-2.5 dark:border-white/10"
         >
           <Link href={`/dog/${m.dog.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-            <DogPhoto src={m.dog.cover_photo} alt={dogLabel(m.dog)} seed={m.dog.id} className="h-12 w-12 rounded-xl" />
+            <DogPhoto src={m.dog.cover_photo} alt={dogLabel(m.dog)} seed={m.dog.id} className="h-12 w-12 rounded" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{dogLabel(m.dog)}</p>
               <p className="truncate text-xs text-bark-400">{m.reason}</p>

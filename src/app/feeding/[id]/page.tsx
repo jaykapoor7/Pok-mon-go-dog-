@@ -49,7 +49,7 @@ export default async function FeedingZonePage({ params }: { params: Promise<{ id
       />
 
       <header className="mt-4">
-        <h1 className="font-display text-2xl font-extrabold tracking-tightest">{zone.name}</h1>
+        <h1 className="font-display text-2xl tracking-tightest">{zone.name}</h1>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-bark-500">
           {zone.zone && (
             <span className="flex items-center gap-1">
@@ -69,7 +69,7 @@ export default async function FeedingZonePage({ params }: { params: Promise<{ id
 
       {checkins.length > 0 && (
         <section className="mt-7">
-          <h2 className="mb-3 font-display text-lg font-bold tracking-tight">Recent activity</h2>
+          <h2 className="mb-3 font-display text-lg tracking-tight">Recent activity</h2>
           <div className="card divide-y divide-black/[0.05] dark:divide-white/[0.06]">
             {checkins.map((c) => (
               <div key={c.id} className="p-3 text-sm">

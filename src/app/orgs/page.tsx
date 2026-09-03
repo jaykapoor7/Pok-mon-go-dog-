@@ -21,7 +21,7 @@ export default async function OrgsPage() {
     <div className="mx-auto max-w-4xl px-4 sm:px-6">
 
       <header className="mb-6">
-        <h1 className="font-display text-3xl font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
+        <h1 className="font-display text-3xl tracking-tightest text-bark-900 dark:text-bark-50">
           Organizations
         </h1>
         <p className="mt-1 text-sm text-bark-500">
@@ -46,7 +46,7 @@ export default async function OrgsPage() {
                 href={`/org/${org.slug ?? org.id}`}
                 className="card card-interactive flex gap-4 p-5"
               >
-                <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-black/[0.06] bg-white dark:border-white/10 dark:bg-bark-900">
+                <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded border border-black/[0.06] bg-white dark:border-white/10 dark:bg-bark-900">
                   {org.logo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={org.logo_url} alt={org.name} className="h-full w-full object-cover" />
@@ -56,7 +56,7 @@ export default async function OrgsPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <h2 className="truncate font-display text-lg font-bold tracking-tight text-bark-900 dark:text-bark-50">
+                    <h2 className="truncate font-display text-lg tracking-tight text-bark-900 dark:text-bark-50">
                       {org.name}
                     </h2>
                   </div>
@@ -81,7 +81,7 @@ export default async function OrgsPage() {
       )}
 
       <section className="mt-10 border-t border-black/[0.08] pt-8 dark:border-white/[0.1]">
-        <h2 className="font-display text-xl font-bold tracking-tight text-bark-900 dark:text-bark-50">Directory</h2>
+        <h2 className="font-display text-xl tracking-tight text-bark-900 dark:text-bark-50">Directory</h2>
         <p className="mt-1 max-w-2xl text-sm text-bark-500">
           Real, named animal-welfare organisations working across India - sourced from public information, not yet on StrayPaw as partners. Not comprehensive, and not endorsed by these organisations for this listing.
         </p>
@@ -89,7 +89,7 @@ export default async function OrgsPage() {
           {ORGS.map((o) => (
             <div key={o.id} className="rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-display text-[15px] font-bold leading-snug tracking-tight text-bark-900 dark:text-bark-50">{o.name}</h3>
+                <h3 className="font-display text-[15px] leading-snug tracking-tight text-bark-900 dark:text-bark-50">{o.name}</h3>
                 {o.url && (
                   <a href={o.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-bark-400 hover:text-paw-600">
                     <ExternalLink className="h-4 w-4" />

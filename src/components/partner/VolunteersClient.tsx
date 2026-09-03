@@ -29,7 +29,7 @@ export function VolunteersClient() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((v) => (
-            <div key={v.id} className="rounded-xl border border-black/[0.08] bg-white p-4 dark:border-white/[0.1] dark:bg-bark-900">
+            <div key={v.id} className="rounded border border-black/[0.08] bg-white p-4 dark:border-white/[0.1] dark:bg-bark-900">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-bark-900 dark:text-bark-50">{v.name}</p>
                 <span className="text-[11px] text-bark-400">{timeAgo(v.created_at)}</span>

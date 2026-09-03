@@ -37,7 +37,7 @@ export function FeedingClient() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {zones.map((z) => (
-            <div key={z.id} className="overflow-hidden rounded-xl border border-black/[0.08] bg-white dark:border-white/[0.1] dark:bg-bark-900">
+            <div key={z.id} className="overflow-hidden rounded border border-black/[0.08] bg-white dark:border-white/[0.1] dark:bg-bark-900">
               {z.photo_url && <img src={z.photo_url} alt="" className="h-28 w-full object-cover" />}
               <div className="p-4">
                 <p className="font-semibold text-bark-900 dark:text-bark-50">{z.name}</p>

@@ -88,7 +88,7 @@ export default async function DogProfilePage({
         </div>
         <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
           <div className="min-w-0">
-            <h1 className="font-display text-3xl font-extrabold tracking-tightest">{dogLabel(dog)}</h1>
+            <h1 className="font-display text-3xl tracking-tightest">{dogLabel(dog)}</h1>
             <p className="flex items-center gap-1.5 text-sm opacity-90">
               <MapPin className="h-4 w-4" /> Around {dog.zone} · {dog.size} · {dog.color}
             </p>
@@ -322,7 +322,7 @@ function Section({
 }) {
   return (
     <section className="mt-8">
-      <h2 className="mb-3 font-display text-lg font-bold">{title}</h2>
+      <h2 className="mb-3 font-display text-lg">{title}</h2>
       {children}
     </section>
   );
@@ -351,7 +351,7 @@ function HealthCard({
         >
           {icon}
         </span>
-        <span className="font-display text-sm font-bold">{title}</span>
+        <span className="font-display text-sm">{title}</span>
         <span
           className={`chip ml-auto ${
             ok

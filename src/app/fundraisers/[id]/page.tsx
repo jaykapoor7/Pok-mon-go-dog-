@@ -67,7 +67,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         )}
       </div>
 
-      <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tightest">{f.title}</h1>
+      <h1 className="mt-2 font-display text-2xl tracking-tightest">{f.title}</h1>
 
       {/* Who's running this, the credibility link */}
       {org && (
@@ -75,7 +75,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
           href={`/org/${org.slug ?? org.id}`}
           className="mt-3 flex items-center gap-3 rounded border border-black/[0.06] bg-white p-3 dark:border-white/10 dark:bg-bark-900"
         >
-          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-black/[0.06] bg-white dark:border-white/10 dark:bg-bark-900">
+          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded border border-black/[0.06] bg-white dark:border-white/10 dark:bg-bark-900">
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={org.logo_url} alt={org.name} className="h-full w-full object-cover" />
@@ -138,7 +138,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       {/* Use of funds, the transparency a funder looks for */}
       {f.budget.length > 0 && (
         <section className="mt-6">
-          <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tightest">
+          <h2 className="flex items-center gap-2 font-display text-lg tracking-tightest">
             <Wallet className="h-4 w-4 text-paw-600" /> Use of funds
           </h2>
           <div className="mt-3 overflow-hidden rounded border border-black/[0.06] dark:border-white/10">
@@ -164,7 +164,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       {/* Outcome, shown once the org reports it */}
       {f.outcome && (
         <section className="mt-6 rounded border border-status-vaccinated/30 bg-status-vaccinated/10 p-4">
-          <h2 className="flex items-center gap-2 font-display text-base font-extrabold tracking-tight text-status-vaccinated">
+          <h2 className="flex items-center gap-2 font-display text-base tracking-tight text-status-vaccinated">
             <CheckCircle2 className="h-4 w-4" /> Outcome
           </h2>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-bark-700 dark:text-bark-200">
@@ -176,7 +176,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       {/* Updates, the running story supporters follow */}
       {updates.length > 0 && (
         <section className="mt-6">
-          <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tightest">
+          <h2 className="flex items-center gap-2 font-display text-lg tracking-tightest">
             <Megaphone className="h-4 w-4 text-paw-600" /> Updates
           </h2>
           <div className="mt-3 space-y-4 border-l-2 border-black/[0.06] pl-4 dark:border-white/10">

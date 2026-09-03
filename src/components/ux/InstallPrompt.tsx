@@ -69,7 +69,7 @@ export function InstallPrompt() {
   return (
     <div className="fixed inset-x-3 bottom-[5.5rem] z-[55] mx-auto max-w-md lg:bottom-6 lg:left-64 lg:right-auto lg:mx-0">
       <div className="flex items-center gap-3 rounded border border-black/[0.08] bg-paper/95 p-3 shadow-pop backdrop-blur-xl dark:border-white/10 dark:bg-ink/95">
-        <img src="/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded-xl" />
+        <img src="/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">Add StrayPaw to your home screen</p>
           {iosHint ? (

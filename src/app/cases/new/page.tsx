@@ -57,7 +57,7 @@ function NewCaseInner() {
         <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600">
           <LogIn className="h-7 w-7" />
         </span>
-        <h1 className="font-display text-2xl font-bold tracking-tightest">
+        <h1 className="font-display text-2xl tracking-tightest">
           Sign in to open a case
         </h1>
         <p className="mt-2 text-sm text-bark-500">
@@ -105,7 +105,7 @@ function NewCaseInner() {
       >
         <ArrowLeft className="h-4 w-4" /> All cases
       </Link>
-      <h1 className="font-display text-2xl font-bold tracking-tightest sm:text-3xl">
+      <h1 className="font-display text-2xl tracking-tightest sm:text-3xl">
         New case
       </h1>
       <p className="text-sm text-bark-500">

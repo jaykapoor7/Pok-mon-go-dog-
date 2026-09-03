@@ -729,7 +729,7 @@ export function AdminClient() {
         <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600">
           <ShieldCheck className="h-8 w-8" />
         </span>
-        <h1 className="font-display text-2xl font-bold tracking-tightest">
+        <h1 className="font-display text-2xl tracking-tightest">
           Moderation
         </h1>
         <p className="mt-2 text-sm text-bark-500">
@@ -787,7 +787,7 @@ export function AdminClient() {
             <ShieldCheck className="h-5 w-5" />
           </span>
           <div>
-            <h1 className="font-display text-2xl font-extrabold tracking-tightest sm:text-3xl">
+            <h1 className="font-display text-2xl tracking-tightest sm:text-3xl">
               Moderation console
             </h1>
             <p className="text-xs text-bark-500">Review, verify and curate everything on StrayPaw.</p>
@@ -799,7 +799,7 @@ export function AdminClient() {
             disabled={exportingEmails}
             aria-label="Export reporter emails"
             title="Export reporter emails (CSV)"
-            className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-black/10 px-3 text-xs font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+            className="flex h-10 items-center justify-center gap-1.5 rounded border border-black/10 px-3 text-xs font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
           >
             {exportingEmails ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
             Emails
@@ -808,14 +808,14 @@ export function AdminClient() {
             onClick={() => load(secret)}
             disabled={loading}
             aria-label="Refresh"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+            className="flex h-10 w-10 items-center justify-center rounded border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
           <button
             onClick={lock}
             aria-label="Lock"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+            className="flex h-10 w-10 items-center justify-center rounded border border-black/10 text-bark-600 hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
           >
             <Lock className="h-4 w-4" />
           </button>
@@ -840,7 +840,7 @@ export function AdminClient() {
         {/* content column */}
         <div className="min-w-0">
           <div className="mb-4 hidden items-baseline gap-2 lg:flex">
-            <h2 className="font-display text-lg font-extrabold tracking-tightest">{activeTab?.label}</h2>
+            <h2 className="font-display text-lg tracking-tightest">{activeTab?.label}</h2>
             <span className="text-sm text-bark-400">{activeTab?.count ?? 0}</span>
           </div>
 
@@ -887,7 +887,7 @@ export function AdminClient() {
       {tab === "queue" && (items.length === 0 ? (
         <div className="card p-10 text-center">
           <div className="mb-2 text-4xl">🎉</div>
-          <h2 className="font-display text-lg font-bold">All caught up</h2>
+          <h2 className="font-display text-lg">All caught up</h2>
           <p className="mt-1 text-sm text-bark-500">No sightings pending review.</p>
         </div>
       ) : (
@@ -991,7 +991,7 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full ${
+      className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded px-3 py-2.5 text-sm font-semibold transition-colors lg:w-full ${
         active
           ? "bg-paw-500 text-white shadow-warm"
           : "text-bark-600 hover:bg-black/[0.05] dark:text-bark-300 dark:hover:bg-white/[0.06]"
@@ -1025,7 +1025,7 @@ function HelperList({
     return (
       <div className="card p-10 text-center">
         <div className="mb-2 text-4xl">{kind === "ngo" ? "🤝" : "🐾"}</div>
-        <h2 className="font-display text-lg font-bold">
+        <h2 className="font-display text-lg">
           No {kind === "ngo" ? "NGO registrations" : "volunteers"} yet
         </h2>
         <p className="mt-1 text-sm text-bark-500">
@@ -1082,7 +1082,7 @@ function HelperList({
           )}
 
           {h.message && (
-            <p className="mt-2 flex gap-1.5 rounded-xl bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
+            <p className="mt-2 flex gap-1.5 rounded bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
               <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-bark-400" />
               {h.message}
             </p>
@@ -1125,7 +1125,7 @@ function VerifyList({
         <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <ShieldCheck className="h-7 w-7" />
         </span>
-        <h2 className="font-display text-lg font-bold">Nothing to verify</h2>
+        <h2 className="font-display text-lg">Nothing to verify</h2>
         <p className="mt-1 text-sm text-bark-500">
           Resolved cases awaiting outcome-proof verification will appear here.
         </p>
@@ -1172,7 +1172,7 @@ function VerifyList({
             </div>
 
             {c.outcome_note && (
-              <p className="mt-2 rounded-xl bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
+              <p className="mt-2 rounded bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
                 {c.outcome_note}
               </p>
             )}
@@ -1208,7 +1208,7 @@ function DogsList({
         <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <PawPrint className="h-7 w-7" />
         </span>
-        <h2 className="font-display text-lg font-bold">No dogs yet</h2>
+        <h2 className="font-display text-lg">No dogs yet</h2>
         <p className="mt-1 text-sm text-bark-500">
           Approved dogs will appear here for editing.
         </p>
@@ -1227,7 +1227,7 @@ function DogsList({
               src={d.cover_photo ?? ""}
               alt=""
               seed={d.id}
-              className="h-12 w-12 shrink-0 rounded-xl"
+              className="h-12 w-12 shrink-0 rounded"
             />
             <div className="min-w-0 flex-1">
               <a
@@ -1380,7 +1380,7 @@ function PartnerRequestsList({
           <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
             <HeartHandshake className="h-6 w-6" />
           </span>
-          <h2 className="font-display text-base font-bold">No pending requests</h2>
+          <h2 className="font-display text-base">No pending requests</h2>
           <p className="mt-1 text-sm text-bark-500">
             NGO access requests appear here. Or grant access directly above.
           </p>
@@ -1411,7 +1411,7 @@ function PartnerRequestsList({
             </div>
           </div>
           {r.message && (
-            <p className="mt-2 rounded-xl bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
+            <p className="mt-2 rounded bg-black/[0.03] px-3 py-2 text-sm text-bark-700 dark:bg-white/[0.04] dark:text-bark-200">
               {r.message}
             </p>
           )}
@@ -1457,7 +1457,7 @@ function GrantAccessForm({ onGrant }: { onGrant: (email: string, orgName: string
     else { setMsg({ ok: true, text: `${orgName} now has partner access.` }); setEmail(""); setOrgName(""); setArea(""); }
   }
 
-  const input = "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900";
+  const input = "w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900";
   return (
     <div className="card p-4">
       <p className="mb-2 text-sm font-semibold">Grant partner access directly</p>
@@ -1508,7 +1508,7 @@ function AddMemberForm({ orgs, onAddMember, onRemoveMember }: { orgs: AdminOrg[]
     else { setMsg({ ok: true, text: `Removed ${email.trim()} from the org.` }); setEmail(""); }
   }
 
-  const input = "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900";
+  const input = "w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900";
   return (
     <div className="card p-4">
       <p className="mb-2 text-sm font-semibold">Add a member to an organisation</p>
@@ -1549,7 +1549,7 @@ function ContentReportsList({ reports, busyId, onResolve }: { reports: AdminCont
     return (
       <div className="card p-8 text-center">
         <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300"><FlagIcon className="h-6 w-6" /></span>
-        <h2 className="font-display text-base font-bold">No content reports</h2>
+        <h2 className="font-display text-base">No content reports</h2>
         <p className="mt-1 text-sm text-bark-500">Flagged content from the community appears here.</p>
       </div>
     );
@@ -1634,7 +1634,7 @@ function FundraisersModList({
   }
 
   const field =
-    "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+    "w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
   return (
     <div className="space-y-3">
@@ -1658,7 +1658,7 @@ function FundraisersModList({
           </p>
           <div className="space-y-2">
             {pending.map((f) => (
-              <div key={f.id} className="rounded-xl bg-black/[0.03] p-3 dark:bg-white/[0.04]">
+              <div key={f.id} className="rounded bg-black/[0.03] p-3 dark:bg-white/[0.04]">
                 <p className="text-sm font-semibold leading-snug">{f.title}</p>
                 <p className="mt-0.5 text-xs text-bark-400">{f.created_by_name}</p>
                 <a
@@ -1773,7 +1773,7 @@ function FeedingZonesModList({
         <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
           <Utensils className="h-7 w-7" />
         </span>
-        <h2 className="font-display text-lg font-bold">No feeding zones yet</h2>
+        <h2 className="font-display text-lg">No feeding zones yet</h2>
         <p className="mt-1 text-sm text-bark-500">
           Community-added feeding spots will appear here for moderation.
         </p>
@@ -1838,13 +1838,13 @@ function Flag({ label, on, busy, onClick }: { label: string; on: boolean; busy: 
 function Proof({ label, url, seed }: { label: string; url: string | null; seed: string }) {
   if (!url) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-xl bg-bark-100 text-xs text-bark-400 dark:bg-bark-800">
+      <div className="flex aspect-square items-center justify-center rounded bg-bark-100 text-xs text-bark-400 dark:bg-bark-800">
         No {label.toLowerCase()}
       </div>
     );
   }
   return (
-    <div className="relative overflow-hidden rounded-xl">
+    <div className="relative overflow-hidden rounded">
       <DogPhoto src={url} alt={label} seed={seed} className="aspect-square w-full" />
       <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
         {label}

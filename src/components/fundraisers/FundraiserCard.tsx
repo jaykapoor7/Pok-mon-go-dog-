@@ -36,7 +36,7 @@ export function FundraiserCard({ f }: { f: Fundraiser }) {
           </span>
           {f.created_by_name && <span className="text-bark-500">{f.created_by_name}</span>}
         </div>
-        <h3 className="font-display text-base font-bold leading-snug tracking-tight">{f.title}</h3>
+        <h3 className="font-display text-base leading-snug tracking-tight">{f.title}</h3>
 
         {f.goal_amount != null && (
           <div className="mt-3">

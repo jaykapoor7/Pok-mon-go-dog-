@@ -34,7 +34,7 @@ function Timeline({ steps, offset }: { steps: Step[]; offset: number }) {
             {!last && (
               <span aria-hidden className="absolute left-[18px] top-10 h-[calc(100%-2.5rem)] w-px -translate-x-1/2 bg-paw-200 dark:bg-paw-500/30" />
             )}
-            <span className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paw-600 font-display text-sm font-bold text-white">
+            <span className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paw-600 font-display text-sm text-white">
               {offset + idx + 1}
             </span>
             <div className="flex-1 pt-0.5">
@@ -52,7 +52,7 @@ function GroupHeader({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div className="mb-5">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{kicker}</p>
-      <p className="mt-1 font-display text-lg font-bold tracking-tight text-bark-900 dark:text-bark-50">{title}</p>
+      <p className="mt-1 font-display text-lg tracking-tight text-bark-900 dark:text-bark-50">{title}</p>
     </div>
   );
 }
@@ -72,7 +72,7 @@ export default function WhatWeDoPage() {
           { label: "Live map", desc: "Every animal" },
           { label: "Partner OS", desc: "NGO operations" },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-black/[0.06] bg-white/70 p-3 text-center dark:border-white/10 dark:bg-bark-900/50">
+          <div key={s.label} className="rounded border border-black/[0.06] bg-white/70 p-3 text-center dark:border-white/10 dark:bg-bark-900/50">
             <p className="text-[13px] font-semibold tracking-tight text-bark-900 dark:text-bark-50">{s.label}</p>
             <p className="mt-0.5 text-[11px] text-bark-400">{s.desc}</p>
           </div>

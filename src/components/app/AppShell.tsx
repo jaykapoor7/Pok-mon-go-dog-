@@ -75,6 +75,10 @@ export function AppShell({
 
   return (
     <div className="spa">
+      <a href="#spa-main" className="skip-link">
+        Skip to content
+      </a>
+
       <div className="spa-top">
         <button
           className="spa-menu-btn"
@@ -153,7 +157,9 @@ export function AppShell({
           </div>
         </nav>
 
-        <main className={`spa-main ${flush ? "flush" : ""}`}>{children}</main>
+        <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
+          {children}
+        </main>
       </div>
     </div>
   );

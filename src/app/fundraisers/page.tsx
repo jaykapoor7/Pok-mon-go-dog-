@@ -19,7 +19,7 @@ export default async function FundraisersPage() {
     <div className="mx-auto max-w-2xl px-4 sm:px-6">
 
       <header className="mb-5">
-        <h1 className="font-display text-3xl font-extrabold tracking-tightest">Fundraisers</h1>
+        <h1 className="font-display text-3xl tracking-tightest">Fundraisers</h1>
         <p className="mt-1 text-sm text-bark-500">
           Reputable rescues raising for vet bills, sterilisation and emergencies,
           partner NGOs and campaigns we&apos;ve vetted. Every one links straight to

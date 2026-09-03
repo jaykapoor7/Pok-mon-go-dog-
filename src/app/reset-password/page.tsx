@@ -54,13 +54,13 @@ export default function ResetPasswordPage() {
         ) : done ? (
           <>
             <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
-            <h1 className="font-display text-2xl font-extrabold">Password updated</h1>
+            <h1 className="font-display text-2xl">Password updated</h1>
             <p className="mt-1.5 text-sm text-bark-500">You&apos;re all set, you can use your new password to sign in.</p>
             <Link href="/app" className="btn-primary mt-5 w-full py-3">Go to the app</Link>
           </>
         ) : hasSession ? (
           <>
-            <h1 className="font-display text-2xl font-extrabold">Set a new password</h1>
+            <h1 className="font-display text-2xl">Set a new password</h1>
             <p className="mt-1.5 text-sm text-bark-500">Choose a new password for your StrayPaw account.</p>
             <form onSubmit={submit} className="mt-4 space-y-3 text-left">
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password (min 6)" className={field} autoFocus />
@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
           </>
         ) : (
           <>
-            <h1 className="font-display text-2xl font-extrabold">Link expired</h1>
+            <h1 className="font-display text-2xl">Link expired</h1>
             <p className="mt-1.5 text-sm text-bark-500">This reset link is invalid or has expired. Request a new one from the sign-in screen.</p>
             <Link href="/app" className="btn-ghost mt-5 w-full py-3">Back to the app</Link>
           </>

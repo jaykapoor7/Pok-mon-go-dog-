@@ -49,7 +49,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
       <div className="card overflow-hidden">
         <div className="bg-paw-600 p-6 text-white sm:p-7">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">Lend a hand</p>
-          <h1 className="mt-1.5 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+          <h1 className="mt-1.5 font-display text-2xl tracking-tight sm:text-3xl">
             Animals near you need help
           </h1>
           <p className="mt-1.5 text-sm text-white/85">

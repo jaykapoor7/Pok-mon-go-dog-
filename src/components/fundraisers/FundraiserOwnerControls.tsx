@@ -10,7 +10,7 @@ import type { Fundraiser, BudgetLine } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const INPUT =
-  "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+  "w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
 type Panel = "progress" | "update" | "budget";
 
@@ -131,7 +131,7 @@ export function FundraiserOwnerControls({ fundraiser }: { fundraiser: Fundraiser
                 className={cn(INPUT, "min-h-[90px] resize-y")}
               />
               <div className="flex items-center gap-3">
-                <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-2 rounded-xl border border-black/10 px-3 py-2 text-sm font-medium text-bark-600 dark:border-white/10 dark:text-bark-200">
+                <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-2 rounded border border-black/10 px-3 py-2 text-sm font-medium text-bark-600 dark:border-white/10 dark:text-bark-200">
                   {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />} Photo
                 </button>
                 {photo && (
@@ -177,7 +177,7 @@ export function FundraiserOwnerControls({ fundraiser }: { fundraiser: Fundraiser
                         placeholder="₹"
                         className={cn(INPUT, "w-24")}
                       />
-                      <button onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))} className="grid w-10 shrink-0 place-items-center rounded-xl border border-black/10 text-bark-400 dark:border-white/10">
+                      <button onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))} className="grid w-10 shrink-0 place-items-center rounded border border-black/10 text-bark-400 dark:border-white/10">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>

@@ -36,11 +36,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 function Stat({ value, label, icon: Icon }: { value: number; label: string; icon: any }) {
   return (
     <div className="flex items-center gap-3 rounded border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-bark-900">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-paw-50 text-paw-600 dark:bg-paw-900/30 dark:text-paw-300">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded bg-paw-50 text-paw-600 dark:bg-paw-900/30 dark:text-paw-300">
         <Icon className="h-5 w-5" />
       </span>
       <div>
-        <div className="font-display text-xl font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
+        <div className="font-display text-xl tracking-tightest text-bark-900 dark:text-bark-50">
           {new Intl.NumberFormat("en-IN").format(value)}
         </div>
         <div className="text-xs text-bark-500">{label}</div>
@@ -97,7 +97,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
             <div className="mb-1.5">
               <VerifiedBadge verified={org.verified} />
             </div>
-            <h1 className="font-display text-2xl font-extrabold tracking-tightest text-bark-900 dark:text-bark-50 sm:text-3xl">
+            <h1 className="font-display text-2xl tracking-tightest text-bark-900 dark:text-bark-50 sm:text-3xl">
               {org.name}
             </h1>
             {location && (
@@ -141,7 +141,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
         {/* Active campaigns */}
         {campaigns.length > 0 && (
           <section className="mt-8">
-            <h2 className="font-display text-xl font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
+            <h2 className="font-display text-xl tracking-tightest text-bark-900 dark:text-bark-50">
               Active campaigns
             </h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -155,7 +155,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
         {/* About */}
         {org.about && (
           <section className="mt-8">
-            <h2 className="font-display text-xl font-extrabold tracking-tightest text-bark-900 dark:text-bark-50">
+            <h2 className="font-display text-xl tracking-tightest text-bark-900 dark:text-bark-50">
               About {org.name}
             </h2>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-bark-700 dark:text-bark-200">

@@ -82,7 +82,7 @@ export default function GetInvolvedPage() {
   return (
     <PlatformShell>
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight text-bark-900 sm:text-4xl">
+        <h1 className="font-display text-3xl tracking-tight text-bark-900 sm:text-4xl">
           Get involved
         </h1>
         <p className="mt-3 text-bark-500">
@@ -113,7 +113,7 @@ export default function GetInvolvedPage() {
                 id={w.id}
                 className="scroll-mt-28 rounded-lg border border-bark-100 bg-white p-6"
               >
-                <h2 className="flex items-center gap-2 font-display text-lg font-bold text-bark-900">
+                <h2 className="flex items-center gap-2 font-display text-lg text-bark-900">
                   <Icon className="h-5 w-5 text-paw-500" />
                   {w.title}
                 </h2>
@@ -133,7 +133,7 @@ export default function GetInvolvedPage() {
 
         {/* Quick tips */}
         <section id="tips" className="mt-12 scroll-mt-28">
-          <h2 className="font-display text-xl font-bold text-bark-900">
+          <h2 className="font-display text-xl text-bark-900">
             Everyday tips
           </h2>
           <p className="mt-1 text-sm text-bark-400">

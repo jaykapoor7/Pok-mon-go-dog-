@@ -23,7 +23,7 @@ export function ResearchClient() {
     <div>
       <header className="max-w-3xl">
         <SectionLabel>Research</SectionLabel>
-        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">The evidence base.</h1>
+        <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">The evidence base.</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
           A curated index of government, research and NGO sources on street dogs, rabies and Animal Birth Control in India. These are pointers to primary sources - always verify figures at the source.
         </p>
@@ -49,7 +49,7 @@ export function ResearchClient() {
               <span>· {r.geography}</span>
               <span>· {r.year}</span>
             </div>
-            <h2 className="mt-2 font-display text-lg font-bold leading-snug tracking-tight">
+            <h2 className="mt-2 font-display text-lg leading-snug tracking-tight">
               {r.url ? (
                 <a href={r.url} target="_blank" rel="noopener noreferrer" className="hover:text-paw-600">{r.title} <ExternalLink className="inline h-4 w-4 align-baseline text-bark-300" /></a>
               ) : r.title}

@@ -20,7 +20,7 @@ export default async function NewsPage() {
     <div className="mx-auto max-w-2xl px-4 sm:px-6">
 
       <header className="mb-6">
-        <h1 className="font-display text-3xl font-extrabold tracking-tightest">News &amp; orders</h1>
+        <h1 className="font-display text-3xl tracking-tightest">News &amp; orders</h1>
         <p className="mt-1 text-sm text-bark-500">
           The latest on India&apos;s street dogs, pulled live from Indian news sources.
           Every item links to its original source.
@@ -37,7 +37,7 @@ export default async function NewsPage() {
         <div className="space-y-8">
           {orders.length > 0 && (
             <section>
-              <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+              <h2 className="mb-3 flex items-center gap-2 font-display text-lg tracking-tight">
                 <Scale className="h-5 w-5 text-paw-600" /> Government orders &amp; policy
               </h2>
               <div className="space-y-3">
@@ -50,7 +50,7 @@ export default async function NewsPage() {
 
           {news.length > 0 && (
             <section>
-              <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+              <h2 className="mb-3 flex items-center gap-2 font-display text-lg tracking-tight">
                 <Newspaper className="h-5 w-5 text-paw-600" /> Latest news
               </h2>
               <div className="space-y-3">
@@ -86,7 +86,7 @@ function NewsCard({ n }: { n: NewsItem }) {
         {n.source_name && <span className="text-bark-500">{n.source_name}</span>}
         {n.published_at && <span className="text-bark-400">· {formatDate(n.published_at)}</span>}
       </div>
-      <h3 className="font-display text-base font-bold leading-snug tracking-tight">{n.title}</h3>
+      <h3 className="font-display text-base leading-snug tracking-tight">{n.title}</h3>
       <span className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-paw-600">
         Read the source <ExternalLink className="h-3.5 w-3.5" />
       </span>

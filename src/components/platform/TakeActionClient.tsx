@@ -38,7 +38,7 @@ export function TakeActionClient() {
     <div>
       <header className="max-w-3xl">
         <SectionLabel>Take Action</SectionLabel>
-        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Turn what the data shows into what you do.</h1>
+        <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">Turn what the data shows into what you do.</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
           Pick a place. We surface what the numbers say it needs, the evidence-based actions that respond, and the people already working there.
         </p>
@@ -56,9 +56,9 @@ export function TakeActionClient() {
           {readings.map(({ m, dp }) => {
             const def = METRIC_BY_ID.get(m)!;
             return (
-              <div key={m} className="rounded-xl border border-black/[0.06] p-4 dark:border-white/[0.08]">
+              <div key={m} className="rounded border border-black/[0.06] p-4 dark:border-white/[0.08]">
                 <div className="text-[12px] text-bark-500">{def.short}</div>
-                <div className="mt-1 font-display text-2xl font-bold tabular-nums">
+                <div className="mt-1 font-display text-2xl tabular-nums">
                   {dp ? (def.unit === "%" ? `${dp.value}%` : new Intl.NumberFormat("en-IN").format(dp.value)) : <span className="text-[15px] font-medium text-status-injured">No data</span>}
                 </div>
                 {dp && <div className="mt-1.5"><SourceBadge type={dp.sourceType} sample={dp.sample} /></div>}
@@ -70,7 +70,7 @@ export function TakeActionClient() {
       </div>
 
       {/* Actions */}
-      <h2 className="mt-8 font-display text-xl font-bold tracking-tight">Recommended actions</h2>
+      <h2 className="mt-8 font-display text-xl tracking-tight">Recommended actions</h2>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         {prioritised.map((a) => {
           const relevant = a.metric && gapMetrics.includes(a.metric);
@@ -80,7 +80,7 @@ export function TakeActionClient() {
                 <span className="text-[11px] font-semibold uppercase tracking-widest text-bark-400">{a.audience}</span>
                 {relevant && <span className="rounded-full bg-paw-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Priority here</span>}
               </div>
-              <h3 className="mt-2 font-display text-lg font-bold leading-snug tracking-tight">{a.title}</h3>
+              <h3 className="mt-2 font-display text-lg leading-snug tracking-tight">{a.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-bark-600 dark:text-bark-300">{a.rationale}</p>
               {a.href && a.cta && (
                 <Link href={a.href} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-paw-600 hover:text-paw-700 dark:text-paw-300">{a.cta} <ArrowRight className="h-4 w-4" /></Link>
@@ -94,7 +94,7 @@ export function TakeActionClient() {
       <div className="mt-8 rounded border border-black/[0.08] p-6 dark:border-white/[0.1]">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h2 className="font-display text-xl font-bold tracking-tight">Who&apos;s working in {state.name}?</h2>
+            <h2 className="font-display text-xl tracking-tight">Who&apos;s working in {state.name}?</h2>
             <p className="mt-1 text-sm text-bark-600 dark:text-bark-300">
               {orgs.length ? "Real, named organisations in StrayPaw's directory known to work here." : "No organisation in our directory is confirmed to work in this state yet - that's a gap you can help close."}
             </p>
@@ -107,9 +107,9 @@ export function TakeActionClient() {
         {orgs.length > 0 && (
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {orgs.map((o) => (
-              <div key={o.id} className="rounded-xl border border-black/[0.06] p-4 dark:border-white/[0.08]">
+              <div key={o.id} className="rounded border border-black/[0.06] p-4 dark:border-white/[0.08]">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-display text-[15px] font-bold leading-snug tracking-tight">{o.name}</h3>
+                  <h3 className="font-display text-[15px] leading-snug tracking-tight">{o.name}</h3>
                   {o.url && <a href={o.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-bark-400 hover:text-paw-600"><ExternalLink className="h-4 w-4" /></a>}
                 </div>
                 <p className="mt-0.5 text-[12px] text-bark-500">{o.city}</p>

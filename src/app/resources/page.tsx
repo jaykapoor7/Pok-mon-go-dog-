@@ -57,7 +57,7 @@ export default function ResourcesPage() {
   return (
     <PlatformShell>
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight text-bark-900 sm:text-4xl">
+        <h1 className="font-display text-3xl tracking-tight text-bark-900 sm:text-4xl">
           Resources
         </h1>
         <p className="mt-3 text-bark-500">
@@ -76,7 +76,7 @@ export default function ResourcesPage() {
 
         {/* ── Emergency helplines ── */}
         <section id="helplines" className="mt-12 scroll-mt-28">
-          <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
+          <h2 className="flex items-center gap-2 font-display text-xl text-bark-900">
             <Phone className="h-5 w-5 text-paw-500" />
             Emergency rescue helplines
           </h2>
@@ -102,7 +102,7 @@ export default function ResourcesPage() {
 
         {/* ── Post-bite care ── */}
         <section id="post-bite" className="mt-12 scroll-mt-28">
-          <h2 className="font-display text-xl font-bold text-bark-900">
+          <h2 className="font-display text-xl text-bark-900">
             What to do after a dog bite
           </h2>
           <p className="mt-1 text-sm text-bark-400">
@@ -125,7 +125,7 @@ export default function ResourcesPage() {
 
         {/* ── Data & research ── */}
         <section id="data" className="mt-12 scroll-mt-28">
-          <h2 className="font-display text-xl font-bold text-bark-900">
+          <h2 className="font-display text-xl text-bark-900">
             Data and research
           </h2>
           <p className="mt-2 text-sm text-bark-600">

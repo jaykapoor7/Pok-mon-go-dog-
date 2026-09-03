@@ -18,7 +18,7 @@ export default async function FeedPage() {
       <header className="mb-6 flex items-end justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Community</p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Sightings feed</h1>
+          <h1 className="mt-1 font-display text-2xl tracking-tight sm:text-3xl">Sightings feed</h1>
           <p className="mt-1 text-sm text-bark-500">Fresh street-animal moments from across India.</p>
         </div>
         <Link href="/report" className="btn-primary shrink-0 px-4 py-2.5 text-sm">

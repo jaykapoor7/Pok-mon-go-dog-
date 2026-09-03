@@ -66,7 +66,7 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
     <div className="card overflow-hidden">
       <div className="flex items-center justify-between border-b border-bark-100 p-4">
         <div>
-          <h3 className="font-display font-bold">Dogs needing help</h3>
+          <h3 className="font-display">Dogs needing help</h3>
           <p className="text-xs text-bark-400">
             {visible.length} in queue · {selected.size} selected
           </p>
@@ -129,7 +129,7 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
                 src={dog.cover_photo}
                 alt="dog"
                 seed={dog.id}
-                className="h-12 w-12 shrink-0 rounded-xl"
+                className="h-12 w-12 shrink-0 rounded"
               />
               <div className="min-w-0 flex-1">
                 <Link

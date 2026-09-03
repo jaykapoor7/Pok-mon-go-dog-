@@ -1,23 +1,31 @@
 import Link from "next/link";
-import { PawPrint, ArrowLeft } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { CoverageGap } from "@/components/site/vectors";
+
+export const metadata = { title: "Not found, StrayPaw" };
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[70dvh] flex-col items-center justify-center px-6 text-center">
-      <span className="mb-4 flex h-20 w-20 items-center justify-center rounded bg-paw-100 text-paw-500">
-        <PawPrint className="h-10 w-10" />
+    <div className="mx-auto flex max-w-lg flex-col items-start py-16">
+      <span className="text-electric">
+        <CoverageGap size={104} />
       </span>
-      <h1 className="font-display text-3xl font-extrabold">This pup wandered off</h1>
-      <p className="mt-2 max-w-sm text-bark-500">
-        We couldn&apos;t find the page you were looking for. Let&apos;s get you
-        back to the dogs.
+      <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-bark-500">
+        404 / no record
       </p>
-      <div className="mt-6 flex gap-3">
-        <Link href="/app" className="btn-primary px-6 py-3">
-          <ArrowLeft className="h-4 w-4" /> Home
+      <h1 className="mt-3 font-display text-4xl leading-none tracking-tight">
+        Nothing at this address.
+      </h1>
+      <p className="mt-4 text-[15px] leading-relaxed text-bark-600">
+        The page you asked for doesn&apos;t exist, or it moved. Nothing was lost
+        — records keep their own URLs.
+      </p>
+      <div className="mt-7 flex flex-wrap gap-3">
+        <Link href="/map" className="btn-primary px-5 py-3">
+          Open the living map <ArrowUpRight className="h-4 w-4" />
         </Link>
-        <Link href="/map" className="btn-ghost px-6 py-3">
-          Explore the map
+        <Link href="/app" className="btn-ghost px-5 py-3">
+          Console home
         </Link>
       </div>
     </div>

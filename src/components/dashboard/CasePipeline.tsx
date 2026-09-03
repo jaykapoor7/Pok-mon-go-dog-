@@ -43,7 +43,7 @@ export function CasePipeline({ cases }: { cases: Case[] }) {
                 <Link
                   key={c.id}
                   href={`/cases/${c.id}`}
-                  className="block rounded-xl bg-white p-2.5 shadow-sm transition-transform hover:-translate-y-0.5 dark:bg-bark-900"
+                  className="block rounded bg-white p-2.5 shadow-sm transition-transform hover:-translate-y-0.5 dark:bg-bark-900"
                 >
                   <div className="flex items-center gap-1.5">
                     <span

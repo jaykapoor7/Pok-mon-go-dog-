@@ -52,7 +52,7 @@ export default function ReportContentPage() {
         <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-status-vaccinated/15 text-status-vaccinated">
           <Check className="h-8 w-8" />
         </span>
-        <h1 className="font-display text-2xl font-extrabold">Report received</h1>
+        <h1 className="font-display text-2xl">Report received</h1>
         <p className="mt-2 text-sm text-bark-500">
           Thank you. Our team will review this and take action if it breaks our
           Community Guidelines.
@@ -66,7 +66,7 @@ export default function ReportContentPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 sm:px-6">
-      <h1 className="font-display text-3xl font-extrabold">Report content</h1>
+      <h1 className="font-display text-3xl">Report content</h1>
       <p className="mt-1 text-sm text-bark-500">
         Flag a sighting or photo that breaks our guidelines. Reports are
         confidential.
@@ -133,7 +133,7 @@ export default function ReportContentPage() {
         </div>
 
         {error && (
-          <p className="rounded-xl bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
+          <p className="rounded bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
             {error}
           </p>
         )}

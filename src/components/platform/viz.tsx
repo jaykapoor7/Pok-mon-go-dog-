@@ -13,7 +13,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 export function Figure({ value, label, sub, tone }: { value: string; label: string; sub?: string; tone?: string }) {
   return (
     <div>
-      <div className={`font-display text-3xl font-extrabold tracking-tight tabular-nums sm:text-4xl ${tone ?? "text-bark-900 dark:text-white"}`}>{value}</div>
+      <div className={`font-display text-3xl tracking-tight tabular-nums sm:text-4xl ${tone ?? "text-bark-900 dark:text-white"}`}>{value}</div>
       <div className="mt-1 text-[13px] font-medium text-bark-700 dark:text-bark-200">{label}</div>
       {sub && <div className="mt-0.5 text-[12px] text-bark-400">{sub}</div>}
     </div>

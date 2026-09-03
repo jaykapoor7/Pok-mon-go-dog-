@@ -87,7 +87,7 @@ export default function ReportPage() {
   return (
     <div className="mx-auto max-w-lg px-4 sm:px-6">
       <header className="mb-4">
-        <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Report a sighting</h1>
+        <h1 className="font-display text-2xl tracking-tight sm:text-3xl">Report a sighting</h1>
         <p className="mt-1 text-sm text-bark-500">
           {isAuthed ? <>Signed in as <span className="font-semibold text-bark-700 dark:text-bark-200">{user?.name}</span></> : "Reporting as a guest"}
         </p>
@@ -231,7 +231,7 @@ export default function ReportPage() {
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.1 }} className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
                 <Clock className="h-9 w-9" />
               </motion.div>
-              <h2 className="font-display text-2xl font-extrabold">Your sighting is pending review</h2>
+              <h2 className="font-display text-2xl">Your sighting is pending review</h2>
               <p className="mt-2 text-sm text-bark-500">Thank you for helping track India&apos;s street animals. We&apos;ll publish it to the map once it clears a quick review.</p>
               <div className="mt-6 space-y-2">
                 <Link href="/map" className="btn-primary w-full py-3">Back to the map <ArrowRight className="h-4 w-4" /></Link>
@@ -248,7 +248,7 @@ export default function ReportPage() {
 function StepTitle({ icon, title, hint }: { icon: React.ReactNode; title: string; hint: string }) {
   return (
     <div className="mb-4">
-      <h2 className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+      <h2 className="flex items-center gap-2 font-display text-lg tracking-tight">
         <span className="grid h-7 w-7 place-items-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">{icon}</span>
         {title}
       </h2>

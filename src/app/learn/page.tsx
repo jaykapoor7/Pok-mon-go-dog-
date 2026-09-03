@@ -69,7 +69,7 @@ export default function LearnPage() {
   return (
     <PlatformShell>
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight text-bark-900 sm:text-4xl">
+        <h1 className="font-display text-3xl tracking-tight text-bark-900 sm:text-4xl">
           Learn
         </h1>
         <p className="mt-3 text-bark-500">
@@ -92,7 +92,7 @@ export default function LearnPage() {
           const Icon = s.icon;
           return (
             <section key={s.id} id={s.id} className="mt-12 scroll-mt-28">
-              <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
+              <h2 className="flex items-center gap-2 font-display text-xl text-bark-900">
                 <Icon className="h-5 w-5 text-paw-500" />
                 {s.title}
               </h2>
@@ -109,7 +109,7 @@ export default function LearnPage() {
 
         {/* Key sources */}
         <section id="sources" className="mt-12 scroll-mt-28">
-          <h2 className="flex items-center gap-2 font-display text-xl font-bold text-bark-900">
+          <h2 className="flex items-center gap-2 font-display text-xl text-bark-900">
             <BookOpen className="h-5 w-5 text-paw-500" />
             Key sources and further reading
           </h2>

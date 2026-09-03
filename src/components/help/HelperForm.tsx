@@ -109,7 +109,7 @@ export function HelperForm({
             {done ? (
               <div className="py-2 text-center">
                 <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-sterilised" />
-                <h2 className="font-display text-xl font-extrabold">Thank you 💚</h2>
+                <h2 className="font-display text-xl">Thank you 💚</h2>
                 <p className="mt-1.5 text-sm text-bark-500">
                   We&apos;ve got your details and will reach out about how you can help.
                 </p>
@@ -119,7 +119,7 @@ export function HelperForm({
               </div>
             ) : (
               <>
-                <h2 className="font-display text-xl font-extrabold">
+                <h2 className="font-display text-xl">
                   {target?.label ? `Help ${target.label}` : "Register to volunteer"}
                 </h2>
                 <p className="mt-1 text-sm text-bark-500">

@@ -190,7 +190,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
 
         {error && <p className="text-sm font-medium text-status-injured">{error}</p>}
 
-        <button onClick={submit} disabled={busy} className="sticky bottom-4 flex w-full items-center justify-center gap-2 rounded-xl bg-paw-500 py-4 text-base font-semibold text-white shadow-warm hover:bg-paw-600 disabled:opacity-50">
+        <button onClick={submit} disabled={busy} className="sticky bottom-4 flex w-full items-center justify-center gap-2 rounded bg-paw-500 py-4 text-base font-semibold text-white shadow-warm hover:bg-paw-600 disabled:opacity-50">
           {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />} Save &amp; next
         </button>
       </div>

@@ -21,7 +21,7 @@ export function CommandCenter({ cases }: { cases: Case[] }) {
   return (
     <section className="mb-10">
       <div className="mb-4">
-        <h2 className="font-display text-xl font-bold tracking-tightest sm:text-2xl">
+        <h2 className="font-display text-xl tracking-tightest sm:text-2xl">
           What needs attention today
         </h2>
         <p className="text-sm text-bark-500">
@@ -93,7 +93,7 @@ export function CommandCenter({ cases }: { cases: Case[] }) {
 
       {/* Phase 2: workload */}
       <div className="card mt-4 p-5">
-        <h3 className="mb-3 font-display font-bold tracking-tight">
+        <h3 className="mb-3 font-display tracking-tight">
           Active workload
         </h3>
         {team.length === 0 ? (

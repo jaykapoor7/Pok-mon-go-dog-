@@ -27,7 +27,7 @@ export function SightingTimeline({ sightings }: { sightings: Sighting[] }) {
               src={s.photo_url}
               alt="sighting"
               seed={s.id}
-              className="h-16 w-16 shrink-0 rounded-xl"
+              className="h-16 w-16 shrink-0 rounded"
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
