@@ -51,8 +51,8 @@ export function Hero() {
         </div>
 
         <div className="sp-hero-caption">
-          <span>FIELD RECORD / SP-1042</span>
-          <span>DELHI NCR / 07:42 IST</span>
+          <span>DELHI NCR</span>
+          <span>~10 LAKH COMMUNITY DOGS / 45% STERILISED</span>
         </div>
         <div className="sp-hero-signal left" aria-hidden="true">
           OBSERVE <i />

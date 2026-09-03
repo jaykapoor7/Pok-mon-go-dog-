@@ -1,51 +1,29 @@
 import Link from "next/link";
-import { ArrowUpRight, ChevronRight, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Radio, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
+import { DELHI_ABC_COVERAGE, DELHI_POPULATION, num } from "@/lib/platform/network";
+import { getCityStats, getRecentSightings } from "@/lib/data";
+import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Console, StrayPaw" };
 
-/* Illustrative until the data layer is wired — the shape is the point. */
-const KPIS = [
-  { label: "Live sightings", value: "65", sub: "+8 in the last 24 hours" },
-  { label: "Active cases", value: "12", sub: "4 need a volunteer today" },
-  { label: "Data gaps", value: "07", sub: "across 3 local clusters", alert: true },
-];
+export default async function ConsoleHome() {
+  // Live counts from the database. Pre-launch these are genuinely zero, and
+  // the page says so rather than showing invented activity.
+  const [stats, sightings] = await Promise.all([
+    getCityStats(),
+    getRecentSightings(6),
+  ]);
 
-const NEARBY = [
-  {
-    title: "Injured dog near Masjid Moth",
-    time: "09:43",
-    pct: 78,
-    tone: "",
-    note: "Volunteer needed / 1.2 km away",
-    href: "/map",
-  },
-  {
-    title: "18 unsterilised animals, Rohini",
-    time: "09:38",
-    pct: 48,
-    tone: "field",
-    note: "Study signal / validating",
-    href: "/studies",
-  },
-  {
-    title: "SP-1039 · vet confirmed",
-    time: "09:31",
-    pct: 100,
-    tone: "done",
-    note: "Case update / resolved",
-    href: "/outcomes",
-  },
-];
-
-export default function ConsoleHome() {
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+
+  const hasActivity = sightings.length > 0;
 
   return (
     <AppShell>
@@ -61,50 +39,74 @@ export default function ConsoleHome() {
         </Link>
       </div>
 
+      {/* Live network counts. Zero is a real number and is shown as one. */}
       <div className="spa-kpis">
-        {KPIS.map((k) => (
-          <div className={`spa-kpi ${k.alert ? "alert" : ""}`} key={k.label}>
-            <span>{k.label}</span>
-            <b>{k.value}</b>
-            <small>{k.sub}</small>
-          </div>
-        ))}
+        <div className="spa-kpi">
+          <span>Animals on the map</span>
+          <b>{num(stats.dogsSpotted)}</b>
+          <small>reported by this community</small>
+        </div>
+        <div className="spa-kpi">
+          <span>Needing help</span>
+          <b>{num(stats.needsHelp)}</b>
+          <small>flagged and unresolved</small>
+        </div>
+        <div className="spa-kpi">
+          <span>Sterilised</span>
+          <b>{num(stats.dogsSterilised)}</b>
+          <small>recorded on a profile</small>
+        </div>
       </div>
 
       <div className="spa-grid">
         <div className="spa-panel">
           <div className="spa-panel-head">
-            <b>What&apos;s happening nearby</b>
-            <Link href="/map">
-              Open map <ChevronRight size={12} />
+            <b>Recent activity</b>
+            <Link href="/feed">
+              Open feed <ChevronRight size={12} />
             </Link>
           </div>
-          {NEARBY.map((r) => (
-            <div className="spa-row" key={r.title}>
-              <Link href={r.href}>{r.title}</Link>
-              <b>{r.time}</b>
-              <div className="bar">
-                <i className={r.tone} style={{ width: `${r.pct}%` }} />
+
+          {hasActivity ? (
+            sightings.map((s) => (
+              <div className="spa-row" key={s.id}>
+                <Link href={`/dog/${s.dog_id}`}>
+                  {s.notes?.trim() || "Sighting reported"}
+                </Link>
+                <b>{timeAgo(s.created_at)}</b>
               </div>
-              <small>{r.note}</small>
+            ))
+          ) : (
+            <div className="panel-empty">
+              <Radio size={26} strokeWidth={1.25} />
+              <p>
+                <b>Nothing reported yet.</b> The first sighting on this map will
+                show up here.
+              </p>
+              <Link href="/report" className="tlink">
+                Report an animal <ArrowUpRight size={12} />
+              </Link>
             </div>
-          ))}
+          )}
         </div>
 
         <div className="spa-panel">
           <div className="spa-panel-head">
-            <b>Take action</b>
-            <span className="spa-chip">4 nearby</span>
+            <b>The wider picture</b>
           </div>
           <div className="spa-mini">
             <ShieldCheck size={20} />
-            <h4>Help close a local gap</h4>
+            <h4>
+              {Math.round(DELHI_ABC_COVERAGE.value * 100)}% of Delhi is
+              sterilised
+            </h4>
             <p>
-              Choose a field action, contribute an observation, or join an active
-              study.
+              Across roughly {num(DELHI_POPULATION.value)} community dogs. The{" "}
+              {DELHI_ABC_COVERAGE.year} survey established the city total — but
+              not which neighbourhoods carry the shortfall.
             </p>
-            <Link href="/get-involved">
-              Find an action <ArrowUpRight size={13} />
+            <Link href="/gaps">
+              See what is unknown <ArrowUpRight size={13} />
             </Link>
           </div>
         </div>
@@ -115,13 +117,7 @@ export default function ConsoleHome() {
           <span className="spa-mono">Living map / Delhi NCR</span>
           <h4>Signals, studies, needs and outcomes in one place.</h4>
         </div>
-        <div className="spa-minimap">
-          <span />
-          <span />
-          <span />
-          <i />
-          <b>65 signals</b>
-        </div>
+        <div />
         <Link href="/map">
           Open map <ArrowUpRight size={14} />
         </Link>

@@ -14,6 +14,7 @@ import {
   type MarkerState,
 } from "@/lib/marker-state";
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
+import { UNIT_COSTS, inr } from "@/lib/platform/network";
 import type { Dog, FeedingZone } from "@/lib/types";
 
 // ── design tokens ──────────────────────────────────────────────────────────
@@ -25,22 +26,6 @@ const DANGER = "#ff6a4f"; // gap / urgency
 const VIOLET = "#a68cff"; // study / research
 const BORDER = "rgba(255,255,255,0.07)";
 const BORDER_MED = "rgba(255,255,255,0.12)";
-
-// ── static demo data ────────────────────────────────────────────────────────
-const LIVE_REPORTS = [
-  { id: "SP-1050", icon: "🐾", text: "Dog sighted near Moolchand", time: "19:45", color: MINT },
-  { id: "SP-1049", icon: "⚠", text: "Injured dog near Masjid Moth", time: "19:43", color: DANGER },
-  { id: "SP-1048", icon: "🐾", text: "Pack of 4 near Sarai Kale Khan", time: "19:41", color: MINT },
-  { id: "SP-1047", icon: "🍲", text: "Food request near CR Park", time: "19:39", color: SAFFRON },
-  { id: "SP-1046", icon: "💉", text: "Rabies vaccination drive today", time: "19:37", color: VIOLET },
-];
-
-const KPI = [
-  { value: "65", label: "SIGHTINGS", sub: "+12 TODAY", color: SAFFRON },
-  { value: "38", label: "RESOURCES", sub: "ACTIVE", color: MINT },
-  { value: "12", label: "ACTIVE CASES", sub: "+2 TODAY", color: VIOLET },
-  { value: "7", label: "GAPS", sub: "MONITORING", color: DANGER },
-];
 
 // ── icons ───────────────────────────────────────────────────────────────────
 function XIcon({ size = 16 }: { size?: number }) {
@@ -95,6 +80,23 @@ export function MapView({
     celebrate();
     (kind === "fed" ? logFeed(dog.id, user?.name) : logSeen(dog.id)).catch(() => {});
   }
+
+  /* Everything in the bottom strip is counted from the records actually
+     loaded. Pre-launch these are genuinely zero, and the strip says so
+     rather than showing invented activity. */
+  const recent = useMemo(() => allDogs.slice(0, 5), [allDogs]);
+
+  const counts = useMemo(() => {
+    const needsHelp = allDogs.filter((d) => d.needs_help).length;
+    const sterilised = allDogs.filter((d) => d.sterilised).length;
+    const vaccinated = allDogs.filter((d) => d.vaccinated).length;
+    return [
+      { value: String(allDogs.length), label: "ON THE MAP", sub: "REPORTED", color: SAFFRON },
+      { value: String(needsHelp), label: "NEED HELP", sub: "UNRESOLVED", color: DANGER },
+      { value: String(sterilised), label: "STERILISED", sub: "ON RECORD", color: MINT },
+      { value: String(vaccinated), label: "VACCINATED", sub: "ON RECORD", color: VIOLET },
+    ];
+  }, [allDogs]);
 
   const dist = selected && coords ? distanceMeters(coords, selected) : null;
   const fmtDist = (d: number) => d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1)} km`;
@@ -223,45 +225,37 @@ export function MapView({
             display: "flex",
             gap: 0,
           }}>
-            {/* Live reports */}
+            {/* Live reports — real sightings from the loaded records. */}
             <div style={{ flex: "0 0 340px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", overflow: "hidden" }}>
-              <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.68)", marginBottom: 8 }}>LIVE COMMUNITY REPORTS</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {/* Tracking stays on the mono ID and timestamp; the message
-                    itself is prose and reads better without it. */}
-                {LIVE_REPORTS.slice(0, 5).map((r) => (
-                  <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5 }}>
-                    <span style={{ fontSize: 12, color: r.color, width: 12, textAlign: "center", flexShrink: 0 }}>{r.icon}</span>
-                    <span style={{ color: r.color, flexShrink: 0, fontWeight: 600, letterSpacing: "0.06em" }}>{r.id}</span>
-                    <span style={{ color: "rgba(255,255,255,0.88)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.text}</span>
-                    <span style={{ color: "rgba(255,255,255,0.55)", flexShrink: 0, letterSpacing: "0.06em" }}>{r.time}</span>
-                  </div>
-                ))}
-              </div>
+              <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.68)", marginBottom: 8 }}>LATEST REPORTS</div>
+              {recent.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {recent.map((d) => (
+                    <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: d.needs_help ? DANGER : MINT, flexShrink: 0 }} />
+                      <span style={{ color: "rgba(255,255,255,0.88)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {dogLabel(d)}
+                      </span>
+                      <span style={{ color: "rgba(255,255,255,0.55)", flexShrink: 0, letterSpacing: "0.06em" }}>
+                        {d.zone || d.city || "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.55)" }}>
+                  No animals reported yet. The first report on this map appears here.
+                </p>
+              )}
             </div>
 
-            {/* Sightings sparkline */}
-            <div style={{ flex: "0 0 200px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.68)" }}>SIGHTINGS (24H)</span>
-                <span style={{ fontSize: 12.0, fontWeight: 700, color: MINT }}>65</span>
-              </div>
-              <div style={{ flex: 1, position: "relative" }}>
-                <Sparkline />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: "0.1em" }}>19:00</span>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: "0.1em" }}>NOW</span>
-              </div>
-            </div>
-
-            {/* KPI chips */}
+            {/* Live counts, derived from the records actually loaded. */}
             <div style={{ flex: 1, padding: "10px 14px", display: "flex", alignItems: "center", gap: 0 }}>
-              {KPI.map((k, i) => (
+              {counts.map((k, i) => (
                 <div key={k.label} style={{
                   flex: 1,
                   textAlign: "center",
-                  borderRight: i < KPI.length - 1 ? `1px solid ${BORDER}` : "none",
+                  borderRight: i < counts.length - 1 ? `1px solid ${BORDER}` : "none",
                   padding: "0 8px",
                 }}>
                   <div style={{ fontSize: 30, fontWeight: 700, color: k.color, lineHeight: 1.05, letterSpacing: "-0.03em" }}>{k.value}</div>
@@ -370,56 +364,45 @@ function CaseDrawer({
           </DrawerSection>
         )}
 
-        {/* ── PHASE 2: Cost & donation section ── */}
+        {/* What it costs to sterilise one animal. Real, sourced figure —
+            the previous per-animal care costs here were invented. */}
         <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12 }}>
           <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.66)", marginBottom: 10 }}>
-            CARE COST  ·  ILLUSTRATIVE
+            COST TO STERILISE
           </div>
 
-          {/* monthly cost */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", letterSpacing: "0.08em" }}>Monthly care cost</span>
-            <span style={{ fontSize: 12.0, fontWeight: 700, color: SAFFRON, letterSpacing: "0.04em" }}>₹2,400</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Per animal</span>
+            <span style={{ fontSize: 17, fontWeight: 700, color: SAFFRON }}>
+              {inr(UNIT_COSTS.sterilisation.value)}
+            </span>
           </div>
 
-          {/* neighbourhood need */}
-          <div style={{
-            padding: "10px 12px",
-            background: "rgba(233,172,66,0.06)",
-            border: `1px solid rgba(233,172,66,0.14)`,
-            borderRadius: 4,
-            marginBottom: 12,
-          }}>
-            <div style={{ fontSize: 10.5, letterSpacing: "0.1em", color: SAFFRON, opacity: 0.7, marginBottom: 4 }}>NEIGHBOURHOOD NEED</div>
-            <div style={{ fontSize: 12, color: "#fff", letterSpacing: "0.06em", lineHeight: 1.5 }}>
-              {dog.zone || "This area"} needs{" "}
-              <span style={{ color: SAFFRON, fontWeight: 700 }}>₹28,800</span>{" "}
-              for next 12 months
-            </div>
-            <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.66)", marginTop: 4, letterSpacing: "0.1em" }}>
-              12 animals · vet + food + sterilisation
-            </div>
-          </div>
+          <p style={{ margin: "0 0 12px", fontSize: 10.5, lineHeight: 1.6, color: "rgba(255,255,255,0.5)", letterSpacing: "0.04em" }}>
+            AWBI-notified ceiling, ABC (Dogs) Rules {UNIT_COSTS.sterilisation.year}.
+            Not a StrayPaw estimate.
+          </p>
 
-          {/* donate button */}
-          <button
-            onClick={() => {}}
+          <Link
+            href="/what-would-it-take"
             style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               width: "100%",
               padding: "10px 0",
-              background: "rgba(168,221,208,0.1)",
-              border: `1px solid rgba(168,221,208,0.25)`,
+              background: "rgba(102,197,213,0.1)",
+              border: `1px solid rgba(102,197,213,0.25)`,
               borderRadius: 4,
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: "0.11em",
               color: MINT,
-              cursor: "pointer",
-              fontFamily: "inherit",
+              textDecoration: "none",
             }}
           >
-            DONATE TO THIS CASE
-          </button>
+            COST A FULL PROGRAMME
+          </Link>
         </div>
       </div>
 
@@ -477,20 +460,3 @@ function ResourceRow({ name, detail, color }: { name: string; detail: string; co
   );
 }
 
-function Sparkline() {
-  const pts = [8, 12, 6, 18, 24, 14, 30, 22, 38, 28, 45, 35, 52, 42, 58, 48, 65];
-  const max = Math.max(...pts);
-  const w = 172, h = 60;
-  const d = pts.map((v, i) => {
-    const x = (i / (pts.length - 1)) * w;
-    const y = h - (v / max) * h;
-    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(" ");
-
-  return (
-    <svg width="100%" height="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ display: "block" }}>
-      <path d={d} fill="none" stroke={MINT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={`${d} L${w},${h} L0,${h} Z`} fill={`${MINT}18`} />
-    </svg>
-  );
-}

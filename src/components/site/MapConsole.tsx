@@ -6,81 +6,93 @@ import { ArrowUpRight, Radio } from "lucide-react";
 
 type Tone = "vermilion" | "electric" | "cyan" | "violet";
 
-type Point = {
-  id: string;
+/**
+ * An explanation of the map's record states, not a set of records.
+ *
+ * The landing page used to show five invented sightings here with IDs and
+ * place names. Nothing has been reported yet, so those were fiction. This
+ * shows what each state on the map *means* instead — which is real product
+ * information, and survives contact with a reader who clicks through.
+ */
+type State = {
+  key: string;
   x: string;
   y: string;
-  label: string;
   tone: Tone;
+  label: string;
   title: string;
-  note: string;
-  confidence: string;
-  next: string;
+  meaning: string;
+  entersWhen: string;
+  leavesWhen: string;
 };
 
-/* Illustrative records — the shape of the evidence layer, not live data. */
-const POINTS: Point[] = [
+const STATES: State[] = [
   {
-    id: "SP-1042",
+    key: "signal",
     x: "24%",
     y: "34%",
-    label: "Needs study",
-    tone: "vermilion",
-    title: "Jahangirpuri cluster",
-    note: "18 observations, no sterilisation record within 4 km.",
-    confidence: "0.42 / low",
-    next: "Scope a study brief",
+    tone: "violet",
+    label: "Signal",
+    title: "One report, unconfirmed",
+    meaning:
+      "Somebody saw an animal and said so. One observation on its own is a lead, not evidence.",
+    entersWhen: "A community member submits a report.",
+    leavesWhen: "A second independent observation corroborates it.",
   },
   {
-    id: "SP-1039",
+    key: "verified",
     x: "61%",
     y: "21%",
-    label: "Verified",
     tone: "electric",
-    title: "Nizamuddin edge",
-    note: "12 observations confirmed. Partner NGO matched and briefed.",
-    confidence: "0.86 / high",
-    next: "Validate study brief",
+    label: "Verified",
+    title: "Corroborated record",
+    meaning:
+      "Enough independent observations agree on the place and the condition for the record to be worth acting on.",
+    entersWhen: "Observations corroborate.",
+    leavesWhen: "It is picked up by a study or an intervention.",
   },
   {
-    id: "SP-1035",
-    x: "76%",
-    y: "57%",
-    label: "In field",
-    tone: "cyan",
-    title: "Rohini sector 4",
-    note: "Study active. Field team collecting, 4 days remaining.",
-    confidence: "0.71 / medium",
-    next: "Review interim data",
-  },
-  {
-    id: "SP-1031",
+    key: "gap",
     x: "38%",
     y: "71%",
-    label: "Signal",
-    tone: "violet",
-    title: "Moolchand crossing",
-    note: "6 community observations. Below validation threshold.",
-    confidence: "0.28 / low",
-    next: "Await corroboration",
+    tone: "vermilion",
+    label: "Coverage gap",
+    title: "Nothing known here",
+    meaning:
+      "An area with no records at all. Silence is not absence — it usually means nobody has looked.",
+    entersWhen: "An area has no reports and no survey history.",
+    leavesWhen: "A field survey establishes a baseline.",
   },
   {
-    id: "SP-1028",
+    key: "field",
+    x: "76%",
+    y: "57%",
+    tone: "cyan",
+    label: "In field",
+    title: "Work underway",
+    meaning:
+      "A funded study or intervention is running here right now, and data is coming back.",
+    entersWhen: "A partner organisation begins fieldwork.",
+    leavesWhen: "The programme closes and reach is verified.",
+  },
+  {
+    key: "outcome",
     x: "82%",
     y: "79%",
-    label: "Outcome",
     tone: "electric",
-    title: "CR Park",
-    note: "Sterilisation intervention complete. 24 animals, post-field verified.",
-    confidence: "0.94 / high",
-    next: "Publish outcome record",
+    label: "Outcome",
+    title: "Closed and verified",
+    meaning:
+      "Something was funded, executed and checked. The record keeps its method and its confidence rating.",
+    entersWhen: "Post-field verification completes.",
+    leavesWhen: "It doesn't — outcomes are permanent.",
   },
 ];
 
 const LAYERS = ["Observations", "Studies", "Needs", "Interventions"];
 
 export function MapConsole() {
-  const [selected, setSelected] = useState<Point>(POINTS[1]);
+  const [selected, setSelected] = useState<State>(STATES[1]);
   const [layer, setLayer] = useState("Observations");
 
   return (
@@ -88,9 +100,9 @@ export function MapConsole() {
       <div className="sp-console-bar">
         <div className="sp-console-title">
           <Radio size={15} />
-          <span>LIVE NETWORK</span>
+          <span>RECORD STATES</span>
           <i />
-          <span className="muted">DELHI NCR · ILLUSTRATIVE</span>
+          <span className="muted">HOW THE MAP CLASSIFIES WHAT IT KNOWS</span>
         </div>
         <div className="sp-layers">
           {LAYERS.map((l) => (
@@ -109,13 +121,13 @@ export function MapConsole() {
         <div className="sp-river" />
         <div className="sp-route a" />
         <div className="sp-route b" />
-        {POINTS.map((p) => (
+        {STATES.map((s) => (
           <button
-            key={p.id}
-            className={`sp-point ${p.tone} ${selected.id === p.id ? "selected" : ""}`}
-            style={{ left: p.x, top: p.y }}
-            onClick={() => setSelected(p)}
-            aria-label={`Select ${p.title}`}
+            key={s.key}
+            className={`sp-point ${s.tone} ${selected.key === s.key ? "selected" : ""}`}
+            style={{ left: s.x, top: s.y }}
+            onClick={() => setSelected(s)}
+            aria-label={`What "${s.label}" means`}
           >
             <span />
           </button>
@@ -126,32 +138,30 @@ export function MapConsole() {
           <span className="sp-dot-legend" /> VERIFIED / IN FIELD &nbsp;
           <span className="sp-dot-legend gap" /> COVERAGE GAP
         </div>
-        <div className="sp-scale">0 &nbsp;&nbsp;&nbsp;&nbsp; 5 KM</div>
+        <div className="sp-scale">SELECT A POINT</div>
       </div>
 
       <aside className="sp-drawer">
         <div className="sp-drawer-top">
-          <span>SELECTED RECORD</span>
-          <span>{selected.id}</span>
+          <span>RECORD STATE</span>
+          <span>
+            {STATES.indexOf(selected) + 1} / {STATES.length}
+          </span>
         </div>
         <div className="sp-drawer-status">
           <span className={`sp-status-dot ${selected.tone}`} />
           {selected.label}
         </div>
         <h3>{selected.title}</h3>
-        <p>{selected.note}</p>
+        <p>{selected.meaning}</p>
         <div className="sp-drawer-rule" />
         <div className="sp-drawer-row">
-          <span>LAST UPDATED</span>
-          <b>6 min ago</b>
+          <span>ENTERS WHEN</span>
+          <b>{selected.entersWhen}</b>
         </div>
         <div className="sp-drawer-row">
-          <span>CONFIDENCE</span>
-          <b>{selected.confidence}</b>
-        </div>
-        <div className="sp-drawer-row">
-          <span>NEXT ACTION</span>
-          <b>{selected.next}</b>
+          <span>LEAVES WHEN</span>
+          <b>{selected.leavesWhen}</b>
         </div>
         <Link href="/map" className="sp-drawer-btn">
           Open the living map <ArrowUpRight size={15} />

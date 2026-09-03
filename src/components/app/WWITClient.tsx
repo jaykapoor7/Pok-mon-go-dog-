@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowUpRight, TriangleAlert } from "lucide-react";
 import {
+  COVERAGE_TARGET,
+  DELHI_ABC_COVERAGE,
+  DELHI_POPULATION,
   OBJECTIVE_META,
   UNIT_COSTS,
-  ZONES,
   inr,
   num,
   whatWouldItTake,
@@ -15,34 +17,32 @@ import {
 
 const OBJECTIVES = Object.keys(OBJECTIVE_META) as Objective[];
 
+/* Scope is an explicit input, not a claim about where animals are. Nobody has
+   published Delhi's ward-level distribution, so the tool asks rather than
+   pretending to know. */
+const SCOPES: { label: string; value: number }[] = [
+  { label: "All of Delhi NCT", value: 1 },
+  { label: "Half the city", value: 0.5 },
+  { label: "A quarter of the city", value: 0.25 },
+  { label: "One tenth of the city", value: 0.1 },
+  { label: "One MCD zone (~1/12th)", value: 1 / 12 },
+];
+
 export function WWITClient() {
-  const [zoneCode, setZoneCode] = useState(ZONES[2].code); // Narela — never surveyed
   const [objective, setObjective] = useState<Objective>("sterilisation");
+  const [scope, setScope] = useState(1 / 12);
   const [teams, setTeams] = useState(2);
 
-  const zone = ZONES.find((z) => z.code === zoneCode)!;
   const plan = useMemo(
-    () => whatWouldItTake(zone, objective, teams),
-    [zone, objective, teams]
+    () => whatWouldItTake(objective, scope, teams),
+    [objective, scope, teams]
   );
   const cost = UNIT_COSTS[objective];
   const meta = OBJECTIVE_META[objective];
 
   return (
     <>
-      {/* ── inputs ── */}
       <div className="wwit-controls">
-        <label>
-          <span>Geography</span>
-          <select value={zoneCode} onChange={(e) => setZoneCode(e.target.value)}>
-            {ZONES.map((z) => (
-              <option key={z.code} value={z.code}>
-                {z.name} — {z.district}
-              </option>
-            ))}
-          </select>
-        </label>
-
         <label>
           <span>Objective</span>
           <select
@@ -57,109 +57,127 @@ export function WWITClient() {
           </select>
         </label>
 
-        {objective !== "feeding" && (
-          <label>
-            <span>Field teams</span>
-            <select value={teams} onChange={(e) => setTeams(Number(e.target.value))}>
-              {[1, 2, 3, 4, 6].map((t) => (
-                <option key={t} value={t}>
-                  {t} team{t > 1 ? "s" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+        <label>
+          <span>Scope</span>
+          <select value={scope} onChange={(e) => setScope(Number(e.target.value))}>
+            {SCOPES.map((s) => (
+              <option key={s.label} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>Field teams</span>
+          <select value={teams} onChange={(e) => setTeams(Number(e.target.value))}>
+            {[1, 2, 3, 4, 6, 10].map((t) => (
+              <option key={t} value={t}>
+                {t} team{t > 1 ? "s" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <p className="wwit-question">{meta.question}</p>
 
-      {plan.unsurveyed && (
+      {plan.baselineUnknown && (
         <div className="wwit-warn" role="note">
           <TriangleAlert size={15} />
           <span>
-            <b>{zone.name} has never been surveyed.</b> Everything below rests on a
-            projected population. The first thing this geography needs is a study,
-            not a cheque.
+            <b>No published vaccination baseline exists for Delhi.</b> The
+            2022-23 survey measured sterilisation, not vaccination, and ARV
+            drives are run by several bodies without a shared register. This
+            plan therefore assumes zero coverage — a ceiling, not an estimate.
+            Establishing the real baseline is itself a study.
           </span>
         </div>
       )}
 
-      {/* ── the answer ── */}
       <div className="wwit-answer">
         <Figure
           label={`Animals to ${meta.verb}`}
           value={num(plan.animals)}
-          sub={
-            objective === "sterilisation" || objective === "vaccination"
-              ? `to move coverage ${Math.round(plan.coverageNow * 100)}% → ${Math.round(plan.coverageTarget * 100)}%`
-              : objective === "medical"
-                ? "modelled share needing first-line treatment"
-                : "every animal in the zone"
-          }
+          sub={`to move coverage ${Math.round(plan.coverageNow * 100)}% → ${Math.round(plan.coverageTarget * 100)}% across ${num(plan.population)} animals`}
         />
         <Figure
           label="Cost"
           value={inr(plan.cost)}
-          sub={`${inr(plan.unitCost)} ${cost.unit}${objective === "feeding" ? " × 365 days" : ""}`}
+          sub={`${inr(plan.unitCost)} ${cost.unit}`}
           accent
         />
         <Figure
           label="Time"
-          value={plan.months === 12 && objective === "feeding" ? "12 months" : `${plan.months} mo`}
-          sub={objective === "feeding" ? "continuous" : `at ${teams} team${teams > 1 ? "s" : ""} in the field`}
+          value={`${plan.months} mo`}
+          sub={`at ${plan.teams} team${plan.teams > 1 ? "s" : ""} in the field`}
         />
       </div>
 
-      {/* ── how it was worked out ── */}
       <section className="wwit-method">
-        <h2>How this was worked out</h2>
+        <h2>Every number above, and where it comes from</h2>
         <ol>
           <li>
-            <b>Population.</b> {num(zone.population)} animals in {zone.name}.{" "}
-            <em>Modelled</em> — no ward-level census exists for this zone.
+            <b>Population.</b> {num(DELHI_POPULATION.value)} community dogs
+            across Delhi NCT, scaled to the scope you picked.{" "}
+            <span className="wwit-src">
+              {DELHI_POPULATION.source} ({DELHI_POPULATION.year}).
+            </span>
           </li>
-          {(objective === "sterilisation" || objective === "vaccination") && (
-            <li>
-              <b>Shortfall.</b> {Math.round(plan.coverageNow * 100)}% already
-              covered, target {Math.round(plan.coverageTarget * 100)}%. WHO puts
-              the canine-rabies herd-immunity threshold near 70%; ABC programmes
-              aim at a comparable share to hold a population stable.
-            </li>
-          )}
+          <li>
+            <b>Current coverage.</b>{" "}
+            {plan.baselineUnknown ? (
+              <>
+                <em>Not published.</em> Assumed zero, which makes this figure an
+                upper bound.
+              </>
+            ) : (
+              <>
+                {Math.round(DELHI_ABC_COVERAGE.value * 100)}% sterilised.{" "}
+                <span className="wwit-src">
+                  {DELHI_ABC_COVERAGE.source} ({DELHI_ABC_COVERAGE.year}).
+                </span>
+              </>
+            )}
+          </li>
+          <li>
+            <b>Target.</b> {Math.round(COVERAGE_TARGET.value * 100)}%.{" "}
+            <span className="wwit-src">
+              {COVERAGE_TARGET.source}.
+            </span>
+          </li>
           <li>
             <b>Unit cost.</b> {inr(plan.unitCost)} {cost.unit}.{" "}
-            <span className="wwit-src">{cost.source} ({cost.year}).</span>
+            <span className="wwit-src">
+              {cost.source} ({cost.year}).
+            </span>
           </li>
-          {objective !== "feeding" && (
-            <li>
-              <b>Throughput.</b> Field capacity per team per working month, from
-              partner-reported camp records. Surgery is the binding constraint.
-            </li>
-          )}
+          <li>
+            <b>Scope.</b> Your input, not a finding. Delhi&apos;s ward-level
+            distribution has never been published, so this tool cannot tell you
+            which part of the city needs it most — only what a given share
+            costs.
+          </li>
         </ol>
       </section>
 
-      {/* ── next step ── */}
       <div className="wwit-next">
         <div>
           <span className="spa-mono">Next step</span>
-          <h3>
-            {plan.unsurveyed
-              ? "Fund a baseline study here"
-              : "Scope this as a funded intervention"}
-          </h3>
+          <h3>Turn the scope into a geography</h3>
           <p>
-            {plan.unsurveyed
-              ? "A study establishes the real population and coverage, then the intervention estimate becomes an evidence-backed number rather than a projection."
-              : "StrayPaw turns this into a study brief, a partner shortlist and a milestone schedule the funder can track to an outcome record."}
+            The cost above is defensible. The <em>where</em> is not, and no
+            amount of arithmetic fixes that — it takes fieldwork. A funded
+            study establishes the ward-level baseline, and the same calculation
+            then points at a real place.
           </p>
         </div>
         <div className="wwit-next-actions">
           <Link href="/partner-apply" className="spa-cta">
-            Start an initiative <ArrowUpRight size={14} />
+            Fund a baseline study <ArrowUpRight size={14} />
           </Link>
           <Link href="/gaps" className="wwit-link">
-            See where evidence is thinnest <ArrowUpRight size={13} />
+            See what else is unknown <ArrowUpRight size={13} />
           </Link>
         </div>
       </div>

@@ -2,11 +2,14 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import {
+  COVERAGE_TARGET,
+  DELHI_ABC_COVERAGE,
+  DELHI_POPULATION,
   OBJECTIVE_META,
   UNIT_COSTS,
   inr,
-  needsRegister,
   num,
+  whatWouldItTake,
   type Objective,
 } from "@/lib/platform/network";
 
@@ -14,25 +17,13 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Needs, StrayPaw",
   description:
-    "The outstanding shortfall in every zone: how many animals still need reaching, and what closing that gap costs.",
+    "The outstanding shortfall against the WHO coverage threshold in Delhi, priced against published unit costs.",
 };
 
-const OBJECTIVES: Objective[] = ["sterilisation", "vaccination", "medical"];
+const OBJECTIVES: Objective[] = ["sterilisation", "vaccination"];
 
-export default async function NeedsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ for?: string }>;
-}) {
-  const sp = await searchParams;
-  const objective: Objective = OBJECTIVES.includes(sp.for as Objective)
-    ? (sp.for as Objective)
-    : "sterilisation";
-
-  const needs = needsRegister(objective);
-  const totalAnimals = needs.reduce((s, n) => s + n.animals, 0);
-  const totalCost = needs.reduce((s, n) => s + n.cost, 0);
-  const cost = UNIT_COSTS[objective];
+export default function NeedsPage() {
+  const plans = OBJECTIVES.map((o) => whatWouldItTake(o, 1));
 
   return (
     <AppShell>
@@ -44,89 +35,83 @@ export default async function NeedsPage({
           </h1>
         </div>
         <Link href="/what-would-it-take" className="spa-cta">
-          Scope a zone <ArrowUpRight size={14} />
+          Scope a share <ArrowUpRight size={14} />
         </Link>
       </div>
 
       <p className="spa-lede">
-        Every zone&apos;s shortfall against a 70% coverage target, largest first.
-        This is the queue that funding gets pointed at.
+        Delhi&apos;s shortfall against the WHO {Math.round(COVERAGE_TARGET.value * 100)}%
+        coverage threshold, priced at published unit costs. City-wide only —
+        no ward-level breakdown has ever been published.
       </p>
 
-      <nav className="seg" aria-label="Objective">
-        {OBJECTIVES.map((o) => (
-          <Link
-            key={o}
-            href={`/needs?for=${o}`}
-            className={o === objective ? "active" : ""}
-            scroll={false}
-          >
-            {OBJECTIVE_META[o].label}
-          </Link>
-        ))}
-      </nav>
+      <div className="need-cards">
+        {plans.map((plan) => {
+          const meta = OBJECTIVE_META[plan.objective];
+          const cost = UNIT_COSTS[plan.objective];
+          return (
+            <article className="need-card" key={plan.objective}>
+              <header>
+                <h2>{meta.label}</h2>
+                {plan.baselineUnknown && (
+                  <span className="need-flag">Baseline unpublished</span>
+                )}
+              </header>
 
-      <div className="spa-kpis">
-        <div className="spa-kpi">
-          <span>Animals to reach</span>
-          <b>{num(totalAnimals)}</b>
-          <small>across {needs.length} zones</small>
-        </div>
-        <div className="spa-kpi">
-          <span>Cost to close</span>
-          <b>{inr(totalCost)}</b>
-          <small>
-            at {inr(cost.amount)} {cost.unit}
-          </small>
-        </div>
-        <div className="spa-kpi">
-          <span>Largest single gap</span>
-          <b>{needs[0] ? num(needs[0].animals) : "—"}</b>
-          <small>{needs[0]?.zone.name ?? "none"}</small>
-        </div>
+              <div className="need-figure">
+                <b>{num(plan.animals)}</b>
+                <span>animals still to {meta.verb}</span>
+              </div>
+
+              <div className="need-bar" aria-hidden="true">
+                <i
+                  className="have"
+                  style={{ width: `${plan.coverageNow * 100}%` }}
+                />
+                <i
+                  className="need"
+                  style={{
+                    width: `${(plan.coverageTarget - plan.coverageNow) * 100}%`,
+                  }}
+                />
+              </div>
+              <p className="need-legend spa-mono">
+                <span className="key have" /> {Math.round(plan.coverageNow * 100)}% covered
+                &nbsp;·&nbsp;
+                <span className="key need" /> {Math.round((plan.coverageTarget - plan.coverageNow) * 100)}% to go
+              </p>
+
+              <dl className="need-facts">
+                <div>
+                  <dt>Cost to close</dt>
+                  <dd className="big">{inr(plan.cost)}</dd>
+                </div>
+                <div>
+                  <dt>Unit cost</dt>
+                  <dd>
+                    {inr(plan.unitCost)} {cost.unit}
+                  </dd>
+                </div>
+              </dl>
+
+              <p className="need-src spa-mono">
+                {plan.baselineUnknown
+                  ? "Assumes zero coverage — no published baseline exists, so this is a ceiling."
+                  : `${DELHI_ABC_COVERAGE.source} (${DELHI_ABC_COVERAGE.year})`}
+              </p>
+            </article>
+          );
+        })}
       </div>
-
-      <table className="dtable">
-        <thead>
-          <tr>
-            <th>Zone</th>
-            <th>District</th>
-            <th className="r">Coverage</th>
-            <th className="r">Animals</th>
-            <th className="r">Cost</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {needs.map(({ zone, animals, cost: c }) => {
-            const cov =
-              objective === "vaccination" ? zone.vaccinated : zone.sterilised;
-            return (
-              <tr key={zone.code}>
-                <td className="strong">{zone.name}</td>
-                <td className="dim">{zone.district}</td>
-                <td className="r">
-                  {objective === "medical" ? "—" : `${Math.round(cov * 100)}%`}
-                </td>
-                <td className="r num">{num(animals)}</td>
-                <td className="r num">{inr(c)}</td>
-                <td className="r">
-                  <Link href="/what-would-it-take" className="tlink">
-                    Scope
-                  </Link>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
 
       <aside className="spa-note">
         <div>
-          <b>On these numbers.</b> The unit cost is real and sourced —{" "}
-          {cost.source} ({cost.year}). The zone populations and coverage shares it
-          multiplies are modelled, so treat totals as an order of magnitude for
-          scoping, not a quotation.
+          <b>What these figures can and cannot support.</b> The population
+          ({num(DELHI_POPULATION.value)}), the sterilisation baseline
+          ({Math.round(DELHI_ABC_COVERAGE.value * 100)}%), the {Math.round(COVERAGE_TARGET.value * 100)}%
+          target and both unit costs are published and sourced — quote them.
+          What they cannot tell you is <em>where</em> in Delhi to start. That
+          takes a survey, and no one has published one at ward level.
         </div>
       </aside>
     </AppShell>

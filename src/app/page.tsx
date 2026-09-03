@@ -16,6 +16,13 @@ import {
   StudySchematic,
   TopoLines,
 } from "@/components/site/vectors";
+import {
+  DELHI_ABC_COVERAGE,
+  DELHI_POPULATION,
+  UNIT_COSTS,
+  inr,
+  num,
+} from "@/lib/platform/network";
 import "@/components/site/site.css";
 
 export const metadata = {
@@ -261,16 +268,24 @@ export default function HomePage() {
 
           <Reveal>
             <div className="sp-proof">
-              <div className="sp-proof-num">₹12.8L</div>
+              <div className="sp-proof-num">{inr(UNIT_COSTS.sterilisation.value)}</div>
               <div>
-                <span>ONE INITIATIVE / DELHI NCR</span>
-                <p>budget assigned across study + response</p>
+                <span>PER STERILISATION</span>
+                <p>
+                  AWBI-notified ceiling, ABC (Dogs) Rules{" "}
+                  {UNIT_COSTS.sterilisation.year}
+                </p>
               </div>
               <div className="sp-proof-div" />
-              <div className="sp-proof-num">100%</div>
+              <div className="sp-proof-num">
+                {Math.round(DELHI_ABC_COVERAGE.value * 100)}%
+              </div>
               <div>
-                <span>MONEY → RECORD</span>
-                <p>every funded action retained in the evidence layer</p>
+                <span>OF DELHI STERILISED</span>
+                <p>
+                  across ~{num(DELHI_POPULATION.value)} community dogs
+                  ({DELHI_ABC_COVERAGE.year} survey)
+                </p>
               </div>
             </div>
           </Reveal>
@@ -286,51 +301,50 @@ export default function HomePage() {
             </div>
           </Reveal>
           <Reveal delay={120}>
+            {/* Deliberately shows the empty register rather than a sample
+                record. A funder has to be able to trust that every row here
+                happened; a plausible example would destroy that. */}
             <div className="sp-record-card">
               <div className="sp-record-top">
-                <span>STRAYPAW / OUTCOME RECORD</span>
-                <span>SP-OUT-024</span>
+                <span>STRAYPAW / OUTCOME REGISTER</span>
+                <span>0 RECORDS</span>
               </div>
               <div className="sp-record-main">
-                <div className="sp-seal">
+                <div className="sp-seal empty">
                   <Check size={22} />
                   <span>
-                    VERIFIED
+                    AWAITING
                     <br />
-                    OUTCOME
+                    FIRST
                   </span>
                 </div>
                 <div>
-                  <h3>Rohini sterilisation cluster</h3>
+                  <h3>Nothing has closed yet.</h3>
                   <p>
-                    Study signal → partner NGO → funded intervention → post-field
-                    verification.
+                    No study has been commissioned, so no intervention has run
+                    and no outcome exists. This register stays empty until one
+                    does — we don&apos;t seed it with examples.
                   </p>
                 </div>
               </div>
               <div className="sp-record-metrics">
-                <div>
-                  <b>24</b>
-                  <span>animals reached</span>
-                </div>
-                <div>
-                  <b>₹3.4L</b>
-                  <span>allocated</span>
-                </div>
-                <div>
-                  <b>86%</b>
-                  <span>confidence</span>
-                </div>
-                <div>
-                  <b>12.08.26</b>
-                  <span>closed</span>
-                </div>
+                {[
+                  ["Geography", "where it happened"],
+                  ["Reach", "animals treated, not targeted"],
+                  ["Funding", "amount and funder"],
+                  ["Verification", "who checked, and when"],
+                ].map(([f, d]) => (
+                  <div key={f}>
+                    <b className="field">{f}</b>
+                    <span>{d}</span>
+                  </div>
+                ))}
               </div>
               <div className="sp-record-foot">
-                <span>METHOD / FIELD + PHOTO + NGO LOG + GEO</span>
-                <span>
-                  VIEW PROVENANCE <ArrowUpRight size={13} />
-                </span>
+                <span>EVERY CLOSED RECORD WILL CARRY ALL FOUR</span>
+                <Link href="/outcomes" className="sp-record-link">
+                  SEE THE FORMAT <ArrowUpRight size={13} />
+                </Link>
               </div>
             </div>
           </Reveal>
