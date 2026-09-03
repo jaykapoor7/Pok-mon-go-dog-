@@ -627,6 +627,36 @@
   letter-spacing: -0.03em;
   margin: 0;
 }
+.gap-open-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.gap-barrier {
+  flex-shrink: 0;
+  border: 1px solid;
+  padding: 5px 9px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gap-held {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0 0;
+  padding: 9px 12px;
+  background: #f2f5f8;
+  border-left: 2px solid #c4ccd6;
+  font-size: 13px;
+  color: var(--ink);
+}
+.gap-held .spa-mono { color: #6b7482; flex-shrink: 0; }
 .gap-why { margin: 12px 0 0; font-size: 14px; line-height: 1.65; color: #566070; max-width: 720px; }
 .gap-resolve {
   display: grid;
@@ -648,6 +678,31 @@
 
 
 .gap-list { display: grid; gap: 10px; margin-top: 26px; }
+
+/* ── the argument ───────────────────────────────────────────────── */
+
+.why-us {
+  margin-top: 40px;
+  padding: 32px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.why-us h2 {
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 26px;
+}
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 26px;
+  margin-bottom: 28px;
+}
+.why-grid .spa-mono { display: block; color: var(--electric); margin-bottom: 10px; }
+.why-grid p { margin: 0; font-size: 13.5px; line-height: 1.65; color: #b3bccb; }
 
 /* ── interventions ──────────────────────────────────────────────── */
 

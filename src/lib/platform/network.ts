@@ -98,9 +98,47 @@ export const OBJECTIVE_META: Record<
 
 /* ── What is NOT known ──────────────────────────────────────────── */
 
+/**
+ * Why a question is unanswered. The distinction matters commercially: a
+ * number nobody has ever measured needs funding a study. A number that
+ * exists in a filing cabinet needs someone to go and get it — which is
+ * cheaper, faster, and mostly unglamorous work nobody is doing.
+ */
+export type AccessBarrier =
+  /** No one has measured it, anywhere, at any geography. */
+  | "never-measured"
+  /** A body collects or holds it, but does not publish it. */
+  | "held-not-published"
+  /** Published, but at a resolution or in a format that cannot be used. */
+  | "published-unusable";
+
+export const BARRIER_META: Record<
+  AccessBarrier,
+  { label: string; short: string; tone: string }
+> = {
+  "never-measured": {
+    label: "Never measured",
+    short: "Needs a study",
+    tone: "#ff6a4f",
+  },
+  "held-not-published": {
+    label: "Held, not published",
+    short: "Needs disclosure",
+    tone: "#a68cff",
+  },
+  "published-unusable": {
+    label: "Published, unusable",
+    short: "Needs restructuring",
+    tone: "#66c5d5",
+  },
+};
+
 export type UnknownFact = {
   id: string;
   question: string;
+  barrier: AccessBarrier;
+  /** Named body that holds or would hold the data. Null when nobody does. */
+  heldBy: string | null;
   why: string;
   /** What exists today in place of an answer. */
   bestAvailable: string;
@@ -109,48 +147,92 @@ export type UnknownFact = {
 };
 
 /**
- * Real evidence gaps. Each of these is genuinely unanswered in published
- * Indian sources — not unanswered because StrayPaw hasn't loaded the data.
+ * Real evidence gaps.
+ *
+ * Note the `barrier` field. Only some of these are unanswered because nobody
+ * ever measured them. Several are unanswered because a named body collects
+ * the data and does not release it, or releases it in a form that cannot be
+ * used. Those are a different problem with a different, cheaper fix — and
+ * they are the ones most often mistaken for "no data exists".
+ *
+ * Claims here are limited to what is publicly retrievable. Where a body is
+ * named as holding data, that is because a statutory duty or a published
+ * programme implies they hold it, not because the file has been seen.
  */
 export const UNKNOWNS: UnknownFact[] = [
   {
     id: "ward-distribution",
     question: "Where within Delhi are the animals?",
-    why: "The 2022-23 survey produced a city total. It was not published at ward or zone level, so there is no public basis for directing work to one neighbourhood over another.",
+    barrier: "published-unusable",
+    heldBy: "Municipal corporations of Delhi; survey implementing agency",
+    why: "The 2022-23 survey produced a city total, and a total is the one resolution at which the number is useless for deployment. Fieldwork of this kind is collected in enumeration blocks — the granular data existed at some point in the process. What reached the public was the sum.",
     bestAvailable: "One city-wide figure of roughly 10 lakh community dogs.",
-    resolvedBy: "A ward-level census with a documented sampling method.",
+    resolvedBy:
+      "Release of the survey's block-level counts, or a fresh ward-level census with a documented sampling method.",
+  },
+  {
+    id: "abc-programme-output",
+    question: "How many sterilisations did each municipal ABC programme perform?",
+    barrier: "held-not-published",
+    heldBy: "Municipal corporations; AWBI-recognised ABC centres; state monitoring committees",
+    why: "ABC programmes run on public money against tendered contracts, and the ABC (Dogs) Rules 2023 require local authorities to constitute monitoring committees and maintain programme records. Those records are not proactively published, so the public cannot reconcile spend against surgeries.",
+    bestAvailable:
+      "Occasional aggregate claims in press statements, with no verifiable underlying record.",
+    resolvedBy:
+      "Proactive disclosure of monitoring-committee returns — the data already exists in a reportable form.",
   },
   {
     id: "vaccination-coverage",
     question: "What share of Delhi's dogs are vaccinated against rabies?",
-    why: "Sterilisation coverage was measured. Vaccination coverage was not reported separately, and ARV drives are run by multiple bodies without a shared register.",
+    barrier: "held-not-published",
+    heldBy: "Bodies running ARV drives — municipal, state and NGO",
+    why: "Vaccination drives happen and are counted by whoever runs them. What does not exist is a shared register, so several partial counts sit with several organisations and nobody can state a coverage figure for the city.",
     bestAvailable:
       "Sterilisation coverage of about 45%, which is not a proxy for vaccination.",
     resolvedBy:
-      "A coverage survey, or a shared vaccination register across the bodies running drives.",
+      "A common register across the bodies already counting, or a coverage survey to establish a baseline independently.",
+  },
+  {
+    id: "bite-surveillance",
+    question: "Where do animal bites actually happen?",
+    barrier: "published-unusable",
+    heldBy: "Hospitals and ARV clinics; NCDC surveillance reporting",
+    why: "Bite cases are recorded at the point of treatment — that is how anti-rabies vaccine gets administered and stocked. The records exist patient by patient, but what surfaces publicly is state or national aggregate. The reported-versus-modelled rabies death gap is the clearest symptom of what passive surveillance misses.",
+    bestAvailable:
+      "National and state totals, with a reported-to-modelled death gap of roughly two orders of magnitude.",
+    resolvedBy:
+      "Geographic release of bite-incidence data at district or ward level, anonymised.",
   },
   {
     id: "medical-need",
     question: "How many animals need treatment in a given year?",
-    why: "No published figure exists for injury, disease or mange prevalence in India's street-dog population at any geography.",
+    barrier: "never-measured",
+    heldBy: null,
+    why: "No published figure exists for injury, disease or mange prevalence in India's street-dog population at any geography. This one genuinely has not been measured — there is no filing cabinet to open.",
     bestAvailable: "Nothing published.",
-    resolvedBy: "A field health-assessment study with a defined case definition.",
-  },
-  {
-    id: "feeding-points",
-    question: "Where does community feeding actually happen?",
-    why: "Feeding is informal and largely undocumented. The ABC Rules 2023 require designated feeding spots, but the resulting registers are not published.",
-    bestAvailable: "Nothing published.",
-    resolvedBy: "Municipal publication of designated feeding points, or field mapping.",
+    resolvedBy:
+      "A field health-assessment study with a defined case definition and a stated sampling frame.",
   },
   {
     id: "outcome-persistence",
     question: "Do sterilisation gains hold over time?",
-    why: "Coverage is measured at a point in time. Without repeat surveys there is no public evidence on whether a district holds coverage or slips back.",
+    barrier: "never-measured",
+    heldBy: null,
+    why: "Coverage gets measured once, when a programme wants a number. Nobody funds the second measurement, so there is no public evidence on whether a district holds coverage or slips back — and therefore no way to tell a durable intervention from a temporary one.",
     bestAvailable: "Single-point coverage figures with no follow-up.",
-    resolvedBy: "Repeat measurement in the same geography on a fixed interval.",
+    resolvedBy:
+      "Repeat measurement in the same geography on a fixed interval. Cheap relative to the first survey; almost never commissioned.",
   },
 ];
+
+/** Counts by barrier, for the summary strip. */
+export function barrierCounts() {
+  return {
+    neverMeasured: UNKNOWNS.filter((u) => u.barrier === "never-measured").length,
+    withheld: UNKNOWNS.filter((u) => u.barrier !== "never-measured").length,
+    total: UNKNOWNS.length,
+  };
+}
 
 /* ── The "What would it take?" model ────────────────────────────── */
 
