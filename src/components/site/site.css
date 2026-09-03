@@ -420,25 +420,20 @@
   position: relative;
   color: #d7d9d1;
   border-bottom: 1px solid rgba(143, 183, 255, 0.28);
-  transition: transform 0.3s ease;
-}
-.sp-node::before {
-  content: "";
-  display: block;
-  width: 70px;
-  height: 70px;
-  border: 1px solid rgba(143, 183, 255, 0.45);
-  border-radius: 50%;
-  margin-bottom: 18px;
-  background: radial-gradient(circle at 50% 50%, rgba(143, 183, 255, 0.28) 0 3px, transparent 4px),
-    radial-gradient(circle, transparent 56%, rgba(143, 183, 255, 0.2) 57% 58%, transparent 59%);
-  box-shadow: 0 0 0 10px rgba(143, 183, 255, 0.025);
   transition: transform 0.3s ease, border-color 0.3s ease;
 }
-.sp-node:hover { transform: translateY(-8px); }
-.sp-node:hover::before { transform: scale(1.12); border-color: var(--electric); }
+.sp-node-art {
+  display: block;
+  width: 92px;
+  height: 92px;
+  margin-bottom: 16px;
+  color: var(--electric);
+  opacity: 0.9;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
+}
+.sp-node:hover { transform: translateY(-8px); border-color: var(--electric); }
+.sp-node:hover .sp-node-art { transform: scale(1.06); opacity: 1; }
 .sp-node.active { border-color: var(--electric); color: var(--electric); }
-.sp-node svg { position: absolute; top: 25px; left: 42px; color: var(--electric); }
 .sp-node-index {
   display: block;
   font-family: var(--font-mono), "DM Mono", monospace;
@@ -486,6 +481,52 @@
   color: #72796f;
   display: flex;
   justify-content: space-between;
+}
+
+/* ── evidence gaps ──────────────────────────────────────────────── */
+
+.sp-gaps { padding: 8vw 8vw 4vw; }
+.sp-gaps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3vw;
+  margin-top: 44px;
+}
+.sp-gap-card {
+  margin: 0;
+  padding: 34px 32px 32px;
+  border: 1px solid rgba(11, 16, 32, 0.14);
+  border-top: 2px solid var(--electric);
+  background: #fff;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s ease;
+}
+.sp-gap-card.gap { border-top-color: var(--vermilion); }
+.sp-gap-card:hover { transform: translateY(-6px); }
+.sp-gap-art {
+  display: block;
+  width: 154px;
+  height: 154px;
+  color: var(--electric);
+  margin-bottom: 30px;
+}
+.sp-gap-card.gap .sp-gap-art { color: var(--vermilion); }
+.sp-gap-card h3 {
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin: 0 0 12px;
+}
+.sp-gap-card p { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 0; }
+.sp-gaps-note {
+  max-width: 620px;
+  margin: 40px 0 0;
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-size: 26px;
+  line-height: 1.28;
+  letter-spacing: -0.03em;
 }
 
 /* ── map console ────────────────────────────────────────────────── */
@@ -938,6 +979,58 @@
 .sp-footer-bottom a { color: inherit; text-decoration: none; }
 .sp-footer-bottom a:hover { color: var(--electric); }
 
+/* ── vector motion ──────────────────────────────────────────────── */
+
+@keyframes sp-ping {
+  0%   { r: 22; opacity: 0.9; }
+  70%  { r: 54; opacity: 0; }
+  100% { r: 54; opacity: 0; }
+}
+@keyframes sp-sweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes sp-trace {
+  from { stroke-dashoffset: 216; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes sp-drift {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.sp-ping { animation: sp-ping 3.2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite; }
+.sp-sweep { animation: sp-sweep 6s linear infinite; }
+.sp-trace { animation: sp-trace 3.4s cubic-bezier(0.4, 0, 0.5, 1) infinite; }
+
+/* Decorative vector grounds — they sit behind content and never catch input. */
+.sp-topo,
+.sp-plane {
+  position: absolute;
+  pointer-events: none;
+  color: var(--electric);
+}
+.sp-topo { inset: 0; opacity: 0.16; }
+.sp-plane {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 260px;
+  width: 100%;
+  opacity: 0.45;
+  /* fade into the section rather than ending on a hard edge */
+  mask-image: linear-gradient(to top, #000 20%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to top, #000 20%, transparent 92%);
+}
+
+.sp-divider {
+  display: block;
+  width: 100%;
+  height: 40px;
+  color: var(--electric);
+  opacity: 0.95;
+}
+
 /* ── reveal on scroll ───────────────────────────────────────────── */
 
 .sp-reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1), transform 0.7s cubic-bezier(0.23, 1, 0.32, 1); }
@@ -948,7 +1041,8 @@
 @media (max-width: 900px) {
   .sp-nav { gap: 16px; margin-left: 0; }
   .sp-thesis-grid, .sp-network-head, .sp-map-intro, .sp-company-lead,
-  .sp-record, .sp-partners-grid, .sp-footer-grid { grid-template-columns: 1fr; gap: 36px; }
+  .sp-record, .sp-partners-grid, .sp-footer-grid, .sp-gaps-grid { grid-template-columns: 1fr; gap: 36px; }
+  .sp-gaps-note { font-size: 22px; }
   .sp-network-line { flex-wrap: wrap; gap: 24px; }
   .sp-connector { min-width: 35px; }
   .sp-console { grid-template-columns: 1fr; }
@@ -993,10 +1087,13 @@
   .sp-hero-signal { display: none; }
   .sp-hero-foot { left: 7vw; right: 7vw; bottom: 18px; }
   .sp-hero-foot span:last-child { display: none; }
-  .sp-thesis, .sp-network, .sp-mapsec, .sp-companies, .sp-record, .sp-partners, .sp-footer {
+  .sp-thesis, .sp-network, .sp-mapsec, .sp-companies, .sp-record, .sp-partners,
+  .sp-footer, .sp-gaps {
     padding-left: 6vw;
     padding-right: 6vw;
   }
+  .sp-gap-card { padding: 26px 22px; }
+  .sp-gap-card h3 { font-size: 28px; }
   .sp-network-line { display: grid; grid-template-columns: 1fr 1fr; }
   .sp-connector { display: none; }
   .sp-console-bar { align-items: flex-start; flex-direction: column; }
@@ -1018,4 +1115,8 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  /* Looping vector motion is decorative — stop it outright rather than
+     letting it flicker at 0.01ms. */
+  .sp-ping, .sp-sweep, .sp-trace { animation: none !important; }
+  .sp-ping { opacity: 0.35; }
 }

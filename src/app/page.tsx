@@ -1,18 +1,21 @@
 import { Fragment } from "react";
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  Check,
-  ChevronRight,
-  FileText,
-  Fingerprint,
-  MapPin,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowUpRight, Check, ChevronRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Hero } from "@/components/site/Hero";
 import { MapConsole } from "@/components/site/MapConsole";
 import { Reveal } from "@/components/site/Reveal";
+import {
+  Constellation,
+  CoverageGap,
+  DogGlyph,
+  GridPlane,
+  OutcomeSeal,
+  RadarPulse,
+  RouteThread,
+  StudySchematic,
+  TopoLines,
+} from "@/components/site/vectors";
 import "@/components/site/site.css";
 
 export const metadata = {
@@ -21,12 +24,14 @@ export const metadata = {
     "The infrastructure connecting funding, evidence and action across India's street-animal ecosystem. Companies fund the questions. NGOs find the answers on the ground.",
 };
 
-/* The core network: every record keeps its provenance. */
+/* The core network: every record keeps its provenance. Each stage carries a
+   drawn mark rather than a stock icon — the animal, the sweep that finds it,
+   the study it feeds, the outcome that closes it. */
 const NETWORK = [
-  { n: "01", Icon: Fingerprint, title: "Animal", sub: "the original signal" },
-  { n: "02", Icon: MapPin, title: "Location", sub: "where it happened" },
-  { n: "03", Icon: FileText, title: "Study", sub: "what we learn" },
-  { n: "04", Icon: ShieldCheck, title: "Outcome", sub: "what changed" },
+  { n: "01", Art: DogGlyph, title: "Animal", sub: "the original signal" },
+  { n: "02", Art: RadarPulse, title: "Location", sub: "where it happened" },
+  { n: "03", Art: StudySchematic, title: "Study", sub: "what we learn" },
+  { n: "04", Art: OutcomeSeal, title: "Outcome", sub: "what changed" },
 ];
 
 /* The commercial wedge, in three moves. */
@@ -64,6 +69,7 @@ export default function HomePage() {
 
         {/* ── THESIS ─────────────────────────────────────────────── */}
         <section className="sp-thesis" id="why">
+          <TopoLines className="sp-topo" />
           <Reveal>
             <div className="sp-kicker">
               THE GAP IS NOT INTENT. <span>IT&apos;S COORDINATION.</span>
@@ -119,12 +125,12 @@ export default function HomePage() {
           </div>
 
           <div className="sp-network-line">
-            {NETWORK.map(({ n, Icon, title, sub }, i) => (
+            {NETWORK.map(({ n, Art, title, sub }, i) => (
               <Fragment key={n}>
                 <Reveal delay={i * 90}>
                   <div className={`sp-node ${i === 0 ? "active" : ""}`}>
                     <span className="sp-node-index">{n}</span>
-                    <Icon size={22} />
+                    <Art className="sp-node-art" size={92} />
                     <b>{title}</b>
                     <small>{sub}</small>
                   </div>
@@ -138,6 +144,52 @@ export default function HomePage() {
             <span>THE CORE NETWORK / RECORDS NEVER LOSE THEIR PROVENANCE</span>
             <span>→</span>
           </div>
+
+          <GridPlane className="sp-plane" />
+        </section>
+
+        {/* ── EVIDENCE GAPS ──────────────────────────────────────── */}
+        <section className="sp-gaps">
+          <RouteThread className="sp-divider" />
+          <Reveal>
+            <div className="sp-kicker" style={{ marginTop: 40 }}>
+              WHAT IS KNOWN. <span>AND WHAT IS NOT.</span>
+            </div>
+          </Reveal>
+          <div className="sp-gaps-grid">
+            <Reveal>
+              <figure className="sp-gap-card">
+                <Constellation className="sp-gap-art" size={132} />
+                <figcaption>
+                  <h3>Evidence</h3>
+                  <p>
+                    Observations that corroborate become a record: a place, a
+                    count, a condition, a date, an organisation that can act on
+                    it.
+                  </p>
+                </figcaption>
+              </figure>
+            </Reveal>
+            <Reveal delay={120}>
+              <figure className="sp-gap-card gap">
+                <CoverageGap className="sp-gap-art" size={132} />
+                <figcaption>
+                  <h3>Gaps</h3>
+                  <p>
+                    The absence is data too. A district with no sterilisation
+                    record is not a district without need — it is a district
+                    nobody has surveyed.
+                  </p>
+                </figcaption>
+              </figure>
+            </Reveal>
+          </div>
+          <Reveal delay={200}>
+            <p className="sp-gaps-note">
+              StrayPaw treats the second as a product surface, not a footnote.
+              Gaps are where studies get scoped and funding gets pointed.
+            </p>
+          </Reveal>
         </section>
 
         {/* ── LIVING MAP ─────────────────────────────────────────── */}
