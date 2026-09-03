@@ -40,6 +40,16 @@ export function MapLibreMap({
   const router = useRouter();
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
   const [zoom, setZoom] = useState(INDIA_ZOOM);
+  const [tilesFailed, setTilesFailed] = useState(false);
+
+  // The basemap is fetched from a third party. If it is unreachable (offline,
+  // a blocked network, the tile host down) MapLibre surfaces the failure here —
+  // otherwise it escapes as an unhandled rejection and the console just sits
+  // blank with no explanation.
+  const handleMapError = useCallback((e: { error?: Error }) => {
+    const msg = e?.error?.message ?? "";
+    if (/fetch|network|load|tile|style/i.test(msg)) setTilesFailed(true);
+  }, []);
 
   // Fly to a searched place when it changes (not on the static preview, which
   // is already framed via initialViewState).
@@ -101,6 +111,7 @@ export function MapLibreMap({
       mapStyle={STYLE_URL}
       onLoad={sync}
       onMoveEnd={sync}
+      onError={handleMapError}
       style={{ width: "100%", height: "100%" }}
       reuseMaps
       // Disable the default full-width bar; the full map adds a compact,
@@ -177,6 +188,44 @@ export function MapLibreMap({
           <FeedingMarker label={z.name} onClick={() => router.push(`/feeding/${z.id}`)} />
         </Marker>
       ))}
+
+      {tilesFailed && !preview && (
+        <div
+          role="status"
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 5,
+            maxWidth: 320,
+            padding: "16px 18px",
+            textAlign: "center",
+            background: "rgba(11,16,32,0.92)",
+            border: "1px solid rgba(143,183,255,0.28)",
+            borderRadius: 4,
+            backdropFilter: "blur(8px)",
+            pointerEvents: "none",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-mono), monospace",
+              fontSize: 9,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#ff6a4f",
+            }}
+          >
+            Basemap unavailable
+          </p>
+          <p style={{ margin: "8px 0 0", fontSize: 12.5, lineHeight: 1.5, color: "rgba(244,245,247,0.72)" }}>
+            The map tiles could not be reached. Records are still live — pins and
+            case data are unaffected.
+          </p>
+        </div>
+      )}
     </Map>
   );
 }

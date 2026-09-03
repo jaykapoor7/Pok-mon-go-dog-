@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Map, { type MapRef } from "react-map-gl/maplibre";
 import { MapPin } from "lucide-react";
 import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
@@ -28,6 +28,15 @@ export function LocationPickerMap({
   onCenter: (lat: number, lng: number) => void;
 }) {
   const mapRef = useRef<MapRef>(null);
+  const [tilesFailed, setTilesFailed] = useState(false);
+
+  // Same third-party basemap as the main console. Catch a load failure here so
+  // it does not escape as an unhandled rejection — picking a location by search
+  // or by current position still works without tiles.
+  const handleMapError = useCallback((e: { error?: Error }) => {
+    const msg = e?.error?.message ?? "";
+    if (/fetch|network|load|tile|style/i.test(msg)) setTilesFailed(true);
+  }, []);
 
   useEffect(() => {
     if (flyTarget) {
@@ -55,9 +64,21 @@ export function LocationPickerMap({
         }}
         mapStyle={STYLE_URL}
         onMoveEnd={handleMoveEnd}
+        onError={handleMapError}
         style={{ width: "100%", height: "100%" }}
         reuseMaps
       />
+      {tilesFailed && (
+        <div
+          role="status"
+          className="pointer-events-none absolute inset-x-3 bottom-3 rounded border border-vermilion/40 bg-ink/90 px-3 py-2 text-center"
+        >
+          <p className="m-0 text-[11px] leading-snug text-paper/80">
+            Basemap unavailable. Search or use your current location to set the
+            point.
+          </p>
+        </div>
+      )}
       {/* fixed centre pin */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <MapPin

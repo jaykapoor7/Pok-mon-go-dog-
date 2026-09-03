@@ -102,6 +102,24 @@ export function MapView({
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", background: INK, color: "#fff", overflow: "hidden", fontFamily: "var(--font-sans, DM Sans, ui-sans-serif, system-ui, sans-serif)" }}>
 
+      {/* The console is a canvas UI with no visible headline, but the document
+          still needs one for assistive tech and search. */}
+      <h1
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          margin: -1,
+          padding: 0,
+          overflow: "hidden",
+          clip: "rect(0 0 0 0)",
+          whiteSpace: "nowrap",
+          border: 0,
+        }}
+      >
+        Living map — street-animal signals, studies and outcomes across Delhi NCR
+      </h1>
+
       {/* MAP + OVERLAYS */}
         <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
           <MapCanvas
