@@ -58,32 +58,21 @@ export function Hero() {
         {/* Pan-India figures, not one city's. Both are real counts from the
             sourced datasets rather than a headline stat. */}
         <div className="sp-hero-caption">
-          <span>PAN-INDIA</span>
           <span>
             {STATE_COUNT} STATES / {ORG_COUNT} ORGANISATIONS MAPPED
           </span>
         </div>
-        <div className="sp-hero-signal left" aria-hidden="true">
-          OBSERVE <i />
-        </div>
-        <div className="sp-hero-signal right" aria-hidden="true">
-          OUTCOME <i />
-        </div>
       </div>
 
       <div className="sp-hero-copy">
-        <div className="sp-eyebrow">
-          STRAYPAW / RECORD SYSTEM FOR STREET ANIMALS
-        </div>
         <h1>
           Every street dog,
           <br />
           <em>on the record.</em>
         </h1>
         <p className="sp-hero-lede">
-          StrayPaw gives India&rsquo;s street animals a permanent identity and
-          a shared record — so NGOs, municipalities and funders finally work
-          from the same data instead of three different notebooks.
+          A permanent identity and a shared record for India&rsquo;s street
+          animals.
         </p>
         <div className="sp-hero-ctas">
           <a href="#how" className="sp-btn sp-btn-primary">
@@ -95,10 +84,6 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="sp-hero-foot sp-mono">
-        <span>ONE SIGNAL → ONE SYSTEM → ONE OUTCOME</span>
-        <span>SCROLL TO TRACE</span>
-      </div>
     </section>
   );
 }

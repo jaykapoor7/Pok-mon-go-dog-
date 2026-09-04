@@ -1822,8 +1822,7 @@
   /* The spine collides with the CTAs at this width and the photo already
      carries its own network lines — drop it. */
   .sp-spine { display: none; }
-  .sp-hero-caption { left: 7vw; right: 7vw; top: 80px; font-size: 8px; }
-  .sp-hero-caption span:last-child { display: none; }
+  .sp-hero-caption { left: 7vw; right: 7vw; top: 80px; font-size: 8.5px; }
   .sp-hero-ctas { gap: 4px 12px; }
   .sp-hero-signal { display: none; }
   .sp-hero-foot { left: 7vw; right: 7vw; bottom: 18px; }
