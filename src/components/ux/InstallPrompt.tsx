@@ -24,7 +24,17 @@ export function InstallPrompt() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const dismissed = localStorage.getItem(DISMISS_KEY) === "1";
+    /* Accessing localStorage throws outright in private mode, with site data
+       blocked, and under some enterprise policies — not just on read. This
+       effect mounts app-wide, so an unguarded read took the whole tree down
+       with it. Treating the failure as "already dismissed" is the right
+       default: never nag someone whose browser cannot remember the answer. */
+    let dismissed = true;
+    try {
+      dismissed = localStorage.getItem(DISMISS_KEY) === "1";
+    } catch {
+      return;
+    }
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       // iOS Safari

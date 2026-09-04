@@ -110,7 +110,7 @@ export function WWITClient({
 
       <p className="wwit-question">{meta.question}</p>
 
-      {plan.baselineUnknown && (
+      {plan.baselineUnknown && objective !== "survey" && (
         <div className="wwit-warn" role="note">
           <TriangleAlert size={15} />
           <span>
@@ -131,7 +131,13 @@ export function WWITClient({
         <Figure
           label={`Animals to ${meta.verb}`}
           value={num(plan.animals)}
-          sub={`to move coverage ${Math.round(plan.coverageNow * 100)}% → ${Math.round(plan.coverageTarget * 100)}% across ${num(plan.population)} animals`}
+          /* A survey counts the whole population in scope; it does not move a
+             coverage figure, so the coverage sentence is wrong for it. */
+          sub={
+            objective === "survey"
+              ? `every animal in the scope you picked, not a share of them`
+              : `to move coverage ${Math.round(plan.coverageNow * 100)}% → ${Math.round(plan.coverageTarget * 100)}% across ${num(plan.population)} animals`
+          }
         />
         {objective === "survey" ? (
           <Figure
@@ -165,26 +171,38 @@ export function WWITClient({
               {geo?.populationSource} ({geo?.populationYear}).
             </span>
           </li>
-          <li>
-            <b>Current coverage.</b>{" "}
-            {plan.baselineUnknown ? (
-              <>
-                <em>Not published.</em> Assumed zero, which makes this figure an
-                upper bound.
-              </>
-            ) : (
-              <>
-                {Math.round((geo?.coverage ?? 0) * 100)}% sterilised.{" "}
-                <span className="wwit-src">{geo?.coverageSource}</span>
-              </>
-            )}
-          </li>
-          <li>
-            <b>Target.</b> {Math.round(COVERAGE_TARGET.value * 100)}%.{" "}
-            <span className="wwit-src">
-              {COVERAGE_TARGET.source}.
-            </span>
-          </li>
+          {/* A census has no coverage baseline to subtract and no coverage
+              target to reach — it is the thing that produces the baseline in
+              the first place, so both rows would be nonsense here. */}
+          {objective !== "survey" && (
+            <>
+              <li>
+                <b>Current coverage.</b>{" "}
+                {plan.baselineUnknown ? (
+                  <>
+                    <em>Not published.</em> Assumed zero, which makes this
+                    figure an upper bound.
+                  </>
+                ) : (
+                  <>
+                    {Math.round((geo?.coverage ?? 0) * 100)}% sterilised.{" "}
+                    <span className="wwit-src">{geo?.coverageSource}</span>
+                  </>
+                )}
+              </li>
+              <li>
+                <b>Target.</b> {Math.round(COVERAGE_TARGET.value * 100)}%.{" "}
+                <span className="wwit-src">{COVERAGE_TARGET.source}.</span>
+              </li>
+            </>
+          )}
+          {objective === "survey" && (
+            <li>
+              <b>What it produces.</b> The baseline every other number on this
+              page depends on: a population count for the scope, against which
+              coverage can afterwards be measured rather than assumed.
+            </li>
+          )}
           <li>
             <b>Unit cost.</b>{" "}
             {objective === "survey" ? (
