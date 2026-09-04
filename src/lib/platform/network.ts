@@ -265,18 +265,38 @@ const THROUGHPUT: Record<Objective, number> = {
  * It does NOT claim to know how animals are distributed — `scope` is an
  * explicit user input, and the UI says so.
  */
+/** The geography a plan is being costed for. Both figures must be real and
+ *  sourced; `coverage` is null wherever no ABC baseline has been published,
+ *  which is most of the country. */
+export type PlanGeography = {
+  code: string;
+  name: string;
+  population: number;
+  populationSource: string;
+  populationYear: number;
+  coverage: number | null;
+  coverageSource: string | null;
+};
+
 export function whatWouldItTake(
   objective: Objective,
   scope = 1,
-  teams = 2
+  teams = 2,
+  geo?: PlanGeography
 ): Plan {
-  const population = Math.round(DELHI_POPULATION.value * scope);
+  const basePopulation = geo ? geo.population : DELHI_POPULATION.value;
+  const population = Math.round(basePopulation * scope);
   const target = COVERAGE_TARGET.value;
 
-  // Only sterilisation has a published baseline. Vaccination does not, so a
-  // plan for it has to assume the worst case and say that it is doing so.
-  const baselineUnknown = objective === "vaccination";
-  const coverageNow = baselineUnknown ? 0 : DELHI_ABC_COVERAGE.value;
+  // A plan can only subtract a baseline that someone has actually published.
+  // Vaccination has none anywhere, and most states have no ABC figure either,
+  // so those plans assume zero and say plainly that they are doing so.
+  const publishedCoverage = geo
+    ? geo.coverage
+    : DELHI_ABC_COVERAGE.value;
+  const baselineUnknown =
+    objective === "vaccination" || publishedCoverage === null;
+  const coverageNow = baselineUnknown ? 0 : (publishedCoverage as number);
 
   const animals = Math.max(0, Math.round(population * (target - coverageNow)));
   const unitCost = UNIT_COSTS[objective].value;

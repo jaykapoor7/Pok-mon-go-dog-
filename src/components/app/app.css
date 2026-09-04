@@ -34,8 +34,8 @@
 
 .spa-mono {
   font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
@@ -66,8 +66,8 @@
 .spa-brand small {
   color: #7d8698;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
   margin-left: 8px;
   text-transform: uppercase;
 }
@@ -142,8 +142,8 @@
   gap: 7px;
   color: #4a7a2f;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 4px 10px 16px;
 }
@@ -157,8 +157,8 @@
 }
 .spa-side-label {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #5a6370;
   padding: 16px 10px 7px;
@@ -191,7 +191,7 @@
 .spa-side a span.count {
   margin-left: auto;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   color: #5a6370;
 }
 .spa-side-foot {
@@ -200,12 +200,12 @@
   padding: 16px 10px 0;
   color: #5a6370;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   line-height: 1.9;
 }
-.spa-side-foot b { color: var(--ink); font-weight: 500; display: block; font-size: 11px; }
+.spa-side-foot b { color: var(--ink); font-weight: 500; display: block; font-size: 12px; }
 
 /* ── main ───────────────────────────────────────────────────────── */
 
@@ -267,7 +267,7 @@
   display: block;
   color: #6c737d;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -279,7 +279,7 @@
   line-height: 1;
   margin: 12px 0 4px;
 }
-.spa-kpi small { color: #6c737d; font-size: 11px; }
+.spa-kpi small { color: #6c737d; font-size: 12px; }
 .spa-kpi.alert b { color: var(--vermilion); }
 
 /* panels */
@@ -304,7 +304,7 @@
 .spa-panel-head a {
   color: #6c737d;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
@@ -318,7 +318,7 @@
   color: #3a5c9a;
   padding: 5px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -351,7 +351,7 @@
 .spa-row > a:focus-visible::after { outline: 2px solid var(--electric); outline-offset: -2px; }
 .spa-row b {
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11px;
   color: #6c737d;
   text-align: right;
   white-space: nowrap;
@@ -364,7 +364,7 @@
   grid-column: 1 / -1;
   color: #6c737d;
   font-family: var(--font-mono), monospace;
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -386,7 +386,7 @@
   margin-top: 20px;
   padding-bottom: 3px;
   border-bottom: 1px solid var(--ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: inherit;
   text-decoration: none;
@@ -449,7 +449,7 @@
   align-items: center;
   gap: 7px;
   white-space: nowrap;
-  font-size: 11.5px;
+  font-size: 12.5px;
   text-decoration: none;
   font-weight: 600;
 }
@@ -533,8 +533,8 @@
 .dtable th, .dtable td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e4e9ef; }
 .dtable th {
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #656e7c;
   background: #f2f5f8;
@@ -606,7 +606,7 @@
 .console-link svg { color: var(--electric); flex-shrink: 0; }
 .console-link > div { min-width: 0; }
 .console-link b { display: block; font-size: 12.5px; font-weight: 600; }
-.console-link span { display: block; color: #6c737d; font-size: 11px; margin-top: 2px; }
+.console-link span { display: block; color: #6c737d; font-size: 12px; margin-top: 2px; }
 /* The chevron is affordance, not information — it only firms up on hover. */
 .console-link > svg:last-child { color: #b3bcc7; transition: color 0.15s ease, transform 0.15s ease; }
 .console-link:hover > svg:last-child { color: var(--ink); transform: translate(1px, -1px); }
@@ -639,7 +639,7 @@
   left: 18px;
   top: 17px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--electric);
 }
 .queue-list b { display: block; font-size: 14px; font-weight: 600; }
@@ -650,8 +650,8 @@
 .schema > div { background: #fbfcfd; padding: 16px 18px; }
 .schema dt {
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--electric);
 }
@@ -684,7 +684,7 @@
   color: var(--vermilion);
   padding: 4px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -709,7 +709,7 @@
 .need-facts { display: flex; gap: 30px; margin: 20px 0 0; }
 .need-facts dt {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
@@ -746,7 +746,7 @@
   border: 1px solid;
   padding: 5px 9px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -775,7 +775,7 @@
 }
 .gap-resolve dt {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
@@ -806,7 +806,7 @@
   background: #fff;
   padding: 6px 11px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #5b6472;
@@ -870,7 +870,7 @@
 .se-detail dl { margin: 0; display: grid; gap: 18px; }
 .se-detail dt {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
@@ -893,8 +893,8 @@
 }
 .se-orgs a:hover { border-color: var(--electric); background: #f5f9ff; }
 .se-orgs b { font-weight: 600; }
-.se-orgs span span { margin-left: auto; padding: 0; border: 0; background: none; color: #656f7c; font-size: 11px; display: inline-flex; align-items: center; gap: 3px; }
-.se-orgs a span { margin-left: auto; padding: 0; border: 0; background: none; color: #656f7c; font-size: 11px; display: inline-flex; align-items: center; gap: 3px; }
+.se-orgs span span { margin-left: auto; padding: 0; border: 0; background: none; color: #656f7c; font-size: 12px; display: inline-flex; align-items: center; gap: 3px; }
+.se-orgs a span { margin-left: auto; padding: 0; border: 0; background: none; color: #656f7c; font-size: 12px; display: inline-flex; align-items: center; gap: 3px; }
 .se-orgs svg { flex-shrink: 0; color: #5a6370; }
 
 .se-legend {
@@ -936,13 +936,13 @@
   gap: 18px;
 }
 .gap-brief-list b { display: block; margin-top: 9px; font-size: 13.5px; font-weight: 500; }
-.gap-brief-list small { display: block; margin-top: 6px; font-size: 11.5px; color: #8794aa; line-height: 1.5; }
+.gap-brief-list small { display: block; margin-top: 6px; font-size: 12.5px; color: #8794aa; line-height: 1.5; }
 .gap-brief-tag {
   display: inline-block;
   border: 1px solid;
   padding: 3px 7px;
   font-family: var(--font-mono), monospace;
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -975,8 +975,8 @@
 .dir-select { display: flex; flex-direction: column; gap: 6px; min-width: 170px; }
 .dir-select span {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #5f6875;
 }
@@ -1039,7 +1039,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .dir-since {
   margin-left: 4px;
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1049,7 +1049,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border: 1px solid #ccd3dc;
   padding: 3px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #566070;
@@ -1118,7 +1118,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   padding: 0 !important;
   border: 0 !important;
   background: none !important;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: #656f7c;
   white-space: nowrap;
 }
@@ -1166,7 +1166,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border: 1px solid;
   padding: 4px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -1177,7 +1177,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .iv-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin: 0 0 4px; }
 .iv-facts dt {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1198,8 +1198,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wwit-controls label { display: flex; flex-direction: column; gap: 7px; min-width: 190px; flex: 1; }
 .wwit-controls span {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #5f6875;
 }
@@ -1267,8 +1267,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wwit-method { margin-top: 34px; }
 .wwit-method h2 {
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #5f6875;
   margin: 0 0 14px;
@@ -1343,7 +1343,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border: 1px solid #c4ccd6;
   padding: 3px 7px;
   font-family: var(--font-mono), monospace;
-  font-size: 8.5px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #566070;

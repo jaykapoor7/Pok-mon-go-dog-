@@ -5,37 +5,48 @@ import { useMemo, useState } from "react";
 import { ArrowUpRight, TriangleAlert } from "lucide-react";
 import {
   COVERAGE_TARGET,
-  DELHI_ABC_COVERAGE,
-  DELHI_POPULATION,
   OBJECTIVE_META,
   UNIT_COSTS,
   inr,
   num,
   whatWouldItTake,
   type Objective,
+  type PlanGeography,
 } from "@/lib/platform/network";
 
 const OBJECTIVES = Object.keys(OBJECTIVE_META) as Objective[];
 
-/* Scope is an explicit input, not a claim about where animals are. Nobody has
-   published Delhi's ward-level distribution, so the tool asks rather than
-   pretending to know. */
+/* Scope is an explicit input, not a claim about where the animals are. No
+   state has published a ward-level distribution, so the tool asks for a share
+   rather than pretending to know which part needs it most. */
 const SCOPES: { label: string; value: number }[] = [
-  { label: "All of Delhi NCT", value: 1 },
-  { label: "Half the city", value: 0.5 },
-  { label: "A quarter of the city", value: 0.25 },
-  { label: "One tenth of the city", value: 0.1 },
-  { label: "One MCD zone (~1/12th)", value: 1 / 12 },
+  { label: "The whole state", value: 1 },
+  { label: "Half the state", value: 0.5 },
+  { label: "A quarter", value: 0.25 },
+  { label: "One tenth", value: 0.1 },
+  { label: "One municipal zone (~1/12th)", value: 1 / 12 },
 ];
 
-export function WWITClient() {
+export function WWITClient({
+  geographies,
+  uncosted,
+}: {
+  geographies: PlanGeography[];
+  uncosted: number;
+}) {
   const [objective, setObjective] = useState<Objective>("sterilisation");
+  const [geoCode, setGeoCode] = useState(geographies[0]?.code ?? "");
   const [scope, setScope] = useState(1 / 12);
   const [teams, setTeams] = useState(2);
 
+  const geo = useMemo(
+    () => geographies.find((g) => g.code === geoCode) ?? geographies[0],
+    [geographies, geoCode]
+  );
+
   const plan = useMemo(
-    () => whatWouldItTake(objective, scope, teams),
-    [objective, scope, teams]
+    () => whatWouldItTake(objective, scope, teams, geo),
+    [objective, scope, teams, geo]
   );
   const cost = UNIT_COSTS[objective];
   const meta = OBJECTIVE_META[objective];
@@ -52,6 +63,17 @@ export function WWITClient() {
             {OBJECTIVES.map((o) => (
               <option key={o} value={o}>
                 {OBJECTIVE_META[o].label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span>State</span>
+          <select value={geoCode} onChange={(e) => setGeoCode(e.target.value)}>
+            {geographies.map((g) => (
+              <option key={g.code} value={g.code}>
+                {g.name} — {num(g.population)} dogs
               </option>
             ))}
           </select>
@@ -86,11 +108,15 @@ export function WWITClient() {
         <div className="wwit-warn" role="note">
           <TriangleAlert size={15} />
           <span>
-            <b>No published vaccination baseline exists for Delhi.</b> The
-            2022-23 survey measured sterilisation, not vaccination, and ARV
-            drives are run by several bodies without a shared register. This
-            plan therefore assumes zero coverage — a ceiling, not an estimate.
-            Establishing the real baseline is itself a study.
+            <b>
+              No published {objective === "vaccination" ? "vaccination" : "coverage"}{" "}
+              baseline exists for {geo?.name}.
+            </b>{" "}
+            {objective === "vaccination"
+              ? "Anti-rabies drives are run by several bodies without a shared register, so no state has a vaccination baseline to subtract."
+              : "No Animal Birth Control coverage figure has been published for this state."}{" "}
+            This plan therefore assumes zero coverage — a ceiling, not an
+            estimate. Establishing the real baseline is itself a study.
           </span>
         </div>
       )}
@@ -118,10 +144,10 @@ export function WWITClient() {
         <h2>Every number above, and where it comes from</h2>
         <ol>
           <li>
-            <b>Population.</b> {num(DELHI_POPULATION.value)} community dogs
-            across Delhi NCT, scaled to the scope you picked.{" "}
+            <b>Population.</b> {num(geo?.population ?? 0)} community dogs
+            across {geo?.name}, scaled to the scope you picked.{" "}
             <span className="wwit-src">
-              {DELHI_POPULATION.source} ({DELHI_POPULATION.year}).
+              {geo?.populationSource} ({geo?.populationYear}).
             </span>
           </li>
           <li>
@@ -133,10 +159,8 @@ export function WWITClient() {
               </>
             ) : (
               <>
-                {Math.round(DELHI_ABC_COVERAGE.value * 100)}% sterilised.{" "}
-                <span className="wwit-src">
-                  {DELHI_ABC_COVERAGE.source} ({DELHI_ABC_COVERAGE.year}).
-                </span>
+                {Math.round((geo?.coverage ?? 0) * 100)}% sterilised.{" "}
+                <span className="wwit-src">{geo?.coverageSource}</span>
               </>
             )}
           </li>
@@ -153,10 +177,15 @@ export function WWITClient() {
             </span>
           </li>
           <li>
-            <b>Scope.</b> Your input, not a finding. Delhi&apos;s ward-level
-            distribution has never been published, so this tool cannot tell you
-            which part of the city needs it most — only what a given share
-            costs.
+            <b>Scope.</b> Your input, not a finding. No state publishes a
+            ward-level distribution, so this tool cannot tell you which part of{" "}
+            {geo?.name} needs it most — only what a given share costs.{" "}
+            {uncosted > 0 && (
+              <>
+                {uncosted} of India&apos;s states have no published dog
+                population at all and cannot be costed here yet.
+              </>
+            )}
           </li>
         </ol>
       </section>
