@@ -27,6 +27,7 @@ const OWN_CHROME = new Set<string>([
   "/for-funders",
   "/for-ngos",
   "/the-data",
+  "/how-to-help",
 ]);
 
 /**

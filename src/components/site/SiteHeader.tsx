@@ -1,19 +1,60 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 
-const LINKS = [
+type NavItem = {
+  label: string;
+  href: string;
+  /* Items with children open a panel; the parent stays a real link so it
+     still works on touch and for anyone navigating by keyboard. */
+  children?: { label: string; href: string; note: string }[];
+};
+
+const LINKS: NavItem[] = [
   { label: "Why StrayPaw", href: "/why-straypaw" },
   { label: "The network", href: "/the-network" },
-  { label: "For funders", href: "/for-funders" },
-  { label: "For NGOs", href: "/for-ngos" },
+  {
+    label: "How you can help",
+    href: "/how-to-help",
+    children: [
+      { label: "Report an animal", href: "/report", note: "A photo and a place is enough" },
+      { label: "Volunteer", href: "/get-involved", note: "Routed to named organisations" },
+      { label: "For NGOs", href: "/for-ngos", note: "Bring your team's records in" },
+      { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
+    ],
+  },
   { label: "The data", href: "/the-data" },
 ];
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [menu, setMenu] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  /* Close the dropdown on outside click and on Escape — both expected of a
+     menu, and without them it strands open over the page. */
+  useEffect(() => {
+    if (!menu) return;
+    const onDown = (e: MouseEvent) => {
+      if (!navRef.current?.contains(e.target as Node)) setMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenu(null);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
+
+  const closeAll = () => {
+    setOpen(false);
+    setMenu(null);
+  };
 
   return (
     <header className="sp-header">
@@ -22,12 +63,51 @@ export function SiteHeader() {
         <span>StrayPaw</span>
       </Link>
 
-      <nav className={`sp-nav ${open ? "open" : ""}`}>
-        {LINKS.map((l) => (
-          <a key={l.href} href={l.href} onClick={() => setOpen(false)}>
-            {l.label}
-          </a>
-        ))}
+      <nav ref={navRef} className={`sp-nav ${open ? "open" : ""}`}>
+        {LINKS.map((l) =>
+          l.children ? (
+            <div
+              key={l.href}
+              className={`sp-nav-group ${menu === l.href ? "on" : ""}`}
+              onMouseEnter={() => setMenu(l.href)}
+              onMouseLeave={() => setMenu(null)}
+            >
+              <button
+                type="button"
+                className="sp-nav-trigger"
+                aria-expanded={menu === l.href}
+                aria-haspopup="true"
+                onClick={() => setMenu(menu === l.href ? null : l.href)}
+              >
+                {l.label}
+                <ChevronDown size={13} />
+              </button>
+
+              <div className="sp-nav-panel" role="menu">
+                <Link href={l.href} className="sp-nav-lead" onClick={closeAll}>
+                  <b>Everything you can do</b>
+                  <span>The whole picture, in one page</span>
+                </Link>
+                {l.children.map((c) => (
+                  <Link
+                    key={c.href}
+                    href={c.href}
+                    className="sp-nav-item"
+                    role="menuitem"
+                    onClick={closeAll}
+                  >
+                    <b>{c.label}</b>
+                    <span>{c.note}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <Link key={l.href} href={l.href} onClick={closeAll}>
+              {l.label}
+            </Link>
+          )
+        )}
       </nav>
 
       <div className="sp-header-actions">
