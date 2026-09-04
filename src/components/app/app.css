@@ -1439,3 +1439,120 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── first run: role picker + tour ──────────────────────────────── */
+
+.wc-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(11, 16, 32, 0.55);
+  backdrop-filter: blur(6px);
+  animation: wc-in 0.24s ease;
+}
+@keyframes wc-in { from { opacity: 0; } to { opacity: 1; } }
+
+.wc {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border: 1px solid #ccd3dc;
+  border-radius: 5px;
+  padding: 30px 30px 26px;
+  box-shadow: 0 30px 70px rgba(11, 16, 32, 0.3);
+}
+.wc-skip {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid #dfe4ea;
+  border-radius: 3px;
+  color: #5f6875;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.wc-skip:hover { color: var(--ink); border-color: #9fadbf; }
+
+.wc-kicker { display: block; color: var(--electric-ink); }
+.wc-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 16px 0 2px;
+  border-radius: 4px;
+  background: #eef4ff;
+  color: var(--electric-ink);
+}
+.wc-title {
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 12px 0 8px;
+}
+.wc-lede { margin: 0; font-size: 14px; line-height: 1.6; color: #4d5766; }
+
+.wc-roles { display: grid; gap: 8px; margin-top: 20px; }
+.wc-role {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 14px;
+  text-align: left;
+  background: #fbfcfd;
+  border: 1px solid #ccd3dc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.wc-role:hover { border-color: var(--electric); background: #f2f7ff; }
+.wc-role:focus-visible { outline: 2px solid var(--electric); outline-offset: 1px; }
+.wc-role svg { color: var(--electric-ink); grid-row: 1 / span 2; }
+.wc-role b { font-size: 14px; font-weight: 600; }
+.wc-role span { font-size: 12.5px; line-height: 1.5; color: #5f6875; margin-top: 3px; }
+
+.wc-dots { display: flex; gap: 6px; margin: 22px 0 18px; }
+.wc-dots span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #d3dae3; transition: background 0.25s ease;
+}
+.wc-dots span.on { background: var(--electric-ink); }
+.wc-actions { display: flex; gap: 10px; }
+
+@media (max-width: 650px) {
+  .wc { padding: 26px 20px 22px; }
+  .wc-title { font-size: 25px; }
+}
+
+/* Chosen role, and the way back out of it. */
+.spa-role-chip {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: #fff;
+  border: 1px solid #c4ccd6;
+  border-radius: 3px;
+  color: var(--electric-ink);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.spa-role-chip:hover { border-color: var(--electric); }

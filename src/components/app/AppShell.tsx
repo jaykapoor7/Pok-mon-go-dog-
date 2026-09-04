@@ -34,6 +34,8 @@ import {
   X,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
+import { Welcome } from "./Welcome";
+import { ROLE_META, readStoredRole, type Role } from "@/lib/roles";
 import "./app.css";
 
 /* Everyone sees these. The console is one view — community reporters and NGO
@@ -84,6 +86,7 @@ export function AppShell({
 }) {
   const nested = useContext(InShell);
   const pathname = usePathname();
+  const [role, setRole] = useState<Role | null>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -115,6 +118,24 @@ export function AppShell({
     setOpen(false);
   }, [pathname]);
 
+  /* Read after mount: localStorage is not available during SSR, and reading it
+     during render would desync the server and client markup. */
+  useEffect(() => {
+    setRole(readStoredRole());
+  }, [pathname]);
+
+  /* The role reorders the sidebar, it does not restrict it. A funder still
+     sees Report; it simply is not the first thing in front of them. */
+  const prioritise = <T extends { href: string }>(items: T[]): T[] => {
+    if (!role) return items;
+    const rank = ROLE_META[role].priority;
+    const score = (h: string) => {
+      const i = rank.indexOf(h);
+      return i === -1 ? rank.length : i;
+    };
+    return [...items].sort((a, b) => score(a.href) - score(b.href));
+  };
+
   const isActive = (href: string) =>
     href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 
@@ -124,6 +145,7 @@ export function AppShell({
   return (
    <InShell.Provider value={true}>
     <div className="spa">
+      <Welcome />
       <a href="#spa-main" className="skip-link">
         Skip to content
       </a>
@@ -182,7 +204,7 @@ export function AppShell({
             <i /> Live network
           </div>
 
-          {COMMUNITY.map(({ href, label, Icon }) => (
+          {prioritise(COMMUNITY).map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
@@ -195,7 +217,7 @@ export function AppShell({
           ))}
 
           <div className="spa-side-label">Evidence</div>
-          {EVIDENCE.map(({ href, label, Icon }) => (
+          {prioritise(EVIDENCE).map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
@@ -208,7 +230,7 @@ export function AppShell({
           ))}
 
           <div className="spa-side-label">Workspace</div>
-          {WORKSPACE.map(({ href, label, Icon }) => (
+          {prioritise(WORKSPACE).map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
@@ -223,6 +245,24 @@ export function AppShell({
           <div className="spa-side-foot">
             Network
             <b>Pan-India</b>
+            {role && (
+              <button
+                type="button"
+                className="spa-role-chip"
+                onClick={() => {
+                  try {
+                    window.localStorage.removeItem("straypaw.role");
+                    window.localStorage.removeItem("straypaw.tour.v1");
+                  } catch {
+                    /* nothing stored to clear */
+                  }
+                  window.location.reload();
+                }}
+                title="Change how the console is ordered for you"
+              >
+                {ROLE_META[role].label}
+              </button>
+            )}
           </div>
         </nav>
 

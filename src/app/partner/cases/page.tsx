@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { getCases } from "@/lib/cases";
-import { CasesTable } from "@/components/cases/CasesTable";
+import { PartnerCasesLive } from "@/components/partner/PartnerCasesLive";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Cases, StrayPaw Partner" };
 
-export default async function PartnerCasesPage() {
-  const cases = await getCases();
+export default function PartnerCasesPage() {
   return (
     <div>
       <header className="mb-5 flex items-center justify-between gap-4">
@@ -19,7 +17,7 @@ export default async function PartnerCasesPage() {
           <Plus className="h-4 w-4" /> New case
         </Link>
       </header>
-      <CasesTable cases={cases} hrefBase="/partner/cases" />
+      <PartnerCasesLive />
     </div>
   );
 }

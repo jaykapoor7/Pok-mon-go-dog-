@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+  type ReactNode,
+} from "react";
 import { Loader2, ShieldCheck, LogIn, HeartHandshake, Check } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
@@ -10,18 +16,33 @@ import {
 } from "@/lib/actions";
 
 /**
- * Gates the operator surfaces (dashboard / cases) to VERIFIED partner NGOs.
- * Non-members get a "request access" screen; the request lands in /moderate for
- * the founder to approve, which inserts them into ngo_members.
+ * The operator surfaces are READABLE BY ANYONE — an NGO evaluating StrayPaw,
+ * a funder checking what the workspace actually looks like, or a resident
+ * curious about how cases get handled should not hit a wall.
  *
- * Note: this is a UI/positioning gate. Case data (no PII; exact pins already
- * NGO-gated server-side) is still fetched server-side; true data-level gating
- * would need cookie/SSR sessions (tracked as a follow-up).
+ * What membership controls is the records themselves. Case data loads through
+ * a session-scoped RPC, so signed out or unverified the workspace renders
+ * genuinely empty — the rows never reach the page rather than being hidden in
+ * the markup.
+ *
+ * Consumers read `usePartnerAccess()` to decide whether to render a control or
+ * a prompt. This component no longer blocks its children.
  */
+const AccessCtx = createContext<{ member: boolean; ready: boolean }>({
+  member: false,
+  ready: false,
+});
+
+/** Whether the current viewer may write, and whether we know yet. */
+export function usePartnerAccess() {
+  return useContext(AccessCtx);
+}
+
 export function PartnerGate({ title, children }: { title: string; children: ReactNode }) {
   const { user, ready, openSignIn } = useAuth();
   const [member, setMember] = useState<boolean | null>(null);
   const [reqStatus, setReqStatus] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -42,57 +63,58 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
     };
   }, [ready, user?.id]);
 
-  if (!ready || member === null) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-paw-500" />
-      </div>
-    );
-  }
-
-  if (member) return <>{children}</>;
+  const resolved = ready && member !== null;
 
   return (
-    <div className="mx-auto max-w-md py-12">
-      <div className="card p-7 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-          <ShieldCheck className="h-8 w-8" />
-        </span>
-        <h1 className="font-display text-2xl">{title}</h1>
-        <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-bark-600">
-          These records belong to verified organisations. Sign in to claim and
-          resolve cases, track coverage in your area, and report outcomes back to
-          the funders behind them.
-        </p>
-
-        {!user ? (
-          <button onClick={openSignIn} className="btn-primary mt-5 w-full py-3">
-            <LogIn className="h-4 w-4" /> Sign in to continue
-          </button>
-        ) : reqStatus === "pending" ? (
-          <div className="mt-5 rounded bg-status-hungry/10 px-4 py-3 text-sm font-medium text-bark-700 dark:text-bark-200">
-            <Check className="mr-1 inline h-4 w-4 text-status-vaccinated" />
-            Request received, we&apos;ll review and enable your access shortly.
-          </div>
-        ) : reqStatus === "rejected" ? (
-          <div className="mt-5 space-y-3">
-            <p className="text-sm text-bark-500">
-              A previous request wasn&apos;t approved. If you think that&apos;s a mistake,
-              reach out or request again.
+    <AccessCtx.Provider value={{ member: member === true, ready: resolved }}>
+      {resolved && !member && !dismissed && (
+        <div className="mb-5 flex flex-wrap items-start gap-x-4 gap-y-3 rounded border border-paw-300/50 bg-paw-50 px-4 py-3 dark:border-paw-500/30 dark:bg-bark-800">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-paw-600 dark:text-paw-300" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-bark-800 dark:text-bark-100">
+              This is {title} — with no records loaded.
             </p>
-            <RequestForm onDone={() => setReqStatus("pending")} />
+            <p className="mt-1 text-[13px] leading-relaxed text-bark-600 dark:text-bark-300">
+              Look around the workspace freely. Case records load once you sign
+              in with a verified organisation account, and each NGO sees only
+              its own — so nothing here is another org&apos;s data.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {!user ? (
+                <button onClick={openSignIn} className="btn-primary px-4 py-2 text-[13px]">
+                  <LogIn className="h-4 w-4" /> Sign in
+                </button>
+              ) : reqStatus === "pending" ? (
+                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-bark-700 dark:text-bark-200">
+                  <Check className="h-4 w-4 text-status-vaccinated" />
+                  Request received — we&apos;ll enable your access shortly.
+                </span>
+              ) : (
+                <RequestForm onDone={() => setReqStatus("pending")} compact />
+              )}
+              <button
+                onClick={() => setDismissed(true)}
+                className="btn-ghost px-3 py-2 text-[13px]"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
-        ) : (
-          <div className="mt-5">
-            <RequestForm onDone={() => setReqStatus("pending")} />
-          </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+      {children}
+    </AccessCtx.Provider>
   );
 }
 
-function RequestForm({ onDone }: { onDone: () => void }) {
+function RequestForm({
+  onDone,
+  compact = false,
+}: {
+  onDone: () => void;
+  /** Renders as a single button that reveals the form, for the inline banner. */
+  compact?: boolean;
+}) {
   const { user } = useAuth();
   const [orgName, setOrgName] = useState("");
   const [area, setArea] = useState("");
@@ -100,6 +122,7 @@ function RequestForm({ onDone }: { onDone: () => void }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   async function submit() {
     if (!orgName.trim() || busy) return;
@@ -123,8 +146,18 @@ function RequestForm({ onDone }: { onDone: () => void }) {
   const field =
     "w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
+  /* In the inline banner the full form is too heavy, so it stays behind one
+     button until the viewer actually wants it. */
+  if (compact && !expanded) {
+    return (
+      <button onClick={() => setExpanded(true)} className="btn-primary px-4 py-2 text-[13px]">
+        <HeartHandshake className="h-4 w-4" /> Request partner access
+      </button>
+    );
+  }
+
   return (
-    <div className="space-y-2.5 text-left">
+    <div className="w-full space-y-2.5 text-left">
       <p className="text-center text-sm font-semibold">Request partner access</p>
       <input value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="Organisation / rescue name" className={field} />
       <input value={area} onChange={(e) => setArea(e.target.value)} placeholder="Area you cover (e.g. South Delhi)" className={field} />
