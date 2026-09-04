@@ -1400,8 +1400,23 @@
   background: rgba(11,16,32,0.1);
   border: 1px solid rgba(11,16,32,0.1);
 }
-.sp-loop-stage { background: var(--paper); padding: 24px 18px; }
-.sp-loop-n { display: block; color: var(--vermilion-ink); margin-bottom: 10px; }
+.sp-loop-stage {
+  background: var(--paper);
+  padding: 24px 18px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.sp-loop-stage:hover { background: #eef1f5; transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) {
+  .sp-loop-stage:hover { transform: none; }
+}
+.sp-loop-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--vermilion-ink);
+}
+.sp-loop-n { display: block; color: var(--vermilion-ink); }
 .sp-loop-label {
   display: block;
   font-family: var(--font-display), "Instrument Serif", serif;
@@ -1852,3 +1867,54 @@
   .sp-ping, .sp-sweep, .sp-trace { animation: none !important; }
   .sp-ping { opacity: 0.35; }
 }
+
+/* ── what it is: the four parts ─────────────────────────────────── */
+
+.sp-parts { padding: 5.5vw 8vw; background: var(--bone); }
+.sp-parts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  margin-top: 30px;
+  background: rgba(11, 16, 32, 0.12);
+  border: 1px solid rgba(11, 16, 32, 0.12);
+}
+.sp-part {
+  background: var(--bone);
+  padding: 26px 22px;
+  /* Nudges up on hover — enough to feel responsive, not enough to distract. */
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.sp-part:hover { background: #e6ebf1; transform: translateY(-2px); }
+.sp-part > svg { color: var(--vermilion-ink); }
+.sp-part b {
+  display: block;
+  margin: 14px 0 8px;
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.sp-part p { margin: 0; font-size: 13.5px; line-height: 1.6; color: #4d5766; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-part:hover { transform: none; }
+}
+@media (max-width: 650px) {
+  .sp-parts { padding-left: 6vw; padding-right: 6vw; }
+}
+
+/* Reveal wraps each card, so the wrapper is the grid item and the card
+   inside it does not inherit the stretched row height — which left the grid
+   background showing under shorter cards. Both need to fill. */
+.sp-parts-grid > *,
+.sp-loop-stages > *,
+.sp-for-grid > *,
+.mk-steps > *,
+.mk-stats > * { display: flex; }
+.sp-parts-grid > * > .sp-part,
+.sp-loop-stages > * > .sp-loop-stage,
+.sp-for-grid > * > .sp-for-card,
+.mk-steps > * > .mk-step,
+.mk-stats > * > .mk-stat { flex: 1; }

@@ -44,12 +44,25 @@ export function ChipScroll() {
     if (!section) return;
 
     let raf = 0;
+    let last = -1;
     function update() {
       const rect = section!.getBoundingClientRect();
       const total = rect.height - window.innerHeight;
-      if (total <= 0) { setProgress(0); return; }
+      if (total <= 0) {
+        if (last !== 0) { last = 0; setProgress(0); }
+        return;
+      }
       const scrolled = Math.max(0, -rect.top);
-      setProgress(Math.min(1, scrolled / total));
+      const next = Math.min(1, scrolled / total);
+      /* Quantise before setting state. Scrolling fires a frame at a time and
+         a raw value re-rendered the whole section on every one; at 1/400 the
+         motion is still continuous to the eye but the render count drops by
+         an order of magnitude. */
+      const q = Math.round(next * 400) / 400;
+      if (q !== last) {
+        last = q;
+        setProgress(q);
+      }
     }
 
     update();

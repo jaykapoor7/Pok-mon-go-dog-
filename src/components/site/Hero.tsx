@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { ORGS } from "@/lib/platform/orgs";
+import { STATES } from "@/lib/platform/geography";
+
+const ORG_COUNT = ORGS.length;
+const STATE_COUNT = STATES.length;
 import { useEffect } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
@@ -38,7 +43,7 @@ export function Hero() {
         <img
           className="sp-hero-img"
           src="/hero/skyline-dog.jpg"
-          alt="A street dog on a rooftop overlooking Delhi at golden hour"
+          alt="A street dog on a rooftop overlooking an Indian city at golden hour"
         />
         <div className="sp-hero-wash" />
         <div className="sp-hero-grain" />
@@ -50,9 +55,13 @@ export function Hero() {
           <span className="sp-spine-core" />
         </div>
 
+        {/* Pan-India figures, not one city's. Both are real counts from the
+            sourced datasets rather than a headline stat. */}
         <div className="sp-hero-caption">
-          <span>DELHI NCR</span>
-          <span>~10 LAKH COMMUNITY DOGS / 45% STERILISED</span>
+          <span>PAN-INDIA</span>
+          <span>
+            {STATE_COUNT} STATES / {ORG_COUNT} ORGANISATIONS MAPPED
+          </span>
         </div>
         <div className="sp-hero-signal left" aria-hidden="true">
           OBSERVE <i />
@@ -64,15 +73,17 @@ export function Hero() {
 
       <div className="sp-hero-copy">
         <div className="sp-eyebrow">
-          STRAYPAW / INFRASTRUCTURE FOR CARE
+          STRAYPAW / RECORD SYSTEM FOR STREET ANIMALS
         </div>
         <h1>
-          Make care
+          Every street dog,
           <br />
-          <em>measurable.</em>
+          <em>on the record.</em>
         </h1>
         <p className="sp-hero-lede">
-          The system connecting street-level evidence to the people who can act.
+          StrayPaw gives India&rsquo;s street animals a permanent identity and
+          a shared record — so NGOs, municipalities and funders finally work
+          from the same data instead of three different notebooks.
         </p>
         <div className="sp-hero-ctas">
           <a href="#how" className="sp-btn sp-btn-primary">

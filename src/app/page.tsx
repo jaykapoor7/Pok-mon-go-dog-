@@ -1,5 +1,16 @@
 import Link from "next/link";
-import { ArrowUpRight, Check } from "lucide-react";
+import {
+  ArrowUpRight,
+  BarChart3,
+  Check,
+  Eye,
+  ListChecks,
+  Search,
+  Wrench,
+  Fingerprint,
+  Map as MapIcon,
+  Stethoscope,
+} from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Hero } from "@/components/site/Hero";
 import { ChipScroll } from "@/components/site/ChipScroll";
@@ -27,34 +38,65 @@ export const metadata = {
     "StrayPaw builds the infrastructure layer that makes community-animal populations identifiable, observable, and actionable. Every animal an identity. Every intervention an outcome.",
 };
 
+/* Said plainly and early: what the thing actually consists of, before any
+   narrative about why it matters. */
+const PARTS = [
+  {
+    Icon: Fingerprint,
+    title: "Identity",
+    body: "A permanent ISO code per animal, readable by scanners clinics already own. Records attach to the animal, not to whoever saw it last.",
+  },
+  {
+    Icon: MapIcon,
+    title: "Shared map",
+    body: "Residents, field teams and municipal sweeps write to one record layer. One animal accumulates one history instead of several partial ones.",
+  },
+  {
+    Icon: Stethoscope,
+    title: "Field workspace",
+    body: "Cases, animal registry, medical logs and reporting for the NGOs doing the work — free, and their data stays theirs.",
+  },
+  {
+    Icon: BarChart3,
+    title: "Measurement",
+    body: "Coverage becomes a query instead of a survey, so a funder can tell a working programme from a busy one.",
+  },
+];
+
 const LOOP_STAGES = [
   {
     n: "01",
+    Icon: Eye,
     label: "SEE",
     body: "Community reporters, field teams, and municipal sweeps create the first signal.",
   },
   {
     n: "02",
+    Icon: Fingerprint,
     label: "IDENTIFY",
     body: "Each animal gets a persistent identity — chip, record, and location history.",
   },
   {
     n: "03",
+    Icon: Search,
     label: "UNDERSTAND",
     body: "Sightings become studies. Studies reveal coverage, need, and opportunity.",
   },
   {
     n: "04",
+    Icon: Wrench,
     label: "ACT",
     body: "Prioritised interventions — sterilisation, vaccination, treatment — with a named owner.",
   },
   {
     n: "05",
+    Icon: ListChecks,
     label: "TRACK",
     body: "Every action posts to the animal's record. No work disappears into a PDF.",
   },
   {
     n: "06",
+    Icon: BarChart3,
     label: "MEASURE",
     body: "Outcomes close the loop. Coverage countable. Funding accountable.",
   },
@@ -92,6 +134,26 @@ export default function HomePage() {
       <main>
         <Hero />
 
+        {/* ── WHAT IT IS ───────────────────────────────────────────── */}
+        <section className="sp-parts">
+          <Reveal>
+            <div className="sp-kicker">
+              FOUR PARTS. <span>ONE SYSTEM.</span>
+            </div>
+          </Reveal>
+          <div className="sp-parts-grid">
+            {PARTS.map((p, i) => (
+              <Reveal key={p.title} delay={i * 60}>
+                <div className="sp-part">
+                  <p.Icon size={22} strokeWidth={1.5} />
+                  <b>{p.title}</b>
+                  <p>{p.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
         {/* ── SYSTEM LOOP ───────────────────────────────────────── */}
         <section className="sp-loop" id="how">
           <Reveal>
@@ -122,7 +184,10 @@ export default function HomePage() {
             {LOOP_STAGES.map((s, i) => (
               <Reveal key={s.n} delay={i * 55}>
                 <div className="sp-loop-stage">
-                  <span className="sp-mono sp-loop-n">{s.n}</span>
+                  <span className="sp-loop-head">
+                    <s.Icon size={16} strokeWidth={1.6} />
+                    <span className="sp-mono sp-loop-n">{s.n}</span>
+                  </span>
                   <b className="sp-loop-label">{s.label}</b>
                   <p className="sp-loop-desc">{s.body}</p>
                 </div>

@@ -112,12 +112,28 @@ export function MapLibreMap({
     [index, bounds, zoom]
   );
 
+  /* onMove fires every frame of a pan. Re-clustering that often is wasted
+     work — supercluster returns the same result for sub-pixel changes — so
+     the view is only pushed to state when it moved enough to matter. */
+  const lastView = useRef<{ b: [number, number, number, number]; z: number } | null>(null);
   const sync = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
     const b = map.getBounds();
-    if (b) setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-    setZoom(map.getZoom());
+    if (!b) return;
+    const next: [number, number, number, number] = [
+      b.getWest(), b.getSouth(), b.getEast(), b.getNorth(),
+    ];
+    const z = map.getZoom();
+    const prev = lastView.current;
+    if (prev) {
+      const span = Math.max(next[2] - next[0], 1e-6);
+      const moved = next.some((v, i) => Math.abs(v - prev.b[i]) > span / 200);
+      if (!moved && Math.abs(z - prev.z) < 0.05) return;
+    }
+    lastView.current = { b: next, z };
+    setBounds(next);
+    setZoom(z);
   }, []);
 
   const handleLoad = useCallback(() => sync(), [sync]);
@@ -167,7 +183,9 @@ export function MapLibreMap({
       minZoom={MIN_ZOOM}
       maxZoom={18}
       /* Clusters follow the camera while it moves rather than snapping only
-         once it stops, which is what made panning feel static. */
+         once it stops, which is what made panning feel static. The handler is
+         already rAF-coalesced, and re-clustering is skipped unless the view
+         actually changed enough to alter the result. */
       onLoad={handleLoad}
       onMove={sync}
       onMoveEnd={sync}
