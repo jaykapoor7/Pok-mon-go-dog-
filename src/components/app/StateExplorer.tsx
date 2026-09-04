@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, MapPin } from "lucide-react";
 
 export type StateRow = {
@@ -27,6 +27,15 @@ export function StateExplorer({ rows }: { rows: StateRow[] }) {
   const [selected, setSelected] = useState<StateRow>(
     rows.find((r) => r.abcCoverage !== null) ?? rows[0]
   );
+  /* Console search links here with a state code, so the explorer opens on
+     that state instead of the default first row. */
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("state");
+    if (!code) return;
+    const match = rows.find((r) => r.code === code);
+    if (match) setSelected(match);
+  }, [rows]);
+
   const [sort, setSort] = useState<"population" | "name" | "orgs">("population");
 
   const sorted = useMemo(() => {

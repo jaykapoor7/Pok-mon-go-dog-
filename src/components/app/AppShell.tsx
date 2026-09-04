@@ -36,6 +36,7 @@ import {
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome } from "./Welcome";
 import { ROLE_META, readStoredRole, type Role } from "@/lib/roles";
+import { search, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
 /* Everyone sees these. The console is one view — community reporters and NGO
@@ -90,15 +91,41 @@ export function AppShell({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<SearchHit[]>([]);
+  const [cursor, setCursor] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  function go(hit: SearchHit) {
+    router.push(hit.href);
+    setQuery("");
+    setHits([]);
+    searchRef.current?.blur();
+  }
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
-    const q = query.trim();
-    if (!q) return;
-    router.push(`/map?q=${encodeURIComponent(q)}`);
-    setQuery("");
-    searchRef.current?.blur();
+    /* Enter takes the highlighted result. Pushing the raw text at the map
+       did nothing — it reads lat/lng, not a free-text query. */
+    if (hits[cursor]) go(hits[cursor]);
+  }
+
+  function onQueryChange(v: string) {
+    setQuery(v);
+    setHits(search(v));
+    setCursor(0);
+  }
+
+  function onSearchKey(e: React.KeyboardEvent) {
+    if (!hits.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setCursor((c) => (c + 1) % hits.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setCursor((c) => (c - 1 + hits.length) % hits.length);
+    } else if (e.key === "Escape") {
+      setHits([]);
+    }
   }
 
   /* Escape closes the mobile drawer — the shortcut every user already
@@ -174,13 +201,38 @@ export function AppShell({
             placeholder="Search location, animal ID, org…"
             aria-label="Search the network"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => onQueryChange(e.target.value)}
+            onKeyDown={onSearchKey}
+            onBlur={() => window.setTimeout(() => setHits([]), 120)}
+            role="combobox"
+            aria-expanded={hits.length > 0}
+            aria-controls="spa-search-results"
             /* Mobile keyboards show a "search" key instead of "return". */
             enterKeyHint="search"
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
           />
+
+          {hits.length > 0 && (
+            <ul className="spa-results" id="spa-search-results" role="listbox">
+              {hits.map((h, i) => (
+                <li key={`${h.kind}-${h.href}-${h.label}`} role="option" aria-selected={i === cursor}>
+                  <button
+                    type="button"
+                    className={i === cursor ? "on" : ""}
+                    onMouseEnter={() => setCursor(i)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => go(h)}
+                  >
+                    <span className="spa-res-kind">{KIND_LABEL[h.kind]}</span>
+                    <b>{h.label}</b>
+                    <span className="spa-res-detail">{h.detail}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </form>
 
         <div className="spa-top-right">

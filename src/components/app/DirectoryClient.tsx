@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, MapPin, Search, X } from "lucide-react";
 import type { OrgEntry } from "@/lib/platform/orgs";
 
@@ -24,6 +24,13 @@ export function DirectoryClient({
   const [state, setState] = useState("all");
   const [focus, setFocus] = useState("all");
   const [q, setQ] = useState("");
+
+  /* Console search links here with the organisation already named, so the
+     directory opens filtered to it rather than at the top of 38 entries. */
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("q");
+    if (v) setQ(v);
+  }, []);
 
   const results = useMemo(() => {
     const needle = q.trim().toLowerCase();
