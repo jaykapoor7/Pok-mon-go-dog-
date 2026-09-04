@@ -35,7 +35,8 @@ export function getSupabase(): SupabaseClient | null {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
-          // Implicit flow puts the token in the URL hash, so a magic link works
+          // Implicit flow puts the token in the URL hash, so a password-reset
+          // link works
           // even when opened on a different device/browser than it was
           // requested from (PKCE needs the original browser's verifier and
           // otherwise fails with "string did not match the expected pattern").

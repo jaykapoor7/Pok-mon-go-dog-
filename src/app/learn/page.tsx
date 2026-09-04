@@ -160,7 +160,7 @@ export default function LearnPage() {
           {RESEARCH.length > 10 && (
             <p className="mt-4 text-sm text-bark-400">
               Showing 10 of {RESEARCH.length} sources.{" "}
-              <Link href="/research" className="text-paw-600 underline">
+              <Link href="/sources" className="text-paw-600 underline">
                 View all sources
               </Link>
             </p>

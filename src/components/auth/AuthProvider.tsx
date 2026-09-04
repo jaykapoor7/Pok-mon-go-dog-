@@ -101,7 +101,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       alive = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+    // getSupabase() caches one client, so `supa` is stable for the life of the
+    // page; listing it is accurate and does not re-run the subscription.
+  }, [supa]);
 
   function applySession(
     u: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null
@@ -245,8 +247,20 @@ function SignInSheet({
           },
         });
         if (err) throw err;
-        // If email confirmation is required, no session is returned yet.
+
+        // Signing up should sign you in. Supabase only returns a session here
+        // when email confirmation is switched off in the project; when it is
+        // on, it returns none and the account is unusable until a link is
+        // clicked. Rather than send everyone to their inbox, try the password
+        // we were just given — that succeeds the moment confirmation is off,
+        // and the emailed link becomes the fallback rather than the path.
         if (!data.session) {
+          const { error: signInErr } = await supa.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+          if (!signInErr) return; // onAuthStateChange takes it from here
+          // Only genuinely blocked accounts see the confirmation screen.
           setNotice("confirm");
           return;
         }
@@ -308,7 +322,10 @@ function SignInSheet({
             </h2>
             <p className="mt-1.5 text-sm text-bark-500">
               {notice === "confirm" ? (
-                <>We sent a confirmation link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>. Open it, then come back and sign in. Check spam if it doesn&apos;t arrive in a minute.</>
+                <>Your account was created, but this project still has email
+                confirmation switched on, so it needs one click before you can
+                sign in. We sent a link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span> — check spam if it
+                does not arrive in a minute.</>
               ) : (
                 <>We sent a password-reset link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.</>
               )}

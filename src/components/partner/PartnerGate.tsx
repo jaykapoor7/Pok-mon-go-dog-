@@ -44,9 +44,13 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
   const [reqStatus, setReqStatus] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
+  /* Depend on the id, not the object: a new user object with the same id
+     should not refetch membership. */
+  const userId = user?.id;
+
   useEffect(() => {
     if (!ready) return;
-    if (!user) {
+    if (!userId) {
       setMember(false);
       return;
     }
@@ -61,7 +65,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
     return () => {
       alive = false;
     };
-  }, [ready, user?.id]);
+  }, [ready, userId]);
 
   const resolved = ready && member !== null;
 

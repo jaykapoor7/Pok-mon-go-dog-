@@ -14,6 +14,13 @@ const nextConfig = {
   // Security headers. CSP is scoped to frame-ancestors only (clickjacking
   // defence) so it can't break the map tiles / Supabase / inline runtime
   // scripts that a full script-src policy would.
+  /* /research was a source index sitting next to /research-standards, which
+     states how we design a study — two different things, one word. The index
+     is now /sources; the old path keeps working. */
+  async redirects() {
+    return [{ source: "/research", destination: "/sources", permanent: true }];
+  },
+
   async headers() {
     return [
       {

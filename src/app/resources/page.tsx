@@ -141,7 +141,7 @@ export default function ResourcesPage() {
               Explore data by state <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <Link
-              href="/research"
+              href="/sources"
               className="inline-flex items-center gap-1 rounded-full bg-bark-50 px-4 py-2 text-sm font-semibold text-bark-700 hover:bg-bark-100"
             >
               Research sources <ArrowRight className="h-3.5 w-3.5" />

@@ -48,7 +48,7 @@ const SELF_SHELLED = new Set<string>([
   "/following",
   "/explore",
   "/insights",
-  "/research",
+  "/sources",
   "/take-action",
   "/resources",
   "/learn",

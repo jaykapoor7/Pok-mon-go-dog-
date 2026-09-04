@@ -37,16 +37,20 @@ export function MapboxMap({
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
 
-  // Fly to a searched place when it changes (not on the static preview).
+  /* Fly to a searched place when it changes. Depends on the coordinates
+     rather than the object, so a re-render carrying an equal-but-new center
+     does not re-animate the camera; the static preview is already framed by
+     initialViewState and stays put. */
+  const centerLat = center?.lat;
+  const centerLng = center?.lng;
   useEffect(() => {
-    if (center && !preview) {
-      mapRef.current?.easeTo({
-        center: [center.lng, center.lat],
-        zoom: 13,
-        duration: 900,
-      });
-    }
-  }, [center?.lat, center?.lng]);
+    if (centerLat == null || centerLng == null || preview) return;
+    mapRef.current?.easeTo({
+      center: [centerLng, centerLat],
+      zoom: 13,
+      duration: 900,
+    });
+  }, [centerLat, centerLng, preview]);
   const [isDark] = useState(
     () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   );
