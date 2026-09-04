@@ -151,7 +151,7 @@ export default function ReportPage() {
           {step === 0 && (
             <div>
               <StepTitle icon={<Camera className="h-4 w-4" />} title="Add a photo" hint="A clear photo helps NGOs identify and find the animal." />
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickPhoto} />
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
               {photo ? (
                 <button onClick={() => fileRef.current?.click()} className="relative block aspect-square w-full overflow-hidden rounded bg-bark-100 dark:bg-bark-800">
                   <img src={photo} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl" />

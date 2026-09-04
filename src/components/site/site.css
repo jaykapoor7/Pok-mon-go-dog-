@@ -2040,3 +2040,24 @@
   .sp-nav-lead { display: none; }
   .sp-nav-item { min-height: 44px; }
 }
+
+/* ── tap targets on small screens ───────────────────────────────── */
+
+/*
+ * Several inline link styles sit at 14-15px tall — fine for a mouse, well
+ * under a fingertip. On touch they get real height and a little breathing
+ * room, without changing how they look on desktop.
+ */
+@media (max-width: 900px) {
+  .sp-for-link,
+  .sp-record-link,
+  .mk-next-card,
+  .sp-footer-bottom a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+  .sp-footer-bottom a { padding: 0 2px; }
+  /* The wordmark is the way home; it should not be a 30px sliver. */
+  .sp-wordmark { min-height: 44px; }
+}

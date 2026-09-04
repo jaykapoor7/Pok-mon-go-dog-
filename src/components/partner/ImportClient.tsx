@@ -129,6 +129,7 @@ export function ImportClient() {
           accept="image/*"
           multiple
           hidden
+          aria-label="Choose register pages or screenshots to import"
           onChange={(e) => {
             addFiles(e.target.files);
             e.target.value = "";

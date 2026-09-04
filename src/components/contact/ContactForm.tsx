@@ -80,21 +80,21 @@ export function ContactForm() {
     <form onSubmit={submit} className="rounded border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50 sm:p-6">
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Your name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Priya Sharma" className={field} />
+          <label htmlFor="contact-name" className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Your name</label>
+          <input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Priya Sharma" className={field} />
         </div>
         <div>
-          <label className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Email</label>
-          <input type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
+          <label htmlFor="contact-email" className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Email</label>
+          <input id="contact-email" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
         </div>
       </div>
       <div className="mt-3">
-        <label className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Subject</label>
-        <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Partnership, feedback, a question…" className={field} />
+        <label htmlFor="contact-subject" className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Subject</label>
+        <input id="contact-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Partnership, feedback, a question…" className={field} />
       </div>
       <div className="mt-3">
-        <label className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Message</label>
-        <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={5} placeholder="How can we help?" className={`${field} resize-none`} />
+        <label htmlFor="contact-message" className="mb-1.5 block text-[13px] font-medium text-bark-600 dark:text-bark-300">Message</label>
+        <textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} rows={5} placeholder="How can we help?" className={`${field} resize-none`} />
       </div>
 
       {error && <p className="mt-3 text-sm font-medium text-status-injured">{error}</p>}

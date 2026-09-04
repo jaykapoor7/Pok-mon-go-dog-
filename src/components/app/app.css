@@ -2064,3 +2064,19 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .spa .need-flag,
 .spa em { color: var(--vermilion-ink); }
 .spa dt { color: var(--electric-ink); }
+
+/* Console rows and chrome are laid out for a mouse; on touch the same
+   controls need a fingertip's worth of height. */
+@media (max-width: 900px) {
+  .spa-brand { min-height: 44px; }
+  .spa-role-chip { min-height: 34px; }
+  .st-row,
+  .dir-row { min-height: 44px; }
+}
+
+/* The state list is 29 rows of the same control; on a phone each needs to be
+   a comfortable target rather than a 38px line. */
+@media (max-width: 900px) {
+  .se-list button { min-height: 44px; }
+  .se-sort button { min-height: 38px; }
+}
