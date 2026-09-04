@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight, MapPin, PawPrint } from "lucide-react";
 import { useFollows } from "@/lib/follows";
 import { Constellation } from "@/components/site/vectors";
 import type { Dog } from "@/lib/types";
@@ -53,10 +53,28 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
             <div className="fl-grid">
               {suggestions.map((d) => (
                 <Link key={d.id} href={`/dog/${d.id}`} className="fl-card">
+                  {/* The photo is what makes these read as animals rather
+                      than rows — it is the reason to follow one. */}
+                  <span className="fl-photo">
+                    {d.cover_photo ? (
+                      <Image
+                        src={d.cover_photo}
+                        alt=""
+                        width={220}
+                        height={140}
+                        className="fl-img"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="fl-noimg" aria-hidden="true">
+                        <PawPrint size={20} strokeWidth={1.4} />
+                      </span>
+                    )}
+                    {d.needs_help && <i className="fl-badge">Needs help</i>}
+                  </span>
                   <b>{dogLabel(d)}</b>
                   <span className="fl-place">{formatPlace(d.zone, d.city)}</span>
                   <span className="fl-meta">
-                    {d.needs_help && <i className="fl-flag">Needs help</i>}
                     {(d.sightings_count ?? 0) > 0 && (
                       <i>
                         {d.sightings_count} sighting

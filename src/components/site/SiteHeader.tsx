@@ -19,7 +19,7 @@ export function SiteHeader() {
     <header className="sp-header">
       <Link href="/" className="sp-wordmark" aria-label="StrayPaw home">
         <StrayPawMark />
-        <span>straypaw</span>
+        <span>StrayPaw</span>
       </Link>
 
       <nav className={`sp-nav ${open ? "open" : ""}`}>
@@ -49,19 +49,37 @@ export function SiteHeader() {
 
 /** Minimal signal mark — three points on a ring. */
 export function StrayPawMark({ size = 21 }: { size?: number }) {
+  /* A paw whose pad is a map pin: the animal and its location in one form,
+     which is the whole product. Geometric enough to hold at 16px in the
+     console nav, and drawn in currentColor so it inherits whatever ground
+     it sits on. */
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 21 21"
+      viewBox="0 0 24 24"
       fill="none"
       aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
-      <circle cx="10.5" cy="10.5" r="10" stroke="currentColor" strokeWidth="1" />
-      <circle cx="5.5" cy="6.5" r="1.6" fill="currentColor" />
-      <circle cx="15.5" cy="6.5" r="1.6" fill="currentColor" />
-      <circle cx="10.5" cy="15.5" r="1.6" fill="currentColor" />
+      {/* locate ring — the identity half of the mark */}
+      <circle
+        cx="12"
+        cy="12"
+        r="11"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeOpacity="0.45"
+      />
+      {/* toes */}
+      <circle cx="7.7" cy="8.6" r="1.75" fill="currentColor" />
+      <circle cx="12" cy="7.15" r="1.85" fill="currentColor" />
+      <circle cx="16.3" cy="8.6" r="1.75" fill="currentColor" />
+      {/* pad, shaped as a pin: round shoulders tapering to a point below */}
+      <path
+        d="M12 11.1c2.5 0 4.3 1.85 4.3 4.05 0 1.5-.85 2.5-1.95 3.4L12 20.9l-2.35-2.35c-1.1-.9-1.95-1.9-1.95-3.4C7.7 12.95 9.5 11.1 12 11.1z"
+        fill="currentColor"
+      />
     </svg>
   );
 }

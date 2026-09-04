@@ -191,7 +191,7 @@ export function AppShell({
 
         <Link href="/app" className="spa-brand">
           <StrayPawMark size={18} />
-          <span>straypaw</span>
+          <span>StrayPaw</span>
           <small>console</small>
         </Link>
 

@@ -6,8 +6,19 @@ import { ChipScroll } from "@/components/site/ChipScroll";
 import { Reveal } from "@/components/site/Reveal";
 import {
   UNIT_COSTS,
+  COVERAGE_TARGET,
   inr,
+  num,
 } from "@/lib/platform/network";
+
+/* Goa is one of the few states publishing both a population and an ABC
+   coverage figure, which is what makes a fully-sourced worked example
+   possible at all. Both numbers come from datasets.ts. */
+const GOA_POPULATION = 85_000;
+const GOA_COVERAGE = 0.6;
+const GOA_ANIMALS = Math.round(
+  GOA_POPULATION * (COVERAGE_TARGET.value - GOA_COVERAGE)
+);
 import "@/components/site/site.css";
 
 export const metadata = {
@@ -168,53 +179,70 @@ export default function HomePage() {
             <div className="sp-record-quote">
               &ldquo;Every funded action
               <br />
-              <span>gets a clear record.</span>&rdquo;
+              <span>gets a clear record.&rdquo;</span>
             </div>
           </Reveal>
           <Reveal delay={120}>
-            {/* Deliberately shows the empty register rather than a sample
-                record. A funder has to trust that every row here happened;
-                a plausible example would destroy that. */}
+            {/* A worked example rather than an invented one: every figure is
+                a real published number for Goa, and the arithmetic is the
+                same calculation the costing tool runs. It shows the shape a
+                closed record takes without claiming a programme happened. */}
             <div className="sp-record-card">
               <div className="sp-record-top">
-                <span>STRAYPAW / OUTCOME REGISTER</span>
-                <span>0 RECORDS</span>
+                <span>STRAYPAW / OUTCOME RECORD</span>
+                <span>WORKED EXAMPLE</span>
               </div>
               <div className="sp-record-main">
-                <div className="sp-seal empty">
+                <div className="sp-seal">
                   <Check size={22} />
                   <span>
-                    AWAITING
+                    FORMAT
                     <br />
-                    FIRST
+                    v1
                   </span>
                 </div>
                 <div>
-                  <h3>Nothing has closed yet.</h3>
+                  <h3>Goa to the {Math.round(COVERAGE_TARGET.value * 100)}% threshold.</h3>
                   <p>
-                    No study has been commissioned, so no intervention has run
-                    and no outcome exists. This register stays empty until one
-                    does — we don&apos;t seed it with examples.
+                    Goa publishes both a population and a coverage figure — one
+                    of the few states that does. Closing the gap to the
+                    threshold at which sterilisation actually suppresses
+                    population growth is {num(GOA_ANIMALS)} animals, and this is
+                    the record that work would close with.
                   </p>
                 </div>
               </div>
               <div className="sp-record-metrics">
-                {[
-                  ["Geography", "where it happened"],
-                  ["Reach", "animals treated, not targeted"],
-                  ["Funding", "amount and funder"],
-                  ["Verification", "who checked, and when"],
-                ].map(([f, d]) => (
-                  <div key={f}>
-                    <b className="field">{f}</b>
-                    <span>{d}</span>
-                  </div>
-                ))}
+                <div>
+                  <b className="field">Geography</b>
+                  <span>Goa · 85,000 community dogs (2025 est.)</span>
+                </div>
+                <div>
+                  <b className="field">Reach</b>
+                  <span>
+                    {num(GOA_ANIMALS)} animals · {Math.round(GOA_COVERAGE * 100)}% →{" "}
+                    {Math.round(COVERAGE_TARGET.value * 100)}%
+                  </span>
+                </div>
+                <div>
+                  <b className="field">Funding</b>
+                  <span>
+                    {inr(GOA_ANIMALS * UNIT_COSTS.sterilisation.value)} at{" "}
+                    {inr(UNIT_COSTS.sterilisation.value)}/animal
+                  </span>
+                </div>
+                <div>
+                  <b className="field">Verification</b>
+                  <span>Coverage re-measured against the 2024 baseline</span>
+                </div>
               </div>
               <div className="sp-record-foot">
-                <span>EVERY CLOSED RECORD WILL CARRY ALL FOUR</span>
-                <Link href="/outcomes" className="sp-record-link">
-                  SEE THE FORMAT <ArrowUpRight size={13} />
+                <span>
+                  EVERY FIGURE SOURCED · AWBI CEILING {UNIT_COSTS.sterilisation.year} ·
+                  GOA ABC PROGRAMME 2024
+                </span>
+                <Link href="/what-would-it-take" className="sp-record-link">
+                  COST YOUR OWN <ArrowUpRight size={13} />
                 </Link>
               </div>
             </div>

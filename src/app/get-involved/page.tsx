@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { ArrowUpRight, ExternalLink, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { ORGS, orgsForFocus, statesWithOrgs } from "@/lib/platform/orgs";
 import { STATE_BY_CODE } from "@/lib/platform/geography";
+import {
+  VolunteerClient,
+  type VolRoute,
+} from "@/components/app/VolunteerClient";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -72,6 +76,22 @@ const ROUTES: {
 export default function GetInvolvedPage() {
   const states = statesWithOrgs(stateName);
 
+  /* Resolved on the server so the client filter works over plain data. */
+  const routes: VolRoute[] = ROUTES.map((r) => ({
+    id: r.id,
+    title: r.title,
+    body: r.body,
+    commitment: r.commitment,
+    orgs: orgsForFocus(r.focus).map((o) => ({
+      id: o.id,
+      name: o.name,
+      city: o.city,
+      state: stateName(o.stateCode),
+      stateCode: o.stateCode,
+      url: o.url,
+    })),
+  })).filter((r) => r.orgs.length > 0);
+
   return (
     <AppShell>
       <div className="spa-head">
@@ -93,50 +113,7 @@ export default function GetInvolvedPage() {
         the organisation, they decide.
       </p>
 
-      <div className="vol-list">
-        {ROUTES.map((r) => {
-          const orgs = orgsForFocus(r.focus);
-          if (orgs.length === 0) return null;
-          return (
-            <section className="vol-route" key={r.id}>
-              <header>
-                <div>
-                  <h2>{r.title}</h2>
-                  <p>{r.body}</p>
-                </div>
-                <div className="vol-meta">
-                  <span className="spa-mono">Typical commitment</span>
-                  <b>{r.commitment}</b>
-                  <span className="vol-n spa-mono">
-                    {orgs.length} organisation{orgs.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-              </header>
-
-              <ul className="vol-orgs">
-                {orgs.map((o) => {
-                  const Item = o.url ? "a" : "span";
-                  return (
-                    <li key={o.id}>
-                      <Item
-                        {...(o.url
-                          ? { href: o.url, target: "_blank", rel: "noopener noreferrer" }
-                          : {})}
-                      >
-                        <b>{o.name}</b>
-                        <span className="vol-place">
-                          <MapPin size={11} /> {o.city}, {stateName(o.stateCode)}
-                        </span>
-                        {o.url && <ExternalLink size={12} />}
-                      </Item>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          );
-        })}
-      </div>
+      <VolunteerClient routes={routes} states={states} />
 
       <aside className="spa-note">
         <div>
