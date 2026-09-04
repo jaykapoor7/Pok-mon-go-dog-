@@ -6,6 +6,8 @@ import { ArrowUpRight, MapPin } from "lucide-react";
 import { useFollows } from "@/lib/follows";
 import { Constellation } from "@/components/site/vectors";
 import type { Dog } from "@/lib/types";
+import { formatPlace } from "@/lib/delhi";
+import { dogLabel } from "@/lib/utils";
 
 export function FollowingClient({ dogs }: { dogs: Dog[] }) {
   const { ids } = useFollows();
@@ -15,19 +17,59 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
   const followed = dogs.filter((d) => ids.includes(String(d.id)));
 
   if (ids.length === 0) {
+    /* An empty page teaches nothing. Animals that need attention, or have
+       been seen most, give the viewer something real to follow straight
+       away — drawn from the same records, never invented. */
+    const suggestions = [...dogs]
+      .sort((a, b) => {
+        if (a.needs_help !== b.needs_help) return a.needs_help ? -1 : 1;
+        return (b.sightings_count ?? 0) - (a.sightings_count ?? 0);
+      })
+      .slice(0, 6);
+
     return (
-      <div className="spa-empty">
-        <Constellation size={132} />
-        <h2>Nothing followed yet</h2>
-        <p>
-          Follow an animal and it lands here, so you can check on it without
-          hunting through the map. Follows are stored on this device — no account
-          needed.
-        </p>
-        <Link href="/map" className="spa-cta">
-          Open the living map <ArrowUpRight size={14} />
-        </Link>
-      </div>
+      <>
+        <div className="spa-empty">
+          <Constellation size={132} />
+          <h2>Nothing followed yet</h2>
+          <p>
+            Follow an animal and it lands here, so you can check on it without
+            hunting through the map. Follows are stored on this device — no
+            account needed.
+          </p>
+          <Link href="/map" className="spa-cta">
+            Open the living map <ArrowUpRight size={14} />
+          </Link>
+        </div>
+
+        {suggestions.length > 0 && (
+          <section className="fl-suggest">
+            <div className="spa-panel-head">
+              <b>Animals you could follow</b>
+              <Link href="/map">
+                See all <ArrowUpRight size={12} />
+              </Link>
+            </div>
+            <div className="fl-grid">
+              {suggestions.map((d) => (
+                <Link key={d.id} href={`/dog/${d.id}`} className="fl-card">
+                  <b>{dogLabel(d)}</b>
+                  <span className="fl-place">{formatPlace(d.zone, d.city)}</span>
+                  <span className="fl-meta">
+                    {d.needs_help && <i className="fl-flag">Needs help</i>}
+                    {(d.sightings_count ?? 0) > 0 && (
+                      <i>
+                        {d.sightings_count} sighting
+                        {d.sightings_count === 1 ? "" : "s"}
+                      </i>
+                    )}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </>
     );
   }
 
@@ -50,7 +92,7 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
   return (
     <div className="follow-grid">
       {followed.map((dog) => {
-        const place = dog.zone || dog.city || "Location unknown";
+        const place = formatPlace(dog.zone, dog.city);
         return (
           <Link href={`/dog/${dog.id}`} key={dog.id} className="follow-card">
             <div className="follow-photo">

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { getCityStats, getRecentSightings } from "@/lib/data";
-import { timeAgo } from "@/lib/utils";
+import { RecentSightings } from "@/components/app/RecentSightings";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Console, StrayPaw" };
@@ -59,8 +59,6 @@ export default async function ConsoleHome() {
     getCityStats(),
     getRecentSightings(6),
   ]);
-
-  const hasActivity = sightings.length > 0;
 
   return (
     <AppShell>
@@ -111,27 +109,7 @@ export default async function ConsoleHome() {
             </Link>
           </div>
 
-          {hasActivity ? (
-            sightings.map((s) => (
-              <div className="spa-row" key={s.id}>
-                <Link href={`/dog/${s.dog_id}`}>
-                  {s.notes?.trim() || "Sighting reported"}
-                </Link>
-                <b>{timeAgo(s.created_at)}</b>
-              </div>
-            ))
-          ) : (
-            <div className="panel-empty">
-              <Radio size={26} strokeWidth={1.25} />
-              <p>
-                <b>Nothing yet.</b> The first sighting on this network will
-                appear here. Add one now.
-              </p>
-              <Link href="/report" className="tlink">
-                Report an animal <ArrowUpRight size={12} />
-              </Link>
-            </div>
-          )}
+          <RecentSightings sightings={sightings} />
         </div>
 
         {/* Quick links */}

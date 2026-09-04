@@ -14,6 +14,7 @@ import {
   type MarkerState,
 } from "@/lib/marker-state";
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
+import { formatPlace } from "@/lib/delhi";
 import { UNIT_COSTS, inr } from "@/lib/platform/network";
 import type { Dog, FeedingZone } from "@/lib/types";
 import type { MapApi } from "@/components/map/MapLibreMap";
@@ -268,7 +269,7 @@ export function MapView({
                         {dogLabel(d)}
                       </span>
                       <span style={{ color: "rgba(255,255,255,0.55)", flexShrink: 0, letterSpacing: "0.06em" }}>
-                        {d.zone || d.city || "—"}
+                        {formatPlace(d.zone, d.city)}
                       </span>
                     </div>
                   ))}
@@ -355,7 +356,7 @@ function CaseDrawer({
           <div style={{ fontSize: 12.5, color: "#fff", letterSpacing: "0.08em" }}>
             {new Date(dog.last_seen).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {timeAgo(dog.last_seen)}
           </div>
-          <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.72)", marginTop: 2, letterSpacing: "0.08em" }}>📍 {dog.zone}, New Delhi</div>
+          <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.72)", marginTop: 2, letterSpacing: "0.08em" }}>📍 {formatPlace(dog.zone, dog.city)}</div>
           {dist != null && <div style={{ fontSize: 11.5, color: MINT, marginTop: 2 }}>{fmtDist(dist)} from you</div>}
         </DrawerSection>
 

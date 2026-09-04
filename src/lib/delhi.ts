@@ -125,6 +125,27 @@ export function nearestCity(lat: number, lng: number): string {
 }
 
 /**
+ * One shape for every place label in the app: "Area, City".
+ *
+ * Sighting labels arrived in three different shapes — "Bengaluru, Karnataka",
+ * "Saket, Delhi", and a bare "Dwarka" — because each caller assembled its own
+ * string and some parts resolved while others did not. Everything that renders
+ * a place goes through here so the list reads consistently.
+ *
+ * Passing a single part returns just that part rather than a dangling comma;
+ * duplicate parts ("Delhi, Delhi") collapse to one.
+ */
+export function formatPlace(
+  area?: string | null,
+  city?: string | null
+): string {
+  const a = area?.trim();
+  const c = city?.trim();
+  if (a && c && a.toLowerCase() !== c.toLowerCase()) return `${a}, ${c}`;
+  return a || c || "Location not recorded";
+}
+
+/**
  * Resolve a coordinate to a human-readable place ("Locality, City") anywhere in
  * India. Uses BigDataCloud's keyless, CORS-friendly reverse-geocode endpoint;
  * on any failure falls back to the nearest known metro so a report always gets
@@ -144,8 +165,9 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
     };
     const area = d.locality || d.city;
     const city = d.city && d.city !== d.locality ? d.city : d.principalSubdivision;
-    const label = [area, city].filter(Boolean).join(", ");
-    return label || nearestCity(lat, lng);
+    return formatPlace(area, city) === "Location not recorded"
+      ? nearestCity(lat, lng)
+      : formatPlace(area, city);
   } catch {
     return nearestCity(lat, lng);
   }
