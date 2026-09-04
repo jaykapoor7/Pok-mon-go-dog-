@@ -168,8 +168,8 @@ export function ChipScroll() {
             </h2>
             <p className="chs-sub">
               {stage === 0
-                ? "A street dog's entire history hangs off a passive transponder roughly the size of a grain of rice. Scroll to see what's inside."
-                : "Four real components. One permanent code."}
+                ? "A whole history hangs off a passive transponder the size of a grain of rice."
+                : "Four components. One permanent code."}
             </p>
           </div>
 
@@ -182,9 +182,8 @@ export function ChipScroll() {
               One code.<br /><span>Every record.</span>
             </h2>
             <p className="chs-sub">
-              Scan the chip anywhere — any ISO-compatible reader, including ones
-              clinics already own. The code returns the animal&rsquo;s full profile:
-              sterilisation, vaccination, treatments, caregivers, sightings.
+              Any ISO reader returns the animal&rsquo;s full profile —
+              sterilisation, vaccination, treatments, caregivers.
             </p>
           </div>
 
@@ -197,9 +196,8 @@ export function ChipScroll() {
               One identity.<br /><span>Everything connected.</span>
             </h2>
             <p className="chs-sub">
-              The chip is not a record — it is a key. Every sighting, every
-              intervention, every caregiver, every location: connected to one
-              persistent animal identity across time and across organisations.
+              The chip is not a record. It is a key — one identity that holds
+              across time and across organisations.
             </p>
           </div>
         </div>

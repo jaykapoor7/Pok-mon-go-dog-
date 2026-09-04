@@ -1988,3 +1988,79 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   .vol-select, .vol-select select { min-width: 0; max-width: none; width: 100%; }
   .vol-filters { gap: 8px; }
 }
+
+/* ── the console renders light in both themes ───────────────────── */
+
+/*
+ * The console's surfaces are set as literal light values throughout (panels,
+ * borders, table rows — around 120 of them), so it has never had a dark
+ * variant. The global .dark rules, however, flip Tailwind's *text* utilities
+ * light. The result inside the console was light text on light panels:
+ * legible nowhere, and worst on the report form.
+ *
+ * Rather than invent a dark palette for a dense operational surface that was
+ * designed light, the console opts out of the theme and stays light in both.
+ * These mirror the overrides in globals.css, scoped under .spa so they win on
+ * specificity. The marketing site keeps its dark sections; this is only the
+ * app shell.
+ */
+.dark .spa,
+.dark .spa .bg-white { background-color: var(--paper); }
+.dark .spa .card,
+.dark .spa .bg-bark-50,
+.dark .spa .bg-bark-100 { background-color: #fbfcfd; border-color: #ccd3dc; }
+.dark .spa .border-bark-100,
+.dark .spa .border-bark-200 { border-color: #e4e9ef; }
+.dark .spa .text-bark-900,
+.dark .spa .text-bark-800,
+.dark .spa .text-bark-700 { color: var(--ink); }
+.dark .spa .text-bark-600,
+.dark .spa .text-bark-500 { color: #4d5766; }
+.dark .spa .text-bark-400 { color: #656e7b; }
+.dark .spa input,
+.dark .spa textarea,
+.dark .spa select {
+  color: var(--ink);
+  background-color: #fff;
+  border-color: #ccd3dc;
+}
+.dark .spa input::placeholder,
+.dark .spa textarea::placeholder { color: #6c737d; }
+/* The top bar is dark in both themes and must not be re-lit by the above. */
+.dark .spa .spa-top,
+.dark .spa .spa-top .bg-white { background-color: var(--ink); }
+.dark .spa .spa-search input {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--paper);
+}
+
+/*
+ * Components inside the console also carry inline dark: variants
+ * (dark:bg-bark-800, dark:text-bark-50 and so on). Those compile to
+ * `.dark .dark\:<utility>`, so they need neutralising here too — otherwise a
+ * panel keeps its dark background while the console around it is light.
+ */
+.dark .spa [class~="dark:bg-bark-800"],
+.dark .spa [class~="dark:bg-bark-900"],
+.dark .spa [class~="dark:bg-bark-900/50"] { background-color: #fbfcfd; }
+.dark .spa [class~="dark:bg-white"] { background-color: #fff; }
+.dark .spa [class~="dark:text-bark-50"],
+.dark .spa [class~="dark:text-bark-100"],
+.dark .spa [class~="dark:text-bark-200"] { color: var(--ink); }
+.dark .spa [class~="dark:text-bark-300"] { color: #4d5766; }
+.dark .spa [class~="dark:text-paw-300"] { color: var(--electric-ink); }
+.dark .spa [class*="dark:border-white"] { border-color: #e4e9ef; }
+/* paw-* text is the accent; on a light ground it needs the darker step. */
+.dark .spa .text-paw-300,
+.dark .spa .text-paw-400 { color: var(--electric-ink); }
+
+/*
+ * Brand accents used as small text on the console's light panels. The bright
+ * tones are tuned for dark grounds and fall to ~2-3:1 here, so text-sized use
+ * takes the darker step. Icons, borders and fills keep the bright colour.
+ */
+.spa dt,
+.spa .need-flag,
+.spa em { color: var(--vermilion-ink); }
+.spa dt { color: var(--electric-ink); }

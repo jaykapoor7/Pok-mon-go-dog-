@@ -44,22 +44,22 @@ const PARTS = [
   {
     Icon: Fingerprint,
     title: "Identity",
-    body: "A permanent ISO code per animal, readable by scanners clinics already own. Records attach to the animal, not to whoever saw it last.",
+    body: "A permanent ISO code per animal, readable by scanners clinics already own.",
   },
   {
     Icon: MapIcon,
     title: "Shared map",
-    body: "Residents, field teams and municipal sweeps write to one record layer. One animal accumulates one history instead of several partial ones.",
+    body: "Residents, field teams and municipalities write to one record layer.",
   },
   {
     Icon: Stethoscope,
     title: "Field workspace",
-    body: "Cases, animal registry, medical logs and reporting for the NGOs doing the work — free, and their data stays theirs.",
+    body: "Cases, registry, medical logs and reporting. Free for verified NGOs.",
   },
   {
     Icon: BarChart3,
     title: "Measurement",
-    body: "Coverage becomes a query instead of a survey, so a funder can tell a working programme from a busy one.",
+    body: "Coverage becomes a query instead of a survey.",
   },
 ];
 
@@ -68,37 +68,37 @@ const LOOP_STAGES = [
     n: "01",
     Icon: Eye,
     label: "SEE",
-    body: "Community reporters, field teams, and municipal sweeps create the first signal.",
+    body: "A resident, a field team or a municipal sweep logs the animal.",
   },
   {
     n: "02",
     Icon: Fingerprint,
     label: "IDENTIFY",
-    body: "Each animal gets a persistent identity — chip, record, and location history.",
+    body: "It gets a permanent code, and a record that follows it.",
   },
   {
     n: "03",
     Icon: Search,
     label: "UNDERSTAND",
-    body: "Sightings become studies. Studies reveal coverage, need, and opportunity.",
+    body: "Sightings become studies. Studies reveal where the need is.",
   },
   {
     n: "04",
     Icon: Wrench,
     label: "ACT",
-    body: "Prioritised interventions — sterilisation, vaccination, treatment — with a named owner.",
+    body: "Sterilisation, vaccination or treatment, with a named owner.",
   },
   {
     n: "05",
     Icon: ListChecks,
     label: "TRACK",
-    body: "Every action posts to the animal's record. No work disappears into a PDF.",
+    body: "Every action posts back to the record.",
   },
   {
     n: "06",
     Icon: BarChart3,
     label: "MEASURE",
-    body: "Outcomes close the loop. Coverage countable. Funding accountable.",
+    body: "Coverage becomes countable. Funding becomes accountable.",
   },
 ];
 
@@ -106,21 +106,21 @@ const AUDIENCES = [
   {
     tag: "NGOS / FIELD TEAMS",
     title: "Better tools.\nSame fieldwork.",
-    body: "StrayPaw gives field organisations the study brief, data tooling, and a durable record of work they already know how to do. Every ABC run, every vaccination — logged and connected.",
+    body: "The study brief, the data tooling, and a durable record of work you already know how to do.",
     cta: "See the field workspace",
     href: "/partner",
   },
   {
     tag: "GOVERNMENT / ULBs",
     title: "Coverage that's\ncountable.",
-    body: "Commission population surveys, track sterilisation programme reach, and identify gaps — without waiting for an annual report. The data is live.",
+    body: "Track programme reach and find gaps without waiting for an annual report.",
     cta: "Explore the evidence layer",
     href: "/gaps",
   },
   {
     tag: "FUNDERS / CSR",
     title: "Fund an outcome,\nnot a hope.",
-    body: `Define an impact objective and a geography. StrayPaw turns it into a scoped study, a named NGO partner, a budget, and a measurable finish line. Unit cost: ${inr(UNIT_COSTS.sterilisation.value)} per sterilisation (AWBI ceiling, ${UNIT_COSTS.sterilisation.year}).`,
+    body: `An objective and a geography become a scoped study, a named partner and a finish line. ${inr(UNIT_COSTS.sterilisation.value)} per sterilisation, AWBI ceiling.`,
     cta: "Scope and cost a programme",
     href: "/what-would-it-take",
   },
@@ -172,11 +172,8 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={120}>
               <p className="sp-loop-body">
-                StrayPaw builds the shared infrastructure that connects
-                funding, evidence, and action across India&rsquo;s
-                street-animal ecosystem. Not a reporting app. Not a charity
-                platform. An operating layer that makes populations
-                identifiable, observable, and manageable.
+                Not a reporting app, and not a charity platform. An operating
+                layer that makes populations identifiable and manageable.
               </p>
             </Reveal>
           </div>
@@ -269,11 +266,10 @@ export default function HomePage() {
                 <div>
                   <h3>Goa to the {Math.round(COVERAGE_TARGET.value * 100)}% threshold.</h3>
                   <p>
-                    Goa publishes both a population and a coverage figure — one
-                    of the few states that does. Closing the gap to the
-                    threshold at which sterilisation actually suppresses
-                    population growth is {num(GOA_ANIMALS)} animals, and this is
-                    the record that work would close with.
+                    Goa is one of the few states publishing both a population
+                    and a coverage figure. Reaching the threshold where
+                    sterilisation suppresses growth is {num(GOA_ANIMALS)}{" "}
+                    animals — this is the record that work closes with.
                   </p>
                 </div>
               </div>
