@@ -29,6 +29,7 @@ import {
   Search,
   ShieldCheck,
   Stethoscope,
+  Upload,
   Users,
   Wrench,
   X,
@@ -69,6 +70,7 @@ const WORKSPACE = [
   { href: "/partner/medical", label: "Medical", Icon: Stethoscope },
   { href: "/partner/team", label: "Team", Icon: Users },
   { href: "/partner/reports", label: "Analytics", Icon: FileText },
+  { href: "/partner/import", label: "Import records", Icon: Upload },
 ];
 
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from

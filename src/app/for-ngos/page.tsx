@@ -24,7 +24,7 @@ export default function ForNgosPage() {
       next={[
         { label: "Open the workspace", href: "/partner/cases", note: "Look around it now — no account needed." },
         { label: "Apply to partner", href: "/partner-apply", note: "Verification is free for animal-welfare organisations." },
-        { label: "The directory", href: "/orgs", note: "See the organisations already listed." },
+        { label: "Bring your records", href: "/partner/import", note: "Paper registers and WhatsApp threads, imported as they are." },
       ]}
     >
       <Band
