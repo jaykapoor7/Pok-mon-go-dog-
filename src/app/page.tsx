@@ -1,8 +1,9 @@
 import { Fragment } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, ChevronRight } from "lucide-react";
+import { ArrowUpRight, Check, ChevronRight, TriangleAlert } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Hero } from "@/components/site/Hero";
+import { ChipExploded } from "@/components/site/ChipExploded";
 import { MapConsole } from "@/components/site/MapConsole";
 import { Reveal } from "@/components/site/Reveal";
 import {
@@ -197,6 +198,72 @@ export default function HomePage() {
               Gaps are where studies get scoped and funding gets pointed.
             </p>
           </Reveal>
+        </section>
+
+        {/* ── THE CHIP ───────────────────────────────────────────── */}
+        <section className="sp-chip" id="chip">
+          <div className="sp-chip-head">
+            <Reveal>
+              <div className="sp-kicker light">
+                ONE ANIMAL. <span>ONE IDENTITY.</span>
+              </div>
+            </Reveal>
+            <Reveal>
+              <h2 className="sp-display" style={{ marginTop: 18 }}>
+                A record that
+                <br />
+                <span>outlives the rescue.</span>
+              </h2>
+            </Reveal>
+            <Reveal delay={100}>
+              <p>
+                A street dog is treated, released, and becomes anonymous again.
+                The next vet starts from zero. A 12mm transponder ends that: one
+                permanent code, and every record after it hangs off that code
+                instead of a memory.
+              </p>
+            </Reveal>
+            <Reveal delay={160}>
+              <div className="sp-chip-flag">
+                <TriangleAlert size={13} /> Proposed capability — not yet built
+              </div>
+            </Reveal>
+          </div>
+
+          <ChipExploded />
+
+          <div className="chip-scan">
+            {[
+              [
+                "01",
+                "Scan",
+                "Any ISO-compatible reader, including the ones vets and municipal ABC centres already own. No StrayPaw hardware.",
+              ],
+              [
+                "02",
+                "Resolve",
+                "The 15-digit code returns that animal's profile — sterilisation, vaccination, treatments, who did what and when.",
+              ],
+              [
+                "03",
+                "Append",
+                "The vet adds today's entry. It stays attached to the animal, not to the clinic that happened to see it.",
+              ],
+              [
+                "04",
+                "Aggregate",
+                "Chipped animals make coverage countable instead of estimated. A survey becomes a query.",
+              ],
+            ].map(([n, title, body], i) => (
+              <Reveal key={n} delay={i * 70}>
+                <div className="chip-scan-step">
+                  <span className="sp-mono">{n}</span>
+                  <b>{title}</b>
+                  <p>{body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </section>
 
         {/* ── LIVING MAP ─────────────────────────────────────────── */}
