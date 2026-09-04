@@ -21,6 +21,12 @@ const OWN_CHROME = new Set<string>([
   "/journey",
   "/partnerships",
   "/reset-password",
+  // Explainer pages behind the header nav — they render SiteHeader themselves.
+  "/why-straypaw",
+  "/the-network",
+  "/for-funders",
+  "/for-ngos",
+  "/the-data",
 ]);
 
 /**
