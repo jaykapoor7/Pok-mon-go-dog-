@@ -9,6 +9,8 @@ import {
 import { pawBurst } from "@/lib/celebrate";
 import { MOOD_META, type MoodTag } from "@/lib/types";
 import { nearestCity } from "@/lib/delhi";
+import { readPhotoMeta, looksIndian, type PhotoMeta } from "@/lib/exif";
+import { reverseGeocode } from "@/lib/delhi";
 import { reportSighting } from "@/lib/actions";
 import { LocationPicker } from "@/components/report/LocationPicker";
 import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
@@ -43,10 +45,32 @@ export default function ReportPage() {
   const handleVerify = useCallback((t: string | null) => setToken(t), []);
   useEffect(() => { if (user?.email) setEmail((cur) => cur || user.email!); }, [user?.email]);
 
-  function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
-    if (picked) { setFile(picked); setPhoto(URL.createObjectURL(picked)); pawBurst(); }
+    if (!picked) return;
+    setFile(picked);
+    setPhoto(URL.createObjectURL(picked));
+    pawBurst();
+
+    /* The camera usually recorded where and when already. Reading it saves
+       dragging a pin to a place the phone knew, and the result is shown so
+       it can be corrected rather than silently trusted. */
+    setReadingMeta(true);
+    setMeta(null);
+    try {
+      const m = await readPhotoMeta(picked);
+      setMeta(m);
+      if (m.lat != null && m.lng != null && looksIndian(m.lat, m.lng)) {
+        setCoords({ lat: m.lat, lng: m.lng });
+        setZone(await reverseGeocode(m.lat, m.lng));
+      }
+    } finally {
+      setReadingMeta(false);
+    }
   }
+  const [meta, setMeta] = useState<PhotoMeta | null>(null);
+  const [readingMeta, setReadingMeta] = useState(false);
+
   function toggleMood(m: MoodTag) {
     setMoods((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
   }
@@ -140,6 +164,41 @@ export default function ReportPage() {
                   <span className="font-semibold">Take or upload a photo</span>
                   <span className="text-xs text-bark-400">Opens your camera or gallery</span>
                 </button>
+              )}
+
+              {(readingMeta || meta) && (
+                <div className="mt-3 rounded border border-black/[0.08] bg-bark-50 px-3.5 py-3 dark:border-white/10 dark:bg-bark-800">
+                  {readingMeta ? (
+                    <p className="flex items-center gap-2 text-[13px] font-medium text-bark-600 dark:text-bark-300">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Reading what the camera recorded…
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-bark-400">
+                        From the photo
+                      </p>
+                      <ul className="mt-1.5 space-y-1 text-[13px] text-bark-600 dark:text-bark-300">
+                        <li className="flex items-center gap-2">
+                          <MapPin className="h-3.5 w-3.5 shrink-0 text-paw-500" />
+                          {meta?.lat != null && meta?.lng != null
+                            ? looksIndian(meta.lat, meta.lng)
+                              ? "Location found — the map is set to it. Check it on the next step."
+                              : "Location found, but it is outside India. Set it manually."
+                            : "No location in this photo — you will set it on the next step."}
+                        </li>
+                        {meta?.takenAt && (
+                          <li className="flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-paw-500" />
+                            Taken {meta.takenAt.toLocaleString("en-IN", {
+                              day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
+                            })}
+                          </li>
+                        )}
+                      </ul>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           )}
