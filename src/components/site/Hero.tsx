@@ -64,7 +64,6 @@ export function Hero() {
 
       <div className="sp-hero-copy">
         <div className="sp-eyebrow">
-          <span className="sp-eyebrow-dot" />
           STRAYPAW / INFRASTRUCTURE FOR CARE
         </div>
         <h1>
@@ -76,7 +75,7 @@ export function Hero() {
           The system connecting street-level evidence to the people who can act.
         </p>
         <div className="sp-hero-ctas">
-          <a href="#companies" className="sp-btn sp-btn-primary">
+          <a href="#how" className="sp-btn sp-btn-primary">
             See how it works <ArrowDownRight size={16} />
           </a>
           <Link href="/map" className="sp-hero-link">

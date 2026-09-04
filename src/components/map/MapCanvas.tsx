@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { PawPrint } from "lucide-react";
 import type { Dog, FeedingZone } from "@/lib/types";
+import type { MapApi } from "./MapLibreMap";
 
 const HAS_TOKEN = Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
 
@@ -37,6 +38,8 @@ export function MapCanvas(props: {
   preview?: boolean;
   /** Feeding-zone pins (community feeding spots) rendered alongside dogs. */
   feedingZones?: FeedingZone[];
+  /** Handed the map's imperative controls once it has loaded. */
+  onReady?: (api: MapApi) => void;
 }) {
   return <MapEngine {...props} />;
 }

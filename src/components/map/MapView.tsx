@@ -16,6 +16,7 @@ import {
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import { UNIT_COSTS, inr } from "@/lib/platform/network";
 import type { Dog, FeedingZone } from "@/lib/types";
+import type { MapApi } from "@/components/map/MapLibreMap";
 
 // ── design tokens ──────────────────────────────────────────────────────────
 const INK = "#0b1020";
@@ -49,6 +50,10 @@ export function MapView({
   const [selected, setSelected] = useState<Dog | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  /* Published by the map once it loads; until then the controls are disabled
+     rather than present-but-inert. */
+  const [mapApi, setMapApi] = useState<MapApi | null>(null);
+  const [tilted, setTilted] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -119,7 +124,7 @@ export function MapView({
           border: 0,
         }}
       >
-        Living map — street-animal signals, studies and outcomes across Delhi NCR
+        Living map — street-animal signals, studies and outcomes across India
       </h1>
 
       {/* MAP + OVERLAYS */}
@@ -129,6 +134,7 @@ export function MapView({
             onSelect={handleSelect}
             center={center}
             feedingZones={feedingZones}
+            onReady={setMapApi}
           />
 
           {/* Map legend (bottom-left of map) */}
@@ -170,16 +176,41 @@ export function MapView({
             flexDirection: "column",
             gap: 2,
           }}>
-            {["⊞", "3D", "+", "−"].map((btn) => (
-              <button key={btn} style={{
-                width: 28, height: 28, background: "rgba(7,11,17,0.78)", border: `1px solid ${BORDER}`,
-                borderRadius: 3, color: "rgba(255,255,255,0.8)", fontSize: btn === "3D" ? 9.5 : 15,
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                letterSpacing: btn === "3D" ? "0.08em" : 0, backdropFilter: "blur(8px)"
-              }}>
-                {btn}
-              </button>
-            ))}
+            {([
+              { key: "fit", glyph: "\u229E", title: "Fit all of India", run: () => mapApi?.fitIndia() },
+              { key: "3d", glyph: "3D", title: "Toggle 3D tilt", run: () => setTilted(Boolean(mapApi?.toggle3D())) },
+              { key: "in", glyph: "+", title: "Zoom in", run: () => mapApi?.zoomIn() },
+              { key: "out", glyph: "\u2212", title: "Zoom out", run: () => mapApi?.zoomOut() },
+            ] as const).map((b) => {
+              const on = b.key === "3d" && tilted;
+              return (
+                <button
+                  key={b.key}
+                  type="button"
+                  onClick={b.run}
+                  title={b.title}
+                  aria-label={b.title}
+                  aria-pressed={b.key === "3d" ? tilted : undefined}
+                  disabled={!mapApi}
+                  style={{
+                    width: 32, height: 32,
+                    background: on ? "rgba(143,183,255,0.9)" : "rgba(7,11,17,0.78)",
+                    border: `1px solid ${on ? "#8fb7ff" : BORDER}`,
+                    borderRadius: 3,
+                    color: on ? "#0b1020" : "rgba(255,255,255,0.85)",
+                    fontSize: b.key === "3d" ? 10 : 16,
+                    fontWeight: b.key === "3d" ? 700 : 400,
+                    cursor: mapApi ? "pointer" : "default",
+                    opacity: mapApi ? 1 : 0.5,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    letterSpacing: b.key === "3d" ? "0.08em" : 0,
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  {b.glyph}
+                </button>
+              );
+            })}
           </div>
 
           {/* RIGHT CASE DRAWER */}

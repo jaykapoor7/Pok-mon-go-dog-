@@ -1625,16 +1625,7 @@
   color: #8b98b0;
 }
 .chs-field b { font-size: 12px; font-weight: 500; color: var(--paper); }
-.chs-record-note {
-  margin: 12px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid rgba(143, 183, 255, 0.1);
-  font-family: var(--font-mono), monospace;
-  font-size: 8.5px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #8b98b0;
-}
+
 
 .chs-network { width: 100%; max-width: 340px; text-align: center; }
 .chs-net-svg { width: 100%; height: auto; display: block; }

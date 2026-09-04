@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Map, {
   Marker,
-  NavigationControl,
   GeolocateControl,
   AttributionControl,
   type MapRef,
@@ -21,6 +20,23 @@ import type { Dog, FeedingZone } from "@/lib/types";
 // Free, keyless, full-detail OpenStreetMap vector style (Google-Maps-like).
 const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
+/* StrayPaw is an India-wide network, so the camera stays over India: panning
+   is fenced to the subcontinent and you cannot zoom out to the whole globe.
+   Padded well beyond the coastline so the edges never feel clipped. */
+const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [64.0, 4.0],
+  [102.0, 39.0],
+];
+const MIN_ZOOM = 3.6;
+
+/** Imperative handles the surrounding UI drives its own controls with. */
+export type MapApi = {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  toggle3D: () => boolean;
+  fitIndia: () => void;
+};
+
 type Props = { id: string; cover: string; urgent: boolean; sightings: number };
 
 export function MapLibreMap({
@@ -29,12 +45,14 @@ export function MapLibreMap({
   center,
   preview,
   feedingZones = [],
+  onReady,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
   center?: { lat: number; lng: number } | null;
   preview?: boolean;
   feedingZones?: FeedingZone[];
+  onReady?: (api: MapApi) => void;
 }) {
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
@@ -98,6 +116,38 @@ export function MapLibreMap({
     setZoom(map.getZoom());
   }, []);
 
+  const handleLoad = useCallback(() => sync(), [sync]);
+
+  /* The camera controls only need the map instance, not a finished basemap.
+     Publishing them on mount rather than on style load keeps zoom and tilt
+     working while tiles are still streaming — or never arrive at all, on a
+     slow connection or a blocked tile host. */
+  useEffect(() => {
+    if (!onReady) return;
+    let raf = 0;
+    const publish = () => {
+      if (!mapRef.current) {
+        raf = requestAnimationFrame(publish);
+        return;
+      }
+      onReady({
+        zoomIn: () => mapRef.current?.zoomIn({ duration: 260 }),
+        zoomOut: () => mapRef.current?.zoomOut({ duration: 260 }),
+        toggle3D: () => {
+          const m = mapRef.current;
+          if (!m) return false;
+          const on = m.getPitch() < 20;
+          m.easeTo({ pitch: on ? 55 : 0, duration: 520 });
+          return on;
+        },
+        fitIndia: () =>
+          mapRef.current?.fitBounds(INDIA_BOUNDS, { duration: 700, padding: 24 }),
+      });
+    };
+    publish();
+    return () => cancelAnimationFrame(raf);
+  }, [onReady]);
+
   return (
     <Map
       ref={mapRef}
@@ -109,7 +159,13 @@ export function MapLibreMap({
         zoom: center ? (preview ? 10.5 : 13) : INDIA_ZOOM,
       }}
       mapStyle={STYLE_URL}
-      onLoad={sync}
+      maxBounds={INDIA_BOUNDS}
+      minZoom={MIN_ZOOM}
+      maxZoom={18}
+      /* Clusters follow the camera while it moves rather than snapping only
+         once it stops, which is what made panning feel static. */
+      onLoad={handleLoad}
+      onMove={sync}
       onMoveEnd={sync}
       onError={handleMapError}
       style={{ width: "100%", height: "100%" }}
@@ -128,7 +184,6 @@ export function MapLibreMap({
             trackUserLocation
             positionOptions={{ enableHighAccuracy: true }}
           />
-          <NavigationControl position="bottom-right" showCompass={false} />
           <AttributionControl compact position="bottom-left" />
         </>
       )}

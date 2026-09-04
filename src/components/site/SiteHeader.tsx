@@ -4,12 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 
+/* These pointed at #why / #network / #companies / #partners / #map, all of
+   which were removed when the landing page was restructured — every nav item
+   was a dead anchor. Until each has its own page they route to the real
+   surface that answers them. */
 const LINKS = [
-  { label: "Why StrayPaw", href: "#why" },
-  { label: "The network", href: "#network" },
-  { label: "For companies", href: "#companies" },
-  { label: "For NGOs", href: "#partners" },
-  { label: "Explore", href: "#map" },
+  { label: "Why StrayPaw", href: "/#how" },
+  { label: "The network", href: "/map" },
+  { label: "For funders", href: "/what-would-it-take" },
+  { label: "For NGOs", href: "/partner" },
+  { label: "Explore", href: "/gaps" },
 ];
 
 export function SiteHeader() {

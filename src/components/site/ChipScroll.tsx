@@ -248,8 +248,10 @@ export function ChipScroll() {
                   className="chs-code"
                   style={{ opacity: Math.min(1, ((openP - 0.3) / 0.7) * 2) }}
                 >
-                  <span className="chs-code-label">15-digit unique identifier</span>
-                  <b>985 112004567890</b>
+                  <span className="chs-code-label">
+                    ISO 11784 identifier structure
+                  </span>
+                  <b>NNN&nbsp;NNNNNNNNNNNN</b>
                 </div>
               )}
             </div>
@@ -265,35 +267,37 @@ export function ChipScroll() {
             }}
           >
             <div className="chs-record-id">
-              <span className="chs-record-tag">SP-004821</span>
+              <span className="chs-record-tag">ISO 11784 / 11785</span>
               <span className="chs-record-status">
                 <i className="chs-dot green" />
-                Active record
+                Record format
               </span>
             </div>
             <div className="chs-record-fields">
+              {/* What a resolved record carries. Field names and standards
+                  only — inventing an animal's values would put fabricated
+                  data on the page. */}
+              <div className="chs-field">
+                <span>Identity</span>
+                <b>15-digit code · 3-digit country or manufacturer prefix</b>
+              </div>
               <div className="chs-field">
                 <span>Appearance</span>
-                <b>Brown / tan · Female · ~3 years</b>
+                <b>Sex · approximate age · coat and markings</b>
               </div>
               <div className="chs-field">
                 <span>Medical</span>
-                <b>Vaccinated · Sterilised · Rabies (2024)</b>
+                <b>Sterilisation · rabies vaccination · treatments</b>
               </div>
               <div className="chs-field">
-                <span>Last seen</span>
-                <b>Ward 12 feeding point — 4 days ago</b>
+                <span>Location</span>
+                <b>Scan point · date · recording organisation</b>
               </div>
               <div className="chs-field">
                 <span>Community</span>
-                <b>14 sightings · 3 reports · 2 caregivers</b>
+                <b>Sightings · reports · named caregivers</b>
               </div>
             </div>
-            {/* No animal is enrolled yet, so this is the record *format*, not a
-                record. Said plainly rather than left to look like live data. */}
-            <p className="chs-record-note">
-              Illustration of the record format — no animal is enrolled yet.
-            </p>
             <div className="chs-record-line" aria-hidden="true" />
           </div>
 
