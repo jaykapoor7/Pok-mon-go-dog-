@@ -40,6 +40,8 @@ export function MapCanvas(props: {
   feedingZones?: FeedingZone[];
   /** Handed the map's imperative controls once it has loaded. */
   onReady?: (api: MapApi) => void;
+  /** Overlay showing what each state has actually published. */
+  showGaps?: boolean;
 }) {
   return <MapEngine {...props} />;
 }

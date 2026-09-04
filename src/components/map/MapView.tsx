@@ -15,6 +15,7 @@ import {
 } from "@/lib/marker-state";
 import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
 import { formatPlace } from "@/lib/delhi";
+import { STATUS_META } from "@/lib/platform/coverage";
 import { UNIT_COSTS, inr } from "@/lib/platform/network";
 import type { Dog, FeedingZone } from "@/lib/types";
 import type { MapApi } from "@/components/map/MapLibreMap";
@@ -55,6 +56,8 @@ export function MapView({
      rather than present-but-inert. */
   const [mapApi, setMapApi] = useState<MapApi | null>(null);
   const [tilted, setTilted] = useState(false);
+  /* The legend has always listed a coverage-gap layer; now it renders one. */
+  const [showGaps, setShowGaps] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -136,6 +139,7 @@ export function MapView({
             center={center}
             feedingZones={feedingZones}
             onReady={setMapApi}
+            showGaps={showGaps}
           />
 
           {/* Map legend (bottom-left of map) */}
@@ -156,15 +160,54 @@ export function MapView({
             {[
               { color: MINT, label: "LIVE SIGHTING", dot: true },
               { color: SAFFRON, label: "COMMUNITY ROUTE", dot: false, line: true },
-              { color: DANGER, label: "COVERAGE GAP", dot: false, warn: true },
             ].map((item) => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
                 {item.dot && <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.color, flexShrink: 0 }} />}
                 {item.line && <span style={{ width: 14, height: 1.5, background: item.color, flexShrink: 0 }} />}
-                {item.warn && <span style={{ fontSize: 12.5, color: item.color, lineHeight: 1 }}>⊘</span>}
                 <span style={{ fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.8)" }}>{item.label}</span>
               </div>
             ))}
+
+            <button
+              type="button"
+              onClick={() => setShowGaps((v) => !v)}
+              aria-pressed={showGaps}
+              style={{
+                display: "flex", alignItems: "center", gap: 7,
+                marginTop: 4, paddingTop: 8,
+                borderTop: `1px solid ${BORDER}`, borderLeft: 0, borderRight: 0, borderBottom: 0,
+                background: "transparent", cursor: "pointer", width: "100%", textAlign: "left",
+              }}
+            >
+              <span style={{
+                width: 10, height: 10, borderRadius: "50%",
+                border: `2px solid ${showGaps ? "#8fb7ff" : "rgba(255,255,255,0.4)"}`,
+                background: showGaps ? "rgba(143,183,255,0.35)" : "transparent",
+                flexShrink: 0,
+              }} />
+              <span style={{
+                fontSize: 10.5, letterSpacing: "0.1em",
+                color: showGaps ? "#8fb7ff" : "rgba(255,255,255,0.8)",
+              }}>
+                DATA GAPS BY STATE
+              </span>
+            </button>
+
+            {showGaps && (
+              <div style={{ display: "grid", gap: 5, marginTop: 2 }}>
+                {Object.entries(STATUS_META).map(([k, m]) => (
+                  <div key={k} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{
+                      width: 9, height: 9, borderRadius: "50%",
+                      border: `2px solid ${m.colour}`, background: `${m.colour}2e`, flexShrink: 0,
+                    }} />
+                    <span style={{ fontSize: 10, letterSpacing: "0.06em", color: "rgba(255,255,255,0.66)" }}>
+                      {m.label.toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Map controls */}

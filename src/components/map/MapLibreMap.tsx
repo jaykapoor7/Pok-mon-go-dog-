@@ -16,6 +16,7 @@ import { dogLabel } from "@/lib/utils";
 import { PhotoMarker } from "./PhotoMarker";
 import { FeedingMarker } from "./FeedingMarker";
 import type { Dog, FeedingZone } from "@/lib/types";
+import { stateCoverage, STATUS_META } from "@/lib/platform/coverage";
 
 // Free, keyless, full-detail OpenStreetMap vector style (Google-Maps-like).
 const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
@@ -46,6 +47,7 @@ export function MapLibreMap({
   preview,
   feedingZones = [],
   onReady,
+  showGaps = false,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
@@ -53,6 +55,8 @@ export function MapLibreMap({
   preview?: boolean;
   feedingZones?: FeedingZone[];
   onReady?: (api: MapApi) => void;
+  /** Overlay showing what each state has actually published. */
+  showGaps?: boolean;
 }) {
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
@@ -175,6 +179,32 @@ export function MapLibreMap({
       // bulky end-to-end strip (which looked oversized on the small preview).
       attributionControl={false}
     >
+      {/* Data-gap layer: one marker per state, coloured by whether anything
+          has actually been published about it. */}
+      {showGaps && !preview &&
+        stateCoverage().map((st) => {
+          const meta = STATUS_META[st.status];
+          return (
+            <Marker key={st.code} longitude={st.lng} latitude={st.lat} anchor="center">
+              <button
+                type="button"
+                onClick={() => router.push(`/gaps?state=${st.code}`)}
+                title={`${st.name} — ${meta.label}. ${meta.note}`}
+                aria-label={`${st.name}: ${meta.label}`}
+                style={{
+                  width: 15,
+                  height: 15,
+                  borderRadius: "50%",
+                  border: `2px solid ${meta.colour}`,
+                  background: `${meta.colour}2e`,
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              />
+            </Marker>
+          );
+        })}
+
       {/* The home preview is a static, non-interactive thumbnail, so it skips
           the map controls and attribution; the full map keeps both. */}
       {!preview && (

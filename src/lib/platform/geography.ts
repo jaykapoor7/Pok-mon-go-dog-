@@ -65,3 +65,40 @@ export const METRICS: MetricDef[] = [
 ];
 
 export const METRIC_BY_ID = new Map(METRICS.map((m) => [m.id, m]));
+
+/**
+ * Approximate geographic centre of each state, for placing state-level
+ * markers on the map. Rounded to two decimals — these position a label, they
+ * are not survey data and nothing is measured from them.
+ */
+export const STATE_CENTROIDS: Record<string, { lat: number; lng: number }> = {
+  "IN-AP": { lat: 15.91, lng: 79.74 },
+  "IN-AR": { lat: 28.22, lng: 94.73 },
+  "IN-AS": { lat: 26.2, lng: 92.94 },
+  "IN-BR": { lat: 25.1, lng: 85.31 },
+  "IN-CT": { lat: 21.28, lng: 81.87 },
+  "IN-GA": { lat: 15.3, lng: 74.12 },
+  "IN-GJ": { lat: 22.26, lng: 71.19 },
+  "IN-HR": { lat: 29.06, lng: 76.09 },
+  "IN-HP": { lat: 31.1, lng: 77.17 },
+  "IN-JH": { lat: 23.61, lng: 85.28 },
+  "IN-KA": { lat: 15.32, lng: 75.71 },
+  "IN-KL": { lat: 10.85, lng: 76.27 },
+  "IN-MP": { lat: 22.97, lng: 78.66 },
+  "IN-MH": { lat: 19.75, lng: 75.71 },
+  "IN-MN": { lat: 24.66, lng: 93.91 },
+  "IN-ML": { lat: 25.47, lng: 91.37 },
+  "IN-MZ": { lat: 23.16, lng: 92.94 },
+  "IN-NL": { lat: 26.16, lng: 94.56 },
+  "IN-OR": { lat: 20.95, lng: 85.1 },
+  "IN-PB": { lat: 31.15, lng: 75.34 },
+  "IN-RJ": { lat: 27.02, lng: 74.22 },
+  "IN-SK": { lat: 27.53, lng: 88.51 },
+  "IN-TN": { lat: 11.13, lng: 78.66 },
+  "IN-TG": { lat: 18.11, lng: 79.02 },
+  "IN-TR": { lat: 23.94, lng: 91.99 },
+  "IN-UP": { lat: 26.85, lng: 80.95 },
+  "IN-UT": { lat: 30.07, lng: 79.02 },
+  "IN-WB": { lat: 22.99, lng: 87.85 },
+  "IN-DL": { lat: 28.61, lng: 77.21 },
+};
