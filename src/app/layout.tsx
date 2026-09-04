@@ -42,35 +42,39 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "StrayPaw — Make care measurable",
+  title: "StrayPaw — Every street dog, on the record",
   description:
-    "The infrastructure connecting funding, evidence and action across India's street-animal ecosystem. Companies fund the questions. NGOs find the answers on the ground. StrayPaw turns those answers into action.",
+    "A permanent identity and a shared record for India's street animals, so NGOs, municipalities and funders work from the same data instead of three different notebooks.",
   keywords: [
     "street animals",
     "India",
-    "CSR",
+    "animal birth control",
+    "ABC programme",
+    "street dog census",
     "impact measurement",
-    "evidence layer",
     "animal welfare data",
     "NGO infrastructure",
-    "field studies",
-    "civic infrastructure",
-    "intervention tracking",
+    "rabies control",
+    "CSR",
   ],
-  // og:image + twitter:image are provided by the generated app/opengraph-image.tsx
-  // (absolute URL via metadataBase), so no static image is referenced here.
   openGraph: {
-    title: "StrayPaw — Make care measurable",
+    title: "StrayPaw — Every street dog, on the record",
     description:
-      "The system connecting street-level evidence to the people who can act. Fund the question. Measure the answer.",
+      "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
     type: "website",
     siteName: "StrayPaw",
+    url: siteUrl,
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw — Make care measurable",
+    title: "StrayPaw — Every street dog, on the record",
     description:
-      "The system connecting street-level evidence to the people who can act. Fund the question. Measure the answer.",
+      "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
+    /* Next emitted twitter:image:alt and twitter:image:type from the generated
+       OG route but no twitter:image itself, which left X with a malformed card
+       and no preview. Naming the image explicitly fixes it. */
+    images: [`${siteUrl}/opengraph-image`],
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {

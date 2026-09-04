@@ -19,12 +19,18 @@ const OBJECTIVES = Object.keys(OBJECTIVE_META) as Objective[];
 /* Scope is an explicit input, not a claim about where the animals are. No
    state has published a ward-level distribution, so the tool asks for a share
    rather than pretending to know which part needs it most. */
+/* Real programmes start at ward scale, not at a twelfth of a whole state —
+   which for a large state ran to hundreds of thousands of animals and made
+   every number look unreachable. The list now runs from one ward upward, and
+   defaults to the smallest. */
 const SCOPES: { label: string; value: number }[] = [
-  { label: "The whole state", value: 1 },
-  { label: "Half the state", value: 0.5 },
-  { label: "A quarter", value: 0.25 },
-  { label: "One tenth", value: 0.1 },
+  { label: "One ward (~1/150th)", value: 1 / 150 },
+  { label: "A few wards (~1/50th)", value: 1 / 50 },
   { label: "One municipal zone (~1/12th)", value: 1 / 12 },
+  { label: "One tenth of the state", value: 0.1 },
+  { label: "A quarter", value: 0.25 },
+  { label: "Half the state", value: 0.5 },
+  { label: "The whole state", value: 1 },
 ];
 
 export function WWITClient({
@@ -36,7 +42,7 @@ export function WWITClient({
 }) {
   const [objective, setObjective] = useState<Objective>("sterilisation");
   const [geoCode, setGeoCode] = useState(geographies[0]?.code ?? "");
-  const [scope, setScope] = useState(1 / 12);
+  const [scope, setScope] = useState(1 / 150);
   const [teams, setTeams] = useState(2);
 
   const geo = useMemo(
@@ -127,12 +133,21 @@ export function WWITClient({
           value={num(plan.animals)}
           sub={`to move coverage ${Math.round(plan.coverageNow * 100)}% → ${Math.round(plan.coverageTarget * 100)}% across ${num(plan.population)} animals`}
         />
-        <Figure
-          label="Cost"
-          value={inr(plan.cost)}
-          sub={`${inr(plan.unitCost)} ${cost.unit}`}
-          accent
-        />
+        {objective === "survey" ? (
+          <Figure
+            label="Cost"
+            value="Not published"
+            sub="No Indian municipality publishes what a dog census costs"
+            accent
+          />
+        ) : (
+          <Figure
+            label="Cost"
+            value={inr(plan.cost)}
+            sub={`${inr(plan.unitCost)} ${cost.unit}`}
+            accent
+          />
+        )}
         <Figure
           label="Time"
           value={`${plan.months} mo`}
@@ -171,7 +186,19 @@ export function WWITClient({
             </span>
           </li>
           <li>
-            <b>Unit cost.</b> {inr(plan.unitCost)} {cost.unit}.{" "}
+            <b>Unit cost.</b>{" "}
+            {objective === "survey" ? (
+              <>
+                <em>Not published.</em> Cities do run these surveys — Bengaluru
+                through BBMP, Ahmedabad across all 48 wards — but none publishes
+                what one costs, so there is no figure to multiply. That absence
+                is itself one of the gaps in the register.
+              </>
+            ) : (
+              <>
+                {inr(plan.unitCost)} {cost.unit}.
+              </>
+            )}{" "}
             <span className="wwit-src">
               {cost.source} ({cost.year}).
             </span>

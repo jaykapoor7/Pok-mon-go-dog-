@@ -59,7 +59,7 @@ export const COVERAGE_TARGET: Sourced<number> = {
 
 /* ── Unit costs ─────────────────────────────────────────────────── */
 
-export type Objective = "sterilisation" | "vaccination";
+export type Objective = "sterilisation" | "vaccination" | "survey";
 
 export const UNIT_COSTS: Record<Objective, Sourced<number>> = {
   sterilisation: {
@@ -78,6 +78,19 @@ export const UNIT_COSTS: Record<Objective, Sourced<number>> = {
       "National Rabies Control Programme cost norms for anti-rabies vaccination of dogs (cell-culture vaccine, per dose including handling)",
     confidence: "medium",
   },
+  /* No per-ward or per-animal cost for street-dog enumeration is published
+     anywhere in India. Cities run these surveys — Bengaluru through BBMP,
+     Ahmedabad across its 48 wards — but none publishes what one costs. A zero
+     here means "not published", and the tool says so rather than guessing:
+     inventing this number would undermine every other figure on the page. */
+  survey: {
+    value: 0,
+    unit: "not published",
+    year: 2026,
+    source:
+      "No published unit cost for street-dog enumeration in India. Municipal censuses (BBMP Bengaluru; Amdavad Municipal Corporation, 48 wards) report findings but not programme cost",
+    confidence: "low",
+  },
 };
 
 export const OBJECTIVE_META: Record<
@@ -93,6 +106,11 @@ export const OBJECTIVE_META: Record<
     label: "Rabies vaccination",
     question: "What would it take to reach herd immunity?",
     verb: "vaccinate",
+  },
+  survey: {
+    label: "Baseline survey only",
+    question: "What would it take just to find out what is there?",
+    verb: "enumerate",
   },
 };
 
@@ -258,6 +276,8 @@ export type Plan = {
 const THROUGHPUT: Record<Objective, number> = {
   sterilisation: 260,
   vaccination: 900,
+  // Enumeration is walked transects, not surgery — far faster per animal.
+  survey: 2400,
 };
 
 /**
@@ -298,7 +318,12 @@ export function whatWouldItTake(
     objective === "vaccination" || publishedCoverage === null;
   const coverageNow = baselineUnknown ? 0 : (publishedCoverage as number);
 
-  const animals = Math.max(0, Math.round(population * (target - coverageNow)));
+  /* A survey enumerates everything in scope; the other objectives only treat
+     the share needed to close the coverage gap. */
+  const animals =
+    objective === "survey"
+      ? population
+      : Math.max(0, Math.round(population * (target - coverageNow)));
   const unitCost = UNIT_COSTS[objective].value;
   const months = Math.max(
     1,
