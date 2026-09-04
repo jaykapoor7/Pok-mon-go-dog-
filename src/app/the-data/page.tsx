@@ -41,7 +41,7 @@ export default function TheDataPage() {
       next={[
         { label: "State-by-state explorer", href: "/gaps", note: "Population, coverage and organisations per state." },
         { label: "Cost an intervention", href: "/what-would-it-take", note: "Turn any state into a scoped, costed plan." },
-        { label: "Organisation directory", href: "/orgs", note: "Who is working where, by name." },
+        { label: "Research standards", href: "/research-standards", note: "How a question becomes a published result." },
       ]}
     >
       <Band

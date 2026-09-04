@@ -26,7 +26,7 @@ export default function ForFundersPage() {
       figure={<FundingFigure />}
       next={[
         { label: "Scope and cost a programme", href: "/what-would-it-take", note: "Pick a state and an objective; get real numbers." },
-        { label: "See the data gaps", href: "/gaps", note: "Where funded survey work would matter most." },
+        { label: "How we run a study", href: "/research-standards", note: "Protocol, methods, indicators and what we publish." },
         { label: "Start a conversation", href: "/contact?subject=Fund%20a%20programme", note: "Tell us the geography and the objective." },
       ]}
     >
