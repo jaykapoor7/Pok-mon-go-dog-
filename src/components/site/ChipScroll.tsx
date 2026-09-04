@@ -87,21 +87,21 @@ export function ChipScroll() {
       label: "ANTI-MIGRATION CAP",
       z: openP * 30,
       y: openP * -20,
-      opacity: 0.4 + openP * 0.6,
+      opacity: 0.55 + openP * 0.45,
     },
     {
       id: "coil",
       label: "ANTENNA COIL",
       z: openP * 70,
       y: 0,
-      opacity: 0.4 + openP * 0.6,
+      opacity: 0.55 + openP * 0.45,
     },
     {
       id: "die",
       label: "MICROCHIP DIE",
       z: openP * 110,
       y: openP * 16,
-      opacity: 0.4 + openP * 0.6,
+      opacity: 0.55 + openP * 0.45,
     },
   ];
 
@@ -196,17 +196,29 @@ export function ChipScroll() {
                     className={`chs-layer chs-${l.id}`}
                     style={{
                       transform: `translate3d(0, ${l.y}px, ${l.z}px)`,
-                      opacity: l.opacity,
                       transition: reduced
                         ? "none"
-                        : "transform 0.9s cubic-bezier(0.16,1,0.3,1), opacity 0.6s ease",
+                        : "transform 0.9s cubic-bezier(0.16,1,0.3,1)",
                     }}
                   >
-                    <span className="chs-layer-art" />
+                    {/* Opacity rides on the artwork, not the layer: a faded
+                        layer must not drag its label down with it. */}
+                    <span
+                      className="chs-layer-art"
+                      style={{
+                        opacity: l.opacity,
+                        transition: reduced ? "none" : "opacity 0.6s ease",
+                      }}
+                    />
                     {l.label && stage >= 1 && (
                       <span
                         className="chs-layer-label"
-                        style={{ opacity: openP, transition: "opacity 0.4s ease" }}
+                        style={{
+                          /* Reaches full strength early in the open, so the
+                             names are readable for most of the stage. */
+                          opacity: Math.min(1, openP * 2.5),
+                          transition: "opacity 0.4s ease",
+                        }}
                       >
                         {l.label}
                       </span>
@@ -219,7 +231,7 @@ export function ChipScroll() {
               {openP > 0.3 && (
                 <div
                   className="chs-code"
-                  style={{ opacity: Math.max(0, (openP - 0.3) / 0.7) }}
+                  style={{ opacity: Math.min(1, ((openP - 0.3) / 0.7) * 2) }}
                 >
                   <span className="chs-code-label">15-digit unique identifier</span>
                   <b>985 112004567890</b>
@@ -255,13 +267,18 @@ export function ChipScroll() {
               </div>
               <div className="chs-field">
                 <span>Last seen</span>
-                <b>Hauz Khas Village, Delhi — 4 days ago</b>
+                <b>Ward 12 feeding point — 4 days ago</b>
               </div>
               <div className="chs-field">
                 <span>Community</span>
                 <b>14 sightings · 3 reports · 2 caregivers</b>
               </div>
             </div>
+            {/* No animal is enrolled yet, so this is the record *format*, not a
+                record. Said plainly rather than left to look like live data. */}
+            <p className="chs-record-note">
+              Illustration of the record format — no animal is enrolled yet.
+            </p>
             <div className="chs-record-line" aria-hidden="true" />
           </div>
 

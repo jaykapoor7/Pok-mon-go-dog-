@@ -10,9 +10,15 @@
   --paper: #f4f5f7;
   --bone: #dce2e8;
   --electric: #8fb7ff;
-  --vermilion: #ff6a4f;
+  /* Softened from #ff6a4f so large display type clears 3:1 on the paper
+     ground; visually near-identical, but readable rather than glowing. */
+  --vermilion: #f05b40;
   --cyan: #66c5d5;
   --violet: #a68cff;
+  /* Text-sized accents on light grounds. The bright brand tones sit at
+     ~1.9–2.6:1 there, so anything small and readable uses these instead. */
+  --electric-ink: #476fb7;
+  --vermilion-ink: #cc371c;
   --line: rgba(11, 16, 32, 0.14);
   --line-dark: #293753;
   --muted: #63665e;
@@ -45,7 +51,12 @@
   text-transform: uppercase;
   color: #6f716b;
 }
-.sp-kicker span { color: var(--vermilion); }
+.sp-kicker span { color: var(--vermilion-ink); }
+/* On dark grounds the bright accent is correct and readable. */
+.sp-kicker.light span,
+.chs .sp-kicker span,
+.sp-for .sp-kicker span,
+.sp-footer .sp-kicker span { color: var(--vermilion); }
 .sp-kicker.light { color: #a6a9a0; }
 
 .sp-display {
@@ -82,7 +93,9 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 14px 18px;
+  min-height: 46px;
+  padding: 14px 20px;
+  border-radius: 3px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -92,6 +105,7 @@
     border-color 0.2s ease;
 }
 .sp-btn:active { transform: scale(0.97); }
+.sp-btn:focus-visible { outline: 2px solid var(--electric); outline-offset: 3px; }
 .sp-btn-primary { background: var(--electric); color: var(--ink); }
 .sp-btn-primary:hover { background: #b8d1ff; }
 .sp-btn-dark { background: var(--ink); color: var(--paper); }
@@ -109,6 +123,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 32px;
   border-bottom: 1px solid currentColor;
   padding-bottom: 4px;
   font-size: 13px;
@@ -118,6 +133,7 @@
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 .sp-link:hover { color: var(--vermilion); }
+.sp-link:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 3px; }
 
 /* ── header ─────────────────────────────────────────────────────── */
 
@@ -149,31 +165,59 @@
 }
 .sp-nav {
   display: flex;
-  gap: 29px;
+  gap: 19px;
   font-size: 13px;
   margin-left: 6%;
 }
+/* Padding makes the target the size of the item, not the size of the word. */
 .sp-nav a {
-  color: rgba(244, 245, 247, 0.62);
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 5px;
+  border-radius: 3px;
+  color: rgba(244, 245, 247, 0.68);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 .sp-nav a:hover { color: var(--electric); }
-.sp-header-actions { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.sp-nav a:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
+.sp-header-actions { display: flex; align-items: center; gap: 14px; margin-left: auto; }
 .sp-header-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
+  min-height: 40px;
   background: var(--electric);
   color: var(--ink);
-  padding: 9px 17px;
+  border-radius: 3px;
+  padding: 10px 18px;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.2s ease;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.12s ease;
 }
 .sp-header-cta:hover { background: #b8d1ff; }
-.sp-menu-btn { display: none; background: transparent; border: 0; color: var(--paper); cursor: pointer; }
+.sp-header-cta:active { transform: scale(0.98); }
+.sp-header-cta:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+.sp-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-right: -8px;
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  color: var(--paper);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.sp-menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.sp-menu-btn:focus-visible { outline: 2px solid var(--electric); outline-offset: -2px; }
 
 /* ── hero ───────────────────────────────────────────────────────── */
 
@@ -739,7 +783,7 @@
   text-align: center;
   transition: opacity 0.6s ease 0.5s;
 }
-.chip-readout .sp-mono { display: block; color: #7d8aa3; margin-bottom: 9px; }
+.chip-readout .sp-mono { display: block; color: #8b98b0; margin-bottom: 9px; }
 .chip-readout b {
   display: inline-block;
   padding: 10px 18px;
@@ -1014,7 +1058,7 @@
   position: absolute;
   bottom: 16px;
   z-index: 3;
-  color: #7e8b7b;
+  color: #808d7d;
   line-height: 1.8;
   font-family: var(--font-mono), monospace;
   font-size: 9px;
@@ -1036,7 +1080,7 @@
 .sp-drawer-top {
   display: flex;
   justify-content: space-between;
-  color: #7c867a;
+  color: #869084;
   font-family: var(--font-mono), monospace;
   font-size: 9px;
   letter-spacing: 0.1em;
@@ -1077,7 +1121,7 @@
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #798278;
+  color: #879086;
 }
 .sp-drawer-row b { color: #dfe2d8; font-weight: 400; text-align: right; }
 .sp-drawer-btn {
@@ -1326,7 +1370,7 @@
   border-top: 1px solid #273450;
   margin-top: 10vw;
   padding-top: 15px;
-  color: #70786e;
+  color: #788076;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -1357,7 +1401,7 @@
   border: 1px solid rgba(11,16,32,0.1);
 }
 .sp-loop-stage { background: var(--paper); padding: 24px 18px; }
-.sp-loop-n { display: block; color: var(--vermilion); margin-bottom: 10px; }
+.sp-loop-n { display: block; color: var(--vermilion-ink); margin-bottom: 10px; }
 .sp-loop-label {
   display: block;
   font-family: var(--font-display), "Instrument Serif", serif;
@@ -1367,7 +1411,7 @@
   letter-spacing: -0.03em;
   margin-bottom: 10px;
 }
-.sp-loop-desc { margin: 0; font-size: 12.5px; line-height: 1.55; color: #7a7d73; }
+.sp-loop-desc { margin: 0; font-size: 12.5px; line-height: 1.55; color: #6c6f65; }
 
 /* ── chip scroll ───────────────────────────────────────────────── */
 
@@ -1452,17 +1496,32 @@
   justify-content: center;
   transform-style: preserve-3d;
 }
+/* Every layer occupies the same box, so labels must be pushed apart by hand
+   or they stack on one line and become unreadable. Each sits on its own row
+   with a leader line back to the part it names. */
 .chs-layer-label {
   position: absolute;
   left: 100%;
-  margin-left: 14px;
+  margin-left: 26px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--electric);
+  color: #b8d1ff;
   white-space: nowrap;
 }
+.chs-layer-label::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  width: 20px;
+  height: 1px;
+  background: rgba(143, 183, 255, 0.45);
+}
+.chs-cap .chs-layer-label { top: 2px; }
+.chs-coil .chs-layer-label { top: 50%; transform: translateY(-50%); }
+.chs-die .chs-layer-label { bottom: 2px; }
 
 .chs-glass .chs-layer-art {
   width: 160px;
@@ -1516,7 +1575,7 @@
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #7d8aa3;
+  color: #8b98b0;
   margin-bottom: 8px;
 }
 .chs-code b {
@@ -1571,7 +1630,7 @@
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #7d8aa3;
+  color: #8b98b0;
 }
 .chs-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--electric); }
 .chs-dot.green { background: #4cbe87; }
@@ -1582,9 +1641,19 @@
   font-size: 9px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #7d8aa3;
+  color: #8b98b0;
 }
 .chs-field b { font-size: 12px; font-weight: 500; color: var(--paper); }
+.chs-record-note {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(143, 183, 255, 0.1);
+  font-family: var(--font-mono), monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #8b98b0;
+}
 
 .chs-network { width: 100%; max-width: 340px; text-align: center; }
 .chs-net-svg { width: 100%; height: auto; display: block; }
@@ -1593,7 +1662,7 @@
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #7d8aa3;
+  color: #8b98b0;
   margin: 10px 0 0;
 }
 
@@ -1743,8 +1812,17 @@
     border-bottom: 1px solid rgba(244, 245, 247, 0.12);
     flex-direction: column;
   }
-  .sp-nav.open { display: flex; }
-  .sp-menu-btn { display: block; }
+  .sp-nav.open { display: flex; gap: 2px; }
+  /* Full-width rows in the mobile sheet — thumb-sized, not word-sized. */
+  .sp-nav a {
+    min-height: 46px;
+    padding: 10px 8px;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(244, 245, 247, 0.08);
+  }
+  .sp-nav a:last-child { border-bottom: 0; }
+  .sp-menu-btn { display: flex; }
+  .sp-header-cta { min-height: 42px; }
   .sp-hero-copy { padding: 132px 7vw 120px; justify-content: flex-start; }
   .sp-hero h1 { font-size: 62px; line-height: 0.84; margin-bottom: 26px; }
   .sp-hero-img { object-position: 56% 46%; }

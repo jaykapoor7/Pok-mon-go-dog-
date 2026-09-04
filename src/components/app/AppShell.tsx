@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode, useRef, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  type ReactNode,
+  useRef,
+  type FormEvent,
+} from "react";
 import {
   ArrowUpRight,
   Bookmark,
@@ -82,6 +88,23 @@ export function AppShell({
     searchRef.current?.blur();
   }
 
+  /* Escape closes the mobile drawer — the shortcut every user already
+     expects from an overlay (Jakob's law). */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  /* A route change means the user got where they were going — the drawer
+     should not still be sitting open on top of the destination. */
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   const isActive = (href: string) =>
     href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 
@@ -111,10 +134,13 @@ export function AppShell({
           <Search size={13} />
           <input
             ref={searchRef}
-            placeholder="Location, animal ID, org…"
-            aria-label="Search"
+            type="search"
+            placeholder="Search location, animal ID, org…"
+            aria-label="Search the network"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            /* Mobile keyboards show a "search" key instead of "return". */
+            enterKeyHint="search"
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
@@ -129,6 +155,14 @@ export function AppShell({
       </div>
 
       <div className="spa-body">
+        <button
+          type="button"
+          className={`spa-scrim ${open ? "show" : ""}`}
+          onClick={() => setOpen(false)}
+          aria-label="Close navigation"
+          tabIndex={open ? 0 : -1}
+        />
+
         <nav className={`spa-side ${open ? "open" : ""}`}>
           <div className="spa-live">
             <i /> Live network

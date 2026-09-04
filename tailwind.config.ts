@@ -43,7 +43,11 @@ const config: Config = {
         },
         bark: {
           50: '#f6f8fb', 100: '#eef1f6', 200: '#e1e6ef', 300: '#c6cddb',
-          400: '#97a0b2', 500: '#6b7484', 600: '#4d5564', 700: '#39404e',
+          /* 400 is the app's muted-text step (~270 usages). At its old
+             #97a0b2 it scored 2.63:1 on white — unreadable. Darkened to clear
+             4.5:1 on white, bark-50 and bark-100; dark mode gets the original
+             light value back via a .dark override in globals.css. */
+          400: '#656e7b', 500: '#616a79', 600: '#4d5564', 700: '#39404e',
           800: '#1b2436', 900: '#0f1626', 950: '#0a0f1a',
         },
         cream: '#eaf1fb',

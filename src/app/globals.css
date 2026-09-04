@@ -17,11 +17,15 @@
     border-radius: 2px;
   }
   /* On the dark console the electric blue needs a light halo to stay visible
-     against near-black. */
+     against near-black. Every dark-ground section belongs in this list. */
   .spa :focus-visible,
   .sp-hero :focus-visible,
   .sp-network :focus-visible,
-  .sp-footer :focus-visible {
+  .sp-footer :focus-visible,
+  .sp-chip :focus-visible,
+  .sp-record :focus-visible,
+  .chs :focus-visible,
+  .sp-for :focus-visible {
     outline-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(143, 183, 255, 0.35);
   }
