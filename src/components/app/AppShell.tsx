@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   useState,
   useEffect,
+  useContext,
+  createContext,
   type ReactNode,
   useRef,
   type FormEvent,
@@ -66,6 +68,13 @@ const WORKSPACE = [
   { href: "/partner/reports", label: "Analytics", Icon: FileText },
 ];
 
+/* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
+   a hand-maintained route list, while several pages also mount one directly;
+   whenever those two disagree the console renders inside itself. Rather than
+   keep the list perfectly in sync forever, a nested shell detects the outer
+   one and renders as a plain passthrough. */
+const InShell = createContext(false);
+
 export function AppShell({
   children,
   flush = false,
@@ -73,6 +82,7 @@ export function AppShell({
   children: ReactNode;
   flush?: boolean;
 }) {
+  const nested = useContext(InShell);
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -108,7 +118,11 @@ export function AppShell({
   const isActive = (href: string) =>
     href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 
+  /* Placed after every hook so the hook order stays stable either way. */
+  if (nested) return <>{children}</>;
+
   return (
+   <InShell.Provider value={true}>
     <div className="spa">
       <a href="#spa-main" className="skip-link">
         Skip to content
@@ -217,5 +231,6 @@ export function AppShell({
         </main>
       </div>
     </div>
+   </InShell.Provider>
   );
 }

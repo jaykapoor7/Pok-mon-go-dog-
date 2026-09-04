@@ -35,7 +35,7 @@ export default function InterventionsPage() {
             What is <em>happening.</em>
           </h1>
         </div>
-        <Link href="/partner-apply" className="spa-cta">
+        <Link href="/contact?subject=Fund%20an%20intervention" className="spa-cta">
           Fund an intervention <ArrowUpRight size={14} />
         </Link>
       </div>

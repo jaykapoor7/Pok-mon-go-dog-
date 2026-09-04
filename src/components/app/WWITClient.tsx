@@ -173,7 +173,7 @@ export function WWITClient() {
           </p>
         </div>
         <div className="wwit-next-actions">
-          <Link href="/partner-apply" className="spa-cta">
+          <Link href="/contact?subject=Fund%20a%20baseline%20study" className="spa-cta">
             Fund a baseline study <ArrowUpRight size={14} />
           </Link>
           <Link href="/gaps" className="wwit-link">

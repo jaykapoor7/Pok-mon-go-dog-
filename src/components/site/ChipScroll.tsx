@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  GlassCapsule,
+  AntiMigrationCap,
+  AntennaCoil,
+  SiliconDie,
+} from "./ChipParts";
 
 /* ════════════════════════════════════════════════════════════════════
    ChipScroll — scroll-controlled 4-stage section.
@@ -72,36 +78,43 @@ export function ChipScroll() {
   const recordP = stageP(0.5, 0.75); // record appearing
   const networkP = stageP(0.75, 1.0); // network appearing
 
-  // Layer transforms — separation is primarily in Z (depth) and slightly Y
+  /* Closed, the four parts sit exactly on top of one another and read as a
+     single capsule. Opening fans them apart vertically — a product teardown,
+     not an explosion — so each part is separately visible and nameable. */
+  const SPREAD = 82;
   const layers = [
     {
       id: "glass",
-      label: null,
-      // Capsule moves back as it opens (reveals interior)
-      z: openP * -80,
-      y: openP * -6,
-      opacity: 1 - openP * 0.55,
+      label: "BIO-GLASS CAPSULE",
+      Art: GlassCapsule,
+      y: openP * -SPREAD * 1.5,
+      z: openP * 30,
+      // The shell goes translucent so the internals below can be read.
+      opacity: 1 - openP * 0.45,
     },
     {
       id: "cap",
       label: "ANTI-MIGRATION CAP",
-      z: openP * 30,
-      y: openP * -20,
-      opacity: 0.55 + openP * 0.45,
+      Art: AntiMigrationCap,
+      y: openP * -SPREAD * 0.5,
+      z: openP * 55,
+      opacity: 0.5 + openP * 0.5,
     },
     {
       id: "coil",
       label: "ANTENNA COIL",
-      z: openP * 70,
-      y: 0,
-      opacity: 0.55 + openP * 0.45,
+      Art: AntennaCoil,
+      y: openP * SPREAD * 0.5,
+      z: openP * 80,
+      opacity: 0.5 + openP * 0.5,
     },
     {
       id: "die",
-      label: "MICROCHIP DIE",
-      z: openP * 110,
-      y: openP * 16,
-      opacity: 0.55 + openP * 0.45,
+      label: "SILICON DIE",
+      Art: SiliconDie,
+      y: openP * SPREAD * 1.5,
+      z: openP * 105,
+      opacity: 0.5 + openP * 0.5,
     },
   ];
 
@@ -190,27 +203,29 @@ export function ChipScroll() {
                   transition: "transform 0.3s ease",
                 }}
               >
-                {layers.map((l) => (
+                {layers.map(({ id, label, Art, y, z, opacity }) => (
                   <div
-                    key={l.id}
-                    className={`chs-layer chs-${l.id}`}
+                    key={id}
+                    className={`chs-layer chs-${id}`}
                     style={{
-                      transform: `translate3d(0, ${l.y}px, ${l.z}px)`,
+                      transform: `translate3d(0, ${y}px, ${z}px)`,
                       transition: reduced
                         ? "none"
-                        : "transform 0.9s cubic-bezier(0.16,1,0.3,1)",
+                        : "transform 1s cubic-bezier(0.16,1,0.3,1)",
                     }}
                   >
                     {/* Opacity rides on the artwork, not the layer: a faded
-                        layer must not drag its label down with it. */}
+                        part must not drag its label down with it. */}
                     <span
                       className="chs-layer-art"
                       style={{
-                        opacity: l.opacity,
+                        opacity,
                         transition: reduced ? "none" : "opacity 0.6s ease",
                       }}
-                    />
-                    {l.label && stage >= 1 && (
+                    >
+                      <Art />
+                    </span>
+                    {stage >= 1 && (
                       <span
                         className="chs-layer-label"
                         style={{
@@ -220,7 +235,7 @@ export function ChipScroll() {
                           transition: "opacity 0.4s ease",
                         }}
                       >
-                        {l.label}
+                        {label}
                       </span>
                     )}
                   </div>

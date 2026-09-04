@@ -115,7 +115,7 @@ export default function GapsPage() {
               study, and it is most of the work.
             </p>
           </div>
-          <Link href="/partner-apply" className="spa-cta">
+          <Link href="/contact?subject=Fund%20survey%20work%20in%20an%20uncovered%20state" className="spa-cta">
             Fund the work <ArrowUpRight size={14} />
           </Link>
         </div>

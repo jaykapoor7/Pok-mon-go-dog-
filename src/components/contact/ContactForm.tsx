@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Send, CheckCircle2, Mail } from "lucide-react";
 
 const INBOX = "jaykapoor7@outlook.com";
@@ -13,6 +13,16 @@ export function ContactForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  /* CTAs across the site deep-link here with the enquiry already named
+     (e.g. /contact?subject=Fund a baseline study), so the sender does not
+     have to restate what they clicked. Read from the URL directly rather
+     than useSearchParams, which would force a Suspense boundary on an
+     otherwise static page. */
+  useEffect(() => {
+    const s = new URLSearchParams(window.location.search).get("subject");
+    if (s) setSubject(s.slice(0, 120));
+  }, []);
 
   const mailtoHref = () => {
     const body = `${message}\n\n- ${name} (${email})`;

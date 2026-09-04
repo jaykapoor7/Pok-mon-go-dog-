@@ -15,7 +15,7 @@ export function PreLaunch({
   Icon,
   what,
   fills,
-  cta = { href: "/partner-apply", label: "Fund the first study" },
+  cta = { href: "/contact?subject=Fund%20the%20first%20study", label: "Fund the first study" },
 }: {
   Icon: LucideIcon;
   /** Plain-language name of the record type, e.g. "outcome records". */

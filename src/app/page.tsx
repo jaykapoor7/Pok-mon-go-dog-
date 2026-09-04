@@ -68,8 +68,8 @@ const AUDIENCES = [
     tag: "FUNDERS / CSR",
     title: "Fund an outcome,\nnot a hope.",
     body: `Define an impact objective and a geography. StrayPaw turns it into a scoped study, a named NGO partner, a budget, and a measurable finish line. Unit cost: ${inr(UNIT_COSTS.sterilisation.value)} per sterilisation (AWBI ceiling, ${UNIT_COSTS.sterilisation.year}).`,
-    cta: "Start a programme",
-    href: "/partner-apply",
+    cta: "Scope and cost a programme",
+    href: "/what-would-it-take",
   },
 ];
 
@@ -236,7 +236,7 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={120}>
               <div className="sp-footer-actions">
-                <Link href="/partner-apply" className="sp-btn sp-btn-primary">
+                <Link href="/what-would-it-take" className="sp-btn sp-btn-primary">
                   Fund a programme <ArrowUpRight size={16} />
                 </Link>
                 <Link href="/app" className="sp-btn sp-btn-outline-light">

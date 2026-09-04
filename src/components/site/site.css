@@ -1474,17 +1474,24 @@
   align-items: center;
   gap: 24px;
 }
-.chs-scene-wrap { position: relative; width: 100%; max-width: 360px; }
+.chs-scene-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  /* The part labels extend to the right of the 320px assembly; nudging the
+     scene left keeps them inside the column instead of off the viewport. */
+  transform: translateX(-58px);
+}
 .chs-scene {
   position: relative;
-  height: 290px;
+  height: 380px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .chs-layers {
   position: relative;
-  width: 160px;
+  width: 320px;
   height: 56px;
   transform-style: preserve-3d;
 }
@@ -1496,13 +1503,29 @@
   justify-content: center;
   transform-style: preserve-3d;
 }
-/* Every layer occupies the same box, so labels must be pushed apart by hand
-   or they stack on one line and become unreadable. Each sits on its own row
-   with a leader line back to the part it names. */
+.chs-layer-art { display: block; line-height: 0; }
+.chs-layer-art svg { display: block; overflow: visible; }
+/* A soft ground shadow under each part sells the depth once they separate. */
+.chs-layer-art::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5), transparent 70%);
+  pointer-events: none;
+}
+
+/* Each part is named on its own row, with a leader line back to it. Without
+   the per-part offset every label lands on the same line and is unreadable. */
 .chs-layer-label {
   position: absolute;
   left: 100%;
-  margin-left: 26px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 30px;
   font-family: var(--font-mono), monospace;
   font-size: 9.5px;
   letter-spacing: 0.1em;
@@ -1515,51 +1538,9 @@
   position: absolute;
   right: 100%;
   top: 50%;
-  width: 20px;
+  width: 24px;
   height: 1px;
-  background: rgba(143, 183, 255, 0.45);
-}
-.chs-cap .chs-layer-label { top: 2px; }
-.chs-coil .chs-layer-label { top: 50%; transform: translateY(-50%); }
-.chs-die .chs-layer-label { bottom: 2px; }
-
-.chs-glass .chs-layer-art {
-  width: 160px;
-  height: 56px;
-  border-radius: 28px;
-  background: rgba(143,183,255,0.06);
-  border: 1px solid rgba(143,183,255,0.4);
-  box-shadow: 0 0 28px rgba(143,183,255,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
-  display: block;
-}
-.chs-cap .chs-layer-art {
-  width: 26px;
-  height: 42px;
-  border-radius: 13px;
-  background: linear-gradient(180deg, #2a3f66 0%, #1a2d50 100%);
-  border: 1px solid rgba(143,183,255,0.35);
-  display: block;
-}
-.chs-coil .chs-layer-art {
-  width: 120px;
-  height: 8px;
-  border-radius: 4px;
-  background:
-    repeating-linear-gradient(90deg, rgba(143,183,255,0.75) 0 2px, transparent 2px 10px),
-    linear-gradient(rgba(143,183,255,0.15), rgba(143,183,255,0.04));
-  background-size: 110px 100%, 100% 100%;
-  border-top: 1px solid rgba(143,183,255,0.55);
-  border-bottom: 1px solid rgba(143,183,255,0.55);
-  display: block;
-}
-.chs-die .chs-layer-art {
-  width: 46px;
-  height: 38px;
-  border-radius: 3px;
-  background: linear-gradient(145deg, #2a3f66, #16233c);
-  border: 1px solid var(--electric);
-  box-shadow: 0 0 16px rgba(143,183,255,0.18);
-  display: block;
+  background: linear-gradient(90deg, rgba(184, 209, 255, 0.15), rgba(184, 209, 255, 0.6));
 }
 
 .chs-code {

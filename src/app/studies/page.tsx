@@ -21,7 +21,7 @@ export default function StudiesPage() {
             Fund the <em>question.</em>
           </h1>
         </div>
-        <Link href="/partner-apply" className="spa-cta">
+        <Link href="/contact?subject=Propose%20a%20study" className="spa-cta">
           Propose a study <ArrowUpRight size={14} />
         </Link>
       </div>
