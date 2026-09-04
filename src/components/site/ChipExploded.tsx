@@ -3,29 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 
 /* ════════════════════════════════════════════════════════════════════
-   Exploded view of an ISO 11784/11785 transponder.
+   Exploded view of an ISO 11784/11785 passive RFID transponder.
 
-   The layers below are the real construction of a passive RFID animal
-   transponder, not a stylisation: a bioglass capsule containing a ferrite
-   rod, a copper antenna coil wound around it, and the IC that holds the
-   code. The anti-migration cap is the parylene/polypropylene sheath that
-   stops the capsule travelling under the skin.
+   Real construction: bioglass capsule → anti-migration cap → copper
+   antenna coil wound on ferrite rod → IC die holding the 15-digit code.
 
-   Built with CSS 3D transforms rather than WebGL — the scene is five
-   planes on a Z axis, which is exactly what transform-style: preserve-3d
-   is for, and it costs nothing to load.
+   CSS 3D transforms only — no WebGL needed for five planes on a Z axis.
    ════════════════════════════════════════════════════════════════════ */
 
 type Layer = {
   id: string;
   name: string;
   detail: string;
-  /** Where the part sits inside the assembled capsule, along its long axis. */
   x: number;
-  /** Where it travels to when the view opens. A capsule is a cylinder, so an
-      exploded view of it separates along that axis, not toward the viewer. */
   out: number;
-  /** A little Z separation so the parts do not sit in one flat plane. */
   z: number;
 };
 
@@ -52,7 +43,7 @@ const LAYERS: Layer[] = [
     id: "coil",
     name: "Antenna coil",
     detail:
-      "Copper winding around a ferrite rod. The scanner's field induces current here — there is no battery, and nothing to replace.",
+      "Copper winding around a ferrite rod. The scanner's field induces current here — no battery, nothing to replace.",
     x: -14,
     out: 40,
     z: 30,
@@ -71,6 +62,7 @@ const LAYERS: Layer[] = [
 export function ChipExploded() {
   const ref = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
+  const [scanned, setScanned] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const [reduced, setReduced] = useState(false);
 
@@ -82,13 +74,11 @@ export function ChipExploded() {
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  /* Opens once, on arrival, rather than tracking scroll continuously.
-     Scrubbing it meant the assembly had already scrolled past the top of the
-     viewport by the time the callouts beside it were readable — the whole
-     point is to see the parts and their labels together. */
+  /* Open once on arrival. After it opens, fire the scanner beam. */
   useEffect(() => {
     if (reduced) {
-      setProgress(1); // already open, no animation
+      setProgress(1);
+      setScanned(true);
       return;
     }
     const el = ref.current;
@@ -97,21 +87,32 @@ export function ChipExploded() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setProgress(1);
+          // Scanner beam fires after the explode animation settles (~1.1s)
+          setTimeout(() => setScanned(true), 1400);
           io.disconnect();
         }
       },
-      { threshold: 0.35 }
+      { threshold: 0.3 }
     );
     io.observe(el);
     return () => io.disconnect();
   }, [reduced]);
 
+  const isOpen = progress === 1;
+
   return (
     <div className="chip-wrap" ref={ref}>
       <div className="chip-stage" aria-hidden="true">
+        {/* Scanner beam — sweeps once, then stays as a ghost */}
+        {isOpen && (
+          <div className={`chip-beam ${scanned ? "done" : "scanning"}`} />
+        )}
+
         <div
-          className="chip-scene"
-          style={{ transform: `rotateX(${14 - progress * 6}deg) rotateY(${-26 + progress * 10}deg)` }}
+          className={`chip-scene${isOpen ? " open" : ""}`}
+          style={{
+            transform: `rotateX(${14 - progress * 6}deg) rotateY(${-26 + progress * 10}deg)`,
+          }}
         >
           {LAYERS.map((l, i) => {
             const x = l.x + (l.out - l.x) * progress;
@@ -120,12 +121,14 @@ export function ChipExploded() {
             return (
               <div
                 key={l.id}
-                className={`chip-layer chip-${l.id} ${isOn ? "on" : ""}`}
+                className={`chip-layer chip-${l.id}${isOn ? " on" : ""}${scanned && l.id === "die" ? " pulse" : ""}`}
                 style={{
                   transform: `translate3d(${x}px, 0, ${z}px)`,
-                  // The capsule fades as it opens so the parts inside read.
-                  opacity: l.id === "glass" ? 1 - progress * 0.3 : 0.45 + progress * 0.55,
-                  transitionDelay: `${i * 40}ms`,
+                  opacity:
+                    l.id === "glass"
+                      ? 1 - progress * 0.28
+                      : 0.45 + progress * 0.55,
+                  transitionDelay: `${i * 50}ms`,
                 }}
               >
                 <span className="chip-layer-art" />
@@ -133,17 +136,18 @@ export function ChipExploded() {
             );
           })}
         </div>
+
         <div className="chip-readout" style={{ opacity: progress }}>
           <span className="sp-mono">What the die holds</span>
-          <b>985 112004567890</b>
+          <b className={scanned ? "lit" : ""}>985 112004567890</b>
           <small>
-            3-digit country or manufacturer prefix, then 12 digits unique to the
+            3-digit country / manufacturer prefix, then 12 digits unique to the
             animal. Assigned once, never reissued.
           </small>
         </div>
       </div>
 
-      {/* Callouts. Hovering one lifts its layer in the stack. */}
+      {/* Callouts — hovering one highlights the corresponding layer. */}
       <ol className="chip-calls" style={{ opacity: Math.max(0.15, progress) }}>
         {LAYERS.map((l, i) => (
           <li

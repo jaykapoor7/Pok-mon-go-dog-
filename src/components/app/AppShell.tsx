@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, type ReactNode, useRef, type FormEvent } from "react";
 import {
   ArrowUpRight,
   Bookmark,
@@ -68,7 +68,19 @@ export function AppShell({
   flush?: boolean;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    router.push(`/map?q=${encodeURIComponent(q)}`);
+    setQuery("");
+    searchRef.current?.blur();
+  }
 
   const isActive = (href: string) =>
     href === "/app" ? pathname === "/app" : pathname.startsWith(href);
@@ -95,10 +107,19 @@ export function AppShell({
           <small>console</small>
         </Link>
 
-        <div className="spa-search">
+        <form className="spa-search" onSubmit={handleSearch} role="search">
           <Search size={13} />
-          <input placeholder="Search location, record, org" aria-label="Search" />
-        </div>
+          <input
+            ref={searchRef}
+            placeholder="Location, animal ID, org…"
+            aria-label="Search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+        </form>
 
         <div className="spa-top-right">
           <Link href="/" className="spa-exit">
@@ -152,8 +173,8 @@ export function AppShell({
           ))}
 
           <div className="spa-side-foot">
-            Your area
-            <b>Delhi NCR</b>
+            Network
+            <b>Pan-India</b>
           </div>
         </nav>
 

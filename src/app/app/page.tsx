@@ -1,27 +1,64 @@
 import Link from "next/link";
-import { ArrowUpRight, ChevronRight, Radio, ShieldCheck } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Building2,
+  Heart,
+  Map,
+  Radio,
+  ScanSearch,
+} from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
-import { DELHI_ABC_COVERAGE, DELHI_POPULATION, num } from "@/lib/platform/network";
 import { getCityStats, getRecentSightings } from "@/lib/data";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Console, StrayPaw" };
 
+const QUICK_LINKS = [
+  {
+    href: "/report",
+    icon: Radio,
+    label: "Report an animal",
+    sub: "Add a sighting or flag a need",
+  },
+  {
+    href: "/map",
+    icon: Map,
+    label: "Living map",
+    sub: "All sightings, studies, outcomes",
+  },
+  {
+    href: "/orgs",
+    icon: Building2,
+    label: "Organisation directory",
+    sub: "38+ NGOs across India",
+  },
+  {
+    href: "/get-involved",
+    icon: Heart,
+    label: "Volunteer",
+    sub: "Find the right route for you",
+  },
+  {
+    href: "/gaps",
+    icon: ScanSearch,
+    label: "Data gaps",
+    sub: "State-by-state coverage picture",
+  },
+  {
+    href: "/what-would-it-take",
+    icon: BookOpen,
+    label: "Cost an intervention",
+    sub: "Real unit costs, scoped estimates",
+  },
+];
+
 export default async function ConsoleHome() {
-  // Live counts from the database. Pre-launch these are genuinely zero, and
-  // the page says so rather than showing invented activity.
   const [stats, sightings] = await Promise.all([
     getCityStats(),
     getRecentSightings(6),
   ]);
-
-  const today = new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 
   const hasActivity = sightings.length > 0;
 
@@ -29,9 +66,9 @@ export default async function ConsoleHome() {
     <AppShell>
       <div className="spa-head">
         <div>
-          <span className="spa-mono">{today} / Delhi NCR</span>
+          <span className="spa-mono">StrayPaw console</span>
           <h1>
-            Good morning, <em>neighbour.</em>
+            The living <em>network.</em>
           </h1>
         </div>
         <Link href="/report" className="spa-cta">
@@ -39,31 +76,38 @@ export default async function ConsoleHome() {
         </Link>
       </div>
 
-      {/* Live network counts. Zero is a real number and is shown as one. */}
+      <p className="spa-lede">
+        A shared record layer for community reporters, field teams, and
+        organisations. Every sighting, intervention, and outcome in one place —
+        across India.
+      </p>
+
+      {/* Live counts — zero is real and shown as one. */}
       <div className="spa-kpis">
         <div className="spa-kpi">
           <span>Animals on the map</span>
-          <b>{num(stats.dogsSpotted)}</b>
-          <small>reported by this community</small>
+          <b>{stats.dogsSpotted}</b>
+          <small>reported by the community</small>
         </div>
         <div className="spa-kpi">
           <span>Needing help</span>
-          <b>{num(stats.needsHelp)}</b>
+          <b>{stats.needsHelp}</b>
           <small>flagged and unresolved</small>
         </div>
         <div className="spa-kpi">
-          <span>Sterilised</span>
-          <b>{num(stats.dogsSterilised)}</b>
-          <small>recorded on a profile</small>
+          <span>Sterilisation recorded</span>
+          <b>{stats.dogsSterilised}</b>
+          <small>on a profile in the system</small>
         </div>
       </div>
 
       <div className="spa-grid">
+        {/* Recent activity panel */}
         <div className="spa-panel">
           <div className="spa-panel-head">
-            <b>Recent activity</b>
+            <b>Recent sightings</b>
             <Link href="/feed">
-              Open feed <ChevronRight size={12} />
+              See all <ArrowUpRight size={12} />
             </Link>
           </div>
 
@@ -80,8 +124,8 @@ export default async function ConsoleHome() {
             <div className="panel-empty">
               <Radio size={26} strokeWidth={1.25} />
               <p>
-                <b>Nothing reported yet.</b> The first sighting on this map will
-                show up here.
+                <b>Nothing yet.</b> The first sighting on this network will
+                appear here. Add one now.
               </p>
               <Link href="/report" className="tlink">
                 Report an animal <ArrowUpRight size={12} />
@@ -90,37 +134,24 @@ export default async function ConsoleHome() {
           )}
         </div>
 
+        {/* Quick links */}
         <div className="spa-panel">
           <div className="spa-panel-head">
-            <b>The wider picture</b>
+            <b>Quick access</b>
           </div>
-          <div className="spa-mini">
-            <ShieldCheck size={20} />
-            <h4>
-              {Math.round(DELHI_ABC_COVERAGE.value * 100)}% of Delhi is
-              sterilised
-            </h4>
-            <p>
-              Across roughly {num(DELHI_POPULATION.value)} community dogs. The{" "}
-              {DELHI_ABC_COVERAGE.year} survey established the city total — but
-              not which neighbourhoods carry the shortfall.
-            </p>
-            <Link href="/gaps">
-              See what is unknown <ArrowUpRight size={13} />
-            </Link>
+          <div className="console-links">
+            {QUICK_LINKS.map(({ href, icon: Icon, label, sub }) => (
+              <Link key={href} href={href} className="console-link">
+                <Icon size={16} strokeWidth={1.5} />
+                <div>
+                  <b>{label}</b>
+                  <span>{sub}</span>
+                </div>
+                <ArrowUpRight size={12} />
+              </Link>
+            ))}
           </div>
         </div>
-      </div>
-
-      <div className="spa-strip">
-        <div>
-          <span className="spa-mono">Living map / Delhi NCR</span>
-          <h4>Signals, studies, needs and outcomes in one place.</h4>
-        </div>
-        <div />
-        <Link href="/map">
-          Open map <ArrowUpRight size={14} />
-        </Link>
       </div>
     </AppShell>
   );

@@ -1,185 +1,155 @@
 import Link from "next/link";
-import { PlatformShell } from "@/components/platform/PlatformNav";
-import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
-import {
-  Heart,
-  MapPin,
-  Database,
-  Users,
-  HandHeart,
-  Megaphone,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowUpRight, ExternalLink, MapPin } from "lucide-react";
+import { AppShell } from "@/components/app/AppShell";
+import { ORGS, orgsForFocus, statesWithOrgs } from "@/lib/platform/orgs";
+import { STATE_BY_CODE } from "@/lib/platform/geography";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Get Involved - StrayPaw",
+  title: "Volunteer, StrayPaw",
   description:
-    "Report sightings, volunteer with local organisations, contribute data, or help spread awareness about street-animal welfare in India.",
+    "Real ways to help, routed to named organisations across India that do that specific work.",
 };
 
-const WAYS = [
-  {
-    id: "report",
-    icon: MapPin,
-    title: "Report a sighting",
-    description:
-      "Spotted a street dog that needs help, or a healthy community pack in your neighbourhood? Report sightings through the community map to build a real, ground-level picture of street-dog presence and welfare across India.",
-    action: { label: "Open the community map", href: "/" },
-  },
-  {
-    id: "volunteer",
-    icon: Heart,
-    title: "Volunteer with a local organisation",
-    description:
-      "Animal-welfare organisations across India need volunteers for feeding rounds, ABC programme support, fostering, adoption drives, and community education. Find an organisation near you in our directory and reach out directly.",
-    action: { label: "Browse organisations", href: "/resources" },
-  },
-  {
-    id: "support",
-    icon: HandHeart,
-    title: "Support financially",
-    description:
-      "Most of India's animal-welfare work is funded by individual donations and volunteer effort. Even small, recurring contributions to a verified local organisation sustain sterilisation drives, rescue operations, and shelter maintenance. Donate directly to organisations listed in our directory.",
-    action: { label: "Find an organisation to support", href: "/resources" },
-  },
-  {
-    id: "data",
-    icon: Database,
-    title: "Contribute data",
-    description:
-      "StrayPaw is built on open, sourced data. If you know of a published, verifiable figure (ABC coverage, population counts, programme outcomes) that we have not captured, or if you can help verify existing entries, your contribution fills a real gap.",
-    action: { label: "See current data coverage", href: "/insights" },
-  },
-  {
-    id: "awareness",
-    icon: Megaphone,
-    title: "Spread awareness",
-    description:
-      "Share what you learn here with your neighbours, your RWA, your local municipal body. Understanding that ABC is the legal, effective approach (not relocation or culling) changes how communities respond to street dogs, and how local bodies allocate resources.",
-    action: { label: "Learn the basics first", href: "/learn" },
-  },
-  {
-    id: "community",
-    icon: Users,
-    title: "Engage your community",
-    description:
-      "Organise or join a community feeding programme in your area, designate feeding spots, coordinate with local ABC providers, and help manage human-dog conflict through dialogue rather than complaints. Well-coordinated community care makes a measurable difference.",
-    action: { label: "See what works elsewhere", href: "/take-action" },
-  },
-];
+const stateName = (code: string) => STATE_BY_CODE.get(code)?.name ?? code;
 
-const QUICK_TIPS = [
-  "Carry water: a collapsible bowl and a bottle can save a dehydrated dog on a hot day.",
-  "Know your nearest vet: save the number of a vet or rescue organisation that handles street animals.",
-  "Report, do not relocate: moving a dog from its territory is illegal and counterproductive. Report it for ABC instead.",
-  "Vaccinate before you pet: if you regularly interact with street dogs, consider pre-exposure rabies vaccination for yourself.",
-  "Feed responsibly: fixed times, designated spots, clean up afterward. This reduces conflict and keeps the area clean.",
-  "Ear-notch means sterilised: a V-shaped notch on the left ear means the dog has been through an ABC programme.",
+/**
+ * Each route maps a thing a person can actually do to the focus tag that
+ * identifies organisations doing it — so "I want to help at a shelter"
+ * returns the organisations that run shelters, by name, with a link.
+ */
+const ROUTES: {
+  id: string;
+  title: string;
+  body: string;
+  focus: string;
+  commitment: string;
+}[] = [
+  {
+    id: "rescue",
+    title: "Rescue and emergency response",
+    body: "Responding to injured animals, transport to a vet, first aid at the scene. Physically demanding and often at short notice.",
+    focus: "Rescue",
+    commitment: "On-call, irregular",
+  },
+  {
+    id: "abc",
+    title: "Sterilisation programme support",
+    body: "Assisting ABC drives: catching, holding, post-operative care and release. The single highest-leverage work in street-animal welfare.",
+    focus: "ABC",
+    commitment: "Scheduled camps",
+  },
+  {
+    id: "shelter",
+    title: "Shelter and daily care",
+    body: "Feeding rounds, cleaning, socialising animals, dog-walking. Steady, unglamorous, and the thing shelters are most short of.",
+    focus: "Shelter",
+    commitment: "Weekly, recurring",
+  },
+  {
+    id: "adoption",
+    title: "Fostering and adoption",
+    body: "Taking an animal into your home while it recovers or waits for a permanent placement, and helping run adoption drives.",
+    focus: "Adoption",
+    commitment: "Weeks to months",
+  },
+  {
+    id: "education",
+    title: "Community education",
+    body: "Explaining to neighbours and resident associations why ABC works and relocation does not. Changes how a whole street behaves.",
+    focus: "Education",
+    commitment: "Occasional",
+  },
+  {
+    id: "advocacy",
+    title: "Advocacy and policy",
+    body: "Pushing local bodies to meet their obligations under the ABC Rules, and to publish what they already collect.",
+    focus: "Advocacy",
+    commitment: "Ongoing",
+  },
 ];
 
 export default function GetInvolvedPage() {
+  const states = statesWithOrgs(stateName);
+
   return (
-    <PlatformShell>
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <h1 className="font-display text-3xl tracking-tight text-bark-900 sm:text-4xl">
-          Get involved
-        </h1>
-        <p className="mt-3 text-bark-500">
-          Street-animal welfare in India runs on community effort. Here is how
-          you can make a real difference, starting today.
-        </p>
-
-        <FloatingPillNav
-          sections={[
-            { id: "report", label: "Report" },
-            { id: "volunteer", label: "Volunteer" },
-            { id: "support", label: "Donate" },
-            { id: "data", label: "Data" },
-            { id: "awareness", label: "Awareness" },
-            { id: "community", label: "Community" },
-            { id: "tips", label: "Tips" },
-            { id: "open-data", label: "Open data" },
-          ]}
-        />
-
-        {/* Ways to help */}
-        <div className="mt-10 space-y-6">
-          {WAYS.map((w) => {
-            const Icon = w.icon;
-            return (
-              <section
-                key={w.title}
-                id={w.id}
-                className="scroll-mt-28 rounded-lg border border-bark-100 bg-white p-6"
-              >
-                <h2 className="flex items-center gap-2 font-display text-lg text-bark-900">
-                  <Icon className="h-5 w-5 text-paw-500" />
-                  {w.title}
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-bark-600">
-                  {w.description}
-                </p>
-                <Link
-                  href={w.action.href}
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-paw-600 hover:text-paw-700"
-                >
-                  {w.action.label} <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </section>
-            );
-          })}
+    <AppShell>
+      <div className="spa-head">
+        <div>
+          <span className="spa-mono">Network / volunteer</span>
+          <h1>
+            Pick the work. We&apos;ll name <em>who needs it.</em>
+          </h1>
         </div>
-
-        {/* Quick tips */}
-        <section id="tips" className="mt-12 scroll-mt-28">
-          <h2 className="font-display text-xl text-bark-900">
-            Everyday tips
-          </h2>
-          <p className="mt-1 text-sm text-bark-400">
-            Small things you can do right now, no organisation needed.
-          </p>
-          <ul className="mt-4 space-y-2">
-            {QUICK_TIPS.map((tip, i) => (
-              <li key={i} className="flex gap-3 text-sm text-bark-700">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-paw-50 text-[10px] font-bold text-paw-600">
-                  {i + 1}
-                </span>
-                {tip}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Data transparency note */}
-        <div id="open-data" className="mt-12 scroll-mt-28 rounded-lg border border-bark-200 bg-bark-50 p-6">
-          <p className="font-semibold text-bark-900">
-            Why open data matters
-          </p>
-          <p className="mt-2 text-sm text-bark-600">
-            India does not currently publish comprehensive, state-wise data on
-            ABC coverage, dog vaccination rates, or street-dog population
-            changes. Without this data, it is impossible to measure progress
-            toward rabies elimination, allocate resources effectively, or hold
-            local bodies accountable. Every verified data point contributed to
-            StrayPaw helps close this gap.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              href="/insights"
-              className="inline-flex items-center gap-1 rounded-full bg-bark-900 px-4 py-2 text-sm font-semibold text-white hover:bg-bark-800"
-            >
-              See the data gaps <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link
-              href="/explore"
-              className="inline-flex items-center gap-1 rounded-full border border-bark-300 px-4 py-2 text-sm font-semibold text-bark-700 hover:bg-white"
-            >
-              Explore what we have <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
+        <Link href="/report" className="spa-cta">
+          + Report an animal
+        </Link>
       </div>
-    </PlatformShell>
+
+      <p className="spa-lede">
+        Every route below lists organisations that do that specific work, with a
+        link to reach them directly. {ORGS.length} organisations across{" "}
+        {states.length} states. StrayPaw does not place volunteers — you contact
+        the organisation, they decide.
+      </p>
+
+      <div className="vol-list">
+        {ROUTES.map((r) => {
+          const orgs = orgsForFocus(r.focus);
+          if (orgs.length === 0) return null;
+          return (
+            <section className="vol-route" key={r.id}>
+              <header>
+                <div>
+                  <h2>{r.title}</h2>
+                  <p>{r.body}</p>
+                </div>
+                <div className="vol-meta">
+                  <span className="spa-mono">Typical commitment</span>
+                  <b>{r.commitment}</b>
+                  <span className="vol-n spa-mono">
+                    {orgs.length} organisation{orgs.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+              </header>
+
+              <ul className="vol-orgs">
+                {orgs.map((o) => {
+                  const Item = o.url ? "a" : "span";
+                  return (
+                    <li key={o.id}>
+                      <Item
+                        {...(o.url
+                          ? { href: o.url, target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
+                      >
+                        <b>{o.name}</b>
+                        <span className="vol-place">
+                          <MapPin size={11} /> {o.city}, {stateName(o.stateCode)}
+                        </span>
+                        {o.url && <ExternalLink size={12} />}
+                      </Item>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+
+      <aside className="spa-note">
+        <div>
+          <b>If nothing here is near you.</b> The directory is not exhaustive —
+          it lists organisations we could verify from published sources. Absence
+          from it means we have not listed them, not that nothing exists where
+          you are.{" "}
+          <Link href="/orgs" className="tlink">
+            Browse the full directory
+          </Link>{" "}
+          or report an animal to put your area on the map.
+        </div>
+      </aside>
+    </AppShell>
   );
 }

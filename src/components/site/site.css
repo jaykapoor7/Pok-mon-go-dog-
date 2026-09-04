@@ -531,13 +531,68 @@
 
 /* ── the chip ───────────────────────────────────────────────────── */
 
+/* Animated circuit traces in the section background */
+@keyframes chip-trace-drift {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-40px); }
+}
+@keyframes chip-coil-flow {
+  from { background-position: 0 0; }
+  to   { background-position: 110px 0; }
+}
+@keyframes chip-die-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(143, 183, 255, 0); }
+  50%       { box-shadow: 0 0 24px 8px rgba(143, 183, 255, 0.45); }
+}
+@keyframes chip-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes chip-scan-sweep {
+  0%   { left: -4%; opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { left: 104%; opacity: 0; }
+}
+@keyframes chip-readout-lit {
+  0%   { color: var(--electric); text-shadow: 0 0 0 transparent; }
+  30%  { color: #fff; text-shadow: 0 0 22px rgba(143, 183, 255, 0.9); }
+  100% { color: var(--electric); text-shadow: 0 0 8px rgba(143, 183, 255, 0.4); }
+}
+
 .sp-chip {
   position: relative;
   overflow: hidden;
   padding: 12vw 8vw;
-  background: radial-gradient(circle at 32% 40%, #1d3558 0, transparent 42%), var(--ink);
+  background:
+    radial-gradient(circle at 32% 40%, #1b3456 0, transparent 44%),
+    radial-gradient(circle at 78% 65%, #0f2440 0, transparent 38%),
+    var(--ink);
   color: var(--paper);
 }
+
+/* SVG circuit-trace decoration, injected as a pseudo — purely aesthetic */
+.sp-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image:
+    linear-gradient(rgba(143,183,255,0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(143,183,255,0.6) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: chip-trace-drift 18s linear infinite;
+  pointer-events: none;
+}
+/* Radial mask so the grid fades to edges */
+.sp-chip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, var(--ink) 80%);
+  pointer-events: none;
+}
+
 .sp-chip-head { position: relative; z-index: 2; max-width: 720px; }
 .sp-chip-head h2 { font-size: clamp(46px, 6.4vw, 86px); }
 .sp-chip-head h2 span { color: var(--electric); }
@@ -547,19 +602,6 @@
   line-height: 1.6;
   color: #b3bccb;
   max-width: 560px;
-}
-.sp-chip-flag {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 22px;
-  padding: 7px 12px;
-  border: 1px solid rgba(255, 106, 79, 0.45);
-  color: #ffab97;
-  font-family: var(--font-mono), monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .chip-wrap {
@@ -579,29 +621,53 @@
   perspective-origin: 50% 38%;
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
+
+/* Scanner beam — sweeps once when the chip opens */
+.chip-beam {
+  position: absolute;
+  top: 36%;
+  width: 4px;
+  height: 28%;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, transparent, rgba(143,183,255,0.9) 40%, rgba(143,183,255,0.9) 60%, transparent);
+  filter: blur(2px);
+  pointer-events: none;
+  z-index: 10;
+}
+.chip-beam.scanning {
+  animation: chip-scan-sweep 0.9s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+.chip-beam.done {
+  left: 104%;
+  opacity: 0;
+}
+
 .chip-scene {
   position: relative;
   width: 300px;
   height: 100px;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
+/* Gentle float after the explode settles */
+.chip-scene.open {
+  animation: chip-float 5s ease-in-out 1.2s infinite;
+}
+
 .chip-layer {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+  transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.7s ease, filter 0.3s ease;
 }
 .chip-layer-art { display: block; }
-.chip-layer.on { filter: drop-shadow(0 0 14px rgba(143, 183, 255, 0.55)); }
+.chip-layer.on { filter: drop-shadow(0 0 16px rgba(143, 183, 255, 0.65)); }
 
-/* Parts are centred in the scene and positioned by the component's transform,
-   so nothing here uses margins — that was making them collide. */
-
-/* Bioglass capsule — the outer body */
+/* Bioglass capsule */
 .chip-glass .chip-layer-art {
   width: 300px;
   height: 76px;
@@ -609,35 +675,39 @@
   background: linear-gradient(
     165deg,
     rgba(244, 245, 247, 0.22),
-    rgba(143, 183, 255, 0.08) 45%,
+    rgba(143, 183, 255, 0.09) 45%,
     rgba(244, 245, 247, 0.15)
   );
   border: 1px solid rgba(244, 245, 247, 0.5);
-  box-shadow: inset 0 2px 20px rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 2px 20px rgba(255, 255, 255, 0.18),
+    0 0 40px rgba(143, 183, 255, 0.08);
 }
 
-/* Anti-migration cap — sleeve over the leading end */
+/* Anti-migration cap */
 .chip-cap .chip-layer-art {
   width: 92px;
   height: 64px;
   border-radius: 32px 6px 6px 32px;
-  background: linear-gradient(150deg, rgba(168, 221, 208, 0.38), rgba(168, 221, 208, 0.08));
+  background: linear-gradient(150deg, rgba(168, 221, 208, 0.38), rgba(102,197,213,0.1));
   border: 1px solid rgba(168, 221, 208, 0.55);
 }
 
-/* Antenna coil — windings around the ferrite rod */
+/* Antenna coil — stripes animate to show RF energy flowing */
 .chip-coil .chip-layer-art {
   width: 170px;
   height: 42px;
   border-radius: 4px;
   background:
-    repeating-linear-gradient(90deg, var(--electric) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, rgba(143,183,255,0.85) 0 2px, transparent 2px 11px),
     linear-gradient(rgba(143, 183, 255, 0.18), rgba(143, 183, 255, 0.05));
-  border-top: 1px solid rgba(143, 183, 255, 0.65);
-  border-bottom: 1px solid rgba(143, 183, 255, 0.65);
+  background-size: 110px 100%, 100% 100%;
+  border-top: 1px solid rgba(143, 183, 255, 0.7);
+  border-bottom: 1px solid rgba(143, 183, 255, 0.7);
+  animation: chip-coil-flow 1.4s linear infinite;
 }
 
-/* The die — where the code physically lives */
+/* Die — pulsing glow after scan */
 .chip-die .chip-layer-art {
   position: relative;
   width: 56px;
@@ -645,6 +715,10 @@
   border-radius: 3px;
   background: linear-gradient(145deg, #2a3f66, #16233c);
   border: 1px solid var(--electric);
+  transition: box-shadow 0.3s ease;
+}
+.chip-die.pulse .chip-layer-art {
+  animation: chip-die-pulse 2s ease-in-out infinite;
 }
 .chip-die .chip-layer-art::before,
 .chip-die .chip-layer-art::after {
@@ -656,8 +730,7 @@
 }
 .chip-die .chip-layer-art::after { inset: 15px 13px; opacity: 0.6; }
 
-/* The code, shown under the assembly rather than as a part — it is what the
-   die holds, not a component of it. */
+/* Code readout */
 .chip-readout {
   position: absolute;
   left: 0;
@@ -669,15 +742,21 @@
 .chip-readout .sp-mono { display: block; color: #7d8aa3; margin-bottom: 9px; }
 .chip-readout b {
   display: inline-block;
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-family: var(--font-mono), monospace;
   font-size: 16px;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   color: var(--electric);
-  background: rgba(11, 16, 32, 0.9);
-  border: 1px solid var(--electric);
+  background: rgba(11, 16, 32, 0.92);
+  border: 1px solid rgba(143, 183, 255, 0.45);
   border-radius: 3px;
+  transition: color 0.3s ease, text-shadow 0.3s ease, border-color 0.3s ease;
+}
+/* Code lights up as the scanner passes */
+.chip-readout b.lit {
+  animation: chip-readout-lit 1.2s ease-out forwards;
+  border-color: var(--electric);
 }
 .chip-readout small {
   display: block;
@@ -688,7 +767,7 @@
   color: #8794aa;
 }
 
-/* callouts */
+/* Callouts */
 .chip-calls {
   align-self: center;
   list-style: none;
@@ -705,7 +784,7 @@
   gap: 12px;
   padding: 15px 16px;
   border: 1px solid transparent;
-  border-left: 2px solid rgba(143, 183, 255, 0.22);
+  border-left: 2px solid rgba(143, 183, 255, 0.2);
   cursor: default;
   transition: background 0.22s ease, border-color 0.22s ease;
 }
@@ -721,12 +800,11 @@
   color: var(--electric);
   padding-top: 3px;
 }
-/* the arrow that points at the layer */
 .chip-call-arrow {
   position: relative;
   height: 1px;
   margin-top: 9px;
-  background: rgba(143, 183, 255, 0.45);
+  background: rgba(143, 183, 255, 0.4);
   transition: background 0.22s ease;
 }
 .chip-call-arrow::after {
@@ -735,7 +813,7 @@
   right: -1px;
   top: -3px;
   border: 3.5px solid transparent;
-  border-left-color: rgba(143, 183, 255, 0.7);
+  border-left-color: rgba(143, 183, 255, 0.65);
 }
 .chip-calls li:hover .chip-call-arrow,
 .chip-calls li.on .chip-call-arrow { background: var(--electric); }
@@ -744,7 +822,7 @@
 .chip-calls b { display: block; font-size: 14.5px; font-weight: 600; }
 .chip-calls p { margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: #97a3b8; }
 
-/* what the scan resolves to */
+/* Scan strip */
 .chip-scan {
   position: relative;
   z-index: 2;
@@ -752,8 +830,8 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1px;
   margin-top: 6vw;
-  background: rgba(143, 183, 255, 0.18);
-  border: 1px solid rgba(143, 183, 255, 0.18);
+  background: rgba(143, 183, 255, 0.16);
+  border: 1px solid rgba(143, 183, 255, 0.16);
 }
 .chip-scan-step { background: var(--ink); padding: 24px 22px; }
 .chip-scan-step .spa-mono,
@@ -767,6 +845,14 @@
   margin: 12px 0 8px;
 }
 .chip-scan-step p { margin: 0; font-size: 13px; line-height: 1.6; color: #97a3b8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-coil .chip-layer-art { animation: none; }
+  .chip-scene.open { animation: none; }
+  .chip-die.pulse .chip-layer-art { animation: none; }
+  .chip-readout b.lit { animation: none; border-color: var(--electric); }
+  .sp-chip::before { animation: none; }
+}
 
 @media (max-width: 900px) {
   .chip-wrap { grid-template-columns: 1fr; gap: 34px; }
@@ -1249,6 +1335,320 @@
 .sp-footer-bottom a { color: inherit; text-decoration: none; }
 .sp-footer-bottom a:hover { color: var(--electric); }
 
+/* ── system loop ───────────────────────────────────────────────── */
+
+.sp-loop { padding: 12vw 8vw 10vw; background: var(--paper); position: relative; }
+.sp-loop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8vw;
+  align-items: end;
+  margin: 22px 0 6vw;
+}
+.sp-loop-heading { font-size: clamp(44px, 6vw, 82px); }
+.sp-loop-heading span { color: var(--vermilion); }
+.sp-loop-body { max-width: 400px; font-size: 16px; line-height: 1.65; color: #6e7169; margin: 0; }
+
+.sp-loop-stages {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  background: rgba(11,16,32,0.1);
+  border: 1px solid rgba(11,16,32,0.1);
+}
+.sp-loop-stage { background: var(--paper); padding: 24px 18px; }
+.sp-loop-n { display: block; color: var(--vermilion); margin-bottom: 10px; }
+.sp-loop-label {
+  display: block;
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+.sp-loop-desc { margin: 0; font-size: 12.5px; line-height: 1.55; color: #7a7d73; }
+
+/* ── chip scroll ───────────────────────────────────────────────── */
+
+.chs { background: var(--ink); color: var(--paper); overflow: clip; position: relative; }
+
+.chs-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 6vw;
+  padding: 0 8vw;
+  overflow: hidden;
+}
+
+.chs-dots {
+  position: absolute;
+  left: 8vw;
+  bottom: 36px;
+  display: flex;
+  gap: 8px;
+  z-index: 4;
+}
+.chs-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(143,183,255,0.25);
+  transition: background 0.35s ease;
+}
+.chs-dots span.on { background: var(--electric); }
+
+.chs-copy { position: relative; min-height: 220px; }
+.chs-copy-stage { transition: opacity 0.4s ease; }
+.chs-copy-stage + .chs-copy-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.chs-heading {
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: clamp(40px, 5.5vw, 78px);
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+  margin: 18px 0 20px;
+  color: var(--paper);
+}
+.chs-heading span { color: var(--electric); }
+.chs-sub { font-size: 15px; line-height: 1.65; color: #8794aa; max-width: 420px; margin: 0; }
+
+.chs-viz {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.chs-scene-wrap { position: relative; width: 100%; max-width: 360px; }
+.chs-scene {
+  position: relative;
+  height: 290px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chs-layers {
+  position: relative;
+  width: 160px;
+  height: 56px;
+  transform-style: preserve-3d;
+}
+.chs-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+.chs-layer-label {
+  position: absolute;
+  left: 100%;
+  margin-left: 14px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--electric);
+  white-space: nowrap;
+}
+
+.chs-glass .chs-layer-art {
+  width: 160px;
+  height: 56px;
+  border-radius: 28px;
+  background: rgba(143,183,255,0.06);
+  border: 1px solid rgba(143,183,255,0.4);
+  box-shadow: 0 0 28px rgba(143,183,255,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
+  display: block;
+}
+.chs-cap .chs-layer-art {
+  width: 26px;
+  height: 42px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #2a3f66 0%, #1a2d50 100%);
+  border: 1px solid rgba(143,183,255,0.35);
+  display: block;
+}
+.chs-coil .chs-layer-art {
+  width: 120px;
+  height: 8px;
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(90deg, rgba(143,183,255,0.75) 0 2px, transparent 2px 10px),
+    linear-gradient(rgba(143,183,255,0.15), rgba(143,183,255,0.04));
+  background-size: 110px 100%, 100% 100%;
+  border-top: 1px solid rgba(143,183,255,0.55);
+  border-bottom: 1px solid rgba(143,183,255,0.55);
+  display: block;
+}
+.chs-die .chs-layer-art {
+  width: 46px;
+  height: 38px;
+  border-radius: 3px;
+  background: linear-gradient(145deg, #2a3f66, #16233c);
+  border: 1px solid var(--electric);
+  box-shadow: 0 0 16px rgba(143,183,255,0.18);
+  display: block;
+}
+
+.chs-code {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+.chs-code-label {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7d8aa3;
+  margin-bottom: 8px;
+}
+.chs-code b {
+  display: inline-block;
+  padding: 9px 16px;
+  font-family: var(--font-mono), monospace;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--electric);
+  background: rgba(11,16,32,0.92);
+  border: 1px solid rgba(143,183,255,0.4);
+  border-radius: 3px;
+}
+
+.chs-record {
+  width: 100%;
+  max-width: 340px;
+  background: rgba(23,36,59,0.92);
+  border: 1px solid rgba(143,183,255,0.18);
+  border-radius: 4px;
+  padding: 16px;
+  position: relative;
+}
+.chs-record-line {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(var(--electric), var(--cyan));
+  border-radius: 4px 0 0 4px;
+}
+.chs-record-id {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(143,183,255,0.1);
+}
+.chs-record-tag {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--electric);
+  font-weight: 500;
+}
+.chs-record-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7d8aa3;
+}
+.chs-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--electric); }
+.chs-dot.green { background: #4cbe87; }
+.chs-record-fields { display: grid; gap: 8px; }
+.chs-field { display: grid; grid-template-columns: 76px 1fr; gap: 8px; align-items: baseline; }
+.chs-field span {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #7d8aa3;
+}
+.chs-field b { font-size: 12px; font-weight: 500; color: var(--paper); }
+
+.chs-network { width: 100%; max-width: 340px; text-align: center; }
+.chs-net-svg { width: 100%; height: auto; display: block; }
+.chs-net-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7d8aa3;
+  margin: 10px 0 0;
+}
+
+/* ── who it's for ─────────────────────────────────────────────── */
+
+.sp-for { padding: 13vw 8vw 11vw; background: var(--ink); color: var(--paper); }
+.sp-for-head { margin-bottom: 7vw; }
+.sp-for-heading { font-size: clamp(48px, 6.2vw, 88px); margin-top: 18px; color: var(--paper); }
+.sp-for-heading span { color: var(--electric); }
+.sp-for-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(143,183,255,0.1);
+  border: 1px solid rgba(143,183,255,0.1);
+}
+.sp-for-card {
+  background: var(--ink);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sp-for-tag {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--electric);
+}
+.sp-for-title {
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  margin: 0;
+  color: var(--paper);
+}
+.sp-for-body { font-size: 13.5px; line-height: 1.6; color: #8794aa; margin: 0; flex: 1; }
+.sp-for-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--electric);
+  text-decoration: none;
+  margin-top: auto;
+  transition: color 0.2s ease;
+}
+.sp-for-link:hover { color: #fff; }
+
 /* ── vector motion ──────────────────────────────────────────────── */
 
 @keyframes sp-ping {
@@ -1322,6 +1722,12 @@
   .sp-record { padding-top: 100px; }
   .sp-footer-actions { max-width: none; }
   .sp-spine { left: 70%; opacity: 0.65; }
+  /* new sections */
+  .sp-loop-grid { grid-template-columns: 1fr; gap: 28px; }
+  .sp-loop-stages { grid-template-columns: repeat(3, 1fr); }
+  .chs-sticky { grid-template-columns: 1fr; align-content: center; padding-top: 80px; gap: 3vw; }
+  .chs-copy { min-height: auto; }
+  .sp-for-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 650px) {
@@ -1358,7 +1764,7 @@
   .sp-hero-foot { left: 7vw; right: 7vw; bottom: 18px; }
   .sp-hero-foot span:last-child { display: none; }
   .sp-thesis, .sp-network, .sp-mapsec, .sp-companies, .sp-record, .sp-partners,
-  .sp-footer, .sp-gaps {
+  .sp-footer, .sp-gaps, .sp-loop, .sp-for {
     padding-left: 6vw;
     padding-right: 6vw;
   }
@@ -1377,6 +1783,12 @@
   .sp-record-metrics { grid-template-columns: 1fr 1fr; gap: 20px; }
   .sp-record-foot { gap: 10px; flex-direction: column; align-items: flex-start; }
   .sp-footer-bottom { flex-direction: column; }
+  /* new sections mobile */
+  .sp-loop-stages { grid-template-columns: 1fr 1fr; }
+  .chs-sticky { grid-template-columns: 1fr; height: auto; min-height: 100svh; padding: 100px 6vw 60px; }
+  .chs-viz { display: none; }
+  .chs-copy-stage + .chs-copy-stage { position: relative; top: auto; }
+  .chs-copy { min-height: auto; display: flex; flex-direction: column; gap: 40px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

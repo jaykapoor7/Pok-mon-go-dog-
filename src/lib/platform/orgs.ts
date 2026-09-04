@@ -440,3 +440,29 @@ export function orgsForState(stateCode: string): OrgEntry[] {
 export function orgCounts(): Map<string, number> {
   return new Map([...ORG_BY_STATE.entries()].map(([code, orgs]) => [code, orgs.length]));
 }
+
+/* ── lookups the directory and volunteer surfaces need ─────────────── */
+
+/** Every focus area present in the directory, with how many orgs do it. */
+export function focusCounts(): { focus: string; count: number }[] {
+  const m = new Map<string, number>();
+  for (const o of ORGS) {
+    for (const f of o.focus) m.set(f, (m.get(f) ?? 0) + 1);
+  }
+  return [...m.entries()]
+    .map(([focus, count]) => ({ focus, count }))
+    .sort((a, b) => b.count - a.count || a.focus.localeCompare(b.focus));
+}
+
+export function orgsForFocus(focus: string): OrgEntry[] {
+  return ORGS.filter((o) => o.focus.includes(focus));
+}
+
+/** States that actually have a listed organisation, alphabetical. */
+export function statesWithOrgs(
+  stateName: (code: string) => string
+): { code: string; name: string; count: number }[] {
+  return [...ORG_BY_STATE.entries()]
+    .map(([code, orgs]) => ({ code, name: stateName(code), count: orgs.length }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
