@@ -108,7 +108,7 @@ export function ProfilePanel({
 
         {role && (
           <button type="button" className="spa-role-chip" onClick={resetRole}>
-            {ROLE_META[role].label}
+            {ROLE_META[role].short}
           </button>
         )}
       </div>
@@ -154,7 +154,7 @@ export function ProfilePanel({
       </div>
       {role && (
         <button type="button" className="spa-role-chip" onClick={resetRole}>
-          {ROLE_META[role].label}
+          {ROLE_META[role].short}
         </button>
       )}
     </div>

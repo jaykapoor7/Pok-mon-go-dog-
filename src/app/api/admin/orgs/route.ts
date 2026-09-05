@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
      POST { action: "create", name, city }             → create/verify an org
      POST { action: "invite", ngoId, email, personName, role }
                                                        → mint that person a code
-     POST { action: "remove", ngoId, email }           → take it away
+     POST { action: "revokeCode", id }                 → turn one code off
+     POST { action: "remove", ngoId, email }           → take access away
 
    Adding someone mints six characters bound to their name, their email
    and this organisation, and emails it to them. Typing that code on
@@ -68,6 +69,7 @@ export async function POST(req: Request) {
     email?: string;
     personName?: string;
     role?: string;
+    id?: string;
   };
   try {
     body = await req.json();
@@ -151,6 +153,16 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ...(minted as object), emailed });
+  }
+
+  if (body.action === "revokeCode") {
+    /* Turns off any code in any organisation, whoever cut it. Moderation
+       needs this for the case nobody at the organisation has handled. */
+    const { data, error } = await supa.rpc("admin_revoke_code", {
+      p_id: String(body.id ?? ""),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ ok: Boolean(data) });
   }
 
   if (body.action === "remove") {

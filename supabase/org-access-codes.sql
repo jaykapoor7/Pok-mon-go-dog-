@@ -417,8 +417,12 @@ end $$;
 
 grant execute on function resolve_invite_code(text) to service_role;
 
--- ── 8. Moderation listing carries the code ──────────────────────────
+-- ── 8. Moderation listing carries every code ────────────────────────
 
+-- The moderation page is the place to answer "who has a code for this
+-- organisation, and does it still work". That has to include the codes a
+-- team lead cut for their own people, not only the ones moderation issued,
+-- or the answer is wrong the moment an organisation starts running itself.
 create or replace function admin_list_orgs()
 returns json language sql stable security definer set search_path = public as $$
   select coalesce(json_agg(row_to_json(o) order by o.name), '[]'::json)
@@ -428,6 +432,8 @@ returns json language sql stable security definer set search_path = public as $$
            (select count(*) from dogs d where d.ngo_id = n.id)        as animals,
            (select count(*) from org_invite_codes c
              where c.ngo_id = n.id and c.active)                      as active_codes,
+
+           -- Staff: dashboard access, one use, burnt on sign-in.
            (select coalesce(json_agg(json_build_object(
                      'id', i.id,
                      'email', i.email,
@@ -436,11 +442,52 @@ returns json language sql stable security definer set search_path = public as $$
                      'code', i.code,
                      'accepted', i.accepted_at is not null,
                      'revoked', i.revoked_at is not null,
-                     'expires_at', i.expires_at) order by i.created_at), '[]'::json)
-              from org_email_invites i where i.ngo_id = n.id)         as invites
+                     'expires_at', i.expires_at,
+                     -- Whether moderation issued it or the organisation did.
+                     -- invited_by is null only for the codes minted here.
+                     'by_org', i.invited_by is not null,
+                     'created_at', i.created_at) order by i.created_at), '[]'::json)
+              from org_email_invites i where i.ngo_id = n.id)         as invites,
+
+           -- Volunteers: reporting only, reusable, usually cut by the lead.
+           (select coalesce(json_agg(json_build_object(
+                     'id', c.id,
+                     'email', c.email,
+                     'name', coalesce(c.person_name, c.label),
+                     'code', c.code,
+                     'active', c.active,
+                     'reports', (select count(*) from sightings s
+                                  where s.invite_code_id = c.id),
+                     'created_at', c.created_at) order by c.created_at), '[]'::json)
+              from org_invite_codes c where c.ngo_id = n.id)          as volunteer_codes
       from ngos n
      order by n.name
   ) o;
 $$;
 
 grant execute on function admin_list_orgs() to service_role;
+
+-- Moderation can turn any code off, whoever cut it. Used when somebody
+-- leaves and nobody at the organisation has got round to it.
+create or replace function admin_revoke_code(p_id uuid)
+returns boolean language plpgsql security definer set search_path = public as $$
+declare v_user uuid; v_ngo uuid; v_hit boolean := false;
+begin
+  update org_invite_codes set active = false, revoked_at = now()
+   where id = p_id and active;
+  if found then return true; end if;
+
+  select accepted_by, ngo_id into v_user, v_ngo
+    from org_email_invites where id = p_id;
+  if found then
+    v_hit := true;
+    update org_email_invites set revoked_at = now(), code = null where id = p_id;
+    if v_user is not null then
+      delete from ngo_members where ngo_id = v_ngo and user_id = v_user;
+    end if;
+  end if;
+
+  return v_hit;
+end $$;
+
+grant execute on function admin_revoke_code(uuid) to service_role;

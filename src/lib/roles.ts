@@ -14,7 +14,10 @@ export const ROLES: Role[] = ["individual", "ngo", "funder"];
 export const ROLE_META: Record<
   Role,
   {
+    /** How this role is offered in the picker: what you came here to do. */
     label: string;
+    /** One word for the chip in the side nav, where a sentence will not fit. */
+    short: string;
     blurb: string;
     /** Where this role lands after choosing. */
     home: string;
@@ -26,9 +29,10 @@ export const ROLE_META: Record<
   }
 > = {
   individual: {
-    label: "I live here",
+    label: "I want to report an animal",
+    short: "Resident",
     blurb:
-      "You see street animals day to day and want to report them, follow them, or help out.",
+      "You see street animals where you live and want to report one, follow what happens to it, or help out.",
     home: "/map",
     priority: ["/map", "/report", "/following", "/get-involved"],
     apply: null,
@@ -36,8 +40,9 @@ export const ROLE_META: Record<
   },
   ngo: {
     label: "I work at an organisation",
+    short: "Organisation",
     blurb:
-      "You run field work, ABC drives, vaccination, rescue, feeding, and need the records to hold together.",
+      "You run field work: ABC drives, vaccination, rescue, feeding. You need the records to hold together.",
     home: "/partner/cases",
     priority: ["/partner/cases", "/partner/animals", "/partner/field", "/map"],
     apply: "/partner-apply",
@@ -45,8 +50,9 @@ export const ROLE_META: Record<
   },
   funder: {
     label: "I fund this work",
+    short: "Funder",
     blurb:
-      "You are placing CSR or grant money and need a scoped, costed, measurable programme.",
+      "You are placing CSR or grant money and need a programme that is scoped, costed and measurable.",
     home: "/what-would-it-take",
     priority: ["/what-would-it-take", "/gaps", "/outcomes", "/studies"],
     apply: "/contact?subject=Fund%20a%20programme",

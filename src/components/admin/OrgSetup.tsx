@@ -16,6 +16,11 @@ import { Building2, Check, Loader2, Mail, Plus, Trash2 } from "lucide-react";
    The code is shown here as well as emailed, because the most common
    failure is an email that never lands and somebody who then has no way
    in at all. Read it out if you have to.
+
+   Every code an organisation holds is listed, including the ones its own
+   lead cut for their team and their volunteers. Without that, this page
+   answers "who can get in" wrongly the moment an organisation starts
+   running itself.
    ════════════════════════════════════════════════════════════════════ */
 
 type Invite = {
@@ -26,6 +31,17 @@ type Invite = {
   code: string | null;
   accepted: boolean;
   revoked: boolean;
+  /** True when the organisation's own lead added them, not this page. */
+  by_org: boolean;
+};
+
+type VolunteerCode = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  code: string;
+  active: boolean;
+  reports: number;
 };
 type Org = {
   id: string;
@@ -37,6 +53,7 @@ type Org = {
   animals: number;
   active_codes: number;
   invites: Invite[];
+  volunteer_codes: VolunteerCode[];
 };
 
 export function OrgSetup({ secret }: { secret: string }) {
@@ -128,6 +145,19 @@ export function OrgSetup({ secret }: { secret: string }) {
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not grant access.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revokeCode(id: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      await call({ method: "POST", body: JSON.stringify({ action: "revokeCode", id }) });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not turn that code off.");
     } finally {
       setBusy(false);
     }
@@ -234,50 +264,105 @@ export function OrgSetup({ secret }: { secret: string }) {
               </span>
             </div>
 
-            {o.invites.length > 0 && (
-              <ul className="mb-3 divide-y divide-black/[0.06] border-y border-black/[0.06] dark:divide-white/[0.08] dark:border-white/[0.08]">
-                {o.invites.map((i) => (
-                  <li
-                    key={i.email}
-                    className="flex items-center justify-between gap-3 py-2 text-[13px]"
-                  >
-                    <span className="min-w-0">
-                      <b className="font-semibold">{i.name ?? i.email}</b>
-                      {i.name && (
-                        <span className="ml-2 text-bark-400">{i.email}</span>
-                      )}
-                      <span className="ml-2 text-[11.5px] uppercase tracking-wide text-bark-400">
-                        {i.role}
+            {/* Both lists tolerate an older admin_list_orgs, from a project
+                where the access-code migration has not been run yet. */}
+            {(o.invites ?? []).length > 0 && (
+              <>
+                <h4 className="mb-1 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400">
+                  Dashboard access
+                </h4>
+                <ul className="mb-3 divide-y divide-black/[0.06] border-y border-black/[0.06] dark:divide-white/[0.08] dark:border-white/[0.08]">
+                  {(o.invites ?? []).map((i) => (
+                    <li
+                      key={i.email}
+                      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 text-[13px]"
+                    >
+                      <span className="min-w-0">
+                        <b className="font-semibold">{i.name ?? i.email}</b>
+                        {i.name && (
+                          <span className="ml-2 text-bark-400">{i.email}</span>
+                        )}
+                        <span className="ml-2 text-[11.5px] uppercase tracking-wide text-bark-400">
+                          {i.role}
+                        </span>
+                        {i.by_org && (
+                          <span className="ml-2 text-[11.5px] text-bark-400">
+                            added by the organisation
+                          </span>
+                        )}
                       </span>
-                    </span>
-                    <span className="flex shrink-0 items-center gap-3">
-                      {i.code && (
+                      <span className="flex shrink-0 items-center gap-3">
+                        {i.code && (
+                          <code className="rounded bg-black/[0.05] px-2 py-0.5 font-mono text-[13px] font-semibold tracking-[0.12em] dark:bg-white/[0.08]">
+                            {i.code}
+                          </code>
+                        )}
+                        {i.accepted ? (
+                          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-status-safe">
+                            <Check className="h-3.5 w-3.5" /> signed in
+                          </span>
+                        ) : i.revoked ? (
+                          <span className="text-[12px] text-bark-400">removed</span>
+                        ) : (
+                          <span className="text-[12px] text-bark-400">
+                            code not used yet
+                          </span>
+                        )}
+                        <button
+                          onClick={() => remove(o.id, i.email)}
+                          aria-label={`Remove ${i.email}`}
+                          className="rounded p-1.5 text-bark-400 hover:text-status-injured"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {(o.volunteer_codes ?? []).length > 0 && (
+              <>
+                <h4 className="mb-1 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400">
+                  Volunteer reporting codes
+                </h4>
+                <ul className="mb-3 divide-y divide-black/[0.06] border-y border-black/[0.06] dark:divide-white/[0.08] dark:border-white/[0.08]">
+                  {(o.volunteer_codes ?? []).map((c) => (
+                    <li
+                      key={c.id}
+                      className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 text-[13px] ${
+                        c.active ? "" : "opacity-55"
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <b className="font-semibold">{c.name ?? "Unnamed code"}</b>
+                        {c.email && (
+                          <span className="ml-2 text-bark-400">{c.email}</span>
+                        )}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-3">
                         <code className="rounded bg-black/[0.05] px-2 py-0.5 font-mono text-[13px] font-semibold tracking-[0.12em] dark:bg-white/[0.08]">
-                          {i.code}
+                          {c.code}
                         </code>
-                      )}
-                      {i.accepted ? (
-                        <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-status-safe">
-                          <Check className="h-3.5 w-3.5" /> signed in
-                        </span>
-                      ) : i.revoked ? (
-                        <span className="text-[12px] text-bark-400">removed</span>
-                      ) : (
                         <span className="text-[12px] text-bark-400">
-                          code not used yet
+                          {c.reports} report{c.reports === 1 ? "" : "s"}
+                          {!c.active && " \u00b7 turned off"}
                         </span>
-                      )}
-                      <button
-                        onClick={() => remove(o.id, i.email)}
-                        aria-label={`Remove ${i.email}`}
-                        className="rounded p-1.5 text-bark-400 hover:text-status-injured"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                        {c.active && (
+                          <button
+                            onClick={() => revokeCode(c.id)}
+                            aria-label={`Turn off ${c.code}`}
+                            className="rounded p-1.5 text-bark-400 hover:text-status-injured"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
 
             <div className="flex flex-wrap gap-2">

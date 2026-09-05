@@ -129,6 +129,10 @@ Everything below is a real run, not a read-through.
       the reporting page with their name already filled in.
 - [ ] A volunteer code keeps working, so the same person can report again
       from a second phone.
+- [ ] Back on `/moderate`, every code the lead just cut is listed under the
+      organisation, split into **Dashboard access** and **Volunteer reporting
+      codes**, with the ones the organisation added marked as such. Turning
+      one off from here works.
 - [ ] As a **Team member**, the Team lead and Team member buttons are
       disabled. Only a lead hands out dashboard access.
 - [ ] The lead removes the colleague. That person reloads `/partner` and the
