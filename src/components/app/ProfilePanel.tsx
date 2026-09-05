@@ -6,8 +6,6 @@ import { HelpCircle, KeyRound, LogOut, Users } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myProfile, type Profile } from "@/lib/programme";
 import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volunteer";
-import { ROLE_META, type Role } from "@/lib/roles";
-import { openTour } from "./Welcome";
 
 /* ════════════════════════════════════════════════════════════════════
    Who you are, at the foot of the console's side nav.
@@ -26,13 +24,7 @@ import { openTour } from "./Welcome";
    told nobody anything they could act on.
    ════════════════════════════════════════════════════════════════════ */
 
-export function ProfilePanel({
-  role,
-  onNavigate,
-}: {
-  role: Role | null;
-  onNavigate?: () => void;
-}) {
+export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
   const { user, isAuthed, signOut, openSignIn } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
@@ -58,15 +50,6 @@ export function ProfilePanel({
   const displayName =
     profile?.name?.trim() || user?.name?.trim() || user?.email || "Your account";
 
-  const resetRole = () => {
-    try {
-      window.localStorage.removeItem("straypaw.role");
-      window.localStorage.removeItem("straypaw.tour.v1");
-    } catch {
-      /* nothing stored to clear */
-    }
-    window.location.reload();
-  };
 
   if (isAuthed) {
     return (
@@ -102,9 +85,6 @@ export function ProfilePanel({
               <KeyRound size={13} /> Enter an organisation code
             </Link>
           )}
-          <button type="button" onClick={openTour}>
-            <HelpCircle size={13} /> Show me around
-          </button>
           <Link href="/faq" onClick={onNavigate}>
             <HelpCircle size={13} /> Questions
           </Link>
@@ -113,11 +93,6 @@ export function ProfilePanel({
           </button>
         </div>
 
-        {role && (
-          <button type="button" className="spa-role-chip" onClick={resetRole}>
-            {ROLE_META[role].short}
-          </button>
-        )}
       </div>
     );
   }
@@ -135,9 +110,6 @@ export function ProfilePanel({
           </span>
         </div>
         <div className="spa-profile-links">
-          <button type="button" onClick={openTour}>
-            <HelpCircle size={13} /> Show me around
-          </button>
           <Link href="/faq" onClick={onNavigate}>
             <HelpCircle size={13} /> Questions
           </Link>
@@ -158,21 +130,13 @@ export function ProfilePanel({
   return (
     <div className="spa-profile">
       <div className="spa-profile-links out">
-        <button type="button" onClick={openSignIn}>
+        <button type="button" onClick={openSignIn} className="pp-signin">
           Sign in
         </button>
-        <Link href="/join" onClick={onNavigate}>
-          <KeyRound size={13} /> I have a code
+        <Link href="/join" onClick={onNavigate} className="pp-code">
+          <KeyRound size={14} /> I have a code
         </Link>
-        <button type="button" onClick={openTour}>
-          <HelpCircle size={13} /> Show me around
-        </button>
       </div>
-      {role && (
-        <button type="button" className="spa-role-chip" onClick={resetRole}>
-          {ROLE_META[role].short}
-        </button>
-      )}
     </div>
   );
 }

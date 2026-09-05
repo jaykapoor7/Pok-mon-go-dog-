@@ -24,6 +24,7 @@ import {
   FolderOpen,
   Heart,
   HandHeart,
+  HelpCircle,
   Home,
   Inbox,
   LayoutGrid,
@@ -41,7 +42,7 @@ import {
   X,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
-import { Welcome } from "./Welcome";
+import { Welcome, openTour } from "./Welcome";
 import { ProfilePanel } from "./ProfilePanel";
 import { ROLE_META, readStoredRole, type Role } from "@/lib/roles";
 import { search, KIND_LABEL, type SearchHit } from "@/lib/search";
@@ -276,6 +277,11 @@ export function AppShell({
         </form>
 
         <div className="spa-top-right">
+          {/* Up here rather than in the side nav's foot, which was carrying
+              four controls and a role chip in a 208px column. */}
+          <button type="button" className="spa-tour" onClick={openTour}>
+            <HelpCircle size={14} /> Show me around
+          </button>
           <Link href="/" className="spa-exit">
             <ArrowUpRight size={13} /> Main site
           </Link>
@@ -352,7 +358,7 @@ export function AppShell({
 
 
           <div className="spa-side-foot">
-            <ProfilePanel role={role} onNavigate={() => setOpen(false)} />
+            <ProfilePanel onNavigate={() => setOpen(false)} />
           </div>
         </nav>
 

@@ -6,6 +6,7 @@ import { getPartnerCases } from "@/lib/cases";
 import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import { PrintButton } from "@/components/partner/PrintButton";
 import { CASE_CATEGORY_META, speciesLabel, type Case, type CaseCategory } from "@/lib/types";
+import { ProgrammeBreakdown } from "@/components/partner/ProgrammeBreakdown";
 
 const WEEKS = 12;
 
@@ -68,6 +69,14 @@ export function ReportsClient() {
         <div className="flex items-center gap-2"><PrintButton /><ExportCsvButton /></div>
       </header>
 
+      {/* Programme coverage first. For an organisation running ABC and
+          rabies work these are the numbers that get reported; case counts
+          are the second half of the job, not the headline. */}
+      <ProgrammeBreakdown />
+
+      <h2 className="mb-3 mt-9 text-[13px] font-semibold uppercase tracking-[0.07em] text-bark-500">
+        Casework
+      </h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metric label="Total cases" value={cases.length} />
         <Metric label="Resolved" value={stats.resolved.length} accent />

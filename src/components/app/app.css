@@ -73,7 +73,28 @@
   margin-left: 8px;
   text-transform: uppercase;
 }
-.spa-top-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.spa-top-right { display: flex; align-items: center; gap: 8px; }
+/* Asking for the tour is a top-level thing to want, and the side nav's
+   foot was already carrying four controls in a 208px column. */
+.spa-tour {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 1px solid rgba(244, 245, 247, 0.22);
+  border-radius: 4px;
+  background: none;
+  color: var(--paper);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.spa-tour:hover { border-color: var(--electric); background: rgba(143, 183, 255, 0.12); }
+.spa-tour:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
 .spa-exit {
   display: inline-flex;
   align-items: center;
@@ -91,9 +112,13 @@
 .spa-exit:hover { color: var(--electric); border-color: rgba(143, 183, 255, 0.4); }
 .spa-exit:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
 
+/* Centred. The brand and the right-hand actions each hold their own
+   width, and the search sits in the space between them rather than
+   crowding the logo. */
 .spa-search {
-  flex: 1;
-  max-width: 380px;
+  flex: 1 1 auto;
+  max-width: 460px;
+  margin: 0 auto;
   position: relative;
   display: flex;
   align-items: center;
@@ -2648,22 +2673,32 @@ a.pgm-figure:hover { background: #f3f6fb; }
   color: var(--electric-ink);
 }
 
-.spa-profile-links.out {
-  gap: 8px;
-}
-.spa-profile-links.out button {
-  min-height: 36px;
+/* Signed out, this is the whole way in, so the two controls look like
+   controls: one solid, one outlined, both full width and at a real touch
+   height. They used to be a plain button and a text link. */
+.spa-profile-links.out { gap: 7px; }
+.spa-profile-links.out .pp-signin,
+.spa-profile-links.out .pp-code {
+  min-height: 40px;
   justify-content: center;
-  border: 1px solid #c4ccd6;
-  border-radius: 4px;
-  background: #fff;
-  color: var(--ink);
+  gap: 7px;
+  border-radius: 5px;
+  font-size: 13px;
   font-weight: 650;
+  padding: 9px 12px;
 }
-.spa-profile-links.out a {
-  justify-content: center;
+.spa-profile-links.out .pp-signin {
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+}
+.spa-profile-links.out .pp-signin:hover { background: #1d2942; color: var(--paper); }
+.spa-profile-links.out .pp-code {
+  border: 1px solid var(--electric-ink);
+  background: #fff;
   color: var(--electric-ink);
 }
+.spa-profile-links.out .pp-code:hover { background: rgba(71, 111, 183, 0.08); }
 
 .spa-profile .spa-role-chip {
   justify-self: start;
@@ -3012,3 +3047,58 @@ a.pgm-figure:hover { background: #f3f6fb; }
 .po-nudge:hover { border-color: var(--electric-ink); }
 .po-nudge b { font-size: 14px; font-weight: 650; }
 .po-nudge span { font-size: 13px; color: #4d5766; }
+
+/* ── coverage by drive, on the analytics page ───────────────────────
+   A real table, because this is the thing that gets read across: one
+   drive per row, the counts and both percentages beside each other. It
+   scrolls inside its own box on a phone rather than pushing the page
+   sideways. */
+
+.pb { margin-bottom: 8px; }
+.pb header { margin-bottom: 12px; }
+.pb h2 { margin: 0 0 5px; font-size: 17px; font-weight: 700; }
+.pb header p { margin: 0; max-width: 68ch; font-size: 12.5px; line-height: 1.55; color: #5a6370; }
+.pb-load { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5a6370; padding: 12px 0; }
+
+.pb-scroll {
+  overflow-x: auto;
+  border: 1px solid rgba(11, 16, 32, 0.11);
+  border-radius: 6px;
+  background: #fff;
+}
+.pb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pb-table th, .pb-table td { padding: 10px 12px; text-align: right; white-space: nowrap; }
+.pb-table thead th {
+  position: sticky; top: 0;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: #616a79; background: #f7f9fc;
+  border-bottom: 1px solid rgba(11, 16, 32, 0.11);
+}
+.pb-table tbody th[scope="row"] {
+  text-align: left; white-space: normal; min-width: 190px; font-weight: 640;
+}
+.pb-table tbody th small {
+  display: block; margin-top: 2px;
+  font-size: 11.5px; font-weight: 400; color: #6b7482;
+}
+.pb-table tbody tr + tr { border-top: 1px solid rgba(11, 16, 32, 0.08); }
+.pb-table tbody tr.off { opacity: 0.6; }
+.pb-table a { color: var(--electric-ink); text-decoration: none; }
+.pb-table a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.pb-table td.good { color: #2f7d3e; font-weight: 600; }
+.pb-table td.warn { color: var(--vermilion-ink); font-weight: 600; }
+.pb-table td.muted { color: #7b8494; }
+.pb-table td small { display: block; font-size: 11px; font-weight: 400; color: #7b8494; }
+.pb-table tr.pb-other { background: #fafbfd; }
+.pb-table tr.pb-total { background: #f4f6fa; font-weight: 650; }
+.pb-table tr.pb-total th, .pb-table tr.pb-total td { border-top: 2px solid rgba(11, 16, 32, 0.16); }
+.pb-empty { text-align: left !important; color: #616a79; white-space: normal !important; }
+
+.pb-waiting {
+  display: grid; gap: 3px; margin-top: 12px; padding: 12px 15px;
+  border: 1px solid rgba(71, 111, 183, 0.3); border-radius: 5px;
+  background: rgba(71, 111, 183, 0.06); color: inherit; text-decoration: none;
+}
+.pb-waiting:hover { border-color: var(--electric-ink); }
+.pb-waiting b { font-size: 13.5px; font-weight: 650; }
+.pb-waiting span { font-size: 12.5px; color: #4d5766; }
