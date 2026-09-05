@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarRange, Loader2, MapPin, Users } from "lucide-react";
+import { BackLink } from "@/components/app/BackLink";
+import { CalendarRange, Loader2, MapPin, Users } from "lucide-react";
 import {
   campaignAnimals,
   campaignStats,
@@ -70,9 +71,7 @@ export function DriveDetail({ id }: { id: string }) {
 
   return (
     <div>
-      <Link href="/partner/drives" className="dr-back">
-        <ArrowLeft size={14} /> All drives
-      </Link>
+      <BackLink label="All drives" to="/partner/drives" />
 
       <header className="mb-5">
         <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">

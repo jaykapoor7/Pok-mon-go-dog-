@@ -298,6 +298,56 @@ grant execute on function org_campaigns(boolean)    to authenticated, service_ro
 grant execute on function campaign_animals(uuid, text, text, int, int)
   to authenticated, service_role;
 
+-- ── 4b. What counts as "near us" ────────────────────────────────────
+
+-- The dashboard said 65 unclaimed sightings nearby while the Incoming list
+-- showed none, because they asked different questions: the count was every
+-- unclaimed sighting in the country, and the list was scoped to members.
+-- Neither was right. An organisation in Chennai has no use for a dog
+-- somebody photographed in Delhi.
+--
+-- Near means one of two things, and both are honest: the sighting names the
+-- city this organisation works in, or it is within 40km of where this
+-- organisation actually has animals on the register. The second matters
+-- because zone text is written by whoever typed it and a city name is not
+-- a boundary.
+create or replace function org_nearby_community_sightings()
+returns setof sightings language sql stable security definer
+set search_path = public as $$
+  with me as (
+    select n.id, n.city, n.state
+      from ngos n where n.id = my_ngo()
+  ),
+  centre as (
+    select avg(d.lat) as lat, avg(d.lng) as lng
+      from dogs d
+     where d.ngo_id = (select id from me)
+       and d.lat is not null and d.lng is not null
+       and d.lat <> 0 and d.lng <> 0
+  )
+  select s.*
+    from sightings s, me
+   where s.ngo_id is null
+     and s.campaign_id is null
+     and s.status <> 'rejected'
+     and (
+       -- The organisation's own city, named in the sighting's zone.
+       (coalesce(btrim(me.city), '') <> ''
+         and s.zone ilike '%' || btrim(me.city) || '%')
+       or
+       -- Or close to where they already work. 0.36 degrees is roughly 40km
+       -- at Indian latitudes, and a square is the right amount of precision
+       -- for "is this ours to look at".
+       (exists (select 1 from centre where centre.lat is not null)
+         and s.lat is not null and s.lng is not null
+         and abs(s.lat - (select lat from centre)) < 0.36
+         and abs(s.lng - (select lng from centre)) < 0.36)
+     );
+$$;
+
+grant execute on function org_nearby_community_sightings()
+  to authenticated, service_role;
+
 -- ── 5. Incoming: what is waiting to be filed ────────────────────────
 
 -- Two lists, deliberately separate, because they need different decisions.
@@ -331,9 +381,11 @@ create or replace function org_incoming(
      where s.campaign_id is null
        and s.status <> 'rejected'
        and (
-         (p_source = 'ours'      and s.ngo_id = my_ngo())
+         (p_source = 'ours' and s.ngo_id = my_ngo())
          or
-         (p_source = 'community' and s.ngo_id is null and my_ngo() is not null)
+         (p_source = 'community'
+           and my_ngo() is not null
+           and s.id in (select id from org_nearby_community_sightings()))
        )
        and (p_zone is null or s.zone ilike '%' || p_zone || '%')
   )
@@ -452,9 +504,9 @@ returns json language sql stable security definer set search_path = public as $$
         'ours', (select count(*) from sightings
                   where ngo_id = my_ngo() and campaign_id is null
                     and status <> 'rejected'),
-        'community', (select count(*) from sightings
-                       where ngo_id is null and campaign_id is null
-                         and status <> 'rejected'))
+        -- Same function the Incoming list uses. A count and the list behind
+        -- it must not be able to answer differently.
+        'community', (select count(*) from org_nearby_community_sightings()))
     )
   );
 $$;

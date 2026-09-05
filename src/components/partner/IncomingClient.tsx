@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BackLink } from "@/components/app/BackLink";
 import { Inbox, Loader2, MapPin } from "lucide-react";
 import {
   fileToCampaign,
@@ -108,6 +109,7 @@ export function IncomingClient() {
 
   return (
     <>
+      <BackLink label="Back to the dashboard" to="/partner" />
       <div className="inc-tabs" role="tablist">
         <button
           role="tab"

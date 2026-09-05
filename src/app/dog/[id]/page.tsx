@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/app/BackLink";
 import { notFound } from "next/navigation";
 import {
   MapPin,
@@ -72,6 +73,7 @@ export default async function DogProfilePage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6">
+      <BackLink label="Back to the map" fallback="/map" />
       <PageView name="animal_viewed" props={{ observations: sightings.length }} />
       {/* cover
 
