@@ -1484,22 +1484,40 @@
 
 .chs-viz {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+  gap: 22px;
+  align-content: center;
+  height: auto;
+  max-height: 84svh;
 }
+.chs-assembly {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: 100%;
+}
+/* Record and network share one cell and cross-fade. In flow they pushed the
+   assembly up under the header as they appeared; stacked, the chip holds
+   its position for the whole section. */
+.chs-stack { position: relative; width: 100%; max-width: 340px; min-height: 250px; }
+.chs-stack > * { position: absolute; inset: 0 0 auto 0; }
 .chs-scene-wrap {
   position: relative;
   width: 100%;
   max-width: 360px;
   /* The part labels extend to the right of the 320px assembly; nudging the
-     scene left keeps them inside the column instead of off the viewport. */
-  transform: translateX(-58px);
+     scene left keeps them inside the column instead of off the viewport.
+     Scale rides on a variable so the mobile rule can compose its own factor
+     without the inline style and the stylesheet fighting over `transform`. */
+  transform: translateX(-58px) scale(var(--chs-scale, 1));
+  transform-origin: center top;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .chs-scene {
   position: relative;
-  height: 380px;
+  height: clamp(250px, 36svh, 340px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1548,6 +1566,30 @@
   color: #b8d1ff;
   white-space: nowrap;
 }
+/* Mobile stand-in for the leader-line labels. */
+.chs-legend {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 14px;
+  width: 100%;
+  max-width: 340px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chs-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono), monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b8d1ff;
+  transition: opacity 0.4s ease;
+}
+.chs-legend-n { color: #6c7c99; }
+
 .chs-layer-label::before {
   content: "";
   position: absolute;
@@ -1558,13 +1600,7 @@
   background: linear-gradient(90deg, rgba(184, 209, 255, 0.15), rgba(184, 209, 255, 0.6));
 }
 
-.chs-code {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  text-align: center;
-}
+.chs-code { text-align: center; transition: opacity 0.4s ease; }
 .chs-code-label {
   display: block;
   font-family: var(--font-mono), monospace;
@@ -1589,11 +1625,10 @@
 
 .chs-record {
   width: 100%;
-  max-width: 340px;
   background: rgba(23,36,59,0.92);
   border: 1px solid rgba(143,183,255,0.18);
   border-radius: 4px;
-  padding: 16px;
+  padding: 14px;
   position: relative;
 }
 .chs-record-line {
@@ -1630,7 +1665,7 @@
 }
 .chs-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--electric); }
 .chs-dot.green { background: #4cbe87; }
-.chs-record-fields { display: grid; gap: 8px; }
+.chs-record-fields { display: grid; gap: 7px; }
 .chs-field { display: grid; grid-template-columns: 76px 1fr; gap: 8px; align-items: baseline; }
 .chs-field span {
   font-family: var(--font-mono), monospace;
@@ -1642,7 +1677,7 @@
 .chs-field b { font-size: 12px; font-weight: 500; color: var(--paper); }
 
 
-.chs-network { width: 100%; max-width: 340px; text-align: center; }
+.chs-network { width: 100%; text-align: center; }
 .chs-net-svg { width: 100%; height: auto; display: block; }
 .chs-net-label {
   font-family: var(--font-mono), monospace;
@@ -1849,10 +1884,60 @@
   .sp-footer-bottom { flex-direction: column; }
   /* new sections mobile */
   .sp-loop-stages { grid-template-columns: 1fr 1fr; }
-  .chs-sticky { grid-template-columns: 1fr; height: auto; min-height: 100svh; padding: 100px 6vw 60px; }
-  .chs-viz { display: none; }
-  .chs-copy-stage + .chs-copy-stage { position: relative; top: auto; }
-  .chs-copy { min-height: auto; display: flex; flex-direction: column; gap: 40px; }
+  /* One column, chip above the copy. The section stays pinned — letting it
+     grow to `auto` unpinned the scroll and left four stacked copy stages,
+     three of them at zero opacity, as a screen-tall void. */
+  .chs-sticky {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-content: center;
+    height: 100svh;
+    padding: 76px 6vw 62px;
+    gap: 10px;
+  }
+  .chs-viz {
+    order: -1;
+    display: block;
+    position: relative;
+    height: clamp(290px, 42svh, 400px);
+    max-height: none;
+  }
+  /* Both groups fill the same box and cross-fade. Stacked in flow the record
+     card ran straight over the headline underneath it. */
+  .chs-assembly,
+  .chs-stack {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 12px;
+  }
+  .chs-assembly { opacity: var(--chs-asm-op, 1); }
+  .chs-stack { max-width: none; }
+  .chs-stack > * {
+    position: absolute;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    max-width: 340px;
+  }
+  .chs-scene { height: clamp(178px, 26svh, 240px); }
+  /* The assembly is 320px wide before its labels; at phone width it has to
+     come down to fit, which puts the leader-line labels below legibility —
+     so they are replaced by the legend underneath. */
+  .chs-scene-wrap { transform: scale(calc(var(--chs-scale, 1) * 0.66)); }
+  .chs-layer-label { display: none; }
+  .chs-legend { display: grid; }
+  .chs-code b { font-size: 12px; padding: 7px 12px; }
+  .chs-code-label { margin-bottom: 5px; }
+  .chs-copy { min-height: 214px; }
+  .chs-heading { font-size: clamp(34px, 11vw, 46px); }
+  .chs-sub { font-size: 14px; }
+  .chs-record { padding: 13px; opacity: var(--chs-rec-op, 1) !important; }
+  .chs-field { grid-template-columns: 68px 1fr; }
+  .chs-field b { font-size: 11.5px; }
+  .chs-dots { bottom: 22px; left: 6vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -135,8 +135,20 @@ export function ChipScroll() {
     return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   }
 
-  const recordOpacity = ease(recordP);
-  const networkOpacity = ease(networkP);
+  /* Record and network share one cell, and they are different shapes — a tall
+     bordered card against a wide sparse graph. Blended simultaneously the graph
+     drew straight across the card, so the handoff is sequential: the record is
+     gone before the network starts. */
+  const handoff = Math.min(1, networkP / 0.35);
+  const networkOpacity = ease(Math.max(0, (networkP - 0.4) / 0.6));
+  const recordOpacity = ease(recordP) * (1 - handoff);
+
+  /* Phone width has room for one panel at a time, so the assembly clears out
+     before the record arrives instead of dissolving through it. Desktop shows
+     both and ignores these. */
+  const assemblyOpacity = 1 - Math.min(1, recordP / 0.4);
+  const recordOpacityCompact =
+    ease(Math.max(0, (recordP - 0.4) / 0.6)) * (1 - handoff);
 
   return (
     <section
@@ -196,15 +208,34 @@ export function ChipScroll() {
               One identity.<br /><span>Everything connected.</span>
             </h2>
             <p className="chs-sub">
-              The chip is not a record. It is a key — one identity that holds
-              across time and across organisations.
+              One identity that holds across time and across organisations, so
+              every later sighting attaches to the same animal.
             </p>
           </div>
         </div>
 
         {/* ── Chip visualization ── */}
-        <div className="chs-viz" aria-hidden="true">
-          <div className="chs-scene-wrap">
+        <div
+          className="chs-viz"
+          aria-hidden="true"
+          style={
+            /* Phone width cross-fades the assembly out as the record resolves;
+               there is not room for both. Desktop ignores it and shows both. */
+            {
+              "--chs-asm-op": assemblyOpacity,
+              "--chs-rec-op": recordOpacityCompact,
+            } as React.CSSProperties
+          }
+        >
+          <div className="chs-assembly">
+          <div
+            className="chs-scene-wrap"
+            style={
+              /* The assembly steps back as the record resolves out of it —
+                 read as one motion rather than two competing panels. */
+              { "--chs-scale": 1 - recordP * 0.2 } as React.CSSProperties
+            }
+          >
             <div className="chs-scene" style={{ perspective: "1200px" }}>
               <div
                 className="chs-layers"
@@ -253,21 +284,35 @@ export function ChipScroll() {
                 ))}
               </div>
 
-              {/* Code readout — visible once chip is open */}
-              {openP > 0.3 && (
-                <div
-                  className="chs-code"
-                  style={{ opacity: Math.min(1, ((openP - 0.3) / 0.7) * 2) }}
-                >
-                  <span className="chs-code-label">
-                    ISO 11784 identifier structure
-                  </span>
-                  <b>NNN&nbsp;NNNNNNNNNNNN</b>
-                </div>
-              )}
             </div>
           </div>
 
+          {/* Always rendered so its row is reserved and the assembly does not
+              jump when it appears. */}
+          <div
+            className="chs-code"
+            style={{ opacity: Math.min(1, Math.max(0, (openP - 0.3) / 0.35)) }}
+          >
+            <span className="chs-code-label">ISO 11784 identifier structure</span>
+            <b>NNN&nbsp;NNNNNNNNNNNN</b>
+          </div>
+
+          {/* Part names for phone width, where the leader-line labels beside
+              the assembly would be too small to read. */}
+          <ul className="chs-legend" aria-hidden="true">
+            {layers.map(({ id, label }, i) => (
+              <li
+                key={id}
+                style={{ opacity: stage >= 1 ? Math.min(1, openP * 2.5) : 0.3 }}
+              >
+                <span className="chs-legend-n">{`0${i + 1}`}</span>
+                {label}
+              </li>
+            ))}
+          </ul>
+          </div>
+
+          <div className="chs-stack">
           {/* ── Dog record — stage 2 ── */}
           <div
             className="chs-record"
@@ -342,6 +387,7 @@ export function ChipScroll() {
             <p className="chs-net-label">
               Every sighting, every location — linked to one persistent identity.
             </p>
+          </div>
           </div>
         </div>
       </div>
