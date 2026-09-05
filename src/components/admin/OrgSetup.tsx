@@ -4,19 +4,29 @@ import { useCallback, useEffect, useState } from "react";
 import { Building2, Check, Loader2, Mail, Plus, Trash2 } from "lucide-react";
 
 /* ════════════════════════════════════════════════════════════════════
-   Creating an organisation and giving people access to it.
+   Creating an organisation and giving its team lead a way in.
 
-   Access is granted to an email address, not to an account, so the order
-   never matters: invite first and they are joined the moment they sign up
-   with that address, or invite someone who already has an account and they
-   are joined immediately. Nobody has to sign up, tell you, and wait for a
-   second step.
+   Adding someone mints six characters bound to their name, their email
+   and this organisation, and emails it to them. They type it on StrayPaw
+   and they are in: no account to create, no password, nothing to wait for.
 
-   Each grant sends them an email through StrayPaw's own sending domain
-   with a link into the dashboard.
+   From there the lead adds their own people the same way, so this page is
+   only ever used once per organisation.
+
+   The code is shown here as well as emailed, because the most common
+   failure is an email that never lands and somebody who then has no way
+   in at all. Read it out if you have to.
    ════════════════════════════════════════════════════════════════════ */
 
-type Invite = { email: string; role: string; accepted: boolean };
+type Invite = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  code: string | null;
+  accepted: boolean;
+  revoked: boolean;
+};
 type Org = {
   id: string;
   name: string;
@@ -38,6 +48,8 @@ export function OrgSetup({ secret }: { secret: string }) {
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
   const [emailFor, setEmailFor] = useState<Record<string, string>>({});
+  const [nameFor, setNameFor] = useState<Record<string, string>>({});
+  const [minted, setMinted] = useState<{ code: string; email: string } | null>(null);
 
   const call = useCallback(
     async (init?: RequestInit) => {
@@ -91,20 +103,27 @@ export function OrgSetup({ secret }: { secret: string }) {
 
   async function invite(ngoId: string, role: "lead" | "member") {
     const email = (emailFor[ngoId] ?? "").trim();
-    if (!email) return;
+    const personName = (nameFor[ngoId] ?? "").trim();
+    if (!email || !personName) {
+      setError("Both a name and an email address are needed.");
+      return;
+    }
     setBusy(true);
     setError(null);
     setNote(null);
+    setMinted(null);
     try {
       const r = await call({
         method: "POST",
-        body: JSON.stringify({ action: "invite", ngoId, email, role }),
+        body: JSON.stringify({ action: "invite", ngoId, email, personName, role }),
       });
       setEmailFor((m) => ({ ...m, [ngoId]: "" }));
+      setNameFor((m) => ({ ...m, [ngoId]: "" }));
+      if (r.code) setMinted({ code: r.code, email });
       setNote(
         r.emailed
-          ? `${email} now has access and has been emailed a link.`
-          : `${email} now has access. No email was sent: RESEND_API_KEY is not set, so tell them directly.`
+          ? `${personName} has a code, and it has been emailed to ${email}.`
+          : `${personName} has a code. No email was sent: RESEND_API_KEY is not set, so pass it on yourself.`
       );
       await load();
     } catch (e) {
@@ -174,6 +193,20 @@ export function OrgSetup({ secret }: { secret: string }) {
           {note}
         </p>
       )}
+      {minted && (
+        <div className="card p-4 text-center">
+          <p className="text-[13px] text-bark-500">
+            Code for {minted.email}
+          </p>
+          <p className="my-1.5 font-mono text-3xl font-bold tracking-[0.18em]">
+            {minted.code}
+          </p>
+          <p className="text-[12.5px] leading-relaxed text-bark-400">
+            They enter it at straypaw.org/join. It works once, and expires in
+            30 days if unused.
+          </p>
+        </div>
+      )}
 
       {orgs === null ? (
         <div className="flex justify-center py-10">
@@ -208,20 +241,30 @@ export function OrgSetup({ secret }: { secret: string }) {
                     key={i.email}
                     className="flex items-center justify-between gap-3 py-2 text-[13px]"
                   >
-                    <span className="min-w-0 truncate">
-                      {i.email}
+                    <span className="min-w-0">
+                      <b className="font-semibold">{i.name ?? i.email}</b>
+                      {i.name && (
+                        <span className="ml-2 text-bark-400">{i.email}</span>
+                      )}
                       <span className="ml-2 text-[11.5px] uppercase tracking-wide text-bark-400">
                         {i.role}
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-3">
+                      {i.code && (
+                        <code className="rounded bg-black/[0.05] px-2 py-0.5 font-mono text-[13px] font-semibold tracking-[0.12em] dark:bg-white/[0.08]">
+                          {i.code}
+                        </code>
+                      )}
                       {i.accepted ? (
                         <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-status-safe">
                           <Check className="h-3.5 w-3.5" /> signed in
                         </span>
+                      ) : i.revoked ? (
+                        <span className="text-[12px] text-bark-400">removed</span>
                       ) : (
                         <span className="text-[12px] text-bark-400">
-                          waiting for first sign-in
+                          code not used yet
                         </span>
                       )}
                       <button
@@ -239,6 +282,15 @@ export function OrgSetup({ secret }: { secret: string }) {
 
             <div className="flex flex-wrap gap-2">
               <input
+                value={nameFor[o.id] ?? ""}
+                onChange={(e) =>
+                  setNameFor((m) => ({ ...m, [o.id]: e.target.value }))
+                }
+                placeholder="Their full name"
+                autoComplete="off"
+                className={`${input} min-w-[160px] flex-1`}
+              />
+              <input
                 value={emailFor[o.id] ?? ""}
                 onChange={(e) =>
                   setEmailFor((m) => ({ ...m, [o.id]: e.target.value }))
@@ -253,7 +305,7 @@ export function OrgSetup({ secret }: { secret: string }) {
                 disabled={busy}
                 className="inline-flex min-h-[40px] items-center gap-1.5 rounded-md bg-paw-500 px-3 text-[13px] font-semibold text-white disabled:opacity-40"
               >
-                <Mail className="h-4 w-4" /> Give admin access
+                <Mail className="h-4 w-4" /> Make team lead
               </button>
               <button
                 onClick={() => invite(o.id, "member")}
@@ -264,8 +316,8 @@ export function OrgSetup({ secret }: { secret: string }) {
               </button>
             </div>
             <p className="mt-2 text-[12px] text-bark-400">
-              They do not need an account yet. Access is attached to the address
-              and applies the first time they sign in with it.
+              A team lead can add the rest of their own team, so normally you
+              only do this once per organisation.
             </p>
           </div>
         ))

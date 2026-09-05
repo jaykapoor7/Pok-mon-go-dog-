@@ -1,0 +1,190 @@
+/* The code page. One box on an otherwise empty screen: whoever is here was
+   sent here, knows why, and needs to see the field without looking for it.
+   The code itself is set large and widely tracked, because it gets
+   compared character by character against a phone screen. */
+
+.join-wrap {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 18px 64px;
+  background: var(--paper, #f4f5f7);
+  color: var(--ink, #0b1020);
+}
+
+.join-card {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border: 1px solid rgba(11, 16, 32, 0.12);
+  border-radius: 8px;
+  padding: 30px 26px 24px;
+}
+
+.join-brand {
+  display: inline-block;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--electric-ink, #476fb7);
+  text-decoration: none;
+}
+
+.join-card h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.join-lede {
+  margin: 0 0 22px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--muted, #63665e);
+}
+
+.join-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted, #63665e);
+  margin-bottom: 7px;
+}
+
+.join-code {
+  width: 100%;
+  min-height: 62px;
+  padding: 8px 14px;
+  border: 1.5px solid rgba(11, 16, 32, 0.2);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink, #0b1020);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.join-code::placeholder {
+  color: rgba(11, 16, 32, 0.22);
+  letter-spacing: 0.22em;
+}
+
+.join-code:focus {
+  border-color: var(--electric-ink, #476fb7);
+  box-shadow: 0 0 0 3px rgba(71, 111, 183, 0.16);
+}
+
+.join-code:disabled {
+  opacity: 0.65;
+}
+
+.join-go {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ink, #0b1020);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.join-go:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.join-error,
+.join-welcome {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.join-error {
+  background: rgba(176, 42, 16, 0.08);
+  color: var(--vermilion-ink, #b02a10);
+  font-weight: 550;
+}
+
+.join-welcome {
+  background: rgba(71, 111, 183, 0.09);
+  color: var(--electric-ink, #476fb7);
+  font-weight: 550;
+}
+
+.join-foot {
+  margin: 22px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(11, 16, 32, 0.1);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted, #63665e);
+}
+
+.join-foot a {
+  color: var(--electric-ink, #476fb7);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .join-wrap {
+    background: var(--slate, #10182b);
+    color: #eef1f6;
+  }
+  .join-card {
+    background: var(--steel, #17243b);
+    border-color: var(--line-dark, #293753);
+  }
+  .join-lede,
+  .join-label,
+  .join-foot {
+    color: #9fb0c8;
+  }
+  .join-code {
+    background: #0e1729;
+    color: #eef1f6;
+    border-color: var(--line-dark, #293753);
+  }
+  .join-code::placeholder {
+    color: rgba(238, 241, 246, 0.24);
+  }
+  .join-go {
+    background: var(--electric, #8fb7ff);
+    color: #0b1020;
+  }
+  .join-error {
+    background: rgba(240, 91, 64, 0.14);
+    color: #ff9d86;
+  }
+  .join-welcome {
+    background: rgba(143, 183, 255, 0.14);
+    color: #b7cfff;
+  }
+  .join-foot {
+    border-top-color: var(--line-dark, #293753);
+  }
+  .join-foot a,
+  .join-brand {
+    color: var(--electric, #8fb7ff);
+  }
+}

@@ -54,7 +54,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
-  const r = data as { ok?: boolean; org_name?: string; error?: string } | null;
+  const r = data as {
+    ok?: boolean;
+    org_name?: string;
+    volunteer_name?: string;
+    error?: string;
+  } | null;
   if (!r?.ok) {
     return NextResponse.json(
       { ok: false, error: r?.error === "unknown code" ? "That code was not recognised." : r?.error ?? "That code did not work." },
@@ -62,5 +67,11 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true, orgName: r.org_name });
+  /* The name comes back too when the code was cut for one person, so the
+     reporting flow can fill it in instead of asking them to type it. */
+  return NextResponse.json({
+    ok: true,
+    orgName: r.org_name,
+    volunteerName: r.volunteer_name ?? null,
+  });
 }

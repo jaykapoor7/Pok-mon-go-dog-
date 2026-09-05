@@ -51,18 +51,29 @@ export function clearVolunteer(): void {
 /** Checks a code with the server and returns the organisation it belongs to. */
 export async function verifyCode(
   code: string
-): Promise<{ ok: true; orgName: string } | { ok: false; error: string }> {
+): Promise<
+  { ok: true; orgName: string; volunteerName: string | null } | { ok: false; error: string }
+> {
   try {
     const res = await fetch("/api/volunteer/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: code.trim() }),
     });
-    const data = (await res.json()) as { ok?: boolean; orgName?: string; error?: string };
+    const data = (await res.json()) as {
+      ok?: boolean;
+      orgName?: string;
+      volunteerName?: string | null;
+      error?: string;
+    };
     if (!res.ok || !data.ok) {
       return { ok: false, error: data.error ?? "That code did not work." };
     }
-    return { ok: true, orgName: data.orgName ?? "your organisation" };
+    return {
+      ok: true,
+      orgName: data.orgName ?? "your organisation",
+      volunteerName: data.volunteerName ?? null,
+    };
   } catch {
     return { ok: false, error: "Could not reach StrayPaw. Check your connection." };
   }

@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome } from "./Welcome";
+import { ProfilePanel } from "./ProfilePanel";
 import { ROLE_META, readStoredRole, type Role } from "@/lib/roles";
 import { search, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
@@ -303,26 +304,7 @@ export function AppShell({
           ))}
 
           <div className="spa-side-foot">
-            Network
-            <b>Pan-India</b>
-            {role && (
-              <button
-                type="button"
-                className="spa-role-chip"
-                onClick={() => {
-                  try {
-                    window.localStorage.removeItem("straypaw.role");
-                    window.localStorage.removeItem("straypaw.tour.v1");
-                  } catch {
-                    /* nothing stored to clear */
-                  }
-                  window.location.reload();
-                }}
-                title="Change how the console is ordered for you"
-              >
-                {ROLE_META[role].label}
-              </button>
-            )}
+            <ProfilePanel role={role} onNavigate={() => setOpen(false)} />
           </div>
         </nav>
 

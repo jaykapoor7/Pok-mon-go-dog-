@@ -8,12 +8,14 @@ export const dynamic = "force-dynamic";
 /* Organisation setup for the moderation page.
      GET  /api/admin/orgs                              → every org, members, invites
      POST { action: "create", name, city }             → create/verify an org
-     POST { action: "invite", ngoId, email, role }     → grant access by email
+     POST { action: "invite", ngoId, email, personName, role }
+                                                       → mint that person a code
      POST { action: "remove", ngoId, email }           → take it away
 
-   Access is granted to an email address, so it works whether or not that
-   person has signed up yet. If they have, they are joined immediately; if
-   not, claim_org_membership() picks it up the moment they do. */
+   Adding someone mints six characters bound to their name, their email
+   and this organisation, and emails it to them. Typing that code on
+   StrayPaw is the whole sign-in: no account to create, no password, no
+   link to wait for. */
 
 type AuthState = "ok" | "unset" | "bad";
 
@@ -64,6 +66,7 @@ export async function POST(req: Request) {
     city?: string;
     ngoId?: string;
     email?: string;
+    personName?: string;
     role?: string;
   };
   try {
@@ -92,54 +95,62 @@ export async function POST(req: Request) {
 
   if (body.action === "invite") {
     const email = String(body.email ?? "").trim();
-    const { data, error } = await supa.rpc("admin_invite_to_org", {
+    const person = String(body.personName ?? "").trim();
+    const role = body.role === "member" ? "member" : "lead";
+
+    const { data, error } = await supa.rpc("admin_mint_access_code", {
       p_ngo_id: String(body.ngoId ?? ""),
       p_email: email,
-      p_role: body.role === "lead" ? "lead" : "member",
+      p_name: person,
+      p_role: role,
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-    /* Tell them, in the same breath as granting it. Sent through Resend,
-       which is StrayPaw's own sending domain, rather than Supabase's auth
-       mailer: that one only delivers to project team addresses. */
-    let orgName = "a StrayPaw organisation";
-    const { data: orgs } = await supa
-      .from("ngos")
-      .select("name")
-      .eq("id", String(body.ngoId ?? ""))
-      .single();
-    if (orgs?.name) orgName = orgs.name;
+    const minted = (data ?? {}) as { code?: string; org_name?: string };
+    const code = minted.code ?? "";
+    const orgName = minted.org_name ?? "a StrayPaw organisation";
+    const first = person.split(" ")[0] || "there";
 
-    const joined = (data as { joined_immediately?: boolean } | null)?.joined_immediately;
+    /* The code is the whole sign-in, so the email carries it plainly and
+       says what to do with it. Sent through Resend on StrayPaw's own
+       domain; Supabase's auth mailer only delivers to project addresses. */
     const emailed = await sendEmail({
       to: email,
-      subject: `You have access to ${orgName} on StrayPaw`,
+      subject: `Your StrayPaw code for ${orgName}`,
       html: `
-        <p>Hello,</p>
-        <p>You now have access to <strong>${orgName}</strong>'s dashboard on StrayPaw.</p>
-        <p><a href="${SITE}/partner" style="display:inline-block;padding:11px 18px;background:#2b59d6;color:#fff;text-decoration:none;border-radius:4px;font-weight:600">Open the dashboard</a></p>
-        <p style="font-size:14px;line-height:1.6">
-          ${
-            joined
-              ? "Sign in with this email address and you will land straight in."
-              : `The first time, choose <strong>Create account</strong> and use this exact address (${email}). Access is already waiting for it, so you will be in as soon as you set a password.`
-          }
-        </p>
-        <p style="font-size:14px;line-height:1.6;color:#555">
-          From the dashboard you can record animals, track sterilisation and
-          rabies coverage, and create codes that let your field volunteers
-          report without needing accounts of their own.
-        </p>
-        <p style="font-size:13px;color:#777">StrayPaw &middot; ${SITE}</p>`,
+        <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#141821">
+          <p style="font-size:16px;line-height:1.55">Hello ${first},</p>
+          <p style="font-size:16px;line-height:1.55">
+            <strong>${orgName}</strong> now has a dashboard on StrayPaw, and
+            you have access to it. Your code is:
+          </p>
+          <p style="margin:22px 0;text-align:center">
+            <span style="display:inline-block;padding:14px 26px;border:1.5px solid #d5d9e0;border-radius:6px;font-family:ui-monospace,Menlo,monospace;font-size:32px;font-weight:700;letter-spacing:0.18em">${code}</span>
+          </p>
+          <p style="margin:24px 0;text-align:center">
+            <a href="${SITE}/join?code=${encodeURIComponent(code)}" style="display:inline-block;padding:12px 22px;background:#2b59d6;color:#fff;text-decoration:none;border-radius:5px;font-weight:650">Open your dashboard</a>
+          </p>
+          <p style="font-size:14px;line-height:1.6">
+            The button signs you in on its own. If it does not open, go to
+            <a href="${SITE}/join">${SITE.replace(/^https?:\/\//, "")}/join</a>
+            and type the six characters.
+          </p>
+          <p style="font-size:14px;line-height:1.6;color:#555">
+            There is no password to choose. Once you are in, you can add your
+            own team from Team and codes: colleagues who need the dashboard,
+            and field volunteers who only need to send in sightings from their
+            phones.
+          </p>
+          <p style="font-size:13px;color:#777">StrayPaw &middot; ${SITE}</p>
+        </div>`,
       text:
-        `You now have access to ${orgName}'s dashboard on StrayPaw.\n\n` +
-        `Open ${SITE}/partner and ` +
-        (joined
-          ? "sign in with this email address."
-          : `choose "Create account" using this exact address (${email}). Access is already waiting for it.`),
+        `Hello ${first},\n\n${orgName} now has a dashboard on StrayPaw and you have access to it.\n\n` +
+        `Your code: ${code}\n\n` +
+        `Open ${SITE}/join and type it in. It signs you in on its own, there is no password to choose.\n\n` +
+        `Once you are in, you can add your own team from Team and codes.\n\nStrayPaw`,
     });
 
-    return NextResponse.json({ ...(data as object), emailed });
+    return NextResponse.json({ ...(minted as object), emailed });
   }
 
   if (body.action === "remove") {

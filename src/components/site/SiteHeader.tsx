@@ -108,9 +108,20 @@ export function SiteHeader() {
             </Link>
           )
         )}
+
+        {/* Repeated inside the drawer because the header only has room for
+            one action on a phone, and that one is the app. */}
+        <Link href="/join" className="sp-nav-drawercode" onClick={closeAll}>
+          I have a code
+        </Link>
       </nav>
 
       <div className="sp-header-actions">
+        {/* The way in for anyone holding six characters from their
+            organisation. Quiet, but findable without being told where. */}
+        <Link href="/join" className="sp-header-code">
+          I have a code
+        </Link>
         <Link href="/map" className="sp-header-cta">
           Open app <ArrowUpRight size={15} />
         </Link>

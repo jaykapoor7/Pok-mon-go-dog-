@@ -22,15 +22,22 @@ Run these in the Supabase SQL editor, in this order. All are idempotent.
 - [ ] `supabase/abc-programme.sql`
 - [ ] `supabase/org-invite-codes.sql`
 - [ ] `supabase/org-email-invites.sql`
+- [ ] `supabase/org-access-codes.sql`
 - [ ] **Confirm email is OFF** in Supabase → Authentication → Providers →
-      Email. With it on, signup returns no session and new accounts are
+      Email. With it on, ordinary signup returns no session and the account is
       unusable until a link is clicked, and Supabase's built-in email service
       only delivers to addresses on your own project team (capped at 2 per
-      hour), so that link never reaches an ordinary Gmail or Outlook address.
-- [ ] For password reset to work at all, set custom SMTP under Authentication
-      → Emails, then raise Authentication → Rate Limits from its 30 per hour
-      default. RESEND_API_KEY does not cover this: it sends StrayPaw's own
-      email, not Supabase Auth's.
+      hour), so that link never reaches a Gmail or Outlook address. Code
+      sign-in does not depend on this: those accounts are created already
+      confirmed, and the code is delivered by Resend.
+- [ ] Password reset still goes through Supabase Auth's own mailer, so it
+      needs custom SMTP under Authentication → Emails and a raised limit under
+      Authentication → Rate Limits. RESEND_API_KEY does not cover it: that
+      sends StrayPaw's own email, not Supabase Auth's. Nothing in the PAWS
+      pilot depends on password reset.
+- [ ] `RESEND_API_KEY` and `EMAIL_FROM` are set in Vercel. Without them an
+      access code is still minted and shown on the moderation page, but no
+      email goes out.
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
       `SUPABASE_SERVICE_ROLE_KEY` are set in Vercel.
 - [ ] `NEXT_PUBLIC_SITE_URL` is `https://straypaw.org`.
@@ -97,6 +104,37 @@ Each of these must fail *visibly*. Silence is the bug.
 - [ ] A second NGO account **cannot** see the first one's cases.
 - [ ] A signed-out visitor sees the console shell with an empty state and a
       sign-in prompt, not an error.
+
+## 5a0. Access codes, end to end
+
+Everything below is a real run, not a read-through.
+
+- [ ] On `/moderate`, Organisations tab, create **PAWS Chennai**.
+- [ ] Add the team lead: their full name, their email, **Make team lead**.
+      A six-character code appears on the page and is emailed to them.
+- [ ] Copy the code. Open `/join` in a private window and type it.
+      You land on `/partner` signed in as that person, with no account
+      created and no password chosen.
+- [ ] The dashboard offers to set a password. Skipping it is fine; the code
+      itself no longer works, which is the point.
+- [ ] Back on `/moderate`, that person now reads **signed in** and their code
+      is gone.
+- [ ] Type the same code at `/join` again. It is refused.
+- [ ] As the lead, open **Team and codes**. Add a colleague by name and email
+      as **Team member**. Their code appears. Redeem it in another private
+      window: that person lands on the same organisation's dashboard and sees
+      the same animals.
+- [ ] Add a field volunteer by name and email as **Volunteer**. Their code
+      appears. Type it at `/join`: it does not open the dashboard, it opens
+      the reporting page with their name already filled in.
+- [ ] A volunteer code keeps working, so the same person can report again
+      from a second phone.
+- [ ] As a **Team member**, the Team lead and Team member buttons are
+      disabled. Only a lead hands out dashboard access.
+- [ ] The lead removes the colleague. That person reloads `/partner` and the
+      organisation's records are gone.
+- [ ] Make up a six-character code and try it at `/join` a dozen times. You
+      are rate limited before you get anywhere.
 
 ## 5a. PAWS pilot: the field workflow
 

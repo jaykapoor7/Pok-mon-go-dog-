@@ -204,3 +204,75 @@ export async function claimOrgMembership(): Promise<void> {
        ordinary case, and the call is safe to repeat later. */
   }
 }
+
+/* ── The organisation's people, and their codes ────────────────────── */
+
+export type TeamCode = {
+  id: string;
+  kind: "staff" | "volunteer";
+  person_name: string | null;
+  email: string | null;
+  role: "lead" | "member" | "volunteer";
+  code: string | null;
+  active: boolean;
+  accepted: boolean;
+  reports: number;
+  created_at: string;
+};
+
+export async function orgTeamCodes(): Promise<TeamCode[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.rpc("org_team_codes");
+  if (error || !Array.isArray(data)) return [];
+  return data as TeamCode[];
+}
+
+/** Adds one person to the caller's own organisation and returns their code. */
+export async function createTeamCode(
+  email: string,
+  name: string,
+  role: "lead" | "member" | "volunteer"
+): Promise<{ code: string; kind: "staff" | "volunteer"; name: string }> {
+  const supa = getSupabase();
+  if (!supa) throw new Error("Not connected to the record store.");
+  const { data, error } = await supa.rpc("create_team_code", {
+    p_email: email.trim(),
+    p_name: name.trim(),
+    p_role: role,
+  });
+  if (error) throw new Error(error.message);
+  return data as { code: string; kind: "staff" | "volunteer"; name: string };
+}
+
+export async function revokeTeamCode(id: string): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) throw new Error("Not connected to the record store.");
+  const { data, error } = await supa.rpc("revoke_team_code", { p_id: id });
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
+/* ── Who is signed in ──────────────────────────────────────────────── */
+
+export type Profile = {
+  signed_in: boolean;
+  email?: string | null;
+  name?: string | null;
+  ngo_id?: string | null;
+  org_name?: string | null;
+  role?: string;
+  is_lead?: boolean;
+};
+
+export async function myProfile(): Promise<Profile> {
+  const supa = getSupabase();
+  if (!supa) return { signed_in: false };
+  try {
+    const { data, error } = await supa.rpc("my_profile");
+    if (error || !data) return { signed_in: false };
+    return data as Profile;
+  } catch {
+    return { signed_in: false };
+  }
+}

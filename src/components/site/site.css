@@ -207,6 +207,27 @@
 .sp-header-cta:hover { background: #b8d1ff; }
 .sp-header-cta:active { transform: scale(0.98); }
 .sp-header-cta:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+.sp-header-code {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 10px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 0.82;
+}
+.sp-header-code:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+.sp-header-code:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
+/* On a phone the header has room for one action, and it is the app. */
+@media (max-width: 720px) { .sp-header-code { display: none; } }
+/* Only in the open drawer. On desktop the header carries it instead. */
+.sp-nav-drawercode { display: none; }
+@media (max-width: 900px) {
+  .sp-nav.open .sp-nav-drawercode { display: block; }
+}
 .sp-menu-btn {
   display: none;
   align-items: center;

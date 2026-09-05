@@ -51,6 +51,9 @@ export function ReportingFor({
       return;
     }
     setOrgName(r.orgName);
+    /* A code cut for one person already knows who they are. Filling it in
+       beats asking them to type a name the organisation has on file. */
+    if (r.volunteerName && !name.trim()) setName(r.volunteerName);
   }
 
   function confirm() {
