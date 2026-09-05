@@ -1,4 +1,3 @@
-import { getCases } from "@/lib/cases";
 import { PartnerOverview } from "@/components/partner/PartnerOverview";
 import { ProgrammeOverview } from "@/components/partner/ProgrammeOverview";
 import { QuickActions } from "@/components/partner/QuickActions";
@@ -6,8 +5,12 @@ import { QuickActions } from "@/components/partner/QuickActions";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard, StrayPaw Partner" };
 
-export default async function PartnerOverviewPage() {
-  const cases = await getCases();
+/* No server-side case fetch. This page is readable by anyone, and reading
+   cases here meant reading every organisation's, rendered into the HTML
+   before anybody signed in. The dashboard loads its own rows through
+   my_org_cases(), which is scoped by my_ngo(), so signed out it is
+   genuinely empty rather than emptied afterwards. */
+export default function PartnerOverviewPage() {
   return (
     <>
       {/* The two numbers an ABC and rabies programme is judged on, before
@@ -16,7 +19,7 @@ export default async function PartnerOverviewPage() {
       <ProgrammeOverview />
       {/* How are we doing, then what now, then what is open. */}
       <QuickActions />
-      <PartnerOverview cases={cases} />
+      <PartnerOverview />
     </>
   );
 }

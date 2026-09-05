@@ -88,7 +88,12 @@ export async function getPartnerCases(): Promise<Case[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.rpc("my_org_cases");
-  if (error) return getCases(); // RPC not deployed yet → shared list
+  /* No fallback to the shared list. This used to return getCases() when the
+     RPC was missing, which meant any failure of the scoped read, including
+     having no session at all, answered with every organisation's cases.
+     Nothing is the correct answer to a scoped question that could not be
+     scoped. */
+  if (error) return [];
   return (data ?? []).map(mapCase);
 }
 

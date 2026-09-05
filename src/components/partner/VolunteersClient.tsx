@@ -18,8 +18,13 @@ export function VolunteersClient() {
   return (
     <div>
       <header className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Volunteers</h1>
-        <p className="mt-0.5 text-[13px] text-bark-500">People who signed up to help. Reach out when you need hands on the ground.</p>
+        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Volunteer sign-ups</h1>
+        <p className="mt-0.5 max-w-2xl text-[13px] leading-relaxed text-bark-500">
+          People who offered to help through the StrayPaw site. They are not
+          on your team and cannot see anything: this is a list to call.
+          Somebody you want reporting for you gets added on{" "}
+          <a href="/partner/team" className="font-semibold underline underline-offset-2">Team</a>.
+        </p>
       </header>
 
       {loading ? (

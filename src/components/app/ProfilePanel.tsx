@@ -92,7 +92,7 @@ export function ProfilePanel({
 
         <div className="spa-profile-links">
           {profile?.org_name && (
-            <Link href="/partner/codes" onClick={onNavigate}>
+            <Link href="/partner/team" onClick={onNavigate}>
               <Users size={13} /> Team and codes
             </Link>
           )}

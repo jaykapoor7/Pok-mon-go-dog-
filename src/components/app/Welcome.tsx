@@ -5,11 +5,16 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
+  Bookmark,
   Building2,
+  Calculator,
   Coins,
+  KeyRound,
+  LayoutGrid,
   MapPin,
   Radio,
   ScanSearch,
+  ShieldCheck,
   Users,
   X,
 } from "lucide-react";
@@ -31,24 +36,72 @@ const ROLE_ICON: Record<Role, typeof Users> = {
   funder: Coins,
 };
 
-/* Kept to three: the loop the whole product runs on, no more. */
-const TOUR = [
-  {
-    Icon: MapPin,
-    title: "The map is the record",
-    body: "Every sighting, study and intervention sits on one shared map. Zoom from a state to a street and see what is known, and what nobody has looked at yet.",
-  },
-  {
-    Icon: Radio,
-    title: "Anyone can add a signal",
-    body: "A photo and a location is enough. Reports from residents and field teams land in the same place, so one animal keeps one history.",
-  },
-  {
-    Icon: ScanSearch,
-    title: "Gaps are the point",
-    body: "A district with no data is not a district without need. StrayPaw shows absence as clearly as presence, because that is where work gets scoped.",
-  },
-];
+/* What comes after the role question depends on the answer.
+
+   The three audiences do not get in the same way, so one shared tour spent
+   its three cards on the parts each of them did not need. A resident needs
+   to know they can report without an account. Somebody from an
+   organisation needs to know their six characters are the sign-in. A funder
+   needs pointing at the costing work, and nothing about accounts at all. */
+type Card = {
+  Icon: typeof MapPin;
+  title: string;
+  body: string;
+};
+
+const TOURS: Record<Role, Card[]> = {
+  individual: [
+    {
+      Icon: Radio,
+      title: "Reporting takes a photo and a spot on the map",
+      body: "No account, no sign-up. Add the dog's ear notch or collar if you can see them, and skip anything you are not sure about. Not knowing is a real answer here.",
+    },
+    {
+      Icon: MapPin,
+      title: "The map is where it lands",
+      body: "Every sighting sits on one shared map alongside the studies and the work being done. Zoom from a state to a street to see what is known nearby, and what nobody has looked at.",
+    },
+    {
+      Icon: Bookmark,
+      title: "An account only buys you one thing",
+      body: "Following. Make one and the dogs you report stay on your Following page, so you find out what happened to them. Everything else on StrayPaw works signed out.",
+    },
+  ],
+  ngo: [
+    {
+      Icon: KeyRound,
+      title: "Your six characters are the sign-in",
+      body: "Whoever added your organisation sent you a code. Choose \u201cI have a code\u201d, type it, and you are in. There is no password and no account to create, and the same code works every time, so keep it.",
+    },
+    {
+      Icon: LayoutGrid,
+      title: "The dashboard opens on your two numbers",
+      body: "Sterilisation and rabies coverage across the animals you have recorded, with unknowns counted separately rather than folded in as negatives. Every figure links to the list behind it.",
+    },
+    {
+      Icon: Users,
+      title: "If you are the team lead, you add your own people",
+      body: "Team takes a name, an email and a role, and issues that person their own code by email. Staff codes open the dashboard; volunteer codes only let somebody file sightings under your name.",
+    },
+  ],
+  funder: [
+    {
+      Icon: Calculator,
+      title: "Start with what it would take",
+      body: "Pick an area and the costing works from its real numbers: how many animals, how much coverage, what a programme would run to. Where the data is thin it says so instead of estimating over it.",
+    },
+    {
+      Icon: ScanSearch,
+      title: "The gaps are the argument",
+      body: "A district with no data is not a district without need. StrayPaw shows absence as clearly as presence, which is usually where a programme should be scoped.",
+    },
+    {
+      Icon: ShieldCheck,
+      title: "Outcomes carry their proof",
+      body: "Work that an organisation reports as done is recorded against the animal it was done to, with the before and after. That is what you would be checking a grant against.",
+    },
+  ],
+};
 
 export function Welcome() {
   /* Never interrupt a report. Someone who opened this flow is standing in
@@ -91,7 +144,8 @@ export function Welcome() {
 
   if (step < 0 || onReportFlow) return null;
 
-  const card = step > 0 ? TOUR[step - 1] : null;
+  const tour = role ? TOURS[role] : TOURS.individual;
+  const card = step > 0 ? tour[step - 1] : null;
   const meta = role ? ROLE_META[role] : null;
 
   return (
@@ -136,7 +190,7 @@ export function Welcome() {
           card && (
             <>
               <span className="spa-mono wc-kicker">
-                {step} of {TOUR.length}
+                {step} of {tour.length}
               </span>
               <div className="wc-icon">
                 <card.Icon size={22} />
@@ -145,13 +199,13 @@ export function Welcome() {
               <p className="wc-lede">{card.body}</p>
 
               <div className="wc-dots" aria-hidden="true">
-                {TOUR.map((_, i) => (
+                {tour.map((_, i) => (
                   <span key={i} className={i + 1 === step ? "on" : ""} />
                 ))}
               </div>
 
               <div className="wc-actions">
-                {step < TOUR.length ? (
+                {step < tour.length ? (
                   <button
                     className="spa-cta"
                     onClick={() => setStep(step + 1)}
@@ -161,9 +215,15 @@ export function Welcome() {
                 ) : (
                   <button
                     className="spa-cta"
-                    onClick={() => finish(meta?.home)}
+                    onClick={() =>
+                      finish(role === "ngo" ? "/join" : meta?.home)
+                    }
                   >
-                    {meta ? `Go to ${meta.home === "/map" ? "the map" : "your workspace"}` : "Start"}{" "}
+                    {role === "ngo"
+                      ? "Enter my code"
+                      : role === "funder"
+                        ? "See what it would take"
+                        : "Open the map"}{" "}
                     <ArrowRight size={14} />
                   </button>
                 )}

@@ -33,7 +33,7 @@ const ACTIONS = [
     note: "Search the register, filter by sterilisation, vaccination or zone.",
   },
   {
-    href: "/partner/codes",
+    href: "/partner/team",
     Icon: KeyRound,
     title: "Add someone to the team",
     note: "Name, email, role. They get a code and an email telling them what to do with it.",
