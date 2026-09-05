@@ -187,6 +187,11 @@ begin
                            'joined_immediately', false);
 end $$;
 
+-- Taking somebody's access away has to take all of it, or it comes back.
+-- Deleting the membership alone left their invitation standing, so their
+-- code still worked and claim_org_membership() re-joined them on the next
+-- sign-in. Removal now takes the membership, the invitation and its code,
+-- and any volunteer code cut for that address.
 create or replace function admin_remove_from_org(
   p_ngo_id uuid,
   p_email  text
@@ -195,6 +200,16 @@ declare v_email text := lower(btrim(coalesce(p_email, ''))); v_user uuid;
 begin
   delete from org_email_invites
    where ngo_id = p_ngo_id and lower(btrim(email)) = v_email;
+
+  -- Volunteer codes live in another table and are not memberships, but a
+  -- person who has been removed should not keep filing under the
+  -- organisation's name either.
+  begin
+    update org_invite_codes
+       set active = false, revoked_at = coalesce(revoked_at, now())
+     where ngo_id = p_ngo_id and lower(btrim(coalesce(email, ''))) = v_email
+       and active;
+  exception when undefined_table or undefined_column then null; end;
 
   select id into v_user from auth.users where lower(email) = v_email;
   if v_user is not null then
@@ -274,9 +289,28 @@ begin
      where ngo_id = p_ngo_id and active;
   exception when undefined_table then null; end;
 
+  -- Volunteer sign-ups point at the organisation with a real foreign key,
+  -- and they are an association rather than a record of work, so retiring
+  -- the organisation releases them. Without this, deleting an otherwise
+  -- empty organisation failed on volunteers_ngo_id_fkey, which is the same
+  -- raw constraint error that cases_ngo_id_fkey used to produce.
+  begin
+    update volunteers set ngo_id = null where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then null; end;
+
   if v_dogs = 0 and v_cases = 0 and v_docs = 0 then
-    delete from ngos where id = p_ngo_id;
-    return json_build_object('ok', true, 'deleted', true, 'name', v_name);
+    -- Guarded. Any table added later that references ngos would otherwise
+    -- surface its constraint name to whoever clicked Remove; retiring the
+    -- organisation is the right answer in that case too.
+    begin
+      delete from ngos where id = p_ngo_id;
+      return json_build_object('ok', true, 'deleted', true, 'name', v_name);
+    exception when foreign_key_violation then
+      update ngos set verified = false where id = p_ngo_id;
+      return json_build_object(
+        'ok', true, 'deleted', false, 'name', v_name, 'held_elsewhere', true,
+        'animals', 0, 'cases', 0, 'documents', 0, 'codes_revoked', v_codes);
+    end;
   end if;
 
   update ngos set verified = false where id = p_ngo_id;

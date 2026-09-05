@@ -152,6 +152,30 @@ export function OrgSetup({ secret }: { secret: string }) {
     }
   }
 
+  async function retire(ngoId: string, orgName: string) {
+    if (
+      !confirm(
+        `Remove ${orgName}?\n\nEveryone loses access and every code stops working. Any animals, cases or documents it holds are kept.`
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    setMinted(null);
+    try {
+      const r = await call({
+        method: "POST",
+        body: JSON.stringify({ action: "retire", ngoId }),
+      });
+      setNote(r.message ?? `${orgName} removed.`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not remove it.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function revokeCode(id: string) {
     setBusy(true);
     setError(null);
@@ -260,9 +284,23 @@ export function OrgSetup({ secret }: { secret: string }) {
                   </span>
                 )}
               </h3>
-              <span className="text-[12px] text-bark-400">
-                {o.members} with access &middot; {o.animals} animals &middot;{" "}
-                {o.active_codes} volunteer code{o.active_codes === 1 ? "" : "s"}
+              <span className="flex items-center gap-3 text-[12px] text-bark-400">
+                <span>
+                  {o.members} with access &middot; {o.animals} animals &middot;{" "}
+                  {o.active_codes} volunteer code{o.active_codes === 1 ? "" : "s"}
+                </span>
+                {!o.verified && (
+                  <span className="rounded bg-black/[0.06] px-1.5 py-0.5 font-semibold dark:bg-white/[0.09]">
+                    retired
+                  </span>
+                )}
+                <button
+                  onClick={() => retire(o.id, o.name)}
+                  disabled={busy}
+                  className="font-semibold text-status-injured hover:underline disabled:opacity-40"
+                >
+                  Remove organisation
+                </button>
               </span>
             </div>
 

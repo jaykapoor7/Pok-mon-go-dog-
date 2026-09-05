@@ -16,6 +16,7 @@ import {
   Bookmark,
   Building2,
   Calculator,
+  ChevronDown,
   ClipboardList,
   Database,
   FileText,
@@ -67,17 +68,33 @@ const EVIDENCE = [
   { href: "/outcomes", label: "Outcomes", Icon: ShieldCheck },
 ];
 
-/* Field-operations surface. Same shell, deeper records. */
+/* Field-operations surface. Same shell, deeper records.
+
+   Dashboard first. An organisation's programme totals are the thing they
+   open StrayPaw to look at, and without an entry for it the only way back
+   from a sub-page was the browser's back button. */
 const WORKSPACE = [
+  { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
   { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
   { href: "/partner/animals", label: "Animals", Icon: Database },
   { href: "/partner/field", label: "Field ops", Icon: MapPin },
   { href: "/partner/medical", label: "Medical", Icon: Stethoscope },
   { href: "/partner/team", label: "Team", Icon: Users },
-  { href: "/partner/codes", label: "Volunteer codes", Icon: KeyRound },
+  { href: "/partner/codes", label: "Team and codes", Icon: KeyRound },
   { href: "/partner/reports", label: "Analytics", Icon: FileText },
   { href: "/partner/import", label: "Import records", Icon: Upload },
   { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
+];
+
+/* One column, three sections, only one of them expanded at a time. */
+const SECTIONS: {
+  key: string;
+  label: string | null;
+  items: { href: string; label: string; Icon: typeof Home }[];
+}[] = [
+  { key: "community", label: null, items: COMMUNITY },
+  { key: "evidence", label: "Evidence", items: EVIDENCE },
+  { key: "workspace", label: "Workspace", items: WORKSPACE },
 ];
 
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
@@ -97,6 +114,9 @@ export function AppShell({
   const nested = useContext(InShell);
   const pathname = usePathname();
   const [role, setRole] = useState<Role | null>(null);
+  /* null means "follow the current page". A click pins one open, and "none"
+     collapses the lot. */
+  const [openSection, setOpenSection] = useState<string | null>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -172,8 +192,13 @@ export function AppShell({
     return [...items].sort((a, b) => score(a.href) - score(b.href));
   };
 
+  /* Both of these are the root of a section, so a prefix match would keep
+     them lit on every page beneath them and nothing would ever look
+     current. */
   const isActive = (href: string) =>
-    href === "/app" ? pathname === "/app" : pathname.startsWith(href);
+    href === "/app" || href === "/partner"
+      ? pathname === href
+      : pathname.startsWith(href);
 
   /* Placed after every hook so the hook order stays stable either way. */
   if (nested) return <>{children}</>;
@@ -265,43 +290,41 @@ export function AppShell({
             <i /> Live network
           </div>
 
-          {prioritise(COMMUNITY).map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={isActive(href) ? "active" : ""}
-              onClick={() => setOpen(false)}
-            >
-              <Icon size={15} />
-              {label}
-            </Link>
-          ))}
-
-          <div className="spa-side-label">Evidence</div>
-          {prioritise(EVIDENCE).map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={isActive(href) ? "active" : ""}
-              onClick={() => setOpen(false)}
-            >
-              <Icon size={15} />
-              {label}
-            </Link>
-          ))}
-
-          <div className="spa-side-label">Workspace</div>
-          {prioritise(WORKSPACE).map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={isActive(href) ? "active" : ""}
-              onClick={() => setOpen(false)}
-            >
-              <Icon size={15} />
-              {label}
-            </Link>
-          ))}
+          {SECTIONS.map(({ key, label, items }) => {
+            const links = prioritise(items);
+            const here = links.some(({ href }) => isActive(href));
+            /* The section you are working in is open. The others collapse to
+               a single line, because 23 links in one column is a list to
+               read rather than a place to navigate. */
+            const shown = openSection === null ? here : openSection === key;
+            return (
+              <div key={key} className="spa-sect">
+                {label && (
+                  <button
+                    type="button"
+                    className={`spa-side-label ${shown ? "on" : ""}`}
+                    aria-expanded={shown}
+                    onClick={() => setOpenSection(shown ? "none" : key)}
+                  >
+                    {label}
+                    <ChevronDown size={13} />
+                  </button>
+                )}
+                {(shown || !label) &&
+                  links.map(({ href, label: l, Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={isActive(href) ? "active" : ""}
+                      onClick={() => setOpen(false)}
+                    >
+                      <Icon size={15} />
+                      {l}
+                    </Link>
+                  ))}
+              </div>
+            );
+          })}
 
           <div className="spa-side-foot">
             <ProfilePanel role={role} onNavigate={() => setOpen(false)} />

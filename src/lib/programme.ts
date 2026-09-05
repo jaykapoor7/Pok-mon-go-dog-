@@ -228,21 +228,44 @@ export async function orgTeamCodes(): Promise<TeamCode[]> {
   return data as TeamCode[];
 }
 
-/** Adds one person to the caller's own organisation and returns their code. */
+/** Adds one person to the caller's own organisation and returns their code.
+ *
+ *  Routed through the server rather than straight at the database, because
+ *  the person being added has to be told. The minting still happens as the
+ *  caller: the route forwards their session, so my_ngo() and the lead-only
+ *  rule apply exactly as they would here. */
 export async function createTeamCode(
   email: string,
   name: string,
   role: "lead" | "member" | "volunteer"
-): Promise<{ code: string; kind: "staff" | "volunteer"; name: string }> {
+): Promise<{
+  code: string;
+  kind: "staff" | "volunteer";
+  name: string;
+  emailed: boolean;
+}> {
   const supa = getSupabase();
   if (!supa) throw new Error("Not connected to the record store.");
-  const { data, error } = await supa.rpc("create_team_code", {
-    p_email: email.trim(),
-    p_name: name.trim(),
-    p_role: role,
+  const { data: session } = await supa.auth.getSession();
+  const token = session?.session?.access_token;
+  if (!token) throw new Error("Sign in again, your session has expired.");
+
+  const res = await fetch("/api/team/invite", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ email: email.trim(), name: name.trim(), role }),
   });
-  if (error) throw new Error(error.message);
-  return data as { code: string; kind: "staff" | "volunteer"; name: string };
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error ?? "Could not add them.");
+  return body as {
+    code: string;
+    kind: "staff" | "volunteer";
+    name: string;
+    emailed: boolean;
+  };
 }
 
 export async function revokeTeamCode(id: string): Promise<boolean> {

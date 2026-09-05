@@ -767,18 +767,47 @@ export function AdminClient() {
   }
 
   // ── Console ───────────────────────────────────────────────
-  const TABS: { key: Tab; label: string; icon: React.ReactNode; count: number }[] = [
-    { key: "queue", label: "Sightings", icon: <Clock className="h-4 w-4" />, count: items.length },
-    { key: "partners", label: "Partner requests", icon: <HeartHandshake className="h-4 w-4" />, count: partnerRequests.length },
-    { key: "orgs", label: "Organisations", icon: <Building2 className="h-4 w-4" />, count: 0 },
-    { key: "reports", label: "Content reports", icon: <FlagIcon className="h-4 w-4" />, count: reports.filter((r) => r.status === "open").length },
-    { key: "verify", label: "Verify outcomes", icon: <ShieldCheck className="h-4 w-4" />, count: pendingCases.length },
-    { key: "dogs", label: "Dogs", icon: <PawPrint className="h-4 w-4" />, count: dogs.length },
-    { key: "feeding", label: "Feeding zones", icon: <Utensils className="h-4 w-4" />, count: feedingZones.length },
-    { key: "fundraisers", label: "Fundraisers", icon: <HeartHandshake className="h-4 w-4" />, count: fundraisers.length },
-    { key: "volunteers", label: "Volunteers", icon: <HandHelping className="h-4 w-4" />, count: volunteers.length },
-    { key: "ngos", label: "NGO leads", icon: <Building2 className="h-4 w-4" />, count: ngos.length },
+  /* Grouped, because ten flat tabs is a list to read rather than a page to
+     work. The first group is what is waiting on you and carries the counts
+     that matter; the rest is reference you go to on purpose. */
+  const GROUPS: {
+    title: string;
+    items: { key: Tab; label: string; icon: React.ReactNode; count: number }[];
+  }[] = [
+    {
+      title: "Waiting on you",
+      items: [
+        { key: "queue", label: "Sightings", icon: <Clock className="h-4 w-4" />, count: items.length },
+        { key: "partners", label: "Partner requests", icon: <HeartHandshake className="h-4 w-4" />, count: partnerRequests.length },
+        { key: "reports", label: "Content reports", icon: <FlagIcon className="h-4 w-4" />, count: reports.filter((r) => r.status === "open").length },
+        { key: "verify", label: "Verify outcomes", icon: <ShieldCheck className="h-4 w-4" />, count: pendingCases.length },
+      ],
+    },
+    {
+      title: "Access",
+      items: [
+        { key: "orgs", label: "Organisations", icon: <Building2 className="h-4 w-4" />, count: 0 },
+      ],
+    },
+    {
+      title: "Records",
+      items: [
+        { key: "dogs", label: "Dogs", icon: <PawPrint className="h-4 w-4" />, count: dogs.length },
+        { key: "feeding", label: "Feeding zones", icon: <Utensils className="h-4 w-4" />, count: feedingZones.length },
+        { key: "fundraisers", label: "Fundraisers", icon: <HeartHandshake className="h-4 w-4" />, count: fundraisers.length },
+      ],
+    },
+    {
+      title: "Sign-ups",
+      items: [
+        { key: "volunteers", label: "Volunteers", icon: <HandHelping className="h-4 w-4" />, count: volunteers.length },
+        { key: "ngos", label: "NGO enquiries", icon: <Building2 className="h-4 w-4" />, count: ngos.length },
+      ],
+    },
   ];
+  const TABS = GROUPS.flatMap((g) => g.items);
+  const waiting = GROUPS[0].items.reduce((n, t) => n + t.count, 0);
+
   const activeTab = TABS.find((t) => t.key === tab);
 
   return (
@@ -790,9 +819,13 @@ export function AdminClient() {
           </span>
           <div>
             <h1 className="font-display text-2xl tracking-tightest sm:text-3xl">
-              Moderation console
+              Moderation
             </h1>
-            <p className="text-xs text-bark-500">Review, verify and curate everything on StrayPaw.</p>
+            <p className="text-xs text-bark-500">
+              {waiting === 0
+                ? "Nothing waiting on you."
+                : `${waiting} thing${waiting === 1 ? "" : "s"} waiting on you.`}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -826,16 +859,27 @@ export function AdminClient() {
 
       <div className="lg:grid lg:grid-cols-[232px_1fr] lg:gap-8">
         {/* sidebar nav, vertical on desktop, horizontal scroll on mobile */}
-        <aside className="no-scrollbar -mx-4 mb-5 flex gap-1.5 overflow-x-auto px-4 lg:mx-0 lg:mb-0 lg:flex-col lg:overflow-visible lg:px-0">
-          {TABS.map((t) => (
-            <TabButton
-              key={t.key}
-              active={tab === t.key}
-              onClick={() => setTab(t.key)}
-              icon={t.icon}
-              label={t.label}
-              count={t.count}
-            />
+        <aside className="no-scrollbar -mx-4 mb-5 flex gap-1.5 overflow-x-auto px-4 lg:mx-0 lg:mb-0 lg:flex-col lg:gap-0 lg:overflow-visible lg:px-0">
+          {GROUPS.map((g, gi) => (
+            <div key={g.title} className="contents lg:block">
+              <p
+                className={`hidden px-2.5 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.09em] text-bark-400 lg:block ${
+                  gi === 0 ? "" : "pt-5"
+                }`}
+              >
+                {g.title}
+              </p>
+              {g.items.map((t) => (
+                <TabButton
+                  key={t.key}
+                  active={tab === t.key}
+                  onClick={() => setTab(t.key)}
+                  icon={t.icon}
+                  label={t.label}
+                  count={t.count}
+                />
+              ))}
+            </div>
           ))}
         </aside>
 
@@ -853,7 +897,12 @@ export function AdminClient() {
           )}
 
           {tab === "partners" && (
-        <PartnerRequestsList requests={partnerRequests} grants={grants} orgs={orgs} busyId={busyId} onAction={partnerAction} onGrant={grantPartner} onAddMember={addOrgMember} onRemoveMember={removeOrgMember} onDeleteOrg={deleteOrg} />
+        <PartnerRequestsList
+          requests={partnerRequests}
+          busyId={busyId}
+          onAction={partnerAction}
+          onOpenOrgs={() => setTab("orgs")}
+        />
       )}
       {tab === "reports" && (
         <ContentReportsList reports={reports} busyId={busyId} onResolve={resolveReport} />
@@ -1317,80 +1366,60 @@ function DogsList({
   );
 }
 
+/* Just the incoming requests.
+
+   This used to carry a grant-access form, an add-member form, a list of
+   every organisation with a Delete button, and an audit trail, on top of
+   the requests themselves. Four ways to give somebody access, in two
+   different tabs, none of which agreed about what access meant. All of that
+   now lives in Organisations, and this answers one question: somebody asked
+   to partner, yes or no. */
 function PartnerRequestsList({
   requests,
-  grants,
-  orgs,
   busyId,
   onAction,
-  onGrant,
-  onAddMember,
-  onRemoveMember,
-  onDeleteOrg,
+  onOpenOrgs,
 }: {
   requests: AdminPartnerRequest[];
-  grants: { id: string; email: string; org_name: string; created_at: string }[];
-  orgs: AdminOrg[];
   busyId: string | null;
   onAction: (id: string, action: "approve" | "reject") => void;
-  onGrant: (email: string, orgName: string, area: string) => Promise<string | null>;
-  onAddMember: (ngoId: string, email: string, role: string) => Promise<string | null>;
-  onRemoveMember: (ngoId: string, email: string) => Promise<string | null>;
-  onDeleteOrg: (ngoId: string) => Promise<string | null>;
+  onOpenOrgs: () => void;
 }) {
+  if (requests.length === 0) {
+    return (
+      <div className="card p-8 text-center">
+        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <HeartHandshake className="h-6 w-6" />
+        </span>
+        <h2 className="font-display text-base">No pending requests</h2>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-bark-500">
+          This is where an organisation that applied through the site turns
+          up. To set one up yourself, go to{" "}
+          <button
+            onClick={onOpenOrgs}
+            className="font-semibold text-paw-600 underline underline-offset-2"
+          >
+            Organisations
+          </button>
+          .
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      <GrantAccessForm onGrant={onGrant} />
-      <AddMemberForm orgs={orgs} onAddMember={onAddMember} onRemoveMember={onRemoveMember} />
-      {orgs.length > 0 && (
-        <div className="card p-4">
-          <p className="mb-2 text-sm font-semibold">Organisations ({orgs.length})</p>
-          <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
-            {orgs.map((o) => (
-              <li key={o.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                <span className="min-w-0 truncate">
-                  <span className="font-medium">{o.name}</span>
-                  {o.area && <span className="text-bark-400"> · {o.area}</span>}
-                </span>
-                <span className="flex shrink-0 items-center gap-3 text-xs text-bark-400">
-                  <span>{o.members} member{o.members === 1 ? "" : "s"} · {o.leads} lead{o.leads === 1 ? "" : "s"}</span>
-                  <button
-                    onClick={async () => { if (confirm(`Delete "${o.name}" and remove all its members? This cannot be undone.`)) { const e = await onDeleteOrg(o.id); if (e) alert(e); } }}
-                    className="rounded-md px-2 py-1 font-semibold text-status-injured hover:bg-status-injured/10"
-                  >
-                    Delete
-                  </button>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {grants.length > 0 && (
-        <div className="card p-4">
-          <p className="mb-2 text-sm font-semibold">Granted access ({grants.length})</p>
-          <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
-            {grants.map((g) => (
-              <li key={g.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                <span className="min-w-0"><span className="font-medium">{g.org_name}</span> <span className="text-bark-400">· {g.email}</span></span>
-                <span className="shrink-0 text-xs text-bark-400">{timeAgo(g.created_at)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {requests.length === 0 ? (
-        <div className="card p-8 text-center">
-          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-            <HeartHandshake className="h-6 w-6" />
-          </span>
-          <h2 className="font-display text-base">No pending requests</h2>
-          <p className="mt-1 text-sm text-bark-500">
-            NGO access requests appear here. Or grant access directly above.
-          </p>
-        </div>
-      ) : (
     <div className="space-y-3">
+      <p className="text-[13px] text-bark-500">
+        Approving creates the organisation and gives this person access to it.
+        Everything after that, adding their team and issuing codes, happens in{" "}
+        <button
+          onClick={onOpenOrgs}
+          className="font-semibold text-paw-600 underline underline-offset-2"
+        >
+          Organisations
+        </button>
+        .
+      </p>
       {requests.map((r) => (
         <div key={r.id} className="card p-4">
           <div className="flex items-start justify-between gap-3">
@@ -1426,7 +1455,7 @@ function PartnerRequestsList({
               className="inline-flex items-center justify-center gap-1.5 rounded-full bg-status-vaccinated/15 py-2 text-sm font-semibold text-status-vaccinated disabled:opacity-50"
             >
               {busyId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-              Approve as partner
+              Approve
             </button>
             <button
               onClick={() => onAction(r.id, "reject")}
@@ -1438,8 +1467,6 @@ function PartnerRequestsList({
           </div>
         </div>
       ))}
-    </div>
-      )}
     </div>
   );
 }

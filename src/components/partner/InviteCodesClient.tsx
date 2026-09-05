@@ -52,7 +52,11 @@ export function InviteCodesClient() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fresh, setFresh] = useState<{ code: string; name: string } | null>(null);
+  const [fresh, setFresh] = useState<{
+    code: string;
+    name: string;
+    emailed: boolean;
+  } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
   async function load() {
@@ -76,7 +80,7 @@ export function InviteCodesClient() {
     setError(null);
     try {
       const r = await createTeamCode(email, name, role);
-      setFresh({ code: r.code, name: name.trim() });
+      setFresh({ code: r.code, name: name.trim(), emailed: r.emailed });
       setName("");
       setEmail("");
       await load();
@@ -188,10 +192,9 @@ export function InviteCodesClient() {
             {copied === fresh.code ? <Check size={16} /> : <Copy size={16} />}
           </button>
           <p className="team-freshnote">
-            Send it to them however you already talk to them. They open
-            straypaw.org, choose &ldquo;I have a code&rdquo;, and type it in.
-            The same code works every time they come back, so tell them to
-            keep it.
+            {fresh.emailed
+              ? "Emailed to them, with what to do with it. The same code works every time they come back, so it is worth them keeping."
+              : "No email went out, so pass this on yourself. They open straypaw.org, choose \u201cI have a code\u201d, and type it in. The same code works every time they come back."}
           </p>
         </div>
       )}

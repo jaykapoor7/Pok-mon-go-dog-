@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
      POST { action: "create", name, city }             → create/verify an org
      POST { action: "invite", ngoId, email, personName, role }
                                                        → mint that person a code
+     POST { action: "retire", ngoId }                  → remove an organisation
      POST { action: "revokeCode", id }                 → turn one code off
      POST { action: "remove", ngoId, email }           → take access away
 
@@ -157,6 +158,38 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ...(minted as object), emailed });
+  }
+
+  if (body.action === "retire") {
+    /* Removing an organisation means removing access to it. The records it
+       holds stay, and the row itself goes only when it holds nothing, which
+       is the case this is really for: one created by mistake a minute ago. */
+    const { data, error } = await supa.rpc("admin_retire_org", {
+      p_ngo_id: String(body.ngoId ?? ""),
+    });
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    const r = (data ?? {}) as {
+      ok?: boolean; deleted?: boolean; error?: string; name?: string;
+      animals?: number; cases?: number; documents?: number;
+    };
+    if (!r.ok) {
+      return NextResponse.json({ error: r.error ?? "Could not remove it." }, { status: 400 });
+    }
+    if (r.deleted) {
+      return NextResponse.json({ ok: true, message: `${r.name} deleted. It held no records.` });
+    }
+    const held = [
+      r.animals ? `${r.animals} animal${r.animals === 1 ? "" : "s"}` : null,
+      r.cases ? `${r.cases} case${r.cases === 1 ? "" : "s"}` : null,
+      r.documents ? `${r.documents} document${r.documents === 1 ? "" : "s"}` : null,
+    ].filter(Boolean).join(", ");
+    return NextResponse.json({
+      ok: true,
+      message: held
+        ? `Everyone's access to ${r.name} was removed and its codes turned off. Its records were kept (${held}), so it is marked unverified rather than deleted.`
+        : `Everyone's access to ${r.name} was removed and it is marked unverified.`,
+    });
   }
 
   if (body.action === "revokeCode") {
