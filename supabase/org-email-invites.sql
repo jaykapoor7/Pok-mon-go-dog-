@@ -226,3 +226,65 @@ grant execute on function admin_create_org(text, text, text)        to service_r
 grant execute on function admin_invite_to_org(uuid, text, text)     to service_role;
 grant execute on function admin_remove_from_org(uuid, text)         to service_role;
 grant execute on function admin_list_orgs()                         to service_role;
+
+-- ── Retiring an organisation, without destroying its records ────────
+
+-- The moderation console used to hard-delete the ngos row. Postgres
+-- refused whenever the organisation held anything (cases_ngo_id_fkey), and
+-- the raw constraint error surfaced in the interface. That refusal was
+-- correct: deleting an organisation that holds cases, animals and scans
+-- would take real fieldwork with it, and a foreign key is a poor place to
+-- discover you meant something gentler.
+--
+-- So removing an organisation now means removing people's access to it.
+-- Memberships and invitations go, the organisation is marked unverified so
+-- it cannot be used, and the records it holds stay. The row itself is
+-- deleted only when it holds nothing at all, which is the case the console
+-- was really for: a mistyped organisation created a minute ago.
+create or replace function admin_retire_org(p_ngo_id uuid)
+returns json language plpgsql security definer set search_path = public as $$
+declare
+  v_cases   bigint := 0;
+  v_dogs    bigint;
+  v_docs    bigint := 0;
+  v_codes   bigint := 0;
+  v_name    text;
+begin
+  select name into v_name from ngos where id = p_ngo_id;
+  if v_name is null then
+    return json_build_object('ok', false, 'error', 'No such organisation');
+  end if;
+
+  select count(*) into v_dogs from dogs where ngo_id = p_ngo_id;
+  -- These tables arrive with later migrations, so their absence is not an
+  -- error on an older database.
+  begin select count(*) into v_cases from cases where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then v_cases := 0; end;
+  begin select count(*) into v_docs from documents where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then v_docs := 0; end;
+  begin select count(*) into v_codes from org_invite_codes where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then v_codes := 0; end;
+
+  -- Access goes in every case. This is what "remove" is actually for.
+  delete from ngo_members where ngo_id = p_ngo_id;
+  delete from org_email_invites where ngo_id = p_ngo_id;
+  begin
+    update org_invite_codes
+       set active = false, revoked_at = coalesce(revoked_at, now())
+     where ngo_id = p_ngo_id and active;
+  exception when undefined_table then null; end;
+
+  if v_dogs = 0 and v_cases = 0 and v_docs = 0 then
+    delete from ngos where id = p_ngo_id;
+    return json_build_object('ok', true, 'deleted', true, 'name', v_name);
+  end if;
+
+  update ngos set verified = false where id = p_ngo_id;
+
+  return json_build_object(
+    'ok', true, 'deleted', false, 'name', v_name,
+    'animals', v_dogs, 'cases', v_cases, 'documents', v_docs,
+    'codes_revoked', v_codes);
+end $$;
+
+grant execute on function admin_retire_org(uuid) to service_role;

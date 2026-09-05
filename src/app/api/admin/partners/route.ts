@@ -194,14 +194,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  // Delete an organisation and all its memberships.
+  /* Remove an organisation. This used to delete the ngos row outright,
+     which Postgres refused whenever the organisation held anything
+     (cases_ngo_id_fkey), surfacing a raw constraint error in the console.
+     The refusal was right: deleting an organisation that holds cases,
+     animals and scans would take real fieldwork with it.
+
+     Removing one now means removing access to it. Memberships, invitations
+     and volunteer codes go, and the organisation is marked unverified so it
+     cannot be used. The row itself is deleted only when it holds nothing,
+     which is the case this was really for: an organisation created by
+     mistake a minute ago. */
   if (body.action === "delete_org") {
     const ngoId = (body.ngoId ?? "").trim();
     if (!ngoId) return NextResponse.json({ error: "Organisation is required." }, { status: 400 });
-    await supa.from("ngo_members").delete().eq("ngo_id", ngoId);
-    const { error } = await supa.from("ngos").delete().eq("id", ngoId);
+    const { data, error } = await supa.rpc("admin_retire_org", { p_ngo_id: ngoId });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ ok: true });
+
+    const r = data as {
+      ok?: boolean; deleted?: boolean; error?: string; name?: string;
+      animals?: number; cases?: number; documents?: number;
+    } | null;
+    if (!r?.ok) {
+      return NextResponse.json({ error: r?.error ?? "Could not remove it." }, { status: 400 });
+    }
+    if (r.deleted) {
+      return NextResponse.json({ ok: true, message: `${r.name} deleted. It held no records.` });
+    }
+    const held = [
+      r.animals ? `${r.animals} animal${r.animals === 1 ? "" : "s"}` : null,
+      r.cases ? `${r.cases} case${r.cases === 1 ? "" : "s"}` : null,
+      r.documents ? `${r.documents} document${r.documents === 1 ? "" : "s"}` : null,
+    ].filter(Boolean).join(", ");
+    return NextResponse.json({
+      ok: true,
+      message: `Access to ${r.name} removed and its volunteer codes turned off. Its records were kept (${held}), so the organisation was marked unverified rather than deleted.`,
+    });
   }
 
   if (!body.id || (body.action !== "approve" && body.action !== "reject")) {
