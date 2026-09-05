@@ -13,34 +13,48 @@ the parts that break, and none of them reproduce in a simulator.
 
 ## 0. Before anything
 
-Run these in the Supabase SQL editor, in this order. All are idempotent.
+**Run `supabase/RUN-PILOT-MIGRATIONS.sql`.** Supabase dashboard → SQL Editor
+→ New query → paste the whole file → Run. One paste, one run.
 
-- [ ] `supabase/observation-identity.sql`
-- [ ] `supabase/analytics.sql`
-- [ ] `supabase/adoption-and-documents.sql`
-- [ ] `supabase/no-similarity-merge.sql`
-- [ ] `supabase/abc-programme.sql`
-- [ ] `supabase/org-invite-codes.sql`
-- [ ] `supabase/org-email-invites.sql`
-- [ ] `supabase/org-access-codes.sql`
-- [ ] **Confirm email is OFF** in Supabase → Authentication → Providers →
-      Email. With it on, ordinary signup returns no session and the account is
-      unusable until a link is clicked, and Supabase's built-in email service
-      only delivers to addresses on your own project team (capped at 2 per
-      hour), so that link never reaches a Gmail or Outlook address. Code
-      sign-in does not depend on this: those accounts are created already
-      confirmed, and the code is delivered by Resend.
-- [ ] Password reset still goes through Supabase Auth's own mailer, so it
-      needs custom SMTP under Authentication → Emails and a raised limit under
-      Authentication → Rate Limits. RESEND_API_KEY does not cover it: that
-      sends StrayPaw's own email, not Supabase Auth's. Nothing in the PAWS
-      pilot depends on password reset.
-- [ ] `RESEND_API_KEY` and `EMAIL_FROM` are set in Vercel. Without them an
+- [ ] Done, with no error.
+
+That file is the eight pilot migrations concatenated in dependency order.
+Run them individually and you have to get the order right: the access-code
+part only adds columns to a table the email-invites part creates, so out of
+order it fails with `relation "org_email_invites" does not exist`, and every
+function after that point is missing. `Could not find the function
+public.admin_list_orgs` and `admin_retire_org` both mean the same thing, a
+script that stopped early.
+
+It is idempotent, verified by applying it three times in a row to a fresh
+database. Nothing in it deletes data, so a run that failed part way through
+is fixed by running the whole file again.
+
+Brand new Supabase project with no StrayPaw tables at all? Run
+`supabase/RUN-ALL-MIGRATIONS.sql` first, then the pilot file.
+
+### Settings
+
+- [ ] `RESEND_API_KEY` and `EMAIL_FROM` (for example
+      `StrayPaw <hello@straypaw.org>`) are set in Vercel. Without them an
       access code is still minted and shown on the moderation page, but no
       email goes out.
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
       `SUPABASE_SERVICE_ROLE_KEY` are set in Vercel.
-- [ ] `NEXT_PUBLIC_SITE_URL` is `https://straypaw.org`.
+- [ ] `ADMIN_SECRET` is set, or the moderation page cannot do anything.
+- [ ] `NEXT_PUBLIC_SITE_URL` is `https://straypaw.org`, so the link in an
+      invitation email points at the right place.
+- [ ] **Confirm email is OFF** in Supabase → Authentication → Providers →
+      Email. With it on, ordinary signup returns no session and the account
+      is unusable until a link is clicked, and Supabase's built-in mailer
+      only delivers to addresses on your own project team, capped at two an
+      hour, so that link never reaches a Gmail or Outlook address. Code
+      sign-in does not depend on this: those accounts are created already
+      confirmed, and the code arrives through Resend.
+- [ ] Password reset still goes through Supabase Auth's own mailer, so it
+      needs custom SMTP under Authentication → Emails and a raised limit
+      under Authentication → Rate Limits. `RESEND_API_KEY` does not cover
+      it. Nothing in the PAWS pilot depends on password reset.
 
 ## 1. The one journey that matters
 

@@ -27,7 +27,22 @@
 -- Idempotent. Safe to run more than once.
 -- ════════════════════════════════════════════════════════════════
 
-revoke execute on function merge_dogs(uuid, uuid) from authenticated, anon;
+-- Guarded, because a bare revoke on a function that is already gone is an
+-- error, and this file has to survive being run a second time. The drop
+-- alone would remove the grants; the revoke is here so that a drop blocked
+-- by a dependency still leaves nobody able to call it.
+do $$
+begin
+  if exists (
+    select 1 from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public' and p.proname = 'merge_dogs'
+       and pg_get_function_identity_arguments(p.oid) = 'uuid, uuid'
+  ) then
+    execute 'revoke execute on function merge_dogs(uuid, uuid) from authenticated, anon';
+  end if;
+end $$;
+
 drop function if exists merge_dogs(uuid, uuid);
 
 -- An animal record emptied by moving its observations elsewhere is left
