@@ -26,7 +26,15 @@ const LINKS: NavItem[] = [
       { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
     ],
   },
-  { label: "The data", href: "/the-data" },
+  {
+    label: "The data",
+    href: "/the-data",
+    children: [
+      { label: "Published data", href: "/data", note: "Counts by area, with the method and who collected it" },
+      { label: "The evidence", href: "/evidence", note: "What is known, what is missing, what it would cost" },
+      { label: "Sources", href: "/sources", note: "Every figure on this site, and where it came from" },
+    ],
+  },
   {
     label: "Help",
     href: "/faq",

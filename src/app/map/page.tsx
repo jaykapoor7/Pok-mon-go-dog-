@@ -6,7 +6,7 @@ import { getFeedingZones } from "@/lib/feeding-zones";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Living map, StrayPaw",
+  title: "Map, StrayPaw",
   description:
     "Signals, studies, needs and outcomes on one map. Zoom from a city to a cluster and see what is known, what is missing, and who can execute.",
 };

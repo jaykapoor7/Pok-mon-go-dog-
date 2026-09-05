@@ -106,7 +106,7 @@ export function Hero() {
             See how it works <ArrowDownRight size={16} />
           </a>
           <Link href="/map" className="sp-hero-link">
-            Enter the living map <ArrowUpRight size={16} />
+            Open the map <ArrowUpRight size={16} />
           </Link>
         </div>
       </div>

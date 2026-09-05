@@ -37,7 +37,7 @@ export function Hero({ dogs }: { dogs: Dog[] }) {
             transition={{ delay: 0.12 }}
             className="mx-auto mt-5 max-w-md text-pretty text-base text-bark-600 md:mx-0 md:text-lg"
           >
-            Spot a street dog? Snap a photo. Every sighting builds a living map
+            Spot a street dog? Snap a photo. Every sighting builds a shared map
             that helps volunteers and NGOs feed, vaccinate and rescue India&apos;s
             street dogs.
           </motion.p>

@@ -76,10 +76,10 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-paw-600 dark:text-paw-300" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-bark-800 dark:text-bark-100">
-              This is {title}, with no records loaded.
+              You are not signed in, so no records are loaded.
             </p>
             <p className="mt-1 text-[13px] leading-relaxed text-bark-600 dark:text-bark-300">
-              Look around the workspace freely. Case records load once you sign
+              Look around freely. Case records load once you sign
               in with a verified organisation account, and each NGO sees only
               its own, so nothing here is another org&apos;s data.
             </p>

@@ -80,7 +80,7 @@ export function PartnerOverview() {
           <h1 className="text-2xl font-semibold tracking-tight text-bark-900 dark:text-bark-50 sm:text-3xl">
             {greeting()}{firstName ? `, ${firstName}` : ""}
           </h1>
-          <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Partner workspace"}{location ? ` · ${location}` : ""}</p>
+          <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Not in an organisation yet"}{location ? ` · ${location}` : ""}</p>
         </div>
         <Link href="/partner/cases/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"><Plus className="h-4 w-4" /> New case</Link>
       </div>

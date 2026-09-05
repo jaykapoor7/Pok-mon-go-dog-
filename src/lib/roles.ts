@@ -43,8 +43,8 @@ export const ROLE_META: Record<
     short: "Organisation",
     blurb:
       "You run field work: ABC drives, vaccination, rescue, feeding. You need the records to hold together.",
-    home: "/partner/cases",
-    priority: ["/partner/cases", "/partner/animals", "/partner/field", "/map"],
+    home: "/partner",
+    priority: ["/partner", "/partner/incoming", "/partner/drives", "/partner/cases"],
     apply: "/partner-apply",
     applyLabel: "Apply to partner",
   },

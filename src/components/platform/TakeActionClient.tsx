@@ -37,7 +37,7 @@ export function TakeActionClient() {
   return (
     <div>
       <header className="max-w-3xl">
-        <SectionLabel>Take Action</SectionLabel>
+        <SectionLabel>What an area needs</SectionLabel>
         <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">Turn what the data shows into what you do.</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
           Pick a place. We surface what the numbers say it needs, the evidence-based actions that respond, and the people already working there.

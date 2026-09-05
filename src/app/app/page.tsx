@@ -25,7 +25,7 @@ const QUICK_LINKS = [
   {
     href: "/map",
     icon: Map,
-    label: "Living map",
+    label: "Map",
     sub: "All sightings, studies, outcomes",
   },
   {

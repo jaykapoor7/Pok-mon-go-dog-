@@ -58,6 +58,10 @@ export function MapView({
   const [tilted, setTilted] = useState(false);
   /* The legend has always listed a coverage-gap layer; now it renders one. */
   const [showGaps, setShowGaps] = useState(false);
+  /* The four figures under the map were a read-out. They are the obvious
+     filters, and people kept clicking them, so they are now the control:
+     tap one and the map shows only those animals. Null is everything. */
+  const [only, setOnly] = useState<"needs" | "sterilised" | "vaccinated" | null>(null);
   const { user } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -93,18 +97,25 @@ export function MapView({
   /* Everything in the bottom strip is counted from the records actually
      loaded. Pre-launch these are genuinely zero, and the strip says so
      rather than showing invented activity. */
-  const recent = useMemo(() => allDogs.slice(0, 5), [allDogs]);
+  const dogs = useMemo(() => {
+    if (only === "needs") return allDogs.filter((d) => d.needs_help);
+    if (only === "sterilised") return allDogs.filter((d) => d.sterilised);
+    if (only === "vaccinated") return allDogs.filter((d) => d.vaccinated);
+    return allDogs;
+  }, [allDogs, only]);
+
+  const recent = useMemo(() => dogs.slice(0, 5), [dogs]);
 
   const counts = useMemo(() => {
     const needsHelp = allDogs.filter((d) => d.needs_help).length;
     const sterilised = allDogs.filter((d) => d.sterilised).length;
     const vaccinated = allDogs.filter((d) => d.vaccinated).length;
     return [
-      { value: String(allDogs.length), label: "ON THE MAP", sub: "REPORTED", color: SAFFRON },
-      { value: String(needsHelp), label: "NEED HELP", sub: "UNRESOLVED", color: DANGER },
-      { value: String(sterilised), label: "STERILISED", sub: "ON RECORD", color: MINT },
-      { value: String(vaccinated), label: "VACCINATED", sub: "ON RECORD", color: VIOLET },
-    ];
+      { key: null,          value: String(allDogs.length), label: "ALL ANIMALS", sub: "ON THE MAP",  color: SAFFRON },
+      { key: "needs",       value: String(needsHelp),      label: "NEED HELP",   sub: "UNRESOLVED",  color: DANGER },
+      { key: "sterilised",  value: String(sterilised),     label: "STERILISED",  sub: "ON RECORD",   color: MINT },
+      { key: "vaccinated",  value: String(vaccinated),     label: "VACCINATED",  sub: "ON RECORD",   color: VIOLET },
+    ] as const;
   }, [allDogs]);
 
   const dist = selected && coords ? distanceMeters(coords, selected) : null;
@@ -128,13 +139,13 @@ export function MapView({
           border: 0,
         }}
       >
-        Living map, street-animal signals, studies and outcomes across India
+        Street animals, studies and outcomes across India
       </h1>
 
       {/* MAP + OVERLAYS */}
         <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
           <MapCanvas
-            dogs={allDogs}
+            dogs={dogs}
             onSelect={handleSelect}
             center={center}
             feedingZones={feedingZones}
@@ -302,7 +313,9 @@ export function MapView({
           }}>
             {/* Live reports, real sightings from the loaded records. */}
             <div style={{ flex: "0 0 340px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", overflow: "hidden" }}>
-              <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.68)", marginBottom: 8 }}>LATEST REPORTS</div>
+              <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.68)", marginBottom: 8 }}>
+                {only ? `LATEST · ${counts.find((c) => c.key === only)?.label}` : "LATEST REPORTS"}
+              </div>
               {recent.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {recent.map((d) => (
@@ -319,25 +332,52 @@ export function MapView({
                 </div>
               ) : (
                 <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.55)" }}>
-                  No animals reported yet. The first report on this map appears here.
+                  {only
+                    ? "No animals match that filter yet."
+                    : "No animals reported yet. The first report on this map appears here."}
                 </p>
               )}
             </div>
 
             {/* Live counts, derived from the records actually loaded. */}
             <div style={{ flex: 1, padding: "10px 14px", display: "flex", alignItems: "center", gap: 0 }}>
-              {counts.map((k, i) => (
-                <div key={k.label} style={{
-                  flex: 1,
-                  textAlign: "center",
-                  borderRight: i < counts.length - 1 ? `1px solid ${BORDER}` : "none",
-                  padding: "0 8px",
-                }}>
-                  <div style={{ fontSize: 30, fontWeight: 700, color: k.color, lineHeight: 1.05, letterSpacing: "-0.03em" }}>{k.value}</div>
-                  <div style={{ fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.88)", marginTop: 5, fontWeight: 600 }}>{k.label}</div>
-                  <div style={{ fontSize: 10, letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{k.sub}</div>
-                </div>
-              ))}
+              {counts.map((k, i) => {
+                const on = only === k.key;
+                return (
+                  <button
+                    key={k.label}
+                    type="button"
+                    onClick={() => setOnly(k.key)}
+                    aria-pressed={on}
+                    title={
+                      k.key === null
+                        ? "Show every animal on the map"
+                        : `Show only animals recorded as ${k.label.toLowerCase()}`
+                    }
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      border: "none",
+                      borderRight: i < counts.length - 1 ? `1px solid ${BORDER}` : "none",
+                      /* The active filter is lit from underneath rather than
+                         outlined, so it reads at a glance across a dark strip
+                         without adding another box. */
+                      borderBottom: `3px solid ${on ? k.color : "transparent"}`,
+                      background: on ? "rgba(255,255,255,0.07)" : "transparent",
+                      padding: "6px 8px 4px",
+                      cursor: "pointer",
+                      font: "inherit",
+                      transition: "background 0.15s ease, border-color 0.15s ease",
+                    }}
+                  >
+                    <div style={{ fontSize: 30, fontWeight: 700, color: k.color, lineHeight: 1.05, letterSpacing: "-0.03em" }}>{k.value}</div>
+                    <div style={{ fontSize: 10.5, letterSpacing: "0.1em", color: on ? "#fff" : "rgba(255,255,255,0.88)", marginTop: 5, fontWeight: 600 }}>{k.label}</div>
+                    <div style={{ fontSize: 10, letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>
+                      {on ? "SHOWING THESE" : k.sub}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

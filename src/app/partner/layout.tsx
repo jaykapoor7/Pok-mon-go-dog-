@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (
     <AppShell>
-      <PartnerGate title="Field workspace">
+      <PartnerGate title="Your organisation">
         <div className="mx-auto w-full max-w-[1200px]">{children}</div>
       </PartnerGate>
     </AppShell>

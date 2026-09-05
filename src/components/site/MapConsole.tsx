@@ -164,7 +164,7 @@ export function MapConsole() {
           <b>{selected.leavesWhen}</b>
         </div>
         <Link href="/map" className="sp-drawer-btn">
-          Open the living map <ArrowUpRight size={15} />
+          Open the map <ArrowUpRight size={15} />
         </Link>
       </aside>
     </div>

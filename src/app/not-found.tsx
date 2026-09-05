@@ -21,7 +21,7 @@ export default function NotFound() {
       </p>
       <div className="mt-7 flex flex-wrap gap-3">
         <Link href="/map" className="btn-primary px-5 py-3">
-          Open the living map <ArrowUpRight className="h-4 w-4" />
+          Open the map <ArrowUpRight className="h-4 w-4" />
         </Link>
         <Link href="/app" className="btn-ghost px-5 py-3">
           Console home

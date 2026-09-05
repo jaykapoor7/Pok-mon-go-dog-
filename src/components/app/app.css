@@ -3191,3 +3191,100 @@ a.pgm-figure:hover { background: #f3f6fb; }
   background: rgba(11, 16, 32, 0.06); font-size: 11.5px; font-weight: 650;
   color: #5a6370; text-transform: capitalize;
 }
+
+/* ── the evidence hub ───────────────────────────────────────────────
+   Six reference pages behind one nav entry. Each card leads with the
+   question it answers, because that is how somebody arrives: with a
+   question, not with a page name in mind. */
+
+.ev { max-width: 900px; }
+.ev header { margin-bottom: 22px; }
+.ev h1 { margin: 0 0 8px; font-size: 28px; font-weight: 700; letter-spacing: -0.015em; }
+.ev header p { margin: 0; max-width: 62ch; font-size: 14.5px; line-height: 1.6; color: #5a6370; }
+.ev-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 11px; }
+.ev-card {
+  display: grid; gap: 5px; padding: 17px 18px;
+  border: 1px solid rgba(11, 16, 32, 0.11); border-radius: 6px;
+  background: #fff; color: inherit; text-decoration: none;
+  transition: border-color 0.16s ease;
+}
+.ev-card:hover { border-color: var(--electric-ink); }
+.ev-card svg { color: var(--electric-ink); }
+.ev-card b { font-size: 15.5px; font-weight: 670; }
+.ev-card em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--electric-ink); }
+.ev-card span { font-size: 12.5px; line-height: 1.55; color: #5a6370; }
+
+/* ── the published dataset ──────────────────────────────────────────
+   A page built to be checked, not admired. The table is the page; the
+   totals above it exist to be qualified by the rows below. */
+
+.ds { max-width: 1100px; }
+.ds header { margin-bottom: 22px; }
+.ds h1 { margin: 0 0 8px; font-size: 30px; font-weight: 700; letter-spacing: -0.018em; }
+.ds-lede { margin: 0; max-width: 70ch; font-size: 14.5px; line-height: 1.6; color: #5a6370; }
+.ds-load { display: flex; align-items: center; gap: 9px; padding: 26px 0; font-size: 14px; color: #5a6370; }
+
+.ds-empty {
+  padding: 34px 28px; border: 1px dashed rgba(11, 16, 32, 0.2);
+  border-radius: 8px; background: #fff; max-width: 62ch;
+}
+.ds-empty h2 { margin: 0 0 8px; font-size: 18px; font-weight: 700; }
+.ds-empty p { margin: 0; font-size: 14px; line-height: 1.65; color: #5a6370; }
+
+.ds-head {
+  padding: 20px 22px; margin-bottom: 18px;
+  border: 1px solid rgba(11, 16, 32, 0.11); border-radius: 8px; background: #fff;
+}
+.ds-figures { display: flex; flex-wrap: wrap; gap: 26px; margin-bottom: 16px; }
+.ds-figures span { display: grid; font-size: 12.5px; color: #5a6370; }
+.ds-figures b {
+  font-size: 27px; font-weight: 700; letter-spacing: -0.02em;
+  color: var(--ink); line-height: 1.15;
+}
+.ds-rates { display: grid; gap: 9px; padding-top: 15px; border-top: 1px solid rgba(11, 16, 32, 0.09); }
+.ds-rates p { margin: 0; max-width: 78ch; font-size: 13.5px; line-height: 1.6; color: #3f4756; }
+.ds-rates b { font-weight: 700; color: var(--ink); }
+
+.ds-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 12px; }
+.ds-controls label { display: grid; gap: 4px; font-size: 12px; color: #5a6370; }
+.ds-controls select {
+  min-height: 40px; min-width: 170px; padding: 0 10px;
+  border: 1px solid rgba(11, 16, 32, 0.16); border-radius: 4px;
+  background: #fff; font: inherit; font-size: 14px; color: var(--ink);
+}
+.ds-dl {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 40px; padding: 0 15px; margin-left: auto;
+  border: 1px solid var(--electric-ink); border-radius: 4px;
+  background: #fff; font: inherit; font-size: 13px; font-weight: 650;
+  color: var(--electric-ink); cursor: pointer;
+}
+.ds-dl:hover { background: rgba(71, 111, 183, 0.08); }
+
+.ds-scroll { overflow-x: auto; border: 1px solid rgba(11, 16, 32, 0.11); border-radius: 8px; background: #fff; }
+.ds-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ds-table th, .ds-table td { padding: 11px 13px; text-align: right; white-space: nowrap; }
+.ds-table thead th {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: #616a79; background: #f7f9fc; border-bottom: 1px solid rgba(11, 16, 32, 0.11);
+}
+.ds-table tbody th[scope="row"] { text-align: left; white-space: normal; min-width: 170px; font-weight: 650; }
+.ds-table tbody th small, .ds-table td small {
+  display: block; margin-top: 2px; font-size: 11.5px; font-weight: 400; color: #7b8494;
+}
+.ds-table tbody tr + tr { border-top: 1px solid rgba(11, 16, 32, 0.08); }
+.ds-table td.good { color: #2f7d3e; font-weight: 600; }
+.ds-table td.warn { color: var(--vermilion-ink); font-weight: 600; }
+.ds-table td.muted { color: #7b8494; }
+.ds-org { text-align: left !important; white-space: normal !important; color: #4d5766; }
+
+.ds-method { margin-top: 34px; max-width: 74ch; }
+.ds-method h2 {
+  margin: 0 0 14px; padding-bottom: 9px;
+  border-bottom: 1px solid rgba(11, 16, 32, 0.12);
+  font-size: 18px; font-weight: 700;
+}
+.ds-method dl { margin: 0; }
+.ds-method dl > div + div { margin-top: 17px; }
+.ds-method dt { font-size: 14.5px; font-weight: 650; margin-bottom: 4px; }
+.ds-method dd { margin: 0; font-size: 13.5px; line-height: 1.65; color: #3f4756; }

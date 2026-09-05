@@ -65,13 +65,12 @@ const COMMUNITY = [
 
 /* The evidence chain, in the order it actually runs: what is missing, what is
    outstanding, what it would cost, what is being done, what changed. */
+/* Six reference pages behind one entry. They are things you go to on
+   purpose with a question, not places you pass through daily, and six of
+   them in a sidebar is most of the reason it needed collapsing. */
 const EVIDENCE = [
-  { href: "/gaps", label: "Where data is missing", Icon: ScanSearch },
-  { href: "/needs", label: "What areas need", Icon: ListChecks },
-  { href: "/what-would-it-take", label: "Cost a programme", Icon: Calculator },
-  { href: "/studies", label: "Published studies", Icon: FileText },
-  { href: "/interventions", label: "What has been tried", Icon: Wrench },
-  { href: "/outcomes", label: "Verified outcomes", Icon: ShieldCheck },
+  { href: "/evidence", label: "Research and gaps", Icon: ScanSearch },
+  { href: "/data", label: "Published data", Icon: Database },
 ];
 
 /* Field-operations surface. Same shell, deeper records.
@@ -86,13 +85,13 @@ const WORKSPACE = [
   { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
   { href: "/partner/animals", label: "Animals", Icon: Database },
   { href: "/partner/field", label: "Field work", Icon: MapPin },
-  { href: "/partner/medical", label: "Medical", Icon: Stethoscope },
   { href: "/partner/team", label: "Team", Icon: Users },
   { href: "/partner/reports", label: "Coverage and reports", Icon: FileText },
-  { href: "/partner/volunteers", label: "Volunteer sign-ups", Icon: HandHeart },
-  { href: "/partner/import", label: "Import records", Icon: Upload },
   { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
 ];
+/* Reachable, but not from here. Medical is a filter on Cases, Import is
+   something you do to Animals, and Volunteer sign-ups is a list you read
+   from Team. Each is linked from the page it belongs to. */
 
 /* One column, three sections, only one of them expanded at a time. */
 const SECTIONS: {
@@ -101,7 +100,7 @@ const SECTIONS: {
   items: { href: string; label: string; Icon: typeof Home }[];
 }[] = [
   { key: "community", label: "Explore", items: COMMUNITY },
-  { key: "evidence", label: "The evidence", items: EVIDENCE },
+  { key: "evidence", label: "Data and evidence", items: EVIDENCE },
   { key: "workspace", label: "Your organisation", items: WORKSPACE },
 ];
 
@@ -312,7 +311,11 @@ export function AppShell({
                links are not all in one column at once. After that it is
                whatever the person opened, and opening one never shuts
                another. */
-            const shown = openSections === null ? here : openSections.has(key);
+            /* Everything is open. Fourteen links across three labelled
+               groups does not need hiding, and a person should not have to
+               find a control before they can find a page. The collapse is
+               kept only as a preference somebody can set. */
+            const shown = openSections === null ? true : openSections.has(key);
             return (
               <div key={key} className="spa-sect">
                 <button

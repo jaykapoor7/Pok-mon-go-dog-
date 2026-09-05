@@ -2,7 +2,7 @@
 export const metadata = {
   title: "Add a feeding zone, StrayPaw",
   description:
-    "Register a community feeding point so it appears on the living map.",
+    "Register a community feeding point so it appears on the map.",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

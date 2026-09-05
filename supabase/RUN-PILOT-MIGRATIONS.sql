@@ -7,31 +7,20 @@
 -- Run. Once. That is the entire job.
 --
 -- Run it in one go rather than file by file. The parts depend on each
--- other: the access-code section only adds columns to a table the
--- email-invites section creates, so running them out of order fails with
--- "relation org_email_invites does not exist", and every function defined
--- after that point is missing too.
+-- other, and running them out of order fails part way through, leaving
+-- every function defined after that point missing.
 --
 -- It assumes the base schema is already there: dogs, sightings, ngos,
 -- ngo_members, my_ngo(). If this is a brand new Supabase project, run
 -- RUN-ALL-MIGRATIONS.sql first, then this.
 --
--- Idempotent, and verified to be: applied three times in a row to a fresh
--- database with no errors. Nothing here deletes data, so a run that failed
--- part way through is fixed by running the whole thing again, and re-running
--- it after an earlier successful run is safe.
+-- Idempotent, and verified to be: applied repeatedly to a fresh database
+-- with no errors. Nothing here deletes data, so a run that failed part way
+-- through is fixed by running the whole thing again, and re-running it
+-- after a successful run is safe.
 --
 -- Contents, in dependency order:
---   1. observation-identity.sql     One animal, many observations, and never a guess about which
---   2. analytics.sql                Product analytics for the reporting funnel
---   3. adoption-and-documents.sql   Adoption listings, and scanned paperwork attached to records
---   4. no-similarity-merge.sql      Removes merging animals that merely look alike
---   5. abc-programme.sql            Sterilisation and rabies status, three-valued
---   6. org-invite-codes.sql         Volunteer reporting codes
---   7. org-email-invites.sql        Organisation membership by email, and the moderation tools
---   8. org-access-codes.sql         One standing six-character sign-in code per person
---   9. campaigns.sql                Drives, and filing observations against them
--- ════════════════════════════════════════════════════════════════
+--    1. observation-identity.sql     One animal, many observations, and never a guess about which\n--    2. analytics.sql                Product analytics for the reporting funnel\n--    3. adoption-and-documents.sql   Documents attached to records (adoption listings unused)\n--    4. no-similarity-merge.sql      Removes merging animals that merely look alike\n--    5. abc-programme.sql            Sterilisation and rabies status, three-valued\n--    6. org-invite-codes.sql         Volunteer reporting codes\n--    7. org-email-invites.sql        Organisation membership, moderation, and deleting an org\n--    8. org-access-codes.sql         One standing six-character sign-in code per person\n--    9. campaigns.sql                Drives, filing observations, and what counts as nearby\n--   10. public-dataset.sql           The published dataset: one citable row per survey\n-- ════════════════════════════════════════════════════════════════
 
 
 -- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2203,6 +2192,93 @@ end $$;
 grant execute on function admin_retire_org(uuid) to service_role;
 
 
+-- ── Deleting an organisation outright ───────────────────────────────
+
+-- admin_retire_org above is the gentle version: it takes everyone's access
+-- away and leaves the row standing, marked unverified, whenever the
+-- organisation holds records. In practice that is not what "Remove" means
+-- to the person clicking it. They mistyped a name, or a pilot ended, and
+-- they expect the organisation to be gone from the page.
+--
+-- So this deletes it. What it does not do is destroy fieldwork. Anything
+-- that can stand on its own is detached and kept: the animals stay on the
+-- map as community records, the cases and documents and adoption listings
+-- stay, they simply belong to nobody. Only rows that are meaningless
+-- without the organisation go with it: its memberships, its codes, its
+-- invitations, and its drives.
+--
+-- Two columns have to become nullable for that to be possible. They were
+-- declared not-null when an organisation was assumed permanent.
+alter table documents         alter column ngo_id drop not null;
+alter table adoption_listings alter column ngo_id drop not null;
+
+create or replace function admin_delete_org(p_ngo_id uuid)
+returns json language plpgsql security definer set search_path = public as $$
+declare
+  v_name    text;
+  v_dogs    bigint := 0;
+  v_cases   bigint := 0;
+  v_docs    bigint := 0;
+  v_people  bigint := 0;
+  t         text;
+begin
+  select name into v_name from ngos where id = p_ngo_id;
+  if v_name is null then
+    return json_build_object('ok', false, 'error', 'No such organisation');
+  end if;
+
+  -- Counted before anything moves, so the message can say what happened.
+  begin select count(*) into v_dogs  from dogs      where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then null; end;
+  begin select count(*) into v_cases from cases     where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then null; end;
+  begin select count(*) into v_docs  from documents where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then null; end;
+  select count(*) into v_people from ngo_members where ngo_id = p_ngo_id;
+
+  -- Gone with the organisation: nothing here means anything without it.
+  foreach t in array array[
+    'ngo_members', 'org_email_invites', 'org_invite_codes', 'campaigns'
+  ] loop
+    begin
+      execute format('delete from %I where ngo_id = $1', t) using p_ngo_id;
+    exception when undefined_table or undefined_column then null; end;
+  end loop;
+
+  -- Kept, and detached. Every one of these is a record of something that
+  -- actually happened, and an organisation closing does not un-happen it.
+  foreach t in array array[
+    'dogs', 'cases', 'sightings', 'documents', 'adoption_listings',
+    'volunteers', 'feeding_zones', 'fundraisers', 'surveys', 'tasks',
+    'vet_camps', 'access_grants'
+  ] loop
+    begin
+      execute format('update %I set ngo_id = null where ngo_id = $1', t) using p_ngo_id;
+    exception when undefined_table or undefined_column or not_null_violation then null; end;
+  end loop;
+
+  -- Anything added later that still points here would block the delete and
+  -- surface its constraint name to whoever clicked Remove. Falling back to
+  -- unverified is a worse answer than deleting, but a much better one than
+  -- a raw Postgres error.
+  begin
+    delete from ngos where id = p_ngo_id;
+  exception when foreign_key_violation then
+    update ngos set verified = false where id = p_ngo_id;
+    return json_build_object(
+      'ok', true, 'deleted', false, 'name', v_name,
+      'error', 'Something still references this organisation, so its access '
+               'was removed and it was marked unverified instead.');
+  end;
+
+  return json_build_object(
+    'ok', true, 'deleted', true, 'name', v_name,
+    'people', v_people, 'animals', v_dogs, 'cases', v_cases, 'documents', v_docs);
+end $$;
+
+grant execute on function admin_delete_org(uuid) to service_role;
+
+
 -- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- ┃ org-access-codes.sql
 -- ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3039,6 +3115,56 @@ grant execute on function org_campaigns(boolean)    to authenticated, service_ro
 grant execute on function campaign_animals(uuid, text, text, int, int)
   to authenticated, service_role;
 
+-- ── 4b. What counts as "near us" ────────────────────────────────────
+
+-- The dashboard said 65 unclaimed sightings nearby while the Incoming list
+-- showed none, because they asked different questions: the count was every
+-- unclaimed sighting in the country, and the list was scoped to members.
+-- Neither was right. An organisation in Chennai has no use for a dog
+-- somebody photographed in Delhi.
+--
+-- Near means one of two things, and both are honest: the sighting names the
+-- city this organisation works in, or it is within 40km of where this
+-- organisation actually has animals on the register. The second matters
+-- because zone text is written by whoever typed it and a city name is not
+-- a boundary.
+create or replace function org_nearby_community_sightings()
+returns setof sightings language sql stable security definer
+set search_path = public as $$
+  with me as (
+    select n.id, n.city, n.state
+      from ngos n where n.id = my_ngo()
+  ),
+  centre as (
+    select avg(d.lat) as lat, avg(d.lng) as lng
+      from dogs d
+     where d.ngo_id = (select id from me)
+       and d.lat is not null and d.lng is not null
+       and d.lat <> 0 and d.lng <> 0
+  )
+  select s.*
+    from sightings s, me
+   where s.ngo_id is null
+     and s.campaign_id is null
+     and s.status <> 'rejected'
+     and (
+       -- The organisation's own city, named in the sighting's zone.
+       (coalesce(btrim(me.city), '') <> ''
+         and s.zone ilike '%' || btrim(me.city) || '%')
+       or
+       -- Or close to where they already work. 0.36 degrees is roughly 40km
+       -- at Indian latitudes, and a square is the right amount of precision
+       -- for "is this ours to look at".
+       (exists (select 1 from centre where centre.lat is not null)
+         and s.lat is not null and s.lng is not null
+         and abs(s.lat - (select lat from centre)) < 0.36
+         and abs(s.lng - (select lng from centre)) < 0.36)
+     );
+$$;
+
+grant execute on function org_nearby_community_sightings()
+  to authenticated, service_role;
+
 -- ── 5. Incoming: what is waiting to be filed ────────────────────────
 
 -- Two lists, deliberately separate, because they need different decisions.
@@ -3072,9 +3198,11 @@ create or replace function org_incoming(
      where s.campaign_id is null
        and s.status <> 'rejected'
        and (
-         (p_source = 'ours'      and s.ngo_id = my_ngo())
+         (p_source = 'ours' and s.ngo_id = my_ngo())
          or
-         (p_source = 'community' and s.ngo_id is null and my_ngo() is not null)
+         (p_source = 'community'
+           and my_ngo() is not null
+           and s.id in (select id from org_nearby_community_sightings()))
        )
        and (p_zone is null or s.zone ilike '%' || p_zone || '%')
   )
@@ -3193,11 +3321,141 @@ returns json language sql stable security definer set search_path = public as $$
         'ours', (select count(*) from sightings
                   where ngo_id = my_ngo() and campaign_id is null
                     and status <> 'rejected'),
-        'community', (select count(*) from sightings
-                       where ngo_id is null and campaign_id is null
-                         and status <> 'rejected'))
+        -- Same function the Incoming list uses. A count and the list behind
+        -- it must not be able to answer differently.
+        'community', (select count(*) from org_nearby_community_sightings()))
     )
   );
 $$;
 
 grant execute on function org_programme_breakdown() to authenticated, service_role;
+
+
+-- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- ┃ public-dataset.sql
+-- ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- ════════════════════════════════════════════════════════════════
+-- StrayPaw, the published dataset.
+--
+-- WHY THIS EXISTS
+--
+-- The point of the whole system is a number nobody in India currently
+-- has: how many street dogs there are in a defined area, how many are
+-- sterilised, how many are vaccinated, counted rather than estimated, with
+-- the method visible.
+--
+-- A figure like that is only worth anything if somebody else can check it.
+-- So what gets published is not a headline, it is a row per area with the
+-- counts, the dates it was collected between, how many observations it
+-- rests on, and who collected it. Anybody quoting it can see what they are
+-- quoting.
+--
+-- WHAT IS AND IS NOT IN IT
+--
+-- Only work filed against a drive by the organisation that did it. A
+-- sighting somebody sent in and nobody has reviewed is not evidence of
+-- anything yet, and it is excluded until a person has taken responsibility
+-- for it. That is the same rule the dashboards use, applied outward.
+--
+-- Unknowns are reported, never folded into a denominator. A ward where 40
+-- animals were checked and 60 were not is a ward with 40 data points and a
+-- known blind spot, and saying so is the entire difference between a
+-- dataset and a claim.
+--
+-- Public read. There is nothing here that identifies a person: no
+-- reporter names, no exact coordinates, no contact details. Areas are
+-- reported at the granularity the organisation recorded them at.
+--
+-- Idempotent. Safe to run more than once.
+-- Depends on: campaigns.sql, abc-programme.sql.
+-- ════════════════════════════════════════════════════════════════
+
+-- ── One published row per drive ─────────────────────────────────────
+
+create or replace view published_surveys as
+  select
+    c.id                                   as survey_id,
+    n.name                                 as organisation,
+    n.city                                 as city,
+    n.state                                as state,
+    c.name                                 as survey,
+    c.kind                                 as method,
+    coalesce(nullif(btrim(c.zone), ''), n.city, 'Unspecified') as area,
+    c.starts_on,
+    c.ends_on,
+    count(distinct d.id)                                                 as animals,
+    count(distinct d.id) filter (where d.sterilisation_status = 'sterilised')     as sterilised,
+    count(distinct d.id) filter (where d.sterilisation_status = 'not_sterilised') as not_sterilised,
+    count(distinct d.id) filter (where d.sterilisation_status = 'unknown')        as sterilisation_unknown,
+    count(distinct d.id) filter (where d.vaccination_status = 'vaccinated')       as vaccinated,
+    count(distinct d.id) filter (where d.vaccination_status = 'not_vaccinated')   as not_vaccinated,
+    count(distinct d.id) filter (where d.vaccination_status = 'unknown')          as vaccination_unknown,
+    -- Of the animals whose status was established. The honest denominator.
+    case when count(distinct d.id) filter (
+           where d.sterilisation_status in ('sterilised','not_sterilised')) = 0
+      then null
+      else round(100.0 * count(distinct d.id) filter (where d.sterilisation_status = 'sterilised')
+           / count(distinct d.id) filter (
+               where d.sterilisation_status in ('sterilised','not_sterilised')), 1)
+    end as sterilised_pct_of_checked,
+    case when count(distinct d.id) filter (
+           where d.vaccination_status in ('vaccinated','not_vaccinated')) = 0
+      then null
+      else round(100.0 * count(distinct d.id) filter (where d.vaccination_status = 'vaccinated')
+           / count(distinct d.id) filter (
+               where d.vaccination_status in ('vaccinated','not_vaccinated')), 1)
+    end as vaccinated_pct_of_checked,
+    (select count(*) from sightings s where s.campaign_id = c.id)   as observations,
+    (select count(distinct nullif(btrim(coalesce(s.volunteer_name, s.reporter_name, '')), ''))
+       from sightings s where s.campaign_id = c.id)                 as collectors,
+    c.created_at                                                     as published_at
+  from campaigns c
+  join ngos n on n.id = c.ngo_id
+  left join dogs d
+    on d.id in (
+      select d2.id from dogs d2 where d2.campaign_id = c.id
+      union
+      select distinct s.dog_id from sightings s
+       where s.campaign_id = c.id and s.dog_id is not null
+    )
+  group by c.id, n.name, n.city, n.state, c.name, c.kind, c.zone,
+           c.starts_on, c.ends_on, c.created_at
+  -- A drive with nothing filed against it is not a survey.
+  having count(distinct d.id) > 0;
+
+grant select on published_surveys to anon, authenticated, service_role;
+
+-- ── The headline, honestly assembled ────────────────────────────────
+
+-- Totals across every published survey, plus the two things that keep a
+-- total from being a claim: how many organisations it came from, and how
+-- much of it was never checked.
+create or replace function published_totals()
+returns json language sql stable security definer set search_path = public as $$
+  select json_build_object(
+    'surveys',        count(*),
+    'organisations',  count(distinct organisation),
+    'areas',          count(distinct area),
+    'states',         count(distinct state) filter (where state is not null),
+    'animals',        coalesce(sum(animals), 0),
+    'sterilised',     coalesce(sum(sterilised), 0),
+    'not_sterilised', coalesce(sum(not_sterilised), 0),
+    'sterilisation_unknown', coalesce(sum(sterilisation_unknown), 0),
+    'vaccinated',     coalesce(sum(vaccinated), 0),
+    'not_vaccinated', coalesce(sum(not_vaccinated), 0),
+    'vaccination_unknown',   coalesce(sum(vaccination_unknown), 0),
+    'observations',   coalesce(sum(observations), 0),
+    'collectors',     coalesce(sum(collectors), 0),
+    'first_survey',   min(starts_on),
+    'last_survey',    max(coalesce(ends_on, starts_on)),
+    'sterilised_pct_of_checked',
+      case when coalesce(sum(sterilised), 0) + coalesce(sum(not_sterilised), 0) = 0 then null
+        else round(100.0 * sum(sterilised) / (sum(sterilised) + sum(not_sterilised)), 1) end,
+    'vaccinated_pct_of_checked',
+      case when coalesce(sum(vaccinated), 0) + coalesce(sum(not_vaccinated), 0) = 0 then null
+        else round(100.0 * sum(vaccinated) / (sum(vaccinated) + sum(not_vaccinated)), 1) end
+  ) from published_surveys;
+$$;
+
+grant execute on function published_totals() to anon, authenticated, service_role;
