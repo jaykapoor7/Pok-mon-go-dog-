@@ -287,36 +287,78 @@
 }
 
 
-/* ── moderation console, locked light ──────────────────────────────
-   A page of dense tables read for minutes at a time. In dark mode it
-   inherited the app's near-black ground, which made small rows hard work
-   and is not a surface anybody chooses to moderate on. Rather than
-   scatter dark: overrides through the component, the page pins its own
-   ground and lets the existing light styles apply. */
+/* ── moderation console: plain, light, readable ────────────────────
+   This is a private tool for one person, read for minutes at a time. It
+   does not need the site's serif headings, its dark theme, or its shadows.
+   My first attempt half-applied a light ground over dark surfaces and
+   produced black boxes, so this is deliberately blunt: inside .mod-page
+   everything is white cards on a pale ground with one text colour and one
+   border colour, in both themes. */
 
-.mod-page {
+.mod-page,
+.dark .mod-page {
   color-scheme: light;
   min-height: 100vh;
-  margin-left: auto;
-  margin-right: auto;
-  background: #f7f9fc;
-  color: #141821;
+  background: #f4f6f9;
+  color: #1a1f2b;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
-.dark .mod-page,
+
+/* Surfaces. One white, one border, no shadows. */
 .mod-page .card,
+.dark .mod-page .card,
+.dark .mod-page .bg-white,
+.dark .mod-page [class*="bg-paw-"],
 .mod-page input,
 .mod-page select,
-.mod-page textarea {
-  color: #141821;
-}
-.mod-page .card,
-.mod-page input,
-.mod-page select,
-.mod-page textarea {
+.mod-page textarea,
+.dark .mod-page input,
+.dark .mod-page select,
+.dark .mod-page textarea {
   background: #fff;
-  border-color: rgba(11, 16, 32, 0.11);
+  color: #1a1f2b;
+  border: 1px solid #dfe4ec;
+  box-shadow: none;
 }
-.mod-page code {
-  background: rgba(11, 16, 32, 0.05);
-  color: #141821;
+
+/* Text. Headings and bold read dark; everything muted reads grey. */
+.mod-page h1,
+.mod-page h2,
+.mod-page h3,
+.mod-page h4,
+.mod-page b,
+.mod-page strong,
+.dark .mod-page h1,
+.dark .mod-page h2,
+.dark .mod-page h3,
+.dark .mod-page h4,
+.dark .mod-page b,
+.dark .mod-page strong {
+  color: #1a1f2b;
+}
+.mod-page [class*="text-bark-"],
+.dark .mod-page [class*="text-bark-"] {
+  color: #5b6472;
+}
+
+/* Plain headings. The serif is for the public site. */
+.mod-page .font-display {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Dividers and the faint tints Tailwind classes put on rows. */
+.mod-page [class*="divide-"] > * + *,
+.dark .mod-page [class*="divide-"] > * + * {
+  border-color: #e7ebf1;
+}
+.dark .mod-page [class*="bg-white/"],
+.dark .mod-page [class*="bg-black/"] {
+  background: #f4f6f9;
+}
+.mod-page code,
+.dark .mod-page code {
+  background: #eef1f6;
+  color: #1a1f2b;
 }

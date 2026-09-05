@@ -726,8 +726,12 @@ export function AdminClient() {
   // ── Login ─────────────────────────────────────────────────
   if (!authed) {
     return (
-      <div className="mx-auto max-w-sm px-4 pt-28 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-paw-100 text-paw-600">
+      /* Same light ground as the console behind it. This screen used to sit
+         outside .mod-page, so it kept the app's dark theme and was the
+         first thing anybody saw. */
+      <div className="mod-page">
+       <div className="mx-auto max-w-sm px-4 pt-28 text-center">
+        <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded border border-[#dfe4ec] bg-white text-[#4b5b78]">
           <ShieldCheck className="h-8 w-8" />
         </span>
         <h1 className="font-display text-2xl tracking-tightest">
@@ -762,6 +766,7 @@ export function AdminClient() {
         {error && (
           <p className="mt-3 text-sm font-medium text-status-injured">{error}</p>
         )}
+       </div>
       </div>
     );
   }
@@ -819,7 +824,7 @@ export function AdminClient() {
      <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded bg-paw-500 text-white shadow-warm">
+          <span className="grid h-10 w-10 place-items-center rounded border border-[#dfe4ec] bg-white text-[#4b5b78]">
             <ShieldCheck className="h-5 w-5" />
           </span>
           <div>

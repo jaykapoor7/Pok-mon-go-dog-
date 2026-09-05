@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import {
+  CalendarRange,
   Database,
+  Inbox,
   FolderOpen,
   KeyRound,
   MapPin,
@@ -20,6 +22,18 @@ import {
    ════════════════════════════════════════════════════════════════════ */
 
 const ACTIONS = [
+  {
+    href: "/partner/incoming",
+    Icon: Inbox,
+    title: "File what came in",
+    note: "Volunteer reports and community sightings waiting to be put into a drive.",
+  },
+  {
+    href: "/partner/drives",
+    Icon: CalendarRange,
+    title: "Drives and coverage",
+    note: "Sterilisation and rabies rate for each census, round or camp you run.",
+  },
   {
     href: "/report",
     Icon: Radio,

@@ -16,6 +16,7 @@ import {
   Bookmark,
   Building2,
   Calculator,
+  CalendarRange,
   ChevronDown,
   ClipboardList,
   Database,
@@ -24,6 +25,7 @@ import {
   Heart,
   HandHeart,
   Home,
+  Inbox,
   LayoutGrid,
   ListChecks,
   MapPin,
@@ -75,6 +77,8 @@ const EVIDENCE = [
    from a sub-page was the browser's back button. */
 const WORKSPACE = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
+  { href: "/partner/incoming", label: "Incoming", Icon: Inbox },
+  { href: "/partner/drives", label: "Drives", Icon: CalendarRange },
   { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
   { href: "/partner/animals", label: "Animals", Icon: Database },
   { href: "/partner/field", label: "Field ops", Icon: MapPin },
@@ -114,9 +118,11 @@ export function AppShell({
   const nested = useContext(InShell);
   const pathname = usePathname();
   const [role, setRole] = useState<Role | null>(null);
-  /* null means "follow the current page". A click pins one open, and "none"
-     collapses the lot. */
-  const [openSection, setOpenSection] = useState<string | null>(null);
+  /* Which sections are open. Null until the first click, meaning "just the
+     one holding the current page"; after that it is whatever the person
+     chose. Opening one never closes another: somebody who wants two open
+     is telling you they work across both. */
+  const [openSections, setOpenSections] = useState<Set<string> | null>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -293,17 +299,34 @@ export function AppShell({
           {SECTIONS.map(({ key, label, items }) => {
             const links = prioritise(items);
             const here = links.some(({ href }) => isActive(href));
-            /* The section you are working in is open. The others collapse to
-               a single line, because 23 links in one column is a list to
-               read rather than a place to navigate. */
-            const shown = openSection === null ? here : openSection === key;
+            /* Starts with the section holding the current page open, so 23
+               links are not all in one column at once. After that it is
+               whatever the person opened, and opening one never shuts
+               another. */
+            const shown = openSections === null ? here : openSections.has(key);
             return (
               <div key={key} className="spa-sect">
                 <button
                   type="button"
                   className={`spa-side-label ${shown ? "on" : ""}`}
                   aria-expanded={shown}
-                  onClick={() => setOpenSection(shown ? "none" : key)}
+                  onClick={() =>
+                    setOpenSections((prev) => {
+                      /* First click starts from what is on screen now, so
+                         nothing jumps shut underneath them. */
+                      const base =
+                        prev ??
+                        new Set(
+                          SECTIONS.filter((sec) =>
+                            prioritise(sec.items).some((l) => isActive(l.href))
+                          ).map((sec) => sec.key)
+                        );
+                      const next = new Set(base);
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      return next;
+                    })
+                  }
                 >
                   <span>{label}</span>
                   <span className="spa-side-count">

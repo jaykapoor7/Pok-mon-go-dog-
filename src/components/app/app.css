@@ -2773,3 +2773,177 @@ a.pgm-figure:hover { background: #f3f6fb; }
 .qa-card svg { color: var(--electric-ink); }
 .qa-card b { font-size: 14.5px; font-weight: 650; }
 .qa-card span { font-size: 12.5px; line-height: 1.5; color: #5a6370; }
+
+/* ── drives ─────────────────────────────────────────────────────────
+   A card per drive, each carrying both coverage figures. The two are
+   never shown alone: one without the other is how an unknown quietly
+   becomes a negative. */
+
+.dr-head { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 16px; }
+.dr-toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: #5a6370; }
+
+.dr-form {
+  display: grid; gap: 9px; max-width: 560px;
+  margin-bottom: 20px; padding: 16px;
+  border: 1px solid rgba(11, 16, 32, 0.12); border-radius: 5px; background: #fff;
+}
+.dr-form input, .dr-form select {
+  min-height: 42px; padding: 0 11px; font: inherit; font-size: 14px;
+  border: 1px solid rgba(11, 16, 32, 0.16); border-radius: 4px; background: #fff;
+  color: var(--ink);
+}
+.dr-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.dr-form-row label { display: grid; gap: 4px; font-size: 12px; color: #5a6370; }
+
+.dr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.dr-card {
+  display: grid; gap: 9px; padding: 17px 18px;
+  border: 1px solid rgba(11, 16, 32, 0.12); border-radius: 6px; background: #fff;
+}
+.dr-card.off { opacity: 0.62; }
+.dr-card-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.dr-name { font-size: 16px; font-weight: 680; color: var(--ink); text-decoration: none; }
+.dr-name:hover { color: var(--electric-ink); text-decoration: underline; text-underline-offset: 3px; }
+.dr-kind {
+  padding: 2px 8px; border-radius: 999px; background: rgba(71, 111, 183, 0.1);
+  color: var(--electric-ink); font-size: 11.5px; font-weight: 650;
+}
+.dr-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  margin: 0; font-size: 12.5px; color: #616a79;
+}
+.dr-figures { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: #5a6370; }
+.dr-figures b { font-size: 17px; font-weight: 700; color: var(--ink); margin-right: 4px; }
+.dr-figures b.good { color: #2f7d3e; }
+.dr-figures b.warn { color: var(--vermilion-ink); }
+.dr-figures b.muted { color: #7b8494; }
+.dr-rate { margin: 0; font-size: 13px; line-height: 1.55; color: #3f4756; }
+.dr-rate b { font-weight: 700; color: var(--ink); }
+.dr-foot {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+  margin: 2px 0 0; padding-top: 10px;
+  border-top: 1px solid rgba(11, 16, 32, 0.08);
+  font-size: 12px; color: #616a79;
+}
+.dr-foot span { display: inline-flex; align-items: center; gap: 4px; }
+.dr-foot a, .dr-foot button {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 650; color: var(--electric-ink);
+}
+.dr-foot a:hover, .dr-foot button:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.dr-back {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px;
+  font-size: 13px; font-weight: 600; color: var(--electric-ink); text-decoration: none;
+}
+.dr-back:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.dr-animals { margin-top: 26px; }
+.dr-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.dr-filters button {
+  min-height: 38px; padding: 0 13px; border-radius: 999px;
+  border: 1px solid rgba(11, 16, 32, 0.14); background: #fff;
+  font: inherit; font-size: 13px; font-weight: 600; color: #4d5766; cursor: pointer;
+}
+.dr-filters button.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.dr-none { font-size: 13.5px; color: #616a79; }
+.dr-animal-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.dr-animal-list a {
+  display: grid; grid-template-columns: 46px 1fr; align-items: center; gap: 12px;
+  padding: 9px 10px; border-radius: 4px; color: inherit; text-decoration: none;
+}
+.dr-animal-list a:hover { background: rgba(11, 16, 32, 0.04); }
+.dr-animal-list img { width: 46px; height: 46px; border-radius: 4px; object-fit: cover; }
+.dr-animal-list b { display: block; font-size: 14px; font-weight: 640; }
+.dr-animal-list small { font-size: 12px; color: #616a79; }
+
+/* ── incoming ───────────────────────────────────────────────────────
+   Explicit selection, and a button that says how many and into what.
+   Claiming a whole community list by accident is the one expensive
+   mistake available on this page. */
+
+.inc-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.inc-tabs button {
+  min-height: 40px; padding: 0 15px; border-radius: 999px;
+  border: 1px solid rgba(11, 16, 32, 0.14); background: #fff;
+  font: inherit; font-size: 13.5px; font-weight: 640; color: #4d5766; cursor: pointer;
+}
+.inc-tabs button.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.inc-lede { margin: 0 0 16px; font-size: 13px; line-height: 1.55; color: #5a6370; max-width: 60ch; }
+
+.inc-bar {
+  display: flex; flex-wrap: wrap; align-items: end; gap: 12px;
+  padding: 14px 16px; margin-bottom: 16px;
+  border: 1px solid rgba(11, 16, 32, 0.12); border-radius: 5px; background: #fff;
+}
+.inc-bar label { display: grid; gap: 5px; font-size: 12px; color: #5a6370; }
+.inc-bar select {
+  min-height: 42px; min-width: 240px; padding: 0 10px; font: inherit; font-size: 14px;
+  border: 1px solid rgba(11, 16, 32, 0.16); border-radius: 4px; background: #fff; color: var(--ink);
+}
+.inc-note {
+  margin: 0 0 14px; padding: 10px 13px; border-radius: 5px;
+  background: rgba(47, 125, 62, 0.1); color: #2f7d3e; font-size: 13.5px; font-weight: 600;
+}
+.inc-all {
+  border: 0; background: none; padding: 0 0 10px; cursor: pointer;
+  font: inherit; font-size: 12.5px; font-weight: 650; color: var(--electric-ink);
+}
+.inc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.inc-list li {
+  border: 1px solid rgba(11, 16, 32, 0.11); border-radius: 5px; background: #fff;
+}
+.inc-list li.on { border-color: var(--electric-ink); background: rgba(71, 111, 183, 0.05); }
+.inc-list label {
+  display: grid; grid-template-columns: auto 62px 1fr; align-items: start;
+  gap: 12px; padding: 12px 14px; cursor: pointer;
+}
+.inc-list input { margin-top: 3px; width: 17px; height: 17px; }
+.inc-list img { width: 62px; height: 62px; border-radius: 4px; object-fit: cover; }
+.inc-nophoto {
+  display: block; width: 62px; height: 62px; border-radius: 4px;
+  background: rgba(11, 16, 32, 0.07);
+}
+.inc-body { display: grid; gap: 4px; min-width: 0; }
+.inc-body > b { font-size: 14.5px; font-weight: 650; }
+.inc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12.5px; color: #616a79; }
+.inc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.inc-tags i {
+  font-style: normal; padding: 2px 8px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 650;
+  background: rgba(11, 16, 32, 0.06); color: #5a6370;
+}
+.inc-tags i.sterilised, .inc-tags i.vaccinated { background: rgba(47, 125, 62, 0.12); color: #2f7d3e; }
+.inc-tags i.not_sterilised, .inc-tags i.not_vaccinated { background: rgba(176, 42, 16, 0.1); color: var(--vermilion-ink); }
+.inc-notes { font-size: 12.5px; line-height: 1.5; color: #4d5766; }
+
+@media (max-width: 620px) {
+  .dr-form-row { grid-template-columns: 1fr; }
+  .inc-bar select { min-width: 0; width: 100%; }
+  .inc-bar label { width: 100%; }
+  .inc-list label { grid-template-columns: auto 48px 1fr; gap: 10px; }
+  .inc-list img, .inc-nophoto { width: 48px; height: 48px; }
+}
+
+/* ── questions ──────────────────────────────────────────────────────
+   A reading page, so one column at a comfortable measure and real
+   spacing between questions. No accordions: somebody looking for an
+   answer should be able to search the page with the browser. */
+
+.faq { max-width: 68ch; margin: 0 auto; padding: 8px 0 60px; }
+.faq header { margin-bottom: 34px; }
+.faq h1 { margin: 0 0 8px; font-size: 30px; font-weight: 700; letter-spacing: -0.015em; }
+.faq header p { margin: 0; font-size: 15px; color: #5a6370; }
+.faq section { margin-bottom: 38px; }
+.faq h2 {
+  margin: 0 0 4px; padding-bottom: 8px;
+  border-bottom: 1px solid rgba(11, 16, 32, 0.12);
+  font-size: 18px; font-weight: 700;
+}
+.faq-note { margin: 0 0 18px; font-size: 13px; color: #6b7482; }
+.faq dl { margin: 0; }
+.faq dl > div + div { margin-top: 20px; }
+.faq dt { font-size: 15px; font-weight: 650; margin-bottom: 5px; }
+.faq dd { margin: 0; font-size: 14.5px; line-height: 1.65; color: #3f4756; }
+.faq a { color: var(--electric-ink); text-decoration: underline; text-underline-offset: 2px; }

@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { KeyRound, LogOut, Users } from "lucide-react";
+import { HelpCircle, KeyRound, LogOut, Users } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myProfile, type Profile } from "@/lib/programme";
 import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volunteer";
 import { ROLE_META, type Role } from "@/lib/roles";
+import { openTour } from "./Welcome";
 
 /* ════════════════════════════════════════════════════════════════════
    Who you are, at the foot of the console's side nav.
@@ -101,6 +102,12 @@ export function ProfilePanel({
               <KeyRound size={13} /> Enter an organisation code
             </Link>
           )}
+          <button type="button" onClick={openTour}>
+            <HelpCircle size={13} /> Show me around
+          </button>
+          <Link href="/faq" onClick={onNavigate}>
+            <HelpCircle size={13} /> Questions
+          </Link>
           <button type="button" onClick={signOut}>
             <LogOut size={13} /> Sign out
           </button>
@@ -128,6 +135,12 @@ export function ProfilePanel({
           </span>
         </div>
         <div className="spa-profile-links">
+          <button type="button" onClick={openTour}>
+            <HelpCircle size={13} /> Show me around
+          </button>
+          <Link href="/faq" onClick={onNavigate}>
+            <HelpCircle size={13} /> Questions
+          </Link>
           <button
             type="button"
             onClick={() => {
@@ -151,6 +164,9 @@ export function ProfilePanel({
         <Link href="/join" onClick={onNavigate}>
           <KeyRound size={13} /> I have a code
         </Link>
+        <button type="button" onClick={openTour}>
+          <HelpCircle size={13} /> Show me around
+        </button>
       </div>
       {role && (
         <button type="button" className="spa-role-chip" onClick={resetRole}>

@@ -29,6 +29,14 @@ import { ROLE_META, ROLES, readStoredRole, storeRole, type Role } from "@/lib/ro
    ════════════════════════════════════════════════════════════════════ */
 
 const TOUR_KEY = "straypaw.tour.v1";
+/* Reopening the tour from anywhere. A window event rather than context,
+   because the button lives in the side nav and the tour lives in the shell,
+   and threading state between them buys nothing. */
+export const TOUR_EVENT = "straypaw:tour";
+
+export function openTour() {
+  window.dispatchEvent(new CustomEvent(TOUR_EVENT));
+}
 
 const ROLE_ICON: Record<Role, typeof Users> = {
   individual: Users,
@@ -125,6 +133,17 @@ export function Welcome() {
     }
     if (!seen && !readStoredRole()) setStep(0);
   }, [onReportFlow]);
+
+  /* Asked for by name. Starts at the role question, because somebody
+     reopening it may well have picked the wrong one the first time. */
+  useEffect(() => {
+    const open = () => {
+      setRole(null);
+      setStep(0);
+    };
+    window.addEventListener(TOUR_EVENT, open);
+    return () => window.removeEventListener(TOUR_EVENT, open);
+  }, []);
 
   function finish(go?: string) {
     try {
