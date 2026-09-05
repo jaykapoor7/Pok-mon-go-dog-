@@ -87,9 +87,14 @@ export function LocationPickerMap({
           strokeWidth={1.5}
         />
       </div>
-      <span className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-bark-900/75 px-3 py-1 text-[11px] font-medium text-white">
-        Drag the map to place the pin
-      </span>
+      {/* Hidden once tiles fail: it landed on top of the failure notice, and
+          telling someone to drag a map they cannot see is the wrong
+          instruction anyway — search and current-location still work. */}
+      {!tilesFailed && (
+        <span className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-bark-900/75 px-3 py-1 text-[11px] font-medium text-white">
+          Drag the map to place the pin
+        </span>
+      )}
     </div>
   );
 }

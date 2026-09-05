@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -50,12 +51,19 @@ const TOUR = [
 ];
 
 export function Welcome() {
+  /* Never interrupt a report. Someone who opened this flow is standing in
+     front of an animal; asking them what kind of user they are first is how
+     an observation gets lost. They can pick a role any time afterwards. */
+  const pathname = usePathname();
+  const onReportFlow = pathname?.startsWith("/report") ?? false;
+
   const router = useRouter();
   /* -1 = closed, 0 = role picker, 1..3 = tour cards */
   const [step, setStep] = useState(-1);
   const [role, setRole] = useState<Role | null>(null);
 
   useEffect(() => {
+    if (onReportFlow) return;
     let seen = false;
     try {
       seen = window.localStorage.getItem(TOUR_KEY) === "1";
@@ -63,7 +71,7 @@ export function Welcome() {
       seen = true; // storage blocked — do not nag on every load
     }
     if (!seen && !readStoredRole()) setStep(0);
-  }, []);
+  }, [onReportFlow]);
 
   function finish(go?: string) {
     try {
@@ -81,7 +89,7 @@ export function Welcome() {
     setStep(1);
   }
 
-  if (step < 0) return null;
+  if (step < 0 || onReportFlow) return null;
 
   const card = step > 0 ? TOUR[step - 1] : null;
   const meta = role ? ROLE_META[role] : null;
