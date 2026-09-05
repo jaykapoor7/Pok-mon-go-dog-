@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   Explainer pages. Dense, full-bleed, alternating grounds — no section
+   Explainer pages. Dense, full-bleed, alternating grounds, no section
    is allowed to fall back to a bare white band.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -57,8 +57,10 @@
 .mk-ink { background: var(--ink); color: var(--paper); }
 .mk-ink .mk-h2 { color: var(--paper); }
 .mk-ink .mk-h2 span { color: var(--electric); }
+/* --vermilion is 2.56:1 on paper and bone, under the 3:1 that large text
+   needs. The ink variant clears it while reading as the same accent. */
 .mk-paper .mk-h2 span,
-.mk-bone .mk-h2 span { color: var(--vermilion); }
+.mk-bone .mk-h2 span { color: var(--vermilion-ink); }
 
 .mk-h2 {
   font-size: clamp(34px, 4.6vw, 62px);
@@ -109,7 +111,7 @@
 
 .mk-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
   gap: 1px;
   background: rgba(127, 140, 165, 0.22);
   border: 1px solid rgba(127, 140, 165, 0.22);
@@ -131,13 +133,13 @@
 .mk-stat span { display: block; margin: 10px 0 8px; font-size: 13.5px; font-weight: 600; }
 .mk-stat small {
   display: block;
-  font-family: var(--font-mono), monospace;
-  font-size: 10px;
-  line-height: 1.6;
-  letter-spacing: 0.05em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  letter-spacing: 0;
 }
 .mk-ink .mk-stat small { color: #8b98b0; }
-.mk-paper .mk-stat small, .mk-bone .mk-stat small { color: #5f6875; }
+.mk-paper .mk-stat small, .mk-bone .mk-stat small { color: #545c69; }
 
 /* ── two-column prose + figure ──────────────────────────────────── */
 
@@ -168,7 +170,7 @@
   display: block;
   margin-top: 12px;
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -200,13 +202,13 @@
 .mk-paper .mk-row p, .mk-bone .mk-row p { color: #4d5766; }
 .mk-row .mk-tag {
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 .mk-ink .mk-row .mk-tag { color: var(--electric); }
-.mk-paper .mk-row .mk-tag, .mk-bone .mk-row .mk-tag { color: var(--vermilion-ink); }
+.mk-paper .mk-row .mk-tag, .mk-bone .mk-row .mk-tag { color: #414a59; }
 
 /* ── next steps ─────────────────────────────────────────────────── */
 

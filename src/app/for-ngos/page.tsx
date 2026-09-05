@@ -8,7 +8,7 @@ import { ResolveFigure } from "@/components/marketing/figures";
 import { ORGS } from "@/lib/platform/orgs";
 
 export const metadata = {
-  title: "For NGOs — better tools, same fieldwork",
+  title: "For NGOs, better tools, same fieldwork",
   description:
     "Case management, an animal registry, medical tracking and a durable record of the work your team already does. Free for verified organisations.",
 };
@@ -22,7 +22,7 @@ export default function ForNgosPage() {
       lede="You already know how to run a catch, a surgery, a release. What usually breaks is everything around it: which animal this was, what was done last time, and how to show a funder any of it six months later."
       figure={<ResolveFigure />}
       next={[
-        { label: "Open the workspace", href: "/partner/cases", note: "Look around it now — no account needed." },
+        { label: "Open the workspace", href: "/partner/cases", note: "Look around it now, no account needed." },
         { label: "Apply to partner", href: "/partner-apply", note: "Verification is free for animal-welfare organisations." },
         { label: "Bring your records", href: "/partner/import", note: "Paper registers and WhatsApp threads, imported as they are." },
       ]}
@@ -53,7 +53,7 @@ export default function ForNgosPage() {
             {
               n: "04",
               title: "Reporting",
-              body: "The numbers a funder asks for, produced from the work you already recorded — instead of reconstructed from memory at the end of a grant.",
+              body: "The numbers a funder asks for, produced from the work you already recorded. Instead of reconstructed from memory at the end of a grant.",
             },
           ]}
         />
@@ -74,8 +74,8 @@ export default function ForNgosPage() {
               already have.
             </p>
             <p className="mk-body">
-              What we build is the layer underneath — identity, records,
-              measurement — so that the work you do is legible to the next
+              What we build is the layer underneath. Identity, records,
+              measurement, so that the work you do is legible to the next
               organisation that meets the same animal, and provable to whoever
               paid for it.
             </p>
@@ -106,7 +106,7 @@ export default function ForNgosPage() {
         accent="Apply if it fits."
       >
         <p className="mk-body">
-          The workspace is open to browse without an account — you can see
+          The workspace is open to browse without an account, you can see
           exactly what your team would be working in before committing to
           anything. Case records stay empty until you sign in with a verified
           organisation account, at which point your own data populates it.
@@ -115,7 +115,7 @@ export default function ForNgosPage() {
           items={[
             { n: "01", title: "Look around", body: "Open the workspace and walk through cases, animals, field ops and medical." },
             { n: "02", title: "Apply", body: "Tell us who you are and what area you cover. We review every application personally." },
-            { n: "03", title: "Bring your records", body: "Paper registers and WhatsApp logs can be imported — that is how most organisations arrive." },
+            { n: "03", title: "Bring your records", body: "Paper registers and WhatsApp logs can be imported, that is how most organisations arrive." },
           ]}
         />
       </Band>

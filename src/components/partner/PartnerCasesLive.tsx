@@ -13,7 +13,7 @@ import type { Case } from "@/lib/types";
 
    Cases load through my_org_cases, which runs with the browser session and
    resolves each NGO's own rows. Signed out or unverified, that returns
-   nothing and the dashboard renders genuinely empty — the data never
+   nothing and the dashboard renders genuinely empty, the data never
    reaches the page rather than being hidden in the markup.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -53,8 +53,7 @@ export function PartnerCasesLive() {
         </p>
         <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-bark-500">
           This is the workspace your team would work in. Case records load once
-          you sign in with an organisation account that has been verified —
-          each NGO sees only its own.
+          you sign in with an organisation account that has been verified, each NGO sees only its own.
         </p>
         {!user && (
           <button onClick={openSignIn} className="btn-primary mt-5 px-5 py-2.5 text-[13px]">

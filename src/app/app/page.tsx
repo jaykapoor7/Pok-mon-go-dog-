@@ -76,11 +76,10 @@ export default async function ConsoleHome() {
 
       <p className="spa-lede">
         A shared record layer for community reporters, field teams, and
-        organisations. Every sighting, intervention, and outcome in one place —
-        across India.
+        organisations. Every sighting, intervention, and outcome in one place, across India.
       </p>
 
-      {/* Live counts — zero is real and shown as one. */}
+      {/* Live counts, zero is real and shown as one. */}
       <div className="spa-kpis">
         <div className="spa-kpi">
           <span>Animals on the map</span>

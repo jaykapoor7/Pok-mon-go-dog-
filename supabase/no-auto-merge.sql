@@ -7,7 +7,7 @@
 -- default but lets a person link an observation deliberately, which is what
 -- makes a timeline possible at all. Kept for history.
 --
--- StrayPaw — disable the ≤200 m auto-merge (each sighting = its own dog).
+-- StrayPaw, disable the ≤200 m auto-merge (each sighting = its own dog).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). The old approve_sighting
 -- folded any new sighting within 200 m of an existing dog into that dog, which

@@ -1,10 +1,10 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — NGO fundraisers (link-out model).
+-- StrayPaw, NGO fundraisers (link-out model).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Verified partner NGOs post
 -- a campaign (story, goal, urgency, photo) and the Donate button links to the
 -- NGO's OWN donation channel (their UPI / Razorpay / Milaap / Ketto / bank).
--- StrayPaw never holds or routes funds — it hosts the campaign and drives
+-- StrayPaw never holds or routes funds. It hosts the campaign and drives
 -- traffic; money goes straight to the NGO. Depends on:
 --   • location-privacy.sql → is_ngo_member()
 --   • partner-onboarding.sql / ngo_members → ngo_id attribution
@@ -35,7 +35,7 @@ drop policy if exists fundraisers_read on fundraisers;
 create policy fundraisers_read on fundraisers for select using (status = 'active');
 -- All writes go through the SECURITY DEFINER functions below.
 
--- Create — verified partner NGOs only; auto-linked to the creator's org.
+-- Create, verified partner NGOs only; auto-linked to the creator's org.
 create or replace function create_fundraiser(
   p_title       text,
   p_story       text,
@@ -76,7 +76,7 @@ begin
 end;
 $$;
 
--- Update / close — the owning creator only.
+-- Update / close, the owning creator only.
 create or replace function update_fundraiser(
   p_id              uuid,
   p_story           text default null,

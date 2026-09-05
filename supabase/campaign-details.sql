@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Campaign detail layer — make a fundraiser credible enough that a funder
+-- Campaign detail layer, make a fundraiser credible enough that a funder
 -- believes it: a use-of-funds budget, an updates feed, and an outcome.
 --
 -- Depends on: fundraisers.sql (fundraisers table, created_by_id ownership).
@@ -10,7 +10,7 @@
 alter table fundraisers add column if not exists budget  jsonb default '[]'::jsonb;
 alter table fundraisers add column if not exists outcome text;
 
--- 2. Campaign updates — the running story supporters follow.
+-- 2. Campaign updates, the running story supporters follow.
 create table if not exists fundraiser_updates (
   id            uuid primary key default gen_random_uuid(),
   fundraiser_id uuid not null references fundraisers(id) on delete cascade,

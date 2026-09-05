@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — add sighting deletion (token ownership)
+-- StrayPaw Delhi, add sighting deletion (token ownership)
 --
 -- Run this in the Supabase SQL editor on an existing project. It is also
 -- folded into schema.sql for fresh installs.
@@ -93,7 +93,7 @@ begin
 end;
 $$;
 
--- delete_sighting — verifies the token hash, deletes the sighting, and keeps
+-- delete_sighting, verifies the token hash, deletes the sighting, and keeps
 -- the dog aggregates correct (removing the dog if it was its last sighting).
 create or replace function delete_sighting(p_sighting_id uuid, p_owner_hash text)
 returns boolean

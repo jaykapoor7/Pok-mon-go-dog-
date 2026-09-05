@@ -72,7 +72,7 @@ export default function GapsPage() {
 
       <p className="spa-lede">
         Street-dog population is published for most of India. What each state has
-        measured beyond that varies enormously — select any state to see what it
+        measured beyond that varies enormously, select any state to see what it
         has released, and who is working there.
       </p>
 
@@ -98,7 +98,7 @@ export default function GapsPage() {
 
       <StateExplorer rows={rows} />
 
-      {/* The missing-data argument, kept short — it is one part of the
+      {/* The missing-data argument, kept short. It is one part of the
           picture, not the whole page. */}
       <section className="gap-brief">
         <div className="gap-brief-head">
@@ -109,7 +109,7 @@ export default function GapsPage() {
               measurement problems.
             </h2>
             <p>
-              Somebody is already counting — municipal ABC returns, bite records
+              Somebody is already counting, municipal ABC returns, bite records
               at treatment points, vaccination drives. The number just never
               reaches anyone who could act on it. That is cheaper to fix than a
               study, and it is most of the work.

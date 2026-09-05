@@ -7,7 +7,7 @@ import { ExternalLink, MapPin, Search, X } from "lucide-react";
    Volunteering routes, filtered.
 
    The page listed every route with every matching organisation expanded
-   at once — around 130 rows of names with no way in. Someone arrives
+   at once, around 130 rows of names with no way in. Someone arrives
    knowing one or two things ("I'm in Pune", "I want to help at a
    shelter"), so those are the two filters, plus free text over names and
    places. Counts stay visible so filtering never hides how much exists.
@@ -129,7 +129,7 @@ export function VolunteerClient({
           <h2>Nothing matches that</h2>
           <p>
             No listed organisation matches this combination. The directory is
-            not exhaustive — try a wider state, or clear the filters and browse
+            not exhaustive, try a wider state, or clear the filters and browse
             by the kind of work instead.
           </p>
           <button type="button" onClick={clear} className="spa-cta">

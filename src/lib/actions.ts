@@ -72,11 +72,11 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
 
   /* Without a backend there is nowhere to put this. Returning a trust score
      here told the reporter their sighting was filed when nothing had been
-     written anywhere — the one failure mode that costs us the observation and
+     written anywhere, the one failure mode that costs us the observation and
      the reporter's trust at the same time. */
   if (!supa) {
     throw new Error(
-      "Reporting is not available right now — the record store is not reachable. Nothing was saved, so please try again shortly."
+      "Reporting is not available right now, the record store is not reachable. Nothing was saved, so please try again shortly."
     );
   }
 

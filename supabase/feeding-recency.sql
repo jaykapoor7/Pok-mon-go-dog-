@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — time-aware feeding
+-- StrayPaw Delhi, time-aware feeding
 --
 -- A dog needs feeding multiple times a day, so "Fed" must decay. We track the
 -- last feed time on the dog and the UI only shows "Fed" within a recency

@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — first-party product analytics.
+-- StrayPaw, first-party product analytics.
 --
 -- Enough to answer seven questions and no more:
 --   1. How many people use StrayPaw?
@@ -11,7 +11,7 @@
 --   7. Where do people abandon the reporting flow?
 --
 -- No third-party script, no cookie banner, no vendor. The events table is
--- append-only from the browser and readable only by the service role — a
+-- append-only from the browser and readable only by the service role, a
 -- usage log that anyone could SELECT would expose reporter behaviour, and
 -- location props make that a safety question rather than a privacy nicety.
 --
@@ -97,7 +97,7 @@ grant execute on function track_event(text, text, text, text, jsonb)
 -- ── Read path: the seven questions ──────────────────────────────────
 
 -- Q1, Q2, Q3, Q4. Observations and animals come from the real tables, not
--- from the event log — an event can be lost to a dropped request, whereas a
+-- from the event log, an event can be lost to a dropped request, whereas a
 -- row in `sightings` is the thing itself.
 create or replace view analytics_overview as
 select

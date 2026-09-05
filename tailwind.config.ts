@@ -17,13 +17,13 @@ const config: Config = {
       colors: {
         /* ── StrayPaw: Signal / Street / System ────────────────────────
            Infrastructure and intelligence, not charity software. */
-        ink: '#0b1020',        // midnight — primary dark ground
+        ink: '#0b1020',        // midnight, primary dark ground
         slate: '#10182b',      // console surface
         steel: '#17243b',      // raised panel
         line: '#30496e',       // structural border on dark
         paper: '#f4f5f7',      // light ground
         bone: '#dce2e8',       // light secondary surface
-        electric: '#8fb7ff',   // primary accent — signal blue
+        electric: '#8fb7ff',   // primary accent, signal blue
         vermilion: '#ff6a4f',  // urgency / gap / attention
         cyan: '#66c5d5',       // field / in-progress
         violet: '#a68cff',     // study / research
@@ -44,7 +44,7 @@ const config: Config = {
         bark: {
           50: '#f6f8fb', 100: '#eef1f6', 200: '#e1e6ef', 300: '#c6cddb',
           /* 400 is the app's muted-text step (~270 usages). At its old
-             #97a0b2 it scored 2.63:1 on white — unreadable. Darkened to clear
+             #97a0b2 it scored 2.63:1 on white, unreadable. Darkened to clear
              4.5:1 on white, bark-50 and bark-100; dark mode gets the original
              light value back via a .dark override in globals.css. */
           400: '#656e7b', 500: '#616a79', 600: '#4d5564', 700: '#39404e',
@@ -99,7 +99,7 @@ const config: Config = {
         'grid-64': '64px 64px',
       },
       transitionTimingFunction: {
-        /* causal motion — under 300ms, decisive */
+        /* causal motion, under 300ms, decisive */
         signal: 'cubic-bezier(0.23, 1, 0.32, 1)',
         'signal-morph': 'cubic-bezier(0.77, 0, 0.175, 1)',
         'signal-spring': 'cubic-bezier(0.16, 1.36, 0.3, 1)',

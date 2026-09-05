@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Content-report moderation — capture the reporter's email (so we can tell them
+-- Content-report moderation, capture the reporter's email (so we can tell them
 -- when their report is investigated/resolved) and let the reporter provide it.
 -- Depends on: content-reports.sql. Idempotent.
 -- ════════════════════════════════════════════════════════════════

@@ -21,7 +21,7 @@ const OWN_CHROME = new Set<string>([
   "/journey",
   "/partnerships",
   "/reset-password",
-  // Explainer pages behind the header nav — they render SiteHeader themselves.
+  // Explainer pages behind the header nav, they render SiteHeader themselves.
   "/why-straypaw",
   "/the-network",
   "/for-funders",
@@ -32,7 +32,7 @@ const OWN_CHROME = new Set<string>([
 ]);
 
 /**
- * Pages that already mount AppShell themselves — directly, or through
+ * Pages that already mount AppShell themselves, directly, or through
  * PlatformShell / the partner layout. Wrapping them again would nest the
  * console inside itself.
  */

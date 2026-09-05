@@ -1,9 +1,9 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — NGO bulk dog-care updates (dashboard HelpQueue).
+-- StrayPaw, NGO bulk dog-care updates (dashboard HelpQueue).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets a VERIFIED NGO member
 -- update a dog's care flags from the operator dashboard (mark vaccinated /
--- sterilised, clear the needs-help flag) — the "Dogs needing help" bulk actions.
+-- sterilised, clear the needs-help flag), the "Dogs needing help" bulk actions.
 -- Gated on is_ngo_member(); returns false for everyone else.
 -- ════════════════════════════════════════════════════════════════
 

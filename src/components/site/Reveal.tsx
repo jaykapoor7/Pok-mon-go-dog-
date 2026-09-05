@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
- * Reveals children once they enter the viewport. Motion is causal and short —
- * it marks arrival, it does not perform.
+ * Reveals children once they enter the viewport. Motion is causal and short, * it marks arrival, it does not perform.
  */
 export function Reveal({
   children,

@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Team management — list an org's members and manage roles (field workers
+-- Team management, list an org's members and manage roles (field workers
 -- are first-class). Depends on: partner-onboarding.sql (ngo_members, my_ngo),
 -- cases.sql (volunteers for display names). Idempotent.
 -- ════════════════════════════════════════════════════════════════
@@ -45,7 +45,7 @@ begin
   if p_role not in ('member','admin','field_worker') then p_role := 'member'; end if;
   select id into v_uid from auth.users where lower(email) = lower(btrim(p_email)) limit 1;
   if v_uid is null then
-    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email — ask them to sign in once first.');
+    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email, ask them to sign in once first.');
   end if;
   insert into ngo_members (user_id, ngo_id, role) values (v_uid, v_ngo, p_role)
     on conflict (user_id) do update set ngo_id = excluded.ngo_id, role = excluded.role;

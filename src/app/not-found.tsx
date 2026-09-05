@@ -17,8 +17,7 @@ export default function NotFound() {
         Nothing at this address.
       </h1>
       <p className="mt-4 text-[15px] leading-relaxed text-bark-600">
-        The page you asked for doesn&apos;t exist, or it moved. Nothing was lost
-        — records keep their own URLs.
+        The page you asked for doesn&apos;t exist, or it moved. Nothing was lost, records keep their own URLs.
       </p>
       <div className="mt-7 flex flex-wrap gap-3">
         <Link href="/map" className="btn-primary px-5 py-3">

@@ -11,7 +11,7 @@ import { STATES } from "@/lib/platform/geography";
 import { DATASETS } from "@/lib/platform/datasets";
 
 export const metadata = {
-  title: "Why StrayPaw — the coordination gap",
+  title: "Why StrayPaw, the coordination gap",
   description:
     "India's street-animal work is not short of effort. It is short of a shared record. StrayPaw is the layer that makes populations identifiable, observable and actionable.",
 };
@@ -38,7 +38,7 @@ export default function WhyStrayPawPage() {
       kicker="WHY STRAYPAW"
       title="The gap is not effort."
       accent="It is memory."
-      lede="Thousands of people already do this work — municipal ABC programmes, rescue groups, vets, residents who feed the same dogs every evening. What none of them share is a record that survives the day it was written."
+      lede="Thousands of people already do this work, municipal ABC programmes, rescue groups, vets, residents who feed the same dogs every evening. What none of them share is a record that survives the day it was written."
       figure={<LoopFigure />}
       next={[
         { label: "The network", href: "/the-network", note: "How one signal becomes a record that outlives the rescue." },
@@ -76,7 +76,7 @@ export default function WhyStrayPawPage() {
           <Stat
             value={String(counts.withheld)}
             label="Questions where the data exists but is not published"
-            source="StrayPaw evidence register — each entry names who holds it"
+            source="StrayPaw evidence register, each entry names who holds it"
           />
           <Stat
             value={String(counts.neverMeasured)}
@@ -96,7 +96,7 @@ export default function WhyStrayPawPage() {
           <div>
             <p className="mk-body">
               A district with no sterilisation record is not a district without
-              need — it is a district nobody has surveyed. StrayPaw treats that
+              need. It is a district nobody has surveyed. StrayPaw treats that
               distinction as a product surface rather than a footnote, because
               it is where studies get scoped and money gets pointed.
             </p>
@@ -113,23 +113,19 @@ export default function WhyStrayPawPage() {
               total={STATES.length}
               label="states with a published population figure"
             />
+            {/* The questions themselves, not a count of them. "Never
+                measured, 2 questions" tells a reader nothing they can act on
+                or check; the question and who holds the answer does. */}
             <div className="mk-list">
-              {(Object.keys(BARRIER_META) as (keyof typeof BARRIER_META)[]).map(
-                (k) => {
-                  const n = UNKNOWNS.filter((u) => u.barrier === k).length;
-                  if (!n) return null;
-                  return (
-                    <Reveal key={k}>
-                      <div className="mk-row">
-                        <b>{BARRIER_META[k].label}</b>
-                        <span className="mk-tag">
-                          {n} question{n > 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    </Reveal>
-                  );
-                }
-              )}
+              {UNKNOWNS.map((u) => (
+                <Reveal key={u.id}>
+                  <div className="mk-row">
+                    <b>{u.question}</b>
+                    <span className="mk-tag">{BARRIER_META[u.barrier].short}</span>
+                    <p>{u.heldBy ? `Held by ${u.heldBy}.` : "Nobody holds this."} {u.resolvedBy}</p>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </figure>
         </div>
@@ -143,7 +139,7 @@ export default function WhyStrayPawPage() {
       >
         <p className="mk-body">
           Three things: a permanent identity for the animal, a shared record
-          for the people working on it, and a measurement trail — so an
+          for the people working on it, and a measurement trail, so an
           intervention can be judged on what changed rather than what was
           spent.
         </p>

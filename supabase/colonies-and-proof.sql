@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — colonies + before/after proof + response-time timestamps.
+-- StrayPaw, colonies + before/after proof + response-time timestamps.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Adds the persistence the
 -- NGO dashboard's Impact view needs for REAL data:

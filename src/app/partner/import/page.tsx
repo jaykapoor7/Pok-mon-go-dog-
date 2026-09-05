@@ -11,7 +11,7 @@ export default function PartnerImportPage() {
         </h1>
         <p className="mt-0.5 max-w-2xl text-[13px] leading-relaxed text-bark-500">
           Most organisations do not start digital. Bring your ward registers,
-          ABC ledger pages and WhatsApp threads in as they are — attach the
+          ABC ledger pages and WhatsApp threads in as they are, attach the
           original, transcribe the few fields that matter, and both get filed
           together.
         </p>

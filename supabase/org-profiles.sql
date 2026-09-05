@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Organization profiles — turn the thin `ngos` directory row into a
+-- Organization profiles, turn the thin `ngos` directory row into a
 -- credible public profile an NGO can send to any supporter or funder.
 --
 -- Depends on:
@@ -50,7 +50,7 @@ create unique index if not exists ngos_slug_idx on ngos (slug);
 -- Keep verified_at in sync for rows already flagged verified.
 update ngos set verified_at = coalesce(verified_at, created_at) where verified and verified_at is null;
 
--- 3. Self-service profile editing — an org member edits ONLY their own org.
+-- 3. Self-service profile editing, an org member edits ONLY their own org.
 create or replace function ngo_update_profile(
   p_mission         text default null,
   p_about           text default null,

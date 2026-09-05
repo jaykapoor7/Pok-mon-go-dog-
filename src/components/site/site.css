@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   StrayPaw — Signal / Street / System
+   StrayPaw, Signal / Street / System
    Infrastructure and intelligence. Not charity software.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -18,7 +18,10 @@
   /* Text-sized accents on light grounds. The bright brand tones sit at
      ~1.9–2.6:1 there, so anything small and readable uses these instead. */
   --electric-ink: #476fb7;
-  --vermilion-ink: #cc371c;
+  /* Measured against the bone ground (#dce2e8), the darkest surface this
+     accent sits on: #cc371c reached only 3.9:1, under the 4.5:1 small text
+     needs. This clears it on bone and on paper. */
+  --vermilion-ink: #b02a10;
   --line: rgba(11, 16, 32, 0.14);
   --line-dark: #293753;
   --muted: #63665e;
@@ -38,18 +41,19 @@
 
 .sp-mono {
   font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .sp-kicker {
   font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #6f716b;
+  /* #6f716b measured 3.78:1 on paper, under the 4.5:1 small text needs. */
+  color: #575a54;
 }
 .sp-kicker span { color: var(--vermilion-ink); }
 /* On dark grounds the bright accent is correct and readable. */
@@ -72,10 +76,11 @@
   align-items: center;
   gap: 9px;
   font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #6f716b;
+  /* #6f716b measured 3.78:1 on paper, under the 4.5:1 small text needs. */
+  color: #575a54;
 }
 .sp-eyebrow-dot {
   width: 7px;
@@ -236,7 +241,7 @@
   height: 108%;
   object-fit: cover;
   object-position: 58% 44%;
-  /* Keep the golden hour — the warmth is the photograph. Desaturate only
+  /* Keep the golden hour, the warmth is the photograph. Desaturate only
      enough that the cool UI accents read as deliberate against it. */
   filter: grayscale(0.12) contrast(1.06) brightness(0.94) saturate(1.08);
   transform: scale(calc(1 + var(--sp-progress, 0) * 0.06))
@@ -266,7 +271,7 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
 }
 
-/* depth spine — the 3D evidence stack */
+/* depth spine, the 3D evidence stack */
 .sp-spine {
   position: absolute;
   right: 3%;
@@ -350,7 +355,7 @@
   position: absolute;
   z-index: 4;
   font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: #d4dcec;
@@ -481,7 +486,7 @@
 .sp-node-index {
   display: block;
   font-family: var(--font-mono), "DM Mono", monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
   color: #858a80;
   margin-bottom: 10px;
@@ -492,7 +497,7 @@
   margin-top: 8px;
   color: #7e847b;
   font-family: var(--font-mono), "DM Mono", monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -615,7 +620,7 @@
   color: var(--paper);
 }
 
-/* SVG circuit-trace decoration, injected as a pseudo — purely aesthetic */
+/* SVG circuit-trace decoration, injected as a pseudo, purely aesthetic */
 .sp-chip::before {
   content: "";
   position: absolute;
@@ -668,7 +673,7 @@
   overflow: hidden;
 }
 
-/* Scanner beam — sweeps once when the chip opens */
+/* Scanner beam, sweeps once when the chip opens */
 .chip-beam {
   position: absolute;
   top: 36%;
@@ -737,7 +742,7 @@
   border: 1px solid rgba(168, 221, 208, 0.55);
 }
 
-/* Antenna coil — stripes animate to show RF energy flowing */
+/* Antenna coil, stripes animate to show RF energy flowing */
 .chip-coil .chip-layer-art {
   width: 170px;
   height: 42px;
@@ -751,7 +756,7 @@
   animation: chip-coil-flow 1.4s linear infinite;
 }
 
-/* Die — pulsing glow after scan */
+/* Die, pulsing glow after scan */
 .chip-die .chip-layer-art {
   position: relative;
   width: 56px;
@@ -839,7 +844,7 @@
 }
 .chip-call-n {
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   color: var(--electric);
   padding-top: 3px;
@@ -960,7 +965,7 @@
   align-items: center;
   gap: 9px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -980,7 +985,7 @@
   color: #81887e;
   padding: 7px 9px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
@@ -1061,7 +1066,7 @@
   color: #808d7d;
   line-height: 1.8;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1082,7 +1087,7 @@
   justify-content: space-between;
   color: #869084;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1093,7 +1098,7 @@
   gap: 7px;
   color: var(--electric);
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1118,7 +1123,7 @@
   padding: 10px 0;
   border-bottom: 1px solid #293750;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #879086;
@@ -1184,7 +1189,7 @@
   width: max-content;
   color: var(--vermilion);
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
 }
 .sp-flow-icon {
@@ -1202,7 +1207,7 @@
   text-align: right;
   color: #72766c;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
 }
 .sp-proof {
@@ -1215,7 +1220,7 @@
   border-bottom: 1px solid rgba(11, 16, 32, 0.35);
 }
 .sp-proof-num { font-family: var(--font-display), "Instrument Serif", serif; font-size: 44px; }
-.sp-proof span { color: #6f746b; font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+.sp-proof span { color: #6f746b; font-family: var(--font-mono), monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; }
 .sp-proof p { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
 .sp-proof-div { height: 50px; width: 1px; background: rgba(11, 16, 32, 0.25); margin: 0 30px; }
 
@@ -1274,7 +1279,7 @@
   justify-content: space-between;
   color: #7f877b;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1299,7 +1304,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-align: center;
 }
@@ -1323,7 +1328,7 @@
   display: block;
   color: #7f877b;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-top: 4px;
@@ -1337,7 +1342,7 @@
   text-decoration: none;
 }
 .sp-record-link:hover { color: #fff; }
-/* Empty register: the seal is an outline, not a stamp — nothing is verified. */
+/* Empty register: the seal is an outline, not a stamp, nothing is verified. */
 .sp-seal.empty {
   border-style: dashed;
   border-color: rgba(143, 183, 255, 0.4);
@@ -1427,6 +1432,11 @@
   margin-bottom: 10px;
 }
 .sp-loop-desc { margin: 0; font-size: 12.5px; line-height: 1.55; color: #6c6f65; }
+
+/* Nothing on this site is set below 11.5px. Mono at 9 and 10px looked
+   precise on a large display and was genuinely hard to read on a phone,
+   which is where this is actually used. Legibility wins over the label
+   looking small and technical. */
 
 /* ── chip scroll ───────────────────────────────────────────────── */
 
@@ -1560,7 +1570,7 @@
   transform: translateY(-50%);
   margin-left: 30px;
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #b8d1ff;
@@ -1582,7 +1592,7 @@
   align-items: center;
   gap: 6px;
   font-family: var(--font-mono), monospace;
-  font-size: 8.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #b8d1ff;
@@ -1604,7 +1614,7 @@
 .chs-code-label {
   display: block;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #8b98b0;
@@ -1658,7 +1668,7 @@
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8b98b0;
@@ -1669,7 +1679,7 @@
 .chs-field { display: grid; grid-template-columns: 76px 1fr; gap: 8px; align-items: baseline; }
 .chs-field span {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #8b98b0;
@@ -1681,7 +1691,7 @@
 .chs-net-svg { width: 100%; height: auto; display: block; }
 .chs-net-label {
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8b98b0;
@@ -1699,7 +1709,8 @@
   margin-top: 26px;
 }
 .sp-thesis-heading { font-size: clamp(40px, 5.4vw, 76px); margin: 0; }
-.sp-thesis-heading span { color: var(--electric); }
+/* Electric is a dark-ground accent: 1.55:1 on bone. */
+.sp-thesis-heading span { color: var(--vermilion-ink); }
 .sp-thesis-body { display: grid; gap: 16px; max-width: 520px; }
 .sp-thesis-body p { margin: 0; font-size: 15.5px; line-height: 1.68; color: #4b5361; }
 .sp-thesis-close {
@@ -1730,7 +1741,7 @@
 }
 .sp-for-tag {
   font-family: var(--font-mono), monospace;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--electric);
@@ -1750,7 +1761,7 @@
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--electric);
@@ -1784,7 +1795,7 @@
 .sp-sweep { animation: sp-sweep 6s linear infinite; }
 .sp-trace { animation: sp-trace 3.4s cubic-bezier(0.4, 0, 0.5, 1) infinite; }
 
-/* Decorative vector grounds — they sit behind content and never catch input. */
+/* Decorative vector grounds, they sit behind content and never catch input. */
 .sp-topo,
 .sp-plane {
   position: absolute;
@@ -1855,7 +1866,7 @@
     flex-direction: column;
   }
   .sp-nav.open { display: flex; gap: 2px; }
-  /* Full-width rows in the mobile sheet — thumb-sized, not word-sized. */
+  /* Full-width rows in the mobile sheet, thumb-sized, not word-sized. */
   .sp-nav a {
     min-height: 46px;
     padding: 10px 8px;
@@ -1869,15 +1880,15 @@
   .sp-hero h1 { font-size: 62px; line-height: 0.84; margin-bottom: 26px; }
   .sp-hero-img { object-position: 56% 46%; }
   /* Portrait puts the copy over the frame's centre, so the wash is vertical
-     here rather than a left column — kept light enough to hold the skyline. */
+     here rather than a left column, kept light enough to hold the skyline. */
   .sp-hero-wash {
     background: linear-gradient(0deg, rgba(11, 16, 32, 0.72) 12%, rgba(11, 16, 32, 0.34) 52%, rgba(11, 16, 32, 0.62)),
       linear-gradient(90deg, rgba(11, 16, 32, 0.5), rgba(11, 16, 32, 0.14));
   }
   /* The spine collides with the CTAs at this width and the photo already
-     carries its own network lines — drop it. */
+     carries its own network lines, drop it. */
   .sp-spine { display: none; }
-  .sp-hero-caption { left: 7vw; right: 7vw; top: 80px; font-size: 8.5px; }
+  .sp-hero-caption { left: 7vw; right: 7vw; top: 80px; font-size: 11.5px; }
   .sp-hero-ctas { gap: 4px 12px; }
   .sp-hero-signal { display: none; }
   .sp-hero-foot { left: 7vw; right: 7vw; bottom: 18px; }
@@ -1906,7 +1917,7 @@
   .sp-loop-stages { grid-template-columns: 1fr 1fr; }
   .sp-thesis { padding: 15vw 6vw; }
   .sp-thesis-grid { grid-template-columns: 1fr; gap: 26px; }
-  /* One column, chip above the copy. The section stays pinned — letting it
+  /* One column, chip above the copy. The section stays pinned, letting it
      grow to `auto` unpinned the scroll and left four stacked copy stages,
      three of them at zero opacity, as a screen-tall void. */
   .chs-sticky {
@@ -1946,8 +1957,7 @@
   }
   .chs-scene { height: clamp(178px, 26svh, 240px); }
   /* The assembly is 320px wide before its labels; at phone width it has to
-     come down to fit, which puts the leader-line labels below legibility —
-     so they are replaced by the legend underneath. */
+     come down to fit, which puts the leader-line labels below legibility, so they are replaced by the legend underneath. */
   .chs-scene-wrap { transform: scale(calc(var(--chs-scale, 1) * 0.66)); }
   .chs-layer-label { display: none; }
   .chs-legend { display: grid; }
@@ -1968,7 +1978,7 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-  /* Looping vector motion is decorative — stop it outright rather than
+  /* Looping vector motion is decorative, stop it outright rather than
      letting it flicker at 0.01ms. */
   .sp-ping, .sp-sweep, .sp-trace { animation: none !important; }
   .sp-ping { opacity: 0.35; }
@@ -1988,7 +1998,7 @@
 .sp-part {
   background: var(--bone);
   padding: 26px 22px;
-  /* Nudges up on hover — enough to feel responsive, not enough to distract. */
+  /* Nudges up on hover, enough to feel responsive, not enough to distract. */
   transition: background 0.2s ease, transform 0.2s ease;
 }
 .sp-part:hover { background: #e6ebf1; transform: translateY(-2px); }
@@ -2012,13 +2022,19 @@
 }
 
 /* Reveal wraps each card, so the wrapper is the grid item and the card
-   inside it does not inherit the stretched row height — which left the grid
-   background showing under shorter cards. Both need to fill. */
-.sp-parts-grid > *,
-.sp-loop-stages > *,
-.sp-for-grid > *,
-.mk-steps > *,
-.mk-stats > * { display: flex; }
+   inside it does not inherit the stretched row height, which left the grid
+   background showing under shorter cards. Both need to fill.
+
+   The :not() matters. Not every one of these cards is wrapped, and where a
+   card sat directly in the grid this rule turned the card itself into a flex
+   row: on the sourced-figure blocks the number, the label and the source
+   line stopped stacking and ran across each other, which is what made them
+   unreadable. Only a wrapper should become a flex container. */
+.sp-parts-grid > *:not(.sp-part),
+.sp-loop-stages > *:not(.sp-loop-stage),
+.sp-for-grid > *:not(.sp-for-card),
+.mk-steps > *:not(.mk-step),
+.mk-stats > *:not(.mk-stat) { display: flex; }
 .sp-parts-grid > * > .sp-part,
 .sp-loop-stages > * > .sp-loop-stage,
 .sp-for-grid > * > .sp-for-card,
@@ -2120,7 +2136,7 @@
 }
 
 /* On mobile the nav is a stacked sheet, so the panel sits inline rather than
-   floating — a hover-opened overlay has nothing to hover on a touchscreen. */
+   floating, a hover-opened overlay has nothing to hover on a touchscreen. */
 @media (max-width: 650px) {
   .sp-nav-group { width: 100%; }
   .sp-nav-trigger {
@@ -2151,7 +2167,7 @@
 /* ── tap targets on small screens ───────────────────────────────── */
 
 /*
- * Several inline link styles sit at 14-15px tall — fine for a mouse, well
+ * Several inline link styles sit at 14-15px tall, fine for a mouse, well
  * under a fingertip. On touch they get real height and a little breathing
  * room, without changing how they look on desktop.
  */

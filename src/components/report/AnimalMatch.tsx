@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
    "Have you seen this one before?"
 
    This is where an observation becomes part of a longer record instead of
-   a standalone report — and it is the one place the product could quietly
+   a standalone report, and it is the one place the product could quietly
    start lying. Distance is the only signal available here; there is no
    model comparing coats. So the list is offered as a question, the answer
    defaults to "not one of these", and whatever the reporter picks is
@@ -64,7 +64,7 @@ export function AnimalMatch({
   }
 
   /* Nothing recorded nearby is the ordinary case early on, and saying so is
-     more useful than hiding the section — it tells the reporter they are the
+     more useful than hiding the section. It tells the reporter they are the
      first person to write this street down. */
   if (list.length === 0) {
     return (
@@ -82,7 +82,7 @@ export function AnimalMatch({
       </label>
       <p className="mb-2.5 text-xs text-bark-400">
         These are already recorded within 300 m. Only pick one if you are
-        fairly sure it is the same animal — a reviewer checks it either way.
+        fairly sure it is the same animal, a reviewer checks it either way.
       </p>
 
       <div className="grid gap-2">
@@ -152,7 +152,7 @@ export function AnimalMatch({
             : "border-bark-200 text-bark-500 hover:border-paw-300 dark:border-white/10"
         )}
       >
-        None of these — this is a different animal
+        None of these, this is a different animal
       </button>
     </div>
   );

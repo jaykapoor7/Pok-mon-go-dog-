@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Fundraising ↔ operations link (Phase 4 foundation) — a campaign can be
+-- Fundraising ↔ operations link (Phase 4 foundation), a campaign can be
 -- tied to the case it funds: Need → Case → Campaign → Outcome.
 -- Depends on: fundraisers.sql, cases.sql. Idempotent.
 -- ════════════════════════════════════════════════════════════════

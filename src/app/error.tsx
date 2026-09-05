@@ -30,7 +30,7 @@ export default function RouteError({
         Something broke here.
       </h1>
       <p className="mt-4 text-[15px] leading-relaxed text-bark-600">
-        This page hit an error. Your data is unaffected — nothing was written.
+        This page hit an error. Your data is unaffected, nothing was written.
         Try again, and if it keeps happening the rest of the console still works.
       </p>
 

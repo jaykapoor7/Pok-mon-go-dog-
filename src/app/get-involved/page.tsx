@@ -19,7 +19,7 @@ const stateName = (code: string) => STATE_BY_CODE.get(code)?.name ?? code;
 
 /**
  * Each route maps a thing a person can actually do to the focus tag that
- * identifies organisations doing it — so "I want to help at a shelter"
+ * identifies organisations doing it, so "I want to help at a shelter"
  * returns the organisations that run shelters, by name, with a link.
  */
 const ROUTES: {
@@ -109,7 +109,7 @@ export default function GetInvolvedPage() {
       <p className="spa-lede">
         Every route below lists organisations that do that specific work, with a
         link to reach them directly. {ORGS.length} organisations across{" "}
-        {states.length} states. StrayPaw does not place volunteers — you contact
+        {states.length} states. StrayPaw does not place volunteers, you contact
         the organisation, they decide.
       </p>
 
@@ -117,8 +117,7 @@ export default function GetInvolvedPage() {
 
       <aside className="spa-note">
         <div>
-          <b>If nothing here is near you.</b> The directory is not exhaustive —
-          it lists organisations we could verify from published sources. Absence
+          <b>If nothing here is near you.</b> The directory is not exhaustive. It lists organisations we could verify from published sources. Absence
           from it means we have not listed them, not that nothing exists where
           you are.{" "}
           <Link href="/orgs" className="tlink">

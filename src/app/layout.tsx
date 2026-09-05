@@ -9,7 +9,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
 
-// Interface: DM Sans — restrained, precise, engineered.
+// Interface: DM Sans, restrained, precise, engineered.
 const sans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -17,7 +17,7 @@ const sans = DM_Sans({
   display: "swap",
 });
 
-// Display: Instrument Serif — editorial weight for headlines.
+// Display: Instrument Serif, editorial weight for headlines.
 const display = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
@@ -26,7 +26,7 @@ const display = Instrument_Serif({
   display: "swap",
 });
 
-// Data: DM Mono — record IDs, coordinates, telemetry.
+// Data: DM Mono, record IDs, coordinates, telemetry.
 const mono = DM_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
      this, the same page reachable on a preview domain and on straypaw.org
      competes with itself in the index. */
   alternates: { canonical: "./" },
-  title: "StrayPaw — Every street dog, on the record",
+  title: "StrayPaw, Every street dog, on the record",
   description:
     "A permanent identity and a shared record for India's street animals, so NGOs, municipalities and funders work from the same data instead of three different notebooks.",
   keywords: [
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     "CSR",
   ],
   openGraph: {
-    title: "StrayPaw — Every street dog, on the record",
+    title: "StrayPaw, Every street dog, on the record",
     description:
       "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
     type: "website",
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw — Every street dog, on the record",
+    title: "StrayPaw, Every street dog, on the record",
     description:
       "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
     /* Next emitted twitter:image:alt and twitter:image:type from the generated

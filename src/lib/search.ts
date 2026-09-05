@@ -5,7 +5,7 @@ import { ORGS } from "@/lib/platform/orgs";
 /* ════════════════════════════════════════════════════════════════════
    Console search.
 
-   The search box used to push /map?q=… , which the map ignores — it reads
+   The search box used to push /map?q=… , which the map ignores. It reads
    lat/lng. So typing anywhere in the console did nothing. This resolves a
    query against everything the app can actually navigate to, and hands
    back a real destination.
@@ -16,7 +16,7 @@ export type SearchKind = "place" | "state" | "org" | "page";
 export type SearchHit = {
   kind: SearchKind;
   label: string;
-  /** Secondary line — state, city, or what the page is for. */
+  /** Secondary line, state, city, or what the page is for. */
   detail: string;
   href: string;
 };

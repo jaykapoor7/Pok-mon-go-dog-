@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — merge duplicate dog profiles into one.
+-- StrayPaw, merge duplicate dog profiles into one.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Requires the
 -- ngo_members table + is_ngo_member() from location-privacy.sql.

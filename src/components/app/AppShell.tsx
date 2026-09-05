@@ -40,7 +40,7 @@ import { ROLE_META, readStoredRole, type Role } from "@/lib/roles";
 import { search, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
-/* Everyone sees these. The console is one view — community reporters and NGO
+/* Everyone sees these. The console is one view, community reporters and NGO
    staff work the same map and the same records. */
 const COMMUNITY = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
@@ -107,7 +107,7 @@ export function AppShell({
   function handleSearch(e: FormEvent) {
     e.preventDefault();
     /* Enter takes the highlighted result. Pushing the raw text at the map
-       did nothing — it reads lat/lng, not a free-text query. */
+       did nothing. It reads lat/lng, not a free-text query. */
     if (hits[cursor]) go(hits[cursor]);
   }
 
@@ -130,7 +130,7 @@ export function AppShell({
     }
   }
 
-  /* Escape closes the mobile drawer — the shortcut every user already
+  /* Escape closes the mobile drawer, the shortcut every user already
      expects from an overlay (Jakob's law). */
   useEffect(() => {
     if (!open) return;
@@ -141,7 +141,7 @@ export function AppShell({
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  /* A route change means the user got where they were going — the drawer
+  /* A route change means the user got where they were going, the drawer
      should not still be sitting open on top of the destination. */
   useEffect(() => {
     setOpen(false);

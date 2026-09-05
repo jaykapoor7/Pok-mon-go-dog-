@@ -34,7 +34,7 @@ export function SiteHeader() {
   const [menu, setMenu] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
 
-  /* Close the dropdown on outside click and on Escape — both expected of a
+  /* Close the dropdown on outside click and on Escape, both expected of a
      menu, and without them it strands open over the page. */
   useEffect(() => {
     if (!menu) return;
@@ -128,7 +128,7 @@ export function SiteHeader() {
   );
 }
 
-/** Minimal signal mark — three points on a ring. */
+/** Minimal signal mark, three points on a ring. */
 export function StrayPawMark({ size = 21 }: { size?: number }) {
   /* A paw whose pad is a map pin: the animal and its location in one form,
      which is the whole product. Geometric enough to hold at 16px in the
@@ -143,7 +143,7 @@ export function StrayPawMark({ size = 21 }: { size?: number }) {
       aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
-      {/* locate ring — the identity half of the mark */}
+      {/* locate ring, the identity half of the mark */}
       <circle
         cx="12"
         cy="12"

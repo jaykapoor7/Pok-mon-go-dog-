@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Per-org dashboard data — a partner sees ONLY their own org's cases plus the
+-- Per-org dashboard data, a partner sees ONLY their own org's cases plus the
 -- shared pool of unclaimed community reports (so they can still pick new ones
 -- up). SECURITY DEFINER + my_ngo() means the scoping is decided from the caller's
 -- authenticated session, not the client. Depends on: partner-onboarding.sql

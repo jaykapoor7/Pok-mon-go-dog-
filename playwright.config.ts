@@ -1,8 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/* The suite boots a production build, because the bugs worth catching here —
-   a route that only fails when prerendered, a client component that throws on
-   hydration — do not reproduce under `next dev`. */
+/* The suite boots a production build, because the bugs worth catching here, a route that only fails when prerendered, a client component that throws on
+   hydration, do not reproduce under `next dev`. */
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,

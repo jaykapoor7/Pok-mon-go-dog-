@@ -19,8 +19,7 @@ const OBJECTIVES = Object.keys(OBJECTIVE_META) as Objective[];
 /* Scope is an explicit input, not a claim about where the animals are. No
    state has published a ward-level distribution, so the tool asks for a share
    rather than pretending to know which part needs it most. */
-/* Real programmes start at ward scale, not at a twelfth of a whole state —
-   which for a large state ran to hundreds of thousands of animals and made
+/* Real programmes start at ward scale, not at a twelfth of a whole state, which for a large state ran to hundreds of thousands of animals and made
    every number look unreachable. The list now runs from one ward upward, and
    defaults to the smallest. */
 const SCOPES: { label: string; value: number }[] = [
@@ -79,7 +78,7 @@ export function WWITClient({
           <select value={geoCode} onChange={(e) => setGeoCode(e.target.value)}>
             {geographies.map((g) => (
               <option key={g.code} value={g.code}>
-                {g.name} — {num(g.population)} dogs
+                {g.name}, {num(g.population)} dogs
               </option>
             ))}
           </select>
@@ -121,7 +120,7 @@ export function WWITClient({
             {objective === "vaccination"
               ? "Anti-rabies drives are run by several bodies without a shared register, so no state has a vaccination baseline to subtract."
               : "No Animal Birth Control coverage figure has been published for this state."}{" "}
-            This plan therefore assumes zero coverage — a ceiling, not an
+            This plan therefore assumes zero coverage, a ceiling, not an
             estimate. Establishing the real baseline is itself a study.
           </span>
         </div>
@@ -172,7 +171,7 @@ export function WWITClient({
             </span>
           </li>
           {/* A census has no coverage baseline to subtract and no coverage
-              target to reach — it is the thing that produces the baseline in
+              target to reach. It is the thing that produces the baseline in
               the first place, so both rows would be nonsense here. */}
           {objective !== "survey" && (
             <>
@@ -207,8 +206,8 @@ export function WWITClient({
             <b>Unit cost.</b>{" "}
             {objective === "survey" ? (
               <>
-                <em>Not published.</em> Cities do run these surveys — Bengaluru
-                through BBMP, Ahmedabad across all 48 wards — but none publishes
+                <em>Not published.</em> Cities do run these surveys, Bengaluru
+                through BBMP, Ahmedabad across all 48 wards, but none publishes
                 what one costs, so there is no figure to multiply. That absence
                 is itself one of the gaps in the register.
               </>
@@ -224,7 +223,7 @@ export function WWITClient({
           <li>
             <b>Scope.</b> Your input, not a finding. No state publishes a
             ward-level distribution, so this tool cannot tell you which part of{" "}
-            {geo?.name} needs it most — only what a given share costs.{" "}
+            {geo?.name} needs it most, only what a given share costs.{" "}
             {uncosted > 0 && (
               <>
                 {uncosted} of India&apos;s states have no published dog
@@ -241,7 +240,7 @@ export function WWITClient({
           <h3>Turn the scope into a geography</h3>
           <p>
             The cost above is defensible. The <em>where</em> is not, and no
-            amount of arithmetic fixes that — it takes fieldwork. A funded
+            amount of arithmetic fixes that. It takes fieldwork. A funded
             study establishes the ward-level baseline, and the same calculation
             then points at a real place.
           </p>

@@ -41,8 +41,7 @@ export default function NeedsPage() {
 
       <p className="spa-lede">
         Delhi&apos;s shortfall against the WHO {Math.round(COVERAGE_TARGET.value * 100)}%
-        coverage threshold, priced at published unit costs. City-wide only —
-        no ward-level breakdown has ever been published.
+        coverage threshold, priced at published unit costs. City-wide only, no ward-level breakdown has ever been published.
       </p>
 
       <div className="need-cards">
@@ -96,7 +95,7 @@ export default function NeedsPage() {
 
               <p className="need-src spa-mono">
                 {plan.baselineUnknown
-                  ? "Assumes zero coverage — no published baseline exists, so this is a ceiling."
+                  ? "Assumes zero coverage, no published baseline exists, so this is a ceiling."
                   : `${DELHI_ABC_COVERAGE.source} (${DELHI_ABC_COVERAGE.year})`}
               </p>
             </article>
@@ -109,7 +108,7 @@ export default function NeedsPage() {
           <b>What these figures can and cannot support.</b> The population
           ({num(DELHI_POPULATION.value)}), the sterilisation baseline
           ({Math.round(DELHI_ABC_COVERAGE.value * 100)}%), the {Math.round(COVERAGE_TARGET.value * 100)}%
-          target and both unit costs are published and sourced — quote them.
+          target and both unit costs are published and sourced, quote them.
           What they cannot tell you is <em>where</em> in Delhi to start. That
           takes a survey, and no one has published one at ward level.
         </div>

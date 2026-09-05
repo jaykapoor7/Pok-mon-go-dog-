@@ -9,7 +9,7 @@ import { ORGS } from "@/lib/platform/orgs";
 import { STATES } from "@/lib/platform/geography";
 
 export const metadata = {
-  title: "The network — one animal, one record",
+  title: "The network, one animal, one record",
   description:
     "How a sighting becomes an identified animal, and how that identity connects sightings, interventions, caregivers and outcomes across organisations.",
 };
@@ -22,7 +22,7 @@ export default function TheNetworkPage() {
       kicker="THE NETWORK"
       title="One animal."
       accent="One record."
-      lede="A sighting on its own is an anecdote. The network is what turns scattered observations into a single animal with a history — one that survives the rescue, the handover, and the change of organisation."
+      lede="A sighting on its own is an anecdote. The network is what turns scattered observations into a single animal with a history, one that survives the rescue, the handover, and the change of organisation."
       figure={<ResolveFigure />}
       next={[
         { label: "For NGOs", href: "/for-ngos", note: "The workspace your team would actually run on." },
@@ -41,7 +41,7 @@ export default function TheNetworkPage() {
             {
               n: "01",
               title: "Signal",
-              body: "Someone reports an animal — a photo, a place, a condition. That is the whole barrier to entry, and it is deliberately that low.",
+              body: "Someone reports an animal, a photo, a place, a condition. That is the whole barrier to entry, and it is deliberately that low.",
             },
             {
               n: "02",
@@ -87,7 +87,7 @@ export default function TheNetworkPage() {
             <Stat
               value={String(ORGS.length)}
               label="Named organisations in the directory"
-              source="StrayPaw organisation register — each entry verified against a public presence"
+              source="StrayPaw organisation register, each entry verified against a public presence"
             />
             <Stat
               value={`${states.size}`}

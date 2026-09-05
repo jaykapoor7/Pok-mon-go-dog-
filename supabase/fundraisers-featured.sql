@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — featured / curated fundraisers.
+-- StrayPaw, featured / curated fundraisers.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Adds a `featured` flag so
 -- StrayPaw can CURATE a highlighted feed of reputable rescues' existing

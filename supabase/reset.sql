@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — RESET TO FRESH
+-- StrayPaw Delhi, RESET TO FRESH
 --
 -- Run this in the Supabase SQL editor to wipe ALL data (dogs, sightings,
 -- feeding/health records, comments, NGOs) and start completely empty.

@@ -19,7 +19,7 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
   { path: "/app", priority: 0.8, freq: "daily" },
   { path: "/report", priority: 0.8, freq: "monthly" },
 
-  // evidence layer — the substance of the product
+  // evidence layer, the substance of the product
   { path: "/gaps", priority: 0.8, freq: "weekly" },
   { path: "/needs", priority: 0.8, freq: "weekly" },
   { path: "/what-would-it-take", priority: 0.8, freq: "weekly" },

@@ -3,7 +3,7 @@
 import { getSupabase } from "./supabase";
 
 /* ════════════════════════════════════════════════════════════════════
-   Product analytics — first-party, fire-and-forget.
+   Product analytics, first-party, fire-and-forget.
 
    Rules this follows, because analytics is the easiest thing to let break
    a product it was added to measure:
@@ -11,7 +11,7 @@ import { getSupabase } from "./supabase";
    - Never throws and never blocks. A failed track() must not cost someone
      their sighting.
    - Storage access is wrapped. Reading localStorage *throws* in private
-     mode, with site data blocked, and under some enterprise policies — an
+     mode, with site data blocked, and under some enterprise policies, an
      unguarded read here would take down every page this is called from.
      Without storage the person is simply uncounted, which is the right
      trade against breaking their report.

@@ -65,8 +65,7 @@ export function MapLibreMap({
   const [tilesFailed, setTilesFailed] = useState(false);
 
   // The basemap is fetched from a third party. If it is unreachable (offline,
-  // a blocked network, the tile host down) MapLibre surfaces the failure here —
-  // otherwise it escapes as an unhandled rejection and the console just sits
+  // a blocked network, the tile host down) MapLibre surfaces the failure here, // otherwise it escapes as an unhandled rejection and the console just sits
   // blank with no explanation.
   const handleMapError = useCallback((e: { error?: Error }) => {
     const msg = e?.error?.message ?? "";
@@ -116,7 +115,7 @@ export function MapLibreMap({
   );
 
   /* onMove fires every frame of a pan. Re-clustering that often is wasted
-     work — supercluster returns the same result for sub-pixel changes — so
+     work, supercluster returns the same result for sub-pixel changes, so
      the view is only pushed to state when it moved enough to matter. */
   const lastView = useRef<{ b: [number, number, number, number]; z: number } | null>(null);
   const sync = useCallback(() => {
@@ -143,7 +142,7 @@ export function MapLibreMap({
 
   /* The camera controls only need the map instance, not a finished basemap.
      Publishing them on mount rather than on style load keeps zoom and tilt
-     working while tiles are still streaming — or never arrive at all, on a
+     working while tiles are still streaming, or never arrive at all, on a
      slow connection or a blocked tile host. */
   useEffect(() => {
     if (!onReady) return;
@@ -210,7 +209,7 @@ export function MapLibreMap({
               <button
                 type="button"
                 onClick={() => router.push(`/gaps?state=${st.code}`)}
-                title={`${st.name} — ${meta.label}. ${meta.note}`}
+                title={`${st.name}, ${meta.label}. ${meta.note}`}
                 aria-label={`${st.name}: ${meta.label}`}
                 style={{
                   width: 15,
@@ -327,7 +326,7 @@ export function MapLibreMap({
             Basemap unavailable
           </p>
           <p style={{ margin: "8px 0 0", fontSize: 12.5, lineHeight: 1.5, color: "rgba(244,245,247,0.72)" }}>
-            The map tiles could not be reached. Records are still live — pins and
+            The map tiles could not be reached. Records are still live, pins and
             case data are unaffected.
           </p>
         </div>

@@ -231,7 +231,7 @@ export default async function DogProfilePage({
       {/* timeline */}
       <Section title="Sightings timeline">
         {/* Only counted once the record actually spans more than one
-            observation — a single-sighting page is not yet a timeline, and
+            observation, a single-sighting page is not yet a timeline, and
             counting it as one would flatter the number that matters most. */}
         {sightings.length > 1 && <PageView name="timeline_viewed" />}
         <SightingTimeline sightings={sightings} />

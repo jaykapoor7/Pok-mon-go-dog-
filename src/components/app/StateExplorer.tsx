@@ -18,7 +18,7 @@ export type StateRow = {
 /**
  * State-by-state view of what is actually established.
  *
- * The bar is population — the one metric published for nearly every state.
+ * The bar is population, the one metric published for nearly every state.
  * Coverage is shown only where a state has actually published it, which is
  * the point: two states out of thirty have, and the rest are blank because
  * nobody measured, not because we did not load it.
@@ -98,7 +98,7 @@ export function StateExplorer({ rows }: { rows: StateRow[] }) {
                     )}
                   </span>
                   <span className="se-val spa-mono">
-                    {r.population ? nf(r.population) : "—"}
+                    {r.population ? nf(r.population) : ", "}
                   </span>
                 </button>
               </li>
@@ -138,7 +138,7 @@ export function StateExplorer({ rows }: { rows: StateRow[] }) {
                   <dd className="se-blank">Not published</dd>
                   <p className="se-src spa-mono">
                     No state-level coverage figure has been released. This is the
-                    gap, and it is the normal case — {rows.length - withCoverage} of{" "}
+                    gap, and it is the normal case, {rows.length - withCoverage} of{" "}
                     {rows.length} states are in it.
                   </p>
                 </>

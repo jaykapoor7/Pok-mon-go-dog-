@@ -25,7 +25,7 @@ export function InstallPrompt() {
     if (typeof window === "undefined") return;
 
     /* Accessing localStorage throws outright in private mode, with site data
-       blocked, and under some enterprise policies — not just on read. This
+       blocked, and under some enterprise policies, not just on read. This
        effect mounts app-wide, so an unguarded read took the whole tree down
        with it. Treating the failure as "already dismissed" is the right
        default: never nag someone whose browser cannot remember the answer. */

@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Team-lead permissions — make the org "lead" (admin) a first-class role with
+-- Team-lead permissions, make the org "lead" (admin) a first-class role with
 -- special powers, and enforce it SERVER-SIDE so a normal member can't manage the
 -- team by calling the RPCs directly. Multi-tenant: every check is scoped to the
 -- caller's own org (my_ngo()), so orgs stay secluded from each other.
@@ -33,7 +33,7 @@ grant execute on function can_manage_org() to authenticated;
 
 -- ── Lead-gated team management (redefines team.sql RPCs) ────────────
 
--- Add a teammate by email — lead only. Scoped to the caller's org.
+-- Add a teammate by email, lead only. Scoped to the caller's org.
 create or replace function add_org_member(p_email text, p_role text default 'member')
 returns json language plpgsql security definer set search_path = public as $$
 declare v_uid uuid; v_ngo uuid;
@@ -46,14 +46,14 @@ begin
   if p_role not in ('member','admin','field_worker') then p_role := 'member'; end if;
   select id into v_uid from auth.users where lower(email) = lower(btrim(p_email)) limit 1;
   if v_uid is null then
-    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email — ask them to sign in once first.');
+    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email, ask them to sign in once first.');
   end if;
   insert into ngo_members (user_id, ngo_id, role) values (v_uid, v_ngo, p_role)
     on conflict (user_id) do update set ngo_id = excluded.ngo_id, role = excluded.role;
   return json_build_object('ok', true);
 end $$;
 
--- Remove a teammate — lead only, own org only, never yourself.
+-- Remove a teammate, lead only, own org only, never yourself.
 create or replace function remove_org_member(p_user_id uuid)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
@@ -63,7 +63,7 @@ begin
   return found;
 end $$;
 
--- Change a teammate's role — lead only. Keeps at least one lead in the org.
+-- Change a teammate's role, lead only. Keeps at least one lead in the org.
 create or replace function set_member_role(p_user_id uuid, p_role text)
 returns boolean language plpgsql security definer set search_path = public as $$
 declare v_ngo uuid; v_admins int;
@@ -79,7 +79,7 @@ begin
     if v_admins <= 1 and exists (
       select 1 from ngo_members where user_id = p_user_id and ngo_id = v_ngo and role = 'admin'
     ) then
-      raise exception 'Keep at least one team lead — promote someone else first.';
+      raise exception 'Keep at least one team lead, promote someone else first.';
     end if;
   end if;
 

@@ -1,8 +1,8 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — production schema (no-login / anonymous model)
+-- StrayPaw Delhi, production schema (no-login / anonymous model)
 --
 -- Paste this whole file into the Supabase SQL editor and Run.
--- It is idempotent — safe to run again after edits.
+-- It is idempotent, safe to run again after edits.
 --
 -- Design:
 --   • Anyone can post a sighting with NO login (the public `anon` key).
@@ -10,7 +10,7 @@
 --     while the multi-table "create-or-match dog + insert sighting" stays
 --     atomic.
 --   • Reads are public (it's a community map).
---   • Stats are computed from real rows — they start at your real numbers
+--   • Stats are computed from real rows, they start at your real numbers
 --     and grow as people use the app.
 -- ════════════════════════════════════════════════════════════════
 
@@ -63,7 +63,7 @@ create index if not exists dogs_geo_idx on dogs (lat, lng);
 create index if not exists dogs_status_idx on dogs (status);
 create index if not exists dogs_last_seen_idx on dogs (last_seen desc);
 
--- ── Sightings (raw uploads — the viral layer) ───────────────────
+-- ── Sightings (raw uploads, the viral layer) ───────────────────
 create table if not exists sightings (
   id            uuid primary key default uuid_generate_v4(),
   dog_id        uuid references dogs(id) on delete set null,
@@ -143,7 +143,7 @@ returns setof dogs language sql stable as $$
 $$;
 
 -- ════════════════════════════════════════════════════════════════
--- report_sighting — the core write.
+-- report_sighting, the core write.
 -- Inserts the sighting as PENDING and does NOT touch the public `dogs`
 -- table. Dog creation / matching happens only when the sighting is approved
 -- (see approve_sighting). This keeps unmoderated content fully invisible.
@@ -191,7 +191,7 @@ end;
 $$;
 
 -- ════════════════════════════════════════════════════════════════
--- approve_sighting — admin action. Marks a pending sighting LIVE and only
+-- approve_sighting, admin action. Marks a pending sighting LIVE and only
 -- THEN matches it to a nearby dog (≤200 m) or creates a new dog profile,
 -- updating aggregates. Idempotent. Admin-only (granted to service_role).
 -- ════════════════════════════════════════════════════════════════
@@ -255,7 +255,7 @@ begin
 end;
 $$;
 
--- reject_sighting — admin action. Permanently removes a pending sighting.
+-- reject_sighting, admin action. Permanently removes a pending sighting.
 create or replace function reject_sighting(p_sighting_id uuid)
 returns boolean
 language plpgsql
@@ -268,7 +268,7 @@ begin
 end;
 $$;
 
--- delete_sighting — token-gated deletion. Verifies the SHA-256 owner hash,
+-- delete_sighting, token-gated deletion. Verifies the SHA-256 owner hash,
 -- deletes the sighting, and keeps the dog's aggregates correct (removing the
 -- dog if that was its last sighting).
 create or replace function delete_sighting(p_sighting_id uuid, p_owner_hash text)
@@ -313,7 +313,7 @@ begin
 end;
 $$;
 
--- log_feed — "I fed this dog".
+-- log_feed, "I fed this dog".
 create or replace function log_feed(
   p_dog_id uuid,
   p_reporter_name text default null,
@@ -331,7 +331,7 @@ begin
 end;
 $$;
 
--- log_seen — "I saw this dog" (bumps last_seen + a sightings tally).
+-- log_seen, "I saw this dog" (bumps last_seen + a sightings tally).
 create or replace function log_seen(p_dog_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
@@ -340,7 +340,7 @@ begin
 end;
 $$;
 
--- add_comment — community note.
+-- add_comment, community note.
 create or replace function add_comment(
   p_dog_id uuid, p_body text, p_reporter_name text default null
 )
@@ -351,7 +351,7 @@ begin
 end;
 $$;
 
--- like_sighting — feed hearts.
+-- like_sighting, feed hearts.
 create or replace function like_sighting(p_sighting_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
@@ -359,7 +359,7 @@ begin
 end;
 $$;
 
--- get_city_stats — honest, real-time counts.
+-- get_city_stats, honest, real-time counts.
 create or replace function get_city_stats()
 returns json language sql stable as $$
   select json_build_object(
@@ -419,7 +419,7 @@ grant execute on function get_city_stats()           to anon, authenticated;
 grant execute on function dogs_near(float,float,float) to anon, authenticated;
 
 -- ════════════════════════════════════════════════════════════════
--- Storage — public bucket for sighting photos, anon upload allowed.
+-- Storage, public bucket for sighting photos, anon upload allowed.
 -- ════════════════════════════════════════════════════════════════
 insert into storage.buckets (id, name, public)
 values ('sightings', 'sightings', true)

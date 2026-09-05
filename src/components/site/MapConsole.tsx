@@ -11,7 +11,7 @@ type Tone = "vermilion" | "electric" | "cyan" | "violet";
  *
  * The landing page used to show five invented sightings here with IDs and
  * place names. Nothing has been reported yet, so those were fiction. This
- * shows what each state on the map *means* instead — which is real product
+ * shows what each state on the map *means* instead, which is real product
  * information, and survives contact with a reader who clicks through.
  */
 type State = {
@@ -59,7 +59,7 @@ const STATES: State[] = [
     label: "Coverage gap",
     title: "Nothing known here",
     meaning:
-      "An area with no records at all. Silence is not absence — it usually means nobody has looked.",
+      "An area with no records at all. Silence is not absence. It usually means nobody has looked.",
     entersWhen: "An area has no reports and no survey history.",
     leavesWhen: "A field survey establishes a baseline.",
   },
@@ -85,7 +85,7 @@ const STATES: State[] = [
     meaning:
       "Something was funded, executed and checked. The record keeps its method and its confidence rating.",
     entersWhen: "Post-field verification completes.",
-    leavesWhen: "It doesn't — outcomes are permanent.",
+    leavesWhen: "It doesn't, outcomes are permanent.",
   },
 ];
 

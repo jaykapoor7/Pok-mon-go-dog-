@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — content reports ("Report content" flagging).
+-- StrayPaw, content reports ("Report content" flagging).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Stores user flags of
 -- sightings/photos that break the guidelines. Write-only for the public

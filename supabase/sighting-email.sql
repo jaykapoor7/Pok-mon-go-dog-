@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — optional reporter email (notify on approval + build a list).
+-- StrayPaw, optional reporter email (notify on approval + build a list).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets a reporter leave an
 -- email so we can email them when their sighting goes live. Stored on the

@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — ear-notch (sterilisation mark).
+-- StrayPaw, ear-notch (sterilisation mark).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Adds the universal ABC
 -- "ear-notch" marker so a sterilised dog is recognisable on sight and isn't

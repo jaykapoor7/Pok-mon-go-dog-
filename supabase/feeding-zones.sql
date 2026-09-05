@@ -1,13 +1,12 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — feeding zones + volunteer feeding rotations.
+-- StrayPaw, feeding zones + volunteer feeding rotations.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets the community mark
 -- an existing feeding spot (a corner, a colony, a market backside) on the map,
--- sign up to cover it on specific days, and check in when they've fed it —
--- independent of individual dog profiles (a zone usually feeds several dogs).
+-- sign up to cover it on specific days, and check in when they've fed it, -- independent of individual dog profiles (a zone usually feeds several dogs).
 -- ════════════════════════════════════════════════════════════════
 
--- 1. Feeding zones (map points). Reporting one is open like sightings — actor
+-- 1. Feeding zones (map points). Reporting one is open like sightings, actor
 --    is optional so a guest can add one; signing in just lets you manage it
 --    later from another device (same convention as sightings/report).
 create table if not exists feeding_zones (
@@ -26,7 +25,7 @@ create table if not exists feeding_zones (
 create index if not exists feeding_zones_geo_idx on feeding_zones (lat, lng);
 create index if not exists feeding_zones_created_idx on feeding_zones (created_at desc);
 
--- 2. Volunteers covering a zone — a day-of-week rotation. One row per person
+-- 2. Volunteers covering a zone, a day-of-week rotation. One row per person
 --    per zone (re-signing up updates their days/contact instead of duplicating).
 create table if not exists feeding_zone_volunteers (
   id              uuid primary key default gen_random_uuid(),
@@ -40,7 +39,7 @@ create table if not exists feeding_zone_volunteers (
 );
 create index if not exists feeding_zone_volunteers_zone_idx on feeding_zone_volunteers (feeding_zone_id);
 
--- 3. Check-ins — a lightweight "fed today" log + activity trail.
+-- 3. Check-ins, a lightweight "fed today" log + activity trail.
 create table if not exists feeding_zone_checkins (
   id              uuid primary key default gen_random_uuid(),
   feeding_zone_id uuid not null references feeding_zones(id) on delete cascade,
@@ -52,7 +51,7 @@ create table if not exists feeding_zone_checkins (
 create index if not exists feeding_zone_checkins_zone_idx on feeding_zone_checkins (feeding_zone_id, created_at desc);
 
 -- 4. Public read views. `contact` (phone/email) is deliberately never exposed
---    to anon/authenticated — only service_role (the moderation panel) can read
+--    to anon/authenticated, only service_role (the moderation panel) can read
 --    the base table's contact column; everyone else gets the safe view below.
 create or replace view feeding_zone_public as
 select
@@ -136,7 +135,7 @@ begin
 end;
 $$;
 
--- "Fed it today" check-in — any signed-in volunteer, bumps last_fed_at.
+-- "Fed it today" check-in, any signed-in volunteer, bumps last_fed_at.
 create or replace function checkin_feeding_zone(
   p_zone_id uuid, p_actor_id uuid, p_actor_name text, p_note text default null
 )
@@ -152,7 +151,7 @@ $$;
 -- Row Level Security.
 --   • feeding_zones / feeding_zone_checkins: public read (no sensitive data).
 --   • feeding_zone_volunteers: RLS locked with NO select policy for
---     anon/authenticated — combined with revoking table-level SELECT below,
+--     anon/authenticated, combined with revoking table-level SELECT below,
 --     this keeps `contact` (phone/email) unreadable by anyone but the service
 --     role. The public app reads volunteers only via the safe view.
 -- ════════════════════════════════════════════════════════════════

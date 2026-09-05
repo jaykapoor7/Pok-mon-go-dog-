@@ -2,7 +2,7 @@
    Who is using StrayPaw.
 
    Three audiences share one console but arrive wanting different things,
-   so the role decides what gets surfaced first — not what is permitted.
+   so the role decides what gets surfaced first, not what is permitted.
    Permission is a separate question, answered by NGO membership, and it
    only ever gates *writing*: every read surface stays open.
    ════════════════════════════════════════════════════════════════════ */
@@ -37,7 +37,7 @@ export const ROLE_META: Record<
   ngo: {
     label: "I work at an organisation",
     blurb:
-      "You run field work — ABC drives, vaccination, rescue, feeding — and need the records to hold together.",
+      "You run field work, ABC drives, vaccination, rescue, feeding, and need the records to hold together.",
     home: "/partner/cases",
     priority: ["/partner/cases", "/partner/animals", "/partner/field", "/map"],
     apply: "/partner-apply",
@@ -77,6 +77,6 @@ export function storeRole(role: Role) {
   try {
     window.localStorage.setItem(ROLE_KEY, role);
   } catch {
-    /* nothing to do — the picker just reappears next visit */
+    /* nothing to do, the picker just reappears next visit */
   }
 }

@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — self-serve NGO partner onboarding + per-org attribution.
+-- StrayPaw, self-serve NGO partner onboarding + per-org attribution.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Depends on:
 --   • location-privacy.sql  → ngo_members, is_ngo_member()
@@ -10,7 +10,7 @@
 -- → they're inserted into ngo_members (linked to an ngos org row) and gain the
 -- verified-partner tools. Cases they claim are stamped with their ngo_id so the
 -- funder report can attribute impact per organisation (shared pool, per-org
--- credit — no data isolation).
+-- credit, no data isolation).
 -- ════════════════════════════════════════════════════════════════
 
 -- 1. Partner access requests.

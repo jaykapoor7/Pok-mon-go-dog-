@@ -19,8 +19,8 @@ import { formatPlace } from "@/lib/delhi";
    Bringing paper and WhatsApp records in.
 
    Almost no organisation starts digital. Records live in ward registers,
-   ABC ledgers and WhatsApp threads, and the usual advice — "re-enter it
-   all" — is why they never move.
+   ABC ledgers and WhatsApp threads, and the usual advice, "re-enter it
+   all". Is why they never move.
 
    So: attach the original as evidence, transcribe the few fields that
    matter beside it, and file both together. The photo stays with the
@@ -105,7 +105,7 @@ export function ImportClient() {
           notes:
             [d.notes.trim(), "Transcribed from an existing paper or message record."]
               .filter(Boolean)
-              .join(" — "),
+              .join(", "),
         });
         patch(d.id, { state: "done" });
       } catch (e) {
@@ -278,7 +278,7 @@ export function ImportClient() {
           </div>
           {ready.length === 0 && drafts.some((d) => d.state === "idle") && (
             <p className="imp-hint">
-              Each record needs a locality before it can be filed — that is what
+              Each record needs a locality before it can be filed, that is what
               puts it on the map.
             </p>
           )}

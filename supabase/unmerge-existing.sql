@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — ONE-TIME un-merge of existing data.
+-- StrayPaw, ONE-TIME un-merge of existing data.
 --
 -- Splits every dog that has several live sightings into one dog PER sighting,
 -- so "dogs tracked" reflects each captured moment (undoes the old ≤200 m
@@ -12,7 +12,7 @@
 --   • The EARLIEST sighting stays on the original dog; each later sighting spins
 --     off into a new dog carrying that sighting's photo/location/mood.
 --   • Care history (feed events, vaccinations, sterilisations, comments, cases)
---     stays attached to the original dog — it can't be attributed to a specific
+--     stays attached to the original dog. It can't be attributed to a specific
 --     sighting. New split-off dogs start fresh (unvaccinated/unsterilised).
 --   • Consider taking a snapshot/backup first if you want an easy rollback.
 -- ════════════════════════════════════════════════════════════════

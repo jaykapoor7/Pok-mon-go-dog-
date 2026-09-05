@@ -8,7 +8,7 @@ import type { Sighting } from "@/lib/types";
 /* ════════════════════════════════════════════════════════════════════
    Recent sightings.
 
-   These were single-line links — a note and a timestamp — which threw away
+   These were single-line links, a note and a timestamp, which threw away
    almost everything a report carries. Each sighting already has a photo, a
    place, mood tags and a reporter, and the photo is the part that makes an
    animal feel like an animal rather than a row.

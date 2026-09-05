@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Partnership applications — a public lead-capture form for NGOs that want to
+-- Partnership applications, a public lead-capture form for NGOs that want to
 -- onboard: organisation details, a message, and uploaded onboarding documents.
 -- Lands in the moderation console. Idempotent.
 -- ════════════════════════════════════════════════════════════════

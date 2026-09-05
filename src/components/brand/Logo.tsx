@@ -7,7 +7,7 @@ const TILE: Record<Size, string> = { sm: "h-8 w-8", md: "h-10 w-10", lg: "h-12 w
 const WORD: Record<Size, string> = { sm: "text-base", md: "text-xl", lg: "text-2xl" };
 
 /**
- * Compact mark — the circular StrayPaw badge.
+ * Compact mark, the circular StrayPaw badge.
  * Crisp at any size, used in navbars, tabs, small chips.
  */
 export function AnimalMark({ className }: { className?: string }) {
@@ -24,7 +24,7 @@ export function AnimalMark({ className }: { className?: string }) {
 }
 
 /**
- * Full badge — larger display size, hero / CTA sections.
+ * Full badge, larger display size, hero / CTA sections.
  */
 export function StrayPawBadge({ className }: { className?: string }) {
   return (
@@ -32,7 +32,7 @@ export function StrayPawBadge({ className }: { className?: string }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/straypaw-logo.svg"
-        alt="StrayPaw — See. Care. Act."
+        alt="StrayPaw, See. Care. Act."
         className="h-full w-full object-contain"
       />
     </span>
@@ -40,7 +40,7 @@ export function StrayPawBadge({ className }: { className?: string }) {
 }
 
 /**
- * Wordmark — compact mark + "StrayPaw" text, used in nav rails and top bars.
+ * Wordmark, compact mark + "StrayPaw" text, used in nav rails and top bars.
  */
 export function Logo({
   className,

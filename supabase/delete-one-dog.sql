@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — delete ONE dog (and its sightings) from live data
+-- StrayPaw Delhi, delete ONE dog (and its sightings) from live data
 --
 -- Demo Mode dogs are NOT in the database, so every row in `dogs` here is a
 -- real submission. Run step 1 to find the dog, then step 2 with its id.

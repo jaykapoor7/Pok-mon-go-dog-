@@ -2,7 +2,7 @@
    StrayPaw vector library
 
    One drawing language across the site: thin strokes on a 1.25–1.5 weight,
-   open geometry, and a schematic/survey feel — contour lines, radar sweeps,
+   open geometry, and a schematic/survey feel, contour lines, radar sweeps,
    constellation nodes. Everything inherits `currentColor` so a vector picks
    up whatever context it is dropped into, and every animation sits behind
    `prefers-reduced-motion`.
@@ -11,7 +11,7 @@
 type V = { className?: string; size?: number };
 
 /* ── 1. Topographic contours ─────────────────────────────────────────
-   Survey-map contours. Used as a section ground — it reads as terrain
+   Survey-map contours. Used as a section ground. It reads as terrain
    without ever being a literal map. */
 export function TopoLines({ className }: { className?: string }) {
   return (
@@ -31,7 +31,7 @@ export function TopoLines({ className }: { className?: string }) {
         <path d="M-20 140 C 140 88, 240 172, 310 122 S 460 46, 550 88 S 620 130, 640 106" />
         <path d="M-20 108 C 150 52, 258 142, 322 88 S 466 8, 556 52 S 622 96, 640 70" />
       </g>
-      {/* summit markers — the "peaks" of density */}
+      {/* summit markers, the "peaks" of density */}
       <g fill="currentColor" opacity="0.85">
         <circle cx="238" cy="150" r="2.5" />
         <circle cx="466" cy="86" r="2.5" />
@@ -104,13 +104,13 @@ export function Constellation({ className, size = 120 }: V) {
 }
 
 /* ── 4. Street dog glyph ─────────────────────────────────────────────
-   The protagonist, drawn as a single-weight geometric contour — sitting,
+   The protagonist, drawn as a single-weight geometric contour, sitting,
    in profile, alert. Deliberately not cute; it is a field mark. */
 export function DogGlyph({ className, size = 120 }: V) {
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 120 120" fill="none" aria-hidden="true">
       <g stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none">
-        {/* ears — upright, the alert set of a street dog */}
+        {/* ears, upright, the alert set of a street dog */}
         <path d="M48 34 L44 12 L62 26" />
         <path d="M74 27 L82 8 L86 30" />
         {/* skull, brow, muzzle */}
@@ -205,7 +205,7 @@ export function FlowArc({ className, flip = false }: { className?: string; flip?
 }
 
 /* ── 8. Isometric grid plane ─────────────────────────────────────────
-   The "system" ground — a receding survey grid. */
+   The "system" ground, a receding survey grid. */
 export function GridPlane({ className }: { className?: string }) {
   /* One vanishing point above the frame. Verticals converge on it; horizontals
      compress toward the horizon, so the plane reads as ground receding away. */

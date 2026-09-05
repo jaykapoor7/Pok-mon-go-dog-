@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
    Real construction: bioglass capsule → anti-migration cap → copper
    antenna coil wound on ferrite rod → IC die holding the 15-digit code.
 
-   CSS 3D transforms only — no WebGL needed for five planes on a Z axis.
+   CSS 3D transforms only, no WebGL needed for five planes on a Z axis.
    ════════════════════════════════════════════════════════════════════ */
 
 type Layer = {
@@ -43,7 +43,7 @@ const LAYERS: Layer[] = [
     id: "coil",
     name: "Antenna coil",
     detail:
-      "Copper winding around a ferrite rod. The scanner's field induces current here — no battery, nothing to replace.",
+      "Copper winding around a ferrite rod. The scanner's field induces current here, no battery, nothing to replace.",
     x: -14,
     out: 40,
     z: 30,
@@ -103,7 +103,7 @@ export function ChipExploded() {
   return (
     <div className="chip-wrap" ref={ref}>
       <div className="chip-stage" aria-hidden="true">
-        {/* Scanner beam — sweeps once, then stays as a ghost */}
+        {/* Scanner beam, sweeps once, then stays as a ghost */}
         {isOpen && (
           <div className={`chip-beam ${scanned ? "done" : "scanning"}`} />
         )}
@@ -147,7 +147,7 @@ export function ChipExploded() {
         </div>
       </div>
 
-      {/* Callouts — hovering one highlights the corresponding layer. */}
+      {/* Callouts, hovering one highlights the corresponding layer. */}
       <ol className="chip-calls" style={{ opacity: Math.max(0.15, progress) }}>
         {LAYERS.map((l, i) => (
           <li

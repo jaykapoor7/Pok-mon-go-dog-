@@ -11,7 +11,7 @@ import { DATASETS } from "@/lib/platform/datasets";
 import { ORGS } from "@/lib/platform/orgs";
 
 export const metadata = {
-  title: "The data — what is known, and what is not",
+  title: "The data, what is known, and what is not",
   description:
     "Street-dog population, sterilisation coverage and organisational presence across India, with every gap named and attributed to whoever holds the missing number.",
 };
@@ -36,7 +36,7 @@ export default function TheDataPage() {
       kicker="THE DATA"
       title="What is known."
       accent="And what is not."
-      lede="This is the honest state of the evidence on India's street animals. Where a figure exists it is cited. Where it does not, the gap is named along with whoever is holding the number — because absence is the more useful half of this picture."
+      lede="This is the honest state of the evidence on India's street animals. Where a figure exists it is cited. Where it does not, the gap is named along with whoever is holding the number, because absence is the more useful half of this picture."
       figure={<LoopFigure />}
       next={[
         { label: "State-by-state explorer", href: "/gaps", note: "Population, coverage and organisations per state." },
@@ -52,8 +52,8 @@ export default function TheDataPage() {
       >
         <p className="mk-body">
           Nearly every state has some street-dog population figure, of varying
-          quality and vintage. Sterilisation coverage — the number that decides
-          whether a programme is working — is published for a handful. That
+          quality and vintage. Sterilisation coverage, the number that decides
+          whether a programme is working. Is published for a handful. That
           asymmetry is the central fact of this field.
         </p>
 

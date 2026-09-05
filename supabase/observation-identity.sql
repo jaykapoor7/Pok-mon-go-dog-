@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — honest animal identity on observations.
+-- StrayPaw, honest animal identity on observations.
 --
 -- THE PROBLEM THIS FIXES
 --
@@ -13,7 +13,7 @@
 -- On an Indian street 200 m contains many distinct animals. That rule
 -- silently merged different dogs into one record, inflated
 -- dogs.sightings_count, and manufactured the single claim the product rests
--- on — that this is the same animal, seen again. Proximity is evidence that
+-- on, that this is the same animal, seen again. Proximity is evidence that
 -- two observations *could* be the same animal. It is not identification.
 --
 -- WHAT REPLACES IT
@@ -150,7 +150,7 @@ end $$;
 
 -- The single-argument version is dropped first. Postgres would otherwise keep
 -- both, and approve_sighting(p_sighting_id => ...) becomes ambiguous against a
--- two-argument version whose second parameter has a default — approval would
+-- two-argument version whose second parameter has a default, approval would
 -- fail outright with "function is not unique". Dropping it is also what
 -- guarantees the old proximity merge in add-moderation.sql / auth-accounts.sql
 -- cannot still be reached.
@@ -158,7 +158,7 @@ drop function if exists approve_sighting(uuid);
 
 -- p_dog_id: a reviewer's explicit choice. When absent, the reporter's own
 -- claim is used. When there is neither, the observation becomes a new animal
--- — an unmatched record, visibly unmatched.
+--, an unmatched record, visibly unmatched.
 create or replace function approve_sighting(
   p_sighting_id uuid,
   p_dog_id      uuid default null

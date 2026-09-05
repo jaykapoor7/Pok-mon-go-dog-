@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
 /* ════════════════════════════════════════════════════════════════════
-   The reporting journey — the one flow that has to survive every change.
+   The reporting journey, the one flow that has to survive every change.
 
    These run without Supabase credentials, which is deliberate: they cover
    everything up to the write, so they are runnable in CI and by anyone who

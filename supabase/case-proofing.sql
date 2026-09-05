@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — case proofing & verification.
+-- StrayPaw, case proofing & verification.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Depends on:
 --   • location-privacy.sql  → is_ngo_member()
@@ -18,7 +18,7 @@ alter table cases add column if not exists proof_verified boolean not null defau
 alter table cases add column if not exists verified_at    timestamptz;
 create index if not exists cases_verified_idx on cases (proof_verified);
 
--- 2. Claim — verified partner NGOs only.
+-- 2. Claim, verified partner NGOs only.
 create or replace function claim_case(p_case_id uuid, p_actor_id uuid, p_actor_name text)
 returns boolean language plpgsql security definer set search_path = public as $$
 declare c cases;
@@ -45,7 +45,7 @@ begin
 end;
 $$;
 
--- 3. Status changes — NGO-only; proof required to resolve; resets verification.
+-- 3. Status changes, NGO-only; proof required to resolve; resets verification.
 drop function if exists update_case_status(uuid, case_status, uuid, text, case_resolution, text, text, text, text);
 
 create or replace function update_case_status(

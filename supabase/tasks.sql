@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Tasks — assignable field tasks (not every task maps to a case). Create a
+-- Tasks, assignable field tasks (not every task maps to a case). Create a
 -- task, assign it to a teammate, give it a due date, mark it done.
 -- Depends on: partner-onboarding.sql (my_ngo, is_ngo_member). Idempotent.
 -- ════════════════════════════════════════════════════════════════

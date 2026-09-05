@@ -16,13 +16,13 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Interventions, StrayPaw",
   description:
-    "Funded work on the ground. Nothing has been commissioned yet — this shows what the first one would look like.",
+    "Funded work on the ground, scoped to a geography, costed against published rates, and reported against the indicators set before it starts.",
 };
 
 const OBJECTIVES: Objective[] = ["sterilisation", "vaccination"];
 
 export default function InterventionsPage() {
-  /* One MCD zone's worth — the smallest unit a first programme would
+  /* One MCD zone's worth, the smallest unit a first programme would
      realistically target. Derived from published city figures, not invented. */
   const ZONE_SHARE = 1 / 12;
 
@@ -60,7 +60,7 @@ export default function InterventionsPage() {
         <p className="queue-lede">
           One MCD zone&apos;s share of Delhi, to the WHO{" "}
           {Math.round(COVERAGE_TARGET.value * 100)}% threshold. Built from
-          published population, coverage and unit-cost figures — see the
+          published population, coverage and unit-cost figures, see the
           sources on{" "}
           <Link href="/what-would-it-take" className="tlink">
             the scoping tool
@@ -81,7 +81,7 @@ export default function InterventionsPage() {
                 </small>
                 <p className="ref-src spa-mono">
                   {plan.baselineUnknown
-                    ? "Ceiling — no published vaccination baseline"
+                    ? "Ceiling, no published vaccination baseline"
                     : `${inr(cost.value)} ${cost.unit} · ${cost.year}`}
                 </p>
               </div>

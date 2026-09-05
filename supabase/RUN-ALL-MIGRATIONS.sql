@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — RUN-ALL migrations (idempotent).
+-- StrayPaw, RUN-ALL migrations (idempotent).
 --
 -- Paste this WHOLE file into the Supabase SQL editor and run it ONCE.
 -- It is safe to re-run: every statement uses create-or-replace / if-not-exists,
@@ -16,10 +16,10 @@
 -- │ schema.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — production schema (no-login / anonymous model)
+-- StrayPaw Delhi, production schema (no-login / anonymous model)
 --
 -- Paste this whole file into the Supabase SQL editor and Run.
--- It is idempotent — safe to run again after edits.
+-- It is idempotent, safe to run again after edits.
 --
 -- Design:
 --   • Anyone can post a sighting with NO login (the public `anon` key).
@@ -27,7 +27,7 @@
 --     while the multi-table "create-or-match dog + insert sighting" stays
 --     atomic.
 --   • Reads are public (it's a community map).
---   • Stats are computed from real rows — they start at your real numbers
+--   • Stats are computed from real rows, they start at your real numbers
 --     and grow as people use the app.
 -- ════════════════════════════════════════════════════════════════
 
@@ -80,7 +80,7 @@ create index if not exists dogs_geo_idx on dogs (lat, lng);
 create index if not exists dogs_status_idx on dogs (status);
 create index if not exists dogs_last_seen_idx on dogs (last_seen desc);
 
--- ── Sightings (raw uploads — the viral layer) ───────────────────
+-- ── Sightings (raw uploads, the viral layer) ───────────────────
 create table if not exists sightings (
   id            uuid primary key default uuid_generate_v4(),
   dog_id        uuid references dogs(id) on delete set null,
@@ -160,7 +160,7 @@ returns setof dogs language sql stable as $$
 $$;
 
 -- ════════════════════════════════════════════════════════════════
--- report_sighting — the core write.
+-- report_sighting, the core write.
 -- Inserts the sighting as PENDING and does NOT touch the public `dogs`
 -- table. Dog creation / matching happens only when the sighting is approved
 -- (see approve_sighting). This keeps unmoderated content fully invisible.
@@ -208,7 +208,7 @@ end;
 $$;
 
 -- ════════════════════════════════════════════════════════════════
--- approve_sighting — admin action. Marks a pending sighting LIVE and only
+-- approve_sighting, admin action. Marks a pending sighting LIVE and only
 -- THEN matches it to a nearby dog (≤200 m) or creates a new dog profile,
 -- updating aggregates. Idempotent. Admin-only (granted to service_role).
 -- ════════════════════════════════════════════════════════════════
@@ -272,7 +272,7 @@ begin
 end;
 $$;
 
--- reject_sighting — admin action. Permanently removes a pending sighting.
+-- reject_sighting, admin action. Permanently removes a pending sighting.
 create or replace function reject_sighting(p_sighting_id uuid)
 returns boolean
 language plpgsql
@@ -285,7 +285,7 @@ begin
 end;
 $$;
 
--- delete_sighting — token-gated deletion. Verifies the SHA-256 owner hash,
+-- delete_sighting, token-gated deletion. Verifies the SHA-256 owner hash,
 -- deletes the sighting, and keeps the dog's aggregates correct (removing the
 -- dog if that was its last sighting).
 create or replace function delete_sighting(p_sighting_id uuid, p_owner_hash text)
@@ -330,7 +330,7 @@ begin
 end;
 $$;
 
--- log_feed — "I fed this dog".
+-- log_feed, "I fed this dog".
 create or replace function log_feed(
   p_dog_id uuid,
   p_reporter_name text default null,
@@ -348,7 +348,7 @@ begin
 end;
 $$;
 
--- log_seen — "I saw this dog" (bumps last_seen + a sightings tally).
+-- log_seen, "I saw this dog" (bumps last_seen + a sightings tally).
 create or replace function log_seen(p_dog_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
@@ -357,7 +357,7 @@ begin
 end;
 $$;
 
--- add_comment — community note.
+-- add_comment, community note.
 create or replace function add_comment(
   p_dog_id uuid, p_body text, p_reporter_name text default null
 )
@@ -368,7 +368,7 @@ begin
 end;
 $$;
 
--- like_sighting — feed hearts.
+-- like_sighting, feed hearts.
 create or replace function like_sighting(p_sighting_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
@@ -376,7 +376,7 @@ begin
 end;
 $$;
 
--- get_city_stats — honest, real-time counts.
+-- get_city_stats, honest, real-time counts.
 create or replace function get_city_stats()
 returns json language sql stable as $$
   select json_build_object(
@@ -436,7 +436,7 @@ grant execute on function get_city_stats()           to anon, authenticated;
 grant execute on function dogs_near(float,float,float) to anon, authenticated;
 
 -- ════════════════════════════════════════════════════════════════
--- Storage — public bucket for sighting photos, anon upload allowed.
+-- Storage, public bucket for sighting photos, anon upload allowed.
 -- ════════════════════════════════════════════════════════════════
 insert into storage.buckets (id, name, public)
 values ('sightings', 'sightings', true)
@@ -455,7 +455,7 @@ create policy "sightings anon upload" on storage.objects
 -- │ secure-writes.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — lock down sighting creation (defence in depth)
+-- StrayPaw Delhi, lock down sighting creation (defence in depth)
 --
 -- Run this AFTER you have:
 --   1. set SUPABASE_SERVICE_ROLE_KEY in Vercel, and
@@ -465,7 +465,7 @@ create policy "sightings anon upload" on storage.objects
 -- It revokes the public (anon) ability to call report_sighting directly, so the
 -- ONLY way to create a sighting is through the Turnstile-protected /api/report
 -- route (which runs as the service role). Until you run this, the form is still
--- spam-checked by Turnstile — this just closes the "call the RPC directly with
+-- spam-checked by Turnstile, this just closes the "call the RPC directly with
 -- the anon key" bypass.
 --
 -- Safe to skip if you're comfortable with the Turnstile-only protection.
@@ -482,7 +482,7 @@ grant execute on function report_sighting(text,float,float,text,text,text[],text
 -- │ add-moderation.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — add a moderation layer to sightings
+-- StrayPaw Delhi, add a moderation layer to sightings
 --
 -- Run this once in the Supabase SQL editor on an existing project. It is also
 -- folded into schema.sql for fresh installs.
@@ -637,7 +637,7 @@ grant execute on function reject_sighting(uuid)  to service_role;
 -- │ add-deletion.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — add sighting deletion (token ownership)
+-- StrayPaw Delhi, add sighting deletion (token ownership)
 --
 -- Run this in the Supabase SQL editor on an existing project. It is also
 -- folded into schema.sql for fresh installs.
@@ -731,7 +731,7 @@ begin
 end;
 $$;
 
--- delete_sighting — verifies the token hash, deletes the sighting, and keeps
+-- delete_sighting, verifies the token hash, deletes the sighting, and keeps
 -- the dog aggregates correct (removing the dog if it was its last sighting).
 create or replace function delete_sighting(p_sighting_id uuid, p_owner_hash text)
 returns boolean
@@ -779,7 +779,7 @@ grant execute on function delete_sighting(uuid,text)
 -- │ auth-accounts.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — accounts + moderation, consolidated & idempotent.
+-- StrayPaw Delhi, accounts + moderation, consolidated & idempotent.
 --
 -- Run this ONCE in the Supabase SQL editor. It is safe to run on ANY state of
 -- the database (fresh, pre-moderation, or already-migrated): every step guards
@@ -791,7 +791,7 @@ grant execute on function delete_sighting(uuid,text)
 --   • the read policy + grants
 --
 -- Anonymous posting is preserved (those rows simply have user_id = NULL).
--- Sign-in uses Supabase Auth email magic link — no extra provider setup.
+-- Sign-in uses Supabase Auth email magic link, no extra provider setup.
 -- ════════════════════════════════════════════════════════════════
 
 -- ── 1. Columns ──────────────────────────────────────────────────
@@ -1039,7 +1039,7 @@ grant execute on function update_dog_status(uuid,dog_status,boolean,boolean,bool
 -- │ cases.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — NGO operations layer (Phase 1: cases + ownership)
+-- StrayPaw Delhi, NGO operations layer (Phase 1: cases + ownership)
 --
 -- Additive. Does not touch sightings / dogs / moderation. Run once in the
 -- Supabase SQL editor.
@@ -1079,7 +1079,7 @@ do $$ begin
     ('created','claimed','assigned','status_changed','note','reopened');
 exception when duplicate_object then null; end $$;
 
--- ── Volunteers (lightweight — id generated client-side) ─────────
+-- ── Volunteers (lightweight. Id generated client-side) ─────────
 create table if not exists volunteers (
   id         uuid primary key,
   name       text not null,
@@ -1288,7 +1288,7 @@ end;
 $$;
 
 -- ════════════════════════════════════════════════════════════════
--- Row Level Security — public read (NGO-internal but no auth yet);
+-- Row Level Security, public read (NGO-internal but no auth yet);
 -- all writes go through the functions above.
 -- ════════════════════════════════════════════════════════════════
 alter table volunteers   enable row level security;
@@ -1316,7 +1316,7 @@ grant execute on function add_case_note(uuid,uuid,text,text) to anon, authentica
 -- │ colonies-and-proof.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — colonies + before/after proof + response-time timestamps.
+-- StrayPaw, colonies + before/after proof + response-time timestamps.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Adds the persistence the
 -- NGO dashboard's Impact view needs for REAL data:
@@ -1437,7 +1437,7 @@ grant execute on function update_case_status(
 -- │ feeding-recency.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — time-aware feeding
+-- StrayPaw Delhi, time-aware feeding
 --
 -- A dog needs feeding multiple times a day, so "Fed" must decay. We track the
 -- last feed time on the dog and the UI only shows "Fed" within a recency
@@ -1479,12 +1479,12 @@ $$;
 -- │ location-privacy.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — location privacy: exact coordinates for partner NGOs only.
+-- StrayPaw, location privacy: exact coordinates for partner NGOs only.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent).
 --
 -- Model: the public app already shows only a GENERAL area (coordinates are
--- rounded to ~1km in the read layer — see src/lib/data.ts), so regular users
+-- rounded to ~1km in the read layer, see src/lib/data.ts), so regular users
 -- never receive exact pins through the app. This migration adds the privileged
 -- path for VERIFIED PARTNER NGOs to read exact coordinates.
 --
@@ -1512,7 +1512,7 @@ returns boolean language sql stable security definer set search_path = public as
   select exists (select 1 from ngo_members where user_id = auth.uid());
 $$;
 
--- 3. Exact coordinates for a set of dogs — ONLY for NGO members.
+-- 3. Exact coordinates for a set of dogs, ONLY for NGO members.
 --    Returns nothing for everyone else, so it's safe to grant broadly.
 create or replace function get_precise_locations(p_ids uuid[])
 returns table (id uuid, lat double precision, lng double precision)
@@ -1535,7 +1535,7 @@ grant execute on function get_precise_locations(uuid[]) to anon, authenticated;
 -- │ merge-dogs.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — merge duplicate dog profiles into one.
+-- StrayPaw, merge duplicate dog profiles into one.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Requires the
 -- ngo_members table + is_ngo_member() from location-privacy.sql.
@@ -1591,7 +1591,7 @@ grant execute on function merge_dogs(uuid, uuid) to authenticated;
 -- │ helpers.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — "Can you help?" volunteer + NGO sign-ups.
+-- StrayPaw, "Can you help?" volunteer + NGO sign-ups.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Stores people who offer to
 -- help a dog or volunteer, and NGOs registering interest. Submissions are
@@ -1649,7 +1649,7 @@ grant execute on function submit_helper(text,text,text,boolean,text,uuid,text)
 -- │ case-proofing.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — case proofing & verification.
+-- StrayPaw, case proofing & verification.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Depends on:
 --   • location-privacy.sql  → is_ngo_member()
@@ -1668,7 +1668,7 @@ alter table cases add column if not exists proof_verified boolean not null defau
 alter table cases add column if not exists verified_at    timestamptz;
 create index if not exists cases_verified_idx on cases (proof_verified);
 
--- 2. Claim — verified partner NGOs only.
+-- 2. Claim, verified partner NGOs only.
 create or replace function claim_case(p_case_id uuid, p_actor_id uuid, p_actor_name text)
 returns boolean language plpgsql security definer set search_path = public as $$
 declare c cases;
@@ -1695,7 +1695,7 @@ begin
 end;
 $$;
 
--- 3. Status changes — NGO-only; proof required to resolve; resets verification.
+-- 3. Status changes, NGO-only; proof required to resolve; resets verification.
 drop function if exists update_case_status(uuid, case_status, uuid, text, case_resolution, text, text, text, text);
 
 create or replace function update_case_status(
@@ -1813,7 +1813,7 @@ grant execute on function verify_case(uuid) to service_role;
 -- │ helpers-acknowledge.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — "reached out / acknowledged" flag on Help-form sign-ups.
+-- StrayPaw, "reached out / acknowledged" flag on Help-form sign-ups.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets the moderation panel
 -- tick a volunteer/NGO once you've contacted them, without removing the row.
@@ -1828,7 +1828,7 @@ alter table helpers add column if not exists acknowledged_at timestamptz;
 -- │ ear-notch.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — ear-notch (sterilisation mark).
+-- StrayPaw, ear-notch (sterilisation mark).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Adds the universal ABC
 -- "ear-notch" marker so a sterilised dog is recognisable on sight and isn't
@@ -1885,7 +1885,7 @@ grant execute on function update_dog_status(uuid,dog_status,boolean,boolean,bool
 -- │ no-auto-merge.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — disable the ≤200 m auto-merge (each sighting = its own dog).
+-- StrayPaw, disable the ≤200 m auto-merge (each sighting = its own dog).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). The old approve_sighting
 -- folded any new sighting within 200 m of an existing dog into that dog, which
@@ -1933,15 +1933,14 @@ grant execute on function approve_sighting(uuid) to service_role;
 -- │ feeding-zones.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — feeding zones + volunteer feeding rotations.
+-- StrayPaw, feeding zones + volunteer feeding rotations.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets the community mark
 -- an existing feeding spot (a corner, a colony, a market backside) on the map,
--- sign up to cover it on specific days, and check in when they've fed it —
--- independent of individual dog profiles (a zone usually feeds several dogs).
+-- sign up to cover it on specific days, and check in when they've fed it, -- independent of individual dog profiles (a zone usually feeds several dogs).
 -- ════════════════════════════════════════════════════════════════
 
--- 1. Feeding zones (map points). Reporting one is open like sightings — actor
+-- 1. Feeding zones (map points). Reporting one is open like sightings, actor
 --    is optional so a guest can add one; signing in just lets you manage it
 --    later from another device (same convention as sightings/report).
 create table if not exists feeding_zones (
@@ -1960,7 +1959,7 @@ create table if not exists feeding_zones (
 create index if not exists feeding_zones_geo_idx on feeding_zones (lat, lng);
 create index if not exists feeding_zones_created_idx on feeding_zones (created_at desc);
 
--- 2. Volunteers covering a zone — a day-of-week rotation. One row per person
+-- 2. Volunteers covering a zone, a day-of-week rotation. One row per person
 --    per zone (re-signing up updates their days/contact instead of duplicating).
 create table if not exists feeding_zone_volunteers (
   id              uuid primary key default gen_random_uuid(),
@@ -1974,7 +1973,7 @@ create table if not exists feeding_zone_volunteers (
 );
 create index if not exists feeding_zone_volunteers_zone_idx on feeding_zone_volunteers (feeding_zone_id);
 
--- 3. Check-ins — a lightweight "fed today" log + activity trail.
+-- 3. Check-ins, a lightweight "fed today" log + activity trail.
 create table if not exists feeding_zone_checkins (
   id              uuid primary key default gen_random_uuid(),
   feeding_zone_id uuid not null references feeding_zones(id) on delete cascade,
@@ -1986,7 +1985,7 @@ create table if not exists feeding_zone_checkins (
 create index if not exists feeding_zone_checkins_zone_idx on feeding_zone_checkins (feeding_zone_id, created_at desc);
 
 -- 4. Public read views. `contact` (phone/email) is deliberately never exposed
---    to anon/authenticated — only service_role (the moderation panel) can read
+--    to anon/authenticated, only service_role (the moderation panel) can read
 --    the base table's contact column; everyone else gets the safe view below.
 create or replace view feeding_zone_public as
 select
@@ -2070,7 +2069,7 @@ begin
 end;
 $$;
 
--- "Fed it today" check-in — any signed-in volunteer, bumps last_fed_at.
+-- "Fed it today" check-in, any signed-in volunteer, bumps last_fed_at.
 create or replace function checkin_feeding_zone(
   p_zone_id uuid, p_actor_id uuid, p_actor_name text, p_note text default null
 )
@@ -2086,7 +2085,7 @@ $$;
 -- Row Level Security.
 --   • feeding_zones / feeding_zone_checkins: public read (no sensitive data).
 --   • feeding_zone_volunteers: RLS locked with NO select policy for
---     anon/authenticated — combined with revoking table-level SELECT below,
+--     anon/authenticated, combined with revoking table-level SELECT below,
 --     this keeps `contact` (phone/email) unreadable by anyone but the service
 --     role. The public app reads volunteers only via the safe view.
 -- ════════════════════════════════════════════════════════════════
@@ -2117,7 +2116,7 @@ grant execute on function checkin_feeding_zone(uuid,uuid,text,text) to anon, aut
 -- │ content-reports.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — content reports ("Report content" flagging).
+-- StrayPaw, content reports ("Report content" flagging).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Stores user flags of
 -- sightings/photos that break the guidelines. Write-only for the public
@@ -2166,11 +2165,11 @@ grant execute on function submit_content_report(text,text,text) to anon, authent
 -- │ ngo-dog-care.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — NGO bulk dog-care updates (dashboard HelpQueue).
+-- StrayPaw, NGO bulk dog-care updates (dashboard HelpQueue).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets a VERIFIED NGO member
 -- update a dog's care flags from the operator dashboard (mark vaccinated /
--- sterilised, clear the needs-help flag) — the "Dogs needing help" bulk actions.
+-- sterilised, clear the needs-help flag), the "Dogs needing help" bulk actions.
 -- Gated on is_ngo_member(); returns false for everyone else.
 -- ════════════════════════════════════════════════════════════════
 
@@ -2201,7 +2200,7 @@ grant execute on function ngo_set_dog_care(uuid,boolean,boolean,boolean) to auth
 -- │ partner-onboarding.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — self-serve NGO partner onboarding + per-org attribution.
+-- StrayPaw, self-serve NGO partner onboarding + per-org attribution.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Depends on:
 --   • location-privacy.sql  → ngo_members, is_ngo_member()
@@ -2212,7 +2211,7 @@ grant execute on function ngo_set_dog_care(uuid,boolean,boolean,boolean) to auth
 -- → they're inserted into ngo_members (linked to an ngos org row) and gain the
 -- verified-partner tools. Cases they claim are stamped with their ngo_id so the
 -- funder report can attribute impact per organisation (shared pool, per-org
--- credit — no data isolation).
+-- credit, no data isolation).
 -- ════════════════════════════════════════════════════════════════
 
 -- 1. Partner access requests.
@@ -2343,7 +2342,7 @@ grant execute on function claim_case(uuid,uuid,text) to anon, authenticated, ser
 -- │ sighting-email.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — optional reporter email (notify on approval + build a list).
+-- StrayPaw, optional reporter email (notify on approval + build a list).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets a reporter leave an
 -- email so we can email them when their sighting goes live. Stored on the
@@ -2403,12 +2402,12 @@ grant execute on function report_sighting(text,float,float,text,text,text[],text
 -- │ fundraisers.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — NGO fundraisers (link-out model).
+-- StrayPaw, NGO fundraisers (link-out model).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Verified partner NGOs post
 -- a campaign (story, goal, urgency, photo) and the Donate button links to the
 -- NGO's OWN donation channel (their UPI / Razorpay / Milaap / Ketto / bank).
--- StrayPaw never holds or routes funds — it hosts the campaign and drives
+-- StrayPaw never holds or routes funds. It hosts the campaign and drives
 -- traffic; money goes straight to the NGO. Depends on:
 --   • location-privacy.sql → is_ngo_member()
 --   • partner-onboarding.sql / ngo_members → ngo_id attribution
@@ -2439,7 +2438,7 @@ drop policy if exists fundraisers_read on fundraisers;
 create policy fundraisers_read on fundraisers for select using (status = 'active');
 -- All writes go through the SECURITY DEFINER functions below.
 
--- Create — verified partner NGOs only; auto-linked to the creator's org.
+-- Create, verified partner NGOs only; auto-linked to the creator's org.
 create or replace function create_fundraiser(
   p_title       text,
   p_story       text,
@@ -2480,7 +2479,7 @@ begin
 end;
 $$;
 
--- Update / close — the owning creator only.
+-- Update / close, the owning creator only.
 create or replace function update_fundraiser(
   p_id              uuid,
   p_story           text default null,
@@ -2516,7 +2515,7 @@ grant execute on function update_fundraiser(uuid,text,integer,integer,text,date,
 -- │ fundraisers-featured.sql
 -- └──────────────────────────────────────────────────────────────
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — featured / curated fundraisers.
+-- StrayPaw, featured / curated fundraisers.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Adds a `featured` flag so
 -- StrayPaw can CURATE a highlighted feed of reputable rescues' existing
@@ -2531,7 +2530,7 @@ create index if not exists fundraisers_featured_idx on fundraisers (featured des
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ org-profiles.sql — organization profiles (mission, slug, areas of work, contact)
+-- ▼ org-profiles.sql, organization profiles (mission, slug, areas of work, contact)
 -- ════════════════════════════════════════════════════════════════
 -- 1. Profile columns (all optional; nothing here fabricates trust).
 alter table ngos add column if not exists slug            text;
@@ -2574,7 +2573,7 @@ create unique index if not exists ngos_slug_idx on ngos (slug);
 -- Keep verified_at in sync for rows already flagged verified.
 update ngos set verified_at = coalesce(verified_at, created_at) where verified and verified_at is null;
 
--- 3. Self-service profile editing — an org member edits ONLY their own org.
+-- 3. Self-service profile editing, an org member edits ONLY their own org.
 create or replace function ngo_update_profile(
   p_mission         text default null,
   p_about           text default null,
@@ -2622,13 +2621,13 @@ grant execute on function ngo_update_profile(text,text,text,text,text,text,text,
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ campaign-details.sql — budget (use of funds), updates feed, outcome
+-- ▼ campaign-details.sql, budget (use of funds), updates feed, outcome
 -- ════════════════════════════════════════════════════════════════
 -- 1. Budget (use of funds) + outcome on the campaign itself.
 alter table fundraisers add column if not exists budget  jsonb default '[]'::jsonb;
 alter table fundraisers add column if not exists outcome text;
 
--- 2. Campaign updates — the running story supporters follow.
+-- 2. Campaign updates, the running story supporters follow.
 create table if not exists fundraiser_updates (
   id            uuid primary key default gen_random_uuid(),
   fundraiser_id uuid not null references fundraisers(id) on delete cascade,
@@ -2695,7 +2694,7 @@ grant execute on function set_fundraiser_details(uuid,jsonb,text) to authenticat
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ case-costs.sql — estimated + spent cost per case
+-- ▼ case-costs.sql, estimated + spent cost per case
 -- ════════════════════════════════════════════════════════════════
 alter table cases add column if not exists cost_spent    integer; -- INR, to date
 
@@ -2723,7 +2722,7 @@ grant execute on function set_case_cost(uuid,integer,integer) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ rate-limits.sql — sliding-window throttle for public writes
+-- ▼ rate-limits.sql, sliding-window throttle for public writes
 -- ════════════════════════════════════════════════════════════════
 create table if not exists rate_limits (
   id         bigserial primary key,
@@ -2777,7 +2776,7 @@ alter table rate_limits enable row level security;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ platform-foundation.sql — species-agnostic + org-aware (Phase 1)
+-- ▼ platform-foundation.sql, species-agnostic + org-aware (Phase 1)
 -- ════════════════════════════════════════════════════════════════
 -- Species-agnostic animals + cases. Default 'dog' preserves all existing data.
 alter table dogs  add column if not exists species text not null default 'dog';
@@ -2794,7 +2793,7 @@ alter table ngo_members add column if not exists role   text  not null default '
 create index if not exists cases_species_idx     on cases (species);
 create index if not exists cases_follow_up_idx    on cases (follow_up_at) where follow_up_at is not null;
 
--- Set/clear a case's follow-up date — the case handler or a verified NGO member.
+-- Set/clear a case's follow-up date, the case handler or a verified NGO member.
 create or replace function set_case_followup(
   p_case_id uuid,
   p_follow_up_at date
@@ -2816,7 +2815,7 @@ grant execute on function set_case_followup(uuid,date) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ case-fields.sql — species at creation, medical notes, case photos
+-- ▼ case-fields.sql, species at creation, medical notes, case photos
 -- ════════════════════════════════════════════════════════════════
 alter table cases add column if not exists medical_notes text;
 alter table cases add column if not exists photos        text[] not null default '{}';
@@ -2855,7 +2854,7 @@ begin
 end;
 $$;
 
--- Medical notes — case handler or verified NGO member.
+-- Medical notes, case handler or verified NGO member.
 create or replace function set_case_medical(p_case_id uuid, p_medical_notes text)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
@@ -2864,7 +2863,7 @@ begin
   return found;
 end $$;
 
--- Append a photo to a case — handler or verified NGO member.
+-- Append a photo to a case, handler or verified NGO member.
 create or replace function add_case_photo(p_case_id uuid, p_url text)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
@@ -2879,7 +2878,7 @@ grant execute on function add_case_photo(uuid,text) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ surveys.sql — reusable field survey / census (Phase 3, CUPA)
+-- ▼ surveys.sql, reusable field survey / census (Phase 3, CUPA)
 -- ════════════════════════════════════════════════════════════════
 create table if not exists surveys (
   id            uuid primary key default gen_random_uuid(),
@@ -2895,7 +2894,7 @@ create table if not exists surveys (
 create table if not exists survey_areas (
   id           uuid primary key default gen_random_uuid(),
   survey_id    uuid not null references surveys(id) on delete cascade,
-  name         text not null,       -- "Ward 12 — Jayanagar"
+  name         text not null,       -- "Ward 12, Jayanagar"
   code         text,                -- ward/village code
   target_count int,                 -- optional expected animals/observations
   status       text not null default 'pending', -- pending | active | done
@@ -2986,7 +2985,7 @@ grant execute on function submit_survey_response(uuid,uuid,double precision,doub
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ animals.sql — org-owned longitudinal animal registry (Phase 1)
+-- ▼ animals.sql, org-owned longitudinal animal registry (Phase 1)
 -- ════════════════════════════════════════════════════════════════
 alter table dogs add column if not exists ngo_id        uuid;   -- owning org (null = community dog)
 alter table dogs add column if not exists code          text;   -- org's animal id, e.g. DDS-00421
@@ -3052,7 +3051,7 @@ grant execute on function update_animal(uuid,text,text,text,text,uuid,text,dog_s
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ camps.sql — veterinary camp planning (Phase 2)
+-- ▼ camps.sql, veterinary camp planning (Phase 2)
 -- ════════════════════════════════════════════════════════════════
 create table if not exists vet_camps (
   id            uuid primary key default gen_random_uuid(),
@@ -3101,7 +3100,7 @@ grant execute on function set_vet_camp_status(uuid,text) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ fundraisers-case-link.sql — campaign ↔ case link (Phase 4)
+-- ▼ fundraisers-case-link.sql, campaign ↔ case link (Phase 4)
 -- ════════════════════════════════════════════════════════════════
 alter table fundraisers add column if not exists case_id uuid;
 
@@ -3151,7 +3150,7 @@ grant execute on function create_fundraiser(text,text,text,integer,text,text,dat
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ team.sql — org member listing + role management
+-- ▼ team.sql, org member listing + role management
 -- ════════════════════════════════════════════════════════════════
 -- Members of the caller's org, with display names (SECURITY DEFINER bypasses
 -- the self-only RLS on ngo_members so a member can see the whole team).
@@ -3184,7 +3183,7 @@ grant execute on function set_member_role(uuid,text) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ tasks.sql — assignable field tasks
+-- ▼ tasks.sql, assignable field tasks
 -- ════════════════════════════════════════════════════════════════
 create table if not exists tasks (
   id            uuid primary key default gen_random_uuid(),
@@ -3240,7 +3239,7 @@ grant execute on function set_task_status(uuid,text) to authenticated;
 grant execute on function assign_task(uuid,uuid,text) to authenticated;
 
 
--- ── team.sql addendum — NGO self-service member management ──
+-- ── team.sql addendum, NGO self-service member management ──
 -- ── NGO self-service member management ──────────────────────────
 -- Add a teammate to the caller's org by email. SECURITY DEFINER runs as the
 -- function owner, which can read auth.users to resolve the email → user id.
@@ -3253,7 +3252,7 @@ begin
   if p_role not in ('member','admin','field_worker') then p_role := 'member'; end if;
   select id into v_uid from auth.users where lower(email) = lower(btrim(p_email)) limit 1;
   if v_uid is null then
-    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email — ask them to sign in once first.');
+    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email, ask them to sign in once first.');
   end if;
   insert into ngo_members (user_id, ngo_id, role) values (v_uid, v_ngo, p_role)
     on conflict (user_id) do update set ngo_id = excluded.ngo_id, role = excluded.role;
@@ -3274,7 +3273,7 @@ grant execute on function remove_org_member(uuid) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ access-grants.sql — audit log of granted partner access
+-- ▼ access-grants.sql, audit log of granted partner access
 -- ════════════════════════════════════════════════════════════════
 create table if not exists access_grants (
   id         uuid primary key default gen_random_uuid(),
@@ -3289,13 +3288,13 @@ alter table access_grants enable row level security; -- service role only (no po
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ seed-delhi-dogs.sql — 9 real Delhi street dogs (idempotent data seed)
+-- ▼ seed-delhi-dogs.sql, 9 real Delhi street dogs (idempotent data seed)
 -- ════════════════════════════════════════════════════════════════
 do $$
 declare r record; v_id uuid;
 begin
   if exists (select 1 from dogs where cover_photo like '/seed-dogs/%') then
-    raise notice 'Delhi dog seed already present — skipping.';
+    raise notice 'Delhi dog seed already present, skipping.';
     return;
   end if;
 
@@ -3324,7 +3323,7 @@ end $$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- ▼ medical-events.sql — structured medical log + owner info
+-- ▼ medical-events.sql, structured medical log + owner info
 -- ════════════════════════════════════════════════════════════════
 
 -- Owner / community info on the animal (working animals often have owners).
@@ -3349,7 +3348,7 @@ alter table medical_events enable row level security;
 drop policy if exists medical_events_read on medical_events;
 create policy medical_events_read on medical_events for select using (true);
 
--- Log a medical event — a verified NGO member or the case's handler.
+-- Log a medical event, a verified NGO member or the case's handler.
 create or replace function add_medical_event(
   p_dog_id uuid, p_case_id uuid default null, p_kind text default 'treatment',
   p_event_date date default current_date, p_notes text default null, p_performed_by text default null
@@ -3386,7 +3385,7 @@ grant execute on function set_animal_owner(uuid,text,text) to authenticated;
 -- team-lead-perms.sql (lead-gated, server-enforced team management)
 -- ========================================================================
 -- ════════════════════════════════════════════════════════════════
--- Team-lead permissions — make the org "lead" (admin) a first-class role with
+-- Team-lead permissions, make the org "lead" (admin) a first-class role with
 -- special powers, and enforce it SERVER-SIDE so a normal member can't manage the
 -- team by calling the RPCs directly. Multi-tenant: every check is scoped to the
 -- caller's own org (my_ngo()), so orgs stay secluded from each other.
@@ -3420,7 +3419,7 @@ grant execute on function can_manage_org() to authenticated;
 
 -- ── Lead-gated team management (redefines team.sql RPCs) ────────────
 
--- Add a teammate by email — lead only. Scoped to the caller's org.
+-- Add a teammate by email, lead only. Scoped to the caller's org.
 create or replace function add_org_member(p_email text, p_role text default 'member')
 returns json language plpgsql security definer set search_path = public as $$
 declare v_uid uuid; v_ngo uuid;
@@ -3433,14 +3432,14 @@ begin
   if p_role not in ('member','admin','field_worker') then p_role := 'member'; end if;
   select id into v_uid from auth.users where lower(email) = lower(btrim(p_email)) limit 1;
   if v_uid is null then
-    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email — ask them to sign in once first.');
+    return json_build_object('ok', false, 'error', 'No StrayPaw account with that email, ask them to sign in once first.');
   end if;
   insert into ngo_members (user_id, ngo_id, role) values (v_uid, v_ngo, p_role)
     on conflict (user_id) do update set ngo_id = excluded.ngo_id, role = excluded.role;
   return json_build_object('ok', true);
 end $$;
 
--- Remove a teammate — lead only, own org only, never yourself.
+-- Remove a teammate, lead only, own org only, never yourself.
 create or replace function remove_org_member(p_user_id uuid)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
@@ -3450,7 +3449,7 @@ begin
   return found;
 end $$;
 
--- Change a teammate's role — lead only. Keeps at least one lead in the org.
+-- Change a teammate's role, lead only. Keeps at least one lead in the org.
 create or replace function set_member_role(p_user_id uuid, p_role text)
 returns boolean language plpgsql security definer set search_path = public as $$
 declare v_ngo uuid; v_admins int;
@@ -3466,7 +3465,7 @@ begin
     if v_admins <= 1 and exists (
       select 1 from ngo_members where user_id = p_user_id and ngo_id = v_ngo and role = 'admin'
     ) then
-      raise exception 'Keep at least one team lead — promote someone else first.';
+      raise exception 'Keep at least one team lead, promote someone else first.';
     end if;
   end if;
 
@@ -3483,7 +3482,7 @@ grant execute on function set_member_role(uuid,text) to authenticated;
 -- partner-data-scope.sql (per-org dashboard case scoping)
 -- ========================================================================
 -- ════════════════════════════════════════════════════════════════
--- Per-org dashboard data — a partner sees ONLY their own org's cases plus the
+-- Per-org dashboard data, a partner sees ONLY their own org's cases plus the
 -- shared pool of unclaimed community reports (so they can still pick new ones
 -- up). SECURITY DEFINER + my_ngo() means the scoping is decided from the caller's
 -- authenticated session, not the client. Depends on: partner-onboarding.sql
@@ -3504,7 +3503,7 @@ grant execute on function my_org_cases() to authenticated;
 -- partner-applications.sql (NGO partnership application form + docs)
 -- ========================================================================
 -- ════════════════════════════════════════════════════════════════
--- Partnership applications — a public lead-capture form for NGOs that want to
+-- Partnership applications, a public lead-capture form for NGOs that want to
 -- onboard: organisation details, a message, and uploaded onboarding documents.
 -- Lands in the moderation console. Idempotent.
 -- ════════════════════════════════════════════════════════════════
@@ -3547,7 +3546,7 @@ create policy partner_docs_read on storage.objects
 -- helpers-volunteers.sql (org_volunteers for the partner dashboard)
 -- ========================================================================
 -- ════════════════════════════════════════════════════════════════
--- Volunteers for the partner dashboard — verified NGO members can see people
+-- Volunteers for the partner dashboard, verified NGO members can see people
 -- who signed up to help (feed, transport, foster, etc.) and reach out to them.
 -- Depends on: helpers.sql (helpers table), location-privacy.sql (is_ngo_member).
 -- Idempotent.
@@ -3569,7 +3568,7 @@ grant execute on function org_volunteers() to authenticated;
 -- content-reports-moderation.sql (reporter email + resolution fields)
 -- ========================================================================
 -- ════════════════════════════════════════════════════════════════
--- Content-report moderation — capture the reporter's email (so we can tell them
+-- Content-report moderation, capture the reporter's email (so we can tell them
 -- when their report is investigated/resolved) and let the reporter provide it.
 -- Depends on: content-reports.sql. Idempotent.
 -- ════════════════════════════════════════════════════════════════

@@ -42,7 +42,7 @@ begin
 end;
 $$;
 
--- Medical notes — case handler or verified NGO member.
+-- Medical notes, case handler or verified NGO member.
 create or replace function set_case_medical(p_case_id uuid, p_medical_notes text)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
@@ -51,7 +51,7 @@ begin
   return found;
 end $$;
 
--- Append a photo to a case — handler or verified NGO member.
+-- Append a photo to a case, handler or verified NGO member.
 create or replace function add_case_photo(p_case_id uuid, p_url text)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin

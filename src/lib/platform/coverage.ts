@@ -6,8 +6,7 @@ import { DATASETS } from "@/lib/platform/datasets";
 
    The map legend has always claimed a "coverage gap" layer without one
    existing. This builds it from the same sourced points the rest of the
-   app uses, so the gaps shown on the map are the gaps in the register —
-   not a separate, hand-maintained list that could drift out of step.
+   app uses, so the gaps shown on the map are the gaps in the register, not a separate, hand-maintained list that could drift out of step.
    ════════════════════════════════════════════════════════════════════ */
 
 export type CoverageStatus = "measured" | "population-only" | "unmeasured";

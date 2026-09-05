@@ -9,13 +9,13 @@ import {
 } from "./ChipParts";
 
 /* ════════════════════════════════════════════════════════════════════
-   ChipScroll — scroll-controlled 4-stage section.
+   ChipScroll, scroll-controlled 4-stage section.
 
    The section is tall (300vh). The inner view is sticky at 100svh.
    Scroll progress within the section drives 4 stages:
 
-   0 – 0.2  INTACT   chip closed, floating — "ONE SMALL CHIP."
-   0.2–0.5  OPEN     layers separate in depth — construction revealed
+   0 – 0.2  INTACT   chip closed, floating, "ONE SMALL CHIP."
+   0.2–0.5  OPEN     layers separate in depth, construction revealed
    0.5–0.75 RECORD   animal profile emerges from chip center
    0.75–1.0 NETWORK  profile connects to sighting nodes
 
@@ -92,8 +92,8 @@ export function ChipScroll() {
   const networkP = stageP(0.75, 1.0); // network appearing
 
   /* Closed, the four parts sit exactly on top of one another and read as a
-     single capsule. Opening fans them apart vertically — a product teardown,
-     not an explosion — so each part is separately visible and nameable. */
+     single capsule. Opening fans them apart vertically, a product teardown,
+     not an explosion, so each part is separately visible and nameable. */
   const SPREAD = 82;
   const layers = [
     {
@@ -135,7 +135,7 @@ export function ChipScroll() {
     return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   }
 
-  /* Record and network share one cell, and they are different shapes — a tall
+  /* Record and network share one cell, and they are different shapes, a tall
      bordered card against a wide sparse graph. Blended simultaneously the graph
      drew straight across the card, so the handoff is sequential: the record is
      gone before the network starts. */
@@ -164,7 +164,7 @@ export function ChipScroll() {
           ))}
         </div>
 
-        {/* ── Headline copy — morphs per stage ── */}
+        {/* ── Headline copy, morphs per stage ── */}
         <div className="chs-copy">
           <div
             className="chs-copy-stage"
@@ -194,8 +194,7 @@ export function ChipScroll() {
               One code.<br /><span>Every record.</span>
             </h2>
             <p className="chs-sub">
-              Any ISO reader returns the animal&rsquo;s full profile —
-              sterilisation, vaccination, treatments, caregivers.
+              Any ISO reader returns the animal&rsquo;s full profile: sterilisation, vaccination, treatments, caregivers.
             </p>
           </div>
 
@@ -231,8 +230,7 @@ export function ChipScroll() {
           <div
             className="chs-scene-wrap"
             style={
-              /* The assembly steps back as the record resolves out of it —
-                 read as one motion rather than two competing panels. */
+              /* The assembly steps back as the record resolves out of it, read as one motion rather than two competing panels. */
               { "--chs-scale": 1 - recordP * 0.2 } as React.CSSProperties
             }
           >
@@ -313,7 +311,7 @@ export function ChipScroll() {
           </div>
 
           <div className="chs-stack">
-          {/* ── Dog record — stage 2 ── */}
+          {/* ── Dog record, stage 2 ── */}
           <div
             className="chs-record"
             style={{
@@ -331,7 +329,7 @@ export function ChipScroll() {
             </div>
             <div className="chs-record-fields">
               {/* What a resolved record carries. Field names and standards
-                  only — inventing an animal's values would put fabricated
+                  only. Inventing an animal's values would put fabricated
                   data on the page. */}
               <div className="chs-field">
                 <span>Identity</span>
@@ -357,7 +355,7 @@ export function ChipScroll() {
             <div className="chs-record-line" aria-hidden="true" />
           </div>
 
-          {/* ── Network — stage 3 ── */}
+          {/* ── Network, stage 3 ── */}
           <div
             className="chs-network"
             style={{ opacity: networkOpacity, transition: "none" }}
@@ -385,7 +383,7 @@ export function ChipScroll() {
               <circle cx="160" cy="20" r="3" fill="#8fb7ff" />
             </svg>
             <p className="chs-net-label">
-              Every sighting, every location — linked to one persistent identity.
+              Every sighting, every location, linked to one persistent identity.
             </p>
           </div>
           </div>

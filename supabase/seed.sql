@@ -1,9 +1,9 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — OPTIONAL starter data
+-- StrayPaw Delhi, OPTIONAL starter data
 --
 -- Run AFTER schema.sql if you'd like the map to launch with a handful of
 -- real dog records around Delhi instead of an empty map. Every row here is a
--- genuine database record, so the live stats stay honest — they simply start
+-- genuine database record, so the live stats stay honest, they simply start
 -- from these and grow as people contribute.
 --
 -- Safe to skip entirely. Safe to delete these rows later
@@ -64,7 +64,7 @@ values
 insert into sightings (dog_id, reporter_name, photo_url, lat, lng, zone, nickname, mood_tags, notes, trust_score)
 select d.id, 'StrayPaw Team', d.cover_photo, d.lat, d.lng, d.zone, d.name,
        case when d.needs_help then array['hungry'] else array['friendly'] end,
-       'Seed sighting — verified by the StrayPaw team.', d.trust_score
+       'Seed sighting, verified by the StrayPaw team.', d.trust_score
 from dogs d;
 
 -- Vaccination / sterilisation records that back the dog flags.

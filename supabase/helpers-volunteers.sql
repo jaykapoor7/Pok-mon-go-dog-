@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Volunteers for the partner dashboard — verified NGO members can see people
+-- Volunteers for the partner dashboard, verified NGO members can see people
 -- who signed up to help (feed, transport, foster, etc.) and reach out to them.
 -- Depends on: helpers.sql (helpers table), location-privacy.sql (is_ngo_member).
 -- Idempotent.

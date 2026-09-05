@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Platform foundation (Phase 1) — generalize the core from "stray dogs"
+-- Platform foundation (Phase 1), generalize the core from "stray dogs"
 -- to species-agnostic, organization-aware animal-welfare operations.
 --
 -- Purely ADDITIVE. Everything defaults to today's behaviour (species = 'dog'),
@@ -21,7 +21,7 @@ alter table ngo_members add column if not exists role   text  not null default '
 create index if not exists cases_species_idx     on cases (species);
 create index if not exists cases_follow_up_idx    on cases (follow_up_at) where follow_up_at is not null;
 
--- Set/clear a case's follow-up date — the case handler or a verified NGO member.
+-- Set/clear a case's follow-up date, the case handler or a verified NGO member.
 create or replace function set_case_followup(
   p_case_id uuid,
   p_follow_up_at date

@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — add a moderation layer to sightings
+-- StrayPaw Delhi, add a moderation layer to sightings
 --
 -- Run this once in the Supabase SQL editor on an existing project. It is also
 -- folded into schema.sql for fresh installs.

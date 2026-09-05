@@ -6,8 +6,8 @@ import type { Confidence } from "./types";
    EVERY FIGURE IN THIS FILE IS A PUBLISHED, SOURCED NUMBER.
 
    Nothing here is invented, modelled or illustrative. Where a number is
-   genuinely unknown — ward-level distribution, vaccination coverage,
-   medical need — it is represented as an UnknownFact rather than filled
+   genuinely unknown, ward-level distribution, vaccination coverage,
+   medical need. It is represented as an UnknownFact rather than filled
    in with a plausible-looking estimate. Those unknowns are the product:
    they are what a funded study exists to answer.
 
@@ -53,7 +53,7 @@ export const COVERAGE_TARGET: Sourced<number> = {
   unit: "share covered",
   year: 2018,
   source:
-    "WHO Expert Consultation on Rabies, third report (TRS 1012) — 70% vaccination coverage threshold for canine-mediated rabies elimination",
+    "WHO Expert Consultation on Rabies, third report (TRS 1012), 70% vaccination coverage threshold for canine-mediated rabies elimination",
   confidence: "high",
 };
 
@@ -67,7 +67,7 @@ export const UNIT_COSTS: Record<Objective, Sourced<number>> = {
     unit: "per animal",
     year: 2023,
     source:
-      "Animal Birth Control (Dogs) Rules, 2023 — AWBI-notified per-surgery reimbursement ceiling",
+      "Animal Birth Control (Dogs) Rules, 2023, AWBI-notified per-surgery reimbursement ceiling",
     confidence: "high",
   },
   vaccination: {
@@ -79,8 +79,8 @@ export const UNIT_COSTS: Record<Objective, Sourced<number>> = {
     confidence: "medium",
   },
   /* No per-ward or per-animal cost for street-dog enumeration is published
-     anywhere in India. Cities run these surveys — Bengaluru through BBMP,
-     Ahmedabad across its 48 wards — but none publishes what one costs. A zero
+     anywhere in India. Cities run these surveys, Bengaluru through BBMP,
+     Ahmedabad across its 48 wards, but none publishes what one costs. A zero
      here means "not published", and the tool says so rather than guessing:
      inventing this number would undermine every other figure on the page. */
   survey: {
@@ -119,7 +119,7 @@ export const OBJECTIVE_META: Record<
 /**
  * Why a question is unanswered. The distinction matters commercially: a
  * number nobody has ever measured needs funding a study. A number that
- * exists in a filing cabinet needs someone to go and get it — which is
+ * exists in a filing cabinet needs someone to go and get it, which is
  * cheaper, faster, and mostly unglamorous work nobody is doing.
  */
 export type AccessBarrier =
@@ -170,7 +170,7 @@ export type UnknownFact = {
  * Note the `barrier` field. Only some of these are unanswered because nobody
  * ever measured them. Several are unanswered because a named body collects
  * the data and does not release it, or releases it in a form that cannot be
- * used. Those are a different problem with a different, cheaper fix — and
+ * used. Those are a different problem with a different, cheaper fix, and
  * they are the ones most often mistaken for "no data exists".
  *
  * Claims here are limited to what is publicly retrievable. Where a body is
@@ -183,7 +183,7 @@ export const UNKNOWNS: UnknownFact[] = [
     question: "Where within Delhi are the animals?",
     barrier: "published-unusable",
     heldBy: "Municipal corporations of Delhi; survey implementing agency",
-    why: "The 2022-23 survey produced a city total, and a total is the one resolution at which the number is useless for deployment. Fieldwork of this kind is collected in enumeration blocks — the granular data existed at some point in the process. What reached the public was the sum.",
+    why: "The 2022-23 survey produced a city total, and a total is the one resolution at which the number is useless for deployment. Fieldwork of this kind is collected in enumeration blocks, the granular data existed at some point in the process. What reached the public was the sum.",
     bestAvailable: "One city-wide figure of roughly 10 lakh community dogs.",
     resolvedBy:
       "Release of the survey's block-level counts, or a fresh ward-level census with a documented sampling method.",
@@ -197,13 +197,13 @@ export const UNKNOWNS: UnknownFact[] = [
     bestAvailable:
       "Occasional aggregate claims in press statements, with no verifiable underlying record.",
     resolvedBy:
-      "Proactive disclosure of monitoring-committee returns — the data already exists in a reportable form.",
+      "Proactive disclosure of monitoring-committee returns, the data already exists in a reportable form.",
   },
   {
     id: "vaccination-coverage",
     question: "What share of Delhi's dogs are vaccinated against rabies?",
     barrier: "held-not-published",
-    heldBy: "Bodies running ARV drives — municipal, state and NGO",
+    heldBy: "Bodies running ARV drives, municipal, state and NGO",
     why: "Vaccination drives happen and are counted by whoever runs them. What does not exist is a shared register, so several partial counts sit with several organisations and nobody can state a coverage figure for the city.",
     bestAvailable:
       "Sterilisation coverage of about 45%, which is not a proxy for vaccination.",
@@ -215,7 +215,7 @@ export const UNKNOWNS: UnknownFact[] = [
     question: "Where do animal bites actually happen?",
     barrier: "published-unusable",
     heldBy: "Hospitals and ARV clinics; NCDC surveillance reporting",
-    why: "Bite cases are recorded at the point of treatment — that is how anti-rabies vaccine gets administered and stocked. The records exist patient by patient, but what surfaces publicly is state or national aggregate. The reported-versus-modelled rabies death gap is the clearest symptom of what passive surveillance misses.",
+    why: "Bite cases are recorded at the point of treatment, that is how anti-rabies vaccine gets administered and stocked. The records exist patient by patient, but what surfaces publicly is state or national aggregate. The reported-versus-modelled rabies death gap is the clearest symptom of what passive surveillance misses.",
     bestAvailable:
       "National and state totals, with a reported-to-modelled death gap of roughly two orders of magnitude.",
     resolvedBy:
@@ -226,7 +226,7 @@ export const UNKNOWNS: UnknownFact[] = [
     question: "How many animals need treatment in a given year?",
     barrier: "never-measured",
     heldBy: null,
-    why: "No published figure exists for injury, disease or mange prevalence in India's street-dog population at any geography. This one genuinely has not been measured — there is no filing cabinet to open.",
+    why: "No published figure exists for injury, disease or mange prevalence in India's street-dog population at any geography. This one genuinely has not been measured, there is no filing cabinet to open.",
     bestAvailable: "Nothing published.",
     resolvedBy:
       "A field health-assessment study with a defined case definition and a stated sampling frame.",
@@ -236,7 +236,7 @@ export const UNKNOWNS: UnknownFact[] = [
     question: "Do sterilisation gains hold over time?",
     barrier: "never-measured",
     heldBy: null,
-    why: "Coverage gets measured once, when a programme wants a number. Nobody funds the second measurement, so there is no public evidence on whether a district holds coverage or slips back — and therefore no way to tell a durable intervention from a temporary one.",
+    why: "Coverage gets measured once, when a programme wants a number. Nobody funds the second measurement, so there is no public evidence on whether a district holds coverage or slips back, and therefore no way to tell a durable intervention from a temporary one.",
     bestAvailable: "Single-point coverage figures with no follow-up.",
     resolvedBy:
       "Repeat measurement in the same geography on a fixed interval. Cheap relative to the first survey; almost never commissioned.",
@@ -276,13 +276,13 @@ export type Plan = {
 const THROUGHPUT: Record<Objective, number> = {
   sterilisation: 260,
   vaccination: 900,
-  // Enumeration is walked transects, not surgery — far faster per animal.
+  // Enumeration is walked transects, not surgery, far faster per animal.
   survey: 2400,
 };
 
 /**
  * Scales the real, published city-wide figures down to a share of Delhi.
- * It does NOT claim to know how animals are distributed — `scope` is an
+ * It does NOT claim to know how animals are distributed, `scope` is an
  * explicit user input, and the UI says so.
  */
 /** The geography a plan is being costed for. Both figures must be real and

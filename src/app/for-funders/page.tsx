@@ -8,7 +8,7 @@ import { FundingFigure } from "@/components/marketing/figures";
 import { UNIT_COSTS, COVERAGE_TARGET, inr } from "@/lib/platform/network";
 
 export const metadata = {
-  title: "For funders — fund an outcome, not a hope",
+  title: "For funders, fund an outcome, not a hope",
   description:
     "Turn a CSR or grant budget into a scoped study, a named executing partner, a real unit cost and a measurable finish line.",
 };
@@ -44,8 +44,8 @@ export default function ForFundersPage() {
           all. Both outcomes get reported the same way: as a count of surgeries.
         </p>
         <p className="mk-body">
-          The distinction requires knowing the denominator — how many animals
-          are in the area — and being able to check coverage afterwards. Neither
+          The distinction requires knowing the denominator, how many animals
+          are in the area, and being able to check coverage afterwards. Neither
           is available for most of India today, which is why so much sincere
           funding cannot demonstrate what it achieved.
         </p>
@@ -53,12 +53,12 @@ export default function ForFundersPage() {
         <div className="mk-stats">
           <Stat
             value={inr(ster.value)}
-            label={`Per sterilisation — ${ster.unit}`}
+            label={`Per sterilisation, ${ster.unit}`}
             source={`${ster.source} (${ster.year})`}
           />
           <Stat
             value={inr(vacc.value)}
-            label={`Per vaccination — ${vacc.unit}`}
+            label={`Per vaccination, ${vacc.unit}`}
             source={`${vacc.source} (${vacc.year})`}
           />
           <Stat
@@ -80,7 +80,7 @@ export default function ForFundersPage() {
             {
               n: "01",
               title: "Define",
-              body: "You bring an objective and a geography. We turn it into a scoped question with a real denominator — or, where none exists, a baseline study to establish one first.",
+              body: "You bring an objective and a geography. We turn it into a scoped question with a real denominator, or, where none exists, a baseline study to establish one first.",
             },
             {
               n: "02",
@@ -90,7 +90,7 @@ export default function ForFundersPage() {
             {
               n: "03",
               title: "Execute",
-              body: "A named local organisation does the fieldwork. StrayPaw supplies the study design, the data tooling and the record layer — we do not compete with the people doing the work.",
+              body: "A named local organisation does the fieldwork. StrayPaw supplies the study design, the data tooling and the record layer, we do not compete with the people doing the work.",
             },
             {
               n: "04",
@@ -110,7 +110,7 @@ export default function ForFundersPage() {
         <p className="mk-body">
           Every figure in a StrayPaw programme carries its source, its year and
           its confidence. Where a number does not exist, the register says so
-          rather than estimating — because a plan built on an invented
+          rather than estimating, because a plan built on an invented
           denominator is not a plan. That honesty is the point: it is what makes
           the numbers that <em>are</em> there worth trusting.
         </p>

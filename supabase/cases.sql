@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — NGO operations layer (Phase 1: cases + ownership)
+-- StrayPaw Delhi, NGO operations layer (Phase 1: cases + ownership)
 --
 -- Additive. Does not touch sightings / dogs / moderation. Run once in the
 -- Supabase SQL editor.
@@ -39,7 +39,7 @@ do $$ begin
     ('created','claimed','assigned','status_changed','note','reopened');
 exception when duplicate_object then null; end $$;
 
--- ── Volunteers (lightweight — id generated client-side) ─────────
+-- ── Volunteers (lightweight. Id generated client-side) ─────────
 create table if not exists volunteers (
   id         uuid primary key,
   name       text not null,
@@ -248,7 +248,7 @@ end;
 $$;
 
 -- ════════════════════════════════════════════════════════════════
--- Row Level Security — public read (NGO-internal but no auth yet);
+-- Row Level Security, public read (NGO-internal but no auth yet);
 -- all writes go through the functions above.
 -- ════════════════════════════════════════════════════════════════
 alter table volunteers   enable row level security;

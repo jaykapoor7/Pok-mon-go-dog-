@@ -18,7 +18,7 @@ import { ROLE_META, ROLES, readStoredRole, storeRole, type Role } from "@/lib/ro
 /* ════════════════════════════════════════════════════════════════════
    First run: who are you, then a three-card tour.
 
-   Shown once, skippable at every step, and never blocking — the console
+   Shown once, skippable at every step, and never blocking, the console
    is fully usable behind it. The role only decides what gets surfaced
    first; nothing here gates access.
    ════════════════════════════════════════════════════════════════════ */
@@ -36,7 +36,7 @@ const TOUR = [
   {
     Icon: MapPin,
     title: "The map is the record",
-    body: "Every sighting, study and intervention sits on one shared map. Zoom from a state to a street and see what is known — and what nobody has looked at yet.",
+    body: "Every sighting, study and intervention sits on one shared map. Zoom from a state to a street and see what is known, and what nobody has looked at yet.",
   },
   {
     Icon: Radio,
@@ -68,7 +68,7 @@ export function Welcome() {
     try {
       seen = window.localStorage.getItem(TOUR_KEY) === "1";
     } catch {
-      seen = true; // storage blocked — do not nag on every load
+      seen = true; // storage blocked, do not nag on every load
     }
     if (!seen && !readStoredRole()) setStep(0);
   }, [onReportFlow]);

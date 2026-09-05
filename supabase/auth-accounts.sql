@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw Delhi — accounts + moderation, consolidated & idempotent.
+-- StrayPaw Delhi, accounts + moderation, consolidated & idempotent.
 --
 -- Run this ONCE in the Supabase SQL editor. It is safe to run on ANY state of
 -- the database (fresh, pre-moderation, or already-migrated): every step guards
@@ -11,7 +11,7 @@
 --   • the read policy + grants
 --
 -- Anonymous posting is preserved (those rows simply have user_id = NULL).
--- Sign-in uses Supabase Auth email magic link — no extra provider setup.
+-- Sign-in uses Supabase Auth email magic link, no extra provider setup.
 -- ════════════════════════════════════════════════════════════════
 
 -- ── 1. Columns ──────────────────────────────────────────────────

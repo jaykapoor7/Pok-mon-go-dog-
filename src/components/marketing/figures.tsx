@@ -63,23 +63,26 @@ export function ResolveFigure({ className = "" }: { className?: string }) {
           fill="currentColor" opacity="0.55">UNLINKED SIGHTINGS</text>
       </g>
       {dots.map(([x, y], i) => (
-        <path key={i} d={`M ${x + 18} ${y} C 170 ${y}, 190 90, 236 90`}
+        <path key={i} d={`M ${x + 18} ${y} C 170 ${y}, 190 90, 230 90`}
           stroke="#8fb7ff" strokeOpacity="0.22" strokeWidth="0.9" />
       ))}
-      <rect x="238" y="56" width="160" height="68" rx="3"
+      {/* Box widened and the second line set smaller: at 9px/0.6 tracking,
+          "IDENTITY · HISTORY · OUTCOME" measured 168px inside a 160px box and
+          ran past the right edge of the viewBox itself. */}
+      <rect x="232" y="56" width="176" height="68" rx="3"
         fill="#8fb7ff" fillOpacity="0.08" stroke="#8fb7ff" strokeOpacity="0.6" />
-      <text x="252" y="78" fontSize="9.5" fontFamily="monospace" letterSpacing="1"
+      <text x="244" y="78" fontSize="9.5" fontFamily="monospace" letterSpacing="1"
         fill="#8fb7ff">ONE ANIMAL RECORD</text>
-      <line x1="252" y1="88" x2="384" y2="88" stroke="#8fb7ff" strokeOpacity="0.25" />
-      <text x="252" y="104" fontSize="9" fontFamily="monospace" letterSpacing="0.6"
+      <line x1="244" y1="88" x2="396" y2="88" stroke="#8fb7ff" strokeOpacity="0.25" />
+      <text x="244" y="104" fontSize="8" fontFamily="monospace" letterSpacing="0.4"
         fill="currentColor" opacity="0.7">IDENTITY · HISTORY · OUTCOME</text>
-      <text x="238" y="172" fontSize="9" fontFamily="monospace" letterSpacing="1"
+      <text x="232" y="172" fontSize="9" fontFamily="monospace" letterSpacing="1"
         fill="currentColor" opacity="0.55">RESOLVED</text>
     </svg>
   );
 }
 
-/** Money in, evidence out — the funder's round trip. */
+/** Money in, evidence out, the funder's round trip. */
 export function FundingFigure({ className = "" }: { className?: string }) {
   const nodes = [
     { x: 44, label: "FUND" },
@@ -129,7 +132,7 @@ export function CoverageBar({
         ))}
       </div>
       <span className="cov-label">
-        <b>{known}</b> of {total} — {label}
+        <b>{known}</b> of {total}, {label}
       </span>
     </div>
   );

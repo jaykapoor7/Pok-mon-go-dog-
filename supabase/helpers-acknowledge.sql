@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — "reached out / acknowledged" flag on Help-form sign-ups.
+-- StrayPaw, "reached out / acknowledged" flag on Help-form sign-ups.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Lets the moderation panel
 -- tick a volunteer/NGO once you've contacted them, without removing the row.

@@ -29,7 +29,7 @@ alter table medical_events enable row level security;
 drop policy if exists medical_events_read on medical_events;
 create policy medical_events_read on medical_events for select using (true);
 
--- Log a medical event — a verified NGO member or the case's handler.
+-- Log a medical event, a verified NGO member or the case's handler.
 create or replace function add_medical_event(
   p_dog_id uuid, p_case_id uuid default null, p_kind text default 'treatment',
   p_event_date date default current_date, p_notes text default null, p_performed_by text default null

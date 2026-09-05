@@ -99,7 +99,7 @@
     @apply bg-white/75 backdrop-blur-2xl border border-black/[0.06];
   }
 
-  /* Sharp geometry, flat surfaces — the console language. Radius stays in the
+  /* Sharp geometry, flat surfaces, the console language. Radius stays in the
      2–6px band so these primitives sit beside AppShell panels without a
      visible seam. */
   .btn {

@@ -128,7 +128,7 @@ export function MapView({
           border: 0,
         }}
       >
-        Living map — street-animal signals, studies and outcomes across India
+        Living map, street-animal signals, studies and outcomes across India
       </h1>
 
       {/* MAP + OVERLAYS */}
@@ -300,7 +300,7 @@ export function MapView({
             display: "flex",
             gap: 0,
           }}>
-            {/* Live reports — real sightings from the loaded records. */}
+            {/* Live reports, real sightings from the loaded records. */}
             <div style={{ flex: "0 0 340px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", overflow: "hidden" }}>
               <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.68)", marginBottom: 8 }}>LATEST REPORTS</div>
               {recent.length > 0 ? (
@@ -439,8 +439,7 @@ function CaseDrawer({
           </DrawerSection>
         )}
 
-        {/* What it costs to sterilise one animal. Real, sourced figure —
-            the previous per-animal care costs here were invented. */}
+        {/* What it costs to sterilise one animal. Real, sourced figure, the previous per-animal care costs here were invented. */}
         <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12 }}>
           <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.66)", marginBottom: 10 }}>
             COST TO STERILISE

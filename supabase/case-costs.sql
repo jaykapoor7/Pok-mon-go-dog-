@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Case cost tracking — what a rescue is expected to cost and what's been
+-- Case cost tracking, what a rescue is expected to cost and what's been
 -- spent so far. Feeds the case page's transparency + ties naturally into a
 -- fundraiser for the same animal.
 --

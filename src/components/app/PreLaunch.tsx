@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowUpRight, type LucideIcon } from "lucide-react";
 
 /**
- * Used by the surfaces that will hold real operational records — studies,
- * interventions, outcomes — none of which exist yet because no study has
+ * Used by the surfaces that will hold real operational records, studies,
+ * interventions, outcomes, none of which exist yet because no study has
  * been commissioned.
  *
  * These pages deliberately show nothing rather than sample records. A funder
@@ -30,8 +30,8 @@ export function PreLaunch({
       <h2>No {what} yet</h2>
       <p>{fills}</p>
       <p className="prelaunch-note">
-        This register is empty because nothing has happened in it — not because
-        the data has not loaded. Every row here will be a real record.
+        Every row here is a real record, written by the people doing the work.
+        Nothing is seeded and nothing is simulated.
       </p>
       <Link href={cta.href} className="spa-cta">
         {cta.label} <ArrowUpRight size={14} />

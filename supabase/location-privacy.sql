@@ -1,10 +1,10 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — location privacy: exact coordinates for partner NGOs only.
+-- StrayPaw, location privacy: exact coordinates for partner NGOs only.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent).
 --
 -- Model: the public app already shows only a GENERAL area (coordinates are
--- rounded to ~1km in the read layer — see src/lib/data.ts), so regular users
+-- rounded to ~1km in the read layer, see src/lib/data.ts), so regular users
 -- never receive exact pins through the app. This migration adds the privileged
 -- path for VERIFIED PARTNER NGOs to read exact coordinates.
 --
@@ -32,7 +32,7 @@ returns boolean language sql stable security definer set search_path = public as
   select exists (select 1 from ngo_members where user_id = auth.uid());
 $$;
 
--- 3. Exact coordinates for a set of dogs — ONLY for NGO members.
+-- 3. Exact coordinates for a set of dogs, ONLY for NGO members.
 --    Returns nothing for everyone else, so it's safe to grant broadly.
 create or replace function get_precise_locations(p_ids uuid[])
 returns table (id uuid, lat double precision, lng double precision)

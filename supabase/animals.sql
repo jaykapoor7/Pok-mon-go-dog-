@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Animals registry (Phase 1) — make `dogs` a real org-owned, longitudinal
+-- Animals registry (Phase 1), make `dogs` a real org-owned, longitudinal
 -- animal record (not just community map dogs). An Animal is the long-term
 -- entity; Cases are episodes attached to it.
 --

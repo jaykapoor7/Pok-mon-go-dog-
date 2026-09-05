@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Surveys / census (Phase 3) — a reusable field-survey capability.
+-- Surveys / census (Phase 3), a reusable field-survey capability.
 -- An organization defines a survey, divides it into areas (wards/villages),
 -- and field workers collect geo-tagged observations against those areas.
 --
@@ -23,7 +23,7 @@ create table if not exists surveys (
 create table if not exists survey_areas (
   id           uuid primary key default gen_random_uuid(),
   survey_id    uuid not null references surveys(id) on delete cascade,
-  name         text not null,       -- "Ward 12 — Jayanagar"
+  name         text not null,       -- "Ward 12, Jayanagar"
   code         text,                -- ward/village code
   target_count int,                 -- optional expected animals/observations
   status       text not null default 'pending', -- pending | active | done

@@ -196,7 +196,9 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
               </p>
             )}
             {!org.website && !org.contact_email && !org.contact_phone && (
-              <p className="text-bark-400">Contact details coming soon.</p>
+              <p className="text-bark-400">
+                No public contact details are listed for this organisation.
+              </p>
             )}
           </div>
           {org.registration_no && (

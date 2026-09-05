@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Organisation directory, StrayPaw",
   description:
-    "Named animal-welfare organisations working across India — searchable by state and by what they do, each linking to the organisation itself.",
+    "Named animal-welfare organisations working across India, searchable by state and by what they do, each linking to the organisation itself.",
 };
 
 const stateName = (code: string) => STATE_BY_CODE.get(code)?.name ?? code;
@@ -30,7 +30,7 @@ export default function OrgsPage() {
 
       <p className="spa-lede">
         {orgs.length} organisations across {states.length} states, each one real,
-        named and linked. Sourced from published information — inclusion is not
+        named and linked. Sourced from published information. Inclusion is not
         an endorsement, and the list is not exhaustive.
       </p>
 

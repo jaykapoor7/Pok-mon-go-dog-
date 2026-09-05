@@ -13,7 +13,7 @@ import { STATE_BY_CODE } from "@/lib/platform/geography";
 import { UNIT_COSTS, inr } from "@/lib/platform/network";
 
 export const metadata = {
-  title: "How you can help — StrayPaw",
+  title: "How you can help, StrayPaw",
   description:
     "Whether you have thirty seconds, a free weekend, an organisation or a budget: the specific thing that helps, and where it goes.",
 };
@@ -26,7 +26,7 @@ const WAYS = [
   {
     tag: "THIRTY SECONDS",
     title: "Report an animal you walk past",
-    body: "A photo and a location. That is the entire barrier, deliberately — it is the signal everything else is built on, and most of India has none of it.",
+    body: "A photo and a location. That is the entire barrier, deliberately. It is the signal everything else is built on, and most of India has none of it.",
     cta: "Report a sighting",
     href: "/report",
   },
@@ -40,7 +40,7 @@ const WAYS = [
   {
     tag: "IF YOU RUN AN ORGANISATION",
     title: "Bring your records onto the map",
-    body: "Cases, animal registry, medical logs and reporting — free for verified organisations, and your data stays yours. Paper registers and WhatsApp threads can be imported as they are.",
+    body: "Cases, animal registry, medical logs and reporting, free for verified organisations, and your data stays yours. Paper registers and WhatsApp threads can be imported as they are.",
     cta: "See the workspace",
     href: "/for-ngos",
   },
@@ -95,7 +95,7 @@ export default function HowToHelpPage() {
         <div className="mk-split">
           <div>
             <p className="mk-body">
-              Reporting can feel pointless — one dog among millions. It is not,
+              Reporting can feel pointless, one dog among millions. It is not,
               because the thing being built is a denominator. Coverage is a
               fraction, and without a count of what is there the numerator means
               nothing. Every sighting makes the bottom of that fraction real.
@@ -104,8 +104,7 @@ export default function HowToHelpPage() {
               A sterilisation programme cannot be judged without knowing how
               many animals were in the area to begin with. That is why most
               programmes in India cannot prove what they achieved, and why the
-              least glamorous contribution — noticing an animal and logging it —
-              is the one the rest depends on.
+              least glamorous contribution, noticing an animal and logging it. Is the one the rest depends on.
             </p>
           </div>
           <figure>
@@ -117,7 +116,7 @@ export default function HowToHelpPage() {
           <Stat
             value={String(ORGS.length)}
             label="Organisations you can reach directly"
-            source="StrayPaw directory — each verified against a public presence"
+            source="StrayPaw directory, each verified against a public presence"
           />
           <Stat
             value={String(states.length)}
@@ -148,7 +147,7 @@ export default function HowToHelpPage() {
             {
               n: "02",
               title: "Feeding without recording",
-              body: "Feeding is genuinely valuable — caregivers know their animals better than anyone. Logging who you feed turns that knowledge into a record a vet or an ABC team can use.",
+              body: "Feeding is genuinely valuable, caregivers know their animals better than anyone. Logging who you feed turns that knowledge into a record a vet or an ABC team can use.",
             },
           ]}
         />

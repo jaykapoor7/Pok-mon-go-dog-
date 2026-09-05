@@ -85,7 +85,7 @@ export function PlatformNav() {
 
 /** Page wrapper for platform pages. */
 /**
- * Content pages render inside the console now — one shell for community
+ * Content pages render inside the console now, one shell for community
  * reporters and NGO staff alike, so navigating out of the map never drops you
  * into a different product.
  */

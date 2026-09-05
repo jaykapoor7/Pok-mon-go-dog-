@@ -1,4 +1,4 @@
-# StrayPaw — manual QA before real users
+# StrayPaw, manual QA before real users
 
 Run `npm run test:e2e` first. It covers route rendering, the reporting flow's
 gating, phone layout and blocked-storage resilience, all without credentials.
@@ -29,7 +29,7 @@ A person who has never heard of StrayPaw, on their own phone:
 - [ ] Lands on `/`, and can say what this is before scrolling.
 - [ ] Reaches the reporting flow in one tap from the landing page.
 - [ ] **No role picker or tutorial appears over the reporting flow.**
-- [ ] Takes a photo with the camera (not the gallery) — it appears as a preview.
+- [ ] Takes a photo with the camera (not the gallery). It appears as a preview.
 - [ ] If the photo carries GPS, the location step opens on that point already.
 - [ ] If it does not, "use my current location" sets a point.
 - [ ] Denying location permission does not dead-end: search still sets a point.
@@ -47,7 +47,7 @@ than a photo.
 - [ ] Report animal A at a location. Approve it. It becomes an animal record.
 - [ ] Report animal B **20 m away**, choosing "none of these".
 - [ ] After approval, **A and B are two separate animals.** If they merged,
-      the old proximity rule is still live — re-run
+      the old proximity rule is still live, re-run
       `supabase/observation-identity.sql`.
 - [ ] Report A again from a different device, this time picking A from the
       nearby list.
@@ -89,9 +89,9 @@ Each of these must fail *visibly*. Silence is the bug.
 
 After a few real sessions, in the Supabase SQL editor:
 
-- [ ] `select * from analytics_overview;` — people, observations, unique
+- [ ] `select * from analytics_overview;`, people, observations, unique
       animals, and animals with more than one observation.
-- [ ] `select * from analytics_report_funnel;` — where people drop out.
+- [ ] `select * from analytics_report_funnel;`, where people drop out.
 - [ ] `select * from analytics_returning;`
 - [ ] `select * from analytics_locations;`
 - [ ] `select * from events limit 5;` **as the anon key** → must return
@@ -99,12 +99,12 @@ After a few real sessions, in the Supabase SQL editor:
 
 ## 7. The public site
 
-- [ ] Paste `https://straypaw.org` into WhatsApp, X and LinkedIn — the preview
+- [ ] Paste `https://straypaw.org` into WhatsApp, X and LinkedIn, the preview
       card shows a title, description and image.
 - [ ] `https://straypaw.org/robots.txt` and `/sitemap.xml` resolve and name
       straypaw.org.
 - [ ] Safari on iOS: the landing page, the chip section and the map all render.
-      Safari is the one to check — it is the majority of Indian iOS traffic and
+      Safari is the one to check. It is the majority of Indian iOS traffic and
       the browser most likely to differ.
 - [ ] No console errors on `/`, `/report`, `/map`, `/app`.
 

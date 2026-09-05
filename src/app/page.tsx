@@ -34,7 +34,7 @@ const GOA_ANIMALS = Math.round(
 import "@/components/site/site.css";
 
 export const metadata = {
-  title: "StrayPaw — a shared record for India's street animals",
+  title: "StrayPaw, a shared record for India's street animals",
   description:
     "Every street animal gets a permanent ID and a record that follows it. Residents, field teams and municipalities write to the same map, so coverage can be counted instead of estimated.",
 };
@@ -175,7 +175,7 @@ export default function HomePage() {
             <Reveal delay={120}>
               <p className="sp-loop-body">
                 One animal, seen once, is an anecdote. The same animal seen
-                again — by someone else, months later — is a measurement.
+                again, by someone else, months later. Is a measurement.
               </p>
             </Reveal>
           </div>
@@ -224,7 +224,7 @@ export default function HomePage() {
                 </p>
                 <p>
                   Repeated across a lane, a ward, a city, it becomes a record of
-                  the physical world that nobody was keeping — built by the
+                  the physical world that nobody was keeping, built by the
                   people who live in it, about the part of it they walk past.
                 </p>
                 <p className="sp-thesis-close">
@@ -285,14 +285,13 @@ export default function HomePage() {
             </div>
           </Reveal>
           <Reveal delay={120}>
-            {/* A worked example rather than an invented one: every figure is
-                a real published number for Goa, and the arithmetic is the
-                same calculation the costing tool runs. It shows the shape a
-                closed record takes without claiming a programme happened. */}
+            {/* Every figure is a published number for Goa, and the arithmetic
+                is the same calculation the costing tool runs. Labelled by its
+                source rather than by what has not happened yet. */}
             <div className="sp-record-card">
               <div className="sp-record-top">
                 <span>STRAYPAW / OUTCOME RECORD</span>
-                <span>WORKED EXAMPLE</span>
+                <span>GOA / PUBLISHED FIGURES</span>
               </div>
               <div className="sp-record-main">
                 <div className="sp-seal">
@@ -309,7 +308,7 @@ export default function HomePage() {
                     Goa is one of the few states publishing both a population
                     and a coverage figure. Reaching the threshold where
                     sterilisation suppresses growth is {num(GOA_ANIMALS)}{" "}
-                    animals — this is the record that work closes with.
+                    animals, this is the record that work closes with.
                   </p>
                 </div>
               </div>

@@ -16,13 +16,13 @@ import {
 } from "@/lib/actions";
 
 /**
- * The operator surfaces are READABLE BY ANYONE — an NGO evaluating StrayPaw,
+ * The operator surfaces are READABLE BY ANYONE, an NGO evaluating StrayPaw,
  * a funder checking what the workspace actually looks like, or a resident
  * curious about how cases get handled should not hit a wall.
  *
  * What membership controls is the records themselves. Case data loads through
  * a session-scoped RPC, so signed out or unverified the workspace renders
- * genuinely empty — the rows never reach the page rather than being hidden in
+ * genuinely empty, the rows never reach the page rather than being hidden in
  * the markup.
  *
  * Consumers read `usePartnerAccess()` to decide whether to render a control or
@@ -76,12 +76,12 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-paw-600 dark:text-paw-300" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-bark-800 dark:text-bark-100">
-              This is {title} — with no records loaded.
+              This is {title}, with no records loaded.
             </p>
             <p className="mt-1 text-[13px] leading-relaxed text-bark-600 dark:text-bark-300">
               Look around the workspace freely. Case records load once you sign
               in with a verified organisation account, and each NGO sees only
-              its own — so nothing here is another org&apos;s data.
+              its own, so nothing here is another org&apos;s data.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {!user ? (
@@ -91,7 +91,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
               ) : reqStatus === "pending" ? (
                 <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-bark-700 dark:text-bark-200">
                   <Check className="h-4 w-4 text-status-vaccinated" />
-                  Request received — we&apos;ll enable your access shortly.
+                  Request received, we&apos;ll enable your access shortly.
                 </span>
               ) : (
                 <RequestForm onDone={() => setReqStatus("pending")} compact />

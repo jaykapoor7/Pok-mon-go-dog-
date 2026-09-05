@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   StrayPaw console — one view for community reporters and NGO partners.
+   StrayPaw console, one view for community reporters and NGO partners.
    Same tokens as the site; denser, operational.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -21,7 +21,9 @@
      counterparts. Reserve the bright originals for dark backgrounds,
      borders, icons and fills. */
   --electric-ink: #476fb7;
-  --vermilion-ink: #cc371c;
+  /* Kept in step with site.css: #cc371c measured 3.7:1 against the console
+     ground, under the 4.5:1 small text needs. */
+  --vermilion-ink: #b02a10;
 
   display: flex;
   flex-direction: column;
@@ -34,7 +36,7 @@
 
 .spa-mono {
   font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -66,7 +68,7 @@
 .spa-brand small {
   color: #7d8698;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   margin-left: 8px;
   text-transform: uppercase;
@@ -96,7 +98,7 @@
   display: flex;
   align-items: center;
 }
-/* Typed text is read, not scanned — sentence case at a real reading size.
+/* Typed text is read, not scanned, sentence case at a real reading size.
    Uppercase mono at 10px belongs on labels, never in an input. */
 .spa-search input {
   width: 100%;
@@ -117,7 +119,7 @@
   border-color: var(--electric);
   background: rgba(255, 255, 255, 0.1);
 }
-/* Visible focus ring for keyboard users — the border alone is too subtle. */
+/* Visible focus ring for keyboard users, the border alone is too subtle. */
 .spa-search input:focus-visible { box-shadow: 0 0 0 3px rgba(143, 183, 255, 0.25); }
 .spa-search svg { position: absolute; left: 11px; color: #8891a3; pointer-events: none; }
 
@@ -142,7 +144,7 @@
   gap: 7px;
   color: #4a7a2f;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 4px 10px 16px;
@@ -157,7 +159,7 @@
 }
 .spa-side-label {
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #5a6370;
@@ -191,7 +193,7 @@
 .spa-side a span.count {
   margin-left: auto;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: #5a6370;
 }
 .spa-side-foot {
@@ -200,7 +202,7 @@
   padding: 16px 10px 0;
   color: #5a6370;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   line-height: 1.9;
@@ -229,7 +231,7 @@
   margin: 12px 0 0;
 }
 .spa-head h1 em { color: var(--vermilion); font-style: italic; }
-/* Primary action — the largest, highest-contrast target on any screen
+/* Primary action, the largest, highest-contrast target on any screen
    (Fitts + Von Restorff: one unmistakable place to click). */
 .spa-cta {
   display: inline-flex;
@@ -267,7 +269,7 @@
   display: block;
   color: #6c737d;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -287,7 +289,7 @@
   display: grid;
   grid-template-columns: 1.4fr 0.6fr;
   gap: 14px;
-  /* Panels size to their own content — a short one should not be stretched
+  /* Panels size to their own content, a short one should not be stretched
      to match a tall neighbour and leave a lake of empty space. */
   align-items: start;
 }
@@ -304,7 +306,7 @@
 .spa-panel-head a {
   color: #6c737d;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
@@ -318,7 +320,7 @@
   color: #3a5c9a;
   padding: 5px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -351,7 +353,7 @@
 .spa-row > a:focus-visible::after { outline: 2px solid var(--electric); outline-offset: -2px; }
 .spa-row b {
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 11.5px;
   color: #6c737d;
   text-align: right;
   white-space: nowrap;
@@ -364,7 +366,7 @@
   grid-column: 1 / -1;
   color: #6c737d;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -439,7 +441,7 @@
   right: 10px;
   bottom: 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 8px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   color: #899b86;
 }
@@ -533,7 +535,7 @@
 .dtable th, .dtable td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e4e9ef; }
 .dtable th {
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #656e7c;
@@ -607,11 +609,11 @@
 .console-link > div { min-width: 0; }
 .console-link b { display: block; font-size: 12.5px; font-weight: 600; }
 .console-link span { display: block; color: #6c737d; font-size: 12px; margin-top: 2px; }
-/* The chevron is affordance, not information — it only firms up on hover. */
+/* The chevron is affordance, not information. It only firms up on hover. */
 .console-link > svg:last-child { color: #b3bcc7; transition: color 0.15s ease, transform 0.15s ease; }
 .console-link:hover > svg:last-child { color: var(--ink); transform: translate(1px, -1px); }
 
-/* Question queue — used where a register is empty but the work is known. */
+/* Question queue, used where a register is empty but the work is known. */
 .queue { margin-top: 40px; }
 .queue-head {
   display: flex;
@@ -639,7 +641,7 @@
   left: 18px;
   top: 17px;
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--electric);
 }
 .queue-list b { display: block; font-size: 14px; font-weight: 600; }
@@ -650,7 +652,7 @@
 .schema > div { background: #fbfcfd; padding: 16px 18px; }
 .schema dt {
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--electric);
@@ -684,7 +686,7 @@
   color: var(--vermilion);
   padding: 4px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -709,7 +711,7 @@
 .need-facts { display: flex; gap: 30px; margin: 20px 0 0; }
 .need-facts dt {
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
@@ -746,7 +748,7 @@
   border: 1px solid;
   padding: 5px 9px;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -775,7 +777,7 @@
 }
 .gap-resolve dt {
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
@@ -806,7 +808,7 @@
   background: #fff;
   padding: 6px 11px;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #5b6472;
@@ -870,14 +872,14 @@
 .se-detail dl { margin: 0; display: grid; gap: 18px; }
 .se-detail dt {
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
 }
 .se-detail dd { margin: 6px 0 0; font-size: 22px; font-weight: 600; }
 .se-detail dd.se-blank { font-size: 15px; font-weight: 500; color: var(--vermilion); }
-.se-src { margin: 7px 0 0; color: #5a6370; line-height: 1.6; text-transform: none; letter-spacing: 0.02em; font-size: 10.5px; }
+.se-src { margin: 7px 0 0; color: #5a6370; line-height: 1.6; text-transform: none; letter-spacing: 0.02em; font-size: 11.5px; }
 
 .se-orgs { list-style: none; margin: 20px 0 0; padding: 18px 0 0; border-top: 1px solid #e4e9ef; display: grid; gap: 6px; }
 .se-orgs a, .se-orgs span {
@@ -942,7 +944,7 @@
   border: 1px solid;
   padding: 3px 7px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -975,7 +977,7 @@
 .dir-select { display: flex; flex-direction: column; gap: 6px; min-width: 170px; }
 .dir-select span {
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1039,7 +1041,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .dir-since {
   margin-left: 4px;
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1049,7 +1051,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border: 1px solid #ccd3dc;
   padding: 3px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #566070;
@@ -1166,7 +1168,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border: 1px solid;
   padding: 4px 8px;
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -1177,7 +1179,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .iv-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin: 0 0 4px; }
 .iv-facts dt {
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1198,7 +1200,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wwit-controls label { display: flex; flex-direction: column; gap: 7px; min-width: 190px; flex: 1; }
 .wwit-controls span {
   font-family: var(--font-mono), monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1267,7 +1269,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wwit-method { margin-top: 34px; }
 .wwit-method h2 {
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1291,6 +1293,11 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   color: var(--paper);
 }
 .wwit-next .spa-mono { color: #8f9cb2; }
+/* This panel is the one dark ground inside the console, so the accent has to
+   go the other way: the ink variant is tuned for light surfaces and drops to
+   2.9:1 here. Qualified with .spa because the generic `.spa em` rule further
+   down carries the same specificity and would otherwise win on order. */
+.spa .wwit-next em { color: var(--vermilion); }
 .wwit-next h3 {
   font-family: var(--font-display), "Instrument Serif", serif;
   font-weight: 400;
@@ -1343,14 +1350,14 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border: 1px solid #c4ccd6;
   padding: 3px 7px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #566070;
 }
 .chip-mini.urgent { border-color: var(--vermilion); color: var(--vermilion); }
 
-/* mobile nav toggle — a real 44px target, not just a bare icon */
+/* mobile nav toggle, a real 44px target, not just a bare icon */
 .spa-menu-btn {
   display: none;
   align-items: center;
@@ -1410,7 +1417,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   .spa-strip { grid-template-columns: 1fr; }
   .spa-minimap { order: 3; }
   .spa-head h1 { font-size: 30px; }
-  /* Search stays available on mobile — it is a primary way in, not chrome.
+  /* Search stays available on mobile. It is a primary way in, not chrome.
      Space is reclaimed from the brand tag and the exit link's label. */
   .spa-top { padding: 0 12px; gap: 8px; }
   .spa-brand small { display: none; }
@@ -1553,7 +1560,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border-radius: 3px;
   color: var(--electric-ink);
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
@@ -1607,7 +1614,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   gap: 4px;
   margin-top: 3px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1630,13 +1637,13 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   background: #e6efff;
   color: #2f4f8a;
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
+  font-size: 11.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .rs-time {
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   color: #5f6875;
   white-space: nowrap;
   padding-top: 2px;
@@ -1687,7 +1694,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   background: #cc371c;
   color: #fff;
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
+  font-size: 11.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -1696,7 +1703,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   display: block;
   margin: 4px 14px 0;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1709,7 +1716,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   background: #eef1f6;
   color: #4d5766;
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
+  font-size: 11.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -1751,7 +1758,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .spa-results button.on { background: #eef4ff; }
 .spa-res-kind {
   font-family: var(--font-mono), monospace;
-  font-size: 9.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--electric-ink);
@@ -1817,7 +1824,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   display: block;
   margin-bottom: 4px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #5f6875;
@@ -1865,7 +1872,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1997,7 +2004,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 
 /*
  * The console's surfaces are set as literal light values throughout (panels,
- * borders, table rows — around 120 of them), so it has never had a dark
+ * borders, table rows, around 120 of them), so it has never had a dark
  * variant. The global .dark rules, however, flip Tailwind's *text* utilities
  * light. The result inside the console was light text on light panels:
  * legible nowhere, and worst on the report form.
@@ -2042,7 +2049,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 /*
  * Components inside the console also carry inline dark: variants
  * (dark:bg-bark-800, dark:text-bark-50 and so on). Those compile to
- * `.dark .dark\:<utility>`, so they need neutralising here too — otherwise a
+ * `.dark .dark\:<utility>`, so they need neutralising here too, otherwise a
  * panel keeps its dark background while the console around it is light.
  */
 .dark .spa [class~="dark:bg-bark-800"],

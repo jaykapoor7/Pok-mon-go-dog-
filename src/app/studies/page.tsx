@@ -43,7 +43,7 @@ export default function StudiesPage() {
           Questions a first study could answer
         </h2>
         <p className="queue-lede">
-          These are real, unanswered questions — not a backlog we generated.
+          These are real, unanswered questions, not a backlog we generated.
           Each is a candidate brief.
         </p>
         <ol className="queue-list">

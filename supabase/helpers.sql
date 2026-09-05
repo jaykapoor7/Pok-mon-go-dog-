@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw — "Can you help?" volunteer + NGO sign-ups.
+-- StrayPaw, "Can you help?" volunteer + NGO sign-ups.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Stores people who offer to
 -- help a dog or volunteer, and NGOs registering interest. Submissions are

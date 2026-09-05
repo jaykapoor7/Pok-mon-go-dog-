@@ -3,8 +3,7 @@ import { PartnerGate } from "@/components/partner/PartnerGate";
 
 export const dynamic = "force-dynamic";
 
-// The field workspace lives inside the same console as the community surface —
-// one product, one shell. The gate still limits these records to verified
+// The field workspace lives inside the same console as the community surface, // one product, one shell. The gate still limits these records to verified
 // organisation members; only the chrome is shared.
 export default function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -19,7 +19,7 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
   if (ids.length === 0) {
     /* An empty page teaches nothing. Animals that need attention, or have
        been seen most, give the viewer something real to follow straight
-       away — drawn from the same records, never invented. */
+       away, drawn from the same records, never invented. */
     const suggestions = [...dogs]
       .sort((a, b) => {
         if (a.needs_help !== b.needs_help) return a.needs_help ? -1 : 1;
@@ -34,7 +34,7 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
           <h2>Nothing followed yet</h2>
           <p>
             Follow an animal and it lands here, so you can check on it without
-            hunting through the map. Follows are stored on this device — no
+            hunting through the map. Follows are stored on this device, no
             account needed.
           </p>
           <Link href="/map" className="spa-cta">
@@ -54,7 +54,7 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
               {suggestions.map((d) => (
                 <Link key={d.id} href={`/dog/${d.id}`} className="fl-card">
                   {/* The photo is what makes these read as animals rather
-                      than rows — it is the reason to follow one. */}
+                      than rows. It is the reason to follow one. */}
                   <span className="fl-photo">
                     {d.cover_photo ? (
                       <Image

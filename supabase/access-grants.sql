@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Access grant log — a record of every partner access you grant, so there's
+-- Access grant log, a record of every partner access you grant, so there's
 -- an audit trail of who was onboarded and when. Written by the admin route
 -- (service role). Idempotent.
 -- ════════════════════════════════════════════════════════════════

@@ -28,7 +28,7 @@ export default function WhatWouldItTakePage() {
   const pop = pointsFor("dog_population");
   const abc = pointsFor("abc_coverage");
 
-  /* Only states with a published population can be costed — the rest have no
+  /* Only states with a published population can be costed, the rest have no
      real number to multiply, and inventing one would make the whole tool a
      guess. Those states are named as a gap in the tool instead. */
   const geographies: PlanGeography[] = STATES.flatMap((st) => {

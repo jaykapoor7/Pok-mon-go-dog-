@@ -254,7 +254,7 @@ function SignInSheet({
         // when email confirmation is switched off in the project; when it is
         // on, it returns none and the account is unusable until a link is
         // clicked. Rather than send everyone to their inbox, try the password
-        // we were just given — that succeeds the moment confirmation is off,
+        // we were just given, that succeeds the moment confirmation is off,
         // and the emailed link becomes the fallback rather than the path.
         if (!data.session) {
           const { error: signInErr } = await supa.auth.signInWithPassword({
@@ -327,7 +327,7 @@ function SignInSheet({
               {notice === "confirm" ? (
                 <>Your account was created, but this project still has email
                 confirmation switched on, so it needs one click before you can
-                sign in. We sent a link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span> — check spam if it
+                sign in. We sent a link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>, check spam if it
                 does not arrive in a minute.</>
               ) : (
                 <>We sent a password-reset link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.</>

@@ -1,13 +1,13 @@
 -- ════════════════════════════════════════════════════════════════
 -- Seed: real Delhi street-dog photos, distributed across the city.
 -- Photos live in public/seed-dogs/dogN.jpg (served at /seed-dogs/dogN.jpg).
--- Run ONCE. Safe to re-run — it no-ops if the seed already exists.
+-- Run ONCE. Safe to re-run. It no-ops if the seed already exists.
 -- ════════════════════════════════════════════════════════════════
 do $$
 declare r record; v_id uuid;
 begin
   if exists (select 1 from dogs where cover_photo like '/seed-dogs/%') then
-    raise notice 'Delhi dog seed already present — skipping.';
+    raise notice 'Delhi dog seed already present, skipping.';
     return;
   end if;
 

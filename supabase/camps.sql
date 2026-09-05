@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- Veterinary camps (Phase 2 — field) — DDS plans camps across villages.
+-- Veterinary camps (Phase 2, field), DDS plans camps across villages.
 -- A lightweight planning entity: where, when, status.
 -- Depends on: partner-onboarding.sql (my_ngo). Idempotent.
 -- ════════════════════════════════════════════════════════════════

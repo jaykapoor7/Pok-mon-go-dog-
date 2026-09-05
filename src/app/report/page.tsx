@@ -205,9 +205,9 @@ export default function ReportPage() {
                           <MapPin className="h-3.5 w-3.5 shrink-0 text-paw-500" />
                           {meta?.lat != null && meta?.lng != null
                             ? looksIndian(meta.lat, meta.lng)
-                              ? "Location found — the map is set to it. Check it on the next step."
+                              ? "Location found, the map is set to it. Check it on the next step."
                               : "Location found, but it is outside India. Set it manually."
-                            : "No location in this photo — you will set it on the next step."}
+                            : "No location in this photo, you will set it on the next step."}
                         </li>
                         {meta?.takenAt && (
                           <li className="flex items-center gap-2">

@@ -113,7 +113,7 @@ export function DirectoryClient({
           <h2>Nothing matches that</h2>
           <p>
             No listed organisation fits those filters. The directory covers{" "}
-            {states.length} states — try widening it.
+            {states.length} states, try widening it.
           </p>
         </div>
       ) : (

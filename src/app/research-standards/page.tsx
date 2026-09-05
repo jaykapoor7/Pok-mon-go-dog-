@@ -9,7 +9,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { UNKNOWNS, barrierCounts } from "@/lib/platform/network";
 
 export const metadata = {
-  title: "Research standards — how StrayPaw runs a study",
+  title: "Research standards, how StrayPaw runs a study",
   description:
     "Every StrayPaw study is hypothesis-driven, uses established population-estimation methods, reports against ICAM indicators, and is published whatever the result.",
 };
@@ -21,7 +21,7 @@ const PROTOCOL = [
   {
     n: "01",
     title: "Question",
-    body: "A specific, answerable question tied to a named geography — not a theme. Registered before fieldwork begins, with the geography, timeframe and executing partner fixed.",
+    body: "A specific, answerable question tied to a named geography, not a theme. Registered before fieldwork begins, with the geography, timeframe and executing partner fixed.",
   },
   {
     n: "02",
@@ -36,7 +36,7 @@ const PROTOCOL = [
   {
     n: "04",
     title: "Baseline",
-    body: "The pre-intervention measurement. Without it there is no denominator, and coverage — the number that decides whether anything worked — cannot be computed at all.",
+    body: "The pre-intervention measurement. Without it there is no denominator, and coverage, the number that decides whether anything worked, cannot be computed at all.",
   },
   {
     n: "05",
@@ -56,7 +56,7 @@ const PROTOCOL = [
 ];
 
 /* Methods StrayPaw uses, all established in the literature rather than
-   invented here — which is the point for an institutional reviewer. */
+   invented here, which is the point for an institutional reviewer. */
 const METHODS = [
   {
     title: "Photographic capture–recapture",
@@ -105,7 +105,7 @@ export default function ResearchStandardsPage() {
         <p className="mk-body">
           The order matters more than any individual stage. A hypothesis
           written after the data is not a hypothesis, and a baseline taken
-          after the intervention is not a baseline — both are the ordinary way
+          after the intervention is not a baseline, both are the ordinary way
           this field produces numbers that cannot be relied on.
         </p>
         <Steps items={PROTOCOL} />
@@ -126,8 +126,8 @@ export default function ResearchStandardsPage() {
               against it rather than take our word for anything.
             </p>
             <p className="mk-body">
-              Where we do claim something new — that community-reported data can
-              approximate a formal count at a fraction of the cost — it is
+              Where we do claim something new, that community-reported data can
+              approximate a formal count at a fraction of the cost. It is
               stated as a hypothesis to be validated against the reference
               method, not as a property of the product.
             </p>
@@ -166,9 +166,9 @@ export default function ResearchStandardsPage() {
         </p>
         <p className="mk-body">
           ICAM&rsquo;s guidance covers the impact areas a dog population
-          programme is expected to move — population size and density, animal
+          programme is expected to move, population size and density, animal
           welfare, rabies and other zoonoses, dog bites, shelter intake and
-          euthanasia, and public attitudes — with recommended measurement
+          euthanasia, and public attitudes, with recommended measurement
           methods for each. A StrayPaw study states which of these it is
           powered to detect a change in, and which it is not.
         </p>
@@ -235,7 +235,7 @@ export default function ResearchStandardsPage() {
           <div>
             <p className="mk-body">
               A funder&rsquo;s real risk in this sector is not that the work
-              fails — it is that failure is never reported, so the next
+              fails. It is that failure is never reported, so the next
               programme repeats it. Publishing null results is the single
               cheapest thing that fixes that, and almost nobody does it.
             </p>

@@ -68,7 +68,7 @@ export const METRIC_BY_ID = new Map(METRICS.map((m) => [m.id, m]));
 
 /**
  * Approximate geographic centre of each state, for placing state-level
- * markers on the map. Rounded to two decimals — these position a label, they
+ * markers on the map. Rounded to two decimals, these position a label, they
  * are not survey data and nothing is measured from them.
  */
 export const STATE_CENTROIDS: Record<string, { lat: number; lng: number }> = {

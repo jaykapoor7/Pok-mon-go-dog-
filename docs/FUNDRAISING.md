@@ -1,4 +1,4 @@
-# StrayPaw fundraising — architecture, compliance & roadmap
+# StrayPaw fundraising, architecture, compliance & roadmap
 
 This documents how StrayPaw handles fundraising **today** and the deliberate
 line we do not cross yet: StrayPaw does **not** collect, hold, or distribute
@@ -13,14 +13,14 @@ small platform should not take on before it is ready:
   StrayPaw would likely make us a payment aggregator/intermediary, requiring
   authorisation, escrow/nodal accounts, and settlement controls.
 - **Donation/tax receipts** (80G/12A), FCRA (for any foreign contributions),
-  and per-NGO trust-accounting are the NGO's legal responsibility — not
+  and per-NGO trust-accounting are the NGO's legal responsibility, not
   something we can paper over.
 - **Liability & trust.** If we take money "for" an NGO and anything goes wrong
   (fraud, misuse, a lapsed registration), the platform is on the hook.
 
 By linking out, the donor pays the NGO directly on the NGO's own verified
 channel (Milaap/Ketto/GiveIndia/their gateway). StrayPaw's job is discovery,
-credibility, and transparency — not custody of funds.
+credibility, and transparency, not custody of funds.
 
 ## 1. What can safely be built now (and mostly is)
 
@@ -40,7 +40,7 @@ None of the above touches money movement, so none of it needs a licence.
 Anything where a donor pays **on StrayPaw**:
 
 - In-app checkout, saved cards/UPI, receipts issued by us.
-- Showing a **verified** (not self-reported) "amount raised" — that number is
+- Showing a **verified** (not self-reported) "amount raised", that number is
   only trustworthy if we can read it from a processor/webhook.
 - Refunds, chargebacks, payout schedules.
 
@@ -49,12 +49,12 @@ This needs a real integration (see §7) and the compliance in §3.
 ## 3. What requires legal / compliance review (before touching money)
 
 - RBI payment-aggregator status / use of a licensed PA (Razorpay, Cashfree,
-  Stripe) so **we never touch the funds** — the PA settles directly to the NGO.
+  Stripe) so **we never touch the funds**, the PA settles directly to the NGO.
 - Per-NGO KYC and a **payout account owned by the NGO**, so money never rests
   in a StrayPaw account.
 - 80G receipt responsibility stays with the NGO; we must not imply we issue
   tax receipts.
-- FCRA: foreign donations are restricted — either block non-INR/foreign cards
+- FCRA: foreign donations are restricted, either block non-INR/foreign cards
   or route only to FCRA-registered NGOs.
 - Terms/refund/grievance policy naming the NGO as the recipient of record.
 
@@ -67,16 +67,16 @@ Real-money features must be gated on more than the current `verified` flag:
 - Only then may a campaign show verified totals or accept on-platform payment.
 
 Today `verified` is set by an admin after due diligence and only ever powers a
-badge and curation — never a claim about money.
+badge and curation, never a claim about money.
 
-## 5. Donor information — store vs. never store
+## 5. Donor information, store vs. never store
 
 - **Never store:** card numbers, CVV, UPI credentials, full bank details.
   These stay with the PCI-compliant processor.
 - **Store only if the donor opts in:** name + email for a thank-you/receipt,
   with consent, minimised and deletable (mirrors the existing reporter-email
   opt-in and privacy policy).
-- In the current link-out model we store **no donor data at all** — the
+- In the current link-out model we store **no donor data at all**, the
   transaction happens entirely on the NGO's channel.
 
 ## 6. How external donation links work (today)
@@ -84,7 +84,7 @@ badge and curation — never a claim about money.
 - Each campaign carries a `donate_url` validated to be `http(s)`.
 - The page's primary CTA links out (`target="_blank"`, `rel="noopener
   noreferrer nofollow"`) with an explicit line: *"StrayPaw doesn't process or
-  hold the payment — your money goes directly to them."*
+  hold the payment, your money goes directly to them."*
 - Progress is the NGO's **self-reported** `raised_reported`, always labelled as
   such.
 
@@ -116,6 +116,6 @@ processor, processor_ref, status, donor_email_opt_in, created_at)` +
 ---
 
 **Summary:** ship credibility and transparency now (profiles, budgets,
-updates, outcomes, link-out) — add on-platform payments only behind a licensed
+updates, outcomes, link-out), add on-platform payments only behind a licensed
 aggregator with connected NGO payout accounts, real verification, and the
 compliance in §3.
