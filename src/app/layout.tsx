@@ -42,6 +42,10 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  /* Every route resolves its own canonical against metadataBase. Without
+     this, the same page reachable on a preview domain and on straypaw.org
+     competes with itself in the index. */
+  alternates: { canonical: "./" },
   title: "StrayPaw — Every street dog, on the record",
   description:
     "A permanent identity and a shared record for India's street animals, so NGOs, municipalities and funders work from the same data instead of three different notebooks.",
