@@ -227,23 +227,22 @@ export default function ResearchStandardsPage() {
 
       <Band
         tone="paper"
-        kicker="WHAT WE COMMIT TO"
-        title="The part most"
-        accent="programmes skip."
+        kicker="PUBLICATION"
+        title="Null results,"
+        accent="published the same way."
       >
         <div className="mk-split">
           <div>
             <p className="mk-body">
               A funder&rsquo;s real risk in this sector is not that the work
-              fails. It is that failure is never reported, so the next
-              programme repeats it. Publishing null results is the single
-              cheapest thing that fixes that, and almost nobody does it.
+              fails. It is that failure goes unreported, so the next programme
+              repeats it. Publishing a null result is the cheapest thing that
+              breaks that cycle.
             </p>
             <p className="mk-body">
-              Every figure StrayPaw publishes already carries its source, year
-              and confidence, and where a number does not exist the register
-              names who holds it rather than estimating. The same standard
-              applies to our own studies.
+              A study protocol is registered before fieldwork starts, so the
+              analysis plan is on record whichever way the result goes. What
+              the study could not show is reported alongside what it did.
             </p>
           </div>
           <div className="mk-stats" style={{ marginTop: 0 }}>

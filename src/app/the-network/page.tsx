@@ -41,7 +41,7 @@ export default function TheNetworkPage() {
             {
               n: "01",
               title: "Signal",
-              body: "Someone reports an animal, a photo, a place, a condition. That is the whole barrier to entry, and it is deliberately that low.",
+              body: "Someone reports an animal: a photo, a place, a condition. That is all it takes to open a record.",
             },
             {
               n: "02",

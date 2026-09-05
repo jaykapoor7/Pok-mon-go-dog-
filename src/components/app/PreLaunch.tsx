@@ -30,8 +30,7 @@ export function PreLaunch({
       <h2>No {what} yet</h2>
       <p>{fills}</p>
       <p className="prelaunch-note">
-        Every row here is a real record, written by the people doing the work.
-        Nothing is seeded and nothing is simulated.
+        Rows appear here as organisations and reporters file them.
       </p>
       <Link href={cta.href} className="spa-cta">
         {cta.label} <ArrowUpRight size={14} />

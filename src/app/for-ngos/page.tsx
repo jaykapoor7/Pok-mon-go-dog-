@@ -53,7 +53,7 @@ export default function ForNgosPage() {
             {
               n: "04",
               title: "Reporting",
-              body: "The numbers a funder asks for, produced from the work you already recorded. Instead of reconstructed from memory at the end of a grant.",
+              body: "The numbers a funder asks for, produced from the work you already recorded rather than reconstructed from memory at the end of a grant.",
             },
           ]}
         />
@@ -74,7 +74,7 @@ export default function ForNgosPage() {
               already have.
             </p>
             <p className="mk-body">
-              What we build is the layer underneath. Identity, records,
+              What we build is the layer underneath: identity, records and
               measurement, so that the work you do is legible to the next
               organisation that meets the same animal, and provable to whoever
               paid for it.

@@ -2,7 +2,7 @@
    Figures for the explainer pages.
 
    Diagrams, not decoration: each one draws the actual mechanism the page
-   is describing. Inline SVG so they stay crisp, theme with the section
+   is describing, in inline SVG, so they stay crisp, theme with the section
    they sit in, and cost nothing to load.
    ════════════════════════════════════════════════════════════════════ */
 

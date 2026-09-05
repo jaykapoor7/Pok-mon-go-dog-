@@ -23,7 +23,6 @@ const LINKS: NavItem[] = [
       { label: "Volunteer", href: "/get-involved", note: "Routed to named organisations" },
       { label: "For NGOs", href: "/for-ngos", note: "Bring your team's records in" },
       { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
-      { label: "Research standards", href: "/research-standards", note: "How we design and publish a study" },
     ],
   },
   { label: "The data", href: "/the-data" },

@@ -90,7 +90,7 @@ export default function ForFundersPage() {
             {
               n: "03",
               title: "Execute",
-              body: "A named local organisation does the fieldwork. StrayPaw supplies the study design, the data tooling and the record layer, we do not compete with the people doing the work.",
+              body: "A named local organisation does the fieldwork. The study design, the data tooling and the record layer come from StrayPaw.",
             },
             {
               n: "04",
@@ -108,11 +108,10 @@ export default function ForFundersPage() {
         accent="to an auditor."
       >
         <p className="mk-body">
-          Every figure in a StrayPaw programme carries its source, its year and
-          its confidence. Where a number does not exist, the register says so
-          rather than estimating, because a plan built on an invented
-          denominator is not a plan. That honesty is the point: it is what makes
-          the numbers that <em>are</em> there worth trusting.
+          Every figure in a StrayPaw programme carries its source, its year
+          and its confidence, so an auditor can trace any of them back. Where a
+          number does not exist, the register names who would hold it, and the
+          proposal costs the study that would produce it.
         </p>
         <Steps
           items={[

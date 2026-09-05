@@ -175,7 +175,7 @@ export default function HomePage() {
             <Reveal delay={120}>
               <p className="sp-loop-body">
                 One animal, seen once, is an anecdote. The same animal seen
-                again, by someone else, months later. Is a measurement.
+                again, by someone else, months later, is a measurement.
               </p>
             </Reveal>
           </div>

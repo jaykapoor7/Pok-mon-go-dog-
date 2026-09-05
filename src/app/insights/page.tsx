@@ -28,7 +28,7 @@ export default function InsightsPage() {
         <SectionLabel>Insights</SectionLabel>
         <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">What the numbers actually say.</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
-          Every card below is <span className="font-medium text-bark-800 dark:text-bark-100">derived</span> from real, sourced datasets on Explore, computed, not invented. Where India simply doesn&apos;t publish the underlying data, we say so instead of filling the gap.
+          Each card is computed from the sourced datasets on Explore, and names the dataset it came from. Where the underlying data is not published in India, the card says which figure is missing.
         </p>
       </header>
 

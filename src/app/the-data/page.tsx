@@ -36,7 +36,7 @@ export default function TheDataPage() {
       kicker="THE DATA"
       title="What is known."
       accent="And what is not."
-      lede="This is the honest state of the evidence on India's street animals. Where a figure exists it is cited. Where it does not, the gap is named along with whoever is holding the number, because absence is the more useful half of this picture."
+      lede="The state of the evidence on India's street animals. Where a figure exists it is cited; where it does not, the gap is named along with whoever holds the number."
       figure={<LoopFigure />}
       next={[
         { label: "State-by-state explorer", href: "/gaps", note: "Population, coverage and organisations per state." },
@@ -53,7 +53,7 @@ export default function TheDataPage() {
         <p className="mk-body">
           Nearly every state has some street-dog population figure, of varying
           quality and vintage. Sterilisation coverage, the number that decides
-          whether a programme is working. Is published for a handful. That
+          whether a programme is working, is published for a handful. That
           asymmetry is the central fact of this field.
         </p>
 
@@ -123,15 +123,15 @@ export default function TheDataPage() {
 
       <Band
         tone="bone"
-        kicker="OUR RULE ON NUMBERS"
-        title="If it is not sourced,"
-        accent="it is not on the page."
+        kicker="THE EVIDENCE REGISTER"
+        title="What is missing,"
+        accent="and who has it."
       >
         <p className="mk-body">
-          Every figure across StrayPaw carries a source, a year and a
-          confidence. Nothing is seeded with plausible examples, no register is
-          pre-filled to look busy, and no chart is padded with an estimate
-          dressed as a measurement. Where we have nothing, the page says so.
+          Each open question is listed with the body that holds or would hold
+          the answer, and what it would take to close it. Several are open
+          because the number exists and has not been released, which is a
+          cheaper problem to fix than a missing measurement.
         </p>
         <div className="mk-stats">
           <Stat

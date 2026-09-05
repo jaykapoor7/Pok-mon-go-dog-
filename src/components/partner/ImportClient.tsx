@@ -20,7 +20,7 @@ import { formatPlace } from "@/lib/delhi";
 
    Almost no organisation starts digital. Records live in ward registers,
    ABC ledgers and WhatsApp threads, and the usual advice, "re-enter it
-   all". Is why they never move.
+   all", is why they never move.
 
    So: attach the original as evidence, transcribe the few fields that
    matter beside it, and file both together. The photo stays with the

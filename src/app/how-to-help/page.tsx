@@ -26,7 +26,7 @@ const WAYS = [
   {
     tag: "THIRTY SECONDS",
     title: "Report an animal you walk past",
-    body: "A photo and a location. That is the entire barrier, deliberately. It is the signal everything else is built on, and most of India has none of it.",
+    body: "A photo and a location is all a report needs. Most streets in India have no record of either.",
     cta: "Report a sighting",
     href: "/report",
   },
@@ -104,7 +104,8 @@ export default function HowToHelpPage() {
               A sterilisation programme cannot be judged without knowing how
               many animals were in the area to begin with. That is why most
               programmes in India cannot prove what they achieved, and why the
-              least glamorous contribution, noticing an animal and logging it. Is the one the rest depends on.
+              least glamorous contribution, noticing an animal and logging it,
+              is the one the rest depends on.
             </p>
           </div>
           <figure>
