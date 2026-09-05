@@ -192,7 +192,6 @@ export interface DogProfile {
   vaccinations: Vaccination[];
   sterilisations: Sterilisation[];
   comments: Comment[];
-  matchSuggestions: { dog: Dog; confidence: number; reason: string }[];
 }
 
 export interface CityStats {

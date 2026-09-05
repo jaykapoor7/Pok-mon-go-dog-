@@ -389,18 +389,6 @@ export async function ngoSetDogCare(
   return data === true;
 }
 
-/** Merge a duplicate dog profile into the one we're keeping (NGO-only). */
-export async function mergeDogs(keepId: string, removeId: string): Promise<boolean> {
-  const supa = getSupabase();
-  if (!supa) return false;
-  const { data, error } = await supa.rpc("merge_dogs", {
-    p_keep: keepId,
-    p_remove: removeId,
-  });
-  if (error) throw new Error(error.message);
-  return data === true;
-}
-
 /** Fetch the signed-in user's own sightings (including pending ones). */
 export async function getMySightings(userId: string) {
   const supa = getSupabase();

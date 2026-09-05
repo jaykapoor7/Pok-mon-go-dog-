@@ -4,7 +4,6 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
-import { suggestMerges } from "./aggregation";
 import type {
   Dog,
   Sighting,
@@ -221,18 +220,16 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
     const dog = await getDogById(id);
     if (!dog) return null;
 
-    const [sightingsRes, feedRes, vaccRes, sterRes, commentsRes, allDogsRes] =
+    const [sightingsRes, feedRes, vaccRes, sterRes, commentsRes] =
       await Promise.all([
         supa.from("sightings").select("*").eq("dog_id", id).eq("status", "live").order("created_at", { ascending: false }),
         supa.from("feed_events").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
         supa.from("vaccinations").select("*").eq("dog_id", id),
         supa.from("sterilisations").select("*").eq("dog_id", id),
         supa.from("comments").select("*").eq("dog_id", id).order("created_at", { ascending: true }),
-        supa.from("dogs").select("*").limit(2000),
       ]);
 
     const sightings = (sightingsRes.data ?? []).map(mapSighting);
-    const allDogs = (allDogsRes.data ?? []).map(mapDog);
 
     // Enrich the profile with photos + notes drawn from its sightings.
     dog.photos = Array.from(
@@ -278,7 +275,6 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
         body: c.body,
         created_at: c.created_at,
       })),
-      matchSuggestions: suggestMerges(dog, allDogs),
     };
   }
 

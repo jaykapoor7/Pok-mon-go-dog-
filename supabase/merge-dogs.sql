@@ -1,4 +1,12 @@
 -- ════════════════════════════════════════════════════════════════
+-- SUPERSEDED by no-similarity-merge.sql. Do not run this on a new database.
+--
+-- This deleted the duplicate row, and the interface that drove it proposed
+-- candidates from a similarity score (distance, shared name, same colour and
+-- size, same zone) that describes most of the dogs on a street. Acting on
+-- that guess was irreversible. Moving observations with relink_sighting()
+-- does the same job one record at a time and can be undone. Kept for history.
+--
 -- StrayPaw, merge duplicate dog profiles into one.
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). Requires the
