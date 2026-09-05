@@ -17,7 +17,13 @@ the parts that break, and none of them reproduce in a simulator.
 - [ ] `supabase/analytics.sql` has been run.
 - [ ] **Confirm email is OFF** in Supabase → Authentication → Providers →
       Email. With it on, signup returns no session and new accounts are
-      unusable until a link is clicked.
+      unusable until a link is clicked, and Supabase's built-in email service
+      only delivers to addresses on your own project team (capped at 2 per
+      hour), so that link never reaches an ordinary Gmail or Outlook address.
+- [ ] For password reset to work at all, set custom SMTP under Authentication
+      → Emails, then raise Authentication → Rate Limits from its 30 per hour
+      default. RESEND_API_KEY does not cover this: it sends StrayPaw's own
+      email, not Supabase Auth's.
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
       `SUPABASE_SERVICE_ROLE_KEY` are set in Vercel.
 - [ ] `NEXT_PUBLIC_SITE_URL` is `https://straypaw.org`.

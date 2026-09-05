@@ -325,10 +325,11 @@ function SignInSheet({
             </h2>
             <p className="mt-1.5 text-sm text-bark-500">
               {notice === "confirm" ? (
-                <>Your account was created, but this project still has email
-                confirmation switched on, so it needs one click before you can
-                sign in. We sent a link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>, check spam if it
-                does not arrive in a minute.</>
+                <>Your account was created, but it needs one click on a
+                confirmation link before you can sign in. We sent it to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.
+                Check spam. If nothing arrives, the account still exists, so
+                write to <a href="mailto:jaykapoor7@outlook.com" className="font-semibold text-paw-600 hover:underline">jaykapoor7@outlook.com</a> and
+                we will confirm it for you.</>
               ) : (
                 <>We sent a password-reset link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.</>
               )}
