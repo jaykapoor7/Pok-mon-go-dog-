@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 const SITE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.kapoorjay.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
 
 /**
  * Public, indexable routes.

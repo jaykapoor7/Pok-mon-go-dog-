@@ -12,6 +12,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { PageView } from "@/components/analytics/PageView";
 import { Hero } from "@/components/site/Hero";
 import { ChipScroll } from "@/components/site/ChipScroll";
 import { Reveal } from "@/components/site/Reveal";
@@ -129,6 +130,7 @@ const AUDIENCES = [
 export default function HomePage() {
   return (
     <div className="sp">
+      <PageView name="landing_view" />
       <SiteHeader />
 
       <main>

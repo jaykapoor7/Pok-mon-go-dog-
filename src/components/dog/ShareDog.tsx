@@ -21,7 +21,7 @@ export function ShareDog({
   const [copied, setCopied] = useState(false);
 
   const url =
-    (typeof window !== "undefined" ? window.location.origin : "https://straypaw.kapoorjay.com") +
+    (typeof window !== "undefined" ? window.location.origin : "https://straypaw.org") +
     `/dog/${dogId}`;
   const text = `Meet ${label} near ${zone} on StrayPaw 🐾 Follow this street dog's care.`;
 

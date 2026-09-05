@@ -1,4 +1,12 @@
 -- ════════════════════════════════════════════════════════════════
+-- SUPERSEDED by observation-identity.sql. Do not run this on a new database.
+--
+-- This removed the wrong merge by removing linking altogether: every approved
+-- sighting became its own animal, so two people reporting the same dog could
+-- never produce one record. observation-identity.sql keeps the merge off by
+-- default but lets a person link an observation deliberately, which is what
+-- makes a timeline possible at all. Kept for history.
+--
 -- StrayPaw — disable the ≤200 m auto-merge (each sighting = its own dog).
 --
 -- Run ONCE in the Supabase SQL editor (idempotent). The old approve_sighting

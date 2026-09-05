@@ -38,7 +38,7 @@ const mono = DM_Mono({
 // domain (NOT the per-deployment Vercel URL, which is auth-walled and makes
 // crawlers like Twitterbot fail → gray preview).
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.kapoorjay.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

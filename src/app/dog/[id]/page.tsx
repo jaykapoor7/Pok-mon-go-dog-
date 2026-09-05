@@ -20,6 +20,7 @@ import { ShareDog } from "@/components/dog/ShareDog";
 import { FollowButton } from "@/components/dog/FollowButton";
 import { AddComment } from "@/components/dog/AddComment";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
+import { PageView } from "@/components/analytics/PageView";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
@@ -70,6 +71,7 @@ export default async function DogProfilePage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6">
+      <PageView name="animal_viewed" props={{ observations: sightings.length }} />
       {/* cover */}
       <div className="relative overflow-hidden rounded-[2rem] shadow-card">
         <DogPhoto
@@ -228,6 +230,10 @@ export default async function DogProfilePage({
 
       {/* timeline */}
       <Section title="Sightings timeline">
+        {/* Only counted once the record actually spans more than one
+            observation — a single-sighting page is not yet a timeline, and
+            counting it as one would flatter the number that matters most. */}
+        {sightings.length > 1 && <PageView name="timeline_viewed" />}
         <SightingTimeline sightings={sightings} />
       </Section>
 

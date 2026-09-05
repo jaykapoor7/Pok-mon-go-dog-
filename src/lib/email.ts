@@ -4,11 +4,11 @@
 // email COLLECTION works immediately and SENDING switches on once you add the
 // key (+ a verified sending domain) and set EMAIL_FROM.
 //   RESEND_API_KEY , from Resend dashboard
-//   EMAIL_FROM     , e.g. "StrayPaw <hello@straypaw.kapoorjay.com>"
+//   EMAIL_FROM     , e.g. "StrayPaw <hello@straypaw.org>"
 // ─────────────────────────────────────────────────────────────
 
 const SITE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.kapoorjay.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
 
 export async function sendEmail(opts: {
   to: string;
@@ -17,7 +17,7 @@ export async function sendEmail(opts: {
   text?: string;
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.EMAIL_FROM?.trim() || "StrayPaw <hello@straypaw.kapoorjay.com>";
+  const from = process.env.EMAIL_FROM?.trim() || "StrayPaw <hello@straypaw.org>";
   if (!key) return false; // not configured, collection still works
   try {
     const res = await fetch("https://api.resend.com/emails", {

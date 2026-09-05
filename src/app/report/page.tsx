@@ -17,6 +17,7 @@ import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 import { AnimalMatch } from "@/components/report/AnimalMatch";
+import { track } from "@/lib/analytics";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
 const STEPS = ["Photo", "Location", "Details", "Confirm"] as const;
@@ -44,6 +45,11 @@ export default function ReportPage() {
   const [c3, setC3] = useState(false);
   /* An animal the reporter recognises. Sent as a claim; review decides. */
   const [claimedDogId, setClaimedDogId] = useState<string | null>(null);
+
+  /* Opens the funnel. Everything else is measured against this number. */
+  useEffect(() => {
+    track("report_started", {}, { once: true });
+  }, []);
 
   const handleVerify = useCallback((t: string | null) => setToken(t), []);
   useEffect(() => { if (user?.email) setEmail((cur) => cur || user.email!); }, [user?.email]);
@@ -82,7 +88,15 @@ export default function ReportPage() {
   const canAdvance = step === 0 ? !!photo : step === 1 ? !!coords : true;
   const canSubmit = !!photo && !!coords && consentDone && status === "idle" && (!HAS_TURNSTILE || !!token);
 
-  function next() { if (canAdvance) setStep((s) => Math.min(STEPS.length - 1, s + 1)); }
+  function next() {
+    if (!canAdvance) return;
+    /* Recorded on leaving a step rather than entering the next one, so the
+       last event in a session is the step the person actually gave up on. */
+    if (step === 0) track("report_photo_added");
+    else if (step === 1) track("report_location_set");
+    else if (step === 2) track("report_details_filled");
+    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+  }
   function back() { setStep((s) => Math.max(0, s - 1)); }
 
   async function submit() {
@@ -96,9 +110,13 @@ export default function ReportPage() {
         reporterName: user?.name ?? "", reporterEmail: email.trim() || undefined, token,
         claimedDogId,
       });
+      track("report_submitted", { claimed_repeat: Boolean(claimedDogId) });
       setStatus("done");
     } catch (e) {
       console.error(e);
+      track("report_failed", {
+        reason: e instanceof Error ? e.message.slice(0, 120) : "unknown",
+      });
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setStatus("idle");
     }
@@ -241,7 +259,10 @@ export default function ReportPage() {
                   lat={coords.lat}
                   lng={coords.lng}
                   value={claimedDogId}
-                  onChange={setClaimedDogId}
+                  onChange={(id) => {
+                    setClaimedDogId(id);
+                    if (id) track("existing_animal_selected");
+                  }}
                 />
               )}
               <div>

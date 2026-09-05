@@ -88,6 +88,11 @@ export async function POST(req: Request) {
   if (body.action === "approve") {
     const { data, error } = await supa.rpc("approve_sighting", {
       p_sighting_id: body.id,
+      /* A reviewer naming the animal is the strongest link we can record.
+         Absent, the reporter's own claim is used, and absent that the
+         observation becomes its own animal rather than being guessed into
+         a neighbour's record. */
+      p_dog_id: body.dogId ? String(body.dogId) : null,
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

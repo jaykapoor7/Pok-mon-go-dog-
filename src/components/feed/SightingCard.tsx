@@ -34,7 +34,7 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
   function shareWhatsApp() {
     haptic("light");
     const origin =
-      typeof window !== "undefined" ? window.location.origin : "https://straypaw.kapoorjay.com";
+      typeof window !== "undefined" ? window.location.origin : "https://straypaw.org";
     const url = sighting.dog_id ? `${origin}/dog/${sighting.dog_id}` : `${origin}/feed`;
     const who = nickname ? `${nickname}, a street dog` : "a street dog";
     const text = `Spotted ${who} near ${sighting.zone} on StrayPaw 🐾\n${url}`;

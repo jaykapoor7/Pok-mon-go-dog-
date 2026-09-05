@@ -11,6 +11,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { PawPrint, X, Loader2, CheckCircle2, LogIn, UserPlus } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
+import { track } from "@/lib/analytics";
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
@@ -247,6 +248,7 @@ function SignInSheet({
           },
         });
         if (err) throw err;
+        track("signup");
 
         // Signing up should sign you in. Supabase only returns a session here
         // when email confirmation is switched off in the project; when it is
@@ -274,6 +276,7 @@ function SignInSheet({
         password,
       });
       if (err) throw err;
+      track("login");
       // onAuthStateChange closes the sheet + resolves pending actions.
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong. Try again.";

@@ -148,6 +148,14 @@ end $$;
 
 -- ── 4. Approval, without the automatic merge ────────────────────────
 
+-- The single-argument version is dropped first. Postgres would otherwise keep
+-- both, and approve_sighting(p_sighting_id => ...) becomes ambiguous against a
+-- two-argument version whose second parameter has a default — approval would
+-- fail outright with "function is not unique". Dropping it is also what
+-- guarantees the old proximity merge in add-moderation.sql / auth-accounts.sql
+-- cannot still be reached.
+drop function if exists approve_sighting(uuid);
+
 -- p_dog_id: a reviewer's explicit choice. When absent, the reporter's own
 -- claim is used. When there is neither, the observation becomes a new animal
 -- — an unmatched record, visibly unmatched.
