@@ -14,9 +14,9 @@ export const dynamic = "force-dynamic";
      POST { action: "remove", ngoId, email }           → take access away
 
    Adding someone mints six characters bound to their name, their email
-   and this organisation, and emails it to them. Typing that code on
-   StrayPaw is the whole sign-in: no account to create, no password, no
-   link to wait for. */
+   and this organisation, and emails it to them. That code is their sign-in
+   from then on: no account to create, no password, and it keeps working
+   until it is turned off. */
 
 type AuthState = "ok" | "unset" | "bad";
 
@@ -137,18 +137,22 @@ export async function POST(req: Request) {
             <a href="${SITE}/join">${SITE.replace(/^https?:\/\//, "")}/join</a>
             and type the six characters.
           </p>
+          <p style="font-size:14px;line-height:1.6">
+            <strong>Keep this code.</strong> There is no password: it is how
+            you sign in every time, on any phone or laptop.
+          </p>
           <p style="font-size:14px;line-height:1.6;color:#555">
-            There is no password to choose. Once you are in, you can add your
-            own team from Team and codes: colleagues who need the dashboard,
-            and field volunteers who only need to send in sightings from their
-            phones.
+            Once you are in, you can add your own team from Team and codes:
+            colleagues who need the dashboard, and field volunteers who only
+            need to send in sightings from their phones. Each of them gets a
+            code of their own.
           </p>
           <p style="font-size:13px;color:#777">StrayPaw &middot; ${SITE}</p>
         </div>`,
       text:
         `Hello ${first},\n\n${orgName} now has a dashboard on StrayPaw and you have access to it.\n\n` +
         `Your code: ${code}\n\n` +
-        `Open ${SITE}/join and type it in. It signs you in on its own, there is no password to choose.\n\n` +
+        `Open ${SITE}/join and type it in. Keep the code: there is no password, it is how you sign in every time.\n\n` +
         `Once you are in, you can add your own team from Team and codes.\n\nStrayPaw`,
     });
 

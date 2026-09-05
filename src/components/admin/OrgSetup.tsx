@@ -31,6 +31,8 @@ type Invite = {
   code: string | null;
   accepted: boolean;
   revoked: boolean;
+  /** How many times this code has been used to sign in. */
+  uses: number;
   /** True when the organisation's own lead added them, not this page. */
   by_org: boolean;
 };
@@ -232,8 +234,8 @@ export function OrgSetup({ secret }: { secret: string }) {
             {minted.code}
           </p>
           <p className="text-[12.5px] leading-relaxed text-bark-400">
-            They enter it at straypaw.org/join. It works once, and expires in
-            30 days if unused.
+            They enter it at straypaw.org/join. This is how they sign in every
+            time, so it keeps working until you turn it off.
           </p>
         </div>
       )}
@@ -297,15 +299,16 @@ export function OrgSetup({ secret }: { secret: string }) {
                             {i.code}
                           </code>
                         )}
-                        {i.accepted ? (
+                        {i.revoked ? (
+                          <span className="text-[12px] text-bark-400">removed</span>
+                        ) : i.accepted ? (
                           <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-status-safe">
                             <Check className="h-3.5 w-3.5" /> signed in
+                            {i.uses > 1 ? ` ${i.uses}\u00d7` : ""}
                           </span>
-                        ) : i.revoked ? (
-                          <span className="text-[12px] text-bark-400">removed</span>
                         ) : (
                           <span className="text-[12px] text-bark-400">
-                            code not used yet
+                            not signed in yet
                           </span>
                         )}
                         <button
@@ -402,7 +405,8 @@ export function OrgSetup({ secret }: { secret: string }) {
             </div>
             <p className="mt-2 text-[12px] text-bark-400">
               A team lead can add the rest of their own team, so normally you
-              only do this once per organisation.
+              only do this once per organisation. Every code stays listed
+              above, including the ones they issue.
             </p>
           </div>
         ))

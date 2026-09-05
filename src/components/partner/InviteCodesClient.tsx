@@ -16,8 +16,9 @@ import {
    The people in this organisation, and the code each of them holds.
 
    Adding someone takes a name, an email and a role, and produces six
-   characters. They type those on StrayPaw and they are in. Nobody creates
-   an account, chooses a password, or waits for a link to arrive.
+   characters. That code is how they sign in, every time, on whatever phone
+   they have with them. Nobody creates an account, chooses a password, or
+   waits for a link to arrive.
 
    The role decides what the code opens, and the difference matters:
 
@@ -25,9 +26,9 @@ import {
      Team member    the dashboard
      Volunteer      reporting only, attributed to their name
 
-   A staff code works once and then stops, because using it opens a
-   session. A volunteer's code keeps working, because a phone that is
-   wiped mid-drive has to be able to type it again.
+   Both kinds keep working until they are turned off. Removing someone
+   revokes their code and takes the dashboard away from them, even if they
+   are signed in at the time.
    ════════════════════════════════════════════════════════════════════ */
 
 type Role = "lead" | "member" | "volunteer";
@@ -189,6 +190,8 @@ export function InviteCodesClient() {
           <p className="team-freshnote">
             Send it to them however you already talk to them. They open
             straypaw.org, choose &ldquo;I have a code&rdquo;, and type it in.
+            The same code works every time they come back, so tell them to
+            keep it.
           </p>
         </div>
       )}
@@ -227,15 +230,17 @@ export function InviteCodesClient() {
                     {copied === r.code ? <Check size={13} /> : <Copy size={13} />}
                   </button>
                 ) : (
-                  <span className="code-used">code used</span>
+                  <span className="code-used">turned off</span>
                 )}
               </div>
               <span className="code-meta">
                 {ROLE_COPY[r.role].label}
-                {r.kind === "volunteer" &&
-                  ` · ${r.reports} report${r.reports === 1 ? "" : "s"}`}
-                {r.kind === "staff" && r.accepted && " · signed in"}
-                {!r.active && r.kind === "volunteer" && " · turned off"}
+                {r.kind === "volunteer"
+                  ? ` · ${r.reports} report${r.reports === 1 ? "" : "s"}`
+                  : r.reports > 0
+                    ? ` · signed in ${r.reports} time${r.reports === 1 ? "" : "s"}`
+                    : " · not signed in yet"}
+                {!r.active && " · turned off"}
               </span>
               {(r.active || r.accepted) && (
                 <button type="button" className="res-editbtn" onClick={() => revoke(r.id)}>

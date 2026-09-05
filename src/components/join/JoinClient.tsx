@@ -115,15 +115,6 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         body: JSON.stringify({ code: entered, action: "claim" }),
       });
 
-      /* The code is spent now, so the dashboard asks them for a password
-         once. Storing the ask here rather than guessing later keeps it to
-         the one person it applies to. */
-      try {
-        localStorage.setItem("straypaw.setpassword.v1", "ask");
-      } catch {
-        /* No storage. They can still be sent a fresh code. */
-      }
-
       setWelcome(
         data.name
           ? `Welcome, ${data.name.split(" ")[0]}. Opening ${data.orgName}.`
@@ -158,8 +149,8 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         <h1>Enter your code</h1>
         <p className="join-lede">
           Six characters, from whoever added you to an organisation on
-          StrayPaw. It signs you in on its own, so there is no password to
-          choose.
+          StrayPaw. There is no password: this code is how you sign in, every
+          time. Keep it somewhere you can find it.
         </p>
 
         <form

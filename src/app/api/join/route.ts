@@ -10,17 +10,20 @@ export const dynamic = "force-dynamic";
 
      POST { code }                    → what the code is, and for a staff
                                         code a one-time token to sign in with
-     POST { code, action: "claim" }   → burn it, once the sign-in has happened
+     POST { code, action: "claim" }   → record the use and join them, once
+                                        the sign-in has happened
 
-   A six-character code is short enough to read down a phone line, which
-   also makes it short enough to guess if nothing stops you. So: the code is
-   never checked in the browser, guessing is rate limited per address and
-   per code, a staff code works exactly once, and it expires.
+   A code is a standing credential: the same six characters sign the same
+   person in every time, until somebody turns them off. Short enough to read
+   down a phone line, which also makes it short enough to guess if nothing
+   stops you, so guessing is bounded here rather than by the length: the
+   code is never checked in the browser, and attempts are rate limited both
+   per address and per code.
 
    This route does not mint sessions. For a staff code it asks Supabase for
    a one-time token bound to that person's email and hands it back; the
    browser exchanges it, so Supabase issues the session and owns the
-   security of it. The code is only burnt afterwards, against a session the
+   security of it. The use is recorded afterwards, against a session the
    server has verified for itself.
    ════════════════════════════════════════════════════════════════════ */
 

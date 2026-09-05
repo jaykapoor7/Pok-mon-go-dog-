@@ -121,38 +121,41 @@ Each of these must fail *visibly*. Silence is the bug.
 
 ## 5a0. Access codes, end to end
 
+A code is a standing sign-in, not an invitation. The same six characters
+work every time, on any device, until somebody turns them off. Only NGO
+people need one; anybody reporting a street animal needs nothing.
+
 Everything below is a real run, not a read-through.
 
 - [ ] On `/moderate`, Organisations tab, create **PAWS Chennai**.
 - [ ] Add the team lead: their full name, their email, **Make team lead**.
       A six-character code appears on the page and is emailed to them.
-- [ ] Copy the code. Open `/join` in a private window and type it.
-      You land on `/partner` signed in as that person, with no account
-      created and no password chosen.
-- [ ] The dashboard offers to set a password. Skipping it is fine; the code
-      itself no longer works, which is the point.
-- [ ] Back on `/moderate`, that person now reads **signed in** and their code
-      is gone.
-- [ ] Type the same code at `/join` again. It is refused.
+- [ ] The code is listed under the organisation, under **Dashboard access**,
+      and stays listed. It does not disappear once used.
+- [ ] Copy it. Open `/join` in a private window and type it. You land on
+      `/partner` signed in as that person, with no account created and no
+      password chosen.
+- [ ] Sign out. Type **the same code** again. You are back in. Do it a third
+      time from a different browser. Moderation now shows `signed in 3x`.
 - [ ] As the lead, open **Team and codes**. Add a colleague by name and email
-      as **Team member**. Their code appears. Redeem it in another private
-      window: that person lands on the same organisation's dashboard and sees
-      the same animals.
-- [ ] Add a field volunteer by name and email as **Volunteer**. Their code
-      appears. Type it at `/join`: it does not open the dashboard, it opens
-      the reporting page with their name already filled in.
-- [ ] A volunteer code keeps working, so the same person can report again
-      from a second phone.
-- [ ] Back on `/moderate`, every code the lead just cut is listed under the
-      organisation, split into **Dashboard access** and **Volunteer reporting
-      codes**, with the ones the organisation added marked as such. Turning
-      one off from here works.
+      as **Team member**. Their code appears there, and also on `/moderate`
+      under the same organisation.
+- [ ] Redeem it in another private window: that person lands on the same
+      dashboard and sees the same animals. Their code keeps working too.
+- [ ] Add a field volunteer as **Volunteer**. Their code appears in both
+      places, under **Volunteer reporting codes** on `/moderate`. Typing it
+      at `/join` does not open the dashboard, it opens the reporting page
+      with their name already filled in.
 - [ ] As a **Team member**, the Team lead and Team member buttons are
       disabled. Only a lead hands out dashboard access.
 - [ ] The lead removes the colleague. That person reloads `/partner` and the
-      organisation's records are gone.
+      organisation's records are gone, and their code no longer signs them
+      in. Everybody else's still does.
+- [ ] Re-adding somebody issues a **new** code and the old one stops working.
 - [ ] Make up a six-character code and try it at `/join` a dozen times. You
       are rate limited before you get anywhere.
+- [ ] Report a street animal at `/report` with no code and no account at all.
+      It still works: codes are for NGO people only.
 
 ## 5a. PAWS pilot: the field workflow
 

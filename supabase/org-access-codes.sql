@@ -14,26 +14,42 @@
 -- access does not disturb anybody else, and the record of who used which
 -- code and when survives.
 --
--- Two roles, two kinds of code, deliberately different:
+-- A code is not an invitation, it is the sign-in. The same six characters
+-- work every time, for as long as that person is on the team, on whatever
+-- phone or laptop they happen to have. Nobody on this pilot is going to
+-- keep a password, and a code that worked once and then stopped is a
+-- support call a week later.
+--
+-- Two roles, two kinds of code:
 --
 --   staff (lead, member)   Dashboard access. Stored on org_email_invites.
---                          Single use, expiring, and burnt the moment it is
---                          redeemed, because redeeming it opens a session.
 --   volunteer              Reporting only. Stored on org_invite_codes, the
 --                          table the reporting flow already resolves
---                          against. Reusable, because a phone that gets
---                          wiped mid-drive has to be able to type it again.
---                          It grants no dashboard and no account.
+--                          against. Grants no dashboard and no account.
+--
+-- Both are permanent until revoked, and both stay visible to the people
+-- entitled to see them: moderation, and the organisation's own team lead.
 --
 -- SECURITY
 --
--- A staff code is a bearer credential, and six characters from a
--- 31-character alphabet is 887 million combinations. That is enough only
--- because guessing is bounded elsewhere: the redeem route is rate limited
--- per address, a staff code works once, and it expires. Redeeming never
--- mints a session in here either; the API route hands the bound email to
--- Supabase's own one-time-token machinery and the browser completes the
--- sign-in, so account security stays where Supabase can enforce it.
+-- Be clear about what this is: a standing credential, six characters from
+-- a 31-character alphabet, so 887 million combinations. That is a real
+-- trade, made deliberately for a field pilot, and it is bounded rather
+-- than left open:
+--
+--   • The code is only ever checked on the server, with the service role.
+--     No client can read the table or enumerate it.
+--   • The redeem route is rate limited twice: per address, and per code, so
+--     neither one machine nor a spread of them can work through the space.
+--   • Revoking is instant and takes the dashboard away from a session that
+--     is already open.
+--   • Redeeming mints no session in here. The API route hands the bound
+--     email to Supabase's own one-time-token machinery and the browser
+--     completes the sign-in, so account security stays where Supabase can
+--     enforce it.
+--
+-- Every use is recorded, so a code being used from somewhere unexpected is
+-- visible rather than silent.
 --
 -- Idempotent. Safe to run more than once.
 -- Depends on: org-email-invites.sql, org-invite-codes.sql.
@@ -45,6 +61,9 @@ alter table org_email_invites add column if not exists code        text;
 alter table org_email_invites add column if not exists person_name text;
 alter table org_email_invites add column if not exists expires_at  timestamptz;
 alter table org_email_invites add column if not exists revoked_at  timestamptz;
+-- A standing credential earns a usage trail: how often, and when last.
+alter table org_email_invites add column if not exists uses         int not null default 0;
+alter table org_email_invites add column if not exists last_used_at timestamptz;
 
 create unique index if not exists org_email_invites_code_idx
   on org_email_invites (upper(code)) where code is not null;
@@ -94,7 +113,9 @@ create or replace function mint_access_code(
   p_name   text,
   p_role   text,
   p_by     uuid,
-  p_days   int default 30
+  -- Null means it does not expire, which is the default: this is how they
+  -- sign in, not a link to click once before Friday.
+  p_days   int default null
 ) returns json language plpgsql security definer set search_path = public as $$
 declare
   v_email text := lower(btrim(coalesce(p_email, '')));
@@ -130,17 +151,19 @@ begin
         insert into org_email_invites
           (ngo_id, email, person_name, role, code, expires_at, invited_by)
         values (p_ngo_id, v_email, v_name, v_role, v_code,
-                now() + make_interval(days => greatest(p_days, 1)), p_by)
+                case when p_days is null then null
+                     else now() + make_interval(days => greatest(p_days, 1)) end,
+                p_by)
         on conflict (ngo_id, lower(btrim(email))) do update
           set role        = excluded.role,
               person_name = coalesce(excluded.person_name, org_email_invites.person_name),
               code        = excluded.code,
               expires_at  = excluded.expires_at,
               revoked_at  = null,
-              -- A reissued code is a fresh start: whoever holds the old one
-              -- has to be given the new one to get back in.
-              accepted_at = null,
-              accepted_by = null
+              -- Reissuing replaces the credential: whoever holds the old
+              -- code stops being able to sign in with it. Their history of
+              -- having used it stays.
+              uses        = 0
         returning id into v_id;
       end if;
       exit;
@@ -162,7 +185,7 @@ create or replace function admin_mint_access_code(
   p_name   text,
   p_role   text default 'lead'
 ) returns json language sql security definer set search_path = public as $$
-  select mint_access_code(p_ngo_id, p_email, p_name, p_role, null, 30);
+  select mint_access_code(p_ngo_id, p_email, p_name, p_role, null, null);
 $$;
 
 -- An organisation adding its own people. The organisation comes from the
@@ -200,7 +223,7 @@ begin
     end if;
   end if;
 
-  return mint_access_code(v_ngo, p_email, p_name, v_role, auth.uid(), 30);
+  return mint_access_code(v_ngo, p_email, p_name, v_role, auth.uid(), null);
 end $$;
 
 grant execute on function mint_access_code(uuid, text, text, text, uuid, int) to service_role;
@@ -224,12 +247,13 @@ returns table (
   reports     bigint,
   created_at  timestamptz
 ) language sql stable security definer set search_path = public as $$
+  -- A staff code is live until it is revoked. Having been used is not a
+  -- reason to call it inactive: using it is what it is for.
   select i.id, 'staff'::text, i.person_name, i.email, i.role, i.code,
          i.revoked_at is null
-           and (i.expires_at is null or i.expires_at >= now())
-           and i.accepted_at is null                       as active,
-         i.accepted_at is not null                          as accepted,
-         0::bigint                                          as reports,
+           and (i.expires_at is null or i.expires_at >= now())        as active,
+         i.accepted_at is not null                                    as accepted,
+         i.uses::bigint                                               as reports,
          i.created_at
     from org_email_invites i
    where i.ngo_id = my_ngo()
@@ -309,7 +333,12 @@ begin
 end $$;
 
 -- Called once the sign-in has actually happened, with the user id read
--- from a verified session on the server. Joins them and burns the code.
+-- from a verified session on the server. Joins them to the organisation and
+-- records the use.
+--
+-- The code is left intact. It is how this person signs in, every time, so
+-- destroying it here would lock them out the moment they closed the tab.
+-- What gets written instead is a trail: first use, latest use, and a count.
 create or replace function redeem_access_code(p_code text, p_user_id uuid)
 returns json language plpgsql security definer set search_path = public as $$
 declare i org_email_invites; v_org text;
@@ -327,9 +356,10 @@ begin
   on conflict (user_id) do update set ngo_id = excluded.ngo_id;
 
   update org_email_invites
-     set accepted_at = coalesce(accepted_at, now()),
-         accepted_by = coalesce(accepted_by, p_user_id),
-         code = null                      -- burnt: one code, one sign-in
+     set accepted_at  = coalesce(accepted_at, now()),
+         accepted_by  = coalesce(accepted_by, p_user_id),
+         last_used_at = now(),
+         uses         = uses + 1
    where id = i.id;
 
   select name into v_org from ngos where id = i.ngo_id;
@@ -433,7 +463,8 @@ returns json language sql stable security definer set search_path = public as $$
            (select count(*) from org_invite_codes c
              where c.ngo_id = n.id and c.active)                      as active_codes,
 
-           -- Staff: dashboard access, one use, burnt on sign-in.
+           -- Staff: dashboard access. The code is their sign-in, so it
+           -- stays listed and keeps working until it is revoked.
            (select coalesce(json_agg(json_build_object(
                      'id', i.id,
                      'email', i.email,
@@ -442,6 +473,8 @@ returns json language sql stable security definer set search_path = public as $$
                      'code', i.code,
                      'accepted', i.accepted_at is not null,
                      'revoked', i.revoked_at is not null,
+                     'uses', i.uses,
+                     'last_used_at', i.last_used_at,
                      'expires_at', i.expires_at,
                      -- Whether moderation issued it or the organisation did.
                      -- invited_by is null only for the codes minted here.
