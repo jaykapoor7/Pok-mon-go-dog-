@@ -207,7 +207,7 @@ export function InviteCodesClient() {
       ) : rows.length === 0 ? (
         <div className="spa-empty">
           <Users size={40} strokeWidth={1.25} />
-          <h2>Nobody added yet</h2>
+          <h2>No one on the team yet</h2>
           <p>
             Add your first person above. Field volunteers need nothing but the
             code and their own phone.

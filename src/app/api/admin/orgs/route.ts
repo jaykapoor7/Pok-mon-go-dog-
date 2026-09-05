@@ -161,34 +161,35 @@ export async function POST(req: Request) {
   }
 
   if (body.action === "retire") {
-    /* Removing an organisation means removing access to it. The records it
-       holds stay, and the row itself goes only when it holds nothing, which
-       is the case this is really for: one created by mistake a minute ago. */
-    const { data, error } = await supa.rpc("admin_retire_org", {
+    /* Removes the organisation outright. Anything that can stand on its own
+       is detached and kept: the animals stay on the map, the cases and
+       documents and listings stay, they simply belong to nobody. Only what
+       is meaningless without the organisation goes with it. */
+    const { data, error } = await supa.rpc("admin_delete_org", {
       p_ngo_id: String(body.ngoId ?? ""),
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
     const r = (data ?? {}) as {
       ok?: boolean; deleted?: boolean; error?: string; name?: string;
-      animals?: number; cases?: number; documents?: number;
+      people?: number; animals?: number; cases?: number; documents?: number;
     };
     if (!r.ok) {
       return NextResponse.json({ error: r.error ?? "Could not remove it." }, { status: 400 });
     }
-    if (r.deleted) {
-      return NextResponse.json({ ok: true, message: `${r.name} deleted. It held no records.` });
+    if (!r.deleted) {
+      return NextResponse.json({ ok: true, message: r.error ?? `${r.name} could not be deleted.` });
     }
-    const held = [
+    const kept = [
       r.animals ? `${r.animals} animal${r.animals === 1 ? "" : "s"}` : null,
       r.cases ? `${r.cases} case${r.cases === 1 ? "" : "s"}` : null,
       r.documents ? `${r.documents} document${r.documents === 1 ? "" : "s"}` : null,
     ].filter(Boolean).join(", ");
     return NextResponse.json({
       ok: true,
-      message: held
-        ? `Everyone's access to ${r.name} was removed and its codes turned off. Its records were kept (${held}), so it is marked unverified rather than deleted.`
-        : `Everyone's access to ${r.name} was removed and it is marked unverified.`,
+      message: kept
+        ? `${r.name} deleted. ${kept} were kept and now belong to nobody.`
+        : `${r.name} deleted.`,
     });
   }
 

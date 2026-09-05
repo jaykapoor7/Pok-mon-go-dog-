@@ -27,6 +27,14 @@ const LINKS: NavItem[] = [
     ],
   },
   { label: "The data", href: "/the-data" },
+  {
+    label: "Help",
+    href: "/faq",
+    children: [
+      { label: "Questions", href: "/faq", note: "How reporting, codes and dashboards work" },
+      { label: "Contact us", href: "/contact", note: "Anything the questions do not cover" },
+    ],
+  },
 ];
 
 export function SiteHeader() {
@@ -85,10 +93,12 @@ export function SiteHeader() {
               </button>
 
               <div className="sp-nav-panel" role="menu">
-                <Link href={l.href} className="sp-nav-lead" onClick={closeAll}>
-                  <b>Everything you can do</b>
-                  <span>The whole picture, in one page</span>
-                </Link>
+                {l.href === "/how-to-help" && (
+                  <Link href={l.href} className="sp-nav-lead" onClick={closeAll}>
+                    <b>Everything you can do</b>
+                    <span>The whole picture, in one page</span>
+                  </Link>
+                )}
                 {l.children.map((c) => (
                   <Link
                     key={c.href}

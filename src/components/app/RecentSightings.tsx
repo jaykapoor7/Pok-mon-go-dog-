@@ -20,8 +20,8 @@ export function RecentSightings({ sightings }: { sightings: Sighting[] }) {
       <div className="panel-empty">
         <Radio size={26} strokeWidth={1.25} />
         <p>
-          <b>Nothing yet.</b> The first sighting on this network will appear
-          here. Add one now.
+          <b>No sightings reported yet.</b> The first one will appear here. Add
+          one now.
         </p>
         <Link href="/report" className="tlink">
           Report an animal <ArrowUpRight size={12} />

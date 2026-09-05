@@ -110,7 +110,7 @@ export function DirectoryClient({
 
       {results.length === 0 ? (
         <div className="spa-empty">
-          <h2>Nothing matches that</h2>
+          <h2>No organisations match those filters</h2>
           <p>
             No listed organisation fits those filters. The directory covers{" "}
             {states.length} states, try widening it.

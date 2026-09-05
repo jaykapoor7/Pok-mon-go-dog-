@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { saveVolunteer } from "@/lib/volunteer";
 
@@ -143,8 +143,10 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
   return (
     <div className="join-wrap">
       <div className="join-card">
-        <Link className="join-brand" href="/">
-          StrayPaw
+        {/* Somebody who opened this by mistake, or wants to look at the site
+            first, needs a way out that is not the browser's back gesture. */}
+        <Link className="join-back" href="/">
+          <ArrowLeft size={15} /> Back to StrayPaw
         </Link>
         <h1>Enter your code</h1>
         <p className="join-lede">

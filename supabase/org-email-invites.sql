@@ -322,3 +322,90 @@ begin
 end $$;
 
 grant execute on function admin_retire_org(uuid) to service_role;
+
+
+-- ── Deleting an organisation outright ───────────────────────────────
+
+-- admin_retire_org above is the gentle version: it takes everyone's access
+-- away and leaves the row standing, marked unverified, whenever the
+-- organisation holds records. In practice that is not what "Remove" means
+-- to the person clicking it. They mistyped a name, or a pilot ended, and
+-- they expect the organisation to be gone from the page.
+--
+-- So this deletes it. What it does not do is destroy fieldwork. Anything
+-- that can stand on its own is detached and kept: the animals stay on the
+-- map as community records, the cases and documents and adoption listings
+-- stay, they simply belong to nobody. Only rows that are meaningless
+-- without the organisation go with it: its memberships, its codes, its
+-- invitations, and its drives.
+--
+-- Two columns have to become nullable for that to be possible. They were
+-- declared not-null when an organisation was assumed permanent.
+alter table documents         alter column ngo_id drop not null;
+alter table adoption_listings alter column ngo_id drop not null;
+
+create or replace function admin_delete_org(p_ngo_id uuid)
+returns json language plpgsql security definer set search_path = public as $$
+declare
+  v_name    text;
+  v_dogs    bigint := 0;
+  v_cases   bigint := 0;
+  v_docs    bigint := 0;
+  v_people  bigint := 0;
+  t         text;
+begin
+  select name into v_name from ngos where id = p_ngo_id;
+  if v_name is null then
+    return json_build_object('ok', false, 'error', 'No such organisation');
+  end if;
+
+  -- Counted before anything moves, so the message can say what happened.
+  begin select count(*) into v_dogs  from dogs      where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then null; end;
+  begin select count(*) into v_cases from cases     where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then null; end;
+  begin select count(*) into v_docs  from documents where ngo_id = p_ngo_id;
+  exception when undefined_table or undefined_column then null; end;
+  select count(*) into v_people from ngo_members where ngo_id = p_ngo_id;
+
+  -- Gone with the organisation: nothing here means anything without it.
+  foreach t in array array[
+    'ngo_members', 'org_email_invites', 'org_invite_codes', 'campaigns'
+  ] loop
+    begin
+      execute format('delete from %I where ngo_id = $1', t) using p_ngo_id;
+    exception when undefined_table or undefined_column then null; end;
+  end loop;
+
+  -- Kept, and detached. Every one of these is a record of something that
+  -- actually happened, and an organisation closing does not un-happen it.
+  foreach t in array array[
+    'dogs', 'cases', 'sightings', 'documents', 'adoption_listings',
+    'volunteers', 'feeding_zones', 'fundraisers', 'surveys', 'tasks',
+    'vet_camps', 'access_grants'
+  ] loop
+    begin
+      execute format('update %I set ngo_id = null where ngo_id = $1', t) using p_ngo_id;
+    exception when undefined_table or undefined_column or not_null_violation then null; end;
+  end loop;
+
+  -- Anything added later that still points here would block the delete and
+  -- surface its constraint name to whoever clicked Remove. Falling back to
+  -- unverified is a worse answer than deleting, but a much better one than
+  -- a raw Postgres error.
+  begin
+    delete from ngos where id = p_ngo_id;
+  exception when foreign_key_violation then
+    update ngos set verified = false where id = p_ngo_id;
+    return json_build_object(
+      'ok', true, 'deleted', false, 'name', v_name,
+      'error', 'Something still references this organisation, so its access '
+               'was removed and it was marked unverified instead.');
+  end;
+
+  return json_build_object(
+    'ok', true, 'deleted', true, 'name', v_name,
+    'people', v_people, 'animals', v_dogs, 'cases', v_cases, 'documents', v_docs);
+end $$;
+
+grant execute on function admin_delete_org(uuid) to service_role;

@@ -31,7 +31,7 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
       <>
         <div className="spa-empty">
           <Constellation size={132} />
-          <h2>Nothing followed yet</h2>
+          <h2>No animals followed yet</h2>
           <p>
             Follow an animal and it lands here, so you can check on it without
             hunting through the map. Follows are stored on this device, no

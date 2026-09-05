@@ -155,7 +155,7 @@ export function OrgSetup({ secret }: { secret: string }) {
   async function retire(ngoId: string, orgName: string) {
     if (
       !confirm(
-        `Remove ${orgName}?\n\nEveryone loses access and every code stops working. Any animals, cases or documents it holds are kept.`
+        `Delete ${orgName}?\n\nIt disappears from this page and everyone loses access. Any animals, cases and documents it recorded are kept, but they will belong to nobody.`
       )
     )
       return;
@@ -270,7 +270,7 @@ export function OrgSetup({ secret }: { secret: string }) {
         </div>
       ) : orgs.length === 0 ? (
         <p className="card p-8 text-center text-sm text-bark-400">
-          No organisations yet.
+          No organisations created yet.
         </p>
       ) : (
         orgs.map((o) => (
@@ -299,7 +299,7 @@ export function OrgSetup({ secret }: { secret: string }) {
                   disabled={busy}
                   className="font-semibold text-status-injured hover:underline disabled:opacity-40"
                 >
-                  Remove organisation
+                  Delete organisation
                 </button>
               </span>
             </div>

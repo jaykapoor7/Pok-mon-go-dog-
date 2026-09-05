@@ -38,6 +38,28 @@ function pct(n: number | null) {
   return n === null ? "—" : `${n}%`;
 }
 
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+const shift = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d;
+};
+
+/* The shapes a drive actually takes. Anything else is still typeable. */
+const DATE_PRESETS: { label: string; range: () => { from: string; to: string } }[] = [
+  { label: "Today", range: () => ({ from: iso(new Date()), to: iso(new Date()) }) },
+  { label: "This week", range: () => ({ from: iso(shift(-6)), to: iso(new Date()) }) },
+  {
+    label: "This month",
+    range: () => {
+      const n = new Date();
+      return { from: iso(new Date(n.getFullYear(), n.getMonth(), 1)), to: iso(n) };
+    },
+  },
+  { label: "Next 7 days", range: () => ({ from: iso(new Date()), to: iso(shift(6)) }) },
+  { label: "Next 30 days", range: () => ({ from: iso(new Date()), to: iso(shift(29)) }) },
+];
+
 function dates(c: CampaignStats) {
   const fmt = (d: string) =>
     new Date(d + "T00:00:00").toLocaleDateString("en-IN", {
@@ -147,6 +169,28 @@ export function DrivesClient() {
               placeholder="Ward or area"
               aria-label="Ward or area"
             />
+          </div>
+          {/* Most drives are today, or this week, or this month. Typing two
+              dates for that is work nobody should do standing in a yard, so
+              the common ones are one tap and the calendar is still there
+              underneath for anything else. */}
+          <div className="dr-presets" role="group" aria-label="When">
+            {DATE_PRESETS.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                className={
+                  startsOn === p.range().from && endsOn === p.range().to ? "on" : ""
+                }
+                onClick={() => {
+                  const r = p.range();
+                  setStartsOn(r.from);
+                  setEndsOn(r.to);
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
           <div className="dr-form-row">
             <label>

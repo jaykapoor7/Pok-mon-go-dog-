@@ -179,7 +179,7 @@ export function IncomingClient() {
       ) : rows.length === 0 ? (
         <div className="spa-empty">
           <Inbox size={40} strokeWidth={1.25} />
-          <h2>Nothing waiting</h2>
+          <h2>No reports waiting to be filed</h2>
           <p>
             {source === "ours"
               ? "Everything your team has sent in has been filed."

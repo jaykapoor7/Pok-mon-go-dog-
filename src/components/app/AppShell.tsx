@@ -50,25 +50,28 @@ import "./app.css";
 
 /* Everyone sees these. The console is one view, community reporters and NGO
    staff work the same map and the same records. */
+/* Names say what the thing is, not what it feels like. "Living map" meant
+   nothing; it is a map of street animals. "Directory" could be anything;
+   it is a list of organisations. Home comes first because it is where
+   opening the app should put you. */
 const COMMUNITY = [
-  { href: "/map", label: "Living map", Icon: MapPin },
   { href: "/app", label: "Home", Icon: LayoutGrid },
+  { href: "/map", label: "Map", Icon: MapPin },
   { href: "/report", label: "Report an animal", Icon: Radio },
-  { href: "/following", label: "Following", Icon: Bookmark },
-  { href: "/orgs", label: "Directory", Icon: Building2 },
-  { href: "/get-involved", label: "Volunteer with an org", Icon: Heart },
-  { href: "/adopt", label: "Adoption", Icon: Home },
+  { href: "/following", label: "Animals I follow", Icon: Bookmark },
+  { href: "/orgs", label: "Organisations", Icon: Building2 },
+  { href: "/get-involved", label: "Volunteer", Icon: Heart },
 ];
 
 /* The evidence chain, in the order it actually runs: what is missing, what is
    outstanding, what it would cost, what is being done, what changed. */
 const EVIDENCE = [
-  { href: "/gaps", label: "Data gaps", Icon: ScanSearch },
-  { href: "/needs", label: "Needs", Icon: ListChecks },
-  { href: "/what-would-it-take", label: "What would it take?", Icon: Calculator },
-  { href: "/studies", label: "Studies", Icon: FileText },
-  { href: "/interventions", label: "Interventions", Icon: Wrench },
-  { href: "/outcomes", label: "Outcomes", Icon: ShieldCheck },
+  { href: "/gaps", label: "Where data is missing", Icon: ScanSearch },
+  { href: "/needs", label: "What areas need", Icon: ListChecks },
+  { href: "/what-would-it-take", label: "Cost a programme", Icon: Calculator },
+  { href: "/studies", label: "Published studies", Icon: FileText },
+  { href: "/interventions", label: "What has been tried", Icon: Wrench },
+  { href: "/outcomes", label: "Verified outcomes", Icon: ShieldCheck },
 ];
 
 /* Field-operations surface. Same shell, deeper records.
@@ -82,10 +85,10 @@ const WORKSPACE = [
   { href: "/partner/drives", label: "Drives", Icon: CalendarRange },
   { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
   { href: "/partner/animals", label: "Animals", Icon: Database },
-  { href: "/partner/field", label: "Field ops", Icon: MapPin },
+  { href: "/partner/field", label: "Field work", Icon: MapPin },
   { href: "/partner/medical", label: "Medical", Icon: Stethoscope },
   { href: "/partner/team", label: "Team", Icon: Users },
-  { href: "/partner/reports", label: "Analytics", Icon: FileText },
+  { href: "/partner/reports", label: "Coverage and reports", Icon: FileText },
   { href: "/partner/volunteers", label: "Volunteer sign-ups", Icon: HandHeart },
   { href: "/partner/import", label: "Import records", Icon: Upload },
   { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
@@ -97,9 +100,9 @@ const SECTIONS: {
   label: string;
   items: { href: string; label: string; Icon: typeof Home }[];
 }[] = [
-  { key: "community", label: "Community", items: COMMUNITY },
-  { key: "evidence", label: "Evidence", items: EVIDENCE },
-  { key: "workspace", label: "Workspace", items: WORKSPACE },
+  { key: "community", label: "Explore", items: COMMUNITY },
+  { key: "evidence", label: "The evidence", items: EVIDENCE },
+  { key: "workspace", label: "Your organisation", items: WORKSPACE },
 ];
 
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
@@ -298,9 +301,9 @@ export function AppShell({
         />
 
         <nav className={`spa-side ${open ? "open" : ""}`}>
-          <div className="spa-live">
-            <i /> Live network
-          </div>
+          {/* This was a green dot reading "Live network", which told nobody
+              anything and set a tone the rest of the console does not. */}
+          <div className="spa-side-brand">StrayPaw</div>
 
           {SECTIONS.map(({ key, label, items }) => {
             const links = prioritise(items);

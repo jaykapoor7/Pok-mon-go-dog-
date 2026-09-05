@@ -21,6 +21,18 @@
   padding: 30px 26px 24px;
 }
 
+.join-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted, #63665e);
+  text-decoration: none;
+}
+.join-back:hover { color: var(--electric-ink, #476fb7); }
+
 .join-brand {
   display: inline-block;
   margin-bottom: 14px;
@@ -184,6 +196,7 @@
     border-top-color: var(--line-dark, #293753);
   }
   .join-foot a,
+  .join-back,
   .join-brand {
     color: var(--electric, #8fb7ff);
   }

@@ -63,7 +63,7 @@ export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
             <small>
               {profile?.org_name
                 ? profile.org_name
-                : user?.email ?? "No organisation yet"}
+                : user?.email ?? "Not in an organisation"}
             </small>
           </span>
         </div>
