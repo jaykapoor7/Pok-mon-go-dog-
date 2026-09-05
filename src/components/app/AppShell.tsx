@@ -55,7 +55,7 @@ const COMMUNITY = [
   { href: "/report", label: "Report an animal", Icon: Radio },
   { href: "/following", label: "Following", Icon: Bookmark },
   { href: "/orgs", label: "Directory", Icon: Building2 },
-  { href: "/get-involved", label: "Volunteer", Icon: Heart },
+  { href: "/get-involved", label: "Volunteer with an org", Icon: Heart },
   { href: "/adopt", label: "Adoption", Icon: Home },
 ];
 

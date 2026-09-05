@@ -10,7 +10,7 @@ import {
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Volunteer, StrayPaw",
+  title: "Volunteer with an organisation, StrayPaw",
   description:
     "Real ways to help, routed to named organisations across India that do that specific work.",
 };

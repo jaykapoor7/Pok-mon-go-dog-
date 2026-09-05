@@ -20,7 +20,8 @@ const LINKS: NavItem[] = [
     href: "/how-to-help",
     children: [
       { label: "Report an animal", href: "/report", note: "A photo and a place is enough" },
-      { label: "Volunteer", href: "/get-involved", note: "Routed to named organisations" },
+      { label: "Volunteer with an organisation", href: "/get-involved", note: "Routed to a named group near you" },
+      { label: "What an area needs", href: "/take-action", note: "Pick a place, see what its data says" },
       { label: "For NGOs", href: "/for-ngos", note: "Bring your team's records in" },
       { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
     ],
@@ -108,17 +109,13 @@ export function SiteHeader() {
             </Link>
           )
         )}
-
-        {/* Repeated inside the drawer because the header only has room for
-            one action on a phone, and that one is the app. */}
-        <Link href="/join" className="sp-nav-drawercode" onClick={closeAll}>
-          I have a code
-        </Link>
       </nav>
 
       <div className="sp-header-actions">
         {/* The way in for anyone holding six characters from their
-            organisation. Quiet, but findable without being told where. */}
+            organisation. Secondary to the app, but next to it and visible:
+            it used to inherit the body's dark ink onto a dark header and
+            was effectively invisible. */}
         <Link href="/join" className="sp-header-code">
           I have a code
         </Link>

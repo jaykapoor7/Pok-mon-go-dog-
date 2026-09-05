@@ -18,7 +18,17 @@ const nextConfig = {
      states how we design a study, two different things, one word. The index
      is now /sources; the old path keeps working. */
   async redirects() {
-    return [{ source: "/research", destination: "/sources", permanent: true }];
+    return [
+      { source: "/research", destination: "/sources", permanent: true },
+      /* Two pages answered "the animals I care about" and only one of them
+         was reachable: nothing on the site linked to /account, and Following
+         is the entry in the console's nav. A permanent redirect rather than
+         a deletion, so any link out in the world still lands somewhere. */
+      { source: "/account", destination: "/following", permanent: true },
+      /* /dashboard was already a client-side redirect component. Doing it
+         here is one hop instead of two, and search engines see it. */
+      { source: "/dashboard", destination: "/partner", permanent: true },
+    ];
   },
 
   async headers() {
