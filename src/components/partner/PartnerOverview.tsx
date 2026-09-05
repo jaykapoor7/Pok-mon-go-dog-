@@ -6,6 +6,7 @@ import { ArrowUpRight, Plus, ClipboardList, PawPrint, HeartHandshake, ClipboardC
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrg } from "@/lib/actions";
 import { getPartnerCases } from "@/lib/cases";
+import { programmeBreakdown, type Breakdown } from "@/lib/campaigns";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { isOverdue, speciesLabel, type Case, type CaseStatus, type Dog, type NGO } from "@/lib/types";
@@ -27,9 +28,11 @@ export function PartnerOverview() {
   // my_org_cases(). Starts empty on purpose: with no session there is
   // nothing this viewer is entitled to see.
   const [cases, setCases] = useState<Case[]>([]);
+  const [bd, setBd] = useState<Breakdown | null>(null);
   useEffect(() => {
     getMyOrg().then(setOrg).catch(() => {});
     getPartnerCases().then(setCases).catch(() => {});
+    programmeBreakdown().then(setBd).catch(() => {});
     setDateLabel(new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
   }, []);
 
@@ -77,19 +80,63 @@ export function PartnerOverview() {
           <h1 className="text-2xl font-semibold tracking-tight text-bark-900 dark:text-bark-50 sm:text-3xl">
             {greeting()}{firstName ? `, ${firstName}` : ""}
           </h1>
-          <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Partner workspace"}{location ? ` · ${location}` : ""}, here&apos;s what needs attention today.</p>
+          <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Partner workspace"}{location ? ` · ${location}` : ""}</p>
         </div>
         <Link href="/partner/cases/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"><Plus className="h-4 w-4" /> New case</Link>
       </div>
 
-      {/* Stat dividers (not cards) */}
+      {/* What is actually waiting.
+
+          This strip used to be five case figures ending in an all-time
+          resolution rate. For an organisation running ward censuses and
+          rabies rounds that is somebody else's headline: their day is
+          decided by what has come in and not been filed, and how the
+          current drive is going. Rescue casework matters and is still
+          here, but it is not the whole job any more. */}
       <div className="grid grid-cols-2 gap-y-6 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-3 lg:grid-cols-5">
-        <Stat label="Active cases" value={m.active} detail="open right now" />
-        <Stat label="Urgent cases" value={m.urgent} detail="need a decision" tone={m.urgent ? "text-status-injured" : undefined} />
-        <Stat label="Follow-ups due" value={m.followDue} detail="next 3 days" tone={m.followDue ? "text-status-hungry" : undefined} />
-        <Stat label="Resolved this week" value={m.resolvedWeek} detail="last 7 days" />
-        <Stat label="Resolution rate" value={`${m.rate}%`} detail="all-time" tone="text-paw-600" />
+        <Stat
+          label="Waiting to file"
+          value={bd?.waiting.ours ?? 0}
+          detail="from your team"
+          tone={bd?.waiting.ours ? "text-status-hungry" : undefined}
+        />
+        <Stat
+          label="Unclaimed nearby"
+          value={bd?.waiting.community ?? 0}
+          detail="community sightings"
+        />
+        <Stat
+          label="Drives running"
+          value={bd?.drives.filter((d) => !d.archived).length ?? 0}
+          detail="census, ABC, rabies"
+        />
+        <Stat
+          label="Urgent cases"
+          value={m.urgent}
+          detail="need a decision"
+          tone={m.urgent ? "text-status-injured" : undefined}
+        />
+        <Stat
+          label="Follow-ups due"
+          value={m.followDue}
+          detail="next 3 days"
+          tone={m.followDue ? "text-status-hungry" : undefined}
+        />
       </div>
+
+      {(bd?.waiting.ours ?? 0) > 0 && (
+        <Link href="/partner/incoming" className="po-nudge">
+          <b>
+            {bd?.waiting.ours} observation
+            {bd?.waiting.ours === 1 ? "" : "s"} from your team are not counted
+            yet.
+          </b>
+          <span>
+            File them into a drive and the animals join your register. Open
+            Incoming →
+          </span>
+        </Link>
+      )}
 
       {/* Operational focus + Response health */}
       <div className="mt-8 grid gap-8 xl:grid-cols-[1.45fr_1fr]">

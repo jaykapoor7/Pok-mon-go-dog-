@@ -1482,12 +1482,17 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   /* The profile keeps its actions in the strip, at the end, behind a
      divider. The avatar and the name go: they are not things to tap, and
      the row is for getting somewhere. */
+  /* First in the row, not last. Sitting at the end of a strip that scrolls
+     sideways meant "I have a code" and Sign out were off the right edge of
+     a phone and effectively gone. */
   .spa-side-foot {
+    order: -1;
     flex: none;
     margin: 0;
-    padding: 0 0 0 10px;
+    padding: 0 10px 0 0;
     border-top: 0;
-    border-left: 1px solid #c4ccd6;
+    border-left: 0;
+    border-right: 1px solid #c4ccd6;
   }
   .spa-profile { grid-auto-flow: column; align-items: center; gap: 6px; }
   .spa-profile-who,
@@ -2947,3 +2952,63 @@ a.pgm-figure:hover { background: #f3f6fb; }
 .faq dt { font-size: 15px; font-weight: 650; margin-bottom: 5px; }
 .faq dd { margin: 0; font-size: 14.5px; line-height: 1.65; color: #3f4756; }
 .faq a { color: var(--electric-ink); text-decoration: underline; text-underline-offset: 2px; }
+
+/* ── an animal's page ───────────────────────────────────────────────
+   The picture is the point, so it gets the room and is never cropped.
+   Its height follows the viewport rather than a fixed pixel box, capped
+   so a tall portrait photo does not push everything else off the screen.
+   The ground behind it is neutral, not black: DogPhoto already puts a
+   blurred copy of the image behind a contained one, and a dark scrim on
+   top of that was two treatments fighting. */
+
+.dogp-cover {
+  position: relative;
+  width: 100%;
+  height: min(58vh, 460px);
+  min-height: 240px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #e9ecf1;
+}
+.dogp-badges-l { position: absolute; left: 12px; top: 12px; z-index: 2; }
+.dogp-badges-r {
+  position: absolute; right: 12px; top: 12px; z-index: 2;
+  padding: 4px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 6px rgba(11, 16, 32, 0.18);
+}
+
+.dogp-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 14px; margin: 16px 0 0;
+}
+.dogp-head h1 {
+  margin: 0;
+  font-family: var(--font-display), "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.dogp-head p {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  margin: 6px 0 0; font-size: 13.5px; color: #5a6370;
+}
+
+@media (max-width: 640px) {
+  .dogp-cover { height: min(52vh, 380px); border-radius: 10px; }
+  .dogp-head { flex-direction: column; align-items: stretch; gap: 12px; }
+  .dogp-head h1 { font-size: 27px; }
+}
+
+/* The one nudge on the dashboard: work that has arrived and is not
+   counting yet. It only appears when there is some. */
+.po-nudge {
+  display: grid; gap: 3px; margin-top: 16px; padding: 13px 16px;
+  border: 1px solid rgba(71, 111, 183, 0.3); border-radius: 5px;
+  background: rgba(71, 111, 183, 0.06);
+  color: inherit; text-decoration: none;
+}
+.po-nudge:hover { border-color: var(--electric-ink); }
+.po-nudge b { font-size: 14px; font-weight: 650; }
+.po-nudge span { font-size: 13px; color: #4d5766; }

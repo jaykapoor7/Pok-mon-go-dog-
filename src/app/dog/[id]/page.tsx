@@ -73,36 +73,47 @@ export default async function DogProfilePage({
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6">
       <PageView name="animal_viewed" props={{ observations: sightings.length }} />
-      {/* cover */}
-      <div className="relative overflow-hidden rounded-[2rem] shadow-card">
+      {/* cover
+
+          The photo used to sit in a fixed 256px box with a black gradient
+          poured over the bottom two thirds so white text would sit on it.
+          A portrait phone photo, which is most of them, ended up letterboxed
+          small and half in shadow: the animal is the point of this page and
+          you could barely see it.
+
+          Now the picture gets the room, on a neutral ground rather than
+          black, and the name sits under it in ordinary type. Only the two
+          badges stay on the image, as solid chips that need no scrim. */}
+      <div className="dogp-cover">
         <DogPhoto
           src={dog.cover_photo}
           alt={dog.name ?? "Street dog"}
           seed={dog.id}
           fit="contain"
-          className="h-64 w-full sm:h-80"
+          className="h-full w-full"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-        <div className="absolute left-4 top-4">
+        <div className="dogp-badges-l">
           <StatusBadge status={dog.status} />
         </div>
-        <div className="absolute right-4 top-4 rounded-full bg-white/90 p-1">
-          <TrustRing score={dog.trust_score} size={48} />
+        <div className="dogp-badges-r">
+          <TrustRing score={dog.trust_score} size={44} />
         </div>
-        <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
-          <div className="min-w-0">
-            <h1 className="font-display text-3xl tracking-tightest">{dogLabel(dog)}</h1>
-            <p className="flex items-center gap-1.5 text-sm opacity-90">
-              <MapPin className="h-4 w-4" /> Around {dog.zone} · {dog.size} · {dog.color}
-            </p>
-          </div>
-          <FollowButton dogId={dog.id} className="shrink-0" />
+      </div>
+
+      <div className="dogp-head">
+        <div className="min-w-0">
+          <h1>{dogLabel(dog)}</h1>
+          <p>
+            <MapPin className="h-4 w-4" /> Around {dog.zone} · {dog.size} ·{" "}
+            {dog.color}
+          </p>
         </div>
+        <FollowButton dogId={dog.id} className="shrink-0" />
       </div>
 
       {/* best photos */}
       {dog.photos.length > 1 && (
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           {dog.photos.map((p, i) => (
             <DogPhoto
               key={i}

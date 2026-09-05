@@ -350,6 +350,10 @@ export function AppShell({
             );
           })}
 
+
+          <div className="spa-side-foot">
+            <ProfilePanel role={role} onNavigate={() => setOpen(false)} />
+          </div>
         </nav>
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
