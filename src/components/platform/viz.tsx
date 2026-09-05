@@ -6,7 +6,7 @@ export function nf(n: number) {
 }
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-paw-600 dark:text-paw-300">{children}</p>;
+  return <p className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-paw-600 dark:text-paw-300">{children}</p>;
 }
 
 /** A big editorial figure with a caption. */
@@ -56,7 +56,7 @@ export function CoverageMeter({ withData, total, label }: { withData: number; to
           <span key={i} className={`h-2 flex-1 rounded-[1px] ${i < withData ? "bg-paw-500" : "bg-bark-200 dark:bg-bark-700"}`} />
         ))}
       </div>
-      <p className="mt-1 text-[11px] text-bark-400">{100 - pct}% of states have no data for this metric.</p>
+      <p className="mt-1 text-[11.5px] text-bark-400">{100 - pct}% of states have no data for this metric.</p>
     </div>
   );
 }

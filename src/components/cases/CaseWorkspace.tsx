@@ -35,7 +35,7 @@ export function CaseWorkspace({
   useEffect(() => { isNgoMember().then(setNgoMember).catch(() => {}); }, [user?.id]);
   const canEdit = !!user && (user.id === c.assignee_id || ngoMember);
   const sev = severityBadge(c);
-  const H2 = "mb-3 text-[11px] font-semibold uppercase tracking-wide text-bark-400";
+  const H2 = "mb-3 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400";
 
   return (
     <div className={cn("mx-auto max-w-[1080px]", bare ? "pb-8" : "px-4 pb-32 pt-24 sm:px-6")}>
@@ -47,7 +47,7 @@ export function CaseWorkspace({
       <div className="flex flex-col justify-between gap-4 border-b border-black/[0.08] pb-5 dark:border-white/[0.1] sm:flex-row sm:items-end">
         <div className="min-w-0">
           <div className="mb-2 flex items-center gap-2">
-            <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide", sev.cls)}>{sev.label}</span>
+            <span className={cn("rounded px-1.5 py-0.5 text-[11.5px] font-bold uppercase tracking-wide", sev.cls)}>{sev.label}</span>
             <span className="text-[12px] capitalize text-bark-400">{c.status.replace("_", " ")}</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{c.title}</h1>
@@ -108,7 +108,7 @@ export function CaseWorkspace({
 
           {c.outcome_note && (
             <section className="rounded-lg border border-status-vaccinated/30 bg-status-vaccinated/10 p-4">
-              <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-status-vaccinated">Outcome</h2>
+              <h2 className="mb-1 text-[11.5px] font-semibold uppercase tracking-wide text-status-vaccinated">Outcome</h2>
               <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-bark-700 dark:text-bark-200">{c.outcome_note}</p>
             </section>
           )}
@@ -142,7 +142,7 @@ export function CaseWorkspace({
 function Fact({ k, v }: { k: string; v: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-bark-400">{k}</div>
+      <div className="text-[11.5px] font-semibold uppercase tracking-wide text-bark-400">{k}</div>
       <div className="mt-1 text-[14px] font-medium text-bark-900 dark:text-bark-50">{v}</div>
     </div>
   );
@@ -187,7 +187,7 @@ function CaseStepper({ status }: { status: CaseStatus }) {
             <span className={cn("grid h-8 w-8 place-items-center rounded-full border-2 text-[12px] font-semibold", i <= current ? "border-paw-500 bg-paw-500 text-white" : "border-bark-200 bg-transparent text-bark-400 dark:border-white/15")}>
               {i < current ? <Check className="h-4 w-4" /> : i + 1}
             </span>
-            <span className={cn("text-[11px]", i <= current ? "font-medium text-bark-700 dark:text-bark-200" : "text-bark-400")}>{s.label}</span>
+            <span className={cn("text-[11.5px]", i <= current ? "font-medium text-bark-700 dark:text-bark-200" : "text-bark-400")}>{s.label}</span>
           </div>
           {i < CASE_STEPS.length - 1 && <div className={cn("mx-2 h-px flex-1 -translate-y-2.5", i < current ? "bg-paw-500" : "bg-bark-200 dark:bg-white/15")} />}
         </div>

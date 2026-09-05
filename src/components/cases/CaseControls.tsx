@@ -262,7 +262,7 @@ export function CaseControls({ c }: { c: Case }) {
                   </span>
                 </label>
 
-                <p className="text-[11px] text-bark-400">
+                <p className="text-[11.5px] text-bark-400">
                   Proof is required and will be verified by StrayPaw before it counts
                   in impact reports.
                 </p>

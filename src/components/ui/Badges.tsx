@@ -72,7 +72,7 @@ export function TrustRing({
         />
       </svg>
       <span
-        className="absolute inset-0 flex items-center justify-center text-[11px] font-bold"
+        className="absolute inset-0 flex items-center justify-center text-[11.5px] font-bold"
         style={{ color }}
       >
         {score}

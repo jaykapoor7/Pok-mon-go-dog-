@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { OrgSetup } from "@/components/admin/OrgSetup";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Lock,
@@ -119,7 +120,7 @@ interface AdminFundraiser {
   created_at: string;
 }
 
-type Tab = "queue" | "partners" | "reports" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
+type Tab = "queue" | "partners" | "orgs" | "reports" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
 
 type AdminContentReport = {
   id: string; reason: string; details: string | null; link: string | null;
@@ -769,6 +770,7 @@ export function AdminClient() {
   const TABS: { key: Tab; label: string; icon: React.ReactNode; count: number }[] = [
     { key: "queue", label: "Sightings", icon: <Clock className="h-4 w-4" />, count: items.length },
     { key: "partners", label: "Partner requests", icon: <HeartHandshake className="h-4 w-4" />, count: partnerRequests.length },
+    { key: "orgs", label: "Organisations", icon: <Building2 className="h-4 w-4" />, count: 0 },
     { key: "reports", label: "Content reports", icon: <FlagIcon className="h-4 w-4" />, count: reports.filter((r) => r.status === "open").length },
     { key: "verify", label: "Verify outcomes", icon: <ShieldCheck className="h-4 w-4" />, count: pendingCases.length },
     { key: "dogs", label: "Dogs", icon: <PawPrint className="h-4 w-4" />, count: dogs.length },
@@ -880,6 +882,8 @@ export function AdminClient() {
       {tab === "volunteers" && (
         <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
       )}
+      {tab === "orgs" && <OrgSetup secret={secret} />}
+
       {tab === "ngos" && (
         <HelperList helpers={ngos} kind="ngo" busyId={busyId} onToggle={toggleAck} />
       )}
@@ -1000,7 +1004,7 @@ function TabButton({
       {icon}
       <span className="lg:flex-1 lg:text-left">{label}</span>
       <span
-        className={`rounded-full px-1.5 text-[11px] font-bold ${
+        className={`rounded-full px-1.5 text-[11.5px] font-bold ${
           active ? "bg-white/25 text-white" : "bg-black/[0.06] text-bark-500 dark:bg-white/10 dark:text-bark-300"
         }`}
       >
@@ -1287,7 +1291,7 @@ function DogsList({
 
           {/* ear-notch (sterilisation mark) */}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-bark-400">Ear-notch</span>
+            <span className="text-[11.5px] font-semibold text-bark-400">Ear-notch</span>
             {(["none", "left", "right", "both"] as const).map((v) => {
               const val = v === "none" ? null : v;
               const active = (d.ear_notch ?? null) === val;
@@ -1689,7 +1693,7 @@ function FundraisersModList({
               </div>
             ))}
           </div>
-          <p className="mt-2 text-[11px] text-bark-400">
+          <p className="mt-2 text-[11.5px] text-bark-400">
             Discovered from the web, check each is a legit rescue before publishing;
             approving badges it as a StrayPaw pick.
           </p>
@@ -1846,7 +1850,7 @@ function Proof({ label, url, seed }: { label: string; url: string | null; seed: 
   return (
     <div className="relative overflow-hidden rounded">
       <DogPhoto src={url} alt={label} seed={seed} className="aspect-square w-full" />
-      <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
+      <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[11.5px] font-bold text-white">
         {label}
       </span>
     </div>

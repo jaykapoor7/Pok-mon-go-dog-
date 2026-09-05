@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  useState,
-  useEffect,
-  useContext,
   createContext,
-  type ReactNode,
-  useRef,
   type FormEvent,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
 } from "react";
 import {
   ArrowUpRight,
@@ -22,6 +22,7 @@ import {
   FolderOpen,
   Heart,
   Home,
+  KeyRound,
   LayoutGrid,
   ListChecks,
   MapPin,
@@ -72,6 +73,7 @@ const WORKSPACE = [
   { href: "/partner/field", label: "Field ops", Icon: MapPin },
   { href: "/partner/medical", label: "Medical", Icon: Stethoscope },
   { href: "/partner/team", label: "Team", Icon: Users },
+  { href: "/partner/codes", label: "Volunteer codes", Icon: KeyRound },
   { href: "/partner/reports", label: "Analytics", Icon: FileText },
   { href: "/partner/import", label: "Import records", Icon: Upload },
   { href: "/partner/resources", label: "Resources", Icon: FolderOpen },

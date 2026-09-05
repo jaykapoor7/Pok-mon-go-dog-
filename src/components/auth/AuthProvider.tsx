@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { PawPrint, X, Loader2, CheckCircle2, LogIn, UserPlus } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { track } from "@/lib/analytics";
+import { claimOrgMembership } from "@/lib/programme";
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
@@ -249,6 +250,7 @@ function SignInSheet({
         });
         if (err) throw err;
         track("signup");
+        void claimOrgMembership();
 
         // Signing up should sign you in. Supabase only returns a session here
         // when email confirmation is switched off in the project; when it is
@@ -277,6 +279,10 @@ function SignInSheet({
       });
       if (err) throw err;
       track("login");
+      /* Access is granted to an email address, so somebody can be invited to
+         an organisation before they have an account. This picks that up on
+         the way in, whichever order it happened in. */
+      void claimOrgMembership();
       // onAuthStateChange closes the sheet + resolves pending actions.
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong. Try again.";
@@ -392,7 +398,7 @@ function SignInSheet({
             )}
 
             {!live && (
-              <p className="mt-3 text-center text-[11px] text-bark-400">We only store your name on this device.</p>
+              <p className="mt-3 text-center text-[11.5px] text-bark-400">We only store your name on this device.</p>
             )}
           </>
         )}

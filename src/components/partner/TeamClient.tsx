@@ -90,7 +90,7 @@ export function TeamClient() {
               <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">
                 {m.name}{m.user_id === user?.id ? " (you)" : ""}
                 {m.role === "admin" ? (
-                  <span className="ml-2 rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-semibold text-paw-700 dark:bg-bark-800 dark:text-paw-300">Team lead</span>
+                  <span className="ml-2 rounded-full bg-paw-100 px-2 py-0.5 text-[11.5px] font-semibold text-paw-700 dark:bg-bark-800 dark:text-paw-300">Team lead</span>
                 ) : (
                   <span className="ml-2 text-[12px] font-normal text-bark-400">{roleLabel(m.role)}</span>
                 )}

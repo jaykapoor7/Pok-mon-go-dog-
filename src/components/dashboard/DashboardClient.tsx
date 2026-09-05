@@ -152,7 +152,7 @@ function Impact({
             <FunderReport dogs={dogs} cases={cases} />
             <ExportCsvButton />
           </div>
-          <p className="text-[11px] text-bark-400">
+          <p className="text-[11.5px] text-bark-400">
             PDF is the co-branded funder one-pager. CSV is the raw case data for analysts.
           </p>
         </div>

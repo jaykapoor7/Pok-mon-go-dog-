@@ -179,7 +179,7 @@ export function FeedingZoneControls({
                     v.days.map((d) => (
                       <span
                         key={d}
-                        className="rounded-full bg-paw-100 px-2 py-0.5 text-[11px] font-bold text-paw-700"
+                        className="rounded-full bg-paw-100 px-2 py-0.5 text-[11.5px] font-bold text-paw-700"
                       >
                         {DAY_LABEL[d]}
                       </span>

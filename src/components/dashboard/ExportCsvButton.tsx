@@ -43,7 +43,7 @@ export function ExportCsvButton() {
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
         Export CSV
       </button>
-      {error && <span className="text-[11px] text-status-injured">{error}</span>}
+      {error && <span className="text-[11.5px] text-status-injured">{error}</span>}
     </div>
   );
 }

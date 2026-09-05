@@ -150,7 +150,7 @@ export function HelperForm({
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <HeartHandshake className="h-4 w-4" />}
                     Register to volunteer
                   </button>
-                  <p className="text-center text-[11px] text-bark-400">Run an organisation? <a href="/partnerships" className="font-semibold text-paw-600">Partner with StrayPaw</a> instead.</p>
+                  <p className="text-center text-[11.5px] text-bark-400">Run an organisation? <a href="/partnerships" className="font-semibold text-paw-600">Partner with StrayPaw</a> instead.</p>
                 </form>
               </>
             )}

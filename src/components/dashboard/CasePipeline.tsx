@@ -52,7 +52,7 @@ export function CasePipeline({ cases }: { cases: Case[] }) {
                     />
                     <p className="truncate text-xs font-semibold">{c.title}</p>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px] text-bark-400">
+                  <div className="mt-1 flex items-center justify-between text-[11.5px] text-bark-400">
                     <span className="truncate">
                       {c.assignee_name ?? "Unassigned"}
                     </span>
@@ -61,12 +61,12 @@ export function CasePipeline({ cases }: { cases: Case[] }) {
                 </Link>
               ))}
               {items.length > 8 && (
-                <p className="px-1 text-[11px] text-bark-400">
+                <p className="px-1 text-[11.5px] text-bark-400">
                   +{items.length - 8} more
                 </p>
               )}
               {items.length === 0 && (
-                <p className="px-1 py-2 text-[11px] text-bark-300">-</p>
+                <p className="px-1 py-2 text-[11.5px] text-bark-300">-</p>
               )}
             </div>
           </div>

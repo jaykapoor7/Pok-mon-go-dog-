@@ -94,7 +94,7 @@ export function ReportsClient() {
             {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i === pts.length - 1 ? 4 : 2.5} fill="#3b7de6" />)}
           </svg>
         </div>
-        <div className="mt-1 flex justify-between text-[10px] text-bark-400">
+        <div className="mt-1 flex justify-between text-[11.5px] text-bark-400">
           <span>{weeks[0].label}</span><span>{weeks[Math.floor(WEEKS / 2)].label}</span><span>this week</span>
         </div>
       </section>
@@ -126,7 +126,7 @@ export function ReportsClient() {
             <div className="mt-5 flex items-center gap-7">
               <div className="relative grid size-32 shrink-0 place-items-center rounded-full" style={{ background: donut }}>
                 <div className="grid size-20 place-items-center rounded-full bg-white text-center dark:bg-bark-900">
-                  <span className="text-xl font-semibold text-bark-900 dark:text-bark-50">{stats.resolved.length}<span className="block text-[10px] font-normal text-bark-400">resolved</span></span>
+                  <span className="text-xl font-semibold text-bark-900 dark:text-bark-50">{stats.resolved.length}<span className="block text-[11.5px] font-normal text-bark-400">resolved</span></span>
                 </div>
               </div>
               <div className="flex flex-col gap-2.5 text-[13px]">

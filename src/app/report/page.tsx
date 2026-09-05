@@ -17,6 +17,9 @@ import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 import { AnimalMatch } from "@/components/report/AnimalMatch";
+import { ProgrammeStatus, type SterilisationStatus, type VaccinationStatus } from "@/components/report/ProgrammeStatus";
+import { ReportingFor } from "@/components/report/ReportingFor";
+import { readVolunteer, type VolunteerSession } from "@/lib/volunteer";
 import { track } from "@/lib/analytics";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
@@ -45,6 +48,16 @@ export default function ReportPage() {
   const [c3, setC3] = useState(false);
   /* An animal the reporter recognises. Sent as a claim; review decides. */
   const [claimedDogId, setClaimedDogId] = useState<string | null>(null);
+  /* The two numbers an ABC and rabies programme is measured on. Unknown is
+     the honest default, not a gap to be filled in later. */
+  const [sterilisation, setSterilisation] = useState<SterilisationStatus>("unknown");
+  const [vaccination, setVaccination] = useState<VaccinationStatus>("unknown");
+  /* Set once per device by someone reporting for an organisation. */
+  const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
+
+  useEffect(() => {
+    setVolunteer(readVolunteer());
+  }, []);
 
   /* Opens the funnel. Everything else is measured against this number. */
   useEffect(() => {
@@ -107,8 +120,13 @@ export default function ReportPage() {
         file, fallbackPhotoUrl: photo ?? undefined,
         lat: coords.lat, lng: coords.lng, zone: zone ?? nearestCity(coords.lat, coords.lng),
         nickname: nickname.trim(), moods, notes: notes.trim(),
-        reporterName: user?.name ?? "", reporterEmail: email.trim() || undefined, token,
+        reporterName: volunteer?.name || user?.name || "",
+        reporterEmail: email.trim() || undefined, token,
         claimedDogId,
+        sterilisationStatus: sterilisation,
+        vaccinationStatus: vaccination,
+        inviteCode: volunteer?.code ?? null,
+        volunteerName: volunteer?.name ?? null,
       });
       track("report_submitted", { claimed_repeat: Boolean(claimedDogId) });
       setStatus("done");
@@ -126,6 +144,7 @@ export default function ReportPage() {
     setStep(0); setStatus("idle"); setPhoto(null); setFile(null); setCoords(null); setZone(null);
     setNickname(""); setMoods([]); setNotes(""); setEmail(user?.email ?? ""); setToken(null);
     setC1(false); setC2(false); setC3(false); setError(null); setClaimedDogId(null);
+    setSterilisation("unknown"); setVaccination("unknown");
   }
 
   const field = "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
@@ -172,6 +191,7 @@ export default function ReportPage() {
           {/* ── Step 0: photo ── */}
           {step === 0 && (
             <div>
+              <ReportingFor volunteer={volunteer} onChange={setVolunteer} />
               <StepTitle icon={<Camera className="h-4 w-4" />} title="Add a photo" hint="A clear photo helps NGOs identify and find the animal." />
               <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
               {photo ? (
@@ -197,7 +217,7 @@ export default function ReportPage() {
                     </p>
                   ) : (
                     <>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-bark-400">
+                      <p className="text-[11.5px] font-semibold uppercase tracking-wider text-bark-400">
                         From the photo
                       </p>
                       <ul className="mt-1.5 space-y-1 text-[13px] text-bark-600 dark:text-bark-300">
@@ -236,7 +256,13 @@ export default function ReportPage() {
           {/* ── Step 2: details ── */}
           {step === 2 && (
             <div className="space-y-5">
-              <StepTitle icon={<Tag className="h-4 w-4" />} title="A few details" hint="All optional, but they help. Skip anything you're unsure of." />
+              <StepTitle icon={<Tag className="h-4 w-4" />} title="A few details" hint="Skip anything you are unsure of. Not sure is a real answer." />
+              <ProgrammeStatus
+                sterilisation={sterilisation}
+                vaccination={vaccination}
+                onSterilisation={setSterilisation}
+                onVaccination={setVaccination}
+              />
               <div>
                 <label className="mb-2 block text-sm font-semibold">Nickname</label>
                 <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="e.g. Bruno, Laali, Brownie" className={field} />
@@ -287,7 +313,7 @@ export default function ReportPage() {
               {HAS_TURNSTILE && (
                 <div className="flex flex-col items-center gap-1 pt-1">
                   <Turnstile onVerify={handleVerify} />
-                  <p className="text-[10px] text-bark-400">A quick check to keep out spam, by Cloudflare Turnstile.</p>
+                  <p className="text-[11.5px] text-bark-400">A quick check to keep out spam, by Cloudflare Turnstile.</p>
                 </div>
               )}
               {error && <p className="rounded bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">{error}</p>}

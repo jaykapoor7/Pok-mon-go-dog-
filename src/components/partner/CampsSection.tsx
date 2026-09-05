@@ -45,7 +45,7 @@ export function CampsSection() {
               </div>
               <button
                 onClick={() => setVetCampStatus(c.id, c.status === "done" ? "planned" : "done").then(load)}
-                className={cn("shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold", c.status === "done" ? "bg-status-vaccinated/15 text-status-vaccinated" : "bg-status-hungry/15 text-status-hungry")}
+                className={cn("shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-semibold", c.status === "done" ? "bg-status-vaccinated/15 text-status-vaccinated" : "bg-status-hungry/15 text-status-hungry")}
               >
                 {c.status === "done" ? "Done" : "Planned"}
               </button>

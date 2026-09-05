@@ -69,7 +69,7 @@ export function Hero({ dogs }: { dogs: Dog[] }) {
           </div>
           <div className="pointer-events-none absolute -bottom-4 -left-4 hidden rotate-[-6deg] rounded bg-white px-4 py-2 shadow-card sm:block">
             <p className="text-xs font-semibold text-bark-700">🐾 Live across India</p>
-            <p className="text-[10px] text-bark-400">tap a pin to meet a dog</p>
+            <p className="text-[11.5px] text-bark-400">tap a pin to meet a dog</p>
           </div>
         </motion.div>
       </div>

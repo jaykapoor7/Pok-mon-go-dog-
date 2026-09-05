@@ -60,13 +60,13 @@ export function ExploreClient() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-5 text-right sm:min-w-[240px]">
-          <div><div className="font-display text-xl tabular-nums">{cov.withData}<span className="text-bark-300">/{cov.total}</span></div><div className="text-[11px] text-bark-400">states</div></div>
+          <div><div className="font-display text-xl tabular-nums">{cov.withData}<span className="text-bark-300">/{cov.total}</span></div><div className="text-[11.5px] text-bark-400">states</div></div>
           {def.unit === "%" ? (
-            <div><div className="font-display text-xl tabular-nums">{roll.mean.toFixed(0)}%</div><div className="text-[11px] text-bark-400">average</div></div>
+            <div><div className="font-display text-xl tabular-nums">{roll.mean.toFixed(0)}%</div><div className="text-[11.5px] text-bark-400">average</div></div>
           ) : (
-            <div><div className="font-display text-xl tabular-nums">{new Intl.NumberFormat("en-IN", { notation: "compact" }).format(roll.sum)}</div><div className="text-[11px] text-bark-400">total</div></div>
+            <div><div className="font-display text-xl tabular-nums">{new Intl.NumberFormat("en-IN", { notation: "compact" }).format(roll.sum)}</div><div className="text-[11.5px] text-bark-400">total</div></div>
           )}
-          <div><div className="font-display text-xl tabular-nums text-status-injured">{cov.total - cov.withData}</div><div className="text-[11px] text-bark-400">no data</div></div>
+          <div><div className="font-display text-xl tabular-nums text-status-injured">{cov.total - cov.withData}</div><div className="text-[11.5px] text-bark-400">no data</div></div>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export function ExploreClient() {
             <span className="hidden w-10 shrink-0 justify-end sm:flex">{dp && <ConfidenceBar level={dp.confidence} />}</span>
             <Link
               href={`/resources?state=${state.code}`}
-              className="hidden shrink-0 items-center gap-1 text-[11px] font-medium text-paw-600 opacity-0 transition-opacity hover:text-paw-700 group-hover:opacity-100 dark:text-paw-300 lg:flex"
+              className="hidden shrink-0 items-center gap-1 text-[11.5px] font-medium text-paw-600 opacity-0 transition-opacity hover:text-paw-700 group-hover:opacity-100 dark:text-paw-300 lg:flex"
               title={`Find organisations in ${state.name}`}
             >
               <Building2 className="h-3 w-3" />

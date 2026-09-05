@@ -13,8 +13,15 @@ the parts that break, and none of them reproduce in a simulator.
 
 ## 0. Before anything
 
-- [ ] `supabase/observation-identity.sql` has been run.
-- [ ] `supabase/analytics.sql` has been run.
+Run these in the Supabase SQL editor, in this order. All are idempotent.
+
+- [ ] `supabase/observation-identity.sql`
+- [ ] `supabase/analytics.sql`
+- [ ] `supabase/adoption-and-documents.sql`
+- [ ] `supabase/no-similarity-merge.sql`
+- [ ] `supabase/abc-programme.sql`
+- [ ] `supabase/org-invite-codes.sql`
+- [ ] `supabase/org-email-invites.sql`
 - [ ] **Confirm email is OFF** in Supabase → Authentication → Providers →
       Email. With it on, signup returns no session and new accounts are
       unusable until a link is clicked, and Supabase's built-in email service
@@ -90,6 +97,52 @@ Each of these must fail *visibly*. Silence is the bug.
 - [ ] A second NGO account **cannot** see the first one's cases.
 - [ ] A signed-out visitor sees the console shell with an empty state and a
       sign-in prompt, not an error.
+
+## 5a. PAWS pilot: the field workflow
+
+**Setting the organisation up** (moderation console → Organisations):
+
+- [ ] Create "PAWS Chennai". It appears in the list as verified.
+- [ ] Give admin access to a PAWS email address that has **no account yet**.
+      It shows as "waiting for first sign-in", and they receive an email.
+- [ ] That person creates an account with the same address and lands in the
+      PAWS dashboard with no further step. This is the one to check: access
+      is granted to the address, so signup order must not matter.
+- [ ] Add a second PAWS email the same way.
+
+**Volunteer codes** (dashboard → Volunteer codes):
+
+- [ ] Create a code. It reads like `PAWS-7K2M`.
+- [ ] On a phone, open Report, tap "Reporting for an NGO?", enter the code.
+      It names PAWS Chennai back before anything is submitted.
+- [ ] Enter a volunteer name once. File a report.
+- [ ] **File a second report. It must not ask for the code or name again.**
+- [ ] A wrong code is refused and does not file anything to PAWS.
+- [ ] Turn the code off. It stops working immediately.
+
+**Sterilisation and rabies:**
+
+- [ ] The details step shows both questions as three buttons each, with
+      "Not sure" selected by default.
+- [ ] Report one animal sterilised + vaccinated, one not sterilised, one
+      left as not sure.
+- [ ] Approve all three in moderation.
+- [ ] The PAWS dashboard totals match what you entered, and the three
+      sterilisation buckets add up to the total.
+- [ ] Click each figure. The filtered list contains exactly those animals.
+- [ ] **Filter "Not sterilised" and confirm no sterilised animal appears.**
+- [ ] The two percentages differ when there are unknowns, and the page says
+      why. Unknowns must never be counted as "not sterilised".
+- [ ] Filter by location and by date. Combine with a status filter.
+- [ ] Each row shows who recorded it. The volunteer's name is on the report.
+- [ ] Export CSV. It includes sterilisation, vaccination and recorded_by.
+
+**Two people, one organisation:**
+
+- [ ] Both PAWS accounts see the same animals and the same totals.
+- [ ] One registers an animal. The other sees it on refresh.
+- [ ] A different organisation's account sees **none** of it, and its own
+      programme totals read zero.
 
 ## 5b. Adoption and resources
 

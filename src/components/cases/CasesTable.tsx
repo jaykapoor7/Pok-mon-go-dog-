@@ -119,7 +119,7 @@ export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases
       </div>
 
       <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
-        <div className="hidden grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] items-center gap-4 border-b border-black/[0.08] bg-bark-50 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/[0.1] dark:bg-white/[0.02] md:grid">
+        <div className="hidden grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] items-center gap-4 border-b border-black/[0.08] bg-bark-50 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/[0.1] dark:bg-white/[0.02] md:grid">
           <span></span><span>Report</span><span>Location</span><span>Urgency</span><span>Status</span><span>Assigned to</span>
         </div>
 
@@ -142,9 +142,9 @@ export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases
                       </p>
                       <p className="truncate text-[12px] text-bark-400">{c.title}</p>
                       <div className="mt-1 flex items-center gap-2 md:hidden">
-                        <span className={cn("text-[11px] font-bold", pr.cls)}>{pr.label}</span>
-                        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", st.cls)}>{st.label}</span>
-                        {c.zone && <span className="truncate text-[11px] text-bark-400">{c.zone}</span>}
+                        <span className={cn("text-[11.5px] font-bold", pr.cls)}>{pr.label}</span>
+                        <span className={cn("rounded-full px-2 py-0.5 text-[11.5px] font-semibold", st.cls)}>{st.label}</span>
+                        {c.zone && <span className="truncate text-[11.5px] text-bark-400">{c.zone}</span>}
                       </div>
                     </div>
                     <span className="hidden truncate text-[13px] text-bark-500 md:block">{c.zone || "-"}</span>

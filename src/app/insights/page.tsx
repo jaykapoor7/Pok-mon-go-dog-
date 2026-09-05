@@ -35,7 +35,7 @@ export default function InsightsPage() {
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
         {/* Rabies: reported vs modelled */}
         <article className="rounded border border-black/[0.08] p-6 dark:border-white/[0.1] lg:col-span-2">
-          <div className="mb-3 flex items-center gap-2 text-status-injured"><ShieldAlert className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-widest">The biggest single finding</span></div>
+          <div className="mb-3 flex items-center gap-2 text-status-injured"><ShieldAlert className="h-4 w-4" /><span className="text-[11.5px] font-semibold uppercase tracking-widest">The biggest single finding</span></div>
           <h2 className="font-display text-xl leading-snug tracking-tight sm:text-2xl">
             {reported && modelled ? (
               <>Officially, {nf(reported.value)} people died of rabies in India in {reported.year}. Independent modelling puts the real number at roughly {nf(modelled.value)} a year{gapMultiple ? `, about ${gapMultiple}x higher` : ""}.</>
@@ -55,7 +55,7 @@ export default function InsightsPage() {
 
         {/* Population */}
         <article className="rounded border border-black/[0.08] p-6 dark:border-white/[0.1]">
-          <div className="mb-3 flex items-center gap-2 text-paw-600"><GitCompare className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-widest">Population</span></div>
+          <div className="mb-3 flex items-center gap-2 text-paw-600"><GitCompare className="h-4 w-4" /><span className="text-[11.5px] font-semibold uppercase tracking-widest">Population</span></div>
           <h2 className="font-display text-xl leading-snug tracking-tight">
             {popPoints[0] ? <>{popPoints[0].geo.name} has the highest estimated street-dog population at {nf(popPoints[0].value)}.</> : "Population data is limited to a handful of states."}
           </h2>
@@ -66,7 +66,7 @@ export default function InsightsPage() {
 
         {/* ABC: what little we know */}
         <article className="rounded border border-black/[0.08] p-6 dark:border-white/[0.1]">
-          <div className="mb-3 flex items-center gap-2 text-[#6b3f90]"><AlertTriangle className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-widest">Sterilisation (ABC)</span></div>
+          <div className="mb-3 flex items-center gap-2 text-[#6b3f90]"><AlertTriangle className="h-4 w-4" /><span className="text-[11.5px] font-semibold uppercase tracking-widest">Sterilisation (ABC)</span></div>
           <h2 className="font-display text-xl leading-snug tracking-tight">Only {abcPoints.length} places in the country have a citable ABC coverage figure at all.</h2>
           <p className="mt-2 text-sm text-bark-600 dark:text-bark-300">
             Delhi&apos;s own 2022-23 survey found fewer than half of its ~10 lakh community dogs sterilised. Lucknow, by contrast, reported 83% coverage in late 2024, but that&apos;s one city, not a state. In October 2025, the Supreme Court found only 2 of 28 states/UTs had even filed the sterilisation-compliance reports it ordered. Coverage is not just low in most of India; it is not tracked.
@@ -84,7 +84,7 @@ export default function InsightsPage() {
 
         {/* Data gaps */}
         <article className="rounded border border-black/[0.08] bg-paw-50 p-6 dark:border-white/[0.1] dark:bg-paw-900/15 lg:col-span-2">
-          <div className="mb-3 flex items-center gap-2 text-paw-700 dark:text-paw-300"><Search className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-widest">The biggest gap is data itself</span></div>
+          <div className="mb-3 flex items-center gap-2 text-paw-700 dark:text-paw-300"><Search className="h-4 w-4" /><span className="text-[11.5px] font-semibold uppercase tracking-widest">The biggest gap is data itself</span></div>
           <h2 className="font-display text-xl leading-snug tracking-tight">Most states are missing most metrics, including the one metric they were ordered to publish.</h2>
           <p className="mt-2 text-sm text-bark-600 dark:text-bark-300">You can&apos;t manage what you can&apos;t measure. Closing these gaps, not adding another opinion about what should be done, is the highest-leverage thing this platform and its contributors can do.</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">

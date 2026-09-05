@@ -121,7 +121,7 @@ export function CoverageHero({ dogs }: { dogs: Dog[] }) {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-[11px] text-bark-400">
+        <p className="mt-3 text-[11.5px] text-bark-400">
           Vertical line marks the WHO ~70% herd-immunity threshold for effective
           Animal Birth Control.
         </p>
@@ -149,7 +149,7 @@ function HeroStat({
       <p className="mt-0.5 text-xs text-bark-500">{label}</p>
       {threshold && (
         <p
-          className={`mt-1 text-[11px] font-semibold ${
+          className={`mt-1 text-[11.5px] font-semibold ${
             ok ? "text-status-sterilised" : "text-status-injured"
           }`}
         >

@@ -77,8 +77,8 @@ export function TakeActionClient() {
           return (
             <div key={a.id} className={`rounded border p-5 ${relevant ? "border-paw-300 bg-paw-50 dark:border-paw-500/30 dark:bg-paw-900/15" : "border-black/[0.08] dark:border-white/[0.1]"}`}>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-bark-400">{a.audience}</span>
-                {relevant && <span className="rounded-full bg-paw-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Priority here</span>}
+                <span className="text-[11.5px] font-semibold uppercase tracking-widest text-bark-400">{a.audience}</span>
+                {relevant && <span className="rounded-full bg-paw-500 px-2 py-0.5 text-[11.5px] font-bold uppercase tracking-wide text-white">Priority here</span>}
               </div>
               <h3 className="mt-2 font-display text-lg leading-snug tracking-tight">{a.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-bark-600 dark:text-bark-300">{a.rationale}</p>
@@ -115,7 +115,7 @@ export function TakeActionClient() {
                 <p className="mt-0.5 text-[12px] text-bark-500">{o.city}</p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-bark-600 dark:text-bark-300">{o.summary}</p>
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {o.focus.map((f) => <span key={f} className="rounded-full bg-bark-100 px-2 py-0.5 text-[10px] text-bark-500 dark:bg-bark-800">{f}</span>)}
+                  {o.focus.map((f) => <span key={f} className="rounded-full bg-bark-100 px-2 py-0.5 text-[11.5px] text-bark-500 dark:bg-bark-800">{f}</span>)}
                 </div>
               </div>
             ))}

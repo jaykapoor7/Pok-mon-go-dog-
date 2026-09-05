@@ -182,7 +182,7 @@ export function DogStatusEditor({
                 )}
                 {saved ? "Saved" : "Save status"}
               </button>
-              <p className="text-center text-[11px] text-bark-400">
+              <p className="text-center text-[11.5px] text-bark-400">
                 Changes are live immediately. Refresh to see them reflected across the app.
               </p>
             </div>

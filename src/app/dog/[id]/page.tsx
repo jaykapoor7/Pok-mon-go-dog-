@@ -319,7 +319,7 @@ function Stat({
     <div className="card flex flex-col items-center gap-0.5 p-3 text-center">
       <span className="text-paw-500">{icon}</span>
       <span className="text-sm font-bold leading-tight">{value}</span>
-      <span className="text-[10px] text-bark-400">{label}</span>
+      <span className="text-[11.5px] text-bark-400">{label}</span>
     </div>
   );
 }

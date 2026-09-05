@@ -171,11 +171,11 @@ function CampaignRow({ c }: { c: Fundraiser }) {
     <Link href={`/fundraisers/${c.id}`} className="card card-interactive flex items-center gap-4 p-4">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-bold capitalize", statusTone)}>
+          <span className={cn("rounded-full px-2 py-0.5 text-[11.5px] font-bold capitalize", statusTone)}>
             {c.status}
           </span>
           {c.featured && (
-            <span className="rounded-full bg-paw-500 px-2 py-0.5 text-[11px] font-bold text-white">
+            <span className="rounded-full bg-paw-500 px-2 py-0.5 text-[11.5px] font-bold text-white">
               StrayPaw pick
             </span>
           )}

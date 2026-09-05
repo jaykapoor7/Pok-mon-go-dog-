@@ -24,7 +24,7 @@ export function FundraiserCard({ f }: { f: Fundraiser }) {
           <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="h-40 w-full" />
         )}
         {f.featured && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-paw-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-warm">
+          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-paw-500 px-2.5 py-1 text-[11.5px] font-bold text-white shadow-warm">
             <BadgeCheck className="h-3.5 w-3.5" /> StrayPaw pick
           </span>
         )}

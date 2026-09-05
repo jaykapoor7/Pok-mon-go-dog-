@@ -5,7 +5,7 @@ import { SOURCE_META, type SourceType } from "@/lib/platform/types";
 export function SourceBadge({ type, sample, className = "" }: { type: SourceType; sample?: boolean; className?: string }) {
   const m = SOURCE_META[type];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white/70 px-2 py-0.5 text-[11px] font-medium text-bark-600 dark:border-white/10 dark:bg-bark-900/60 dark:text-bark-300 ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white/70 px-2 py-0.5 text-[11.5px] font-medium text-bark-600 dark:border-white/10 dark:bg-bark-900/60 dark:text-bark-300 ${className}`}>
       <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: m.dot }} />
       {m.label}
       {sample && <span className="text-bark-400">· sample</span>}

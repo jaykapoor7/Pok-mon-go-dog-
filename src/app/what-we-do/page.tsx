@@ -51,7 +51,7 @@ function Timeline({ steps, offset }: { steps: Step[]; offset: number }) {
 function GroupHeader({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div className="mb-5">
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{kicker}</p>
+      <p className="text-[11.5px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{kicker}</p>
       <p className="mt-1 font-display text-lg tracking-tight text-bark-900 dark:text-bark-50">{title}</p>
     </div>
   );
@@ -74,7 +74,7 @@ export default function WhatWeDoPage() {
         ].map((s) => (
           <div key={s.label} className="rounded border border-black/[0.06] bg-white/70 p-3 text-center dark:border-white/10 dark:bg-bark-900/50">
             <p className="text-[13px] font-semibold tracking-tight text-bark-900 dark:text-bark-50">{s.label}</p>
-            <p className="mt-0.5 text-[11px] text-bark-400">{s.desc}</p>
+            <p className="mt-0.5 text-[11.5px] text-bark-400">{s.desc}</p>
           </div>
         ))}
       </div>

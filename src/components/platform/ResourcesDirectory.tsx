@@ -69,7 +69,7 @@ function OrgCard({ org }: { org: OrgEntry }) {
         {org.focus.map((f) => (
           <span
             key={f}
-            className="rounded-full bg-bark-50 px-2 py-0.5 text-[11px] font-medium text-bark-500"
+            className="rounded-full bg-bark-50 px-2 py-0.5 text-[11.5px] font-medium text-bark-500"
           >
             {f}
           </span>

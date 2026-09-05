@@ -23,7 +23,7 @@ export default function RouteError({
 
   return (
     <div className="mx-auto flex max-w-lg flex-col items-start py-16">
-      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-vermilion">
+      <p className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-vermilion">
         Error / this view failed to render
       </p>
       <h1 className="mt-3 font-display text-4xl leading-none tracking-tight">
@@ -35,7 +35,7 @@ export default function RouteError({
       </p>
 
       {error.digest && (
-        <p className="mt-4 font-mono text-[11px] text-bark-400">
+        <p className="mt-4 font-mono text-[11.5px] text-bark-400">
           Reference: {error.digest}
         </p>
       )}

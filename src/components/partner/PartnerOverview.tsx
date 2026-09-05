@@ -72,7 +72,7 @@ export function PartnerOverview({ cases: initialCases }: { cases: Case[] }) {
       {/* Page title */}
       <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paw-600">{dateLabel || " "}</div>
+          <div className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-[0.18em] text-paw-600">{dateLabel || " "}</div>
           <h1 className="text-2xl font-semibold tracking-tight text-bark-900 dark:text-bark-50 sm:text-3xl">
             {greeting()}{firstName ? `, ${firstName}` : ""}
           </h1>
@@ -108,12 +108,12 @@ export function PartnerOverview({ cases: initialCases }: { cases: Case[] }) {
                 <div className="text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{cases.length}</div>
                 <div className="mt-1 text-[13px] text-bark-500">Total cases logged</div>
               </div>
-              <div className="text-right text-[13px] font-medium text-paw-600">{m.rate}%<div className="text-[11px] font-normal text-bark-400">resolved</div></div>
+              <div className="text-right text-[13px] font-medium text-paw-600">{m.rate}%<div className="text-[11.5px] font-normal text-bark-400">resolved</div></div>
             </div>
             <div className="mt-6 flex h-24 items-end gap-1.5">
               {weeks.map((w, i) => <div key={i} className={cn("flex-1 rounded-t-sm", i >= 9 ? "bg-paw-500" : "bg-paw-500/25")} style={{ height: `${Math.max(3, (w / weekMax) * 100)}%` }} title={`${w}`} />)}
             </div>
-            <div className="mt-2 flex justify-between text-[10px] text-bark-400"><span>12 wks ago</span><span>now</span></div>
+            <div className="mt-2 flex justify-between text-[11.5px] text-bark-400"><span>12 wks ago</span><span>now</span></div>
           </div>
         </section>
       </div>

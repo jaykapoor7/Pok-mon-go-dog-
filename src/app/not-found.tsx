@@ -10,7 +10,7 @@ export default function NotFound() {
       <span className="text-electric">
         <CoverageGap size={104} />
       </span>
-      <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-bark-500">
+      <p className="mt-6 font-mono text-[11.5px] uppercase tracking-[0.14em] text-bark-500">
         404 / no record
       </p>
       <h1 className="mt-3 font-display text-4xl leading-none tracking-tight">

@@ -172,7 +172,7 @@ function RequestForm({
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <HeartHandshake className="h-4 w-4" />}
         Request access
       </button>
-      <p className="text-center text-[11px] text-bark-400">
+      <p className="text-center text-[11.5px] text-bark-400">
         We verify each partner before enabling case tools.
       </p>
     </div>

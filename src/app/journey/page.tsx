@@ -50,7 +50,7 @@ export default function JourneyPage() {
               )}
               <span className="relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full bg-paw-600 ring-4 ring-paper dark:ring-ink" />
               <div className="flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{c.year}</p>
+                <p className="text-[11.5px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">{c.year}</p>
                 <h2 className="mt-1 font-display text-xl tracking-tight text-bark-900 dark:text-bark-50">{c.title}</h2>
                 <p className="mt-2 text-[15px] leading-relaxed text-bark-600 dark:text-bark-200">{c.body}</p>
               </div>

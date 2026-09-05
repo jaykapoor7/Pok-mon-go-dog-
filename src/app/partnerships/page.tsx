@@ -58,13 +58,13 @@ export default function PartnershipsPage() {
       {/* who it's for */}
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <div className="rounded border border-black/[0.06] bg-white/70 p-6 dark:border-white/10 dark:bg-bark-900/50">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Who it&apos;s for</p>
+          <p className="text-[11.5px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Who it&apos;s for</p>
           <p className="mt-2 text-[15px] leading-relaxed text-bark-700 dark:text-bark-200">
             Street-animal rescues, ABC and vaccination programmes, feeders&apos; collectives, and municipal welfare teams, from a two-person group to a city-wide operation.
           </p>
         </div>
         <div className="rounded border border-black/[0.06] bg-white/70 p-6 dark:border-white/10 dark:bg-bark-900/50">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Your data, your rules</p>
+          <p className="text-[11.5px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Your data, your rules</p>
           <p className="mt-2 text-[15px] leading-relaxed text-bark-700 dark:text-bark-200">
             Each organisation gets a private dashboard. Only your team can see and manage your cases, animals and members. Nothing is shared without you.
           </p>

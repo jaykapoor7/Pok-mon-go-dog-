@@ -96,22 +96,63 @@ export async function POST(req: Request) {
     userId = userData.user?.id ?? null;
   }
 
-  const { data, error } = await supa.rpc("report_sighting", {
-    p_photo_url: photoUrl,
-    p_lat: lat,
-    p_lng: lng,
-    p_zone: String(body.zone ?? "India"),
-    p_nickname: body.nickname ? String(body.nickname) : null,
-    p_mood_tags: moods,
-    p_notes: body.notes ? String(body.notes) : null,
-    p_reporter_name: body.reporterName ? String(body.reporterName) : null,
-    p_owner_hash: ownerHash,
-    p_user_id: userId,
-    p_reporter_email: body.reporterEmail ? String(body.reporterEmail) : null,
-    // What the reporter said this is, if they recognised it. Treated as a
-    // claim to be reviewed, never as an identification.
-    p_claimed_dog_id: body.claimedDogId ? String(body.claimedDogId) : null,
-  });
+  /* An invite code, when present, decides which organisation this report
+     belongs to. It is re-resolved here on every submission rather than
+     trusted from the client: the browser sends a code, never an
+     organisation, so it cannot attribute work to an organisation it does
+     not hold a code for. An unrecognised code does not lose the report, it
+     files it as an ordinary public sighting. */
+  let orgCtx: { ngo_id: string; code_id: string } | null = null;
+  const inviteCode = body.inviteCode ? String(body.inviteCode).trim() : "";
+  const volunteerName = body.volunteerName ? String(body.volunteerName).trim() : "";
+  if (inviteCode) {
+    const { data: r } = await supa.rpc("resolve_invite_code", { p_code: inviteCode });
+    const resolved = r as { ok?: boolean; ngo_id?: string; code_id?: string } | null;
+    if (resolved?.ok && resolved.ngo_id && resolved.code_id) {
+      orgCtx = { ngo_id: resolved.ngo_id, code_id: resolved.code_id };
+    }
+  }
+
+  const sterilisation = body.sterilisationStatus ? String(body.sterilisationStatus) : null;
+  const vaccination = body.vaccinationStatus ? String(body.vaccinationStatus) : null;
+
+  const { data, error } = orgCtx
+    ? await supa.rpc("report_sighting_for_org", {
+        p_photo_url: photoUrl,
+        p_lat: lat,
+        p_lng: lng,
+        p_zone: String(body.zone ?? "India"),
+        p_ngo_id: orgCtx.ngo_id,
+        p_code_id: orgCtx.code_id,
+        p_volunteer_name: volunteerName || null,
+        p_nickname: body.nickname ? String(body.nickname) : null,
+        p_mood_tags: moods,
+        p_notes: body.notes ? String(body.notes) : null,
+        p_owner_hash: ownerHash,
+        p_user_id: userId,
+        p_reporter_email: body.reporterEmail ? String(body.reporterEmail) : null,
+        p_claimed_dog_id: body.claimedDogId ? String(body.claimedDogId) : null,
+        p_sterilisation_status: sterilisation,
+        p_vaccination_status: vaccination,
+      })
+    : await supa.rpc("report_sighting", {
+        p_photo_url: photoUrl,
+        p_lat: lat,
+        p_lng: lng,
+        p_zone: String(body.zone ?? "India"),
+        p_nickname: body.nickname ? String(body.nickname) : null,
+        p_mood_tags: moods,
+        p_notes: body.notes ? String(body.notes) : null,
+        p_reporter_name: body.reporterName ? String(body.reporterName) : null,
+        p_owner_hash: ownerHash,
+        p_user_id: userId,
+        p_reporter_email: body.reporterEmail ? String(body.reporterEmail) : null,
+        // What the reporter said this is, if they recognised it. Treated as
+        // a claim to be reviewed, never as an identification.
+        p_claimed_dog_id: body.claimedDogId ? String(body.claimedDogId) : null,
+        p_sterilisation_status: sterilisation,
+        p_vaccination_status: vaccination,
+      });
 
   if (error) {
     console.error("report_sighting failed:", error);
@@ -131,7 +172,11 @@ export async function POST(req: Request) {
     | null;
 
   // Ping the operator so the moderation queue gets looked at (best-effort).
-  const who = body.reporterName ? String(body.reporterName) : "A guest";
+  const who = volunteerName
+    ? `${volunteerName}${orgCtx ? " (organisation volunteer)" : ""}`
+    : body.reporterName
+      ? String(body.reporterName)
+      : "A guest";
   notifyTelegram(
     `🐾 <b>New sighting to review</b>\n${who} reported a dog near ${String(
       body.zone ?? "India"

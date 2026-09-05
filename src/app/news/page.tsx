@@ -63,7 +63,7 @@ export default async function NewsPage() {
         </div>
       )}
 
-      <p className="mt-8 text-center text-[11px] text-bark-400">
+      <p className="mt-8 text-center text-[11.5px] text-bark-400">
         Aggregated from Google News (India) · refreshed automatically
       </p>
     </div>

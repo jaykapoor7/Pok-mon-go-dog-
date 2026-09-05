@@ -107,7 +107,7 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
           </div>
           {dog.intake_notes && (
             <div>
-              <h2 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-bark-400">Intake notes</h2>
+              <h2 className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400">Intake notes</h2>
               <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-bark-700 dark:text-bark-200">{dog.intake_notes}</p>
             </div>
           )}
@@ -287,7 +287,7 @@ function MedicalPanel({ dog, canEdit, events, onAdded }: { dog: Dog; canEdit: bo
             <div key={e.id} className="relative">
               <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-paw-500" />
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-paw-50 px-2 py-0.5 text-[11px] font-semibold text-paw-700 dark:bg-paw-900/30 dark:text-paw-300">{kindLabel(e.kind)}</span>
+                <span className="rounded-full bg-paw-50 px-2 py-0.5 text-[11.5px] font-semibold text-paw-700 dark:bg-paw-900/30 dark:text-paw-300">{kindLabel(e.kind)}</span>
                 <span className="text-[12px] text-bark-400">{formatDate(e.event_date)}{e.performed_by ? ` · ${e.performed_by}` : ""}</span>
               </div>
               {e.notes && <p className="mt-1 text-[14px] leading-relaxed text-bark-700 dark:text-bark-200">{e.notes}</p>}

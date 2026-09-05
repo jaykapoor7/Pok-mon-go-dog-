@@ -148,7 +148,7 @@ export default function LearnPage() {
                   {r.topics.map((t) => (
                     <span
                       key={t}
-                      className="rounded-full bg-bark-50 px-2 py-0.5 text-[11px] font-medium text-bark-500"
+                      className="rounded-full bg-bark-50 px-2 py-0.5 text-[11.5px] font-medium text-bark-500"
                     >
                       {t}
                     </span>

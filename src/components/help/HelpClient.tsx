@@ -48,7 +48,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
       {/* hero */}
       <div className="card overflow-hidden">
         <div className="bg-paw-600 p-6 text-white sm:p-7">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">Lend a hand</p>
+          <p className="text-[11.5px] font-semibold uppercase tracking-widest text-white/70">Lend a hand</p>
           <h1 className="mt-1.5 font-display text-2xl tracking-tight sm:text-3xl">
             Animals near you need help
           </h1>
@@ -119,7 +119,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
                     <MapPin className="h-3.5 w-3.5" /> {dog.zone}
                   </p>
                   <span
-                    className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white"
+                    className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold text-white"
                     style={{ backgroundColor: meta.color }}
                   >
                     {meta.label}

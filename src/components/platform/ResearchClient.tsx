@@ -57,7 +57,7 @@ export function ResearchClient() {
             <p className="mt-0.5 text-[13px] font-medium text-bark-500">{r.org}</p>
             <p className="mt-2 text-sm leading-relaxed text-bark-600 dark:text-bark-300">{r.summary}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {r.topics.map((t) => <span key={t} className="rounded-full bg-bark-100 px-2 py-0.5 text-[11px] capitalize text-bark-500 dark:bg-bark-800">{t}</span>)}
+              {r.topics.map((t) => <span key={t} className="rounded-full bg-bark-100 px-2 py-0.5 text-[11.5px] capitalize text-bark-500 dark:bg-bark-800">{t}</span>)}
             </div>
           </article>
         ))}

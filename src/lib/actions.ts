@@ -36,6 +36,12 @@ export interface ReportInput {
   token?: string | null; // Cloudflare Turnstile token
   /** An animal the reporter says this is. A claim for review, not a match. */
   claimedDogId?: string | null;
+  /** Programme status, the two numbers an ABC and rabies drive is judged on. */
+  sterilisationStatus?: string;
+  vaccinationStatus?: string;
+  /** Organisation invite code and the volunteer's name, when reporting for one. */
+  inviteCode?: string | null;
+  volunteerName?: string | null;
 }
 
 export interface ReportResult {
@@ -115,6 +121,10 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
       reporterName: input.reporterName || null,
       reporterEmail: input.reporterEmail || null,
       claimedDogId: input.claimedDogId || null,
+      sterilisationStatus: input.sterilisationStatus ?? "unknown",
+      vaccinationStatus: input.vaccinationStatus ?? "unknown",
+      inviteCode: input.inviteCode || null,
+      volunteerName: input.volunteerName || null,
     }),
   });
 

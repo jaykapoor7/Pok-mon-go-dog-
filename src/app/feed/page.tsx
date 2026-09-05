@@ -17,7 +17,7 @@ export default async function FeedPage() {
     <div className="mx-auto max-w-xl px-4 sm:px-6">
       <header className="mb-6 flex items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Community</p>
+          <p className="text-[11.5px] font-semibold uppercase tracking-widest text-paw-600 dark:text-paw-300">Community</p>
           <h1 className="mt-1 font-display text-2xl tracking-tight sm:text-3xl">Sightings feed</h1>
           <p className="mt-1 text-sm text-bark-500">Fresh street-animal moments from across India.</p>
         </div>

@@ -105,7 +105,7 @@ export function FundraiserOwnerControls({ fundraiser }: { fundraiser: Fundraiser
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-bark-500">Amount raised so far (₹)</label>
                 <input type="number" inputMode="numeric" value={raised} onChange={(e) => setRaised(e.target.value)} placeholder="e.g. 12500" className={INPUT} />
-                <p className="mt-1 text-[11px] text-bark-400">Self-reported, shown as progress on your campaign.</p>
+                <p className="mt-1 text-[11.5px] text-bark-400">Self-reported, shown as progress on your campaign.</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <button

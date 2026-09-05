@@ -15,7 +15,7 @@ export function VerifiedBadge({
   size?: "sm" | "md";
   className?: string;
 }) {
-  const pad = size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs";
+  const pad = size === "sm" ? "px-2 py-0.5 text-[11.5px]" : "px-2.5 py-1 text-xs";
   const icon = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
 
   if (verified) {

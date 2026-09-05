@@ -317,7 +317,7 @@ export function MapLibreMap({
             style={{
               margin: 0,
               fontFamily: "var(--font-mono), monospace",
-              fontSize: 9,
+              fontSize: 11.5,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: "#ff6a4f",
