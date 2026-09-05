@@ -39,12 +39,39 @@ export function Hero() {
         className="sp-hero-canvas"
         aria-label="A street-level observation moving through the StrayPaw evidence system"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="sp-hero-img"
-          src="/hero/skyline-dog.jpg"
-          alt="A street dog on a rooftop overlooking an Indian city at golden hour"
-        />
+        {/* The largest paint on the site, so it is worth doing properly.
+            A phone was pulling the full 1920px JPEG (317 KiB) for a 390px
+            screen; the 640px AVIF is 16 KiB. fetchPriority and the absence of
+            lazy loading are what let the browser start it immediately, and
+            the intrinsic size stops it reserving the wrong box.
+
+            Kept as a plain <picture> rather than next/image: this fills its
+            container via CSS (inset, object-fit, a scroll-driven transform)
+            and the wrapper next/image adds fights all three. */}
+        <picture>
+          <source
+            type="image/avif"
+            sizes="100vw"
+            srcSet="/hero/skyline-dog-640.avif 640w, /hero/skyline-dog-1024.avif 1024w, /hero/skyline-dog-1440.avif 1440w, /hero/skyline-dog-1920.avif 1920w"
+          />
+          <source
+            type="image/webp"
+            sizes="100vw"
+            srcSet="/hero/skyline-dog-640.webp 640w, /hero/skyline-dog-1024.webp 1024w, /hero/skyline-dog-1440.webp 1440w, /hero/skyline-dog-1920.webp 1920w"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="sp-hero-img"
+            src="/hero/skyline-dog-1440.jpg"
+            srcSet="/hero/skyline-dog-640.jpg 640w, /hero/skyline-dog-1024.jpg 1024w, /hero/skyline-dog-1440.jpg 1440w, /hero/skyline-dog-1920.jpg 1920w"
+            sizes="100vw"
+            width={1920}
+            height={1403}
+            fetchPriority="high"
+            decoding="async"
+            alt="A street dog on a rooftop overlooking an Indian city at golden hour"
+          />
+        </picture>
         <div className="sp-hero-wash" />
         <div className="sp-hero-grain" />
 

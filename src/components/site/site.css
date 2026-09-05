@@ -234,6 +234,9 @@
   overflow: hidden;
 }
 .sp-hero-canvas { position: absolute; inset: 0; overflow: hidden; perspective: 1400px; }
+/* <picture> is an inline wrapper around the image; without this it becomes a
+   zero-height box in the flow while the image positions off it. */
+.sp-hero-canvas picture { display: contents; }
 .sp-hero-img {
   position: absolute;
   inset: -4%;
@@ -1598,7 +1601,8 @@
   color: #b8d1ff;
   transition: opacity 0.4s ease;
 }
-.chs-legend-n { color: #6c7c99; }
+/* Lighthouse flagged #6c7c99 here against the chip section's ink. */
+.chs-legend-n { color: #93a7c9; }
 
 .chs-layer-label::before {
   content: "";
@@ -1773,10 +1777,13 @@
 
 /* ── vector motion ──────────────────────────────────────────────── */
 
+/* The SVG geometry property takes a CSS length here, so the radius needs a
+   unit: unitless values are valid as an SVG attribute but not as CSS, and
+   a validator reads them as a grammar mismatch. */
 @keyframes sp-ping {
-  0%   { r: 22; opacity: 0.9; }
-  70%  { r: 54; opacity: 0; }
-  100% { r: 54; opacity: 0; }
+  0%   { r: 22px; opacity: 0.9; }
+  70%  { r: 54px; opacity: 0; }
+  100% { r: 54px; opacity: 0; }
 }
 @keyframes sp-sweep {
   from { transform: rotate(0deg); }

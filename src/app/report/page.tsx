@@ -271,7 +271,7 @@ export default function ReportPage() {
               </div>
               <div>
                 <label className="mb-2 block text-sm font-semibold">Email me when it&apos;s live</label>
-                <input type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
+                <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
                 <p className="mt-1.5 text-xs text-bark-400">We&apos;ll email you once it&apos;s approved and on the map. Only about your reports, no spam.</p>
               </div>
             </div>

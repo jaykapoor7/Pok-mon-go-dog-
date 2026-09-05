@@ -357,16 +357,16 @@ function SignInSheet({
 
             <form onSubmit={submit} className="mt-4 space-y-3">
               {live && mode === "signup" && (
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
+                <input value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
               )}
               {!live && (
-                <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
+                <input autoFocus value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
               )}
               {live && (
-                <input autoFocus={mode !== "signup"} type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
+                <input autoFocus={mode !== "signup"} type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
               )}
               {live && mode !== "reset" && (
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={mode === "signup" ? "Choose a password (min 6)" : "Password"} className={field} />
+                <input type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={mode === "signup" ? "Choose a password (min 6)" : "Password"} className={field} />
               )}
 
               <button type="submit" disabled={busy} className="btn-primary w-full py-3">

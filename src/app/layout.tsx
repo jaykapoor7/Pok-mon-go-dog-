@@ -5,6 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Chrome } from "@/components/nav/Chrome";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
+import { StructuredData } from "@/components/seo/StructuredData";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
@@ -96,7 +97,11 @@ export const viewport: Viewport = {
   themeColor: "#0b1020",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  /* No maximumScale. Capping it at 1 blocks pinch zoom, and this is used
+     outdoors on a phone by people who may need to enlarge the text. The
+     input-zoom it was presumably guarding against is handled by keeping
+     form fields at 16px instead. */
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -112,6 +117,7 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        <StructuredData siteUrl={siteUrl} />
       </head>
       <body className="min-h-dvh font-sans">
         <ThemeProvider>
