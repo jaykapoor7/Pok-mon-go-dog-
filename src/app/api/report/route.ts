@@ -108,6 +108,9 @@ export async function POST(req: Request) {
     p_owner_hash: ownerHash,
     p_user_id: userId,
     p_reporter_email: body.reporterEmail ? String(body.reporterEmail) : null,
+    // What the reporter said this is, if they recognised it. Treated as a
+    // claim to be reviewed, never as an identification.
+    p_claimed_dog_id: body.claimedDogId ? String(body.claimedDogId) : null,
   });
 
   if (error) {

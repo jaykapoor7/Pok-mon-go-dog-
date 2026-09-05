@@ -16,6 +16,7 @@ import { LocationPicker } from "@/components/report/LocationPicker";
 import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
+import { AnimalMatch } from "@/components/report/AnimalMatch";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
 const STEPS = ["Photo", "Location", "Details", "Confirm"] as const;
@@ -41,6 +42,8 @@ export default function ReportPage() {
   const [c1, setC1] = useState(false);
   const [c2, setC2] = useState(false);
   const [c3, setC3] = useState(false);
+  /* An animal the reporter recognises. Sent as a claim; review decides. */
+  const [claimedDogId, setClaimedDogId] = useState<string | null>(null);
 
   const handleVerify = useCallback((t: string | null) => setToken(t), []);
   useEffect(() => { if (user?.email) setEmail((cur) => cur || user.email!); }, [user?.email]);
@@ -91,6 +94,7 @@ export default function ReportPage() {
         lat: coords.lat, lng: coords.lng, zone: zone ?? nearestCity(coords.lat, coords.lng),
         nickname: nickname.trim(), moods, notes: notes.trim(),
         reporterName: user?.name ?? "", reporterEmail: email.trim() || undefined, token,
+        claimedDogId,
       });
       setStatus("done");
     } catch (e) {
@@ -103,7 +107,7 @@ export default function ReportPage() {
   function resetForm() {
     setStep(0); setStatus("idle"); setPhoto(null); setFile(null); setCoords(null); setZone(null);
     setNickname(""); setMoods([]); setNotes(""); setEmail(user?.email ?? ""); setToken(null);
-    setC1(false); setC2(false); setC3(false); setError(null);
+    setC1(false); setC2(false); setC3(false); setError(null); setClaimedDogId(null);
   }
 
   const field = "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
@@ -232,6 +236,14 @@ export default function ReportPage() {
                   })}
                 </div>
               </div>
+              {coords && (
+                <AnimalMatch
+                  lat={coords.lat}
+                  lng={coords.lng}
+                  value={claimedDogId}
+                  onChange={setClaimedDogId}
+                />
+              )}
               <div>
                 <label className="mb-2 block text-sm font-semibold">Notes</label>
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Seen near the chai stall, limps slightly, very friendly." className={`${field} resize-none`} />

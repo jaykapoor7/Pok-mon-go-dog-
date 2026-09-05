@@ -34,6 +34,8 @@ export interface ReportInput {
   reporterName?: string;
   reporterEmail?: string; // optional, notify when the sighting goes live
   token?: string | null; // Cloudflare Turnstile token
+  /** An animal the reporter says this is. A claim for review, not a match. */
+  claimedDogId?: string | null;
 }
 
 export interface ReportResult {
@@ -68,12 +70,14 @@ export async function uploadPhoto(file: File): Promise<string> {
 export async function reportSighting(input: ReportInput): Promise<ReportResult> {
   const supa = getSupabase();
 
-  // Local / no-config: simulate the pipeline.
+  /* Without a backend there is nowhere to put this. Returning a trust score
+     here told the reporter their sighting was filed when nothing had been
+     written anywhere — the one failure mode that costs us the observation and
+     the reporter's trust at the same time. */
   if (!supa) {
-    await wait(900);
-    const trust =
-      40 + 20 + (input.notes ? 10 : 0) + (input.nickname ? 8 : 0) + 12;
-    return { dogId: null, sightingId: null, trust: Math.min(100, trust) };
+    throw new Error(
+      "Reporting is not available right now — the record store is not reachable. Nothing was saved, so please try again shortly."
+    );
   }
 
   // Upload the photo to storage (client-side, anon).
@@ -110,6 +114,7 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
       notes: input.notes || null,
       reporterName: input.reporterName || null,
       reporterEmail: input.reporterEmail || null,
+      claimedDogId: input.claimedDogId || null,
     }),
   });
 

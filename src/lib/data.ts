@@ -419,3 +419,36 @@ export async function getZoneCoverage() {
     }))
     .sort((a, b) => b.underserved - a.underserved);
 }
+
+
+/* Animals already recorded near a point, for a reporter or reviewer to choose
+   from. Proximity narrows the list; a person decides. Nothing here links an
+   observation to an animal on its own. */
+export type AnimalCandidate = {
+  id: string;
+  name: string | null;
+  zone: string | null;
+  cover_photo: string | null;
+  status: string | null;
+  sightings_count: number | null;
+  last_seen: string | null;
+  distance_m: number;
+};
+
+export async function nearbyAnimals(
+  lat: number,
+  lng: number,
+  radiusM = 300,
+  limit = 8
+): Promise<AnimalCandidate[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.rpc("nearby_animals", {
+    p_lat: lat,
+    p_lng: lng,
+    p_radius_m: radiusM,
+    p_limit: limit,
+  });
+  if (error || !Array.isArray(data)) return [];
+  return data as AnimalCandidate[];
+}
