@@ -47,6 +47,12 @@ function mapDog(row: any): Dog {
     needs_help: row.needs_help ?? false,
     sterilised: row.sterilised ?? false,
     vaccinated: row.vaccinated ?? false,
+    /* Falls back to the booleans on a database that has not run the ABC
+       migration, where a false genuinely is all that was ever recorded. */
+    sterilisation_status:
+      row.sterilisation_status ?? (row.sterilised ? "sterilised" : "unknown"),
+    vaccination_status:
+      row.vaccination_status ?? (row.vaccinated ? "vaccinated" : "unknown"),
     ear_notch: row.ear_notch ?? null,
     trust_score: row.trust_score ?? 50,
     sightings_count: row.sightings_count ?? 1,

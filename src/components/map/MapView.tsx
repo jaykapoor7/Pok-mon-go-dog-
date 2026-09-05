@@ -8,6 +8,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { orgAnimals } from "@/lib/programme";
 import {
   markerStateFor,
   fedRecently,
@@ -68,7 +69,42 @@ export function MapView({
 
   const sLat = parseFloat(params.get("lat") ?? "");
   const sLng = parseFloat(params.get("lng") ?? "");
-  const center = Number.isFinite(sLat) && Number.isFinite(sLng) ? { lat: sLat, lng: sLng } : null;
+  const urlCentre =
+    Number.isFinite(sLat) && Number.isFinite(sLng) ? { lat: sLat, lng: sLng } : null;
+
+  /* Where an organisation actually works.
+
+     Opening on a map of all India is useless to a team in Chennai: they
+     have to pan and zoom before they can do anything. The centre of the
+     animals they have on the register is the best available answer to
+     "where is your work", and it needs no extra data and no geocoding.
+
+     Order of preference: an explicit lat/lng in the URL, then the
+     organisation's own records, then the browser's location, then whatever
+     the map defaults to. */
+  const [orgCentre, setOrgCentre] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    orgAnimals({ limit: 300 })
+      .then((rows) => {
+        if (!live) return;
+        const pts = rows.filter(
+          (r) => typeof r.lat === "number" && typeof r.lng === "number" && r.lat !== 0 && r.lng !== 0
+        );
+        if (pts.length === 0) return;
+        setOrgCentre({
+          lat: pts.reduce((n, r) => n + (r.lat as number), 0) / pts.length,
+          lng: pts.reduce((n, r) => n + (r.lng as number), 0) / pts.length,
+        });
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const center = urlCentre ?? orgCentre ?? coords;
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
@@ -427,7 +463,7 @@ function CaseDrawer({
             color: needsHelp ? INK : "#fff",
             borderRadius: 2,
           }}>
-            {needsHelp ? "NEEDS FOLLOW-UP" : "MONITORING"}
+            {needsHelp ? "NEEDS FOLLOW-UP" : "ON RECORD"}
           </span>
         </div>
       </div>
@@ -440,34 +476,80 @@ function CaseDrawer({
             {new Date(dog.last_seen).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {timeAgo(dog.last_seen)}
           </div>
           <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.72)", marginTop: 2, letterSpacing: "0.08em" }}>📍 {formatPlace(dog.zone, dog.city)}</div>
-          {dist != null && <div style={{ fontSize: 11.5, color: MINT, marginTop: 2 }}>{fmtDist(dist)} from you</div>}
+          {/* Only when it means something. "11,965 km from you" is a
+              correct calculation and a useless sentence; past about 200km
+              this animal is not one you are going to walk to. */}
+          {dist != null && dist < 200_000 && (
+            <div style={{ fontSize: 11.5, color: MINT, marginTop: 2 }}>{fmtDist(dist)} from you</div>
+          )}
         </DrawerSection>
 
-        {/* nearby vet */}
-        <DrawerSection label="NEARBY VET">
-          <ResourceRow
-            name="Paws & Claws Vet Clinic"
-            detail="0.9 km · Open"
-            color={MINT}
-          />
-        </DrawerSection>
+        {/* What the record actually holds.
 
-        {/* nearby shelter */}
-        <DrawerSection label="NEARBY SHELTER">
-          <ResourceRow
-            name="Friendicoes, Kailash Colony"
-            detail="1.6 km · Space Available"
-            color={MINT}
-          />
-        </DrawerSection>
+            Three blocks used to sit here: a named vet clinic, a named
+            shelter with "Space Available", and "3 volunteers nearby, est.
+            12 min arrival". All three were hardcoded strings. StrayPaw has
+            no vet directory with opening hours, no shelter capacity feed,
+            and no volunteer dispatch, so every one of those was a sentence
+            that looked like data and was not.
 
-        {/* volunteer route */}
-        <DrawerSection label="VOLUNTEER ROUTE">
-          <ResourceRow
-            name="3 volunteers nearby"
-            detail="Est. 12 min arrival"
-            color="#a8ddd0"
-          />
+            What replaces them is what this animal's record genuinely says.
+            Where it says nothing, it says so. */}
+        <DrawerSection label="ON RECORD">
+          <div style={{ display: "grid", gap: 6 }}>
+            <Fact
+              label="Sterilised"
+              value={
+                dog.sterilisation_status === "sterilised"
+                  ? "Yes"
+                  : dog.sterilisation_status === "not_sterilised"
+                    ? "No"
+                    : "Not established"
+              }
+              color={
+                dog.sterilisation_status === "sterilised"
+                  ? MINT
+                  : dog.sterilisation_status === "not_sterilised"
+                    ? SAFFRON
+                    : "rgba(255,255,255,0.55)"
+              }
+            />
+            <Fact
+              label="Rabies vaccinated"
+              value={
+                dog.vaccination_status === "vaccinated"
+                  ? "Yes"
+                  : dog.vaccination_status === "not_vaccinated"
+                    ? "No"
+                    : "Not established"
+              }
+              color={
+                dog.vaccination_status === "vaccinated"
+                  ? MINT
+                  : dog.vaccination_status === "not_vaccinated"
+                    ? SAFFRON
+                    : "rgba(255,255,255,0.55)"
+              }
+            />
+            <Fact
+              label="Observations"
+              value={String(dog.sightings_count ?? 0)}
+              color="rgba(255,255,255,0.88)"
+            />
+            <Fact
+              label="First recorded"
+              value={
+                dog.first_seen
+                  ? new Date(dog.first_seen).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "Not recorded"
+              }
+              color="rgba(255,255,255,0.88)"
+            />
+          </div>
         </DrawerSection>
 
         {/* case notes */}
@@ -543,12 +625,29 @@ function CaseDrawer({
           }}
         >
           <PawIcon size={14} />
-          CONNECT HELP
+          I SAW THIS ANIMAL TODAY
         </button>
-        <div style={{ textAlign: "center", marginTop: 8, fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.84)" }}>
-          (·) ALERT VOLUNTEERS & NGOS
+        {/* It said CONNECT HELP, under the words ALERT VOLUNTEERS & NGOS.
+            The button logs a sighting. There is no dispatch, nobody is
+            paged, and a button that claims to summon help and does not is
+            worse than no button. */}
+        <div style={{ textAlign: "center", marginTop: 8, fontSize: 10.5, letterSpacing: "0.06em", lineHeight: 1.5, color: "rgba(255,255,255,0.6)" }}>
+          Adds today&rsquo;s date to this animal&rsquo;s record.{" "}
+          <Link href="/report" style={{ color: MINT, textDecoration: "underline" }}>
+            Report a problem
+          </Link>{" "}
+          if it needs help.
         </div>
       </div>
+    </div>
+  );
+}
+
+function Fact({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, fontSize: 12 }}>
+      <span style={{ color: "rgba(255,255,255,0.6)" }}>{label}</span>
+      <span style={{ color, fontWeight: 600 }}>{value}</span>
     </div>
   );
 }
@@ -562,15 +661,4 @@ function DrawerSection({ label, children }: { label: string; children: React.Rea
   );
 }
 
-function ResourceRow({ name, detail, color }: { name: string; detail: string; color: string }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div>
-        <div style={{ fontSize: 12, color: "#fff", letterSpacing: "0.06em" }}>{name}</div>
-        <div style={{ fontSize: 11.5, color: color, marginTop: 2, letterSpacing: "0.08em", opacity: 0.8 }}>{detail}</div>
-      </div>
-      <ChevronRight size={12} />
-    </div>
-  );
-}
 

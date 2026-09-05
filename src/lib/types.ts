@@ -141,8 +141,14 @@ export interface Dog {
   color: string;
   is_friendly: boolean;
   needs_help: boolean;
+  /* Kept for the map's colour coding and the older callers that count
+     them. They cannot express "nobody has checked", which is why the
+     three-valued fields below exist and are what gets shown to a person. */
   sterilised: boolean;
   vaccinated: boolean;
+  /* What the record actually says. An unknown is not a no. */
+  sterilisation_status?: "sterilised" | "not_sterilised" | "unknown";
+  vaccination_status?: "vaccinated" | "not_vaccinated" | "unknown";
   ear_notch?: string | null; // ABC sterilisation mark: 'left' | 'right' | 'both'
   trust_score: number; // aggregate confidence of the profile
   sightings_count: number;
