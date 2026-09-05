@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { action?: string; id?: string };
+  let body: { action?: string; id?: string; dogId?: string };
   try {
     body = await req.json();
   } catch {
