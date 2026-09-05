@@ -1395,9 +1395,13 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
     z-index: 30;
     transform: translateX(-100%);
     transition: transform 0.24s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  /* Shadow only while open. A 40px blur on a drawer parked at -100% spills
+     back across the left edge of the page as a grey band. */
+  .spa-side.open {
+    transform: none;
     box-shadow: 0 0 40px rgba(11, 16, 32, 0.25);
   }
-  .spa-side.open { transform: none; }
   .spa-side a { min-height: 44px; font-size: 13.5px; }
   .spa-menu-btn { display: flex; }
   .spa-scrim.show { display: block; }

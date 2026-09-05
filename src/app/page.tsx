@@ -33,9 +33,9 @@ const GOA_ANIMALS = Math.round(
 import "@/components/site/site.css";
 
 export const metadata = {
-  title: "StrayPaw — Infrastructure for street-animal management",
+  title: "StrayPaw — a shared record for India's street animals",
   description:
-    "StrayPaw builds the infrastructure layer that makes community-animal populations identifiable, observable, and actionable. Every animal an identity. Every intervention an outcome.",
+    "Every street animal gets a permanent ID and a record that follows it. Residents, field teams and municipalities write to the same map, so coverage can be counted instead of estimated.",
 };
 
 /* Said plainly and early: what the thing actually consists of, before any
@@ -49,7 +49,7 @@ const PARTS = [
   {
     Icon: MapIcon,
     title: "Shared map",
-    body: "Residents, field teams and municipalities write to one record layer.",
+    body: "Residents, field teams and municipalities all write to the same map.",
   },
   {
     Icon: Stethoscope,
@@ -158,7 +158,7 @@ export default function HomePage() {
         <section className="sp-loop" id="how">
           <Reveal>
             <div className="sp-kicker">
-              THE INFRASTRUCTURE LOOP.{" "}
+              HOW ONE SIGHTING GROWS.{" "}
               <span>SEE → IDENTIFY → ACT → MEASURE → REPEAT.</span>
             </div>
           </Reveal>
@@ -172,8 +172,8 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={120}>
               <p className="sp-loop-body">
-                Not a reporting app, and not a charity platform. An operating
-                layer that makes populations identifiable and manageable.
+                One animal, seen once, is an anecdote. The same animal seen
+                again — by someone else, months later — is a measurement.
               </p>
             </Reveal>
           </div>
@@ -195,6 +195,44 @@ export default function HomePage() {
 
         {/* ── CHIP + IDENTITY ─────────────────────────────────────── */}
         <ChipScroll />
+
+        {/* ── WHAT IT ADDS UP TO ───────────────────────────────────────
+            Deliberately placed here and not in the hero. The visitor should
+            have followed one dog through one record before being asked to
+            think about what a million of them amount to; led with, the same
+            idea reads as a data-platform pitch about animals. */}
+        <section className="sp-thesis">
+          <Reveal>
+            <div className="sp-kicker">WHAT IT ADDS UP TO</div>
+          </Reveal>
+          <div className="sp-thesis-grid">
+            <Reveal delay={80}>
+              <h2 className="sp-display sp-thesis-heading">
+                Every encounter
+                <br />
+                <span>becomes data.</span>
+              </h2>
+            </Reveal>
+            <Reveal delay={160}>
+              <div className="sp-thesis-body">
+                <p>
+                  Someone stops on a street they walk every day, looks at a dog
+                  they have seen a hundred times, and writes down what they saw.
+                  On its own that is one small act of attention.
+                </p>
+                <p>
+                  Repeated across a lane, a ward, a city, it becomes a record of
+                  the physical world that nobody was keeping — built by the
+                  people who live in it, about the part of it they walk past.
+                </p>
+                <p className="sp-thesis-close">
+                  We start with street animals because they are the part almost
+                  nobody writes down.
+                </p>
+              </div>
+            </Reveal>
+          </div>
+        </section>
 
         {/* ── WHO IT'S FOR ────────────────────────────────────────── */}
         <section className="sp-for" id="for">
@@ -315,7 +353,7 @@ export default function HomePage() {
           <div className="sp-footer-grid">
             <Reveal>
               <div>
-                <div className="sp-kicker light">THE INFRASTRUCTURE LAYER</div>
+                <div className="sp-kicker light">WHERE TO GO NEXT</div>
                 <h2 className="sp-display">
                   Start with one animal.
                   <br />

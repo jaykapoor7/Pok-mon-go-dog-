@@ -1688,6 +1688,26 @@
   margin: 10px 0 0;
 }
 
+/* ── what it adds up to ───────────────────────────────────────── */
+
+.sp-thesis { padding: 9vw 8vw; background: var(--bone); }
+.sp-thesis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6vw;
+  align-items: start;
+  margin-top: 26px;
+}
+.sp-thesis-heading { font-size: clamp(40px, 5.4vw, 76px); margin: 0; }
+.sp-thesis-heading span { color: var(--electric); }
+.sp-thesis-body { display: grid; gap: 16px; max-width: 520px; }
+.sp-thesis-body p { margin: 0; font-size: 15.5px; line-height: 1.68; color: #4b5361; }
+.sp-thesis-close {
+  padding-top: 15px;
+  border-top: 1px solid rgba(11, 16, 32, 0.12);
+  color: #1a2233 !important;
+}
+
 /* ── who it's for ─────────────────────────────────────────────── */
 
 .sp-for { padding: 13vw 8vw 11vw; background: var(--ink); color: var(--paper); }
@@ -1884,6 +1904,8 @@
   .sp-footer-bottom { flex-direction: column; }
   /* new sections mobile */
   .sp-loop-stages { grid-template-columns: 1fr 1fr; }
+  .sp-thesis { padding: 15vw 6vw; }
+  .sp-thesis-grid { grid-template-columns: 1fr; gap: 26px; }
   /* One column, chip above the copy. The section stays pinned — letting it
      grow to `auto` unpinned the scroll and left four stacked copy stages,
      three of them at zero opacity, as a screen-tall void. */

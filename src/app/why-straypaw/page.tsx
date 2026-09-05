@@ -138,14 +138,14 @@ export default function WhyStrayPawPage() {
       <Band
         tone="bone"
         kicker="WHAT WE ACTUALLY BUILD"
-        title="Infrastructure, not"
-        accent="another campaign."
+        title="Identity, record,"
+        accent="measurement."
       >
         <p className="mk-body">
-          StrayPaw is not a charity and not a reporting app. It is the layer
-          underneath both: identity for the animal, a shared record for the
-          people working on it, and a measurement trail that lets an
-          intervention be judged on what changed rather than what was spent.
+          Three things: a permanent identity for the animal, a shared record
+          for the people working on it, and a measurement trail — so an
+          intervention can be judged on what changed rather than what was
+          spent.
         </p>
         <Steps
           items={[
