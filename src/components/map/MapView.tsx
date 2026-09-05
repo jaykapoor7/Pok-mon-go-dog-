@@ -9,6 +9,7 @@ import { celebrate } from "@/lib/celebrate";
 import { logSeen, logFeed } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { orgAnimals } from "@/lib/programme";
+import { CITY_STERILISATION_RATES } from "@/lib/platform/network";
 import {
   markerStateFor,
   fedRecently,
@@ -561,45 +562,15 @@ function CaseDrawer({
           </DrawerSection>
         )}
 
-        {/* What it costs to sterilise one animal. Real, sourced figure, the previous per-animal care costs here were invented. */}
-        <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12 }}>
-          <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.66)", marginBottom: 10 }}>
-            COST TO STERILISE
-          </div>
+        {/* What it costs to sterilise one animal.
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Per animal</span>
-            <span style={{ fontSize: 17, fontWeight: 700, color: SAFFRON }}>
-              {inr(UNIT_COSTS.sterilisation.value)}
-            </span>
-          </div>
-
-          <p style={{ margin: "0 0 12px", fontSize: 10.5, lineHeight: 1.6, color: "rgba(255,255,255,0.5)", letterSpacing: "0.04em" }}>
-            AWBI-notified ceiling, ABC (Dogs) Rules {UNIT_COSTS.sterilisation.year}.
-            Not a StrayPaw estimate.
-          </p>
-
-          <Link
-            href="/what-would-it-take"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              padding: "10px 0",
-              background: "rgba(102,197,213,0.1)",
-              border: `1px solid rgba(102,197,213,0.25)`,
-              borderRadius: 4,
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "0.11em",
-              color: MINT,
-              textDecoration: "none",
-            }}
-          >
-            COST A FULL PROGRAMME
-          </Link>
-        </div>
+            The AWBI figure is a national ceiling, not what any particular
+            city pays, and the published municipal rates run from Rs 900 to
+            Rs 1,650. Showing one number for the whole country when the real
+            spread is that wide is the kind of tidy answer that turns out to
+            be wrong for the person using it. So: pick a city, and where one
+            has published a rate, that is what you get, with its source. */}
+        <CostBlock />
       </div>
 
       {/* connect help CTA */}
@@ -639,6 +610,64 @@ function CaseDrawer({
           if it needs help.
         </div>
       </div>
+    </div>
+  );
+}
+
+function CostBlock() {
+  const [city, setCity] = useState<string>("");
+  const rate = CITY_STERILISATION_RATES.find((r) => r.city === city);
+  const value = rate ? rate.value : UNIT_COSTS.sterilisation.value;
+
+  return (
+    <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12 }}>
+      <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.66)", marginBottom: 10 }}>
+        COST TO STERILISE
+      </div>
+
+      <select
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        aria-label="Where"
+        style={{
+          width: "100%", marginBottom: 10, padding: "7px 9px",
+          background: "rgba(255,255,255,0.07)",
+          border: `1px solid ${BORDER}`, borderRadius: 3,
+          color: "#fff", fontSize: 12, fontFamily: "inherit",
+        }}
+      >
+        <option value="" style={{ color: "#111" }}>All India (AWBI ceiling)</option>
+        {CITY_STERILISATION_RATES.map((r) => (
+          <option key={r.city} value={r.city} style={{ color: "#111" }}>
+            {r.city}, {r.state}
+          </option>
+        ))}
+      </select>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Per animal</span>
+        <span style={{ fontSize: 17, fontWeight: 700, color: SAFFRON }}>{inr(value)}</span>
+      </div>
+
+      <p style={{ margin: "0 0 12px", fontSize: 10.5, lineHeight: 1.6, color: "rgba(255,255,255,0.5)", letterSpacing: "0.04em" }}>
+        {rate
+          ? `${rate.source}, ${rate.year}. Not a StrayPaw estimate.`
+          : `AWBI-notified ceiling, ABC (Dogs) Rules ${UNIT_COSTS.sterilisation.year}. A national ceiling, not what any one city pays. Not a StrayPaw estimate.`}
+      </p>
+
+      <Link
+        href="/what-would-it-take"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center",
+          width: "100%", padding: "10px 0",
+          background: "rgba(102,197,213,0.1)",
+          border: `1px solid rgba(102,197,213,0.25)`,
+          borderRadius: 4, fontSize: 12, fontWeight: 700,
+          letterSpacing: "0.11em", color: MINT, textDecoration: "none",
+        }}
+      >
+        COST A FULL PROGRAMME
+      </Link>
     </div>
   );
 }

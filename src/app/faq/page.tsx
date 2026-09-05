@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BackLink } from "@/components/app/BackLink";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -238,6 +239,7 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
 export default function FaqPage() {
   return (
     <div className="faq">
+      <BackLink label="Back" />
       <header>
         <h1>Questions</h1>
         <p>

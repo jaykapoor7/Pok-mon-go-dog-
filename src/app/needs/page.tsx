@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/app/BackLink";
 import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import {
@@ -27,6 +28,7 @@ export default function NeedsPage() {
 
   return (
     <AppShell>
+      <BackLink label="Back to the evidence" to="/evidence" />
       <div className="spa-head">
         <div>
           <span className="spa-mono">Evidence layer / needs</span>

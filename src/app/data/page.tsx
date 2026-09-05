@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BackLink } from "@/components/app/BackLink";
 import { DatasetClient } from "@/components/data/DatasetClient";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 export default function DataPage() {
   return (
     <div className="ds">
+      <BackLink label="Back to the evidence" to="/evidence" />
       <header>
         <h1>Published data</h1>
         <p className="ds-lede">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/app/BackLink";
 import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { StateExplorer, type StateRow } from "@/components/app/StateExplorer";
@@ -58,6 +59,7 @@ export default function GapsPage() {
 
   return (
     <AppShell>
+      <BackLink label="Back to the evidence" to="/evidence" />
       <div className="spa-head">
         <div>
           <span className="spa-mono">Evidence layer / what is known</span>

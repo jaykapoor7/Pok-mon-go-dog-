@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/app/BackLink";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { PreLaunch } from "@/components/app/PreLaunch";
@@ -25,6 +26,7 @@ const RECORD_FIELDS = [
 export default function OutcomesPage() {
   return (
     <AppShell>
+      <BackLink label="Back to the evidence" to="/evidence" />
       <div className="spa-head">
         <div>
           <span className="spa-mono">Evidence layer / outcomes</span>

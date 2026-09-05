@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/app/BackLink";
 import { ArrowUpRight, FileText } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { PreLaunch } from "@/components/app/PreLaunch";
@@ -14,6 +15,7 @@ export const metadata = {
 export default function StudiesPage() {
   return (
     <AppShell>
+      <BackLink label="Back to the evidence" to="/evidence" />
       <div className="spa-head">
         <div>
           <span className="spa-mono">Evidence layer / studies</span>

@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app/AppShell";
+import { BackLink } from "@/components/app/BackLink";
 import { WWITClient } from "@/components/app/WWITClient";
 import { STATES } from "@/lib/platform/geography";
 import { DATASETS } from "@/lib/platform/datasets";
@@ -51,6 +52,7 @@ export default function WhatWouldItTakePage() {
 
   return (
     <AppShell>
+      <BackLink label="Back to the evidence" to="/evidence" />
       <div className="spa-head">
         <div>
           <span className="spa-mono">Planning / scoping tool</span>

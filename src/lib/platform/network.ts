@@ -93,6 +93,78 @@ export const UNIT_COSTS: Record<Objective, Sourced<number>> = {
   },
 };
 
+/* ── City sterilisation rates ────────────────────────────────────────
+   The AWBI figure above is a national ceiling, not what a city pays. What
+   municipalities actually reimburse varies by more than half, which
+   matters a great deal when you are costing a programme for one place.
+
+   Every rate here is one a municipal body has published or has been
+   reported paying, each with its source. None is interpolated, averaged or
+   adjusted. A city not on this list gets the national ceiling and is told
+   that is what it is getting, because inventing a local rate would
+   undermine every other figure on the page.
+
+   The central government's own assistance line is included because it is
+   the floor beneath all of these: what a local body can claim back, not
+   what the surgery costs. */
+export type CityRate = {
+  city: string;
+  state: string;
+  value: number;
+  year: number;
+  source: string;
+  confidence: Confidence;
+};
+
+export const CITY_STERILISATION_RATES: CityRate[] = [
+  {
+    city: "Ludhiana",
+    state: "Punjab",
+    value: 1650,
+    year: 2025,
+    source:
+      "Ludhiana Municipal Corporation, proposed rate aligned to the AWBI ceiling, reported in The Tribune",
+    confidence: "medium",
+  },
+  {
+    city: "Delhi",
+    state: "Delhi",
+    value: 1000,
+    year: 2025,
+    source:
+      "Delhi ABC programme per-surgery reimbursement, reported in VOSD's analysis of programme spending 2001 to 2025",
+    confidence: "medium",
+  },
+  {
+    city: "Solan",
+    state: "Himachal Pradesh",
+    value: 939,
+    year: 2024,
+    source:
+      "Solan Municipal Corporation contracted rate per dog, catch to release, reported in The Tribune",
+    confidence: "medium",
+  },
+  {
+    city: "Amritsar",
+    state: "Punjab",
+    value: 900,
+    year: 2024,
+    source:
+      "Amritsar Municipal Corporation, cost per sterilisation at its own centres, reported in The Tribune",
+    confidence: "medium",
+  },
+];
+
+/* What a local body can claim back from the centre. Not a surgery cost. */
+export const CENTRAL_ABC_ASSISTANCE: Sourced<number> = {
+  value: 800,
+  unit: "per dog, central assistance to local bodies",
+  year: 2023,
+  source:
+    "Animal Birth Control (Dogs) Rules, 2023: central financial assistance to SPCAs and local bodies, up to Rs 800 per dog",
+  confidence: "high",
+};
+
 export const OBJECTIVE_META: Record<
   Objective,
   { label: string; question: string; verb: string }
