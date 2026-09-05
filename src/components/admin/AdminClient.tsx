@@ -786,7 +786,7 @@ export function AdminClient() {
     {
       title: "Access",
       items: [
-        { key: "orgs", label: "Organisations", icon: <Building2 className="h-4 w-4" />, count: 0 },
+        { key: "orgs", label: "Organisations", icon: <Building2 className="h-4 w-4" />, count: orgs.length },
       ],
     },
     {
@@ -811,7 +811,12 @@ export function AdminClient() {
   const activeTab = TABS.find((t) => t.key === tab);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
+    /* Locked light. This is a console for reading tables in, and in dark
+       mode the page picked up the app's near-black ground, which is a poor
+       surface for dense rows of small text and is not what anybody wants
+       to moderate on. */
+    <div className="mod-page">
+     <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded bg-paw-500 text-white shadow-warm">
@@ -1024,6 +1029,7 @@ export function AdminClient() {
       ))}
         </div>
       </div>
+     </div>
     </div>
   );
 }

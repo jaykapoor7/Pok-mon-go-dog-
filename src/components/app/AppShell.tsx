@@ -48,8 +48,8 @@ import "./app.css";
 /* Everyone sees these. The console is one view, community reporters and NGO
    staff work the same map and the same records. */
 const COMMUNITY = [
-  { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/map", label: "Living map", Icon: MapPin },
+  { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/report", label: "Report an animal", Icon: Radio },
   { href: "/following", label: "Following", Icon: Bookmark },
   { href: "/orgs", label: "Directory", Icon: Building2 },
@@ -89,10 +89,10 @@ const WORKSPACE = [
 /* One column, three sections, only one of them expanded at a time. */
 const SECTIONS: {
   key: string;
-  label: string | null;
+  label: string;
   items: { href: string; label: string; Icon: typeof Home }[];
 }[] = [
-  { key: "community", label: null, items: COMMUNITY },
+  { key: "community", label: "Community", items: COMMUNITY },
   { key: "evidence", label: "Evidence", items: EVIDENCE },
   { key: "workspace", label: "Workspace", items: WORKSPACE },
 ];
@@ -299,18 +299,19 @@ export function AppShell({
             const shown = openSection === null ? here : openSection === key;
             return (
               <div key={key} className="spa-sect">
-                {label && (
-                  <button
-                    type="button"
-                    className={`spa-side-label ${shown ? "on" : ""}`}
-                    aria-expanded={shown}
-                    onClick={() => setOpenSection(shown ? "none" : key)}
-                  >
-                    {label}
+                <button
+                  type="button"
+                  className={`spa-side-label ${shown ? "on" : ""}`}
+                  aria-expanded={shown}
+                  onClick={() => setOpenSection(shown ? "none" : key)}
+                >
+                  <span>{label}</span>
+                  <span className="spa-side-count">
+                    {links.length}
                     <ChevronDown size={13} />
-                  </button>
-                )}
-                {(shown || !label) &&
+                  </span>
+                </button>
+                {shown &&
                   links.map(({ href, label: l, Icon }) => (
                     <Link
                       key={href}
@@ -326,9 +327,6 @@ export function AppShell({
             );
           })}
 
-          <div className="spa-side-foot">
-            <ProfilePanel role={role} onNavigate={() => setOpen(false)} />
-          </div>
         </nav>
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>

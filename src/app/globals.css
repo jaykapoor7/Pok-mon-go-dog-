@@ -286,3 +286,37 @@
   }
 }
 
+
+/* ── moderation console, locked light ──────────────────────────────
+   A page of dense tables read for minutes at a time. In dark mode it
+   inherited the app's near-black ground, which made small rows hard work
+   and is not a surface anybody chooses to moderate on. Rather than
+   scatter dark: overrides through the component, the page pins its own
+   ground and lets the existing light styles apply. */
+
+.mod-page {
+  color-scheme: light;
+  min-height: 100vh;
+  margin-left: auto;
+  margin-right: auto;
+  background: #f7f9fc;
+  color: #141821;
+}
+.dark .mod-page,
+.mod-page .card,
+.mod-page input,
+.mod-page select,
+.mod-page textarea {
+  color: #141821;
+}
+.mod-page .card,
+.mod-page input,
+.mod-page select,
+.mod-page textarea {
+  background: #fff;
+  border-color: rgba(11, 16, 32, 0.11);
+}
+.mod-page code {
+  background: rgba(11, 16, 32, 0.05);
+  color: #141821;
+}

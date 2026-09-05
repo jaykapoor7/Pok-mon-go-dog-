@@ -179,12 +179,30 @@
   text-align: left;
 }
 .spa-side-label:hover { color: var(--ink); }
+/* The count and the arrow together are the affordance: a heading with a
+   number beside it reads as something that opens, where a bare word reads
+   as a label. The arrow alone was too quiet to notice. */
+.spa-side-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px 2px 7px;
+  border-radius: 999px;
+  background: rgba(11, 16, 32, 0.06);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+.spa-side-label:hover .spa-side-count { background: rgba(11, 16, 32, 0.11); }
 .spa-side-label svg {
   flex: none;
   transition: transform 0.18s ease;
   transform: rotate(-90deg);
 }
 .spa-side-label.on svg { transform: none; }
+.spa-side-label.on .spa-side-count {
+  background: var(--electric-ink);
+  color: var(--paper);
+}
 .spa-side-label:focus-visible {
   outline: 2px solid var(--electric);
   outline-offset: 2px;
