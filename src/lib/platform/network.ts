@@ -155,6 +155,28 @@ export const CITY_STERILISATION_RATES: CityRate[] = [
   },
 ];
 
+/* Which rate applies where an animal actually is.
+
+   Looking at one dog, nobody should be asked to choose a city: the animal
+   is somewhere and the record knows roughly where. The city field is tried
+   first, then the zone, because a zone in India is usually written as
+   "Kotturpuram, Chennai" or "Adyar" and the city name is often in it.
+
+   No match returns nothing, and the caller shows the national ceiling
+   saying it is a ceiling. Guessing a nearby city's rate would be inventing
+   a local price, which is the thing this table exists to avoid. */
+export function rateForPlace(
+  city?: string | null,
+  zone?: string | null
+): CityRate | null {
+  const hay = `${city ?? ""} ${zone ?? ""}`.toLowerCase();
+  if (!hay.trim()) return null;
+  return (
+    CITY_STERILISATION_RATES.find((r) => hay.includes(r.city.toLowerCase())) ??
+    null
+  );
+}
+
 /* What a local body can claim back from the centre. Not a surgery cost. */
 export const CENTRAL_ABC_ASSISTANCE: Sourced<number> = {
   value: 800,
@@ -374,7 +396,12 @@ export function whatWouldItTake(
   objective: Objective,
   scope = 1,
   teams = 2,
-  geo?: PlanGeography
+  geo?: PlanGeography,
+  /* A published municipal rate to cost against instead of the national
+     ceiling. Costing a city that reimburses Rs 900 at the Rs 1,650 ceiling
+     overstates the programme by four fifths, which is the difference
+     between a plan somebody can take to a corporation and one they cannot. */
+  unitCostOverride?: number
 ): Plan {
   const basePopulation = geo ? geo.population : DELHI_POPULATION.value;
   const population = Math.round(basePopulation * scope);
@@ -396,7 +423,7 @@ export function whatWouldItTake(
     objective === "survey"
       ? population
       : Math.max(0, Math.round(population * (target - coverageNow)));
-  const unitCost = UNIT_COSTS[objective].value;
+  const unitCost = unitCostOverride ?? UNIT_COSTS[objective].value;
   const months = Math.max(
     1,
     Math.ceil(animals / (THROUGHPUT[objective] * teams))

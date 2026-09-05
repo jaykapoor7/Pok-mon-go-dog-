@@ -7,6 +7,7 @@ import {
   COVERAGE_TARGET,
   OBJECTIVE_META,
   UNIT_COSTS,
+  CITY_STERILISATION_RATES,
   inr,
   num,
   whatWouldItTake,
@@ -43,6 +44,21 @@ export function WWITClient({
   const [geoCode, setGeoCode] = useState(geographies[0]?.code ?? "");
   const [scope, setScope] = useState(1 / 150);
   const [teams, setTeams] = useState(2);
+  /* Which published rate to cost against.
+
+     The AWBI figure is a national ceiling and the municipal rates that are
+     actually published run from Rs 900 to Rs 1,650. Costing a programme
+     against the ceiling when the city in question reimburses Rs 900
+     overstates it by four fifths, so the choice belongs here, on the page
+     where a programme is priced. Empty means the national ceiling, and it
+     says so. */
+  const [rateCity, setRateCity] = useState("");
+
+  /* Declared before the plan, which needs it. */
+  const cityRateValue =
+    objective === "sterilisation"
+      ? CITY_STERILISATION_RATES.find((r) => r.city === rateCity)?.value
+      : undefined;
 
   const geo = useMemo(
     () => geographies.find((g) => g.code === geoCode) ?? geographies[0],
@@ -50,10 +66,27 @@ export function WWITClient({
   );
 
   const plan = useMemo(
-    () => whatWouldItTake(objective, scope, teams, geo),
-    [objective, scope, teams, geo]
+    () => whatWouldItTake(objective, scope, teams, geo, cityRateValue),
+    [objective, scope, teams, geo, cityRateValue]
   );
-  const cost = UNIT_COSTS[objective];
+  const baseCost = UNIT_COSTS[objective];
+  /* Only sterilisation has published municipal variation. Vaccination has
+     one national norm and enumeration has no published cost at all, so the
+     selector applies to sterilisation and is hidden otherwise rather than
+     offering a choice that changes nothing. */
+  const cityRate =
+    objective === "sterilisation"
+      ? CITY_STERILISATION_RATES.find((r) => r.city === rateCity) ?? null
+      : null;
+  const cost = cityRate
+    ? {
+        ...baseCost,
+        value: cityRate.value,
+        year: cityRate.year,
+        source: cityRate.source,
+        confidence: cityRate.confidence,
+      }
+    : baseCost;
   const meta = OBJECTIVE_META[objective];
 
   return (
@@ -83,6 +116,23 @@ export function WWITClient({
             ))}
           </select>
         </label>
+
+        {objective === "sterilisation" && (
+          <label>
+            <span>Rate</span>
+            <select
+              value={rateCity}
+              onChange={(e) => setRateCity(e.target.value)}
+            >
+              <option value="">All India, {inr(UNIT_COSTS.sterilisation.value)} ceiling</option>
+              {CITY_STERILISATION_RATES.map((r) => (
+                <option key={r.city} value={r.city}>
+                  {r.city}, {inr(r.value)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <label>
           <span>Scope</span>
@@ -149,7 +199,7 @@ export function WWITClient({
           <Figure
             label="Cost"
             value={inr(plan.cost)}
-            sub={`${inr(plan.unitCost)} ${cost.unit}`}
+            sub={`${inr(plan.unitCost)} ${cost.unit}${cityRate ? ` in ${cityRate.city}` : ""}`}
             accent
           />
         )}
@@ -213,11 +263,22 @@ export function WWITClient({
               </>
             ) : (
               <>
-                {inr(plan.unitCost)} {cost.unit}.
+                {inr(cost.value)} {cost.unit}
+                {cityRate ? ` in ${cityRate.city}` : ", national ceiling"}.
               </>
             )}{" "}
             <span className="wwit-src">
               {cost.source} ({cost.year}).
+              {!cityRate && objective === "sterilisation" && (
+                <>
+                  {" "}
+                  A ceiling, not what any one city pays: published municipal
+                  rates run from {inr(
+                    Math.min(...CITY_STERILISATION_RATES.map((r) => r.value))
+                  )}{" "}
+                  to {inr(Math.max(...CITY_STERILISATION_RATES.map((r) => r.value)))}.
+                </>
+              )}
             </span>
           </li>
           <li>
