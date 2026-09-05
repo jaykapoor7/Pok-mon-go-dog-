@@ -25,6 +25,8 @@ export type SearchHit = {
 const PAGES: { label: string; detail: string; href: string; terms: string }[] = [
   { label: "Living map", detail: "All sightings, studies and outcomes", href: "/map", terms: "map sightings clusters live" },
   { label: "Report an animal", detail: "Add a sighting or flag a need", href: "/report", terms: "report add sighting new" },
+  { label: "Adoption", detail: "Animals listed for adoption by organisations", href: "/adopt", terms: "adopt adoption rehome foster home listing" },
+  { label: "Resources", detail: "Filed register pages, ledgers and medical notes", href: "/partner/resources", terms: "resources documents scans register ledger records paper notes files" },
   { label: "Data gaps", detail: "State-by-state coverage picture", href: "/gaps", terms: "gaps data coverage unknown missing evidence" },
   { label: "What would it take?", detail: "Cost a scoped intervention", href: "/what-would-it-take", terms: "cost costing budget plan scope funding wwit" },
   { label: "Studies", detail: "Commissioned survey work", href: "/studies", terms: "studies research survey" },

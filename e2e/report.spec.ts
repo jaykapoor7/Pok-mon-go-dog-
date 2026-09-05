@@ -88,6 +88,7 @@ test.describe("public routes", () => {
     "/orgs",
     "/gaps",
     "/get-involved",
+    "/adopt",
     "/what-would-it-take",
     "/how-to-help",
     "/why-straypaw",

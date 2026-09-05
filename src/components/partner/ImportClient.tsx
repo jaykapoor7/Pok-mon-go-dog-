@@ -11,7 +11,8 @@ import {
   TriangleAlert,
   Upload,
 } from "lucide-react";
-import { reportSighting } from "@/lib/actions";
+import { reportSighting, uploadPhoto } from "@/lib/actions";
+import { addDocument } from "@/lib/documents";
 import { CITIES } from "@/lib/delhi";
 import { formatPlace } from "@/lib/delhi";
 
@@ -95,8 +96,13 @@ export function ImportClient() {
       patch(d.id, { state: "saving" });
       try {
         const city = CITIES[d.cityIdx];
+        /* Upload once and reuse the URL for both the sighting and the filed
+           document, so the transcription and the page it came from point at
+           the same image rather than two copies of it. */
+        const photoUrl = await uploadPhoto(d.file);
         await reportSighting({
-          file: d.file,
+          file: null,
+          fallbackPhotoUrl: photoUrl,
           lat: city.lat,
           lng: city.lng,
           zone: formatPlace(d.locality.trim(), city.name),
@@ -107,6 +113,18 @@ export function ImportClient() {
               .filter(Boolean)
               .join(", "),
         });
+        /* Best effort: a failure here must not lose the sighting that was
+           just filed successfully, so it is reported but not thrown. */
+        try {
+          await addDocument({
+            url: photoUrl,
+            kind: "register_page",
+            title: d.nickname.trim() || d.locality.trim() || "Imported record",
+            notes: d.notes.trim() || undefined,
+          });
+        } catch {
+          /* The org may not be verified yet; the sighting still stands. */
+        }
         patch(d.id, { state: "done" });
       } catch (e) {
         patch(d.id, {

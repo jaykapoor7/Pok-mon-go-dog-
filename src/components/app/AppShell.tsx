@@ -19,7 +19,9 @@ import {
   ClipboardList,
   Database,
   FileText,
+  FolderOpen,
   Heart,
+  Home,
   LayoutGrid,
   ListChecks,
   MapPin,
@@ -49,6 +51,7 @@ const COMMUNITY = [
   { href: "/following", label: "Following", Icon: Bookmark },
   { href: "/orgs", label: "Directory", Icon: Building2 },
   { href: "/get-involved", label: "Volunteer", Icon: Heart },
+  { href: "/adopt", label: "Adoption", Icon: Home },
 ];
 
 /* The evidence chain, in the order it actually runs: what is missing, what is
@@ -71,6 +74,7 @@ const WORKSPACE = [
   { href: "/partner/team", label: "Team", Icon: Users },
   { href: "/partner/reports", label: "Analytics", Icon: FileText },
   { href: "/partner/import", label: "Import records", Icon: Upload },
+  { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
 ];
 
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from

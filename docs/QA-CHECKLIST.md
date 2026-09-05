@@ -85,6 +85,25 @@ Each of these must fail *visibly*. Silence is the bug.
 - [ ] A signed-out visitor sees the console shell with an empty state and a
       sign-in prompt, not an error.
 
+## 5b. Adoption and resources
+
+- [ ] `supabase/adoption-and-documents.sql` has been run.
+- [ ] `/adopt` shows an empty state when nothing is listed. It must not
+      invent listings.
+- [ ] An organisation lists one of its animals, and it appears on `/adopt`
+      with the organisation named and a working phone or email link.
+- [ ] Closing the listing as placed removes it from `/adopt` immediately.
+- [ ] Only one open listing can exist per animal.
+- [ ] File a scan under Resources. Add a title, a context note and a date,
+      and confirm they persist after a refresh.
+- [ ] Attach it to an animal. It appears under "Source records" on that
+      animal's page.
+- [ ] Sign out, or view that animal as another organisation. **The scan must
+      not be visible.** This is the one to be strict about: register pages
+      carry other people's handwriting and phone numbers.
+- [ ] Search Resources by an animal's name and by text that only appears in a
+      context note.
+
 ## 6. Analytics
 
 After a few real sessions, in the Supabase SQL editor:

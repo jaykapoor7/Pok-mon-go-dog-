@@ -2091,3 +2091,233 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   .se-list button { min-height: 44px; }
   .se-sort button { min-height: 38px; }
 }
+
+/* ── adoption listings ──────────────────────────────────────────── */
+
+.adopt-search { margin-top: 22px; }
+.adopt-count { margin: 12px 0 16px; color: #616a79; }
+.adopt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 16px;
+}
+.adopt-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(11, 16, 32, 0.1);
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+.adopt-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: #e7eaef;
+}
+.adopt-img { object-fit: cover; }
+.adopt-nophoto {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  color: #6b7280;
+}
+.adopt-body { display: flex; flex-direction: column; gap: 7px; padding: 14px; flex: 1; }
+.adopt-body h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.adopt-body h3 a { color: inherit; text-decoration: none; }
+.adopt-body h3 a:hover { text-decoration: underline; }
+.adopt-where { margin: 0; font-size: 12.5px; color: #616a79; }
+.adopt-summary { margin: 2px 0 0; font-size: 13px; line-height: 1.55; color: #414a59; }
+.adopt-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+.adopt-tags li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid rgba(11, 16, 32, 0.12);
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: #414a59;
+}
+.adopt-needs { margin: 2px 0 0; font-size: 12.5px; line-height: 1.5; color: #414a59; }
+.adopt-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 11px;
+  border-top: 1px solid rgba(11, 16, 32, 0.08);
+  font-size: 12.5px;
+}
+.adopt-org { color: #414a59; text-decoration: none; font-weight: 600; }
+.adopt-org:hover { text-decoration: underline; }
+.adopt-contact { display: flex; gap: 10px; }
+/* Contacting the organisation is the point of the page, so these are real
+   targets rather than small text links. */
+.adopt-contact a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 4px;
+  color: var(--vermilion-ink);
+  text-decoration: none;
+  font-weight: 600;
+}
+.adopt-contact a:hover { text-decoration: underline; }
+
+@media (max-width: 650px) {
+  .adopt-grid { grid-template-columns: 1fr; }
+}
+
+/* ── resources (filed scans) ────────────────────────────────────── */
+
+.res-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.res-controls select,
+.res-controls input {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid rgba(11, 16, 32, 0.14);
+  border-radius: 3px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.res-error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--vermilion-ink);
+  background: rgba(176, 42, 16, 0.06);
+  font-size: 13px;
+  color: #7a1f0c;
+}
+.res-search { margin-top: 20px; }
+.res-count { margin: 12px 0 16px; color: #616a79; }
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+  gap: 14px;
+}
+.res-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(11, 16, 32, 0.1);
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+.res-thumb { position: relative; display: block; aspect-ratio: 4 / 3; background: #e7eaef; }
+.res-img { object-fit: cover; }
+.res-body { display: flex; flex-direction: column; gap: 5px; padding: 11px 12px 12px; flex: 1; }
+.res-kind {
+  font-family: var(--font-mono), monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #616a79;
+}
+.res-body b { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.res-body p { margin: 0; font-size: 12.5px; line-height: 1.5; color: #4d5766; }
+.res-linked {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--vermilion-ink);
+  text-decoration: none;
+}
+.res-linked:hover { text-decoration: underline; }
+.res-attach { margin-top: auto; padding-top: 9px; }
+.res-attach select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1px solid rgba(11, 16, 32, 0.14);
+  border-radius: 3px;
+  background: #fff;
+  font: inherit;
+  font-size: 12.5px;
+}
+
+/* Animal record: the scans an organisation holds for this animal. */
+.doc-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.doc-item {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  border: 1px solid rgba(11, 16, 32, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e7eaef;
+}
+.doc-item img { object-fit: cover; }
+.doc-cap {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 6px 8px;
+  background: linear-gradient(transparent, rgba(11, 16, 32, 0.82));
+  color: #fff;
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+@media (max-width: 650px) {
+  .res-grid { grid-template-columns: 1fr 1fr; }
+  .res-controls { width: 100%; }
+  .res-controls input { flex: 1; min-width: 0; }
+}
+.res-date { font-size: 11.5px; color: #616a79; }
+.res-nonote { color: #6b7280; font-style: italic; }
+.res-links { display: flex; flex-direction: column; gap: 4px; }
+.res-edit { display: grid; gap: 9px; }
+.res-edit label { display: grid; gap: 4px; }
+.res-edit label > span {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #414a59;
+}
+.res-edit input,
+.res-edit textarea,
+.res-edit select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 9px;
+  border: 1px solid rgba(11, 16, 32, 0.14);
+  border-radius: 3px;
+  background: #fff;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.res-edit textarea { resize: vertical; min-height: 72px; }
+.res-edit-actions { display: flex; gap: 8px; align-items: center; }
+.res-cancel,
+.res-editbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #414a59;
+  cursor: pointer;
+}
+.res-cancel:hover, .res-editbtn:hover { color: var(--vermilion-ink); }
+.res-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid rgba(11, 16, 32, 0.08);
+}

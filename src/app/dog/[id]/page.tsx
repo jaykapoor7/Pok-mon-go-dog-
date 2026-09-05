@@ -21,6 +21,7 @@ import { FollowButton } from "@/components/dog/FollowButton";
 import { AddComment } from "@/components/dog/AddComment";
 import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { PageView } from "@/components/analytics/PageView";
+import { AnimalDocuments } from "@/components/dog/AnimalDocuments";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
@@ -236,6 +237,10 @@ export default async function DogProfilePage({
         {sightings.length > 1 && <PageView name="timeline_viewed" />}
         <SightingTimeline sightings={sightings} />
       </Section>
+
+      {/* The scans this animal's entries came from. Renders nothing unless
+          the viewer's organisation filed them. */}
+      <AnimalDocuments dogId={id} />
 
       {/* feeding history */}
       {feedEvents.length > 0 && (
