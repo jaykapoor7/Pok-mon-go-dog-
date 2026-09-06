@@ -250,7 +250,7 @@ export function AppShell({
         </button>
 
         <Link href="/app" className="spa-brand">
-          <StrayPawMark size={24} />
+          <StrayPawMark size={34} />
           <span>StrayPaw</span>
           <small>console</small>
         </Link>
@@ -319,9 +319,6 @@ export function AppShell({
         />
 
         <nav id="spa-side-nav" className="spa-side">
-          {/* This was a green dot reading "Live network", which told nobody
-              anything and set a tone the rest of the console does not. */}
-          <div className="spa-side-brand">StrayPaw</div>
 
           {SECTIONS.map(({ key, label, items }) => {
             const links = prioritise(items);

@@ -20,6 +20,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Inbox } from "lucide-react";
 
 type Filter = "all" | "urgent" | "assigned" | "in_progress" | "resolved";
 
@@ -150,46 +159,113 @@ export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border">
-        <div className="hidden grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] items-center gap-4 border-b bg-muted/60 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground md:grid">
-          <span></span><span>Report</span><span>Location</span><span>Urgency</span><span>Status</span><span>Assigned to</span>
+      {rows.length === 0 ? (
+        /* An empty table used to be the words "No cases match." centred in a
+           tall grey box, which tells you nothing about why. This says which
+           of the two situations you are in and offers the way out of each. */
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-20 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Inbox className="size-5" />
+          </span>
+          <p className="font-display text-lg">
+            {cases.length === 0 ? "No cases yet" : "Nothing matches that"}
+          </p>
+          <p className="max-w-sm text-[13px] leading-relaxed text-muted-foreground">
+            {cases.length === 0
+              ? "A case is opened when an animal needs a decision or a dispatch. Claim one from the map, or start one here."
+              : `${cases.length} ${cases.length === 1 ? "case is" : "cases are"} loaded, but none match this filter and search.`}
+          </p>
+          {cases.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setFilter("all"); setQ(""); }}
+            >
+              Clear filter and search
+            </Button>
+          )}
         </div>
+      ) : (
+        <div className="overflow-hidden rounded-lg border">
+          {/* A real table on a real screen. The hand-built version was a
+              div grid with a row of spans pretending to be a header: no
+              column association for a screen reader, and nothing a browser
+              could treat as tabular. Below md it falls back to the stacked
+              rows, because five columns do not belong on a phone. */}
+          <Table className="hidden md:table">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[68px]"><span className="sr-only">Photo</span></TableHead>
+                <TableHead>Report</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead className="w-[104px]">Urgency</TableHead>
+                <TableHead className="w-[124px]">Status</TableHead>
+                <TableHead>Assigned to</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((c) => {
+                const st = statusBadge(c);
+                const pr = priority(c);
+                return (
+                  <TableRow key={c.id} className="group cursor-pointer">
+                    <TableCell className="py-2.5">
+                      <Link href={`${hrefBase}/${c.id}`} className="block size-11 overflow-hidden rounded-md bg-muted" tabIndex={-1} aria-hidden>
+                        <DogPhoto src={c.photos?.[0] ?? ""} alt="" seed={c.id} className="h-full w-full" />
+                      </Link>
+                    </TableCell>
+                    <TableCell className="relative max-w-0 py-2.5">
+                      {/* The whole row is the target; the link sits on the
+                          title so the accessible name is the case, not a
+                          bare photograph. */}
+                      <Link href={`${hrefBase}/${c.id}`} className="block outline-none after:absolute after:inset-0 group-focus-within:underline">
+                        <span className="block truncate font-medium leading-tight">
+                          {speciesLabel(c.species)} · <span className="capitalize text-muted-foreground">{c.category}</span>
+                        </span>
+                        <span className="block truncate text-[12.5px] text-muted-foreground">{c.title}</span>
+                      </Link>
+                    </TableCell>
+                    <TableCell className="max-w-0 truncate text-[13px] text-muted-foreground">{c.zone || "—"}</TableCell>
+                    <TableCell className={cn("text-[11.5px] font-bold tracking-wide", pr.cls)}>{pr.label}</TableCell>
+                    <TableCell><Badge className={cn("px-2 py-0.5 text-[11.5px]", st.cls)}>{st.label}</Badge></TableCell>
+                    <TableCell className={cn("max-w-0 truncate text-[13px]", c.assignee_name ? "" : "text-muted-foreground")}>
+                      {c.assignee_name ?? "Unassigned"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
 
-        {rows.length === 0 ? (
-          <div className="px-4 py-16 text-center text-sm text-muted-foreground">No cases match.</div>
-        ) : (
-          <ul>
+          {/* Phone: one stacked row per case. */}
+          <ul className="md:hidden">
             {rows.map((c) => {
               const st = statusBadge(c);
               const pr = priority(c);
               return (
-                <li key={c.id} className="border-b border-black/[0.06] last:border-0 dark:border-white/[0.06]">
-                  <Link href={`${hrefBase}/${c.id}`} className="grid grid-cols-[44px_1fr_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03] md:grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] md:gap-4">
-                    <div className="h-10 w-10 overflow-hidden rounded-md bg-bark-100 dark:bg-bark-800">
-                      <DogPhoto src={c.photos?.[0] ?? ""} alt={c.title} seed={c.id} className="h-full w-full" />
+                <li key={c.id} className="border-b last:border-0">
+                  <Link href={`${hrefBase}/${c.id}`} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+                    <div className="size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+                      <DogPhoto src={c.photos?.[0] ?? ""} alt="" seed={c.id} className="h-full w-full" />
                     </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-[14px] font-medium leading-tight text-bark-900 dark:text-bark-50">
-                        {speciesLabel(c.species)} · <span className="capitalize text-bark-500">{c.category}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-medium leading-tight">
+                        {speciesLabel(c.species)} · <span className="capitalize text-muted-foreground">{c.category}</span>
                       </p>
-                      <p className="truncate text-[12px] text-bark-400">{c.title}</p>
-                      <div className="mt-1 flex items-center gap-2 md:hidden">
-                        <span className={cn("text-[11.5px] font-bold", pr.cls)}>{pr.label}</span>
-                        <Badge className={cn("px-2 py-0.5 text-[11.5px]", st.cls)}>{st.label}</Badge>
-                        {c.zone && <span className="truncate text-[11.5px] text-bark-400">{c.zone}</span>}
+                      <p className="truncate text-[12px] text-muted-foreground">{c.title}</p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className={cn("text-[11px] font-bold", pr.cls)}>{pr.label}</span>
+                        <Badge className={cn("px-2 py-0.5 text-[11px]", st.cls)}>{st.label}</Badge>
+                        {c.zone && <span className="truncate text-[11.5px] text-muted-foreground">{c.zone}</span>}
                       </div>
                     </div>
-                    <span className="hidden truncate text-[13px] text-bark-500 md:block">{c.zone || "-"}</span>
-                    <span className={cn("hidden text-[12px] font-bold md:block", pr.cls)}>{pr.label}</span>
-                    <span className="hidden md:block"><Badge className={cn("px-2 py-0.5 text-[12px]", st.cls)}>{st.label}</Badge></span>
-                    <span className={cn("hidden truncate text-[13px] md:block", c.assignee_name ? "text-bark-700 dark:text-bark-200" : "text-bark-400")}>{c.assignee_name ?? "Unassigned"}</span>
                   </Link>
                 </li>
               );
             })}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
 
       <p className="mt-3 text-right text-[12px] tabular-nums text-bark-400">{rows.length} {rows.length === 1 ? "case" : "cases"}</p>
     </div>

@@ -187,6 +187,9 @@
   flex-shrink: 0;
 }
 .spa-sect { display: contents; }
+/* The rail no longer opens with a wordmark, so the first group heading is
+   the top of the column and needs the space the wordmark was holding. */
+.spa-side .spa-sect:first-of-type .spa-side-label { margin-top: 4px; }
 /* Phone only; the desktop column shows every section at once. */
 .spa-more { display: none; }
 
@@ -1510,7 +1513,6 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   /* The group headings and the live dot are orientation for a column. In a
      row they are obstacles between one destination and the next. */
   .spa-side-label,
-  .spa-side-brand,
   .spa-live { display: none; }
   /* The profile keeps its actions in the strip, at the end, behind a
      divider. The avatar and the name go: they are not things to tap, and
@@ -3176,14 +3178,6 @@ a.pgm-figure:hover { background: #f3f6fb; }
 }
 
 /* The wordmark where the green "live network" dot used to be. */
-.spa-side-brand {
-  padding: 4px 10px 16px;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #6b7482;
-}
 
 .dr-presets { display: flex; flex-wrap: wrap; gap: 6px; }
 .dr-presets button {
