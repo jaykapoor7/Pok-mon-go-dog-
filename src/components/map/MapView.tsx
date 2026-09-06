@@ -334,7 +334,7 @@ export function MapView({
           </div>
 
           {/* BOTTOM STATS STRIP */}
-          <div style={{
+          <div className="mv-bottom" style={{
             position: "absolute",
             bottom: 0,
             left: 0,
@@ -349,7 +349,7 @@ export function MapView({
             gap: 0,
           }}>
             {/* Live reports, real sightings from the loaded records. */}
-            <div style={{ flex: "0 0 340px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", overflow: "hidden" }}>
+            <div className="mv-latest" style={{ flex: "0 0 340px", borderRight: `1px solid ${BORDER}`, padding: "10px 14px", overflow: "hidden" }}>
               <div style={{ fontSize: 10.5, letterSpacing: "0.11em", color: "rgba(255,255,255,0.68)", marginBottom: 8 }}>
                 {only ? `LATEST · ${counts.find((c) => c.key === only)?.label}` : "LATEST REPORTS"}
               </div>
@@ -377,7 +377,7 @@ export function MapView({
             </div>
 
             {/* Live counts, derived from the records actually loaded. */}
-            <div style={{ flex: 1, padding: "10px 14px", display: "flex", alignItems: "center", gap: 0 }}>
+            <div className="mv-counts" style={{ flex: 1, padding: "10px 14px", display: "flex", alignItems: "center", gap: 0 }}>
               {counts.map((k, i) => {
                 const on = only === k.key;
                 return (

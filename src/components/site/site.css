@@ -237,6 +237,15 @@
   .sp-header-code { padding: 10px 11px; font-size: 12.5px; }
   .sp-header-cta { padding: 10px 12px; font-size: 12.5px; }
 }
+/* Below about 430px the wordmark, two buttons and the menu control add up
+   to more than the bar: the actions have margin-left:auto and the wordmark
+   does not shrink, so "StrayPaw" ran under "I have a code" and the menu
+   button was pushed 19px off the right edge, where it could not be tapped
+   at all. The mark alone is the brand at this size, and the word beside it
+   was the only part not doing work. */
+@media (max-width: 430px) {
+  .sp-wordmark span { display: none; }
+}
 .sp-menu-btn {
   display: none;
   align-items: center;
@@ -272,6 +281,12 @@
   inset: -4%;
   width: 108%;
   height: 108%;
+  /* Tailwind's preflight caps every img at max-width:100%, which quietly
+     clipped this one back to the hero's own width while `inset: -4%` still
+     shifted it left — leaving a bare 16px strip of background down the
+     right-hand edge of the hero on a phone. The overscan is deliberate:
+     the image is parallaxed, and it needs room to move behind the frame. */
+  max-width: none;
   object-fit: cover;
   object-position: 58% 44%;
   /* Keep the golden hour, the warmth is the photograph. Desaturate only

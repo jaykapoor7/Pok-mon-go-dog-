@@ -93,6 +93,15 @@ const WORKSPACE = [
    something you do to Animals, and Volunteer sign-ups is a list you read
    from Team. Each is linked from the page it belongs to. */
 
+/* A phone shows the few destinations somebody opens the console to reach,
+   and one control for the rest. The full row is 2,300px of chips on a
+   390px screen, which is six screen-widths of sideways scrolling before
+   you have seen your own workspace: everything past the third chip may as
+   well not exist. These four stay out; the other thirteen live one tap
+   away, with their group headings intact, which is more structure than the
+   flattened row ever had. */
+const MOBILE_PRIMARY = new Set(["/app", "/map", "/report", "/partner"]);
+
 /* One column, three sections, only one of them expanded at a time. */
 const SECTIONS: {
   key: string;
@@ -299,7 +308,7 @@ export function AppShell({
           tabIndex={open ? 0 : -1}
         />
 
-        <nav className={`spa-side ${open ? "open" : ""}`}>
+        <nav id="spa-side-nav" className={`spa-side ${open ? "open" : ""}`}>
           {/* This was a green dot reading "Live network", which told nobody
               anything and set a tone the rest of the console does not. */}
           <div className="spa-side-brand">StrayPaw</div>
@@ -351,7 +360,9 @@ export function AppShell({
                     <Link
                       key={href}
                       href={href}
-                      className={isActive(href) ? "active" : ""}
+                      className={`${isActive(href) ? "active" : ""}${
+                        MOBILE_PRIMARY.has(href) ? " spa-primary" : ""
+                      }`}
                       onClick={() => setOpen(false)}
                     >
                       <Icon size={15} />
@@ -362,6 +373,20 @@ export function AppShell({
             );
           })}
 
+
+          {/* Phone only. The strip carries four destinations; this opens the
+              remaining thirteen as a sheet, grouped the way the desktop
+              column groups them. */}
+          <button
+            type="button"
+            className="spa-more"
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            aria-controls="spa-side-nav"
+          >
+            {open ? <X size={15} /> : <Menu size={15} />}
+            {open ? "Close" : "All sections"}
+          </button>
 
           <div className="spa-side-foot">
             <ProfilePanel onNavigate={() => setOpen(false)} />

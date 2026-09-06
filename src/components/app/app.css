@@ -187,6 +187,9 @@
   flex-shrink: 0;
 }
 .spa-sect { display: contents; }
+/* Phone only; the desktop column shows every section at once. */
+.spa-more { display: none; }
+
 /* A section heading is now a control, so it looks like one: full width,
    its own hit area, and an arrow that says which way it goes. */
 .spa-side-label {
@@ -1547,9 +1550,67 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
     white-space: nowrap;
   }
   .spa-profile .spa-role-chip { margin: 0; white-space: nowrap; }
-  /* No drawer left to open. */
+  /* The strip carries the four destinations somebody opens the console to
+     reach. The rest are behind "All sections", because seventeen chips in
+     a row that scrolls sideways is not navigation, it is a haystack. */
+  .spa-side .spa-sect a:not(.spa-primary) { display: none; }
+  .spa-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    min-height: 40px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    border: 1px solid rgba(11, 16, 32, 0.16);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .spa-more:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
+
+  /* Opened, the strip becomes the column it is on a desktop: every
+     destination, under the heading it belongs to, scrolling down rather
+     than sideways. */
+  .spa-side.open {
+    position: fixed;
+    inset: 56px 0 0 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 14px 16px 28px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--paper);
+    border-bottom: 0;
+    z-index: 45;
+  }
+  .spa-side.open .spa-sect a { display: flex; width: 100%; }
+  .spa-side.open .spa-side-label {
+    display: flex;
+    width: 100%;
+    margin-top: 14px;
+  }
+  .spa-side.open .spa-side-foot {
+    order: 0;
+    margin-top: 18px;
+    padding: 14px 0 0;
+    border-left: 0;
+    border-right: 0;
+    border-top: 1px solid #c4ccd6;
+  }
+  .spa-side.open .spa-profile,
+  .spa-side.open .spa-profile-links,
+  .spa-side.open .spa-profile-links.out { grid-auto-flow: row; }
+  .spa-side.open .spa-more { order: -2; align-self: flex-start; }
+
+  /* The drawer's backdrop comes back with the drawer. */
   .spa-menu-btn { display: none; }
-  .spa-scrim.show { display: none; }
+  .spa-scrim.show { display: block; }
   .spa-main { padding: 20px; }
   .spa-grid { grid-template-columns: 1fr; }
   .spa-strip { grid-template-columns: 1fr; }
@@ -1589,6 +1650,25 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   .spa-tour span { display: none; }
   .spa-tour { padding: 8px 10px; }
   .spa-search { min-width: 120px; }
+}
+
+/* The map's bottom strip is laid out for a desk: a 340px column of recent
+   reports beside four counters. On a 390px phone that is wider than the
+   screen, so the counters ran off the right edge and could not be tapped —
+   and they are the filters, the only interactive thing down there. The
+   recent-reports column is the part a phone can do without; the same
+   records are the pins on the map above it. */
+@media (max-width: 760px) {
+  .mv-bottom {
+    right: 0 !important;
+    height: 92px !important;
+  }
+  .mv-latest { display: none !important; }
+  .mv-counts { padding: 4px 6px !important; }
+  .mv-counts button { padding: 6px 2px 4px !important; }
+  .mv-counts button > div:first-child { font-size: 22px !important; }
+  .mv-counts button > div:nth-child(2) { font-size: 9px !important; letter-spacing: 0.04em !important; }
+  .mv-counts button > div:nth-child(3) { font-size: 8.5px !important; letter-spacing: 0.02em !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
