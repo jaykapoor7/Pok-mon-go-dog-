@@ -1507,6 +1507,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   /* The group headings and the live dot are orientation for a column. In a
      row they are obstacles between one destination and the next. */
   .spa-side-label,
+  .spa-side-brand,
   .spa-live { display: none; }
   /* The profile keeps its actions in the strip, at the end, behind a
      divider. The avatar and the name go: they are not things to tap, and
@@ -1561,7 +1562,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   .spa-brand span { display: none; }
   .spa-exit span { display: none; }
   .spa-exit { padding: 8px 10px; }
-  .spa-search { max-width: none; min-width: 0; }
+  .spa-search { max-width: none; min-width: 0; flex: 1 1 auto; }
   .spa-cta { min-height: 44px; }
 
   .gap-resolve { grid-template-columns: 1fr; gap: 16px; }
@@ -1579,6 +1580,15 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   .vol-orgs { grid-template-columns: 1fr; }
   .dir-grid { grid-template-columns: 1fr; }
   .dir-select { min-width: 0; flex: 1 1 140px; }
+}
+
+@media (max-width: 560px) {
+  /* Two labelled buttons plus a search field do not fit across a phone.
+     Search is the one you type into, so it keeps the room and the other
+     two fall back to their icons. */
+  .spa-tour span { display: none; }
+  .spa-tour { padding: 8px 10px; }
+  .spa-search { min-width: 120px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -282,7 +282,7 @@ export function AppShell({
           {/* Up here rather than in the side nav's foot, which was carrying
               four controls and a role chip in a 208px column. */}
           <button type="button" className="spa-tour" onClick={openTour}>
-            <HelpCircle size={14} /> Show me around
+            <HelpCircle size={14} /> <span>Show me around</span>
           </button>
           <Link href="/" className="spa-exit">
             <ArrowUpRight size={13} /> Main site
