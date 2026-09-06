@@ -3464,8 +3464,10 @@ grant execute on function published_totals() to anon, authenticated, service_rol
 -- ════════════════════════════════════════════════════════════════
 -- 11. ward-density.sql
 --     Ward boundaries, PostGIS point-in-polygon counts, and the coverage
---     headline. Boundaries themselves are city data and load separately:
---     run supabase/wards-chennai.sql after this one.
+--     headline. Boundaries themselves are data, not schema, and load
+--     separately after this file:
+--       supabase/districts-india.sql  all 641 districts, the national tier
+--       supabase/wards-chennai.sql    200 GCC wards, the pilot tier
 -- ════════════════════════════════════════════════════════════════
 
 -- ════════════════════════════════════════════════════════════════

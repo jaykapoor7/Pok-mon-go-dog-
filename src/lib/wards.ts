@@ -18,6 +18,11 @@
 
 import { getSupabase } from "./supabase";
 
+/* Two tiers, one machinery. Districts cover the whole country at 641
+   polygons, which is what makes this read as India rather than as one pilot
+   city; wards are the municipal tier a pilot actually works in. */
+export type AreaLevel = "district" | "ward";
+
 export type WardMetric =
   | "animals"
   | "per_km2"
@@ -77,31 +82,51 @@ export type WardCoverage = {
 
 const EMPTY: WardFeatureCollection = { type: "FeatureCollection", features: [] };
 
-/** Ward polygons with their counts, ready to hand straight to MapLibre. */
-export async function getWardDensity(city: string): Promise<WardFeatureCollection> {
+/**
+ * Polygons with their counts, ready to hand straight to MapLibre.
+ *
+ * A null region means the whole country at that level, which is how the
+ * national view asks for all 641 districts in one request rather than
+ * stitching thirty-five states together in the browser.
+ */
+export async function getWardDensity(
+  city: string | null,
+  level: AreaLevel = "ward"
+): Promise<WardFeatureCollection> {
   const supa = getSupabase();
   if (!supa) return EMPTY;
-  const { data, error } = await supa.rpc("ward_density_geojson", { p_city: city });
+  const { data, error } = await supa.rpc("ward_density_geojson", {
+    p_city: city,
+    p_level: level,
+  });
   if (error || !data) return EMPTY;
   return data as WardFeatureCollection;
 }
 
 /** The headline a funder reads: coverage first, every rate below it. */
-export async function getWardCoverage(city: string): Promise<WardCoverage | null> {
+export async function getWardCoverage(
+  city: string | null,
+  level: AreaLevel = "ward"
+): Promise<WardCoverage | null> {
   const supa = getSupabase();
   if (!supa) return null;
-  const { data, error } = await supa.rpc("ward_coverage", { p_city: city });
+  const { data, error } = await supa.rpc("ward_coverage", {
+    p_city: city,
+    p_level: level,
+  });
   if (error || !data) return null;
   return data as WardCoverage;
 }
 
 /** Cities that have boundaries loaded, for the city picker. */
-export async function getWardCities(): Promise<{ city: string; wards: number }[]> {
+export async function getWardCities(): Promise<
+  { level: AreaLevel; city: string; wards: number }[]
+> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.rpc("ward_cities");
   if (error || !data) return [];
-  return data as { city: string; wards: number }[];
+  return data as { level: AreaLevel; city: string; wards: number }[];
 }
 
 /* ── How a metric is read ────────────────────────────────────────────
@@ -150,6 +175,13 @@ export const WARD_METRICS: Record<
     breaks: [1, 3, 8, 20],
     describe: (p) => `${p.needs_help} awaiting a decision`,
   },
+};
+
+/* "ward" is the wrong noun when the polygon is a district, and a map that
+   calls a district a ward is a map nobody in a municipality will trust. */
+export const AREA_NOUN: Record<AreaLevel, { one: string; many: string }> = {
+  district: { one: "district", many: "districts" },
+  ward: { one: "ward", many: "wards" },
 };
 
 /* Sequential blues, light to dark, from StrayPaw's own electric family.

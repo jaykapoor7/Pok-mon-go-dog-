@@ -19,6 +19,9 @@ import {
   type WardFeatureCollection,
   type WardMetric,
   type WardProps,
+  type AreaLevel,
+  AREA_NOUN,
+  getWardCities,
 } from "@/lib/wards";
 
 /**
@@ -33,7 +36,13 @@ import {
  * Unsurveyed wards are grey and stay grey under every metric. They are not
  * the bottom of the scale; they are outside it.
  */
-export function WardDensityClient({ city }: { city: string }) {
+export function WardDensityClient({ city }: { city: string | null }) {
+  /* Two tiers. India opens on districts, because a national map that shows
+     one city's wards and nothing else is not a national map. Picking a city
+     drops to its wards, which is the resolution a pilot actually works at. */
+  const [level, setLevel] = useState<AreaLevel>(city ? "ward" : "district");
+  const [region, setRegion] = useState<string | null>(city);
+  const [places, setPlaces] = useState<{ level: AreaLevel; city: string; wards: number }[]>([]);
   const [wards, setWards] = useState<WardFeatureCollection | null>(null);
   const [coverage, setCoverage] = useState<WardCoverage | null>(null);
   const [metric, setMetric] = useState<WardMetric>("animals");
@@ -41,9 +50,14 @@ export function WardDensityClient({ city }: { city: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    getWardCities().then(setPlaces).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     let alive = true;
     setLoading(true);
-    Promise.all([getWardDensity(city), getWardCoverage(city)])
+    setSelected(null);
+    Promise.all([getWardDensity(region, level), getWardCoverage(region, level)])
       .then(([w, c]) => {
         if (!alive) return;
         setWards(w);
@@ -53,7 +67,10 @@ export function WardDensityClient({ city }: { city: string }) {
     return () => {
       alive = false;
     };
-  }, [city]);
+  }, [region, level]);
+
+  const noun = AREA_NOUN[level];
+  const cities = places.filter((p) => p.level === "ward");
 
   const meta = WARD_METRICS[metric];
   const rows = useMemo(
@@ -78,11 +95,11 @@ export function WardDensityClient({ city }: { city: string }) {
         <>
           <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
             <Figure
-              label="Wards surveyed"
+              label={`${noun.many[0].toUpperCase()}${noun.many.slice(1)} surveyed`}
               value={`${coverage.wards_surveyed} of ${coverage.wards_total}`}
               note={
                 coverage.pct_wards_surveyed != null
-                  ? `${coverage.pct_wards_surveyed}% of the city`
+                  ? `${coverage.pct_wards_surveyed}% of ${region ?? "India"}`
                   : undefined
               }
             />
@@ -116,12 +133,12 @@ export function WardDensityClient({ city }: { city: string }) {
           {coverage.wards_unsurveyed > 0 && (
             <Alert>
               <AlertTitle>
-                {coverage.wards_unsurveyed} of {coverage.wards_total} wards have
-                no records yet.
+                {coverage.wards_unsurveyed} of {coverage.wards_total} {noun.many}{" "}
+                have no records yet.
               </AlertTitle>
               <AlertDescription>
-                Those wards are grey on the map below. Grey means nobody has
-                surveyed them, not that they have no animals — the two are
+                Those {noun.many} are grey on the map below. Grey means nobody
+                has surveyed them, not that they have no animals — the two are
                 opposite findings and this map will never merge them.
               </AlertDescription>
             </Alert>
@@ -131,11 +148,14 @@ export function WardDensityClient({ city }: { city: string }) {
 
       {!loading && !hasBoundaries && (
         <Alert>
-          <AlertTitle>No ward boundaries loaded for {city}.</AlertTitle>
+          <AlertTitle>
+            No {noun.one} boundaries loaded for {region ?? "India"}.
+          </AlertTitle>
           <AlertDescription>
-            Ward density needs published municipal boundaries. Load them with
-            the migration in <code>supabase/ward-density.sql</code>, then a
-            city file such as <code>supabase/wards-chennai.sql</code>.
+            This map needs published boundaries. Run{" "}
+            <code>supabase/ward-density.sql</code>, then{" "}
+            <code>supabase/districts-india.sql</code> for the national tier and{" "}
+            <code>supabase/wards-chennai.sql</code> for Chennai&apos;s wards.
           </AlertDescription>
         </Alert>
       )}
@@ -143,6 +163,27 @@ export function WardDensityClient({ city }: { city: string }) {
       {hasBoundaries && (
         <>
           <Separator />
+
+          {/* ── Which slice of the country ─────────────────────────── */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant={level === "district" ? "default" : "outline"}
+              onClick={() => { setLevel("district"); setRegion(null); }}
+            >
+              All India · districts
+            </Button>
+            {cities.map((c) => (
+              <Button
+                key={c.city}
+                size="sm"
+                variant={level === "ward" && region === c.city ? "default" : "outline"}
+                onClick={() => { setLevel("ward"); setRegion(c.city); }}
+              >
+                {c.city} · {c.wards} wards
+              </Button>
+            ))}
+          </div>
 
           {/* ── Which number is being shaded ───────────────────────── */}
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -161,9 +202,9 @@ export function WardDensityClient({ city }: { city: string }) {
               size="sm"
               onClick={() =>
                 downloadCsv(
-                  `straypaw-${city.toLowerCase()}-wards.csv`,
+                  `straypaw-${(region ?? "india").toLowerCase().replace(/\s+/g, "-")}-${noun.many}.csv`,
                   rows.map((r) => ({
-                    ward_no: r.ward_no,
+                    [noun.one]: r.ward_name ?? r.ward_no,
                     zone: r.zone_name ?? "",
                     area_km2: r.area_km2,
                     surveyed: r.surveyed ? "yes" : "no",
@@ -200,10 +241,12 @@ export function WardDensityClient({ city }: { city: string }) {
               <div className="flex flex-wrap items-baseline justify-between gap-3">
                 <div>
                   <span className="spa-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                    {selected.zone_name ?? city}
+                    {selected.zone_name ?? region ?? "India"}
                   </span>
                   <h3 className="font-display text-2xl">
-                    Ward {selected.ward_no}
+                    {selected.ward_name && level === "district"
+              ? selected.ward_name
+              : `Ward ${selected.ward_no}`}
                   </h3>
                 </div>
                 <Badge variant={selected.surveyed ? "secondary" : "outline"}>

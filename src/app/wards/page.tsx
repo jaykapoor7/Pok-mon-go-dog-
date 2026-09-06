@@ -16,18 +16,20 @@ export default async function WardsPage({
 }: {
   searchParams?: Promise<{ city?: string }>;
 }) {
-  const city = (await searchParams)?.city || "Chennai";
+  // No ?city means the whole country: districts, not one pilot's wards.
+  const city = (await searchParams)?.city ?? null;
   return (
     <AppShell>
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <ConsoleHeader
           kicker="Data and evidence"
-          title="Ward density"
+          title="Density across India"
           description={
             <>
-              Animals on record counted inside published municipal ward
-              boundaries. Coverage first: a ward with no records is a ward
-              nobody has surveyed, which is a different finding from a ward
+              Animals on record counted inside published boundaries: all 641
+              districts of India, and every ward of a city once its pilot
+              starts. Coverage first, because an area with no records is one
+              nobody has surveyed, which is a different finding from an area
               with no animals, and this page never merges the two.
             </>
           }
