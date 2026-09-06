@@ -42,7 +42,20 @@ import { stateCoverage, STATUS_META } from "@/lib/platform/coverage";
    screen is the data.
    ════════════════════════════════════════════════════════════════════ */
 
-const STYLE_URL = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+/* CARTO began enforcing API keys on basemaps.cartocdn.com in late August
+   2026. Vector tiles still serve without one today — verified — but raster
+   already returns an "API KEY REQUIRED" watermark, and vector is a switch
+   they can throw. A key is free up to five million tiles a month, so this
+   reads one if it is set and carries on without it if it is not, rather
+   than waiting to find out the hard way in front of a pilot.
+
+   Request one at https://carto.com/basemaps/apikey/ and set
+   NEXT_PUBLIC_CARTO_API_KEY. Attribution is required either way and is
+   already rendered by AttributionControl below. */
+const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_API_KEY;
+const STYLE_URL =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json" +
+  (CARTO_KEY ? `?api_key=${encodeURIComponent(CARTO_KEY)}` : "");
 
 /* StrayPaw is an India-wide network, so the camera stays over India: panning
    is fenced to the subcontinent and you cannot zoom out to the whole globe.
