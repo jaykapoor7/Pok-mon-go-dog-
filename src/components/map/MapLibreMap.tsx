@@ -3,24 +3,46 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Map, {
+  Layer,
   Marker,
+  Source,
   GeolocateControl,
   AttributionControl,
+  type MapLayerMouseEvent,
   type MapRef,
 } from "react-map-gl/maplibre";
-import Supercluster from "supercluster";
-import type { PointFeature } from "supercluster";
+import type { CircleLayerSpecification, SymbolLayerSpecification } from "maplibre-gl";
 import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
 import { markerMetaFor } from "@/lib/marker-state";
-import { dogLabel } from "@/lib/utils";
-import { PhotoMarker } from "./PhotoMarker";
-import { ClusterMarker } from "./ClusterMarker";
 import { FeedingMarker } from "./FeedingMarker";
 import type { Dog, FeedingZone } from "@/lib/types";
 import { stateCoverage, STATUS_META } from "@/lib/platform/coverage";
 
-// Free, keyless, full-detail OpenStreetMap vector style (Google-Maps-like).
-const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+/* ════════════════════════════════════════════════════════════════════
+   WHY THIS MAP DRAWS THE WAY IT DOES
+
+   Every animal used to be a React <Marker>: a DOM node, carrying a
+   photograph, that MapLibre had to reposition on every frame of a pan. On
+   top of that, onMove pushed the viewport into React state mid-gesture,
+   which re-ran supercluster and reconciled the whole marker list while your
+   finger was still moving. Two compounding costs per frame, and the reason
+   scrolling the map felt like dragging something heavy.
+
+   Now the animals are a GeoJSON source with MapLibre's own clustering, drawn
+   by GL circle and symbol layers. Panning is GPU work against a buffer that
+   is already uploaded; React does nothing at all during a gesture. The only
+   DOM markers left are the handful that genuinely are few — feeding zones,
+   and the state coverage dots.
+
+   The basemap is CARTO Positron rather than OpenFreeMap Liberty. Liberty is
+   a full-colour street map: every road classified in its own hue, every
+   landuse tinted. Beautiful, and completely wrong underneath a layer whose
+   entire job is to show where animals are, because the dots had to compete
+   with it. Positron is greyscale and deliberately quiet, so the colour on
+   screen is the data.
+   ════════════════════════════════════════════════════════════════════ */
+
+const STYLE_URL = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 /* StrayPaw is an India-wide network, so the camera stays over India: panning
    is fenced to the subcontinent and you cannot zoom out to the whole globe.
@@ -31,6 +53,12 @@ const INDIA_BOUNDS: [[number, number], [number, number]] = [
 ];
 const MIN_ZOOM = 3.6;
 
+const SRC = "dogs";
+const CLUSTER_LAYER = "dog-clusters";
+const CLUSTER_COUNT_LAYER = "dog-cluster-count";
+const POINT_LAYER = "dog-points";
+const INTERACTIVE = [CLUSTER_LAYER, POINT_LAYER];
+
 /** Imperative handles the surrounding UI drives its own controls with. */
 export type MapApi = {
   zoomIn: () => void;
@@ -39,11 +67,63 @@ export type MapApi = {
   fitIndia: () => void;
 };
 
-type Props = { id: string; cover: string; urgent: boolean; sightings: number };
-/* What a cluster carries beyond point_count: how many of the animals inside
-   it are flagged as needing help, accumulated by supercluster as it builds
-   the index rather than counted per frame. */
-type ClusterProps = { urgentCount: number };
+/* Sized by how many are inside, in steps rather than a smooth ramp: a
+   continuous radius makes 30 and 40 indistinguishable, while steps read as
+   "that group is bigger than this one" across a whole screen. */
+const clusterLayer: CircleLayerSpecification = {
+  id: CLUSTER_LAYER,
+  type: "circle",
+  source: SRC,
+  filter: ["has", "point_count"],
+  paint: {
+    /* Red the moment anything inside needs help, so urgency survives being
+       clustered instead of being averaged away. */
+    "circle-color": ["case", [">", ["get", "urgent"], 0], "#e04a2f", "#1b46b0"],
+    "circle-radius": [
+      "step", ["get", "point_count"],
+      16, 10, 21, 50, 27, 200, 34, 1000, 42,
+    ],
+    "circle-opacity": 0.92,
+    "circle-stroke-width": 2.5,
+    "circle-stroke-color": "#ffffff",
+  },
+};
+
+const clusterCountLayer: SymbolLayerSpecification = {
+  id: CLUSTER_COUNT_LAYER,
+  type: "symbol",
+  source: SRC,
+  filter: ["has", "point_count"],
+  layout: {
+    "text-field": ["get", "point_count_abbreviated"],
+    "text-font": ["Open Sans Bold"],
+    "text-size": ["step", ["get", "point_count"], 12, 50, 13, 200, 14],
+    "text-allow-overlap": true,
+  },
+  paint: { "text-color": "#ffffff" },
+};
+
+/* One animal: a solid dot in its status colour with a white collar, which is
+   what keeps it legible over a pale street and a dark park alike. A halo
+   underneath the ones needing help, so they carry at a glance. */
+const pointLayer: CircleLayerSpecification = {
+  id: POINT_LAYER,
+  type: "circle",
+  source: SRC,
+  filter: ["!", ["has", "point_count"]],
+  paint: {
+    "circle-color": ["get", "color"],
+    "circle-radius": [
+      "interpolate", ["linear"], ["zoom"],
+      6, 4.5,
+      11, 7,
+      16, 10,
+    ],
+    "circle-stroke-width": ["case", ["get", "urgent"], 3, 2],
+    "circle-stroke-color": ["case", ["get", "urgent"], "#e04a2f", "#ffffff"],
+    "circle-opacity": 0.95,
+  },
+};
 
 export function MapLibreMap({
   dogs,
@@ -65,12 +145,11 @@ export function MapLibreMap({
 }) {
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
-  const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
-  const [zoom, setZoom] = useState(INDIA_ZOOM);
   const [tilesFailed, setTilesFailed] = useState(false);
 
   // The basemap is fetched from a third party. If it is unreachable (offline,
-  // a blocked network, the tile host down) MapLibre surfaces the failure here, // otherwise it escapes as an unhandled rejection and the console just sits
+  // a blocked network, the tile host down) MapLibre surfaces the failure here,
+  // otherwise it escapes as an unhandled rejection and the console just sits
   // blank with no explanation.
   const handleMapError = useCallback((e: { error?: Error }) => {
     const msg = e?.error?.message ?? "";
@@ -98,67 +177,69 @@ export function MapLibreMap({
     return m;
   }, [dogs]);
 
-  const index = useMemo(() => {
-    const points: PointFeature<Props>[] = dogs.map((d) => ({
-      type: "Feature",
-      properties: {
+  /* Built once per dogs change and handed to the GL source. Colour is baked
+     into each feature rather than resolved by a match expression at paint
+     time, because the status rules live in markerMetaFor and should stay in
+     one place. */
+  const data = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: dogs.map((d) => ({
+        type: "Feature" as const,
         id: d.id,
-        cover: d.cover_photo,
-        urgent: d.needs_help,
-        sightings: d.sightings_count,
-      },
-      geometry: { type: "Point", coordinates: [d.lng, d.lat] },
-    }));
-    /* A wider radius than the default: these markers are 42-92px discs and
-       a tight radius leaves them overlapping, which is the thing clustering
-       exists to prevent.
-
-       map/reduce carries "how many in here need help" up into the cluster
-       at index time. Asking for it later means getLeaves over every point
-       in the cluster on every frame, which for a city-wide group is the
-       whole dataset. */
-    const sc = new Supercluster<Props, ClusterProps>({
-      radius: 84,
-      maxZoom: 16,
-      map: (p) => ({ urgentCount: p.urgent ? 1 : 0 }),
-      reduce: (acc, p) => {
-        acc.urgentCount += p.urgentCount;
-      },
-    });
-    sc.load(points);
-    return sc;
-  }, [dogs]);
-
-  const clusters = useMemo(
-    () => (bounds ? index.getClusters(bounds, Math.floor(zoom)) : []),
-    [index, bounds, zoom]
+        properties: {
+          id: d.id,
+          urgent: Boolean(d.needs_help),
+          color: markerMetaFor(d).color,
+        },
+        geometry: { type: "Point" as const, coordinates: [d.lng, d.lat] },
+      })),
+    }),
+    [dogs]
   );
 
-  /* onMove fires every frame of a pan. Re-clustering that often is wasted
-     work, supercluster returns the same result for sub-pixel changes, so
-     the view is only pushed to state when it moved enough to matter. */
-  const lastView = useRef<{ b: [number, number, number, number]; z: number } | null>(null);
-  const sync = useCallback(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const b = map.getBounds();
-    if (!b) return;
-    const next: [number, number, number, number] = [
-      b.getWest(), b.getSouth(), b.getEast(), b.getNorth(),
-    ];
-    const z = map.getZoom();
-    const prev = lastView.current;
-    if (prev) {
-      const span = Math.max(next[2] - next[0], 1e-6);
-      const moved = next.some((v, i) => Math.abs(v - prev.b[i]) > span / 200);
-      if (!moved && Math.abs(z - prev.z) < 0.05) return;
-    }
-    lastView.current = { b: next, z };
-    setBounds(next);
-    setZoom(z);
-  }, []);
+  /* One handler for both layers. A cluster zooms to the point where it breaks
+     apart; a single animal opens its record. */
+  const handleClick = useCallback(
+    (e: MapLayerMouseEvent) => {
+      const map = mapRef.current;
+      const f = e.features?.[0];
+      if (!map || !f) return;
 
-  const handleLoad = useCallback(() => sync(), [sync]);
+      if (f.properties?.cluster) {
+        const src = map.getSource(SRC) as unknown as {
+          getClusterExpansionZoom: (id: number) => Promise<number>;
+        };
+        const clusterId = f.properties.cluster_id as number;
+        const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates;
+        Promise.resolve(src.getClusterExpansionZoom(clusterId))
+          .then((z) =>
+            map.easeTo({ center: [lng, lat], zoom: Math.min(z, 16), duration: 500 })
+          )
+          .catch(() => {
+            map.easeTo({ center: [lng, lat], zoom: map.getZoom() + 2, duration: 500 });
+          });
+        return;
+      }
+
+      const dog = byId[f.properties?.id as string];
+      if (!dog) return;
+      const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates;
+      map.easeTo({
+        center: [lng, lat],
+        zoom: Math.max(map.getZoom(), 13.5),
+        duration: 650,
+      });
+      onSelect?.(dog);
+    },
+    [byId, onSelect]
+  );
+
+  /* Anything clickable should say so before it is clicked. */
+  const setCursor = useCallback((cursor: string) => {
+    const c = mapRef.current?.getCanvas();
+    if (c) c.style.cursor = cursor;
+  }, []);
 
   /* The camera controls only need the map instance, not a finished basemap.
      Publishing them on mount rather than on style load keeps zoom and tilt
@@ -204,14 +285,15 @@ export function MapLibreMap({
       maxBounds={INDIA_BOUNDS}
       minZoom={MIN_ZOOM}
       maxZoom={18}
-      /* Clusters follow the camera while it moves rather than snapping only
-         once it stops, which is what made panning feel static. The handler is
-         already rAF-coalesced, and re-clustering is skipped unless the view
-         actually changed enough to alter the result. */
-      onLoad={handleLoad}
-      onMove={sync}
-      onMoveEnd={sync}
+      /* No onMove handler. The viewport used to be pushed into React state on
+         every frame of a pan so that supercluster could re-run; clustering is
+         the GL source's job now, and React staying still during a gesture is
+         most of why this scrolls smoothly. */
       onError={handleMapError}
+      interactiveLayerIds={preview ? undefined : INTERACTIVE}
+      onClick={preview ? undefined : handleClick}
+      onMouseEnter={preview ? undefined : () => setCursor("pointer")}
+      onMouseLeave={preview ? undefined : () => setCursor("")}
       style={{ width: "100%", height: "100%" }}
       reuseMaps
       // Disable the default full-width bar; the full map adds a compact,
@@ -219,8 +301,28 @@ export function MapLibreMap({
       // bulky end-to-end strip (which looked oversized on the small preview).
       attributionControl={false}
     >
+      {/* clusterProperties totals the urgent flag as MapLibre builds each
+          cluster, so "does anything in here need help" costs nothing to ask
+          at paint time. */}
+      <Source
+        id={SRC}
+        type="geojson"
+        data={data}
+        cluster
+        clusterRadius={55}
+        clusterMaxZoom={15}
+        clusterProperties={{
+          urgent: ["+", ["case", ["get", "urgent"], 1, 0]],
+        }}
+      >
+        <Layer {...clusterLayer} />
+        <Layer {...clusterCountLayer} />
+        <Layer {...pointLayer} />
+      </Source>
+
       {/* Data-gap layer: one marker per state, coloured by whether anything
-          has actually been published about it. */}
+          has actually been published about it. Thirty-odd DOM nodes, which is
+          a number the browser does not mind. */}
       {showGaps && !preview &&
         stateCoverage().map((st) => {
           const meta = STATUS_META[st.status];
@@ -258,50 +360,6 @@ export function MapLibreMap({
         </>
       )}
 
-      {clusters.map((c) => {
-        const [lng, lat] = c.geometry.coordinates;
-
-        if ("cluster" in c.properties) {
-          const clusterId = c.properties.cluster_id;
-          const count = c.properties.point_count;
-          return (
-            <Marker key={`cluster-${clusterId}`} longitude={lng} latitude={lat} anchor="center">
-              <ClusterMarker
-                count={count}
-                urgent={(c.properties as unknown as ClusterProps).urgentCount ?? 0}
-                onClick={() => {
-                  const z = Math.min(index.getClusterExpansionZoom(clusterId), 16);
-                  mapRef.current?.easeTo({ center: [lng, lat], zoom: z, duration: 500 });
-                }}
-              />
-            </Marker>
-          );
-        }
-
-        const props = c.properties;
-        const dog = byId[props.id];
-        return (
-          <Marker key={props.id} longitude={lng} latitude={lat} anchor="center">
-            <PhotoMarker
-              photo={props.cover}
-              seed={props.id}
-              ringColor={dog ? markerMetaFor(dog).color : "#9A9C88"}
-              urgent={props.urgent}
-              label={dog ? dogLabel(dog) : "Dog"}
-              onClick={() => {
-                if (!dog) return;
-                mapRef.current?.easeTo({
-                  center: [lng, lat],
-                  zoom: Math.max(zoom, 13.5),
-                  duration: 650,
-                });
-                onSelect?.(dog);
-              }}
-            />
-          </Marker>
-        );
-      })}
-
       {feedingZones.map((z) => (
         <Marker key={z.id} longitude={z.lng} latitude={z.lat} anchor="center">
           <FeedingMarker label={z.name} onClick={() => router.push(`/feeding/${z.id}`)} />
@@ -334,12 +392,12 @@ export function MapLibreMap({
               fontSize: 11.5,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#ff6a4f",
+              color: "#ff8a6b",
             }}
           >
             Basemap unavailable
           </p>
-          <p style={{ margin: "8px 0 0", fontSize: 12.5, lineHeight: 1.5, color: "rgba(244,245,247,0.72)" }}>
+          <p style={{ margin: "8px 0 0", fontSize: 13, color: "#dbe3f0" }}>
             The map tiles could not be reached. Records are still live, pins and
             case data are unaffected.
           </p>

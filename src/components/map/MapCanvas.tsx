@@ -6,8 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Dog, FeedingZone } from "@/lib/types";
 import type { MapApi } from "./MapLibreMap";
 
-const HAS_TOKEN = Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
-
 /* A bouncing paw print on an empty ground said "something is happening" and
    nothing else. Skeletons in the shape of the thing that is coming — the
    control stack, the legend, the counters — say what is arriving and stop the
@@ -41,16 +39,17 @@ const loading = () => (
 );
 
 /**
- * Map engines touch `window`, so they're client-only. We ship only ONE engine
- * to the browser: Mapbox when a token is configured, otherwise the keyless
- * MapLibre/OpenFreeMap map. The untaken `import()` is never fetched, so its
- * (large) chunk stays off the wire, a big perceived-load win.
+ * One engine, MapLibre against CARTO's keyless basemap. It touches `window`,
+ * so it stays client-only.
+ *
+ * There were two engines: Mapbox when NEXT_PUBLIC_MAPBOX_TOKEN was set, and
+ * MapLibre otherwise. They drifted, which is the trap two implementations of
+ * one thing always are — the performance rewrite would have landed in only
+ * one of them, and which one you got depended on an environment variable.
+ * MapLibre needs no key and no billing account, so it is the one that stays.
  */
 const MapEngine = dynamic(
-  () =>
-    HAS_TOKEN
-      ? import("./MapboxMap").then((m) => m.MapboxMap)
-      : import("./MapLibreMap").then((m) => m.MapLibreMap),
+  () => import("./MapLibreMap").then((m) => m.MapLibreMap),
   { ssr: false, loading }
 );
 
