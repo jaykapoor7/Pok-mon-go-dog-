@@ -14,10 +14,15 @@ import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
 import { markerMetaFor } from "@/lib/marker-state";
 import { dogLabel } from "@/lib/utils";
 import { PhotoMarker } from "./PhotoMarker";
+import { ClusterMarker } from "./ClusterMarker";
 import { FeedingMarker } from "./FeedingMarker";
 import type { Dog, FeedingZone } from "@/lib/types";
 
 type Props = { id: string; cover: string; urgent: boolean; sightings: number };
+/* What a cluster carries beyond point_count: how many of the animals inside
+   it are flagged as needing help, accumulated by supercluster as it builds
+   the index rather than counted per frame. */
+type ClusterProps = { urgentCount: number };
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
@@ -75,7 +80,22 @@ export function MapboxMap({
       },
       geometry: { type: "Point", coordinates: [d.lng, d.lat] },
     }));
-    const sc = new Supercluster<Props>({ radius: 70, maxZoom: 16 });
+    /* A wider radius than the default: these markers are 42-92px discs and
+       a tight radius leaves them overlapping, which is the thing clustering
+       exists to prevent.
+
+       map/reduce carries "how many in here need help" up into the cluster
+       at index time. Asking for it later means getLeaves over every point
+       in the cluster on every frame, which for a city-wide group is the
+       whole dataset. */
+    const sc = new Supercluster<Props, ClusterProps>({
+      radius: 84,
+      maxZoom: 16,
+      map: (p) => ({ urgentCount: p.urgent ? 1 : 0 }),
+      reduce: (acc, p) => {
+        acc.urgentCount += p.urgentCount;
+      },
+    });
     sc.load(points);
     return sc;
   }, [dogs]);
@@ -126,16 +146,11 @@ export function MapboxMap({
         if ("cluster" in c.properties) {
           const clusterId = c.properties.cluster_id;
           const count = c.properties.point_count;
-          const leaf = index.getLeaves(clusterId, 1)[0] as PointFeature<Props>;
-          const leafDog = leaf ? byId[leaf.properties.id] : undefined;
           return (
             <Marker key={`cluster-${clusterId}`} longitude={lng} latitude={lat} anchor="center">
-              <PhotoMarker
-                photo={leaf?.properties.cover}
-                seed={`cluster-${clusterId}`}
+              <ClusterMarker
                 count={count}
-                ringColor={leafDog ? markerMetaFor(leafDog).color : "#9A9C88"}
-                label={`${count} dogs here`}
+                urgent={(c.properties as unknown as ClusterProps).urgentCount ?? 0}
                 onClick={() => {
                   const z = Math.min(index.getClusterExpansionZoom(clusterId), 16);
                   mapRef.current?.easeTo({ center: [lng, lat], zoom: z, duration: 500 });
@@ -152,7 +167,6 @@ export function MapboxMap({
             <PhotoMarker
               photo={props.cover}
               seed={props.id}
-              count={props.sightings}
               ringColor={dog ? markerMetaFor(dog).color : "#9A9C88"}
               urgent={props.urgent}
               label={dog ? dogLabel(dog) : "Dog"}
