@@ -15,7 +15,7 @@ export function AnimalMark({ className }: { className?: string }) {
     <span className={cn("inline-flex items-center justify-center shrink-0", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/straypaw-logo.svg"
+        src="/straypaw-mark.png"
         alt="StrayPaw"
         className="h-full w-full object-contain"
       />
@@ -31,7 +31,7 @@ export function StrayPawBadge({ className }: { className?: string }) {
     <span className={cn("inline-flex items-center justify-center shrink-0", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/straypaw-logo.svg"
+        src="/straypaw-mark.png"
         alt="StrayPaw, See. Care. Act."
         className="h-full w-full object-contain"
       />

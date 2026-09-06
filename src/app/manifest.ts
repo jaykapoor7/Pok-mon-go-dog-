@@ -11,7 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/map",
     display: "standalone",
     background_color: "#fbfdff",
-    theme_color: "#3b7de6",
+    /* The logo's own ground, so the install splash and the icon agree. */
+    theme_color: "#164a8c",
     orientation: "portrait",
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

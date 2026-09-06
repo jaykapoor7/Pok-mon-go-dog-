@@ -154,38 +154,31 @@ export function SiteHeader() {
 }
 
 /** Minimal signal mark, three points on a ring. */
-export function StrayPawMark({ size = 21 }: { size?: number }) {
-  /* A paw whose pad is a map pin: the animal and its location in one form,
-     which is the whole product. Geometric enough to hold at 16px in the
-     console nav, and drawn in currentColor so it inherits whatever ground
-     it sits on. */
+export function StrayPawMark({ size = 28 }: { size?: number }) {
+  /* The brand mark: the dog looking over the rim of its circle. Cropped
+     out of the full lockup, because the arced STRAYPAW and SEE CARE ACT
+     that surround it are illegible below about 80px and the word is set in
+     the site's own type beside this anyway.
+
+     A raster rather than an SVG: the artwork has soft strokes and a
+     specific weight to it that a hand-traced path would flatten. At these
+     sizes a 512px source is a few kilobytes and never blurs. */
   return (
-    <svg
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/straypaw-mark.png"
+      alt=""
       width={size}
       height={size}
-      viewBox="0 0 24 24"
-      fill="none"
       aria-hidden="true"
-      style={{ flexShrink: 0 }}
-    >
-      {/* locate ring, the identity half of the mark */}
-      <circle
-        cx="12"
-        cy="12"
-        r="11"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeOpacity="0.45"
-      />
-      {/* toes */}
-      <circle cx="7.7" cy="8.6" r="1.75" fill="currentColor" />
-      <circle cx="12" cy="7.15" r="1.85" fill="currentColor" />
-      <circle cx="16.3" cy="8.6" r="1.75" fill="currentColor" />
-      {/* pad, shaped as a pin: round shoulders tapering to a point below */}
-      <path
-        d="M12 11.1c2.5 0 4.3 1.85 4.3 4.05 0 1.5-.85 2.5-1.95 3.4L12 20.9l-2.35-2.35c-1.1-.9-1.95-1.9-1.95-3.4C7.7 12.95 9.5 11.1 12 11.1z"
-        fill="currentColor"
-      />
-    </svg>
+      style={{
+        flexShrink: 0,
+        borderRadius: "50%",
+        display: "block",
+        /* The mark carries its own deep-blue ground, so on a dark header it
+           needs a hairline to separate it from the bar behind it. */
+        boxShadow: "0 0 0 1px rgba(255,255,255,0.14)",
+      }}
+    />
   );
 }

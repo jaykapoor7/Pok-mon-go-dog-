@@ -70,16 +70,25 @@ export const metadata: Metadata = {
     siteName: "StrayPaw",
     url: siteUrl,
     locale: "en_IN",
+    images: [
+      {
+        url: `${siteUrl}/og.png`,
+        width: 1200,
+        height: 630,
+        alt: "StrayPaw",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "StrayPaw, Every street dog, on the record",
     description:
       "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
-    /* Next emitted twitter:image:alt and twitter:image:type from the generated
-       OG route but no twitter:image itself, which left X with a malformed card
-       and no preview. Naming the image explicitly fixes it. */
-    images: [`${siteUrl}/opengraph-image`],
+    /* A real file rather than a generated route. The generated one drew a
+       hand-built heart-and-dog shape that was never the logo, and Next
+       emitted twitter:image:alt and :type from it without twitter:image
+       itself, which left X with a malformed card and no preview. */
+    images: [`${siteUrl}/og.png`],
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
