@@ -80,6 +80,7 @@ const COMMUNITY = [
    them in a sidebar is most of the reason it needed collapsing. */
 const EVIDENCE = [
   { href: "/evidence", label: "Research and gaps", Icon: ScanSearch },
+  { href: "/wards", label: "Ward density", Icon: MapPin },
   { href: "/data", label: "Published data", Icon: Database },
 ];
 

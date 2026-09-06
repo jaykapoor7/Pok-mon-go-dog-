@@ -11,12 +11,24 @@ import Map, {
   type MapLayerMouseEvent,
   type MapRef,
 } from "react-map-gl/maplibre";
-import type { CircleLayerSpecification, SymbolLayerSpecification } from "maplibre-gl";
+import type {
+  CircleLayerSpecification,
+  FillLayerSpecification,
+  LineLayerSpecification,
+  SymbolLayerSpecification,
+} from "maplibre-gl";
 import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
 import { markerMetaFor } from "@/lib/marker-state";
 import { FeedingMarker } from "./FeedingMarker";
 import type { Dog, FeedingZone } from "@/lib/types";
 import { stateCoverage, STATUS_META } from "@/lib/platform/coverage";
+import {
+  WARD_METRICS,
+  WARD_RAMP,
+  WARD_UNSURVEYED,
+  type WardFeatureCollection,
+  type WardMetric,
+} from "@/lib/wards";
 
 /* ════════════════════════════════════════════════════════════════════
    WHY THIS MAP DRAWS THE WAY IT DOES
@@ -70,7 +82,11 @@ const SRC = "dogs";
 const CLUSTER_LAYER = "dog-clusters";
 const CLUSTER_COUNT_LAYER = "dog-cluster-count";
 const POINT_LAYER = "dog-points";
+const WARD_SRC = "wards";
+const WARD_FILL = "ward-fill";
+const WARD_LINE = "ward-line";
 const INTERACTIVE = [CLUSTER_LAYER, POINT_LAYER];
+const INTERACTIVE_WITH_WARDS = [CLUSTER_LAYER, POINT_LAYER, WARD_FILL];
 
 /** Imperative handles the surrounding UI drives its own controls with. */
 export type MapApi = {
@@ -138,6 +154,59 @@ const pointLayer: CircleLayerSpecification = {
   },
 };
 
+
+/* A choropleth needs its bands and its legend to come from one place, so the
+   ramp is built from the same breaks the legend prints. Unsurveyed wards are
+   pulled out first with a `case`, before the ramp is consulted at all: they
+   are not a low value, they are the absence of a value, and painting them
+   the palest blue would tell a funder an unvisited ward is a quiet one. */
+function wardFillLayer(metric: WardMetric): FillLayerSpecification {
+  const { breaks } = WARD_METRICS[metric];
+
+  /* step(input, out0, stop0, out1, stop1, ... outN). Five colours need four
+     stops and a final output: building it as pairs and forgetting the tail
+     produces an expression MapLibre silently refuses to paint. */
+  const step: unknown[] = ["step", ["to-number", ["get", metric], 0], WARD_RAMP[0]];
+  breaks.forEach((b, i) => step.push(b, WARD_RAMP[i + 1]));
+
+  return {
+    id: WARD_FILL,
+    type: "fill",
+    source: WARD_SRC,
+    paint: {
+      "fill-color": [
+        "case",
+        // Nobody has been here. Not a low number, no number.
+        ["!", ["get", "surveyed"]], WARD_UNSURVEYED,
+        // A rate with no denominator — a surveyed ward where nothing was
+        // checked — reads the same way. to-number's fallback carries null
+        // through as -1, because an expression cannot compare against null.
+        ["<", ["to-number", ["get", metric], -1], 0], WARD_UNSURVEYED,
+        step,
+      ],
+      "fill-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hover"], false], 0.9,
+        ["!", ["get", "surveyed"]], 0.45,
+        0.72,
+      ],
+    },
+  } as unknown as FillLayerSpecification;
+}
+
+const wardLineLayer: LineLayerSpecification = {
+  id: WARD_LINE,
+  type: "line",
+  source: WARD_SRC,
+  paint: {
+    "line-color": "#5a6a86",
+    "line-width": [
+      "case", ["boolean", ["feature-state", "hover"], false], 2.2, 0.6,
+    ],
+    "line-opacity": 0.75,
+  },
+};
+
 export function MapLibreMap({
   dogs,
   onSelect,
@@ -146,6 +215,9 @@ export function MapLibreMap({
   feedingZones = [],
   onReady,
   showGaps = false,
+  wards = null,
+  wardMetric = "animals",
+  onWardSelect,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
@@ -155,6 +227,11 @@ export function MapLibreMap({
   onReady?: (api: MapApi) => void;
   /** Overlay showing what each state has actually published. */
   showGaps?: boolean;
+  /** Ward polygons with their counts. Absent until a city has boundaries. */
+  wards?: WardFeatureCollection | null;
+  /** Which number the wards are shaded by. */
+  wardMetric?: WardMetric;
+  onWardSelect?: (ward: Record<string, unknown> | null) => void;
 }) {
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
@@ -235,6 +312,11 @@ export function MapLibreMap({
         return;
       }
 
+      if (f.layer?.id === WARD_FILL) {
+        onWardSelect?.(f.properties ?? null);
+        return;
+      }
+
       const dog = byId[f.properties?.id as string];
       if (!dog) return;
       const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates;
@@ -245,7 +327,7 @@ export function MapLibreMap({
       });
       onSelect?.(dog);
     },
-    [byId, onSelect]
+    [byId, onSelect, onWardSelect]
   );
 
   /* Anything clickable should say so before it is clicked. */
@@ -303,7 +385,7 @@ export function MapLibreMap({
          the GL source's job now, and React staying still during a gesture is
          most of why this scrolls smoothly. */
       onError={handleMapError}
-      interactiveLayerIds={preview ? undefined : INTERACTIVE}
+      interactiveLayerIds={preview ? undefined : wards ? INTERACTIVE_WITH_WARDS : INTERACTIVE}
       onClick={preview ? undefined : handleClick}
       onMouseEnter={preview ? undefined : () => setCursor("pointer")}
       onMouseLeave={preview ? undefined : () => setCursor("")}
@@ -314,6 +396,14 @@ export function MapLibreMap({
       // bulky end-to-end strip (which looked oversized on the small preview).
       attributionControl={false}
     >
+      {/* Wards first so the animal dots draw on top of their own shading. */}
+      {wards && !preview && (
+        <Source id={WARD_SRC} type="geojson" data={wards} promoteId="ward_id">
+          <Layer {...wardFillLayer(wardMetric)} />
+          <Layer {...wardLineLayer} />
+        </Source>
+      )}
+
       {/* clusterProperties totals the urgent flag as MapLibre builds each
           cluster, so "does anything in here need help" costs nothing to ask
           at paint time. */}

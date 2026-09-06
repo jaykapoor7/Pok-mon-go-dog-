@@ -5,6 +5,7 @@ import { PawPrint } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Dog, FeedingZone } from "@/lib/types";
 import type { MapApi } from "./MapLibreMap";
+import type { WardFeatureCollection, WardMetric } from "@/lib/wards";
 
 /* A bouncing paw print on an empty ground said "something is happening" and
    nothing else. Skeletons in the shape of the thing that is coming — the
@@ -65,6 +66,10 @@ export function MapCanvas(props: {
   onReady?: (api: MapApi) => void;
   /** Overlay showing what each state has actually published. */
   showGaps?: boolean;
+  /** Ward polygons with their counts, shaded by wardMetric. */
+  wards?: WardFeatureCollection | null;
+  wardMetric?: WardMetric;
+  onWardSelect?: (ward: Record<string, unknown> | null) => void;
 }) {
   return <MapEngine {...props} />;
 }
