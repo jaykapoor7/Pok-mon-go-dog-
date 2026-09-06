@@ -16,9 +16,17 @@ import {
   ScanSearch,
   ShieldCheck,
   Users,
-  X,
 } from "lucide-react";
 import { ROLE_META, ROLES, readStoredRole, storeRole, type Role } from "@/lib/roles";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 /* ════════════════════════════════════════════════════════════════════
    First run: who are you, then a three-card tour.
@@ -168,29 +176,31 @@ export function Welcome() {
   const meta = role ? ROLE_META[role] : null;
 
   return (
-    <div
-      className="wc-scrim"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Welcome to StrayPaw"
-    >
-      <div className="wc">
-        <button
-          className="wc-skip"
-          onClick={() => finish()}
-          aria-label="Skip introduction"
-        >
-          Skip <X size={13} />
-        </button>
-
+    /* Was a hand-rolled div with role="dialog" and aria-modal, which is the
+       label for a modal without any of the behaviour: no focus trap, no
+       Escape, no scroll lock, no focus returned to whatever opened it, and a
+       scrim that could not be clicked away. Radix's Dialog under shadcn's
+       wrapper does all of that. The panel keeps its own .wc-* type and
+       spacing so it still looks like StrayPaw's onboarding rather than a
+       default dialog. */
+    <Dialog open={step >= 0} onOpenChange={(o) => { if (!o) finish(); }}>
+      {/* Deliberately not carrying the old .wc class: it sets position:relative,
+          which overrode DialogContent's fixed centring and dropped the panel to
+          the bottom of the screen. DialogContent already provides the surface,
+          border, shadow and radius; only the size and the scroll cap are ours. */}
+      <DialogContent className="flex max-h-[90vh] flex-col gap-4 overflow-y-auto sm:max-w-[520px]">
         {step === 0 ? (
           <>
-            <span className="spa-mono wc-kicker">Welcome to StrayPaw</span>
-            <h2 className="wc-title">Which of these is you?</h2>
-            <p className="wc-lede">
-              This only decides what we put in front of you first. Everything
-              stays visible either way.
-            </p>
+            <DialogHeader className="space-y-0 text-left">
+              <span className="spa-mono wc-kicker">Welcome to StrayPaw</span>
+              <DialogTitle className="wc-title font-normal">
+                Which of these is you?
+              </DialogTitle>
+              <DialogDescription className="wc-lede">
+                This only decides what we put in front of you first. Everything
+                stays visible either way.
+              </DialogDescription>
+            </DialogHeader>
             <div className="wc-roles">
               {ROLES.map((r) => {
                 const m = ROLE_META[r];
@@ -204,18 +214,30 @@ export function Welcome() {
                 );
               })}
             </div>
+            {/* An explicit way past the question, rather than only the X. */}
+            <div className="wc-actions justify-start">
+              <DialogClose asChild>
+                <Button variant="ghost" size="sm">Skip for now</Button>
+              </DialogClose>
+            </div>
           </>
         ) : (
           card && (
             <>
-              <span className="spa-mono wc-kicker">
-                {step} of {tour.length}
-              </span>
-              <div className="wc-icon">
-                <card.Icon size={22} />
-              </div>
-              <h2 className="wc-title">{card.title}</h2>
-              <p className="wc-lede">{card.body}</p>
+              <DialogHeader className="space-y-0 text-left">
+                <span className="spa-mono wc-kicker">
+                  {step} of {tour.length}
+                </span>
+                <div className="wc-icon">
+                  <card.Icon size={22} />
+                </div>
+                <DialogTitle className="wc-title font-normal">
+                  {card.title}
+                </DialogTitle>
+                <DialogDescription className="wc-lede">
+                  {card.body}
+                </DialogDescription>
+              </DialogHeader>
 
               <div className="wc-dots" aria-hidden="true">
                 {tour.map((_, i) => (
@@ -225,18 +247,12 @@ export function Welcome() {
 
               <div className="wc-actions">
                 {step < tour.length ? (
-                  <button
-                    className="spa-cta"
-                    onClick={() => setStep(step + 1)}
-                  >
+                  <Button onClick={() => setStep(step + 1)}>
                     Next <ArrowRight size={14} />
-                  </button>
+                  </Button>
                 ) : (
-                  <button
-                    className="spa-cta"
-                    onClick={() =>
-                      finish(role === "ngo" ? "/join" : meta?.home)
-                    }
+                  <Button
+                    onClick={() => finish(role === "ngo" ? "/join" : meta?.home)}
                   >
                     {role === "ngo"
                       ? "Enter my code"
@@ -244,13 +260,13 @@ export function Welcome() {
                         ? "See what it would take"
                         : "Open the map"}{" "}
                     <ArrowRight size={14} />
-                  </button>
+                  </Button>
                 )}
               </div>
             </>
           )
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

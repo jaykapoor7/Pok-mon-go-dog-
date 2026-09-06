@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,7 +22,6 @@ const BULK = [
 export function HelpQueue({ dogs }: { dogs: Dog[] }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   function toggle(id: string) {
@@ -45,18 +45,17 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
       );
       const ok = results.filter(Boolean).length;
       if (ok === 0) {
-        setToast("Verified partners only, sign in as an NGO to update records.");
+        toast.error("Verified partners only, sign in as an NGO to update records.");
       } else {
-        setToast(`${label} · ${ok} dog ${ok === 1 ? "record" : "records"} updated`);
+        toast.success(`${label} · ${ok} dog ${ok === 1 ? "record" : "records"} updated`);
         celebrate();
         setSelected(new Set());
         router.refresh(); // reflect DB truth
       }
     } catch {
-      setToast("Couldn't update. Please try again.");
+      toast.error("Couldn't update. Please try again.");
     } finally {
       setBusy(false);
-      setTimeout(() => setToast(null), 3000);
     }
   }
 
@@ -159,20 +158,6 @@ export function HelpQueue({ dogs }: { dogs: Dog[] }) {
         )}
       </ul>
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-28 left-1/2 z-50 -translate-x-1/2 md:bottom-8"
-          >
-            <div className="rounded-full bg-bark-900 px-5 py-3 text-sm font-semibold text-white shadow-warm">
-              {toast}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

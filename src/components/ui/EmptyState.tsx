@@ -1,10 +1,25 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 /**
- * Shared, on-brand empty state: an olive icon medallion + title, with an
- * optional description and primary CTA. Keeps Account / Feed / Cases (etc.)
- * looking designed and consistent instead of a bare emoji.
+ * The shared empty state, now composed from shadcn's Card and Button instead
+ * of a `.card` div and a `.btn-primary` anchor.
+ *
+ * Six surfaces render this one component — Cases, Feed, Account, Fundraisers,
+ * Feeding, News — so an empty page is the same shape everywhere. That was
+ * already true; what changes is that the heading is a real CardTitle, the
+ * description a CardDescription, and the action a Button, so this state
+ * inherits the same type scale, spacing and focus behaviour as the rest of
+ * the interface rather than approximating them.
  */
 export function EmptyState({
   icon,
@@ -18,20 +33,32 @@ export function EmptyState({
   action?: { href: string; label: string; icon?: ReactNode };
 }) {
   return (
-    <div className="card p-10 text-center">
-      <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-        {icon}
-      </span>
-      <h2 className="font-display text-lg">{title}</h2>
-      {description && (
-        <p className="mx-auto mt-1 max-w-xs text-sm text-bark-500">{description}</p>
+    <Card className="text-center">
+      <CardHeader className="items-center gap-0 pb-2">
+        <span className="mx-auto mb-3 flex size-14 items-center justify-center rounded bg-accent text-accent-foreground">
+          {icon}
+        </span>
+        <CardTitle className="font-display text-lg font-normal">{title}</CardTitle>
+        {description && (
+          <CardDescription className="mx-auto max-w-xs">
+            {description}
+          </CardDescription>
+        )}
+      </CardHeader>
+      {/* CardContent carries the block's lower padding when there is no
+          action, so an empty state without a CTA is not bottom-heavy. */}
+      {action ? (
+        <CardFooter className="justify-center pb-6">
+          <Button asChild>
+            <Link href={action.href}>
+              {action.icon}
+              {action.label}
+            </Link>
+          </Button>
+        </CardFooter>
+      ) : (
+        <CardContent className="pb-6" />
       )}
-      {action && (
-        <Link href={action.href} className="btn-primary mt-5 px-5 py-2.5 text-sm">
-          {action.icon}
-          {action.label}
-        </Link>
-      )}
-    </div>
+    </Card>
   );
 }

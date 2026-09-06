@@ -362,3 +362,78 @@
   background: #eef1f6;
   color: #1a1f2b;
 }
+
+/* ── shadcn/ui tokens, in StrayPaw's colours ──────────────────────────
+   shadcn components read these names; the values are the same ones
+   site.css and app.css already use, converted to the HSL triplets
+   Tailwind v3 needs so that opacity modifiers (bg-primary/90) work.
+
+   The point is that a real shadcn component drops into this app looking
+   like it belongs, instead of importing a neutral grey design system and
+   sitting next to the one that is already here.
+
+   Deliberately not remapped: borderRadius. shadcn's convention is to point
+   rounded-md/lg at --radius, but 160 places in this app already use those
+   utilities and would all move. The components keep Tailwind's defaults. */
+@layer base {
+  :root {
+    --background: 210 100% 99%;      /* #fbfdff, the body ground */
+    --foreground: 226 49% 8%;        /* --ink   #0b1020 */
+    --card: 0 0% 100%;
+    --card-foreground: 226 49% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 226 49% 8%;
+    /* A primary action here is ink on paper: what .sp-btn-dark and the
+       console's Sign in button already are. Electric blue is the accent. */
+    --primary: 226 49% 8%;
+    --primary-foreground: 220 16% 96%;   /* --paper #f4f5f7 */
+    --secondary: 213 23% 95%;
+    --secondary-foreground: 226 49% 8%;
+    --muted: 210 27% 96%;
+    --muted-foreground: 83 4% 38%;       /* --muted #63665e */
+    --accent: 217 69% 95%;
+    --accent-foreground: 223 73% 40%;
+    --destructive: 10 83% 38%;           /* --vermilion-ink #b02a10 */
+    --destructive-foreground: 220 16% 96%;
+    --border: 213 18% 80%;               /* #c4ccd6, the console's line */
+    --input: 213 18% 80%;
+    /* The same electric blue as the :focus-visible outline above, so a
+       component's focus ring and the page's are one thing. */
+    --ring: 219 100% 78%;                /* --electric #8fb7ff */
+    --chart-1: 219 44% 50%;
+    --chart-2: 189 56% 62%;
+    --chart-3: 258 100% 78%;
+    --chart-4: 9 85% 60%;
+    --chart-5: 83 4% 38%;
+    --radius: 0.25rem;
+  }
+
+  .dark {
+    --background: 222 43% 10%;       /* #0f1626, the dark body */
+    --foreground: 220 16% 96%;
+    --card: 220 33% 16%;             /* --ink-surface #1b2436 */
+    --card-foreground: 220 16% 96%;
+    --popover: 220 33% 16%;
+    --popover-foreground: 220 16% 96%;
+    /* Ink cannot be a button on an ink ground, so electric blue takes over
+       as primary here, which is what the console already does. */
+    --primary: 219 100% 78%;
+    --primary-foreground: 226 49% 8%;
+    --secondary: 222 32% 15%;
+    --secondary-foreground: 220 16% 96%;
+    --muted: 221 35% 13%;
+    --muted-foreground: 218 13% 65%;
+    --accent: 220 42% 18%;
+    --accent-foreground: 219 100% 78%;
+    --destructive: 9 85% 60%;            /* --vermilion #f05b40 */
+    --destructive-foreground: 220 16% 96%;
+    --border: 217 20% 22%;
+    --input: 217 20% 26%;
+    --ring: 219 100% 78%;
+    --chart-1: 219 100% 78%;
+    --chart-2: 189 56% 62%;
+    --chart-3: 258 100% 78%;
+    --chart-4: 9 85% 60%;
+    --chart-5: 218 13% 65%;
+  }
+}

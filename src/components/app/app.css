@@ -1573,44 +1573,10 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   }
   .spa-more:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
 
-  /* Opened, the strip becomes the column it is on a desktop: every
-     destination, under the heading it belongs to, scrolling down rather
-     than sideways. */
-  .spa-side.open {
-    position: fixed;
-    inset: 56px 0 0 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    padding: 14px 16px 28px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    background: var(--paper);
-    border-bottom: 0;
-    z-index: 45;
-  }
-  .spa-side.open .spa-sect a { display: flex; width: 100%; }
-  .spa-side.open .spa-side-label {
-    display: flex;
-    width: 100%;
-    margin-top: 14px;
-  }
-  .spa-side.open .spa-side-foot {
-    order: 0;
-    margin-top: 18px;
-    padding: 14px 0 0;
-    border-left: 0;
-    border-right: 0;
-    border-top: 1px solid #c4ccd6;
-  }
-  .spa-side.open .spa-profile,
-  .spa-side.open .spa-profile-links,
-  .spa-side.open .spa-profile-links.out { grid-auto-flow: row; }
-  .spa-side.open .spa-more { order: -2; align-self: flex-start; }
-
-  /* The drawer's backdrop comes back with the drawer. */
+  /* No CSS drawer left: the phone nav is a Sheet, which brings its own
+     overlay. */
   .spa-menu-btn { display: none; }
-  .spa-scrim.show { display: block; }
+  .spa-scrim.show { display: none; }
   .spa-main { padding: 20px; }
   .spa-grid { grid-template-columns: 1fr; }
   .spa-strip { grid-template-columns: 1fr; }
@@ -1680,48 +1646,10 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 
 /* ── first run: role picker + tour ──────────────────────────────── */
 
-.wc-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(11, 16, 32, 0.55);
-  backdrop-filter: blur(6px);
-  animation: wc-in 0.24s ease;
-}
-@keyframes wc-in { from { opacity: 0; } to { opacity: 1; } }
-
-.wc {
-  position: relative;
-  width: 100%;
-  max-width: 520px;
-  background: #fff;
-  border: 1px solid #ccd3dc;
-  border-radius: 5px;
-  padding: 30px 30px 26px;
-  box-shadow: 0 30px 70px rgba(11, 16, 32, 0.3);
-}
-.wc-skip {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 32px;
-  padding: 6px 10px;
-  background: transparent;
-  border: 1px solid #dfe4ea;
-  border-radius: 3px;
-  color: #5f6875;
-  font-size: 11.5px;
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-.wc-skip:hover { color: var(--ink); border-color: #9fadbf; }
-
+/* The welcome panel itself is a shadcn Dialog: its overlay, surface, shadow
+   and close control come from there. What stays here is the typography and
+   the role list inside it, which is the part that is StrayPaw's rather than
+   any dialog's. */
 .wc-kicker { display: block; color: var(--electric-ink); }
 .wc-icon {
   display: grid;

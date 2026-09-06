@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Utensils, Siren, Loader2 } from "lucide-react";
 import { celebrate } from "@/lib/celebrate";
@@ -18,7 +19,6 @@ export function DogActions({
   needsHelp?: boolean;
 }) {
   const { user, requireAuth } = useAuth();
-  const [toast, setToast] = useState<string | null>(null);
 
   // Saw/Fed are activity logs, kept as session toggles so a mis-tap can be
   // undone (the log fires once; "undo" just clears your tap state).
@@ -30,10 +30,13 @@ export function DogActions({
 
   const by = user?.name ? `by ${user.name}` : "";
 
+  /* Was local state plus a setTimeout plus a fixed-position div, which meant
+     a second action inside three seconds replaced the first one's message and
+     nothing was announced to a screen reader. sonner queues them and renders
+     into an aria-live region. */
   function fire(message: string, party = true) {
     if (party) celebrate();
-    setToast(message);
-    setTimeout(() => setToast(null), 2800);
+    toast(message);
   }
 
   function toggleSeen() {
@@ -110,20 +113,6 @@ export function DogActions({
         </ActionButton>
       </div>
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.9 }}
-            className="fixed bottom-28 left-1/2 z-50 -translate-x-1/2 md:bottom-8"
-          >
-            <div className="rounded-full bg-bark-900 px-5 py-3 text-sm font-semibold text-white shadow-warm">
-              {toast}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

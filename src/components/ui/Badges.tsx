@@ -1,5 +1,17 @@
 import { STATUS_META, MOOD_META, type DogStatus, type MoodTag } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+/**
+ * Status and mood chips, now built on shadcn's Badge rather than a hand-rolled
+ * `.chip` span.
+ *
+ * The colours stay in STATUS_META, because a dog's status colour is the same
+ * value the map markers use and it has to keep matching them. What Badge
+ * brings is the parts that were missing: a real focus ring, the transition
+ * and border treatment every other control has, and one definition of what a
+ * small pill looks like across the app.
+ */
 
 export function StatusBadge({
   status,
@@ -10,23 +22,23 @@ export function StatusBadge({
 }) {
   const meta = STATUS_META[status];
   return (
-    <span
-      className={cn("chip text-white shadow-sm", className)}
+    <Badge
+      className={cn("gap-1.5 border-transparent text-white shadow-sm", className)}
       style={{ backgroundColor: meta.color }}
     >
       <span aria-hidden>{meta.emoji}</span>
       {meta.label}
-    </span>
+    </Badge>
   );
 }
 
 export function MoodChip({ mood }: { mood: MoodTag }) {
   const meta = MOOD_META[mood];
   return (
-    <span className="chip bg-bark-100 text-bark-700">
+    <Badge variant="secondary" className="gap-1.5 font-medium">
       <span aria-hidden>{meta.emoji}</span>
       {meta.label}
-    </span>
+    </Badge>
   );
 }
 

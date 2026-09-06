@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Building2, Check, Loader2, User, X } from "lucide-react";
 import {
   clearVolunteer,
@@ -133,12 +136,14 @@ export function ReportingFor({
         </button>
       </div>
 
-      <div>
-        <label className="mb-1.5 block text-xs font-semibold" htmlFor="vol-code">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="vol-code" className="text-xs font-semibold">
           Organisation code
-        </label>
+        </Label>
         <div className="flex gap-2">
-          <input
+          {/* aria-invalid and aria-describedby, so the error below is
+              actually announced rather than only coloured red. */}
+          <Input
             id="vol-code"
             value={code}
             onChange={(e) => {
@@ -150,18 +155,24 @@ export function ReportingFor({
             autoCapitalize="characters"
             autoComplete="off"
             spellCheck={false}
-            className="min-h-[46px] flex-1 rounded border border-bark-200 bg-white px-3 font-mono text-sm uppercase tracking-wider outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900"
+            aria-invalid={!!error}
+            aria-describedby={error ? "vol-code-error" : undefined}
+            className="min-h-[46px] flex-1 font-mono uppercase tracking-wider"
           />
-          <button
+          <Button
             type="button"
             onClick={checkCode}
             disabled={busy || code.trim().length < 3}
-            className="min-h-[46px] shrink-0 rounded bg-paw-500 px-4 text-sm font-semibold text-white disabled:opacity-40"
+            className="min-h-[46px] shrink-0"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check"}
-          </button>
+          </Button>
         </div>
-        {error && <p className="mt-1.5 text-xs font-medium text-status-injured">{error}</p>}
+        {error && (
+          <p id="vol-code-error" className="text-xs font-medium text-destructive">
+            {error}
+          </p>
+        )}
       </div>
 
       {orgName && (
@@ -169,19 +180,20 @@ export function ReportingFor({
           <p className="flex items-center gap-1.5 text-[13px] font-semibold text-status-safe">
             <Check className="h-3.5 w-3.5" /> {orgName}
           </p>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold" htmlFor="vol-name">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="vol-name" className="text-xs font-semibold">
               Your name
-            </label>
-            <input
+            </Label>
+            <Input
               id="vol-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="So your team knows who recorded it"
               autoComplete="name"
-              className="min-h-[46px] w-full rounded border border-bark-200 bg-white px-3 text-sm outline-none focus:border-paw-400 dark:border-white/10 dark:bg-bark-900"
+              aria-describedby="vol-name-hint"
+              className="min-h-[46px]"
             />
-            <p className="mt-1 text-xs text-bark-400">
+            <p id="vol-name-hint" className="text-xs text-muted-foreground">
               Asked once. This device will remember it.
             </p>
           </div>

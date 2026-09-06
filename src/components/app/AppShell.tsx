@@ -45,6 +45,16 @@ import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
 import { ProfilePanel } from "./ProfilePanel";
 import { ROLE_META, readStoredRole, type Role } from "@/lib/roles";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { search, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
@@ -302,13 +312,13 @@ export function AppShell({
       <div className="spa-body">
         <button
           type="button"
-          className={`spa-scrim ${open ? "show" : ""}`}
+          className="spa-scrim"
           onClick={() => setOpen(false)}
           aria-label="Close navigation"
           tabIndex={open ? 0 : -1}
         />
 
-        <nav id="spa-side-nav" className={`spa-side ${open ? "open" : ""}`}>
+        <nav id="spa-side-nav" className="spa-side">
           {/* This was a green dot reading "Live network", which told nobody
               anything and set a tone the rest of the console does not. */}
           <div className="spa-side-brand">StrayPaw</div>
@@ -375,18 +385,59 @@ export function AppShell({
 
 
           {/* Phone only. The strip carries four destinations; this opens the
-              remaining thirteen as a sheet, grouped the way the desktop
-              column groups them. */}
-          <button
-            type="button"
-            className="spa-more"
-            onClick={() => setOpen(!open)}
-            aria-expanded={open}
-            aria-controls="spa-side-nav"
-          >
-            {open ? <X size={15} /> : <Menu size={15} />}
-            {open ? "Close" : "All sections"}
-          </button>
+              remaining thirteen, grouped the way the desktop column groups
+              them.
+
+              A real Sheet rather than the CSS overlay this used to be: it
+              traps focus, closes on Escape, locks the page behind it and
+              returns focus to this button afterwards, none of which a
+              position:fixed panel does on its own. */}
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <button type="button" className="spa-more">
+                <Menu size={15} />
+                All sections
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[86vw] max-w-[340px] overflow-y-auto p-0">
+              <SheetHeader className="border-b px-5 py-4 text-left">
+                <SheetTitle className="font-display text-base font-normal">
+                  All sections
+                </SheetTitle>
+                <SheetDescription className="text-xs">
+                  Everywhere you can go from here.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex flex-col gap-1 px-3 py-4">
+                {SECTIONS.map(({ key, label, items }) => {
+                  const links = prioritise(items);
+                  return (
+                    <div key={key} className="flex flex-col gap-1">
+                      <p className="spa-mono mt-3 flex items-center justify-between px-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        {label}
+                        <Badge variant="secondary" className="tabular-nums">
+                          {links.length}
+                        </Badge>
+                      </p>
+                      {links.map(({ href, label: l, Icon }) => (
+                        <Button
+                          key={href}
+                          asChild
+                          variant={isActive(href) ? "secondary" : "ghost"}
+                          className="justify-start gap-2.5"
+                        >
+                          <Link href={href} onClick={() => setOpen(false)}>
+                            <Icon size={15} />
+                            {l}
+                          </Link>
+                        </Button>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </SheetContent>
+          </Sheet>
 
           <div className="spa-side-foot">
             <ProfilePanel onNavigate={() => setOpen(false)} />

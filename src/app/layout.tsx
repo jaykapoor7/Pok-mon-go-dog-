@@ -9,6 +9,7 @@ import { StructuredData } from "@/components/seo/StructuredData";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
+import { Toaster } from "@/components/ui/sonner";
 
 // Interface: DM Sans, restrained, precise, engineered.
 const sans = DM_Sans({
@@ -134,6 +135,7 @@ export default function RootLayout({
             <Haptics />
             <Chrome>{children}</Chrome>
             <InstallPrompt />
+        <Toaster />
           </AuthProvider>
         </ThemeProvider>
       </body>

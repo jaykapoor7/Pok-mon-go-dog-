@@ -9,6 +9,8 @@ import {
 } from "react";
 import { Loader2, ShieldCheck, LogIn, HeartHandshake, Check } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   isNgoMember,
   getMyPartnerRequestStatus,
@@ -72,39 +74,38 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
   return (
     <AccessCtx.Provider value={{ member: member === true, ready: resolved }}>
       {resolved && !member && !dismissed && (
-        <div className="mb-5 flex flex-wrap items-start gap-x-4 gap-y-3 rounded border border-paw-300/50 bg-paw-50 px-4 py-3 dark:border-paw-500/30 dark:bg-bark-800">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-paw-600 dark:text-paw-300" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-bark-800 dark:text-bark-100">
-              You are not signed in, so no records are loaded.
-            </p>
-            <p className="mt-1 text-[13px] leading-relaxed text-bark-600 dark:text-bark-300">
-              Look around freely. Case records load once you sign
-              in with a verified organisation account, and each NGO sees only
-              its own, so nothing here is another org&apos;s data.
+        /* A callout is what Alert is for. This was a styled div doing the
+           same job without the role="alert" that tells a screen reader
+           something has appeared, and re-specifying its own border, tint and
+           icon placement. */
+        <Alert className="mb-5">
+          <ShieldCheck className="h-4 w-4" />
+          <AlertTitle>You are not signed in, so no records are loaded.</AlertTitle>
+          <AlertDescription>
+            <p className="leading-relaxed">
+              Look around freely. Case records load once you sign in with a
+              verified organisation account, and each NGO sees only its own, so
+              nothing here is another org&apos;s data.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {!user ? (
-                <button onClick={openSignIn} className="btn-primary px-4 py-2 text-[13px]">
+                <Button size="sm" onClick={openSignIn}>
                   <LogIn className="h-4 w-4" /> Sign in
-                </button>
+                </Button>
               ) : reqStatus === "pending" ? (
-                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-bark-700 dark:text-bark-200">
+                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground">
                   <Check className="h-4 w-4 text-status-vaccinated" />
                   Request received, we&apos;ll enable your access shortly.
                 </span>
               ) : (
                 <RequestForm onDone={() => setReqStatus("pending")} compact />
               )}
-              <button
-                onClick={() => setDismissed(true)}
-                className="btn-ghost px-3 py-2 text-[13px]"
-              >
+              <Button size="sm" variant="ghost" onClick={() => setDismissed(true)}>
                 Dismiss
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
+          </AlertDescription>
+        </Alert>
       )}
       {children}
     </AccessCtx.Provider>

@@ -10,6 +10,16 @@ import { timeAgo } from "@/lib/utils";
 import { downloadCsv } from "@/lib/csv";
 import { getPartnerCases } from "@/lib/cases";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Filter = "all" | "urgent" | "assigned" | "in_progress" | "resolved";
 
@@ -24,14 +34,18 @@ const STATUS_LABEL: Record<CaseStatus, string> = {
   closed: "Closed",
 };
 
+/* A case's status reads as a Badge. The tint still comes from the status
+   palette the rest of the app uses, so a resolved case is the same green
+   here as on a dog's record; Badge supplies the shape, the border and the
+   type treatment that were being re-specified by hand at each call site. */
 function statusBadge(c: Case): { label: string; cls: string } {
   const s = c.status;
   const cls =
-    s === "resolved" ? "bg-status-vaccinated/15 text-status-vaccinated"
-    : s === "in_progress" ? "bg-paw-500/15 text-paw-700 dark:text-paw-300"
-    : s === "assigned" ? "bg-status-hungry/15 text-status-hungry"
-    : s === "closed" ? "bg-bark-100 text-bark-500 dark:bg-bark-800"
-    : "bg-bark-100 text-bark-600 dark:bg-bark-800 dark:text-bark-300";
+    s === "resolved" ? "border-transparent bg-status-vaccinated/15 text-status-vaccinated"
+    : s === "in_progress" ? "border-transparent bg-paw-500/15 text-paw-700 dark:text-paw-300"
+    : s === "assigned" ? "border-transparent bg-status-hungry/15 text-status-hungry"
+    : s === "closed" ? "border-transparent bg-muted text-muted-foreground"
+    : "border-transparent bg-muted text-foreground/70";
   return { label: STATUS_LABEL[s], cls };
 }
 
@@ -90,41 +104,59 @@ export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases
   return (
     <div>
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="no-scrollbar -mx-1 flex gap-1 overflow-x-auto px-1">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
-                filter === f.key ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-              )}
-            >
-              {f.label}
-              <span className={cn("tabular-nums", filter === f.key ? "opacity-70" : "text-bark-400")}>{f.count}</span>
-            </button>
-          ))}
-        </div>
+        {/* These five are one choice, not five independent toggles, which is
+            what Tabs models. It also brings the arrow-key roving focus the
+            hand-rolled button row never had. */}
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
+          <TabsList className="no-scrollbar h-auto max-w-full justify-start overflow-x-auto">
+            {FILTERS.map((f) => (
+              <TabsTrigger key={f.key} value={f.key} className="gap-1.5">
+                {f.label}
+                <span className="tabular-nums opacity-60">{f.count}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <div className="flex items-center gap-2">
           <div className="relative sm:w-56">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search cases…" className="w-full rounded-md border border-black/[0.09] bg-transparent py-2 pl-9 pr-3 text-sm outline-none placeholder:text-bark-400 focus:border-paw-400 dark:border-white/[0.12]" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search cases…"
+              aria-label="Search cases"
+              className="pl-9"
+            />
           </div>
           {rows.length > 0 && (
-            <button onClick={() => downloadCsv("cases.csv", rows.map((c) => ({ title: c.title, species: speciesLabel(c.species), category: c.category, severity: c.severity, status: c.status, assignee: c.assignee_name ?? "", location: c.zone ?? "", follow_up: c.follow_up_at ?? "", last_activity: c.last_activity_at })))} className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-black/[0.09] text-bark-500 hover:bg-black/[0.04] dark:border-white/[0.12]" title="Export CSV">
-              <Download className="h-4 w-4" />
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Export cases as CSV"
+                    onClick={() => downloadCsv("cases.csv", rows.map((c) => ({ title: c.title, species: speciesLabel(c.species), category: c.category, severity: c.severity, status: c.status, assignee: c.assignee_name ?? "", location: c.zone ?? "", follow_up: c.follow_up_at ?? "", last_activity: c.last_activity_at })))}
+                  >
+                    <Download />
+                  </Button>
+                </TooltipTrigger>
+                {/* Was a title attribute, which never appears on touch and
+                    waits a second on a pointer. */}
+                <TooltipContent>Export {rows.length} {rows.length === 1 ? "case" : "cases"} as CSV</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
-        <div className="hidden grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] items-center gap-4 border-b border-black/[0.08] bg-bark-50 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/[0.1] dark:bg-white/[0.02] md:grid">
+      <div className="overflow-hidden rounded-lg border">
+        <div className="hidden grid-cols-[44px_1.5fr_1fr_90px_110px_1fr] items-center gap-4 border-b bg-muted/60 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground md:grid">
           <span></span><span>Report</span><span>Location</span><span>Urgency</span><span>Status</span><span>Assigned to</span>
         </div>
 
         {rows.length === 0 ? (
-          <div className="px-4 py-16 text-center text-sm text-bark-400">No cases match.</div>
+          <div className="px-4 py-16 text-center text-sm text-muted-foreground">No cases match.</div>
         ) : (
           <ul>
             {rows.map((c) => {
@@ -143,13 +175,13 @@ export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases
                       <p className="truncate text-[12px] text-bark-400">{c.title}</p>
                       <div className="mt-1 flex items-center gap-2 md:hidden">
                         <span className={cn("text-[11.5px] font-bold", pr.cls)}>{pr.label}</span>
-                        <span className={cn("rounded-full px-2 py-0.5 text-[11.5px] font-semibold", st.cls)}>{st.label}</span>
+                        <Badge className={cn("px-2 py-0.5 text-[11.5px]", st.cls)}>{st.label}</Badge>
                         {c.zone && <span className="truncate text-[11.5px] text-bark-400">{c.zone}</span>}
                       </div>
                     </div>
                     <span className="hidden truncate text-[13px] text-bark-500 md:block">{c.zone || "-"}</span>
                     <span className={cn("hidden text-[12px] font-bold md:block", pr.cls)}>{pr.label}</span>
-                    <span className="hidden md:block"><span className={cn("rounded-full px-2 py-0.5 text-[12px] font-semibold", st.cls)}>{st.label}</span></span>
+                    <span className="hidden md:block"><Badge className={cn("px-2 py-0.5 text-[12px]", st.cls)}>{st.label}</Badge></span>
                     <span className={cn("hidden truncate text-[13px] md:block", c.assignee_name ? "text-bark-700 dark:text-bark-200" : "text-bark-400")}>{c.assignee_name ?? "Unassigned"}</span>
                   </Link>
                 </li>
