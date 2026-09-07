@@ -142,7 +142,17 @@ function drawPawFallback(ctx: Ctx, seed: string, r: number) {
   ctx.fill();
 }
 
-/** Cover-fit the photograph into the circular hole. */
+/**
+ * Cover-fit the photograph into the circular hole.
+ *
+ * Centred horizontally, but biased UPWARD on a tall photograph. Someone
+ * standing over a dog and pointing a phone at it puts the animal in the
+ * upper half of a 9:16 frame and a lot of ground underneath; a centre crop
+ * of that is a circle of pavement. Every one of these markers is supposed
+ * to be a face you might recognise, so the crop looks where the subject
+ * actually is. Square and landscape frames stay centred — the bias only
+ * applies where the aspect ratio implies the tilt.
+ */
 function drawPhoto(ctx: Ctx, img: CanvasImageSource, w: number, h: number, r: number) {
   ctx.save();
   circle(ctx, r);
@@ -151,7 +161,12 @@ function drawPhoto(ctx: Ctx, img: CanvasImageSource, w: number, h: number, r: nu
   const scale = Math.max(d / w, d / h);
   const dw = w * scale;
   const dh = h * scale;
-  ctx.drawImage(img, BOX / 2 - dw / 2, BOX / 2 - dh / 2, dw, dh);
+  /* 0.5 is the middle of the photograph; 0.38 is a little above it. Ramped
+     in by how tall the frame is, so a 4:3 snap barely moves and a 9:16 one
+     gets the full shift. */
+  const tallness = Math.min(Math.max(h / w - 1, 0), 0.8) / 0.8;
+  const focusY = 0.5 - 0.12 * tallness;
+  ctx.drawImage(img, BOX / 2 - dw / 2, BOX / 2 - dh * focusY, dw, dh);
   ctx.restore();
 }
 
