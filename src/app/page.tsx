@@ -376,7 +376,7 @@ export default function HomePage() {
           <div className="sp-footer-bottom sp-mono">
             <span>STRAYPAW © 2026</span>
             <span style={{ display: "flex", gap: 18 }}>
-              <Link href="/about">ABOUT</Link>
+              <Link href="/mission">MISSION</Link>
               <Link href="/privacy">PRIVACY</Link>
               <Link href="/terms">TERMS</Link>
               <Link href="/contact">CONTACT</Link>

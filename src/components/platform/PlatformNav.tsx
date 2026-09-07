@@ -11,7 +11,7 @@ const LINKS = [
   { label: "Explore", href: "/explore" },
   { label: "Resources", href: "/resources" },
   { label: "Learn", href: "/learn" },
-  { label: "About", href: "/about" },
+  { label: "Mission", href: "/mission" },
 ];
 
 /** Unified top nav for all platform pages. Matches the landing page header. */

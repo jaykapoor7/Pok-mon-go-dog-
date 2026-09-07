@@ -13,6 +13,7 @@ type NavItem = {
 };
 
 const LINKS: NavItem[] = [
+  { label: "Mission", href: "/mission" },
   { label: "Why StrayPaw", href: "/why-straypaw" },
   { label: "The network", href: "/the-network" },
   {

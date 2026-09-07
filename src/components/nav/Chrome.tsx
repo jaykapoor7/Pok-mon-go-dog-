@@ -9,6 +9,7 @@ import { AppShell } from "@/components/app/AppShell";
 const OWN_CHROME = new Set<string>([
   "/",
   "/about",
+  "/mission",
   "/privacy",
   "/terms",
   "/safety",
