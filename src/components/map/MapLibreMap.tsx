@@ -46,12 +46,13 @@ import {
    DOM markers left are the handful that genuinely are few — feeding zones,
    and the state coverage dots.
 
-   The basemap is CARTO Positron rather than OpenFreeMap Liberty. Liberty is
-   a full-colour street map: every road classified in its own hue, every
-   landuse tinted. Beautiful, and completely wrong underneath a layer whose
-   entire job is to show where animals are, because the dots had to compete
-   with it. Positron is greyscale and deliberately quiet, so the colour on
-   screen is the data.
+   The basemap is CARTO Dark Matter. Liberty, the previous one, was a
+   full-colour street map — every road class its own hue — which the animal
+   dots had to compete with. Positron fixed that but went too far the other
+   way: a near-white sheet inside a navy console reads as a page that failed
+   to load, especially at country zoom where there is little on it. Dark
+   Matter is the same quiet cartography on the console's own ground, and a
+   bright dot on it is unmistakable.
    ════════════════════════════════════════════════════════════════════ */
 
 /* CARTO began enforcing API keys on basemaps.cartocdn.com in late August
@@ -66,17 +67,23 @@ import {
    already rendered by AttributionControl below. */
 const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_API_KEY;
 const STYLE_URL =
-  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json" +
+  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" +
   (CARTO_KEY ? `?api_key=${encodeURIComponent(CARTO_KEY)}` : "");
 
-/* StrayPaw is an India-wide network, so the camera stays over India: panning
-   is fenced to the subcontinent and you cannot zoom out to the whole globe.
-   Padded well beyond the coastline so the edges never feel clipped. */
+/* India's own extent, lightly padded: roughly 68.1E to 97.4E and 6.7N to
+   35.7N.
+
+   The previous box ran to 64E and 102E, which is Tajikistan on one side and
+   deep into Myanmar on the other. maxBounds does not merely stop you panning
+   out of it — MapLibre keeps the whole viewport inside the box, so on a wide
+   screen it fitted THAT, and the map opened over Afghanistan with India down
+   in the corner. Fencing to the country instead means the country is what
+   fills the screen. */
 const INDIA_BOUNDS: [[number, number], [number, number]] = [
-  [64.0, 4.0],
-  [102.0, 39.0],
+  [67.0, 5.5],
+  [98.5, 37.5],
 ];
-const MIN_ZOOM = 3.6;
+const MIN_ZOOM = 3.4;
 
 const SRC = "dogs";
 const CLUSTER_LAYER = "dog-clusters";
@@ -219,7 +226,7 @@ const wardLineLayer: LineLayerSpecification = {
   type: "line",
   source: WARD_SRC,
   paint: {
-    "line-color": "#5a6a86",
+    "line-color": "#7d8ba6",
     "line-width": [
       "case", ["boolean", ["feature-state", "hover"], false], 2.2, 0.6,
     ],
@@ -260,13 +267,24 @@ export function MapLibreMap({
   const router = useRouter();
   const [tilesFailed, setTilesFailed] = useState(false);
 
-  // The basemap is fetched from a third party. If it is unreachable (offline,
-  // a blocked network, the tile host down) MapLibre surfaces the failure here,
-  // otherwise it escapes as an unhandled rejection and the console just sits
-  // blank with no explanation.
+  /* The basemap is fetched from a third party, and when it genuinely cannot
+     be reached the console should say so rather than sit blank.
+
+     But the first version of this matched any error message containing
+     "fetch", "network", "load", "tile" or "style", which is very nearly all
+     of them. MapLibre raises errors for ordinary things — a sprite that
+     404s, a tile aborted because you panned away from it — so a fully
+     working map was showing BASEMAP UNAVAILABLE over the top of the
+     basemap it had just drawn.
+
+     A loaded style is proof the basemap is reachable, so nothing raised
+     after that counts, and onLoad clears any earlier complaint. */
   const handleMapError = useCallback((e: { error?: Error }) => {
+    if (mapRef.current?.getMap?.().isStyleLoaded?.()) return;
     const msg = e?.error?.message ?? "";
-    if (/fetch|network|load|tile|style/i.test(msg)) setTilesFailed(true);
+    if (/failed to fetch|networkerror|load failed|not be loaded/i.test(msg)) {
+      setTilesFailed(true);
+    }
   }, []);
 
   /* Fly to a searched place when it changes. Depends on the coordinates
@@ -411,6 +429,7 @@ export function MapLibreMap({
          every frame of a pan so that supercluster could re-run; clustering is
          the GL source's job now, and React staying still during a gesture is
          most of why this scrolls smoothly. */
+      onLoad={() => setTilesFailed(false)}
       onError={handleMapError}
       interactiveLayerIds={preview ? undefined : wards ? INTERACTIVE_WITH_WARDS : INTERACTIVE}
       onClick={preview ? undefined : handleClick}
