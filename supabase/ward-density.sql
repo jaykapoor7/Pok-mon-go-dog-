@@ -55,6 +55,46 @@ create table if not exists wards (
   unique (level, city, ward_no)
 );
 
+-- `create table if not exists` does nothing to a table that already exists,
+-- so a database that ran an earlier version of this file has the table
+-- WITHOUT the level column and the loaders fail on it. Everything below
+-- brings such a table up to date, and is a no-op on a fresh one.
+alter table wards add column if not exists level text;
+update wards set level = 'ward' where level is null;
+alter table wards alter column level set default 'ward';
+alter table wards alter column level set not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+     where conrelid = 'wards'::regclass and conname = 'wards_level_check'
+  ) then
+    alter table wards add constraint wards_level_check
+      check (level in ('district', 'ward'));
+  end if;
+end $$;
+
+-- The key gains the level: ward 1 of Chennai and district 1 of a state are
+-- different rows, and the old two-column key would collide them.
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint
+     where conrelid = 'wards'::regclass and conname = 'wards_city_ward_no_key'
+  ) then
+    alter table wards drop constraint wards_city_ward_no_key;
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+     where conrelid = 'wards'::regclass and conname = 'wards_level_city_ward_no_key'
+  ) then
+    alter table wards add constraint wards_level_city_ward_no_key
+      unique (level, city, ward_no);
+  end if;
+end $$;
+
+drop index if exists wards_city_idx;
 create index if not exists wards_geom_idx on wards using gist (geom);
 create index if not exists wards_city_idx on wards (level, city);
 

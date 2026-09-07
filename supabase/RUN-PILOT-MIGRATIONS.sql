@@ -3463,9 +3463,9 @@ grant execute on function published_totals() to anon, authenticated, service_rol
 
 -- ════════════════════════════════════════════════════════════════
 -- 11. ward-density.sql
---     Ward boundaries, PostGIS point-in-polygon counts, and the coverage
---     headline. Boundaries themselves are data, not schema, and load
---     separately after this file:
+--     Ward and district boundaries, PostGIS point-in-polygon counts, and
+--     the coverage headline. Boundaries themselves are data, not schema,
+--     and load separately after this file:
 --       supabase/districts-india-1of5.sql … -5of5.sql
 --                                     all 641 districts, the national tier.
 --                                     Five files because the SQL editor
@@ -3513,6 +3513,10 @@ create extension if not exists postgis;
 
 create table if not exists wards (
   id          uuid primary key default gen_random_uuid(),
+  -- 'district' covers all of India at 641 polygons and is what the national
+  -- view reads; 'ward' is the municipal tier a city pilot works in. One
+  -- table because the counting is identical and only the polygon changes.
+  level       text not null default 'ward' check (level in ('district', 'ward')),
   city        text not null,
   state       text,
   ward_no     text not null,
@@ -3523,11 +3527,51 @@ create table if not exists wards (
   source_url  text not null,
   licence     text not null,
   loaded_at   timestamptz not null default now(),
-  unique (city, ward_no)
+  unique (level, city, ward_no)
 );
 
+-- `create table if not exists` does nothing to a table that already exists,
+-- so a database that ran an earlier version of this file has the table
+-- WITHOUT the level column and the loaders fail on it. Everything below
+-- brings such a table up to date, and is a no-op on a fresh one.
+alter table wards add column if not exists level text;
+update wards set level = 'ward' where level is null;
+alter table wards alter column level set default 'ward';
+alter table wards alter column level set not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+     where conrelid = 'wards'::regclass and conname = 'wards_level_check'
+  ) then
+    alter table wards add constraint wards_level_check
+      check (level in ('district', 'ward'));
+  end if;
+end $$;
+
+-- The key gains the level: ward 1 of Chennai and district 1 of a state are
+-- different rows, and the old two-column key would collide them.
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint
+     where conrelid = 'wards'::regclass and conname = 'wards_city_ward_no_key'
+  ) then
+    alter table wards drop constraint wards_city_ward_no_key;
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+     where conrelid = 'wards'::regclass and conname = 'wards_level_city_ward_no_key'
+  ) then
+    alter table wards add constraint wards_level_city_ward_no_key
+      unique (level, city, ward_no);
+  end if;
+end $$;
+
+drop index if exists wards_city_idx;
 create index if not exists wards_geom_idx on wards using gist (geom);
-create index if not exists wards_city_idx on wards (city);
+create index if not exists wards_city_idx on wards (level, city);
 
 -- Area is derived, never entered. Cast to geography so it is real square
 -- kilometres on the spheroid rather than degrees squared, which is the
@@ -3548,11 +3592,13 @@ grant select on wards to anon, authenticated, service_role;
 
 -- ── 2. Which ward is a point in ─────────────────────────────────────
 
-create or replace function ward_at(p_lat double precision, p_lng double precision)
-returns uuid language sql stable parallel safe as $$
+create or replace function ward_at(
+  p_lat double precision, p_lng double precision, p_level text default 'ward'
+) returns uuid language sql stable parallel safe as $$
   select w.id
     from wards w
-   where st_contains(w.geom, st_setsrid(st_point(p_lng, p_lat), 4326))
+   where w.level = p_level
+     and st_contains(w.geom, st_setsrid(st_point(p_lng, p_lat), 4326))
    limit 1;
 $$;
 
@@ -3561,7 +3607,7 @@ $$;
 -- One row per ward, whether or not anything has been recorded in it, which
 -- is the whole point: the empty ones are the finding.
 
-create or replace function ward_density(p_city text)
+create or replace function ward_density(p_city text default null, p_level text default 'ward')
 returns table (
   ward_id            uuid,
   city               text,
@@ -3586,7 +3632,10 @@ language sql stable parallel safe as $$
     select id, city, ward_no, ward_name, zone_name, geom,
            ward_area_km2(geom) as area_km2
       from wards
-     where wards.city = p_city
+     -- Null region means the whole country at this level, which is what
+     -- the national map asks for: all 641 districts in one payload.
+     where wards.level = p_level
+       and (p_city is null or wards.city = p_city)
   ),
   counted as (
     select w.id as ward_id,
@@ -3632,8 +3681,8 @@ language sql stable parallel safe as $$
    order by w.ward_no;
 $$;
 
-grant execute on function ward_density(text) to anon, authenticated, service_role;
-grant execute on function ward_at(double precision, double precision) to anon, authenticated, service_role;
+grant execute on function ward_density(text, text) to anon, authenticated, service_role;
+grant execute on function ward_at(double precision, double precision, text) to anon, authenticated, service_role;
 
 -- ── 4. The map's payload ────────────────────────────────────────────
 --
@@ -3643,7 +3692,7 @@ grant execute on function ward_at(double precision, double precision) to anon, a
 -- joining 200 polygons to 200 rows client-side is work done once here and
 -- once per visitor there.
 
-create or replace function ward_density_geojson(p_city text)
+create or replace function ward_density_geojson(p_city text default null, p_level text default 'ward')
 returns json language sql stable as $$
   -- row_number is computed in the subquery: a window function cannot be
   -- called inside an aggregate, and MapLibre needs a stable integer feature
@@ -3675,22 +3724,22 @@ returns json language sql stable as $$
           'surveyed',  d.surveyed
         )
       ) as feature
-        from ward_density(p_city) d
+        from ward_density(p_city, p_level) d
         join wards w on w.id = d.ward_id
     ) f;
 $$;
 
-grant execute on function ward_density_geojson(text) to anon, authenticated, service_role;
+grant execute on function ward_density_geojson(text, text) to anon, authenticated, service_role;
 
 -- ── 5. The headline a funder reads ──────────────────────────────────
 --
 -- Coverage first, because "we have surveyed 34 of 200 wards" is the honest
 -- opening line and every rate below it is conditional on that number.
 
-create or replace function ward_coverage(p_city text)
+create or replace function ward_coverage(p_city text default null, p_level text default 'ward')
 returns json language sql stable as $$
   select json_build_object(
-    'city', p_city,
+    'city', coalesce(p_city, 'India'),
     'wards_total', count(*),
     'wards_surveyed', count(*) filter (where surveyed),
     'wards_unsurveyed', count(*) filter (where not surveyed),
@@ -3710,21 +3759,21 @@ returns json language sql stable as $$
       case when coalesce(sum(animals), 0) > 0
            then round(100.0 * sum(sterilised) / sum(animals), 1) end,
     -- Named so a report can cite the boundaries it was drawn against.
-    'boundary_source', (select min(source_name) from wards where city = p_city),
-    'boundary_source_url', (select min(source_url) from wards where city = p_city),
-    'boundary_licence', (select min(licence) from wards where city = p_city)
+    'boundary_source', (select min(source_name) from wards where level = p_level and (p_city is null or city = p_city)),
+    'boundary_source_url', (select min(source_url) from wards where level = p_level and (p_city is null or city = p_city)),
+    'boundary_licence', (select min(licence) from wards where level = p_level and (p_city is null or city = p_city))
   )
-    from ward_density(p_city);
+    from ward_density(p_city, p_level);
 $$;
 
-grant execute on function ward_coverage(text) to anon, authenticated, service_role;
+grant execute on function ward_coverage(text, text) to anon, authenticated, service_role;
 
 -- ── 6. Cities that have boundaries loaded ───────────────────────────
 
 create or replace function ward_cities()
-returns table (city text, wards bigint)
+returns table (level text, city text, wards bigint)
 language sql stable as $$
-  select city, count(*) from wards group by city order by city;
+  select level, city, count(*) from wards group by level, city order by level, city;
 $$;
 
 grant execute on function ward_cities() to anon, authenticated, service_role;
