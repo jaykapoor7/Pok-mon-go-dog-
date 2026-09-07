@@ -352,28 +352,44 @@ export function MapLibreMap({
   const boundsKey = bounds ? bounds.flat().join(",") : null;
   useEffect(() => {
     if (preview) return;
+    if (!boundsKey && (centerLat == null || centerLng == null)) return;
 
-    /* An extent beats a point. A ward is a few square kilometres and a
-       district a few thousand, and no single zoom frames both; fitBounds
-       works out the zoom from the shape itself. */
-    if (boundsKey) {
-      const n = boundsKey.split(",").map(Number);
-      mapRef.current?.fitBounds(
-        [
-          [n[0], n[1]],
-          [n[2], n[3]],
-        ],
-        { duration: 900, padding: 48, maxZoom: 15 }
-      );
-      return;
-    }
-
-    if (centerLat == null || centerLng == null) return;
-    mapRef.current?.easeTo({
-      center: [centerLng, centerLat],
-      zoom: 13,
-      duration: 900,
-    });
+    /* Waits for the map, rather than reading mapRef.current once and giving
+       up. On a fresh page load that ref is null when this first runs — the
+       same trap the icon listener fell into — and because none of the
+       dependencies change afterwards the effect never ran again. A link
+       carrying ?bbox= therefore landed on the default national view instead
+       of the area it named, which is every search result for a ward or a
+       district. */
+    let raf = 0;
+    const move = () => {
+      const map = mapRef.current;
+      if (!map) {
+        raf = requestAnimationFrame(move);
+        return;
+      }
+      /* An extent beats a point. A ward is a few square kilometres and a
+         district a few thousand, and no single zoom frames both; fitBounds
+         works out the zoom from the shape itself. */
+      if (boundsKey) {
+        const n = boundsKey.split(",").map(Number);
+        map.fitBounds(
+          [
+            [n[0], n[1]],
+            [n[2], n[3]],
+          ],
+          { duration: 900, padding: 48, maxZoom: 15 }
+        );
+        return;
+      }
+      map.easeTo({
+        center: [centerLng as number, centerLat as number],
+        zoom: 13,
+        duration: 900,
+      });
+    };
+    move();
+    return () => cancelAnimationFrame(raf);
   }, [centerLat, centerLng, boundsKey, preview]);
 
   const byId = useMemo(() => {
