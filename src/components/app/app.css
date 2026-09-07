@@ -3,7 +3,21 @@
    Same tokens as the site; denser, operational.
    ════════════════════════════════════════════════════════════════════ */
 
-.spa {
+/* The console palette.
+ *
+ * Declared on a class of its own rather than only on .spa, because Radix
+ * portals its dialogs to document.body — outside .spa entirely. Every
+ * var(--ink), var(--electric-ink) and var(--paper) inside such a dialog was
+ * therefore an UNDEFINED custom property, which does not fall back to
+ * anything sensible: the declaration is invalid at computed-value time and
+ * the element inherits instead. In dark mode that meant inheriting the dark
+ * popover's near-white text onto hardcoded white cards, and the role picker
+ * came out white on white.
+ *
+ * Anything rendered outside .spa that belongs to the console takes this
+ * class and gets the same ground to stand on. */
+.spa,
+.spa-scope {
   --ink: #0b1020;
   --slate: #10182b;
   --steel: #17243b;
@@ -25,6 +39,34 @@
      ground, under the 4.5:1 small text needs. */
   --vermilion-ink: #b02a10;
 
+  /* The shadcn tokens, pinned light.
+   *
+   * The console is light in both themes. Every shadcn component inside it
+   * reads --foreground, --muted-foreground, --card, --border and so on, and
+   * in dark mode those still held the DARK theme's values while sitting on
+   * this light ground — which is how the ward page's subtitle ended up at
+   * 2.3:1 and the role picker's Skip button at 1.1:1.
+   *
+   * Setting them here fixes every shadcn component in the console at once,
+   * and every one written in future, instead of overriding each one's own
+   * class as it turns up. */
+  --background: 0 0% 100%;
+  --foreground: 226 49% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 226 49% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 226 49% 8%;
+  --muted: 210 27% 96%;
+  --muted-foreground: 218 13% 38%;
+  --accent: 210 27% 96%;
+  --accent-foreground: 226 49% 8%;
+  --secondary: 210 27% 96%;
+  --secondary-foreground: 226 49% 8%;
+  --border: 213 18% 80%;
+  --input: 213 18% 80%;
+}
+
+.spa {
   display: flex;
   flex-direction: column;
   height: 100dvh;
@@ -70,7 +112,9 @@
   flex-shrink: 0;
 }
 .spa-brand small {
-  color: #7d8698;
+  /* Was #7d8698, 3.5:1 against the top bar — under the 4.5:1 that 11.5px
+     mono needs. It is the word that says which product you are in. */
+  color: #9aa4b8;
   font-family: var(--font-mono), monospace;
   font-size: 11.5px;
   letter-spacing: 0.1em;
@@ -1651,7 +1695,30 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 /* The welcome panel itself is a shadcn Dialog: its overlay, surface, shadow
    and close control come from there. What stays here is the typography and
    the role list inside it, which is the part that is StrayPaw's rather than
-   any dialog's. */
+   any dialog's.
+
+   THE PANEL SETS ITS OWN GROUND, AND EVERY RULE BELOW SETS ITS OWN COLOUR.
+
+   The console is light in both themes — `.dark .spa` above spends forty
+   lines putting it back. A Radix dialog renders in a portal on document.body,
+   OUTSIDE `.spa`, so not one of those rules reaches it. In dark mode the
+   panel therefore took the dark popover surface while the cards inside it
+   kept their hardcoded light background, and the card titles, which set no
+   colour of their own, inherited the popover's near-white text. White on
+   white: the three things the panel exists to ask you to choose between were
+   invisible, and the only readable text was the explanatory line under them.
+
+   So the panel is pinned light here, and nothing inside it relies on
+   inheriting a colour from a surface it does not control. */
+/* The tokens come from .spa-scope, which this element also carries; what is
+   left here is the surface itself, which the dialog would otherwise take
+   from the dark popover token it renders against. */
+.wc-panel {
+  background: #ffffff;
+  color: var(--ink);
+  border-color: #ccd3dc;
+}
+
 .wc-kicker { display: block; color: var(--electric-ink); }
 .wc-icon {
   display: grid;
@@ -1664,6 +1731,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   color: var(--electric-ink);
 }
 .wc-title {
+  color: var(--ink);
   font-family: var(--font-display), "Instrument Serif", serif;
   font-weight: 400;
   font-size: 30px;
@@ -1672,6 +1740,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   margin: 12px 0 8px;
 }
 .wc-lede { margin: 0; font-size: 14px; line-height: 1.6; color: #4d5766; }
+.wc-panel .wc-lede { color: #4d5766; }
 
 .wc-roles { display: grid; gap: 8px; margin-top: 20px; }
 .wc-role {
@@ -1691,8 +1760,11 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wc-role:hover { border-color: var(--electric); background: #f2f7ff; }
 .wc-role:focus-visible { outline: 2px solid var(--electric); outline-offset: 1px; }
 .wc-role svg { color: var(--electric-ink); grid-row: 1 / span 2; }
-.wc-role b { font-size: 14px; font-weight: 600; }
+/* Its own colour, not the surface's. This is the line that was
+   invisible. */
+.wc-role b { font-size: 14px; font-weight: 600; color: var(--ink); }
 .wc-role span { font-size: 12.5px; line-height: 1.5; color: #5f6875; margin-top: 3px; }
+.wc-role:hover b { color: var(--electric-ink); }
 
 .wc-dots { display: flex; gap: 6px; margin: 22px 0 18px; }
 .wc-dots span {
@@ -2210,15 +2282,59 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
  * `.dark .dark\:<utility>`, so they need neutralising here too, otherwise a
  * panel keeps its dark background while the console around it is light.
  */
-.dark .spa [class~="dark:bg-bark-800"],
-.dark .spa [class~="dark:bg-bark-900"],
-.dark .spa [class~="dark:bg-bark-900/50"] { background-color: #fbfcfd; }
-.dark .spa [class~="dark:bg-white"] { background-color: #fff; }
-.dark .spa [class~="dark:text-bark-50"],
-.dark .spa [class~="dark:text-bark-100"],
-.dark .spa [class~="dark:text-bark-200"] { color: var(--ink); }
-.dark .spa [class~="dark:text-bark-300"] { color: #4d5766; }
-.dark .spa [class~="dark:text-paw-300"] { color: var(--electric-ink); }
+/*
+ * Matched by prefix, not by exact class name.
+ *
+ * This list used to name each utility in full — dark:bg-bark-900,
+ * dark:text-bark-300 and so on — which made it a blacklist of the ones
+ * somebody had remembered. Everything it missed stayed dark-themed on a
+ * light console: dark:bg-bark-900/60 (an opacity step nobody listed) left a
+ * dark chip behind grey text at 1.5:1, and dark:text-bark-900 left a chip
+ * label at 1.3:1 on white. A blacklist of utilities is a bug waiting for
+ * the next component someone writes.
+ *
+ * class*= catches every step and every opacity suffix of each family, so a
+ * new dark: variant inside the console is covered the day it is written.
+ */
+.dark .spa [class*="dark:bg-bark-"],
+.dark .spa [class*="dark:bg-ink"] { background-color: #fbfcfd; }
+.dark .spa [class*="dark:bg-white"] { background-color: #fff; }
+.dark .spa [class*="dark:bg-black"] { background-color: #eef1f6; }
+/* The accent tint too. dark:bg-paw-900/15 is a dark navy wash meant for a
+   dark page; over the light console it produced a mid grey that dragged the
+   link inside it to 3.5:1. paw-50 is the same idea on a light ground. */
+.dark .spa [class*="dark:bg-paw-"] { background-color: #f0f5ff; }
+.dark .spa [class*="dark:border-paw-"] { border-color: #8fb7ff; }
+
+/* Primary text, whichever end of the scale it was reached from. The 700-900
+   steps are remapped light by the global dark theme, so on this light ground
+   they need bringing back down just as the 50-200 steps do. */
+.dark .spa [class*="dark:text-bark-5"],
+.dark .spa [class*="dark:text-bark-1"],
+.dark .spa [class*="dark:text-bark-2"],
+.dark .spa [class*="dark:text-bark-7"],
+.dark .spa [class*="dark:text-bark-8"],
+.dark .spa [class*="dark:text-bark-9"],
+.dark .spa [class*="dark:text-white"] { color: var(--ink); }
+/* Muted text. Listed after so the 50/500 overlap resolves the way round
+   that keeps small print readable rather than faint. */
+.dark .spa [class*="dark:text-bark-3"],
+.dark .spa [class*="dark:text-bark-4"],
+.dark .spa [class*="dark:text-bark-6"] { color: #4d5766; }
+.dark .spa [class*="dark:text-paw-"] { color: var(--electric-ink); }
+
+/* .btn-ghost is a global component class, and its dark rule sets near-white
+   text for a dark page. Inside the console that is white on white — it made
+   "Console home" and "All organisations" invisible. */
+.dark .spa .btn-ghost {
+  background-color: transparent;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--ink);
+}
+.dark .spa .btn-ghost:hover {
+  border-color: rgba(0, 0, 0, 0.25);
+  background-color: rgba(15, 22, 38, 0.03);
+}
 .dark .spa [class*="dark:border-white"] { border-color: #e4e9ef; }
 /* paw-* text is the accent; on a light ground it needs the darker step. */
 .dark .spa .text-paw-300,

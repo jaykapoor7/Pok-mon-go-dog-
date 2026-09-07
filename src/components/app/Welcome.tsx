@@ -188,7 +188,10 @@ export function Welcome() {
           which overrode DialogContent's fixed centring and dropped the panel to
           the bottom of the screen. DialogContent already provides the surface,
           border, shadow and radius; only the size and the scroll cap are ours. */}
-      <DialogContent className="flex max-h-[90vh] flex-col gap-4 overflow-y-auto sm:max-w-[520px]">
+      {/* wc-panel pins the light ground. The console is light in both themes,
+          but this content renders in a portal outside .spa, so it cannot
+          inherit that and has to say so itself. */}
+      <DialogContent className="spa-scope wc-panel flex max-h-[90vh] flex-col gap-4 overflow-y-auto sm:max-w-[520px]">
         {step === 0 ? (
           <>
             <DialogHeader className="space-y-0 text-left">

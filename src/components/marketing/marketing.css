@@ -178,7 +178,9 @@
 .mk-paper .cov-label, .mk-bone .cov-label { color: #5f6875; }
 .cov-label b { font-size: 13px; }
 .mk-ink .cov-label b { color: var(--electric); }
-.mk-paper .cov-label b, .mk-bone .cov-label b { color: var(--vermilion); }
+/* --vermilion is tuned for dark grounds and lands at 3.07:1 here. The
+   darker counterpart is the one for text on paper. */
+.mk-paper .cov-label b, .mk-bone .cov-label b { color: var(--vermilion-ink, #b02a10); }
 
 /* ── list of named things (orgs, gaps) ──────────────────────────── */
 

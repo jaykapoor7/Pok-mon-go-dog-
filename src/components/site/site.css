@@ -1325,7 +1325,10 @@
 .sp-record-top, .sp-record-foot {
   display: flex;
   justify-content: space-between;
-  color: #7f877b;
+  /* Was #7f877b, which measured 4.48:1 on this card's gradient — a hair
+     under the 4.5:1 small text needs, and the kind of miss that only a
+     measurement finds. */
+  color: #868e83;
   font-family: var(--font-mono), monospace;
   font-size: 11.5px;
   letter-spacing: 0.1em;
@@ -1374,7 +1377,7 @@
 }
 .sp-record-metrics span {
   display: block;
-  color: #7f877b;
+  color: #868e83;
   font-family: var(--font-mono), monospace;
   font-size: 11.5px;
   letter-spacing: 0.08em;

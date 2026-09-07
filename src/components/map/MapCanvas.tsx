@@ -32,7 +32,11 @@ const loading = () => (
         </div>
       ))}
     </div>
-    <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 text-sm text-muted-foreground">
+    {/* On its own plate. This label sits over the skeleton tiles, and
+        muted-foreground on a mid-grey skeleton measured 1.24:1 — the one
+        piece of text that tells you the map is coming was the least
+        readable thing on the screen. */}
+    <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border bg-background/95 px-4 py-2 text-sm text-foreground shadow-sm backdrop-blur-sm">
       <PawPrint className="size-4 animate-pulse" aria-hidden />
       Tracking dogs…
     </div>
