@@ -154,7 +154,8 @@ export function WardDensityClient({ city }: { city: string | null }) {
           <AlertDescription>
             This map needs published boundaries. Run{" "}
             <code>supabase/ward-density.sql</code>, then{" "}
-            <code>supabase/districts-india.sql</code> for the national tier and{" "}
+            <code>supabase/districts-india-1of5.sql</code> through{" "}
+            <code>-5of5.sql</code> for the national tier, and{" "}
             <code>supabase/wards-chennai.sql</code> for Chennai&apos;s wards.
           </AlertDescription>
         </Alert>

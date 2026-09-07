@@ -3466,7 +3466,10 @@ grant execute on function published_totals() to anon, authenticated, service_rol
 --     Ward boundaries, PostGIS point-in-polygon counts, and the coverage
 --     headline. Boundaries themselves are data, not schema, and load
 --     separately after this file:
---       supabase/districts-india.sql  all 641 districts, the national tier
+--       supabase/districts-india-1of5.sql … -5of5.sql
+--                                     all 641 districts, the national tier.
+--                                     Five files because the SQL editor
+--                                     refuses a batch that large.
 --       supabase/wards-chennai.sql    200 GCC wards, the pilot tier
 -- ════════════════════════════════════════════════════════════════
 
@@ -3597,7 +3600,10 @@ language sql stable parallel safe as $$
                                                                     as sterilised_unknown,
            count(*) filter (where d.vaccinated is true)             as vaccinated,
            count(*) filter (where d.needs_help is true)             as needs_help,
-           max(d.updated_at)                                        as last_seen
+           -- dogs carries last_seen, not updated_at. Tested against a
+           -- stub table the first time round, which is how a column that
+           -- does not exist reached a migration.
+           max(d.last_seen)                                          as last_seen
       from w
       left join dogs d
         on d.lat is not null and d.lng is not null

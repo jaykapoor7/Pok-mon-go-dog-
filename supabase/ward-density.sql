@@ -134,7 +134,10 @@ language sql stable parallel safe as $$
                                                                     as sterilised_unknown,
            count(*) filter (where d.vaccinated is true)             as vaccinated,
            count(*) filter (where d.needs_help is true)             as needs_help,
-           max(d.updated_at)                                        as last_seen
+           -- dogs carries last_seen, not updated_at. Tested against a
+           -- stub table the first time round, which is how a column that
+           -- does not exist reached a migration.
+           max(d.last_seen)                                          as last_seen
       from w
       left join dogs d
         on d.lat is not null and d.lng is not null
