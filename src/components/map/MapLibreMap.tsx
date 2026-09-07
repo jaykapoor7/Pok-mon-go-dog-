@@ -46,13 +46,19 @@ import {
    DOM markers left are the handful that genuinely are few — feeding zones,
    and the state coverage dots.
 
-   The basemap is CARTO Dark Matter. Liberty, the previous one, was a
-   full-colour street map — every road class its own hue — which the animal
-   dots had to compete with. Positron fixed that but went too far the other
-   way: a near-white sheet inside a navy console reads as a page that failed
-   to load, especially at country zoom where there is little on it. Dark
-   Matter is the same quiet cartography on the console's own ground, and a
-   bright dot on it is unmistakable.
+   The basemap is CARTO Voyager, arrived at by getting it wrong twice.
+
+   Liberty was a full-colour street map, every road class its own hue, which
+   the animal dots had to compete with. Positron went too far the other way:
+   a near-white sheet that read as a page which had failed to load. Dark
+   Matter went further still and came out black, and worse, it fights the
+   thing this map exists for — ward polygons are a choropleth, and a
+   choropleth needs a light ground for its colours to mean anything.
+
+   Voyager is the middle one and the right one. Light enough for ward fills
+   to read as data, with enough colour of its own — water, parks, road
+   hierarchy — that it is legibly a map of somewhere at first glance
+   instead of an empty sheet.
    ════════════════════════════════════════════════════════════════════ */
 
 /* CARTO began enforcing API keys on basemaps.cartocdn.com in late August
@@ -67,7 +73,7 @@ import {
    already rendered by AttributionControl below. */
 const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_API_KEY;
 const STYLE_URL =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" +
+  "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" +
   (CARTO_KEY ? `?api_key=${encodeURIComponent(CARTO_KEY)}` : "");
 
 /* India's own extent, lightly padded: roughly 68.1E to 97.4E and 6.7N to
@@ -226,7 +232,7 @@ const wardLineLayer: LineLayerSpecification = {
   type: "line",
   source: WARD_SRC,
   paint: {
-    "line-color": "#7d8ba6",
+    "line-color": "#33415c",
     "line-width": [
       "case", ["boolean", ["feature-state", "hover"], false], 2.2, 0.6,
     ],

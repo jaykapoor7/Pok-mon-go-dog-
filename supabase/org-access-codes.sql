@@ -245,6 +245,7 @@ returns table (
   active      boolean,
   accepted    boolean,
   reports     bigint,
+  last_used_at timestamptz,
   created_at  timestamptz
 ) language sql stable security definer set search_path = public as $$
   -- A staff code is live until it is revoked. Having been used is not a
@@ -254,6 +255,9 @@ returns table (
            and (i.expires_at is null or i.expires_at >= now())        as active,
          i.accepted_at is not null                                    as accepted,
          i.uses::bigint                                               as reports,
+         -- "signed in 3x" with no date cannot tell an active member from
+         -- one who signed in once in June and never came back.
+         i.last_used_at,
          i.created_at
     from org_email_invites i
    where i.ngo_id = my_ngo()
@@ -262,10 +266,11 @@ returns table (
          c.active,
          exists (select 1 from sightings s where s.invite_code_id = c.id) as accepted,
          (select count(*) from sightings s where s.invite_code_id = c.id) as reports,
+         (select max(s.created_at) from sightings s where s.invite_code_id = c.id) as last_used_at,
          c.created_at
     from org_invite_codes c
    where c.ngo_id = my_ngo()
-   order by 10 desc;
+   order by 11 desc;
 $$;
 
 -- Works on either kind. Scoped to the caller's own organisation.

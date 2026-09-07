@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { timeAgo } from "@/lib/utils";
 import { Building2, Check, Loader2, Mail, Plus, Trash2 } from "lucide-react";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -30,6 +31,8 @@ type Invite = {
   role: string;
   code: string | null;
   accepted: boolean;
+  /** Already returned by admin_list_orgs; it was simply never shown. */
+  last_used_at?: string | null;
   revoked: boolean;
   /** How many times this code has been used to sign in. */
   uses: number;
@@ -343,6 +346,13 @@ export function OrgSetup({ secret }: { secret: string }) {
                           <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-status-safe">
                             <Check className="h-3.5 w-3.5" /> signed in
                             {i.uses > 1 ? ` ${i.uses}\u00d7` : ""}
+                            {/* A count with no date cannot tell an active
+                                member from one who signed in once in June. */}
+                            {i.last_used_at && (
+                              <span className="font-normal text-bark-400">
+                                · last used {timeAgo(i.last_used_at)}
+                              </span>
+                            )}
                           </span>
                         ) : (
                           <span className="text-[12px] text-bark-400">
