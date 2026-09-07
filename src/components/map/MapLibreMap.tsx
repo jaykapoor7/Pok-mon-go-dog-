@@ -20,6 +20,13 @@ import type {
 import { INDIA_CENTER, INDIA_ZOOM } from "@/lib/delhi";
 import { markerMetaFor } from "@/lib/marker-state";
 import { FeedingMarker } from "./FeedingMarker";
+import {
+  dogIdFromIcon,
+  iconIdFor,
+  renderFallbackIcon,
+  renderPhotoIcon,
+  type DogIconSpec,
+} from "./dogIcon";
 import type { Dog, FeedingZone } from "@/lib/types";
 import { stateCoverage, STATUS_META } from "@/lib/platform/coverage";
 import {
@@ -95,11 +102,12 @@ const SRC = "dogs";
 const CLUSTER_LAYER = "dog-clusters";
 const CLUSTER_COUNT_LAYER = "dog-cluster-count";
 const POINT_LAYER = "dog-points";
+const PHOTO_LAYER = "dog-photos";
 const WARD_SRC = "wards";
 const WARD_FILL = "ward-fill";
 const WARD_LINE = "ward-line";
-const INTERACTIVE = [CLUSTER_LAYER, POINT_LAYER];
-const INTERACTIVE_WITH_WARDS = [CLUSTER_LAYER, POINT_LAYER, WARD_FILL];
+const INTERACTIVE = [CLUSTER_LAYER, PHOTO_LAYER, POINT_LAYER];
+const INTERACTIVE_WITH_WARDS = [CLUSTER_LAYER, PHOTO_LAYER, POINT_LAYER, WARD_FILL];
 
 /** Imperative handles the surrounding UI drives its own controls with. */
 export type MapApi = {
@@ -160,11 +168,47 @@ const selectedLayer: CircleLayerSpecification = {
   filter: ["==", ["get", "id"], "__none__"],
   paint: {
     "circle-color": "rgba(0,0,0,0)",
+    /* Wide enough to sit outside the photograph once the photo layer takes
+       over at zoom 9, and outside the plain dot below that. A ring drawn
+       inside the marker reads as part of it and stops pointing anything
+       out. */
     "circle-radius": [
-      "interpolate", ["linear"], ["zoom"], 6, 11, 11, 15, 16, 20,
+      "interpolate", ["linear"], ["zoom"], 6, 9, 8.9, 11, 9, 19, 12, 25, 16, 31,
     ],
     "circle-stroke-width": 3,
     "circle-stroke-color": "#1b46b0",
+  },
+};
+
+/* The animal's own photograph, ringed in its status colour — the marker the
+   map had before performance work replaced every one of them with a dot.
+
+   It is a symbol layer, so the photograph is a texture MapLibre already has
+   uploaded rather than a DOM node it has to move each frame. icon-image
+   names an image that does not exist yet; MapLibre asks for it once, through
+   styleimagemissing, and draws it as soon as it is handed over.
+
+   Photographs are for animals, not for crowds. Below the zoom where things
+   are still clustered a screen of overlapping faces reads as noise, so the
+   ramp shrinks them with distance and the plain dot takes over underneath. */
+const photoLayer: SymbolLayerSpecification = {
+  id: PHOTO_LAYER,
+  type: "symbol",
+  source: SRC,
+  filter: ["!", ["has", "point_count"]],
+  minzoom: 9,
+  layout: {
+    "icon-image": ["get", "icon"],
+    "icon-size": [
+      "interpolate", ["linear"], ["zoom"],
+      9, 0.55,
+      12, 0.8,
+      15, 1,
+    ],
+    /* Two animals on the same doorstep should both be visible; hiding one
+       would quietly under-report the street. */
+    "icon-allow-overlap": true,
+    "icon-ignore-placement": true,
   },
 };
 
@@ -172,6 +216,10 @@ const pointLayer: CircleLayerSpecification = {
   id: POINT_LAYER,
   type: "circle",
   source: SRC,
+  /* Only where the photographs are not: below the photo layer's minzoom, and
+     for anything still inside a cluster. Drawing both would put a dot under
+     every face. */
+  maxzoom: 9,
   filter: ["!", ["has", "point_count"]],
   paint: {
     "circle-color": ["get", "color"],
@@ -314,6 +362,83 @@ export function MapLibreMap({
     return m;
   }, [dogs]);
 
+  /* Everything an icon needs, without holding the whole animal. Kept in a ref
+     so the styleimagemissing handler can be registered once and still see
+     current data: re-binding that listener on every dogs change would drop
+     requests that were in flight. */
+  const iconSpecs = useRef<Record<string, DogIconSpec>>({});
+  iconSpecs.current = useMemo(() => {
+    const m: Record<string, DogIconSpec> = {};
+    for (const d of dogs) {
+      m[iconIdFor(d.id)] = {
+        photo: d.cover_photo ?? null,
+        color: markerMetaFor(d).color,
+        urgent: Boolean(d.needs_help),
+        seed: d.id,
+      };
+    }
+    return m;
+  }, [dogs]);
+
+  /* MapLibre asks for an image the moment it first needs to draw one, which
+     is exactly the laziness this wants: only animals on screen are ever
+     fetched, and no viewport state has to be tracked to achieve it.
+
+     The ring is added synchronously so the marker appears at once, then the
+     photograph replaces it in place when it arrives. A marker that waited for
+     the network would blink into existence halfway through a pan. */
+  useEffect(() => {
+    const map = mapRef.current?.getMap?.();
+    if (!map) return;
+    const pending = new Set<string>();
+
+    const onMissing = (e: { id: string }) => {
+      const iconId = e.id;
+      if (!dogIdFromIcon(iconId) || pending.has(iconId)) return;
+      const spec = iconSpecs.current[iconId];
+      if (!spec) return;
+      pending.add(iconId);
+
+      if (!map.hasImage(iconId)) {
+        const placeholder = renderFallbackIcon(spec);
+        if (placeholder) map.addImage(iconId, placeholder, { pixelRatio: 2 });
+      }
+
+      renderPhotoIcon(spec)
+        .then((withPhoto) => {
+          /* The style can be swapped or the component unmounted while a
+             photograph is still downloading, and updating an image on a map
+             that has moved on throws. */
+          if (!withPhoto || !map.hasImage(iconId)) return;
+          map.updateImage(iconId, withPhoto);
+        })
+        .catch(() => {});
+    };
+
+    map.on("styleimagemissing", onMissing);
+    return () => {
+      map.off("styleimagemissing", onMissing);
+    };
+  }, []);
+
+  /* An icon is drawn once and then cached by MapLibre forever, so an animal
+     that is marked as needing help keeps its old ring colour until something
+     drops the stale image. Signatures are compared rather than images
+     rebuilt: almost every re-render changes nothing here. */
+  const iconSigs = useRef<Record<string, string>>({});
+  useEffect(() => {
+    const map = mapRef.current?.getMap?.();
+    if (!map) return;
+    for (const [iconId, spec] of Object.entries(iconSpecs.current)) {
+      const sig = `${spec.photo ?? ""}|${spec.color}|${spec.urgent}`;
+      if (iconSigs.current[iconId] === sig) continue;
+      iconSigs.current[iconId] = sig;
+      /* Removing it is enough. MapLibre asks again the next time it needs to
+         paint that animal, and the handler above builds the current one. */
+      if (map.hasImage?.(iconId)) map.removeImage(iconId);
+    }
+  }, [dogs]);
+
   /* Built once per dogs change and handed to the GL source. Colour is baked
      into each feature rather than resolved by a match expression at paint
      time, because the status rules live in markerMetaFor and should stay in
@@ -328,6 +453,11 @@ export function MapLibreMap({
           id: d.id,
           urgent: Boolean(d.needs_help),
           color: markerMetaFor(d).color,
+          /* Named here, drawn later. The image behind this name is built the
+             first time MapLibre needs to paint it — see the styleimagemissing
+             effect below — so a thousand animals cost a thousand names and
+             only as many photographs as are actually on screen. */
+          icon: iconIdFor(d.id),
         },
         geometry: { type: "Point" as const, coordinates: [d.lng, d.lat] },
       })),
@@ -473,6 +603,7 @@ export function MapLibreMap({
         <Layer {...clusterLayer} />
         <Layer {...clusterCountLayer} />
         <Layer {...pointLayer} />
+        <Layer {...photoLayer} />
         <Layer
           {...selectedLayer}
           filter={["==", ["get", "id"], selectedId ?? "__none__"]}
