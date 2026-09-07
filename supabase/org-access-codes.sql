@@ -234,6 +234,10 @@ grant execute on function create_team_code(text, text, text) to authenticated, s
 
 -- Both kinds of code in one list, because on the dashboard they are one
 -- thing: the people this organisation has given something to.
+-- Its OUT row gained last_used_at, and create or replace cannot change a
+-- return type. Recreated immediately below.
+drop function if exists org_team_codes();
+
 create or replace function org_team_codes()
 returns table (
   id          uuid,

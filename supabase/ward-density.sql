@@ -115,6 +115,24 @@ create policy wards_read on wards for select using (true);
 
 grant select on wards to anon, authenticated, service_role;
 
+-- ── 1b. Retire the previous signatures ──────────────────────────────
+--
+-- create or replace cannot change a function's return type, and adding an
+-- argument creates an overload rather than replacing anything. An earlier
+-- version of this file shipped one-argument versions of these; left in
+-- place they either fail the replace outright (ward_cities, whose OUT row
+-- changed) or survive alongside the new ones, so ward_density('Chennai')
+-- becomes ambiguous and Postgres refuses to pick.
+--
+-- Dropping first is safe: nothing stores data in a function, and every one
+-- of them is recreated below.
+
+drop function if exists ward_cities();
+drop function if exists ward_density(text);
+drop function if exists ward_density_geojson(text);
+drop function if exists ward_coverage(text);
+drop function if exists ward_at(double precision, double precision);
+
 -- ── 2. Which ward is a point in ─────────────────────────────────────
 
 create or replace function ward_at(
