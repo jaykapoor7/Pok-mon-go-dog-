@@ -21,14 +21,55 @@
 -- direction to be wrong in.
 --
 -- Every function here returns `surveyed` alongside the counts, and returns
--- null rather than 0 for rates that have no denominator. The map paints
--- unsurveyed wards in a hatch, not a shade.
+-- null rather than 0 for rates that have no denominator.
 --
--- Idempotent. Safe to run more than once.
--- Depends on: RUN-ALL-MIGRATIONS.sql (dogs, sightings).
+-- WHY THIS FILE REBUILDS RATHER THAN MIGRATES
+--
+-- Earlier versions tried to carry an existing `wards` table forward with
+-- alters, and failed four separate ways: create-table-if-not-exists is a
+-- no-op on an existing table, create-or-replace cannot change a function's
+-- return type, adding an argument makes an overload instead of a
+-- replacement, and a half-applied run leaves a shape no alter script
+-- predicted.
+--
+-- None of that was worth defending, because this table holds no original
+-- data. Every row in it is imported from a published boundary file that is
+-- checked into this repository. So the table and its functions are dropped
+-- and rebuilt from nothing on every run. There is exactly one code path,
+-- it does not depend on what was here before, and it cannot half-apply.
+--
+-- Cost: the boundary loaders have to run again afterwards. They are in
+-- this same directory and take a minute.
+--
+-- Safe to run any number of times, from any starting state.
+-- Depends on: RUN-ALL-MIGRATIONS.sql (dogs).
 -- ════════════════════════════════════════════════════════════════
 
 create extension if not exists postgis;
+
+-- ── 0. Demolition ───────────────────────────────────────────────────
+--
+-- Every ward_* function goes, whatever arguments it was declared with.
+-- Naming the signatures explicitly is what broke the last two attempts:
+-- a signature you did not predict survives, and then a two-argument call
+-- is ambiguous against the one-argument leftover. pg_proc knows them all.
+
+do $$
+declare fn record;
+begin
+  for fn in
+    select p.oid::regprocedure as sig
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and p.proname in ('ward_area_km2', 'ward_at', 'ward_density',
+                         'ward_density_geojson', 'ward_coverage', 'ward_cities')
+  loop
+    execute format('drop function if exists %s cascade', fn.sig);
+  end loop;
+end $$;
+
+drop table if exists wards cascade;
 
 -- ── 1. Boundaries ───────────────────────────────────────────────────
 --
@@ -36,7 +77,7 @@ create extension if not exists postgis;
 -- back at a municipality one day, and "where did you get these boundaries"
 -- has to have an answer that survives the person who loaded them leaving.
 
-create table if not exists wards (
+create table wards (
   id          uuid primary key default gen_random_uuid(),
   -- 'district' covers all of India at 641 polygons and is what the national
   -- view reads; 'ward' is the municipal tier a city pilot works in. One
@@ -55,53 +96,13 @@ create table if not exists wards (
   unique (level, city, ward_no)
 );
 
--- `create table if not exists` does nothing to a table that already exists,
--- so a database that ran an earlier version of this file has the table
--- WITHOUT the level column and the loaders fail on it. Everything below
--- brings such a table up to date, and is a no-op on a fresh one.
-alter table wards add column if not exists level text;
-update wards set level = 'ward' where level is null;
-alter table wards alter column level set default 'ward';
-alter table wards alter column level set not null;
-
-do $$
-begin
-  if not exists (
-    select 1 from pg_constraint
-     where conrelid = 'wards'::regclass and conname = 'wards_level_check'
-  ) then
-    alter table wards add constraint wards_level_check
-      check (level in ('district', 'ward'));
-  end if;
-end $$;
-
--- The key gains the level: ward 1 of Chennai and district 1 of a state are
--- different rows, and the old two-column key would collide them.
-do $$
-begin
-  if exists (
-    select 1 from pg_constraint
-     where conrelid = 'wards'::regclass and conname = 'wards_city_ward_no_key'
-  ) then
-    alter table wards drop constraint wards_city_ward_no_key;
-  end if;
-  if not exists (
-    select 1 from pg_constraint
-     where conrelid = 'wards'::regclass and conname = 'wards_level_city_ward_no_key'
-  ) then
-    alter table wards add constraint wards_level_city_ward_no_key
-      unique (level, city, ward_no);
-  end if;
-end $$;
-
-drop index if exists wards_city_idx;
-create index if not exists wards_geom_idx on wards using gist (geom);
-create index if not exists wards_city_idx on wards (level, city);
+create index wards_geom_idx on wards using gist (geom);
+create index wards_city_idx on wards (level, city);
 
 -- Area is derived, never entered. Cast to geography so it is real square
 -- kilometres on the spheroid rather than degrees squared, which is the
 -- mistake that makes northern wards look smaller than southern ones.
-create or replace function ward_area_km2(g geometry)
+create function ward_area_km2(g geometry)
 returns numeric language sql immutable parallel safe as $$
   select round((st_area(g::geography) / 1000000.0)::numeric, 4);
 $$;
@@ -115,27 +116,9 @@ create policy wards_read on wards for select using (true);
 
 grant select on wards to anon, authenticated, service_role;
 
--- ── 1b. Retire the previous signatures ──────────────────────────────
---
--- create or replace cannot change a function's return type, and adding an
--- argument creates an overload rather than replacing anything. An earlier
--- version of this file shipped one-argument versions of these; left in
--- place they either fail the replace outright (ward_cities, whose OUT row
--- changed) or survive alongside the new ones, so ward_density('Chennai')
--- becomes ambiguous and Postgres refuses to pick.
---
--- Dropping first is safe: nothing stores data in a function, and every one
--- of them is recreated below.
-
-drop function if exists ward_cities();
-drop function if exists ward_density(text);
-drop function if exists ward_density_geojson(text);
-drop function if exists ward_coverage(text);
-drop function if exists ward_at(double precision, double precision);
-
 -- ── 2. Which ward is a point in ─────────────────────────────────────
 
-create or replace function ward_at(
+create function ward_at(
   p_lat double precision, p_lng double precision, p_level text default 'ward'
 ) returns uuid language sql stable parallel safe as $$
   select w.id
@@ -149,8 +132,17 @@ $$;
 --
 -- One row per ward, whether or not anything has been recorded in it, which
 -- is the whole point: the empty ones are the finding.
+--
+-- Sterilisation is read from dogs.sterilisation_status, not dogs.sterilised.
+-- The boolean cannot hold "nobody checked": abc-programme.sql keeps it in
+-- step with the three-valued column by writing false for both "checked, not
+-- sterilised" and "never examined". Counting the boolean therefore reports
+-- every unexamined animal as a confirmed negative, which is the exact error
+-- the rest of this file exists to prevent. The coalesce below is the same
+-- reading abc-programme.sql uses when it backfills: a true boolean is a
+-- positive record, a false one was only ever the column default.
 
-create or replace function ward_density(p_city text default null, p_level text default 'ward')
+create function ward_density(p_city text default null, p_level text default 'ward')
 returns table (
   ward_id            uuid,
   city               text,
@@ -180,27 +172,39 @@ language sql stable parallel safe as $$
      where wards.level = p_level
        and (p_city is null or wards.city = p_city)
   ),
-  counted as (
+  inside as (
     select w.id as ward_id,
-           count(d.id)                                             as animals,
-           count(*) filter (where d.sterilised is true)             as sterilised,
-           count(*) filter (where d.sterilised is false)            as not_sterilised,
-           -- d.id is not null guards the left join: without it every ward
-           -- with no animals contributes its own null row to "unknown",
-           -- and 198 empty wards read as 198 unchecked animals.
-           count(*) filter (where d.id is not null and d.sterilised is null)
-                                                                    as sterilised_unknown,
-           count(*) filter (where d.vaccinated is true)             as vaccinated,
-           count(*) filter (where d.needs_help is true)             as needs_help,
-           -- dogs carries last_seen, not updated_at. Tested against a
-           -- stub table the first time round, which is how a column that
-           -- does not exist reached a migration.
-           max(d.last_seen)                                          as last_seen
+           d.id as dog_id,
+           coalesce(d.sterilisation_status,
+                    case when d.sterilised then 'sterilised' else 'unknown' end)
+             as ster,
+           coalesce(d.vaccination_status,
+                    case when d.vaccinated then 'vaccinated' else 'unknown' end)
+             as vacc,
+           d.needs_help,
+           d.last_seen
       from w
       left join dogs d
         on d.lat is not null and d.lng is not null
        and st_contains(w.geom, st_setsrid(st_point(d.lng, d.lat), 4326))
-     group by w.id
+  ),
+  counted as (
+    select ward_id,
+           count(dog_id)                                        as animals,
+           count(*) filter (where ster = 'sterilised')           as sterilised,
+           count(*) filter (where ster = 'not_sterilised')       as not_sterilised,
+           -- dog_id is not null guards the left join: without it every ward
+           -- with no animals contributes its own empty row to "unknown",
+           -- and 198 empty wards read as 198 unchecked animals.
+           count(*) filter (where dog_id is not null
+                              and ster not in ('sterilised', 'not_sterilised'))
+                                                                 as sterilised_unknown,
+           count(*) filter (where vacc = 'vaccinated')           as vaccinated,
+           count(*) filter (where needs_help is true)            as needs_help,
+           -- dogs carries last_seen, not updated_at.
+           max(last_seen)                                        as last_seen
+      from inside
+     group by ward_id
   )
   select w.id, w.city, w.ward_no, w.ward_name, w.zone_name, w.area_km2,
          c.animals,
@@ -232,10 +236,10 @@ grant execute on function ward_at(double precision, double precision, text) to a
 -- Geometry and numbers in one GeoJSON FeatureCollection, so the map makes a
 -- single request and MapLibre can hand the whole thing to the GPU. Built in
 -- the database rather than stitched together in the browser, because
--- joining 200 polygons to 200 rows client-side is work done once here and
+-- joining 641 polygons to 641 rows client-side is work done once here and
 -- once per visitor there.
 
-create or replace function ward_density_geojson(p_city text default null, p_level text default 'ward')
+create function ward_density_geojson(p_city text default null, p_level text default 'ward')
 returns json language sql stable as $$
   -- row_number is computed in the subquery: a window function cannot be
   -- called inside an aggregate, and MapLibre needs a stable integer feature
@@ -279,7 +283,7 @@ grant execute on function ward_density_geojson(text, text) to anon, authenticate
 -- Coverage first, because "we have surveyed 34 of 200 wards" is the honest
 -- opening line and every rate below it is conditional on that number.
 
-create or replace function ward_coverage(p_city text default null, p_level text default 'ward')
+create function ward_coverage(p_city text default null, p_level text default 'ward')
 returns json language sql stable as $$
   select json_build_object(
     'city', coalesce(p_city, 'India'),
@@ -313,10 +317,24 @@ grant execute on function ward_coverage(text, text) to anon, authenticated, serv
 
 -- ── 6. Cities that have boundaries loaded ───────────────────────────
 
-create or replace function ward_cities()
+create function ward_cities()
 returns table (level text, city text, wards bigint)
 language sql stable as $$
   select level, city, count(*) from wards group by level, city order by level, city;
 $$;
 
 grant execute on function ward_cities() to anon, authenticated, service_role;
+
+-- ── 7. Say what just happened ───────────────────────────────────────
+--
+-- The last result in the editor is the one you see, so this file ends by
+-- telling you what state it left behind and what to run next, rather than
+-- finishing silently and leaving you to guess.
+
+select
+  'ward-density installed'                                       as step,
+  (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname like 'ward\_%')      as functions_expect_6,
+  (select count(*) from wards where level = 'district')          as districts_load_next,
+  (select count(*) from wards where level = 'ward')              as city_wards_load_next,
+  'now run districts-india-1of5.sql .. -5of5.sql, then wards-chennai.sql' as next;

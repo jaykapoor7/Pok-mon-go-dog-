@@ -1987,6 +1987,13 @@ create index if not exists feeding_zone_checkins_zone_idx on feeding_zone_checki
 -- 4. Public read views. `contact` (phone/email) is deliberately never exposed
 --    to anon/authenticated, only service_role (the moderation panel) can read
 --    the base table's contact column; everyone else gets the safe view below.
+--
+--    Dropped first, not replaced. feeding-zones-ngo.sql re-declares this same
+--    view later with ngo_id appended, and CREATE OR REPLACE VIEW cannot
+--    remove a column — so on a second run this statement would try to turn
+--    the 12-column view back into an 11-column one and fail with "cannot
+--    drop columns from view", taking everything after it down with it.
+drop view if exists feeding_zone_public;
 create or replace view feeding_zone_public as
 select
   fz.id, fz.name, fz.description, fz.zone, fz.lat, fz.lng, fz.photo_url,
