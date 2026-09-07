@@ -58,6 +58,8 @@ export function MapCanvas(props: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
   center?: { lat: number; lng: number } | null;
+  /** Extent of a searched area, framed in preference to center when given. */
+  bounds?: [[number, number], [number, number]] | null;
   /** Static, chrome-less, non-interactive home preview (no controls/attribution). */
   preview?: boolean;
   /** Feeding-zone pins (community feeding spots) rendered alongside dogs. */

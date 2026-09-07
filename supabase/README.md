@@ -19,6 +19,10 @@ Three sets:
 | `pilot` | pilot schema and all boundaries | the base schema is already there |
 | `wards` | rebuilds the density map and reloads its boundaries | only the map is wrong |
 
+`map-search.sql` is additive — one small table and three functions, no boundary
+reload — so it can also be pasted on its own to add ward search and the
+India-only mask to a database that already has everything else.
+
 Every set is safe to run again, from any state, however badly a previous
 attempt went. That is verified against a database seeded with each earlier
 broken shape, not only against an empty one.
@@ -33,6 +37,7 @@ order.
 2. `RUN-PILOT-MIGRATIONS.sql`
 3. `districts-india-1of5.sql` … `districts-india-5of5.sql`
 4. `wards-chennai.sql`
+5. `map-search.sql`
 
 Step 2 ends by printing how many boundaries are loaded, which will be zero
 until you have done steps 3 and 4.

@@ -33,6 +33,8 @@ import {
   WARD_METRICS,
   WARD_RAMP,
   WARD_UNSURVEYED,
+  getIndiaMask,
+  type MaskCollection,
   type WardFeatureCollection,
   type WardMetric,
 } from "@/lib/wards";
@@ -103,6 +105,9 @@ const CLUSTER_LAYER = "dog-clusters";
 const CLUSTER_COUNT_LAYER = "dog-cluster-count";
 const POINT_LAYER = "dog-points";
 const PHOTO_LAYER = "dog-photos";
+const MASK_SRC = "india-mask";
+const MASK_FILL = "india-mask-fill";
+const MASK_LINE = "india-outline";
 const WARD_SRC = "wards";
 const WARD_FILL = "ward-fill";
 const WARD_LINE = "ward-line";
@@ -275,6 +280,41 @@ function wardFillLayer(metric: WardMetric): FillLayerSpecification {
   } as unknown as FillLayerSpecification;
 }
 
+/* Everything that is not India, dimmed.
+
+   maxBounds fences the camera, but a rectangle drawn around India contains
+   parts of Pakistan, Nepal, Bangladesh and Myanmar, and a map of India that
+   opens on another country's territory rendered exactly like our own is not
+   a map of India.
+
+   Dimmed rather than hidden, deliberately. The neighbours are still there —
+   they are just not what this map reports on, and painting them out
+   entirely would be drawing a political claim we have no business making.
+   The border here comes from Census 2011 district boundaries and is a
+   cartographic convenience, not a statement about anything disputed. */
+const maskFillLayer: FillLayerSpecification = {
+  id: MASK_FILL,
+  type: "fill",
+  source: MASK_SRC,
+  paint: {
+    "fill-color": "#f2f3f6",
+    "fill-opacity": 0.82,
+  },
+};
+
+/* A quiet edge, so the country reads as a shape rather than as the place
+   where the dimming happens to stop. */
+const maskLineLayer: LineLayerSpecification = {
+  id: MASK_LINE,
+  type: "line",
+  source: MASK_SRC,
+  paint: {
+    "line-color": "#8d96a8",
+    "line-width": 0.8,
+    "line-opacity": 0.55,
+  },
+};
+
 const wardLineLayer: LineLayerSpecification = {
   id: WARD_LINE,
   type: "line",
@@ -292,6 +332,7 @@ export function MapLibreMap({
   dogs,
   onSelect,
   center,
+  bounds,
   preview,
   feedingZones = [],
   onReady,
@@ -304,6 +345,8 @@ export function MapLibreMap({
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
   center?: { lat: number; lng: number } | null;
+  /** Extent of a searched area. Framed in preference to center. */
+  bounds?: [[number, number], [number, number]] | null;
   preview?: boolean;
   feedingZones?: FeedingZone[];
   onReady?: (api: MapApi) => void;
@@ -320,6 +363,21 @@ export function MapLibreMap({
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
   const [tilesFailed, setTilesFailed] = useState(false);
+  /* Fetched once per mount and never again: the national outline does not
+     change while somebody is looking at it. Null until it arrives, and null
+     for good if boundaries have not been loaded, in which case the map
+     simply is not masked rather than being covered over. */
+  const [mask, setMask] = useState<MaskCollection | null>(null);
+  useEffect(() => {
+    if (preview) return;
+    let alive = true;
+    getIndiaMask()
+      .then((m) => alive && setMask(m))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [preview]);
 
   /* The basemap is fetched from a third party, and when it genuinely cannot
      be reached the console should say so rather than sit blank.
@@ -347,14 +405,35 @@ export function MapLibreMap({
      initialViewState and stays put. */
   const centerLat = center?.lat;
   const centerLng = center?.lng;
+  /* Serialised so an equal-but-new array does not re-animate the camera on
+     every render, the same reason center is depended on by coordinate
+     rather than by object. */
+  const boundsKey = bounds ? bounds.flat().join(",") : null;
   useEffect(() => {
-    if (centerLat == null || centerLng == null || preview) return;
+    if (preview) return;
+
+    /* An extent beats a point. A ward is a few square kilometres and a
+       district a few thousand, and no single zoom frames both; fitBounds
+       works out the zoom from the shape itself. */
+    if (boundsKey) {
+      const n = boundsKey.split(",").map(Number);
+      mapRef.current?.fitBounds(
+        [
+          [n[0], n[1]],
+          [n[2], n[3]],
+        ],
+        { duration: 900, padding: 48, maxZoom: 15 }
+      );
+      return;
+    }
+
+    if (centerLat == null || centerLng == null) return;
     mapRef.current?.easeTo({
       center: [centerLng, centerLat],
       zoom: 13,
       duration: 900,
     });
-  }, [centerLat, centerLng, preview]);
+  }, [centerLat, centerLng, boundsKey, preview]);
 
   const byId = useMemo(() => {
     const m: Record<string, Dog> = {};
@@ -578,7 +657,16 @@ export function MapLibreMap({
       // bulky end-to-end strip (which looked oversized on the small preview).
       attributionControl={false}
     >
-      {/* Wards first so the animal dots draw on top of their own shading. */}
+      {/* The mask goes down first: it belongs to the basemap, and both the
+          ward shading and the animals have to draw over it. */}
+      {mask && !preview && (
+        <Source id={MASK_SRC} type="geojson" data={mask}>
+          <Layer {...maskFillLayer} />
+          <Layer {...maskLineLayer} />
+        </Source>
+      )}
+
+      {/* Wards next so the animal dots draw on top of their own shading. */}
       {wards && !preview && (
         <Source id={WARD_SRC} type="geojson" data={wards} promoteId="ward_id">
           <Layer {...wardFillLayer(wardMetric)} />

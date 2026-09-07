@@ -192,3 +192,53 @@ export const WARD_RAMP = ["#dbe7fb", "#a9c6f3", "#6f9ce6", "#3f70cf", "#1b46b0"]
 
 /** Wards nobody has surveyed. Not on the ramp, on purpose. */
 export const WARD_UNSURVEYED = "#e6e8ec";
+
+/* ── The map's India-only mask ───────────────────────────────────────
+   Everything outside the national outline, as one polygon, so the map can
+   dim it. Built by PostGIS from the same district boundaries the density
+   map draws — see supabase/map-search.sql — because it is 115 KB of
+   coastline and a difference operation, neither of which belongs in a
+   JavaScript bundle. */
+export type MaskCollection = {
+  type: "FeatureCollection";
+  features: { type: "Feature"; geometry: GeoJSON.MultiPolygon; properties: Record<string, never> }[];
+};
+
+export async function getIndiaMask(): Promise<MaskCollection | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data, error } = await supa.rpc("india_mask");
+  if (error || !data) return null;
+  const fc = data as MaskCollection;
+  /* No districts loaded yet means no outline to cut out, and the function
+     says so with an empty collection rather than dimming the whole map. */
+  return fc.features?.length ? fc : null;
+}
+
+/* ── Places you can search for ───────────────────────────────────────
+   Wards and districts by name, number, city, state or zone, each with a
+   point that is guaranteed to be inside the shape and the bounding box to
+   frame it by. */
+export type PlaceHit = {
+  level: AreaLevel;
+  city: string;
+  state: string | null;
+  ward_no: string;
+  ward_name: string | null;
+  zone_name: string | null;
+  lat: number;
+  lng: number;
+  min_lng: number;
+  min_lat: number;
+  max_lng: number;
+  max_lat: number;
+  animals: number;
+};
+
+export async function searchPlaces(q: string, limit = 6): Promise<PlaceHit[]> {
+  const supa = getSupabase();
+  if (!supa || q.trim().length < 2) return [];
+  const { data, error } = await supa.rpc("place_search", { p_q: q.trim(), p_limit: limit });
+  if (error || !data) return [];
+  return data as PlaceHit[];
+}

@@ -33,6 +33,7 @@ const PARTS = [
   ["campaigns.sql", "Drives, filing observations, and what counts as nearby"],
   ["public-dataset.sql", "The published dataset: one citable row per survey"],
   ["ward-density.sql", "Ward/district boundaries and the coverage headline"],
+  ["map-search.sql", "Searching wards and districts, and the India-only mask"],
 ];
 
 const RULE = "═".repeat(64);

@@ -73,6 +73,21 @@ export function MapView({
   const urlCentre =
     Number.isFinite(sLat) && Number.isFinite(sLng) ? { lat: sLat, lng: sLng } : null;
 
+  /* A searched ward or district carries its extent, not just its middle.
+     Framing the whole area is the difference between "here is Thanjavur
+     district" and "here is a point somewhere in Thanjavur district" — a
+     fixed zoom cannot serve both a 4 km² ward and a 3,400 km² district. */
+  const bboxParam = params.get("bbox");
+  const urlBounds = (() => {
+    if (!bboxParam) return null;
+    const n = bboxParam.split(",").map(Number);
+    if (n.length !== 4 || n.some((v) => !Number.isFinite(v))) return null;
+    return [
+      [n[0], n[1]],
+      [n[2], n[3]],
+    ] as [[number, number], [number, number]];
+  })();
+
   /* Where an organisation actually works.
 
      Opening on a map of all India is useless to a team in Chennai: they
@@ -186,6 +201,7 @@ export function MapView({
             onSelect={handleSelect}
             selectedId={selected?.id ?? null}
             center={center}
+            bounds={urlBounds}
             feedingZones={feedingZones}
             onReady={setMapApi}
             showGaps={showGaps}

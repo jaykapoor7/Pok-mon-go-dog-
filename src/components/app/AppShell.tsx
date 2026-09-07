@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { search, KIND_LABEL, type SearchHit } from "@/lib/search";
+import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
 /* Everyone sees these. The console is one view, community reporters and NGO
@@ -167,10 +167,33 @@ export function AppShell({
     if (hits[cursor]) go(hits[cursor]);
   }
 
+  /* Static answers land on the keystroke; wards and districts are a round
+     trip and arrive after. Merged rather than replaced so the list does not
+     jump under a finger already moving towards a result, and the request is
+     tagged so a slow answer to "che" cannot overwrite the results for
+     "chennai". */
+  const searchSeq = useRef(0);
   function onQueryChange(v: string) {
     setQuery(v);
-    setHits(search(v));
+    const base = search(v);
+    setHits(base);
     setCursor(0);
+
+    const seq = ++searchSeq.current;
+    if (v.trim().length < 2) return;
+    searchAreas(v)
+      .then((areas) => {
+        if (seq !== searchSeq.current || !areas.length) return;
+        /* Areas sit under places but above pages: someone typing a ward
+           number wants the ward, someone typing a city wants the city. */
+        setHits((prev) => {
+          const keep = prev.filter((h) => h.kind !== "ward");
+          const head = keep.filter((h) => h.kind === "place" || h.kind === "state");
+          const tail = keep.filter((h) => h.kind !== "place" && h.kind !== "state");
+          return [...head, ...areas, ...tail].slice(0, 10);
+        });
+      })
+      .catch(() => {});
   }
 
   function onSearchKey(e: React.KeyboardEvent) {
@@ -261,7 +284,7 @@ export function AppShell({
           <input
             ref={searchRef}
             type="search"
-            placeholder="Search location, animal ID, org…"
+            placeholder="Search a ward, city, district or organisation…"
             aria-label="Search the network"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}

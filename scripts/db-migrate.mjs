@@ -32,7 +32,7 @@ const SETS = {
   /* The pilot layer on a project that already has the base schema. */
   pilot: ["RUN-PILOT-MIGRATIONS.sql", ...districts(), "wards-chennai.sql"],
   /* Just the density map: rebuilds the wards table, then reloads it. */
-  wards: ["ward-density.sql", ...districts(), "wards-chennai.sql"],
+  wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
 };
 
 function districts() {
@@ -72,6 +72,25 @@ const missing = files.filter((f) => !existsSync(sql(f)));
 if (missing.length) {
   console.error(`Missing SQL files: ${missing.join(", ")}`);
   process.exit(1);
+}
+
+/* The bundle is generated from the parts. Running a stale one is how a fix
+   that exists in the repository fails in the database, which has happened
+   twice on this project — so it is checked before anything connects rather
+   than discovered afterwards. */
+if (files.includes("RUN-PILOT-MIGRATIONS.sql")) {
+  const { execFileSync } = await import("node:child_process");
+  try {
+    execFileSync(process.execPath, [join(root, "scripts/build-bundle.mjs"), "--check"], {
+      stdio: "pipe",
+    });
+  } catch {
+    console.error(
+      "RUN-PILOT-MIGRATIONS.sql is out of date with the files it is built from.\n" +
+        "Run: npm run db:bundle"
+    );
+    process.exit(1);
+  }
 }
 
 const client = new pg.Client({

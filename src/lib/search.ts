@@ -1,6 +1,8 @@
 import { CITIES } from "@/lib/delhi";
 import { STATES, STATE_BY_CODE } from "@/lib/platform/geography";
 import { ORGS } from "@/lib/platform/orgs";
+import { CITY_COORDS, coordsForCity } from "@/lib/platform/city-coords";
+import { searchPlaces, type PlaceHit } from "@/lib/wards";
 
 /* ════════════════════════════════════════════════════════════════════
    Console search.
@@ -11,7 +13,7 @@ import { ORGS } from "@/lib/platform/orgs";
    back a real destination.
    ════════════════════════════════════════════════════════════════════ */
 
-export type SearchKind = "place" | "state" | "org" | "page";
+export type SearchKind = "place" | "ward" | "state" | "org" | "page";
 
 export type SearchHit = {
   kind: SearchKind;
@@ -85,14 +87,42 @@ export function search(query: string, limit = 8): SearchHit[] {
     );
   }
 
+  /* Every city an organisation is in, whether or not it is one of the
+     twenty the map already knew about. Searching "Bhubaneswar" should reach
+     Bhubaneswar. */
+  const seenCity = new Set(CITIES.map((c) => norm(c.name)));
+  for (const [name, at] of Object.entries(CITY_COORDS)) {
+    if (seenCity.has(norm(name))) continue;
+    consider(
+      {
+        kind: "place",
+        label: name,
+        detail: "Jump the map here",
+        href: `/map?lat=${at.lat}&lng=${at.lng}`,
+      },
+      name,
+      1
+    );
+  }
+
   for (const o of ORGS) {
     const stateName = STATE_BY_CODE.get(o.stateCode)?.name ?? "";
+    const at = coordsForCity(o.city);
     consider(
       {
         kind: "org",
         label: o.name,
-        detail: [o.city, stateName].filter(Boolean).join(", ") || "Organisation",
-        href: `/orgs?q=${encodeURIComponent(o.name)}`,
+        /* An organisation is a place as much as it is a record. Someone
+           searching one on a console whose main surface is a map wants to
+           see where it works, so this opens the map over its city rather
+           than a directory row. The directory is still reachable by name
+           from the Organisation directory result. */
+        detail: at
+          ? `Open the map on ${[o.city, stateName].filter(Boolean).join(", ")}`
+          : [o.city, stateName].filter(Boolean).join(", ") || "Organisation",
+        href: at
+          ? `/map?lat=${at.lat}&lng=${at.lng}&org=${encodeURIComponent(o.name)}`
+          : `/orgs?q=${encodeURIComponent(o.name)}`,
       },
       `${o.name} ${o.city} ${stateName}`,
       4
@@ -115,7 +145,51 @@ export function search(query: string, limit = 8): SearchHit[] {
 
 export const KIND_LABEL: Record<SearchKind, string> = {
   place: "Place",
+  ward: "Area",
   state: "State",
   org: "Organisation",
   page: "Go to",
 };
+
+
+/* ── Wards and districts, which live in the database ──────────────────
+   Everything above is a static list bundled with the app. Municipal wards
+   and districts are rows in Postgres — 641 districts and 200 Chennai wards
+   at the time of writing, more as pilots land — so they are looked up
+   rather than shipped, and merged into the results as they arrive.
+
+   Kept separate from search() rather than making that function async: the
+   static answers should appear on the first keystroke instead of waiting on
+   a round trip that may return nothing. */
+export async function searchAreas(query: string, limit = 4): Promise<SearchHit[]> {
+  const hits = await searchPlaces(query, limit);
+  return hits.map(toHit);
+}
+
+function toHit(p: PlaceHit): SearchHit {
+  /* "Ward 172" is what the boundary data calls it; the zone is what a
+     person in Chennai calls the part of the city it is in, so both go in.
+     Districts carry their own name and their state. */
+  const label =
+    p.level === "district"
+      ? p.ward_name ?? `District ${p.ward_no}`
+      : p.ward_name ?? `Ward ${p.ward_no}`;
+  const where =
+    p.level === "district"
+      ? p.state ?? "India"
+      : [p.zone_name, p.city].filter(Boolean).join(", ");
+  /* Said plainly, because an area with nothing recorded in it is the
+     finding rather than an empty result. */
+  const count =
+    p.animals > 0
+      ? `${p.animals} recorded`
+      : "nothing recorded here yet";
+  return {
+    kind: "ward",
+    label,
+    detail: `${where} · ${count}`,
+    href:
+      `/map?lat=${p.lat.toFixed(5)}&lng=${p.lng.toFixed(5)}` +
+      `&bbox=${p.min_lng.toFixed(4)},${p.min_lat.toFixed(4)},${p.max_lng.toFixed(4)},${p.max_lat.toFixed(4)}`,
+  };
+}
