@@ -1,26 +1,49 @@
 -- ════════════════════════════════════════════════════════════════
 -- StrayPaw, the PAWS Chennai pilot migrations, in one file.
 --
+-- GENERATED FILE — DO NOT EDIT.
+--
+-- Built from the files listed below by scripts/build-bundle.mjs. Edit the
+-- part, then run `npm run db:bundle`. Editing this file directly is how
+-- two sections silently drifted behind their sources and failed in
+-- production long after the real bug had been fixed.
+--
 -- HOW TO RUN THIS
 --
 -- Supabase dashboard → SQL Editor → New query → paste this whole file →
--- Run. Once. That is the entire job.
+-- Run. Or skip the pasting entirely:
 --
--- Run it in one go rather than file by file. The parts depend on each
--- other, and running them out of order fails part way through, leaving
--- every function defined after that point missing.
+--     npm run db:migrate -- pilot
+--
+-- which runs this and the boundary files in order and tells you what
+-- landed. See supabase/README.md.
 --
 -- It assumes the base schema is already there: dogs, sightings, ngos,
--- ngo_members, my_ngo(). If this is a brand new Supabase project, run
+-- ngo_members, my_ngo(). On a brand new Supabase project run
 -- RUN-ALL-MIGRATIONS.sql first, then this.
 --
--- Idempotent, and verified to be: applied repeatedly to a fresh database
--- with no errors. Nothing here deletes data, so a run that failed part way
--- through is fixed by running the whole thing again, and re-running it
--- after a successful run is safe.
+-- Safe to run again, from any state, however badly a previous attempt
+-- went. Nothing here destroys anything you typed in — the one table that
+-- is rebuilt rather than migrated, wards, holds only imported boundaries,
+-- and section 11 says so.
 --
 -- Contents, in dependency order:
---    1. observation-identity.sql     One animal, many observations, and never a guess about which\n--    2. analytics.sql                Product analytics for the reporting funnel\n--    3. adoption-and-documents.sql   Documents attached to records (adoption listings unused)\n--    4. no-similarity-merge.sql      Removes merging animals that merely look alike\n--    5. abc-programme.sql            Sterilisation and rabies status, three-valued\n--    6. org-invite-codes.sql         Volunteer reporting codes\n--    7. org-email-invites.sql        Organisation membership, moderation, and deleting an org\n--    8. org-access-codes.sql         One standing six-character sign-in code per person\n--    9. campaigns.sql                Drives, filing observations, and what counts as nearby\n--   10. public-dataset.sql           The published dataset: one citable row per survey\n--   11. ward-density.sql            Ward/district boundaries and the coverage headline\n-- ════════════════════════════════════════════════════════════════
+--   1. observation-identity.sql     One animal, many observations, and never a guess about which
+--   2. analytics.sql                Product analytics for the reporting funnel
+--   3. adoption-and-documents.sql   Documents attached to records (adoption listings unused)
+--   4. no-similarity-merge.sql      Removes merging animals that merely look alike
+--   5. abc-programme.sql            Sterilisation and rabies status, three-valued
+--   6. org-invite-codes.sql         Volunteer reporting codes
+--   7. org-email-invites.sql        Organisation membership, moderation, and deleting an org
+--   8. org-access-codes.sql         One standing six-character sign-in code per person
+--   9. campaigns.sql                Drives, filing observations, and what counts as nearby
+--  10. public-dataset.sql           The published dataset: one citable row per survey
+--  11. ward-density.sql             Ward/district boundaries and the coverage headline
+--
+-- After this file, load the boundaries:
+--     districts-india-1of5.sql … -5of5.sql   641 districts, national tier
+--     wards-chennai.sql                      200 GCC wards, pilot tier
+-- ════════════════════════════════════════════════════════════════
 
 
 -- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2519,6 +2542,10 @@ grant execute on function create_team_code(text, text, text) to authenticated, s
 
 -- Both kinds of code in one list, because on the dashboard they are one
 -- thing: the people this organisation has given something to.
+-- Its OUT row gained last_used_at, and create or replace cannot change a
+-- return type. Recreated immediately below.
+drop function if exists org_team_codes();
+
 create or replace function org_team_codes()
 returns table (
   id          uuid,
@@ -2530,6 +2557,7 @@ returns table (
   active      boolean,
   accepted    boolean,
   reports     bigint,
+  last_used_at timestamptz,
   created_at  timestamptz
 ) language sql stable security definer set search_path = public as $$
   -- A staff code is live until it is revoked. Having been used is not a
@@ -2539,6 +2567,9 @@ returns table (
            and (i.expires_at is null or i.expires_at >= now())        as active,
          i.accepted_at is not null                                    as accepted,
          i.uses::bigint                                               as reports,
+         -- "signed in 3x" with no date cannot tell an active member from
+         -- one who signed in once in June and never came back.
+         i.last_used_at,
          i.created_at
     from org_email_invites i
    where i.ngo_id = my_ngo()
@@ -2547,10 +2578,11 @@ returns table (
          c.active,
          exists (select 1 from sightings s where s.invite_code_id = c.id) as accepted,
          (select count(*) from sightings s where s.invite_code_id = c.id) as reports,
+         (select max(s.created_at) from sightings s where s.invite_code_id = c.id) as last_used_at,
          c.created_at
     from org_invite_codes c
    where c.ngo_id = my_ngo()
-   order by 10 desc;
+   order by 11 desc;
 $$;
 
 -- Works on either kind. Scoped to the caller's own organisation.
@@ -3461,31 +3493,9 @@ $$;
 grant execute on function published_totals() to anon, authenticated, service_role;
 
 
-
--- ════════════════════════════════════════════════════════════════
--- 11. ward-density.sql
---     Ward and district boundaries, PostGIS point-in-polygon counts, and
---     the coverage headline.
---
---     READ THIS PART: unlike every other section here, this one DROPS AND
---     REBUILDS the wards table. That table holds no original data — every
---     row in it is imported from a published boundary file checked into
---     this repository — and rebuilding is what makes it impossible for
---     this file to half-apply or to depend on what shape the table was in
---     before. Four separate migration failures came from trying to carry
---     it forward instead.
---
---     So the boundaries must be loaded again after this runs:
---       supabase/districts-india-1of5.sql … -5of5.sql
---                                     all 641 districts, the national tier.
---                                     Five files because the SQL editor
---                                     refuses a batch that large.
---       supabase/wards-chennai.sql    200 GCC wards, the pilot tier
---
---     The last result this file prints says how many are loaded, so an
---     empty wards table announces itself rather than turning up later as
---     a blank map. Or skip the pasting: npm run db:migrate -- pilot
--- ════════════════════════════════════════════════════════════════
+-- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- ┃ ward-density.sql
+-- ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 -- ════════════════════════════════════════════════════════════════
 -- StrayPaw, ward-level density.
