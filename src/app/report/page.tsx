@@ -34,7 +34,18 @@ export default function ReportPage() {
   const [step, setStep] = useState(0); // 0..3
   const [photo, setPhoto] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  /* Seeded from ?lat&lng when somebody pressed "Report an animal here" on
+     the map: they had already found the place, and asking them to find it
+     again is the step most reports are lost at. A photograph's own EXIF
+     still overrides this later, because the camera was standing closer to
+     the animal than the map was. */
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(() => {
+    if (typeof window === "undefined") return null;
+    const q = new URLSearchParams(window.location.search);
+    const lat = Number(q.get("lat"));
+    const lng = Number(q.get("lng"));
+    return looksIndian(lat, lng) ? { lat, lng } : null;
+  });
   const [zone, setZone] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
   const [moods, setMoods] = useState<MoodTag[]>([]);

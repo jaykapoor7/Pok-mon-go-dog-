@@ -184,6 +184,7 @@ export function MapView({
           <MapCanvas
             dogs={dogs}
             onSelect={handleSelect}
+            selectedId={selected?.id ?? null}
             center={center}
             feedingZones={feedingZones}
             onReady={setMapApi}
@@ -332,6 +333,43 @@ export function MapView({
               />
             )}
           </div>
+
+          {/* REPORT: the primary action on a map of street animals is adding
+              one to it, and until now this screen had no button for that at
+              all — the only way in was a nav chip two screens of sideways
+              scrolling away. It carries wherever the camera is pointed, so
+              the report flow opens already knowing the place instead of
+              asking the reporter to find it a second time. */}
+          <Link
+            href={(() => {
+              const c = mapApi?.getCenter();
+              return c ? `/report?lat=${c.lat.toFixed(6)}&lng=${c.lng.toFixed(6)}` : "/report";
+            })()}
+            style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              bottom: drawerOpen ? 188 : 108,
+              zIndex: 22,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              minHeight: 46,
+              padding: "12px 20px",
+              borderRadius: 999,
+              background: "#8fb7ff",
+              color: "#0b1020",
+              fontSize: 14,
+              fontWeight: 700,
+              textDecoration: "none",
+              boxShadow: "0 10px 28px -6px rgba(11,16,32,0.55)",
+              whiteSpace: "nowrap",
+              transition: "bottom 0.28s cubic-bezier(0.22,1,0.36,1)",
+            }}
+          >
+            <PawIcon size={16} />
+            Report an animal here
+          </Link>
 
           {/* BOTTOM STATS STRIP */}
           <div className="mv-bottom" style={{

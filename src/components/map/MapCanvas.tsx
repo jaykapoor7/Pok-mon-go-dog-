@@ -70,6 +70,8 @@ export function MapCanvas(props: {
   wards?: WardFeatureCollection | null;
   wardMetric?: WardMetric;
   onWardSelect?: (ward: Record<string, unknown> | null) => void;
+  /** Id of the animal whose record is open, ringed on the map. */
+  selectedId?: string | null;
 }) {
   return <MapEngine {...props} />;
 }

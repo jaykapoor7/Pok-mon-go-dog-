@@ -94,6 +94,8 @@ export type MapApi = {
   zoomOut: () => void;
   toggle3D: () => boolean;
   fitIndia: () => void;
+  /** Where the camera is pointed, for "report an animal here". */
+  getCenter: () => { lat: number; lng: number } | null;
 };
 
 /* Sized by how many are inside, in steps rather than a smooth ramp: a
@@ -135,6 +137,24 @@ const clusterCountLayer: SymbolLayerSpecification = {
 /* One animal: a solid dot in its status colour with a white collar, which is
    what keeps it legible over a pale street and a dark park alike. A halo
    underneath the ones needing help, so they carry at a glance. */
+/* The record you have open, ringed on the map. Without this the bottom
+   sheet tells you about an animal and the map gives you no way to see which
+   of the dots it is talking about. */
+const selectedLayer: CircleLayerSpecification = {
+  id: "dog-selected",
+  type: "circle",
+  source: SRC,
+  filter: ["==", ["get", "id"], "__none__"],
+  paint: {
+    "circle-color": "rgba(0,0,0,0)",
+    "circle-radius": [
+      "interpolate", ["linear"], ["zoom"], 6, 11, 11, 15, 16, 20,
+    ],
+    "circle-stroke-width": 3,
+    "circle-stroke-color": "#1b46b0",
+  },
+};
+
 const pointLayer: CircleLayerSpecification = {
   id: POINT_LAYER,
   type: "circle",
@@ -218,6 +238,7 @@ export function MapLibreMap({
   wards = null,
   wardMetric = "animals",
   onWardSelect,
+  selectedId = null,
 }: {
   dogs: Dog[];
   onSelect?: (dog: Dog) => void;
@@ -232,6 +253,8 @@ export function MapLibreMap({
   /** Which number the wards are shaded by. */
   wardMetric?: WardMetric;
   onWardSelect?: (ward: Record<string, unknown> | null) => void;
+  /** Id of the animal whose record is open, ringed on the map. */
+  selectedId?: string | null;
 }) {
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
@@ -360,6 +383,10 @@ export function MapLibreMap({
         },
         fitIndia: () =>
           mapRef.current?.fitBounds(INDIA_BOUNDS, { duration: 700, padding: 24 }),
+        getCenter: () => {
+          const c = mapRef.current?.getCenter();
+          return c ? { lat: c.lat, lng: c.lng } : null;
+        },
       });
     };
     publish();
@@ -421,6 +448,10 @@ export function MapLibreMap({
         <Layer {...clusterLayer} />
         <Layer {...clusterCountLayer} />
         <Layer {...pointLayer} />
+        <Layer
+          {...selectedLayer}
+          filter={["==", ["get", "id"], selectedId ?? "__none__"]}
+        />
       </Source>
 
       {/* Data-gap layer: one marker per state, coloured by whether anything
