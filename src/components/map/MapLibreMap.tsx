@@ -12,6 +12,7 @@ import Map, {
   type MapRef,
 } from "react-map-gl/maplibre";
 import type {
+  Map as MapLibreInstance,
   CircleLayerSpecification,
   FillLayerSpecification,
   LineLayerSpecification,
@@ -101,9 +102,6 @@ const INDIA_BOUNDS: [[number, number], [number, number]] = [
 const MIN_ZOOM = 3.4;
 
 const SRC = "dogs";
-const CLUSTER_LAYER = "dog-clusters";
-const CLUSTER_COUNT_LAYER = "dog-cluster-count";
-const POINT_LAYER = "dog-points";
 const PHOTO_LAYER = "dog-photos";
 const MASK_SRC = "india-mask";
 const MASK_FILL = "india-mask-fill";
@@ -111,8 +109,8 @@ const MASK_LINE = "india-outline";
 const WARD_SRC = "wards";
 const WARD_FILL = "ward-fill";
 const WARD_LINE = "ward-line";
-const INTERACTIVE = [CLUSTER_LAYER, PHOTO_LAYER, POINT_LAYER];
-const INTERACTIVE_WITH_WARDS = [CLUSTER_LAYER, PHOTO_LAYER, POINT_LAYER, WARD_FILL];
+const INTERACTIVE = [PHOTO_LAYER];
+const INTERACTIVE_WITH_WARDS = [PHOTO_LAYER, WARD_FILL];
 
 /** Imperative handles the surrounding UI drives its own controls with. */
 export type MapApi = {
@@ -124,48 +122,9 @@ export type MapApi = {
   getCenter: () => { lat: number; lng: number } | null;
 };
 
-/* Sized by how many are inside, in steps rather than a smooth ramp: a
-   continuous radius makes 30 and 40 indistinguishable, while steps read as
-   "that group is bigger than this one" across a whole screen. */
-const clusterLayer: CircleLayerSpecification = {
-  id: CLUSTER_LAYER,
-  type: "circle",
-  source: SRC,
-  filter: ["has", "point_count"],
-  paint: {
-    /* Red the moment anything inside needs help, so urgency survives being
-       clustered instead of being averaged away. */
-    "circle-color": ["case", [">", ["get", "urgent"], 0], "#e04a2f", "#1b46b0"],
-    "circle-radius": [
-      "step", ["get", "point_count"],
-      16, 10, 21, 50, 27, 200, 34, 1000, 42,
-    ],
-    "circle-opacity": 0.92,
-    "circle-stroke-width": 2.5,
-    "circle-stroke-color": "#ffffff",
-  },
-};
-
-const clusterCountLayer: SymbolLayerSpecification = {
-  id: CLUSTER_COUNT_LAYER,
-  type: "symbol",
-  source: SRC,
-  filter: ["has", "point_count"],
-  layout: {
-    "text-field": ["get", "point_count_abbreviated"],
-    "text-font": ["Open Sans Bold"],
-    "text-size": ["step", ["get", "point_count"], 12, 50, 13, 200, 14],
-    "text-allow-overlap": true,
-  },
-  paint: { "text-color": "#ffffff" },
-};
-
-/* One animal: a solid dot in its status colour with a white collar, which is
-   what keeps it legible over a pale street and a dark park alike. A halo
-   underneath the ones needing help, so they carry at a glance. */
 /* The record you have open, ringed on the map. Without this the bottom
    sheet tells you about an animal and the map gives you no way to see which
-   of the dots it is talking about. */
+   of them it is talking about. */
 const selectedLayer: CircleLayerSpecification = {
   id: "dog-selected",
   type: "circle",
@@ -173,12 +132,15 @@ const selectedLayer: CircleLayerSpecification = {
   filter: ["==", ["get", "id"], "__none__"],
   paint: {
     "circle-color": "rgba(0,0,0,0)",
-    /* Wide enough to sit outside the photograph once the photo layer takes
-       over at zoom 9, and outside the plain dot below that. A ring drawn
-       inside the marker reads as part of it and stops pointing anything
-       out. */
+    /* Tracks the icon-size ramp below, four pixels wider at each stop. A
+       ring drawn inside the marker reads as part of it and stops pointing
+       anything out. */
     "circle-radius": [
-      "interpolate", ["linear"], ["zoom"], 6, 9, 8.9, 11, 9, 19, 12, 25, 16, 31,
+      "interpolate", ["linear"], ["zoom"],
+      4, 15,
+      8, 21,
+      12, 28,
+      15, 32,
     ],
     "circle-stroke-width": 3,
     "circle-stroke-color": "#1b46b0",
@@ -193,21 +155,24 @@ const selectedLayer: CircleLayerSpecification = {
    names an image that does not exist yet; MapLibre asks for it once, through
    styleimagemissing, and draws it as soon as it is handed over.
 
-   Photographs are for animals, not for crowds. Below the zoom where things
-   are still clustered a screen of overlapping faces reads as noise, so the
-   ramp shrinks them with distance and the plain dot takes over underneath. */
+   Every animal, at every zoom. There is no clustering and no plain-dot
+   fallback beneath it: the photograph IS the marker, and it shrinks with
+   distance rather than being replaced by something that is not a dog. */
 const photoLayer: SymbolLayerSpecification = {
   id: PHOTO_LAYER,
   type: "symbol",
   source: SRC,
-  filter: ["!", ["has", "point_count"]],
-  minzoom: 9,
   layout: {
     "icon-image": ["get", "icon"],
+    /* Small when the whole country is on screen, full size once you are
+       looking at a street. No lower bound on the zoom: an animal is worth
+       seeing wherever you are looking from, and shrinking is how a national
+       view stays legible without hiding anything. */
     "icon-size": [
       "interpolate", ["linear"], ["zoom"],
-      9, 0.55,
-      12, 0.8,
+      4, 0.4,
+      8, 0.6,
+      12, 0.85,
       15, 1,
     ],
     /* Two animals on the same doorstep should both be visible; hiding one
@@ -216,30 +181,6 @@ const photoLayer: SymbolLayerSpecification = {
     "icon-ignore-placement": true,
   },
 };
-
-const pointLayer: CircleLayerSpecification = {
-  id: POINT_LAYER,
-  type: "circle",
-  source: SRC,
-  /* Only where the photographs are not: below the photo layer's minzoom, and
-     for anything still inside a cluster. Drawing both would put a dot under
-     every face. */
-  maxzoom: 9,
-  filter: ["!", ["has", "point_count"]],
-  paint: {
-    "circle-color": ["get", "color"],
-    "circle-radius": [
-      "interpolate", ["linear"], ["zoom"],
-      6, 4.5,
-      11, 7,
-      16, 10,
-    ],
-    "circle-stroke-width": ["case", ["get", "urgent"], 3, 2],
-    "circle-stroke-color": ["case", ["get", "urgent"], "#e04a2f", "#ffffff"],
-    "circle-opacity": 0.95,
-  },
-};
-
 
 /* A choropleth needs its bands and its legend to come from one place, so the
    ramp is built from the same breaks the legend prints. Unsurveyed wards are
@@ -466,10 +407,9 @@ export function MapLibreMap({
      The ring is added synchronously so the marker appears at once, then the
      photograph replaces it in place when it arrives. A marker that waited for
      the network would blink into existence halfway through a pan. */
+  const iconPending = useRef<Set<string>>(new Set());
   useEffect(() => {
-    const map = mapRef.current?.getMap?.();
-    if (!map) return;
-    const pending = new Set<string>();
+    const pending = iconPending.current;
 
     const onMissing = (e: { id: string }) => {
       const iconId = e.id;
@@ -478,9 +418,11 @@ export function MapLibreMap({
       if (!spec) return;
       pending.add(iconId);
 
-      if (!map.hasImage(iconId)) {
+      const m = mapRef.current?.getMap?.();
+      if (!m) return;
+      if (!m.hasImage(iconId)) {
         const placeholder = renderFallbackIcon(spec);
-        if (placeholder) map.addImage(iconId, placeholder, { pixelRatio: 2 });
+        if (placeholder) m.addImage(iconId, placeholder, { pixelRatio: 2 });
       }
 
       renderPhotoIcon(spec)
@@ -488,15 +430,38 @@ export function MapLibreMap({
           /* The style can be swapped or the component unmounted while a
              photograph is still downloading, and updating an image on a map
              that has moved on throws. */
-          if (!withPhoto || !map.hasImage(iconId)) return;
-          map.updateImage(iconId, withPhoto);
+          if (!withPhoto || !m.hasImage(iconId)) return;
+          m.updateImage(iconId, withPhoto);
         })
         .catch(() => {});
     };
 
-    map.on("styleimagemissing", onMissing);
+    /* Attached once the map instance actually exists.
+     *
+     * The first version of this read mapRef.current inside an effect with an
+     * empty dependency list and returned early when it was null — which it
+     * always is on the first commit, because react-map-gl assigns the ref
+     * while rendering its own child. So the listener was never attached at
+     * all, no icon was ever built, and the symbol layer pointed at images
+     * that did not exist: every animal silently drew nothing.
+     *
+     * Same requestAnimationFrame wait the camera controls below use, for
+     * the same reason. */
+    let map: MapLibreInstance | null = null;
+    let raf = 0;
+    const attach = () => {
+      map = mapRef.current?.getMap?.() ?? null;
+      if (!map) {
+        raf = requestAnimationFrame(attach);
+        return;
+      }
+      map.on("styleimagemissing", onMissing);
+    };
+    attach();
+
     return () => {
-      map.off("styleimagemissing", onMissing);
+      cancelAnimationFrame(raf);
+      map?.off("styleimagemissing", onMissing);
     };
   }, []);
 
@@ -515,6 +480,11 @@ export function MapLibreMap({
       /* Removing it is enough. MapLibre asks again the next time it needs to
          paint that animal, and the handler above builds the current one. */
       if (map.hasImage?.(iconId)) map.removeImage(iconId);
+      /* And let it be requested again. Without this the icon is removed,
+         styleimagemissing fires, the handler sees the id already in
+         `pending` and returns early — so an animal whose status changed
+         would lose its marker for good rather than getting a new one. */
+      iconPending.current.delete(iconId);
     }
   }, [dogs]);
 
@@ -527,7 +497,9 @@ export function MapLibreMap({
       type: "FeatureCollection" as const,
       features: dogs.map((d) => ({
         type: "Feature" as const,
-        id: d.id,
+        /* No feature id. MapLibre wants a number there and quietly rejects
+           a UUID string; nothing here uses feature-state, and the selection
+           ring matches on the id PROPERTY below instead. */
         properties: {
           id: d.id,
           urgent: Boolean(d.needs_help),
@@ -544,29 +516,14 @@ export function MapLibreMap({
     [dogs]
   );
 
-  /* One handler for both layers. A cluster zooms to the point where it breaks
-     apart; a single animal opens its record. */
+  /* Tap a photograph, open that animal's record. There is no second kind of
+     thing to tap any more: the cluster branch that used to live here zoomed
+     you in and left you looking at another cluster. */
   const handleClick = useCallback(
     (e: MapLayerMouseEvent) => {
       const map = mapRef.current;
       const f = e.features?.[0];
       if (!map || !f) return;
-
-      if (f.properties?.cluster) {
-        const src = map.getSource(SRC) as unknown as {
-          getClusterExpansionZoom: (id: number) => Promise<number>;
-        };
-        const clusterId = f.properties.cluster_id as number;
-        const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates;
-        Promise.resolve(src.getClusterExpansionZoom(clusterId))
-          .then((z) =>
-            map.easeTo({ center: [lng, lat], zoom: Math.min(z, 16), duration: 500 })
-          )
-          .catch(() => {
-            map.easeTo({ center: [lng, lat], zoom: map.getZoom() + 2, duration: 500 });
-          });
-        return;
-      }
 
       if (f.layer?.id === WARD_FILL) {
         onWardSelect?.(f.properties ?? null);
@@ -674,23 +631,14 @@ export function MapLibreMap({
         </Source>
       )}
 
-      {/* clusterProperties totals the urgent flag as MapLibre builds each
-          cluster, so "does anything in here need help" costs nothing to ask
-          at paint time. */}
-      <Source
-        id={SRC}
-        type="geojson"
-        data={data}
-        cluster
-        clusterRadius={55}
-        clusterMaxZoom={15}
-        clusterProperties={{
-          urgent: ["+", ["case", ["get", "urgent"], 1, 0]],
-        }}
-      >
-        <Layer {...clusterLayer} />
-        <Layer {...clusterCountLayer} />
-        <Layer {...pointLayer} />
+      {/* No clustering. Every animal is its own photograph at every zoom.
+
+          Clusters answered "how many are around here", which is a question
+          the ward map answers properly, with boundaries and a denominator.
+          What they cost was the thing this map is for: a blue disc with a
+          number on it is not an animal you can recognise, and tapping one
+          only ever got you a slightly smaller disc. */}
+      <Source id={SRC} type="geojson" data={data}>
         <Layer {...photoLayer} />
         <Layer
           {...selectedLayer}
