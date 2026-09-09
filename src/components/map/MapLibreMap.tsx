@@ -103,14 +103,16 @@ const MIN_ZOOM = 3.4;
 
 const SRC = "dogs";
 const PHOTO_LAYER = "dog-photos";
+const CLUSTER_LAYER = "dog-clusters";
+const CLUSTER_COUNT_LAYER = "dog-cluster-count";
 const MASK_SRC = "india-mask";
 const MASK_FILL = "india-mask-fill";
 const MASK_LINE = "india-outline";
 const WARD_SRC = "wards";
 const WARD_FILL = "ward-fill";
 const WARD_LINE = "ward-line";
-const INTERACTIVE = [PHOTO_LAYER];
-const INTERACTIVE_WITH_WARDS = [PHOTO_LAYER, WARD_FILL];
+const INTERACTIVE = [PHOTO_LAYER, CLUSTER_LAYER];
+const INTERACTIVE_WITH_WARDS = [PHOTO_LAYER, CLUSTER_LAYER, WARD_FILL];
 
 /** Imperative handles the surrounding UI drives its own controls with. */
 export type MapApi = {
@@ -155,9 +157,9 @@ const selectedLayer: CircleLayerSpecification = {
    names an image that does not exist yet; MapLibre asks for it once, through
    styleimagemissing, and draws it as soon as it is handed over.
 
-   Every animal, at every zoom. There is no clustering and no plain-dot
-   fallback beneath it: the photograph IS the marker, and it shrinks with
-   distance rather than being replaced by something that is not a dog. */
+   At street level the photograph is the marker. At city and country scale,
+   nearby observations group into a calm, tappable count so the map stays a
+   map rather than a pile of tiny faces. */
 const photoLayer: SymbolLayerSpecification = {
   id: PHOTO_LAYER,
   type: "symbol",
@@ -180,6 +182,37 @@ const photoLayer: SymbolLayerSpecification = {
     "icon-allow-overlap": true,
     "icon-ignore-placement": true,
   },
+  filter: ["!", ["has", "point_count"]],
+};
+
+/* Clusters are deliberately neutral, not another status colour. Their job is
+   spatial orientation; colour stays reserved for the animal's own status. */
+const clusterLayer: CircleLayerSpecification = {
+  id: CLUSTER_LAYER,
+  type: "circle",
+  source: SRC,
+  filter: ["has", "point_count"],
+  paint: {
+    "circle-color": "#0b1020",
+    "circle-radius": ["step", ["get", "point_count"], 18, 10, 22, 40, 27],
+    "circle-stroke-width": 3,
+    "circle-stroke-color": "#ffffff",
+    "circle-opacity": 0.94,
+  },
+};
+
+const clusterCountLayer: SymbolLayerSpecification = {
+  id: CLUSTER_COUNT_LAYER,
+  type: "symbol",
+  source: SRC,
+  filter: ["has", "point_count"],
+  layout: {
+    "text-field": ["get", "point_abbreviated"],
+    "text-font": ["Open Sans Bold"],
+    "text-size": 11,
+    "text-allow-overlap": true,
+  },
+  paint: { "text-color": "#ffffff" },
 };
 
 /* A choropleth needs its bands and its legend to come from one place, so the
@@ -532,9 +565,10 @@ export function MapLibreMap({
     [dogs]
   );
 
-  /* Tap a photograph, open that animal's record. There is no second kind of
-     thing to tap any more: the cluster branch that used to live here zoomed
-     you in and left you looking at another cluster. */
+  /* A tap has two useful outcomes: a photo opens an animal, a cluster moves
+     the camera to the first zoom where that group becomes legible. This is
+     the same direct, predictable behaviour people expect from a consumer
+     map: no side panel for a geographic aggregate, just a closer view. */
   const handleClick = useCallback(
     (e: MapLayerMouseEvent) => {
       const map = mapRef.current;
@@ -543,6 +577,23 @@ export function MapLibreMap({
 
       if (f.layer?.id === WARD_FILL) {
         onWardSelect?.(f.properties ?? null);
+        return;
+      }
+
+      if (f.layer?.id === CLUSTER_LAYER) {
+        const clusterId = Number(f.properties?.cluster_id);
+        const source = map.getSource(SRC) as unknown as {
+          getClusterExpansionZoom?: (id: number) => Promise<number> | number;
+        };
+        const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates;
+        const expand = source?.getClusterExpansionZoom?.(clusterId);
+        if (typeof expand === "number") {
+          map.easeTo({ center: [lng, lat], zoom: expand, duration: 520 });
+        } else if (expand) {
+          Promise.resolve(expand).then((zoom) => {
+            mapRef.current?.easeTo({ center: [lng, lat], zoom, duration: 520 });
+          }).catch(() => {});
+        }
         return;
       }
 
@@ -647,14 +698,12 @@ export function MapLibreMap({
         </Source>
       )}
 
-      {/* No clustering. Every animal is its own photograph at every zoom.
-
-          Clusters answered "how many are around here", which is a question
-          the ward map answers properly, with boundaries and a denominator.
-          What they cost was the thing this map is for: a blue disc with a
-          number on it is not an animal you can recognise, and tapping one
-          only ever got you a slightly smaller disc. */}
-      <Source id={SRC} type="geojson" data={data}>
+      {/* Cluster only at overview scale. Once a visitor is inspecting a
+          locality the source expands to the dog photographs, preserving the
+          recognition-led behaviour that makes StrayPaw useful. */}
+      <Source id={SRC} type="geojson" data={data} cluster clusterRadius={54} clusterMaxZoom={11}>
+        <Layer {...clusterLayer} />
+        <Layer {...clusterCountLayer} />
         <Layer {...photoLayer} />
         <Layer
           {...selectedLayer}

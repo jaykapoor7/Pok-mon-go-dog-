@@ -1,0 +1,81 @@
+/* The map is a primary product surface: direct, light, and spatial. These
+   controls sit on the map as a small set of solid tools, never as a glassy
+   dashboard obscuring the geography beneath. */
+.sp-map { display: flex; width: 100%; height: 100%; overflow: hidden; background: #edf0f4; color: #0b1020; }
+.sp-map-canvas { position: relative; flex: 1; min-width: 0; overflow: hidden; }
+.sp-map-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 58px;
+  z-index: 10;
+  display: flex;
+  align-items: stretch;
+  max-width: calc(100% - 150px);
+  border: 1px solid #cbd2dc;
+  background: #fff;
+  box-shadow: 0 9px 30px rgba(11,16,32,.16);
+}
+.sp-map-title { min-width: 218px; padding: 12px 15px; border-right: 1px solid #e0e5eb; }
+.sp-map-title .spa-mono { color: #637083; font-size: 10px; }
+.sp-map-title h2 { margin: 5px 0 0; font-family: var(--font-display), Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: -.04em; line-height: .95; }
+.sp-map-filters { display: flex; align-items: stretch; }
+.sp-map-filters button {
+  min-width: 74px;
+  padding: 11px 11px 9px;
+  border: 0;
+  border-right: 1px solid #e0e5eb;
+  border-bottom: 3px solid transparent;
+  background: #fff;
+  color: #657181;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.sp-map-filters button:last-child { border-right: 0; }
+.sp-map-filters button:hover { color: #0b1020; background: #f7f9fc; }
+.sp-map-filters button.is-active { color: #0b1020; background: #f7f9fc; border-bottom-color: var(--sp-filter); }
+.sp-map-filters b, .sp-map-filters span { display: block; }
+.sp-map-filters b { font-size: 17px; font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--sp-filter); }
+.sp-map-filters span { margin-top: 5px; font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .07em; }
+.sp-map-controls { position: absolute; top: 16px; left: 16px; z-index: 12; display: grid; gap: 5px; }
+.sp-map-controls button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid #cbd2dc;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(11,16,32,.12);
+  color: #26324a;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .14s ease, background .16s ease, border-color .16s ease;
+}
+.sp-map-controls button[data-control="3d"] { font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.sp-map-controls button:hover:not(:disabled) { z-index: 1; border-color: #8fb7ff; background: #f1f6ff; transform: translateY(-1px); }
+.sp-map-controls button.is-active { border-color: #8fb7ff; background: #8fb7ff; color: #0b1020; }
+.sp-map-controls button:disabled { opacity: .52; cursor: default; }
+.sp-map .mv-bottom { display: none !important; }
+.sp-map-legend { position: absolute; bottom: 16px; left: 16px; z-index: 10; display: grid; gap: 8px; padding: 12px; border: 1px solid #cbd2dc; background: #fff; box-shadow: 0 6px 18px rgba(11,16,32,.12); }
+.sp-map-legend-row { display: flex; align-items: center; gap: 7px; color: #536071; font-size: 10px; font-weight: 700; letter-spacing: .09em; }
+.sp-map-gap-toggle { display: flex; width: 100%; align-items: center; gap: 7px; margin-top: 2px; padding: 9px 0 0; border: 0; border-top: 1px solid #e4e8ed; background: transparent; color: #536071; cursor: pointer; font: inherit; text-align: left; }
+.sp-map-gap-toggle > span:last-child { color: inherit; font-size: 10px; font-weight: 700; letter-spacing: .09em; }
+.sp-map-gap-toggle.is-active { color: #2b56b8; }
+.sp-map-legend > div[style*="grid"] { border-top: 1px solid #e4e8ed; padding-top: 8px; }
+
+@media (max-width: 800px) {
+  .sp-map-toolbar { top: 12px; left: 12px; right: 12px; max-width: none; flex-direction: column; }
+  .sp-map-title { min-width: 0; padding: 11px 13px; border-right: 0; border-bottom: 1px solid #e0e5eb; }
+  .sp-map-title h2 { font-size: 20px; }
+  .sp-map-filters { overflow-x: auto; }
+  .sp-map-filters button { min-width: 76px; padding: 9px 10px 8px; }
+  .sp-map-controls { top: 136px; left: 12px; }
+  .sp-map-legend { display: none; }
+}
+@media (max-width: 480px) {
+  .sp-map-filters button { min-width: 68px; }
+  .sp-map-filters b { font-size: 15px; }
+  .sp-map-filters span { font-size: 9px; }
+}

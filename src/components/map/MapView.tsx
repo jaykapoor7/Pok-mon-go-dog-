@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { MapCanvas } from "@/components/map/MapCanvas";
@@ -21,6 +21,7 @@ import { STATUS_META } from "@/lib/platform/coverage";
 import { UNIT_COSTS, inr } from "@/lib/platform/network";
 import type { Dog, FeedingZone } from "@/lib/types";
 import type { MapApi } from "@/components/map/MapLibreMap";
+import "./map.css";
 
 // ── design tokens ──────────────────────────────────────────────────────────
 const INK = "#0b1020";
@@ -174,7 +175,7 @@ export function MapView({
   const fmtDist = (d: number) => d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1)} km`;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", background: INK, color: "#fff", overflow: "hidden", fontFamily: "var(--font-sans, DM Sans, ui-sans-serif, system-ui, sans-serif)" }}>
+    <div className="sp-map" style={{ fontFamily: "var(--font-sans, DM Sans, ui-sans-serif, system-ui, sans-serif)" }}>
 
       {/* The console is a canvas UI with no visible headline, but the document
           still needs one for assistive tech and search. */}
@@ -195,7 +196,7 @@ export function MapView({
       </h1>
 
       {/* MAP + OVERLAYS */}
-        <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        <div className="sp-map-canvas">
           <MapCanvas
             dogs={dogs}
             onSelect={handleSelect}
@@ -207,29 +208,37 @@ export function MapView({
             showGaps={showGaps}
           />
 
+          {/* One compact control surface, rather than a dashboard laid over a
+              map. Filters are direct views of the loaded record, not saved
+              searches or another layer of navigation. */}
+          <section className="sp-map-toolbar" aria-label="Map controls">
+            <div className="sp-map-title"><span className="spa-mono">Live atlas</span><h2>Street animals, on the record.</h2></div>
+            <div className="sp-map-filters" role="group" aria-label="Filter animals">
+              {counts.map((k) => (
+                <button
+                  key={k.label}
+                  type="button"
+                  onClick={() => setOnly(k.key)}
+                  aria-pressed={only === k.key}
+                  className={only === k.key ? "is-active" : ""}
+                  style={{ "--sp-filter": k.color } as CSSProperties}
+                >
+                  <b>{k.value}</b><span>{k.key === null ? "All" : k.label.toLowerCase()}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
           {/* Map legend (bottom-left of map) */}
-          <div style={{
-            position: "absolute",
-            left: 12,
-            bottom: 180,
-            zIndex: 10,
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-            padding: "10px 12px",
-            background: "rgba(7,11,17,0.78)",
-            backdropFilter: "blur(8px)",
-            border: `1px solid ${BORDER}`,
-            borderRadius: 4,
-          }}>
+          <div className="sp-map-legend">
             {[
               { color: MINT, label: "LIVE SIGHTING", dot: true },
               { color: SAFFRON, label: "COMMUNITY ROUTE", dot: false, line: true },
             ].map((item) => (
-              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <div key={item.label} className="sp-map-legend-row">
                 {item.dot && <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.color, flexShrink: 0 }} />}
                 {item.line && <span style={{ width: 14, height: 1.5, background: item.color, flexShrink: 0 }} />}
-                <span style={{ fontSize: 10.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.8)" }}>{item.label}</span>
+                <span>{item.label}</span>
               </div>
             ))}
 
@@ -237,12 +246,7 @@ export function MapView({
               type="button"
               onClick={() => setShowGaps((v) => !v)}
               aria-pressed={showGaps}
-              style={{
-                display: "flex", alignItems: "center", gap: 7,
-                marginTop: 4, paddingTop: 8,
-                borderTop: `1px solid ${BORDER}`, borderLeft: 0, borderRight: 0, borderBottom: 0,
-                background: "transparent", cursor: "pointer", width: "100%", textAlign: "left",
-              }}
+              className={showGaps ? "sp-map-gap-toggle is-active" : "sp-map-gap-toggle"}
             >
               <span style={{
                 width: 10, height: 10, borderRadius: "50%",
@@ -252,7 +256,6 @@ export function MapView({
               }} />
               <span style={{
                 fontSize: 10.5, letterSpacing: "0.1em",
-                color: showGaps ? "#8fb7ff" : "rgba(255,255,255,0.8)",
               }}>
                 DATA GAPS BY STATE
               </span>
@@ -276,15 +279,7 @@ export function MapView({
           </div>
 
           {/* Map controls */}
-          <div style={{
-            position: "absolute",
-            left: 12,
-            top: 12,
-            zIndex: 10,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}>
+          <div className="sp-map-controls">
             {([
               { key: "fit", glyph: "\u229E", title: "Fit all of India", run: () => mapApi?.fitIndia() },
               { key: "3d", glyph: "3D", title: "Toggle 3D tilt", run: () => setTilted(Boolean(mapApi?.toggle3D())) },
@@ -301,20 +296,8 @@ export function MapView({
                   aria-label={b.title}
                   aria-pressed={b.key === "3d" ? tilted : undefined}
                   disabled={!mapApi}
-                  style={{
-                    width: 32, height: 32,
-                    background: on ? "rgba(143,183,255,0.9)" : "rgba(7,11,17,0.78)",
-                    border: `1px solid ${on ? "#8fb7ff" : BORDER}`,
-                    borderRadius: 3,
-                    color: on ? "#0b1020" : "rgba(255,255,255,0.85)",
-                    fontSize: b.key === "3d" ? 10 : 16,
-                    fontWeight: b.key === "3d" ? 700 : 400,
-                    cursor: mapApi ? "pointer" : "default",
-                    opacity: mapApi ? 1 : 0.5,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    letterSpacing: b.key === "3d" ? "0.08em" : 0,
-                    backdropFilter: "blur(8px)",
-                  }}
+                  data-control={b.key}
+                  className={on ? "is-active" : ""}
                 >
                   {b.glyph}
                 </button>
@@ -329,8 +312,7 @@ export function MapView({
             right: 0,
             height: "100%",
             width: 304,
-            background: "rgba(9,12,20,0.95)",
-            backdropFilter: "blur(12px)",
+            background: "#0b1020",
             borderLeft: `1px solid ${BORDER}`,
             transform: drawerOpen ? "translateX(0)" : "translateX(104%)",
             transition: "transform 0.28s cubic-bezier(0.22,1,0.36,1)",
@@ -357,8 +339,7 @@ export function MapView({
             left: 0,
             right: drawerOpen ? 304 : 0,
             height: 168,
-            background: "rgba(7,11,17,0.88)",
-            backdropFilter: "blur(12px)",
+            background: "#0b1020",
             borderTop: `1px solid ${BORDER}`,
             transition: "right 0.28s cubic-bezier(0.22,1,0.36,1)",
             zIndex: 20,
@@ -687,5 +668,3 @@ function DrawerSection({ label, children }: { label: string; children: React.Rea
     </div>
   );
 }
-
-

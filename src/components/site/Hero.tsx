@@ -1,20 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ORGS } from "@/lib/platform/orgs";
-import { STATES } from "@/lib/platform/geography";
-
-const ORG_COUNT = ORGS.length;
-const STATE_COUNT = STATES.length;
 import { useEffect } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
-/**
- * Cinematic hero. A real field photograph sits behind a parallax wash; a
- * three-plane "depth spine" on the right stands in for the evidence stack the
- * product builds. Both track scroll through the --sp-progress custom property,
- * so the whole scene moves as one system rather than as separate animations.
- */
+/** A documentary-first welcome: a real observation, then a clear next step. */
 export function Hero() {
   useEffect(() => {
     let raf = 0;
@@ -35,82 +25,50 @@ export function Hero() {
 
   return (
     <section className="sp-hero" id="top">
-      <div
-        className="sp-hero-canvas"
-        aria-label="A street-level observation moving through the StrayPaw evidence system"
-      >
-        {/* The largest paint on the site, so it is worth doing properly.
-            A phone was pulling the full 1920px JPEG (317 KiB) for a 390px
-            screen; the 640px AVIF is 16 KiB. fetchPriority and the absence of
-            lazy loading are what let the browser start it immediately, and
-            the intrinsic size stops it reserving the wrong box.
-
-            Kept as a plain <picture> rather than next/image: this fills its
-            container via CSS (inset, object-fit, a scroll-driven transform)
-            and the wrapper next/image adds fights all three. */}
-        <picture>
-          <source
-            type="image/avif"
-            sizes="100vw"
-            srcSet="/hero/skyline-dog-640.avif 640w, /hero/skyline-dog-1024.avif 1024w, /hero/skyline-dog-1440.avif 1440w, /hero/skyline-dog-1920.avif 1920w"
-          />
-          <source
-            type="image/webp"
-            sizes="100vw"
-            srcSet="/hero/skyline-dog-640.webp 640w, /hero/skyline-dog-1024.webp 1024w, /hero/skyline-dog-1440.webp 1440w, /hero/skyline-dog-1920.webp 1920w"
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="sp-hero-img"
-            src="/hero/skyline-dog-1440.jpg"
-            srcSet="/hero/skyline-dog-640.jpg 640w, /hero/skyline-dog-1024.jpg 1024w, /hero/skyline-dog-1440.jpg 1440w, /hero/skyline-dog-1920.jpg 1920w"
-            sizes="100vw"
-            width={1920}
-            height={1403}
-            fetchPriority="high"
-            decoding="async"
-            alt="A street dog on a rooftop overlooking an Indian city at golden hour"
-          />
-        </picture>
-        <div className="sp-hero-wash" />
-        <div className="sp-hero-grain" />
-
-        <div className="sp-spine" aria-hidden="true">
-          <span className="sp-spine-plane p1" />
-          <span className="sp-spine-plane p2" />
-          <span className="sp-spine-plane p3" />
-          <span className="sp-spine-core" />
-        </div>
-
-        {/* Pan-India figures, not one city's. Both are real counts from the
-            sourced datasets rather than a headline stat. */}
-        <div className="sp-hero-caption">
-          <span>
-            {STATE_COUNT} STATES / {ORG_COUNT} ORGANISATIONS MAPPED
-          </span>
-        </div>
-      </div>
-
       <div className="sp-hero-copy">
+        <div className="sp-eyebrow"><span className="sp-eyebrow-dot" /> A SHARED RECORD FOR STREET ANIMALS</div>
         <h1>
-          Every street dog,
+          Start with
           <br />
-          <em>on the record.</em>
+          <em>what you see.</em>
         </h1>
         <p className="sp-hero-lede">
-          A permanent identity and a shared record for India&rsquo;s street
-          animals.
+          A photo, a location and a few details can become a record that local
+          people and welfare teams can return to over time.
         </p>
         <div className="sp-hero-ctas">
-          <a href="#how" className="sp-btn sp-btn-primary">
-            See how it works <ArrowDownRight size={16} />
-          </a>
+          <Link href="/report" className="sp-btn sp-btn-primary">
+            Report a sighting <ArrowDownRight size={16} />
+          </Link>
           <Link href="/map" className="sp-hero-link">
-            Open the map <ArrowUpRight size={16} />
+            Explore the map <ArrowUpRight size={16} />
           </Link>
         </div>
+        <p className="sp-hero-note">Built for neighbours, feeders and field teams.</p>
       </div>
 
+      <div className="sp-hero-observation">
+        <div className="sp-hero-photo-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="sp-hero-photo"
+            src="/dogs/delhi/brown-on-ledge.jpg"
+            width={756}
+            height={1344}
+            fetchPriority="high"
+            alt="A street dog resting on a neighbourhood doorstep"
+          />
+          <div className="sp-hero-photo-caption">
+            <span>FIELD NOTE / 01</span>
+            <span>A photo. A place. A record.</span>
+          </div>
+        </div>
+        <div className="sp-hero-route" aria-hidden="true"><i /><i /><i /></div>
+        <div className="sp-hero-observation-copy">
+          <span>ONE CLEAR START</span>
+          <p>Observe carefully. Share only what helps someone respond well.</p>
+        </div>
+      </div>
     </section>
   );
 }

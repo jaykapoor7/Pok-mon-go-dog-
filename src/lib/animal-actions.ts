@@ -103,6 +103,16 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
 
 import type { MedicalEvent } from "./types";
 
+export interface PartnerMedicalEvent extends MedicalEvent {
+  animal: {
+    id: string;
+    name: string | null;
+    code: string | null;
+    zone: string | null;
+    cover_photo: string | null;
+  };
+}
+
 export async function getMedicalEvents(dogId: string): Promise<MedicalEvent[]> {
   const supa = getSupabase();
   if (!supa) return [];
@@ -111,6 +121,44 @@ export async function getMedicalEvents(dogId: string): Promise<MedicalEvent[]> {
     id: r.id, dog_id: r.dog_id ?? null, case_id: r.case_id ?? null, kind: r.kind,
     event_date: r.event_date, notes: r.notes ?? null, performed_by: r.performed_by ?? null, created_at: r.created_at,
   }));
+}
+
+/** A team-only care ledger, with each event kept beside its animal record. */
+export async function getPartnerMedicalEvents(): Promise<PartnerMedicalEvent[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data: ngoId, error: orgError } = await supa.rpc("my_ngo");
+  if (orgError || !ngoId) return [];
+
+  const { data, error } = await supa
+    .from("medical_events")
+    .select("id, dog_id, case_id, kind, event_date, notes, performed_by, created_at, dogs!inner(id, name, code, zone, cover_photo, ngo_id)")
+    .eq("dogs.ngo_id", ngoId)
+    .order("event_date", { ascending: false })
+    .limit(1000);
+  if (error) return [];
+
+  return (data ?? []).flatMap((r: any) => {
+    const animal = Array.isArray(r.dogs) ? r.dogs[0] : r.dogs;
+    if (!animal) return [];
+    return [{
+      id: r.id,
+      dog_id: r.dog_id ?? null,
+      case_id: r.case_id ?? null,
+      kind: r.kind,
+      event_date: r.event_date,
+      notes: r.notes ?? null,
+      performed_by: r.performed_by ?? null,
+      created_at: r.created_at,
+      animal: {
+        id: animal.id,
+        name: animal.name ?? null,
+        code: animal.code ?? null,
+        zone: animal.zone ?? null,
+        cover_photo: animal.cover_photo ?? null,
+      },
+    }];
+  });
 }
 
 export async function addMedicalEvent(input: {

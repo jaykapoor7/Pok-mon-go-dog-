@@ -267,170 +267,153 @@
 
 .sp-hero {
   position: relative;
-  min-height: 100svh;
-  background: var(--ink);
-  color: var(--paper);
-  overflow: hidden;
+  min-height: min(860px, 100svh);
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  align-items: end;
+  gap: clamp(36px, 7vw, 130px);
+  padding: 142px 8vw 72px;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: clip;
 }
-.sp-hero-canvas { position: absolute; inset: 0; overflow: hidden; perspective: 1400px; }
-/* <picture> is an inline wrapper around the image; without this it becomes a
-   zero-height box in the flow while the image positions off it. */
-.sp-hero-canvas picture { display: contents; }
-.sp-hero-img {
-  position: absolute;
-  inset: -4%;
-  width: 108%;
-  height: 108%;
-  /* Tailwind's preflight caps every img at max-width:100%, which quietly
-     clipped this one back to the hero's own width while `inset: -4%` still
-     shifted it left — leaving a bare 16px strip of background down the
-     right-hand edge of the hero on a phone. The overscan is deliberate:
-     the image is parallaxed, and it needs room to move behind the frame. */
-  max-width: none;
-  object-fit: cover;
-  object-position: 58% 44%;
-  /* Keep the golden hour, the warmth is the photograph. Desaturate only
-     enough that the cool UI accents read as deliberate against it. */
-  filter: grayscale(0.12) contrast(1.06) brightness(0.94) saturate(1.08);
-  transform: scale(calc(1 + var(--sp-progress, 0) * 0.06))
-    translate3d(calc(var(--sp-progress, 0) * -18px), calc(var(--sp-progress, 0) * 14px), 0);
-  transition: transform 0.18s linear;
-}
-.sp-hero-wash {
-  position: absolute;
-  inset: 0;
-  /* Left column carries the copy, so it goes deep; the right stays open so
-     the dog and the skyline keep their light. */
-  background: linear-gradient(
-      90deg,
-      rgba(11, 16, 32, 0.93) 0%,
-      rgba(11, 16, 32, 0.74) 30%,
-      rgba(11, 16, 32, 0.2) 58%,
-      rgba(11, 16, 32, 0) 80%
-    ),
-    linear-gradient(0deg, rgba(11, 16, 32, 0.55), transparent 40%, rgba(11, 16, 32, 0.3));
-}
-.sp-hero-grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.07;
-  mix-blend-mode: screen;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
-}
-
-/* depth spine, the 3D evidence stack */
-.sp-spine {
-  position: absolute;
-  right: 3%;
-  top: 15%;
-  width: 168px;
-  height: 68%;
-  opacity: 0.5;
-  transform-style: preserve-3d;
-  transform: rotateY(-23deg) rotateX(8deg)
-    translate3d(calc(var(--sp-progress, 0) * 60px), calc(var(--sp-progress, 0) * -20px), 0);
-  transition: transform 0.18s linear;
-  pointer-events: none;
-}
-.sp-spine-plane {
+.sp-hero::before {
+  content: "";
   position: absolute;
   left: 0;
-  width: 100%;
-  height: 100%;
-  border-left: 1px solid rgba(143, 183, 255, 0.7);
-  border-right: 1px solid rgba(143, 183, 255, 0.22);
-  background: linear-gradient(90deg, rgba(143, 183, 255, 0.12), transparent);
-}
-.sp-spine-plane.p1 { transform: translateZ(48px) skewY(-15deg); border-color: var(--electric); }
-.sp-spine-plane.p2 { transform: translateZ(22px) skewY(-15deg); border-color: var(--vermilion); }
-.sp-spine-plane.p3 { transform: translateZ(0) skewY(-15deg); border-color: var(--cyan); }
-.sp-spine-core {
-  position: absolute;
-  left: 50%;
-  top: 17%;
-  width: 2px;
-  height: 66%;
-  background: linear-gradient(transparent, var(--electric), transparent);
-  box-shadow: 0 0 24px var(--electric);
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
 }
 
 .sp-hero-copy {
   position: relative;
-  z-index: 3;
-  min-height: 100svh;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: flex-start;
-  padding: 9vw 8vw 110px;
-  max-width: 780px;
+  max-width: 680px;
+  padding-bottom: 18px;
 }
-.sp-hero-copy .sp-eyebrow { color: #c2cada; margin-bottom: 26px; }
+.sp-hero-copy .sp-eyebrow { margin-bottom: 28px; }
 .sp-hero h1 {
   font-family: var(--font-display), "Instrument Serif", ui-serif, Georgia, serif;
   font-weight: 400;
-  font-size: clamp(70px, 11.5vw, 165px);
-  line-height: 0.78;
+  font-size: clamp(64px, 8.8vw, 138px);
+  line-height: 0.82;
   letter-spacing: -0.08em;
-  margin: 0 0 32px;
-  color: #fff;
+  margin: 0 0 28px;
+  color: var(--ink);
 }
-.sp-hero h1 em { color: var(--electric); font-style: italic; }
+.sp-hero h1 em { color: var(--vermilion); font-style: italic; }
 .sp-hero-lede {
-  font-size: 18px;
-  line-height: 1.5;
-  color: #d0d6df;
-  max-width: 430px;
-  margin: 0 0 32px;
+  font-size: 17px;
+  line-height: 1.58;
+  color: #555a60;
+  max-width: 455px;
+  margin: 0 0 28px;
 }
 .sp-hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .sp-hero-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #e7ebf0;
+  color: var(--ink);
   padding: 14px 0;
-  border-bottom: 1px solid rgba(244, 245, 247, 0.45);
+  border-bottom: 1px solid var(--ink);
   font-size: 13px;
   text-decoration: none;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
-.sp-hero-link:hover { color: var(--electric); border-color: var(--electric); }
-
-.sp-hero-caption,
-.sp-hero-signal {
-  position: absolute;
-  z-index: 4;
+.sp-hero-link:hover { color: var(--vermilion-ink); border-color: var(--vermilion-ink); }
+.sp-hero-note {
+  margin: 25px 0 0;
   font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
-  font-size: 11.5px;
+  font-size: 10.5px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: #d4dcec;
+  color: #686d72;
 }
-.sp-hero-caption {
-  left: 8vw;
-  right: 8vw;
-  top: 98px;
-  display: flex;
-  justify-content: space-between;
+.sp-hero-observation {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 520px);
+  z-index: 1;
 }
-.sp-hero-signal { writing-mode: vertical-rl; display: flex; align-items: center; gap: 10px; }
-.sp-hero-signal i { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--electric); }
-.sp-hero-signal.left { left: 30px; top: 34%; }
-.sp-hero-signal.right { right: 30px; bottom: 24%; }
-.sp-hero-foot {
+.sp-hero-photo-wrap {
+  position: relative;
+  width: min(82%, 424px);
+  margin-left: auto;
+  overflow: hidden;
+  background: #d8d9d5;
+  transform: translateY(calc(var(--sp-progress, 0) * -18px));
+  transition: transform 0.18s linear;
+}
+.sp-hero-photo {
+  display: block;
+  width: 100%;
+  height: min(68vh, 630px);
+  object-fit: cover;
+  object-position: 52% 36%;
+  filter: saturate(0.78) contrast(1.03);
+}
+.sp-hero-photo-caption {
   position: absolute;
-  bottom: 26px;
-  left: 8vw;
-  right: 8vw;
-  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   justify-content: space-between;
-  border-top: 1px solid rgba(244, 245, 247, 0.22);
-  padding-top: 14px;
-  color: #a7b2c2;
+  gap: 18px;
+  padding: 15px 17px;
+  color: #f5f5f2;
+  background: linear-gradient(transparent, rgba(11, 16, 32, 0.84));
+  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
+.sp-hero-photo-caption span:last-child { text-align: right; }
+.sp-hero-route {
+  position: absolute;
+  width: 47%;
+  height: 130px;
+  left: -2%;
+  bottom: 16%;
+  border-top: 1px solid var(--vermilion);
+  border-left: 1px solid var(--vermilion);
+  transform: translate3d(calc(var(--sp-progress, 0) * -16px), calc(var(--sp-progress, 0) * -10px), 0);
+  transition: transform 0.18s linear;
+}
+.sp-hero-route::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  width: 7px;
+  height: 7px;
+  background: var(--vermilion);
+  border-radius: 50%;
+}
+.sp-hero-route i { position: absolute; width: 5px; height: 5px; background: var(--paper); border: 1px solid var(--vermilion); border-radius: 50%; }
+.sp-hero-route i:nth-child(1) { left: 18%; top: -3px; }
+.sp-hero-route i:nth-child(2) { left: 48%; top: -3px; }
+.sp-hero-route i:nth-child(3) { left: 75%; top: -3px; }
+.sp-hero-observation-copy {
+  width: min(68%, 290px);
+  padding: 18px 0 0;
+  margin-left: 2%;
+  border-top: 1px solid var(--line);
+}
+.sp-hero-observation-copy span {
+  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: var(--vermilion-ink);
+}
+.sp-hero-observation-copy p { margin: 9px 0 0; color: #555a60; line-height: 1.45; font-size: 13px; }
 
 /* ── thesis ─────────────────────────────────────────────────────── */
 
@@ -1898,7 +1881,6 @@
   .sp-company-lead p { font-size: 26px; }
   .sp-record { padding-top: 100px; }
   .sp-footer-actions { max-width: none; }
-  .sp-spine { left: 70%; opacity: 0.65; }
   /* new sections */
   .sp-loop-grid { grid-template-columns: 1fr; gap: 28px; }
   .sp-loop-stages { grid-template-columns: repeat(3, 1fr); }
@@ -1907,7 +1889,7 @@
   .sp-for-grid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 800px) {
   .sp-header { height: 64px; padding: 0 5vw; }
   .sp-nav {
     display: none;
@@ -1931,23 +1913,23 @@
   .sp-nav a:last-child { border-bottom: 0; }
   .sp-menu-btn { display: flex; }
   .sp-header-cta { min-height: 42px; }
-  .sp-hero-copy { padding: 132px 7vw 120px; justify-content: flex-start; }
-  .sp-hero h1 { font-size: 62px; line-height: 0.84; margin-bottom: 26px; }
-  .sp-hero-img { object-position: 56% 46%; }
-  /* Portrait puts the copy over the frame's centre, so the wash is vertical
-     here rather than a left column, kept light enough to hold the skyline. */
-  .sp-hero-wash {
-    background: linear-gradient(0deg, rgba(11, 16, 32, 0.72) 12%, rgba(11, 16, 32, 0.34) 52%, rgba(11, 16, 32, 0.62)),
-      linear-gradient(90deg, rgba(11, 16, 32, 0.5), rgba(11, 16, 32, 0.14));
+  .sp-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    gap: 46px;
+    padding: 112px 6vw 56px;
   }
-  /* The spine collides with the CTAs at this width and the photo already
-     carries its own network lines, drop it. */
-  .sp-spine { display: none; }
-  .sp-hero-caption { left: 7vw; right: 7vw; top: 80px; font-size: 11.5px; }
+  .sp-hero-copy { padding: 0; }
+  .sp-hero h1 { font-size: clamp(58px, 18vw, 82px); line-height: .84; margin-bottom: 24px; }
+  .sp-hero-lede { font-size: 16px; }
   .sp-hero-ctas { gap: 4px 12px; }
-  .sp-hero-signal { display: none; }
-  .sp-hero-foot { left: 7vw; right: 7vw; bottom: 18px; }
-  .sp-hero-foot span:last-child { display: none; }
+  .sp-hero-observation { width: 100%; }
+  .sp-hero-photo-wrap { width: 82%; margin-left: auto; }
+  .sp-hero-photo { height: min(118vw, 540px); }
+  .sp-hero-route { left: 0; bottom: 15%; width: 40%; height: 96px; }
+  .sp-hero-observation-copy { width: 56%; margin-left: 0; }
   .sp-thesis, .sp-network, .sp-mapsec, .sp-companies, .sp-record, .sp-partners,
   .sp-footer, .sp-gaps, .sp-loop, .sp-for {
     padding-left: 6vw;
