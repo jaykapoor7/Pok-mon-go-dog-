@@ -94,6 +94,24 @@ export interface OrgFeedingZone {
   last_fed_at: string | null; created_at: string; volunteer_count: number;
 }
 
+export interface MyFeedingZone extends FeedingZone {
+  relationship: "owner" | "volunteer";
+}
+
+/** Zones a signed-in feeder created or has committed to cover. The RPC keeps
+ * the underlying volunteer roster private while returning only their own
+ * relationship to each zone. */
+export async function getMyFeedingZones(): Promise<MyFeedingZone[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.rpc("my_feeding_zones");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: any) => ({
+    ...mapZone(r),
+    relationship: r.relationship === "owner" ? "owner" : "volunteer",
+  }));
+}
+
 export async function createOrgFeedingZone(input: {
   name: string; description?: string; zone?: string; lat: number; lng: number; photoUrl?: string | null;
 }): Promise<string | null> {

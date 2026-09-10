@@ -14,10 +14,8 @@ type NavItem = {
 
 const LINKS: NavItem[] = [
   { label: "Mission", href: "/mission" },
-  { label: "Why StrayPaw", href: "/why-straypaw" },
-  { label: "The network", href: "/the-network" },
   {
-    label: "How you can help",
+    label: "Get involved",
     href: "/how-to-help",
     children: [
       { label: "Report an animal", href: "/report", note: "A photo and a place is enough" },
@@ -27,23 +25,8 @@ const LINKS: NavItem[] = [
       { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
     ],
   },
-  {
-    label: "The data",
-    href: "/the-data",
-    children: [
-      { label: "Published data", href: "/data", note: "Counts by area, with the method and who collected it" },
-      { label: "The evidence", href: "/evidence", note: "What is known, what is missing, what it would cost" },
-      { label: "Sources", href: "/sources", note: "Every figure on this site, and where it came from" },
-    ],
-  },
-  {
-    label: "Help",
-    href: "/faq",
-    children: [
-      { label: "Questions", href: "/faq", note: "How reporting, codes and dashboards work" },
-      { label: "Contact us", href: "/contact", note: "Anything the questions do not cover" },
-    ],
-  },
+  { label: "For NGOs", href: "/for-ngos" },
+  { label: "Evidence", href: "/evidence" },
 ];
 
 export function SiteHeader() {

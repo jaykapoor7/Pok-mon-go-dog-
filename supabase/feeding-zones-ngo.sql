@@ -52,3 +52,23 @@ $$;
 
 grant execute on function create_org_feeding_zone(text,text,text,double precision,double precision,text) to authenticated;
 grant execute on function my_org_feeding_zones() to authenticated;
+
+-- A feeder sees only the zones they created or committed to cover. This keeps
+-- the rest of the volunteer rota private while making the feeder workspace a
+-- reliable personal field record.
+create or replace function my_feeding_zones()
+returns table(id uuid, name text, description text, zone text, lat double precision, lng double precision,
+              photo_url text, created_by_id uuid, created_by_name text, created_at timestamptz,
+              last_fed_at timestamptz, volunteer_count bigint, relationship text)
+language sql security definer set search_path = public stable as $$
+  select fz.id, fz.name, fz.description, fz.zone, fz.lat, fz.lng, fz.photo_url,
+         fz.created_by_id, fz.created_by_name, fz.created_at, fz.last_fed_at,
+         (select count(*) from feeding_zone_volunteers v where v.feeding_zone_id = fz.id),
+         case when fz.created_by_id = auth.uid() then 'owner' else 'volunteer' end
+  from feeding_zones fz
+  where fz.created_by_id = auth.uid()
+     or exists (select 1 from feeding_zone_volunteers v where v.feeding_zone_id = fz.id and v.user_id = auth.uid())
+  order by fz.created_at desc;
+$$;
+
+grant execute on function my_feeding_zones() to authenticated;

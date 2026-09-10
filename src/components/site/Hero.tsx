@@ -1,26 +1,39 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Camera, Check, MapPin } from "lucide-react";
+import { MapCanvas } from "@/components/map/MapCanvas";
+import type { Dog } from "@/lib/types";
 
-export function Hero() {
+/** The product is the hero. A real map and real records make the promise
+ * legible before anyone needs to read a feature list. */
+export function Hero({ dogs }: { dogs: Dog[] }) {
+  const first = dogs.find((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng));
   return (
-    <section className="record-hero" aria-labelledby="hero-title">
-      <div className="record-hero-image"><Image src="/straypaw-night-street.png" alt="An Indian indie dog walking through a neighbourhood street at blue hour" fill priority sizes="100vw" /></div>
-      <div className="record-hero-shade" aria-hidden="true" />
-      <div className="record-hero-copy">
-        <p className="field-eyebrow">One ordinary evening. One shared neighbourhood.</p>
-        <h1 id="hero-title"><span>They live</span><span>here, <em>too.</em></span></h1>
-        <p>When someone notices, the city can remember. StrayPaw turns a moment on the street into a place people can return to.</p>
-        <div className="record-hero-actions"><Link href="/map" className="field-button">Explore the map <ArrowUpRight size={20}/></Link><Link href="/report" className="field-text-link">Report a sighting <ArrowUpRight size={17}/></Link></div>
+    <section className="product-hero" aria-labelledby="hero-title">
+      <div className="product-hero-copy">
+        <p className="field-eyebrow">A shared record for India&apos;s street animals</p>
+        <h1 id="hero-title">One sighting can<br />change what happens <em>next.</em></h1>
+        <p>StrayPaw turns a photo and a place into a record that neighbours, feeders, and animal-welfare teams can return to.</p>
+        <div className="product-hero-actions">
+          <Link href="/report" className="field-button">Report a sighting <ArrowUpRight size={19} /></Link>
+          <Link href="/map" className="field-text-link">Explore the live map <ArrowUpRight size={17} /></Link>
+        </div>
+        <p className="product-hero-note">No account needed to report. A shared history begins with what you saw.</p>
       </div>
-      <div className="record-hero-progress" aria-hidden="true"><span>01</span><i /><span>03</span></div>
-      <aside className="record-hero-card" aria-label="An example of how a StrayPaw record begins">
-        <div className="record-card-kicker"><span>FIELD RECORD</span><span>STARTING NOW</span></div>
-        <h2>A moment worth keeping.</h2>
-        <dl><div><dt>What happened</dt><dd>Someone was noticed</dd></div><div><dt>What comes next</dt><dd>Photo · place · follow-up</dd></div></dl>
-        <p>Scroll to see how a memory becomes useful.</p>
-      </aside>
-      <a href="#record-sequence" className="record-hero-scroll"><ArrowDown size={17}/><span>Follow the record</span></a>
+
+      <div className="hero-product" aria-label="A StrayPaw report placed on the live map">
+        <div className="hero-product-top"><span>LIVE MAP</span><span>India</span></div>
+        <div className="hero-live-map">
+          <MapCanvas dogs={dogs} center={first ? { lat: first.lat, lng: first.lng } : { lat: 28.6139, lng: 77.209 }} />
+        </div>
+        <div className="hero-location"><MapPin size={15} /><span>{first?.zone || "Your neighbourhood"}</span><i>Pin placed</i></div>
+        <div className="hero-report-card">
+          <Image src="/straypaw-night-street.png" alt="A dog photographed for a StrayPaw sighting" width={72} height={72} priority />
+          <div className="hero-report-copy"><span>NEW SIGHTING</span><b>Photo, place, what you know</b><small>Saved to the shared map</small></div>
+          <Check size={18} className="hero-report-check" />
+        </div>
+        <div className="hero-capture"><Camera size={15} /> Report from the street</div>
+      </div>
     </section>
   );
 }

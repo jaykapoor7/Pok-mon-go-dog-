@@ -15,6 +15,7 @@ import {
   Radio,
   ScanSearch,
   ShieldCheck,
+  Utensils,
   Users,
 } from "lucide-react";
 import { ROLE_META, readStoredRole, storeRole, type Role } from "@/lib/roles";
@@ -48,10 +49,11 @@ export function openTour() {
 
 const ROLE_ICON: Record<Role, typeof Users> = {
   individual: Users,
+  feeder: Utensils,
   ngo: Building2,
   funder: Coins,
 };
-const ENTRY_ROLES: Role[] = ["individual", "ngo"];
+const ENTRY_ROLES: Role[] = ["individual", "feeder", "ngo"];
 
 /* What comes after the role question depends on the answer.
 
@@ -82,6 +84,23 @@ const TOURS: Record<Role, Card[]> = {
       Icon: Bookmark,
       title: "An account only buys you one thing",
       body: "Following. Make one and the dogs you report stay on your Following page, so you find out what happened to them. Everything else on StrayPaw works signed out.",
+    },
+  ],
+  feeder: [
+    {
+      Icon: Utensils,
+      title: "Your feeding route can have a shared record",
+      body: "Sign in to keep the zones you cover, regular days, and check-ins available from any phone. No organisation membership is required.",
+    },
+    {
+      Icon: MapPin,
+      title: "Put your patch on the map",
+      body: "Add the places you already feed, or join an existing rotation. A zone gives other feeders and nearby organisations a dependable place to begin.",
+    },
+    {
+      Icon: Bookmark,
+      title: "Give the dogs you know a history",
+      body: "Report a sighting when you recognise a dog. Note an ear notch, collar, or known care status, then save the record so the next visit starts with context.",
     },
   ],
   ngo: [
@@ -266,6 +285,8 @@ export function Welcome() {
                   >
                     {role === "ngo"
                       ? "Enter my code"
+                      : role === "feeder"
+                        ? "Open my patch"
                       : role === "funder"
                         ? "See what it would take"
                         : "Open the map"}{" "}

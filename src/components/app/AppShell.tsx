@@ -24,6 +24,7 @@ import {
   Repeat2,
   ScanSearch,
   Search,
+  Utensils,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
@@ -48,6 +49,14 @@ const NGO_NAV = [
   { href: "/report", label: "Report", Icon: Radio },
   { href: "/partner/animals", label: "Records", Icon: Database },
   { href: "/partner/field", label: "Field work", Icon: CalendarRange },
+];
+
+const FEEDER_NAV = [
+  { href: "/feeder", label: "My patch", Icon: Utensils },
+  { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/report", label: "Report", Icon: Radio },
+  { href: "/following", label: "Saved dogs", Icon: Bookmark },
+  { href: "/evidence", label: "Evidence", Icon: ScanSearch },
 ];
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
    a hand-maintained route list, while several pages also mount one directly;
@@ -135,9 +144,12 @@ export function AppShell({
   }, [pathname]);
 
   const isNgo = role === "ngo" || pathname.startsWith("/partner");
-  const primaryNav = isNgo ? NGO_NAV : COMMUNITY_NAV;
+  const isFeeder = role === "feeder" || pathname.startsWith("/feeder");
+  const primaryNav = isNgo ? NGO_NAV : isFeeder ? FEEDER_NAV : COMMUNITY_NAV;
   const mobileNav = isNgo
     ? primaryNav.filter(({ label }) => ["Dashboard", "Map", "Records", "Field work"].includes(label))
+    : isFeeder
+      ? primaryNav.filter(({ label }) => ["My patch", "Map", "Saved dogs", "Evidence"].includes(label))
     : primaryNav.filter(({ label }) => ["Home", "Map", "Saved animals", "Evidence"].includes(label));
   const isActive = (href: string) => {
     if (href === "/partner/animals") return pathname.startsWith("/partner/animals") || pathname.startsWith("/partner/cases") || pathname.startsWith("/partner/medical");
@@ -217,7 +229,7 @@ export function AppShell({
 
       <div className="spa-body">
         <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
-          <p className="spa-nav-context">{isNgo ? "NGO operations" : "Community"}</p>
+          <p className="spa-nav-context">{isNgo ? "NGO operations" : isFeeder ? "Feeder workspace" : "Community"}</p>
           <div className="spa-primary-nav">
             {primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={`${isActive(href) ? "active " : ""}${label === "Report" ? "spa-report-shortcut" : ""}`}><Icon size={17}/>{label}</Link>)}
           </div>

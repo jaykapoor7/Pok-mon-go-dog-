@@ -7,9 +7,9 @@
    only ever gates *writing*: every read surface stays open.
    ════════════════════════════════════════════════════════════════════ */
 
-export type Role = "individual" | "ngo" | "funder";
+export type Role = "individual" | "feeder" | "ngo" | "funder";
 
-export const ROLES: Role[] = ["individual", "ngo", "funder"];
+export const ROLES: Role[] = ["individual", "feeder", "ngo", "funder"];
 
 export const ROLE_META: Record<
   Role,
@@ -35,6 +35,16 @@ export const ROLE_META: Record<
       "You see street animals where you live and want to report one, follow what happens to it, or help out.",
     home: "/map",
     priority: ["/map", "/report", "/following", "/get-involved"],
+    apply: null,
+    applyLabel: null,
+  },
+  feeder: {
+    label: "I care for dogs in my area",
+    short: "Feeder",
+    blurb:
+      "You know a group of street dogs well and want their feeding zone, sightings, and care status to stay together.",
+    home: "/feeder",
+    priority: ["/feeder", "/map", "/report", "/following"],
     apply: null,
     applyLabel: null,
   },
