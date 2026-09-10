@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // This checkout lives beneath a shared Codex workspace that also has a
+  // lockfile. Explicitly anchoring file tracing here prevents Next from
+  // treating the parent workspace as the application root during builds.
+  outputFileTracingRoot: new URL(".", import.meta.url).pathname,
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

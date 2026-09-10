@@ -170,6 +170,9 @@ html .spa.spa.spa-reporting .report-form .report-upload{min-height:170px}
 html .spa.spa .spa-nav-context{margin:0 0 10px;padding:0 10px;color:#6b7d94;font:600 11px var(--font-mono),monospace;letter-spacing:.1em;text-transform:uppercase}
 html .spa.spa .spa-primary-nav{display:grid;gap:3px}
 html .spa.spa .spa-primary-nav a{padding:11px 12px;min-height:46px}
+html .spa.spa .spa-reference-nav{display:grid;gap:3px;margin-top:23px;padding-top:17px;border-top:1px solid var(--sp-line)}
+html .spa.spa .spa-reference-nav p{margin:0 0 4px;padding:0 10px;color:#6b7d94;font:600 10px var(--font-mono),monospace;letter-spacing:.1em;text-transform:uppercase}
+html .spa.spa .spa-reference-nav a{padding:9px 12px;min-height:39px;font-size:13px}
 html .spa.spa .spa-more{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:42px;margin-top:18px;padding:10px 12px;border:1px solid var(--sp-line);border-radius:7px;background:transparent;color:var(--sp-muted);font:600 13px var(--font-sans),sans-serif;cursor:pointer}
 html .spa.spa .spa-more:hover{border-color:#a7bee7;background:#f4f7fb;color:var(--sp-blue)}
 html .spa.spa .spa-global-report{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:10px 14px;border-radius:6px;background:var(--sp-blue);color:#fff;font-size:13px;font-weight:600;text-decoration:none;transition:background .18s ease,transform .18s ease}
@@ -211,7 +214,7 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
 @media(max-width:900px){
  html .spa.spa .spa-global-report{display:none}
  html .spa.spa .spa-switch{font-size:0;min-width:40px;justify-content:center;padding:8px}.spa-switch svg{width:18px;height:18px}
- html .spa.spa .spa-side>.spa-nav-context,html .spa.spa .spa-side>.spa-primary-nav,html .spa.spa .spa-side>.spa-side-foot{display:none}
+ html .spa.spa .spa-side>.spa-nav-context,html .spa.spa .spa-side>.spa-primary-nav,html .spa.spa .spa-side>.spa-reference-nav,html .spa.spa .spa-side>.spa-side-foot{display:none}
  html .spa.spa .spa-phone-links{grid-template-columns:repeat(4,minmax(0,1fr));flex:4}
  html .spa.spa .spa-mobile-report{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;color:#fff;background:var(--sp-blue);text-decoration:none;font-size:10px;font-weight:600}
  html .spa.spa .spa-mobile-report svg{margin-top:-2px}

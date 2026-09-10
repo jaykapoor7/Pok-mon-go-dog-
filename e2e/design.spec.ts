@@ -2,22 +2,20 @@ import { test, expect } from "@playwright/test";
 
 test("landing story keeps the map and reporting within reach", async ({ page }) => {
   await page.goto("/");
-  const hero = page.locator(".record-hero");
-  await expect(hero.getByRole("heading", { level: 1 })).toHaveText("They livehere, too.");
-  await expect(hero.getByRole("link", { name: "Explore the map" })).toHaveAttribute("href", "/map");
+  const hero = page.locator(".product-hero");
+  await expect(hero.getByRole("heading", { level: 1 })).toHaveText(/One sighting can/);
+  await expect(hero.getByRole("link", { name: "Explore the live map" })).toHaveAttribute("href", "/map");
   await expect(hero.getByRole("link", { name: "Report a sighting" })).toHaveAttribute("href", "/report");
-  await expect(page.locator(".chs")).toHaveCount(0);
-  await expect(page.locator('img[src*="brown-on-ledge"]')).toHaveCount(0);
-  await expect(page.locator(".field-eyebrow i")).toHaveCount(0);
-  await expect(page.locator(".neighbour-model canvas")).toHaveCount(0);
+  await expect(hero.locator(".hero-live-map")).toBeVisible();
+  await expect(page.locator(".product-story")).toBeVisible();
 });
 
 test("reduced motion keeps the landing readable without animated reveals", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".record-hero h1")).toBeVisible();
+  await expect(page.locator(".product-hero h1")).toBeVisible();
   await expect(page.locator(".field-site")).not.toHaveAttribute("data-motion", "on");
-  await expect(page.locator(".neighbour-story")).toHaveCount(0);
+  await expect(page.locator(".product-story")).toBeVisible();
 });
 
 test("open app asks which workspace a person needs", async ({ page }) => {
@@ -35,6 +33,17 @@ test("the entry choice opens the right product surface", async ({ page }) => {
   await expect(page).toHaveURL(/\/partner$/);
   await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Following" })).toHaveCount(0);
+});
+
+test("community choice stays account-free", async ({ page }) => {
+  await page.goto("/app?choose=1");
+  await page.getByRole("button", { name: /I want to report an animal/i }).click();
+  await expect(page.getByRole("heading", { name: /Reporting takes a photo and a spot on the map/i })).toBeVisible();
+  await expect(page.getByText(/you@email\.com/i)).toHaveCount(0);
+  await page.getByRole("button", { name: /next/i }).click();
+  await page.getByRole("button", { name: /next/i }).click();
+  await page.getByRole("button", { name: /open the map/i }).click();
+  await expect(page).toHaveURL(/\/map$/);
 });
 
 test("public map filters and list remain operable without records", async ({ page }) => {

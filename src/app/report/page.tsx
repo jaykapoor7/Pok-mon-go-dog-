@@ -291,7 +291,7 @@ export default function ReportPage() {
                     const active = moods.includes(m);
                     return (
                       <button key={m} onClick={() => toggleMood(m)} className={cn("chip border transition-all", active ? "border-paw-300 bg-paw-500 text-white" : "border-bark-200 bg-white text-bark-600 hover:border-paw-300 dark:bg-bark-900")}>
-                        <span aria-hidden>{MOOD_META[m].emoji}</span> {MOOD_META[m].label}
+                        <Tag className="h-3.5 w-3.5" aria-hidden /> {MOOD_META[m].label}
                       </button>
                     );
                   })}

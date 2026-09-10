@@ -38,6 +38,12 @@ const COMMUNITY_NAV = [
   { href: "/map", label: "Map", Icon: MapPin },
   { href: "/report", label: "Report", Icon: Radio },
   { href: "/following", label: "Saved animals", Icon: Bookmark },
+];
+
+/* These are useful reference spaces, but they are not the four things a
+   neighbour opens StrayPaw to do. Keeping them visibly grouped preserves
+   access on desktop without presenting a flat, seven-item product menu. */
+const COMMUNITY_REFERENCE_NAV = [
   { href: "/feed", label: "Recent activity", Icon: Radio },
   { href: "/orgs", label: "Organisations", Icon: Heart },
   { href: "/evidence", label: "Evidence", Icon: ScanSearch },
@@ -147,6 +153,7 @@ export function AppShell({
   const isFeeder = role === "feeder" || pathname.startsWith("/feeder");
   const isReporting = pathname.startsWith("/report");
   const primaryNav = isNgo ? NGO_NAV : isFeeder ? FEEDER_NAV : COMMUNITY_NAV;
+  const referenceNav = !isNgo && !isFeeder ? COMMUNITY_REFERENCE_NAV : [];
   const mobileNav = isNgo
     ? primaryNav.filter(({ label }) => ["Dashboard", "Map", "Records", "Field work"].includes(label))
     : isFeeder
@@ -234,6 +241,12 @@ export function AppShell({
           <div className="spa-primary-nav">
             {primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={`${isActive(href) ? "active " : ""}${label === "Report" ? "spa-report-shortcut" : ""}`}><Icon size={17}/>{label}</Link>)}
           </div>
+          {referenceNav.length > 0 && (
+            <div className="spa-reference-nav" aria-label="Community reference spaces">
+              <p>Explore</p>
+              {referenceNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={16}/>{label}</Link>)}
+            </div>
+          )}
 
           <div className="spa-phone-links">
             {mobileNav.map(({href,label,Icon}) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
