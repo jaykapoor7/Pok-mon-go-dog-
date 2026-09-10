@@ -5,6 +5,7 @@ import {
   FileText,
   ScanSearch,
   ShieldCheck,
+  MapPinned,
   Wrench,
 } from "lucide-react";
 
@@ -31,6 +32,13 @@ const PAGES = [
     title: "Coverage and gaps",
     q: "What is known, and what still needs to be counted?",
     body: "District coverage, unanswered questions and the places where a programme needs better field evidence before it can be planned responsibly.",
+  },
+  {
+    href: "/needs",
+    Icon: MapPinned,
+    title: "Local needs",
+    q: "Where should field work go next?",
+    body: "A practical view of reported needs by area, ready to take into a route plan, partner conversation or programme brief.",
   },
   {
     href: "/what-would-it-take",

@@ -26,7 +26,8 @@ test("phone navigation keeps search and account access available", async ({ page
   await expect(page.getByRole("combobox", {name:"Search the network"})).toBeVisible();
   await page.getByRole("button", {name:"Open more tools", exact:true}).click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("dialog").getByRole("link", {name:"Team workspace", exact:true})).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("Field operations", { exact:true })).toBeVisible();
+  await expect(page.getByRole("dialog").getByRole("link", {name:"Incoming", exact:true})).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
@@ -34,6 +35,7 @@ test("phone navigation keeps search and account access available", async ({ page
 test("public map filters and list remain operable without records", async ({ page }) => {
   await page.goto("/map");
   const filter = page.getByRole("button", { name: /need help/i });
+  await expect(filter).toBeVisible();
   await filter.click();
   await expect(filter).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("No animal records match this filter.")).toBeVisible();

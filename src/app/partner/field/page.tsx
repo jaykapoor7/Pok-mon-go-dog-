@@ -5,6 +5,7 @@ import { isOverdue, speciesLabel, type Case } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
+import { FieldTabs } from "@/components/partner/FieldTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Field Work, StrayPaw Partner" };
@@ -47,6 +48,8 @@ export default async function PartnerFieldPage() {
         <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Field Work</h1>
         <p className="mt-0.5 text-[13px] text-bark-500">Who is doing what, where, and what remains unfinished.</p>
       </header>
+
+      <FieldTabs />
 
       <div className="space-y-8">
         <TasksSection />

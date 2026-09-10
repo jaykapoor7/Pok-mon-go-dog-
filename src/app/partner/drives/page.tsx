@@ -1,4 +1,5 @@
 import { DrivesClient } from "@/components/partner/DrivesClient";
+import { FieldTabs } from "@/components/partner/FieldTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Drives, StrayPaw Partner" };
@@ -17,6 +18,7 @@ export default function PartnerDrivesPage() {
           sterilisation.
         </p>
       </header>
+      <FieldTabs />
       <DrivesClient />
     </div>
   );

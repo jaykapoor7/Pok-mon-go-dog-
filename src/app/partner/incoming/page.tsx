@@ -1,4 +1,5 @@
 import { IncomingClient } from "@/components/partner/IncomingClient";
+import { FieldTabs } from "@/components/partner/FieldTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Incoming, StrayPaw Partner" };
@@ -16,6 +17,7 @@ export default function PartnerIncomingPage() {
           to; community sightings wait to be claimed.
         </p>
       </header>
+      <FieldTabs />
       <IncomingClient />
     </div>
   );

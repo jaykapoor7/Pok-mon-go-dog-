@@ -14,7 +14,6 @@ import {
 import {
   ArrowUpRight,
   Bookmark,
-  Building2,
   CalendarRange,
   ClipboardList,
   Database,
@@ -36,7 +35,7 @@ import {
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
 import { ProfilePanel } from "./ProfilePanel";
-import { ROLE_META, readStoredRole, type Role } from "@/lib/roles";
+import { readStoredRole, type Role } from "@/lib/roles";
 import {
   Sheet,
   SheetContent,
@@ -46,59 +45,44 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
-/* Everyone sees these. The console is one view, community reporters and NGO
-   staff work the same map and the same records. */
-/* Names say what the thing is, not what it feels like. "Living map" meant
-   nothing; it is a map of street animals. "Directory" could be anything;
-   it is a list of organisations. Home comes first because it is where
-   opening the app should put you. */
-const COMMUNITY = [
-  { href: "/app", label: "Overview", Icon: LayoutGrid },
-  { href: "/map", label: "Street map", Icon: MapPin },
-  { href: "/following", label: "Saved animals", Icon: Bookmark },
-];
-
-/* The evidence chain, in the order it actually runs: what is missing, what is
-   outstanding, what it would cost, what is being done, what changed. */
-/* Six reference pages behind one entry. They are things you go to on
-   purpose with a question, not places you pass through daily, and six of
-   them in a sidebar is most of the reason it needed collapsing. */
-const EVIDENCE = [
-  { href: "/partner", label: "Team workspace", Icon: Building2 },
-  { href: "/evidence", label: "Research and planning", Icon: ScanSearch },
-  { href: "/orgs", label: "Find an organisation", Icon: Heart },
-  { href: "/feed", label: "Recent activity", Icon: Radio },
-];
-
-/* Field-operations surface. Same shell, deeper records.
-
-   Dashboard first. An organisation's programme totals are the thing they
-   open StrayPaw to look at, and without an entry for it the only way back
-   from a sub-page was the browser's back button. */
-const WORKSPACE = [
-  { href: "/partner", label: "Today", Icon: LayoutGrid },
-  { href: "/partner/map", label: "Map", Icon: MapPin },
+/* One stable rail for the whole product. Roles influence the landing point,
+   never the information architecture, so a resident and an NGO can work from
+   the same shared record without being sent into separate products. */
+const PRIMARY = [
+  { key: "home", label: "Home", Icon: LayoutGrid },
+  { key: "map", label: "Map", Icon: MapPin },
   { href: "/partner/animals", label: "Records", Icon: Database },
   { href: "/partner/field", label: "Field work", Icon: CalendarRange },
+  { href: "/evidence", label: "Evidence", Icon: ScanSearch },
 ];
 
-const WORKSPACE_TOOLS = [
+const FIELD_TOOLS = [
   { href: "/partner/incoming", label: "Incoming", Icon: Inbox },
-  { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
-  { href: "/partner/medical", label: "Care records", Icon: Stethoscope },
-  { href: "/partner/drives", label: "Programmes", Icon: CalendarRange },
+  { href: "/partner/drives", label: "Programme drives", Icon: CalendarRange },
   { href: "/partner/team", label: "Team", Icon: Users },
-  { href: "/partner/reports", label: "Coverage and reports", Icon: FileText },
-  { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
+  { href: "/partner/reports", label: "Coverage", Icon: FileText },
 ];
-/* Reachable, but not from here. Medical is a filter on Cases, Import is
-   something you do to Animals, and Volunteer sign-ups is a list you read
-   from Team. Each is linked from the page it belongs to. */
-
+const COMMUNITY_TOOLS = [
+  { href: "/following", label: "Saved animals", Icon: Bookmark },
+  { href: "/feed", label: "Recent activity", Icon: Radio },
+  { href: "/orgs", label: "Organisations", Icon: Heart },
+];
+const EVIDENCE_TOOLS = [
+  { href: "/gaps", label: "Coverage and gaps", Icon: ScanSearch },
+  { href: "/needs", label: "Local needs", Icon: ClipboardList },
+  { href: "/what-would-it-take", label: "Cost a programme", Icon: FileText },
+  { href: "/studies", label: "Published studies", Icon: FileText },
+  { href: "/interventions", label: "Interventions", Icon: Stethoscope },
+  { href: "/outcomes", label: "Verified outcomes", Icon: Database },
+];
+const ACCOUNT_TOOLS = [
+  { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
+  { href: "/partner/import", label: "Import records", Icon: Database },
+  { href: "/partner/settings", label: "Settings", Icon: FileText },
+];
 /* A phone shows the few destinations somebody opens the console to reach,
    and one control for the rest. The full row is 2,300px of chips on a
    390px screen, which is six screen-widths of sideways scrolling before
@@ -133,6 +117,7 @@ export function AppShell({
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [cursor, setCursor] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
+  const previousPathname = useRef(pathname);
 
   function go(hit: SearchHit) {
     router.push(hit.href);
@@ -204,6 +189,8 @@ export function AppShell({
   /* A route change means the user got where they were going, the drawer
      should not still be sitting open on top of the destination. */
   useEffect(() => {
+    if (previousPathname.current === pathname) return;
+    previousPathname.current = pathname;
     setOpen(false);
   }, [pathname]);
 
@@ -213,30 +200,19 @@ export function AppShell({
     setRole(readStoredRole());
   }, [pathname]);
 
-  /* The role reorders the sidebar, it does not restrict it. A funder still
-     sees Report; it simply is not the first thing in front of them. */
-  const prioritise = <T extends { href: string }>(items: T[]): T[] => {
-    if (!role) return items;
-    const rank = ROLE_META[role].priority;
-    const score = (h: string) => {
-      const i = rank.indexOf(h);
-      return i === -1 ? rank.length : i;
-    };
-    return [...items].sort((a, b) => score(a.href) - score(b.href));
+  const homeHref = role === "ngo" ? "/partner" : "/app";
+  const mapHref = role === "ngo" ? "/partner/map" : "/map";
+  const primaryNav = PRIMARY.map((item) =>
+    item.key === "home" ? { ...item, href: homeHref } : item.key === "map" ? { ...item, href: mapHref } : item,
+  ) as Array<{ href: string; label: string; Icon: typeof LayoutGrid }>;
+  const isActive = (href: string, label?: string) => {
+    if (label === "Home") return pathname === "/app" || pathname === "/partner";
+    if (label === "Map") return pathname === "/map" || pathname === "/partner/map";
+    if (href === "/partner/animals") return pathname.startsWith("/partner/animals") || pathname.startsWith("/partner/cases") || pathname.startsWith("/partner/medical");
+    if (href === "/partner/field") return pathname.startsWith("/partner/field") || pathname.startsWith("/partner/incoming") || pathname.startsWith("/partner/drives") || pathname.startsWith("/partner/reports");
+    return pathname.startsWith(href);
   };
-
-  /* Both of these are the root of a section, so a prefix match would keep
-     them lit on every page beneath them and nothing would ever look
-     current. */
-  const isActive = (href: string) =>
-    href === "/app" || href === "/partner"
-      ? pathname === href
-      : pathname.startsWith(href);
-
-  const inWorkspace = pathname.startsWith("/partner");
-  const primaryNav = inWorkspace ? WORKSPACE : COMMUNITY;
-  const mobileNav = inWorkspace ? WORKSPACE.filter(({ href }) => href !== "/partner/field") : COMMUNITY;
-  const toolNav = inWorkspace ? WORKSPACE_TOOLS : EVIDENCE;
+  const mobileNav = primaryNav.filter(({ label }) => ["Home", "Map", "Records"].includes(label));
 
   /* Placed after every hook so the hook order stays stable either way. */
   if (nested) return <>{children}</>;
@@ -327,13 +303,13 @@ export function AppShell({
         />
 
         <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
-          <p className="spa-nav-context">{inWorkspace ? "Team workspace" : "Neighbourhood"}</p>
+          <p className="spa-nav-context">StrayPaw workspace</p>
           <div className="spa-primary-nav">
-            {prioritise(primaryNav).map(({ href, label, Icon }) => <Link key={href} href={href} aria-current={isActive(href) ? "page" : undefined} className={isActive(href) ? "active" : ""} onClick={() => setOpen(false)}><Icon size={17}/>{label}</Link>)}
+            {primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href, label) ? "page" : undefined} className={isActive(href, label) ? "active" : ""} onClick={() => setOpen(false)}><Icon size={17}/>{label}</Link>)}
           </div>
 
-          <div className={`spa-phone-links ${inWorkspace ? "is-workspace" : ""}`}>
-            {mobileNav.map(({href,label,Icon}) => <Link key={href} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+          <div className="spa-phone-links">
+            {mobileNav.map(({href,label,Icon}) => <Link key={label} href={href} aria-current={isActive(href, label) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
           </div>
           <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting"><Radio size={21}/><span>Report</span></Link>
           <Sheet open={open} onOpenChange={setOpen}>
@@ -349,18 +325,15 @@ export function AppShell({
                   All sections
                 </SheetTitle>
                 <SheetDescription className="text-xs">
-                  Secondary tools and reference material.
+                  Everything else, arranged around the job you came to do.
                 </SheetDescription>
               </SheetHeader>
               <div className="border-b px-5 py-4"><ProfilePanel onNavigate={() => setOpen(false)} /></div>
-              <div className="flex flex-col gap-1 px-3 py-4">
-                <div className="flex flex-col gap-1">
-                  <p className="spa-mono mt-3 flex items-center justify-between px-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                    {inWorkspace ? "Workspace tools" : "Explore more"}
-                    <Badge variant="secondary" className="tabular-nums">{toolNav.length}</Badge>
-                  </p>
-                  {prioritise(toolNav).map(({ href, label, Icon }) => <Button key={href} asChild variant={isActive(href) ? "secondary" : "ghost"} className="justify-start gap-2.5"><Link href={href} onClick={() => setOpen(false)}><Icon size={15}/>{label}</Link></Button>)}
-                </div>
+              <div className="flex flex-col gap-4 px-3 py-4">
+                <MoreGroup title="Field operations" items={FIELD_TOOLS} active={isActive} onNavigate={() => setOpen(false)} />
+                <MoreGroup title="Community" items={COMMUNITY_TOOLS} active={isActive} onNavigate={() => setOpen(false)} />
+                <MoreGroup title="Evidence and planning" items={EVIDENCE_TOOLS} active={isActive} onNavigate={() => setOpen(false)} />
+                <MoreGroup title="Account and tools" items={ACCOUNT_TOOLS} active={isActive} onNavigate={() => setOpen(false)} />
                 <Button variant="ghost" className="mt-4 justify-start" onClick={() => { setOpen(false); openTour(); }}><HelpCircle size={16}/> Show me around</Button>
               </div>
             </SheetContent>
@@ -378,4 +351,11 @@ export function AppShell({
     </div>
    </InShell.Provider>
   );
+}
+
+function MoreGroup({ title, items, active, onNavigate }: { title: string; items: Array<{ href: string; label: string; Icon: typeof LayoutGrid }>; active: (href: string, label?: string) => boolean; onNavigate: () => void }) {
+  return <section className="flex flex-col gap-1">
+    <p className="spa-mono px-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{title}</p>
+    {items.map(({ href, label, Icon }) => <Button key={href} asChild variant={active(href, label) ? "secondary" : "ghost"} className="justify-start gap-2.5"><Link href={href} onClick={onNavigate}><Icon size={15}/>{label}</Link></Button>)}
+  </section>;
 }
