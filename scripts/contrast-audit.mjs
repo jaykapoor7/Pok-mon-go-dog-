@@ -3,6 +3,7 @@
 // Does every piece of text on this site have enough contrast to read?
 //
 // Usage:  npm run dev            (in one terminal)
+//         BASE=http://127.0.0.1:3000 npm run audit:contrast   (override port)
 //         npm run audit:contrast (in another)
 //
 // Exits non-zero if anything fails, so it can gate a commit.
@@ -31,7 +32,7 @@
 
 import { chromium } from "@playwright/test";
 
-const BASE = "http://127.0.0.1:3488";
+const BASE = process.env.BASE ?? "http://127.0.0.1:3000";
 const ROUTES = process.env.ROUTES
   ? process.env.ROUTES.split(",")
   : ["/", "/map", "/wards", "/report", "/adopt", "/orgs", "/gaps", "/evidence",

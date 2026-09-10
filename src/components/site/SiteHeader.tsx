@@ -137,11 +137,30 @@ export function SiteHeader() {
   );
 }
 
-/** A continuous S-shaped path: sightings connected into one record. */
+/** The StrayPaw mark: the dog looking over the rim of its circle.
+ *
+ * Restored. A generated S-path replaced this for a while; the wordmark
+ * beside it already says "StrayPaw", so a second S was saying the same
+ * thing twice, and it dropped the animal out of the brand entirely.
+ *
+ * A raster rather than an SVG: the artwork has soft strokes and a specific
+ * weight that a hand-traced path flattens. At these sizes a 512px source is
+ * a few kilobytes and never blurs. */
 export function StrayPawMark({ size = 28 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false" style={{flexShrink:0}}>
-    <path d="M31 8H15a7 7 0 0 0 0 14h10a5 5 0 0 1 0 10H8" stroke="#2457CE" strokeWidth="7" strokeLinecap="square"/>
-    <path d="M31 8h1" stroke="#F47D45" strokeWidth="7" strokeLinecap="square"/>
-    <path d="M8 32H7" stroke="#F47D45" strokeWidth="7" strokeLinecap="square"/>
-  </svg>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/straypaw-mark.png"
+      alt=""
+      width={size}
+      height={size}
+      aria-hidden="true"
+      style={{
+        flexShrink: 0,
+        borderRadius: "50%",
+        display: "block",
+        boxShadow: "0 0 0 1px rgba(11,16,32,0.12)",
+      }}
+    />
+  );
 }
