@@ -4,25 +4,23 @@ import { ArrowDown, ArrowUpRight } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="street-hero" aria-labelledby="hero-title">
-      <div className="street-hero-top">
-        <div className="street-hero-heading">
-          <p className="field-eyebrow">India’s street animals. Our shared neighbourhoods.</p>
-          <h1 id="hero-title"><span>They live</span><span>here, <em>too.</em></span></h1>
-        </div>
-        <div className="street-hero-intro">
-          <p>Not every neighbour has an address.</p>
-          <p>StrayPaw puts street animals on the map, with a record of the sightings and care that follow.</p>
-          <Link href="/map" className="field-button">Explore the map <ArrowUpRight size={20}/></Link>
-          <Link href="/report" className="field-text-link">Report a sighting <ArrowUpRight size={17}/></Link>
-        </div>
+    <section className="record-hero" aria-labelledby="hero-title">
+      <div className="record-hero-image"><Image src="/straypaw-night-street.png" alt="An Indian indie dog walking through a neighbourhood street at blue hour" fill priority sizes="100vw" /></div>
+      <div className="record-hero-shade" aria-hidden="true" />
+      <div className="record-hero-copy">
+        <p className="field-eyebrow">One ordinary evening. One shared neighbourhood.</p>
+        <h1 id="hero-title"><span>They live</span><span>here, <em>too.</em></span></h1>
+        <p>When someone notices, the city can remember. StrayPaw turns a moment on the street into a place people can return to.</p>
+        <div className="record-hero-actions"><Link href="/map" className="field-button">Explore the map <ArrowUpRight size={20}/></Link><Link href="/report" className="field-text-link">Report a sighting <ArrowUpRight size={17}/></Link></div>
       </div>
-      <div className="street-hero-frame">
-        <div className="street-hero-image"><Image src="/field-observation-atlas.png" alt="An illustrated Indian street, with a dog in the afternoon light" fill priority sizes="100vw" /></div>
-        <div className="street-image-title" aria-hidden="true">A place in the neighbourhood.</div>
-        <div className="street-image-bottom"><a href="#neighbourhood"><ArrowDown size={18}/> Start with your street</a><span>StrayPaw street illustration</span></div>
-      </div>
-      <div className="street-hero-foot"><span>A photo. A place. A little attention.</span><span>That’s a starting point.</span></div>
+      <div className="record-hero-progress" aria-hidden="true"><span>01</span><i /><span>03</span></div>
+      <aside className="record-hero-card" aria-label="An example of how a StrayPaw record begins">
+        <div className="record-card-kicker"><span>FIELD RECORD</span><span>STARTING NOW</span></div>
+        <h2>A moment worth keeping.</h2>
+        <dl><div><dt>What happened</dt><dd>Someone was noticed</dd></div><div><dt>What comes next</dt><dd>Photo · place · follow-up</dd></div></dl>
+        <p>Scroll to see how a memory becomes useful.</p>
+      </aside>
+      <a href="#record-sequence" className="record-hero-scroll"><ArrowDown size={17}/><span>Follow the record</span></a>
     </section>
   );
 }

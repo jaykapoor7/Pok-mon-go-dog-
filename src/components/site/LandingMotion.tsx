@@ -13,20 +13,20 @@ export function LandingMotion() {
       disposeMotion();
       if (preference.matches) return;
       root.dataset.motion = "on";
-      const sections = root.querySelectorAll<HTMLElement>(".field-section-heading, .field-steps article, .field-team-copy, .field-workspace-example, .field-paths a, .field-photo-story, .field-closing h2");
+      const sections = root.querySelectorAll<HTMLElement>(".field-section-heading, .field-steps article, .field-team-copy, .field-workspace-example, .field-paths a, .field-photo-story, .field-closing h2, .record-stage, .record-intro-copy");
       const observer = new IntersectionObserver(entries => entries.forEach(entry => {
         if (entry.isIntersecting) { entry.target.classList.add("is-in"); observer.unobserve(entry.target); }
       }), { threshold: .12 });
       sections.forEach(section => { section.classList.add("reveal"); observer.observe(section); });
-      const frame = root.querySelector<HTMLElement>(".street-hero-frame");
+      const hero = root.querySelector<HTMLElement>(".record-hero");
       let raf = 0;
       const update = () => {
         raf = 0;
-        if (!frame) return;
-        const rect = frame.getBoundingClientRect();
+        if (!hero) return;
+        const rect = hero.getBoundingClientRect();
         if (rect.bottom < 0 || rect.top > innerHeight) return;
-        const progress = Math.max(-1, Math.min(1, (innerHeight / 2 - rect.top - rect.height / 2) / innerHeight));
-        frame.style.setProperty("--image-shift", `${progress * 55}px`);
+        const progress = Math.max(0, Math.min(1, -rect.top / Math.max(rect.height - innerHeight, 1)));
+        hero.style.setProperty("--record-progress", progress.toFixed(3));
       };
       const scroll = () => { if (!raf) raf = requestAnimationFrame(update); };
       window.addEventListener("scroll", scroll, { passive: true });
@@ -35,7 +35,7 @@ export function LandingMotion() {
       disposeMotion = () => {
         observer.disconnect(); cancelAnimationFrame(raf);
         window.removeEventListener("scroll", scroll); window.removeEventListener("resize", scroll);
-        delete root.dataset.motion; frame?.style.removeProperty("--image-shift");
+        delete root.dataset.motion; hero?.style.removeProperty("--record-progress");
         sections.forEach(section => section.classList.remove("reveal", "is-in"));
       };
     };

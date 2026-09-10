@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test("landing story keeps the map and reporting within reach", async ({ page }) => {
   await page.goto("/");
-  const hero = page.locator(".street-hero");
+  const hero = page.locator(".record-hero");
   await expect(hero.getByRole("heading", { level: 1 })).toHaveText("They livehere, too.");
   await expect(hero.getByRole("link", { name: "Explore the map" })).toHaveAttribute("href", "/map");
   await expect(hero.getByRole("link", { name: "Report a sighting" })).toHaveAttribute("href", "/report");
@@ -15,7 +15,7 @@ test("landing story keeps the map and reporting within reach", async ({ page }) 
 test("reduced motion keeps the landing readable without animated reveals", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".street-hero h1")).toBeVisible();
+  await expect(page.locator(".record-hero h1")).toBeVisible();
   await expect(page.locator(".field-site")).not.toHaveAttribute("data-motion", "on");
   await expect(page.locator(".neighbour-story")).toHaveCount(0);
 });
