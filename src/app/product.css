@@ -55,6 +55,7 @@ html .spa.spa button:disabled{cursor:not-allowed}
 .community-map .field-map-selected{position:absolute;bottom:30px;left:14px;background:white;padding:14px;border-radius:6px;display:flex;gap:18px;align-items:center;color:var(--sp-ink)}
 .community-map .field-map-selected b,.community-map .field-map-selected span{display:block;font-size:13px}
 .community-map .field-map-selected span{font-size:12px;color:var(--sp-muted);margin-top:5px}
+.community-location-callout{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:18px 0 24px;padding:18px 0;border-top:1px solid var(--sp-line);border-bottom:1px solid var(--sp-line)}.community-location-callout>div{display:flex;align-items:flex-start;gap:12px}.community-location-callout svg{color:var(--sp-blue);margin-top:2px}.community-location-callout b,.community-location-callout span{display:block}.community-location-callout b{font-size:14px}.community-location-callout span{max-width:570px;margin-top:5px;color:var(--sp-muted);font-size:13px;line-height:1.55}.community-location-callout button,.community-relocate{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:9px 12px;border:1px solid #a9bee0;background:#fff;color:var(--sp-blue);font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}.community-location-callout button:hover,.community-relocate:hover{border-color:var(--sp-blue);background:#eef3fb}.community-location-callout button:disabled,.community-relocate:disabled{opacity:.65;cursor:wait}.community-location-error{margin:-10px 0 20px;color:#a74c26;font-size:13px}.community-map{position:relative}.community-local-empty{position:absolute;z-index:4;left:20px;right:20px;bottom:20px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:13px;background:#fff;box-shadow:0 10px 30px #102b5528;font-size:12px;color:var(--sp-muted)}.community-local-empty svg{color:var(--sp-blue)}.community-local-empty b{display:block;color:var(--sp-ink);font-size:13px;margin-bottom:3px}.community-local-empty a{display:flex;align-items:center;gap:4px;color:var(--sp-blue);font-weight:600;text-decoration:none;white-space:nowrap}.community-next-step{display:grid;grid-template-columns:26px 1fr;gap:14px 12px;padding-top:2px;border-top:1px solid var(--sp-line)}.community-next-step>span{padding-top:18px;color:var(--sp-blue);font:11px var(--font-mono),monospace}.community-next-step p{margin:0;padding:17px 0;border-bottom:1px solid var(--sp-line);color:var(--sp-muted);font-size:13px;line-height:1.55}.community-next-step b{color:var(--sp-ink)}.community-next-step a{grid-column:2;display:inline-flex;gap:5px;align-items:center;padding-top:2px;color:var(--sp-blue);font-size:13px;font-weight:600;text-decoration:none}
 .community-recent{min-width:0}
 .community-recent .rs-grid{display:flex;flex-direction:column}
 .community-paths{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:30px 0}
@@ -141,6 +142,7 @@ html .spa.spa .spa-brand svg{width:29px;height:29px}
 .community-counts{gap:15px;padding:20px 0;margin:25px 0}
 .community-counts b{font-size:27px}.community-counts span{font-size:11px;line-height:1.4}
 .community-map .field-map-preview{height:360px}
+.community-location-callout{align-items:start;flex-direction:column;gap:14px}.community-location-callout button{width:100%}.community-local-empty{left:10px;right:10px;bottom:10px;grid-template-columns:auto 1fr}.community-local-empty a{grid-column:2;justify-self:start}.community-relocate{font-size:0;width:38px;padding:0}.community-relocate svg{width:16px;height:16px}
 .community-paths{grid-template-columns:1fr;gap:0}.community-paths>a{padding:22px 0}.community-paths>a+a{border-top:0}
 html .spa.spa .partner-greeting h1{font-size:30px}
 html .spa.spa .qa-grid{grid-template-columns:1fr}
@@ -180,6 +182,11 @@ html .spa.spa .spa-global-report:hover{background:#183f9e;transform:translateY(-
 html .spa.spa .spa-switch{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:10px 11px;border:0;border-radius:6px;background:transparent;color:var(--sp-muted);font:600 13px var(--font-sans),sans-serif;cursor:pointer}
 html .spa.spa .spa-switch:hover{background:var(--sp-ground);color:var(--sp-blue)}
 html .spa.spa .spa-mobile-report{display:none}
+
+/* A field workspace should have a ground. The map, lists and report form
+   remain crisp working surfaces; the space around them now carries the quiet
+   scale and orientation of a city atlas instead of defaulting to white. */
+html .spa.spa{background:#eaf1fa}html .spa.spa .spa-body{background:#eaf1fa}html .spa.spa .spa-side{background:#f9fbfe}html .spa.spa .spa-main:not(.flush){position:relative;background:radial-gradient(circle at 93% 8%,#c9dcf266 0 2px,transparent 2.5px),radial-gradient(circle at 78% 17%,#c9dcf244 0 1px,transparent 1.5px),linear-gradient(90deg,transparent 0 91%,#b7cce52b 91% 91.08%,transparent 91.08%);background-size:43px 43px,31px 31px,100% 100%}html .spa.spa .spa-main:not(.flush)::before{content:"";position:fixed;right:-180px;bottom:-230px;z-index:-1;width:560px;height:560px;border:1px solid #9bb9dc40;border-radius:50%;box-shadow:0 0 0 48px #9bb9dc21,0 0 0 104px #9bb9dc14;pointer-events:none}html .spa.spa .spa-panel,html .spa.spa .report-form{box-shadow:0 8px 24px #173d6f0a}html .spa.spa .partner-map-panel,.community-map .field-map-preview{box-shadow:0 14px 35px #173d6f18}
 
 /* The home is an operations brief: signal, coverage, work requiring a
    decision. It avoids a field of equal-weight shortcut cards. */

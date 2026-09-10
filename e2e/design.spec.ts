@@ -46,6 +46,13 @@ test("community choice stays account-free", async ({ page }) => {
   await expect(page).toHaveURL(/\/map$/);
 });
 
+test("community home starts local rather than presenting a national tally as nearby", async ({ page }) => {
+  await page.goto("/app");
+  await expect(page.getByRole("heading", { name: "Start with your street." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Use my location" })).toBeVisible();
+  await expect(page.getByText(/Animals recorded nearby/i)).toHaveCount(0);
+});
+
 test("public map filters and list remain operable without records", async ({ page }) => {
   await page.goto("/map");
   const filter = page.getByRole("button", { name: /need help/i });

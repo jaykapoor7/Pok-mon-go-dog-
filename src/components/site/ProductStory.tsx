@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, MapPin, Radio, ShieldCheck } from "lucide-react";
+import { Check, MapPin, Radio, ShieldCheck, CircleDashed } from "lucide-react";
 import { FieldMapPreview } from "./FieldMapPreview";
 import type { Dog } from "@/lib/types";
 
@@ -55,7 +55,13 @@ export function ProductStory({ dogs }: { dogs: Dog[] }) {
             <div className="story-case"><ShieldCheck size={17} /><div><b>Care history</b><small>Ready for the next visit</small></div><span>—</span></div>
           </section>
           <section className="story-nation" aria-label="Evidence view">
-            <span>INDIA / COVERAGE VIEW</span><div className="story-nation-grid" aria-hidden="true">{Array.from({ length: 24 }, (_, i) => <i key={i} />)}</div><p>Records become local evidence.<br />Gaps stay visible.</p>
+            <span>INDIA / COVERAGE VIEW</span>
+            <div className="story-nation-map"><FieldMapPreview dogs={dogs} /></div>
+            <div className="story-atlas-panel">
+              <div><CircleDashed size={16} /><span>Coverage is not assumed</span></div>
+              <p>Records become local evidence. Areas without a shared record stay visibly unmeasured.</p>
+              <dl><div><i className="atlas-recorded" /> <dt>Recorded</dt><dd>Can be followed</dd></div><div><i className="atlas-unknown" /> <dt>Unknown</dt><dd>Needs a check</dd></div><div><i className="atlas-gap" /> <dt>Not measured</dt><dd>Not a zero</dd></div></dl>
+            </div>
           </section>
         </div>
       </div>
