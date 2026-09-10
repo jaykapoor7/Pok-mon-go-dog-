@@ -180,6 +180,40 @@ export type DogIconSpec = {
 
 type Rendered = { width: number; height: number; data: Uint8ClampedArray };
 
+/* Rasterising a marker means drawing a 112x112 canvas and reading every
+   pixel back with getImageData, which is a synchronous main-thread stall.
+   Profiling a phone-width scroll of the landing page put toImageData at the
+   top of the flame graph by a factor of six over everything else — because
+   the page carries three separate MapLibre instances and each one rebuilt
+   the same 24 photographs from scratch. The pixels are a pure function of
+   this key, so the second and third map can have the first one's work.
+
+   Bounded, because a long session panning a dense city would otherwise hold
+   every animal ever drawn: 50KB per entry, so 240 entries is about 12MB and
+   the oldest goes first. */
+const CACHE = new Map<string, Rendered>();
+const CACHE_MAX = 240;
+
+/* Caching the finished pixels is not enough on its own. Three maps mount at
+   roughly the same moment and all three ask for the same animal before any
+   of them has finished, so every one of them missed a cache that was still
+   empty and did the work anyway. Holding the in-flight promise is what
+   actually collapses the three into one. */
+const PENDING = new Map<string, Promise<Rendered | null>>();
+
+const cacheKey = (spec: DogIconSpec, kind: "photo" | "paw") =>
+  `${kind}|${spec.color}|${spec.urgent ? 1 : 0}|${kind === "photo" ? spec.photo : spec.seed}`;
+
+function remember(key: string, value: Rendered | null): Rendered | null {
+  if (!value) return null;
+  if (CACHE.size >= CACHE_MAX) {
+    const oldest = CACHE.keys().next().value;
+    if (oldest !== undefined) CACHE.delete(oldest);
+  }
+  CACHE.set(key, value);
+  return value;
+}
+
 function toImageData(canvas: HTMLCanvasElement, ctx: Ctx): Rendered | null {
   try {
     const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -193,11 +227,14 @@ function toImageData(canvas: HTMLCanvasElement, ctx: Ctx): Rendered | null {
 
 /** The marker as it looks before, or without, a photograph. */
 export function renderFallbackIcon(spec: DogIconSpec): Rendered | null {
+  const key = cacheKey(spec, "paw");
+  const hit = CACHE.get(key);
+  if (hit) return hit;
   const made = newCanvas();
   if (!made) return null;
   drawFrame(made.ctx, spec.color, spec.urgent);
   drawPawFallback(made.ctx, spec.seed, inner(spec.urgent).photo);
-  return toImageData(made.canvas, made.ctx);
+  return remember(key, toImageData(made.canvas, made.ctx));
 }
 
 /**
@@ -207,13 +244,24 @@ export function renderFallbackIcon(spec: DogIconSpec): Rendered | null {
  */
 export async function renderPhotoIcon(spec: DogIconSpec): Promise<Rendered | null> {
   if (!spec.photo) return null;
-  const img = await loadImage(spec.photo);
-  if (!img) return null;
-  const made = newCanvas();
-  if (!made) return null;
-  drawFrame(made.ctx, spec.color, spec.urgent);
-  drawPhoto(made.ctx, img, img.naturalWidth, img.naturalHeight, inner(spec.urgent).photo);
-  return toImageData(made.canvas, made.ctx);
+  const key = cacheKey(spec, "photo");
+  const hit = CACHE.get(key);
+  if (hit) return hit;
+  const inFlight = PENDING.get(key);
+  if (inFlight) return inFlight;
+
+  const work = (async () => {
+    const img = await loadImage(spec.photo!);
+    if (!img) return null;
+    const made = newCanvas();
+    if (!made) return null;
+    drawFrame(made.ctx, spec.color, spec.urgent);
+    drawPhoto(made.ctx, img, img.naturalWidth, img.naturalHeight, inner(spec.urgent).photo);
+    return remember(key, toImageData(made.canvas, made.ctx));
+  })().finally(() => PENDING.delete(key));
+
+  PENDING.set(key, work);
+  return work;
 }
 
 function loadImage(src: string): Promise<HTMLImageElement | null> {

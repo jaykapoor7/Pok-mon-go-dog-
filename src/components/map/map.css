@@ -87,3 +87,18 @@
    inline state, not a second list layered over the map. */
 .sp-map-empty-state{position:absolute;top:142px;left:16px;z-index:11;display:flex;align-items:center;gap:13px;max-width:calc(100% - 100px);padding:11px 14px;border-left:3px solid #e16a34;background:#fff;color:#26324a;box-shadow:0 4px 16px #0b102016;font-size:12px}.sp-map-empty-state b{font-weight:600}.sp-map-empty-state a,.sp-map-empty-state button{border:0;background:transparent;padding:0;color:#2457ce;font:600 12px var(--font-sans),sans-serif;white-space:nowrap;cursor:pointer}
 @media(max-width:800px){.sp-map-empty-state{top:136px;left:12px;right:58px;max-width:none;gap:9px;padding:10px 12px;font-size:11px}.sp-map-empty-state b{line-height:1.35}.sp-map-empty-state a,.sp-map-empty-state button{font-size:11px}}
+
+/* ── Phone reach ───────────────────────────────────────────────────────────
+   Measured on a 390px viewport: the gaps toggle was a 123×14 hit area and
+   the geolocate control 29×29. Both are below the 44px minimum, and both sit
+   over a draggable map, where a near-miss pans the map instead of pressing
+   the control. The padding is negative-margined back so nothing moves. */
+@media (max-width: 900px) {
+  .sp-map-gap-toggle { min-height: 44px; padding: 4px 6px; margin: -4px -6px; }
+  .sp-map-canvas .maplibregl-ctrl-group > button {
+    width: 44px; height: 44px;
+  }
+  .sp-map-canvas .maplibregl-ctrl-group > button .maplibregl-ctrl-icon {
+    background-size: 20px 20px;
+  }
+}

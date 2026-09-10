@@ -70,21 +70,47 @@ const AUDIT = () => {
       return [n[0], n[1], n[2], n.length > 3 ? n[3] : 1];
     }).filter(c => c.every(v => !Number.isNaN(v)));
     if (!stops.length) return null;
-    const avg = [0,1,2,3].map(i => stops.reduce((s,c) => s + c[i], 0) / stops.length);
-    return avg;
+    /* Premultiply. A `transparent` stop computes to rgba(0,0,0,0) — no
+       colour at all — but averaging the raw channels let its zeros drag the
+       result toward black. The dotted texture on the app console is one
+       faint blue dot every 43px against nothing, and this reported it as a
+       solid mid-grey, failing 32 pieces of perfectly readable text across
+       four routes. A stop with no alpha contributes no colour; it only
+       lowers how much the gradient covers. */
+    const totalA = stops.reduce((s, c) => s + c[3], 0);
+    if (totalA === 0) return null;
+    const rgb = [0,1,2].map(i => stops.reduce((s, c) => s + c[i] * c[3], 0) / totalA);
+    return [...rgb, totalA / stops.length];
   };
   const effBg = (el) => {
-    let cur = el, acc = [255,255,255,1];
-    const stack = [];
+    /* Walk up collecting one layer per element, nearest first, and stop at
+       the first element that is opaque — nothing behind it can show through.
+       Two bugs lived here. An element carrying BOTH an opaque background
+       colour and a decorative gradient did not stop the walk, so the search
+       ran past a white card and reported the dark page behind it: on
+       /why-straypaw that turned #4d5766 on white (7.0:1, fine) into
+       #4d5766 on #0f1626 (2.5:1, "unreadable"), and did it 91 times.
+       And the layers were composited in the wrong order, putting an
+       element's background colour on top of its own gradient rather than
+       under it, which is backwards — background-image paints over
+       background-colour. */
+    const layers = [];
+    let cur = el;
     while (cur && cur !== document.documentElement.parentNode) {
       const cs = getComputedStyle(cur);
-      const g = gradientColor(cs);
       const c = parse(cs.backgroundColor);
-      if (c && c[3] > 0) { stack.push(c); if (c[3] === 1 && !g) break; }
-      if (g && g[3] > 0) { stack.push(g); if (g[3] === 1) break; }
+      const g = gradientColor(cs);
+      /* This element's own surface: its gradient over its colour. */
+      let layer = null;
+      if (c && c[3] > 0) layer = c;
+      if (g && g[3] > 0) layer = layer ? over(g, layer) : g;
+      if (layer) layers.push(layer);
+      if (c && c[3] === 1) break;
       cur = cur.parentElement;
     }
-    for (let i = stack.length - 1; i >= 0; i--) acc = over(stack[i], acc);
+    /* Farthest layer first, each nearer one painted over it. */
+    let acc = [255,255,255,1];
+    for (let i = layers.length - 1; i >= 0; i--) acc = over(layers[i], acc);
     return acc;
   };
   const path = (el) => {

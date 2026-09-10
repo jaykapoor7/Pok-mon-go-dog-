@@ -169,11 +169,11 @@ html .spa.spa.spa-reporting .report-form .report-upload{min-height:170px}
 
 /* Daily field work has four destinations, not a sidebar full of product
    architecture. Secondary work is still present, one deliberate tap away. */
-html .spa.spa .spa-nav-context{margin:0 0 10px;padding:0 10px;color:#6b7d94;font:600 11px var(--font-mono),monospace;letter-spacing:.1em;text-transform:uppercase}
+html .spa.spa .spa-nav-context{margin:0 0 10px;padding:0 10px;color:var(--sp-muted);font:600 11px var(--font-mono),monospace;letter-spacing:.1em;text-transform:uppercase}
 html .spa.spa .spa-primary-nav{display:grid;gap:3px}
 html .spa.spa .spa-primary-nav a{padding:11px 12px;min-height:46px}
 html .spa.spa .spa-reference-nav{display:grid;gap:3px;margin-top:23px;padding-top:17px;border-top:1px solid var(--sp-line)}
-html .spa.spa .spa-reference-nav p{margin:0 0 4px;padding:0 10px;color:#6b7d94;font:600 10px var(--font-mono),monospace;letter-spacing:.1em;text-transform:uppercase}
+html .spa.spa .spa-reference-nav p{margin:0 0 4px;padding:0 10px;color:var(--sp-muted);font:600 10px var(--font-mono),monospace;letter-spacing:.1em;text-transform:uppercase}
 html .spa.spa .spa-reference-nav a{padding:9px 12px;min-height:39px;font-size:13px}
 html .spa.spa .spa-more{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:42px;margin-top:18px;padding:10px 12px;border:1px solid var(--sp-line);border-radius:7px;background:transparent;color:var(--sp-muted);font:600 13px var(--font-sans),sans-serif;cursor:pointer}
 html .spa.spa .spa-more:hover{border-color:#a7bee7;background:#f4f7fb;color:var(--sp-blue)}
@@ -223,8 +223,14 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
  html .spa.spa .spa-switch{font-size:0;min-width:40px;justify-content:center;padding:8px}.spa-switch svg{width:18px;height:18px}
  html .spa.spa .spa-side>.spa-nav-context,html .spa.spa .spa-side>.spa-primary-nav,html .spa.spa .spa-side>.spa-reference-nav,html .spa.spa .spa-side>.spa-side-foot{display:none}
  html .spa.spa .spa-phone-links{grid-template-columns:repeat(4,minmax(0,1fr));flex:4}
- html .spa.spa .spa-mobile-report{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;color:#fff;background:var(--sp-blue);text-decoration:none;font-size:10px;font-weight:600}
- html .spa.spa .spa-mobile-report svg{margin-top:-2px}
+ /* a.spa-mobile-report, not .spa-mobile-report: the phone Report button
+    is a descendant of .spa-side, so "html .spa.spa .spa-side a" (three
+    classes AND two elements) outranked the three-classes-one-element
+    rule that set the white. The button rendered #50617b on #2457ce —
+    2.0:1, the least readable control in the app. */
+ html .spa.spa .spa-side a.spa-mobile-report{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;color:#fff;background:var(--sp-blue);text-decoration:none;font-size:10px;font-weight:600}
+ html .spa.spa .spa-side a.spa-mobile-report svg{margin-top:-2px;color:#fff}
+ html .spa.spa .spa-side a.spa-mobile-report:hover{color:#fff;background:#1c46a8}
  html .spa.spa .spa-more{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:auto;min-width:0;min-height:0;margin:0;padding:8px 2px;border:0;border-left:1px solid var(--sp-line);border-radius:0;background:#fff;color:#5c6d81;font-size:10px}
  html .spa.spa .spa-more svg{width:19px;height:19px}
  .partner-overview .pgm{margin:22px 0!important}.partner-work-grid{gap:28px!important;margin-top:28px!important}.partner-section .partner-map-panel{height:320px}
@@ -235,4 +241,15 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
  .evidence-tabs{gap:16px;overflow-x:auto}.evidence-tabs a{white-space:nowrap}
  .feeder-signin{align-items:start;flex-direction:column;gap:18px}.feeder-signin .product-primary{width:100%}.feeder-actions{grid-template-columns:1fr}.feeder-actions>a,.feeder-actions>a:first-child{min-height:0;padding:18px 0;border-left:0;border-top:1px solid var(--sp-line)}.feeder-actions>a:first-child{border-top:0}.feeder-zone-list{grid-template-columns:1fr}
  html .spa.spa .spa-main:not(.flush){padding:20px 16px 32px}.community-map .field-map-preview{height:320px}.partner-section .partner-map-panel{height:280px}.partner-work-grid{gap:22px!important;margin-top:22px!important}.feeder-zones{margin-top:24px}
+}
+
+/* ── Phone reach in the console top bar ────────────────────────────────────
+   Measured at 390px: Switch space 41x40, Main site 81x36, the search field
+   43px tall. All three sit within a few pixels of the 44px minimum, which
+   is the range where a control is hit most of the time and feels broken the
+   rest of it. */
+@media (max-width: 900px) {
+  html .spa.spa .spa-switch { min-height: 44px; min-width: 44px; }
+  html .spa.spa .spa-exit { min-height: 44px; display: inline-flex; align-items: center; }
+  html .spa.spa .spa-search input { min-height: 44px; }
 }

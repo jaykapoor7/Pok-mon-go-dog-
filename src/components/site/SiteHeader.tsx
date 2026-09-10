@@ -118,8 +118,15 @@ export function SiteHeader() {
             organisation. Secondary to the app, but next to it and visible:
             it used to inherit the body's dark ink onto a dark header and
             was effectively invisible. */}
+        {/* Two labels, one link. Below ~380px the bar cannot hold the
+            wordmark, this label, the CTA and the menu button at once — the
+            previous attempt squeezed this into a 52px two-line box at 10px
+            and the menu button still ended up 55px past the right edge,
+            unreachable, because the page does not scroll sideways. The
+            short label buys back the width without truncating a word. */}
         <Link href="/join" className="sp-header-code">
-          I have a code
+          <span className="sp-header-code-long">I have a code</span>
+          <span className="sp-header-code-short">Code</span>
         </Link>
         <Link href="/app?choose=1" className="sp-header-cta">
           Open app <ArrowUpRight size={15} />

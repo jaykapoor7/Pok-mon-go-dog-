@@ -343,7 +343,10 @@
   gap: 20px;
   flex-wrap: wrap;
 }
-.spa-head .spa-mono { color: #6c6f76; }
+/* #6c6f76 measured 4.27:1 against the console ground — close enough to
+   look fine and still under the 4.5:1 small text needs, which is exactly
+   the band that never gets noticed by eye. */
+.spa-head .spa-mono { color: #5c6472; }
 .spa-head h1 {
   font-family: var(--font-display), "Instrument Serif", serif;
   font-weight: 400;
@@ -352,7 +355,10 @@
   letter-spacing: -0.04em;
   margin: 12px 0 0;
 }
-.spa-head h1 em { color: var(--vermilion); font-style: italic; }
+/* --vermilion is tuned for dark grounds; on the console it measures
+   2.84:1, under the 3:1 a 36px heading needs. --vermilion-ink is the
+   counterpart that already exists for accent text on light surfaces. */
+.spa-head h1 em { color: var(--vermilion-ink); font-style: italic; }
 /* Primary action, the largest, highest-contrast target on any screen
    (Fitts + Von Restorff: one unmistakable place to click). */
 .spa-cta {
@@ -426,7 +432,8 @@
   font-weight: 600;
 }
 .spa-panel-head a {
-  color: #6c737d;
+  /* 4.06:1 at 11.5px. Uppercase mono at that size needs the full 4.5. */
+  color: #5b626d;
   font-family: var(--font-mono), monospace;
   font-size: 11.5px;
   letter-spacing: 0.1em;

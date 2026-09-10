@@ -2247,3 +2247,11 @@
   /* The wordmark is the way home; it should not be a 30px sliver. */
   .sp-wordmark { min-height: 44px; }
 }
+
+/* One link, two labels: the long one everywhere there is room, the short
+   one on phones too narrow to hold the whole header. */
+.sp-header-code-short { display: none; }
+@media (max-width: 380px) {
+  .sp-header-code-long { display: none; }
+  .sp-header-code-short { display: inline; }
+}
