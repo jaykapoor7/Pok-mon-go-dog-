@@ -43,6 +43,7 @@ type VolunteerResolved = {
   org_name?: string;
   volunteer_name?: string;
 };
+type PersonalResolved = { id: string; email: string; name: string; role: "individual" | "feeder" };
 
 const NO_MATCH = "That code was not recognised. Check the six characters and try again.";
 
@@ -142,6 +143,22 @@ export async function POST(req: Request) {
     });
   }
 
+  const { data: personalRaw } = await supa
+    .from("personal_access_codes")
+    .select("id,email,name,role")
+    .eq("code", code)
+    .eq("active", true)
+    .maybeSingle();
+  const personal = personalRaw as PersonalResolved | null;
+  if (personal) {
+    const created = await supa.auth.admin.createUser({ email: personal.email, email_confirm: true, user_metadata: { display_name: personal.name } });
+    if (created.error && !/already|registered|exists/i.test(created.error.message ?? "")) return NextResponse.json({ error: "Could not open your account. Try again shortly." }, { status: 500 });
+    const link = await supa.auth.admin.generateLink({ type: "magiclink", email: personal.email });
+    const tokenHash = link.data?.properties?.hashed_token;
+    if (link.error || !tokenHash) return NextResponse.json({ error: "Could not sign you in just now. Try again shortly." }, { status: 500 });
+    return NextResponse.json({ kind: "personal", tokenHash, email: personal.email, name: personal.name, role: personal.role });
+  }
+
   /* Say as little as the person needs. Distinguishing "expired" from
      "never existed" is worth it for someone holding a real code, but
      anything finer just tells a guesser they are warm. */
@@ -168,6 +185,11 @@ async function claim(req: Request, code: string) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
+  const { data: personal } = await supa.from("personal_access_codes").select("id").eq("code", code).eq("active", true).maybeSingle();
+  if (personal) {
+    await supa.from("personal_access_codes").update({ uses: 1, last_used_at: new Date().toISOString() }).eq("id", personal.id);
+    return NextResponse.json({ ok: true });
+  }
   const { data, error } = await supa.rpc("redeem_access_code", {
     p_code: code,
     p_user_id: who.user.id,

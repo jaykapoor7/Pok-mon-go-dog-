@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { saveVolunteer } from "@/lib/volunteer";
+import { storeRole, type Role } from "@/lib/roles";
 
 /* ════════════════════════════════════════════════════════════════════
    Typing the code.
@@ -34,6 +35,7 @@ type Volunteer = {
   name: string | null;
   orgName: string;
 };
+type Personal = { kind: "personal"; tokenHash: string; email: string; name: string; role: "individual" | "feeder" };
 
 export function JoinClient({ initialCode }: { initialCode?: string }) {
   const router = useRouter();
@@ -69,7 +71,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: entered }),
       });
-      const data = (await res.json()) as (Staff | Volunteer) & { error?: string };
+      const data = (await res.json()) as (Staff | Volunteer | Personal) & { error?: string };
       if (!res.ok) {
         setError(data.error ?? "That code did not work.");
         return;
@@ -86,6 +88,8 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         router.push("/report");
         return;
       }
+
+      const destination = data.kind === "personal" ? (data.role === "feeder" ? "/feeder" : "/app") : "/partner";
 
       /* Staff. The server has issued a one-time token bound to their email;
          exchanging it here is what actually creates the session, so it is
@@ -105,7 +109,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         return;
       }
 
-      setStep(`Opening ${data.orgName}`);
+      setStep(data.kind === "personal" ? "Opening your space" : `Opening ${data.orgName}`);
       await fetch("/api/join", {
         method: "POST",
         headers: {
@@ -115,12 +119,9 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         body: JSON.stringify({ code: entered, action: "claim" }),
       });
 
-      setWelcome(
-        data.name
-          ? `Welcome, ${data.name.split(" ")[0]}. Opening ${data.orgName}.`
-          : `Opening ${data.orgName}.`
-      );
-      router.push("/partner");
+      if (data.kind === "personal") storeRole(data.role as Role);
+      setWelcome(data.kind === "personal" ? `Welcome, ${data.name.split(" ")[0]}.` : data.name ? `Welcome, ${data.name.split(" ")[0]}. Opening ${data.orgName}.` : `Opening ${data.orgName}.`);
+      router.push(destination);
       router.refresh();
     } catch {
       setError("Could not reach StrayPaw. Check your connection and try again.");

@@ -190,7 +190,7 @@ export function Welcome() {
       finish("/partner");
       return;
     }
-    setStep(1);
+    finish(`/access?role=${r}`);
   }
 
   if (step < 0 || onReportFlow) return null;
