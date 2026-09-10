@@ -190,7 +190,11 @@ export function Welcome() {
       finish("/partner");
       return;
     }
-    finish(`/access?role=${r}`);
+    /* A role is a choice of workspace, not an account gate. Community
+       members and feeders should be able to see the small orientation and
+       get straight to the map or reporting. Keeping a personal code is an
+       optional follow-up when they want their history on another device. */
+    setStep(1);
   }
 
   if (step < 0 || onReportFlow) return null;
