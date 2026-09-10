@@ -1875,6 +1875,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 }
 
 .wc-kicker { display: block; color: var(--electric-ink); }
+.wc-tour-photo { height: 132px; margin: 16px 0 4px; overflow: hidden; border: 1px solid #ccd3dc; border-radius: 6px; background: #eef4ff; }
+.wc-tour-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 42%; display: block; }
 .wc-icon {
   display: grid;
   place-items: center;

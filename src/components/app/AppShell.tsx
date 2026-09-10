@@ -19,11 +19,12 @@ import {
   LayoutGrid,
   MapPin,
   Radio,
+  Repeat2,
   ScanSearch,
   Search,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
-import { Welcome } from "./Welcome";
+import { Welcome, openTour } from "./Welcome";
 import { ProfilePanel } from "./ProfilePanel";
 import { readStoredRole, type Role } from "@/lib/roles";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
@@ -32,6 +33,7 @@ import "./app.css";
 const COMMUNITY_NAV = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/report", label: "Report", Icon: Radio },
   { href: "/following", label: "Following", Icon: Bookmark },
   { href: "/evidence", label: "Evidence", Icon: ScanSearch },
 ];
@@ -39,6 +41,7 @@ const COMMUNITY_NAV = [
 const NGO_NAV = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
   { href: "/partner/map", label: "Map", Icon: MapPin },
+  { href: "/report", label: "Report", Icon: Radio },
   { href: "/partner/animals", label: "Records", Icon: Database },
   { href: "/partner/field", label: "Field work", Icon: CalendarRange },
 ];
@@ -196,7 +199,7 @@ export function AppShell({
         </form>
 
         <div className="spa-top-right">
-          <Link href="/report" className="spa-global-report"><Radio size={16} /> Report</Link>
+          <button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15} /> Switch space</button>
           {/* Up here rather than in the side nav's foot, which was carrying
               four controls and a role chip in a 208px column. */}
           <Link href="/" className="spa-exit">
@@ -209,11 +212,11 @@ export function AppShell({
         <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
           <p className="spa-nav-context">{isNgo ? "NGO operations" : "Community"}</p>
           <div className="spa-primary-nav">
-            {primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={isActive(href) ? "active" : ""}><Icon size={17}/>{label}</Link>)}
+            {primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={`${isActive(href) ? "active " : ""}${label === "Report" ? "spa-report-shortcut" : ""}`}><Icon size={17}/>{label}</Link>)}
           </div>
 
           <div className="spa-phone-links">
-            {primaryNav.map(({href,label,Icon}) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+            {primaryNav.filter(({ label }) => label !== "Report").map(({href,label,Icon}) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
           </div>
           <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting"><Radio size={21}/><span>Report</span></Link>
           <div className="spa-side-foot">

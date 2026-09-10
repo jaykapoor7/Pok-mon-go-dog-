@@ -1,98 +1,65 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  Calculator,
-  FileText,
-  ScanSearch,
-  ShieldCheck,
-  MapPinned,
-  Wrench,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { StateExplorer, type StateRow } from "@/components/app/StateExplorer";
+import { DATASETS } from "@/lib/platform/datasets";
+import { STATES } from "@/lib/platform/geography";
+import { ORGS } from "@/lib/platform/orgs";
 
 export const metadata: Metadata = {
   title: "The evidence, StrayPaw",
-  description:
-    "What is known about India's street animals, what is missing, what an area needs, what a programme would cost, and what has actually worked.",
+  description: "India's street-animal evidence, state by state: published population, coverage and the organisations doing the work.",
 };
 
-/* ════════════════════════════════════════════════════════════════════
-   One door to six reference pages.
+function pointsFor(metric: string) {
+  const points = new Map<string, { value: number; source: string; year: number }>();
+  for (const dataset of DATASETS) for (const point of dataset.points) {
+    if (point.metric === metric && point.geo.level === "state") {
+      points.set(point.geo.code, { value: point.value, source: point.source, year: point.year });
+    }
+  }
+  return points;
+}
 
-   These were six entries in the console's sidebar, which is how a sidebar
-   ends up with twenty-three links and needs collapsing to be usable. They
-   are not things you visit daily; they are things you go to on purpose,
-   once you have a question. So they get one entry and a page that says
-   which one answers which question.
-   ════════════════════════════════════════════════════════════════════ */
-
-const PAGES = [
-  {
-    href: "/gaps",
-    Icon: ScanSearch,
-    title: "Coverage and gaps",
-    q: "What is known, and what still needs to be counted?",
-    body: "District coverage, unanswered questions and the places where a programme needs better field evidence before it can be planned responsibly.",
-  },
-  {
-    href: "/needs",
-    Icon: MapPinned,
-    title: "Local needs",
-    q: "Where should field work go next?",
-    body: "A practical view of reported needs by area, ready to take into a route plan, partner conversation or programme brief.",
-  },
-  {
-    href: "/what-would-it-take",
-    Icon: Calculator,
-    title: "Cost a programme",
-    q: "What would fixing one area cost?",
-    body: "Animals, coverage, and a costed plan built from real figures. Where the data is thin it says so rather than estimating over it.",
-  },
-  {
-    href: "/studies",
-    Icon: FileText,
-    title: "Published studies",
-    q: "What has been researched, and by whom?",
-    body: "Government, academic and NGO work on street dogs and rabies in India, indexed and cited.",
-  },
-  {
-    href: "/interventions",
-    Icon: Wrench,
-    title: "What has been tried",
-    q: "What do other people do, and does it work?",
-    body: "Interventions on record, with what they cost and what changed afterwards.",
-  },
-  {
-    href: "/outcomes",
-    Icon: ShieldCheck,
-    title: "Verified outcomes",
-    q: "What actually got done?",
-    body: "Work an organisation reported as finished, recorded against the animal it was done to, with the proof attached.",
-  },
-];
-
+/** The evidence entry opens on data, not a directory of destinations. */
 export default function EvidencePage() {
-  return (
-    <div className="ev">
-      <header>
-        <h1>The evidence</h1>
-        <p>
-          A working index for planning, not a second navigation system. Start
-          with the question in front of you; each view keeps its sources and
-          uncertainty attached to the work.
-        </p>
-      </header>
+  const population = pointsFor("dog_population");
+  const coverage = pointsFor("abc_coverage");
+  const rows: StateRow[] = STATES.map((state) => {
+    const pop = population.get(state.code);
+    const abc = coverage.get(state.code);
+    const orgs = ORGS.filter((org) => org.stateCode === state.code);
+    return {
+      code: state.code,
+      name: state.name,
+      population: pop?.value ?? null,
+      populationSource: pop?.source ?? null,
+      populationYear: pop?.year ?? null,
+      abcCoverage: abc ? abc.value / 100 : null,
+      abcSource: abc ? `${abc.source} (${abc.year})` : null,
+      orgCount: orgs.length,
+      orgs: orgs.map((org) => ({ id: org.id, name: org.name, city: org.city, url: org.url })),
+    };
+  }).filter((row) => row.population !== null || row.orgCount > 0);
 
-      <div className="ev-ledger" role="list" aria-label="Evidence workspaces">
-        <div className="ev-ledger-head"><span>Question</span><span>Use it for</span><span /></div>
-        {PAGES.map(({ href, Icon, title, q, body }) => (
-          <Link key={href} href={href} className="ev-row" role="listitem">
-            <Icon size={19} strokeWidth={1.5} />
-            <div><b>{title}</b><span>{q}</span></div>
-            <p>{body}</p>
-            <span className="ev-open">Open</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+  const animals = rows.reduce((total, row) => total + (row.population ?? 0), 0);
+  const withCoverage = rows.filter((row) => row.abcCoverage !== null).length;
+
+  return <div className="ev evidence-surface">
+    <header>
+      <span className="product-kicker">Public evidence</span>
+      <h1>What is known,<br />state by state.</h1>
+      <p>Published population, sterilisation coverage and organisations in one place. Missing data stays visible, because absence is part of the picture.</p>
+    </header>
+    <section className="evidence-metrics" aria-label="Evidence at a glance">
+      <div><span>States with a record</span><b>{rows.length}</b><small>published population or an active organisation</small></div>
+      <div><span>Animals accounted for</span><b>{(animals / 10_000_000).toFixed(1)} Cr</b><small>across published state estimates</small></div>
+      <div><span>Coverage published</span><b>{withCoverage}/{rows.length}</b><small>states reporting sterilisation coverage</small></div>
+    </section>
+    <StateExplorer rows={rows} />
+    <footer className="evidence-next">
+      <div><b>Need to scope the work?</b><span>Use published figures to build a costed programme for a state.</span></div>
+      <Link href="/what-would-it-take" className="product-primary">Cost a programme <ArrowUpRight size={16} /></Link>
+    </footer>
+  </div>;
 }

@@ -161,6 +161,8 @@ html .spa.spa .spa-more{display:flex;align-items:center;justify-content:center;g
 html .spa.spa .spa-more:hover{border-color:#a7bee7;background:#f4f7fb;color:var(--sp-blue)}
 html .spa.spa .spa-global-report{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:10px 14px;border-radius:6px;background:var(--sp-blue);color:#fff;font-size:13px;font-weight:600;text-decoration:none;transition:background .18s ease,transform .18s ease}
 html .spa.spa .spa-global-report:hover{background:#183f9e;transform:translateY(-1px)}
+html .spa.spa .spa-switch{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:10px 11px;border:0;border-radius:6px;background:transparent;color:var(--sp-muted);font:600 13px var(--font-sans),sans-serif;cursor:pointer}
+html .spa.spa .spa-switch:hover{background:var(--sp-ground);color:var(--sp-blue)}
 html .spa.spa .spa-mobile-report{display:none}
 
 /* The home is an operations brief: signal, coverage, work requiring a
@@ -181,9 +183,11 @@ html .spa.spa .partner-overview .partner-greeting h1{font-size:clamp(30px,3vw,42
 /* Evidence is a usable research ledger. Rows preserve the working question
    and context instead of presenting six decorative destinations. */
 .ev{max-width:1120px!important;margin:auto}.ev header{padding-bottom:28px!important;border-bottom:1px solid var(--sp-line)}.ev h1{font-size:clamp(31px,3.4vw,46px)!important;letter-spacing:-.055em!important}.ev header p{font-size:15px!important;max-width:65ch!important}.ev-grid{display:none!important}.ev-ledger{margin-top:26px;border-top:1px solid var(--sp-line)}.ev-ledger-head,.ev-row{display:grid;grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;gap:18px;align-items:center}.ev-ledger-head{grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;padding:11px 14px;color:var(--sp-muted);font:11px var(--font-mono),monospace;letter-spacing:.09em;text-transform:uppercase}.ev-ledger-head span:first-child{grid-column:2}.ev-row{min-height:98px;padding:17px 14px;border-top:1px solid var(--sp-line);color:var(--sp-ink);text-decoration:none;transition:background .18s ease,padding .18s ease}.ev-row:hover{background:#f4f7fb;padding-left:20px}.ev-row svg{color:var(--sp-blue)}.ev-row b,.ev-row span{display:block}.ev-row b{font-size:16px;letter-spacing:-.025em}.ev-row div>span{margin-top:5px;color:var(--sp-blue);font-size:12px;font-weight:600;line-height:1.45}.ev-row p{margin:0;color:var(--sp-muted);font-size:13px;line-height:1.55}.ev-open{font-size:12px;font-weight:600;color:var(--sp-blue)}
+.evidence-surface .evidence-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:27px 0 34px;border-top:1px solid var(--sp-line);border-bottom:1px solid var(--sp-line)}.evidence-metrics>div{display:grid;gap:5px;padding:21px 22px;border-left:1px solid var(--sp-line)}.evidence-metrics>div:first-child{border-left:0;padding-left:0}.evidence-metrics span,.evidence-metrics small{font-size:12px;color:var(--sp-muted);line-height:1.45}.evidence-metrics b{font-size:31px;line-height:1.1;letter-spacing:-.055em;font-weight:600;color:var(--sp-ink)}.evidence-next{display:flex;align-items:center;justify-content:space-between;gap:25px;margin-top:32px;padding-top:28px;border-top:1px solid var(--sp-line)}.evidence-next b,.evidence-next span{display:block}.evidence-next b{font-size:16px}.evidence-next span{margin-top:5px;color:var(--sp-muted);font-size:13px}
 
 @media(max-width:900px){
  html .spa.spa .spa-global-report{display:none}
+ html .spa.spa .spa-switch{font-size:0;min-width:40px;justify-content:center;padding:8px}.spa-switch svg{width:18px;height:18px}
  html .spa.spa .spa-side>.spa-nav-context,html .spa.spa .spa-side>.spa-primary-nav,html .spa.spa .spa-side>.spa-side-foot{display:none}
  html .spa.spa .spa-phone-links{grid-template-columns:repeat(4,minmax(0,1fr));flex:4}
  html .spa.spa .spa-mobile-report{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;color:#fff;background:var(--sp-blue);text-decoration:none;font-size:10px;font-weight:600}
@@ -194,4 +198,5 @@ html .spa.spa .partner-overview .partner-greeting h1{font-size:clamp(30px,3vw,42
  .partner-record-tabs{gap:16px;margin-bottom:18px;overflow-x:auto}.partner-record-tabs a{white-space:nowrap}
  .partner-workspace-tabs{gap:16px;margin-bottom:20px;overflow-x:auto}.partner-workspace-tabs a{white-space:nowrap}
  .ev-ledger-head{display:none}.ev-row{grid-template-columns:22px 1fr auto;gap:13px;min-height:0;padding:18px 2px}.ev-row p{grid-column:2/4;font-size:13px}.ev-open{align-self:start;padding-top:3px}.ev-row:hover{padding-left:7px}
+ .evidence-surface .evidence-metrics{grid-template-columns:1fr;margin:22px 0 26px}.evidence-metrics>div,.evidence-metrics>div:first-child{padding:16px 0;border-left:0;border-top:1px solid var(--sp-line)}.evidence-metrics>div:first-child{border-top:0}.evidence-next{align-items:start;flex-direction:column;margin-top:26px;padding-top:22px}.evidence-next .product-primary{width:100%}
 }
