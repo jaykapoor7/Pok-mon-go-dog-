@@ -1,7 +1,7 @@
 import { PartnerOverview } from "@/components/partner/PartnerOverview";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Dashboard, StrayPaw Partner" };
+export const metadata = { title: "Today, StrayPaw Partner" };
 
 /* No server-side case fetch. This page is readable by anyone, and reading
    cases here meant reading every organisation's, rendered into the HTML

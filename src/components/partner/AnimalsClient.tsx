@@ -13,6 +13,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { SPECIES, speciesLabel, STATUS_META } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { RecordsTabs } from "@/components/partner/RecordsTabs";
 
 const FILTER =
   "min-h-[40px] rounded-md border border-black/[0.09] bg-transparent px-2 text-[13px] outline-none focus:border-paw-400 dark:border-white/[0.12]";
@@ -100,10 +101,11 @@ export function AnimalsClient() {
 
   return (
     <div>
-      <header className="mb-5 flex items-center justify-between gap-4">
+      <header className="mb-5">
+        <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Animals</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">Your organization&apos;s animal records, the longitudinal registry.</p>
+          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Records</h1>
+          <p className="mt-0.5 text-[13px] text-bark-500">Animals, care history and active casework, in one registry.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {animals.length > 0 && (
@@ -118,6 +120,8 @@ export function AnimalsClient() {
             <Plus className="h-4 w-4" /> New animal
           </button>
         </div>
+        </div>
+        <RecordsTabs />
       </header>
 
       {creating && <CreateAnimal onDone={() => { setCreating(false); load(); }} />}

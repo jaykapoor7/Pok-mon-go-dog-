@@ -6,10 +6,8 @@ import Link from "next/link";
 import { Plus, Minus, Maximize2 } from "lucide-react";
 import { MapAnimalDetails } from "./MapAnimalDetails";
 import { MapCanvas } from "@/components/map/MapCanvas";
-import { DogPhoto } from "@/components/ui/DogPhoto";
 import { orgAnimals } from "@/lib/programme";
-import { dogLabel, timeAgo, distanceMeters } from "@/lib/utils";
-import { formatPlace } from "@/lib/delhi";
+import { distanceMeters } from "@/lib/utils";
 import { STATUS_META } from "@/lib/platform/coverage";
 import type { Dog, FeedingZone } from "@/lib/types";
 import type { MapApi } from "@/components/map/MapLibreMap";
@@ -26,10 +24,6 @@ const BORDER = "rgba(255,255,255,0.07)";
 const BORDER_MED = "rgba(255,255,255,0.12)";
 
 // ── icons ───────────────────────────────────────────────────────────────────
-function ChevronRight({ size = 14 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3l4 4-4 4"/></svg>
-}
-
 // ── main component ───────────────────────────────────────────────────────────
 export function MapView({
   dogs: allDogs,
@@ -41,7 +35,6 @@ export function MapView({
   const [selected, setSelected] = useState<Dog | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [listOpen, setListOpen] = useState(true);
   const lastTrigger = useRef<HTMLElement | null>(null);
   /* Published by the map once it loads; until then the controls are disabled
      rather than present-but-inert. */
@@ -149,8 +142,6 @@ export function MapView({
     return allDogs;
   }, [allDogs, only]);
 
-  const recent = useMemo(() => [...dogs].sort((a, b) => +new Date(b.last_seen) - +new Date(a.last_seen)).slice(0, 20), [dogs]);
-
   const counts = useMemo(() => {
     const needsHelp = allDogs.filter((d) => d.needs_help).length;
     const sterilised = allDogs.filter((d) => d.sterilised).length;
@@ -204,7 +195,7 @@ export function MapView({
               map. Filters are direct views of the loaded record, not saved
               searches or another layer of navigation. */}
           <section className="sp-map-toolbar" aria-label="Map controls">
-            <div className="sp-map-title"><span className="spa-mono">Neighbourhood map</span><h2>Find a familiar face.</h2></div>
+            <div className="sp-map-title"><span className="spa-mono">Street records</span><h2>Map the work.</h2></div>
             <div className="sp-map-filters" role="group" aria-label="Filter animals">
               {counts.map((k) => (
                 <button
@@ -291,19 +282,7 @@ export function MapView({
             router.push(point ? `/report?lat=${point.lat}&lng=${point.lng}` : "/report");
           }}><Plus size={18}/> Report here</button>
 
-          <section className={`sp-map-results ${listOpen ? "" : "is-collapsed"}`} aria-label="Animal records">
-            <button className="sp-map-results-heading" onClick={() => setListOpen(v => !v)} aria-expanded={listOpen} aria-controls="map-animal-list">
-              <span>{dogs.length} animal{dogs.length === 1 ? "" : "s"} loaded</span><span>{listOpen ? "Hide list" : "Show list"}</span>
-            </button>
-            {listOpen && <div id="map-animal-list" className="sp-map-result-list">
-              {recent.length ? recent.map(d => <button key={d.id} className={`sp-map-result ${selected?.id === d.id ? "is-selected" : ""}`} aria-label={`View ${dogLabel(d)}`} aria-pressed={selected?.id === d.id} onClick={() => handleSelect(d)}>
-                <DogPhoto src={d.cover_photo} alt="" seed={d.id} className="sp-map-result-photo"/>
-                <span className="sp-map-result-copy"><b>{dogLabel(d)}</b><span>{formatPlace(d.zone, d.city) || "Location on map"}</span><small className={d.needs_help ? "needs-help" : ""}>{d.needs_help ? "Needs help" : `Seen ${timeAgo(d.last_seen)}`}</small></span>
-                <ChevronRight/>
-              </button>) : <div className="sp-map-empty"><b>{only ? "No matching records." : "A street waiting to be known."}</b><p>{only ? "Try another filter to see more animals." : "No animal records are available here yet. A sighting is a place to start."}</p>{only ? <button onClick={() => setOnly(null)}>Show all animals</button> : <Link href="/report">Report a sighting →</Link>}</div>}
-              {dogs.length > 20 && <p className="sp-map-list-note">The 20 most recently seen. Explore the map for more.</p>}
-            </div>}
-          </section>
+          {dogs.length === 0 && <div className="sp-map-empty-state" role="status"><b>{only ? "No animal records match this filter." : "No animal records here yet."}</b>{only ? <button onClick={() => setOnly(null)}>Show all records</button> : <Link href="/report">Report a sighting</Link>}</div>}
           {drawerOpen && selected && <aside className="sp-map-detail" aria-label="Animal details">
             <MapAnimalDetails key={selected.id} dog={selected} distance={dist === null ? null : fmtDist(dist)} onClose={closeDrawer}/>
           </aside>}

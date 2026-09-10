@@ -80,17 +80,17 @@ const EVIDENCE = [
    open StrayPaw to look at, and without an entry for it the only way back
    from a sub-page was the browser's back button. */
 const WORKSPACE = [
-  { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
+  { href: "/partner", label: "Today", Icon: LayoutGrid },
   { href: "/partner/map", label: "Map", Icon: MapPin },
-  { href: "/partner/animals", label: "Animals", Icon: Database },
-  { href: "/partner/drives", label: "Programmes", Icon: CalendarRange },
+  { href: "/partner/animals", label: "Records", Icon: Database },
+  { href: "/partner/field", label: "Field work", Icon: CalendarRange },
 ];
 
 const WORKSPACE_TOOLS = [
   { href: "/partner/incoming", label: "Incoming", Icon: Inbox },
   { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
   { href: "/partner/medical", label: "Care records", Icon: Stethoscope },
-  { href: "/partner/field", label: "Field activity", Icon: MapPin },
+  { href: "/partner/drives", label: "Programmes", Icon: CalendarRange },
   { href: "/partner/team", label: "Team", Icon: Users },
   { href: "/partner/reports", label: "Coverage and reports", Icon: FileText },
   { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
@@ -235,7 +235,7 @@ export function AppShell({
 
   const inWorkspace = pathname.startsWith("/partner");
   const primaryNav = inWorkspace ? WORKSPACE : COMMUNITY;
-  const mobileNav = inWorkspace ? WORKSPACE.filter(({ href }) => href !== "/partner/drives") : COMMUNITY;
+  const mobileNav = inWorkspace ? WORKSPACE.filter(({ href }) => href !== "/partner/field") : COMMUNITY;
   const toolNav = inWorkspace ? WORKSPACE_TOOLS : EVIDENCE;
 
   /* Placed after every hook so the hook order stays stable either way. */

@@ -81,3 +81,8 @@
 }
 @keyframes map-detail-up { from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1} }
 @media(prefers-reduced-motion:reduce){.sp-map-detail{animation:none}.sp-map *{scroll-behavior:auto}}
+
+/* When a filter has no result, the map stays the surface. This is a compact
+   inline state, not a second list layered over the map. */
+.sp-map-empty-state{position:absolute;top:142px;left:16px;z-index:11;display:flex;align-items:center;gap:13px;max-width:calc(100% - 100px);padding:11px 14px;border-left:3px solid #e16a34;background:#fff;color:#26324a;box-shadow:0 4px 16px #0b102016;font-size:12px}.sp-map-empty-state b{font-weight:600}.sp-map-empty-state a,.sp-map-empty-state button{border:0;background:transparent;padding:0;color:#2457ce;font:600 12px var(--font-sans),sans-serif;white-space:nowrap;cursor:pointer}
+@media(max-width:800px){.sp-map-empty-state{top:136px;left:12px;right:58px;max-width:none;gap:9px;padding:10px 12px;font-size:11px}.sp-map-empty-state b{line-height:1.35}.sp-map-empty-state a,.sp-map-empty-state button{font-size:11px}}

@@ -36,14 +36,10 @@ test("public map filters and list remain operable without records", async ({ pag
   const filter = page.getByRole("button", { name: /need help/i });
   await filter.click();
   await expect(filter).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("No matching records.")).toBeVisible();
-  await page.getByRole("button", { name: "Show all animals" }).click();
+  await expect(page.getByText("No animal records match this filter.")).toBeVisible();
+  await page.getByRole("button", { name: "Show all records" }).click();
   await expect(filter).toHaveAttribute("aria-pressed", "false");
-  const list = page.getByRole("button", { name: /Hide list/ });
-  await list.click();
   await expect(page.locator("#map-animal-list")).toHaveCount(0);
-  await page.getByRole("button", { name: /Show list/ }).click();
-  await expect(page.locator("#map-animal-list")).toBeVisible();
 });
 
 for (const route of ["/", "/app", "/map", "/partner", "/partner/animals", "/partner/medical", "/partner/incoming", "/partner/team", "/partner/reports"]) {
