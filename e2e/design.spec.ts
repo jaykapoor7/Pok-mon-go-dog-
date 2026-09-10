@@ -47,6 +47,7 @@ test("community choice stays account-free", async ({ page }) => {
 });
 
 test("community home starts local rather than presenting a national tally as nearby", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("straypaw.role", "individual"));
   await page.goto("/app");
   await expect(page.getByRole("heading", { name: "Start with your street." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Use my location" })).toBeVisible();
