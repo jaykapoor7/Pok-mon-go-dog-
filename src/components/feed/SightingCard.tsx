@@ -81,9 +81,9 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{reporter}</p>
-          <p className="flex items-center gap-1 text-xs text-bark-400">
+          <Link href={`/map?lat=${sighting.lat}&lng=${sighting.lng}`} className="flex items-center gap-1 text-xs text-bark-400 hover:text-paw-600">
             <MapPin className="h-3 w-3" /> {sighting.zone} · {timeAgo(sighting.created_at)}
-          </p>
+          </Link>
         </div>
         <div className="flex items-center gap-1.5">
           {accountOwned && (

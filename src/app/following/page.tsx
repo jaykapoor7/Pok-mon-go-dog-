@@ -4,8 +4,8 @@ import { getAllDogs } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Following, StrayPaw",
-  description: "The animals you follow, kept on this device.",
+  title: "Saved animals, StrayPaw",
+  description: "Animals you saved and reports you filed, kept together for follow-up.",
 };
 
 export default async function FollowingPage() {
@@ -15,16 +15,16 @@ export default async function FollowingPage() {
     <AppShell>
       <div className="spa-head">
         <div>
-          <span className="spa-mono">Your area / following</span>
+          <span className="spa-mono">Your follow-up</span>
           <h1>
-            Animals you&apos;re <em>following.</em>
+            Saved animals and <em>your reports.</em>
           </h1>
         </div>
       </div>
 
       <p className="spa-lede">
-        Kept on this device, so it works without an account. Clearing site data
-        clears the list.
+        Saved animals stay on this device. When you sign in, reports you filed
+        appear here too, with their latest review status.
       </p>
 
       <FollowingClient dogs={dogs} />

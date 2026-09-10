@@ -101,9 +101,9 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
               {org.name}
             </h1>
             {location && (
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-bark-500">
+              <Link href="/map" className="mt-1 flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
                 <MapPin className="h-4 w-4" /> {location}
-              </p>
+              </Link>
             )}
           </div>
         </div>
@@ -126,7 +126,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
         {org.areas_of_work && org.areas_of_work.length > 0 && (
           <section className="mt-8">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-bark-400">
-              Areas of work
+              Operating area and current work
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {org.areas_of_work.map((a) => (

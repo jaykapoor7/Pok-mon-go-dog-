@@ -18,14 +18,12 @@ import {
   CalendarRange,
   Database,
   Heart,
-  Inbox,
   LayoutGrid,
   MapPin,
   Radio,
   Repeat2,
   ScanSearch,
   Search,
-  Users,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
@@ -50,9 +48,6 @@ const NGO_NAV = [
   { href: "/report", label: "Report", Icon: Radio },
   { href: "/partner/animals", label: "Records", Icon: Database },
   { href: "/partner/field", label: "Field work", Icon: CalendarRange },
-  { href: "/partner/incoming", label: "Incoming", Icon: Inbox },
-  { href: "/partner/drives", label: "Programme drives", Icon: CalendarRange },
-  { href: "/partner/team", label: "Team", Icon: Users },
 ];
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
    a hand-maintained route list, while several pages also mount one directly;

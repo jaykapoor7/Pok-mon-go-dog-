@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, X } from "lucide-react";
+import { ArrowUpRight, Check, ClipboardPlus, X } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { dogLabel, timeAgo } from "@/lib/utils";
 import { formatPlace } from "@/lib/delhi";
@@ -47,6 +47,7 @@ export function MapAnimalDetails({ dog, distance, onClose }: { dog: Dog; distanc
       </dl>
       {!!dog.community_notes?.length && <section className="sp-map-notes"><h3>From the community</h3><p>{dog.community_notes[0]}</p></section>}
       <Link className="sp-map-profile-link" href={`/dog/${dog.id}`}>Open full record <ArrowUpRight size={17}/></Link>
+      <Link className="sp-map-case-link" href={`/partner/cases/new?dogId=${dog.id}`}><ClipboardPlus size={16}/> Create case</Link>
       <details className="sp-map-cost"><summary>Sterilisation cost reference</summary>
         <b>{inr(rate?.value ?? UNIT_COSTS.sterilisation.value)} per animal</b>
         <p>{rate ? `${rate.source}, ${rate.year}. Published rate for ${rate.city}, not a StrayPaw estimate.` : `AWBI-notified ceiling, ${UNIT_COSTS.sterilisation.year}. No local rate is available; this is not a local quote.`}</p>
@@ -56,7 +57,7 @@ export function MapAnimalDetails({ dog, distance, onClose }: { dog: Dog; distanc
     <div className="sp-map-detail-actions">
       <button onClick={sawToday} disabled={saving || saved}>{saved ? <><Check size={17}/> Sighting recorded</> : saving ? "Saving sighting…" : "I saw this animal today"}</button>
       {error && <p role="alert">{error}</p>}
-      <p>Adds a sighting, not a request for help. <Link href="/report">Report a problem</Link></p>
+      <p>Adds a sighting, not a request for help. <Link href={`/partner/cases/new?dogId=${dog.id}`}>Create a case</Link> if NGO follow-up is needed.</p>
     </div>
   </>;
 }

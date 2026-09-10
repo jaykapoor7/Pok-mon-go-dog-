@@ -7,6 +7,7 @@ const TABS = [
   { href: "/partner/field", label: "Today" },
   { href: "/partner/incoming", label: "Incoming" },
   { href: "/partner/drives", label: "Programme drives" },
+  { href: "/partner/team", label: "Team" },
   { href: "/partner/reports", label: "Coverage" },
 ];
 

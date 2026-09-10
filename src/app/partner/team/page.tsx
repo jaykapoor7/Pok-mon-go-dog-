@@ -1,4 +1,5 @@
 import { InviteCodesClient } from "@/components/partner/InviteCodesClient";
+import { FieldTabs } from "@/components/partner/FieldTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Team, StrayPaw Partner" };
@@ -25,6 +26,7 @@ export default function PartnerTeamPage() {
           attribute reports to their name.
         </p>
       </header>
+      <FieldTabs />
       <InviteCodesClient />
     </div>
   );

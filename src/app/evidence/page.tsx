@@ -63,5 +63,9 @@ export default function EvidencePage() {
       <div><b>Need to scope the work?</b><span>Use published figures to build a costed programme for a state.</span></div>
       <Link href="/what-would-it-take" className="product-primary">Cost a programme <ArrowUpRight size={16} /></Link>
     </footer>
+    <nav className="evidence-context-links" aria-label="Related evidence tools">
+      <Link href="/needs">See local needs</Link>
+      <Link href="/outcomes">See verified outcomes</Link>
+    </nav>
   </div>;
 }

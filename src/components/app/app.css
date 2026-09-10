@@ -1931,6 +1931,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wc-dots span.on { background: var(--electric-ink); }
 .wc-actions { display: flex; gap: 10px; }
 
+.my-report-history{margin:0 0 28px;border-top:1px solid var(--bone);border-bottom:1px solid var(--bone)}.my-report-history .spa-panel-head{padding:14px 0;margin:0}.my-report-history .spa-panel-head span{font-size:12px;color:#637083}.my-report-list{border-top:1px solid var(--bone)}.my-report-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--bone);color:var(--ink);text-decoration:none}.my-report-row:last-child{border-bottom:0}.my-report-row:hover .my-report-copy b{color:var(--electric-ink)}.my-report-status{font:600 10px var(--font-mono),monospace;letter-spacing:.06em;text-transform:uppercase;color:#8b5a2b;background:#fff5e8;padding:5px 6px}.my-report-status.live{color:#1d6a4e;background:#e8f7ef}.my-report-copy{min-width:0}.my-report-copy b,.my-report-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.my-report-copy b{font-size:13px}.my-report-copy small{margin-top:4px;color:#637083;font-size:12px}
+
 @media (max-width: 650px) {
   .wc { padding: 26px 20px 22px; }
   .wc-title { font-size: 25px; }

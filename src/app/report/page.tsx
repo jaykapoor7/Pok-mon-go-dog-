@@ -366,10 +366,11 @@ export default function ReportPage() {
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.1 }} className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
                 <Clock className="h-9 w-9" />
               </motion.div>
-              <h2 className="font-display text-2xl">Your sighting is pending review</h2>
-              <p className="mt-2 text-sm text-bark-500">Thank you for helping track India&apos;s street animals. We&apos;ll publish it to the map once it clears a quick review.</p>
+              <h2 className="font-display text-2xl">Your sighting is saved</h2>
+              <p className="mt-2 text-sm text-bark-500">It is now waiting for a quick review before it appears on the public map. Keep an eye on your saved animals for the next update.</p>
               <div className="mt-6 space-y-2">
-                <Link href="/map" className="btn-primary w-full py-3">Back to the map <ArrowRight className="h-4 w-4" /></Link>
+                <Link href="/following" className="btn-primary w-full py-3">See saved animals <ArrowRight className="h-4 w-4" /></Link>
+                <Link href="/orgs" className="btn-ghost w-full py-3">Find an organisation near you</Link>
                 <button onClick={resetForm} className="btn-ghost w-full py-3">Report another animal</button>
               </div>
             </motion.div>

@@ -8,10 +8,14 @@ import { useFollows } from "@/lib/follows";
 import { Constellation } from "@/components/site/vectors";
 import type { Dog } from "@/lib/types";
 import { formatPlace } from "@/lib/delhi";
-import { dogLabel } from "@/lib/utils";
+import { dogLabel, timeAgo } from "@/lib/utils";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { getMySightings } from "@/lib/actions";
 
 export function FollowingClient({ dogs }: { dogs: Dog[] }) {
   const { ids } = useFollows();
+  const { user } = useAuth();
+  const [reports, setReports] = useState<any[]>([]);
   /* Null until the browser answers, and it may never: location is a
      permission, not a fact. Everything below works without it. */
   const [here, setHere] = useState<{ lat: number; lng: number } | null>(null);
@@ -29,9 +33,29 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user?.id) { setReports([]); return; }
+    let live = true;
+    getMySightings(user.id).then((rows) => live && setReports(rows));
+    return () => { live = false; };
+  }, [user?.id]);
+
   // Follows are kept on-device, so the list is resolved client-side against
   // the animals passed in from the server.
   const followed = dogs.filter((d) => ids.includes(String(d.id)));
+  const reportHistory = user && reports.length > 0 ? <section className="my-report-history">
+    <div className="spa-panel-head"><b>Reports you filed</b><span>{reports.length} on your account</span></div>
+    <div className="my-report-list">
+      {reports.slice(0, 8).map((report) => {
+        const href = report.dog_id ? `/dog/${report.dog_id}` : `/map?lat=${report.lat}&lng=${report.lng}`;
+        return <Link key={report.id} href={href} className="my-report-row">
+          <span className={report.status === "live" ? "my-report-status live" : "my-report-status"}>{report.status === "live" ? "On the map" : "In review"}</span>
+          <span className="my-report-copy"><b>{report.nickname || "Street animal sighting"}</b><small>{report.zone || "Location saved"} · {timeAgo(report.created_at)}</small></span>
+          <ArrowUpRight size={15} />
+        </Link>;
+      })}
+    </div>
+  </section> : null;
 
   if (ids.length === 0) {
     /* An empty page teaches nothing. Real animals from the same records,
@@ -65,6 +89,7 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
 
     return (
       <>
+        {reportHistory}
         <div className="spa-empty">
           <Constellation size={132} />
           <h2>No animals followed yet</h2>
@@ -144,8 +169,10 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
   }
 
   return (
-    <div className="follow-grid">
-      {followed.map((dog) => {
+    <>
+      {reportHistory}
+      <div className="follow-grid">
+        {followed.map((dog) => {
         const place = formatPlace(dog.zone, dog.city);
         return (
           <Link href={`/dog/${dog.id}`} key={dog.id} className="follow-card">
@@ -175,7 +202,8 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
             </div>
           </Link>
         );
-      })}
-    </div>
+        })}
+      </div>
+    </>
   );
 }
