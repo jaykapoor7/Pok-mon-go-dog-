@@ -125,6 +125,8 @@ html .spa.spa .spa-more{display:flex;flex:1;flex-direction:column;align-items:ce
 html .spa.spa .spa-menu-btn{display:none}
 html .spa.spa .spa-tour{display:none}
 html .spa.spa .spa-exit{padding:8px;font-size:11px}
+html .spa.spa.spa-reporting .spa-search,html .spa.spa.spa-reporting .spa-top-right,html .spa.spa.spa-reporting .spa-side{display:none}
+html .spa.spa.spa-reporting .spa-body{padding-bottom:0}
 .partner-work-grid{grid-template-columns:1fr}.report-workspace{grid-template-columns:1fr;max-width:580px;gap:20px}.report-aside{padding:0}.report-aside h1{font-size:30px}.report-aside>p{margin:8px 0}.report-step-list{display:flex;gap:0;margin:20px 0 0}.report-step-list li{flex:1;flex-direction:column;align-items:start;gap:7px;padding:10px 0;font-size:12px;border-bottom:2px solid var(--sp-line)}.report-step-list li[aria-current=step]{border-color:var(--sp-blue)}
 }
 @media(max-width:600px){
@@ -149,6 +151,17 @@ html .spa.spa .qa-card span{display:none}
 .partner-section{padding:18px}.partner-map-panel{height:300px}
 .report-form{padding:20px 16px}.report-aside .product-kicker{font-size:11px}
 html .spa.spa .report-workspace{margin:0 -4px}
+/* When someone is standing near an animal, reporting is the whole screen.
+   The product chrome returns after completion; it does not compete now. */
+html .spa.spa.spa-reporting .spa-top{height:62px;min-height:62px;padding:0 16px;flex-wrap:nowrap}
+html .spa.spa.spa-reporting .spa-search,html .spa.spa.spa-reporting .spa-top-right,html .spa.spa.spa-reporting .spa-side{display:none}
+html .spa.spa.spa-reporting .spa-body{padding-bottom:0}
+html .spa.spa.spa-reporting .spa-main:not(.flush){padding:18px 16px 28px}
+html .spa.spa.spa-reporting .report-workspace{gap:14px;margin:0;max-width:none}
+html .spa.spa.spa-reporting .report-aside h1{font-size:28px}
+html .spa.spa.spa-reporting .report-step-list{margin:14px 0 0}
+html .spa.spa.spa-reporting .report-form{border-radius:8px;padding:18px 14px}
+html .spa.spa.spa-reporting .report-form .report-upload{min-height:170px}
 }
 @media(prefers-reduced-motion:reduce){.spa *,.spa *::before,.spa *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.product-primary:hover{transform:none}}
 

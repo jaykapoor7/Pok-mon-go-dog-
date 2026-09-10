@@ -25,6 +25,7 @@ const OWN_CHROME = new Set<string>([
   // Someone arriving with a code needs the code box, not the console
   // around it and not the role picker in front of it.
   "/join",
+  "/access",
   // Moderation is its own console. Wrapping it in the app's console put a
   // sidebar, a search bar and a role picker around a sidebar, which is
   // where most of the confusion on this page came from.

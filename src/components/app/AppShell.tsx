@@ -145,6 +145,7 @@ export function AppShell({
 
   const isNgo = role === "ngo" || pathname.startsWith("/partner");
   const isFeeder = role === "feeder" || pathname.startsWith("/feeder");
+  const isReporting = pathname.startsWith("/report");
   const primaryNav = isNgo ? NGO_NAV : isFeeder ? FEEDER_NAV : COMMUNITY_NAV;
   const mobileNav = isNgo
     ? primaryNav.filter(({ label }) => ["Dashboard", "Map", "Records", "Field work"].includes(label))
@@ -162,7 +163,7 @@ export function AppShell({
 
   return (
    <InShell.Provider value={true}>
-    <div className="spa">
+    <div className={`spa${isReporting ? " spa-reporting" : ""}`}>
       <Welcome />
       <a href="#spa-main" className="skip-link">
         Skip to content
