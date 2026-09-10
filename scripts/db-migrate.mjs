@@ -33,6 +33,8 @@ const SETS = {
   pilot: ["RUN-PILOT-MIGRATIONS.sql", ...districts(), "wards-chennai.sql"],
   /* Just the density map: rebuilds the wards table, then reloads it. */
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
+  /* A narrowly scoped live update for personal community/feeder access. */
+  personal: ["personal-access-codes.sql"],
 };
 
 function districts() {
