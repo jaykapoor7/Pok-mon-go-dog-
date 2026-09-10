@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, Plus, ClipboardList, PawPrint, HeartHandshake, ClipboardCheck, Activity } from "lucide-react";
+import { ArrowUpRight, Plus, PawPrint } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrg } from "@/lib/actions";
 import { getPartnerCases } from "@/lib/cases";
@@ -11,7 +11,6 @@ import { programmeBreakdown, type Breakdown } from "@/lib/campaigns";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { ProgrammeOverview } from "@/components/partner/ProgrammeOverview";
-import { QuickActions } from "@/components/partner/QuickActions";
 import { isOverdue, speciesLabel, type Case, type CaseStatus, type Dog, type NGO } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -150,8 +149,7 @@ export function PartnerOverview() {
         </Link>
       )}
 
-      {/* Operational focus + Response health */}
-      <QuickActions />
+      <ProgrammeOverview />
       <div className="partner-work-grid">
         <section className="partner-section">
           <SectionHead title="Needs attention" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all cases" />
@@ -172,7 +170,6 @@ export function PartnerOverview() {
         <TasksSection compact />
       </section>
 
-      <ProgrammeOverview />
       <div className="partner-work-grid">
         <section className="partner-section">
           <SectionHead title="Case activity" sub="New cases logged over time." />

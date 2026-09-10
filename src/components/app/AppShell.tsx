@@ -15,30 +15,22 @@ import {
   ArrowUpRight,
   Bookmark,
   Building2,
-  Calculator,
   CalendarRange,
-  ChevronDown,
   ClipboardList,
   Database,
   FileText,
   FolderOpen,
   Heart,
-  HandHeart,
   HelpCircle,
-  Home,
   Inbox,
   LayoutGrid,
-  ListChecks,
   MapPin,
   Menu,
   Radio,
   ScanSearch,
   Search,
-  ShieldCheck,
   Stethoscope,
-  Upload,
   Users,
-  Wrench,
   X,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
@@ -65,10 +57,9 @@ import "./app.css";
    it is a list of organisations. Home comes first because it is where
    opening the app should put you. */
 const COMMUNITY = [
-  { href: "/app", label: "Home", Icon: LayoutGrid },
-  { href: "/map", label: "Map", Icon: MapPin },
-  { href: "/report", label: "Report an animal", Icon: Radio },
-  { href: "/following", label: "Animals I follow", Icon: Bookmark },
+  { href: "/app", label: "Overview", Icon: LayoutGrid },
+  { href: "/map", label: "Street map", Icon: MapPin },
+  { href: "/following", label: "Saved animals", Icon: Bookmark },
 ];
 
 /* The evidence chain, in the order it actually runs: what is missing, what is
@@ -77,12 +68,10 @@ const COMMUNITY = [
    purpose with a question, not places you pass through daily, and six of
    them in a sidebar is most of the reason it needed collapsing. */
 const EVIDENCE = [
-  { href: "/orgs", label: "Organisations", Icon: Building2 },
-  { href: "/get-involved", label: "Volunteer", Icon: Heart },
-  { href: "/what-would-it-take", label: "Programme costs", Icon: Calculator },
-  { href: "/evidence", label: "Research and gaps", Icon: ScanSearch },
-  { href: "/wards", label: "Ward density", Icon: MapPin },
-  { href: "/data", label: "Published data", Icon: Database },
+  { href: "/partner", label: "Team workspace", Icon: Building2 },
+  { href: "/evidence", label: "Research and planning", Icon: ScanSearch },
+  { href: "/orgs", label: "Find an organisation", Icon: Heart },
+  { href: "/feed", label: "Recent activity", Icon: Radio },
 ];
 
 /* Field-operations surface. Same shell, deeper records.
@@ -92,11 +81,16 @@ const EVIDENCE = [
    from a sub-page was the browser's back button. */
 const WORKSPACE = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
-  { href: "/partner/incoming", label: "Incoming", Icon: Inbox },
-  { href: "/partner/drives", label: "Drives", Icon: CalendarRange },
-  { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
+  { href: "/partner/map", label: "Map", Icon: MapPin },
   { href: "/partner/animals", label: "Animals", Icon: Database },
-  { href: "/partner/field", label: "Field work", Icon: MapPin },
+  { href: "/partner/drives", label: "Programmes", Icon: CalendarRange },
+];
+
+const WORKSPACE_TOOLS = [
+  { href: "/partner/incoming", label: "Incoming", Icon: Inbox },
+  { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
+  { href: "/partner/medical", label: "Care records", Icon: Stethoscope },
+  { href: "/partner/field", label: "Field activity", Icon: MapPin },
   { href: "/partner/team", label: "Team", Icon: Users },
   { href: "/partner/reports", label: "Coverage and reports", Icon: FileText },
   { href: "/partner/resources", label: "Resources", Icon: FolderOpen },
@@ -112,19 +106,6 @@ const WORKSPACE = [
    well not exist. These four stay out; the other thirteen live one tap
    away, with their group headings intact, which is more structure than the
    flattened row ever had. */
-const MOBILE_PRIMARY = new Set(["/app", "/map", "/report", "/partner"]);
-
-/* One column, three sections, only one of them expanded at a time. */
-const SECTIONS: {
-  key: string;
-  label: string;
-  items: { href: string; label: string; Icon: typeof Home }[];
-}[] = [
-  { key: "community", label: "Explore", items: COMMUNITY },
-  { key: "evidence", label: "Explore more", items: EVIDENCE },
-  { key: "workspace", label: "Your organisation", items: WORKSPACE },
-];
-
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
    a hand-maintained route list, while several pages also mount one directly;
    whenever those two disagree the console renders inside itself. Rather than
@@ -146,7 +127,6 @@ export function AppShell({
      one holding the current page"; after that it is whatever the person
      chose. Opening one never closes another: somebody who wants two open
      is telling you they work across both. */
-  const [openSections, setOpenSections] = useState<Set<string> | null>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -253,6 +233,11 @@ export function AppShell({
       ? pathname === href
       : pathname.startsWith(href);
 
+  const inWorkspace = pathname.startsWith("/partner");
+  const primaryNav = inWorkspace ? WORKSPACE : COMMUNITY;
+  const mobileNav = inWorkspace ? WORKSPACE.filter(({ href }) => href !== "/partner/drives") : COMMUNITY;
+  const toolNav = inWorkspace ? WORKSPACE_TOOLS : EVIDENCE;
+
   /* Placed after every hook so the hook order stays stable either way. */
   if (nested) return <>{children}</>;
 
@@ -323,11 +308,9 @@ export function AppShell({
         </form>
 
         <div className="spa-top-right">
+          <Link href="/report" className="spa-global-report"><Radio size={16} /> Report</Link>
           {/* Up here rather than in the side nav's foot, which was carrying
               four controls and a role chip in a 208px column. */}
-          <button type="button" className="spa-tour" onClick={openTour}>
-            <HelpCircle size={14} /> <span>Show me around</span>
-          </button>
           <Link href="/" className="spa-exit">
             <ArrowUpRight size={13} /> Main site
           </Link>
@@ -344,86 +327,20 @@ export function AppShell({
         />
 
         <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
-          <Link href="/report" className="spa-report-shortcut"><Radio size={17}/> Report a sighting</Link>
-
-          {SECTIONS.map(({ key, label, items }) => {
-            const links = prioritise(items);
-            const here = links.some(({ href }) => isActive(href));
-            /* Starts with the section holding the current page open, so 23
-               links are not all in one column at once. After that it is
-               whatever the person opened, and opening one never shuts
-               another. */
-            /* Everything is open. Fourteen links across three labelled
-               groups does not need hiding, and a person should not have to
-               find a control before they can find a page. The collapse is
-               kept only as a preference somebody can set. */
-            const shown = openSections === null ? (here || key === "community" && !pathname.startsWith("/partner")) : openSections.has(key);
-            return (
-              <div key={key} className="spa-sect">
-                <button
-                  type="button"
-                  className={`spa-side-label ${shown ? "on" : ""}`}
-                  aria-expanded={shown}
-                  onClick={() =>
-                    setOpenSections((prev) => {
-                      /* First click starts from what is on screen now, so
-                         nothing jumps shut underneath them. */
-                      const base =
-                        prev ??
-                        new Set(
-                          SECTIONS.filter((sec) =>
-                            prioritise(sec.items).some((l) => isActive(l.href))
-                          ).map((sec) => sec.key)
-                        );
-                      const next = new Set(base);
-                      if (next.has(key)) next.delete(key);
-                      else next.add(key);
-                      return next;
-                    })
-                  }
-                >
-                  <span>{label}</span>
-                  <span className="spa-side-count">
-                    {links.length}
-                    <ChevronDown size={13} />
-                  </span>
-                </button>
-                {shown &&
-                  links.map(({ href, label: l, Icon }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      aria-current={isActive(href) ? "page" : undefined}
-                      className={`${isActive(href) ? "active" : ""}${
-                        MOBILE_PRIMARY.has(href) ? " spa-primary" : ""
-                      }`}
-                      onClick={() => setOpen(false)}
-                    >
-                      <Icon size={15} />
-                      {l}
-                    </Link>
-                  ))}
-              </div>
-            );
-          })}
-
-
-          <div className="spa-phone-links">
-            {[{href:"/app",label:"Home",Icon:LayoutGrid},{href:"/map",label:"Map",Icon:MapPin},{href:"/report",label:"Report",Icon:Radio},{href:"/partner",label:"Workspace",Icon:Building2}].map(({href,label,Icon}) => <Link key={href} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+          <p className="spa-nav-context">{inWorkspace ? "Team workspace" : "Neighbourhood"}</p>
+          <div className="spa-primary-nav">
+            {prioritise(primaryNav).map(({ href, label, Icon }) => <Link key={href} href={href} aria-current={isActive(href) ? "page" : undefined} className={isActive(href) ? "active" : ""} onClick={() => setOpen(false)}><Icon size={17}/>{label}</Link>)}
           </div>
-          {/* Phone only. The strip carries four destinations; this opens the
-              remaining thirteen, grouped the way the desktop column groups
-              them.
 
-              A real Sheet rather than the CSS overlay this used to be: it
-              traps focus, closes on Escape, locks the page behind it and
-              returns focus to this button afterwards, none of which a
-              position:fixed panel does on its own. */}
+          <div className={`spa-phone-links ${inWorkspace ? "is-workspace" : ""}`}>
+            {mobileNav.map(({href,label,Icon}) => <Link key={href} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+          </div>
+          <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting"><Radio size={21}/><span>Report</span></Link>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <button type="button" className="spa-more">
+              <button type="button" className="spa-more" aria-label="Open more tools">
                 <Menu size={15} />
-                All sections
+                <span>More</span>
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[86vw] max-w-[340px] overflow-y-auto p-0">
@@ -432,37 +349,18 @@ export function AppShell({
                   All sections
                 </SheetTitle>
                 <SheetDescription className="text-xs">
-                  Everywhere you can go from here.
+                  Secondary tools and reference material.
                 </SheetDescription>
               </SheetHeader>
               <div className="border-b px-5 py-4"><ProfilePanel onNavigate={() => setOpen(false)} /></div>
               <div className="flex flex-col gap-1 px-3 py-4">
-                {SECTIONS.map(({ key, label, items }) => {
-                  const links = prioritise(items);
-                  return (
-                    <div key={key} className="flex flex-col gap-1">
-                      <p className="spa-mono mt-3 flex items-center justify-between px-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                        {label}
-                        <Badge variant="secondary" className="tabular-nums">
-                          {links.length}
-                        </Badge>
-                      </p>
-                      {links.map(({ href, label: l, Icon }) => (
-                        <Button
-                          key={href}
-                          asChild
-                          variant={isActive(href) ? "secondary" : "ghost"}
-                          className="justify-start gap-2.5"
-                        >
-                          <Link href={href} onClick={() => setOpen(false)}>
-                            <Icon size={15} />
-                            {l}
-                          </Link>
-                        </Button>
-                      ))}
-                    </div>
-                  );
-                })}
+                <div className="flex flex-col gap-1">
+                  <p className="spa-mono mt-3 flex items-center justify-between px-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    {inWorkspace ? "Workspace tools" : "Explore more"}
+                    <Badge variant="secondary" className="tabular-nums">{toolNav.length}</Badge>
+                  </p>
+                  {prioritise(toolNav).map(({ href, label, Icon }) => <Button key={href} asChild variant={isActive(href) ? "secondary" : "ghost"} className="justify-start gap-2.5"><Link href={href} onClick={() => setOpen(false)}><Icon size={15}/>{label}</Link></Button>)}
+                </div>
                 <Button variant="ghost" className="mt-4 justify-start" onClick={() => { setOpen(false); openTour(); }}><HelpCircle size={16}/> Show me around</Button>
               </div>
             </SheetContent>

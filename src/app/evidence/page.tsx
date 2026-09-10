@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   Calculator,
   FileText,
-  ListChecks,
   ScanSearch,
   ShieldCheck,
   Wrench,
@@ -29,16 +28,9 @@ const PAGES = [
   {
     href: "/gaps",
     Icon: ScanSearch,
-    title: "Where data is missing",
-    q: "Which districts has nobody counted?",
-    body: "Absence shown as clearly as presence. A district with no data is not a district without need, and this is usually where a programme should be scoped.",
-  },
-  {
-    href: "/needs",
-    Icon: ListChecks,
-    title: "What areas need",
-    q: "What does this place's own data say it needs?",
-    body: "Sterilisation, vaccination, feeding, treatment, ranked by what the records for that area actually show.",
+    title: "Coverage and gaps",
+    q: "What is known, and what still needs to be counted?",
+    body: "District coverage, unanswered questions and the places where a programme needs better field evidence before it can be planned responsibly.",
   },
   {
     href: "/what-would-it-take",
@@ -76,19 +68,20 @@ export default function EvidencePage() {
       <header>
         <h1>The evidence</h1>
         <p>
-          Six questions, and where each is answered. Everything here is built
-          from published sources or from records organisations have entered
-          themselves, and every figure carries where it came from.
+          A working index for planning, not a second navigation system. Start
+          with the question in front of you; each view keeps its sources and
+          uncertainty attached to the work.
         </p>
       </header>
 
-      <div className="ev-grid">
+      <div className="ev-ledger" role="list" aria-label="Evidence workspaces">
+        <div className="ev-ledger-head"><span>Question</span><span>Use it for</span><span /></div>
         {PAGES.map(({ href, Icon, title, q, body }) => (
-          <Link key={href} href={href} className="ev-card">
+          <Link key={href} href={href} className="ev-row" role="listitem">
             <Icon size={19} strokeWidth={1.5} />
-            <b>{title}</b>
-            <em>{q}</em>
-            <span>{body}</span>
+            <div><b>{title}</b><span>{q}</span></div>
+            <p>{body}</p>
+            <span className="ev-open">Open</span>
           </Link>
         ))}
       </div>

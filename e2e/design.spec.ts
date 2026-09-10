@@ -24,9 +24,9 @@ test("phone navigation keeps search and account access available", async ({ page
   test.skip(testInfo.project.name !== "mobile", "phone navigation");
   await page.goto("/map");
   await expect(page.getByRole("combobox", {name:"Search the network"})).toBeVisible();
-  await page.getByRole("button", {name:"All sections", exact:true}).click();
+  await page.getByRole("button", {name:"Open more tools", exact:true}).click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("dialog").getByRole("link", {name:"Dashboard", exact:true})).toBeVisible();
+  await expect(page.getByRole("dialog").getByRole("link", {name:"Team workspace", exact:true})).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });

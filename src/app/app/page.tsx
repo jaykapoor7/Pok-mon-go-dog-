@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Plus, Building2, Bookmark } from "lucide-react";
+import { ArrowUpRight, Plus } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { getCityStats, getRecentSightings, getShowcaseDogs } from "@/lib/data";
 import { RecentSightings } from "@/components/app/RecentSightings";
@@ -25,11 +25,6 @@ export default async function ConsoleHome() {
         <section className="community-map"><div className="product-section-heading"><div><h2>Start with the map</h2><p>Explore recorded animals and their care history.</p></div><Link href="/map">Full map <ArrowUpRight size={16}/></Link></div><FieldMapPreview dogs={dogs}/></section>
         <section className="community-recent"><div className="product-section-heading"><div><h2>Recently seen</h2><p>Latest public sightings.</p></div><Link href="/feed">View all <ArrowUpRight size={16}/></Link></div><RecentSightings sightings={sightings}/></section>
       </div>
-      <nav className="community-paths" aria-label="More ways to help">
-        <Link href="/following"><Bookmark size={21}/><div><b>Animals you follow</b><span>Return to the faces you know.</span></div><ArrowUpRight size={18}/></Link>
-        <Link href="/partner"><Building2 size={21}/><div><b>Your NGO workspace</b><span>Incoming reports, field work and care.</span></div><ArrowUpRight size={18}/></Link>
-      </nav>
-      <details className="community-reference"><summary>Organisations, research & planning</summary><nav aria-label="Research and community resources"><Link href="/orgs">Find an organisation</Link><Link href="/get-involved">Volunteer nearby</Link><Link href="/gaps">Explore data gaps</Link><Link href="/what-would-it-take">Estimate programme costs</Link></nav></details>
     </div>
   </AppShell>;
 }
