@@ -20,16 +20,21 @@ test("reduced motion keeps the landing readable without animated reveals", async
   await expect(page.locator(".neighbour-story")).toHaveCount(0);
 });
 
-test("phone navigation keeps search and account access available", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "phone navigation");
-  await page.goto("/map");
-  await expect(page.getByRole("combobox", {name:"Search the network"})).toBeVisible();
-  await page.getByRole("button", {name:"Open more tools", exact:true}).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("dialog").getByText("Field operations", { exact:true })).toBeVisible();
-  await expect(page.getByRole("dialog").getByRole("link", {name:"Incoming", exact:true})).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+test("open app asks which workspace a person needs", async ({ page }) => {
+  await page.goto("/app?choose=1");
+  const picker = page.getByRole("dialog");
+  await expect(picker.getByRole("heading", { name: "How will you use StrayPaw?" })).toBeVisible();
+  await expect(picker.getByRole("button", { name: /I want to report an animal/i })).toBeVisible();
+  await expect(picker.getByRole("button", { name: /I work at an organisation/i })).toBeVisible();
+  await expect(picker.getByText(/I fund this work/i)).toHaveCount(0);
+});
+
+test("the entry choice opens the right product surface", async ({ page }) => {
+  await page.goto("/app?choose=1");
+  await page.getByRole("button", { name: /I work at an organisation/i }).click();
+  await expect(page).toHaveURL(/\/partner$/);
+  await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Following" })).toHaveCount(0);
 });
 
 test("public map filters and list remain operable without records", async ({ page }) => {

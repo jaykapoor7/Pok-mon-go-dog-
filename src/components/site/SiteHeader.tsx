@@ -138,7 +138,7 @@ export function SiteHeader() {
         <Link href="/join" className="sp-header-code">
           I have a code
         </Link>
-        <Link href="/map" className="sp-header-cta">
+        <Link href="/app?choose=1" className="sp-header-cta">
           Open app <ArrowUpRight size={15} />
         </Link>
         <button

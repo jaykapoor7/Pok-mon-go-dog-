@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { ROLE_META, ROLES, storeRole, type Role } from "@/lib/roles";
+import { ROLE_META, readStoredRole, storeRole, type Role } from "@/lib/roles";
 import {
   Dialog,
   DialogClose,
@@ -51,6 +51,7 @@ const ROLE_ICON: Record<Role, typeof Users> = {
   ngo: Building2,
   funder: Coins,
 };
+const ENTRY_ROLES: Role[] = ["individual", "ngo"];
 
 /* What comes after the role question depends on the answer.
 
@@ -131,7 +132,16 @@ export function Welcome() {
   const [step, setStep] = useState(-1);
   const [role, setRole] = useState<Role | null>(null);
 
-  // The tour is available on request, never an obstacle to the map or field work.
+  /* “Open app” always arrives with choose=1. A direct community-home visit
+     also asks once when no role has been chosen, but a report never does. */
+  useEffect(() => {
+    if (onReportFlow) return;
+    const requestedChoice = new URLSearchParams(window.location.search).get("choose") === "1";
+    if (requestedChoice || (pathname === "/app" && !readStoredRole())) {
+      setRole(null);
+      setStep(0);
+    }
+  }, [onReportFlow, pathname]);
 
   /* Asked for by name. Starts at the role question, because somebody
      reopening it may well have picked the wrong one the first time. */
@@ -157,6 +167,10 @@ export function Welcome() {
   function pick(r: Role) {
     setRole(r);
     storeRole(r);
+    if (r === "ngo") {
+      finish("/partner");
+      return;
+    }
     setStep(1);
   }
 
@@ -188,15 +202,14 @@ export function Welcome() {
             <DialogHeader className="space-y-0 text-left">
               <span className="spa-mono wc-kicker">Welcome to StrayPaw</span>
               <DialogTitle className="wc-title font-normal">
-                Which of these is you?
+                How will you use StrayPaw?
               </DialogTitle>
               <DialogDescription className="wc-lede">
-                This only decides what we put in front of you first. Everything
-                stays visible either way.
+                Choose the space built for the work you are here to do.
               </DialogDescription>
             </DialogHeader>
             <div className="wc-roles">
-              {ROLES.map((r) => {
+              {ENTRY_ROLES.map((r) => {
                 const m = ROLE_META[r];
                 const Icon = ROLE_ICON[r];
                 return (
