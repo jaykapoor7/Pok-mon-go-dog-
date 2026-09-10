@@ -116,6 +116,7 @@ const INTERACTIVE_WITH_WARDS = [PHOTO_LAYER, CLUSTER_LAYER, WARD_FILL];
 
 /** Imperative handles the surrounding UI drives its own controls with. */
 export type MapApi = {
+  focusAnimal: (dog: { lat: number; lng: number }) => void;
   zoomIn: () => void;
   zoomOut: () => void;
   toggle3D: () => boolean;
@@ -145,7 +146,7 @@ const selectedLayer: CircleLayerSpecification = {
       15, 32,
     ],
     "circle-stroke-width": 3,
-    "circle-stroke-color": "#1b46b0",
+    "circle-stroke-color": "#e16a34",
   },
 };
 
@@ -193,7 +194,7 @@ const clusterLayer: CircleLayerSpecification = {
   source: SRC,
   filter: ["has", "point_count"],
   paint: {
-    "circle-color": "#0b1020",
+    "circle-color": "#2457ce",
     "circle-radius": ["step", ["get", "point_count"], 18, 10, 22, 40, 27],
     "circle-stroke-width": 3,
     "circle-stroke-color": "#ffffff",
@@ -207,7 +208,7 @@ const clusterCountLayer: SymbolLayerSpecification = {
   source: SRC,
   filter: ["has", "point_count"],
   layout: {
-    "text-field": ["get", "point_abbreviated"],
+    "text-field": ["get", "point_count_abbreviated"],
     "text-font": ["Open Sans Bold"],
     "text-size": 11,
     "text-allow-overlap": true,
@@ -629,6 +630,13 @@ export function MapLibreMap({
         return;
       }
       onReady({
+        focusAnimal: ({ lat, lng }) => {
+          const m = mapRef.current;
+          if (!m) return;
+          m.easeTo({ center: [lng, lat], zoom: Math.max(m.getZoom(), 13.5),
+            offset: window.innerWidth <= 800 ? [0, -100] : window.innerWidth <= 1100 ? [-175, 0] : [-20, 0],
+            duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 550 });
+        },
         zoomIn: () => mapRef.current?.zoomIn({ duration: 260 }),
         zoomOut: () => mapRef.current?.zoomOut({ duration: 260 }),
         toggle3D: () => {

@@ -38,7 +38,7 @@ const loading = () => (
         readable thing on the screen. */}
     <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border bg-background/95 px-4 py-2 text-sm text-foreground shadow-sm backdrop-blur-sm">
       <PawPrint className="size-4 animate-pulse" aria-hidden />
-      Tracking dogs…
+      Loading the map…
     </div>
   </div>
 );

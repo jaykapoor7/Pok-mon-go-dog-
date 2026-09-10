@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { ROLE_META, ROLES, readStoredRole, storeRole, type Role } from "@/lib/roles";
+import { ROLE_META, ROLES, storeRole, type Role } from "@/lib/roles";
 import {
   Dialog,
   DialogClose,
@@ -131,16 +131,7 @@ export function Welcome() {
   const [step, setStep] = useState(-1);
   const [role, setRole] = useState<Role | null>(null);
 
-  useEffect(() => {
-    if (onReportFlow) return;
-    let seen = false;
-    try {
-      seen = window.localStorage.getItem(TOUR_KEY) === "1";
-    } catch {
-      seen = true; // storage blocked, do not nag on every load
-    }
-    if (!seen && !readStoredRole()) setStep(0);
-  }, [onReportFlow]);
+  // The tour is available on request, never an obstacle to the map or field work.
 
   /* Asked for by name. Starts at the role question, because somebody
      reopening it may well have picked the wrong one the first time. */

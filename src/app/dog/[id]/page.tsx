@@ -13,7 +13,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { StatusBadge, TrustRing } from "@/components/ui/Badges";
+import { StatusBadge } from "@/components/ui/Badges";
 import { DogActions } from "@/components/dog/DogActions";
 import { DogLocation } from "@/components/dog/DogLocation";
 import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
@@ -27,6 +27,8 @@ import { CaseCard } from "@/components/cases/CaseCard";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
 import { timeAgo, formatDate, formatNumber, dogLabel } from "@/lib/utils";
+
+import "./profile.css";
 
 export const dynamic = "force-dynamic";
 
@@ -72,36 +74,15 @@ export default async function DogProfilePage({
   const scheduled = sterilisations.find((s) => s.status === "scheduled");
 
   return (
-    <div className="mx-auto max-w-3xl px-4 sm:px-6">
+    <div className="dog-profile mx-auto px-4 sm:px-6">
       <BackLink label="Back to the map" fallback="/map" />
       <PageView name="animal_viewed" props={{ observations: sightings.length }} />
-      {/* cover
-
-          The photo used to sit in a fixed 256px box with a black gradient
-          poured over the bottom two thirds so white text would sit on it.
-          A portrait phone photo, which is most of them, ended up letterboxed
-          small and half in shadow: the animal is the point of this page and
-          you could barely see it.
-
-          Now the picture gets the room, on a neutral ground rather than
-          black, and the name sits under it in ordinary type. Only the two
-          badges stay on the image, as solid chips that need no scrim. */}
+      <div className="dogp-intro">
       <div className="dogp-cover">
-        <DogPhoto
-          src={dog.cover_photo}
-          alt={dog.name ?? "Street dog"}
-          seed={dog.id}
-          fit="contain"
-          className="h-full w-full"
-        />
-        <div className="dogp-badges-l">
-          <StatusBadge status={dog.status} />
-        </div>
-        <div className="dogp-badges-r">
-          <TrustRing score={dog.trust_score} size={44} />
-        </div>
+        <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} fit="contain" className="h-full w-full" />
       </div>
-
+      <div className="dogp-overview">
+      <div className="dogp-record-label"><StatusBadge status={dog.status} /><span>Community dog record</span></div>
       <div className="dogp-head">
         <div className="min-w-0">
           <h1>{dogLabel(dog)}</h1>
@@ -113,28 +94,55 @@ export default async function DogProfilePage({
         <FollowButton dogId={dog.id} className="shrink-0" />
       </div>
 
-      {/* best photos */}
-      {dog.photos.length > 1 && (
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {dog.photos.map((p, i) => (
-            <DogPhoto
-              key={i}
-              src={p}
-              alt={`Street dog photo ${i + 1}`}
-              seed={`${dog.id}-${i}`}
-              className="aspect-square rounded"
-            />
-          ))}
-        </div>
-      )}
-
       {/* quick stats */}
-      <div className="mt-4 grid grid-cols-4 gap-2">
+      <div className="dogp-stats">
         <Stat icon={<Eye className="h-4 w-4" />} value={formatNumber(dog.sightings_count)} label="sightings" />
         <Stat icon={<Utensils className="h-4 w-4" />} value={formatNumber(dog.feed_count)} label="meals" />
         <Stat icon={<Calendar className="h-4 w-4" />} value={timeAgo(dog.last_seen)} label="last seen" />
-        <Stat icon={<MapPin className="h-4 w-4" />} value={dog.zone.split(" ")[0]} label="zone" />
       </div>
+
+      {/* health */}
+      <Section title="Health & care">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <HealthCard
+            icon={<Syringe className="h-5 w-5" />}
+            title="Vaccination"
+            ok={dog.vaccinated}
+            pendingLabel={dog.vaccination_status === "not_vaccinated" ? "Not vaccinated" : "Not recorded"}
+            okText={
+              lastVaccine
+                ? `${lastVaccine.vaccine} · ${formatDate(lastVaccine.date)}`
+                : "Vaccinated"
+            }
+            pendingText={dog.vaccination_status === "not_vaccinated" ? "Recorded as not vaccinated" : "Vaccination status has not been recorded"}
+            sub={lastVaccine?.administered_by ?? undefined}
+          />
+          <HealthCard
+            icon={<Scissors className="h-5 w-5" />}
+            title="Sterilisation"
+            ok={dog.sterilised}
+            pendingLabel={scheduled ? "Scheduled" : dog.sterilisation_status === "not_sterilised" ? "Not sterilised" : "Not recorded"}
+            okText={
+              sterilisation
+                ? `Completed · ${formatDate(sterilisation.date)}`
+                : "Sterilised"
+            }
+            pendingText={
+              scheduled
+                ? `Scheduled · ${formatDate(scheduled.date)}`
+                : dog.sterilisation_status === "not_sterilised" ? "Recorded as not sterilised" : "Sterilisation status has not been recorded"
+            }
+            sub={sterilisation?.performed_by ?? scheduled?.performed_by ?? undefined}
+          />
+        </div>
+        {dog.ear_notch && (
+          <p className="mt-3 flex items-center gap-2 rounded bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-status-sterilised">
+            <Scissors className="h-4 w-4" />
+            Ear-notched ({dog.ear_notch}), the recognised sterilisation mark, so this
+            dog isn&apos;t caught again.
+          </p>
+        )}
+      </Section>
 
       {/* actions */}
       <div className="mt-5">
@@ -167,6 +175,24 @@ export default async function DogProfilePage({
         }}
       />
 
+      </div>
+      </div>
+      {/* best photos */}
+      {dog.photos.length > 1 && (
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {dog.photos.map((p, i) => (
+            <DogPhoto
+              key={i}
+              src={p}
+              alt={`Street dog photo ${i + 1}`}
+              seed={`${dog.id}-${i}`}
+              className="aspect-square rounded"
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="dogp-history">
       {/* NGO continuity: cases linked to this dog over time */}
       <Section title="Cases">
         {dogCases.length > 0 && (
@@ -182,47 +208,6 @@ export default async function DogProfilePage({
         >
           <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for this dog
         </Link>
-      </Section>
-
-      {/* health */}
-      <Section title="Health & care">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <HealthCard
-            icon={<Syringe className="h-5 w-5" />}
-            title="Vaccination"
-            ok={dog.vaccinated}
-            okText={
-              lastVaccine
-                ? `${lastVaccine.vaccine} · ${formatDate(lastVaccine.date)}`
-                : "Vaccinated"
-            }
-            pendingText="No vaccination on record"
-            sub={lastVaccine?.administered_by ?? undefined}
-          />
-          <HealthCard
-            icon={<Scissors className="h-5 w-5" />}
-            title="Sterilisation"
-            ok={dog.sterilised}
-            okText={
-              sterilisation
-                ? `Completed · ${formatDate(sterilisation.date)}`
-                : "Sterilised"
-            }
-            pendingText={
-              scheduled
-                ? `Scheduled · ${formatDate(scheduled.date)}`
-                : "Not yet sterilised"
-            }
-            sub={sterilisation?.performed_by ?? scheduled?.performed_by ?? undefined}
-          />
-        </div>
-        {dog.ear_notch && (
-          <p className="mt-3 flex items-center gap-2 rounded bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-status-sterilised">
-            <Scissors className="h-4 w-4" />
-            Ear-notched ({dog.ear_notch}), the recognised sterilisation mark, so this
-            dog isn&apos;t caught again.
-          </p>
-        )}
       </Section>
 
       {/* community notes */}
@@ -310,6 +295,7 @@ export default async function DogProfilePage({
         )}
       </Section>
 
+      </div>
       <div className="mt-8 flex justify-center">
         <Link href="/map" className="btn-ghost px-6 py-3">
           Back to the map <ArrowRight className="h-4 w-4" />
@@ -329,8 +315,7 @@ function Stat({
   label: string;
 }) {
   return (
-    <div className="card flex flex-col items-center gap-0.5 p-3 text-center">
-      <span className="text-paw-500">{icon}</span>
+    <div className="dogp-stat">
       <span className="text-sm font-bold leading-tight">{value}</span>
       <span className="text-[11.5px] text-bark-400">{label}</span>
     </div>
@@ -358,6 +343,7 @@ function HealthCard({
   ok,
   okText,
   pendingText,
+  pendingLabel,
   sub,
 }: {
   icon: React.ReactNode;
@@ -365,6 +351,7 @@ function HealthCard({
   ok: boolean;
   okText: string;
   pendingText: string;
+  pendingLabel: string;
   sub?: string;
 }) {
   return (
@@ -383,7 +370,7 @@ function HealthCard({
               : "bg-bark-100 text-bark-500"
           }`}
         >
-          {ok ? "Done" : "Pending"}
+          {ok ? "Recorded" : pendingLabel}
         </span>
       </div>
       <p className="text-sm text-bark-700">{ok ? okText : pendingText}</p>

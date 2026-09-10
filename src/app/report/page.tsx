@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Camera, Loader2, Check, PawPrint, ArrowRight, ArrowLeft, Clock, LogIn, MapPin, Tag,
 } from "lucide-react";
@@ -29,6 +29,7 @@ type Status = "idle" | "submitting" | "done";
 
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
+  const reduceMotion = useReducedMotion();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(0); // 0..3
@@ -83,7 +84,7 @@ export default function ReportPage() {
     if (!picked) return;
     setFile(picked);
     setPhoto(URL.createObjectURL(picked));
-    pawBurst();
+
 
     /* The camera usually recorded where and when already. Reading it saves
        dragging a pin to a place the phone knew, and the result is shown so
@@ -161,9 +162,18 @@ export default function ReportPage() {
   const field = "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
 
   return (
-    <div className="mx-auto max-w-lg px-4 sm:px-6">
+    <div className="report-workspace">
+      <aside className="report-aside">
+        <span className="product-kicker">Add to the shared record</span>
+        <h1>Report a sighting</h1>
+        <p>A photo and a place are enough to begin. Add only what you know.</p>
+        <ol className="report-step-list" aria-label="Reporting progress">
+          {STEPS.map((label, index) => <li key={label} aria-current={step === index ? "step" : undefined}><span>{index < step ? "✓" : String(index + 1).padStart(2, "0")}</span>{label}</li>)}
+        </ol>
+      </aside>
+      <div className="report-form">
       <header className="mb-4">
-        <h1 className="font-display text-2xl tracking-tight sm:text-3xl">Report a sighting</h1>
+
         <p className="mt-1 text-sm text-bark-500">
           {isAuthed ? <>Signed in as <span className="font-semibold text-bark-700 dark:text-bark-200">{user?.name}</span></> : "Reporting as a guest"}
         </p>
@@ -181,23 +191,19 @@ export default function ReportPage() {
       </div>
 
       {ready && !isAuthed && step === 0 && (
-        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">
-          <p className="flex-1 text-sm text-bark-700 dark:text-bark-200">
-            <span className="font-semibold">Heads up:</span> you can report without signing in, but you won&apos;t be able to edit it later from another device.
-          </p>
-          <button onClick={openSignIn} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-paw-500 px-4 py-2 text-sm font-semibold text-white">
-            <LogIn className="h-4 w-4" /> Sign in
-          </button>
+        <div className="report-signin-note">
+          <p>No account needed. Sign in if you want to edit this report from another device.</p>
+          <button onClick={openSignIn}>Sign in</button>
         </div>
       )}
 
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={{ opacity: 0, x: 24 }}
+          initial={{ opacity: 0, x: reduceMotion ? 0 : 16 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -24 }}
-          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          exit={{ opacity: 0, x: reduceMotion ? 0 : -16 }}
+          transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* ── Step 0: photo ── */}
           {step === 0 && (
@@ -212,7 +218,7 @@ export default function ReportPage() {
                   <span className="absolute bottom-3 right-3 chip bg-black/60 text-white"><Camera className="h-3.5 w-3.5" /> Change</span>
                 </button>
               ) : (
-                <button onClick={() => fileRef.current?.click()} className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded border-2 border-dashed border-paw-300 bg-paw-50 text-paw-600 transition-colors hover:bg-paw-100 dark:border-paw-500/40 dark:bg-bark-800">
+                <button onClick={() => fileRef.current?.click()} className="report-upload flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-paw-600">
                   <Camera className="h-10 w-10" />
                   <span className="font-semibold">Take or upload a photo</span>
                   <span className="text-xs text-bark-400">Opens your camera or gallery</span>
@@ -334,7 +340,7 @@ export default function ReportPage() {
       </AnimatePresence>
 
       {/* footer nav */}
-      <div className="mt-7 flex gap-3">
+      <div className="report-actions mt-7 flex gap-3">
         {step > 0 && (
           <button onClick={back} className="btn-ghost px-5 py-3.5"><ArrowLeft className="h-5 w-5" /> Back</button>
         )}
@@ -370,6 +376,7 @@ export default function ReportPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

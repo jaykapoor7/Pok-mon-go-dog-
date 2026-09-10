@@ -20,15 +20,13 @@ export function DogActions({
 }) {
   const { user, requireAuth } = useAuth();
 
-  // Saw/Fed are activity logs, kept as session toggles so a mis-tap can be
-  // undone (the log fires once; "undo" just clears your tap state).
+  // Confirm persisted activity before marking an action complete.
   const [seen, setSeen] = useState(false);
   const [fed, setFed] = useState(false);
   // Needs-help is a real, persisted toggle (server-gated to contributors/NGOs).
   const [help, setHelp] = useState(needsHelp);
   const [busy, setBusy] = useState(false);
 
-  const by = user?.name ? `by ${user.name}` : "";
 
   /* Was local state plus a setTimeout plus a fixed-position div, which meant
      a second action inside three seconds replaced the first one's message and
@@ -39,26 +37,16 @@ export function DogActions({
     toast(message);
   }
 
-  function toggleSeen() {
-    if (!seen) {
-      logSeen(dogId).catch(() => {});
-      setSeen(true);
-      fire(`Seen ${name} ${by} · just now 🐾`);
-    } else {
-      setSeen(false);
-      fire(`Undid “saw ${name}”.`, false);
-    }
-  }
-
-  function toggleFed() {
-    if (!fed) {
-      logFeed(dogId, user?.name).catch(() => {});
-      setFed(true);
-      fire(`Meal logged for ${name} ${by} · just now 🍗`);
-    } else {
-      setFed(false);
-      fire(`Undid “fed ${name}”.`, false);
-    }
+  async function recordActivity(kind: "seen" | "fed") {
+    if (busy || (kind === "seen" ? seen : fed)) return;
+    setBusy(true);
+    try {
+      const ok = kind === "seen" ? await logSeen(dogId) : await logFeed(dogId, user?.name);
+      if (!ok) { fire("This update wasn’t saved. Please try again.", false); return; }
+      if (kind === "seen") setSeen(true); else setFed(true);
+      fire(kind === "seen" ? `Sighting recorded for ${name}.` : `Meal recorded for ${name}.`);
+    } catch { fire("This update wasn’t saved. Please try again.", false); }
+    finally { setBusy(false); }
   }
 
   function toggleHelp() {
@@ -98,13 +86,14 @@ export function DogActions({
   return (
     <>
       <div className="grid grid-cols-3 gap-2">
-        <ActionButton active={seen} onClick={toggleSeen} icon={<Heart className="h-5 w-5 text-status-friendly" />}>
-          {seen ? "Saw it · undo" : "I saw this dog"}
+        <ActionButton active={seen} disabled={busy || seen} onClick={() => recordActivity("seen")} icon={<Heart className="h-5 w-5 text-status-friendly" />}>
+          {seen ? "Sighting recorded" : "I saw this dog"}
         </ActionButton>
-        <ActionButton active={fed} onClick={toggleFed} icon={<Utensils className="h-5 w-5 text-status-hungry" />}>
-          {fed ? "Fed it · undo" : "I fed this dog"}
+        <ActionButton active={fed} disabled={busy || fed} onClick={() => recordActivity("fed")} icon={<Utensils className="h-5 w-5 text-status-hungry" />}>
+          {fed ? "Meal recorded" : "I fed this dog"}
         </ActionButton>
         <ActionButton
+          disabled={busy}
           active={help}
           onClick={toggleHelp}
           icon={busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Siren className="h-5 w-5 text-status-injured" />}
@@ -119,17 +108,20 @@ export function DogActions({
 
 function ActionButton({
   active,
+  disabled = false,
   onClick,
   icon,
   children,
 }: {
   active: boolean;
+  disabled?: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <button
+      disabled={disabled}
       onClick={onClick}
       aria-pressed={active}
       className={cn(

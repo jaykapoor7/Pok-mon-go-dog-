@@ -1,390 +1,85 @@
+import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  BarChart3,
-  Check,
-  Eye,
-  ListChecks,
-  Search,
-  Wrench,
-  Fingerprint,
-  Map as MapIcon,
-  Stethoscope,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, MapPin, Check, Plus } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { PageView } from "@/components/analytics/PageView";
+import { LandingMotion } from "@/components/site/LandingMotion";
 import { Hero } from "@/components/site/Hero";
-import { ChipScroll } from "@/components/site/ChipScroll";
-import { Reveal } from "@/components/site/Reveal";
-import {
-  UNIT_COSTS,
-  COVERAGE_TARGET,
-  inr,
-  num,
-} from "@/lib/platform/network";
-
-/* Goa is one of the few states publishing both a population and an ABC
-   coverage figure, which is what makes a fully-sourced worked example
-   possible at all. Both numbers come from datasets.ts. */
-const GOA_POPULATION = 85_000;
-const GOA_COVERAGE = 0.6;
-const GOA_ANIMALS = Math.round(
-  GOA_POPULATION * (COVERAGE_TARGET.value - GOA_COVERAGE)
-);
+import { FieldMapPreview } from "@/components/site/FieldMapPreview";
+import { getShowcaseDogs } from "@/lib/data";
+import { dogLabel } from "@/lib/utils";
 import "@/components/site/site.css";
+import "@/components/site/field-site.css";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "StrayPaw, a shared record for India's street animals",
-  description:
-    "Every street animal gets a permanent ID and a record that follows it. Residents, field teams and municipalities write to the same map, so coverage can be counted instead of estimated.",
+  title: "StrayPaw · They live here, too",
+  description: "A shared map for India's street animals. Record sightings, follow care, and help local animal-welfare teams work together.",
 };
 
-/* Said plainly and early: what the thing actually consists of, before any
-   narrative about why it matters. */
-const PARTS = [
-  {
-    Icon: Fingerprint,
-    title: "Identity",
-    body: "A permanent ISO code per animal, readable by scanners clinics already own.",
-  },
-  {
-    Icon: MapIcon,
-    title: "Shared map",
-    body: "Residents, field teams and municipalities all write to the same map.",
-  },
-  {
-    Icon: Stethoscope,
-    title: "Field workspace",
-    body: "Cases, registry, medical logs and reporting. Free for verified NGOs.",
-  },
-  {
-    Icon: BarChart3,
-    title: "Measurement",
-    body: "Coverage becomes a query instead of a survey.",
-  },
+const STEPS = [
+  { number: "01", title: "Notice someone.", body: "A familiar face on your street. An animal you are worried about. Start with what you can see." },
+  { number: "02", title: "Put them on the map.", body: "Add a photo, a place and a few details. Leave anything you are unsure about as unknown." },
+  { number: "03", title: "Keep their story together.", body: "Sightings, care and follow-ups stay connected, so the next person has somewhere to begin." },
 ];
 
-const LOOP_STAGES = [
-  {
-    n: "01",
-    Icon: Eye,
-    label: "SEE",
-    body: "A resident, a field team or a municipal sweep logs the animal.",
-  },
-  {
-    n: "02",
-    Icon: Fingerprint,
-    label: "IDENTIFY",
-    body: "It gets a permanent code, and a record that follows it.",
-  },
-  {
-    n: "03",
-    Icon: Search,
-    label: "UNDERSTAND",
-    body: "Sightings become studies. Studies reveal where the need is.",
-  },
-  {
-    n: "04",
-    Icon: Wrench,
-    label: "ACT",
-    body: "Sterilisation, vaccination or treatment, with a named owner.",
-  },
-  {
-    n: "05",
-    Icon: ListChecks,
-    label: "TRACK",
-    body: "Every action posts back to the record.",
-  },
-  {
-    n: "06",
-    Icon: BarChart3,
-    label: "MEASURE",
-    body: "Coverage becomes countable. Funding becomes accountable.",
-  },
-];
-
-const AUDIENCES = [
-  {
-    tag: "NGOS / FIELD TEAMS",
-    title: "Better tools.\nSame fieldwork.",
-    body: "The study brief, the data tooling, and a durable record of work you already know how to do.",
-    cta: "See the field workspace",
-    href: "/partner",
-  },
-  {
-    tag: "GOVERNMENT / ULBs",
-    title: "Coverage that's\ncountable.",
-    body: "Track programme reach and find gaps without waiting for an annual report.",
-    cta: "Explore the evidence layer",
-    href: "/gaps",
-  },
-  {
-    tag: "FUNDERS / CSR",
-    title: "Fund an outcome,\nnot a hope.",
-    body: `An objective and a geography become a scoped study, a named partner and a finish line. ${inr(UNIT_COSTS.sterilisation.value)} per sterilisation, AWBI ceiling.`,
-    cta: "Scope and cost a programme",
-    href: "/what-would-it-take",
-  },
-];
-
-export default function HomePage() {
+export default async function HomePage() {
+  const dogs = await getShowcaseDogs(8);
   return (
-    <div className="sp">
+    <div className="sp field-site">
       <PageView name="landing_view" />
+      <LandingMotion />
       <SiteHeader />
-
       <main>
         <Hero />
+        <div className="field-intro-strip"><span>Care starts close to home.</span><p>For the neighbour who notices. The volunteer who returns. The team that follows up.</p><Link href="/why-straypaw">Why we’re building this <ArrowUpRight size={16} /></Link></div>
 
-        {/* ── WHAT IT IS ───────────────────────────────────────────── */}
-        <section className="sp-parts">
-          <Reveal>
-            <div className="sp-kicker">
-              FOUR PARTS. <span>ONE SYSTEM.</span>
+        <section className="field-map-section" id="neighbourhood">
+          <div className="field-section-heading field-heading-row"><div><span className="field-eyebrow">The map is where it begins</span><h2>Your street.<br /><span>A little better known.</span></h2></div><p>Look around. Open an animal’s record. See what neighbours have noticed and what care has been recorded.</p></div>
+          <FieldMapPreview dogs={dogs} />
+          <div className="field-map-footer"><p>Every marker opens a record. Every record can grow.</p><Link href="/map" className="field-button">Open the full map <ArrowUpRight size={18} /></Link></div>
+          {dogs.length > 0 && <div className="field-dogs" aria-label="Recently recorded animals">{dogs.slice(0,4).map(dog => <Link href={`/dog/${dog.id}`} key={dog.id}><Image src={dog.cover_photo} alt={dogLabel(dog)} width={72} height={72} unoptimized /><div><b>{dogLabel(dog)}</b><span>{dog.zone || "Location in record"}</span></div><ArrowUpRight size={16}/></Link>)}</div>}
+        </section>
+
+        <section className="field-section field-how" id="how">
+          <div className="field-section-heading"><span className="field-eyebrow">Meet Pinky. Then meet your neighbours.</span><h2>A familiar face.<br /><span>Not a forgotten one.</span></h2></div>
+          <div className="field-how-grid">
+            <div className="field-photo-story">
+              <Image src="https://toujthlzjmhmoyykmayx.supabase.co/storage/v1/object/public/sightings/2026-08-23/c21e9833-6058-48a6-91ee-7f278219c75c.jpeg" alt="Pinky enjoying the sunshine in Bengaluru" width={756} height={1344} sizes="(max-width: 760px) 85vw, 35vw" />
+              <div className="field-photo-label"><MapPin size={15} /><span>Pinky, Bengaluru.<br /><b>A familiar face from the community.</b></span></div>
+              <Link className="field-photo-index" href="/dog/e1de4c0b-ef56-469a-a05b-ab720da42939">Open Pinky’s record <ArrowUpRight size={16}/></Link>
             </div>
-          </Reveal>
-          <div className="sp-parts-grid">
-            {PARTS.map((p, i) => (
-              <Reveal key={p.title} delay={i * 60}>
-                <div className="sp-part">
-                  <p.Icon size={22} strokeWidth={1.5} />
-                  <b>{p.title}</b>
-                  <p>{p.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-
-        {/* ── SYSTEM LOOP ───────────────────────────────────────── */}
-        <section className="sp-loop" id="how">
-          <Reveal>
-            <div className="sp-kicker">
-              HOW ONE SIGHTING GROWS.{" "}
-              <span>SEE → IDENTIFY → ACT → MEASURE → REPEAT.</span>
+            <div className="field-steps">
+              {STEPS.map((step) => <article key={step.number}><span>{step.number}</span><div><h3>{step.title}</h3><p>{step.body}</p></div></article>)}
+              <Link href="/report" className="field-inline-link">Make your first report <ArrowRight size={18} /></Link>
             </div>
-          </Reveal>
-          <div className="sp-loop-grid">
-            <Reveal>
-              <h2 className="sp-display sp-loop-heading">
-                Give every animal
-                <br />
-                <span>an identity.</span>
-              </h2>
-            </Reveal>
-            <Reveal delay={120}>
-              <p className="sp-loop-body">
-                One animal, seen once, is an anecdote. The same animal seen
-                again, by someone else, months later, is a measurement.
-              </p>
-            </Reveal>
-          </div>
-          <div className="sp-loop-stages">
-            {LOOP_STAGES.map((s, i) => (
-              <Reveal key={s.n} delay={i * 55}>
-                <div className="sp-loop-stage">
-                  <span className="sp-loop-head">
-                    <s.Icon size={16} strokeWidth={1.6} />
-                    <span className="sp-mono sp-loop-n">{s.n}</span>
-                  </span>
-                  <b className="sp-loop-label">{s.label}</b>
-                  <p className="sp-loop-desc">{s.body}</p>
-                </div>
-              </Reveal>
-            ))}
           </div>
         </section>
 
-        {/* ── CHIP + IDENTITY ─────────────────────────────────────── */}
-        <ChipScroll />
-
-        {/* ── WHAT IT ADDS UP TO ───────────────────────────────────────
-            Deliberately placed here and not in the hero. The visitor should
-            have followed one dog through one record before being asked to
-            think about what a million of them amount to; led with, the same
-            idea reads as a data-platform pitch about animals. */}
-        <section className="sp-thesis">
-          <Reveal>
-            <div className="sp-kicker">WHAT IT ADDS UP TO</div>
-          </Reveal>
-          <div className="sp-thesis-grid">
-            <Reveal delay={80}>
-              <h2 className="sp-display sp-thesis-heading">
-                Every encounter
-                <br />
-                <span>becomes data.</span>
-              </h2>
-            </Reveal>
-            <Reveal delay={160}>
-              <div className="sp-thesis-body">
-                <p>
-                  Someone stops on a street they walk every day, looks at a dog
-                  they have seen a hundred times, and writes down what they saw.
-                  On its own that is one small act of attention.
-                </p>
-                <p>
-                  Repeated across a lane, a ward, a city, it becomes a record of
-                  the physical world that nobody was keeping, built by the
-                  people who live in it, about the part of it they walk past.
-                </p>
-                <p className="sp-thesis-close">
-                  We start with street animals because they are the part almost
-                  nobody writes down.
-                </p>
-              </div>
-            </Reveal>
+        <section className="field-section field-team">
+          <div className="field-team-copy"><span className="field-eyebrow">For the people doing the work</span><h2>Good care takes people.<br /><span>And a shared record.</span></h2><p>An animal register, incoming reports and care history, in one place. For the field visit, the team handover, and the next person trying to help.</p><Link href="/partner" className="field-button field-button-dark">Explore the NGO workspace <ArrowUpRight size={18} /></Link><Link href="/join" className="field-inline-link">Have a team code? Join here <ArrowRight size={16} /></Link></div>
+          <div className="field-workspace-example">
+            <div className="field-example-top"><span>STRAYPAW / FIELD WORKSPACE</span><span>Illustrative record</span></div>
+            <div className="field-example-animal"><Image src="https://toujthlzjmhmoyykmayx.supabase.co/storage/v1/object/public/sightings/2026-08-23/c21e9833-6058-48a6-91ee-7f278219c75c.jpeg" width={84} height={84} alt="Pinky from the StrayPaw community" /><div><span>One animal. Shared context.</span><h3>A record you can return to.</h3></div></div>
+            <div className="field-record-tabs"><span>Overview</span><span>Care history</span><span>Photos</span></div>
+            <ol className="field-care-example"><li><div><b>A sighting is added</b><span>Photo, place and observation</span></div><span>01</span></li><li><div><b>The team reviews it</b><span>A person takes responsibility</span></div><span>02</span></li><li><div><b>Care is recorded</b><span>What happened, when and by whom</span></div><span>03</span></li></ol>
+            <p className="field-example-note"><Check size={15}/> One history, ready for the next visit.</p>
           </div>
         </section>
 
-        {/* ── WHO IT'S FOR ────────────────────────────────────────── */}
-        <section className="sp-for" id="for">
-          <div className="sp-for-head">
-            <Reveal>
-              <div className="sp-kicker light">
-                BUILT FOR THE WHOLE SYSTEM
-              </div>
-            </Reveal>
-            <Reveal delay={60}>
-              <h2 className="sp-display sp-for-heading">
-                One platform.
-                <br />
-                <span>Three stakeholders.</span>
-              </h2>
-            </Reveal>
-          </div>
-          <div className="sp-for-grid">
-            {AUDIENCES.map((a, i) => (
-              <Reveal key={a.tag} delay={i * 80}>
-                <div className="sp-for-card">
-                  <div className="sp-for-tag">{a.tag}</div>
-                  <h3 className="sp-for-title">
-                    {a.title.split("\n").map((line, j) => (
-                      <span key={j}>
-                        {line}
-                        <br />
-                      </span>
-                    ))}
-                  </h3>
-                  <p className="sp-for-body">{a.body}</p>
-                  <Link href={a.href} className="sp-for-link">
-                    {a.cta} <ArrowUpRight size={12} />
-                  </Link>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+
+        <section className="field-section field-more">
+          <div><span className="field-eyebrow">Care reaches further together</span><h2>There’s a place<br /><span>for your part.</span></h2><p>Start where your time, experience or resources can help.</p></div>
+          <div className="field-paths">{[
+            { n:"01", title:"Lend a hand nearby", body:"Find animal-welfare organisations and ways to get involved.", href:"/get-involved" },
+            { n:"02", title:"Plan work that matters", body:"Explore published coverage, unanswered questions and programme costs.", href:"/what-would-it-take" },
+            { n:"03", title:"Understand the evidence", body:"See where our figures come from and what they can tell us.", href:"/the-data" },
+          ].map(item=><Link href={item.href} key={item.n}><span>{item.n}</span><div><h3>{item.title}</h3><p>{item.body}</p></div><ArrowUpRight size={22}/></Link>)}</div>
         </section>
 
-        {/* ── OUTCOME RECORD ──────────────────────────────────────── */}
-        <section className="sp-record">
-          <Reveal>
-            <div className="sp-record-quote">
-              &ldquo;Every funded action
-              <br />
-              <span>gets a clear record.&rdquo;</span>
-            </div>
-          </Reveal>
-          <Reveal delay={120}>
-            {/* Every figure is a published number for Goa, and the arithmetic
-                is the same calculation the costing tool runs. Labelled by its
-                source rather than by what has not happened yet. */}
-            <div className="sp-record-card">
-              <div className="sp-record-top">
-                <span>STRAYPAW / OUTCOME RECORD</span>
-                <span>GOA / PUBLISHED FIGURES</span>
-              </div>
-              <div className="sp-record-main">
-                <div className="sp-seal">
-                  <Check size={22} />
-                  <span>
-                    FORMAT
-                    <br />
-                    v1
-                  </span>
-                </div>
-                <div>
-                  <h3>Goa to the {Math.round(COVERAGE_TARGET.value * 100)}% threshold.</h3>
-                  <p>
-                    Goa is one of the few states publishing both a population
-                    and a coverage figure. Reaching the threshold where
-                    sterilisation suppresses growth is {num(GOA_ANIMALS)}{" "}
-                    animals, this is the record that work closes with.
-                  </p>
-                </div>
-              </div>
-              <div className="sp-record-metrics">
-                <div>
-                  <b className="field">Geography</b>
-                  <span>Goa · 85,000 community dogs (2025 est.)</span>
-                </div>
-                <div>
-                  <b className="field">Reach</b>
-                  <span>
-                    {num(GOA_ANIMALS)} animals · {Math.round(GOA_COVERAGE * 100)}% →{" "}
-                    {Math.round(COVERAGE_TARGET.value * 100)}%
-                  </span>
-                </div>
-                <div>
-                  <b className="field">Funding</b>
-                  <span>
-                    {inr(GOA_ANIMALS * UNIT_COSTS.sterilisation.value)} at{" "}
-                    {inr(UNIT_COSTS.sterilisation.value)}/animal
-                  </span>
-                </div>
-                <div>
-                  <b className="field">Verification</b>
-                  <span>Coverage re-measured against the 2024 baseline</span>
-                </div>
-              </div>
-              <div className="sp-record-foot">
-                <span>
-                  EVERY FIGURE SOURCED · AWBI CEILING {UNIT_COSTS.sterilisation.year} ·
-                  GOA ABC PROGRAMME 2024
-                </span>
-                <Link href="/what-would-it-take" className="sp-record-link">
-                  COST YOUR OWN <ArrowUpRight size={13} />
-                </Link>
-              </div>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* ── FOOTER ──────────────────────────────────────────────── */}
-        <footer className="sp-footer">
-          <div className="sp-footer-grid">
-            <Reveal>
-              <div>
-                <div className="sp-kicker light">WHERE TO GO NEXT</div>
-                <h2 className="sp-display">
-                  Start with one animal.
-                  <br />
-                  <span>Reveal the system.</span>
-                </h2>
-              </div>
-            </Reveal>
-            <Reveal delay={120}>
-              <div className="sp-footer-actions">
-                <Link href="/what-would-it-take" className="sp-btn sp-btn-primary">
-                  Fund a programme <ArrowUpRight size={16} />
-                </Link>
-                <Link href="/app" className="sp-btn sp-btn-outline-light">
-                  Open the console <ArrowUpRight size={16} />
-                </Link>
-              </div>
-            </Reveal>
-          </div>
-          <div className="sp-footer-bottom sp-mono">
-            <span>STRAYPAW © 2026</span>
-            <span style={{ display: "flex", gap: 18 }}>
-              <Link href="/mission">MISSION</Link>
-              <Link href="/privacy">PRIVACY</Link>
-              <Link href="/terms">TERMS</Link>
-              <Link href="/contact">CONTACT</Link>
-            </span>
-            <span>BUILT IN INDIA / FOR EVERYWHERE</span>
-          </div>
-        </footer>
+        <section className="field-closing"><span className="field-eyebrow">Your neighbourhood is a good place to begin</span><h2>Know one dog?<br /><span>Start there.</span></h2><div className="field-actions"><Link href="/map" className="field-button">Take a look around <ArrowUpRight size={18}/></Link><Link href="/report" className="field-text-link">Add a sighting <Plus size={18}/></Link></div></section>
       </main>
+      <footer className="field-footer"><Link href="/" className="field-footer-brand">StrayPaw<span>They live here, too.</span></Link><nav aria-label="Footer"><Link href="/mission">Our mission</Link><Link href="/for-ngos">For NGOs</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav><span>Built with care, in India.<br />© {new Date().getFullYear()} StrayPaw</span></footer>
     </div>
   );
 }

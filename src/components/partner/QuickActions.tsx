@@ -54,9 +54,9 @@ const ACTIONS = [
 export function QuickActions() {
   return (
     <section className="qa" aria-label="Quick actions">
-      <h2>What now</h2>
+      <h2>Start here</h2>
       <div className="qa-grid">
-        {ACTIONS.map(({ href, Icon, title, note }) => (
+        {ACTIONS.filter(action => ["/partner/incoming", "/report", "/partner/animals"].includes(action.href)).map(({ href, Icon, title, note }) => (
           <Link key={href} href={href} className="qa-card">
             <Icon size={18} strokeWidth={1.5} />
             <b>{title}</b>

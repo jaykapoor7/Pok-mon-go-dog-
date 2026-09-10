@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, DM_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
+import "./design-system.css";
+import "./product.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Chrome } from "@/components/nav/Chrome";
@@ -98,7 +100,7 @@ export const metadata: Metadata = {
     title: "StrayPaw",
   },
   icons: {
-    icon: "/icon.png",
+    icon: "/straypaw-symbol.svg",
     apple: "/apple-icon.png",
   },
 };

@@ -413,21 +413,23 @@ export async function getMySightings(userId: string) {
 }
 
 export async function logFeed(dogId: string, reporterName?: string, foodType?: string) {
-  if (dogId.startsWith("demo-")) return; // demo dogs are never written
+  if (dogId.startsWith("demo-")) return false; // demo dogs are never written
   const supa = getSupabase();
-  if (!supa) return;
-  await supa.rpc("log_feed", {
+  if (!supa) return false;
+  const { error } = await supa.rpc("log_feed", {
     p_dog_id: dogId,
     p_reporter_name: reporterName || null,
     p_food_type: foodType || null,
   });
+  return !error;
 }
 
 export async function logSeen(dogId: string) {
-  if (dogId.startsWith("demo-")) return; // demo dogs are never written
+  if (dogId.startsWith("demo-")) return false; // demo dogs are never written
   const supa = getSupabase();
-  if (!supa) return;
-  await supa.rpc("log_seen", { p_dog_id: dogId });
+  if (!supa) return false;
+  const { error } = await supa.rpc("log_seen", { p_dog_id: dogId });
+  return !error;
 }
 
 export async function likeSighting(sightingId: string) {

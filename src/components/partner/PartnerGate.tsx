@@ -78,14 +78,12 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
            same job without the role="alert" that tells a screen reader
            something has appeared, and re-specifying its own border, tint and
            icon placement. */
-        <Alert className="mb-5">
+        <Alert className="partner-gate mb-5">
           <ShieldCheck className="h-4 w-4" />
-          <AlertTitle>You are not signed in, so no records are loaded.</AlertTitle>
+          <AlertTitle>{user ? "Your organisation access is not active yet." : "Sign in to load your team’s records."}</AlertTitle>
           <AlertDescription>
             <p className="leading-relaxed">
-              Look around freely. Case records load once you sign in with a
-              verified organisation account, and each NGO sees only its own, so
-              nothing here is another org&apos;s data.
+              You can explore the workspace now. Private records are available only to verified members of your organisation.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {!user ? (

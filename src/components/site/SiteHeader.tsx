@@ -154,32 +154,11 @@ export function SiteHeader() {
   );
 }
 
-/** Minimal signal mark, three points on a ring. */
+/** A continuous S-shaped path: sightings connected into one record. */
 export function StrayPawMark({ size = 28 }: { size?: number }) {
-  /* The brand mark: the dog looking over the rim of its circle. Cropped
-     out of the full lockup, because the arced STRAYPAW and SEE CARE ACT
-     that surround it are illegible below about 80px and the word is set in
-     the site's own type beside this anyway.
-
-     A raster rather than an SVG: the artwork has soft strokes and a
-     specific weight to it that a hand-traced path would flatten. At these
-     sizes a 512px source is a few kilobytes and never blurs. */
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/straypaw-mark.png"
-      alt=""
-      width={size}
-      height={size}
-      aria-hidden="true"
-      style={{
-        flexShrink: 0,
-        borderRadius: "50%",
-        display: "block",
-        /* The mark carries its own deep-blue ground, so on a dark header it
-           needs a hairline to separate it from the bar behind it. */
-        boxShadow: "0 0 0 1px rgba(255,255,255,0.14)",
-      }}
-    />
-  );
+  return <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false" style={{flexShrink:0}}>
+    <path d="M31 8H15a7 7 0 0 0 0 14h10a5 5 0 0 1 0 10H8" stroke="#2457CE" strokeWidth="7" strokeLinecap="square"/>
+    <path d="M31 8h1" stroke="#F47D45" strokeWidth="7" strokeLinecap="square"/>
+    <path d="M8 32H7" stroke="#F47D45" strokeWidth="7" strokeLinecap="square"/>
+  </svg>;
 }

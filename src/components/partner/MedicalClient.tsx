@@ -6,10 +6,19 @@ import { ArrowUpRight, Loader2, Stethoscope } from "lucide-react";
 import { getPartnerMedicalEvents, type PartnerMedicalEvent } from "@/lib/animal-actions";
 import { MEDICAL_KINDS } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { MedicalCases } from "./MedicalCases";
 
 const labelFor = (kind: string) => MEDICAL_KINDS.find((item) => item.id === kind)?.label ?? kind;
 
 export function MedicalClient() {
+  const [view, setView] = useState<"events" | "cases">("events");
+  return <><div className="med-ledger-filters" role="group" aria-label="Medical records view">
+    <button aria-pressed={view === "events"} className={view === "events" ? "active" : ""} onClick={() => setView("events")}>Animal care history</button>
+    <button aria-pressed={view === "cases"} className={view === "cases" ? "active" : ""} onClick={() => setView("cases")}>Medical cases</button>
+  </div>{view === "events" ? <CareLedger/> : <MedicalCases/>}</>;
+}
+
+function CareLedger() {
   const [events, setEvents] = useState<PartnerMedicalEvent[] | null>(null);
   const [filter, setFilter] = useState("all");
 
@@ -31,14 +40,14 @@ export function MedicalClient() {
         <strong>{events.length} logged</strong>
       </div>
       <div className="med-ledger-filters" aria-label="Filter care events">
-        <button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All care</button>
-        {kinds.map((kind) => <button key={kind} className={filter === kind ? "active" : ""} onClick={() => setFilter(kind)}>{labelFor(kind)}</button>)}
+        <button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All care</button>
+        {kinds.map((kind) => <button key={kind} aria-pressed={filter === kind} className={filter === kind ? "active" : ""} onClick={() => setFilter(kind)}>{labelFor(kind)}</button>)}
       </div>
       <ol className="med-ledger-list">
         {visible.map((event) => (
           <li key={event.id}>
             <time dateTime={event.event_date}>{formatDate(event.event_date)}</time>
-            <div className="med-ledger-kind"><span />{labelFor(event.kind)}</div>
+            <div className="med-ledger-kind">{labelFor(event.kind)}</div>
             <div className="med-ledger-detail"><b>{event.animal.name || event.animal.code || "Unnamed animal"}</b><small>{[event.animal.code, event.animal.zone].filter(Boolean).join(" · ") || "Animal record"}</small>{event.notes && <p>{event.notes}</p>}</div>
             <div className="med-ledger-by">{event.performed_by || "Clinician not recorded"}</div>
             <Link href={`/partner/animals/${event.animal.id}`} aria-label={`Open ${event.animal.name || event.animal.code || "animal"} record`}><ArrowUpRight size={16} /></Link>

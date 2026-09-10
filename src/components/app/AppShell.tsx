@@ -69,8 +69,6 @@ const COMMUNITY = [
   { href: "/map", label: "Map", Icon: MapPin },
   { href: "/report", label: "Report an animal", Icon: Radio },
   { href: "/following", label: "Animals I follow", Icon: Bookmark },
-  { href: "/orgs", label: "Organisations", Icon: Building2 },
-  { href: "/get-involved", label: "Volunteer", Icon: Heart },
 ];
 
 /* The evidence chain, in the order it actually runs: what is missing, what is
@@ -79,6 +77,9 @@ const COMMUNITY = [
    purpose with a question, not places you pass through daily, and six of
    them in a sidebar is most of the reason it needed collapsing. */
 const EVIDENCE = [
+  { href: "/orgs", label: "Organisations", Icon: Building2 },
+  { href: "/get-involved", label: "Volunteer", Icon: Heart },
+  { href: "/what-would-it-take", label: "Programme costs", Icon: Calculator },
   { href: "/evidence", label: "Research and gaps", Icon: ScanSearch },
   { href: "/wards", label: "Ward density", Icon: MapPin },
   { href: "/data", label: "Published data", Icon: Database },
@@ -120,7 +121,7 @@ const SECTIONS: {
   items: { href: string; label: string; Icon: typeof Home }[];
 }[] = [
   { key: "community", label: "Explore", items: COMMUNITY },
-  { key: "evidence", label: "Data and evidence", items: EVIDENCE },
+  { key: "evidence", label: "Explore more", items: EVIDENCE },
   { key: "workspace", label: "Your organisation", items: WORKSPACE },
 ];
 
@@ -276,7 +277,7 @@ export function AppShell({
         <Link href="/app" className="spa-brand">
           <StrayPawMark size={34} />
           <span>StrayPaw</span>
-          <small>console</small>
+
         </Link>
 
         <form className="spa-search" onSubmit={handleSearch} role="search">
@@ -284,7 +285,7 @@ export function AppShell({
           <input
             ref={searchRef}
             type="search"
-            placeholder="Search a ward, city, district or organisation…"
+            placeholder="Search places or organisations"
             aria-label="Search the network"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
@@ -342,7 +343,8 @@ export function AppShell({
           tabIndex={open ? 0 : -1}
         />
 
-        <nav id="spa-side-nav" className="spa-side">
+        <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
+          <Link href="/report" className="spa-report-shortcut"><Radio size={17}/> Report a sighting</Link>
 
           {SECTIONS.map(({ key, label, items }) => {
             const links = prioritise(items);
@@ -355,7 +357,7 @@ export function AppShell({
                groups does not need hiding, and a person should not have to
                find a control before they can find a page. The collapse is
                kept only as a preference somebody can set. */
-            const shown = openSections === null ? true : openSections.has(key);
+            const shown = openSections === null ? (here || key === "community" && !pathname.startsWith("/partner")) : openSections.has(key);
             return (
               <div key={key} className="spa-sect">
                 <button
@@ -391,6 +393,7 @@ export function AppShell({
                     <Link
                       key={href}
                       href={href}
+                      aria-current={isActive(href) ? "page" : undefined}
                       className={`${isActive(href) ? "active" : ""}${
                         MOBILE_PRIMARY.has(href) ? " spa-primary" : ""
                       }`}
@@ -405,6 +408,9 @@ export function AppShell({
           })}
 
 
+          <div className="spa-phone-links">
+            {[{href:"/app",label:"Home",Icon:LayoutGrid},{href:"/map",label:"Map",Icon:MapPin},{href:"/report",label:"Report",Icon:Radio},{href:"/partner",label:"Workspace",Icon:Building2}].map(({href,label,Icon}) => <Link key={href} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+          </div>
           {/* Phone only. The strip carries four destinations; this opens the
               remaining thirteen, grouped the way the desktop column groups
               them.
@@ -429,6 +435,7 @@ export function AppShell({
                   Everywhere you can go from here.
                 </SheetDescription>
               </SheetHeader>
+              <div className="border-b px-5 py-4"><ProfilePanel onNavigate={() => setOpen(false)} /></div>
               <div className="flex flex-col gap-1 px-3 py-4">
                 {SECTIONS.map(({ key, label, items }) => {
                   const links = prioritise(items);
@@ -456,6 +463,7 @@ export function AppShell({
                     </div>
                   );
                 })}
+                <Button variant="ghost" className="mt-4 justify-start" onClick={() => { setOpen(false); openTour(); }}><HelpCircle size={16}/> Show me around</Button>
               </div>
             </SheetContent>
           </Sheet>

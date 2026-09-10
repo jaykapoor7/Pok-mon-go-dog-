@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowUpRight, Plus, ClipboardList, PawPrint, HeartHandshake, ClipboardCheck, Activity } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrg } from "@/lib/actions";
@@ -9,6 +10,8 @@ import { getPartnerCases } from "@/lib/cases";
 import { programmeBreakdown, type Breakdown } from "@/lib/campaigns";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { TasksSection } from "@/components/partner/TasksSection";
+import { ProgrammeOverview } from "@/components/partner/ProgrammeOverview";
+import { QuickActions } from "@/components/partner/QuickActions";
 import { isOverdue, speciesLabel, type Case, type CaseStatus, type Dog, type NGO } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -21,7 +24,10 @@ const dotFor = (c: Case) => isOverdue(c) ? "bg-status-injured" : c.status === "r
 function greeting() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
 
 export function PartnerOverview() {
-  const { user } = useAuth();
+  const { user, ready } = useAuth();
+  const router = useRouter();
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [org, setOrg] = useState<NGO | null>(null);
   const [dateLabel, setDateLabel] = useState("");
   // Scoped to the signed-in org (own cases plus the unclaimed pool) through
@@ -30,11 +36,16 @@ export function PartnerOverview() {
   const [cases, setCases] = useState<Case[]>([]);
   const [bd, setBd] = useState<Breakdown | null>(null);
   useEffect(() => {
-    getMyOrg().then(setOrg).catch(() => {});
-    getPartnerCases().then(setCases).catch(() => {});
-    programmeBreakdown().then(setBd).catch(() => {});
-    setDateLabel(new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
-  }, []);
+    if (!ready) return;
+    let active = true;
+    setLoaded(false); setLoadError(false); setCases([]); setOrg(null); setBd(null);
+    Promise.all([getMyOrg(), getPartnerCases(), programmeBreakdown()])
+      .then(([organisation, records, breakdown]) => { if (active) { setOrg(organisation); setCases(records); setBd(breakdown); } })
+      .catch(() => { if (active) setLoadError(true); })
+      .finally(() => { if (active) setLoaded(true); });
+    setDateLabel(new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }));
+    return () => { active = false; };
+  }, [ready, user?.id]);
 
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? null;
   const location = org ? [org.city, org.state].filter(Boolean).join(", ") || org.area : "";
@@ -72,19 +83,20 @@ export function PartnerOverview() {
   })), [cases]);
 
   return (
-    <div>
+    <div className="partner-overview">
       {/* Page title */}
-      <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="partner-greeting mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <div className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-[0.18em] text-paw-600">{dateLabel || " "}</div>
           <h1 className="text-2xl font-semibold tracking-tight text-bark-900 dark:text-bark-50 sm:text-3xl">
-            {greeting()}{firstName ? `, ${firstName}` : ""}
+            {dateLabel ? greeting() : "Your workspace"}{firstName ? `, ${firstName}` : ""}
           </h1>
           <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Not in an organisation yet"}{location ? ` · ${location}` : ""}</p>
         </div>
         <Link href="/partner/cases/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"><Plus className="h-4 w-4" /> New case</Link>
       </div>
 
+      {loadError && <p role="alert" className="partner-empty">We couldn’t load your workspace. Please refresh to try again.</p>}
       {/* What is actually waiting.
 
           This strip used to be five case figures ending in an all-time
@@ -93,32 +105,32 @@ export function PartnerOverview() {
           decided by what has come in and not been filed, and how the
           current drive is going. Rescue casework matters and is still
           here, but it is not the whole job any more. */}
-      <div className="grid grid-cols-2 gap-y-6 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-3 lg:grid-cols-5">
+      <div className="partner-metrics grid grid-cols-2 gap-y-6 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-3 lg:grid-cols-5">
         <Stat
           label="Waiting to file"
-          value={bd?.waiting.ours ?? 0}
+          value={!loaded || !user || loadError ? "—" : bd?.waiting.ours ?? 0}
           detail="from your team"
           tone={bd?.waiting.ours ? "text-status-hungry" : undefined}
         />
         <Stat
           label="Unclaimed nearby"
-          value={bd?.waiting.community ?? 0}
+          value={!loaded || !user || loadError ? "—" : bd?.waiting.community ?? 0}
           detail="community sightings"
         />
         <Stat
           label="Drives running"
-          value={bd?.drives.filter((d) => !d.archived).length ?? 0}
+          value={!loaded || !user || loadError ? "—" : bd?.drives.filter((d) => !d.archived).length ?? 0}
           detail="census, ABC, rabies"
         />
         <Stat
           label="Urgent cases"
-          value={m.urgent}
+          value={!loaded || !user || loadError ? "—" : m.urgent}
           detail="need a decision"
           tone={m.urgent ? "text-status-injured" : undefined}
         />
         <Stat
           label="Follow-ups due"
-          value={m.followDue}
+          value={!loaded || !user || loadError ? "—" : m.followDue}
           detail="next 3 days"
           tone={m.followDue ? "text-status-hungry" : undefined}
         />
@@ -139,30 +151,19 @@ export function PartnerOverview() {
       )}
 
       {/* Operational focus + Response health */}
-      <div className="mt-8 grid gap-8 xl:grid-cols-[1.45fr_1fr]">
-        <section>
-          <SectionHead title="Operational focus" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all cases" />
-          {attention.length === 0 ? <Empty>Nothing urgent right now.</Empty> : (
+      <QuickActions />
+      <div className="partner-work-grid">
+        <section className="partner-section">
+          <SectionHead title="Needs attention" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all cases" />
+          {attention.length === 0 ? <Empty>{!loaded ? "Loading cases…" : loadError ? "Cases could not be loaded." : !user ? "Sign in to see your team’s cases." : "No urgent cases in the loaded records."}</Empty> : (
             <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
               {attention.map((c) => <CaseRow key={c.id} c={c} />)}
             </div>
           )}
         </section>
-        <section>
-          <SectionHead title="Response health" sub="New cases logged over time." />
-          <div className="rounded-lg border border-black/[0.08] p-5 dark:border-white/[0.1]">
-            <div className="flex items-end justify-between">
-              <div>
-                <div className="text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{cases.length}</div>
-                <div className="mt-1 text-[13px] text-bark-500">Total cases logged</div>
-              </div>
-              <div className="text-right text-[13px] font-medium text-paw-600">{m.rate}%<div className="text-[11.5px] font-normal text-bark-400">resolved</div></div>
-            </div>
-            <div className="mt-6 flex h-24 items-end gap-1.5">
-              {weeks.map((w, i) => <div key={i} className={cn("flex-1 rounded-t-sm", i >= 9 ? "bg-paw-500" : "bg-paw-500/25")} style={{ height: `${Math.max(3, (w / weekMax) * 100)}%` }} title={`${w}`} />)}
-            </div>
-            <div className="mt-2 flex justify-between text-[11.5px] text-bark-400"><span>12 wks ago</span><span>now</span></div>
-          </div>
+        <section className="partner-section">
+          <SectionHead title="Work on the map" sub="Locations from your case records." href="/partner/map" cta="Full map" />
+          <div className="partner-map-panel"><MapCanvas dogs={markers} onSelect={dog => { if (dog) router.push(`/partner/cases/${dog.id}`); }}/></div>
         </section>
       </div>
 
@@ -171,23 +172,36 @@ export function PartnerOverview() {
         <TasksSection compact />
       </section>
 
+      <ProgrammeOverview />
+      <div className="partner-work-grid">
+        <section className="partner-section">
+          <SectionHead title="Case activity" sub="New cases logged over time." />
+          <div className="rounded-lg border border-black/[0.08] p-5 dark:border-white/[0.1]">
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{!loaded || !user || loadError ? "—" : cases.length}</div>
+                <div className="mt-1 text-[13px] text-bark-500">Total cases logged</div>
+              </div>
+              <div className="text-right text-[13px] font-medium text-paw-600">{!loaded || !user || loadError ? "—" : `${m.rate}%`}<div className="text-[11.5px] font-normal text-bark-400">resolved</div></div>
+            </div>
+            <div className="mt-6 flex h-24 items-end gap-1.5">
+              {weeks.map((w, i) => <div key={i} className={cn("flex-1 rounded-t-sm", i >= 9 ? "bg-paw-500" : "bg-paw-500/25")} style={{ height: `${(w / weekMax) * 100}%` }} title={`${w}`} />)}
+            </div>
+            <div className="mt-2 flex justify-between text-[11.5px] text-bark-400"><span>12 wks ago</span><span>now</span></div>
+          </div>
+        </section>
       {/* Recent reports */}
-      <section className="mt-10">
+      <section className="partner-section">
         <SectionHead title="Recent reports" sub="The latest activity across your cases." href="/partner/cases" cta="Open case queue" />
-        {activity.length === 0 ? <Empty>No cases yet.</Empty> : (
+        {activity.length === 0 ? <Empty>{!loaded ? "Loading recent activity…" : !user ? "Your team’s activity will appear after sign-in." : "No cases in the loaded records."}</Empty> : (
           <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
             {activity.map((c) => <CaseRow key={c.id} c={c} />)}
           </div>
         )}
       </section>
 
-      {/* Live map */}
-      <section className="mt-10">
-        <SectionHead title="Live map" sub="Where the work is happening." href="/partner/map" cta="Open workspace" />
-        <div className="h-80 overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
-          <MapCanvas dogs={markers} />
-        </div>
-      </section>
+
+      </div>
     </div>
   );
 }
@@ -241,5 +255,5 @@ function CaseRow({ c }: { c: Case }) {
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-lg border border-dashed border-black/[0.1] py-8 text-center text-[14px] text-bark-400 dark:border-white/[0.12]">{children}</p>;
+  return <p className="partner-empty">{children}</p>;
 }
