@@ -12,6 +12,7 @@ import {
   whatWouldItTake,
   type Objective,
 } from "@/lib/platform/network";
+import { EvidenceTabs } from "@/components/app/EvidenceTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -30,6 +31,7 @@ export default function InterventionsPage() {
   return (
     <AppShell>
       <BackLink label="Back to the evidence" to="/evidence" />
+      <EvidenceTabs />
       <div className="spa-head">
         <div>
           <span className="spa-mono">Action layer / interventions</span>

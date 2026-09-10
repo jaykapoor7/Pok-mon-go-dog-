@@ -4,6 +4,7 @@ import { ArrowUpRight, FileText } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { PreLaunch } from "@/components/app/PreLaunch";
 import { UNKNOWNS } from "@/lib/platform/network";
+import { EvidenceTabs } from "@/components/app/EvidenceTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -16,6 +17,7 @@ export default function StudiesPage() {
   return (
     <AppShell>
       <BackLink label="Back to the evidence" to="/evidence" />
+      <EvidenceTabs />
       <div className="spa-head">
         <div>
           <span className="spa-mono">Evidence layer / studies</span>

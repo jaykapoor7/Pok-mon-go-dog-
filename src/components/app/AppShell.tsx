@@ -14,14 +14,18 @@ import {
 import {
   ArrowUpRight,
   Bookmark,
+  Building2,
   CalendarRange,
   Database,
+  Heart,
+  Inbox,
   LayoutGrid,
   MapPin,
   Radio,
   Repeat2,
   ScanSearch,
   Search,
+  Users,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
@@ -34,7 +38,9 @@ const COMMUNITY_NAV = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/map", label: "Map", Icon: MapPin },
   { href: "/report", label: "Report", Icon: Radio },
-  { href: "/following", label: "Following", Icon: Bookmark },
+  { href: "/following", label: "Saved animals", Icon: Bookmark },
+  { href: "/feed", label: "Recent activity", Icon: Radio },
+  { href: "/orgs", label: "Organisations", Icon: Heart },
   { href: "/evidence", label: "Evidence", Icon: ScanSearch },
 ];
 
@@ -44,6 +50,9 @@ const NGO_NAV = [
   { href: "/report", label: "Report", Icon: Radio },
   { href: "/partner/animals", label: "Records", Icon: Database },
   { href: "/partner/field", label: "Field work", Icon: CalendarRange },
+  { href: "/partner/incoming", label: "Incoming", Icon: Inbox },
+  { href: "/partner/drives", label: "Programme drives", Icon: CalendarRange },
+  { href: "/partner/team", label: "Team", Icon: Users },
 ];
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
    a hand-maintained route list, while several pages also mount one directly;
@@ -132,6 +141,9 @@ export function AppShell({
 
   const isNgo = role === "ngo" || pathname.startsWith("/partner");
   const primaryNav = isNgo ? NGO_NAV : COMMUNITY_NAV;
+  const mobileNav = isNgo
+    ? primaryNav.filter(({ label }) => ["Dashboard", "Map", "Records", "Field work"].includes(label))
+    : primaryNav.filter(({ label }) => ["Home", "Map", "Saved animals", "Evidence"].includes(label));
   const isActive = (href: string) => {
     if (href === "/partner/animals") return pathname.startsWith("/partner/animals") || pathname.startsWith("/partner/cases") || pathname.startsWith("/partner/medical");
     if (href === "/partner/field") return pathname.startsWith("/partner/field") || pathname.startsWith("/partner/incoming") || pathname.startsWith("/partner/drives") || pathname.startsWith("/partner/reports");
@@ -216,7 +228,7 @@ export function AppShell({
           </div>
 
           <div className="spa-phone-links">
-            {primaryNav.filter(({ label }) => label !== "Report").map(({href,label,Icon}) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+            {mobileNav.map(({href,label,Icon}) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
           </div>
           <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting"><Radio size={21}/><span>Report</span></Link>
           <div className="spa-side-foot">

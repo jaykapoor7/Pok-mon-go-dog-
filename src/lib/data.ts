@@ -111,8 +111,18 @@ function mapSighting(row: any): Sighting {
 export async function getCityStats(): Promise<CityStats> {
   const supa = getSupabase();
   if (supa) {
-    const { data } = await supa.rpc("get_city_stats");
-    if (data) return data as CityStats;
+    /* The profile register is the source of truth for the public tally. The
+       stats RPC is useful for its other aggregates, but it can lag behind a
+       seed or a migration; never let that make dogs visible on the map yet
+       absent from “Animals recorded”. */
+    const [{ data }, { count }] = await Promise.all([
+      supa.rpc("get_city_stats"),
+      supa.from("dogs").select("id", { count: "exact", head: true }),
+    ]);
+    if (data) {
+      const stats = data as CityStats;
+      return { ...stats, dogsSpotted: count ?? stats.dogsSpotted };
+    }
   }
   return {
     dogsSpotted: 0,

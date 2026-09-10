@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { StateExplorer, type StateRow } from "@/components/app/StateExplorer";
+import { EvidenceTabs } from "@/components/app/EvidenceTabs";
 import { DATASETS } from "@/lib/platform/datasets";
 import { STATES } from "@/lib/platform/geography";
 import { ORGS } from "@/lib/platform/orgs";
@@ -51,6 +52,7 @@ export default function EvidencePage() {
       <h1>What is known,<br />state by state.</h1>
       <p>Published population, sterilisation coverage and organisations in one place. Missing data stays visible, because absence is part of the picture.</p>
     </header>
+    <EvidenceTabs />
     <section className="evidence-metrics" aria-label="Evidence at a glance">
       <div><span>States with a record</span><b>{rows.length}</b><small>published population or an active organisation</small></div>
       <div><span>Animals accounted for</span><b>{(animals / 10_000_000).toFixed(1)} Cr</b><small>across published state estimates</small></div>
