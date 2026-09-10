@@ -56,7 +56,7 @@ export function ProductStory({ dogs }: { dogs: Dog[] }) {
           </section>
           <section className="story-nation" aria-label="Evidence view">
             <span>INDIA / COVERAGE VIEW</span>
-            <div className="story-nation-map"><FieldMapPreview dogs={dogs} /></div>
+            <div className="story-nation-map"><FieldMapPreview dogs={dogs} chrome={false} /></div>
             <div className="story-atlas-panel">
               <div><CircleDashed size={16} /><span>Coverage is not assumed</span></div>
               <p>Records become local evidence. Areas without a shared record stay visibly unmeasured.</p>
