@@ -94,10 +94,30 @@ export async function POST(req: Request) {
 
   if (body.action === "claim") return claim(req, code);
 
+  /* Every lookup below can fail for a reason that has nothing to do with
+     the code: a migration that was never run, an RPC that is not there, a
+     permission. Those used to be discarded, and all three code spaces
+     collapsed into "that email and code do not match" — so somebody
+     holding a perfectly good code was sent hunting for a typo that did not
+     exist, and nobody could tell from the outside that anything was wrong.
+     They are collected instead, and reported as what they are. */
+  const broke: string[] = [];
+
   /* Staff first: a code that opens a dashboard is the one worth checking
      hardest, and the two code spaces do not overlap. */
-  const { data: staffRaw } = await supa.rpc("resolve_access_code", { p_code: code });
+  const { data: staffRaw, error: staffErr } = await supa.rpc("resolve_access_code", { p_code: code });
+  if (staffErr) broke.push(`resolve_access_code: ${staffErr.message}`);
   const staff = (staffRaw ?? {}) as Resolved;
+
+  /* A code that exists and is dead explains itself. The RPC already works
+     out which, and those two messages were written to be read by the
+     person holding the code — "ask for a new one" is the whole answer, and
+     saying "check both and try again" instead just wastes their afternoon.
+     A code that is live still reveals nothing: only "expired" and "turned
+     off" are passed on, and neither is any use to somebody guessing. */
+  if (!staff.ok && typeof staff.error === "string" && /expired|turned off/i.test(staff.error)) {
+    return NextResponse.json({ error: staff.error }, { status: 403 });
+  }
 
   if (staff.ok && staff.email && normaliseEmail(staff.email) === email) {
     const accountEmail = normaliseEmail(staff.email);
@@ -139,7 +159,8 @@ export async function POST(req: Request) {
 
   /* Not a staff code. It may be a volunteer's reporting code, which grants
      no dashboard and needs no account. */
-  const { data: volRaw } = await supa.rpc("resolve_invite_code", { p_code: code });
+  const { data: volRaw, error: volErr } = await supa.rpc("resolve_invite_code", { p_code: code });
+  if (volErr) broke.push(`resolve_invite_code: ${volErr.message}`);
   const vol = (volRaw ?? {}) as VolunteerResolved;
   if (vol.ok && vol.email && normaliseEmail(vol.email) === email) {
     return NextResponse.json({
@@ -150,13 +171,14 @@ export async function POST(req: Request) {
     });
   }
 
-  const { data: personalRaw } = await supa
+  const { data: personalRaw, error: personalErr } = await supa
     .from("personal_access_codes")
     .select("id,email,name,role")
     .eq("code", code)
     .eq("email", email)
     .eq("active", true)
     .maybeSingle();
+  if (personalErr) broke.push(`personal_access_codes: ${personalErr.message}`);
   const personal = personalRaw as PersonalResolved | null;
   if (personal) {
     const created = await supa.auth.admin.createUser({ email: personal.email, email_confirm: true, user_metadata: { display_name: personal.name } });
@@ -165,6 +187,24 @@ export async function POST(req: Request) {
     const tokenHash = link.data?.properties?.hashed_token;
     if (link.error || !tokenHash) return NextResponse.json({ error: "Could not sign you in just now. Try again shortly." }, { status: 500 });
     return NextResponse.json({ kind: "personal", tokenHash, email: personal.email, name: personal.name, role: personal.role });
+  }
+
+  /* Nothing matched — but if every place we looked was broken, "your code
+     is wrong" is a guess, and the wrong one. Say so, and put the real
+     reason where whoever runs this can read it. `missing relation` is the
+     migration case and names the file to run. */
+  if (broke.length > 0) {
+    console.error("[join] code lookup failed:", broke.join(" | "));
+    const missing = broke.some((b) => /does not exist|relation|schema cache|function/i.test(b));
+    return NextResponse.json(
+      {
+        error: missing
+          ? "StrayPaw cannot look up codes yet — its database is missing a piece. This is not your code. Tell whoever sent it to you."
+          : "StrayPaw could not check your code just now. Try again in a moment.",
+        ref: missing ? "codes-table-missing" : "codes-lookup-failed",
+      },
+      { status: 503 }
+    );
   }
 
   /* Say as little as the person needs. Distinguishing "expired" from

@@ -32,10 +32,8 @@
 -- A row that already carries somebody else's real name is left alone.
 -- ════════════════════════════════════════════════════════════════
 
-\echo ''
-\echo '── before ────────────────────────────────────────────────────'
-
-select (select count(*) from dogs)                                      as dogs,
+-- ── before ───────────────────────────────────────────────────────
+select 'before' as when, (select count(*) from dogs)                                      as dogs,
        (select count(*) from sightings)                                 as sightings,
        (select count(*) from dogs d
          where not exists (select 1 from sightings s where s.dog_id = d.id))
@@ -98,10 +96,8 @@ update dogs d
  where d.sightings_count is distinct from
        (select count(*) from sightings s where s.dog_id = d.id);
 
-\echo ''
-\echo '── after ─────────────────────────────────────────────────────'
-
-select (select count(*) from dogs)                                      as dogs,
+-- ── after ────────────────────────────────────────────────────────
+select 'after' as when, (select count(*) from dogs)                                      as dogs,
        (select count(*) from sightings)                                 as sightings,
        (select count(*) from dogs d
          where not exists (select 1 from sightings s where s.dog_id = d.id))
@@ -116,6 +112,5 @@ select count(*) filter (where coalesce(btrim(reporter_name),'') = '') as anonymo
        count(distinct reporter_name)                                   as distinct_reporters
   from sightings;
 
-\echo ''
-\echo 'If dogs and sightings now match, the feed will show all of them.'
-\echo 'still_missing above zero means those animals have no photograph.'
+-- If dogs and sightings now match, the feed shows all of them.
+-- still_missing above zero means those animals have no photograph.
