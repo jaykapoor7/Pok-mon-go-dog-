@@ -102,7 +102,11 @@ const config: Config = {
         'ink-surface': '#1b2436',
         status: {
           seen: '#9a9c88', hungry: '#d9a441', injured: '#b0432a',
-          sterilised: '#3e8473', vaccinated: '#4e8a5f', friendly: '#8b5ea8',
+          /* sterilised is also the share control's label colour, where it
+             read 4.30:1 on the feed card. Only the feed shows that
+             control, and the feed was empty in every audit run until it
+             had sightings in it, so nothing had ever measured it. */
+          sterilised: '#3a7b6b', vaccinated: '#4e8a5f', friendly: '#8b5ea8',
         },
       },
       fontFamily: {

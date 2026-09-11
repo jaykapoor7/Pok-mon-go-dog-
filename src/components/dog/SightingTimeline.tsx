@@ -32,7 +32,9 @@ export function SightingTimeline({ sightings }: { sightings: Sighting[] }) {
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm">
-                  <span className="font-semibold">{s.user_name}</span>{" "}
+                  <span className={s.user_name ? "font-semibold" : "text-bark-500"}>
+                    {s.user_name || "Reported anonymously"}
+                  </span>{" "}
                   <span className="text-bark-400">· {timeAgo(s.created_at)}</span>
                 </p>
                 <DeleteSightingButton

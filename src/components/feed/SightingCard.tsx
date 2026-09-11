@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MapPin, MessageCircle, Pencil } from "lucide-react";
+import { Heart, MapPin, MessageCircle, PawPrint, Pencil } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
 import { timeAgo, formatNumber, cn, displayReporter } from "@/lib/utils";
@@ -52,12 +52,12 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
     setLikes((n) => (liked ? n - 1 : n + 1));
   }
 
-  const reporter = displayReporter(sighting.user_name, sighting.id);
+  /* null when nobody put a name to it, which is normal: reporting needs no
+     account. The card says so rather than inventing a person. */
+  const reporter = displayReporter(sighting.user_name);
   const initials = reporter
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("");
+    ? reporter.split(" ").map((w) => w[0]).slice(0, 2).join("")
+    : null;
 
   return (
     <motion.article
@@ -71,16 +71,22 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
         {sighting.user_avatar ? (
           <img
             src={sighting.user_avatar}
-            alt={sighting.user_name}
+            alt={reporter ?? "Reported anonymously"}
             className="h-9 w-9 rounded-full object-cover ring-2 ring-paw-100"
           />
-        ) : (
+        ) : initials ? (
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-paw-200 text-xs font-bold text-paw-700">
             {initials}
           </span>
+        ) : (
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-bark-100 text-bark-500" aria-hidden>
+            <PawPrint className="h-4 w-4" />
+          </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{reporter}</p>
+          <p className={cn("truncate text-sm", reporter ? "font-semibold" : "text-bark-500")}>
+            {reporter ?? "Reported anonymously"}
+          </p>
           <Link href={`/map?lat=${sighting.lat}&lng=${sighting.lng}`} className="flex items-center gap-1 text-xs text-bark-400 hover:text-paw-600">
             <MapPin className="h-3 w-3" /> {sighting.zone} · {timeAgo(sighting.created_at)}
           </Link>
@@ -166,7 +172,7 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
       <div className="space-y-2 p-3 pt-2">
         {notes && (
           <p className="text-sm text-bark-700">
-            <span className="font-semibold">{reporter.split(" ")[0]}</span>{" "}
+            {reporter && <span className="font-semibold">{reporter.split(" ")[0]} </span>}
             {notes}
           </p>
         )}

@@ -79,13 +79,20 @@ export function dogLabel(dog: { name?: string | null; zone?: string | null }): s
   return zone ? `Dog near ${zone}` : "Street dog";
 }
 
-// Seed sightings are all attributed to one account ("Jay"); show a varied,
-// deterministic community name instead so the public feed looks real.
-const FEED_NAMES = ["Priya", "Rohit", "Aisha", "Arjun", "Neha", "Kabir", "Meera", "Vikram", "Sanya", "Dev", "Ananya", "Karan", "Isha", "Raj", "Tara", "Nikhil", "Zara", "Aditya", "Simran", "Farhan"];
-export function displayReporter(name: string | null | undefined, seed: string): string {
-  const first = (name ?? "").trim().split(/\s+/)[0];
-  if (first && first.toLowerCase() !== "jay") return name!.trim();
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return FEED_NAMES[h % FEED_NAMES.length];
+/**
+ * The name to show against a sighting, or null when there is not one.
+ *
+ * This used to pick a name out of a list of twenty — Priya, Rohit, Aisha —
+ * keyed off the sighting id, and the comment said why: "so the public feed
+ * looks real". It made the feed look busier than it was by inventing the
+ * people in it. Every one of those attributions was a claim that a named
+ * person had gone out and reported an animal, and none of them had.
+ *
+ * A sighting with no reporter is a real and ordinary thing: reporting on
+ * StrayPaw does not require an account. It reads as anonymous, which is
+ * true, rather than as somebody who does not exist.
+ */
+export function displayReporter(name: string | null | undefined): string | null {
+  const trimmed = (name ?? "").trim();
+  return trimmed.length > 0 ? trimmed : null;
 }

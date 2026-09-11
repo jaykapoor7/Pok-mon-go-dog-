@@ -202,6 +202,58 @@ on conflict (id) do update set
   first_seen = excluded.first_seen,
   last_seen  = excluded.last_seen;
 
+-- ────────────────────────────────────────────────────────────────
+-- The same twenty, as sightings.
+--
+-- The map reads `dogs`; the sightings feed reads `sightings`. Seeding only
+-- the first put twenty animals on the map that the feed had never heard of,
+-- and left each profile claiming sightings_count = 1 with no row behind it.
+--
+-- Derived from the rows above rather than typed out again, so the place, the
+-- photograph and the time cannot drift apart from the animal they belong to.
+-- The id is the dog's with one digit changed, which keeps it deterministic
+-- and re-runnable without a second lookup table.
+--
+-- reporter_name stays NULL. These photographs have no reporter to name, and
+-- the feed says "Reported anonymously" rather than inventing somebody — an
+-- account is not needed to report, so that is an ordinary and true state.
+-- likes stays 0 and mood_tags empty for the same reason: engagement that
+-- did not happen is not seeded.
+insert into sightings (
+  id, dog_id, reporter_name, photo_url, lat, lng, zone,
+  nickname, notes, trust_score, likes, status, created_at
+)
+select
+  overlay(d.id::text placing '1' from 8 for 1)::uuid,
+  d.id,
+  null,
+  d.cover_photo,
+  d.lat,
+  d.lng,
+  d.zone,
+  null,
+  null,
+  50,
+  0,
+  'live',
+  d.created_at
+from dogs d
+where d.id::text like 'd0910000-0000-4000-8000-%'
+on conflict (id) do update set
+  dog_id     = excluded.dog_id,
+  photo_url  = excluded.photo_url,
+  lat        = excluded.lat,
+  lng        = excluded.lng,
+  zone       = excluded.zone,
+  status     = excluded.status,
+  created_at = excluded.created_at;
+
+-- sightings_count is a stored count, so it is set from what is actually in
+-- the table rather than left at the 1 the insert above assumed.
+update dogs d
+   set sightings_count = (select count(*) from sightings s where s.dog_id = d.id)
+ where d.id::text like 'd0910000-0000-4000-8000-%';
+
 -- What went in, and where it landed once boundaries are loaded.
 --
 -- The join is LEFT and the district is aggregated rather than picked, so

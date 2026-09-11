@@ -90,7 +90,12 @@ function mapSighting(row: any): Sighting {
     id: row.id,
     dog_id: row.dog_id ?? null,
     user_id: row.user_id ?? "",
-    user_name: row.reporter_name ?? "Someone in India",
+    /* Empty, not "Someone in India". Substituting a label here meant every
+       screen inherited one phrasing and none of them could tell a real
+       reporter from a missing one — displayReporter() never saw a null, so
+       its anonymous state was unreachable. The value stays empty and each
+       surface says what fits it. */
+    user_name: row.reporter_name ?? "",
     user_avatar: null,
     photo_url: row.photo_url,
     lat: coarse(row.lat),
