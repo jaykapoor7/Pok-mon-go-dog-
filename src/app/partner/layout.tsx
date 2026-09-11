@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/app/AppShell";
 import { PartnerGate } from "@/components/partner/PartnerGate";
+import { DemoBanner } from "@/components/partner/DemoBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,10 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
   return (
     <AppShell>
       <PartnerGate title="Your organisation">
-        <div className="mx-auto w-full max-w-[1200px]">{children}</div>
+        <div className="mx-auto w-full max-w-[1200px]">
+          <DemoBanner />
+          {children}
+        </div>
       </PartnerGate>
     </AppShell>
   );

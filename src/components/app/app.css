@@ -3751,3 +3751,79 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 .partner-write-wall > div { flex: 1; min-width: 180px; }
 .partner-write-wall-title { margin: 0; font-size: 14px; font-weight: 650; color: var(--ink); }
 .partner-write-wall-note { margin: 3px 0 0; font-size: 13px; line-height: 1.5; color: #5c6472; }
+
+/* ── demo mode ──────────────────────────────────────────────────────
+   The switch on the settings page, and the strip that carries its state
+   onto every other page of the workspace. Amber rather than red: this is
+   a state to notice, not a failure. */
+
+.demo-banner {
+  display: flex; align-items: center; gap: 11px; flex-wrap: wrap;
+  margin: 0 0 20px; padding: 12px 15px;
+  border: 1px solid #e4bd7a; border-left-width: 3px;
+  background: #fdf6e8; color: #6b4a12; border-radius: 3px;
+}
+.demo-banner > svg { color: #9a6b16; flex: none; }
+.demo-banner p { margin: 0; font-size: 13px; line-height: 1.5; }
+.demo-banner b { font-weight: 600; }
+.demo-banner a {
+  margin-left: auto; flex: none;
+  color: #6b4a12; font-size: 12.5px; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.demo-banner a:hover { color: #4a3208; }
+
+.demo-mode { margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--sp-line, #dfe4ea); }
+.demo-mode-head { display: flex; align-items: flex-start; gap: 13px; }
+.demo-mode-head > svg { color: #9a6b16; flex: none; margin-top: 2px; }
+.demo-mode h2 { margin: 0; font-size: 16px; letter-spacing: -0.02em; }
+.demo-mode-head p { max-width: 62ch; margin: 7px 0 0; font-size: 13px; line-height: 1.62; color: #566070; }
+.demo-mode-state { margin: 13px 0 0; font-size: 12.5px; color: #566070; }
+
+/* A switch, not a checkbox: the state has to read at a glance from across
+   a desk, because somebody leaving it on is the whole risk. */
+.demo-switch {
+  flex: none; margin-left: auto; position: relative;
+  width: 46px; height: 26px; padding: 0;
+  border: 1px solid #c3cbd6; border-radius: 999px;
+  background: #e8ecf1; cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.demo-switch.on { background: #9a6b16; border-color: #855c12; }
+.demo-switch:disabled { opacity: 0.6; cursor: default; }
+.demo-switch:focus-visible { outline: 2px solid var(--sp-blue, #2457ce); outline-offset: 2px; }
+.demo-switch-knob {
+  position: absolute; top: 2px; left: 2px;
+  display: grid; place-items: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(12, 22, 40, 0.28);
+  transition: transform 0.18s ease;
+}
+.demo-switch.on .demo-switch-knob { transform: translateX(20px); }
+.demo-switch-knob svg { color: #9a6b16; }
+.demo-spin { animation: demo-spin 0.9s linear infinite; }
+@keyframes demo-spin { to { transform: rotate(360deg); } }
+
+.demo-mode-clear { margin-top: 16px; padding: 14px 15px; border: 1px solid #e6eaf0; background: #fafbfd; border-radius: 3px; }
+.demo-mode-clear p { margin: 0; font-size: 13px; line-height: 1.6; color: #414b59; }
+.demo-clear-btn, .demo-danger, .demo-cancel {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px; margin-top: 11px; padding: 8px 13px;
+  border: 1px solid #c3cbd6; border-radius: 3px; background: #fff;
+  font-size: 12.5px; font-weight: 600; color: #414b59; cursor: pointer;
+}
+.demo-clear-btn:hover, .demo-cancel:hover { border-color: #98a3b2; }
+.demo-confirm { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
+.demo-confirm > span { font-size: 12.5px; font-weight: 600; color: #8a2b1c; }
+.demo-danger { margin-top: 0; border-color: #c0503c; background: #b8402c; color: #fff; }
+.demo-danger:hover { background: #9e3523; border-color: #9e3523; }
+.demo-cancel { margin-top: 0; }
+.demo-mode-error {
+  display: flex; align-items: center; gap: 7px;
+  margin: 13px 0 0; font-size: 12.5px; color: #8a2b1c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-switch, .demo-switch-knob { transition: none; }
+  .demo-spin { animation: none; }
+}

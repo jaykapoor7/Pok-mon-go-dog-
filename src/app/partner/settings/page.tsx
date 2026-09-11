@@ -1,4 +1,5 @@
 import { OrgManager } from "@/components/dashboard/OrgManager";
+import { DemoMode } from "@/components/partner/DemoMode";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings, StrayPaw Partner" };
@@ -11,6 +12,7 @@ export default function PartnerSettingsPage() {
         <p className="mt-0.5 text-[13px] text-bark-500">Your public profile, verification and campaigns.</p>
       </header>
       <OrgManager />
+      <DemoMode />
     </div>
   );
 }
