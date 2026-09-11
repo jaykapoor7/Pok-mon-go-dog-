@@ -137,8 +137,6 @@ export interface Dog {
   status: DogStatus;
   cover_photo: string;
   photos: string[];
-  /** Who first put this animal on the record, when they gave a name. */
-  reporter?: string | null;
   size: DogSize;
   color: string;
   is_friendly: boolean;

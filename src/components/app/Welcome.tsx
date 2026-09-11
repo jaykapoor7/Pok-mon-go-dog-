@@ -227,7 +227,6 @@ export function Welcome() {
 
   const tour = role ? TOURS[role] : TOURS.individual;
   const card = step > 0 ? tour[step - 1] : null;
-  const meta = role ? ROLE_META[role] : null;
 
   return (
     /* Was a hand-rolled div with role="dialog" and aria-modal, which is the
@@ -308,18 +307,19 @@ export function Welcome() {
                   </Button>
                 ) : (
                   <>
-                    <Button
-                      onClick={() => finish(role === "ngo" ? "/join" : meta?.home)}
-                    >
-                      {role === "ngo"
-                        ? "Enter my code"
-                        : role === "feeder"
-                          ? "Open my patch"
-                          : role === "funder"
-                            ? "See what it would take"
-                            : "Open the map"}{" "}
-                      <ArrowRight size={14} />
+                    {/* One ending for every role, and it opens the site
+                        rather than a screen. The four labels here sent
+                        each role straight to its own tool, so the tour
+                        finished by dropping somebody into a map before
+                        they had seen what the map was of. */}
+                    <Button onClick={() => finish("/")}>
+                      Begin <ArrowRight size={14} />
                     </Button>
+                    {role === "ngo" && (
+                      <a className="btn-ghost px-3 py-2 text-xs" href="/join">
+                        Enter my code
+                      </a>
+                    )}
                     {(role === "individual" || role === "feeder") && (
                       <a className="btn-ghost px-3 py-2 text-xs" href={`/access?role=${role}`}>Email me a code</a>
                     )}

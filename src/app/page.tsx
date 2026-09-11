@@ -3,9 +3,10 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { Hero } from "@/components/site/Hero";
 import { LandingMotion } from "@/components/site/LandingMotion";
-import { CountingGap } from "@/components/site/CountingGap";
+import { WhereTheyAre } from "@/components/site/WhereTheyAre";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { getShowcaseDogs, countDogs } from "@/lib/data";
+import { ORGS } from "@/lib/platform/orgs";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 
@@ -17,6 +18,9 @@ export const metadata = {
 
 export default async function HomePage() {
   const [dogs, total] = await Promise.all([getShowcaseDogs(18), countDogs()]);
+  /* Counted from the directory rather than typed in, so the figure on the
+     page cannot drift from the organisations actually listed. */
+  const orgStates = new Set(ORGS.map((o) => o.stateCode)).size;
   return (
     <div className="sp field-site product-site">
       <PageView name="landing_view" />
@@ -24,7 +28,7 @@ export default async function HomePage() {
       <SiteHeader />
       <main>
         <Hero dogs={dogs} total={total} />
-        <CountingGap onRecord={total} />
+        <WhereTheyAre dogs={dogs} total={total} orgs={ORGS.length} states={orgStates} />
         <section className="role-help" aria-labelledby="role-help-title">
           <div><span className="field-eyebrow">A different door into the same record</span><h2 id="role-help-title">Start with the role<br />you already play.</h2></div>
           <div className="role-help-links">

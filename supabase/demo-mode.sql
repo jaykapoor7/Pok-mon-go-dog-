@@ -25,6 +25,50 @@
 -- does, and only ever touches rows that carry the stamp.
 -- ════════════════════════════════════════════════════════════════
 
+-- ── 0. which tables can actually carry this ───────────────────────
+--
+-- A table only joins demo mode if it exists AND has ngo_id, because that
+-- column is the whole mechanism: it is how a row is tied to the
+-- organisation whose switch decides, and how the broom finds it again.
+--
+-- The first version of this file checked only that the table existed and
+-- then indexed ngo_id regardless, so a project whose feeding_zones
+-- predates the ngo_id migration failed at that line and stopped halfway.
+-- Different projects have different migration histories; the file has to
+-- read the schema in front of it rather than the one it was written on.
+
+create or replace function demo_taggable_tables()
+returns setof text language sql stable set search_path = public as $$
+  select t.name
+    from unnest(array[
+      'dogs','cases','sightings','documents','feeding_zones','fundraisers',
+      'tasks','vet_camps','adoption_listings','campaigns','surveys','volunteers'
+    ]) as t(name)
+   where to_regclass('public.' || t.name) is not null
+     and exists (
+       select 1 from information_schema.columns c
+        where c.table_schema = 'public'
+          and c.table_name = t.name
+          and c.column_name = 'ngo_id');
+$$;
+
+-- What was included, and what was passed over and why.
+select t.name,
+       case
+         when to_regclass('public.' || t.name) is null then 'skipped: no such table here'
+         when not exists (select 1 from information_schema.columns c
+                           where c.table_schema='public' and c.table_name=t.name
+                             and c.column_name='ngo_id')
+              then 'skipped: no ngo_id column, cannot be tied to an organisation'
+         else 'included'
+       end as status
+  from unnest(array[
+    'dogs','cases','sightings','documents','feeding_zones','fundraisers',
+    'tasks','vet_camps','adoption_listings','campaigns','surveys','volunteers'
+  ]) as t(name)
+ order by 1;
+
+
 -- ── 1. the switch ─────────────────────────────────────────────────
 
 alter table ngos add column if not exists demo_mode boolean not null default false;
@@ -41,24 +85,26 @@ comment on column ngos.demo_mode is
 do $$
 declare t text;
 begin
-  foreach t in array array[
-    'dogs','cases','sightings','documents','feeding_zones','fundraisers',
-    'tasks','vet_camps','adoption_listings','campaigns','surveys','volunteers'
-  ] loop
-    if to_regclass('public.' || t) is not null then
-      execute format('alter table %I add column if not exists is_demo boolean not null default false', t);
-      -- Partial: the real rows are the overwhelming majority and the index
-      -- only ever has to find the few that are not.
-      execute format('create index if not exists %I on %I (ngo_id) where is_demo', t || '_demo_idx', t);
-    end if;
+  for t in select * from demo_taggable_tables() loop
+    execute format('alter table %I add column if not exists is_demo boolean not null default false', t);
+    -- Partial: the real rows are the overwhelming majority and the index
+    -- only ever has to find the few that are not.
+    execute format('create index if not exists %I on %I (ngo_id) where is_demo', t || '_demo_idx', t);
   end loop;
 end $$;
 
 -- Children of a case or an animal inherit the parent's status rather than
 -- consulting the switch, so a record stays consistent with its parent even
 -- if the switch is flipped between the two inserts.
-alter table medical_events add column if not exists is_demo boolean not null default false;
-alter table case_updates   add column if not exists is_demo boolean not null default false;
+do $$
+begin
+  if to_regclass('public.medical_events') is not null then
+    alter table medical_events add column if not exists is_demo boolean not null default false;
+  end if;
+  if to_regclass('public.case_updates') is not null then
+    alter table case_updates add column if not exists is_demo boolean not null default false;
+  end if;
+end $$;
 
 -- ── 3. who is asking ──────────────────────────────────────────────
 
@@ -99,16 +145,11 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array[
-    'dogs','cases','sightings','documents','feeding_zones','fundraisers',
-    'tasks','vet_camps','adoption_listings','campaigns','surveys','volunteers'
-  ] loop
-    if to_regclass('public.' || t) is not null then
-      execute format('drop trigger if exists %I on %I', t || '_stamp_demo', t);
-      execute format(
-        'create trigger %I before insert on %I for each row execute function stamp_demo_row()',
-        t || '_stamp_demo', t);
-    end if;
+  for t in select * from demo_taggable_tables() loop
+    execute format('drop trigger if exists %I on %I', t || '_stamp_demo', t);
+    execute format(
+      'create trigger %I before insert on %I for each row execute function stamp_demo_row()',
+      t || '_stamp_demo', t);
   end loop;
 end $$;
 
@@ -127,13 +168,19 @@ begin
   return new;
 end $$;
 
-drop trigger if exists medical_events_stamp_demo on medical_events;
-create trigger medical_events_stamp_demo before insert on medical_events
-  for each row execute function stamp_demo_from_parent();
-
-drop trigger if exists case_updates_stamp_demo on case_updates;
-create trigger case_updates_stamp_demo before insert on case_updates
-  for each row execute function stamp_demo_from_parent();
+do $$
+begin
+  if to_regclass('public.medical_events') is not null then
+    drop trigger if exists medical_events_stamp_demo on medical_events;
+    create trigger medical_events_stamp_demo before insert on medical_events
+      for each row execute function stamp_demo_from_parent();
+  end if;
+  if to_regclass('public.case_updates') is not null then
+    drop trigger if exists case_updates_stamp_demo on case_updates;
+    create trigger case_updates_stamp_demo before insert on case_updates
+      for each row execute function stamp_demo_from_parent();
+  end if;
+end $$;
 
 -- ── 5. demo rows are not public ───────────────────────────────────
 --
@@ -188,16 +235,20 @@ begin
     and case_id in (select id from cases where ngo_id = p_ngo and is_demo);
   get diagnostics n = row_count; total := total + n;
 
-  foreach t in array array[
-    'sightings','cases','dogs','documents','feeding_zones','fundraisers',
-    'tasks','vet_camps','adoption_listings','campaigns','surveys','volunteers'
-  ] loop
-    if to_regclass('public.' || t) is not null then
-      execute format('delete from %I where is_demo and ngo_id = $1', t) using p_ngo;
-      get diagnostics n = row_count;
-      total := total + n;
-      per := (per::jsonb || jsonb_build_object(t, n))::json;
-    end if;
+  /* Children first, then parents, and only the tables that actually
+     joined demo mode. Ordered so nothing is orphaned on the way out. */
+  for t in
+    select name from unnest(array[
+      'sightings','cases','dogs','documents','feeding_zones','fundraisers',
+      'tasks','vet_camps','adoption_listings','campaigns','surveys','volunteers'
+    ]) with ordinality as o(name, ord)
+     where name in (select * from demo_taggable_tables())
+     order by o.ord
+  loop
+    execute format('delete from %I where is_demo and ngo_id = $1', t) using p_ngo;
+    get diagnostics n = row_count;
+    total := total + n;
+    per := (per::jsonb || jsonb_build_object(t, n))::json;
   end loop;
 
   return json_build_object('ok', true, 'deleted', total, 'by_table', per);
