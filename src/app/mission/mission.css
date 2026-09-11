@@ -1,0 +1,317 @@
+/* ════════════════════════════════════════════════════════════════════
+   Our mission.
+
+   This page was a column of prose on a white sheet with no header, no
+   footer and nothing to look at. The argument it makes is about
+   measurement, and an argument about measurement that shows no
+   measurements is asking to be taken on faith.
+
+   So every section here carries the thing it is talking about. The state
+   grid is the real classification the rest of the site runs on. The rule
+   cards each show the software decision rather than describing it. None
+   of it is illustration: if a figure appears on this page it came from
+   the same place the maps and the tables get theirs.
+   ════════════════════════════════════════════════════════════════════ */
+
+.mission {
+  --mi-ink: #0b1e3d;
+  --mi-muted: #566579;
+  --mi-line: #ded3c3;
+  --mi-paper: #fffdf9;
+  --mi-flame: #f05b40;
+  --mi-flame-ink: #c1391c;
+  --mi-blue: #2457ce;
+  color: var(--mi-ink);
+}
+
+/* The opening headline takes the landing page's emphasis, so the site's
+   argument and the site's front door speak in one voice. */
+.mission .sx-intro h1 em {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--mi-flame-ink);
+}
+
+.mission section { margin-top: clamp(56px, 7vw, 96px); }
+
+.mission h2 {
+  margin: 0;
+  font-size: clamp(27px, 3vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.mission h2 em {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--mi-flame-ink);
+}
+.mission p { margin: 0; font-size: 15.5px; line-height: 1.68; color: var(--mi-muted); }
+.mission p b, .mission p strong { color: var(--mi-ink); font-weight: 600; }
+.mission .mi-eyebrow {
+  display: block;
+  margin-bottom: 13px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--mi-blue);
+}
+
+/* A section head sits over its figure, not beside it: these figures are
+   wide and a two-column head leaves a ragged gutter. */
+.mission .mi-head { max-width: 58ch; }
+.mission .mi-head p { margin-top: 16px; }
+.mission .mi-head p + p { margin-top: 13px; }
+
+/* ── The state grid ─────────────────────────────────────────────────
+   Every state, coloured by what has actually been published about it.
+   The same three-way classification the map's data-gap layer uses. */
+
+.mi-grid-wrap {
+  margin-top: 30px;
+  padding: 26px 26px 22px;
+  background: var(--mi-paper);
+  border: 1px solid var(--mi-line);
+  border-radius: 12px;
+}
+.mi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mi-grid li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--mi-line);
+  border-radius: 7px;
+  background: #fff;
+  font-size: 12px;
+  line-height: 1.25;
+}
+.mi-grid i { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.mi-grid span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mi-ink);
+}
+/* Nothing published is the finding this page is about, so it is the one
+   that is allowed to shout. */
+.mi-grid li.is-unmeasured { border-color: #f0b8a8; background: #fff6f3; }
+
+.mi-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  margin: 20px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid var(--mi-line);
+  list-style: none;
+}
+.mi-legend li { display: flex; align-items: baseline; gap: 9px; font-size: 12.5px; color: var(--mi-muted); }
+.mi-legend i { position: relative; top: -1px; width: 9px; height: 9px; border-radius: 50%; }
+.mi-legend b { font-variant-numeric: tabular-nums; color: var(--mi-ink); }
+.mi-note { margin-top: 16px !important; font-size: 12.5px !important; }
+
+/* ── Two things, and they depend on each other ──────────────────────── */
+
+.mi-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+.mi-panel {
+  padding: 24px;
+  background: var(--mi-paper);
+  border: 1px solid var(--mi-line);
+  border-radius: 12px;
+}
+.mi-panel h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+  color: var(--mi-ink);
+}
+.mi-panel p { font-size: 14.5px; }
+.mi-panel svg { display: block; width: 100%; height: auto; margin-top: 20px; }
+
+/* ── The five rules ─────────────────────────────────────────────────
+   Not numbered: they are five independent commitments, not five steps,
+   and numbering them would claim an order that does not exist. */
+
+.mi-rules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(292px, 1fr));
+  gap: 16px;
+  margin-top: 30px;
+  list-style: none;
+  padding: 0;
+}
+.mi-rules > li {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  background: var(--mi-paper);
+  border: 1px solid var(--mi-line);
+  border-radius: 12px;
+}
+.mi-rules h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.28;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  color: var(--mi-ink);
+  text-wrap: balance;
+}
+.mi-rules p { font-size: 14px; }
+/* The demonstration sits at the bottom of the card on its own ground, so
+   a card reads as claim then evidence rather than one block of text. */
+.mi-rules .mi-show {
+  margin-top: auto;
+  padding: 14px;
+  border-radius: 9px;
+  background: #f6f1e9;
+  border: 1px solid #e8ddcc;
+}
+
+.mi-swatches { display: grid; gap: 7px; list-style: none; margin: 0; padding: 0; }
+.mi-swatches li { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--mi-muted); }
+.mi-swatches i { flex: none; width: 22px; height: 10px; border-radius: 3px; }
+.mi-swatches li:last-child { color: var(--mi-ink); font-weight: 600; }
+
+.mi-ratio { display: grid; gap: 11px; }
+.mi-ratio div { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; }
+.mi-ratio span { font-size: 12px; color: var(--mi-muted); }
+.mi-ratio b {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--mi-ink);
+  white-space: nowrap;
+}
+
+.mi-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.mi-chips span {
+  padding: 6px 10px;
+  border: 1px solid var(--mi-line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  color: var(--mi-muted);
+}
+.mi-chips span.on { border-color: var(--mi-flame); background: #fff2ee; color: var(--mi-flame-ink); font-weight: 600; }
+
+/* Down the card, not across it. Laid out sideways this wrapped into three
+   ragged lines and the arrows stopped pointing at anything. */
+.mi-flow { display: grid; gap: 4px; justify-items: start; font-size: 12px; }
+.mi-flow em {
+  font-style: normal;
+  padding: 6px 10px;
+  border: 1px solid var(--mi-line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--mi-ink);
+}
+.mi-flow i { font-style: normal; margin-left: 13px; color: var(--mi-flame-ink); font-weight: 600; line-height: 1; }
+.mi-flow s { text-decoration: none; margin-left: 9px; color: var(--mi-muted); font-style: italic; }
+
+.mi-cite { display: grid; gap: 5px; }
+.mi-cite b { font-size: 19px; letter-spacing: -0.03em; color: var(--mi-ink); font-variant-numeric: tabular-nums; }
+.mi-cite span { font-size: 11.5px; line-height: 1.5; color: var(--mi-muted); }
+.mi-cite u { text-decoration: none; color: var(--mi-flame-ink); }
+
+/* ── What this is, and what it is not ───────────────────────────────── */
+
+.mi-claims {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0;
+  margin-top: 30px;
+  border: 1px solid var(--mi-line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--mi-paper);
+}
+.mi-claims > div { padding: 24px; }
+.mi-claims > div + div { border-left: 1px solid var(--mi-line); }
+.mi-claims h3 {
+  margin: 0 0 14px;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.mi-claims .is-yes h3 { color: #2f7a5b; }
+.mi-claims .is-no h3 { color: var(--mi-flame-ink); }
+.mi-claims ul { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.mi-claims li { padding-left: 17px; position: relative; font-size: 14.5px; line-height: 1.6; color: var(--mi-muted); }
+.mi-claims li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.45;
+}
+@media (max-width: 620px) {
+  .mi-claims > div + div { border-left: 0; border-top: 1px solid var(--mi-line); }
+}
+
+/* ── Where this goes ────────────────────────────────────────────────── */
+
+.mi-goes { margin-top: 30px; border-top: 1px solid var(--mi-line); }
+.mi-goes > div {
+  display: grid;
+  grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
+  gap: 18px 28px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--mi-line);
+}
+.mi-goes b { font-size: 16px; letter-spacing: -0.025em; color: var(--mi-ink); font-weight: 600; }
+.mi-goes p { font-size: 14.5px; }
+@media (max-width: 620px) {
+  .mi-goes > div { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* ── Closing ────────────────────────────────────────────────────────── */
+
+.mi-close {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid var(--mi-line);
+  font-size: 13.5px;
+  color: var(--mi-muted);
+}
+.mi-close a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--mi-blue);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.mi-close a:hover { color: var(--mi-flame-ink); }
+.mi-built { margin-left: auto; }
+@media (max-width: 620px) { .mi-built { margin-left: 0; } }
