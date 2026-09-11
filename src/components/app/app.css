@@ -3652,3 +3652,79 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 .ds-method dl > div + div { margin-top: 17px; }
 .ds-method dt { font-size: 14.5px; font-weight: 650; margin-bottom: 4px; }
 .ds-method dd { margin: 0; font-size: 13.5px; line-height: 1.65; color: #3f4756; }
+
+/* ── Education layer ───────────────────────────────────────────────────────
+   Built as a route rather than a resource library. The numbered steps are
+   numbered because the order carries the argument: reading without a local
+   picture stays abstract, and acting without either is guesswork. A grid of
+   equal cards would say the three are interchangeable, which is the thing
+   the page is arguing against. */
+.edu-path { margin-top: 30px; border-top: 1px solid var(--line); }
+.edu-step {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 20px;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line);
+}
+.edu-step > b { color: var(--vermilion-ink); font-size: 12px; letter-spacing: .1em; padding-top: 4px; }
+.edu-step h2 { margin: 0; font-size: 21px; letter-spacing: -.02em; }
+.edu-step p { margin: 8px 0 0; max-width: 66ch; color: var(--muted-ink, #5c6472); font-size: 14.5px; line-height: 1.65; }
+.edu-step-foot { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-top: 14px; }
+.edu-step-foot .spa-mono { font-size: 11px; color: #5c6472; letter-spacing: .05em; }
+
+.edu-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13.5px; font-weight: 650; color: var(--electric-ink);
+  text-decoration: none; min-height: 32px;
+}
+.edu-link:hover { text-decoration: underline; }
+.edu-link.quiet { color: #5c6472; font-weight: 500; font-size: 12px; }
+
+/* ── Partner registry ───────────────────────────────────────────────────── */
+.edu-partners { margin-top: 42px; padding-top: 30px; border-top: 1px solid var(--line); }
+.edu-partners-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: start; }
+.edu-partners-head h2 { margin: 8px 0 0; font-size: 26px; letter-spacing: -.03em; max-width: 20ch; }
+.edu-partners-head p { margin: 12px 0 0; max-width: 62ch; color: #5c6472; font-size: 14.5px; line-height: 1.65; }
+
+.edu-partner-list { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 14px; }
+.edu-partner { padding: 22px; border: 1px solid var(--line); background: #fff; }
+.edu-partner-top { display: flex; flex-wrap: wrap; gap: 12px; align-items: start; justify-content: space-between; }
+.edu-partner h3 { margin: 0; font-size: 19px; letter-spacing: -.02em; }
+.edu-partner-top .spa-mono { display: block; margin-top: 5px; font-size: 11px; color: #5c6472; letter-spacing: .04em; }
+.edu-partner > p { margin: 14px 0 0; max-width: 66ch; color: #5c6472; font-size: 14.5px; line-height: 1.65; }
+
+/* Status is the honest part of this component, so it reads as state rather
+   than as decoration: a filled chip for material that exists, an outline for
+   a conversation that has not produced any yet. */
+.edu-status {
+  flex-shrink: 0;
+  font-family: var(--font-mono), monospace; font-size: 10.5px;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 6px 10px; border: 1px solid #b9c4d4; color: #5c6472; background: #f6f8fb;
+}
+.edu-status.on { border-color: var(--electric-ink); color: #fff; background: var(--electric-ink); }
+
+.edu-programmes { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
+.edu-programmes li {
+  position: relative; padding-left: 18px;
+  font-size: 13.5px; line-height: 1.6; color: #4d5564;
+}
+.edu-programmes li::before {
+  content: ""; position: absolute; left: 0; top: .68em;
+  width: 9px; height: 1px; background: var(--vermilion-ink);
+}
+
+.edu-partner-foot {
+  display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line);
+}
+.edu-pending { font-size: 13px; color: #5c6472; max-width: 52ch; line-height: 1.55; }
+.edu-note { margin: 18px 0 0; font-size: 13.5px; color: #5c6472; line-height: 1.6; max-width: 66ch; }
+
+@media (max-width: 760px) {
+  .edu-step { grid-template-columns: 1fr; gap: 6px; }
+  .edu-step > b { padding-top: 0; }
+  .edu-partners-head { grid-template-columns: 1fr; }
+  .edu-partner { padding: 18px; }
+}

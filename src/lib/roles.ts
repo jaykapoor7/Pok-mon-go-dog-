@@ -1,15 +1,15 @@
 /* ════════════════════════════════════════════════════════════════════
    Who is using StrayPaw.
 
-   Three audiences share one console but arrive wanting different things,
+   Several audiences share one console but arrive wanting different things,
    so the role decides what gets surfaced first, not what is permitted.
    Permission is a separate question, answered by NGO membership, and it
    only ever gates *writing*: every read surface stays open.
    ════════════════════════════════════════════════════════════════════ */
 
-export type Role = "individual" | "feeder" | "ngo" | "funder";
+export type Role = "individual" | "feeder" | "educator" | "ngo" | "funder";
 
-export const ROLES: Role[] = ["individual", "feeder", "ngo", "funder"];
+export const ROLES: Role[] = ["individual", "feeder", "educator", "ngo", "funder"];
 
 export const ROLE_META: Record<
   Role,
@@ -45,6 +45,16 @@ export const ROLE_META: Record<
       "You know a group of street dogs well and want their feeding zone, sightings, and care status to stay together.",
     home: "/feeder",
     priority: ["/feeder", "/map", "/report", "/following"],
+    apply: null,
+    applyLabel: null,
+  },
+  educator: {
+    label: "I teach",
+    short: "Educator",
+    blurb:
+      "You take a class, a club or a session, and you want the street animals in your own locality to be the material rather than an abstraction.",
+    home: "/education",
+    priority: ["/education", "/learn", "/map", "/report"],
     apply: null,
     applyLabel: null,
   },

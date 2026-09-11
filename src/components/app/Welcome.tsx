@@ -8,10 +8,12 @@ import {
   Building2,
   Calculator,
   Coins,
+  GraduationCap,
   KeyRound,
   LayoutGrid,
   MapPin,
   Radio,
+  NotebookPen,
   ScanSearch,
   ShieldCheck,
   Utensils,
@@ -49,10 +51,11 @@ export function openTour() {
 const ROLE_ICON: Record<Role, typeof Users> = {
   individual: Users,
   feeder: Utensils,
+  educator: GraduationCap,
   ngo: Building2,
   funder: Coins,
 };
-const ENTRY_ROLES: Role[] = ["individual", "feeder", "ngo"];
+const ENTRY_ROLES: Role[] = ["individual", "feeder", "educator", "ngo"];
 
 /* What comes after the role question depends on the answer.
 
@@ -100,6 +103,23 @@ const TOURS: Record<Role, Card[]> = {
       Icon: Bookmark,
       title: "Give the dogs you know a history",
       body: "Report a sighting when you recognise a dog. Note an ear notch, collar, or known care status, then save the record so the next visit starts with context.",
+    },
+  ],
+  educator: [
+    {
+      Icon: MapPin,
+      title: "The material is the road outside the school",
+      body: "Open the map on your own ward. The animals a lesson describes in the abstract are the ones a class already walks past, and they are on the map by name, photograph and place.",
+    },
+    {
+      Icon: ScanSearch,
+      title: "What nobody has checked is the lesson",
+      body: "A record says sterilised or vaccinated only where somebody looked. Everywhere else it says unknown, and does not quietly count that as a no. That distinction is worth a whole session on its own.",
+    },
+    {
+      Icon: NotebookPen,
+      title: "The reading is already sourced",
+      body: "Coexistence, ABC, rabies and the law, each written against a named published source \u2014 the ABC Rules 2023, the national rabies plan, WHO guidance \u2014 so you can cite what you teach.",
     },
   ],
   ngo: [

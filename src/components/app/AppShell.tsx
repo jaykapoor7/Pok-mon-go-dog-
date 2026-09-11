@@ -13,10 +13,12 @@ import {
 } from "react";
 import {
   ArrowUpRight,
+  BookOpen,
   Bookmark,
   Building2,
   CalendarRange,
   Database,
+  GraduationCap,
   Heart,
   LayoutGrid,
   MapPin,
@@ -45,8 +47,19 @@ const COMMUNITY_NAV = [
    access on desktop without presenting a flat, seven-item product menu. */
 const COMMUNITY_REFERENCE_NAV = [
   { href: "/feed", label: "Recent activity", Icon: Radio },
+  { href: "/education", label: "Education", Icon: GraduationCap },
   { href: "/orgs", label: "Organisations", Icon: Heart },
   { href: "/evidence", label: "Evidence", Icon: ScanSearch },
+];
+
+/* An educator opens StrayPaw for the material, not the field work, so
+   education takes the slot the dashboard would have. The rest is the same
+   community console: a teacher still reports and still reads the map. */
+const EDUCATOR_NAV = [
+  { href: "/education", label: "Education", Icon: GraduationCap },
+  { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/report", label: "Report", Icon: Radio },
+  { href: "/learn", label: "Learn", Icon: BookOpen },
 ];
 
 const NGO_NAV = [
@@ -152,12 +165,21 @@ export function AppShell({
   const isNgo = role === "ngo" || pathname.startsWith("/partner");
   const isFeeder = role === "feeder" || pathname.startsWith("/feeder");
   const isReporting = pathname.startsWith("/report");
-  const primaryNav = isNgo ? NGO_NAV : isFeeder ? FEEDER_NAV : COMMUNITY_NAV;
-  const referenceNav = !isNgo && !isFeeder ? COMMUNITY_REFERENCE_NAV : [];
+  const isEducator = role === "educator" || pathname.startsWith("/education");
+  const primaryNav = isNgo
+    ? NGO_NAV
+    : isFeeder
+      ? FEEDER_NAV
+      : isEducator
+        ? EDUCATOR_NAV
+        : COMMUNITY_NAV;
+  const referenceNav = !isNgo && !isFeeder && !isEducator ? COMMUNITY_REFERENCE_NAV : [];
   const mobileNav = isNgo
     ? primaryNav.filter(({ label }) => ["Dashboard", "Map", "Records", "Field work"].includes(label))
     : isFeeder
       ? primaryNav.filter(({ label }) => ["My patch", "Map", "Saved dogs", "Evidence"].includes(label))
+    : isEducator
+      ? primaryNav.filter(({ label }) => ["Education", "Map", "Learn"].includes(label))
     : primaryNav.filter(({ label }) => ["Home", "Map", "Saved animals", "Evidence"].includes(label));
   const isActive = (href: string) => {
     if (href === "/partner/animals") return pathname.startsWith("/partner/animals") || pathname.startsWith("/partner/cases") || pathname.startsWith("/partner/medical");
@@ -237,7 +259,7 @@ export function AppShell({
 
       <div className="spa-body">
         <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
-          <p className="spa-nav-context">{isNgo ? "NGO operations" : isFeeder ? "Feeder workspace" : "Community"}</p>
+          <p className="spa-nav-context">{isNgo ? "NGO operations" : isFeeder ? "Feeder workspace" : isEducator ? "Education" : "Community"}</p>
           <div className="spa-primary-nav">
             {primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={`${isActive(href) ? "active " : ""}${label === "Report" ? "spa-report-shortcut" : ""}`}><Icon size={17}/>{label}</Link>)}
           </div>
