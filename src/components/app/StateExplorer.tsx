@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ExternalLink, MapPin } from "lucide-react";
 
 export type StateRow = {
@@ -13,6 +14,7 @@ export type StateRow = {
   abcSource: string | null;
   orgCount: number;
   orgs: { id: string; name: string; city: string; url?: string }[];
+  cityGroups: { city: string; orgs: { id: string; name: string; url?: string }[] }[];
 };
 
 /**
@@ -151,27 +153,21 @@ export function StateExplorer({ rows }: { rows: StateRow[] }) {
             </div>
           </dl>
 
-          {selected.orgs.length > 0 && (
-            <ul className="se-orgs">
-              {selected.orgs.map((o) => {
-                const Item = o.url ? "a" : "span";
-                return (
-                  <li key={o.id}>
-                    <Item
-                      {...(o.url
-                        ? { href: o.url, target: "_blank", rel: "noopener noreferrer" }
-                        : {})}
-                    >
-                      <b>{o.name}</b>
-                      <span>
-                        <MapPin size={10} /> {o.city}
-                      </span>
-                      {o.url && <ExternalLink size={11} />}
-                    </Item>
-                  </li>
-                );
-              })}
-            </ul>
+          {selected.cityGroups.length > 0 && (
+            <section className="se-city-network" aria-label={`Organisations by city in ${selected.name}`}>
+              <div className="se-city-network-head"><b>Who is working, by city</b><Link href={`/orgs?state=${selected.code}`}>Open directory</Link></div>
+              {selected.cityGroups.map((group) => (
+                <div className="se-city-group" key={group.city}>
+                  <Link href={`/orgs?state=${selected.code}&city=${encodeURIComponent(group.city)}`}><MapPin size={11} />{group.city}{group.orgs.length > 1 && <span>{group.orgs.length} organisations</span>}</Link>
+                  <ul>
+                    {group.orgs.map((o) => {
+                      const Item = o.url ? "a" : "span";
+                      return <li key={o.id}><Item {...(o.url ? { href: o.url, target: "_blank", rel: "noopener noreferrer" } : {})}>{o.name}{o.url && <ExternalLink size={11} />}</Item></li>;
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </section>
           )}
         </aside>
       </div>

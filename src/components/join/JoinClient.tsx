@@ -11,11 +11,9 @@ import { storeRole, type Role } from "@/lib/roles";
 /* ════════════════════════════════════════════════════════════════════
    Typing the code.
 
-   One box, six characters, and whatever happens next is decided by the
-   code rather than by the person choosing between things they have no way
-   of telling apart. A staff code lands them in their organisation's
-   dashboard; a volunteer's code sets them up to report and sends them
-   to the camera.
+   One email and six characters. A staff code lands a person in their
+   organisation's dashboard; a personal code restores their community or
+   feeder space; a volunteer code opens reporting for the named team.
 
    Nothing about the code is checked here. The box only tidies what is
    typed, so pasting "paws-3k9 2xr" out of a message still works.
@@ -40,12 +38,12 @@ type Personal = { kind: "personal"; tokenHash: string; email: string; name: stri
 export function JoinClient({ initialCode }: { initialCode?: string }) {
   const router = useRouter();
   const [code, setCode] = useState((initialCode ?? "").toUpperCase());
+  const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [welcome, setWelcome] = useState<string | null>(null);
   const box = useRef<HTMLInputElement>(null);
-  const tried = useRef(false);
 
   useEffect(() => {
     box.current?.focus();
@@ -57,6 +55,11 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
 
   async function submit(value?: string) {
     const entered = clean(value ?? code);
+    const enteredEmail = email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(enteredEmail)) {
+      setError("Enter the email address that received this code.");
+      return;
+    }
     if (entered.length < 4) {
       setError("A StrayPaw code is six characters.");
       return;
@@ -69,7 +72,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
       const res = await fetch("/api/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: entered }),
+        body: JSON.stringify({ code: entered, email: enteredEmail }),
       });
       const data = (await res.json()) as (Staff | Volunteer | Personal) & { error?: string };
       if (!res.ok) {
@@ -131,16 +134,6 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
     }
   }
 
-  /* A code that arrives in a link is submitted for them. Once only, so a
-     failed one does not retry itself on every render. */
-  useEffect(() => {
-    if (initialCode && !tried.current) {
-      tried.current = true;
-      submit(initialCode);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCode]);
-
   return (
     <div className="join-wrap">
       <div className="join-card">
@@ -149,11 +142,10 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         <Link className="join-back" href="/">
           <ArrowLeft size={15} /> Back to StrayPaw
         </Link>
-        <h1>Enter your code</h1>
+        <h1>Sign in with your code</h1>
         <p className="join-lede">
-          Six characters, from whoever added you to an organisation on
-          StrayPaw. There is no password: this code is how you sign in, every
-          time. Keep it somewhere you can find it.
+          Enter the email that received your StrayPaw code, then the six
+          characters. The same pair works every time. There is no password.
         </p>
 
         <form
@@ -162,8 +154,23 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
             submit();
           }}
         >
+          <label htmlFor="join-email" className="join-label">
+            Email address
+          </label>
+          <input
+            id="join-email"
+            className="join-input"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@email.com"
+            disabled={busy}
+            required
+          />
           <label htmlFor="join-code" className="join-label">
-            Your code
+            Your six-character code
           </label>
           <input
             id="join-code"
@@ -181,7 +188,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
             aria-describedby={error ? "join-error" : undefined}
           />
 
-          <button type="submit" className="join-go" disabled={busy || code.length < 4}>
+          <button type="submit" className="join-go" disabled={busy || code.length < 4 || !email.trim()}>
             {busy ? (
               <>
                 <Loader2 size={16} className="imp-spin" /> {step ?? "Working"}
@@ -202,8 +209,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         {welcome && <p className="join-welcome">{welcome}</p>}
 
         <p className="join-foot">
-          No code? If your organisation already uses StrayPaw, ask your team
-          lead for one. Anyone can report a street animal without a code at{" "}
+          No code? Community members and feeders can <a href="/access">have one emailed to them</a>. If your organisation already uses StrayPaw, ask your team lead for one. Anyone can report a street animal without a code at{" "}
           <a href="/report">the reporting page</a>.
         </p>
       </div>

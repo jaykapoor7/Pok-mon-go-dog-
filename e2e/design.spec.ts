@@ -1,13 +1,20 @@
 import { test, expect } from "@playwright/test";
 
-test("landing story keeps the map and reporting within reach", async ({ page }) => {
+test("landing leads with a real field record and keeps reporting within reach", async ({ page }) => {
   await page.goto("/");
   const hero = page.locator(".product-hero");
-  await expect(hero.getByRole("heading", { level: 1 })).toHaveText(/One sighting can/);
-  await expect(hero.getByRole("link", { name: "Explore the live map" })).toHaveAttribute("href", "/map");
+  await expect(hero.getByRole("heading", { level: 1, name: /A street animal should not have to/i })).toBeVisible();
+  await expect(hero.getByRole("link", { name: "See the live map" })).toHaveAttribute("href", "/map");
   await expect(hero.getByRole("link", { name: "Report a sighting" })).toHaveAttribute("href", "/report");
-  await expect(hero.locator(".hero-live-map")).toBeVisible();
+  await expect(hero.locator(".hero-record-stage")).toBeVisible();
   await expect(page.locator(".product-story")).toBeVisible();
+});
+
+test("a code sign-in always asks for the receiving email", async ({ page }) => {
+  await page.goto("/join");
+  await expect(page.getByLabel("Email address")).toBeVisible();
+  await expect(page.getByLabel("Your six-character code")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue" })).toBeDisabled();
 });
 
 test("reduced motion keeps the landing readable without animated reveals", async ({ page }) => {
@@ -40,8 +47,8 @@ test("community choice stays account-free", async ({ page }) => {
   await page.getByRole("button", { name: /I want to report an animal/i }).click();
   await expect(page.getByRole("heading", { name: /Reporting takes a photo and a spot on the map/i })).toBeVisible();
   await expect(page.getByText(/you@email\.com/i)).toHaveCount(0);
-  await page.getByRole("button", { name: /next/i }).click();
-  await page.getByRole("button", { name: /next/i }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.getByRole("button", { name: /open the map/i }).click();
   await expect(page).toHaveURL(/\/map$/);
 });

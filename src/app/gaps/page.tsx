@@ -40,6 +40,9 @@ export default function GapsPage() {
     const p = pop.get(s.code);
     const a = abc.get(s.code);
     const orgs = ORGS.filter((o) => o.stateCode === s.code);
+    const cityGroups = [...new Map(orgs.map((org) => [org.city, orgs.filter((item) => item.city === org.city)]))]
+      .map(([city, entries]) => ({ city, orgs: entries.map((org) => ({ id: org.id, name: org.name, url: org.url })) }))
+      .sort((a, b) => b.orgs.length - a.orgs.length || a.city.localeCompare(b.city));
     return {
       code: s.code,
       name: s.name,
@@ -51,6 +54,7 @@ export default function GapsPage() {
       abcSource: a ? `${a.source} (${a.year})` : null,
       orgCount: orgs.length,
       orgs: orgs.map((o) => ({ id: o.id, name: o.name, city: o.city, url: o.url })),
+      cityGroups,
     };
   }).filter((r) => r.population !== null || r.orgCount > 0);
 

@@ -25,7 +25,7 @@ import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volu
    ════════════════════════════════════════════════════════════════════ */
 
 export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
-  const { user, isAuthed, signOut, openSignIn } = useAuth();
+  const { user, isAuthed, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
 
@@ -130,9 +130,7 @@ export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="spa-profile">
       <div className="spa-profile-links out">
-        <button type="button" onClick={openSignIn} className="pp-signin">
-          Sign in
-        </button>
+        <Link href="/access" onClick={onNavigate} className="pp-signin">Get a code</Link>
         <Link href="/join" onClick={onNavigate} className="pp-code">
           <KeyRound size={14} /> I have a code
         </Link>

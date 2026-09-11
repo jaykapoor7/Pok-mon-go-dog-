@@ -30,6 +30,9 @@ export default function EvidencePage() {
     const pop = population.get(state.code);
     const abc = coverage.get(state.code);
     const orgs = ORGS.filter((org) => org.stateCode === state.code);
+    const cityGroups = [...new Map(orgs.map((org) => [org.city, orgs.filter((item) => item.city === org.city)]))]
+      .map(([city, entries]) => ({ city, orgs: entries.map((org) => ({ id: org.id, name: org.name, url: org.url })) }))
+      .sort((a, b) => b.orgs.length - a.orgs.length || a.city.localeCompare(b.city));
     return {
       code: state.code,
       name: state.name,
@@ -40,6 +43,7 @@ export default function EvidencePage() {
       abcSource: abc ? `${abc.source} (${abc.year})` : null,
       orgCount: orgs.length,
       orgs: orgs.map((org) => ({ id: org.id, name: org.name, city: org.city, url: org.url })),
+      cityGroups,
     };
   }).filter((row) => row.population !== null || row.orgCount > 0);
 
