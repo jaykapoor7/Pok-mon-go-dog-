@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
+import { exchangeToken } from "@/lib/auth-exchange";
 import { saveVolunteer } from "@/lib/volunteer";
 import { storeRole, type Role } from "@/lib/roles";
 
@@ -103,12 +104,11 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         return;
       }
       setStep("Signing you in");
-      const { data: session, error: otpError } = await supa.auth.verifyOtp({
-        token_hash: data.tokenHash,
-        type: "email",
-      });
-      if (otpError || !session?.session) {
-        setError("That code is valid but the sign-in did not complete. Try once more.");
+      const exchange = await exchangeToken(supa, data.tokenHash);
+      if (exchange.error || !exchange.session) {
+        /* Carry the real reason. "Try once more" sent people round the
+           same loop with nothing to report to whoever could fix it. */
+        setError(`Your code is right, but the sign-in did not complete: ${exchange.error}`);
         return;
       }
 
@@ -117,7 +117,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.session.access_token}`,
+          Authorization: `Bearer ${exchange.session.access_token}`,
         },
         body: JSON.stringify({ code: entered, action: "claim" }),
       });
