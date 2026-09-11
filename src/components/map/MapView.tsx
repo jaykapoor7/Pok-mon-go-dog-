@@ -113,8 +113,9 @@ export function MapView({
      So when nothing else says where to look, the records themselves do. A
      single record is a point, not an extent, and is left to the camera's
      own default zoom. */
+  const hasPlace = Boolean(urlCentre || bboxParam || orgCentre || coords);
   const recordBounds = useMemo(() => {
-    if (urlCentre || bboxParam || orgCentre || coords) return null;
+    if (hasPlace) return null;
     const pts = allDogs.filter(
       (d) => Number.isFinite(d.lat) && Number.isFinite(d.lng) && (d.lat !== 0 || d.lng !== 0)
     );
@@ -123,8 +124,7 @@ export function MapView({
       [Math.min(...pts.map((d) => d.lng)), Math.min(...pts.map((d) => d.lat))],
       [Math.max(...pts.map((d) => d.lng)), Math.max(...pts.map((d) => d.lat))],
     ] as [[number, number], [number, number]];
-    /* bboxParam rather than urlBounds: the array is rebuilt every render. */
-  }, [sLat, sLng, bboxParam, orgCentre, coords, allDogs]);
+  }, [hasPlace, allDogs]);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;

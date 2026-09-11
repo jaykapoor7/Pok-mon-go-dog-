@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { AnimalMatch } from "@/components/report/AnimalMatch";
 import { ProgrammeStatus, type SterilisationStatus, type VaccinationStatus } from "@/components/report/ProgrammeStatus";
 import { ReportingFor } from "@/components/report/ReportingFor";
+import { PhotoStudio } from "@/components/report/PhotoStudio";
 import { readVolunteer, type VolunteerSession } from "@/lib/volunteer";
 import { track } from "@/lib/analytics";
 
@@ -35,6 +36,8 @@ export default function ReportPage() {
   const [step, setStep] = useState(0); // 0..3
   const [photo, setPhoto] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  /* What came off the camera, while it is being framed. Never uploaded. */
+  const [raw, setRaw] = useState<File | null>(null);
   /* Seeded from ?lat&lng when somebody pressed "Report an animal here" on
      the map: they had already found the place, and asking them to find it
      again is the step most reports are lost at. A photograph's own EXIF
@@ -82,13 +85,20 @@ export default function ReportPage() {
   async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
     if (!picked) return;
-    setFile(picked);
-    setPhoto(URL.createObjectURL(picked));
-
+    /* Straight into the editor. The photo is not the report's photo until
+       it has been framed and anybody in it has been blurred, so nothing is
+       set here except what the editor is working on. */
+    setRaw(picked);
+    setPhoto(null);
+    setFile(null);
+    /* So picking the same file twice still opens the editor. */
+    e.target.value = "";
 
     /* The camera usually recorded where and when already. Reading it saves
        dragging a pin to a place the phone knew, and the result is shown so
-       it can be corrected rather than silently trusted. */
+       it can be corrected rather than silently trusted. Read from what came
+       off the camera: the edited file is a fresh canvas export and carries
+       no EXIF at all, which is the point of exporting it. */
     setReadingMeta(true);
     setMeta(null);
     try {
@@ -211,10 +221,22 @@ export default function ReportPage() {
               <ReportingFor volunteer={volunteer} onChange={setVolunteer} />
               <StepTitle icon={<Camera className="h-4 w-4" />} title="Add a photo" hint="A clear photo helps NGOs identify and find the animal." />
               <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
-              {photo ? (
-                <button onClick={() => fileRef.current?.click()} className="relative block aspect-square w-full overflow-hidden rounded bg-bark-100 dark:bg-bark-800">
-                  <img src={photo} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl" />
-                  <img src={photo} alt="Selected animal" className="relative h-full w-full object-contain" />
+              {raw ? (
+                <PhotoStudio
+                  file={raw}
+                  onCancel={() => {
+                    setRaw(null);
+                    fileRef.current?.click();
+                  }}
+                  onDone={(edited, url) => {
+                    setFile(edited);
+                    setPhoto(url);
+                    setRaw(null);
+                  }}
+                />
+              ) : photo ? (
+                <button onClick={() => fileRef.current?.click()} className="relative block aspect-[4/3] w-full overflow-hidden rounded bg-bark-100 dark:bg-bark-800">
+                  <img src={photo} alt="Selected animal" className="relative h-full w-full object-cover" />
                   <span className="absolute bottom-3 right-3 chip bg-black/60 text-white"><Camera className="h-3.5 w-3.5" /> Change</span>
                 </button>
               ) : (
@@ -354,7 +376,7 @@ export default function ReportPage() {
           </button>
         )}
       </div>
-      {step === 0 && !photo && <p className="mt-2 text-center text-xs text-bark-400">Add a photo to continue.</p>}
+      {step === 0 && !photo && !raw && <p className="mt-2 text-center text-xs text-bark-400">Add a photo to continue.</p>}
       {step === 1 && !coords && <p className="mt-2 text-center text-xs text-bark-400">Set a location to continue.</p>}
       {step === 3 && !consentDone && <p className="mt-2 text-center text-xs text-bark-400">Please confirm all three to submit.</p>}
 

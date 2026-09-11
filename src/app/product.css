@@ -106,6 +106,40 @@ html .spa.spa .qa-card svg{color:var(--sp-blue)}
 .report-form .report-upload:hover{background:#e7effc;border-color:var(--sp-blue)}
 .report-form .report-upload>svg{color:var(--sp-blue);width:34px;height:34px}
 .report-form .chip{border-radius:6px;min-height:36px}
+
+/* ── The photo editor ──────────────────────────────────────────────
+   The canvas is the export, so it gets the room. Everything under it is
+   one row of controls and one row of actions, because this sits at the
+   step where reports are already most often abandoned. */
+.photo-studio{display:grid;gap:12px}
+.photo-studio-stage{position:relative;border-radius:10px;overflow:hidden;background:#0b1e3d}
+.photo-studio-stage canvas{display:block;width:100%;height:auto;touch-action:none}
+.photo-studio-stage canvas.is-framing{cursor:grab}
+.photo-studio-stage canvas.is-framing:active{cursor:grabbing}
+.photo-studio-stage canvas.is-blurring{cursor:crosshair}
+.photo-studio-wait{position:absolute;inset:auto 10px 10px auto;display:flex;align-items:center;gap:7px;
+  padding:7px 11px;border-radius:999px;background:rgba(11,30,61,.82);color:#fff;font-size:12px}
+.photo-studio-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.report-form .photo-studio-mode{display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;
+  border:1px solid var(--sp-line);border-radius:8px;background:#fff;font-size:13.5px;font-weight:600;color:var(--sp-muted)}
+.report-form .photo-studio-mode[aria-pressed=true]{border-color:var(--sp-blue);background:#f1f5fc;color:var(--sp-blue)}
+.photo-studio-row{display:flex;align-items:center;gap:12px;min-height:42px}
+.photo-studio-row label{font-size:13px;color:var(--sp-muted);white-space:nowrap}
+.photo-studio-row input[type=range]{flex:1;min-width:0;accent-color:var(--sp-blue)}
+.photo-studio-note{flex:1;min-width:0;font-size:13px;line-height:1.5;color:var(--sp-muted);margin:0}
+.report-form .photo-studio-reset{display:flex;align-items:center;gap:6px;min-height:38px;padding:0 11px;
+  border:1px solid var(--sp-line);border-radius:7px;background:#fff;font-size:12.5px;color:var(--sp-muted);white-space:nowrap}
+.report-form .photo-studio-reset:disabled{opacity:.45}
+.photo-studio-actions{display:flex;gap:10px}
+.report-form .photo-studio-cancel{flex:1;min-height:46px;border:1px solid var(--sp-line);border-radius:8px;
+  background:#fff;font-size:14px;font-weight:600;color:var(--sp-muted)}
+.report-form .photo-studio-accept{flex:2;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;
+  border-radius:8px;background:var(--sp-blue);color:#fff;font-size:14px;font-weight:600;border:1px solid var(--sp-blue)}
+.report-form .photo-studio-accept:disabled{opacity:.6}
+@media(max-width:560px){
+  .photo-studio-row{flex-wrap:wrap}
+  .photo-studio-note{flex-basis:100%}
+}
 .report-form .report-actions{position:sticky;bottom:-1px;padding:15px 0 0;background:white;z-index:3}
 .report-form .btn-primary{background:var(--sp-blue);color:#fff;border-radius:7px}
 .report-signin-note{padding:12px 0 18px;border-bottom:1px solid var(--sp-line);margin-bottom:20px;display:flex;align-items:center;gap:15px;font-size:12px;line-height:1.6;color:var(--sp-muted)}
