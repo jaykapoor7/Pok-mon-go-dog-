@@ -14,8 +14,15 @@ export function LandingMotion() {
       if (preference.matches) return;
       root.dataset.motion = "on";
       const sections = root.querySelectorAll<HTMLElement>(".field-section-heading, .field-steps article, .field-team-copy, .field-workspace-example, .field-paths a, .field-photo-story, .field-closing h2, .record-stage, .record-intro-copy");
+      /* Symmetric: enters on the way down, retracts on the way back up.
+         unobserve() here made every reveal one-way, so scrolling back up
+         showed an already-assembled page — the animation only ever existed
+         once. It retracts only when the element leaves past the BOTTOM of
+         the viewport; retracting off the top would mean content vanishing
+         behind you as you read downward. */
       const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-        if (entry.isIntersecting) { entry.target.classList.add("is-in"); observer.unobserve(entry.target); }
+        if (entry.isIntersecting) entry.target.classList.add("is-in");
+        else if (entry.boundingClientRect.top > 0) entry.target.classList.remove("is-in");
       }), { threshold: .12 });
       sections.forEach(section => { section.classList.add("reveal"); observer.observe(section); });
       const hero = root.querySelector<HTMLElement>(".record-hero");
