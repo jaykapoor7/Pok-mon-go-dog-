@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { FieldMapPreview } from "./FieldMapPreview";
 import { cityForPoints } from "@/lib/geo/cities";
+import { densestCell, located } from "@/lib/geo/cluster";
 import type { Dog } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -63,37 +64,14 @@ export function WhereTheyAre({
     return () => io.disconnect();
   }, []);
 
-  const located = dogs.filter(
-    (d) => Number.isFinite(d.lat) && Number.isFinite(d.lng)
-  );
+  const there = located(dogs);
 
-  /* Framed on the densest cluster rather than on everything.
-     A box around every located animal spans most of India, and at that
-     zoom the photographs the map draws for each one are specks: it stops
-     being an introduction to the product and becomes a dot map. Picking
-     the busiest half-degree cell gives a city with records packed into
-     it, which is what this looks like when it is working. Computed from
-     the data, so it follows the records instead of naming a city. */
-  const cluster = (() => {
-    if (located.length === 0) return [];
-    const cells = new Map<string, Dog[]>();
-    for (const d of located) {
-      const key = `${Math.round(d.lat * 2)}/${Math.round(d.lng * 2)}`;
-      const bucket = cells.get(key);
-      if (bucket) bucket.push(d);
-      else cells.set(key, [d]);
-    }
-    let best: Dog[] = [];
-    for (const bucket of cells.values()) if (bucket.length > best.length) best = bucket;
-    /* One or two animals in a cell is not a city; show everything then. */
-    return best.length >= 3 ? best : located;
-  })();
+  /* Framed on the busiest cell rather than on everything: see lib/geo/cluster. */
+  const focus = densestCell(there);
 
-  const focus = cluster.length ? cluster : located;
-  /* A zone is a neighbourhood, so printing one over a map framed on a
-     whole city made the landing map claim to be a street. The city comes
-     from the coordinates instead, against a fixed table of real city
-     centres, and stays unnamed when nothing is close enough. */
+  /* A zone is a neighbourhood, so printing one over a map framed on a whole
+     city made the landing map claim to be a street. The city comes from the
+     coordinates instead. */
   const place = cityForPoints(focus);
 
   return (

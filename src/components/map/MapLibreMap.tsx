@@ -530,10 +530,18 @@ export function MapLibreMap({
          works out the zoom from the shape itself. */
       if (boundsKey) {
         const n = boundsKey.split(",").map(Number);
-        /* Asymmetric, because the console is not an empty rectangle. The
+        /* A preview, or any frame small enough that console-sized padding
+           would be most of it. */
+        const canvas = map.getCanvas();
+        const small = preview || canvas.clientWidth < 820 || canvas.clientHeight < 520;
+        /* Asymmetric, because the console is not an empty rectangle: the
            intro card and the filters cover the top left of the map, and a
-           symmetric fit put the densest part of a city underneath them. */
-        const wide = window.innerWidth > 900;
+           symmetric fit put the densest part of a city underneath them.
+
+           Only on the console. A preview is a few hundred pixels across and
+           has no card on it, and padding meant for a full screen is wider
+           than the whole frame, which zooms a city out to a region. */
+        const wide = !small && window.innerWidth > 900;
         map.fitBounds(
           [
             [n[0], n[1]],
@@ -543,7 +551,9 @@ export function MapLibreMap({
             duration: 900,
             padding: wide
               ? { top: 200, left: 300, right: 80, bottom: 110 }
-              : { top: 190, left: 32, right: 32, bottom: 150 },
+              : small
+                ? 26
+                : { top: 190, left: 32, right: 32, bottom: 150 },
             maxZoom: 15,
           }
         );
@@ -645,6 +655,38 @@ export function MapLibreMap({
     return () => {
       cancelAnimationFrame(raf);
       map?.off("styleimagemissing", onMissing);
+    };
+  }, []);
+
+  /* Keep the canvas the size of the box it is in.
+     
+     `reuseMaps` hands a new mount the previous map's canvas, and a canvas
+     built for a full-width console does not shrink into a phone-width
+     preview on its own: the frame then shows the left-hand part of a much
+     wider picture, which put a map of Delhi's records over Haryana. The
+     observer also covers the ordinary cases, a drawer opening or the
+     window being dragged. */
+  useEffect(() => {
+    let map: MapLibreInstance | null = null;
+    let raf = 0;
+    let ro: ResizeObserver | null = null;
+    const attach = () => {
+      map = mapRef.current?.getMap?.() ?? null;
+      if (!map) {
+        raf = requestAnimationFrame(attach);
+        return;
+      }
+      map.resize();
+      const box = map.getContainer();
+      if (typeof ResizeObserver !== "undefined" && box) {
+        ro = new ResizeObserver(() => map?.resize());
+        ro.observe(box);
+      }
+    };
+    attach();
+    return () => {
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
     };
   }, []);
 
