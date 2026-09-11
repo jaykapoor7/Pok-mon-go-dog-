@@ -49,6 +49,11 @@ type PersonalResolved = { id: string; email: string; name: string; role: "indivi
 const NO_MATCH = "That email and code do not match. Check both and try again.";
 const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const normaliseEmail = (value: string) => value.trim().toLowerCase();
+/* The same shape the codes are read in: upper case, nothing but letters
+   and digits. Applied to what is typed AND to what is stored, so the two
+   are compared on equal terms. */
+const normaliseCode = (value: string) =>
+  value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 
 export async function POST(req: Request) {
   let body: { code?: string; email?: string; action?: string };
@@ -171,15 +176,29 @@ export async function POST(req: Request) {
     });
   }
 
-  const { data: personalRaw, error: personalErr } = await supa
+  /* Matched the way the staff lookup matches, which is not how this one
+     used to. resolve_access_code() compares upper(btrim(code)), so a row
+     carrying a stray space or the wrong case still resolves. This compared
+     both fields with exact equality, so a code stored as "9pne4h" or an
+     address stored as "Info@example.org " — which is what happens the
+     moment a row is typed into a SQL editor or arrives from a
+     spreadsheet rather than through this endpoint — was invisible, and
+     the holder was told their code was wrong.
+
+     Fetch by code case-insensitively, then compare both fields fully
+     normalised. Codes are unique, so this is one row either way. */
+  const { data: personalRows, error: personalErr } = await supa
     .from("personal_access_codes")
-    .select("id,email,name,role")
-    .eq("code", code)
-    .eq("email", email)
-    .eq("active", true)
-    .maybeSingle();
+    .select("id,email,name,role,code,active")
+    .ilike("code", code);
   if (personalErr) broke.push(`personal_access_codes: ${personalErr.message}`);
-  const personal = personalRaw as PersonalResolved | null;
+  const personal =
+    (personalRows ?? []).find(
+      (row: { email?: string; code?: string; active?: boolean }) =>
+        row.active !== false &&
+        normaliseCode(String(row.code ?? "")) === code &&
+        normaliseEmail(String(row.email ?? "")) === email
+    ) as PersonalResolved | null ?? null;
   if (personal) {
     const created = await supa.auth.admin.createUser({ email: personal.email, email_confirm: true, user_metadata: { display_name: personal.name } });
     if (created.error && !/already|registered|exists/i.test(created.error.message ?? "")) return NextResponse.json({ error: "Could not open your account. Try again shortly." }, { status: 500 });
@@ -230,12 +249,15 @@ async function claim(req: Request, code: string) {
   }
 
   const signedInEmail = normaliseEmail(who.user.email ?? "");
-  const { data: personal } = await supa
+  const { data: claimRows } = await supa
     .from("personal_access_codes")
-    .select("id,email,uses")
-    .eq("code", code)
-    .eq("active", true)
-    .maybeSingle();
+    .select("id,email,uses,code,active")
+    .ilike("code", code);
+  const personal =
+    (claimRows ?? []).find(
+      (row: { code?: string; active?: boolean }) =>
+        row.active !== false && normaliseCode(String(row.code ?? "")) === code
+    ) ?? null;
   if (personal && normaliseEmail(personal.email) === signedInEmail) {
     /* Increment. Assigning 1 meant the column read "used once" no matter how
        many times somebody signed in, so the one number that would show a
