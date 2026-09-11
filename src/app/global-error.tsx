@@ -42,7 +42,8 @@ export default function GlobalError({
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#ff6a4f",
+              /* 2.4:1 on this card; same reason as app/error.tsx. */
+              color: "#b02a10",
             }}
           >
             Error / application

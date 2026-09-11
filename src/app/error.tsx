@@ -23,7 +23,11 @@ export default function RouteError({
 
   return (
     <div className="mx-auto flex max-w-lg flex-col items-start py-16">
-      <p className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-vermilion">
+      {/* text-vermilion is #ff6a4f, a dark-ground accent. On this white
+          error card it measures 2.40:1 — the label on the one screen a
+          person reads when something has already gone wrong was the
+          least readable text in the product. */}
+      <p className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-[#b02a10]">
         Error / this view failed to render
       </p>
       <h1 className="mt-3 font-display text-4xl leading-none tracking-tight">
