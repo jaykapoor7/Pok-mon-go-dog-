@@ -157,6 +157,17 @@ export async function getAllDogs(): Promise<Dog[]> {
 /** Small, real sample of dogs that have a cover photo, for the landing
  *  page's reported-dogs showcase. Returns an empty array (never fabricated
  *  entries) when no dogs with photos exist yet. */
+/** How many animals are on record. The hero claims a number; this is where
+ *  it comes from, so the claim moves when the database does. */
+export async function countDogs(): Promise<number> {
+  const supa = getSupabase();
+  if (!supa) return 0;
+  const { count } = await supa
+    .from("dogs")
+    .select("id", { count: "exact", head: true });
+  return count ?? 0;
+}
+
 export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];

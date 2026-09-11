@@ -191,3 +191,80 @@
 @media(max-width:900px){.product-hero-record{grid-template-columns:1fr;gap:48px;min-height:unset;padding:120px 6vw 58px}.product-hero-record h1{font-size:clamp(55px,12.5vw,82px)}.hero-record-stage{min-height:450px}.product-record-story{height:142vh!important}.product-record-story .product-story-sticky{grid-template-columns:1fr!important;grid-template-rows:auto minmax(360px,1fr);gap:25px;padding:42px 6vw 30px!important;min-height:100svh!important}.record-story-rail{display:flex;gap:8px;margin-top:22px;overflow:auto}.record-story-rail button{flex:0 0 auto;width:auto;padding:8px 0;border-top:1px solid #b5c6da;border-bottom:1px solid #b5c6da}.record-story-rail button span{display:none}.record-story-surface{min-height:360px;height:auto!important}.record-story-record{width:min(330px,73%)}.record-story-layer{width:160px;padding:10px 11px}.record-story-team{right:10px;top:12px}.record-story-neighbour{left:10px;top:12px}.record-story-feeder{right:10px;bottom:48px}.record-story-footer{left:12px;bottom:13px;font-size:10px}}
 @media(max-width:560px){.product-hero-record{padding-top:108px}.product-hero-record h1{line-height:.9}.hero-record-stage{min-height:405px;margin:0 -2vw}.hero-record-file{left:18px;right:18px;padding:17px 17px 0}.hero-record-file footer{margin:0 -17px;padding:12px 17px;font-size:10px}.hero-record-file dl>div{font-size:11px}.hero-record-place{top:15px;right:14px;font-size:9px}.hero-record-caption{left:14px;bottom:14px;font-size:8px}.product-record-story{height:124vh!important}.product-record-story .product-story-copy h2{font-size:39px}.record-story-record{width:78%;padding:14px}.record-story-profile{padding:13px 0}.record-story-profile b{font-size:15px}.record-story-layer{width:144px}.record-story-layer b{font-size:11px}.record-story-layer small{font-size:9px}.record-story-neighbour,.record-story-team{top:10px}.record-story-feeder{bottom:43px}.product-record-story[data-view="1"] .record-story-record,.product-record-story[data-view="2"] .record-story-record{transform:translate(-50%,-50%) scale(.94)}}
 @media(prefers-reduced-motion:reduce){.hero-coordinate{animation:none}.hero-record-file{animation:none}.record-story-record,.record-story-layer{transition:none}}
+
+/* ── Hero: the record wall ─────────────────────────────────────────────────
+   Photographs of animals actually on the record, rather than a drawing of
+   what a record might look like. The promoted one carries its own fields;
+   the grid behind it is the rest of the wall, and its scale is the point. */
+.product-hero-wall{
+  max-width:none;min-height:clamp(600px,80svh,760px);
+  padding:clamp(104px,9vw,128px) 6vw 56px;
+  display:grid;grid-template-columns:minmax(0,.92fr) minmax(440px,1.08fr);
+  gap:clamp(40px,7vw,110px);align-items:center;
+  background:#0b1e3d!important;color:#f5f8fd;isolation:isolate;
+}
+.product-hero-wall::before,.product-hero-wall::after{display:none}
+.product-hero-wall .field-eyebrow{color:#adc8ee}
+.product-hero-wall h1{max-width:16ch;margin:16px 0 20px;font-size:clamp(42px,4.9vw,76px);line-height:.94;color:#fff;letter-spacing:-.045em}
+.product-hero-wall h1 em{color:#ff9a65;font-family:var(--font-display),serif;font-style:italic;font-weight:400}
+.product-hero-wall .product-hero-copy>p:not(.field-eyebrow){max-width:44ch;color:#c8d7eb;font-size:16.5px;line-height:1.58}
+.product-hero-wall .field-button{background:#f47d45;color:#112b51}
+.product-hero-wall .field-button:hover{background:#ff986a}
+.product-hero-wall .field-text-link{color:#eaf1fa;border-color:#8ba8d1}
+.product-hero-wall .product-hero-note{color:#9db8dc!important}
+
+/* Counts. Tabular so the digits line up, and the label carries the unit so
+   the number never has to be guessed at. */
+.hero-counts{display:flex;flex-wrap:wrap;gap:0;margin:30px 0 0;border-top:1px solid #2a4a7a}
+.hero-counts>div{padding:16px 26px 0 0;margin-right:26px;border-right:1px solid #2a4a7a}
+.hero-counts>div:last-child{border-right:0;margin-right:0;padding-right:0}
+.hero-counts dt{font-size:clamp(28px,3.2vw,40px);font-weight:600;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;color:#fff}
+.hero-counts dd{margin:6px 0 0;font-size:12px;line-height:1.4;color:#9db8dc;max-width:14ch}
+
+/* The wall itself. */
+.hero-wall{display:grid;gap:12px;grid-template-rows:auto auto}
+.hero-wall-lead{position:relative;margin:0;overflow:hidden;border:1px solid #3f6396;box-shadow:0 26px 60px #020b1c66}
+.hero-wall-lead img{display:block;width:100%;height:clamp(260px,32vw,380px);object-fit:cover}
+.hero-wall-lead figcaption{
+  position:absolute;inset:auto 0 0 0;padding:46px 20px 18px;
+  background:linear-gradient(transparent,#04102299 38%,#041022f2);
+  display:grid;gap:6px;
+}
+.hero-wall-kicker{display:flex;align-items:center;gap:6px;font:10.5px var(--font-mono),monospace;letter-spacing:.07em;text-transform:uppercase;color:#bcd3ef}
+.hero-wall-kicker svg{color:#ff9a65}
+.hero-wall-lead b{font-size:21px;letter-spacing:-.03em;color:#fff}
+.hero-wall-lead dl{display:flex;gap:26px;margin:8px 0 0}
+.hero-wall-lead dt{font:10px var(--font-mono),monospace;letter-spacing:.08em;text-transform:uppercase;color:#9db8dc}
+.hero-wall-lead dd{margin:4px 0 0;font-size:13.5px;font-weight:600;color:#fff}
+/* "Not checked" is the honest state and it is coloured as information, not
+   as a failure: it is the thing the product is for. */
+.hero-wall-lead dd.q{color:#ff9a65;font-weight:500;font-style:italic}
+
+.hero-wall-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:0;padding:0;list-style:none}
+.hero-wall-grid li{position:relative;overflow:hidden}
+.hero-wall-grid li{border:1px solid #2f527f}
+.hero-wall-grid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+.hero-wall-grid span{
+  position:absolute;inset:auto 0 0 0;padding:14px 6px 5px;
+  background:linear-gradient(transparent,#041022e0);
+  font:8.5px var(--font-mono),monospace;letter-spacing:.04em;color:#cfe0f4;
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+@media(max-width:900px){
+  .product-hero-wall{grid-template-columns:1fr;gap:40px;min-height:unset;padding:116px 6vw 54px}
+  .product-hero-wall h1{font-size:clamp(44px,11vw,70px)}
+  .hero-counts{display:grid;grid-template-columns:repeat(3,1fr);margin-top:28px}
+  .hero-counts>div{padding:16px 12px 0 0;margin-right:0}
+  .hero-counts>div:last-child{padding-right:0}
+  .hero-counts dd{font-size:11px;max-width:none}
+  .hero-wall-grid{grid-template-columns:repeat(4,1fr)}
+  .hero-wall-lead img{height:clamp(230px,52vw,300px)}
+}
+@media(max-width:560px){
+  .hero-counts>div{padding:14px 9px 0 0}
+  .hero-counts dt{font-size:23px}
+  .hero-wall-grid{grid-template-columns:repeat(4,1fr);gap:6px}
+  .hero-wall-lead figcaption{padding:38px 14px 14px}
+  .hero-wall-lead dl{gap:18px}
+}

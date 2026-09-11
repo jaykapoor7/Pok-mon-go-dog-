@@ -125,7 +125,8 @@ html .sp :focus-visible,html .spa :focus-visible {outline-offset:3px;box-shadow:
  html .sp.mk .mk-hero { padding-top:116px;grid-template-columns:1fr;gap:40px; }
 }
 @media(max-width:430px){html .sp .sp-wordmark span {display:block}html .sp .sp-header-actions{gap:9px}html .sp .sp-header-cta{padding:10px 12px;font-size:12px}}
-/* Below 380px the wordmark text goes and the code link shortens. Both
-   are needed: measured at 320px the bar wanted 375px, so the menu
-   button sat entirely off-screen with no way to scroll to it. */
-@media(max-width:380px){html .sp .sp-wordmark span{display:none}html .sp .sp-header{gap:12px;padding-left:10px;padding-right:10px}html .sp .sp-header-actions{gap:7px}html .sp .sp-header-code{padding:10px 9px;font-size:12px}}
+/* The wordmark text goes and the code link shortens. This fired at 380px
+   and needed to fire at 430: at 390 — the width most phones report — the
+   long label still pushed the menu button past the right edge, where it was
+   clipped and could not be tapped. */
+@media(max-width:430px){html .sp .sp-wordmark span{display:none}html .sp .sp-header{gap:12px;padding-left:10px;padding-right:10px}html .sp .sp-header-actions{gap:7px}html .sp .sp-header-code{padding:10px 9px;font-size:12px}}
