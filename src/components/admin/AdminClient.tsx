@@ -738,7 +738,9 @@ export function AdminClient() {
           Moderation
         </h1>
         <p className="mt-2 text-sm text-bark-500">
-          Enter the admin password to review pending sightings.
+          This screen does not use your StrayPaw account. It is opened with the
+          operator key (<code className="font-mono text-[12px]">ADMIN_SECRET</code>),
+          so signing in as an organisation or a resident will not unlock it.
         </p>
         <form
           onSubmit={(e) => {
@@ -751,7 +753,7 @@ export function AdminClient() {
             type="password"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Admin password"
+            placeholder="Operator key"
             className="w-full rounded border border-black/10 bg-white px-4 py-3 text-center text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10"
           />
           <button

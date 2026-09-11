@@ -193,9 +193,12 @@
 @media(prefers-reduced-motion:reduce){.hero-coordinate{animation:none}.hero-record-file{animation:none}.record-story-record,.record-story-layer{transition:none}}
 
 /* ── Hero: the record wall ─────────────────────────────────────────────────
-   Photographs of animals actually on the record, rather than a drawing of
-   what a record might look like. The promoted one carries its own fields;
-   the grid behind it is the rest of the wall, and its scale is the point. */
+   Seventeen of the twenty photographs are portrait phone pictures, most of
+   them 9:16. A landscape lead card was always going to fight that: cover
+   sliced the animal's head off, contain pillarboxed it in navy. So the wall
+   is built portrait-first — the lead is a tall cell two columns wide and two
+   rows deep, which is close enough to a phone photo's shape that almost
+   nothing is cropped, and the tiles around it are squares. */
 .product-hero-wall{
   max-width:none;min-height:clamp(600px,80svh,760px);
   padding:clamp(104px,9vw,128px) 6vw 56px;
@@ -213,41 +216,42 @@
 .product-hero-wall .field-text-link{color:#eaf1fa;border-color:#8ba8d1}
 .product-hero-wall .product-hero-note{color:#9db8dc!important}
 
-/* Counts. Tabular so the digits line up, and the label carries the unit so
-   the number never has to be guessed at. */
 .hero-counts{display:flex;flex-wrap:wrap;gap:0;margin:30px 0 0;border-top:1px solid #2a4a7a}
 .hero-counts>div{padding:16px 26px 0 0;margin-right:26px;border-right:1px solid #2a4a7a}
 .hero-counts>div:last-child{border-right:0;margin-right:0;padding-right:0}
 .hero-counts dt{font-size:clamp(28px,3.2vw,40px);font-weight:600;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;color:#fff}
 .hero-counts dd{margin:6px 0 0;font-size:12px;line-height:1.4;color:#9db8dc;max-width:14ch}
 
-/* The wall itself. */
-.hero-wall{display:grid;gap:12px;grid-template-rows:auto auto}
-.hero-wall-lead{position:relative;margin:0;overflow:hidden;border:1px solid #3f6396;box-shadow:0 26px 60px #020b1c66}
-.hero-wall-lead img{display:block;width:100%;height:clamp(260px,32vw,380px);object-fit:cover}
-.hero-wall-lead figcaption{
-  position:absolute;inset:auto 0 0 0;padding:46px 20px 18px;
-  background:linear-gradient(transparent,#04102299 38%,#041022f2);
-  display:grid;gap:6px;
+/* One grid, portrait-first. */
+.hero-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hero-wall-lead{
+  grid-column:span 2;grid-row:span 2;position:relative;margin:0;overflow:hidden;
+  aspect-ratio:4/5;background:#0a1c38;border:1px solid #3f6396;
+  box-shadow:0 26px 60px #020b1c55;
 }
-.hero-wall-kicker{display:flex;align-items:center;gap:6px;font:10.5px var(--font-mono),monospace;letter-spacing:.07em;text-transform:uppercase;color:#bcd3ef}
-.hero-wall-kicker svg{color:#ff9a65}
-.hero-wall-lead b{font-size:21px;letter-spacing:-.03em;color:#fff}
-.hero-wall-lead dl{display:flex;gap:26px;margin:8px 0 0}
-.hero-wall-lead dt{font:10px var(--font-mono),monospace;letter-spacing:.08em;text-transform:uppercase;color:#9db8dc}
-.hero-wall-lead dd{margin:4px 0 0;font-size:13.5px;font-weight:600;color:#fff}
-/* "Not checked" is the honest state and it is coloured as information, not
-   as a failure: it is the thing the product is for. */
+.hero-wall-lead img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 38%}
+.hero-wall-lead figcaption{
+  position:absolute;inset:auto 0 0 0;padding:52px 18px 16px;
+  background:linear-gradient(transparent,#04102299 36%,#041022f5);
+  display:grid;gap:5px;
+}
+.hero-wall-kicker{display:flex;align-items:center;gap:6px;font:10px var(--font-mono),monospace;letter-spacing:.07em;text-transform:uppercase;color:#bcd3ef}
+.hero-wall-kicker svg{color:#ff9a65;flex-shrink:0}
+.hero-wall-lead b{font-size:23px;letter-spacing:-.03em;color:#fff;line-height:1.1}
+.hero-wall-lead dl{display:flex;gap:22px;margin:7px 0 0}
+.hero-wall-lead dt{font:9.5px var(--font-mono),monospace;letter-spacing:.08em;text-transform:uppercase;color:#9db8dc}
+.hero-wall-lead dd{margin:3px 0 0;font-size:13px;font-weight:600;color:#fff}
+/* "Not checked" is the honest state, coloured as information rather than
+   as a failure: closing that gap is what the product is for. */
 .hero-wall-lead dd.q{color:#ff9a65;font-weight:500;font-style:italic}
 
-.hero-wall-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:0;padding:0;list-style:none}
-.hero-wall-grid li{position:relative;overflow:hidden}
-.hero-wall-grid li{border:1px solid #2f527f}
-.hero-wall-grid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+.hero-wall-grid{display:contents}
+.hero-wall-grid li{position:relative;overflow:hidden;background:#0e2444;border:1px solid #2f527f}
+.hero-wall-grid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;object-position:center 35%}
 .hero-wall-grid span{
-  position:absolute;inset:auto 0 0 0;padding:14px 6px 5px;
-  background:linear-gradient(transparent,#041022e0);
-  font:8.5px var(--font-mono),monospace;letter-spacing:.04em;color:#cfe0f4;
+  position:absolute;inset:auto 0 0 0;padding:16px 5px 4px;
+  background:linear-gradient(transparent,#041022e6);
+  font:8px var(--font-mono),monospace;letter-spacing:.03em;color:#cfe0f4;
   text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 

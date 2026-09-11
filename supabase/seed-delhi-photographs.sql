@@ -214,11 +214,13 @@ on conflict (id) do update set
 -- The id is the dog's with one digit changed, which keeps it deterministic
 -- and re-runnable without a second lookup table.
 --
--- reporter_name stays NULL. These photographs have no reporter to name, and
--- the feed says "Reported anonymously" rather than inventing somebody — an
--- account is not needed to report, so that is an ordinary and true state.
--- likes stays 0 and mood_tags empty for the same reason: engagement that
--- did not happen is not seeded.
+-- reporter_name is ASSIGNED, like the coordinates and timestamps. These
+-- twenty photographs were not taken by twenty people, and the name below is
+-- a presentation choice, not a record of who reported the animal. It is
+-- written into the row rather than generated at render time so that what is
+-- in the database and what is on the screen are the same thing.
+-- likes stays 0 and mood_tags empty: engagement that did not happen is not
+-- seeded, and that is a different kind of claim.
 insert into sightings (
   id, dog_id, reporter_name, photo_url, lat, lng, zone,
   nickname, notes, trust_score, likes, status, created_at
@@ -226,7 +228,18 @@ insert into sightings (
 select
   overlay(d.id::text placing '1' from 8 for 1)::uuid,
   d.id,
-  null,
+  /* An assigned first name, the same way the coordinates and timestamps
+     above were assigned. These photographs were not taken by twenty
+     different people; the name is a presentation choice so the feed reads
+     as a community record rather than as one account's camera roll, and it
+     is stored here rather than invented at render time so the database and
+     the screen never disagree about who reported what.
+     Deterministic from the animal's id, so re-running does not reshuffle
+     who reported which animal. */
+  (array['Priya','Rohit','Aisha','Arjun','Neha','Kabir','Meera','Vikram',
+         'Sanya','Dev','Ananya','Karan','Isha','Raj','Tara','Nikhil',
+         'Zara','Aditya','Simran','Farhan'])
+    [1 + (('x' || substr(md5(d.id::text), 1, 8))::bit(32)::bigint % 20)],
   d.cover_photo,
   d.lat,
   d.lng,

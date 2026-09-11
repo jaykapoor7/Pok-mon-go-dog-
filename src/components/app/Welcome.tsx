@@ -284,9 +284,6 @@ export function Welcome() {
                 <span className="spa-mono wc-kicker">
                   {step} of {tour.length}
                 </span>
-                <div className="wc-tour-photo" aria-hidden="true">
-                  <img src="/dog-anchor.webp" alt="" />
-                </div>
                 <div className="wc-icon">
                   <card.Icon size={22} />
                 </div>

@@ -35,10 +35,15 @@ export function Hero({
   photographed: number;
 }) {
   const withPhoto = dogs.filter((d) => d.cover_photo && d.cover_photo.length > 0);
-  const lead = withPhoto[0];
-  /* Twelve behind the promoted one: two full rows of six on a desktop and
-     three of four on a phone, so the wall never ends on a ragged row. */
-  const wall = withPhoto.slice(1, 13);
+  /* Pinky leads when she is on the record. She is the animal this project
+     is actually about, and a hero that opens on whichever row the database
+     happened to return first is a hero nobody chose. */
+  const pinky = withPhoto.find((d) => (d.name ?? "").trim().toLowerCase() === "pinky");
+  const lead = pinky ?? withPhoto[0];
+  const rest = withPhoto.filter((d) => d.id !== lead?.id);
+  /* The lead occupies four cells of a four-column grid, so eight tiles
+     complete three full rows with nothing left hanging. */
+  const wall = rest.slice(0, 8);
 
   const careWord = (status: string | null | undefined, yes: string) =>
     status === "unknown" || !status ? "Not checked" : status === yes ? yes : "No";

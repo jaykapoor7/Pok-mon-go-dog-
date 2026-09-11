@@ -30,6 +30,7 @@ export default async function HomePage() {
           <div className="role-help-links">
             <Link href="/app?choose=1"><div><b>Neighbour</b><p>Report what you see, follow a dog you know, and understand what happens next.</p></div><ArrowUpRight size={18} /></Link>
             <Link href="/app?choose=1"><div><b>Feeder</b><p>Keep your patch, regular feeding zones, and the animals you recognise connected.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/education"><div><b>Educator</b><p>Teach it with the animals on your own road, using material written by people who teach.</p></div><ArrowUpRight size={18} /></Link>
             <Link href="/partner-apply"><div><b>Organisation</b><p>Turn reports into accountable field work, care history, and better coverage decisions.</p></div><ArrowUpRight size={18} /></Link>
           </div>
         </section>
