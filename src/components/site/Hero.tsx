@@ -21,7 +21,19 @@ import type { Dog } from "@/lib/types";
    they cannot drift away from what is true.
    ════════════════════════════════════════════════════════════════════ */
 
-export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
+export function Hero({
+  dogs,
+  total,
+  localities,
+  photographed,
+}: {
+  dogs: Dog[];
+  total: number;
+  /** Distinct zones with at least one record. */
+  localities: number;
+  /** Records carrying a photograph. */
+  photographed: number;
+}) {
   const withPhoto = dogs.filter((d) => d.cover_photo && d.cover_photo.length > 0);
   const lead = withPhoto[0];
   /* Twelve behind the promoted one: two full rows of six on a desktop and
@@ -56,20 +68,26 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
           A photo and a location are enough. No account required.
         </p>
 
-        {/* Counts, not claims. Each one is read from the database or from a
-            loaded boundary set at build time. */}
+        {/* Counts of work done, not of data loaded.
+            "641 districts mapped" was here and it was an overclaim: 641 is
+            how many district boundaries are loaded, which is a shapefile,
+            not coverage. Nobody has mapped animals in 641 districts. Same
+            for the 200 Chennai ward outlines. Both were counting the atlas
+            and calling it the survey.
+            What is left is counted from records that actually exist: how
+            many animals, and how many separate localities they sit in. */}
         <dl className="hero-counts">
           <div>
             <dt>{total > 0 ? total : "—"}</dt>
             <dd>animals on record</dd>
           </div>
           <div>
-            <dt>641</dt>
-            <dd>districts mapped</dd>
+            <dt>{localities > 0 ? localities : "—"}</dt>
+            <dd>{localities === 1 ? "locality covered" : "localities covered"}</dd>
           </div>
           <div>
-            <dt>200</dt>
-            <dd>wards in the Chennai pilot</dd>
+            <dt>{photographed > 0 ? photographed : "—"}</dt>
+            <dd>with a photograph on file</dd>
           </div>
         </dl>
       </div>

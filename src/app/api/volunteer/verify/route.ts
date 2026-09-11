@@ -54,12 +54,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
-  const r = data as {
+  let r = data as {
     ok?: boolean;
     org_name?: string;
     volunteer_name?: string;
     error?: string;
   } | null;
+
+  /* There are two code spaces, and a person holds one code. A volunteer
+     code opens reporting; a staff code opens the dashboard. Somebody on an
+     organisation's staff typing their own code here was told "That code was
+     not recognised", which is false — it is a real code for that exact
+     organisation, just filed in the other table. Anyone who can open the
+     dashboard can obviously report for the org, so a staff code is accepted
+     here too rather than sent away. */
+  if (!r?.ok) {
+    const { data: staffRaw } = await supa.rpc("resolve_access_code", { p_code: code });
+    const staff = (staffRaw ?? {}) as {
+      ok?: boolean;
+      org_name?: string;
+      name?: string;
+    };
+    if (staff.ok) {
+      r = { ok: true, org_name: staff.org_name, volunteer_name: staff.name ?? undefined };
+    }
+  }
+
   if (!r?.ok) {
     return NextResponse.json(
       { ok: false, error: r?.error === "unknown code" ? "That code was not recognised." : r?.error ?? "That code did not work." },

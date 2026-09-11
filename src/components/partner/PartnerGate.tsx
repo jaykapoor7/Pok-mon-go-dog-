@@ -40,6 +40,76 @@ export function usePartnerAccess() {
   return useContext(AccessCtx);
 }
 
+/**
+ * Wraps anything that writes to an organisation's records.
+ *
+ * Reading the workspace stays open — somebody evaluating StrayPaw should be
+ * able to look around. Writing never was: the database refuses an insert
+ * from an anonymous caller, and every one of these forms would have failed
+ * at the last step. Showing them anyway meant a person filled in a case,
+ * pressed save, and got a permissions error for their trouble.
+ *
+ * So the control is replaced by the reason it is unavailable, which is also
+ * the thing they need to do next.
+ */
+export function PartnerWrite({
+  children,
+  what = "add to this workspace",
+}: {
+  children: ReactNode;
+  /** Completes "Sign in to …", so phrase it as a verb. */
+  what?: string;
+}) {
+  const ctx = usePartnerAccess();
+  const { user, ready: authReady, openSignIn } = useAuth();
+  const [own, setOwn] = useState<boolean | null>(null);
+
+  /* Resolve membership here rather than leaning on a provider. The first
+     version read only the PartnerGate context, and a write surface that
+     lives outside a PartnerGate — /cases/new is one — got the default
+     `ready: false` for ever and rendered nothing at all. A gate that
+     silently deletes the page it was protecting is worse than no gate. */
+  const fromCtx = ctx.ready;
+  useEffect(() => {
+    if (fromCtx || !authReady) return;
+    if (!user) { setOwn(false); return; }
+    let alive = true;
+    isNgoMember()
+      .then((ok) => alive && setOwn(ok))
+      .catch(() => alive && setOwn(false));
+    return () => { alive = false; };
+  }, [fromCtx, authReady, user]);
+
+  const ready = fromCtx || own !== null;
+  const member = fromCtx ? ctx.member : own === true;
+
+  if (!ready) return null;
+  if (member) return <>{children}</>;
+
+  return (
+    <div className="partner-write-wall" role="note">
+      <ShieldCheck className="h-4 w-4" aria-hidden />
+      <div>
+        <p className="partner-write-wall-title">
+          {user
+            ? "Your organisation access is not active yet."
+            : `Sign in to ${what}.`}
+        </p>
+        <p className="partner-write-wall-note">
+          {user
+            ? "Records can only be changed by verified members of an organisation."
+            : "Your organisation's six-character code is the sign-in. Reading this workspace needs no account."}
+        </p>
+      </div>
+      {!user && (
+        <Button size="sm" onClick={openSignIn} className="shrink-0">
+          <LogIn className="h-4 w-4" /> Sign in
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export function PartnerGate({ title, children }: { title: string; children: ReactNode }) {
   const { user, ready, openSignIn } = useAuth();
   const [member, setMember] = useState<boolean | null>(null);
@@ -73,7 +143,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
 
   return (
     <AccessCtx.Provider value={{ member: member === true, ready: resolved }}>
-      {resolved && !member && !dismissed && (
+      {resolved && !member && (!dismissed || !user) && (
         /* A callout is what Alert is for. This was a styled div doing the
            same job without the role="alert" that tells a screen reader
            something has appeared, and re-specifying its own border, tint and

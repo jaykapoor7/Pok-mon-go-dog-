@@ -39,7 +39,23 @@ export async function POST(req: Request) {
     .select("id,code")
     .eq("email", email)
     .maybeSingle();
-  if (existingError) return NextResponse.json({ error: "Could not look up your code. Try again shortly." }, { status: 500 });
+  if (existingError) {
+    /* "Try again shortly" is the wrong answer when the table is not there:
+       waiting fixes nothing and the person retries for ever. A missing
+       relation means the pilot migrations have not been applied to this
+       project, which is an operator problem, so it says which one. */
+    const missingTable = /relation .* does not exist|schema cache/i.test(
+      `${existingError.message} ${existingError.details ?? ""}`
+    );
+    return NextResponse.json(
+      {
+        error: missingTable
+          ? "Personal codes are not set up on this StrayPaw yet. Whoever runs it needs to apply RUN-PILOT-MIGRATIONS.sql."
+          : "Could not look up your code. Try again shortly.",
+      },
+      { status: missingTable ? 503 : 500 }
+    );
+  }
 
   let accessCode = existing?.code ?? "";
   if (existing) {

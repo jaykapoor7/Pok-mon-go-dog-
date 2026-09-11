@@ -3728,3 +3728,16 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   .edu-partners-head { grid-template-columns: 1fr; }
   .edu-partner { padding: 18px; }
 }
+
+/* ── Where a write control would be, for somebody who cannot write ────────
+   The database already refuses these inserts, so the form was never going
+   to work; this says why before the effort is spent rather than after. */
+.partner-write-wall {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  padding: 14px 16px; border: 1px dashed var(--line); border-radius: 4px;
+  background: #f6f8fb;
+}
+.partner-write-wall > svg { color: var(--electric-ink); flex-shrink: 0; }
+.partner-write-wall > div { flex: 1; min-width: 180px; }
+.partner-write-wall-title { margin: 0; font-size: 14px; font-weight: 650; color: var(--ink); }
+.partner-write-wall-note { margin: 3px 0 0; font-size: 13px; line-height: 1.5; color: #5c6472; }

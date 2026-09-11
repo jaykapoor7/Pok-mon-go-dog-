@@ -102,7 +102,7 @@ export async function POST(req: Request) {
      organisation, so it cannot attribute work to an organisation it does
      not hold a code for. An unrecognised code does not lose the report, it
      files it as an ordinary public sighting. */
-  let orgCtx: { ngo_id: string; code_id: string } | null = null;
+  let orgCtx: { ngo_id: string; code_id: string | null } | null = null;
   const inviteCode = body.inviteCode ? String(body.inviteCode).trim() : "";
   const volunteerName = body.volunteerName ? String(body.volunteerName).trim() : "";
   if (inviteCode) {
@@ -110,6 +110,17 @@ export async function POST(req: Request) {
     const resolved = r as { ok?: boolean; ngo_id?: string; code_id?: string } | null;
     if (resolved?.ok && resolved.ngo_id && resolved.code_id) {
       orgCtx = { ngo_id: resolved.ngo_id, code_id: resolved.code_id };
+    } else {
+      /* A staff code is a real code for a real organisation, filed in the
+         other table. Somebody on an organisation's staff who types their own
+         code here had the work quietly filed as an ordinary public sighting
+         with no organisation on it — the report was kept, the attribution
+         was dropped, and nothing said so. code_id stays null because that
+         column keys the volunteer-code table specifically; the organisation
+         is what matters and it is carried. */
+      const { data: staffRaw } = await supa.rpc("resolve_access_code", { p_code: inviteCode });
+      const staff = (staffRaw ?? {}) as { ok?: boolean; ngo_id?: string };
+      if (staff.ok && staff.ngo_id) orgCtx = { ngo_id: staff.ngo_id, code_id: null };
     }
   }
 

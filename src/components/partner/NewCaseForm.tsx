@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Camera, Check, Search, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { PartnerWrite } from "@/components/partner/PartnerGate";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createCase } from "@/lib/case-actions";
 import { createAnimal } from "@/lib/animal-actions";
@@ -90,6 +91,12 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">New case</h1>
       <p className="mt-0.5 text-[13px] text-bark-500">Link the case to an animal in your registry, or add a new one with a photo.</p>
 
+      {/* Opening a case writes to the organisation's records, which the
+          database refuses from anyone who is not a verified member. Better
+          to say so here than after the form has been filled in. */}
+      <div className="mt-5">
+        <PartnerWrite what="open a case">
+
       {/* animal picker */}
       <div className="mt-6 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
         <div className="mb-3 flex gap-2">
@@ -167,6 +174,8 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       <button onClick={submit} disabled={busy} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-paw-500 py-3 text-sm font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Create case
       </button>
+        </PartnerWrite>
+      </div>
     </div>
   );
 }
