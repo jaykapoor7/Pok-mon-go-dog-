@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   Bookmark,
@@ -82,15 +81,15 @@ const TOURS: Record<Role, Card[]> = {
     },
     {
       Icon: Bookmark,
-      title: "An account only buys you one thing",
-      body: "Following. Make one and the dogs you report stay on your Following page, so you find out what happened to them. Everything else on StrayPaw works signed out.",
+      title: "A code is only for follow-up",
+      body: "Have a personal code emailed when you want the dogs you report to stay with you across devices. Everything else on StrayPaw works signed out.",
     },
   ],
   feeder: [
     {
       Icon: Utensils,
       title: "Your feeding route can have a shared record",
-      body: "Sign in to keep the zones you cover, regular days, and check-ins available from any phone. No organisation membership is required.",
+      body: "Use your emailed code to keep the zones you cover, regular days, and check-ins available from any phone. No organisation membership is required.",
     },
     {
       Icon: MapPin,
@@ -144,6 +143,7 @@ export function Welcome() {
      front of an animal; asking them what kind of user they are first is how
      an observation gets lost. They can pick a role any time afterwards. */
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const onReportFlow = pathname?.startsWith("/report") ?? false;
 
   const router = useRouter();
@@ -155,12 +155,12 @@ export function Welcome() {
      also asks once when no role has been chosen, but a report never does. */
   useEffect(() => {
     if (onReportFlow) return;
-    const requestedChoice = new URLSearchParams(window.location.search).get("choose") === "1";
+    const requestedChoice = searchParams.get("choose") === "1";
     if (requestedChoice || (pathname === "/app" && !readStoredRole())) {
       setRole(null);
       setStep(0);
     }
-  }, [onReportFlow, pathname]);
+  }, [onReportFlow, pathname, searchParams]);
 
   /* Asked for by name. Starts at the role question, because somebody
      reopening it may well have picked the wrong one the first time. */
@@ -284,18 +284,23 @@ export function Welcome() {
                     Next <ArrowRight size={14} />
                   </Button>
                 ) : (
-                  <Button
-                    onClick={() => finish(role === "ngo" ? "/join" : meta?.home)}
-                  >
-                    {role === "ngo"
-                      ? "Enter my code"
-                      : role === "feeder"
-                        ? "Open my patch"
-                      : role === "funder"
-                        ? "See what it would take"
-                        : "Open the map"}{" "}
-                    <ArrowRight size={14} />
-                  </Button>
+                  <>
+                    <Button
+                      onClick={() => finish(role === "ngo" ? "/join" : meta?.home)}
+                    >
+                      {role === "ngo"
+                        ? "Enter my code"
+                        : role === "feeder"
+                          ? "Open my patch"
+                          : role === "funder"
+                            ? "See what it would take"
+                            : "Open the map"}{" "}
+                      <ArrowRight size={14} />
+                    </Button>
+                    {(role === "individual" || role === "feeder") && (
+                      <a className="btn-ghost px-3 py-2 text-xs" href={`/access?role=${role}`}>Email me a code</a>
+                    )}
+                  </>
                 )}
               </div>
             </>

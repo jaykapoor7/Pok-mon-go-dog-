@@ -2759,6 +2759,7 @@ begin
     'ok', true,
     'code_id', c.id,
     'ngo_id', c.ngo_id,
+    'email', c.email,
     'volunteer_name', c.person_name,
     'org_name', coalesce(n.name, 'the organisation'));
 end $$;

@@ -89,7 +89,7 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
         </section>
         <section className="community-recent">
           <div className="product-section-heading"><div><h2>{nearby ? "Recently reported nearby" : "What changes after a report"}</h2><p>{nearby ? "The newest public sightings around your selected area." : "Save a sighting, then return to follow its record as it develops."}</p></div>{nearby && <Link href="/feed">All activity <ArrowUpRight size={16} /></Link>}</div>
-          {nearby ? <RecentSightings sightings={nearbySightings.slice(0, 6)} /> : <div className="community-next-step"><span>01</span><p><b>Report what you see.</b> A photo and a place become a record people can return to.</p><span>02</span><p><b>Follow the animal.</b> Care updates stay with the same record—not in a separate feed.</p><Link href="/following">Open saved animals <ArrowUpRight size={15} /></Link></div>}
+          {nearby ? <RecentSightings sightings={nearbySightings.slice(0, 6)} /> : <div className="community-next-step"><p><b>Report what you see.</b> A photo and a place become a record people can return to.</p><p><b>Want to keep track of an animal?</b> Use your email code to save it and see care updates in one place.</p><Link href="/following">Open saved animals <ArrowUpRight size={15} /></Link></div>}
         </section>
       </div>
     </div>

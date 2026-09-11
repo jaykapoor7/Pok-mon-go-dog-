@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 /* ════════════════════════════════════════════════════════════════════
    Redeeming a six-character code.
 
-     POST { code }                    → what the code is, and for a staff
+     POST { email, code }             → what the code is, and for a staff
                                         code a one-time token to sign in with
      POST { code, action: "claim" }   → record the use and join them, once
                                         the sign-in has happened
@@ -40,15 +40,18 @@ type Resolved = {
 type VolunteerResolved = {
   ok?: boolean;
   error?: string;
+  email?: string;
   org_name?: string;
   volunteer_name?: string;
 };
 type PersonalResolved = { id: string; email: string; name: string; role: "individual" | "feeder" };
 
-const NO_MATCH = "That code was not recognised. Check the six characters and try again.";
+const NO_MATCH = "That email and code do not match. Check both and try again.";
+const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const normaliseEmail = (value: string) => value.trim().toLowerCase();
 
 export async function POST(req: Request) {
-  let body: { code?: string; action?: string };
+  let body: { code?: string; email?: string; action?: string };
   try {
     body = await req.json();
   } catch {
@@ -61,6 +64,10 @@ export async function POST(req: Request) {
     .replace(/[^A-Z0-9]/g, "");
   if (code.length < 4 || code.length > 12) {
     return NextResponse.json({ error: NO_MATCH }, { status: 400 });
+  }
+  const email = normaliseEmail(String(body.email ?? ""));
+  if (body.action !== "claim" && !emailPattern.test(email)) {
+    return NextResponse.json({ error: "Enter the email address that received this code." }, { status: 400 });
   }
 
   const supa = getSupabaseAdmin();
@@ -77,7 +84,7 @@ export async function POST(req: Request) {
   const ip = clientIp(req);
   const ok =
     (await allowRequest(ip, "join", 12, 600)) &&
-    (await allowRequest(`code:${code}`, "join_code", 8, 3600));
+    (await allowRequest(`code:${code}:${email || "claim"}`, "join_code", 8, 3600));
   if (!ok) {
     return NextResponse.json(
       { error: "Too many attempts. Wait a few minutes and try again." },
@@ -92,13 +99,13 @@ export async function POST(req: Request) {
   const { data: staffRaw } = await supa.rpc("resolve_access_code", { p_code: code });
   const staff = (staffRaw ?? {}) as Resolved;
 
-  if (staff.ok && staff.email) {
-    const email = staff.email;
+  if (staff.ok && staff.email && normaliseEmail(staff.email) === email) {
+    const accountEmail = normaliseEmail(staff.email);
 
     /* An account may not exist yet, and she should not have to make one.
        Creating it here is what lets a code be the whole sign-in. */
     const created = await supa.auth.admin.createUser({
-      email,
+      email: accountEmail,
       email_confirm: true,
     });
     if (
@@ -111,7 +118,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const link = await supa.auth.admin.generateLink({ type: "magiclink", email });
+    const link = await supa.auth.admin.generateLink({ type: "magiclink", email: accountEmail });
     const hashed = link.data?.properties?.hashed_token;
     if (link.error || !hashed) {
       return NextResponse.json(
@@ -123,7 +130,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       kind: "staff",
       tokenHash: hashed,
-      email,
+      email: accountEmail,
       name: staff.name ?? null,
       role: staff.role ?? "member",
       orgName: staff.org_name ?? "your organisation",
@@ -134,7 +141,7 @@ export async function POST(req: Request) {
      no dashboard and needs no account. */
   const { data: volRaw } = await supa.rpc("resolve_invite_code", { p_code: code });
   const vol = (volRaw ?? {}) as VolunteerResolved;
-  if (vol.ok) {
+  if (vol.ok && vol.email && normaliseEmail(vol.email) === email) {
     return NextResponse.json({
       kind: "volunteer",
       code,
@@ -147,6 +154,7 @@ export async function POST(req: Request) {
     .from("personal_access_codes")
     .select("id,email,name,role")
     .eq("code", code)
+    .eq("email", email)
     .eq("active", true)
     .maybeSingle();
   const personal = personalRaw as PersonalResolved | null;
@@ -162,11 +170,7 @@ export async function POST(req: Request) {
   /* Say as little as the person needs. Distinguishing "expired" from
      "never existed" is worth it for someone holding a real code, but
      anything finer just tells a guesser they are warm. */
-  const message =
-    staff.error && staff.error !== "That code was not recognised."
-      ? staff.error
-      : NO_MATCH;
-  return NextResponse.json({ error: message }, { status: 404 });
+  return NextResponse.json({ error: NO_MATCH }, { status: 404 });
 }
 
 /* Second half of a staff sign-in. The browser sends the session it just
@@ -185,8 +189,14 @@ async function claim(req: Request, code: string) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const { data: personal } = await supa.from("personal_access_codes").select("id").eq("code", code).eq("active", true).maybeSingle();
-  if (personal) {
+  const signedInEmail = normaliseEmail(who.user.email ?? "");
+  const { data: personal } = await supa
+    .from("personal_access_codes")
+    .select("id,email")
+    .eq("code", code)
+    .eq("active", true)
+    .maybeSingle();
+  if (personal && normaliseEmail(personal.email) === signedInEmail) {
     await supa.from("personal_access_codes").update({ uses: 1, last_used_at: new Date().toISOString() }).eq("id", personal.id);
     return NextResponse.json({ ok: true });
   }

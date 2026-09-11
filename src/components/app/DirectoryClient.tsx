@@ -22,20 +22,27 @@ export function DirectoryClient({
   focuses: { focus: string; count: number }[];
 }) {
   const [state, setState] = useState("all");
+  const [city, setCity] = useState("all");
   const [focus, setFocus] = useState("all");
   const [q, setQ] = useState("");
 
   /* Console search links here with the organisation already named, so the
      directory opens filtered to it rather than at the top of 38 entries. */
   useEffect(() => {
-    const v = new URLSearchParams(window.location.search).get("q");
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get("q");
     if (v) setQ(v);
-  }, []);
+    const requestedState = params.get("state");
+    if (requestedState && states.some((item) => item.code === requestedState)) setState(requestedState);
+    const requestedCity = params.get("city");
+    if (requestedCity && orgs.some((item) => item.city === requestedCity)) setCity(requestedCity);
+  }, [orgs, states]);
 
   const results = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return orgs.filter((o) => {
       if (state !== "all" && o.stateCode !== state) return false;
+      if (city !== "all" && o.city !== city) return false;
       if (focus !== "all" && !o.focus.includes(focus)) return false;
       if (
         needle &&
@@ -45,9 +52,13 @@ export function DirectoryClient({
       }
       return true;
     });
-  }, [orgs, state, focus, q]);
+  }, [orgs, state, city, focus, q]);
 
-  const filtered = state !== "all" || focus !== "all" || q.trim() !== "";
+  const cities = useMemo(() => {
+    const visible = state === "all" ? orgs : orgs.filter((o) => o.stateCode === state);
+    return [...new Set(visible.map((o) => o.city))].sort((a, b) => a.localeCompare(b));
+  }, [orgs, state]);
+  const filtered = state !== "all" || city !== "all" || focus !== "all" || q.trim() !== "";
 
   return (
     <>
@@ -69,13 +80,21 @@ export function DirectoryClient({
 
         <label className="dir-select">
           <span>State</span>
-          <select value={state} onChange={(e) => setState(e.target.value)}>
+          <select value={state} onChange={(e) => { setState(e.target.value); setCity("all"); }}>
             <option value="all">All India ({orgs.length})</option>
             {states.map((s) => (
               <option key={s.code} value={s.code}>
                 {s.name} ({s.count})
               </option>
             ))}
+          </select>
+        </label>
+
+        <label className="dir-select">
+          <span>City</span>
+          <select value={city} onChange={(e) => setCity(e.target.value)}>
+            <option value="all">Any city</option>
+            {cities.map((name) => <option key={name} value={name}>{name}</option>)}
           </select>
         </label>
 
@@ -99,6 +118,7 @@ export function DirectoryClient({
             className="dir-clear"
             onClick={() => {
               setState("all");
+              setCity("all");
               setFocus("all");
               setQ("");
             }}

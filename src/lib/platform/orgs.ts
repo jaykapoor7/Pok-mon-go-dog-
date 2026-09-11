@@ -96,6 +96,17 @@ export const ORGS: OrgEntry[] = [
     summary: "Pune-based trust handling animal emergencies across species, from street dogs and cats to livestock and birds, alongside human-animal conflict education programmes.",
     source: "Independent reporting",
   },
+  {
+    id: "animal-rahat",
+    name: "Animal Rahat",
+    city: "Sangli",
+    stateCode: "IN-MH",
+    focus: ["Rescue", "Veterinary care", "Ambulance", "Sanctuary"],
+    summary: "Animal Rahat runs veterinary and rescue teams from Sangli and other Maharashtra field offices, with a sanctuary for animals needing lifelong care.",
+    url: "https://www.animalrahat.com",
+    founded: 2003,
+    source: "Organisation website",
+  },
   // ── Andhra Pradesh ──
   {
     id: "karuna-society",
@@ -184,6 +195,17 @@ export const ORGS: OrgEntry[] = [
     focus: ["ABC", "Rescue", "Shelter"],
     summary: "Runs ABC and rescue operations in central Kerala, providing treatment and shelter for injured and abandoned street animals.",
     url: "https://www.humanesocietyindia.org",
+    source: "Organisation website",
+  },
+  // ── Himachal Pradesh ──
+  {
+    id: "peepal-farm",
+    name: "Peepal Farm",
+    city: "Dhanotu, Kangra",
+    stateCode: "IN-HP",
+    focus: ["Rescue", "Hospital", "Sanctuary", "Adoption"],
+    summary: "Animal-rescue and recovery centre near Dharamsala providing treatment, rehabilitation and adoption support for animals in its local catchment.",
+    url: "https://peepalfarm.org",
     source: "Organisation website",
   },
   // ── Gujarat ──

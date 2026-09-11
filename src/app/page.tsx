@@ -28,9 +28,9 @@ export default async function HomePage() {
         <section className="role-help" aria-labelledby="role-help-title">
           <div><span className="field-eyebrow">A different door into the same record</span><h2 id="role-help-title">Start with the role<br />you already play.</h2></div>
           <div className="role-help-links">
-            <Link href="/app?choose=1"><span>01</span><div><b>Neighbour</b><p>Report what you see, follow a dog you know, and understand what happens next.</p></div><ArrowUpRight size={18} /></Link>
-            <Link href="/app?choose=1"><span>02</span><div><b>Feeder</b><p>Keep your patch, regular feeding zones, and the animals you recognise connected.</p></div><ArrowUpRight size={18} /></Link>
-            <Link href="/partner-apply"><span>03</span><div><b>Organisation</b><p>Turn reports into accountable field work, care history, and better coverage decisions.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/app?choose=1"><div><b>Neighbour</b><p>Report what you see, follow a dog you know, and understand what happens next.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/app?choose=1"><div><b>Feeder</b><p>Keep your patch, regular feeding zones, and the animals you recognise connected.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/partner-apply"><div><b>Organisation</b><p>Turn reports into accountable field work, care history, and better coverage decisions.</p></div><ArrowUpRight size={18} /></Link>
           </div>
         </section>
         <section className="product-closing"><span className="field-eyebrow">Better care starts with a shared memory</span><h2>Know one dog?<br /><em>Begin there.</em></h2><Link href="/report" className="field-button">Report a sighting <ArrowUpRight size={18} /></Link></section>

@@ -9,21 +9,18 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { PawPrint, X, Loader2, CheckCircle2, LogIn, UserPlus } from "lucide-react";
+import { KeyRound, X } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { track } from "@/lib/analytics";
-import { claimOrgMembership } from "@/lib/programme";
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
 //
 // Viewing the map needs no identity. Reporting works anonymously too. But
-// *signing in* (email + password, via Supabase Auth) gives you a real account
-// so you can edit / delete your sightings and update a dog's status from ANY
-// device, and it's how partner NGOs log into their dashboard.
+// Signing in with the email address and standing code assigned to a person
+// gives them a real account, so their work is available on every device.
 //
-// When Supabase isn't configured (local dev with no backend) we fall back to a
-// minimal name-only identity kept in localStorage, so the flow still works.
+// A development build without the account service simply stays signed out;
+// public reporting and map viewing continue to work without an identity.
 // ─────────────────────────────────────────────────────────────
 
 export interface AppUser {
@@ -51,8 +48,6 @@ const Ctx = createContext<AuthCtx>({
   openSignIn: () => {},
 });
 
-const LOCAL_KEY = "straypaw.user";
-
 function nameFromEmail(email: string | undefined | null): string {
   if (!email) return "Friend";
   return email.split("@")[0].replace(/[._-]+/g, " ");
@@ -60,8 +55,6 @@ function nameFromEmail(email: string | undefined | null): string {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supa = getSupabase();
-  const live = Boolean(supa);
-
   const [user, setUser] = useState<AppUser | null>(null);
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
@@ -70,13 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ── Session bootstrap ───────────────────────────────────────
   useEffect(() => {
     if (!supa) {
-      // Local fallback: restore a name-only identity.
-      try {
-        const raw = localStorage.getItem(LOCAL_KEY);
-        if (raw) setUser(JSON.parse(raw) as AppUser);
-      } catch {
-        /* ignore */
-      }
       setReady(true);
       return;
     }
@@ -126,11 +112,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
     } else {
       setUser(null);
-      try {
-        localStorage.removeItem(LOCAL_KEY);
-      } catch {
-        /* ignore */
-      }
     }
   }, [supa]);
 
@@ -149,21 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user]
   );
 
-  // Local fallback sign-in (no Supabase): just a name.
-  const localSignIn = useCallback((name: string) => {
-    const u: AppUser = { id: crypto.randomUUID(), name, email: null };
-    setUser(u);
-    try {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(u));
-    } catch {
-      /* ignore */
-    }
-    setOpen(false);
-    const action = pendingRef.current;
-    pendingRef.current = null;
-    action?.();
-  }, []);
-
   return (
     <Ctx.Provider
       value={{ user, isAuthed: !!user, ready, signOut, requireAuth, openSignIn }}
@@ -173,9 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       <AnimatePresence>
         {open && (
           <SignInSheet
-            live={live}
             onClose={() => setOpen(false)}
-            onLocalSignIn={localSignIn}
           />
         )}
       </AnimatePresence>
@@ -183,122 +147,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Sign-in sheet (email + password) ──────────────────────────
-type Mode = "signin" | "signup" | "reset";
-
-function SignInSheet({
-  live,
-  onClose,
-  onLocalSignIn,
-}: {
-  live: boolean;
-  onClose: () => void;
-  onLocalSignIn: (name: string) => void;
-}) {
-  const supa = getSupabase();
-  const [mode, setMode] = useState<Mode>("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<"confirm" | "reset" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    // Local fallback (no backend): name-only identity.
-    if (!live || !supa) {
-      const trimmed = name.trim();
-      if (trimmed.length < 2) return;
-      onLocalSignIn(trimmed);
-      return;
-    }
-
-    if (!emailOk) {
-      setError("Enter a valid email address.");
-      return;
-    }
-
-    setBusy(true);
-    try {
-      if (mode === "reset") {
-        const { error: err } = await supa.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: typeof window !== "undefined" ? `${window.location.origin}/reset-password` : undefined,
-        });
-        if (err) throw err;
-        setNotice("reset");
-        return;
-      }
-
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters.");
-        return;
-      }
-
-      if (mode === "signup") {
-        const { data, error: err } = await supa.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: name.trim() ? { display_name: name.trim() } : undefined,
-            emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/app` : undefined,
-          },
-        });
-        if (err) throw err;
-        track("signup");
-        void claimOrgMembership();
-
-        // Signing up should sign you in. Supabase only returns a session here
-        // when email confirmation is switched off in the project; when it is
-        // on, it returns none and the account is unusable until a link is
-        // clicked. Rather than send everyone to their inbox, try the password
-        // we were just given, that succeeds the moment confirmation is off,
-        // and the emailed link becomes the fallback rather than the path.
-        if (!data.session) {
-          const { error: signInErr } = await supa.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-          });
-          if (!signInErr) return; // onAuthStateChange takes it from here
-          // Only genuinely blocked accounts see the confirmation screen.
-          setNotice("confirm");
-          return;
-        }
-        // Otherwise onAuthStateChange signs us straight in.
-        return;
-      }
-
-      // signin
-      const { error: err } = await supa.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (err) throw err;
-      track("login");
-      /* Access is granted to an email address, so somebody can be invited to
-         an organisation before they have an account. This picks that up on
-         the way in, whichever order it happened in. */
-      void claimOrgMembership();
-      // onAuthStateChange closes the sheet + resolves pending actions.
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Something went wrong. Try again.";
-      setError(
-        /invalid login/i.test(msg) ? "Wrong email or password." :
-        /already registered/i.test(msg) ? "That email already has an account, sign in instead." :
-        msg
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const field =
-    "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
-
+// ── Sign-in sheet (email + assigned code) ─────────────────────
+function SignInSheet({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -314,94 +164,18 @@ function SignInSheet({
         onClick={(e) => e.stopPropagation()}
         className="card w-full max-w-sm rounded-b-none rounded-t-3xl p-6 sm:rounded"
       >
-        <div className="mb-4 flex items-center justify-between">
-          <span className="flex h-11 w-11 items-center justify-center rounded bg-paw-100 text-paw-600">
-            <PawPrint className="h-5 w-5" />
-          </span>
+        <div className="mb-4 flex justify-end">
           <button onClick={onClose} className="rounded-full p-1 text-bark-400 hover:bg-bark-100" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {notice ? (
-          <div className="py-2 text-center">
-            <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-vaccinated" />
-            <h2 className="font-display text-xl">
-              {notice === "confirm" ? "Confirm your email" : "Check your email"}
-            </h2>
-            <p className="mt-1.5 text-sm text-bark-500">
-              {notice === "confirm" ? (
-                <>Your account was created, but it needs one click on a
-                confirmation link before you can sign in. We sent it to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.
-                Check spam. If nothing arrives, the account still exists, so
-                write to <a href="mailto:jaykapoor7@outlook.com" className="font-semibold text-paw-600 hover:underline">jaykapoor7@outlook.com</a> and
-                we will confirm it for you.</>
-              ) : (
-                <>We sent a password-reset link to <span className="font-semibold text-bark-700 dark:text-bark-200">{email.trim()}</span>.</>
-              )}
-            </p>
-            {notice === "confirm" && (
-              <button
-                onClick={async () => { if (!supa) return; setBusy(true); try { await supa.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/app` : undefined } }); } finally { setBusy(false); } }}
-                disabled={busy}
-                className="btn-ghost mt-4 w-full py-3"
-              >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Resend confirmation email
-              </button>
-            )}
-            <button onClick={onClose} className="btn-ghost mt-2 w-full py-3">Done</button>
-          </div>
-        ) : (
-          <>
-            <h2 className="font-display text-xl">
-              {mode === "signup" ? "Create your account" : mode === "reset" ? "Reset password" : "Sign in to StrayPaw"}
-            </h2>
-            <p className="mt-1 text-sm text-bark-500">
-              {mode === "reset"
-                ? "Enter your email and we'll send a link to set a new password."
-                : "Sign in to edit your sightings, follow dogs, and, for partner NGOs, open your dashboard."}
-            </p>
-
-            <form onSubmit={submit} className="mt-4 space-y-3">
-              {live && mode === "signup" && (
-                <input value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
-              )}
-              {!live && (
-                <input autoFocus value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} placeholder="Your name" className={field} />
-              )}
-              {live && (
-                <input autoFocus={mode !== "signup"} type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
-              )}
-              {live && mode !== "reset" && (
-                <input type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={mode === "signup" ? "Choose a password (min 6)" : "Password"} className={field} />
-              )}
-
-              <button type="submit" disabled={busy} className="btn-primary w-full py-3">
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? <UserPlus className="h-4 w-4" /> : mode === "signin" ? <LogIn className="h-4 w-4" /> : null}
-                {!live ? "Continue" : mode === "signup" ? "Create account" : mode === "reset" ? "Send reset link" : "Sign in"}
-              </button>
-            </form>
-
-            {error && <p className="mt-3 text-sm font-medium text-status-injured">{error}</p>}
-
-            {live && (
-              <div className="mt-4 flex items-center justify-between text-[13px]">
-                {mode === "signin" ? (
-                  <>
-                    <button onClick={() => { setMode("signup"); setError(null); }} className="font-semibold text-paw-600 hover:underline">Create an account</button>
-                    <button onClick={() => { setMode("reset"); setError(null); }} className="text-bark-500 hover:text-paw-600">Forgot password?</button>
-                  </>
-                ) : (
-                  <button onClick={() => { setMode("signin"); setError(null); }} className="font-semibold text-paw-600 hover:underline">← Back to sign in</button>
-                )}
-              </div>
-            )}
-
-            {!live && (
-              <p className="mt-3 text-center text-[11.5px] text-bark-400">We only store your name on this device.</p>
-            )}
-          </>
-        )}
+        <span className="flex h-11 w-11 items-center justify-center rounded bg-paw-100 text-paw-600"><KeyRound className="h-5 w-5" /></span>
+        <h2 className="mt-4 font-display text-xl">Sign in with your code</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-bark-500">Use the email address that received your StrayPaw code and the same six characters. Codes work for community members, feeders and organisation teams.</p>
+        <a href="/join" className="btn-primary mt-5 w-full py-3" onClick={onClose}>I have a code</a>
+        <a href="/access" className="btn-ghost mt-2 w-full py-3 text-center" onClick={onClose}>Email me a personal code</a>
+        <p className="mt-4 text-center text-[11.5px] leading-relaxed text-bark-400">Reporting a sighting never requires a sign-in.</p>
       </motion.div>
     </motion.div>
   );
