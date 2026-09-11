@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { dogLabel } from "@/lib/utils";
+import { cityForPoints } from "@/lib/geo/cities";
 import type { Dog } from "@/lib/types";
 
 export function FieldMapPreview({ dogs, center, place, chrome = true }: { dogs: Dog[]; center?: { lat: number; lng: number } | null; place?: string; chrome?: boolean }) {
@@ -34,7 +35,7 @@ export function FieldMapPreview({ dogs, center, place, chrome = true }: { dogs: 
         onSelect={setSelected}
         selectedId={selected?.id}
       />
-      {chrome && <div className="field-map-place"><MapPin size={17}/><div><b>{place || first?.zone || "Explore India"}</b><span>{dogs.length ? "Recent animal records" : "Your next report starts here"}</span></div></div>}
+      {chrome && <div className="field-map-place"><MapPin size={17}/><div><b>{place || cityForPoints(located) || "Explore India"}</b><span>{dogs.length ? "Recent animal records" : "Your next report starts here"}</span></div></div>}
       {chrome && selected && <Link className="field-map-selected" href={`/dog/${selected.id}`}><div><b>{dogLabel(selected)}</b><span>{selected.zone || "View the animal record"}</span></div><ArrowUpRight size={18}/></Link>}
     </div>
   );

@@ -426,34 +426,25 @@
   margin-left:auto;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;
   text-transform:uppercase;color:#9db8dc;
 }
-.wt-panel-stats{display:grid;grid-template-columns:repeat(3,1fr);margin:0;border-bottom:1px solid rgba(11,30,61,.1)}
-.wt-panel-stats>div{padding:15px;border-left:1px solid rgba(11,30,61,.1)}
-.wt-panel-stats>div:first-child{border-left:0}
-.wt-panel-stats dt{
-  font:9.5px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;
-  text-transform:uppercase;color:#5d6b80;
-}
-.wt-panel-stats dd{
-  margin:7px 0 0;font-size:26px;font-weight:600;letter-spacing:-.04em;
-  color:var(--pl-ink);font-variant-numeric:tabular-nums;line-height:1;
-}
-/* The gap is the work, so it is the one figure that carries the accent. */
-.wt-panel-stats .q dd{color:var(--pl-flame-deep)}
 
 .wt-panel-rows{list-style:none;margin:0;padding:0}
 .wt-panel-rows li{
-  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
   gap:10px;align-items:center;padding:11px 15px;
   border-bottom:1px solid rgba(11,30,61,.08);font-size:12.5px;
 }
 .wt-panel-rows li:last-child{border-bottom:0}
 .wt-row-name{font-weight:600;color:var(--pl-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wt-row-zone{color:#5d6b80;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wt-row-tag{
   font:9.5px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em;text-transform:uppercase;
   color:#41618f;white-space:nowrap;
 }
 .wt-row-tag.q{color:var(--pl-ember)}
+.wt-panel-foot{
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:11px 15px;border-top:1px solid rgba(11,30,61,.1);
+  background:#faf7f2;color:#5d6b80;font-size:11.5px;
+}
 
 @media(max-width:860px){
   .wt-inner{padding:clamp(48px,8vw,70px) 6vw}
@@ -466,9 +457,7 @@
   .wt-dash{grid-template-columns:1fr;gap:22px;margin-top:34px;padding-top:28px}
   .wt-dash-head h3{max-width:none;font-size:clamp(22px,6vw,28px)}
   .wt-dash-head>p{font-size:14.5px;margin-bottom:14px}
-  .wt-panel-stats>div{padding:12px 11px}
-  .wt-panel-stats dd{font-size:21px}
-  .wt-panel-rows li{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px 12px}
+      .wt-panel-rows li{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px 12px}
   .wt-row-zone{display:none}
 }
 
@@ -499,3 +488,45 @@
 .product-site .field-footer nav a:hover{color:var(--pl-sky)}
 .product-site .field-footer>span:last-child{color:#8ea4c0}
 .product-site .field-footer-brand span{color:#8ea4c0}
+
+/* ════════════════════════════════════════════════════════════════════
+   One page container.
+
+   Measured at 1600px, the left edge of the content in each band sat at
+   64, 96, 286, 116, 96 and 80 pixels: the header, the hero, the map
+   section, the roles, the closing line and the footer each had their own
+   max-width and their own gutter, so nothing lined up with anything above
+   or below it. The map section alone was 190px further in than the hero.
+
+   Every band now resolves to the same column. The padding formula centres
+   a --page-max column inside a full-bleed section without needing an
+   inner wrapper, which matters because the header and the footer do not
+   have one and their backgrounds must stay edge to edge.
+   ════════════════════════════════════════════════════════════════════ */
+
+.product-site,
+.sp.field-site {
+  --page-max: 1440px;
+  --gutter: clamp(20px, 5vw, 56px);
+}
+
+.product-site .sp-header,
+.product-site .product-hero,
+.product-site .wt-inner,
+.product-site .role-help,
+.product-site .product-closing,
+.product-site .field-footer {
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: max(var(--gutter), calc((100% - var(--page-max)) / 2));
+}
+
+/* The header is set by the design system at a different gutter, and that
+   rule is `html .sp .sp-header`, so it needs the same specificity back. */
+html .sp.product-site .sp-header {
+  padding-inline: max(var(--gutter), calc((100% - var(--page-max)) / 2));
+}
+
+@media (max-width: 860px) {
+  .product-site, .sp.field-site { --gutter: 20px; }
+}

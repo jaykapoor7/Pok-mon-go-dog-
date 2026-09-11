@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { FieldMapPreview } from "./FieldMapPreview";
+import { cityForPoints } from "@/lib/geo/cities";
 import type { Dog } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -89,7 +90,11 @@ export function WhereTheyAre({
   })();
 
   const focus = cluster.length ? cluster : located;
-  const place = focus[0]?.zone?.split(",").slice(-1)[0]?.trim() || null;
+  /* A zone is a neighbourhood, so printing one over a map framed on a
+     whole city made the landing map claim to be a street. The city comes
+     from the coordinates instead, against a fixed table of real city
+     centres, and stays unnamed when nothing is close enough. */
+  const place = cityForPoints(focus);
 
   return (
     <section className="wt" aria-labelledby="wt-title">
@@ -146,39 +151,38 @@ export function WhereTheyAre({
             </Link>
           </div>
 
-          <div className="wt-panel" role="img" aria-label={`Dashboard summary: ${total} animals on the record, ${unchecked} never checked, ${orgs} organisations listed`}>
+          <div className="wt-panel">
             <div className="wt-panel-bar">
               <span className="wt-dot" aria-hidden />
-              <b>Field overview</b>
-              <span className="wt-panel-live">Live</span>
+              <b>Animals to check</b>
+              <span className="wt-panel-live">
+                {unchecked.toLocaleString("en-IN")} waiting
+              </span>
             </div>
-            <dl className="wt-panel-stats">
-              <div>
-                <dt>On the record</dt>
-                <dd>{total.toLocaleString("en-IN")}</dd>
-              </div>
-              <div className="q">
-                <dt>Never checked</dt>
-                <dd>{unchecked.toLocaleString("en-IN")}</dd>
-              </div>
-              <div>
-                <dt>Organisations</dt>
-                <dd>{orgs}</dd>
-              </div>
-            </dl>
+            {/* A queue, which is what a dashboard is. The three-figure row
+                that stood here read "85 on record / 85 never checked / 40
+                organisations": the same number twice, and a third with
+                nothing to do with either. */}
             <ul className="wt-panel-rows">
-              {dogs.slice(0, 4).map((d) => (
-                <li key={d.id}>
-                  <span className="wt-row-name">{d.name?.trim() || d.zone || "On record"}</span>
-                  <span className="wt-row-zone">{d.zone || "India"}</span>
-                  <span className={`wt-row-tag${(!d.sterilisation_status || d.sterilisation_status === "unknown") ? " q" : ""}`}>
-                    {!d.sterilisation_status || d.sterilisation_status === "unknown"
-                      ? "Not checked"
-                      : "Checked"}
-                  </span>
-                </li>
-              ))}
+              {dogs.slice(0, 5).map((d) => {
+                const never =
+                  !d.sterilisation_status || d.sterilisation_status === "unknown";
+                return (
+                  <li key={d.id}>
+                    <span className="wt-row-name">
+                      {d.name?.trim() || `Dog near ${d.zone || "you"}`}
+                    </span>
+                    <span className={`wt-row-tag${never ? " q" : ""}`}>
+                      {never ? "Never checked" : "Sterilised"}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
+            <div className="wt-panel-foot">
+              <span>{total.toLocaleString("en-IN")} on the record</span>
+              <span>{orgs} organisations can pick these up</span>
+            </div>
           </div>
         </div>
 

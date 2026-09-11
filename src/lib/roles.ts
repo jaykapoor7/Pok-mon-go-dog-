@@ -33,8 +33,12 @@ export const ROLE_META: Record<
     short: "Resident",
     blurb:
       "You see street animals where you live and want to report one, follow what happens to it, or help out.",
-    home: "/map",
-    priority: ["/map", "/report", "/following", "/get-involved"],
+    /* The neighbourhood home, not the raw map. /app is the one screen that
+       shows somebody what is happening near them and what to do next;
+       sending a new member to /map drops them on a tool with no context,
+       which is what made the tour's last button feel like it had failed. */
+    home: "/app",
+    priority: ["/app", "/map", "/report", "/following"],
     apply: null,
     applyLabel: null,
   },

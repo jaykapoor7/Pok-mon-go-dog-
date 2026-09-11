@@ -2,11 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { SitePage } from "@/components/site/SitePage";
 import { RESEARCH } from "@/lib/platform/research";
-import {
-  EDUCATION_PARTNERS,
-  livePartners,
-  pendingPartners,
-} from "@/lib/platform/education";
+import { EDUCATION_PARTNERS } from "@/lib/platform/education";
 
 export const dynamic = "force-static";
 export const metadata = {
@@ -59,9 +55,6 @@ const PATH = [
 ];
 
 export default function EducationPage() {
-  const live = livePartners();
-  const pending = pendingPartners();
-
   return (
     <SitePage
       kicker="Education layer / before it becomes a case"
@@ -120,68 +113,36 @@ export default function EducationPage() {
         </div>
 
         <ul className="edu-partner-list">
-          {EDUCATION_PARTNERS.map((p) => {
-            const isLive = p.status === "live";
-            return (
-              <li key={p.id} className="edu-partner">
-                <div className="edu-partner-top">
-                  <div>
-                    <h3>{p.name}</h3>
-                    <span className="spa-mono">
-                      {p.fullName} · {p.city}
-                    </span>
-                  </div>
-                  <span
-                    className={`edu-status ${isLive ? "on" : ""}`}
-                    aria-label={
-                      isLive
-                        ? "Material available"
-                        : "In conversation, no material hosted yet"
-                    }
-                  >
-                    {isLive ? "Material available" : "In conversation"}
+          {EDUCATION_PARTNERS.map((p) => (
+            <li key={p.id} className="edu-partner">
+              <div className="edu-partner-top">
+                <div>
+                  <h3>{p.name}</h3>
+                  <span className="spa-mono">
+                    {p.fullName} · {p.city}
                   </span>
                 </div>
-                <p>{p.summary}</p>
-                <ul className="edu-programmes">
-                  {p.programmes.map((prog) => (
-                    <li key={prog}>{prog}</li>
-                  ))}
-                </ul>
-                <div className="edu-partner-foot">
-                  {isLive ? (
-                    <Link href={p.href} className="edu-link">
-                      Open their material <ArrowUpRight size={13} />
-                    </Link>
-                  ) : (
-                    <span className="edu-pending">
-                      Nothing hosted here yet. When there is, it will be on its
-                      own page with their name on it.
-                    </span>
-                  )}
-                  <a
-                    href={p.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="edu-link quiet"
-                  >
-                    {p.source} <ExternalLink size={12} />
-                  </a>
-                </div>
-              </li>
-            );
-          })}
+              </div>
+              <p>{p.summary}</p>
+              <ul className="edu-programmes">
+                {p.programmes.map((prog) => (
+                  <li key={prog}>{prog}</li>
+                ))}
+              </ul>
+              <div className="edu-partner-foot">
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="edu-link"
+                >
+                  Their work at {p.source} <ExternalLink size={13} />
+                </a>
+              </div>
+            </li>
+          ))}
         </ul>
 
-        {live.length === 0 && (
-          <p className="edu-note">
-            {pending.length === 1
-              ? "One partnership in progress, nothing hosted yet."
-              : `${pending.length} partnerships in progress, nothing hosted yet.`}{" "}
-            Until material arrives, everything on this page above is already
-            usable in a lesson.
-          </p>
-        )}
       </section>
     </SitePage>
   );
