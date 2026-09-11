@@ -192,12 +192,18 @@ async function claim(req: Request, code: string) {
   const signedInEmail = normaliseEmail(who.user.email ?? "");
   const { data: personal } = await supa
     .from("personal_access_codes")
-    .select("id,email")
+    .select("id,email,uses")
     .eq("code", code)
     .eq("active", true)
     .maybeSingle();
   if (personal && normaliseEmail(personal.email) === signedInEmail) {
-    await supa.from("personal_access_codes").update({ uses: 1, last_used_at: new Date().toISOString() }).eq("id", personal.id);
+    /* Increment. Assigning 1 meant the column read "used once" no matter how
+       many times somebody signed in, so the one number that would show a
+       shared or leaked code never moved off 1. */
+    await supa
+      .from("personal_access_codes")
+      .update({ uses: (personal.uses ?? 0) + 1, last_used_at: new Date().toISOString() })
+      .eq("id", personal.id);
     return NextResponse.json({ ok: true });
   }
   const { data, error } = await supa.rpc("redeem_access_code", {

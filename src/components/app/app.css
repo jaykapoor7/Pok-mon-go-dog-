@@ -3015,12 +3015,17 @@ a.pgm-figure:hover { background: #f3f6fb; }
   font-weight: 650;
   padding: 9px 12px;
 }
-.spa-profile-links.out .pp-signin {
+/* a.pp-signin, and the extra classes, because "html .spa.spa .spa-side a"
+   carries three classes AND two elements and outranked this. The button drew
+   #50617b on the navy fill — 2.18:1. Third time this exact selector has won
+   an argument it should not have; anything coloured inside .spa-side needs
+   to name its element. */
+html .spa.spa .spa-profile-links.out a.pp-signin {
   border: 0;
   background: var(--ink);
   color: var(--paper);
 }
-.spa-profile-links.out .pp-signin:hover { background: #1d2942; color: var(--paper); }
+html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; color: var(--paper); }
 .spa-profile-links.out .pp-code {
   border: 1px solid var(--electric-ink);
   background: #fff;

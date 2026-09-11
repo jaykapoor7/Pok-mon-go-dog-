@@ -9,8 +9,11 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { KeyRound, X } from "lucide-react";
+import { KeyRound, X, Loader2, LogIn } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
+import { track } from "@/lib/analytics";
+import { claimOrgMembership } from "@/lib/programme";
+import { storeRole, type Role } from "@/lib/roles";
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
@@ -74,8 +77,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setReady(true);
     });
 
-    const { data: sub } = supa.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supa.auth.onAuthStateChange((event, session) => {
       applySession(session?.user ?? null);
+      /* Access can be granted to an email address before that address has an
+         account, so the invitation and the account can happen in either
+         order. This picks up anything waiting for whoever just signed in.
+         It moved out of the old password form when that form was removed,
+         and was not put anywhere else — so an NGO member invited by email
+         before their first sign-in silently never joined their organisation. */
+      if (event === "SIGNED_IN" && session?.user) void claimOrgMembership();
       // A fresh sign-in fulfils any action that was waiting on auth.
       if (session?.user && pendingRef.current) {
         const action = pendingRef.current;
@@ -147,8 +157,102 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Sign-in sheet (email + assigned code) ─────────────────────
+// ── Sign-in sheet (email + code) ──────────────────────────────
+//
+// This used to be two links: "I have a code" and "Email me a code", both of
+// which navigated away. That is not a sign-in sheet. requireAuth() exists so
+// an action can pause, collect an identity, and then RUN — a link throws the
+// pending action away and drops the person on another page, where whatever
+// they were trying to do is gone. So the code is entered here, and the
+// action it was blocking happens straight afterwards.
+//
+// Nothing is checked in the browser. The pair is posted to /api/join, which
+// resolves it against the three code spaces and, when it matches, hands back
+// a one-time token bound to that address. Exchanging that token is what makes
+// the session, so Supabase issues it and owns the security of it. Identical
+// to how an organisation's staff code signs somebody in — one path, not two.
 function SignInSheet({ onClose }: { onClose: () => void }) {
+  const supa = getSupabase();
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const cleanCode = (v: string) =>
+    v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+  const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const entered = cleanCode(code);
+    if (!emailOk) return setError("Enter the email address that received your code.");
+    if (entered.length < 4) return setError("A StrayPaw code is six characters.");
+    if (!supa) return setError("StrayPaw could not reach its account service. Try again shortly.");
+
+    setBusy(true);
+    setStep("Checking your code");
+    try {
+      const res = await fetch("/api/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: entered, email: email.trim().toLowerCase() }),
+      });
+      const data = (await res.json()) as {
+        kind?: "staff" | "volunteer" | "personal";
+        tokenHash?: string;
+        role?: string;
+        error?: string;
+      };
+      if (!res.ok) return setError(data.error ?? "That email and code did not match.");
+
+      /* A volunteer code grants reporting for a named team and deliberately
+         mints no account, so there is no session to wait for. Sending them
+         to /join is right here: it stores the team and opens reporting. */
+      if (data.kind === "volunteer" || !data.tokenHash) {
+        window.location.href = `/join?code=${encodeURIComponent(entered)}`;
+        return;
+      }
+
+      setStep("Signing you in");
+      const { data: session, error: otpError } = await supa.auth.verifyOtp({
+        token_hash: data.tokenHash,
+        type: "email",
+      });
+      if (otpError || !session?.session) {
+        return setError("That code is valid but the sign-in did not complete. Try once more.");
+      }
+
+      /* Record the use against a session the server can verify for itself,
+         and join them to their organisation if the code carried one. */
+      await fetch("/api/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.session.access_token}`,
+        },
+        body: JSON.stringify({ code: entered, action: "claim" }),
+      }).catch(() => {
+        /* The session exists either way; a failed claim is not a failed
+           sign-in, and onAuthStateChange has already run the pending action. */
+      });
+      if (data.kind === "personal" && (data.role === "feeder" || data.role === "individual")) {
+        storeRole(data.role as Role);
+      }
+      track("login");
+      /* onAuthStateChange closes the sheet and runs whatever was waiting. */
+    } catch {
+      setError("Could not reach StrayPaw. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+      setStep(null);
+    }
+  }
+
+  const field =
+    "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -163,19 +267,66 @@ function SignInSheet({ onClose }: { onClose: () => void }) {
         exit={{ y: 60, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
         className="card w-full max-w-sm rounded-b-none rounded-t-3xl p-6 sm:rounded"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="signin-title"
       >
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex items-center justify-between">
+          <span className="flex h-11 w-11 items-center justify-center rounded bg-paw-100 text-paw-600">
+            <KeyRound className="h-5 w-5" />
+          </span>
           <button onClick={onClose} className="rounded-full p-1 text-bark-400 hover:bg-bark-100" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <span className="flex h-11 w-11 items-center justify-center rounded bg-paw-100 text-paw-600"><KeyRound className="h-5 w-5" /></span>
-        <h2 className="mt-4 font-display text-xl">Sign in with your code</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-bark-500">Use the email address that received your StrayPaw code and the same six characters. Codes work for community members, feeders and organisation teams.</p>
-        <a href="/join" className="btn-primary mt-5 w-full py-3" onClick={onClose}>I have a code</a>
-        <a href="/access" className="btn-ghost mt-2 w-full py-3 text-center" onClick={onClose}>Email me a personal code</a>
-        <p className="mt-4 text-center text-[11.5px] leading-relaxed text-bark-400">Reporting a sighting never requires a sign-in.</p>
+        <h2 id="signin-title" className="font-display text-xl">Sign in with your code</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-bark-500">
+          The email address that received your StrayPaw code, and the six
+          characters. No password. The same pair works every time, on any
+          device.
+        </p>
+
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <input
+            autoFocus
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@email.com"
+            className={field}
+            disabled={busy}
+            aria-label="Email address"
+          />
+          <input
+            value={code}
+            onChange={(e) => setCode(cleanCode(e.target.value))}
+            placeholder="XXXXXX"
+            inputMode="text"
+            autoCapitalize="characters"
+            autoComplete="one-time-code"
+            spellCheck={false}
+            maxLength={8}
+            className={`${field} font-mono tracking-[0.3em]`}
+            disabled={busy}
+            aria-label="Your six-character code"
+          />
+          <button type="submit" disabled={busy} className="btn-primary w-full py-3">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+            {busy ? (step ?? "Working") : "Sign in"}
+          </button>
+        </form>
+
+        {error && <p role="alert" className="mt-3 text-sm font-medium text-status-injured">{error}</p>}
+
+        <p className="mt-4 text-center text-[12.5px] leading-relaxed text-bark-500">
+          No code? <a href="/access" className="font-semibold text-paw-600 hover:underline" onClick={onClose}>Have one emailed to you</a>.
+        </p>
+        <p className="mt-2 text-center text-[11.5px] leading-relaxed text-bark-400">
+          Reporting a street animal never needs a sign-in.
+        </p>
       </motion.div>
     </motion.div>
   );

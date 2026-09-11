@@ -36,10 +36,11 @@
 --   6. org-invite-codes.sql         Volunteer reporting codes
 --   7. org-email-invites.sql        Organisation membership, moderation, and deleting an org
 --   8. org-access-codes.sql         One standing six-character sign-in code per person
---   9. campaigns.sql                Drives, filing observations, and what counts as nearby
---  10. public-dataset.sql           The published dataset: one citable row per survey
---  11. ward-density.sql             Ward/district boundaries and the coverage headline
---  12. map-search.sql               Searching wards and districts, and the India-only mask
+--   9. personal-access-codes.sql    Personal codes for residents and feeders
+--  10. campaigns.sql                Drives, filing observations, and what counts as nearby
+--  11. public-dataset.sql           The published dataset: one citable row per survey
+--  12. ward-density.sql             Ward/district boundaries and the coverage headline
+--  13. map-search.sql               Searching wards and districts, and the India-only mask
 --
 -- After this file, load the boundaries:
 --     districts-india-1of5.sql … -5of5.sql   641 districts, national tier
@@ -2843,6 +2844,29 @@ begin
 end $$;
 
 grant execute on function admin_revoke_code(uuid) to service_role;
+
+
+-- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- ┃ personal-access-codes.sql
+-- ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- Personal, non-organisation access codes for residents and feeders.
+-- These are deliberately separate from NGO credentials: they identify a
+-- person and restore their workspace, but grant no organisation permissions.
+create table if not exists personal_access_codes (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  name text not null,
+  role text not null check (role in ('individual', 'feeder')),
+  code text not null unique,
+  active boolean not null default true,
+  uses int not null default 0,
+  last_used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table personal_access_codes enable row level security;
+-- All reads and writes flow through the server-side access endpoints.
 
 
 -- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

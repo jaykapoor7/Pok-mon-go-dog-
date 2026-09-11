@@ -64,11 +64,24 @@ export async function POST(req: Request) {
     }
     if (!issued) return NextResponse.json({ error: "Could not issue a code. Try again shortly." }, { status: 500 });
   }
-  await sendEmail({
+  /* The result decides what the caller is told. sendEmail() returns false
+     when RESEND_API_KEY is unset or Resend rejects the send, and this used
+     to discard it and answer { ok: true } regardless — so the page said
+     "Check your email", the code sat in the table, and nothing was ever
+     sent. A person in that position cannot tell a slow inbox from a broken
+     one, and there is nothing on screen that would ever correct them.
+     The team-invite route already returns `emailed` for this reason; this
+     is the same contract.
+
+     Unlike a team invite, the code is NOT returned when sending fails.
+     There, a lead who already knows the person reads it out. Here anyone
+     can type any address, so showing the code on screen would hand out a
+     credential for an inbox the visitor may not own. */
+  const emailed = await sendEmail({
     to: email,
     subject: "Your StrayPaw access code",
     html: `<p>Hello ${name.split(" ")[0]},</p><p>Your StrayPaw code is:</p><p style="font:700 30px ui-monospace,monospace;letter-spacing:.18em">${accessCode}</p><p><a href="${SITE}/join">Open StrayPaw</a>, then enter this email address and your code.</p><p>Keep this code. The same email and code open your personal workspace on any device.</p>`,
     text: `Hello ${name.split(" ")[0]},\n\nYour StrayPaw code: ${accessCode}\n\nOpen ${SITE}/join and enter this email address and your code. Keep both: they open your space on any device.`,
   });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, emailed });
 }

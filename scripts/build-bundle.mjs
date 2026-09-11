@@ -30,6 +30,10 @@ const PARTS = [
   ["org-invite-codes.sql", "Volunteer reporting codes"],
   ["org-email-invites.sql", "Organisation membership, moderation, and deleting an org"],
   ["org-access-codes.sql", "One standing six-character sign-in code per person"],
+  /* Was in the repo but in no bundle, so a database built from this file
+     had no personal_access_codes table and every community or feeder
+     sign-in failed on a missing relation. */
+  ["personal-access-codes.sql", "Personal codes for residents and feeders"],
   ["campaigns.sql", "Drives, filing observations, and what counts as nearby"],
   ["public-dataset.sql", "The published dataset: one citable row per survey"],
   ["ward-density.sql", "Ward/district boundaries and the coverage headline"],

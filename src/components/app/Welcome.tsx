@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight,
   Bookmark,
@@ -143,7 +143,6 @@ export function Welcome() {
      front of an animal; asking them what kind of user they are first is how
      an observation gets lost. They can pick a role any time afterwards. */
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const onReportFlow = pathname?.startsWith("/report") ?? false;
 
   const router = useRouter();
@@ -155,12 +154,19 @@ export function Welcome() {
      also asks once when no role has been chosen, but a report never does. */
   useEffect(() => {
     if (onReportFlow) return;
-    const requestedChoice = searchParams.get("choose") === "1";
+    /* Read the query off the URL rather than through useSearchParams().
+       That hook opts its whole subtree out of static rendering, and this
+       component sits inside AppShell, so every route carrying the shell —
+       including the 404 — failed to prerender and the production build has
+       not completed since. usePathname() has no such effect, so the reaction
+       to client-side navigation is kept and the bailout is not. */
+    const requestedChoice =
+      new URLSearchParams(window.location.search).get("choose") === "1";
     if (requestedChoice || (pathname === "/app" && !readStoredRole())) {
       setRole(null);
       setStep(0);
     }
-  }, [onReportFlow, pathname, searchParams]);
+  }, [onReportFlow, pathname]);
 
   /* Asked for by name. Starts at the role question, because somebody
      reopening it may well have picked the wrong one the first time. */
