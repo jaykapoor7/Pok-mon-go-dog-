@@ -26,7 +26,7 @@ const STER = [
 ];
 
 function pct(n: number | null) {
-  return n === null ? "—" : `${n}%`;
+  return n === null ? "No data" : `${n}%`;
 }
 
 export function DriveDetail({ id }: { id: string }) {

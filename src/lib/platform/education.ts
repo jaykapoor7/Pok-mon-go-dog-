@@ -45,7 +45,7 @@ export const EDUCATION_PARTNERS: EducationPartner[] = [
     summary:
       "A New Delhi organisation whose work is humane education: teaching children and young people about animals, coexistence and responsible behaviour, rather than running field operations.",
     programmes: [
-      "Compassionate Classrooms — animal-welfare content written into school textbooks with CBSE and state education boards",
+      "Compassionate Classrooms: animal-welfare content written into school textbooks with CBSE and state education boards",
       "Animal-welfare workshops and presentations in schools and colleges",
       "Painting and essay-writing programmes, and nature walks",
     ],

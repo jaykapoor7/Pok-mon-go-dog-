@@ -32,7 +32,7 @@ const METHOD_LABEL: Record<string, string> = {
   other: "Other fieldwork",
 };
 
-const pct = (n: number | null) => (n === null ? "—" : `${n}%`);
+const pct = (n: number | null) => (n === null ? "No data" : `${n}%`);
 
 function dates(r: PublishedSurvey) {
   const f = (d: string) =>
@@ -219,7 +219,7 @@ export function DatasetClient() {
                 <th scope="row">
                   {r.area}
                   <small>
-                    {[r.city, r.state].filter(Boolean).join(", ") || "—"}
+                    {[r.city, r.state].filter(Boolean).join(", ") || "No data"}
                   </small>
                 </th>
                 <td>{METHOD_LABEL[r.method] ?? r.method}</td>

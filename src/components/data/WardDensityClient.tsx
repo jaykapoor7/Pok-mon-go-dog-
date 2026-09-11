@@ -118,7 +118,7 @@ export function WardDensityClient({ city }: { city: string | null }) {
               value={
                 coverage.ster_pct_of_known != null
                   ? `${coverage.ster_pct_of_known}%`
-                  : "—"
+                  : "No data"
               }
               /* Both denominators, side by side, always. One of them is
                  flattering and the other is honest, and which is which

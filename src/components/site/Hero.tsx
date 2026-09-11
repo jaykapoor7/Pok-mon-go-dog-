@@ -16,10 +16,13 @@ import type { Dog } from "@/lib/types";
    actual streets, already in the database.
 
    So the hero is the wall of them. Every tile is a real record. The one
-   that is promoted shows its own fields — where, when, and the two care
-   statuses, which read "not checked" because nobody has checked them. The
-   counts underneath are read from the database rather than typed in, so
-   they cannot drift away from what is true.
+   that is promoted carries where, when, and who filed it. It used to
+   carry the two care statuses as well, both reading "Not checked",
+   because for most animals nobody has. That is true and it belongs on
+   the animal's own record, but as the first thing a visitor reads about
+   the first animal they see it was two blanks under a photograph. The
+   count underneath is read from the database rather than typed in, so it
+   cannot drift away from what is true.
    ════════════════════════════════════════════════════════════════════ */
 
 export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
@@ -34,8 +37,6 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
      complete three full rows with nothing left hanging. */
   const wall = rest.slice(0, 8);
 
-  const careWord = (status: string | null | undefined, yes: string) =>
-    status === "unknown" || !status ? "Not checked" : status === yes ? yes : "No";
 
   return (
     <section className="product-hero product-hero-wall" aria-labelledby="hero-title">
@@ -47,7 +48,7 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
         </h1>
         <p>
           A photo and a place become a record that a neighbour, a feeder and a
-          field team can all return to — instead of starting again every time.
+          field team can all return to, instead of starting again every time.
         </p>
 
         <div className="product-hero-actions">
@@ -88,24 +89,6 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
               {lead.reporter && (
                 <span className="hero-wall-by">Reported by {lead.reporter}</span>
               )}
-              <dl>
-                <div>
-                  <dt>Sterilised</dt>
-                  <dd className={lead.sterilisation_status === "unknown" ? "q" : ""}>
-                    {careWord(lead.sterilisation_status, "sterilised") === "sterilised"
-                      ? "Yes"
-                      : careWord(lead.sterilisation_status, "sterilised")}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Vaccinated</dt>
-                  <dd className={lead.vaccination_status === "unknown" ? "q" : ""}>
-                    {careWord(lead.vaccination_status, "vaccinated") === "vaccinated"
-                      ? "Yes"
-                      : careWord(lead.vaccination_status, "vaccinated")}
-                  </dd>
-                </div>
-              </dl>
             </figcaption>
           </figure>
         )}

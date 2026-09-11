@@ -13,7 +13,7 @@ export default function PartnerMedicalPage() {
         </h1>
         <p className="mt-0.5 max-w-2xl text-[13px] leading-relaxed text-bark-500">
           A clear, chronological record of treatment, vaccination and field
-          care — always connected to the animal.
+          care, always connected to the animal.
         </p>
       </header>
       <RecordsTabs />

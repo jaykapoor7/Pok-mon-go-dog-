@@ -216,16 +216,25 @@
    the space three repetitive stats were using — and it moves, which is the
    point: somebody watching the page sees it tick when a report lands. */
 .hero-tally{display:grid;grid-template-columns:auto auto 1fr;align-items:center;column-gap:14px;margin:34px 0 0;padding-top:26px;border-top:1px solid #2a4a7a}
-.hero-tally-dot{width:9px;height:9px;border-radius:50%;background:#7ee3a8;box-shadow:0 0 0 0 #7ee3a880;animation:tally-pulse 2.6s ease-out infinite}
+/* Five strokes, not a pulsing dot. The fifth is the one that closes a
+   group, so it is drawn only when the number actually moves rather than
+   blinking on a timer at a reader who is trying to read. */
+.hero-tally-mark{width:32px;height:30px;overflow:visible;align-self:center}
+.hero-tally-mark path{fill:none;stroke:#8fb0d6;stroke-width:2.4}
+/* Qualified by the svg class as well: `.hero-tally-mark path` is a class
+   plus an element and outranked a bare `.hero-tally-fifth`, so the closing
+   stroke was coming out the same blue as the other four. */
+.hero-tally-mark .hero-tally-fifth{stroke:#ff9a65;stroke-dasharray:35;stroke-dashoffset:0}
+.hero-tally.is-new .hero-tally-mark .hero-tally-fifth{animation:tally-strike .62s cubic-bezier(.22,1,.36,1)}
+@keyframes tally-strike{from{stroke-dashoffset:35}to{stroke-dashoffset:0}}
 .hero-tally-figure{margin:0;font-size:clamp(52px,6.4vw,88px);font-weight:600;line-height:.9;letter-spacing:-.05em;font-variant-numeric:tabular-nums;color:#fff}
 .hero-tally-label{margin:0;font-size:13.5px;line-height:1.35;color:#cddcef;font-weight:600}
 .hero-tally-label span{display:block;margin-top:4px;font-size:12px;font-weight:400;color:#9db8dc;max-width:34ch}
 /* The label lifts for a moment when the number has just grown. */
-.hero-tally.is-new .hero-tally-label{color:#7ee3a8}
+.hero-tally.is-new .hero-tally.is-new .hero-tally-label{color:#ffb98f}
 .hero-tally.is-new .hero-tally-figure{animation:tally-bump .7s cubic-bezier(.22,1,.36,1)}
-@keyframes tally-pulse{0%{box-shadow:0 0 0 0 #7ee3a866}70%{box-shadow:0 0 0 11px #7ee3a800}100%{box-shadow:0 0 0 0 #7ee3a800}}
 @keyframes tally-bump{0%{transform:translateY(4px)}100%{transform:none}}
-@media(prefers-reduced-motion:reduce){.hero-tally-dot{animation:none}.hero-tally.is-new .hero-tally-figure{animation:none}}
+@media(prefers-reduced-motion:reduce){.hero-tally-mark .hero-tally-fifth{animation:none}.hero-tally.is-new .hero-tally-figure{animation:none}}
 
 /* One grid, portrait-first. */
 .hero-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}

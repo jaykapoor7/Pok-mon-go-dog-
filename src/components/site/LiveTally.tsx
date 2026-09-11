@@ -97,7 +97,22 @@ export function LiveTally({ initial }: { initial: number }) {
 
   return (
     <div className={`hero-tally${bumped ? " is-new" : ""}`}>
-      <span className="hero-tally-dot" aria-hidden />
+      {/* A tally mark, because that is what this is.
+          What was here before was a small green circle pulsing on a timer,
+          which is the live-status dot every dashboard ships and says
+          nothing about street animals. Five strokes is the oldest way of
+          counting things one at a time as you come across them, which is
+          also exactly how this number goes up. The fifth stroke, the one
+          that closes a group of five, draws itself when the count moves. */}
+      <svg className="hero-tally-mark" viewBox="0 0 32 30" aria-hidden focusable="false">
+        <g strokeLinecap="round">
+          <path d="M4 4V26" />
+          <path d="M11 4V26" />
+          <path d="M18 4V26" />
+          <path d="M25 4V26" />
+          <path className="hero-tally-fifth" d="M2 25.5L27 4.5" />
+        </g>
+      </svg>
       <p className="hero-tally-figure">
         {/* The server value is the text content until the effect runs, so
             this is never a blank or a zero on first paint. */}
@@ -108,7 +123,7 @@ export function LiveTally({ initial }: { initial: number }) {
       </p>
       <p className="hero-tally-label">
         animals on the record
-        <span>and counting — every one of them reported by somebody</span>
+        <span>and counting. Every one of them reported by somebody.</span>
       </p>
     </div>
   );

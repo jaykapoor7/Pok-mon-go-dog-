@@ -62,7 +62,7 @@ export function AccessCodeRequest({ role }: { role: "individual" | "feeder" }) {
             <h1>We could not send the email</h1>
             <p className="join-lede">
               Your code is ready, but StrayPaw could not deliver it to {email || "that address"} just
-              now. Nothing is lost — asking again later sends the same code,
+              now. Nothing is lost: asking again later sends the same code,
               it does not make a second one. If it keeps failing, write to{" "}
               <a href="mailto:jaykapoor7@outlook.com">jaykapoor7@outlook.com</a> and
               we will pass it on.

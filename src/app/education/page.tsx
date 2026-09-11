@@ -43,7 +43,7 @@ const PATH = [
   {
     n: "02",
     title: "Look at your own ward",
-    body: "The animals recorded on your streets, with photographs and care status — and, where nobody has checked, a record that says unknown rather than counting it as a no. The gaps are usually the more useful half.",
+    body: "The animals recorded on your streets, with photographs and care status, and where nobody has checked, a record that says unknown rather than counting it as a no. The gaps are usually the more useful half.",
     href: "/map",
     cta: "Open the map",
     meta: "Every animal on the record, with its ward",

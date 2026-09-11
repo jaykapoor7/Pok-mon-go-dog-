@@ -36,7 +36,7 @@ const KINDS: CampaignKind[] = [
 ];
 
 function pct(n: number | null) {
-  return n === null ? "—" : `${n}%`;
+  return n === null ? "No data" : `${n}%`;
 }
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);

@@ -21,7 +21,7 @@ import { programmeBreakdown, KIND_LABEL, type Breakdown } from "@/lib/campaigns"
    ════════════════════════════════════════════════════════════════════ */
 
 function pct(n: number | null | undefined) {
-  return n === null || n === undefined ? "—" : `${n}%`;
+  return n === null || n === undefined ? "No data" : `${n}%`;
 }
 
 export function ProgrammeBreakdown() {

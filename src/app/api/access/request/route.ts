@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "That is a few requests in an hour for the same address. Your code has not changed, so the last email still works — check spam, and try again later if it never arrived.",
+          "That is a few requests in an hour for the same address. Your code has not changed, so the last email still works. Check spam, and try again later if it never arrived.",
       },
       { status: 429 }
     );

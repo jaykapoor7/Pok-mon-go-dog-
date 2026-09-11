@@ -100,7 +100,7 @@ export function CountingGap({ onRecord }: { onRecord: number }) {
               {onRecord > 0 ? (
                 <>
                   Against that, <b>{onRecord.toLocaleString("en-IN")}</b> animals
-                  are on this record — each one with a photograph, a place, and
+                  are on this record, each one with a photograph, a place, and
                   the name of whoever put it there.
                 </>
               ) : (

@@ -107,29 +107,29 @@ export function PartnerOverview() {
       <div className="partner-metrics grid grid-cols-2 gap-y-6 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-3 lg:grid-cols-5">
         <Stat
           label="Waiting to file"
-          value={!loaded || !user || loadError ? "—" : bd?.waiting.ours ?? 0}
+          value={!loaded || !user || loadError ? "No data" : bd?.waiting.ours ?? 0}
           detail="from your team"
           tone={bd?.waiting.ours ? "text-status-hungry" : undefined}
         />
         <Stat
           label="Unclaimed nearby"
-          value={!loaded || !user || loadError ? "—" : bd?.waiting.community ?? 0}
+          value={!loaded || !user || loadError ? "No data" : bd?.waiting.community ?? 0}
           detail="community sightings"
         />
         <Stat
           label="Drives running"
-          value={!loaded || !user || loadError ? "—" : bd?.drives.filter((d) => !d.archived).length ?? 0}
+          value={!loaded || !user || loadError ? "No data" : bd?.drives.filter((d) => !d.archived).length ?? 0}
           detail="census, ABC, rabies"
         />
         <Stat
           label="Urgent cases"
-          value={!loaded || !user || loadError ? "—" : m.urgent}
+          value={!loaded || !user || loadError ? "No data" : m.urgent}
           detail="need a decision"
           tone={m.urgent ? "text-status-injured" : undefined}
         />
         <Stat
           label="Follow-ups due"
-          value={!loaded || !user || loadError ? "—" : m.followDue}
+          value={!loaded || !user || loadError ? "No data" : m.followDue}
           detail="next 3 days"
           tone={m.followDue ? "text-status-hungry" : undefined}
         />
@@ -176,10 +176,10 @@ export function PartnerOverview() {
           <div className="rounded-lg border border-black/[0.08] p-5 dark:border-white/[0.1]">
             <div className="flex items-end justify-between">
               <div>
-                <div className="text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{!loaded || !user || loadError ? "—" : cases.length}</div>
+                <div className={cn("font-semibold tracking-tight text-bark-900 dark:text-bark-50", !loaded || !user || loadError ? "text-base text-bark-400" : "text-3xl")}>{!loaded || !user || loadError ? "No data" : cases.length}</div>
                 <div className="mt-1 text-[13px] text-bark-500">Total cases logged</div>
               </div>
-              <div className="text-right text-[13px] font-medium text-paw-600">{!loaded || !user || loadError ? "—" : `${m.rate}%`}<div className="text-[11.5px] font-normal text-bark-400">resolved</div></div>
+              <div className="text-right text-[13px] font-medium text-paw-600">{!loaded || !user || loadError ? "No data" : `${m.rate}%`}<div className="text-[11.5px] font-normal text-bark-400">resolved</div></div>
             </div>
             <div className="mt-6 flex h-24 items-end gap-1.5">
               {weeks.map((w, i) => <div key={i} className={cn("flex-1 rounded-t-sm", i >= 9 ? "bg-paw-500" : "bg-paw-500/25")} style={{ height: `${(w / weekMax) * 100}%` }} title={`${w}`} />)}
@@ -204,10 +204,22 @@ export function PartnerOverview() {
 }
 
 function Stat({ label, value, detail, tone }: { label: string; value: number | string; detail: string; tone?: string }) {
+  /* The tile is sized for a figure. When there is no figure to show it
+     says so in words, and those need to be set at a readable size rather
+     than at the display size, which would run "No data" off the column. */
+  const isFigure = typeof value === "number";
   return (
     <div className="border-l border-black/[0.08] pl-4 first:border-l-0 first:pl-0 dark:border-white/[0.1]">
       <div className="mb-2 text-[12px] text-bark-500">{label}</div>
-      <div className={cn("text-3xl font-semibold tracking-tight text-bark-900 dark:text-bark-50", tone)}>{value}</div>
+      <div
+        className={cn(
+          "font-semibold tracking-tight text-bark-900 dark:text-bark-50",
+          isFigure ? "text-3xl" : "text-base text-bark-400 dark:text-bark-500",
+          tone
+        )}
+      >
+        {value}
+      </div>
       <div className="mt-1 text-[12px] text-bark-400">{detail}</div>
     </div>
   );

@@ -141,8 +141,8 @@ export function DemoMode() {
 
       <p className="demo-mode-state">
         {on
-          ? "On — new records are practice data."
-          : "Off — new records go on the real record."}
+          ? "On. New records are practice data."
+          : "Off. New records go on the real record."}
       </p>
 
       {total > 0 && (

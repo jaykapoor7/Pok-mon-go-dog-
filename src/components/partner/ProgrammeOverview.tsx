@@ -71,7 +71,7 @@ export function ProgrammeOverview() {
      repeating it. */
   if (!stats) return null;
 
-  const pct = (n: number | null) => (n === null ? "—" : `${n}%`);
+  const pct = (n: number | null) => (n === null ? "No data" : `${n}%`);
 
   return (
     <section className="pgm" aria-label="Programme totals">

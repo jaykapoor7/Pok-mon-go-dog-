@@ -225,7 +225,7 @@ export function CasesTable({ cases: initialCases, hrefBase = "/cases" }: { cases
                         <span className="block truncate text-[12.5px] text-muted-foreground">{c.title}</span>
                       </Link>
                     </TableCell>
-                    <TableCell className="max-w-0 truncate text-[13px] text-muted-foreground">{c.zone || "—"}</TableCell>
+                    <TableCell className="max-w-0 truncate text-[13px] text-muted-foreground">{c.zone || "No data"}</TableCell>
                     <TableCell className={cn("text-[11.5px] font-bold tracking-wide", pr.cls)}>{pr.label}</TableCell>
                     <TableCell><Badge className={cn("px-2 py-0.5 text-[11.5px]", st.cls)}>{st.label}</Badge></TableCell>
                     <TableCell className={cn("max-w-0 truncate text-[13px]", c.assignee_name ? "" : "text-muted-foreground")}>

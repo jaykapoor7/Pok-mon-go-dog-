@@ -199,7 +199,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error: missing
-          ? "StrayPaw cannot look up codes yet — its database is missing a piece. This is not your code. Tell whoever sent it to you."
+          ? "StrayPaw cannot look up codes yet: its database is missing a piece. This is not your code. Tell whoever sent it to you."
           : "StrayPaw could not check your code just now. Try again in a moment.",
         ref: missing ? "codes-table-missing" : "codes-lookup-failed",
       },

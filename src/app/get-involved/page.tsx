@@ -100,7 +100,7 @@ export default function GetInvolvedPage() {
         <>
           Every route below lists organisations that do that specific work, with
           a link to reach them directly. {ORGS.length} organisations across{" "}
-          {states.length} states. StrayPaw does not place volunteers — you
+          {states.length} states. StrayPaw does not place volunteers. You
           contact the organisation, they decide.
         </>
       }
