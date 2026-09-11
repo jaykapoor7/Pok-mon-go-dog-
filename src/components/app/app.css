@@ -1363,7 +1363,16 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 
 /* ── volunteer routes ───────────────────────────────────────────── */
 
-.vol-list { display: grid; gap: 14px; margin-top: 28px; }
+.vol-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 28px; }
+/* An `auto` track sizes to its widest item's min-content, and one long
+   org name in a card was widening every card past the phone. */
+.vol-route, .vol-route header, .vol-orgs, .vol-orgs li { min-width: 0; }
+/* Name and place are flex items whose min-width defaults to min-content,
+   and the place is nowrap, so on a phone the pair pushed the card — and
+   with it the page — past the screen. The row wraps, the name wraps, and
+   the place drops to its own line rather than widening the card. */
+.vol-orgs a, .vol-orgs span { min-width: 0; flex-wrap: wrap; }
+.vol-orgs a > b, .vol-orgs span > b { min-width: 0; overflow-wrap: anywhere; }
 .vol-route { border: 1px solid #ccd3dc; background: #fbfcfd; padding: 24px; }
 .vol-route header {
   display: grid;
@@ -1420,6 +1429,9 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   font-size: 12.5px;
   color: #656f7c;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .vol-orgs svg { flex-shrink: 0; color: #5a6370; }
 

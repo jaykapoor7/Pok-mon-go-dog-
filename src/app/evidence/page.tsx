@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { SitePage } from "@/components/site/SitePage";
 import { StateExplorer, type StateRow } from "@/components/app/StateExplorer";
 import { EvidenceTabs } from "@/components/app/EvidenceTabs";
 import { DATASETS } from "@/lib/platform/datasets";
@@ -50,26 +51,34 @@ export default function EvidencePage() {
   const animals = rows.reduce((total, row) => total + (row.population ?? 0), 0);
   const withCoverage = rows.filter((row) => row.abcCoverage !== null).length;
 
-  return <div className="ev evidence-surface">
-    <header>
-      <span className="product-kicker">Public evidence</span>
-      <h1>What is known,<br />state by state.</h1>
-      <p>Published population, sterilisation coverage and organisations in one place. Missing data stays visible, because absence is part of the picture.</p>
-    </header>
-    <EvidenceTabs />
-    <section className="evidence-metrics" aria-label="Evidence at a glance">
-      <div><span>States with a record</span><b>{rows.length}</b><small>published population or an active organisation</small></div>
-      <div><span>Animals accounted for</span><b>{(animals / 10_000_000).toFixed(1)} Cr</b><small>across published state estimates</small></div>
-      <div><span>Coverage published</span><b>{withCoverage}/{rows.length}</b><small>states reporting sterilisation coverage</small></div>
-    </section>
-    <StateExplorer rows={rows} />
-    <footer className="evidence-next">
-      <div><b>Need to scope the work?</b><span>Use published figures to build a costed programme for a state.</span></div>
-      <Link href="/what-would-it-take" className="product-primary">Cost a programme <ArrowUpRight size={16} /></Link>
-    </footer>
-    <nav className="evidence-context-links" aria-label="Related evidence tools">
-      <Link href="/needs">See local needs</Link>
-      <Link href="/outcomes">See verified outcomes</Link>
-    </nav>
-  </div>;
+  return (
+    <SitePage
+      kicker="Public evidence"
+      title={<>What is known,<br /><em>state by state.</em></>}
+      lede="Published population, sterilisation coverage and the organisations working in each state, in one place. Where nobody has published a figure the row says so, because an absence is part of the picture and rounding it to zero would not be."
+      actions={
+        <Link href="/map" className="product-primary">
+          See the live map <ArrowUpRight size={16} />
+        </Link>
+      }
+    >
+      <div className="ev evidence-surface">
+        <EvidenceTabs />
+        <section className="evidence-metrics" aria-label="Evidence at a glance">
+          <div><span>States with a record</span><b>{rows.length}</b><small>published population or an active organisation</small></div>
+          <div><span>Animals accounted for</span><b>{(animals / 10_000_000).toFixed(1)} Cr</b><small>across published state estimates</small></div>
+          <div><span>Coverage published</span><b>{withCoverage}/{rows.length}</b><small>states reporting sterilisation coverage</small></div>
+        </section>
+        <StateExplorer rows={rows} />
+        <footer className="evidence-next">
+          <div><b>Need to scope the work?</b><span>Use published figures to build a costed programme for a state.</span></div>
+          <Link href="/what-would-it-take" className="product-primary">Cost a programme <ArrowUpRight size={16} /></Link>
+        </footer>
+        <nav className="evidence-context-links" aria-label="Related evidence tools">
+          <Link href="/needs">See local needs</Link>
+          <Link href="/outcomes">See verified outcomes</Link>
+        </nav>
+      </div>
+    </SitePage>
+  );
 }

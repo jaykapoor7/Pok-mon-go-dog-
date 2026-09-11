@@ -43,6 +43,15 @@ const OWN_CHROME = new Set<string>([
   "/the-data",
   "/how-to-help",
   "/research-standards",
+  // Everything reachable from the site header is a page, not a screen of
+  // the app. Clicking "Evidence" in the header used to drop you inside the
+  // console — sidebar, rail, role picker and all — with no way back to the
+  // site. These render SiteHeader and the site footer themselves, through
+  // SitePage.
+  "/evidence",
+  "/education",
+  "/get-involved",
+  "/take-action",
 ]);
 
 /**
@@ -63,10 +72,8 @@ const SELF_SHELLED = new Set<string>([
   "/explore",
   "/insights",
   "/sources",
-  "/take-action",
   "/resources",
   "/learn",
-  "/get-involved",
 ]);
 
 export function Chrome({ children }: { children: React.ReactNode }) {

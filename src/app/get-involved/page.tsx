@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { AppShell } from "@/components/app/AppShell";
+import { SitePage } from "@/components/site/SitePage";
 import { ORGS, orgsForFocus, statesWithOrgs } from "@/lib/platform/orgs";
 import { STATE_BY_CODE } from "@/lib/platform/geography";
 import {
@@ -93,26 +93,23 @@ export default function GetInvolvedPage() {
   })).filter((r) => r.orgs.length > 0);
 
   return (
-    <AppShell>
-      <div className="spa-head">
-        <div>
-          <span className="spa-mono">Network / volunteer</span>
-          <h1>
-            Pick the work. We&apos;ll name <em>who needs it.</em>
-          </h1>
-        </div>
+    <SitePage
+      kicker="Network / volunteer"
+      title={<>Pick the work. We&apos;ll name <em>who needs it.</em></>}
+      lede={
+        <>
+          Every route below lists organisations that do that specific work, with
+          a link to reach them directly. {ORGS.length} organisations across{" "}
+          {states.length} states. StrayPaw does not place volunteers — you
+          contact the organisation, they decide.
+        </>
+      }
+      actions={
         <Link href="/report" className="spa-cta">
           + Report an animal
         </Link>
-      </div>
-
-      <p className="spa-lede">
-        Every route below lists organisations that do that specific work, with a
-        link to reach them directly. {ORGS.length} organisations across{" "}
-        {states.length} states. StrayPaw does not place volunteers, you contact
-        the organisation, they decide.
-      </p>
-
+      }
+    >
       <VolunteerClient routes={routes} states={states} />
 
       <aside className="spa-note">
@@ -126,6 +123,6 @@ export default function GetInvolvedPage() {
           or report an animal to put your area on the map.
         </div>
       </aside>
-    </AppShell>
+    </SitePage>
   );
 }

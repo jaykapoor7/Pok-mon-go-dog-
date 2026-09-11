@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
-import { AppShell } from "@/components/app/AppShell";
+import { SitePage } from "@/components/site/SitePage";
 import { RESEARCH } from "@/lib/platform/research";
 import {
   EDUCATION_PARTNERS,
@@ -46,7 +46,7 @@ const PATH = [
     body: "The animals recorded on your streets, with photographs and care status — and, where nobody has checked, a record that says unknown rather than counting it as a no. The gaps are usually the more useful half.",
     href: "/map",
     cta: "Open the map",
-    meta: "641 districts · 200 Chennai wards",
+    meta: "Every animal on the record, with its ward",
   },
   {
     n: "03",
@@ -63,25 +63,17 @@ export default function EducationPage() {
   const pending = pendingPartners();
 
   return (
-    <AppShell>
-      <div className="spa-head">
-        <div>
-          <span className="spa-mono">Education layer / before it becomes a case</span>
-          <h1>
-            Understand it, then <em>act where you live.</em>
-          </h1>
-        </div>
+    <SitePage
+      kicker="Education layer / before it becomes a case"
+      title={<>Understand it, then <em>act where you live.</em></>}
+      lede="Most of StrayPaw deals with an animal after something has happened to it. This is the part that runs before that. It is also the part we are least qualified to write, so it is built to carry teaching material from organisations that already do it well."
+      divider={false}
+      actions={
         <Link href="/learn" className="spa-cta">
           Start reading <ArrowUpRight size={14} />
         </Link>
-      </div>
-
-      <p className="spa-lede">
-        Most of StrayPaw deals with an animal after something has happened to
-        it. This is the part that runs before that. It is also the part we are
-        least qualified to write, so it is built to carry teaching material from
-        organisations that already do it well.
-      </p>
+      }
+    >
 
       {/* ── The route. Ordered, because the order is the argument: reading
              without a local picture stays abstract, and acting without either
@@ -191,6 +183,6 @@ export default function EducationPage() {
           </p>
         )}
       </section>
-    </AppShell>
+    </SitePage>
   );
 }

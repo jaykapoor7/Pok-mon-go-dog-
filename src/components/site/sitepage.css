@@ -1,0 +1,122 @@
+/* ════════════════════════════════════════════════════════════════════
+   SitePage — standalone chrome for the public pages behind the header.
+
+   The console (.spa) is a viewport-locked application: full height, no
+   page scroll, its own sidebar owns the furniture. A document needs the
+   opposite, so everything here is the minimum set of undos plus a
+   reading layout. Specificity is deliberate: `.sx.spa` is two classes so
+   it beats the console's own single-class rules without !important.
+   ════════════════════════════════════════════════════════════════════ */
+
+.sx.spa {
+  display: block;
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+  /* A cool, light ground — the same family as the console so the product
+     still feels like one thing, lifted at the top so the fixed dark
+     header has something to sit against rather than a flat slab. */
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f2f7fd 190px, #eaf1fa 560px);
+  color: var(--ink);
+}
+
+.sx .sx-main {
+  /* Clears the fixed header, which the design system sets to 80px on
+     desktop and 68px below 1180px. */
+  padding: calc(80px + 54px) 5vw 84px;
+  margin: 0 auto;
+  width: 100%;
+  overflow: visible;
+}
+.sx .sx-wide { max-width: 1180px; }
+.sx .sx-read { max-width: 880px; }
+
+/* ── the page opening ───────────────────────────────────────────────
+   Every one of these pages had its own hand-rolled heading block. One
+   shape, so Evidence and Volunteer do not open differently. */
+
+.sx-intro { margin-bottom: 34px; }
+
+.sx-kicker {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--electric-ink, #476fb7);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sx-intro-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+
+.sx .sx-intro h1 {
+  margin: 0;
+  max-width: 15ch;
+  font-size: clamp(38px, 5.4vw, 66px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.sx .sx-intro h1 em {
+  font-style: normal;
+  color: var(--electric-ink, #476fb7);
+}
+
+.sx-intro-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.sx-lede {
+  max-width: 62ch;
+  margin: 20px 0 0;
+  font-size: clamp(15px, 1.4vw, 17.5px);
+  line-height: 1.66;
+  color: #4b5563;
+}
+
+/* A hairline under the opening, so the content below reads as the body
+   of a document rather than more of the same block. */
+.sx-intro.no-rule::after { display: none; }
+.sx-intro::after {
+  content: "";
+  display: block;
+  margin-top: 30px;
+  border-bottom: 1px solid rgba(15, 31, 56, 0.12);
+}
+
+/* ── footer ─────────────────────────────────────────────────────────
+   The site footer's default top margin is sized for a landing page that
+   has just finished a full-bleed section. Here it closes a document. */
+
+.sx .sp-footer { padding: 46px 5vw 26px; }
+.sx .sp-footer-bottom { margin-top: 0; }
+.sp-footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+@media (max-width: 1180px) {
+  .sx .sx-main { padding: calc(68px + 40px) 5vw 70px; }
+}
+
+@media (max-width: 800px) {
+  .sx .sx-main { padding: calc(68px + 30px) 5vw 62px; }
+  .sx-intro { margin-bottom: 26px; }
+  .sx-intro.no-rule::after { display: none; }
+.sx-intro::after { margin-top: 24px; }
+  .sx .sx-intro h1 { max-width: none; }
+  /* On a phone the action belongs after the sentence that explains it,
+     not wedged between the headline and the lede. Dissolving the row
+     lets the three blocks sit in reading order in one column. */
+  .sx-intro { display: flex; flex-direction: column; }
+  .sx-intro-row { display: contents; }
+  .sx-kicker { order: 1; }
+  .sx .sx-intro h1 { order: 2; }
+  .sx-lede { order: 3; }
+  .sx-intro-actions { order: 4; margin-top: 22px; }
+  /* The pseudo-element is a flex item here too, and order 0 would
+     float the rule above the kicker. */
+  .sx-intro::after { order: 5; width: 100%; }
+}

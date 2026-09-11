@@ -1,4 +1,4 @@
-import { PlatformShell } from "@/components/platform/PlatformNav";
+import { SitePage } from "@/components/site/SitePage";
 import { TakeActionClient } from "@/components/platform/TakeActionClient";
 
 /* Named for what it does rather than what it asks of you. "Take action"
@@ -12,5 +12,14 @@ export const metadata = {
 };
 
 export default function TakeActionPage() {
-  return <PlatformShell><TakeActionClient /></PlatformShell>;
+  return (
+    <SitePage
+      kicker="What an area needs"
+      title={<>Turn what the data shows<br /><em>into what you do.</em></>}
+      lede="Pick a place. We surface what the numbers say it needs, the evidence-based actions that respond, and the people already working there."
+      width="read"
+    >
+      <TakeActionClient />
+    </SitePage>
+  );
 }

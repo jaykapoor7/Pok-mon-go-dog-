@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, MapPin } from "lucide-react";
-import { SectionLabel } from "@/components/platform/viz";
 import { SourceBadge } from "@/components/platform/DataBadge";
 import { STATES, METRIC_BY_ID } from "@/lib/platform/geography";
 import { stateValue } from "@/lib/platform/datasets";
@@ -36,16 +35,11 @@ export function TakeActionClient() {
 
   return (
     <div>
-      <header className="max-w-3xl">
-        <SectionLabel>What an area needs</SectionLabel>
-        <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">Turn what the data shows into what you do.</h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-bark-600 dark:text-bark-300">
-          Pick a place. We surface what the numbers say it needs, the evidence-based actions that respond, and the people already working there.
-        </p>
-      </header>
+      {/* The page title lives in the page's own chrome now, not here — this
+          component is the tool, not the document around it. */}
 
       {/* State picker + readings */}
-      <div className="mt-6 rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
+      <div className="rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
         <label className="flex items-center gap-2 text-[13px] font-medium text-bark-600 dark:text-bark-300">
           <MapPin className="h-4 w-4 text-paw-500" /> Area
           <select value={code} onChange={(e) => setCode(e.target.value)} className="ml-2 rounded-md border border-black/[0.12] bg-transparent px-3 py-1.5 text-sm outline-none focus:border-paw-400 dark:border-white/[0.14]">
