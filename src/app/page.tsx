@@ -5,7 +5,7 @@ import { Hero } from "@/components/site/Hero";
 import { LandingMotion } from "@/components/site/LandingMotion";
 import { ProductStory } from "@/components/site/ProductStory";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { getShowcaseDogs, getHeadlineCounts } from "@/lib/data";
+import { getShowcaseDogs, countDogs } from "@/lib/data";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 
@@ -16,14 +16,14 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [dogs, counts] = await Promise.all([getShowcaseDogs(18), getHeadlineCounts()]);
+  const [dogs, total] = await Promise.all([getShowcaseDogs(18), countDogs()]);
   return (
     <div className="sp field-site product-site">
       <PageView name="landing_view" />
       <LandingMotion />
       <SiteHeader />
       <main>
-        <Hero dogs={dogs} total={counts.total} localities={counts.localities} photographed={counts.photographed} />
+        <Hero dogs={dogs} total={total} />
         <ProductStory dogs={dogs} />
         <section className="role-help" aria-labelledby="role-help-title">
           <div><span className="field-eyebrow">A different door into the same record</span><h2 id="role-help-title">Start with the role<br />you already play.</h2></div>

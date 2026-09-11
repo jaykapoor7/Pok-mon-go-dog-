@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { dogLabel, timeAgo } from "@/lib/utils";
+import { LiveTally } from "./LiveTally";
 import type { Dog } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -21,19 +22,7 @@ import type { Dog } from "@/lib/types";
    they cannot drift away from what is true.
    ════════════════════════════════════════════════════════════════════ */
 
-export function Hero({
-  dogs,
-  total,
-  localities,
-  photographed,
-}: {
-  dogs: Dog[];
-  total: number;
-  /** Distinct zones with at least one record. */
-  localities: number;
-  /** Records carrying a photograph. */
-  photographed: number;
-}) {
+export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
   const withPhoto = dogs.filter((d) => d.cover_photo && d.cover_photo.length > 0);
   /* Pinky leads when she is on the record. She is the animal this project
      is actually about, and a hero that opens on whichever row the database
@@ -73,28 +62,7 @@ export function Hero({
           A photo and a location are enough. No account required.
         </p>
 
-        {/* Counts of work done, not of data loaded.
-            "641 districts mapped" was here and it was an overclaim: 641 is
-            how many district boundaries are loaded, which is a shapefile,
-            not coverage. Nobody has mapped animals in 641 districts. Same
-            for the 200 Chennai ward outlines. Both were counting the atlas
-            and calling it the survey.
-            What is left is counted from records that actually exist: how
-            many animals, and how many separate localities they sit in. */}
-        <dl className="hero-counts">
-          <div>
-            <dt>{total > 0 ? total : "—"}</dt>
-            <dd>animals on record</dd>
-          </div>
-          <div>
-            <dt>{localities > 0 ? localities : "—"}</dt>
-            <dd>{localities === 1 ? "locality covered" : "localities covered"}</dd>
-          </div>
-          <div>
-            <dt>{photographed > 0 ? photographed : "—"}</dt>
-            <dd>with a photograph on file</dd>
-          </div>
-        </dl>
+        <LiveTally initial={total} />
       </div>
 
       <div className="hero-wall" aria-label="Animals currently on the StrayPaw record">

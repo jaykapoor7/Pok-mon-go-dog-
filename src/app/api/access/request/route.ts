@@ -29,7 +29,34 @@ export async function POST(req: Request) {
   const email = String(body.email ?? "").trim().toLowerCase();
   const role = body.role === "feeder" ? "feeder" : body.role === "individual" ? "individual" : null;
   if (name.length < 2 || !email.includes("@") || !role) return NextResponse.json({ error: "Add your name and a valid email address." }, { status: 400 });
-  if (!(await allowRequest(clientIp(req), "personal-code", 4, 3600))) return NextResponse.json({ error: "Please wait before requesting another code." }, { status: 429 });
+  /* Asking again does not mint a second credential — the same address keeps
+     the same code and the email simply goes out again — so the old limit of
+     four an hour, counted per IP, was punishing the one thing this endpoint
+     is safe at. One person testing the flow hit it immediately.
+
+     Two limits with different jobs. Per address: enough re-sends for a lost
+     email, then a wait. Per IP: loose enough that a household, an office or
+     somebody trying it on two devices never notices, tight enough that the
+     endpoint is not a free mailer. */
+  const [addressOk, ipOk] = await Promise.all([
+    allowRequest(`email:${email}`, "personal-code", 6, 3600),
+    allowRequest(clientIp(req), "personal-code-ip", 30, 3600),
+  ]);
+  if (!addressOk) {
+    return NextResponse.json(
+      {
+        error:
+          "That is a few requests in an hour for the same address. Your code has not changed, so the last email still works — check spam, and try again later if it never arrived.",
+      },
+      { status: 429 }
+    );
+  }
+  if (!ipOk) {
+    return NextResponse.json(
+      { error: "Too many code requests from this connection. Try again in an hour." },
+      { status: 429 }
+    );
+  }
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: "StrayPaw is not configured yet." }, { status: 503 });
   /* Asking again should be reassuring, not create a second credential. The

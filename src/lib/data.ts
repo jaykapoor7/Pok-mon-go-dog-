@@ -157,46 +157,13 @@ export async function getAllDogs(): Promise<Dog[]> {
 /** Small, real sample of dogs that have a cover photo, for the landing
  *  page's reported-dogs showcase. Returns an empty array (never fabricated
  *  entries) when no dogs with photos exist yet. */
-/**
- * The three numbers the hero states, all counted from records that exist.
- *
- * Deliberately not "districts mapped": that figure came from how many
- * district outlines are loaded, which is a shapefile rather than coverage,
- * and stating it as mapped claimed work nobody has done. These count
- * animals, the distinct localities those animals sit in, and how many carry
- * a photograph — each of which moves only when somebody records something.
- */
-export async function getHeadlineCounts(): Promise<{
-  total: number;
-  localities: number;
-  photographed: number;
-}> {
+/** How many animals are on the record. One number, read rather than typed,
+ *  so it moves when the database does. */
+export async function countDogs(): Promise<number> {
   const supa = getSupabase();
-  if (!supa) return { total: 0, localities: 0, photographed: 0 };
-
-  const [totalRes, photoRes, zoneRes] = await Promise.all([
-    supa.from("dogs").select("id", { count: "exact", head: true }),
-    supa
-      .from("dogs")
-      .select("id", { count: "exact", head: true })
-      .not("cover_photo", "is", null),
-    /* Distinct zones need the rows; there is no count(distinct) over the
-       REST API. Capped, because this is a headline figure and not worth a
-       full table read as the record count grows. */
-    supa.from("dogs").select("zone").not("zone", "is", null).limit(2000),
-  ]);
-
-  const zones = new Set(
-    ((zoneRes.data ?? []) as { zone: string | null }[])
-      .map((r) => (r.zone ?? "").trim())
-      .filter((z) => z.length > 0)
-  );
-
-  return {
-    total: totalRes.count ?? 0,
-    localities: zones.size,
-    photographed: photoRes.count ?? 0,
-  };
+  if (!supa) return 0;
+  const { count } = await supa.from("dogs").select("id", { count: "exact", head: true });
+  return count ?? 0;
 }
 
 export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {

@@ -216,11 +216,20 @@
 .product-hero-wall .field-text-link{color:#eaf1fa;border-color:#8ba8d1}
 .product-hero-wall .product-hero-note{color:#9db8dc!important}
 
-.hero-counts{display:flex;flex-wrap:wrap;gap:0;margin:30px 0 0;border-top:1px solid #2a4a7a}
-.hero-counts>div{padding:16px 26px 0 0;margin-right:26px;border-right:1px solid #2a4a7a}
-.hero-counts>div:last-child{border-right:0;margin-right:0;padding-right:0}
-.hero-counts dt{font-size:clamp(28px,3.2vw,40px);font-weight:600;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;color:#fff}
-.hero-counts dd{margin:6px 0 0;font-size:12px;line-height:1.4;color:#9db8dc;max-width:14ch}
+/* One tally. The number is the product's only honest headline, so it gets
+   the space three repetitive stats were using — and it moves, which is the
+   point: somebody watching the page sees it tick when a report lands. */
+.hero-tally{display:grid;grid-template-columns:auto auto 1fr;align-items:center;column-gap:14px;margin:34px 0 0;padding-top:26px;border-top:1px solid #2a4a7a}
+.hero-tally-dot{width:9px;height:9px;border-radius:50%;background:#7ee3a8;box-shadow:0 0 0 0 #7ee3a880;animation:tally-pulse 2.6s ease-out infinite}
+.hero-tally-figure{margin:0;font-size:clamp(52px,6.4vw,88px);font-weight:600;line-height:.9;letter-spacing:-.05em;font-variant-numeric:tabular-nums;color:#fff}
+.hero-tally-label{margin:0;font-size:13.5px;line-height:1.35;color:#cddcef;font-weight:600}
+.hero-tally-label span{display:block;margin-top:4px;font-size:12px;font-weight:400;color:#9db8dc;max-width:34ch}
+/* The label lifts for a moment when the number has just grown. */
+.hero-tally.is-new .hero-tally-label{color:#7ee3a8}
+.hero-tally.is-new .hero-tally-figure{animation:tally-bump .7s cubic-bezier(.22,1,.36,1)}
+@keyframes tally-pulse{0%{box-shadow:0 0 0 0 #7ee3a866}70%{box-shadow:0 0 0 11px #7ee3a800}100%{box-shadow:0 0 0 0 #7ee3a800}}
+@keyframes tally-bump{0%{transform:translateY(4px)}100%{transform:none}}
+@media(prefers-reduced-motion:reduce){.hero-tally-dot{animation:none}.hero-tally.is-new .hero-tally-figure{animation:none}}
 
 /* One grid, portrait-first. */
 .hero-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -258,16 +267,15 @@
 @media(max-width:900px){
   .product-hero-wall{grid-template-columns:1fr;gap:40px;min-height:unset;padding:116px 6vw 54px}
   .product-hero-wall h1{font-size:clamp(44px,11vw,70px)}
-  .hero-counts{display:grid;grid-template-columns:repeat(3,1fr);margin-top:28px}
-  .hero-counts>div{padding:16px 12px 0 0;margin-right:0}
-  .hero-counts>div:last-child{padding-right:0}
-  .hero-counts dd{font-size:11px;max-width:none}
+  .hero-tally{margin-top:28px;padding-top:22px;column-gap:11px}
+  .hero-tally-figure{font-size:clamp(46px,14vw,64px)}
+  .hero-tally-label{font-size:12.5px}
+  .hero-tally-label span{font-size:11.5px;max-width:none}
   .hero-wall-grid{grid-template-columns:repeat(4,1fr)}
   .hero-wall-lead img{height:clamp(230px,52vw,300px)}
 }
 @media(max-width:560px){
-  .hero-counts>div{padding:14px 9px 0 0}
-  .hero-counts dt{font-size:23px}
+  .hero-tally-figure{font-size:44px}
   .hero-wall-grid{grid-template-columns:repeat(4,1fr);gap:6px}
   .hero-wall-lead figcaption{padding:38px 14px 14px}
   .hero-wall-lead dl{gap:18px}
