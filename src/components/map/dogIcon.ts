@@ -280,3 +280,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
 
 /** Icon width in css pixels, for sizing the layer's icon-size ramp. */
 export const ICON_BOX = BOX;
+
+/** Radius of the outer coloured ring, in css pixels at icon-size 1. Layers
+    that have to line up with the edge of a marker measure from this. */
+export const ICON_RING = RING_R;

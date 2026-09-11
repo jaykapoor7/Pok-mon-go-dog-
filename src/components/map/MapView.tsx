@@ -103,6 +103,29 @@ export function MapView({
 
   const center = urlCentre ?? orgCentre ?? coords;
 
+  /* Open where the work is.
+
+     With no place in the URL, no organisation and no browser location, the
+     map opened on the whole of India — and the intro card sits over the top
+     left of it, which in Delhi's case is exactly where every record was. A
+     first-time visitor got an empty country with a card on it.
+
+     So when nothing else says where to look, the records themselves do. A
+     single record is a point, not an extent, and is left to the camera's
+     own default zoom. */
+  const recordBounds = useMemo(() => {
+    if (urlCentre || bboxParam || orgCentre || coords) return null;
+    const pts = allDogs.filter(
+      (d) => Number.isFinite(d.lat) && Number.isFinite(d.lng) && (d.lat !== 0 || d.lng !== 0)
+    );
+    if (pts.length < 2) return null;
+    return [
+      [Math.min(...pts.map((d) => d.lng)), Math.min(...pts.map((d) => d.lat))],
+      [Math.max(...pts.map((d) => d.lng)), Math.max(...pts.map((d) => d.lat))],
+    ] as [[number, number], [number, number]];
+    /* bboxParam rather than urlBounds: the array is rebuilt every render. */
+  }, [sLat, sLng, bboxParam, orgCentre, coords, allDogs]);
+
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -185,7 +208,7 @@ export function MapView({
             onSelect={handleSelect}
             selectedId={selected?.id ?? null}
             center={center}
-            bounds={urlBounds}
+            bounds={urlBounds ?? recordBounds}
             feedingZones={feedingZones}
             onReady={setMapApi}
             showGaps={showGaps}

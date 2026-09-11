@@ -14,6 +14,8 @@ import Map, {
 import type {
   Map as MapLibreInstance,
   CircleLayerSpecification,
+  DataDrivenPropertyValueSpecification,
+  PropertyValueSpecification,
   FillLayerSpecification,
   LineLayerSpecification,
   SymbolLayerSpecification,
@@ -24,6 +26,7 @@ import { FeedingMarker } from "./FeedingMarker";
 import {
   dogIdFromIcon,
   iconIdFor,
+  ICON_RING,
   renderFallbackIcon,
   renderPhotoIcon,
   type DogIconSpec,
@@ -71,20 +74,34 @@ import {
    instead of an empty sheet.
    ════════════════════════════════════════════════════════════════════ */
 
-/* CARTO began enforcing API keys on basemaps.cartocdn.com in late August
-   2026. Vector tiles still serve without one today — verified — but raster
-   already returns an "API KEY REQUIRED" watermark, and vector is a switch
-   they can throw. A key is free up to five million tiles a month, so this
-   reads one if it is set and carries on without it if it is not, rather
-   than waiting to find out the hard way in front of a pilot.
+/* The basemap.
 
-   Request one at https://carto.com/basemaps/apikey/ and set
-   NEXT_PUBLIC_CARTO_API_KEY. Attribution is required either way and is
-   already rendered by AttributionControl below. */
+   OpenFreeMap serves the OpenMapTiles schema from OpenStreetMap with no key
+   and no account, and its Liberty style carries a Natural Earth shaded-relief
+   layer underneath the vector data. That relief is why it is here: this map
+   opens on the whole of India, and at that zoom a flat street style is a
+   blank sheet with a coastline on it. Terrain gives the country a shape
+   before a single record has loaded.
+
+   CARTO stays as the fallback. It was the primary until now, and it began
+   enforcing API keys on basemaps.cartocdn.com in late August 2026 — vector
+   tiles still serve without one, but that is a switch they can throw. If the
+   primary style cannot be fetched the map swaps to CARTO once rather than
+   showing an empty ground; a key can be supplied through
+   NEXT_PUBLIC_CARTO_API_KEY. Both require attribution, which
+   AttributionControl renders from the styles themselves. */
 const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_API_KEY;
-const STYLE_URL =
+const PRIMARY_STYLE = "https://tiles.openfreemap.org/styles/liberty";
+const FALLBACK_STYLE =
   "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" +
   (CARTO_KEY ? `?api_key=${encodeURIComponent(CARTO_KEY)}` : "");
+
+/* Each style ships its own glyphs, and asking for a stack it does not have
+   means the cluster counts silently do not draw. */
+const STYLE_FONT: Record<string, string> = {
+  [PRIMARY_STYLE]: "Noto Sans Bold",
+  [FALLBACK_STYLE]: "Open Sans Bold",
+};
 
 /* India's own extent, lightly padded: roughly 68.1E to 97.4E and 6.7N to
    35.7N.
@@ -104,6 +121,8 @@ const MIN_ZOOM = 3.4;
 const SRC = "dogs";
 const PHOTO_LAYER = "dog-photos";
 const CLUSTER_LAYER = "dog-clusters";
+const CLUSTER_STACK_LAYER = "dog-cluster-stack";
+const CLUSTER_BADGE_LAYER = "dog-cluster-badge";
 const CLUSTER_COUNT_LAYER = "dog-cluster-count";
 const MASK_SRC = "india-mask";
 const MASK_FILL = "india-mask-fill";
@@ -140,44 +159,54 @@ const selectedLayer: CircleLayerSpecification = {
        anything out. */
     "circle-radius": [
       "interpolate", ["linear"], ["zoom"],
-      4, 15,
-      8, 21,
-      12, 28,
-      15, 32,
+      4, 18,
+      8, 22,
+      12, 26,
+      15, 29,
     ],
     "circle-stroke-width": 3,
     "circle-stroke-color": "#e16a34",
   },
 };
 
-/* The animal's own photograph, ringed in its status colour — the marker the
-   map had before performance work replaced every one of them with a dot.
+/* The animal's own photograph, ringed in its status colour.
 
    It is a symbol layer, so the photograph is a texture MapLibre already has
    uploaded rather than a DOM node it has to move each frame. icon-image
    names an image that does not exist yet; MapLibre asks for it once, through
-   styleimagemissing, and draws it as soon as it is handed over.
+   styleimagemissing, and draws it as soon as it is handed over. */
 
-   At street level the photograph is the marker. At city and country scale,
-   nearby observations group into a calm, tappable count so the map stays a
-   map rather than a pile of tiny faces. */
+/* One ramp, used by the photographs, the clusters and everything drawn to
+   line up with them. Nothing on this map shrinks below about half size: the
+   point of a photograph marker is that you can tell what it is from where
+   you are standing, and a marker you have to zoom in to identify is a dot
+   with extra steps. */
+const ICON_SIZE: DataDrivenPropertyValueSpecification<number> = [
+  "interpolate", ["linear"], ["zoom"],
+  4, 0.55,
+  8, 0.72,
+  12, 0.88,
+  15, 1,
+];
+
+/** The drawn radius of a marker's outer ring, in screen pixels, at each of
+    the same stops. Used to place the things that sit against it. */
+const ringPx = (at: number) => Math.round(ICON_RING * at);
+const RING_RAMP: DataDrivenPropertyValueSpecification<number> = [
+  "interpolate", ["linear"], ["zoom"],
+  4, ringPx(0.55),
+  8, ringPx(0.72),
+  12, ringPx(0.88),
+  15, ringPx(1),
+];
+
 const photoLayer: SymbolLayerSpecification = {
   id: PHOTO_LAYER,
   type: "symbol",
   source: SRC,
   layout: {
     "icon-image": ["get", "icon"],
-    /* Small when the whole country is on screen, full size once you are
-       looking at a street. No lower bound on the zoom: an animal is worth
-       seeing wherever you are looking from, and shrinking is how a national
-       view stays legible without hiding anything. */
-    "icon-size": [
-      "interpolate", ["linear"], ["zoom"],
-      4, 0.4,
-      8, 0.6,
-      12, 0.85,
-      15, 1,
-    ],
+    "icon-size": ICON_SIZE,
     /* Two animals on the same doorstep should both be visible; hiding one
        would quietly under-report the street. */
     "icon-allow-overlap": true,
@@ -186,35 +215,116 @@ const photoLayer: SymbolLayerSpecification = {
   filter: ["!", ["has", "point_count"]],
 };
 
-/* Clusters are deliberately neutral, not another status colour. Their job is
-   spatial orientation; colour stays reserved for the animal's own status. */
-const clusterLayer: CircleLayerSpecification = {
-  id: CLUSTER_LAYER,
+/* A group of animals, drawn as one of them.
+
+   This used to be a flat blue disc with a number in it, which is what every
+   clustered map looks like and tells you nothing: from the national view the
+   entire product was a handful of dots. A cluster carries the photograph of
+   one of the animals inside it instead — clusterProperties picks the first
+   one up and keeps it as the group merges — with a second card fanned out behind
+   it to say there are more, and a count in the corner.
+
+   So the photographs are legible from the whole-country view, which is the
+   only view most people arrive on. */
+/* A cluster stands a little larger than a single animal. It is standing in
+   for several of them, and at the zoom where clustering happens it is often
+   the only marker on screen: this is the view somebody arrives on, and it
+   has to be a photograph they can see rather than a speck. */
+const CLUSTER_SIZE: DataDrivenPropertyValueSpecification<number> = [
+  "interpolate", ["linear"], ["zoom"],
+  4, 0.8,
+  8, 0.95,
+  12, 1.1,
+  15, 1.15,
+];
+const CLUSTER_RING: DataDrivenPropertyValueSpecification<number> = [
+  "interpolate", ["linear"], ["zoom"],
+  4, ringPx(0.8),
+  8, ringPx(0.95),
+  12, ringPx(1.1),
+  15, ringPx(1.15),
+];
+/* Where the count badge sits: on the ring, up and to the right, at the
+   45-degree diagonal. */
+const diag = (at: number) => Math.round((ICON_RING * at) / Math.SQRT2);
+const BADGE_AT: PropertyValueSpecification<[number, number]> = [
+  "interpolate", ["linear"], ["zoom"],
+  4, ["literal", [diag(0.8), -diag(0.8)]],
+  8, ["literal", [diag(0.95), -diag(0.95)]],
+  12, ["literal", [diag(1.1), -diag(1.1)]],
+  15, ["literal", [diag(1.15), -diag(1.15)]],
+];
+
+const clusterStackLayer: CircleLayerSpecification = {
+  id: CLUSTER_STACK_LAYER,
   type: "circle",
   source: SRC,
   filter: ["has", "point_count"],
   paint: {
-    "circle-color": "#2457ce",
-    "circle-radius": ["step", ["get", "point_count"], 18, 10, 22, 40, 27],
-    "circle-stroke-width": 3,
-    "circle-stroke-color": "#ffffff",
-    "circle-opacity": 0.94,
+    "circle-color": "#ffffff",
+    "circle-radius": CLUSTER_RING,
+    "circle-opacity": 0.62,
+    "circle-stroke-width": 1,
+    "circle-stroke-color": "rgba(17,17,19,0.18)",
+    /* Fanned back and to the left, so the photograph on top still reads as
+       the front of a pile rather than something with a halo. */
+    "circle-translate": [-8, 7],
   },
 };
 
-const clusterCountLayer: SymbolLayerSpecification = {
-  id: CLUSTER_COUNT_LAYER,
+const clusterLayer: SymbolLayerSpecification = {
+  id: CLUSTER_LAYER,
   type: "symbol",
   source: SRC,
   filter: ["has", "point_count"],
   layout: {
-    "text-field": ["get", "point_count_abbreviated"],
-    "text-font": ["Open Sans Bold"],
-    "text-size": 11,
-    "text-allow-overlap": true,
+    "icon-image": ["get", "icon"],
+    "icon-size": CLUSTER_SIZE,
+    "icon-allow-overlap": true,
+    "icon-ignore-placement": true,
   },
-  paint: { "text-color": "#ffffff" },
 };
+
+/* The count, as a badge on the corner of the photograph rather than a number
+   across the middle of a dog's face. */
+const clusterBadgeLayer: CircleLayerSpecification = {
+  id: CLUSTER_BADGE_LAYER,
+  type: "circle",
+  source: SRC,
+  filter: ["has", "point_count"],
+  paint: {
+    "circle-color": "#0b1e3d",
+    "circle-radius": [
+      "interpolate", ["linear"], ["zoom"],
+      4, 8.5, 8, 9.5, 12, 10.5, 15, 11,
+    ],
+    "circle-stroke-width": 2,
+    "circle-stroke-color": "#ffffff",
+    "circle-translate": BADGE_AT,
+  },
+};
+
+function clusterCountLayer(font: string): SymbolLayerSpecification {
+  return {
+    id: CLUSTER_COUNT_LAYER,
+    type: "symbol",
+    source: SRC,
+    filter: ["has", "point_count"],
+    layout: {
+      "text-field": ["get", "point_count_abbreviated"],
+      "text-font": [font],
+      "text-size": 11,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true,
+      "text-offset": [0, 0],
+    },
+    paint: {
+      "text-color": "#ffffff",
+      /* Sits on the badge, so it moves with it. */
+      "text-translate": BADGE_AT,
+    },
+  };
+}
 
 /* A choropleth needs its bands and its legend to come from one place, so the
    ramp is built from the same breaks the legend prints. Unsurveyed wards are
@@ -338,6 +448,11 @@ export function MapLibreMap({
   const mapRef = useRef<MapRef>(null);
   const router = useRouter();
   const [tilesFailed, setTilesFailed] = useState(false);
+  /* Which basemap is actually in use. Starts on the primary and moves to
+     the fallback once, if the primary style cannot be fetched. */
+  const [styleUrl, setStyleUrl] = useState(PRIMARY_STYLE);
+  const font = STYLE_FONT[styleUrl] ?? "Noto Sans Bold";
+  const swapped = useRef(false);
   /* Fetched once per mount and never again: the national outline does not
      change while somebody is looking at it. Null until it arrives, and null
      for good if boundaries have not been loaded, in which case the map
@@ -369,9 +484,17 @@ export function MapLibreMap({
   const handleMapError = useCallback((e: { error?: Error }) => {
     if (mapRef.current?.getMap?.().isStyleLoaded?.()) return;
     const msg = e?.error?.message ?? "";
-    if (/failed to fetch|networkerror|load failed|not be loaded/i.test(msg)) {
-      setTilesFailed(true);
+    if (!/failed to fetch|networkerror|load failed|not be loaded/i.test(msg)) return;
+    /* One swap, then the notice. A style host can be down without the whole
+       network being down, and losing the basemap is not a reason to lose the
+       map. The ref rather than the state value because errors arrive in a
+       burst and the swap must happen exactly once. */
+    if (!swapped.current) {
+      swapped.current = true;
+      setStyleUrl(FALLBACK_STYLE);
+      return;
     }
+    setTilesFailed(true);
   }, []);
 
   /* Fly to a searched place when it changes. Depends on the coordinates
@@ -407,12 +530,22 @@ export function MapLibreMap({
          works out the zoom from the shape itself. */
       if (boundsKey) {
         const n = boundsKey.split(",").map(Number);
+        /* Asymmetric, because the console is not an empty rectangle. The
+           intro card and the filters cover the top left of the map, and a
+           symmetric fit put the densest part of a city underneath them. */
+        const wide = window.innerWidth > 900;
         map.fitBounds(
           [
             [n[0], n[1]],
             [n[2], n[3]],
           ],
-          { duration: 900, padding: 48, maxZoom: 15 }
+          {
+            duration: 900,
+            padding: wide
+              ? { top: 200, left: 300, right: 80, bottom: 110 }
+              : { top: 190, left: 32, right: 32, bottom: 150 },
+            maxZoom: 15,
+          }
         );
         return;
       }
@@ -512,6 +645,35 @@ export function MapLibreMap({
     return () => {
       cancelAnimationFrame(raf);
       map?.off("styleimagemissing", onMissing);
+    };
+  }, []);
+
+  /* A style carries its images with it, so swapping basemaps throws away
+     every marker MapLibre had built. The bookkeeping above has to be thrown
+     away with it: otherwise styleimagemissing fires for each animal, sees
+     the id already in `pending`, returns early, and the map comes back from
+     the swap with no markers on it at all. */
+  useEffect(() => {
+    let map: MapLibreInstance | null = null;
+    let raf = 0;
+    const forget = () => {
+      iconPending.current.clear();
+      iconSigs.current = {};
+    };
+    const attach = () => {
+      map = mapRef.current?.getMap?.() ?? null;
+      if (!map) {
+        raf = requestAnimationFrame(attach);
+        return;
+      }
+      /* style.load, not styledata: styledata also fires every time a GeoJSON
+         source updates, which is every time the animal list changes. */
+      map.on("style.load", forget);
+    };
+    attach();
+    return () => {
+      cancelAnimationFrame(raf);
+      map?.off("style.load", forget);
     };
   }, []);
 
@@ -668,7 +830,7 @@ export function MapLibreMap({
         // opens to all India unless a place was searched.
         zoom: center ? (preview ? 10.5 : 13) : INDIA_ZOOM,
       }}
-      mapStyle={STYLE_URL}
+      mapStyle={styleUrl}
       maxBounds={INDIA_BOUNDS}
       minZoom={MIN_ZOOM}
       maxZoom={18}
@@ -709,9 +871,29 @@ export function MapLibreMap({
       {/* Cluster only at overview scale. Once a visitor is inspecting a
           locality the source expands to the dog photographs, preserving the
           recognition-led behaviour that makes StrayPaw useful. */}
-      <Source id={SRC} type="geojson" data={data} cluster clusterRadius={54} clusterMaxZoom={11}>
+      <Source
+        id={SRC}
+        type="geojson"
+        data={data}
+        cluster
+        clusterRadius={46}
+        clusterMaxZoom={13}
+        /* Keeps one of the group's photographs on the cluster itself.
+           coalesce takes whatever has already been accumulated and only
+           reaches for the incoming point's icon when there is nothing yet,
+           so a cluster wears the first animal it was built from and does
+           not flicker through the others as the camera moves. */
+        clusterProperties={{
+          icon: [
+            ["coalesce", ["accumulated"], ["get", "icon"]],
+            ["get", "icon"],
+          ],
+        }}
+      >
+        <Layer {...clusterStackLayer} />
         <Layer {...clusterLayer} />
-        <Layer {...clusterCountLayer} />
+        <Layer {...clusterBadgeLayer} />
+        <Layer {...clusterCountLayer(font)} />
         <Layer {...photoLayer} />
         <Layer
           {...selectedLayer}
