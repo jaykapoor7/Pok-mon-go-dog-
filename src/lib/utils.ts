@@ -74,9 +74,20 @@ export function pluralize(n: number, singular: string, plural?: string) {
  */
 export function dogLabel(dog: { name?: string | null; zone?: string | null }): string {
   const name = dog.name?.trim();
-  if (name) return name;
+  /* Names come from whatever the reporter typed on their phone, so a good
+     share of them arrive all in lower case — the animal leading the hero
+     is recorded as "pinky". Capitalising a name that carries no capitals
+     of its own is a display nicety, not a correction: anything the
+     reporter did capitalise is left exactly as they wrote it, so
+     "McDonald" or "Kaali B" survive untouched. */
+  if (name) return name === name.toLowerCase() ? capitaliseWords(name) : name;
   const zone = dog.zone?.trim();
   return zone ? `Dog near ${zone}` : "Street dog";
+}
+
+/** Upper-cases the first letter of each word, leaving the rest alone. */
+function capitaliseWords(value: string): string {
+  return value.replace(/(^|[\s\-'])([a-z])/g, (_, lead: string, ch: string) => lead + ch.toUpperCase());
 }
 
 /**

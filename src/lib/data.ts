@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
+import { displayReporter } from "./utils";
 import type {
   Dog,
   Sighting,
@@ -166,6 +167,16 @@ export async function countDogs(): Promise<number> {
   return count ?? 0;
 }
 
+/**
+ * Dogs for the hero wall, most recently seen first.
+ *
+ * `reporter` is the person who filed the animal's earliest surviving
+ * sighting — the one who first put it on the record. The hero says every
+ * animal on it was reported by somebody, and naming that somebody on the
+ * animal it leads with is the difference between a claim and a receipt.
+ * Reporting needs no account, so plenty of them have no name, and those
+ * stay unattributed rather than being given one.
+ */
 export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
@@ -176,10 +187,32 @@ export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
     .order("last_seen", { ascending: false })
     .limit(limit * 4);
   if (!data) return [];
-  return data
+
+  const dogs = data
     .map(mapDog)
     .filter((d) => d.cover_photo.length > 0)
     .slice(0, limit);
+  if (dogs.length === 0) return dogs;
+
+  /* One query for the whole wall rather than one per tile. Ordered oldest
+     first so the first row seen for a dog is the one that opened it. */
+  const { data: rows } = await supa
+    .from("sightings")
+    .select("dog_id, reporter_name, created_at")
+    .in("dog_id", dogs.map((d) => d.id))
+    .not("reporter_name", "is", null)
+    .order("created_at", { ascending: true });
+
+  if (rows?.length) {
+    const first = new Map<string, string>();
+    for (const row of rows as { dog_id: string; reporter_name: string | null }[]) {
+      const name = displayReporter(row.reporter_name);
+      if (name && !first.has(row.dog_id)) first.set(row.dog_id, name);
+    }
+    for (const dog of dogs) dog.reporter = first.get(dog.id) ?? null;
+  }
+
+  return dogs;
 }
 
 export async function getDogById(id: string): Promise<Dog | null> {

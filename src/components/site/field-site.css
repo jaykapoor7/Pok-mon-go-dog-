@@ -280,3 +280,8 @@
   .hero-wall-lead figcaption{padding:38px 14px 14px}
   .hero-wall-lead dl{gap:18px}
 }
+
+/* Who filed the lead animal's first sighting. Quiet — it is a credit, not
+   a headline — but present, because an unattributed record is exactly the
+   thing this product exists to replace. */
+.hero-wall-by{display:block;margin:-1px 0 0;font-size:11.5px;color:#b7cce8}

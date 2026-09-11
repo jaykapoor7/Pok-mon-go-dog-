@@ -82,6 +82,12 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
                 {lead.last_seen ? ` · ${timeAgo(lead.last_seen)}` : ""}
               </span>
               <b>{dogLabel(lead)}</b>
+              {/* The tally underneath says every animal here was reported
+                  by somebody. This is that somebody, for the one animal
+                  the page leads with. */}
+              {lead.reporter && (
+                <span className="hero-wall-by">Reported by {lead.reporter}</span>
+              )}
               <dl>
                 <div>
                   <dt>Sterilised</dt>
