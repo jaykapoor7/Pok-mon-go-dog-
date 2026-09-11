@@ -77,7 +77,7 @@
 .spa *, .spa *::before, .spa *::after { box-sizing: border-box; }
 
 .spa-mono {
-  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -115,7 +115,7 @@
   /* Was #7d8698, 3.5:1 against the top bar — under the 4.5:1 that 11.5px
      mono needs. It is the word that says which product you are in. */
   color: #9aa4b8;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   margin-left: 8px;
@@ -216,7 +216,7 @@
   align-items: center;
   gap: 7px;
   color: #4a7a2f;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -248,7 +248,7 @@
   margin-top: 10px;
   border: 0;
   background: none;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -314,7 +314,7 @@
 .spa-side a.active svg { color: var(--electric); }
 .spa-side a span.count {
   margin-left: auto;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   color: #5a6370;
 }
@@ -323,7 +323,7 @@
   border-top: 1px solid #c4ccd6;
   padding: 16px 10px 0;
   color: #5a6370;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -396,7 +396,7 @@
 .spa-kpi span {
   display: block;
   color: #6c737d;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -434,7 +434,7 @@
 .spa-panel-head a {
   /* 4.06:1 at 11.5px. Uppercase mono at that size needs the full 4.5. */
   color: #5b626d;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -448,7 +448,7 @@
   background: #e6efff;
   color: #3a5c9a;
   padding: 5px 8px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -481,7 +481,7 @@
 .spa-row:hover > a { color: #1b46b0; }
 .spa-row > a:focus-visible::after { outline: 2px solid var(--electric); outline-offset: -2px; }
 .spa-row b {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   color: #6c737d;
   text-align: right;
@@ -494,7 +494,7 @@
 .spa-row small {
   grid-column: 1 / -1;
   color: #6c737d;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -569,7 +569,7 @@
   position: absolute;
   right: 10px;
   bottom: 8px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   color: #899b86;
@@ -818,7 +818,7 @@
 }
 .dtable th, .dtable td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e4e9ef; }
 .dtable th {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -924,7 +924,7 @@
   position: absolute;
   left: 18px;
   top: 17px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   color: var(--electric);
 }
@@ -935,7 +935,7 @@
 .schema { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: #ccd3dc; border: 1px solid #ccd3dc; margin: 0; }
 .schema > div { background: #fbfcfd; padding: 16px 18px; }
 .schema dt {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -969,7 +969,7 @@
   border: 1px solid var(--vermilion);
   color: var(--vermilion);
   padding: 4px 8px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -994,7 +994,7 @@
 .need-legend .key.need { background: var(--vermilion); }
 .need-facts { display: flex; gap: 30px; margin: 20px 0 0; }
 .need-facts dt {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -1031,7 +1031,7 @@
   flex-shrink: 0;
   border: 1px solid;
   padding: 5px 9px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -1060,7 +1060,7 @@
   border-top: 1px solid #e4e9ef;
 }
 .gap-resolve dt {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -1091,7 +1091,7 @@
   border: 1px solid #ccd3dc;
   background: #fff;
   padding: 6px 11px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1155,7 +1155,7 @@
 }
 .se-detail dl { margin: 0; display: grid; gap: 18px; }
 .se-detail dt {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -1171,7 +1171,7 @@
 .se-city-group > a { display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 12px; font-weight: 650; text-decoration: none; }
 .se-city-group > a:hover { color: var(--electric-ink); }
 .se-city-group > a svg { color: var(--electric-ink); }
-.se-city-group > a span { margin-left: auto; color: var(--muted); font: 10px var(--font-mono), monospace; font-weight: 500; }
+.se-city-group > a span { margin-left: auto; color: var(--muted); font: 10px var(--font-sans), system-ui, sans-serif; font-weight: 500; }
 .se-city-group ul { display: flex; flex-wrap: wrap; gap: 5px 11px; padding: 7px 0 0 17px; margin: 0; list-style: none; }
 .se-city-group li { font-size: 11px; color: var(--muted); }
 .se-city-group li a { display: inline-flex; align-items: center; gap: 4px; color: inherit; text-decoration: none; }
@@ -1240,7 +1240,7 @@
   display: inline-block;
   border: 1px solid;
   padding: 3px 7px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1273,7 +1273,7 @@
 .dir-search button:hover { color: var(--vermilion); }
 .dir-select { display: flex; flex-direction: column; gap: 6px; min-width: 170px; }
 .dir-select span {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1337,7 +1337,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 }
 .dir-since {
   margin-left: 4px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1347,7 +1347,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .dir-tag {
   border: 1px solid #ccd3dc;
   padding: 3px 8px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1476,7 +1476,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   flex-shrink: 0;
   border: 1px solid;
   padding: 4px 8px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -1487,7 +1487,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .iv-progress .spa-mono { color: #566070; }
 .iv-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin: 0 0 4px; }
 .iv-facts dt {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -1508,7 +1508,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 }
 .wwit-controls label { display: flex; flex-direction: column; gap: 7px; min-width: 190px; flex: 1; }
 .wwit-controls span {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1577,7 +1577,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 
 .wwit-method { margin-top: 34px; }
 .wwit-method h2 {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1661,7 +1661,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .chip-mini {
   border: 1px solid #c4ccd6;
   padding: 3px 7px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1964,7 +1964,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wc-dots span.on { background: var(--electric-ink); }
 .wc-actions { display: flex; gap: 10px; }
 
-.my-report-history{margin:0 0 28px;border-top:1px solid var(--bone);border-bottom:1px solid var(--bone)}.my-report-history .spa-panel-head{padding:14px 0;margin:0}.my-report-history .spa-panel-head span{font-size:12px;color:#637083}.my-report-list{border-top:1px solid var(--bone)}.my-report-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--bone);color:var(--ink);text-decoration:none}.my-report-row:last-child{border-bottom:0}.my-report-row:hover .my-report-copy b{color:var(--electric-ink)}.my-report-status{font:600 10px var(--font-mono),monospace;letter-spacing:.06em;text-transform:uppercase;color:#8b5a2b;background:#fff5e8;padding:5px 6px}.my-report-status.live{color:#1d6a4e;background:#e8f7ef}.my-report-copy{min-width:0}.my-report-copy b,.my-report-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.my-report-copy b{font-size:13px}.my-report-copy small{margin-top:4px;color:#637083;font-size:12px}
+.my-report-history{margin:0 0 28px;border-top:1px solid var(--bone);border-bottom:1px solid var(--bone)}.my-report-history .spa-panel-head{padding:14px 0;margin:0}.my-report-history .spa-panel-head span{font-size:12px;color:#637083}.my-report-list{border-top:1px solid var(--bone)}.my-report-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--bone);color:var(--ink);text-decoration:none}.my-report-row:last-child{border-bottom:0}.my-report-row:hover .my-report-copy b{color:var(--electric-ink)}.my-report-status{font:600 10px var(--font-sans), system-ui, sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8b5a2b;background:#fff5e8;padding:5px 6px}.my-report-status.live{color:#1d6a4e;background:#e8f7ef}.my-report-copy{min-width:0}.my-report-copy b,.my-report-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.my-report-copy b{font-size:13px}.my-report-copy small{margin-top:4px;color:#637083;font-size:12px}
 
 @media (max-width: 650px) {
   .wc { padding: 26px 20px 22px; }
@@ -1980,7 +1980,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border: 1px solid #c4ccd6;
   border-radius: 3px;
   color: var(--electric-ink);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2034,7 +2034,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   align-items: center;
   gap: 4px;
   margin-top: 3px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2057,13 +2057,13 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border-radius: 2px;
   background: #e6efff;
   color: #2f4f8a;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .rs-time {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   color: #5f6875;
   white-space: nowrap;
@@ -2115,7 +2115,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border-radius: 2px;
   background: #cc371c;
   color: #fff;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -2124,7 +2124,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .fl-place {
   display: block;
   margin: 4px 14px 0;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2137,7 +2137,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border-radius: 2px;
   background: #eef1f6;
   color: #4d5766;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -2179,7 +2179,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 }
 .spa-results button.on { background: #eef4ff; }
 .spa-res-kind {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2245,7 +2245,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .imp-fields span {
   display: block;
   margin-bottom: 4px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -2293,7 +2293,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -2684,7 +2684,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .res-img { object-fit: cover; }
 .res-body { display: flex; flex-direction: column; gap: 5px; padding: 11px 12px 12px; flex: 1; }
 .res-kind {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2814,7 +2814,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 }
 .pgm-block h2 span {
   margin-left: 7px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -2896,7 +2896,7 @@ a.pgm-figure:hover { background: #f3f6fb; }
 .code-value {
   display: inline-flex; align-items: center; gap: 7px;
   border: 0; background: none; padding: 0; cursor: pointer;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 16px; font-weight: 600; letter-spacing: 0.06em;
   color: #1a2233;
 }
@@ -3110,7 +3110,7 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   border: 0;
   background: none;
   cursor: pointer;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 32px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -3709,7 +3709,7 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
    a conversation that has not produced any yet. */
 .edu-status {
   flex-shrink: 0;
-  font-family: var(--font-mono), monospace; font-size: 10.5px;
+  font-family: var(--font-sans), system-ui, sans-serif; font-size: 10.5px;
   letter-spacing: .08em; text-transform: uppercase;
   padding: 6px 10px; border: 1px solid #b9c4d4; color: #5c6472; background: #f6f8fb;
 }
@@ -3827,3 +3827,52 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   .demo-switch, .demo-switch-knob { transition: none; }
   .demo-spin { animation: none; }
 }
+
+/* ── phone: fewer things, bigger things ─────────────────────────────
+   Measured on a 390px screen rather than guessed. Three problems kept
+   coming up across pages: mono labels set at 10px, which is below what
+   anyone reads comfortably at arm's length; controls under 40px, which is
+   below the size a thumb reliably hits; and lists that rendered every row
+   they had, which is how /get-involved reached ten thousand pixels. */
+
+@media (max-width: 700px) {
+  /* Nothing decorative goes under 11.5px, and the mono labels that carry
+     real information go to 12. */
+  .spa-mono,
+  .sx-kicker,
+  .field-eyebrow { font-size: 11.8px; letter-spacing: 0.07em; }
+  .vol-n, .vol-count, .edu-status { font-size: 11.5px; }
+
+  /* Room for a thumb. 44px is the smallest target that does not need a
+     second attempt. Applied to controls, not to links inside a sentence:
+     padding a word out to 44px inside a paragraph breaks the line spacing
+     around it and helps nobody. */
+  .vol-more,
+  .edu-link,
+  .tlink,
+  .evidence-tabs a,
+  .evidence-context-links a,
+  .join-back,
+  .sx-link,
+  .wt-link,
+  .cg-link,
+  .spa-cta,
+  .product-primary,
+  .field-button,
+  .field-text-link { min-height: 44px; display: inline-flex; align-items: center; }
+
+  /* A select is a control a thumb has to land on, and the browser's own
+     height is under it. */
+  select { min-height: 44px; }
+}
+
+/* The "show the rest" control on a route. Reads as a control rather than
+   a link, because it changes the page rather than leaving it. */
+.vol-more {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 40px; margin-top: 12px; padding: 9px 14px;
+  border: 1px solid #c3cbd6; border-radius: 3px; background: #fff;
+  font-size: 13px; font-weight: 600; color: #2f4a73; cursor: pointer;
+}
+.vol-more:hover { border-color: #98a3b2; background: #f6f9fd; }
+.vol-more:focus-visible { outline: 2px solid var(--sp-blue, #2457ce); outline-offset: 2px; }

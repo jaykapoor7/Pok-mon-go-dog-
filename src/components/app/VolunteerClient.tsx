@@ -30,6 +30,9 @@ export type VolRoute = {
   orgs: VolOrg[];
 };
 
+/* Enough to see the shape of a route without burying the next one. */
+const FIRST_SHOWN = 4;
+
 export function VolunteerClient({
   routes,
   states,
@@ -38,6 +41,7 @@ export function VolunteerClient({
   states: { code: string; name: string }[];
 }) {
   const [route, setRoute] = useState("all");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [stateCode, setStateCode] = useState("all");
   const [q, setQ] = useState("");
 
@@ -138,7 +142,16 @@ export function VolunteerClient({
         </div>
       ) : (
         <div className="vol-list">
-          {filtered.map((r) => (
+          {filtered.map((r) => {
+            /* Every organisation for every route, all at once, made this
+               page ten thousand pixels tall on a phone: one card alone ran
+               to nearly three screens, and the six routes underneath were
+               unreachable without a lot of scrolling past names nobody had
+               asked for yet. A few, then the rest on request. */
+            const open = expanded.has(r.id);
+            const shown = open ? r.orgs : r.orgs.slice(0, FIRST_SHOWN);
+            const hidden = r.orgs.length - shown.length;
+            return (
             <section className="vol-route" key={r.id}>
               <header>
                 <div>
@@ -155,7 +168,7 @@ export function VolunteerClient({
               </header>
 
               <ul className="vol-orgs">
-                {r.orgs.map((o) => {
+                {shown.map((o) => {
                   const Item = o.url ? "a" : "span";
                   return (
                     <li key={o.id}>
@@ -178,8 +191,40 @@ export function VolunteerClient({
                   );
                 })}
               </ul>
+
+              {hidden > 0 && (
+                <button
+                  type="button"
+                  className="vol-more"
+                  onClick={() =>
+                    setExpanded((prev) => {
+                      const next = new Set(prev);
+                      next.add(r.id);
+                      return next;
+                    })
+                  }
+                >
+                  Show {hidden} more organisation{hidden === 1 ? "" : "s"}
+                </button>
+              )}
+              {open && r.orgs.length > FIRST_SHOWN && (
+                <button
+                  type="button"
+                  className="vol-more"
+                  onClick={() =>
+                    setExpanded((prev) => {
+                      const next = new Set(prev);
+                      next.delete(r.id);
+                      return next;
+                    })
+                  }
+                >
+                  Show fewer
+                </button>
+              )}
             </section>
-          ))}
+            );
+          })}
         </div>
       )}
     </>

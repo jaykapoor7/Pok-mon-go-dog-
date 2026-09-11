@@ -29,13 +29,14 @@ import type { Dog } from "@/lib/types";
 export function WhereTheyAre({
   dogs,
   total,
+  unchecked,
   orgs,
-  states,
 }: {
   dogs: Dog[];
   total: number;
+  /** Animals nobody has checked for sterilisation. A real count. */
+  unchecked: number;
   orgs: number;
-  states: number;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
@@ -65,6 +66,31 @@ export function WhereTheyAre({
     (d) => Number.isFinite(d.lat) && Number.isFinite(d.lng)
   );
 
+  /* Framed on the densest cluster rather than on everything.
+     A box around every located animal spans most of India, and at that
+     zoom the photographs the map draws for each one are specks: it stops
+     being an introduction to the product and becomes a dot map. Picking
+     the busiest half-degree cell gives a city with records packed into
+     it, which is what this looks like when it is working. Computed from
+     the data, so it follows the records instead of naming a city. */
+  const cluster = (() => {
+    if (located.length === 0) return [];
+    const cells = new Map<string, Dog[]>();
+    for (const d of located) {
+      const key = `${Math.round(d.lat * 2)}/${Math.round(d.lng * 2)}`;
+      const bucket = cells.get(key);
+      if (bucket) bucket.push(d);
+      else cells.set(key, [d]);
+    }
+    let best: Dog[] = [];
+    for (const bucket of cells.values()) if (bucket.length > best.length) best = bucket;
+    /* One or two animals in a cell is not a city; show everything then. */
+    return best.length >= 3 ? best : located;
+  })();
+
+  const focus = cluster.length ? cluster : located;
+  const place = focus[0]?.zone?.split(",").slice(-1)[0]?.trim() || null;
+
   return (
     <section className="wt" aria-labelledby="wt-title">
       <div className="wt-inner">
@@ -83,8 +109,8 @@ export function WhereTheyAre({
         </header>
 
         <div className="wt-map" ref={frame}>
-          {live && located.length > 0 ? (
-            <FieldMapPreview dogs={located} chrome={false} />
+          {live && focus.length > 0 ? (
+            <FieldMapPreview dogs={focus} place={place ?? undefined} />
           ) : (
             /* Holds the height so the page does not jump, and says what
                is coming rather than sitting blank. */
@@ -95,24 +121,67 @@ export function WhereTheyAre({
         </div>
 
         <div className="wt-foot">
-          <dl className="wt-facts">
-            <div>
-              <dt>On the record</dt>
-              <dd>{total.toLocaleString("en-IN")} animals</dd>
-            </div>
-            <div>
-              <dt>Organisations listed</dt>
-              <dd>{orgs} verified</dd>
-            </div>
-            <div>
-              <dt>States covered</dt>
-              <dd>{states} of 28</dd>
-            </div>
-          </dl>
+          <p className="wt-hint">Tap any animal to open its record.</p>
           <Link href="/map" className="wt-link">
             Open the full map <ArrowUpRight size={15} />
           </Link>
         </div>
+
+        {/* The other half of the product. The map is what a neighbour
+            sees; this is what the organisation working the same street
+            sees. Every figure is counted from the same records the map is
+            drawing, so it is the real dashboard summary rather than a
+            picture of one. */}
+        <div className="wt-dash">
+          <div className="wt-dash-head">
+            <span className="field-eyebrow">And for the team working it</span>
+            <h3>The same records, as a worklist.</h3>
+            <p>
+              An organisation sees its streets as a queue rather than a
+              gallery: what is on the record, what nobody has checked, and who
+              else is working nearby.
+            </p>
+            <Link href="/for-ngos" className="wt-link">
+              See the workspace <ArrowUpRight size={15} />
+            </Link>
+          </div>
+
+          <div className="wt-panel" role="img" aria-label={`Dashboard summary: ${total} animals on the record, ${unchecked} never checked, ${orgs} organisations listed`}>
+            <div className="wt-panel-bar">
+              <span className="wt-dot" aria-hidden />
+              <b>Field overview</b>
+              <span className="wt-panel-live">Live</span>
+            </div>
+            <dl className="wt-panel-stats">
+              <div>
+                <dt>On the record</dt>
+                <dd>{total.toLocaleString("en-IN")}</dd>
+              </div>
+              <div className="q">
+                <dt>Never checked</dt>
+                <dd>{unchecked.toLocaleString("en-IN")}</dd>
+              </div>
+              <div>
+                <dt>Organisations</dt>
+                <dd>{orgs}</dd>
+              </div>
+            </dl>
+            <ul className="wt-panel-rows">
+              {dogs.slice(0, 4).map((d) => (
+                <li key={d.id}>
+                  <span className="wt-row-name">{d.name?.trim() || d.zone || "On record"}</span>
+                  <span className="wt-row-zone">{d.zone || "India"}</span>
+                  <span className={`wt-row-tag${(!d.sterilisation_status || d.sterilisation_status === "unknown") ? " q" : ""}`}>
+                    {!d.sterilisation_status || d.sterilisation_status === "unknown"
+                      ? "Not checked"
+                      : "Checked"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
       </div>
     </section>
   );

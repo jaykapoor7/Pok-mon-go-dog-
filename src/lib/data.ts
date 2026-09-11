@@ -166,6 +166,24 @@ export async function countDogs(): Promise<number> {
   return count ?? 0;
 }
 
+/**
+ * How many animals on the record nobody has checked for sterilisation.
+ *
+ * The landing page shows this next to the total because it is the number
+ * the whole product is about: the gap between animals that are known and
+ * animals that have been seen to. It is a real count, not an estimate,
+ * and it is the figure a field team would sort their own list by.
+ */
+export async function countUnchecked(): Promise<number> {
+  const supa = getSupabase();
+  if (!supa) return 0;
+  const { count } = await supa
+    .from("dogs")
+    .select("id", { count: "exact", head: true })
+    .or("sterilisation_status.is.null,sterilisation_status.eq.unknown");
+  return count ?? 0;
+}
+
 /** Dogs for the hero wall, most recently seen first. */
 export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
   const supa = getSupabase();

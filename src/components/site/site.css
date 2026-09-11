@@ -66,14 +66,14 @@
 /* ── type primitives ────────────────────────────────────────────── */
 
 .sp-mono {
-  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .sp-kicker {
-  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -101,7 +101,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -356,7 +356,7 @@
 .sp-hero-link:hover { color: var(--vermilion-ink); border-color: var(--vermilion-ink); }
 .sp-hero-note {
   margin: 25px 0 0;
-  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 10.5px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -396,7 +396,7 @@
   padding: 15px 17px;
   color: #f5f5f2;
   background: linear-gradient(transparent, rgba(11, 16, 32, 0.84));
-  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 9.5px;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -434,7 +434,7 @@
   border-top: 1px solid var(--line);
 }
 .sp-hero-observation-copy span {
-  font-family: var(--font-mono), "DM Mono", ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: .12em;
   color: var(--vermilion-ink);
@@ -542,7 +542,7 @@
 .sp-node.active { border-color: var(--electric); color: var(--electric); }
 .sp-node-index {
   display: block;
-  font-family: var(--font-mono), "DM Mono", monospace;
+  font-family: var(--font-sans), "DM Mono", monospace;
   font-size: 11.5px;
   letter-spacing: 0.12em;
   color: #858a80;
@@ -553,7 +553,7 @@
   display: block;
   margin-top: 8px;
   color: #7e847b;
-  font-family: var(--font-mono), "DM Mono", monospace;
+  font-family: var(--font-sans), "DM Mono", monospace;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -849,7 +849,7 @@
 .chip-readout b {
   display: inline-block;
   padding: 10px 18px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 16px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -900,7 +900,7 @@
   border-left-color: var(--electric);
 }
 .chip-call-n {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   color: var(--electric);
@@ -1021,7 +1021,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1041,7 +1041,7 @@
   border: 0;
   color: #81887e;
   padding: 7px 9px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1122,7 +1122,7 @@
   z-index: 3;
   color: #808d7d;
   line-height: 1.8;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1143,7 +1143,7 @@
   display: flex;
   justify-content: space-between;
   color: #869084;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1154,7 +1154,7 @@
   align-items: center;
   gap: 7px;
   color: var(--electric);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1179,7 +1179,7 @@
   gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid #293750;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1245,7 +1245,7 @@
   padding-right: 14px;
   width: max-content;
   color: var(--vermilion);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.12em;
 }
@@ -1263,7 +1263,7 @@
   background: var(--bone);
   text-align: right;
   color: #72766c;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.12em;
 }
@@ -1277,7 +1277,7 @@
   border-bottom: 1px solid rgba(11, 16, 32, 0.35);
 }
 .sp-proof-num { font-family: var(--font-display), "Instrument Serif", serif; font-size: 44px; }
-.sp-proof span { color: #6f746b; font-family: var(--font-mono), monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; }
+.sp-proof span { color: #6f746b; font-family: var(--font-sans), system-ui, sans-serif; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; }
 .sp-proof p { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
 .sp-proof-div { height: 50px; width: 1px; background: rgba(11, 16, 32, 0.25); margin: 0 30px; }
 
@@ -1338,7 +1338,7 @@
      under the 4.5:1 small text needs, and the kind of miss that only a
      measurement finds. */
   color: #868e83;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1363,7 +1363,7 @@
   justify-content: center;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-align: center;
@@ -1387,7 +1387,7 @@
 .sp-record-metrics span {
   display: block;
   color: #868e83;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1630,7 +1630,7 @@
   top: 50%;
   transform: translateY(-50%);
   margin-left: 30px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1652,7 +1652,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1675,7 +1675,7 @@
 .chs-code { text-align: center; transition: opacity 0.4s ease; }
 .chs-code-label {
   display: block;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1685,7 +1685,7 @@
 .chs-code b {
   display: inline-block;
   padding: 9px 16px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -1719,7 +1719,7 @@
   border-bottom: 1px solid rgba(143,183,255,0.1);
 }
 .chs-record-tag {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 12px;
   letter-spacing: 0.1em;
   color: var(--electric);
@@ -1729,7 +1729,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1740,7 +1740,7 @@
 .chs-record-fields { display: grid; gap: 7px; }
 .chs-field { display: grid; grid-template-columns: 76px 1fr; gap: 8px; align-items: baseline; }
 .chs-field span {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -1752,7 +1752,7 @@
 .chs-network { width: 100%; text-align: center; }
 .chs-net-svg { width: 100%; height: auto; display: block; }
 .chs-net-label {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1802,7 +1802,7 @@
   gap: 14px;
 }
 .sp-for-tag {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1822,7 +1822,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;

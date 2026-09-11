@@ -172,7 +172,7 @@
 .cov-label {
   display: block;
   margin-top: 12px;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -206,7 +206,7 @@
 .mk-ink .mk-row p { color: #97a3b8; }
 .mk-paper .mk-row p, .mk-bone .mk-row p { color: #4d5766; }
 .mk-row .mk-tag {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

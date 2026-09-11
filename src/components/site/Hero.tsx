@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
-import { dogLabel, timeAgo } from "@/lib/utils";
+import { dogLabel } from "@/lib/utils";
 import { LiveTally } from "./LiveTally";
 import type { Dog } from "@/lib/types";
 
@@ -80,7 +80,6 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
             <figcaption>
               <span className="hero-wall-kicker">
                 <MapPin size={13} /> {lead.zone || "On record"}
-                {lead.last_seen ? ` · ${timeAgo(lead.last_seen)}` : ""}
               </span>
               <b>{dogLabel(lead)}</b>
             </figcaption>

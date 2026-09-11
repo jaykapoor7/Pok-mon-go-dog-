@@ -307,12 +307,12 @@ export function Welcome() {
                   </Button>
                 ) : (
                   <>
-                    {/* One ending for every role, and it opens the site
-                        rather than a screen. The four labels here sent
-                        each role straight to its own tool, so the tour
-                        finished by dropping somebody into a map before
-                        they had seen what the map was of. */}
-                    <Button onClick={() => finish("/")}>
+                    {/* One label for every role, and it goes into the
+                        product. Sending it to "/" put people back on the
+                        marketing page they had just come through, which
+                        reads as the tour having failed. Each role starts
+                        on its own home instead. */}
+                    <Button onClick={() => finish(role ? ROLE_META[role].home : "/map")}>
                       Begin <ArrowRight size={14} />
                     </Button>
                     {role === "ngo" && (
