@@ -1435,7 +1435,8 @@
   border-top: 1px solid #273450;
   margin-top: 10vw;
   padding-top: 15px;
-  color: #788076;
+  /* 3.36:1 on the navy footer. The whole legal strip and its links. */
+  color: #949b93;
   display: flex;
   justify-content: space-between;
   gap: 16px;

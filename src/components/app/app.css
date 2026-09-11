@@ -852,7 +852,7 @@
   padding-top: 14px;
   border-top: 1px solid #dfe4ea;
   font-size: 12.5px !important;
-  color: #656f7c !important;
+  color: #5e6874 !important;
 }
 
 .panel-empty {
@@ -1222,7 +1222,7 @@
   gap: 18px;
 }
 .gap-brief-list b { display: block; margin-top: 9px; font-size: 13.5px; font-weight: 500; }
-.gap-brief-list small { display: block; margin-top: 6px; font-size: 12.5px; color: #8794aa; line-height: 1.5; }
+.gap-brief-list small { display: block; margin-top: 6px; font-size: 12.5px; color: #8e9aaf; line-height: 1.5; }
 .gap-brief-tag {
   display: inline-block;
   border: 1px solid;
@@ -1564,7 +1564,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wwit-method li { font-size: 13.5px; line-height: 1.6; color: #566070; }
 .wwit-method b { color: var(--ink); }
 .wwit-method em { color: var(--vermilion); font-style: normal; font-weight: 600; }
-.wwit-src { color: #656f7c; }
+.wwit-src { color: #5e6874; }
 
 .wwit-next {
   display: grid;
@@ -1581,7 +1581,10 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
    go the other way: the ink variant is tuned for light surfaces and drops to
    2.9:1 here. Qualified with .spa because the generic `.spa em` rule further
    down carries the same specificity and would otherwise win on order. */
-.spa .wwit-next em { color: var(--vermilion); }
+/* --vermilion is a dark-ground accent; as 13.5px text on the navy card
+   it measures 4.10:1. Lifted rather than darkened — the card is dark, so
+   more light is what buys the contrast. */
+.spa .wwit-next em { color: #f2735b; }
 .wwit-next h3 {
   font-family: var(--font-display), "Instrument Serif", serif;
   font-weight: 400;
@@ -2423,7 +2426,12 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .dark .spa .text-bark-700 { color: var(--ink); }
 .dark .spa .text-bark-600,
 .dark .spa .text-bark-500 { color: #4d5766; }
-.dark .spa .text-bark-400 { color: #656e7b; }
+/* Kept in step with bark-400 in tailwind.config.ts by hand, which is the
+   trap: the token moved to #5f6774 to clear 4.5:1 on the marketing
+   routes' bone ground and this copy did not, so the console reverted to
+   the failing colour in dark theme only — 12 findings that looked fixed
+   in light and were not. */
+.dark .spa .text-bark-400 { color: #5f6774; }
 .dark .spa input,
 .dark .spa textarea,
 .dark .spa select {

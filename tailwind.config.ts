@@ -86,17 +86,22 @@ const config: Config = {
         bark: {
           50: '#f6f8fb', 100: '#eef1f6', 200: '#e1e6ef', 300: '#c6cddb',
           /* 400 is the app's muted-text step (~270 usages). At its old
-             #97a0b2 it scored 2.63:1 on white, unreadable. Darkened to clear
-             4.5:1 on white, bark-50 and bark-100; dark mode gets the original
-             light value back via a .dark override in globals.css. */
-          400: '#656e7b', 500: '#616a79', 600: '#4d5564', 700: '#39404e',
+             #97a0b2 it scored 2.63:1 on white, unreadable. Darkened once to
+             clear 4.5:1 on white, bark-50 and bark-100 — but the marketing
+             routes put it on the .sp scope's bone (#e4edf8), a darker ground
+             than any of those, where #656e7b fell back to 4.37:1. It now
+             clears 4.8:1 on bone as well, which is every surface it is
+             actually used on. 500 moves with it so the ramp stays ordered.
+             Dark mode gets the original light value back via a .dark
+             override in globals.css. */
+          400: '#5f6774', 500: '#5b6473', 600: '#4d5564', 700: '#39404e',
           800: '#1b2436', 900: '#0f1626', 950: '#0a0f1a',
         },
         cream: '#eaf1fb',
         paper2: '#fbfdff',
         'ink-surface': '#1b2436',
         status: {
-          seen: '#9a9c88', hungry: '#d9a441', injured: '#c0492e',
+          seen: '#9a9c88', hungry: '#d9a441', injured: '#b0432a',
           sterilised: '#3e8473', vaccinated: '#4e8a5f', friendly: '#8b5ea8',
         },
       },

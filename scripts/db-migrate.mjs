@@ -35,6 +35,13 @@ const SETS = {
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   /* A narrowly scoped live update for personal community/feeder access. */
   personal: ["personal-access-codes.sql"],
+  /* The twenty photographed Delhi animals. Its own set, not part of `all`,
+     because it is content rather than structure: running the schema again
+     should not quietly re-seed records somebody may have since edited by
+     hand. Idempotent on fixed ids, so running it twice updates rather than
+     duplicates. Read the header in the file before running it — the
+     photographs are real, the coordinates and timestamps were assigned. */
+  delhi: ["seed-delhi-photographs.sql"],
 };
 
 function districts() {

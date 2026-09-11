@@ -193,6 +193,14 @@ for (const theme of ["light", "dark"]) {
 }
 await b.close();
 
+/* JSON=path dumps every finding, not the printed sample. Fixing these in
+   bulk means grouping by colour pair across routes, which needs all of them. */
+if (process.env.JSON) {
+  const { writeFileSync } = await import("node:fs");
+  writeFileSync(process.env.JSON, JSON.stringify(findings, null, 1));
+  console.log(`wrote ${findings.length} findings to ${process.env.JSON}`);
+}
+
 const worst = findings.filter(f => f.ratio < 3);
 console.log(`\n${findings.length} contrast failures, ${worst.length} of them severe (< 3:1)\n`);
 for (const f of findings.slice(0, 80)) {
