@@ -1,0 +1,47 @@
+name: Apply Supabase migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      migration_set:
+        description: "Migration set to apply"
+        required: true
+        default: pilot
+        type: choice
+        options:
+          - pilot
+          - personal
+          - wards
+
+permissions:
+  contents: read
+
+# Database DDL must never run concurrently. A second click waits for the first
+# run rather than competing for locks or applying the same schema change mid-run.
+concurrency:
+  group: straypaw-supabase-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply ${{ inputs.migration_set }} migration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply migration
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+        run: npm run db:migrate -- "${{ inputs.migration_set }}"
