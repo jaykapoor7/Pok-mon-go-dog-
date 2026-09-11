@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { Hero } from "@/components/site/Hero";
 import { LandingMotion } from "@/components/site/LandingMotion";
-import { RecordJourney } from "@/components/site/RecordJourney";
+import { CountingGap } from "@/components/site/CountingGap";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { getShowcaseDogs, countDogs } from "@/lib/data";
 import "@/components/site/site.css";
@@ -24,7 +24,7 @@ export default async function HomePage() {
       <SiteHeader />
       <main>
         <Hero dogs={dogs} total={total} />
-        <RecordJourney dogs={dogs} />
+        <CountingGap onRecord={total} />
         <section className="role-help" aria-labelledby="role-help-title">
           <div><span className="field-eyebrow">A different door into the same record</span><h2 id="role-help-title">Start with the role<br />you already play.</h2></div>
           <div className="role-help-links">

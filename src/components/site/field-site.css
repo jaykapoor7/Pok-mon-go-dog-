@@ -172,16 +172,16 @@
 
 /* Launch surface: a record, not a decorative map. The dark field ground
    gives the public product its own atmosphere without paper-white sprawl. */
-.product-site{background:#e7eef6}.product-hero-record{max-width:none;min-height:clamp(690px,86svh,820px);padding:clamp(132px,13vw,172px) 6vw 76px;display:grid;grid-template-columns:minmax(0,.88fr) minmax(430px,1.12fr);gap:clamp(40px,8vw,156px);align-items:center;background:#0b1e3d!important;color:#f5f8fd;isolation:isolate}.product-hero-record::before{display:none}.product-hero-record::after{content:"";display:block;position:absolute;inset:0;z-index:-1;width:auto;height:auto;right:auto;top:auto;border:0;border-radius:0;box-shadow:none;background:radial-gradient(circle at 78% 18%,#2d62bd70 0 1px,transparent 1.7px),radial-gradient(circle at 19% 80%,#ed794a44 0 1px,transparent 1.8px),linear-gradient(116deg,transparent 0 49.8%,#5e83bd24 50% 50.08%,transparent 50.18%),linear-gradient(#193c6e88 1px,transparent 1px),linear-gradient(90deg,#193c6e88 1px,transparent 1px);background-size:31px 31px,43px 43px,100% 100%,72px 72px,72px 72px;opacity:.95}.product-hero-record .field-eyebrow{color:#adc8ee}.product-hero-record h1{max-width:810px;margin:20px 0 26px;font-size:clamp(54px,6.3vw,106px);line-height:.88;color:#fff}.product-hero-record h1 em{color:#ff9a65}.product-hero-record .product-hero-copy>p:not(.field-eyebrow){max-width:490px;color:#c8d7eb;font-size:17px}.product-hero-record .field-text-link{color:#eaf1fa;border-color:#8ba8d1}.product-hero-record .product-hero-note{color:#adc5e4!important}.product-hero-record .field-button{background:#f47d45;color:#112b51}.product-hero-record .field-button:hover{background:#ff986a}.hero-record-stage{position:relative;min-height:470px;overflow:hidden;border:1px solid #5477a4;background:#102c56;box-shadow:18px 20px 0 #06142b55,0 30px 68px #020b1c66}.hero-record-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 74% 31%,#487acb4a 0 2px,transparent 2.7px),linear-gradient(90deg,#83a5ce1c 1px,transparent 1px),linear-gradient(#83a5ce1c 1px,transparent 1px);background-size:25px 25px,50px 50px,50px 50px}.hero-coordinate{position:absolute;border:1px solid #91b7e344;border-radius:50%;animation:record-orbit 10s linear infinite}.hero-coordinate-one{width:440px;height:440px;right:-160px;top:-120px}.hero-coordinate-two{width:290px;height:290px;left:-160px;bottom:-140px;animation-direction:reverse;animation-duration:13s}.hero-record-line{position:absolute;height:1px;background:#91b7e350;transform-origin:left}.hero-record-line-one{width:68%;left:0;top:24%;transform:rotate(-15deg)}.hero-record-line-two{width:53%;right:-8%;bottom:30%;transform:rotate(17deg)}.hero-record-place{position:absolute;z-index:2;top:20px;right:20px;display:flex;align-items:center;gap:7px;color:#cbdcf1;font:10px var(--font-mono),monospace;letter-spacing:.06em}.hero-record-place svg{color:#f47d45}.hero-record-file{position:absolute;z-index:2;left:clamp(20px,5vw,68px);right:clamp(20px,5vw,68px);top:50%;transform:translateY(-50%);padding:20px 23px 0;background:#f8fbff;color:#112b51;box-shadow:0 16px 45px #040f2448;animation:record-settle .8s cubic-bezier(.22,1,.36,1) both}.hero-record-file header{display:flex;justify-content:space-between;gap:10px;padding-bottom:16px;border-bottom:1px solid #d6e1ee;font:10px var(--font-mono),monospace;letter-spacing:.075em;color:#57708f}.hero-record-live{display:flex;gap:6px;align-items:center;color:#2557cc}.hero-record-live i,.record-story-dot::before{display:block;width:6px;height:6px;background:#f47d45;border-radius:50%;content:""}.hero-record-name{display:flex;gap:14px;align-items:center;padding:20px 0}.hero-record-mark{display:grid;place-items:center;width:45px;height:45px;border:1px solid #b6c8df;color:#2557cc}.hero-record-name div:last-child{display:grid;gap:5px}.hero-record-name span{font:10px var(--font-mono),monospace;letter-spacing:.07em;color:#5c718c}.hero-record-name b{font-size:23px;letter-spacing:-.045em}.hero-record-file dl{margin:0;border-top:1px solid #d6e1ee}.hero-record-file dl>div{display:grid;grid-template-columns:1fr auto;gap:16px;padding:11px 0;border-bottom:1px solid #dfe7f0;font-size:12px}.hero-record-file dt{color:#5c718b}.hero-record-file dd{display:flex;gap:6px;align-items:center;margin:0;font-weight:600;text-align:right}.hero-record-file dd svg{color:#ef763f}.hero-record-file footer{display:flex;gap:8px;align-items:center;margin:0 -23px;padding:13px 23px;background:#2457ce;color:white;font-size:12px}.hero-record-caption{position:absolute;z-index:2;bottom:19px;left:20px;display:flex;align-items:center;gap:9px;color:#adc5e5;font:9px var(--font-mono),monospace;letter-spacing:.07em}.hero-record-caption i{display:block;width:32px;height:1px;background:#f47d45}@keyframes record-orbit{to{transform:rotate(360deg)}}@keyframes record-settle{from{opacity:0;transform:translateY(calc(-50% + 24px))}to{opacity:1;transform:translateY(-50%)}}
+.product-site{background:var(--pl-bone,#f4eee5)}.product-hero-record{max-width:none;min-height:clamp(690px,86svh,820px);padding:clamp(132px,13vw,172px) 6vw 76px;display:grid;grid-template-columns:minmax(0,.88fr) minmax(430px,1.12fr);gap:clamp(40px,8vw,156px);align-items:center;background:#0b1e3d!important;color:#f5f8fd;isolation:isolate}.product-hero-record::before{display:none}.product-hero-record::after{content:"";display:block;position:absolute;inset:0;z-index:-1;width:auto;height:auto;right:auto;top:auto;border:0;border-radius:0;box-shadow:none;background:radial-gradient(circle at 78% 18%,#2d62bd70 0 1px,transparent 1.7px),radial-gradient(circle at 19% 80%,#ed794a44 0 1px,transparent 1.8px),linear-gradient(116deg,transparent 0 49.8%,#5e83bd24 50% 50.08%,transparent 50.18%),linear-gradient(#193c6e88 1px,transparent 1px),linear-gradient(90deg,#193c6e88 1px,transparent 1px);background-size:31px 31px,43px 43px,100% 100%,72px 72px,72px 72px;opacity:.95}.product-hero-record .field-eyebrow{color:#adc8ee}.product-hero-record h1{max-width:810px;margin:20px 0 26px;font-size:clamp(54px,6.3vw,106px);line-height:.88;color:#fff}.product-hero-record h1 em{color:#ff9a65}.product-hero-record .product-hero-copy>p:not(.field-eyebrow){max-width:490px;color:#c8d7eb;font-size:17px}.product-hero-record .field-text-link{color:#eaf1fa;border-color:#8ba8d1}.product-hero-record .product-hero-note{color:#adc5e4!important}.product-hero-record .field-button{background:var(--pl-flame,#f05b40);color:var(--pl-ink,#0b1e3d)}.product-hero-record .field-button:hover{background:#ff7454}.hero-record-stage{position:relative;min-height:470px;overflow:hidden;border:1px solid #5477a4;background:#102c56;box-shadow:18px 20px 0 #06142b55,0 30px 68px #020b1c66}.hero-record-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 74% 31%,#487acb4a 0 2px,transparent 2.7px),linear-gradient(90deg,#83a5ce1c 1px,transparent 1px),linear-gradient(#83a5ce1c 1px,transparent 1px);background-size:25px 25px,50px 50px,50px 50px}.hero-coordinate{position:absolute;border:1px solid #91b7e344;border-radius:50%;animation:record-orbit 10s linear infinite}.hero-coordinate-one{width:440px;height:440px;right:-160px;top:-120px}.hero-coordinate-two{width:290px;height:290px;left:-160px;bottom:-140px;animation-direction:reverse;animation-duration:13s}.hero-record-line{position:absolute;height:1px;background:#91b7e350;transform-origin:left}.hero-record-line-one{width:68%;left:0;top:24%;transform:rotate(-15deg)}.hero-record-line-two{width:53%;right:-8%;bottom:30%;transform:rotate(17deg)}.hero-record-place{position:absolute;z-index:2;top:20px;right:20px;display:flex;align-items:center;gap:7px;color:#cbdcf1;font:10px var(--font-mono),monospace;letter-spacing:.06em}.hero-record-place svg{color:#f47d45}.hero-record-file{position:absolute;z-index:2;left:clamp(20px,5vw,68px);right:clamp(20px,5vw,68px);top:50%;transform:translateY(-50%);padding:20px 23px 0;background:#f8fbff;color:#112b51;box-shadow:0 16px 45px #040f2448;animation:record-settle .8s cubic-bezier(.22,1,.36,1) both}.hero-record-file header{display:flex;justify-content:space-between;gap:10px;padding-bottom:16px;border-bottom:1px solid #d6e1ee;font:10px var(--font-mono),monospace;letter-spacing:.075em;color:#57708f}.hero-record-live{display:flex;gap:6px;align-items:center;color:#2557cc}.hero-record-live i,.record-story-dot::before{display:block;width:6px;height:6px;background:#f47d45;border-radius:50%;content:""}.hero-record-name{display:flex;gap:14px;align-items:center;padding:20px 0}.hero-record-mark{display:grid;place-items:center;width:45px;height:45px;border:1px solid #b6c8df;color:#2557cc}.hero-record-name div:last-child{display:grid;gap:5px}.hero-record-name span{font:10px var(--font-mono),monospace;letter-spacing:.07em;color:#5c718c}.hero-record-name b{font-size:23px;letter-spacing:-.045em}.hero-record-file dl{margin:0;border-top:1px solid #d6e1ee}.hero-record-file dl>div{display:grid;grid-template-columns:1fr auto;gap:16px;padding:11px 0;border-bottom:1px solid #dfe7f0;font-size:12px}.hero-record-file dt{color:#5c718b}.hero-record-file dd{display:flex;gap:6px;align-items:center;margin:0;font-weight:600;text-align:right}.hero-record-file dd svg{color:#ef763f}.hero-record-file footer{display:flex;gap:8px;align-items:center;margin:0 -23px;padding:13px 23px;background:#2457ce;color:white;font-size:12px}.hero-record-caption{position:absolute;z-index:2;bottom:19px;left:20px;display:flex;align-items:center;gap:9px;color:#adc5e5;font:9px var(--font-mono),monospace;letter-spacing:.07em}.hero-record-caption i{display:block;width:32px;height:1px;background:#f47d45}@keyframes record-orbit{to{transform:rotate(360deg)}}@keyframes record-settle{from{opacity:0;transform:translateY(calc(-50% + 24px))}to{opacity:1;transform:translateY(-50%)}}
 
 /* A short depth-change, not a four-screen carousel. The record is the same
    throughout; the context around it changes as the reader moves down. */
 
-.role-help{background:#e7eef6!important}.role-help-links{background:transparent!important}/* Back on ink. At full bleed the vermilion stops being an accent and
+.role-help{background:var(--pl-shell,#eae0d2)!important}.role-help-links{background:transparent!important}/* Back on ink. At full bleed the vermilion stops being an accent and
    becomes the ground — and the closing headline's own accent word then
    sits vermilion on vermilion at 1.17:1, which is not low contrast, it is
    invisible. The accent still carries the italic line, against ink. */
-.product-closing{background:var(--field-ink)!important;color:#f4f5f7}
+.product-closing{background:var(--pl-ink,#0b1e3d)!important;color:var(--pl-bone,#f4eee5)}
 .product-closing em{color:var(--field-accent)}
 .product-closing .field-button{background:var(--field-accent);color:var(--field-ink)}
 @media(max-width:900px){.product-hero-record{grid-template-columns:1fr;gap:48px;min-height:unset;padding:120px 6vw 58px}.product-hero-record h1{font-size:clamp(55px,12.5vw,82px)}.hero-record-stage{min-height:450px}.product-record-story{height:142vh!important}.product-record-story .product-story-sticky{grid-template-columns:1fr!important;grid-template-rows:auto minmax(360px,1fr);gap:25px;padding:42px 6vw 30px!important;min-height:100svh!important}.record-story-rail{display:flex;gap:8px;margin-top:22px;overflow:auto}.record-story-rail button{flex:0 0 auto;width:auto;padding:8px 0;border-top:1px solid #b5c6da;border-bottom:1px solid #b5c6da}.record-story-rail button span{display:none}.record-story-surface{min-height:360px;height:auto!important}.record-story-record{width:min(330px,73%)}.record-story-layer{width:160px;padding:10px 11px}.record-story-team{right:10px;top:12px}.record-story-neighbour{left:10px;top:12px}.record-story-feeder{right:10px;bottom:48px}.record-story-footer{left:12px;bottom:13px;font-size:10px}}
@@ -282,176 +282,165 @@
    thing this product exists to replace. */
 .hero-wall-by{display:block;margin:-1px 0 0;font-size:11.5px;color:#b7cce8}
 
-/* ── the record journey ─────────────────────────────────────────────
-   Replaces .product-record-story. The same sticky-scroll mechanic, but
-   the stage is a photograph rather than a drawing of one, so it sits at
-   the register of the hero above it instead of dropping to a mockup. */
+/* ════════════════════════════════════════════════════════════════════
+   The landing palette.
 
-.rj{
-  position:relative;height:230vh;
-  background:linear-gradient(180deg,#0b1e3d 0,#0b1e3d 62%,#123156 100%);
-  color:#eef4fb;
-}
-.rj-sticky{
-  position:sticky;top:0;min-height:100svh;
-  display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);
-  gap:clamp(30px,4.5vw,76px);align-items:center;
-  /* The site header is fixed, so pinned content sits underneath it unless
-     the frame leaves room. 80px is its desktop height, 68px below 1180. */
-  padding:104px 6vw clamp(40px,7vh,80px);
-}
+   The page was running four unrelated grounds: the hero on #0b1e3d, a
+   cold #e7eef6 for the role section, a different near-black #0b1020 for
+   the closing, and white under the footer. Two darks that do not match
+   read as a mistake, and a cold blue-grey fights the warm accent sitting
+   on top of it — which is most of why the middle of the page looked
+   washed out while the hero did not.
 
-.rj-copy .field-eyebrow{color:#8fb7ff}
-.rj-copy h2{
-  /* Sized to hold the authored line breaks rather than to be as large as
-     possible: at 68px "they come back to." broke again and left an orphan. */
-  max-width:19ch;margin:19px 0 0;
-  font-size:clamp(34px,3.5vw,53px);line-height:1.0;letter-spacing:-.045em;
-  color:#fff;text-wrap:balance;
-}
-.rj-copy>p{max-width:46ch;margin:20px 0 0;color:#bed1e9;font-size:15.5px;line-height:1.66}
+   One hue family, one accent. Navy and vermilion are near-complements,
+   so the light ground is taken to the warm side of neutral rather than
+   the cold: bone belongs to the same argument as the accent, where the
+   blue-grey was arguing with it. The cool blue stays, but only as the
+   support colour for links and data, on both grounds.
 
-/* A numbered rail, because these three genuinely are a sequence: the
-   second cannot happen before the first. */
-.rj-rail{list-style:none;display:grid;margin:30px 0 0;padding:0}
-.rj-rail li{border-top:1px solid #2b4870}
-.rj-rail li:last-child{border-bottom:1px solid #2b4870}
-.rj-rail button{
-  display:flex;align-items:center;gap:12px;width:100%;
-  min-height:44px;padding:11px 2px;
-  border:0;background:none;cursor:pointer;text-align:left;
-  color:#8ea9cb;font:11px var(--font-mono),monospace;letter-spacing:.05em;
-  transition:color .2s ease;
-}
-.rj-rail button:hover{color:#cfe0f5}
-.rj-rail button:focus-visible{outline:2px solid #8fb7ff;outline-offset:-2px}
-/* 4.70:1 on the rail's ground. #5d7ea8 measured 3.70 and is the kind
-   of small dim numeral nobody notices is unreadable. */
-.rj-rail button b{color:#6f90ba;font-weight:600;transition:color .2s ease}
-.rj-rail button.on{color:#fff}
-.rj-rail button.on b{color:#ff9a65}
+     ink    #0b1e3d   every dark section, no exceptions
+     deep   #071630   the closing, a shade of the same hue
+     bone   #f4eee5   the light ground
+     shell  #eae0d2   the second light ground, for banding
+     flame  #f05b40   the accent, carried through every section
+     ember  #a8300f   flame at small sizes on bone (4.5:1)
+     sky    #8fb7ff   cool support on dark
+     deepsky#2f57a4   cool support on light
+   ════════════════════════════════════════════════════════════════════ */
 
-/* ── the stage ───────────────────────────────────────────────────── */
-
-.rj-stage{
-  position:relative;
-  display:grid;grid-template-columns:minmax(0,1fr) minmax(208px,262px);
-  gap:clamp(14px,1.6vw,20px);align-items:start;
+.product-site{
+  --pl-ink:#0b1e3d;
+  --pl-deep:#071630;
+  --pl-bone:#f4eee5;
+  --pl-shell:#eae0d2;
+  --pl-flame:#f05b40;
+  /* The bright flame is a dark-ground colour: on bone it measures 2.90:1
+     and display type needs 3. Two more, both the same orange, sized to the
+     job — deep for headlines and figures, ember for anything small. */
+  --pl-flame-deep:#d4421f;
+  --pl-ember:#a8300f;
+  --pl-sky:#8fb7ff;
+  --pl-deepsky:#2f57a4;
+  --pl-rule:rgba(11,30,61,.15);
+  --pl-body:#42526b;
+  background:var(--pl-bone);
 }
 
-.rj-side{display:flex;flex-direction:column;gap:13px;min-width:0}
-.rj-strip{align-content:start}
+/* ── what gets counted ──────────────────────────────────────────────
+   The bright beat after the dark hero. Warm ground, one accent, and the
+   two figures carrying the whole section — no photographs, because the
+   hero already owns those. */
 
-.rj-photo{
-  position:relative;margin:0;overflow:hidden;
-  border:1px solid #35598c;background:#0d2b52;
-}
-.rj-photo img{
-  display:block;width:100%;height:clamp(360px,52svh,520px);
-  object-fit:cover;object-position:center 36%;
-}
-.rj-photo figcaption{
-  position:absolute;inset:auto 0 0 0;
-  display:grid;gap:5px;padding:56px 20px 17px;
-  background:linear-gradient(transparent,#04102299 34%,#041022f2);
-}
-.rj-place{
-  display:flex;align-items:center;gap:6px;
-  font:10px var(--font-mono),monospace;letter-spacing:.07em;
-  text-transform:uppercase;color:#bcd3ef;
-}
-.rj-place svg{color:#ff9a65;flex:none}
-.rj-photo figcaption b{font-size:22px;letter-spacing:-.035em;color:#fff}
+.cg{background:var(--pl-bone);color:var(--pl-ink)}
+.cg-inner{max-width:1220px;margin:0 auto;padding:clamp(76px,10vw,132px) 6vw}
 
-/* The record beside the photograph, at the depth the step is about. */
-.rj-panel{
-  padding:17px 18px;border:1px solid #35598c;background:#0f2b52;
+.cg-head{max-width:none}
+.cg .field-eyebrow{color:var(--pl-ember)}
+.cg h2{
+  max-width:16ch;margin:18px 0 0;
+  font-size:clamp(38px,5vw,76px);line-height:.98;letter-spacing:-.055em;
+  color:var(--pl-ink);text-wrap:balance;
 }
-.rj-panel-head{
-  display:block;padding-bottom:12px;border-bottom:1px solid #2b4870;
-  font:9.5px var(--font-mono),monospace;letter-spacing:.09em;
-  text-transform:uppercase;color:#9db8dc;
-}
-.rj-panel dl{margin:0}
-.rj-panel dl>div{
-  display:grid;gap:4px;padding:12px 0;border-bottom:1px solid #21406b;
-}
-.rj-panel dl>div:last-child{border-bottom:0;padding-bottom:2px}
-.rj-panel dt{font:9.5px var(--font-mono),monospace;letter-spacing:.08em;text-transform:uppercase;color:#92afd4}
-.rj-panel dd{
-  display:flex;align-items:center;gap:7px;margin:0;
-  font-size:13.5px;font-weight:600;color:#fff;
-}
-.rj-panel dd svg{color:#7fe3b0;flex:none}
-/* Nobody has checked. Coloured as information rather than as a failure:
-   closing that gap is what the product is for. */
-.rj-panel .q dd{color:#ff9a65;font-weight:500}
-.rj-panel .q dd svg{color:#ff9a65}
-
-/* Other real animals, so the page never reads as though there is one
-   photograph and a lot of claims. */
-.rj-strip{
-  /* In the right-hand column under the record, not across the bottom:
-     the panel is short and left a column of empty navy beside a tall
-     photograph, which read as unfinished. */
-  list-style:none;display:grid;grid-template-columns:repeat(3,1fr);
-  gap:7px;margin:0;padding:0;
-}
-.rj-strip li{overflow:hidden;aspect-ratio:1;border:1px solid #2f5382}
-.rj-strip img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 35%}
-/* Qualified by the element as well as the class: `.rj-strip li` is a class
-   plus an element and beat a bare `.rj-strip-more`, so aspect-ratio:1 stayed
-   on and squashed this into a 38px square with the words clipped inside. */
-.rj-strip li.rj-strip-more{
-  grid-column:1 / -1;display:flex;align-items:center;justify-content:center;
-  aspect-ratio:auto;height:36px;padding:0 12px;border-color:#28466f;
-}
-.rj-strip-more span{
-  color:#9db8dc;font:10px var(--font-mono),monospace;
-  letter-spacing:.06em;text-transform:uppercase;
+.cg h2 em{font-style:normal;color:var(--pl-flame-deep)}  /* 3.96:1 on bone */
+.cg-head>p{
+  max-width:58ch;margin:22px 0 0;
+  color:var(--pl-body);font-size:16px;line-height:1.68;
 }
 
-@media(max-width:900px){
-  .rj{height:250vh}
-  .rj-sticky{
-    grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);
-    gap:16px;align-content:center;padding:84px 6vw 20px;
-  }
-  .rj-copy h2{max-width:none;margin-top:11px;font-size:clamp(29px,7.2vw,38px)}
-  .rj-copy>p{margin-top:11px;font-size:13.5px;line-height:1.56}
-  /* Three stacked rows cost 124px of a 740px phone, which was most of why
-     the headline and the last field were being cut off the sticky frame.
-     One row of numbers, with only the step you are on spelling itself out. */
-  .rj-rail{
-    display:flex;align-items:center;gap:4px;margin-top:14px;padding:5px 0;
-    border-top:1px solid #2b4870;border-bottom:1px solid #2b4870;
-  }
-  .rj-rail li{border:0}
-  .rj-rail li:last-child{border-bottom:0}
-  .rj-rail button{width:auto;min-height:34px;padding:4px 7px;gap:7px}
-  .rj-rail button span{display:none}
-  .rj-rail button.on span{display:inline}
-  .rj-stage{grid-template-columns:1fr;gap:10px}
-  .rj-photo img{height:clamp(150px,22svh,215px)}
-  .rj-panel{padding:11px 13px}
-  .rj-panel dl>div{padding:6px 0}
-  .rj-panel-head{padding-bottom:9px}
-  .rj-panel dd{font-size:13px}
-  /* Secondary, and the first thing worth its vertical space on a phone:
-     without this the headline scrolled off the top of the sticky frame. */
-  .rj-strip{display:none}
+/* The pair. Sized so the difference is legible as a shape before it is
+   read as a number. */
+.cg-figures{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:clamp(20px,3.5vw,52px);align-items:start;
+  margin:clamp(44px,6vw,72px) 0 0;
+  padding-top:34px;border-top:1px solid var(--pl-rule);
+}
+.cg-fig{margin:0;display:grid;gap:14px}
+.cg-fig b{
+  display:block;
+  font-size:clamp(46px,7.5vw,104px);line-height:.88;letter-spacing:-.06em;
+  font-weight:600;font-variant-numeric:tabular-nums;
+  /* 3.57:1 on bone. #7d8ba0 landed exactly on 3.00 and display type
+     needs to clear it, not touch it. */
+  color:#6f7e95;
+}
+/* The measured figure is the one that is true, so it carries the accent
+   and the reported one recedes. */
+.cg-fig.is-real b{color:var(--pl-flame-deep)}  /* 3.96:1 on bone */
+.cg-fig figcaption{display:grid;gap:7px}
+.cg-fig figcaption span{
+  font:10.5px var(--font-mono),monospace;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--pl-ink);
+}
+.cg-fig figcaption small{
+  max-width:34ch;color:#5d6b80;font-size:11.5px;line-height:1.55;
 }
 
-@media(max-width:560px){
-  .rj{height:265vh}
-  .rj-photo figcaption{padding:38px 13px 11px}
-  .rj-photo figcaption b{font-size:17px}
-  .rj-rail button span{font-size:10px}
-  /* At 320 the lede runs to six lines and the frame was 37px over. */
-  .rj-copy>p{font-size:13px;line-height:1.5}
-  .rj-photo img{height:clamp(140px,19svh,180px)}
+.cg-versus{display:grid;justify-items:center;gap:10px;padding-top:6px}
+.cg-versus span{
+  font:600 15px var(--font-mono),monospace;letter-spacing:.04em;
+  color:var(--pl-ember);
+}
+.cg-versus i{display:block;width:1px;height:clamp(56px,8vw,104px);background:var(--pl-rule)}
+
+.cg-foot{
+  display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+  gap:clamp(26px,4vw,64px);align-items:start;
+  margin-top:clamp(34px,4.5vw,54px);padding-top:30px;
+  border-top:1px solid var(--pl-rule);
+}
+.cg-note{
+  margin:0;padding-left:15px;border-left:2px solid var(--pl-flame);
+  color:#5d6b80;font-size:13px;line-height:1.66;
+}
+.cg-close>p{margin:0;color:var(--pl-ink);font-size:16.5px;line-height:1.66}
+.cg-close b{font-weight:600}
+.cg-link{
+  display:inline-flex;align-items:center;gap:7px;margin-top:20px;
+  color:var(--pl-deepsky);font-size:14px;font-weight:600;text-decoration:none;
+  border-bottom:1px solid currentColor;padding-bottom:2px;
+}
+.cg-link:hover{color:var(--pl-ember)}
+
+@media(max-width:860px){
+  .cg-inner{padding:clamp(52px,9vw,74px) 6vw}
+  .cg h2{max-width:none;font-size:clamp(32px,8vw,44px)}
+  .cg-head>p{font-size:14.5px;margin-top:16px}
+  /* Stacked, with the rule turned on its side between them, so the
+     comparison still reads as a comparison on a phone. */
+  .cg-figures{grid-template-columns:1fr;gap:20px;margin-top:32px;padding-top:26px}
+  .cg-versus{justify-items:start;grid-auto-flow:column;justify-content:start;align-items:center;gap:12px;padding:0}
+  .cg-versus i{width:44px;height:1px}
+  .cg-fig b{font-size:clamp(42px,13vw,58px)}
+  .cg-fig figcaption small{max-width:none}
+  .cg-foot{grid-template-columns:1fr;gap:22px;margin-top:30px;padding-top:24px}
+  .cg-close>p{font-size:15px}
 }
 
-@media(prefers-reduced-motion:reduce){
-  .rj-rail button{transition:none}
-}
+/* ── the rest of the page, on the same palette ──────────────────── */
+
+/* Was #f4f5f7 then #e7eef6: a cold grey-blue under a warm accent. */
+.product-site .role-help{background:var(--pl-shell);color:var(--pl-ink)}
+.product-site .role-help .field-eyebrow{color:var(--pl-ember)}
+.product-site .role-help h2{color:var(--pl-ink)}
+.product-site .role-help-links a{border-color:var(--pl-rule)}
+.product-site .role-help-links a>svg{color:var(--pl-flame)}
+.product-site .role-help-links a p{color:var(--pl-body)}
+.product-site .role-help-links a:hover{background:rgba(255,255,255,.5)}
+
+/* Was #0b1020 — a different dark from the hero's, which is what made the
+   bottom of the page look like a different site. */
+.product-site .product-closing{background:var(--pl-ink);color:var(--pl-bone)}
+.product-site .product-closing .field-eyebrow{color:var(--pl-sky)}
+.product-site .product-closing em{color:var(--pl-flame)}
+/* Navy on flame is 4.95:1. White on it is 3.35 — the button label is
+   small text and needs 4.5. */
+.product-site .product-closing .field-button{background:var(--pl-flame);color:var(--pl-ink)}
+.product-site .product-closing .field-button:hover{background:#ff7454}
+
+.product-site .field-footer{background:var(--pl-deep);color:#c6d4e6}
+.product-site .field-footer a{color:#c6d4e6}
+.product-site .field-footer nav a{color:#9db2cd}
+.product-site .field-footer nav a:hover{color:var(--pl-sky)}
+.product-site .field-footer>span:last-child{color:#8ea4c0}
+.product-site .field-footer-brand span{color:#8ea4c0}
