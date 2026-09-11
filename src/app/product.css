@@ -159,13 +159,16 @@ html .spa.spa .qa-card svg{color:var(--sp-blue)}
 .photo-studio-stage canvas{display:block;width:100%;height:auto;touch-action:none}
 .photo-studio-stage canvas.is-framing{cursor:grab}
 .photo-studio-stage canvas.is-framing:active{cursor:grabbing}
-.photo-studio-stage canvas.is-blurring{cursor:crosshair}
+.photo-studio-stage canvas.is-hiding{cursor:crosshair}
 .photo-studio-wait{position:absolute;inset:auto 10px 10px auto;display:flex;align-items:center;gap:7px;
   padding:7px 11px;border-radius:999px;background:rgba(11,30,61,.82);color:#fff;font-size:12px}
 .photo-studio-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .report-form .photo-studio-mode{display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;
   border:1px solid var(--sp-line);border-radius:8px;background:#fff;font-size:13.5px;font-weight:600;color:var(--sp-muted)}
 .report-form .photo-studio-mode[aria-pressed=true]{border-color:var(--sp-blue);background:#f1f5fc;color:var(--sp-blue)}
+.report-form .photo-studio-mode b{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;
+  border-radius:999px;background:var(--sp-flame);color:#fff;font-size:11px;font-weight:700}
+.photo-studio-hint{margin:0;font-size:12px;line-height:1.55;color:var(--sp-muted)}
 .photo-studio-row{display:flex;align-items:center;gap:12px;min-height:42px}
 .photo-studio-row label{font-size:13px;color:var(--sp-muted);white-space:nowrap}
 .photo-studio-row input[type=range]{flex:1;min-width:0;accent-color:var(--sp-blue)}

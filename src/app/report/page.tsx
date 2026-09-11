@@ -361,8 +361,14 @@ export default function ReportPage() {
         </motion.div>
       </AnimatePresence>
 
-      {/* footer nav */}
-      <div className="report-actions mt-7 flex gap-3">
+      {/* Footer nav, hidden while the photo editor is open.
+
+          It is sticky to the bottom of the viewport, so on a phone it sat
+          on top of the editor's own controls and swallowed taps meant for
+          them. It also has nothing to offer there: Next cannot advance
+          until a photo has been accepted, and accepting one is a button
+          the editor already has. */}
+      <div className={`report-actions mt-7 gap-3${raw ? " hidden" : " flex"}`}>
         {step > 0 && (
           <button onClick={back} className="btn-ghost px-5 py-3.5"><ArrowLeft className="h-5 w-5" /> Back</button>
         )}

@@ -9,21 +9,20 @@
    pavement. The map, the cards and the record all crop to a rectangle,
    so the crop has to look where the subject actually is.
 
-   The second is who else is in it. A street photograph often has people
-   in it who did not ask to be on a public map.
+   `focusPoint` is a contrast measure rather than a model: cheap, runs on
+   any phone, needs no download, and is right often enough to be a better
+   starting position than the middle. It is a starting position. The
+   reporter can drag it, which is the part that is actually reliable.
 
-   Neither is solved by a model here. `focusPoint` is a contrast measure,
-   which is cheap, runs on any phone, needs no download, and is right
-   often enough to be a better starting position than the middle. It is a
-   starting position: the reporter can drag it, which is the part that is
-   actually reliable.
+   The second problem is who else is in the photograph, and that lives in
+   detect.ts and redact.ts. This file only knows that regions exist and
+   have to be destroyed before the file is written.
    ════════════════════════════════════════════════════════════════════ */
+
+import { redactRegion, type Region } from "./redact";
 
 /** A point in the source image, 0..1 on each axis. */
 export type Focus = { x: number; y: number };
-
-/** A circle to blur out, in source-image units (r as a fraction of width). */
-export type BlurSpot = { id: string; x: number; y: number; r: number };
 
 /** What the reporter has chosen: where the crop is centred and how tight. */
 export type Frame = { focus: Focus; zoom: number };
@@ -122,11 +121,12 @@ export function maxZoom(w: number, h: number) {
 }
 
 /**
- * Draw the frame onto a canvas, with every blur spot applied.
+ * Draw the frame onto a canvas, with every region destroyed.
  *
- * The blur is drawn into the picture rather than laid over it, so what is
- * uploaded has no face in it at all. A CSS-style overlay would have been a
- * blurred rectangle sitting on top of an intact photograph.
+ * The redaction is drawn into the picture rather than laid over it, so
+ * what is uploaded has no face in it at all. A CSS-style overlay would
+ * have been a blurred rectangle sitting on top of an intact photograph,
+ * which is a photograph of somebody's face with a decoration on it.
  */
 export function paint(
   ctx: CanvasRenderingContext2D,
@@ -134,68 +134,15 @@ export function paint(
   w: number,
   h: number,
   frame: Frame,
-  spots: BlurSpot[],
+  regions: Region[],
   out: { w: number; h: number }
 ) {
   const r = cropRect(w, h, frame);
   ctx.clearRect(0, 0, out.w, out.h);
   ctx.drawImage(img, r.x, r.y, r.w, r.h, 0, 0, out.w, out.h);
-  if (spots.length === 0) return;
-
-  const scale = out.w / r.w;
-  for (const s of spots) {
-    const cx = (s.x * w - r.x) * scale;
-    const cy = (s.y * h - r.y) * scale;
-    const rad = s.r * w * scale;
-    if (cx + rad < 0 || cy + rad < 0 || cx - rad > out.w || cy - rad > out.h) continue;
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, rad, 0, Math.PI * 2);
-    ctx.clip();
-    if (supportsFilter(ctx)) {
-      ctx.filter = `blur(${Math.max(9, rad * 0.7)}px)`;
-      ctx.drawImage(img, r.x, r.y, r.w, r.h, 0, 0, out.w, out.h);
-      ctx.filter = "none";
-    } else {
-      mosaic(ctx, img, r, out, cx, cy, rad);
-    }
-    ctx.restore();
+  for (const region of regions) {
+    redactRegion(ctx, img, w, h, r, out.w, out.h, region);
   }
-}
-
-function supportsFilter(ctx: CanvasRenderingContext2D) {
-  if (!("filter" in ctx)) return false;
-  ctx.filter = "blur(2px)";
-  const ok = ctx.filter !== "none";
-  ctx.filter = "none";
-  return ok;
-}
-
-/* Where canvas filters are missing, the region is redrawn through a tiny
-   canvas and back, which is the same idea by another route: throw the
-   detail away rather than paint over it. */
-function mosaic(
-  ctx: CanvasRenderingContext2D,
-  img: CanvasImageSource,
-  r: { x: number; y: number; w: number; h: number },
-  out: { w: number; h: number },
-  cx: number,
-  cy: number,
-  rad: number
-) {
-  const small = document.createElement("canvas");
-  small.width = 12;
-  small.height = 12;
-  const sctx = small.getContext("2d");
-  if (!sctx) return;
-  const sx = r.x + ((cx - rad) / out.w) * r.w;
-  const sy = r.y + ((cy - rad) / out.h) * r.h;
-  const sw = ((rad * 2) / out.w) * r.w;
-  const sh = ((rad * 2) / out.h) * r.h;
-  sctx.drawImage(img, sx, sy, sw, sh, 0, 0, 12, 12);
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(small, cx - rad, cy - rad, rad * 2, rad * 2);
-  ctx.imageSmoothingEnabled = true;
 }
 
 /** The finished photograph, as a file ready to upload. */
@@ -204,7 +151,7 @@ export async function exportFrame(
   w: number,
   h: number,
   frame: Frame,
-  spots: BlurSpot[],
+  regions: Region[],
   name: string
 ): Promise<File | null> {
   const r = cropRect(w, h, frame);
@@ -215,53 +162,11 @@ export async function exportFrame(
   canvas.height = outH;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
-  paint(ctx, img, w, h, frame, spots, { w: outW, h: outH });
+  paint(ctx, img, w, h, frame, regions, { w: outW, h: outH });
   const blob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY)
   );
   if (!blob) return null;
   const base = name.replace(/\.[^.]+$/, "") || "sighting";
   return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
-}
-
-/**
- * Faces the browser can find on its own.
- *
- * The Shape Detection API is present on Chrome for Android and absent on
- * Safari and desktop Firefox, so this is a head start where it exists and
- * nothing where it does not. Either way the reporter can tap anybody it
- * missed, which is the part that works on every phone.
- */
-export async function detectFaces(
-  img: CanvasImageSource,
-  w: number,
-  h: number
-): Promise<BlurSpot[]> {
-  type Box = { boundingBox: { x: number; y: number; width: number; height: number } };
-  const Ctor = (
-    globalThis as unknown as {
-      FaceDetector?: new (o?: { fastMode?: boolean; maxDetectedFaces?: number }) => {
-        detect: (s: CanvasImageSource) => Promise<Box[]>;
-      };
-    }
-  ).FaceDetector;
-  if (!Ctor) return [];
-  try {
-    const found = await new Ctor({ fastMode: true, maxDetectedFaces: 12 }).detect(img);
-    return found.map((f, i) => {
-      const b = f.boundingBox;
-      /* A face box is the face. A little wider takes the hair and the ears
-         with it, which is what makes somebody unrecognisable rather than
-         smudged. */
-      const r = (Math.max(b.width, b.height) / 2) * 1.35;
-      return {
-        id: `auto-${i}`,
-        x: clamp01((b.x + b.width / 2) / w),
-        y: clamp01((b.y + b.height / 2) / h),
-        r: r / w,
-      };
-    });
-  } catch {
-    return [];
-  }
 }
