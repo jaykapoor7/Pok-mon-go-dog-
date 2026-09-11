@@ -218,6 +218,20 @@ export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
   return [];
 }
 
+/** How many sightings are actually live, which is not the same as how many
+ *  the feed fetched. Without this the feed's own count is just the page size
+ *  once there are more than that, and it would sit at "100 moments" for ever
+ *  while the number really climbed. */
+export async function countLiveSightings(): Promise<number> {
+  const supa = getSupabase();
+  if (!supa) return 0;
+  const { count } = await supa
+    .from("sightings")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "live");
+  return count ?? 0;
+}
+
 export async function getAllSightings(limit = 100): Promise<Sighting[]> {
   const supa = getSupabase();
   if (supa) {

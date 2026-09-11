@@ -5,7 +5,7 @@ import { SightingCard } from "@/components/feed/SightingCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { Sighting } from "@/lib/types";
 
-export function FeedList({ real }: { real: Sighting[] }) {
+export function FeedList({ real, total }: { real: Sighting[]; total?: number }) {
   const sightings = [...real].sort(
     (a, b) => +new Date(b.created_at) - +new Date(a.created_at)
   );
@@ -23,8 +23,13 @@ export function FeedList({ real }: { real: Sighting[] }) {
 
   return (
     <>
+      {/* Say which number this is. The feed fetches a page, so once there
+          are more sightings than that, "N moments" would be the page size
+          rather than the total and would never move again. */}
       <p className="mb-5 text-sm text-bark-500">
-        {sightings.length} moments from India&apos;s streets
+        {total && total > sightings.length
+          ? `The latest ${sightings.length} of ${total} moments from India's streets`
+          : `${sightings.length} moments from India's streets`}
       </p>
       <div className="space-y-6">
         {sightings.map((s) => (

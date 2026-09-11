@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { FeedList } from "@/components/feed/FeedList";
-import { getAllSightings } from "@/lib/data";
+import { getAllSightings, countLiveSightings } from "@/lib/data";
 
 export const metadata = {
   title: "Sightings Feed, StrayPaw",
@@ -11,7 +11,10 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function FeedPage() {
-  const realSightings = await getAllSightings();
+  const [realSightings, liveTotal] = await Promise.all([
+    getAllSightings(),
+    countLiveSightings(),
+  ]);
 
   return (
     <div className="mx-auto max-w-xl px-4 sm:px-6">
@@ -26,7 +29,7 @@ export default async function FeedPage() {
         </Link>
       </header>
 
-      <FeedList real={realSightings} />
+      <FeedList real={realSightings} total={liveTotal} />
     </div>
   );
 }
