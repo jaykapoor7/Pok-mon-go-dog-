@@ -54,7 +54,10 @@ export function FloatingPillNav({ sections }: { sections: PillSection[] }) {
           data-pill={s.id}
           onClick={() => scrollTo(s.id)}
           className={cn(
-            "shrink-0 rounded-full px-3 py-1 text-[13px] font-medium transition-colors",
+            /* 28px tall was below any usable touch target. The scroller is
+               the only way through these sections on a phone. */
+            "inline-flex shrink-0 items-center rounded-full px-3.5 text-[13px] font-medium transition-colors",
+            "min-h-[38px] sm:min-h-0 sm:py-1",
             active === s.id
               ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900"
               : "text-bark-500 hover:bg-bark-100 hover:text-bark-700 dark:text-bark-400 dark:hover:bg-bark-800 dark:hover:text-bark-200",

@@ -26,6 +26,7 @@ import {
   Repeat2,
   ScanSearch,
   Search,
+  Waves,
   Utensils,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
@@ -94,7 +95,8 @@ const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin
     { href: "/app", label: "Home", Icon: LayoutGrid },
     { href: "/map", label: "Map", Icon: MapPin },
     { href: "/following", label: "Saved", Icon: Bookmark },
-    { href: "/feed", label: "Activity", Icon: Radio },
+    /* Not Radio: that is Report, in the middle of the same bar. */
+    { href: "/feed", label: "Activity", Icon: Waves },
   ],
   feeder: [
     { href: "/feeder", label: "My patch", Icon: Utensils },
@@ -106,7 +108,7 @@ const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin
     { href: "/education", label: "Education", Icon: GraduationCap },
     { href: "/map", label: "Map", Icon: MapPin },
     { href: "/learn", label: "Learn", Icon: BookOpen },
-    { href: "/feed", label: "Activity", Icon: Radio },
+    { href: "/feed", label: "Activity", Icon: Waves },
   ],
   ngo: [
     { href: "/partner", label: "Dashboard", Icon: LayoutGrid },

@@ -533,3 +533,61 @@ a.qa-card:active,
     transform: translate(2px, -2px);
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   Touch floor.
+
+   Measured at 390px across twenty-three routes: the console's inline
+   actions ("View all cases", "Full map", "Open case queue") were 20px
+   tall, its buttons 30–32px, and the /learn section chips 28px. This is
+   a product used one-handed, outdoors, by somebody who is also holding a
+   lead or a bowl. None of those are targets.
+
+   Only on coarse pointers, and only on things that are controls by
+   definition — a <button> always is, and an anchor that has been laid
+   out as a flex row with an icon in it is one too. Inline links inside
+   running prose are deliberately left alone: growing those would space
+   paragraphs out to no purpose, and they are read, not aimed at.
+
+   The height is a floor rather than a size, so nothing that already
+   clears it moves.
+   ════════════════════════════════════════════════════════════════════ */
+@media (pointer: coarse) {
+  button:not(.skip-link),
+  a.inline-flex,
+  [role="button"] {
+    min-height: 40px;
+  }
+  /* A flex row that is now taller than its text needs its content
+     centred in the new height rather than sitting at the top of it. */
+  a.inline-flex { align-items: center; }
+}
+
+/* The site footer is a row of navigation, not prose, so it takes the
+   floor above too — it just isn't a <button> or a flex anchor. */
+@media (pointer: coarse) {
+  .field-footer nav a,
+  .sp-footer nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+}
+
+/* Section-header actions ("Open the full map", "All activity") and the
+   empty-state prompts. These are the console's real controls and they
+   carry no class of their own — they are styled through their parent —
+   so they slipped past both rules above at 14–18px tall. */
+@media (pointer: coarse) {
+  .product-section-heading > a,
+  .community-local-empty a,
+  .community-next-step > a,
+  .sp-map-empty-state a,
+  .wt-link,
+  .tlink,
+  .field-text-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+}
