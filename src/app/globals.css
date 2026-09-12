@@ -591,3 +591,15 @@ a.qa-card:active,
     min-height: 40px;
   }
 }
+
+/* Two more lists that are navigation wearing prose clothes: the mission
+   page's closing links, and the source titles on /sources, which are the
+   primary action on that page — every one opens the document it cites. */
+@media (pointer: coarse) {
+  .mi-close a,
+  a.hover\:text-paw-600 {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+}
