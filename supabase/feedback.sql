@@ -32,8 +32,15 @@ create table if not exists feedback (
   -- Set when signed in, so a reply can find them without an email.
   reporter_id uuid,
   status      text not null default 'open',   -- open | actioned | dismissed
+  -- Filled in by whoever triages it, so the panel can show why it closed.
+  resolution  text,
+  resolved_at timestamptz,
   created_at  timestamptz not null default now()
 );
+
+-- For installs created before the moderation panel could read this.
+alter table feedback add column if not exists resolution  text;
+alter table feedback add column if not exists resolved_at timestamptz;
 
 create index if not exists feedback_created_idx on feedback (created_at desc);
 create index if not exists feedback_status_idx on feedback (status, created_at desc);

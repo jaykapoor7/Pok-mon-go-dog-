@@ -120,11 +120,19 @@ interface AdminFundraiser {
   created_at: string;
 }
 
-type Tab = "queue" | "partners" | "orgs" | "reports" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
+type Tab = "queue" | "partners" | "orgs" | "reports" | "feedback" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
 
 type AdminContentReport = {
   id: string; reason: string; details: string | null; link: string | null;
   reporter_email: string | null; status: string; created_at: string;
+};
+
+/* What somebody typed into the suggestion box. Never read by the browser
+   from the table itself: RLS has no select policy on it, so this arrives
+   through the service-role route behind ADMIN_SECRET. */
+type AdminFeedback = {
+  id: string; kind: string; message: string; page: string | null;
+  email: string | null; status: string; resolution: string | null; created_at: string;
 };
 
 /** A phone-or-email contact → a tappable mailto:/tel: link. */
@@ -156,6 +164,7 @@ export function AdminClient() {
   const [grants, setGrants] = useState<{ id: string; email: string; org_name: string; created_at: string }[]>([]);
   const [orgs, setOrgs] = useState<AdminOrg[]>([]);
   const [reports, setReports] = useState<AdminContentReport[]>([]);
+  const [feedback, setFeedback] = useState<AdminFeedback[]>([]);
   const [fundraisers, setFundraisers] = useState<AdminFundraiser[]>([]);
   const [discoveringFunds, setDiscoveringFunds] = useState(false);
   const [exportingEmails, setExportingEmails] = useState(false);
@@ -267,6 +276,31 @@ export function AdminClient() {
     } catch { /* ignore */ }
   }, []);
 
+  const loadFeedback = useCallback(async (s: string) => {
+    try {
+      const res = await fetch("/api/admin/feedback", { headers: { Authorization: `Bearer ${s}` }, cache: "no-store" });
+      if (!res.ok) return;
+      const j = await res.json();
+      setFeedback(j.feedback ?? []);
+    } catch { /* ignore */ }
+  }, []);
+
+  async function resolveFeedback(id: string, action: "actioned" | "dismissed") {
+    setBusyId(id);
+    try {
+      const res = await fetch("/api/admin/feedback", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+      if (res.ok) {
+        setFeedback((prev) => prev.map((f) => (f.id === id ? { ...f, status: action } : f)));
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function resolveReport(id: string, action: "actioned" | "dismissed") {
     setBusyId(id);
     try {
@@ -317,13 +351,14 @@ export function AdminClient() {
         loadPartners(s);
         loadFundraisers(s);
         loadReports(s);
+        loadFeedback(s);
       } catch {
         setError("Network error.");
       } finally {
         setLoading(false);
       }
     },
-    [loadHelpers, loadCases, loadDogs, loadFeedingZones, loadPartners, loadFundraisers, loadReports]
+    [loadHelpers, loadCases, loadDogs, loadFeedingZones, loadPartners, loadFundraisers, loadReports, loadFeedback]
   );
 
   useEffect(() => {
@@ -787,6 +822,7 @@ export function AdminClient() {
         { key: "queue", label: "Sightings", icon: <Clock className="h-4 w-4" />, count: items.length },
         { key: "partners", label: "Partner requests", icon: <HeartHandshake className="h-4 w-4" />, count: partnerRequests.length },
         { key: "reports", label: "Content reports", icon: <FlagIcon className="h-4 w-4" />, count: reports.filter((r) => r.status === "open").length },
+        { key: "feedback", label: "Feedback", icon: <MessageSquare className="h-4 w-4" />, count: feedback.filter((f) => f.status === "open").length },
         { key: "verify", label: "Verify outcomes", icon: <ShieldCheck className="h-4 w-4" />, count: pendingCases.length },
       ],
     },
@@ -918,6 +954,9 @@ export function AdminClient() {
       )}
       {tab === "reports" && (
         <ContentReportsList reports={reports} busyId={busyId} onResolve={resolveReport} />
+      )}
+      {tab === "feedback" && (
+        <FeedbackList feedback={feedback} busyId={busyId} onResolve={resolveFeedback} />
       )}
       {tab === "verify" && (
         <VerifyList cases={pendingCases} busyId={busyId} onVerify={verify} />
@@ -1626,6 +1665,123 @@ function ContentReportsList({ reports, busyId, onResolve }: { reports: AdminCont
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+/* Feedback, as a queue you can clear.
+   
+   Three kinds arrive and they want reading differently: a problem is a bug
+   report, an idea is a roadmap note, praise is neither. They are coloured
+   rather than separated, because the whole point of one inbox is that you
+   read it in one pass.
+   
+   No "reply" button. The address is a mailto: so an answer is a real email
+   from a person, not a template that says the feedback was received. */
+function FeedbackList({
+  feedback,
+  busyId,
+  onResolve,
+}: {
+  feedback: AdminFeedback[];
+  busyId: string | null;
+  onResolve: (id: string, action: "actioned" | "dismissed") => void;
+}) {
+  const [showClosed, setShowClosed] = useState(false);
+  const open = feedback.filter((f) => f.status === "open");
+  const closed = feedback.filter((f) => f.status !== "open");
+  const shown = showClosed ? feedback : open;
+
+  if (feedback.length === 0) {
+    return (
+      <div className="card p-8 text-center">
+        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
+          <MessageSquare className="h-6 w-6" />
+        </span>
+        <h2 className="font-display text-base">Nothing yet</h2>
+        <p className="mt-1 text-sm text-bark-500">
+          Suggestions from the site footer, the console rail and the
+          neighbourhood home all land here.
+        </p>
+      </div>
+    );
+  }
+
+  const KIND: Record<string, { label: string; className: string }> = {
+    problem: { label: "Broken", className: "bg-status-hungry/15 text-status-hungry" },
+    idea: { label: "Idea", className: "bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300" },
+    praise: { label: "Good", className: "bg-status-vaccinated/15 text-status-vaccinated" },
+  };
+
+  return (
+    <div className="space-y-3">
+      {closed.length > 0 && (
+        <div className="flex items-center justify-between gap-3 text-xs text-bark-400">
+          <span>
+            {open.length} open, {closed.length} closed
+          </span>
+          <button
+            onClick={() => setShowClosed((v) => !v)}
+            className="font-semibold text-paw-600 hover:underline"
+          >
+            {showClosed ? "Hide closed" : "Show closed"}
+          </button>
+        </div>
+      )}
+
+      {shown.length === 0 && (
+        <div className="card p-8 text-center">
+          <h2 className="font-display text-base">Inbox clear</h2>
+          <p className="mt-1 text-sm text-bark-500">Nothing open. Every suggestion has been read.</p>
+        </div>
+      )}
+
+      {shown.map((f) => {
+        const kind = KIND[f.kind] ?? KIND.idea;
+        return (
+          <div key={f.id} className="card p-4">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+              <span className={`rounded-full px-2 py-0.5 font-semibold ${kind.className}`}>{kind.label}</span>
+              {f.page && <code className="text-bark-500">{f.page}</code>}
+              <span className="text-bark-400">{timeAgo(f.created_at)}</span>
+              {f.status !== "open" && (
+                <span className="rounded-full bg-bark-100 px-2 py-0.5 font-medium text-bark-500 dark:bg-bark-800">
+                  {f.status}
+                </span>
+              )}
+            </div>
+
+            {/* Whitespace preserved: people write these in paragraphs and a
+                collapsed one is harder to read than it needs to be. */}
+            <p className="mt-2 whitespace-pre-wrap text-sm text-bark-700 dark:text-bark-200">{f.message}</p>
+
+            {f.email && (
+              <p className="mt-2 text-xs">
+                <ContactLink contact={f.email} />
+              </p>
+            )}
+
+            {f.status === "open" && (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => onResolve(f.id, "actioned")}
+                  disabled={busyId === f.id}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-status-vaccinated/15 py-2 text-sm font-semibold text-status-vaccinated disabled:opacity-50"
+                >
+                  {busyId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Done
+                </button>
+                <button
+                  onClick={() => onResolve(f.id, "dismissed")}
+                  disabled={busyId === f.id}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black/[0.05] py-2 text-sm font-semibold text-bark-500 disabled:opacity-50 dark:bg-white/10"
+                >
+                  <X className="h-4 w-4" /> Dismiss
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
