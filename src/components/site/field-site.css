@@ -235,10 +235,10 @@
 .hero-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .hero-wall-lead{
   grid-column:span 2;grid-row:span 2;position:relative;margin:0;overflow:hidden;
-  aspect-ratio:4/5;background:#0a1c38;border:1px solid #3f6396;
+  /* A 2x2 block of square cells plus the gap between them is itself square, so this ratio is what keeps every tile in the wall square. At 4/5 the rows came out a quarter taller than wide and each photograph sat in its cell with a navy strip underneath it. */aspect-ratio:1/1;background:#0a1c38;border:1px solid #3f6396;
   box-shadow:0 26px 60px #020b1c55;
 }
-.hero-wall-lead img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 38%}
+.hero-wall-lead img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 42%}
 .hero-wall-lead figcaption{
   position:absolute;inset:auto 0 0 0;padding:52px 18px 16px;
   background:linear-gradient(transparent,#04102299 36%,#041022f5);
@@ -255,8 +255,11 @@
 .hero-wall-lead dd.q{color:#ff9a65;font-weight:500;font-style:italic}
 
 .hero-wall-grid{display:contents}
-.hero-wall-grid li{position:relative;overflow:hidden;background:#0e2444;border:1px solid #2f527f}
-.hero-wall-grid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;object-position:center 35%}
+.hero-wall-grid li{position:relative;aspect-ratio:1/1;overflow:hidden;background:#0e2444;border:1px solid #2f527f}
+/* Absolutely filling the cell, not sized by its own aspect ratio: an
+   image that sets its own height leaves whatever the row has spare
+   showing as the tile's background. */
+.hero-wall-grid img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 45%}
 .hero-wall-grid span{
   position:absolute;inset:auto 0 0 0;padding:16px 5px 4px;
   background:linear-gradient(transparent,#041022e6);
@@ -530,3 +533,85 @@ html .sp.product-site .sp-header {
 @media (max-width: 860px) {
   .product-site, .sp.field-site { --gutter: 20px; }
 }
+
+/* ── The console miniature ──────────────────────────────────────────
+   Built to look like the product rather than like a diagram of it: the
+   same title bar, the same stat treatment, the same case rows. */
+.wt-panel-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border-bottom:1px solid rgba(11,30,61,.12)}
+.wt-panel-stats>div{display:grid;gap:3px;padding:13px 15px}
+.wt-panel-stats>div+div{border-left:1px solid rgba(11,30,61,.1)}
+.wt-panel-stats span{font:9.5px var(--font-sans),system-ui,sans-serif;letter-spacing:.09em;
+  text-transform:uppercase;color:#5d6b80}
+.wt-panel-stats b{font-size:25px;font-weight:600;letter-spacing:-.04em;line-height:1.05;
+  color:var(--pl-ink);font-variant-numeric:tabular-nums}
+.wt-panel-stats b.q{color:var(--pl-ember)}
+.wt-panel-stats small{font-size:10.5px;line-height:1.35;color:#6a788c}
+
+.wt-panel-listhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:11px 15px 8px}
+.wt-panel-listhead b{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#41618f}
+.wt-panel-listhead span{font:9.5px var(--font-sans),system-ui,sans-serif;letter-spacing:.08em;
+  text-transform:uppercase;color:#8a97a8}
+.wt-panel-list ul{list-style:none;margin:0;padding:0}
+.wt-panel-list li{display:grid;grid-template-columns:8px minmax(0,1fr) minmax(0,auto) auto;
+  gap:10px;align-items:center;padding:10px 15px;border-top:1px solid rgba(11,30,61,.08)}
+.wt-panel-list i{width:8px;height:8px;border-radius:50%}
+.wt-row-zone{font-size:12px;color:#6a788c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wt-row-tag.urgent{color:#c0492e}
+
+@media(max-width:860px){
+  .wt-panel-stats>div{padding:11px 12px}
+  .wt-panel-stats b{font-size:21px}
+  .wt-panel-list li{grid-template-columns:8px minmax(0,1fr) auto;gap:8px;padding:9px 12px}
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   The landing's background rhythm, set in one place.
+
+   Measured before changing anything. The sections ran ink → bone → shell
+   → ink → deep, and two of those four joins were invisible: bone against
+   shell is a contrast ratio of 1.13, and the closing block against the
+   footer is 1.09. Two pairs of neighbours that are, to the eye, one
+   continuous surface with a change of subject somewhere inside it.
+
+   It alternates now — dark, light, dark, light, dark — so every join is a
+   real edge and no two sections in a row share a ground. Every ratio
+   below is above 11.
+
+   This block is last in the file on purpose: the rhythm is one decision
+   and it should be readable in one place rather than inferred from five
+   rules written months apart.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* 3. Roles, now dark. Against the bone section above it: 14.37. */
+html .sp.product-site .role-help {
+  background: var(--pl-ink) !important;
+  color: var(--pl-bone);
+}
+html .sp.product-site .role-help .field-eyebrow { color: var(--pl-sky); }
+html .sp.product-site .role-help h2 { color: #fff; }
+html .sp.product-site .role-help-links { border-top-color: rgba(255, 255, 255, 0.18); }
+html .sp.product-site .role-help-links a {
+  color: #fff;
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+}
+html .sp.product-site .role-help-links a p { color: #bcd0ea; }
+html .sp.product-site .role-help-links a > svg { color: var(--pl-flame); }
+html .sp.product-site .role-help-links a:hover { background: rgba(255, 255, 255, 0.06); }
+
+/* 4. Closing, now light. Against the roles block: 12.70. */
+html .sp.product-site .product-closing {
+  background: var(--pl-shell) !important;
+  color: var(--pl-ink);
+}
+html .sp.product-site .product-closing .field-eyebrow { color: var(--pl-ember); }
+html .sp.product-site .product-closing h2 { color: var(--pl-ink); }
+html .sp.product-site .product-closing em { color: var(--pl-flame-deep); }
+html .sp.product-site .product-closing .field-button {
+  background: var(--pl-ink);
+  color: var(--pl-bone);
+}
+html .sp.product-site .product-closing .field-button:hover { background: #14305a; }
+
+/* 5. Footer stays deep, and now lands against a light block: 11.63. */

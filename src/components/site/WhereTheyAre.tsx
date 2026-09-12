@@ -6,6 +6,8 @@ import { ArrowUpRight } from "lucide-react";
 import { FieldMapPreview } from "./FieldMapPreview";
 import { cityForPoints } from "@/lib/geo/cities";
 import { densestCell, located } from "@/lib/geo/cluster";
+import { markerMetaFor } from "@/lib/marker-state";
+import { dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -74,6 +76,16 @@ export function WhereTheyAre({
      coordinates instead. */
   const place = cityForPoints(focus);
 
+  /* What an organisation would actually be looking at: animals flagged as
+     needing help first, then the ones nobody has checked. Real records in
+     both cases, and the list simply runs short when the register is. */
+  const attention = [
+    ...dogs.filter((d) => d.needs_help),
+    ...dogs.filter(
+      (d) => !d.needs_help && (!d.sterilisation_status || d.sterilisation_status === "unknown")
+    ),
+  ].slice(0, 4);
+
   return (
     <section className="wt" aria-labelledby="wt-title">
       <div className="wt-inner">
@@ -118,52 +130,70 @@ export function WhereTheyAre({
         <div className="wt-dash">
           <div className="wt-dash-head">
             <span className="field-eyebrow">And for the team working it</span>
-            <h3>The same records, as a worklist.</h3>
+            <h3>The same records, as a console.</h3>
             <p>
-              An organisation sees its streets as a queue rather than a
-              gallery: what is on the record, what nobody has checked, and who
-              else is working nearby.
+              An organisation opens the animals on its streets as work: what
+              is on the register, what nobody has checked, and which animals
+              are waiting on a decision today.
             </p>
             <Link href="/for-ngos" className="wt-link">
               See the workspace <ArrowUpRight size={15} />
             </Link>
           </div>
 
-          <div className="wt-panel">
+          {/* A small, faithful copy of the organisation console: the same
+              labels, the same case rows, the same chrome. Two attempts stood
+              here before and both invented an interface — a row of three
+              figures that printed one number twice, then a queue called
+              "animals to check" that exists nowhere in the product.
+
+              Every figure below is counted from the records this page has
+              already loaded. */}
+          <div className="wt-panel" role="img" aria-label="The StrayPaw organisation console">
             <div className="wt-panel-bar">
               <span className="wt-dot" aria-hidden />
-              <b>Animals to check</b>
-              <span className="wt-panel-live">
-                {unchecked.toLocaleString("en-IN")} waiting
-              </span>
+              <b>StrayPaw · Organisation console</b>
+              <span className="wt-panel-live">{place ?? "India"}</span>
             </div>
-            {/* A queue, which is what a dashboard is. The three-figure row
-                that stood here read "85 on record / 85 never checked / 40
-                organisations": the same number twice, and a third with
-                nothing to do with either. */}
-            <ul className="wt-panel-rows">
-              {dogs.slice(0, 5).map((d) => {
-                const never =
-                  !d.sterilisation_status || d.sterilisation_status === "unknown";
-                return (
+
+            <div className="wt-panel-stats">
+              <div>
+                <span>On the register</span>
+                <b>{total.toLocaleString("en-IN")}</b>
+                <small>animals with a record</small>
+              </div>
+              <div>
+                <span>Never checked</span>
+                <b className="q">{unchecked.toLocaleString("en-IN")}</b>
+                <small>no sterilisation status</small>
+              </div>
+              <div>
+                <span>Organisations</span>
+                <b>{orgs}</b>
+                <small>can claim this work</small>
+              </div>
+            </div>
+
+            <div className="wt-panel-list">
+              <div className="wt-panel-listhead">
+                <b>Needs attention</b>
+                <span>{attention.length ? `${attention.length} shown` : "nothing open"}</span>
+              </div>
+              <ul>
+                {attention.map((d) => (
                   <li key={d.id}>
-                    <span className="wt-row-name">
-                      {d.name?.trim() || `Dog near ${d.zone || "you"}`}
-                    </span>
-                    <span className={`wt-row-tag${never ? " q" : ""}`}>
-                      {never ? "Never checked" : "Sterilised"}
+                    <i style={{ background: markerMetaFor(d).color }} aria-hidden />
+                    <span className="wt-row-name">{dogLabel(d)}</span>
+                    <span className="wt-row-zone">{d.zone || "Location on record"}</span>
+                    <span className={`wt-row-tag${d.needs_help ? " urgent" : " q"}`}>
+                      {d.needs_help ? "Needs help" : "Never checked"}
                     </span>
                   </li>
-                );
-              })}
-            </ul>
-            <div className="wt-panel-foot">
-              <span>{total.toLocaleString("en-IN")} on the record</span>
-              <span>{orgs} organisations can pick these up</span>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
-
       </div>
     </section>
   );

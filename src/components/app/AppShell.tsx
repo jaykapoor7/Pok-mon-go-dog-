@@ -278,9 +278,17 @@ export function AppShell({
           <div className="spa-side-foot">
             {/* The console is where somebody is when something annoys them,
                 so the suggestion box is here rather than only in a footer
-                three pages away. */}
-            <FeedbackButton variant="quiet" label="Send feedback" />
+                three pages away.
+
+                A text link, not a button. It sat as a third bordered block
+                directly above "Get a code" and "I have a code", which are
+                the two things this corner is actually for, and three
+                buttons of the same weight stacked in a rail is a fight
+                none of them wins. */}
             <ProfilePanel />
+            <div className="spa-side-feedback">
+              <FeedbackButton label="Send feedback" />
+            </div>
           </div>
         </nav>
 

@@ -30,6 +30,11 @@ html .spa.spa .spa-side a.spa-report-shortcut{display:flex;align-items:center;ju
 html .spa.spa .spa-side-label{font-family:var(--font-sans),sans-serif;font-size:11px;letter-spacing:.06em;color:#64748b;padding:12px 9px}
 html .spa.spa .spa-side-count{background:none;color:inherit}
 html .spa.spa .spa-side-foot{margin-top:auto;padding-top:22px}
+/* Below the two access buttons and quieter than either, with a rule to
+   separate it from them rather than a border of its own to compete. */
+html .spa.spa .spa-side-feedback{margin-top:14px;padding-top:13px;border-top:1px solid var(--sp-line)}
+html .spa.spa .spa-side-feedback .fb-open{width:100%;justify-content:flex-start;text-align:left;font-size:12px;font-weight:500;color:var(--sp-muted)}
+html .spa.spa .spa-side-feedback .fb-open:hover{color:var(--sp-blue)}
 html .spa.spa .spa-main:not(.flush){padding:35px 36px 60px}
 html .spa.spa .spa-panel{background:white;border:1px solid var(--sp-line);border-radius:var(--sp-radius);box-shadow:none}
 html .spa.spa .spa-head h1{color:var(--sp-ink);font-size:36px;font-family:var(--font-sans),sans-serif;font-weight:600}

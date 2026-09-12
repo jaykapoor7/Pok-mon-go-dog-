@@ -43,8 +43,8 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
       <div className="product-hero-copy">
         <p className="field-eyebrow">The field record for India&apos;s street animals</p>
         <h1 id="hero-title">
-          Every one of them is<br />
-          <em>somebody&apos;s neighbour.</em>
+          Somebody already knows this dog.<br />
+          <em>Now it is written down.</em>
         </h1>
         <p>
           A photo and a place become a record that a neighbour, a feeder and a
