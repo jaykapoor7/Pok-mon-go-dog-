@@ -437,3 +437,99 @@
     --chart-5: 218 13% 65%;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   Every click gets a response.
+
+   Counted before writing this: 156 hover rules across the stylesheets and
+   16 active ones. The site told you what was clickable and then said
+   nothing at all when you clicked it — and hover does not exist on a
+   phone, which is where most of this gets used, so for most reporters
+   there was no feedback on a press anywhere in the product.
+
+   One rule rather than a hundred. Everything that reads as a button
+   compresses under a finger and springs back.
+
+   The press response survives prefers-reduced-motion; only the travel
+   goes. Somebody who has asked for less motion has not asked to stop
+   being told that their tap registered, and on a touch screen this is the
+   only confirmation there is. So the scale stays and the transition is
+   dropped, which makes it a state change rather than an animation.
+
+   Deliberately NOT applied to plain inline links: scaling a word in the
+   middle of a paragraph looks like a rendering fault, and a transform
+   there would reflow the line. Text links get their feedback from colour,
+   underline, and the arrow rule at the bottom of this file.
+
+   Components that already own an :active rule keep it. This is a floor.
+   ════════════════════════════════════════════════════════════════════ */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a.btn-primary,
+a.btn-ghost,
+a.product-primary,
+a.field-button,
+a.sp-btn,
+a.sp-header-cta,
+a.spa-cta,
+a.rs-card,
+a.qa-card,
+.community-animal-row a,
+.spa-phone-links a,
+.spa-side a {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active,
+a.btn-primary:active,
+a.btn-ghost:active,
+a.product-primary:active,
+a.field-button:active,
+a.sp-btn:active,
+a.sp-header-cta:active,
+a.spa-cta:active,
+.spa-phone-links a:active,
+.spa-side a:active {
+  transform: scale(0.972);
+  /* In fast enough to feel like a consequence of the press; out slower,
+     which is what reads as a spring rather than a snap. */
+  transition-duration: 0.09s;
+}
+
+/* A card is larger, so the same ratio reads as a bigger movement. */
+a.rs-card:active,
+a.qa-card:active,
+.community-animal-row a:active {
+  transform: scale(0.988);
+  transition-duration: 0.09s;
+}
+
+/* No reduced-motion block of its own: the global reset near the top of
+   this file already collapses every transition-duration to nothing, which
+   leaves the press scale applying instantly. That is the behaviour this
+   wants — the state change without the animation — so a second rule here
+   would only be a duplicate that can drift. */
+
+/* Text links say it with an arrow instead. The arrow moves, the words do
+   not, so nothing reflows mid-sentence. */
+@media (prefers-reduced-motion: no-preference) {
+  .tlink svg,
+  .field-text-link svg,
+  .product-section-heading > a svg,
+  .mi-close a svg,
+  .wt-link svg {
+    transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .tlink:hover svg,
+  .field-text-link:hover svg,
+  .product-section-heading > a:hover svg,
+  .mi-close a:hover svg,
+  .wt-link:hover svg {
+    transform: translate(2px, -2px);
+  }
+}
