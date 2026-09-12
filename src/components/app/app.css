@@ -3876,3 +3876,85 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 }
 .vol-more:hover { border-color: #98a3b2; background: #f6f9fd; }
 .vol-more:focus-visible { outline: 2px solid var(--sp-blue, #2457ce); outline-offset: 2px; }
+
+/* ════════════════════════════════════════════════════════════════════
+   The survey table, on a phone.
+
+   Eleven columns, every cell `white-space: nowrap`, inside a sideways
+   scroller. On a 390px screen that is a two-inch window onto a table
+   four times the width of the phone: you can see three columns, you
+   cannot see their headings at the same time as their values, and
+   comparing two rows means scrolling right, remembering, and scrolling
+   back. It is the single least usable surface in the product and it is
+   the one an NGO is most likely to be reading in the field.
+
+   So below 760px each row becomes a card and each cell carries its own
+   label. Nothing is hidden and nothing is truncated — the same eleven
+   values are all there, stacked, in the direction a phone actually
+   scrolls.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  .ds-scroll { overflow-x: visible; }
+
+  .ds-table { display: block; font-size: 13.5px; }
+  .ds-table thead { display: none; }
+  .ds-table tbody { display: grid; gap: 12px; }
+
+  .ds-table tr {
+    display: grid;
+    gap: 0;
+    padding: 14px 15px;
+    border: 1px solid var(--bone, #dce2e8);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  /* The area is the card's heading, so it spans and sits on the left. */
+  .ds-table tbody th[scope="row"] {
+    display: block;
+    padding: 0 0 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--bone, #dce2e8);
+    text-align: left;
+    white-space: normal;
+    font-size: 15px;
+    letter-spacing: -.02em;
+  }
+  .ds-table tbody th[scope="row"] small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink-muted, #5c6d81);
+  }
+
+  /* Every other cell is a label/value row. */
+  .ds-table td {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 14px;
+    padding: 7px 0;
+    text-align: right;
+    white-space: normal;
+    font-variant-numeric: tabular-nums;
+  }
+  .ds-table td + td { border-top: 1px solid rgba(11, 32, 61, .06); }
+  .ds-table td::before {
+    content: attr(data-label);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted, #5c6d81);
+    white-space: normal;
+  }
+  .ds-table td small {
+    display: block;
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--ink-muted, #5c6d81);
+  }
+  /* The organisation is prose, not a figure; it wraps rather than
+     running off the right edge of its own card. */
+  .ds-table td.ds-org { text-align: right; }
+}

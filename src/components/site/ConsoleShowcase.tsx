@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ConsoleMock } from "./ConsoleMock";
+import type { Dog } from "@/lib/types";
 import {
   ArrowUpRight,
   CalendarRange,
@@ -80,7 +82,7 @@ const STATIONS = [
   },
 ];
 
-export function ConsoleShowcase() {
+export function ConsoleShowcase({ dogs }: { dogs: Dog[] }) {
   return (
     <section className="cx" aria-labelledby="cx-title">
       {/* Drawn rather than photographed: a faint contour field, so the
@@ -101,6 +103,12 @@ export function ConsoleShowcase() {
           </p>
         </header>
 
+        <ConsoleMock dogs={dogs} />
+
+        <p className="cx-lede">
+          And this is the route one animal takes through it.
+        </p>
+
         <ol className="cx-rail">
           {STATIONS.map(({ Icon, href, label, line }, i) => (
             <li key={label} style={{ "--i": i } as React.CSSProperties}>
@@ -118,8 +126,7 @@ export function ConsoleShowcase() {
 
         <div className="cx-foot">
           <p>
-            No screenshot here is a mock-up of a feature we intend to build.
-            Each one is a link.
+            Every step above is a screen your team can open today.
           </p>
           <Link href="/for-ngos" className="cx-cta">
             See the workspace <ArrowUpRight size={16} />

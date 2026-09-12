@@ -222,26 +222,26 @@ export function DatasetClient() {
                     {[r.city, r.state].filter(Boolean).join(", ") || "No data"}
                   </small>
                 </th>
-                <td>{METHOD_LABEL[r.method] ?? r.method}</td>
-                <td>{dates(r)}</td>
-                <td>{r.animals}</td>
-                <td className="good">{r.sterilised}</td>
-                <td className="warn">{r.not_sterilised}</td>
-                <td className="muted">{r.sterilisation_unknown}</td>
-                <td>
+                <td data-label="Method">{METHOD_LABEL[r.method] ?? r.method}</td>
+                <td data-label="Dates">{dates(r)}</td>
+                <td data-label="Animals">{r.animals}</td>
+                <td data-label="Sterilised" className="good">{r.sterilised}</td>
+                <td data-label="Not sterilised" className="warn">{r.not_sterilised}</td>
+                <td data-label="Unknown" className="muted">{r.sterilisation_unknown}</td>
+                <td data-label="Sterilised, of checked">
                   <b>{pct(r.sterilised_pct_of_checked)}</b>
                 </td>
-                <td className="good">
+                <td data-label="Vaccinated" className="good">
                   {r.vaccinated}
                   <small>{pct(r.vaccinated_pct_of_checked)} of checked</small>
                 </td>
-                <td>
+                <td data-label="Observations">
                   {r.observations}
                   <small>
                     {r.collectors} {r.collectors === 1 ? "person" : "people"}
                   </small>
                 </td>
-                <td className="ds-org">{r.organisation}</td>
+                <td data-label="Collected by" className="ds-org">{r.organisation}</td>
               </tr>
             ))}
           </tbody>

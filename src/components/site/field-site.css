@@ -880,3 +880,258 @@ html .sp.product-site .role-help-note {
   line-height: 1.65;
   color: var(--sp-body);
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   The drawn console.
+
+   A window, a rail, three panels. It sits above the six-station route
+   in the same dark section, so it is styled against that ground rather
+   than as a white screenshot pasted onto it — a bright rectangle there
+   would punch a hole in the section and drag the eye off the argument.
+   ════════════════════════════════════════════════════════════════════ */
+
+.cm { margin: var(--sp-8) 0 0; }
+
+.cm-frame {
+  border: 1px solid rgba(143, 183, 255, .26);
+  border-radius: var(--sp-radius-lg);
+  background: linear-gradient(180deg, rgba(12, 34, 70, .96), rgba(8, 24, 52, .96));
+  box-shadow: 0 30px 70px rgba(2, 10, 26, .5);
+  overflow: hidden;
+}
+
+.cm-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid rgba(143, 183, 255, .16);
+  background: rgba(255, 255, 255, .03);
+}
+.cm-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sp-flame); flex: none; }
+.cm-bar b { font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; color: #dce8fa; }
+.cm-chip {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid rgba(143, 183, 255, .3);
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--sp-sky);
+}
+
+.cm-body { display: grid; grid-template-columns: 152px minmax(0, 1fr); }
+
+.cm-rail {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: var(--sp-4) var(--sp-3);
+  border-right: 1px solid rgba(143, 183, 255, .14);
+}
+.cm-rail span {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 8px 10px;
+  border-radius: var(--sp-radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #93a9c9;
+}
+.cm-rail span i {
+  width: 13px; height: 13px; flex: none;
+  border: 1.5px solid currentColor; border-radius: 3.5px; opacity: .6;
+}
+.cm-rail span.on { background: rgba(143, 183, 255, .13); color: #fff; }
+.cm-rail span.on i { opacity: 1; border-color: var(--sp-flame); }
+
+.cm-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+}
+
+.cm-card {
+  min-width: 0;
+  padding: var(--sp-4);
+  border: 1px solid rgba(143, 183, 255, .16);
+  border-radius: var(--sp-radius);
+  background: rgba(255, 255, 255, .035);
+}
+.cm-card header { display: grid; gap: 2px; margin-bottom: var(--sp-4); }
+.cm-card header b { font-size: 13px; letter-spacing: -.015em; color: #fff; }
+.cm-card header span { font-size: 11px; color: #8298b8; }
+.cm-queue { grid-column: 1 / -1; }
+
+/* ── The ring ──────────────────────────────────────────────────── */
+.cm-ring-row { display: flex; align-items: center; gap: var(--sp-5); }
+.cm-ring { width: 84px; height: 84px; flex: none; transform: rotate(-90deg); }
+.cm-ring circle { fill: none; stroke-width: 9; stroke-linecap: round; }
+.cm-ring-track { stroke: rgba(143, 183, 255, .17); }
+.cm-ring-known { stroke: var(--sp-sky); }
+
+.cm-key { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.cm-key li {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 12px;
+  color: #a9bdd8;
+}
+.cm-key i { width: 9px; height: 9px; border-radius: 2.5px; }
+.cm-key b { font-size: 12.5px; color: #fff; font-variant-numeric: tabular-nums; }
+.k-ster { background: var(--sp-sky); }
+.k-not { background: var(--sp-flame); }
+.k-unk { background: rgba(143, 183, 255, .28); }
+
+/* ── Coverage bars ─────────────────────────────────────────────── */
+.cm-zones ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.cm-zones li {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: 11.5px;
+  color: #a9bdd8;
+}
+.cm-zone-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-zone-n { text-align: right; color: #fff; font-variant-numeric: tabular-nums; }
+.cm-track { height: 7px; border-radius: 99px; background: rgba(143, 183, 255, .13); overflow: hidden; }
+.cm-track i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--sp-sky), #5f8ce0);
+}
+
+/* ── The queue ─────────────────────────────────────────────────── */
+.cm-queue ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.cm-queue li {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1.1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 9px 0;
+  border-top: 1px solid rgba(143, 183, 255, .12);
+  font-size: 12px;
+}
+.cm-queue li:first-child { border-top: 0; }
+.cm-queue i { width: 8px; height: 8px; border-radius: 50%; }
+.cm-q-name { color: #fff; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-q-zone { color: #8298b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-q-tag {
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: rgba(143, 183, 255, .14);
+  color: var(--sp-sky);
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cm-q-tag.urgent { background: rgba(240, 91, 64, .18); color: #ffab92; }
+.cm-thin { padding: 9px 0; color: #8298b8; font-size: 12px; }
+
+/* ── Arrival ───────────────────────────────────────────────────────
+   The window rises, then its contents fill in: the ring sweeps from
+   zero, the bars grow from the left, the queue rows come in 60ms apart.
+   Everything is transform and opacity except the bar width, which is
+   inside its own clipped track so the growth costs a paint on a 7px
+   strip rather than a layout on the card. */
+.field-site[data-motion="on"] .cm-frame {
+  opacity: 0;
+  transform: translateY(18px) scale(.985);
+  transition: opacity var(--sp-slow) var(--sp-ease), transform var(--sp-slow) var(--sp-ease);
+}
+.field-site[data-motion="on"] .cm.is-in .cm-frame { opacity: 1; transform: none; }
+
+.field-site[data-motion="on"] .cm-ring-known {
+  stroke-dashoffset: 220;
+  transition: stroke-dashoffset 1.1s var(--sp-ease) 260ms;
+}
+.field-site[data-motion="on"] .cm.is-in .cm-ring-known { stroke-dashoffset: 0; }
+
+.field-site[data-motion="on"] .cm-track i {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--sp-slow) var(--sp-ease);
+  transition-delay: calc(var(--i) * 70ms + 300ms);
+}
+.field-site[data-motion="on"] .cm.is-in .cm-track i { transform: scaleX(1); }
+
+.field-site[data-motion="on"] .cm-queue li {
+  opacity: 0;
+  transform: translateY(7px);
+  transition: opacity var(--sp-base) var(--sp-ease), transform var(--sp-base) var(--sp-ease);
+  transition-delay: calc(var(--i) * 60ms + 460ms);
+}
+.field-site[data-motion="on"] .cm.is-in .cm-queue li { opacity: 1; transform: none; }
+
+/* ── Narrow ────────────────────────────────────────────────────────
+   The rail goes horizontal and scrolls, the panels stack, and the queue
+   drops its locality column — three columns of ellipsis in 358px is not
+   information, it is three columns of ellipsis. */
+@media (max-width: 900px) {
+  .cm { margin-top: var(--sp-7); }
+  .cm-body { grid-template-columns: 1fr; }
+  .cm-rail {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: 4px;
+    overflow-x: auto;
+    padding: var(--sp-3);
+    border-right: 0;
+    border-bottom: 1px solid rgba(143, 183, 255, .14);
+    scrollbar-width: none;
+  }
+  .cm-rail::-webkit-scrollbar { display: none; }
+  .cm-rail span { white-space: nowrap; font-size: 12px; }
+  .cm-main { grid-template-columns: 1fr; gap: var(--sp-3); padding: var(--sp-3); }
+  .cm-ring { width: 70px; height: 70px; }
+  .cm-ring-row { gap: var(--sp-4); }
+  .cm-zones li { grid-template-columns: 76px minmax(0, 1fr) 20px; }
+  .cm-queue li { grid-template-columns: 8px minmax(0, 1fr) auto; }
+  .cm-q-zone { display: none; }
+}
+
+.cx-lede {
+  max-width: 46ch;
+  margin: var(--sp-8) 0 calc(var(--sp-6) * -1);
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: -.02em;
+  color: #cddcf0;
+}
+@media (max-width: 900px) { .cx-lede { margin: var(--sp-7) 0 0; font-size: 15.5px; } }
+
+/* The empty states are <li> inside grids whose columns are sized for
+   data rows, so "Nothing open." was being poured into an 84px track and
+   breaking after every word. They span the whole row instead. */
+.cm-zones li.cm-thin,
+.cm-queue li.cm-thin {
+  display: block;
+  grid-column: 1 / -1;
+}
+
+/* Real glyphs replaced the six identical squares, so the placeholder
+   box rule goes with them. */
+.cm-rail span svg { flex: none; opacity: .75; }
+.cm-rail span.on svg { opacity: 1; color: var(--sp-flame); }
+
+/* The queue had 1.1fr for a name and 1fr for a locality, which on a
+   1180px frame left the two of them a third of the window apart with
+   nothing in between. Both columns size to their content now, and the
+   tag stays pinned right where the eye goes looking for status. */
+@media (min-width: 901px) {
+  .cm-queue li {
+    grid-template-columns: 8px minmax(0, 22ch) minmax(0, 20ch) auto;
+    justify-content: start;
+    column-gap: var(--sp-6);
+  }
+  .cm-q-tag { margin-left: auto; }
+}
