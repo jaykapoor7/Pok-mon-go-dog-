@@ -13,6 +13,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
+import { MotionRoot } from "@/components/motion/MotionRoot";
 
 // Interface: DM Sans, restrained, precise, engineered.
 const sans = DM_Sans({
@@ -134,12 +135,16 @@ export default function RootLayout({
       </head>
       <body className="min-h-dvh font-sans">
         <ThemeProvider>
-          <AuthProvider>
-            <Haptics />
-            <Chrome>{children}</Chrome>
-            <InstallPrompt />
-        <Toaster />
-          </AuthProvider>
+          {/* Outside AuthProvider so it covers every framer-motion
+              component in the tree, including the auth modal itself. */}
+          <MotionRoot>
+            <AuthProvider>
+              <Haptics />
+              <Chrome>{children}</Chrome>
+              <InstallPrompt />
+              <Toaster />
+            </AuthProvider>
+          </MotionRoot>
         </ThemeProvider>
       </body>
     </html>

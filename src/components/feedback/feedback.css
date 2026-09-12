@@ -103,7 +103,7 @@
 /* Rises into place rather than appearing. 130ms, because a panel somebody
    asked for should not make them wait to read it. */
 @media (prefers-reduced-motion: no-preference) {
-  .fb-dialog[open] .fb-panel { animation: fb-rise 0.16s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .fb-dialog[open] .fb-panel { animation: fb-rise 0.16s var(--sp-ease) both; }
   .fb-dialog[open]::backdrop { animation: fb-fade 0.16s ease both; }
 }
 @keyframes fb-rise {
@@ -237,7 +237,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease, transform 0.09s ease,
-    min-width 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    min-width 0.2s var(--sp-ease);
 }
 .fb-send:hover:not(:disabled) { background: #1c47ad; border-color: #1c47ad; }
 .fb-send:active:not(:disabled) { transform: scale(0.97); }

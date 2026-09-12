@@ -1,6 +1,6 @@
 # 002 — Gate every hover transform behind a real pointer
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 5d87611
 - **Severity**: HIGH
 - **Category**: 6. Accessibility / 1. Purpose & frequency

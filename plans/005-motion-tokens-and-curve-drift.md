@@ -1,6 +1,6 @@
 # 005 — One curve, one duration scale, actually used
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 5d87611
 - **Severity**: MEDIUM
 - **Category**: 7. Cohesion & tokens / 2. Easing & duration

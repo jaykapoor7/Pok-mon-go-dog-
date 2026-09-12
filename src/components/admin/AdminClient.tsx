@@ -1000,11 +1000,19 @@ export function AdminClient() {
           {items.map((s) => (
             <motion.div
               key={s.id}
-              layout
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, height: 0, marginTop: 0 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              /* No exit, and no layout prop.
+
+                 This used to animate height and marginTop with `layout`
+                 on top — layout, paint and composite on every approve
+                 and every reject, plus a per-frame measure pass that
+                 re-slid every remaining row. A moderator clearing a
+                 queue paid that hundreds of times a session and could
+                 not read the next item until the reflow settled.
+
+                 A 100+/day action gets no animation. The row goes. */
+              transition={{ duration: 0.12, ease: [0.23, 1, 0.32, 1] }}
               className="card overflow-hidden"
             >
               <div className="flex gap-3 p-3">

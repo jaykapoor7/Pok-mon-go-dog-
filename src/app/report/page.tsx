@@ -213,7 +213,7 @@ export default function ReportPage() {
           initial={{ opacity: 0, x: reduceMotion ? 0 : 16 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: reduceMotion ? 0 : -16 }}
-          transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.23, 1, 0.32, 1] }}
         >
           {/* ── Step 0: photo ── */}
           {step === 0 && (

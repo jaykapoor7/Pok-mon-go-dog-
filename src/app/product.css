@@ -52,7 +52,7 @@ html .spa.spa button:disabled{cursor:not-allowed}
 .product-page-heading h1 em{font-family:var(--font-display),serif;font-style:italic;font-weight:400;color:var(--sp-flame-ink)}
 .product-page-heading p{font-size:15px;color:var(--sp-muted);line-height:1.65;margin:0}
 .product-primary{display:inline-flex;gap:10px;align-items:center;justify-content:center;background:var(--sp-blue);color:white;min-height:46px;padding:13px 19px;border-radius:7px;font-size:14px;font-weight:600;white-space:nowrap;text-decoration:none;transition:background .2s,transform .2s}
-.product-primary:hover{background:#183f9e;transform:translateY(-1px)}
+.product-primary:hover{background:#183f9e}@media (hover:hover) and (pointer:fine){.product-primary:hover{transform:translateY(-1px)}}
 .community-home{max-width:1450px;margin:auto}
 .community-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;align-items:center;margin:25px 0 32px;border-top:1px solid var(--sp-line);border-bottom:1px solid var(--sp-line);padding:20px 0;gap:25px}
 .community-counts>div,.community-counts>a{display:flex;gap:14px;align-items:center;color:var(--sp-ink);text-decoration:none}
@@ -99,7 +99,7 @@ html .spa.spa button:disabled{cursor:not-allowed}
 .community-animal-row>li{display:flex;flex:0 0 164px;scroll-snap-align:start}
 .community-animal-row a{display:block;width:100%;padding:10px;background:#fff;border:1px solid var(--sp-panel-line);
   border-radius:9px;color:var(--sp-ink);text-decoration:none;transition:border-color .18s,transform .18s}
-.community-animal-row a:hover{border-color:var(--sp-blue);transform:translateY(-2px)}
+.community-animal-row a:hover{border-color:var(--sp-blue)}@media (hover:hover) and (pointer:fine){.community-animal-row a:hover{transform:translateY(-2px)}}
 .community-animal-photo{display:block;width:100%;aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:var(--sp-ground)}
 .community-animal-photo img{width:100%;height:100%;object-fit:cover}
 .community-animal-row b{display:block;margin-top:10px;font-size:14px;letter-spacing:-.02em;
@@ -274,7 +274,7 @@ html .spa.spa.spa-reporting .report-step-list{margin:14px 0 0}
 html .spa.spa.spa-reporting .report-form{border-radius:8px;padding:18px 14px}
 html .spa.spa.spa-reporting .report-form .report-upload{min-height:170px}
 }
-@media(prefers-reduced-motion:reduce){.spa *,.spa *::before,.spa *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.product-primary:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){/* blanket .spa reset removed: globals.css covers it */.product-primary:hover{transform:none}}
 
 /* Daily field work has four destinations, not a sidebar full of product
    architecture. Secondary work is still present, one deliberate tap away. */
@@ -287,7 +287,7 @@ html .spa.spa .spa-reference-nav a{padding:9px 12px;min-height:39px;font-size:13
 html .spa.spa .spa-more{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:42px;margin-top:18px;padding:10px 12px;border:1px solid var(--sp-line);border-radius:7px;background:transparent;color:var(--sp-muted);font:600 13px var(--font-sans),sans-serif;cursor:pointer}
 html .spa.spa .spa-more:hover{border-color:#a7bee7;background:#f4f7fb;color:var(--sp-blue)}
 html .spa.spa .spa-global-report{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:10px 14px;border-radius:6px;background:var(--sp-blue);color:#fff;font-size:13px;font-weight:600;text-decoration:none;transition:background .18s ease,transform .18s ease}
-html .spa.spa .spa-global-report:hover{background:#183f9e;transform:translateY(-1px)}
+html .spa.spa .spa-global-report:hover{background:#183f9e}@media (hover:hover) and (pointer:fine){html .spa.spa .spa-global-report:hover{transform:translateY(-1px)}}
 html .spa.spa .spa-switch{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:10px 11px;border:0;border-radius:6px;background:transparent;color:var(--sp-muted);font:600 13px var(--font-sans),sans-serif;cursor:pointer}
 html .spa.spa .spa-switch:hover{background:var(--sp-ground);color:var(--sp-blue)}
 html .spa.spa .spa-mobile-report{display:none}
@@ -314,7 +314,7 @@ html .spa.spa .partner-overview .partner-greeting h1{font-size:clamp(30px,3vw,42
 
 /* Evidence is a usable research ledger. Rows preserve the working question
    and context instead of presenting six decorative destinations. */
-.ev{max-width:1120px!important;margin:auto}.ev header{padding-bottom:28px!important;border-bottom:1px solid var(--sp-line)}.ev h1{font-size:clamp(31px,3.4vw,46px)!important;letter-spacing:-.055em!important}.ev header p{font-size:15px!important;max-width:65ch!important}.ev-grid{display:none!important}.ev-ledger{margin-top:26px;border-top:1px solid var(--sp-line)}.ev-ledger-head,.ev-row{display:grid;grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;gap:18px;align-items:center}.ev-ledger-head{grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;padding:11px 14px;color:var(--sp-muted);font:11px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;text-transform:uppercase}.ev-ledger-head span:first-child{grid-column:2}.ev-row{min-height:98px;padding:17px 14px;border-top:1px solid var(--sp-line);color:var(--sp-ink);text-decoration:none;transition:background .18s ease,padding .18s ease}.ev-row:hover{background:#f4f7fb;padding-left:20px}.ev-row svg{color:var(--sp-blue)}.ev-row b,.ev-row span{display:block}.ev-row b{font-size:16px;letter-spacing:-.025em}.ev-row div>span{margin-top:5px;color:var(--sp-blue);font-size:12px;font-weight:600;line-height:1.45}.ev-row p{margin:0;color:var(--sp-muted);font-size:13px;line-height:1.55}.ev-open{font-size:12px;font-weight:600;color:var(--sp-blue)}
+.ev{max-width:1120px!important;margin:auto}.ev header{padding-bottom:28px!important;border-bottom:1px solid var(--sp-line)}.ev h1{font-size:clamp(31px,3.4vw,46px)!important;letter-spacing:-.055em!important}.ev header p{font-size:15px!important;max-width:65ch!important}.ev-grid{display:none!important}.ev-ledger{margin-top:26px;border-top:1px solid var(--sp-line)}.ev-ledger-head,.ev-row{display:grid;grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;gap:18px;align-items:center}.ev-ledger-head{grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;padding:11px 14px;color:var(--sp-muted);font:11px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;text-transform:uppercase}.ev-ledger-head span:first-child{grid-column:2}.ev-row{min-height:98px;padding:17px 14px;border-top:1px solid var(--sp-line);color:var(--sp-ink);text-decoration:none;transition:background .18s ease,padding .18s ease}.ev-row:hover{background:#f4f7fb}@media (hover:hover) and (pointer:fine){.ev-row:hover{padding-left:20px}}.ev-row svg{color:var(--sp-blue)}.ev-row b,.ev-row span{display:block}.ev-row b{font-size:16px;letter-spacing:-.025em}.ev-row div>span{margin-top:5px;color:var(--sp-blue);font-size:12px;font-weight:600;line-height:1.45}.ev-row p{margin:0;color:var(--sp-muted);font-size:13px;line-height:1.55}.ev-open{font-size:12px;font-weight:600;color:var(--sp-blue)}
 .evidence-surface .evidence-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:27px 0 34px;border-top:1px solid var(--sp-line);border-bottom:1px solid var(--sp-line)}.evidence-metrics>div{display:grid;gap:5px;padding:21px 22px;border-left:1px solid var(--sp-line)}.evidence-metrics>div:first-child{border-left:0;padding-left:0}.evidence-metrics span,.evidence-metrics small{font-size:12px;color:var(--sp-muted);line-height:1.45}.evidence-metrics b{font-size:31px;line-height:1.1;letter-spacing:-.055em;font-weight:600;color:var(--sp-ink)}.evidence-next{display:flex;align-items:center;justify-content:space-between;gap:25px;margin-top:32px;padding-top:28px;border-top:1px solid var(--sp-line)}.evidence-next b,.evidence-next span{display:block}.evidence-next b{font-size:16px}.evidence-next span{margin-top:5px;color:var(--sp-muted);font-size:13px}
 .evidence-tabs{display:flex;gap:22px;margin:22px 0 0;border-bottom:1px solid var(--sp-line)}.evidence-tabs a{padding:10px 1px 11px;border-bottom:2px solid transparent;color:var(--sp-muted);font-size:13px;font-weight:600;text-decoration:none}.evidence-tabs a:hover{color:var(--sp-blue)}.evidence-tabs a[aria-current=page]{border-color:var(--sp-blue);color:var(--sp-blue)}
 .evidence-context-links{display:flex;gap:18px;margin-top:16px}.evidence-context-links a{color:var(--sp-blue);font-size:13px;font-weight:600;text-decoration:none}.evidence-context-links a:hover{text-decoration:underline}

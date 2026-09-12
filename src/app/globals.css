@@ -268,7 +268,7 @@
 /* Interactive cards get a subtle lift on hover/press, premium depth. */
 .card-interactive {
   @apply transition-[transform,box-shadow] duration-200 ease-out
-         hover:-translate-y-0.5 hover:shadow-pop active:translate-y-0 active:scale-[0.995];
+         hover:shadow-pop active:translate-y-0 active:scale-[0.995];
 }
 
 /* The funder report prints in its own isolated window (see FunderReport.tsx),
@@ -283,6 +283,24 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* A spinner is not decoration. It is the only signal that work is in
+     progress, and `animation-iteration-count: 1` at 0.001ms freezes it
+     on its first frame — which reads as a hung app, not as calm.
+
+     This also un-breaks a decision made correctly elsewhere:
+     feedback.css deliberately slows its spinner to 1.6s rather than
+     killing it, which is exactly the shape reduced motion asks for, and
+     the blanket `!important` above was beating it regardless of
+     specificity. Reduced motion means gentler, not absent. */
+  .imp-spin,
+  .demo-spin,
+  .fb-spin,
+  .animate-spin,
+  [data-keep-motion] {
+    animation-duration: 1.6s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 
@@ -478,7 +496,7 @@ a.qa-card,
 .spa-phone-links a,
 .spa-side a {
   transition:
-    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.18s var(--sp-ease),
     background-color 0.16s ease,
     border-color 0.16s ease,
     color 0.16s ease;
@@ -523,14 +541,19 @@ a.qa-card:active,
   .product-section-heading > a svg,
   .mi-close a svg,
   .wt-link svg {
-    transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.18s var(--sp-ease);
   }
-  .tlink:hover svg,
-  .field-text-link:hover svg,
-  .product-section-heading > a:hover svg,
-  .mi-close a:hover svg,
-  .wt-link:hover svg {
-    transform: translate(2px, -2px);
+  /* Gated on pointer as well as on motion preference. Those are two
+     different questions and only one of them was being asked: on a
+     phone a tap fires a hover and leaves the arrow nudged. */
+  @media (hover: hover) and (pointer: fine) {
+    .tlink:hover svg,
+    .field-text-link:hover svg,
+    .product-section-heading > a:hover svg,
+    .mi-close a:hover svg,
+    .wt-link:hover svg {
+      transform: translate(2px, -2px);
+    }
   }
 }
 
@@ -602,4 +625,15 @@ a.qa-card:active,
     align-items: center;
     min-height: 40px;
   }
+}
+
+/* .card-interactive's hover lift, gated. It is applied in six
+   components — CaseCard, FundraiserCard, FeedingZoneCard, HelpClient,
+   OrgManager and the news page — i.e. every list of tappable cards a
+   volunteer scrolls on a phone, where a lift that sticks after the tap
+   is the most visible version of this bug in the product. The shadow
+   and the press response stay in the @apply above; only the travel is
+   conditional. */
+@media (hover: hover) and (pointer: fine) {
+  .card-interactive:hover { transform: translateY(-0.125rem); }
 }

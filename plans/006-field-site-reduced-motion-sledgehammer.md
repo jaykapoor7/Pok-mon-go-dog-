@@ -1,6 +1,6 @@
 # 006 — Soften the field-site reduced-motion reset
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 5d87611
 - **Severity**: MEDIUM
 - **Category**: 6. Accessibility

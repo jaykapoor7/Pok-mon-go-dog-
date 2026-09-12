@@ -551,8 +551,12 @@
   opacity: 0.9;
   transition: transform 0.4s var(--sp-ease), opacity 0.3s ease;
 }
-.sp-node:hover { transform: translateY(-8px); border-color: var(--electric); }
-.sp-node:hover .sp-node-art { transform: scale(1.06); opacity: 1; }
+.sp-node:hover { border-color: var(--electric); }
+.sp-node:hover .sp-node-art { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .sp-node:hover { transform: translateY(-8px); }
+  .sp-node:hover .sp-node-art { transform: scale(1.06); }
+}
 .sp-node.active { border-color: var(--electric); color: var(--electric); }
 .sp-node-index {
   display: block;
@@ -622,7 +626,9 @@
   transition: transform 0.3s var(--sp-ease), border-color 0.3s ease;
 }
 .sp-gap-card.gap { border-top-color: var(--vermilion); }
-.sp-gap-card:hover { transform: translateY(-6px); }
+@media (hover: hover) and (pointer: fine) {
+  .sp-gap-card:hover { transform: translateY(-6px); }
+}
 .sp-gap-art {
   display: block;
   width: 154px;
@@ -1122,10 +1128,19 @@
   box-shadow: 0 0 0 5px rgba(255, 106, 79, 0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.sp-point:hover span,
+/* Hover used to share this rule with .selected, so on a phone a tap
+   left the point looking exactly like the selected one — a
+   comprehension bug, not a cosmetic one. Selection is the real state
+   and keeps the rule; hover only borrows it where a hover is real. */
 .sp-point.selected span {
   transform: scale(1.45);
   box-shadow: 0 0 0 8px rgba(143, 183, 255, 0.15);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sp-point:hover span {
+    transform: scale(1.45);
+    box-shadow: 0 0 0 8px rgba(143, 183, 255, 0.15);
+  }
 }
 .sp-point.electric span { background: var(--electric); }
 .sp-point.cyan span { background: var(--cyan); }
@@ -1485,7 +1500,10 @@
   padding: 24px 18px;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-.sp-loop-stage:hover { background: #eef1f5; transform: translateY(-2px); }
+.sp-loop-stage:hover { background: #eef1f5; }
+@media (hover: hover) and (pointer: fine) {
+  .sp-loop-stage:hover { transform: translateY(-2px); }
+}
 @media (prefers-reduced-motion: reduce) {
   .sp-loop-stage:hover { transform: none; }
 }
@@ -2052,10 +2070,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sp-reveal { opacity: 1; transform: none; transition: none; }
-  .sp *, .sp *::before, .sp *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+  /* The blanket .sp reset stood here. globals.css already covers every
+     element on the page, and a second copy at a different value
+     (0.01ms vs 0.001ms) is a duplicate nobody keeps in step. What
+     remains in this block is the targeted part, which is the part
+     worth having. */
   /* Looping vector motion is decorative, stop it outright rather than
      letting it flicker at 0.01ms. */
   .sp-ping, .sp-sweep, .sp-trace { animation: none !important; }
@@ -2079,7 +2098,10 @@
   /* Nudges up on hover, enough to feel responsive, not enough to distract. */
   transition: background 0.2s ease, transform 0.2s ease;
 }
-.sp-part:hover { background: #e6ebf1; transform: translateY(-2px); }
+.sp-part:hover { background: #e6ebf1; }
+@media (hover: hover) and (pointer: fine) {
+  .sp-part:hover { transform: translateY(-2px); }
+}
 .sp-part > svg { color: var(--vermilion-ink); }
 .sp-part b {
   display: block;

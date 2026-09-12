@@ -1,6 +1,6 @@
 # 003 — Stop the moderation queue animating layout on every decision
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 5d87611
 - **Severity**: HIGH
 - **Category**: 5. Performance / 1. Purpose & frequency

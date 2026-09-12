@@ -12,7 +12,7 @@ export function FeedingMarker({ label, onClick }: { label: string; onClick?: () 
         onClick?.();
       }}
       aria-label={label}
-      className="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-status-hungry text-base shadow-pop transition-transform duration-150 hover:z-10 hover:scale-110 active:scale-95 dark:border-bark-900"
+      className="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-status-hungry text-base shadow-pop transition-transform duration-150 active:scale-95 [@media(hover:hover)and(pointer:fine)]:hover:z-10 [@media(hover:hover)and(pointer:fine)]:hover:scale-110 dark:border-bark-900"
     >
       🥣
     </button>

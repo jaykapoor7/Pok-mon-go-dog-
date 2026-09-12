@@ -1,6 +1,6 @@
 # 004 — Branch framer-motion movement on `useReducedMotion()`
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 5d87611
 - **Severity**: HIGH
 - **Category**: 6. Accessibility

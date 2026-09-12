@@ -81,7 +81,9 @@
  .sp-map-legend{bottom:auto;top:145px;left:12px;padding:10px 12px;max-width:calc(100% - 78px)}.sp-map-detail{top:auto;bottom:0;left:0;right:0;width:auto;max-height:66%;border-radius:16px 16px 0 0;animation:map-detail-up .24s ease-out}.sp-map-cover{height:170px}.sp-map-detail-body{padding:18px 22px}.sp-map.has-selection .sp-map-results{display:none}.sp-map.has-selection .sp-map-controls{right:12px}.sp-map-detail-actions{padding-bottom:max(18px,env(safe-area-inset-bottom))}
 }
 @keyframes map-detail-up { from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1} }
-@media(prefers-reduced-motion:reduce){.sp-map-detail{animation:none}.sp-map *{scroll-behavior:auto}}
+@media(prefers-reduced-motion:reduce){.sp-map-detail{animation:map-detail-fade .2s ease both}}
+@keyframes map-detail-fade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.sp-map-detail-noop{animation:none}.sp-map *{scroll-behavior:auto}}
 
 /* When a filter has no result, the map stays the surface. This is a compact
    inline state, not a second list layered over the map. */

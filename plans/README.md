@@ -11,14 +11,33 @@ All plans stamped at commit `5d87611`.
 
 | # | Plan | Severity | Category | Status |
 | --- | --- | --- | --- | --- |
-| 001 | [Stop the reduced-motion reset freezing spinners](001-reduced-motion-sledgehammer.md) | HIGH | Accessibility | TODO |
-| 002 | [Gate every hover transform behind a real pointer](002-hover-motion-on-touch.md) | HIGH | Accessibility / Frequency | TODO |
-| 003 | [Stop the moderation queue animating layout](003-moderation-queue-layout-thrash.md) | HIGH | Performance / Frequency | TODO |
-| 004 | [Branch framer-motion on `useReducedMotion()`](004-framer-motion-reduced-motion.md) | HIGH | Accessibility | TODO |
-| 005 | [One curve, one duration scale, actually used](005-motion-tokens-and-curve-drift.md) | MEDIUM | Cohesion & tokens | TODO |
-| 006 | [Soften the field-site reduced-motion reset](006-field-site-reduced-motion-sledgehammer.md) | MEDIUM | Accessibility | TODO |
+| 001 | [Stop the reduced-motion reset freezing spinners](001-reduced-motion-sledgehammer.md) | HIGH | Accessibility | DONE |
+| 002 | [Gate every hover transform behind a real pointer](002-hover-motion-on-touch.md) | HIGH | Accessibility / Frequency | DONE |
+| 003 | [Stop the moderation queue animating layout](003-moderation-queue-layout-thrash.md) | HIGH | Performance / Frequency | DONE |
+| 004 | [Branch framer-motion on `useReducedMotion()`](004-framer-motion-reduced-motion.md) | HIGH | Accessibility | DONE |
+| 005 | [One curve, one duration scale, actually used](005-motion-tokens-and-curve-drift.md) | MEDIUM | Cohesion & tokens | DONE |
+| 006 | [Soften the field-site reduced-motion reset](006-field-site-reduced-motion-sledgehammer.md) | MEDIUM | Accessibility | DONE |
 
-## Recommended order, and why
+## All six are implemented
+
+Executed in the order below and verified in a browser. What the
+verification actually showed, rather than what it was supposed to show:
+
+- `.fb-spin` and `.imp-spin` under `prefers-reduced-motion: reduce` now
+  compute to `1.6s` / `infinite`. Before, both were frozen on frame one.
+- `.field-button` under reduced motion now computes
+  `transition-property: opacity, color, background-color, border-color,
+  box-shadow` — colour feedback survives, travel does not. Before, the
+  landing page had `transition: none !important` on every descendant.
+- `(hover: hover) and (pointer: fine)` evaluates false on a touch
+  context and true on a mouse one, so hover lifts are off on a phone and
+  on at a desk.
+- A feed card under reduced motion computes `transform: none`, which no
+  CSS rule could previously achieve because framer-motion writes inline.
+
+31 routes re-swept at 390px afterwards: no regressions.
+
+## The order they were done in, and why
 
 **001 → 006 → 004 → 002 → 003 → 005.**
 

@@ -41,7 +41,7 @@ export function SlideDeck({ slides }: { slides: React.ReactNode[] }) {
             initial={{ opacity: 0, x: dir * 60 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: dir * -60 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.14}
