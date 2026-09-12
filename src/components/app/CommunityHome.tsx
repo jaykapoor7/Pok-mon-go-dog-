@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { FieldMapPreview } from "@/components/site/FieldMapPreview";
 import { RecentSightings } from "@/components/app/RecentSightings";
+import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { cityForPoints } from "@/lib/geo/cities";
 import { densestCell, located } from "@/lib/geo/cluster";
@@ -268,6 +269,17 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
             </Link>
           </div>
         </section>
+      </div>
+
+      {/* The console's side rail is hidden on a phone, and a phone is where
+          most of this gets used. The way to say something is wrong should
+          not be desktop-only. */}
+      <div className="community-feedback">
+        <p>
+          <b>Something not working, or missing?</b> This is built by one
+          person and the useful corrections all come from people using it.
+        </p>
+        <FeedbackButton label="Tell us what to fix" />
       </div>
     </div>
   );

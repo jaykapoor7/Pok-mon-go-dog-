@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
+import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
 import { readStoredRole, type Role } from "@/lib/roles";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
@@ -275,6 +276,10 @@ export function AppShell({
           </div>
           <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting"><Radio size={21}/><span>Report</span></Link>
           <div className="spa-side-foot">
+            {/* The console is where somebody is when something annoys them,
+                so the suggestion box is here rather than only in a footer
+                three pages away. */}
+            <FeedbackButton variant="quiet" label="Send feedback" />
             <ProfilePanel />
           </div>
         </nav>

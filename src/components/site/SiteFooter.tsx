@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 
 /* The legal strip that closes every page outside the console.
    It was written out by hand in MarketingPage and again would have been
@@ -15,6 +16,7 @@ export function SiteFooter({ className = "" }: { className?: string }) {
           <Link href="/privacy">PRIVACY</Link>
           <Link href="/terms">TERMS</Link>
           <Link href="/contact">CONTACT</Link>
+          <FeedbackButton label="FEEDBACK" />
         </span>
         <span>BUILT IN INDIA / FOR EVERYWHERE</span>
       </div>

@@ -105,6 +105,18 @@ html .spa.spa button:disabled{cursor:not-allowed}
 /* The right-hand column is a column, not a leftover. */
 .community-recent{display:flex;flex-direction:column;gap:0}
 .community-recent .community-next-step{margin-top:26px}
+/* One quiet line at the end of the home screen. Not a floating button:
+   the console already has a floating action and two is a fight. */
+.community-feedback{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  margin-top:40px;padding-top:22px;border-top:1px solid var(--sp-line)}
+.community-feedback p{margin:0;max-width:62ch;font-size:13.5px;line-height:1.6;color:var(--sp-muted)}
+.community-feedback b{color:var(--sp-ink)}
+.community-feedback .fb-open{min-height:40px;padding:0 14px;border:1px solid var(--sp-line);border-radius:8px;
+  background:#fff;font-size:13px;font-weight:600;color:var(--sp-blue);white-space:nowrap;
+  transition:border-color .16s ease,transform .09s ease}
+.community-feedback .fb-open:hover{border-color:var(--sp-blue)}
+.community-feedback .fb-open:active{transform:scale(.975)}
+@media(prefers-reduced-motion:reduce){.community-feedback .fb-open:active{transform:none}}
 .community-reference{font-size:14px;color:var(--sp-muted)}
 .community-reference summary{cursor:pointer;padding:10px 0}
 .community-reference nav{display:flex;gap:20px;flex-wrap:wrap;padding:15px 0}
