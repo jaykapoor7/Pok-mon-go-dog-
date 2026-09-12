@@ -5,7 +5,9 @@
    from the site that sends people here. Same ink, same paper, same
    vermilion. The blue stays for controls: on a working screen the thing you
    can click has to be a different colour from the thing that is on fire. */
-:root{--sp-blue:#2457ce;--sp-ink:#0b1e3d;--sp-orange:#f47d45;--sp-flame:#f05b40;--sp-flame-ink:#c1391c;--sp-muted:#5d6b7c;--sp-line:#e3d9ca;--sp-ground:#f3ede4;--sp-panel-line:#e6ddd0;--sp-radius:10px;--sp-ease:cubic-bezier(.22,1,.36,1)}
+/* The --sp-* values moved to src/app/tokens.css, which is imported
+   first in layout.tsx. They were declared here AND in site.css, with the
+   two copies disagreeing about --sp-ease. */
 html .spa,html .spa-scope{--ink:var(--sp-ink);--paper:var(--sp-ground);--electric-ink:var(--sp-blue);--primary:222 68% 47%;--primary-foreground:0 0% 100%;--ring:222 68% 47%;color:var(--sp-ink)}
 html .sp .sp-header{background:#fff;border-bottom:1px solid var(--sp-line);box-shadow:none}
 html .sp .sp-wordmark{color:var(--sp-ink);letter-spacing:-.055em}
@@ -359,4 +361,87 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
   html .spa.spa .spa-switch { min-height: 44px; min-width: 44px; }
   html .spa.spa .spa-exit { min-height: 44px; display: inline-flex; align-items: center; }
   html .spa.spa .spa-search input { min-height: 44px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   The phone bar.
+
+   Five slots, Report in the middle. Report used to be a sixth element
+   sitting after the grid, which put the one action this product exists to
+   collect at the far right edge — the corner a right thumb reaches last
+   and a left thumb cannot reach at all. The grid now holds it.
+
+   Written here at the end rather than edited into the block above so the
+   whole bar reads as one object instead of four rules that have to be
+   held in your head at once.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  html .spa.spa .spa-phone-links {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    flex: 1;
+    min-width: 0;
+    align-items: stretch;
+  }
+
+  /* Every slot is the same object: same height, same stack, same baseline.
+     44px is the floor a finger can reliably hit. */
+  html .spa.spa .spa-side .spa-phone-links > a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 7px 2px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #5c6d81;
+    font-size: 9.5px;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    text-decoration: none;
+    /* The label is one word wide and the column is a fifth of a phone. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  html .spa.spa .spa-side .spa-phone-links > a svg { flex: none; }
+
+  html .spa.spa .spa-side .spa-phone-links > a[aria-current="page"] {
+    color: var(--sp-blue);
+    box-shadow: inset 0 2px 0 var(--sp-blue);
+  }
+
+  /* The centre slot. Not a bigger version of its neighbours — a different
+     kind of thing, so it carries the fill and they do not. */
+  html .spa.spa .spa-side a.spa-mobile-report {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 44px;
+    margin: 6px 4px;
+    padding: 6px 2px;
+    border: 0;
+    border-radius: 11px;
+    background: var(--sp-blue);
+    color: #fff;
+    font-size: 9.5px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-decoration: none;
+    box-shadow: 0 3px 10px rgba(36, 87, 206, 0.34);
+  }
+  html .spa.spa .spa-side a.spa-mobile-report svg { margin: 0; color: #fff; }
+  html .spa.spa .spa-side a.spa-mobile-report:hover { color: #fff; background: #1c46a8; }
+  html .spa.spa .spa-side a.spa-mobile-report:active { background: #1c46a8; }
+
+  /* Dead rule from when Report sat outside the grid. */
+  html .spa.spa .spa-more { display: none; }
 }

@@ -40,17 +40,17 @@
      seems necessary, the honest question is which of these it should
      have been. */
 
-  /* Decelerating, quintic. The default: things arriving and settling. */
-  --sp-ease: var(--sp-ease);
-  /* Sharper landing, for larger travel — the same gesture, more authority. */
-  --sp-ease-out: var(--sp-ease-out);
-  /* Symmetric, for anything that reverses: hovers, toggles, exits. */
-  --sp-ease-io: cubic-bezier(0.4, 0, 0.2, 1);
+  /* The curves and durations now live in src/app/tokens.css, on :root,
+     and are inherited here.
 
-  --sp-fast: 0.16s;   /* state on a control you are touching  */
-  --sp-base: 0.28s;   /* the default for interface movement   */
-  --sp-slow: 0.5s;    /* something entering the page          */
-  --sp-scene: 0.85s;  /* a whole section arriving             */
+     What stood in these two lines was `--sp-ease: var(--sp-ease)` and
+     `--sp-ease-out: var(--sp-ease-out)` — each property defined as
+     itself. That is a cycle: it computes to guaranteed-invalid, and an
+     invalid var() is invalid at computed-value time, which does not fall
+     back to `ease`, it throws away the ENTIRE declaration it appears in.
+     Six transitions on this page had no transition at all as a result,
+     including the scroll reveal at the bottom of this file, which was
+     written to glide 28px and was in fact teleporting. */
 
   background: var(--paper);
   color: var(--ink);

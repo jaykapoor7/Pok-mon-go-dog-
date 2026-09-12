@@ -41,14 +41,16 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
   return (
     <section className="product-hero product-hero-wall" aria-labelledby="hero-title">
       <div className="product-hero-copy">
-        <p className="field-eyebrow">The field record for India&apos;s street animals</p>
+        <p className="field-eyebrow">The shared record for India&apos;s street animals</p>
         <h1 id="hero-title">
           Somebody already knows this dog.<br />
           <em>Now it is written down.</em>
         </h1>
         <p>
-          A photo and a place become a record that a neighbour, a feeder and a
-          field team can all return to, instead of starting again every time.
+          One photograph and a place is enough to start a record. After that,
+          the neighbour who feeds her, the person who finds her limping next
+          month and the team running the vaccination round are all reading the
+          same page instead of starting again from nothing.
         </p>
 
         <div className="product-hero-actions">
@@ -60,7 +62,7 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
           </Link>
         </div>
         <p className="product-hero-note">
-          A photo and a location are enough. No account required.
+          No sign-up, no app to install. It works on the phone already in your hand.
         </p>
 
         <LiveTally initial={total} />

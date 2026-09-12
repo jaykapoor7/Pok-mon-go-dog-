@@ -78,6 +78,49 @@ const FEEDER_NAV = [
   { href: "/following", label: "Saved dogs", Icon: Bookmark },
   { href: "/evidence", label: "Evidence", Icon: ScanSearch },
 ];
+
+/* ── The phone bar ────────────────────────────────────────────────
+   Written out per role rather than filtered out of the lists above.
+   The filter approach matched labels against a DIFFERENT array, so any
+   name that had moved silently vanished: a resident's bar asked for
+   "Evidence", which lives in the reference list, and rendered three items
+   into a four-column grid with a dead cell on the end.
+
+   Two on each side of Report. Report is the one thing this product exists
+   to collect and the thumb sits in the middle of the screen, so it goes in
+   the middle of the bar rather than last on the right. */
+const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin }[]> = {
+  individual: [
+    { href: "/app", label: "Home", Icon: LayoutGrid },
+    { href: "/map", label: "Map", Icon: MapPin },
+    { href: "/following", label: "Saved", Icon: Bookmark },
+    { href: "/feed", label: "Activity", Icon: Radio },
+  ],
+  feeder: [
+    { href: "/feeder", label: "My patch", Icon: Utensils },
+    { href: "/map", label: "Map", Icon: MapPin },
+    { href: "/following", label: "Saved", Icon: Bookmark },
+    { href: "/evidence", label: "Evidence", Icon: ScanSearch },
+  ],
+  educator: [
+    { href: "/education", label: "Education", Icon: GraduationCap },
+    { href: "/map", label: "Map", Icon: MapPin },
+    { href: "/learn", label: "Learn", Icon: BookOpen },
+    { href: "/feed", label: "Activity", Icon: Radio },
+  ],
+  ngo: [
+    { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
+    { href: "/partner/map", label: "Map", Icon: MapPin },
+    { href: "/partner/animals", label: "Records", Icon: Database },
+    { href: "/partner/field", label: "Field work", Icon: CalendarRange },
+  ],
+  funder: [
+    { href: "/what-would-it-take", label: "Programme", Icon: LayoutGrid },
+    { href: "/map", label: "Map", Icon: MapPin },
+    { href: "/gaps", label: "Gaps", Icon: ScanSearch },
+    { href: "/outcomes", label: "Outcomes", Icon: Database },
+  ],
+};
 /* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
    a hand-maintained route list, while several pages also mount one directly;
    whenever those two disagree the console renders inside itself. Rather than
@@ -167,6 +210,16 @@ export function AppShell({
   const isFeeder = role === "feeder" || pathname.startsWith("/feeder");
   const isReporting = pathname.startsWith("/report");
   const isEducator = role === "educator" || pathname.startsWith("/education");
+
+  /* The phone bar follows the PERSON, not the URL. The desktop rail can
+     take its cue from the surface you are standing on, because the rail
+     also carries "Main site" and the role chip. The phone bar is the only
+     navigation a phone has, so when a resident opened a /partner link the
+     URL flipped every one of its four items to an NGO destination and each
+     one went further into /partner. There was no way back out of a console
+     they are not a member of. */
+  const phoneRole: Role = role ?? "individual";
+  const phoneNav = PHONE_NAV[phoneRole];
   const primaryNav = isNgo
     ? NGO_NAV
     : isFeeder
@@ -175,13 +228,6 @@ export function AppShell({
         ? EDUCATOR_NAV
         : COMMUNITY_NAV;
   const referenceNav = !isNgo && !isFeeder && !isEducator ? COMMUNITY_REFERENCE_NAV : [];
-  const mobileNav = isNgo
-    ? primaryNav.filter(({ label }) => ["Dashboard", "Map", "Records", "Field work"].includes(label))
-    : isFeeder
-      ? primaryNav.filter(({ label }) => ["My patch", "Map", "Saved dogs", "Evidence"].includes(label))
-    : isEducator
-      ? primaryNav.filter(({ label }) => ["Education", "Map", "Learn"].includes(label))
-    : primaryNav.filter(({ label }) => ["Home", "Map", "Saved animals", "Evidence"].includes(label));
   const isActive = (href: string) => {
     if (href === "/partner/animals") return pathname.startsWith("/partner/animals") || pathname.startsWith("/partner/cases") || pathname.startsWith("/partner/medical");
     if (href === "/partner/field") return pathname.startsWith("/partner/field") || pathname.startsWith("/partner/incoming") || pathname.startsWith("/partner/drives") || pathname.startsWith("/partner/reports");
@@ -272,9 +318,23 @@ export function AppShell({
           )}
 
           <div className="spa-phone-links">
-            {mobileNav.map(({href,label,Icon}) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+            {phoneNav.slice(0, 2).map(({ href, label, Icon }) => (
+              <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}>
+                <Icon size={20} />
+                <span>{label}</span>
+              </Link>
+            ))}
+            <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting">
+              <Radio size={21} />
+              <span>Report</span>
+            </Link>
+            {phoneNav.slice(2).map(({ href, label, Icon }) => (
+              <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}>
+                <Icon size={20} />
+                <span>{label}</span>
+              </Link>
+            ))}
           </div>
-          <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting"><Radio size={21}/><span>Report</span></Link>
           <div className="spa-side-foot">
             {/* The console is where somebody is when something annoys them,
                 so the suggestion box is here rather than only in a footer

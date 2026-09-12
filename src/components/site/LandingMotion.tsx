@@ -13,7 +13,7 @@ export function LandingMotion() {
       disposeMotion();
       if (preference.matches) return;
       root.dataset.motion = "on";
-      const sections = root.querySelectorAll<HTMLElement>(".field-section-heading, .field-steps article, .field-team-copy, .field-workspace-example, .field-paths a, .field-photo-story, .field-closing h2, .record-stage, .record-intro-copy");
+      const sections = root.querySelectorAll<HTMLElement>(".field-section-heading, .field-steps article, .field-team-copy, .field-workspace-example, .field-paths a, .field-photo-story, .field-closing h2, .record-stage, .record-intro-copy, .cx-head, .cx-rail");
       /* Symmetric: enters on the way down, retracts on the way back up.
          unobserve() here made every reveal one-way, so scrolling back up
          showed an already-assembled page — the animation only ever existed

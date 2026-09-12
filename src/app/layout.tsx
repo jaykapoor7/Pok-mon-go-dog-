@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, DM_Mono, Instrument_Serif } from "next/font/google";
+import "./tokens.css";
 import "./globals.css";
 import "./design-system.css";
 import "./product.css";

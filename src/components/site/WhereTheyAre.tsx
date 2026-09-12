@@ -6,8 +6,6 @@ import { ArrowUpRight } from "lucide-react";
 import { FieldMapPreview } from "./FieldMapPreview";
 import { cityForPoints } from "@/lib/geo/cities";
 import { densestCell, located } from "@/lib/geo/cluster";
-import { markerMetaFor } from "@/lib/marker-state";
-import { dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -28,20 +26,14 @@ import type { Dog } from "@/lib/types";
    The map is the heaviest thing on the page, so it is not mounted until
    it is nearly in view. Until then the block holds its own height, so
    nothing below it moves when the map arrives.
+
+   This section used to carry a second job at the bottom: a miniature of
+   the organisation console with three live counts in it. That has moved
+   out to ConsoleShowcase and been rewritten, because a section should
+   make one argument and this one's argument is place.
    ════════════════════════════════════════════════════════════════════ */
 
-export function WhereTheyAre({
-  dogs,
-  total,
-  unchecked,
-  orgs,
-}: {
-  dogs: Dog[];
-  total: number;
-  /** Animals nobody has checked for sterilisation. A real count. */
-  unchecked: number;
-  orgs: number;
-}) {
+export function WhereTheyAre({ dogs }: { dogs: Dog[] }) {
   const frame = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
 
@@ -76,16 +68,6 @@ export function WhereTheyAre({
      coordinates instead. */
   const place = cityForPoints(focus);
 
-  /* What an organisation would actually be looking at: animals flagged as
-     needing help first, then the ones nobody has checked. Real records in
-     both cases, and the list simply runs short when the register is. */
-  const attention = [
-    ...dogs.filter((d) => d.needs_help),
-    ...dogs.filter(
-      (d) => !d.needs_help && (!d.sterilisation_status || d.sterilisation_status === "unknown")
-    ),
-  ].slice(0, 4);
-
   return (
     <section className="wt" aria-labelledby="wt-title">
       <div className="wt-inner">
@@ -96,10 +78,11 @@ export function WhereTheyAre({
             <em>somebody walks down.</em>
           </h2>
           <p>
-            Not a national estimate. A pin on the road where somebody stopped,
-            took a photograph and said where it was. Open any one of them and
-            you get that animal: its place, when it was last seen, what has been
-            done for it and what has not.
+            Not a national estimate that turns a whole city into one number.
+            A pin on the road where somebody stopped, took a photograph, and
+            said where they were standing. Open any one of them and you get
+            the animal — where she stays, when anyone last saw her, what has
+            been done for her, and the part nobody has got to yet.
           </p>
         </header>
 
@@ -122,78 +105,6 @@ export function WhereTheyAre({
           </Link>
         </div>
 
-        {/* The other half of the product. The map is what a neighbour
-            sees; this is what the organisation working the same street
-            sees. Every figure is counted from the same records the map is
-            drawing, so it is the real dashboard summary rather than a
-            picture of one. */}
-        <div className="wt-dash">
-          <div className="wt-dash-head">
-            <span className="field-eyebrow">And for the team working it</span>
-            <h3>The same records, as a console.</h3>
-            <p>
-              An organisation opens the animals on its streets as work: what
-              is on the register, what nobody has checked, and which animals
-              are waiting on a decision today.
-            </p>
-            <Link href="/for-ngos" className="wt-link">
-              See the workspace <ArrowUpRight size={15} />
-            </Link>
-          </div>
-
-          {/* A small, faithful copy of the organisation console: the same
-              labels, the same case rows, the same chrome. Two attempts stood
-              here before and both invented an interface — a row of three
-              figures that printed one number twice, then a queue called
-              "animals to check" that exists nowhere in the product.
-
-              Every figure below is counted from the records this page has
-              already loaded. */}
-          <div className="wt-panel" role="img" aria-label="The StrayPaw organisation console">
-            <div className="wt-panel-bar">
-              <span className="wt-dot" aria-hidden />
-              <b>StrayPaw · Organisation console</b>
-              <span className="wt-panel-live">{place ?? "India"}</span>
-            </div>
-
-            <div className="wt-panel-stats">
-              <div>
-                <span>On the register</span>
-                <b>{total.toLocaleString("en-IN")}</b>
-                <small>animals with a record</small>
-              </div>
-              <div>
-                <span>Never checked</span>
-                <b className="q">{unchecked.toLocaleString("en-IN")}</b>
-                <small>no sterilisation status</small>
-              </div>
-              <div>
-                <span>Organisations</span>
-                <b>{orgs}</b>
-                <small>can claim this work</small>
-              </div>
-            </div>
-
-            <div className="wt-panel-list">
-              <div className="wt-panel-listhead">
-                <b>Needs attention</b>
-                <span>{attention.length ? `${attention.length} shown` : "nothing open"}</span>
-              </div>
-              <ul>
-                {attention.map((d) => (
-                  <li key={d.id}>
-                    <i style={{ background: markerMetaFor(d).color }} aria-hidden />
-                    <span className="wt-row-name">{dogLabel(d)}</span>
-                    <span className="wt-row-zone">{d.zone || "Location on record"}</span>
-                    <span className={`wt-row-tag${d.needs_help ? " urgent" : " q"}`}>
-                      {d.needs_help ? "Needs help" : "Never checked"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

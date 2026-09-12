@@ -14,13 +14,15 @@
    ════════════════════════════════════════════════════════════════════ */
 
 .mission {
-  --mi-ink: #0b1e3d;
-  --mi-muted: #566579;
-  --mi-line: #ded3c3;
-  --mi-paper: #fffdf9;
-  --mi-flame: #f05b40;
-  --mi-flame-ink: #c1391c;
-  --mi-blue: #2457ce;
+  /* Aliases. The values live in src/app/tokens.css — this page had its
+     own fourth copy of the same palette, with its own grey. */
+  --mi-ink: var(--sp-ink);
+  --mi-muted: var(--sp-muted);
+  --mi-line: var(--sp-line);
+  --mi-paper: var(--sp-paper);
+  --mi-flame: var(--sp-flame);
+  --mi-flame-ink: var(--sp-flame-ink);
+  --mi-blue: var(--sp-blue);
   color: var(--mi-ink);
 }
 

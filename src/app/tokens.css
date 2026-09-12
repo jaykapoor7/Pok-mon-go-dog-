@@ -1,0 +1,129 @@
+/* ════════════════════════════════════════════════════════════════════
+   One token system.
+
+   This file exists because there were four, and they disagreed.
+
+     --sp-*     the marketing site        (src/app/product.css)
+     --pl-*     the landing page          (field-site.css, second block)
+     --field-*  the same landing page     (field-site.css, first block)
+     --mi-*     the mission page          (mission.css)
+
+   Four namespaces, three stylesheets, one product. They were not four
+   different palettes — they were four slightly-wrong copies of the same
+   one, which is worse, because nothing looks deliberately different and
+   everything looks slightly off:
+
+     the navy      #0b1e3d, #0b1e3d, #0b1020, #0b1e3d
+     the orange    #f05b40 everywhere, but its readable-on-light partner
+                   was #c1391c, #a8300f, #b02a10 and #c1391c
+     the blue      #2457ce, #2f57a4, #1b46b0, #2457ce
+     the grey      #5d6b7c, #42526b, #5a6272, #566579
+
+   Nobody chose four greys. They accumulated, one page at a time, and the
+   result is the thing you notice without being able to name: headings
+   that don't quite line up in colour across a scroll, and spacing that
+   drifts because no file agreed what "a gap" was.
+
+   So: the values live here, once. The other three namespaces stay alive
+   as ALIASES — `--pl-ink: var(--sp-ink)` — rather than being deleted and
+   find-replaced across nine thousand lines of CSS, because an alias
+   cannot miss a consumer and a find-replace can.
+
+   NOT IN SCOPE, deliberately: the console's own `--ink/--paper/--bone/
+   --electric` set in components/app/app.css. That is a different surface
+   with a different job (dense operational UI on white), it is already
+   internally consistent, and `--ink` is additionally declared a second
+   time in design-system.css with a different value. Untangling that is
+   its own job and does not belong in the same change as the public site.
+
+   SPACING is the other half. Every gap on the landing page was a
+   hand-typed pixel value, which is why nothing lined up between sections
+   written months apart. The scale below is the one set of steps; the
+   gutter and the section rhythm are single values so a page edge is the
+   same distance from the screen edge on every section.
+   ════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Ink ──────────────────────────────────────────────────────── */
+  --sp-ink: #0b1e3d;         /* headings, and the dark ground        */
+  --sp-deep: #071630;        /* one step darker: the footer          */
+  --sp-body: #42526b;        /* running text on a light ground       */
+  --sp-muted: #5d6b7c;       /* labels, captions, secondary          */
+
+  /* ── Ground ───────────────────────────────────────────────────── */
+  --sp-paper: #fffdf9;       /* panels and cards                     */
+  --sp-bone: #f4eee5;        /* the warm light section ground        */
+  --sp-shell: #eae0d2;       /* one step down, for alternating       */
+  --sp-ground: #f3ede4;      /* the console's page ground            */
+
+  /* ── Line ─────────────────────────────────────────────────────── */
+  --sp-line: #e3d9ca;
+  --sp-panel-line: #e6ddd0;
+  --sp-rule: rgba(11, 30, 61, 0.15);
+  --sp-rule-dark: rgba(255, 255, 255, 0.18);
+
+  /* ── Flame ────────────────────────────────────────────────────────
+     One orange, three weights, because a single hex cannot be both a
+     display colour on navy and readable small text on bone. Measured:
+     --sp-flame on bone is 2.90:1, which fails even the 3:1 large-text
+     floor, so it is a dark-ground colour only. */
+  --sp-flame: #f05b40;       /* on dark grounds                      */
+  --sp-flame-deep: #d4421f;  /* headlines and figures on light       */
+  --sp-ember: #a8300f;       /* small text on light — 4.5:1 on bone  */
+  --sp-flame-ink: #c1391c;   /* older name, kept for its consumers   */
+  --sp-orange: #f47d45;      /* the soft tint, backgrounds only      */
+
+  /* ── Blue ─────────────────────────────────────────────────────── */
+  --sp-blue: #2457ce;        /* the action colour                    */
+  --sp-blue-deep: #1b46b0;   /* pressed, and heavy weights           */
+  --sp-sky: #8fb7ff;         /* cool support on dark                 */
+  --sp-deepsky: #2f57a4;     /* cool support on light                */
+
+  /* ── Shape ────────────────────────────────────────────────────── */
+  --sp-radius: 10px;
+  --sp-radius-sm: 7px;
+  --sp-radius-lg: 16px;
+
+  /* ── Motion ───────────────────────────────────────────────────────
+     --sp-ease and --sp-ease-out were, until now, declared as
+     `--sp-ease: var(--sp-ease)` in site.css. A custom property whose
+     value is a var() to itself is a cycle: it resolves to
+     guaranteed-invalid, and because an invalid var() is invalid at
+     computed-value time it poisons the WHOLE declaration it sits in.
+     Six transitions on the landing page were therefore not "falling back
+     to ease" — they had no transition at all, and six elements that were
+     written to glide have been snapping for months.
+
+     The curve is the strong ease-out rather than a browser keyword. The
+     built-in easings are too weak to read as deliberate. */
+  --sp-ease: cubic-bezier(0.23, 1, 0.32, 1);      /* arriving, settling */
+  --sp-ease-out: cubic-bezier(0.32, 0.72, 0, 1);  /* larger travel      */
+  --sp-ease-io: cubic-bezier(0.4, 0, 0.2, 1);     /* anything reversible */
+
+  --sp-fast: 0.16s;   /* a control you are touching   */
+  --sp-base: 0.28s;   /* the default for interface    */
+  --sp-slow: 0.5s;    /* something entering the page  */
+  --sp-scene: 0.85s;  /* a whole section arriving     */
+
+  /* ── Space ────────────────────────────────────────────────────────
+     One scale. A gap on this site is one of these, not a number
+     somebody typed while looking at their own screen. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 22px;
+  --sp-6: 30px;
+  --sp-7: 42px;
+  --sp-8: 58px;
+  --sp-9: 80px;
+  --sp-10: 110px;
+
+  /* The page edge. One value, so every section starts the same distance
+     from the side of the screen — which is the single most visible kind
+     of spacing inconsistency there is. */
+  --sp-gutter: clamp(20px, 5vw, 64px);
+  /* The vertical rhythm between one section and the next. */
+  --sp-section: clamp(56px, 8vw, 118px);
+  --sp-measure: 62ch;  /* running text, kept readable */
+}
