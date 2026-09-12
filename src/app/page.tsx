@@ -5,7 +5,7 @@ import { Hero } from "@/components/site/Hero";
 import { LandingMotion } from "@/components/site/LandingMotion";
 import { WhereTheyAre } from "@/components/site/WhereTheyAre";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { getShowcaseDogs, countDogs, countUnchecked } from "@/lib/data";
+import { getShowcaseDogs, getAllDogs, countDogs, countUnchecked } from "@/lib/data";
 import { ORGS } from "@/lib/platform/orgs";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
@@ -17,15 +17,33 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [dogs, total, unchecked] = [[{"id": "fx-0", "name": "Pinky", "zone": "Chandni Chowk", "lat": 28.6, "lng": 77.2, "status": "seen", "cover_photo": "/dogs/delhi/asleep-by-bicycle.jpg", "photos": ["/dogs/delhi/asleep-by-bicycle.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": "Aishwarya", "trust_score": 50, "sightings_count": 1}, {"id": "fx-1", "name": null, "zone": "Yamuna Vihar", "lat": 28.610000000000003, "lng": 77.21000000000001, "status": "seen", "cover_photo": "/dogs/delhi/beside-ac-unit.jpg", "photos": ["/dogs/delhi/beside-ac-unit.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-2", "name": null, "zone": "Malviya Nagar", "lat": 28.62, "lng": 77.22, "status": "seen", "cover_photo": "/dogs/delhi/black-tan-shopfront.jpg", "photos": ["/dogs/delhi/black-tan-shopfront.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-3", "name": null, "zone": "Mayur Vihar", "lat": 28.630000000000003, "lng": 77.23, "status": "seen", "cover_photo": "/dogs/delhi/black-white-on-back.jpg", "photos": ["/dogs/delhi/black-white-on-back.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-4", "name": null, "zone": "Najafgarh", "lat": 28.64, "lng": 77.24000000000001, "status": "seen", "cover_photo": "/dogs/delhi/black-white-snake-plant.jpg", "photos": ["/dogs/delhi/black-white-snake-plant.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-5", "name": null, "zone": "Civil Lines", "lat": 28.650000000000002, "lng": 77.25, "status": "seen", "cover_photo": "/dogs/delhi/brown-by-ladder.jpg", "photos": ["/dogs/delhi/brown-by-ladder.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-6", "name": null, "zone": "Shastri Park", "lat": 28.66, "lng": 77.26, "status": "seen", "cover_photo": "/dogs/delhi/brown-on-ledge.jpg", "photos": ["/dogs/delhi/brown-on-ledge.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-7", "name": null, "zone": "Dwarka", "lat": 28.67, "lng": 77.27, "status": "seen", "cover_photo": "/dogs/delhi/cream-forecourt.jpg", "photos": ["/dogs/delhi/cream-forecourt.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-8", "name": null, "zone": "Karol Bagh", "lat": 28.68, "lng": 77.28, "status": "seen", "cover_photo": "/dogs/delhi/crossing-street.jpg", "photos": ["/dogs/delhi/crossing-street.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}, {"id": "fx-9", "name": null, "zone": "Lajpat Nagar", "lat": 28.69, "lng": 77.29, "status": "seen", "cover_photo": "/dogs/delhi/dark-asleep-doorway.jpg", "photos": ["/dogs/delhi/dark-asleep-doorway.jpg"], "size": "medium", "color": "Brown", "is_friendly": true, "needs_help": false, "sterilised": false, "vaccinated": false, "sterilisation_status": "unknown", "vaccination_status": "unknown", "last_seen": "2026-09-01T10:00:00Z", "reporter": null, "trust_score": 50, "sightings_count": 1}] as unknown as Awaited<ReturnType<typeof getShowcaseDogs>>, 85, 71];
+  /* Two different questions, so two different queries.
+
+     The hero wall wants photographs, so it asks for the animals that have
+     one. The map below it wants the register: every located record, because
+     a map of a city that draws ten pins is a map of a city with ten dogs in
+     it, which is not what the record says.
+
+     This block briefly held a hardcoded list of ten animals — a fixture I
+     used to develop the section against and then committed. It put a
+     stranger's photograph under Pinky's name, showed five pins on a map of
+     Delhi, and printed two invented counts. Nothing on this page is allowed
+     to come from anywhere but the database. */
+  const [showcase, mapDogs, total, unchecked] = await Promise.all([
+    getShowcaseDogs(18),
+    getAllDogs(),
+    countDogs(),
+    countUnchecked(),
+  ]);
+
   return (
     <div className="sp field-site product-site">
       <PageView name="landing_view" />
       <LandingMotion />
       <SiteHeader />
       <main>
-        <Hero dogs={dogs} total={total} />
-        <WhereTheyAre dogs={dogs} total={total} unchecked={unchecked} orgs={ORGS.length} />
+        <Hero dogs={showcase} total={total} />
+        <WhereTheyAre dogs={mapDogs} total={total} unchecked={unchecked} orgs={ORGS.length} />
         <section className="role-help" aria-labelledby="role-help-title">
           <div><span className="field-eyebrow">A different door into the same record</span><h2 id="role-help-title">Start with the role<br />you already play.</h2></div>
           <div className="role-help-links">
