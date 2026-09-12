@@ -93,20 +93,20 @@ export function ConsoleShowcase({ dogs }: { dogs: Dog[] }) {
         <header className="cx-head">
           <span className="field-eyebrow">Inside the organisation console</span>
           <h2 id="cx-title">
-            A sighting does not stop<br />
-            <em>at a pin on a map.</em>
+            A report should not end<br />
+            <em>where the map does.</em>
           </h2>
           <p>
-            Every screen below is one the field team already works in. This is
-            the route one animal takes through them — from a stranger&apos;s
-            photograph to a road somebody can prove was covered.
+            This is the workspace a partner organisation runs its streets
+            from, and the route one animal takes through it — from a
+            stranger&apos;s photograph to a road somebody can prove was covered.
           </p>
         </header>
 
         <ConsoleMock dogs={dogs} />
 
         <p className="cx-lede">
-          And this is the route one animal takes through it.
+          One animal, through six screens.
         </p>
 
         <ol className="cx-rail">

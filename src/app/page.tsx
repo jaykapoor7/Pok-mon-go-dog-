@@ -45,7 +45,7 @@ export default async function HomePage() {
         <WhereTheyAre dogs={mapDogs} />
         <ConsoleShowcase dogs={mapDogs} />
         <section className="role-help" aria-labelledby="role-help-title">
-          <div><span className="field-eyebrow">Four doors, one record</span><h2 id="role-help-title">Start from the part<br />you already play.</h2><p className="role-help-note">Nobody has to become a different kind of person to use this. The work you are already doing on your own street is the work.</p></div>
+          <div><span className="field-eyebrow">Four doors, one record</span><h2 id="role-help-title">You already have<br />a part in this.</h2><p className="role-help-note">Nobody has to become a different kind of person to use this. What you already do on your own street is the work.</p></div>
           <div className="role-help-links">
             <Link href="/app?choose=1"><div><b>Neighbour</b><p>Report the dog you walk past. Follow what happens to her, and get told when it does.</p></div><ArrowUpRight size={18} /></Link>
             <Link href="/app?choose=1"><div><b>Feeder</b><p>Your round, your zones, and the animals you already know by sight — held together in one place.</p></div><ArrowUpRight size={18} /></Link>

@@ -14,6 +14,7 @@ import { ProgrammeOverview } from "@/components/partner/ProgrammeOverview";
 import { isOverdue, speciesLabel, type Case, type CaseStatus, type Dog, type NGO } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { ByLocality, WeeklyTrend } from "@/components/app/ConsoleCharts";
 
 const isOpen = (c: Case) => c.status !== "resolved" && c.status !== "closed";
 const isUrgent = (c: Case) => isOpen(c) && (c.severity === "critical" || c.severity === "high" || isOverdue(c));
@@ -133,6 +134,21 @@ export function PartnerOverview() {
           detail="next 3 days"
           tone={m.followDue ? "text-status-hungry" : undefined}
         />
+      </div>
+
+      {/* The strip above is five integers. Five integers are what an
+          operations screen looks like before anybody has asked what the
+          person reading it is trying to decide. These two say where the
+          work is and whether it is speeding up or slowing down — the two
+          questions a coordinator actually opens this page with. */}
+      <div className="console-charts">
+        <WeeklyTrend
+          dates={cases.map((c) => c.created_at)}
+          title="Cases opened, last 12 weeks"
+          noun="opened"
+          empty="Your first case starts this."
+        />
+        <ByLocality dogs={markers} />
       </div>
 
       {(bd?.waiting.ours ?? 0) > 0 && (

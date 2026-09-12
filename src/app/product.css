@@ -445,3 +445,65 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
   /* Dead rule from when Report sat outside the grid. */
   html .spa.spa .spa-more { display: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   The console ground.
+
+   What was here: a flat fill, two stray dot-grids and one fixed circle
+   bottom-right that most screens never scrolled far enough to meet. On a
+   phone the circle sat off the edge entirely, so the app opened on a
+   plain beige rectangle.
+
+   This is a field tool for a city, so the ground is survey paper: a fine
+   grid at the scale of a street block, a coarser one over it, and one
+   warm wash in the top corner so the page has a light source rather than
+   being evenly lit. All of it is a background-image on a single element,
+   which costs one paint and no extra DOM.
+
+   Kept deliberately faint — every value below 7% alpha. This is the
+   surface somebody reads case notes on for an hour; it has to hold still
+   underneath them.
+   ════════════════════════════════════════════════════════════════════ */
+html .spa.spa .spa-main:not(.flush) {
+  position: relative;
+  background-color: var(--sp-ground);
+  background-image:
+    /* the warm light, top right */
+    radial-gradient(120% 80% at 88% -6%, rgba(244, 125, 69, .055), transparent 62%),
+    /* a cool counterweight, bottom left, so it is not one-sided */
+    radial-gradient(90% 70% at -8% 106%, rgba(36, 87, 206, .04), transparent 65%),
+    /* block grid */
+    repeating-linear-gradient(0deg, rgba(11, 30, 61, .035) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(90deg, rgba(11, 30, 61, .035) 0 1px, transparent 1px 96px),
+    /* the finer division inside each block */
+    repeating-linear-gradient(0deg, rgba(11, 30, 61, .022) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, rgba(11, 30, 61, .022) 0 1px, transparent 1px 24px);
+  /* One plane. Mixing fixed and scrolling layers made the two slide
+     against each other and the texture read as blotches. */
+  background-attachment: scroll;
+}
+/* The old decorative ring; the ground carries the depth now. */
+html .spa.spa .spa-main:not(.flush)::before { content: none; }
+
+/* Panels sit ON the paper, so they need to read as paper laid over it
+   rather than a slightly different beige. */
+html .spa.spa .spa-panel,
+html .spa.spa .report-form,
+html .spa.spa .cc {
+  box-shadow: 0 1px 2px rgba(11, 30, 61, .04), 0 10px 26px rgba(74, 58, 34, .07);
+}
+
+@media (max-width: 900px) {
+  /* A 96px block grid on a 390px screen is four lines and reads as a
+     mistake. One scale, larger, so it stays texture rather than pattern. */
+  html .spa.spa .spa-main:not(.flush) {
+    background-image:
+      radial-gradient(150% 55% at 94% -4%, rgba(244, 125, 69, .05), transparent 58%),
+      repeating-linear-gradient(0deg, rgba(11, 30, 61, .021) 0 1px, transparent 1px 38px),
+      repeating-linear-gradient(90deg, rgba(11, 30, 61, .021) 0 1px, transparent 1px 38px);
+    /* All scroll together. A fixed layer under scrolling ones is what
+       made the texture look blotchy rather than like paper: the two were
+       moving against each other. */
+    background-attachment: scroll;
+  }
+}

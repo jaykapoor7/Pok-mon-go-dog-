@@ -74,15 +74,15 @@ export function WhereTheyAre({ dogs }: { dogs: Dog[] }) {
         <header className="wt-head">
           <span className="field-eyebrow">Where they actually are</span>
           <h2 id="wt-title">
-            Every record sits on a street<br />
+            Every record is a street<br />
             <em>somebody walks down.</em>
           </h2>
           <p>
-            Not a national estimate that turns a whole city into one number.
-            A pin on the road where somebody stopped, took a photograph, and
-            said where they were standing. Open any one of them and you get
-            the animal — where she stays, when anyone last saw her, what has
-            been done for her, and the part nobody has got to yet.
+            Not an estimate that flattens a city into one number. A pin on
+            the road where somebody stopped, took a photograph and said
+            where they were standing. Open one and you get the animal:
+            where she stays, when she was last seen, what has been done for
+            her — and the part nobody has got to yet.
           </p>
         </header>
 

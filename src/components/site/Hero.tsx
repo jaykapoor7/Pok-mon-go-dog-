@@ -44,13 +44,13 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
         <p className="field-eyebrow">The shared record for India&apos;s street animals</p>
         <h1 id="hero-title">
           Somebody already knows this dog.<br />
-          <em>Now it is written down.</em>
+          <em>Now everyone does.</em>
         </h1>
         <p>
-          One photograph and a place is enough to start a record. After that,
-          the neighbour who feeds her, the person who finds her limping next
-          month and the team running the vaccination round are all reading the
-          same page instead of starting again from nothing.
+          A photograph and a street corner are enough to open a record.
+          From then on the woman who feeds her, the stranger who finds her
+          limping in March, and the team running the vaccination round are
+          reading the same page — instead of each starting from nothing.
         </p>
 
         <div className="product-hero-actions">

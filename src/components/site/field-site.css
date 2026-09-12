@@ -972,7 +972,10 @@ html .sp.product-site .role-help-note {
 .cm-ring { width: 84px; height: 84px; flex: none; transform: rotate(-90deg); }
 .cm-ring circle { fill: none; stroke-width: 9; stroke-linecap: round; }
 .cm-ring-track { stroke: rgba(143, 183, 255, .17); }
-.cm-ring-known { stroke: var(--sp-sky); }
+/* #5f8ce0, not --sp-sky (#8fb7ff): the sky step is OKLCH L 0.778, above
+   the dark-mode lightness band, and fails validation against the #0b1e3d
+   surface. This step passes all six checks paired with --sp-flame. */
+.cm-ring-known { stroke: #5f8ce0; }
 
 .cm-key { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; min-width: 0; }
 .cm-key li {
@@ -985,7 +988,7 @@ html .sp.product-site .role-help-note {
 }
 .cm-key i { width: 9px; height: 9px; border-radius: 2.5px; }
 .cm-key b { font-size: 12.5px; color: #fff; font-variant-numeric: tabular-nums; }
-.k-ster { background: var(--sp-sky); }
+.k-ster { background: #5f8ce0; }
 .k-not { background: var(--sp-flame); }
 .k-unk { background: rgba(143, 183, 255, .28); }
 
@@ -1007,7 +1010,7 @@ html .sp.product-site .role-help-note {
   width: var(--w);
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, var(--sp-sky), #5f8ce0);
+  background: linear-gradient(90deg, #6d96e4, #5f8ce0);
 }
 
 /* ── The queue ─────────────────────────────────────────────────── */

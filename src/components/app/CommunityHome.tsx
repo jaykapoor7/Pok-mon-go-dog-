@@ -6,6 +6,7 @@ import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { FieldMapPreview } from "@/components/site/FieldMapPreview";
 import { RecentSightings } from "@/components/app/RecentSightings";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
+import { ByLocality, CoverageBar, ReportsOverTime } from "./ConsoleCharts";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { cityForPoints } from "@/lib/geo/cities";
 import { densestCell, located } from "@/lib/geo/cluster";
@@ -72,9 +73,6 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
     () => ({
       recorded: inView.length,
       needsHelp: inView.filter((d) => d.needs_help).length,
-      careKnown: inView.filter(
-        (d) => d.sterilisation_status === "sterilised" || d.vaccination_status === "vaccinated"
-      ).length,
     }),
     [inView]
   );
@@ -141,27 +139,36 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
         </Link>
       </header>
 
-      {/* One band of real numbers, counted from whatever is in view. It is
-          the same three figures before and after a location is shared, so
-          granting one changes the subject rather than unlocking the page. */}
+      {/* Two figures and a control, then the charts. What stood here was
+          three bare integers in large type — recorded, needing help,
+          care status known. A number with nothing to measure it against
+          tells a reader nothing: nine animals is either most of a street
+          or almost none of a city and there was no way to tell which.
+
+          The two that survive as figures are the ones that ARE the
+          headline — how many records, and how many are flagged. The
+          third was a proportion pretending to be a count, and it is a
+          chart now. */}
       <section className="community-counts" aria-label={`Animal records ${where}`}>
         <div>
           <b>{stats.recorded}</b>
           <span>Animals recorded {where}</span>
         </div>
         <div>
-          <b>{stats.needsHelp}</b>
+          <b className={stats.needsHelp > 0 ? "urgent" : undefined}>{stats.needsHelp}</b>
           <span>Marked as needing help</span>
-        </div>
-        <div>
-          <b>{stats.careKnown}</b>
-          <span>With a care status recorded</span>
         </div>
         <button type="button" onClick={findMe} disabled={locating} className="community-relocate">
           <Crosshair size={14} />
           {locating ? "Finding you" : nearby ? "Refresh my location" : "Use my location"}
         </button>
       </section>
+
+      <div className="console-charts">
+        <CoverageBar dogs={inView} />
+        <ReportsOverTime sightings={nearbySightings} />
+        <ByLocality dogs={inView} />
+      </div>
 
       {locationError && (
         <p role="status" className="community-location-error">

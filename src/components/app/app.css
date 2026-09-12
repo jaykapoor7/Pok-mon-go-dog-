@@ -3958,3 +3958,138 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
      running off the right edge of its own card. */
   .ds-table td.ds-org { text-align: right; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   Console charts.
+
+   Two hues, validated against both console surfaces rather than picked:
+   #2457ce and #c1391c clear the lightness band, the chroma floor, CVD
+   separation (worst adjacent pair ΔE 27.2 protan), the normal-vision
+   floor (ΔE 33.8) and 3:1 contrast on #fffdf9 and #f3ede4 alike.
+
+   "Not examined" has no hue on purpose: it is the unfilled track. Any
+   neutral fails a chroma floor by definition, and the honest reading is
+   that an unexamined animal is not a third category, it is the part of
+   the bar nobody has filled in.
+   ════════════════════════════════════════════════════════════════════ */
+
+.cc-ster { --cc: #2457ce; }
+.cc-not { --cc: #c1391c; }
+
+.console-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 14px;
+  margin: 18px 0 24px;
+}
+
+.cc {
+  min-width: 0;
+  margin: 0;
+  padding: 15px 16px 14px;
+  border: 1px solid var(--bone, #dce2e8);
+  border-radius: 11px;
+  background: #fff;
+}
+.cc figcaption { display: grid; gap: 2px; margin-bottom: 13px; }
+.cc figcaption b { font-size: 13.5px; letter-spacing: -.018em; color: var(--ink, #0b1020); }
+.cc figcaption span { font-size: 11.5px; color: #5c6d81; }
+.cc-note { margin: 11px 0 0; font-size: 11.5px; line-height: 1.5; color: #5c6d81; }
+
+/* ── Coverage ──────────────────────────────────────────────────── */
+.cc-bar {
+  display: flex;
+  /* The 2px surface gap the mark spec asks for, between the two fills
+     and at the join with the empty track. */
+  gap: 2px;
+  height: 11px;
+  border-radius: 99px;
+  background: #e3e8ee;
+  overflow: hidden;
+}
+.cc-bar i { display: block; height: 100%; border-radius: 99px; min-width: 0; }
+.cc-bar .seg-ster { background: #2457ce; }
+.cc-bar .seg-not { background: #c1391c; }
+
+.cc-legend {
+  display: grid;
+  gap: 6px;
+  margin: 13px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cc-legend li {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  /* Text wears text tokens, never the series colour. */
+  color: #5c6d81;
+}
+.cc-legend i { width: 9px; height: 9px; border-radius: 2.5px; }
+.cc-legend .seg-ster { background: #2457ce; }
+.cc-legend .seg-not { background: #c1391c; }
+.cc-legend .seg-none { background: #e3e8ee; box-shadow: inset 0 0 0 1px #cbd4de; }
+.cc-legend b { font-size: 12.5px; color: var(--ink, #0b1020); font-variant-numeric: tabular-nums; }
+
+/* ── Reports over time ─────────────────────────────────────────── */
+.cc-spark { display: block; width: 100%; height: 64px; overflow: visible; }
+.cc-axis { stroke: #d7dee6; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.cc-area { fill: rgba(36, 87, 206, .12); }
+.cc-line {
+  fill: none;
+  stroke: #2457ce;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.cc-dot { fill: #2457ce; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; }
+
+/* ── Localities ────────────────────────────────────────────────── */
+.cc-zones ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cc-zones li {
+  display: grid;
+  grid-template-columns: minmax(0, 84px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  color: #5c6d81;
+}
+.cc-z-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-z-track { height: 8px; border-radius: 99px; background: #e3e8ee; overflow: hidden; }
+.cc-z-track i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: 99px;
+  background: #2457ce;
+}
+.cc-zones b { font-size: 12px; color: var(--ink, #0b1020); font-variant-numeric: tabular-nums; }
+
+/* Growth on arrival. Transform only, inside a clipped track, so a phone
+   pays a paint on an 8px strip rather than a layout on the card. */
+@media (prefers-reduced-motion: no-preference) {
+  .cc-z-track i,
+  .cc-bar i {
+    animation: cc-grow .55s cubic-bezier(0.23, 1, 0.32, 1) both;
+    transform-origin: left center;
+  }
+  .cc-zones li .cc-z-track i { animation-delay: calc(var(--i) * 60ms); }
+  @keyframes cc-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+
+/* ── Phone ─────────────────────────────────────────────────────────
+   One column. Three 248px cards side by side on a 358px content width
+   is three cards with two words each. */
+@media (max-width: 720px) {
+  .console-charts { grid-template-columns: 1fr; gap: 11px; margin: 16px 0 20px; }
+  .cc { padding: 14px 15px 13px; }
+  .cc-zones li { grid-template-columns: minmax(0, 76px) minmax(0, 1fr) auto; }
+}
+
+/* The flagged count is the one figure on this screen that means
+   "somebody should do something", so it says so in the status colour
+   rather than looking like every other number. */
+.community-counts b.urgent { color: #c1391c; }
