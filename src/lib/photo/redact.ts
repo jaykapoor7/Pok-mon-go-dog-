@@ -38,8 +38,12 @@ export type Region = {
   y: number;
   rx: number;
   ry: number;
-  /** Where it came from, so the UI can say what it found on its own. */
-  origin: "auto" | "manual";
+  /* Everything is manual now: a face detector used to fill these in on
+     its own and was removed, because it fired on dogs as well as people
+     and an automatic redaction of the animal is a destroyed record. Kept
+     as a field so the drawing code does not have to change if a reviewed,
+     opt-in detector ever earns its place back. */
+  origin: "manual";
 };
 
 /* Smaller is safer and uglier. Eight cells across a head leaves a shape and

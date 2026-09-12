@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Crop, Loader2, RotateCcw, ScanSearch, ShieldCheck, Undo2, UserRoundX } from "lucide-react";
+import { Crop, Loader2, RotateCcw, ShieldCheck, Undo2, UserRoundX } from "lucide-react";
 import {
   cropRect,
   exportFrame,
@@ -11,7 +11,6 @@ import {
   paint,
   type Frame,
 } from "@/lib/photo/frame";
-import { detectCarefully, detectPeople, warmDetector, type DetectStage } from "@/lib/photo/detect";
 import { hitRegion, regionBox, type Region } from "@/lib/photo/redact";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -23,9 +22,20 @@ import { hitRegion, regionBox, type Region } from "@/lib/photo/redact";
    overlay would mean uploading an intact photograph of somebody's face
    and asking every viewer's browser to be polite about it.
 
-   Two modes. Framing is about the animal. Hiding is about everybody else,
-   and it opens with whatever the detector found already applied, so the
-   safe state is the default and the reporter removes rather than adds.
+   Nothing is hidden automatically, and that is deliberate.
+
+   There was a face detector here. It went, and the reason is worth
+   keeping. A detector trained on human faces fires on a dog's face often
+   enough to matter, and an automatic redaction nobody asked for would
+   have destroyed the one thing the photograph exists to record — with no
+   second copy, because the original never leaves the phone. It also cost
+   half a megabyte of download and several seconds of waiting at the step
+   where reports are already most often abandoned: a privacy feature paid
+   for out of the sightings that never got filed.
+
+   So the tools are here and the reporter drives them. Tap a head, drag a
+   box. That works on every phone, needs no download, delays nothing, and
+   never covers something nobody asked it to.
    ════════════════════════════════════════════════════════════════════ */
 
 /* Big enough to judge a crop on a phone, small enough to redraw on every
@@ -55,58 +65,36 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [frame, setFrame] = useState<Frame>({ focus: { x: 0.5, y: 0.5 }, zoom: 1 });
   const [regions, setRegions] = useState<Region[]>([]);
-  const [autoFound, setAutoFound] = useState(0);
-  const [ran, setRan] = useState<DetectStage[] | null>(null);
   const [mode, setMode] = useState<"frame" | "hide">("frame");
   const [brush, setBrush] = useState(BRUSH_DEFAULT);
   const [loading, setLoading] = useState(true);
-  const [scanning, setScanning] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [careful, setCareful] = useState<"idle" | "running" | "done">("idle");
   const [undecodable, setUndecodable] = useState(false);
   /* The rectangle being dragged, in preview pixels, or null. */
   const [drawing, setDrawing] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
-
-  /* Start pulling the weights the moment the editor mounts, rather than
-     when somebody reaches the hiding step: on a slow connection those are
-     the same few seconds either way, and this way they overlap the crop. */
-  useEffect(() => {
-    warmDetector();
-  }, []);
 
   useEffect(() => {
     let alive = true;
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onload = async () => {
+    img.onload = () => {
       if (!alive) return;
       imgRef.current = img;
       const w = img.naturalWidth;
       const h = img.naturalHeight;
       setSize({ w, h });
+      /* A contrast measure, not a model. It moves the crop and covers
+         nothing, so being wrong costs one drag and nothing else. */
       setFrame({ focus: focusPoint(img, w, h), zoom: 1 });
       setLoading(false);
-      /* Applied as they arrive: the native detector answers instantly and
-         the model takes as long as the download takes. */
-      const report = await detectPeople(img, w, h, (partial) => {
-        if (!alive) return;
-        setRegions(partial.regions);
-        setAutoFound(partial.regions.length);
-      });
-      if (!alive) return;
-      setRegions(report.regions);
-      setAutoFound(report.regions.length);
-      setRan(report.ran);
-      setScanning(false);
     };
     img.onerror = () => {
       if (!alive) return;
       /* Some phones hand over a format the browser will not decode, HEIC
-         most often. There is nothing to frame or scan then, so the picture
-         goes through as it came rather than the reporter hitting a dead end
-         at the first step. */
+         most often. There is nothing to frame then, so the picture goes
+         through as it came rather than the reporter hitting a dead end at
+         the first step. */
       setLoading(false);
-      setScanning(false);
       setUndecodable(true);
     };
     img.src = url;
@@ -133,16 +121,15 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
     const crop = cropRect(size.w, size.h, frame);
     ctx.save();
     ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(240,91,64,0.95)";
     for (const r of regions) {
       const b = regionBox(r, size.w, size.h, crop, PREVIEW_W, PREVIEW_H);
-      ctx.strokeStyle = r.origin === "auto" ? "rgba(36,87,206,0.9)" : "rgba(240,91,64,0.95)";
       ctx.beginPath();
       if (r.shape === "rect") ctx.rect(b.left, b.top, b.w, b.h);
       else ctx.ellipse(b.cx, b.cy, b.rx, b.ry, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
     if (drawing) {
-      ctx.strokeStyle = "rgba(240,91,64,0.95)";
       ctx.setLineDash([6, 4]);
       ctx.strokeRect(
         Math.min(drawing.x0, drawing.x1),
@@ -226,7 +213,7 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
 
     if (w >= DRAG_MIN_PX || h >= DRAG_MIN_PX) {
       /* A drag is a rectangle: number plates, shop boards with a phone
-         number on them, a person no face detector was ever going to see. */
+         number on them, a person no detector was ever going to see. */
       const a = toSource({ x: Math.min(box.x0, box.x1), y: Math.min(box.y0, box.y1) });
       const b = toSource({ x: Math.max(box.x0, box.x1), y: Math.max(box.y0, box.y1) });
       setRegions((prev) => [
@@ -265,20 +252,6 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
     });
   }
 
-  /* The same weights, every rung of the ladder, and a mirrored pass. Costs
-     a few seconds and no download, and it is the answer to "are you sure
-     you got everyone" that does not involve shipping a bigger model to
-     every reporter who never needed it. */
-  async function lookAgain() {
-    const img = imgRef.current;
-    if (!img || !size) return;
-    setCareful("running");
-    const report = await detectCarefully(img, size.w, size.h, regions);
-    setRegions(report.regions);
-    setAutoFound(report.regions.filter((r) => r.origin === "auto").length);
-    setCareful("done");
-  }
-
   async function accept() {
     const img = imgRef.current;
     if (!img || !size) {
@@ -293,18 +266,6 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
   }
 
   const zMax = size ? maxZoom(size.w, size.h) : 1;
-  const manual = regions.filter((r) => r.origin === "manual").length;
-
-  /* Said plainly, because the alternative is a privacy promise the software
-     cannot keep. A detector finds faces; it does not find the man with his
-     back to the camera. */
-  const scanLine = scanning
-    ? "Looking for faces"
-    : ran?.includes("unavailable") && regions.length === 0
-      ? "Face detection could not load here. Tap anybody who should be hidden."
-      : autoFound > 0
-        ? `${autoFound} ${autoFound === 1 ? "face" : "faces"} found and hidden. Tap anybody it missed.`
-        : "No faces found. It cannot see people facing away, so check the photo yourself.";
 
   return (
     <div className="photo-studio">
@@ -328,12 +289,6 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
           <div className="photo-studio-wait">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             Centring on the animal
-          </div>
-        )}
-        {!loading && scanning && !undecodable && (
-          <div className="photo-studio-wait">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            Looking for faces
           </div>
         )}
         {undecodable && (
@@ -392,7 +347,10 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
             </div>
           ) : (
             <>
-              <p className="photo-studio-note">{scanLine}</p>
+              <p className="photo-studio-note">
+                Tap anybody who should not be on a public map. Nothing is
+                hidden unless you say so.
+              </p>
               <div className="photo-studio-row">
                 <label htmlFor="photo-brush">Size</label>
                 <input
@@ -413,31 +371,11 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
                   <Undo2 className="h-3.5 w-3.5" aria-hidden /> Undo
                 </button>
               </div>
-              <div className="photo-studio-row">
-                <p className="photo-studio-hint">
-                  Drag a box over a number plate, a shop sign, or anyone with
-                  their back turned. {manual > 0 && `${manual} added by hand. `}
-                  Anything covered is destroyed in the file rather than blurred
-                  over.
-                </p>
-                <button
-                  type="button"
-                  className="photo-studio-reset"
-                  onClick={lookAgain}
-                  disabled={scanning || careful === "running"}
-                >
-                  {careful === "running" ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                  ) : (
-                    <ScanSearch className="h-3.5 w-3.5" aria-hidden />
-                  )}
-                  {careful === "running"
-                    ? "Looking"
-                    : careful === "done"
-                      ? "Looked again"
-                      : "Look again"}
-                </button>
-              </div>
+              <p className="photo-studio-hint">
+                Drag a box over a number plate, a shop sign, or anyone with
+                their back turned. Anything covered is destroyed in the file
+                rather than blurred over.
+              </p>
             </>
           )}
         </>
@@ -451,18 +389,14 @@ export function PhotoStudio({ file, onDone, onCancel }: Props) {
           type="button"
           className="photo-studio-accept"
           onClick={accept}
-          /* Not while the scan is running. Somebody who taps through in the
-             second before it finishes would upload the photograph with
-             nobody hidden, which is the one outcome this step exists to
-             prevent. */
-          disabled={loading || saving || scanning}
+          disabled={loading || saving}
         >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           ) : (
             <ShieldCheck className="h-4 w-4" aria-hidden />
           )}
-          {scanning ? "Checking the photo" : "Use this photo"}
+          Use this photo
         </button>
       </div>
     </div>
