@@ -15,10 +15,9 @@ from two older seed files that are **not idempotent**:
 
 | file | what it adds | re-runs safely? |
 | --- | --- | --- |
-| `seed.sql` | 12 invented animals — Bruno, Laali, Sheru, Moti, Goldie, Kaalu, Rani, Tiger, Coco, Raja, Snowy, Bablu — with **Unsplash stock photo URLs** | **No.** No fixed ids, no on-conflict: every run adds twelve more |
-| `seed-delhi-dogs.sql` | 9 animals from `/seed-dogs/*.jpg` | **No.** A loop with `returning id`: every run adds nine more |
-| `seed-delhi-photographs.sql` | 20 real photographs | Yes — fixed ids |
-| `add-two-more-delhi-dogs.sql` | 2 real photographs | Yes — fixed ids |
+| `seed.sql` | 12 invented animals — Bruno, Laali, Sheru, Moti, Goldie, Kaalu, Rani, Tiger, Coco, Raja, Snowy, Bablu — with **Unsplash stock photo URLs** | **No.** No fixed ids, no on-conflict: every run adds twelve more. This is the only one that duplicates. |
+| `seed-delhi-dogs.sql` | 9 animals from `/seed-dogs/*.jpg` | Yes — it returns early if any `/seed-dogs/` row exists. (I said otherwise earlier. I was wrong; it is guarded.) The same 9 are embedded in `RUN-ALL-MIGRATIONS.sql`, also guarded. |
+| **`the-22-dogs.sql`** | **the 22 photographs, in one file** | **Yes — fixed ids + on-conflict. Tested three times: 22, 22, 22.** |
 
 The stock photography is the part worth acting on. Twelve Unsplash
 pictures of dogs in other countries are sitting in a register whose
@@ -35,10 +34,13 @@ can decide rather than be surprised.
    Nothing else depends on it. Safe to re-run.
 2. **`demo-mode.sql`** — the `ngo_id` error is fixed; it now reads the
    schema in front of it instead of assuming one. Safe to re-run.
-3. **`fix-sightings-feed.sql`** — run this *before* step 4 if you have
-   not already; step 4 says it depends on it.
-4. **`add-two-more-delhi-dogs.sql`** — the two extra photographed
-   animals, with their sightings. Puts the count up by two.
+3. **`fix-sightings-feed.sql`** — the feed columns. Run before step 4.
+4. **`the-22-dogs.sql`** — **the only seed you need.** All 22
+   photographed Delhi animals and their sightings, in one file, with
+   fixed ids and an on-conflict clause. Run it as many times as you
+   like: you get 22 animals, never 44. It replaces
+   `seed-delhi-photographs.sql` and `add-two-more-delhi-dogs.sql`, and
+   you should never run `seed.sql`.
 5. **`ward-density.sql`** — the tables and functions the ward pages read.
    Run before the district files, which load into them.
 6. **`districts-india-1of5.sql`** … **`5of5.sql`** — in order. These are

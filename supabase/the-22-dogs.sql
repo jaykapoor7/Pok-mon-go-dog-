@@ -1,50 +1,69 @@
 -- ════════════════════════════════════════════════════════════════
--- StrayPaw, twenty photographed Delhi street dogs.
+-- The twenty-two photographed Delhi animals. One file. Safe to re-run.
 --
--- WHAT IS REAL HERE AND WHAT IS NOT. READ THIS BEFORE RUNNING IT.
+-- THIS IS THE ONLY SEED YOU SHOULD RUN.
 --
--- REAL: the twenty photographs. Each is a photograph of an actual street dog
--- in Delhi, and the coat, build, collar and setting described below are
--- what is visible in the frame.
+-- It replaces four older files, two of which were dangerous:
 --
--- ASSIGNED: the coordinates and the timestamps. One locality per district,
--- deliberately, so the twenty sit across all nine districts rather than
--- piling into South. Nine, not ten, because the boundary data is Census
--- 2011 and Delhi had nine districts then — Shahdara and South East were
--- carved out in 2012 and do not exist in the polygons this counts against.
--- Either way that spread is a presentation choice, not a finding. The photographs did not
--- come with either, so a locality has been chosen for each and a plausible
--- time of day picked to match the light in the picture. They are real
--- Delhi localities at their real coordinates — but WHICH dog was seen
--- WHERE, and WHEN, is not established by the photograph.
+--   seed.sql               12 invented animals — Bruno, Laali, Sheru,
+--                          Moti, Goldie, Kaalu, Rani, Tiger, Coco, Raja,
+--                          Snowy, Bablu — carrying UNSPLASH STOCK PHOTO
+--                          urls. No fixed ids and no on-conflict clause,
+--                          so every single run added twelve more. DO NOT
+--                          RUN IT. See what-are-these-dogs.sql to find
+--                          and remove any it already left behind.
+--   seed-delhi-dogs.sql    9 animals from /seed-dogs/*.jpg. This one is
+--                          actually SAFE — it opens with a guard that
+--                          returns early if any /seed-dogs/ row already
+--                          exists — and the same 9 are embedded in
+--                          RUN-ALL-MIGRATIONS.sql, so you have probably
+--                          already got them. Not dangerous, just not
+--                          these photographs.
+--   seed-delhi-photographs.sql   the first 20 of the rows below
+--   add-two-more-delhi-dogs.sql  the last 2 of the rows below
 --
--- That distinction matters more here than almost anywhere else in this
--- product. "How many animals, in which ward, seen when" is the entire
--- claim StrayPaw makes; a record whose location was picked to look good on
--- a map is the exact failure the rest of this schema is built to prevent.
+-- The last two were already safe; they are merged here so there is one
+-- file to run instead of two to run in the right order.
 --
--- So: EDIT THE lat/lng AND last_seen VALUES BELOW to where and when you
--- actually took each photograph before running this. They are laid out one
--- per line for that reason. If you cannot remember, that is worth knowing
--- too — five records with honest locations are worth more than five with
--- decorative ones.
+-- WHY THIS ONE CANNOT DUPLICATE. Every animal has a FIXED id, written
+-- out below, and the insert ends in `on conflict (id) do update`. Run it
+-- once or fifty times: you get twenty-two animals. The second run
+-- updates the twenty-two rows that are already there rather than adding
+-- twenty-two more. The sightings are derived from those ids with the
+-- same guarantee.
 --
--- Sterilisation and vaccination are 'unknown' for all twenty, which is not a
--- placeholder, it is the finding: nobody has examined these animals. Five of
--- them wear a collar, which in Delhi can mean an owned dog, a community-fed
--- dog, or an ABC programme's marker. It is not evidence of sterilisation
--- and is not recorded as any.
+-- WHAT IS REAL HERE AND WHAT IS NOT.
 --
--- One of them (Nehru Place, the ginger dog under the chair) wears a collar
--- with a YELLOW TAG. Some ABC and vaccination drives tag animals that way.
--- If you know what that tag is, that dog's status is a real answer rather
--- than an unknown, and it is worth setting — one confirmed animal is worth
--- more than ten guesses.
+-- REAL: the twenty-two photographs. Each is a photograph of an actual
+-- street dog in Delhi, and the coat, build, collar and setting described
+-- in the comments are what is visible in the frame.
 --
--- Idempotent: fixed ids, so re-running updates rather than duplicating.
--- Depends on: RUN-ALL-MIGRATIONS.sql, abc-programme.sql (both in the pilot
--- bundle).
+-- ASSIGNED: the coordinates, the timestamps and the reporter names. The
+-- photographs did not come with a location or a time, so a real Delhi
+-- locality has been chosen for each and a plausible time of day picked
+-- to match the light. WHICH dog was seen WHERE, and WHEN, is not
+-- established by the photograph. Edit the lat/lng and last_seen values
+-- below to where and when you actually took each one before running
+-- this — they are laid out one per line for exactly that reason.
+--
+-- Sterilisation and vaccination are 'unknown' for all twenty-two, which
+-- is not a placeholder. It is the finding: nobody has examined these
+-- animals. Several wear a collar, which in Delhi can mean an owned dog,
+-- a community-fed dog, or an ABC programme's marker. It is not evidence
+-- of sterilisation and is not recorded as any.
+--
+-- Depends on: RUN-ALL-MIGRATIONS.sql only. The two care-status columns
+-- are added by this file if they are missing, so it does not need the
+-- pilot bundle to have been run first.
 -- ════════════════════════════════════════════════════════════════
+
+-- sterilisation_status and vaccination_status arrive with the pilot
+-- bundle (abc-programme.sql), not with RUN-ALL-MIGRATIONS. Added here so
+-- this file runs on a database that has only had the base migrations —
+-- otherwise it fails on the very first statement with a column that most
+-- installs legitimately do not have yet.
+alter table dogs add column if not exists sterilisation_status text;
+alter table dogs add column if not exists vaccination_status  text;
 
 insert into dogs (
   id, name, zone, lat, lng, status, cover_photo,
@@ -190,37 +209,55 @@ insert into dogs (
 ('d0910000-0000-4000-8000-000000000020', null, 'Chandni Chowk',
  28.6465, 77.2295, 'seen', '/dogs/delhi/pale-by-bowls.jpg',
  'medium', 'Pale tan', true, false, 'unknown', 'unknown',
- 1, '2026-09-07 09:15:00+05:30', '2026-09-07 09:15:00+05:30', '2026-09-07 09:28:00+05:30')
+ 1, '2026-09-07 09:15:00+05:30', '2026-09-07 09:15:00+05:30', '2026-09-07 09:28:00+05:30'),
+
+-- 21. Cream dog standing in the middle of a residential lane, looking back
+--     at the camera, parked cars along the kerb.
+('d0910000-0000-4000-8000-000000000021', null, 'Greater Kailash',
+ 28.5494, 77.2426, 'seen', '/dogs/delhi/cream-street-standing.jpg',
+ 'medium', 'Cream', true, false, 'unknown', 'unknown',
+ 1, '2026-09-06 17:20:00+05:30', '2026-09-06 17:20:00+05:30', '2026-09-06 17:34:00+05:30'),
+
+-- 22. Tan dog lying on a granite lobby floor beside a doormat, wearing a
+--     dark collar with a lead attached.
+('d0910000-0000-4000-8000-000000000022', null, 'Vasant Kunj',
+ 28.5200, 77.1588, 'seen', '/dogs/delhi/tan-lobby-collar.jpg',
+ 'medium', 'Tan', true, false, 'unknown', 'unknown',
+ 1, '2026-09-08 11:05:00+05:30', '2026-09-08 11:05:00+05:30', '2026-09-08 11:21:00+05:30')
 
 on conflict (id) do update set
-  zone       = excluded.zone,
-  lat        = excluded.lat,
-  lng        = excluded.lng,
-  cover_photo= excluded.cover_photo,
-  size       = excluded.size,
-  color      = excluded.color,
-  first_seen = excluded.first_seen,
-  last_seen  = excluded.last_seen;
+  zone        = excluded.zone,
+  lat         = excluded.lat,
+  lng         = excluded.lng,
+  cover_photo = excluded.cover_photo,
+  size        = excluded.size,
+  color       = excluded.color,
+  first_seen  = excluded.first_seen,
+  last_seen   = excluded.last_seen;
+
 
 -- ────────────────────────────────────────────────────────────────
--- The same twenty, as sightings.
+-- The same twenty-two, as sightings.
 --
--- The map reads `dogs`; the sightings feed reads `sightings`. Seeding only
--- the first put twenty animals on the map that the feed had never heard of,
--- and left each profile claiming sightings_count = 1 with no row behind it.
+-- The map reads `dogs`; the feed reads `sightings`. Seeding only the
+-- first put animals on the map that the feed had never heard of, and
+-- left each profile claiming sightings_count = 1 with no row behind it.
 --
--- Derived from the rows above rather than typed out again, so the place, the
--- photograph and the time cannot drift apart from the animal they belong to.
--- The id is the dog's with one digit changed, which keeps it deterministic
--- and re-runnable without a second lookup table.
+-- Derived from the rows above rather than typed out again, so the place,
+-- the photograph and the time cannot drift apart from the animal they
+-- belong to. The id is the animal's with one digit changed, which keeps
+-- it deterministic and re-runnable without a second lookup table.
 --
--- reporter_name is ASSIGNED, like the coordinates and timestamps. These
--- twenty photographs were not taken by twenty people, and the name below is
--- a presentation choice, not a record of who reported the animal. It is
--- written into the row rather than generated at render time so that what is
--- in the database and what is on the screen are the same thing.
--- likes stays 0 and mood_tags empty: engagement that did not happen is not
--- seeded, and that is a different kind of claim.
+-- reporter_name is ASSIGNED, like the coordinates and the timestamps.
+-- These photographs were not taken by twenty-two different people. The
+-- name is a presentation choice so the feed reads as a community record
+-- rather than as one person's camera roll, and it is stored rather than
+-- invented at render time so the database and the screen never disagree
+-- about who reported what. It is derived from the animal's id, so
+-- re-running does not reshuffle who reported which animal.
+--
+-- likes stays 0 and mood_tags stays empty: engagement that did not
+-- happen is not seeded, and that would be a different kind of claim.
 insert into sightings (
   id, dog_id, reporter_name, photo_url, lat, lng, zone,
   nickname, notes, trust_score, likes, status, created_at
@@ -228,14 +265,6 @@ insert into sightings (
 select
   overlay(d.id::text placing '1' from 8 for 1)::uuid,
   d.id,
-  /* An assigned first name, the same way the coordinates and timestamps
-     above were assigned. These photographs were not taken by twenty
-     different people; the name is a presentation choice so the feed reads
-     as a community record rather than as one account's camera roll, and it
-     is stored here rather than invented at render time so the database and
-     the screen never disagree about who reported what.
-     Deterministic from the animal's id, so re-running does not reshuffle
-     who reported which animal. */
   (array['Priya','Rohit','Aisha','Arjun','Neha','Kabir','Meera','Vikram',
          'Sanya','Dev','Ananya','Karan','Isha','Raj','Tara','Nikhil',
          'Zara','Aditya','Simran','Farhan'])
@@ -252,6 +281,7 @@ select
   d.created_at
 from dogs d
 where d.id::text like 'd0910000-0000-4000-8000-%'
+  and coalesce(d.cover_photo, '') <> ''
 on conflict (id) do update set
   dog_id     = excluded.dog_id,
   photo_url  = excluded.photo_url,
@@ -261,29 +291,31 @@ on conflict (id) do update set
   status     = excluded.status,
   created_at = excluded.created_at;
 
--- sightings_count is a stored count, so it is set from what is actually in
--- the table rather than left at the 1 the insert above assumed.
+-- sightings_count is a stored count, so it is set from what is actually
+-- in the table rather than left at the 1 the insert above assumed.
 update dogs d
    set sightings_count = (select count(*) from sightings s where s.dog_id = d.id)
  where d.id::text like 'd0910000-0000-4000-8000-%';
 
--- What went in, and where it landed once boundaries are loaded.
+
+-- ────────────────────────────────────────────────────────────────
+-- Check. Run this file twice and these numbers must not change.
 --
--- The join is LEFT and the district is aggregated rather than picked, so
--- two failure modes show up here instead of hiding: a point that falls in
--- NO district (a gap between polygons, which happened once) prints
--- "outside every district", and a point sitting exactly on a shared
--- boundary matches TWO and prints both. Either means the coordinate is
--- wrong, or at least not where you think it is.
-select d.zone,
-       d.color,
-       to_char(d.last_seen at time zone 'Asia/Kolkata', 'DD Mon HH24:MI') as seen,
-       coalesce(string_agg(w.ward_name, ' + ' order by w.ward_name),
-                'outside every district')                                as district
-  from dogs d
-  left join wards w
-    on w.level = 'district'
-   and st_contains(w.geom, st_setsrid(st_point(d.lng, d.lat), 4326))
- where d.id::text like 'd0910000-0000-4000-8000-%'
- group by d.id, d.zone, d.color, d.last_seen
- order by d.last_seen;
+-- The ward join that used to live here has been removed: it referenced a
+-- table that only exists once the boundary files are loaded, so on a
+-- fresh database this file failed at the very last statement after
+-- having already done its work correctly — which looks exactly like a
+-- broken seed and is not one.
+
+select
+  (select count(*) from dogs
+    where id::text like 'd0910000-0000-4000-8000-%')        as photographed_animals,
+  (select count(*) from sightings s join dogs d on d.id = s.dog_id
+    where d.id::text like 'd0910000-0000-4000-8000-%')      as their_sightings,
+  (select count(*) from dogs)                               as animals_in_total,
+  (select count(*) from dogs
+    where cover_photo like '%unsplash%')                    as stock_photo_rows_to_remove;
+
+-- photographed_animals and their_sightings must both read 22.
+-- stock_photo_rows_to_remove must read 0. If it does not, seed.sql has
+-- been run at some point — what-are-these-dogs.sql will clear it.

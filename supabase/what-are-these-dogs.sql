@@ -10,14 +10,25 @@
 -- The number is high because two of the older seed files are NOT
 -- idempotent and there is stock photography in the table:
 --
---   supabase/seed.sql            12 invented animals — Bruno, Laali, Sheru,
---                                Moti, Goldie, Kaalu, Rani, Tiger, Coco,
---                                Raja, Snowy, Bablu — with UNSPLASH STOCK
---                                PHOTO urls. No fixed ids, no on-conflict,
---                                so every run adds twelve more.
---   supabase/seed-delhi-dogs.sql 9 animals from /seed-dogs/*.jpg, inserted
---                                in a loop with `returning id` and no
---                                on-conflict. Every run adds nine more.
+--   supabase/seed.sql            DELETED from the repo now, but it may
+--                                already have run against your database.
+--                                It inserted 12 invented animals — Bruno,
+--                                Laali, Sheru, Moti, Goldie, Kaalu, Rani,
+--                                Tiger, Coco, Raja, Snowy, Bablu — with
+--                                UNSPLASH STOCK PHOTO urls, no fixed ids
+--                                and no on-conflict, so every run added
+--                                twelve more. It also backfilled a
+--                                "StrayPaw Team" sighting onto EVERY dog
+--                                in the table, including the real ones,
+--                                which is why some animals may show two
+--                                sightings for one photograph.
+--   supabase/seed-delhi-dogs.sql 9 animals from /seed-dogs/*.jpg. SAFE —
+--                                it opens with a guard that returns early
+--                                if any /seed-dogs/ row already exists,
+--                                and the same 9 are embedded in
+--                                RUN-ALL-MIGRATIONS.sql. I said earlier
+--                                that this one duplicated. It does not.
+--                                Only seed.sql does.
 --   supabase/seed-delhi-photographs.sql + add-two-more-delhi-dogs.sql
 --                                22 real photographs, fixed ids, safe to
 --                                re-run. These are the ones to keep.
@@ -118,3 +129,29 @@ select (select count(*) from dogs)                                     as animal
             or sterilisation_status = 'unknown')                        as never_checked,
        (select count(*) from dogs where cover_photo like '%unsplash%')  as stock_photos_left,
        (select count(*) from sightings)                                 as sightings_in_feed;
+
+
+-- ── 6. The duplicate "StrayPaw Team" sightings ──────────────────
+-- seed.sql backfilled one sighting onto every dog in the table, so a
+-- photographed animal that already had its own sighting ended up with
+-- two for the same photograph. This finds them.
+
+select d.id, d.zone, d.cover_photo, count(s.id) as sightings,
+       string_agg(s.reporter_name, ' / ' order by s.created_at) as reporters
+  from dogs d
+  join sightings s on s.dog_id = d.id
+ where d.id::text like 'd0910000-0000-4000-8000-%'
+ group by d.id
+having count(s.id) > 1
+ order by d.zone;
+
+-- And removes only the backfilled one, keeping the deterministic
+-- sighting that the-22-dogs.sql creates and maintains.
+
+-- delete from sightings
+--  where reporter_name = 'StrayPaw Team'
+--    and dog_id in (select id from dogs
+--                    where id::text like 'd0910000-0000-4000-8000-%');
+-- update dogs d
+--    set sightings_count = (select count(*) from sightings s where s.dog_id = d.id)
+--  where d.id::text like 'd0910000-0000-4000-8000-%';
