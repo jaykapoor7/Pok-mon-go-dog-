@@ -79,7 +79,7 @@ export default async function DogProfilePage({
       <PageView name="animal_viewed" props={{ observations: sightings.length }} />
       <div className="dogp-intro">
       <div className="dogp-cover">
-        <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} fit="contain" className="h-full w-full" />
+        <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="h-full w-full" />
       </div>
       <div className="dogp-overview">
       <div className="dogp-record-label"><StatusBadge status={dog.status} /><span>Community dog record</span></div>
@@ -330,7 +330,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-8">
+    <section className="dogp-section mt-8">
       <h2 className="mb-3 font-display text-lg">{title}</h2>
       {children}
     </section>

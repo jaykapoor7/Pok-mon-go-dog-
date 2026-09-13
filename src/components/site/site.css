@@ -2293,3 +2293,58 @@
   .sp-header-code-long { display: none; }
   .sp-header-code-short { display: inline; }
 }
+
+/* Launch header: these are two distinct doors, not generic SaaS pills. */
+html .sp .sp-header { background: rgba(255, 253, 249, .94); border-bottom-color: rgba(11, 30, 61, .13); }
+html .sp .sp-header-actions { gap: 8px; }
+html .sp .sp-header-code,
+html .sp .sp-header-cta {
+  min-height: 40px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  letter-spacing: -.01em;
+  transition: transform .16s ease, background .16s ease, border-color .16s ease;
+}
+html .sp .sp-header-code {
+  padding: 0 13px;
+  background: transparent;
+  border: 1px solid rgba(11, 30, 61, .18);
+  color: var(--sp-ink);
+}
+html .sp .sp-header-code:hover { background: #f1e9de; border-color: rgba(11, 30, 61, .34); }
+html .sp .sp-header-cta { padding: 0 15px 0 16px; background: var(--sp-ink); color: #fff; }
+html .sp .sp-header-cta:hover { background: var(--sp-blue-deep); }
+html .sp .sp-header-code:active,
+html .sp .sp-header-cta:active { transform: translateY(1px); }
+
+/* Header access is one paired decision. Give both doors the same measured
+   box so their labels sit on the same optical centre instead of inheriting
+   unrelated padding from the old navigation controls. */
+html .sp .sp-header-actions {
+  display: grid;
+  grid-template-columns: 132px 108px auto;
+  align-items: stretch;
+  gap: 7px;
+}
+html .sp .sp-header-code,
+html .sp .sp-header-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+html .sp .sp-header-code { border-radius: 2px; }
+html .sp .sp-header-cta { border-radius: 2px; }
+html .sp .sp-header-cta svg { flex: 0 0 auto; }
+@media (max-width: 560px) {
+  html .sp .sp-header-actions { grid-template-columns: auto auto auto; gap: 5px; }
+  html .sp .sp-header-code,
+  html .sp .sp-header-cta { min-height: 38px; padding-left: 10px; padding-right: 10px; }
+  html .sp .sp-header-cta svg { display: none; }
+}

@@ -1345,3 +1345,143 @@ html .sp.product-site .role-help-note {
   }
   .cm-q-tag { margin-left: auto; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Landing composition pass. The story remains exactly the same; the page
+   now moves through paper, terrain, operations, and response with one
+   quiet surface change at a time. No decorative grids, glowing lights, or
+   floating browser-frame treatment.
+   ═══════════════════════════════════════════════════════════════════ */
+.field-site { background: #f7f2ea; }
+.product-hero-wall {
+  min-height: min(760px, 92svh);
+  grid-template-columns: minmax(0, .84fr) minmax(390px, 1.16fr);
+  gap: clamp(38px, 7vw, 116px);
+  padding: clamp(124px, 11vw, 162px) max(6vw, 28px) clamp(64px, 7vw, 104px);
+  background: #f7f2ea !important;
+  color: var(--sp-ink);
+}
+.product-hero-wall::before,
+.product-hero-wall::after { display: none; }
+.product-hero-wall .field-eyebrow { color: var(--sp-ember); }
+.product-hero-wall h1 { color: var(--sp-ink); }
+.product-hero-wall h1 em { color: var(--sp-flame-deep); }
+.product-hero-wall .field-button { background: var(--sp-blue); color: #fff; }
+.product-hero-wall .field-button:hover { background: var(--sp-blue-deep); }
+.product-hero-wall .field-text-link { color: var(--sp-ink); border-color: rgba(11, 30, 61, .38); }
+.product-hero-wall .hero-tally { border-top-color: var(--sp-rule); }
+.hero-tally-figure { color: var(--sp-ink); }
+.hero-tally-label,
+.hero-tally-label span { color: var(--sp-muted); }
+.hero-wall { gap: 6px; }
+.hero-wall-lead,
+.hero-wall-grid li { border: 0; background: #d9d1c4; box-shadow: none; }
+.hero-wall-lead { box-shadow: 0 20px 45px rgba(54, 42, 28, .12); }
+.hero-wall-lead figcaption { background: linear-gradient(transparent, rgba(7, 22, 48, .85)); }
+.hero-wall-grid li { opacity: .94; }
+.hero-wall-grid span { background: linear-gradient(transparent, rgba(7, 22, 48, .76)); }
+
+/* The map is the transition from individual sighting to geography. */
+.wt { background: #ede5d9; }
+.wt-inner { max-width: 1360px; padding-left: max(6vw, 28px); padding-right: max(6vw, 28px); }
+.wt-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, .55fr); column-gap: clamp(40px, 10vw, 160px); align-items: end; }
+.wt-head .field-eyebrow,
+.wt-head h2 { grid-column: 1; }
+.wt-head > p { grid-column: 2; grid-row: 1 / span 2; margin: 0 0 4px; }
+.wt-map { margin-top: var(--sp-7); border: 1px solid rgba(11, 30, 61, .16); border-radius: 0; box-shadow: none; }
+.wt-map .field-map-preview,
+.wt-map canvas { border-radius: 0; }
+.wt-foot { border-top: 0; padding-top: var(--sp-4); }
+
+/* The product story has a dark operational chapter, but it is a clean
+   ink field; the visual connection comes from rules and the rail. */
+.cx { background: var(--sp-ink); }
+.cx-field { display: none; }
+.cx-head { max-width: 66ch; }
+.cx-head h2 em { color: #ffb08c; }
+.cm { margin-top: var(--sp-7); }
+.cm-frame { border: 1px solid rgba(255, 255, 255, .18); border-radius: 0; background: #0e254a; box-shadow: none; }
+.cm-bar { border-bottom-color: rgba(255, 255, 255, .16); background: #0b1e3d; }
+.cm-chip { border-radius: 999px; }
+.cm-rail { background: #0b1e3d; border-right-color: rgba(255, 255, 255, .14); }
+.cm-rail span { border-radius: 3px; }
+.cm-main { gap: 0; padding: 0; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); }
+.cm-card { padding: var(--sp-6); border: 0; border-right: 1px solid rgba(255, 255, 255, .14); border-bottom: 1px solid rgba(255, 255, 255, .14); border-radius: 0; background: transparent; }
+.cm-card:nth-child(2) { border-right: 0; }
+.cm-queue { border-bottom: 0; }
+
+/* The final two sections close the story with a measured cream-to-ink
+   transition, rather than four isolated modules. */
+.role-help { max-width: none; padding-left: max(6vw, 28px); padding-right: max(6vw, 28px); background: #f7f2ea !important; }
+.role-help-links { border-color: var(--sp-rule); }
+.role-help-links a { border-color: var(--sp-rule); }
+.role-help-links a:hover { background: #fffdf9 !important; padding-left: 14px; }
+.product-closing { background: var(--sp-ink) !important; }
+.field-footer { background: var(--sp-ink); border-top: 1px solid rgba(255,255,255,.16); }
+.field-footer-brand,
+.field-footer nav a { color: #fff; }
+.field-footer-brand span,
+.field-footer > span { color: #b9c5d8; }
+
+@media (max-width: 900px) {
+  .product-hero-wall { grid-template-columns: 1fr; min-height: unset; padding-top: 116px; }
+  .wt-head { grid-template-columns: 1fr; }
+  .wt-head > p { grid-column: 1; grid-row: auto; margin: var(--sp-5) 0 0; }
+  .cm-main { grid-template-columns: 1fr; }
+  .cm-card,
+  .cm-card:nth-child(2) { border-right: 0; }
+}
+@media (max-width: 560px) {
+  .product-hero-wall { padding-left: 20px; padding-right: 20px; }
+  .hero-wall { margin: 0 -2px; }
+  .wt-inner,
+  .role-help { padding-left: 20px; padding-right: 20px; }
+  .wt-map { margin-left: -20px; margin-right: -20px; }
+  .field-footer { align-items: flex-start; flex-direction: column; }
+}
+
+/* Pinky's collage. The lead is deliberately fixed and central; the surrounding
+   live-record photographs are a calm supporting cast rather than a noisy grid. */
+.product-hero-wall { grid-template-columns: minmax(0, .78fr) minmax(440px, 1.22fr); }
+.hero-wall {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(96px, 1fr));
+  width: min(100%, 650px);
+  margin-inline: auto;
+  gap: 8px;
+}
+.hero-wall-lead {
+  grid-column: 2 / span 2;
+  grid-row: 1 / span 2;
+  aspect-ratio: 4 / 5;
+  min-height: 0;
+  box-shadow: 0 20px 46px rgba(11, 30, 61, .16);
+}
+.hero-wall-lead img { object-position: center 63%; }
+.hero-wall-grid li { min-height: 0; border-radius: 3px; }
+.hero-wall-grid li img { object-position: center; }
+.hero-wall-grid li:nth-child(1) { grid-column: 1; grid-row: 1; }
+.hero-wall-grid li:nth-child(2) { grid-column: 4; grid-row: 1; }
+.hero-wall-grid li:nth-child(3) { grid-column: 1; grid-row: 2; }
+.hero-wall-grid li:nth-child(4) { grid-column: 4; grid-row: 2; }
+.hero-wall-grid li:nth-child(5) { grid-column: 1; grid-row: 3; }
+.hero-wall-grid li:nth-child(6) { grid-column: 2; grid-row: 3; }
+.hero-wall-grid li:nth-child(7) { grid-column: 3; grid-row: 3; }
+.hero-wall-grid li:nth-child(8) { grid-column: 4; grid-row: 3; }
+.hero-wall-grid span { display: none; }
+.hero-wall-lead figcaption { padding: 58px 18px 17px; }
+.hero-wall-lead b { font-size: 26px; }
+@media (max-width: 900px) {
+  .product-hero-wall { grid-template-columns: 1fr; }
+  .hero-wall { max-width: 560px; }
+}
+@media (max-width: 560px) {
+  .hero-wall { grid-template-rows: repeat(3, 86px); gap: 6px; }
+  .hero-wall-lead { grid-column: 1 / -1; grid-row: 1 / span 2; aspect-ratio: auto; }
+  .hero-wall-grid li:nth-child(n+5) { display: none; }
+  .hero-wall-grid li:nth-child(1) { grid-column: 1; grid-row: 3; }
+  .hero-wall-grid li:nth-child(2) { grid-column: 2; grid-row: 3; }
+  .hero-wall-grid li:nth-child(3) { grid-column: 3; grid-row: 3; }
+  .hero-wall-grid li:nth-child(4) { grid-column: 4; grid-row: 3; }
+}

@@ -8,8 +8,7 @@ import { RecentSightings } from "@/components/app/RecentSightings";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ByLocality, CoverageBar, ReportsOverTime } from "./ConsoleCharts";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { cityForPoints } from "@/lib/geo/cities";
-import { densestCell, located } from "@/lib/geo/cluster";
+import { located } from "@/lib/geo/cluster";
 import { markerMetaFor } from "@/lib/marker-state";
 import { dogLabel } from "@/lib/utils";
 import type { Dog, Sighting } from "@/lib/types";
@@ -23,9 +22,8 @@ import type { Dog, Sighting } from "@/lib/types";
    showed an empty product.
 
    Nothing here waits for permission now. Without a location the screen
-   frames the busiest place on the register, counts THAT, and puts those
-   animals on the map and in a row of records you can open. Granting a
-   location does not turn the page on, it moves it to your street.
+   stays explicitly national. Granting a location does not turn the page
+   on; it moves the same shared register to the person's own street.
    ════════════════════════════════════════════════════════════════════ */
 
 const RADIUS_KM = 12;
@@ -48,18 +46,15 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
 
   const nearby = Boolean(location);
 
-  /* What the screen is about: your 12 km, or the busiest place on the
-     register while nobody has said where you are. */
+  /* The old fallback picked the densest seeded cluster and opened a person
+     in a Delhi-looking dashboard before they had told us where they were.
+     The default is now the shared national register; location turns it into
+     their street, rather than pretending a seed cluster is their home. */
   const inView = useMemo(() => {
     const there = located(dogs);
     if (location) return there.filter((dog) => distanceKm(location, dog) <= RADIUS_KM);
-    return densestCell(there);
+    return there;
   }, [dogs, location]);
-
-  const place = useMemo(
-    () => (location ? null : cityForPoints(inView)),
-    [location, inView]
-  );
 
   const nearbySightings = useMemo(
     () =>
@@ -101,31 +96,17 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
     );
   }
 
-  /* Where the screen says it is looking. Never "India": that is a country,
-     not a place somebody walks a dog in. */
-  const where = nearby ? "around you" : place ? `in ${place}` : "on the register";
+  const where = nearby ? "around you" : "on the shared register";
 
   return (
     <div className="community-home">
-      <header className="product-page-heading community-heading">
+      <header className="community-command-header">
         <div>
-          <span className="product-kicker">Community map</span>
+          <span className="product-kicker">Community field desk</span>
           <h1>
             {nearby ? (
               <>
                 Your street, <em>on the record.</em>
-              </>
-            ) : place ? (
-              /* NOT "What is known in Delhi." Until somebody shares a
-                 location this falls back to densestCell() — the busiest
-                 cluster on the whole register — and naming that city in
-                 the headline presented another city's data as though it
-                 were the reader's own. Someone opening this in Chennai was
-                 told about Delhi with no indication why. The heading is
-                 now neutral and the fallback says what it is, in the line
-                 under it, next to the control that fixes it. */
-              <>
-                What is known <em>so far.</em>
               </>
             ) : (
               <>
@@ -136,47 +117,17 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
           <p>
             {nearby
               ? `Every public record within about ${RADIUS_KM} km of you. Public pins are deliberately approximate.`
-              : place
-                ? `You have not shared a location, so this is the busiest part of the record right now — ${place}. Use your location to see your own streets instead.`
-                : "Add the first record and this becomes a map of somewhere real."}
+              : "Start with the shared national record, or use your location to make this your own street."}
           </p>
         </div>
-        <Link className="product-primary" href="/report">
-          <Plus size={18} />
-          Report a sighting
-        </Link>
+        <div className="community-command-actions">
+          <button type="button" onClick={findMe} disabled={locating} className="community-relocate">
+            <Crosshair size={15} />
+            {locating ? "Finding you" : nearby ? "Refresh location" : "Use my location"}
+          </button>
+          <Link className="product-primary" href="/report"><Plus size={18} /> Report a sighting</Link>
+        </div>
       </header>
-
-      {/* Two figures and a control, then the charts. What stood here was
-          three bare integers in large type — recorded, needing help,
-          care status known. A number with nothing to measure it against
-          tells a reader nothing: nine animals is either most of a street
-          or almost none of a city and there was no way to tell which.
-
-          The two that survive as figures are the ones that ARE the
-          headline — how many records, and how many are flagged. The
-          third was a proportion pretending to be a count, and it is a
-          chart now. */}
-      <section className="community-counts" aria-label={`Animal records ${where}`}>
-        <div>
-          <b>{stats.recorded}</b>
-          <span>Animals recorded {where}</span>
-        </div>
-        <div>
-          <b className={stats.needsHelp > 0 ? "urgent" : undefined}>{stats.needsHelp}</b>
-          <span>Marked as needing help</span>
-        </div>
-        <button type="button" onClick={findMe} disabled={locating} className="community-relocate">
-          <Crosshair size={14} />
-          {locating ? "Finding you" : nearby ? "Refresh my location" : "Use my location"}
-        </button>
-      </section>
-
-      <div className="console-charts">
-        <CoverageBar dogs={inView} />
-        <ReportsOverTime sightings={nearbySightings} />
-        <ByLocality dogs={inView} />
-      </div>
 
       {locationError && (
         <p role="status" className="community-location-error">
@@ -184,26 +135,12 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
         </p>
       )}
 
-      <div className="community-workspace">
-        <section className="community-map">
-          <div className="product-section-heading">
-            <div>
-              <h2>{nearby ? "Animals near you" : place ? `Animals in ${place}` : "The map"}</h2>
-              <p>
-                {inView.length > 0
-                  ? `${inView.length} public record${inView.length === 1 ? "" : "s"}. Tap one to open it.`
-                  : "Nothing here yet. The first careful sighting makes this useful for the next person."}
-              </p>
-            </div>
-            <Link href="/map">
-              Open the full map <ArrowUpRight size={16} />
-            </Link>
-          </div>
-
+      <section className="community-field-surface" aria-label={`Animal records ${where}`}>
+        <div className="community-map">
           <FieldMapPreview
             dogs={inView}
             center={location}
-            place={nearby ? "Around you" : place ?? undefined}
+            place={nearby ? "Around you" : undefined}
           />
 
           {inView.length === 0 && (
@@ -217,59 +154,23 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
               </Link>
             </div>
           )}
+        </div>
 
-          {/* The animals themselves, not just their pins. This is the row
-              that makes the map a register of individuals: every card opens
-              that animal's own page. */}
-          {inView.length > 0 && (
-            <div className="community-animals">
-              <div className="product-section-heading">
-                <div>
-                  <h2>Who is on this map</h2>
-                  <p>Open a record to see its sightings, its care status and what is missing.</p>
-                </div>
-              </div>
-              <ul className="community-animal-row">
-                {inView.slice(0, 12).map((dog) => {
-                  const meta = markerMetaFor(dog);
-                  return (
-                    <li key={dog.id}>
-                      <Link href={`/dog/${dog.id}`}>
-                        <DogPhoto
-                          src={dog.cover_photo}
-                          alt=""
-                          seed={dog.id}
-                          className="community-animal-photo"
-                        />
-                        <b>{dogLabel(dog)}</b>
-                        <span>{dog.zone || "Location on the record"}</span>
-                        <i style={{ background: meta.color }} aria-hidden />
-                        <small>{meta.label}</small>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-        </section>
-
-        <section className="community-recent">
-          <div className="product-section-heading">
+        <aside className="community-journal">
+          <div className="community-signal-line">
+            <div><b>{stats.recorded}</b><span>animals recorded {where}</span></div>
+            <div><b className={stats.needsHelp > 0 ? "urgent" : undefined}>{stats.needsHelp}</b><span>need attention</span></div>
+          </div>
+          <div className="community-journal-heading">
             <div>
+              <span className="product-kicker">Live field journal</span>
               <h2>Reported recently</h2>
-              <p>
-                {nearby
-                  ? "The newest public sightings around you."
-                  : "The newest public sightings anywhere on the register."}
-              </p>
             </div>
             <Link href="/feed">
               All activity <ArrowUpRight size={16} />
             </Link>
           </div>
           <RecentSightings sightings={nearbySightings.slice(0, 6)} />
-
           <div className="community-next-step">
             <p>
               <b>Report what you see.</b> A photograph and a place become a record
@@ -283,8 +184,35 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
               Open saved animals <ArrowUpRight size={15} />
             </Link>
           </div>
+        </aside>
+      </section>
+
+      {inView.length > 0 && (
+        <section className="community-record-strip">
+          <div className="product-section-heading">
+            <div><span className="product-kicker">The local register</span><h2>Who is on this map</h2><p>Open a record to see sightings, care status and what is still unknown.</p></div>
+            <Link href="/map">Open the full map <ArrowUpRight size={16} /></Link>
+          </div>
+          <ul className="community-animal-row">
+            {inView.slice(0, 12).map((dog) => {
+              const meta = markerMetaFor(dog);
+              return <li key={dog.id}><Link href={`/dog/${dog.id}`}><DogPhoto src={dog.cover_photo} alt="" seed={dog.id} className="community-animal-photo" /><b>{dogLabel(dog)}</b><span>{dog.zone || "Location on the record"}</span><i style={{ background: meta.color }} aria-hidden /><small>{meta.label}</small></Link></li>;
+            })}
+          </ul>
         </section>
-      </div>
+      )}
+
+      <section className="community-analysis" aria-label="Local record patterns">
+        <div className="community-analysis-heading"><span className="product-kicker">Patterns in the record</span><p>Coverage, reporting pace and place — read as one picture of what is known.</p></div>
+        <div className="console-charts">
+          <CoverageBar dogs={inView} />
+          <ReportsOverTime sightings={nearbySightings} />
+          {/* Locality rankings only mean something after the person has
+              chosen a geography. Showing a seed-heavy city as “busiest”
+              is not a national signal. */}
+          {nearby && <ByLocality dogs={inView} />}
+        </div>
+      </section>
 
       {/* The console's side rail is hidden on a phone, and a phone is
           where most of this gets used, so the way to report a problem

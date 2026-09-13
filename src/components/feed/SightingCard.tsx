@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MapPin, MessageCircle, PawPrint, Pencil } from "lucide-react";
+import { Heart, MapPin, MessageCircle, Pencil, Share2 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
 import { timeAgo, formatNumber, cn, displayReporter } from "@/lib/utils";
@@ -61,79 +61,51 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      className="card overflow-hidden"
+      className="sighting-row"
     >
-      {/* header */}
-      <div className="flex items-center gap-3 p-3">
-        {sighting.user_avatar ? (
-          <img
-            src={sighting.user_avatar}
-            alt={reporter ?? "Reported anonymously"}
-            className="h-9 w-9 rounded-full object-cover ring-2 ring-paw-100"
-          />
-        ) : initials ? (
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-paw-200 text-xs font-bold text-paw-700">
-            {initials}
-          </span>
-        ) : (
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-bark-100 text-bark-500" aria-hidden>
-            <PawPrint className="h-4 w-4" />
-          </span>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className={cn("truncate text-sm", reporter ? "font-semibold" : "text-bark-500")}>
-            {reporter ?? "Reported anonymously"}
-          </p>
-          <Link href={`/map?lat=${sighting.lat}&lng=${sighting.lng}`} className="flex items-center gap-1 text-xs text-bark-400 hover:text-paw-600">
-            <MapPin className="h-3 w-3" /> {sighting.zone} · {timeAgo(sighting.created_at)}
-          </Link>
+      {/* A sighting is a piece of field evidence, not a social post. The
+          photo stays present, but occupies a fixed thumbnail so people can
+          scan reports, place, care context and action in one pass. */}
+      <PhotoWrap dogId={sighting.dog_id}>
+        <DogPhoto
+          src={sighting.photo_url}
+          alt={nickname ?? "Street dog sighting"}
+          seed={sighting.id}
+          className="sighting-row-photo"
+        />
+      </PhotoWrap>
+
+      <div className="sighting-row-main">
+        <div className="sighting-row-kicker">
+          <span>{sighting.dog_id ? "Linked animal" : "New observation"}</span>
+          <span>{timeAgo(sighting.created_at)}</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          {accountOwned && (
-            <button
-              onClick={() => setEditing(true)}
-              aria-label="Edit your sighting"
-              title="Edit your sighting"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-bark-600 shadow-sm transition-colors hover:bg-bark-900 hover:text-white"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-          )}
-          <DeleteSightingButton
-            sightingId={sighting.id}
-            ownerUserId={sighting.user_id}
-            onDeleted={() => setDeleted(true)}
-          />
+        <div className="sighting-row-title">
+          <h2>{nickname ?? "Street animal, not named yet"}</h2>
+          {sighting.user_avatar ? (
+            <img src={sighting.user_avatar} alt="" className="sighting-reporter-avatar" />
+          ) : initials ? (
+            <span className="sighting-reporter-avatar sighting-reporter-initials">{initials}</span>
+          ) : null}
+        </div>
+        <Link href={`/map?lat=${sighting.lat}&lng=${sighting.lng}`} className="sighting-place">
+          <MapPin className="h-3.5 w-3.5" /> {sighting.zone}
+        </Link>
+        {notes && <p className="sighting-note">{notes}</p>}
+        <div className="sighting-row-meta">
+          <span>{reporter ? `Reported by ${reporter}` : "Reported anonymously"}</span>
+          {moods.map((m) => <MoodChip key={m} mood={m} />)}
         </div>
       </div>
 
-      {/* photo (links to the dog profile once one exists; pending sightings have none) */}
-      <PhotoWrap dogId={sighting.dog_id}>
-        <div className="relative">
-          <DogPhoto
-            src={sighting.photo_url}
-            alt={nickname ?? "Street dog sighting"}
-            seed={sighting.id}
-            fit="contain"
-            className="aspect-square w-full"
-          />
-          {nickname && (
-            <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white backdrop-blur">
-              {nickname}
-            </span>
-          )}
-        </div>
-      </PhotoWrap>
-
-      {/* actions */}
-      <div className="flex items-center gap-4 px-3 pt-3">
+      <div className="sighting-row-actions">
         <button
           onClick={toggleLike}
           aria-pressed={liked}
-          className="flex items-center gap-1.5 text-sm font-medium"
+          className="sighting-action"
         >
           <motion.span
             key={liked ? "on" : "off"}
@@ -143,44 +115,36 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
           >
             <Heart
               className={cn(
-                "h-6 w-6 transition-colors",
+                "h-4 w-4 transition-colors",
                 liked ? "fill-status-injured text-status-injured" : "text-bark-600"
               )}
             />
           </motion.span>
-          {formatNumber(likes)}
+          <span>{formatNumber(likes)}</span>
         </button>
         {sighting.dog_id && (
           <Link
             href={`/dog/${sighting.dog_id}`}
-            className="flex items-center gap-1.5 text-sm font-medium text-bark-600"
+            className="sighting-action"
           >
-            <MessageCircle className="h-6 w-6" />
+            <MessageCircle className="h-4 w-4" />
+            <span>Record</span>
           </Link>
         )}
         <button
           onClick={shareWhatsApp}
           aria-label="Share on WhatsApp"
-          className="ml-auto flex items-center gap-1.5 text-sm font-medium text-status-sterilised"
+          className="sighting-action"
         >
-          <WhatsAppIcon className="h-5 w-5" />
-          <span className="hidden sm:inline">Share</span>
+          <Share2 className="h-4 w-4" />
+          <span>Share</span>
         </button>
-      </div>
-
-      {/* caption */}
-      <div className="space-y-2 p-3 pt-2">
-        {notes && (
-          <p className="text-sm text-bark-700">
-            {reporter && <span className="font-semibold">{reporter.split(" ")[0]} </span>}
-            {notes}
-          </p>
+        {accountOwned && (
+          <button onClick={() => setEditing(true)} aria-label="Edit your sighting" className="sighting-action sighting-action-icon">
+            <Pencil className="h-4 w-4" />
+          </button>
         )}
-        <div className="flex flex-wrap gap-1.5">
-          {moods.map((m) => (
-            <MoodChip key={m} mood={m} />
-          ))}
-        </div>
+        <DeleteSightingButton sightingId={sighting.id} ownerUserId={sighting.user_id} onDeleted={() => setDeleted(true)} />
       </div>
 
       {accountOwned && (
@@ -203,12 +167,4 @@ export function SightingCard({ sighting }: { sighting: Sighting }) {
 /** Wraps the photo in a link to the dog profile when one exists, else a plain div. */
 function PhotoWrap({ dogId, children }: { dogId: string | null; children: React.ReactNode }) {
   return dogId ? <Link href={`/dog/${dogId}`}>{children}</Link> : <div>{children}</div>;
-}
-
-function WhatsAppIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z" />
-    </svg>
-  );
 }
