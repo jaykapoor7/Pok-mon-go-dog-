@@ -15,6 +15,7 @@ import { exchangeToken } from "@/lib/auth-exchange";
 import { track } from "@/lib/analytics";
 import { claimOrgMembership } from "@/lib/programme";
 import { storeRole, type Role } from "@/lib/roles";
+import { isRecordingDemo } from "@/lib/recording-demo";
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
@@ -66,6 +67,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── Session bootstrap ───────────────────────────────────────
   useEffect(() => {
+    if (isRecordingDemo) {
+      setUser({ id: "recording-demo-operator", name: "Anjali", email: "anjali@paws-demo.invalid" });
+      setReady(true);
+      return;
+    }
     if (!supa) {
       setReady(true);
       return;
@@ -118,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = useCallback(() => {
+    if (isRecordingDemo) return;
     if (supa) {
       supa.auth.signOut();
       setUser(null);

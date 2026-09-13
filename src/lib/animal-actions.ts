@@ -1,6 +1,7 @@
 "use client";
 
 import { getSupabase } from "./supabase";
+import { isRecordingDemo, recordingDemoAnimals } from "./recording-demo";
 
 export interface AnimalRow {
   id: string;
@@ -76,6 +77,7 @@ export async function updateAnimal(
 
 /** Animals owned by the caller's org (for the registry list). */
 export async function getMyAnimals(): Promise<AnimalRow[]> {
+  if (isRecordingDemo) return recordingDemoAnimals;
   const supa = getSupabase();
   if (!supa) return [];
   const { data: ngoId } = await supa.rpc("my_ngo");

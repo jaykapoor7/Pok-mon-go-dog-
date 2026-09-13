@@ -1,0 +1,22 @@
+name: Record demo footage
+on:
+  workflow_dispatch:
+    inputs:
+      public_base_url: { description: 'Live public URL', required: true, default: 'https://www.straypaw.org' }
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PUBLIC_BASE_URL: ${{ inputs.public_base_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      # demo:record starts a local Next server with NEXT_PUBLIC_DEMO_RECORDING.
+      # It uses in-memory PAWS Chennai data, never a database or production session.
+      - run: npm run demo:record
+      - uses: actions/upload-artifact@v4
+        with: { name: straypaw-demo-footage, path: demo-footage/, if-no-files-found: error, retention-days: 14 }

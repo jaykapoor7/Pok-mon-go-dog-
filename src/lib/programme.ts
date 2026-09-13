@@ -1,6 +1,7 @@
 "use client";
 
 import { getSupabase } from "./supabase";
+import { isRecordingDemo, recordingDemoProgramme } from "./recording-demo";
 
 /* The organisation's own view of its ABC and rabies work.
 
@@ -66,6 +67,7 @@ export type OrgReport = {
 };
 
 export async function programmeStats(): Promise<ProgrammeStats | null> {
+  if (isRecordingDemo) return recordingDemoProgramme;
   const supa = getSupabase();
   if (!supa) return null;
   const { data, error } = await supa.rpc("org_programme_stats");

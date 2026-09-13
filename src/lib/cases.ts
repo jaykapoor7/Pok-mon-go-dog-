@@ -10,6 +10,7 @@ import type {
   CaseSeverity,
   CaseCategory,
 } from "./types";
+import { isRecordingDemo, recordingDemoCases } from "./recording-demo";
 
 export const CASES_LIVE = isSupabaseConfigured;
 
@@ -66,6 +67,7 @@ function mapUpdate(r: any): CaseUpdate {
 }
 
 export async function getCases(): Promise<Case[]> {
+  if (isRecordingDemo) return recordingDemoCases;
   const supa = getSupabase();
   if (supa) {
     const { data } = await supa
@@ -85,6 +87,7 @@ export async function getCases(): Promise<Case[]> {
  * their own data. Falls back to the shared list on older DBs without the RPC.
  */
 export async function getPartnerCases(): Promise<Case[]> {
+  if (isRecordingDemo) return recordingDemoCases;
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.rpc("my_org_cases");
@@ -128,4 +131,3 @@ export async function getCaseById(
   }
   return null;
 }
-
