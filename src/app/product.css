@@ -864,7 +864,6 @@ html .spa.spa .csect-head h2 {
   html .spa.spa .spa-exit { font-size: 0; padding: 0 12px; min-width: var(--ctl-h); justify-content: center; }
   html .spa.spa .spa-exit svg { width: 17px; height: 17px; }
 }
-
 /* ═══════════════════════════════════════════════════════════════════
    Composition pass: the product is a field ledger, not a grid of widgets.
 
@@ -1235,6 +1234,34 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .partner-operating-links a:hover { border-color:#fffaf1; background:#ffffff12; }
 .partner-insight-pair { margin-top:0 !important; }
 
+/* NGO operations use the same field-desk logic as the community home: the
+   map is the working surface and the active queue is attached to it, rather
+   than two unrelated cards lower down the page. */
+.partner-field-surface { display:grid; grid-template-columns:minmax(0,1.48fr) minmax(320px,.62fr); margin:0; border-top:1px solid var(--sp-rule); border-bottom:1px solid var(--sp-rule); }
+.partner-field-map { min-width:0; padding:22px 22px 22px 0; border-right:1px solid var(--sp-rule); }
+.partner-field-map .partner-section-head,
+.partner-field-queue .partner-section-head { margin-bottom:16px !important; }
+.partner-field-map .partner-section-head h2,
+.partner-field-queue .partner-section-head h2 { font-family:var(--font-display),Georgia,serif; font-size:27px !important; font-weight:400; letter-spacing:-.045em !important; }
+.partner-field-map .partner-map-panel { height:486px; margin:0; border:0; border-radius:0 !important; }
+.partner-field-map .partner-map-panel::after { top:12px; left:12px; }
+.partner-field-queue { display:flex; min-width:0; flex-direction:column; padding:22px 0 20px 22px; }
+.partner-field-signal { display:grid; grid-template-columns:auto 1fr auto; align-items:end; gap:10px; padding:0 0 16px; border-bottom:1px solid var(--sp-rule); }
+.partner-field-signal span { grid-column:1/-1; color:var(--sp-muted); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+.partner-field-signal b { color:var(--sp-flame-ink); font-family:var(--font-display),Georgia,serif; font-size:48px; font-weight:400; letter-spacing:-.065em; line-height:.76; }
+.partner-field-signal small { padding-bottom:3px; color:var(--sp-muted); font-size:11px; }
+.partner-field-queue .partner-section-head { margin-top:20px; }
+.partner-field-queue .partner-ledger { max-height:300px; overflow:auto; border-width:1px 0; background:transparent; }
+.partner-field-queue .partner-case-row { padding-left:0 !important; padding-right:0 !important; }
+.partner-field-queue .partner-case-row:hover { padding-left:4px !important; background:transparent !important; }
+.partner-field-link { display:inline-flex; align-items:center; gap:5px; width:max-content; margin-top:auto; padding-top:18px; color:var(--sp-blue); font-size:12px; font-weight:600; text-decoration:none; }
+.partner-overview .pgm { margin:0 !important; border-width:0 0 1px !important; }
+.partner-analysis { padding:38px 0 0; }
+.partner-analysis-heading { display:flex; align-items:end; justify-content:space-between; gap:24px; padding:0 0 17px; }
+.partner-analysis-heading span { color:var(--sp-muted); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+.partner-analysis-heading p { max-width:440px; margin:0; color:var(--sp-muted); font-size:13px; line-height:1.5; }
+.partner-analysis .partner-insight-pair { grid-template-columns:repeat(2,minmax(0,1fr)); border-top:1px solid var(--sp-rule); }
+.partner-analysis .partner-insight-pair .cc { padding-top:24px; }
 @media (max-width:900px) {
   .community-command-header,.feeder-command-header { align-items:start; flex-direction:column; }
   .community-field-surface { grid-template-columns:1fr; }
@@ -1253,6 +1280,10 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   .feeder-action-line a,.feeder-action-line a + a { min-height:0; padding:16px 0; border-left:0; }
   .feeder-action-line a + a { border-top:1px solid var(--sp-rule); }
   .partner-operating-intro { align-items:start; flex-direction:column; }
+  .partner-field-surface { grid-template-columns:1fr; }
+  .partner-field-map { padding:20px 0; border-right:0; border-bottom:1px solid var(--sp-rule); }
+  .partner-field-queue { padding:20px 0; }
+  .partner-analysis .partner-insight-pair { grid-template-columns:1fr; }
 }
 @media (max-width:640px) {
   .community-command-header h1,.feeder-command-header h1 { font-size:50px; }
@@ -1271,4 +1302,6 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   .partner-operating-intro { margin-left:-16px; margin-right:-16px; padding:26px 16px; }
   .partner-operating-links { width:100%; flex-direction:column; }
   .partner-operating-links a { justify-content:space-between; }
+  .partner-field-map .partner-map-panel { height:330px; }
+  .partner-analysis-heading { align-items:start; flex-direction:column; }
 }

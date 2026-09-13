@@ -1459,6 +1459,25 @@ html .sp.product-site .role-help-note {
   box-shadow: 0 20px 46px rgba(11, 30, 61, .16);
 }
 .hero-wall-lead img { object-position: center 63%; }
+/* The launch photo is a real <img>, not Next's wrapper. Absolute fill avoids
+   the grid's intrinsic-height cycle that was leaving a thin strip of Pinky
+   above an empty caption field on desktop. */
+.hero-wall-lead > img {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  /* Was 58%, chosen against the previous file — which was corrupt past
+     its halfway point, so only the top of the frame ever rendered and
+     the crop was tuned to damage rather than to the photograph. With
+     the real image in place, Pinky lies across the middle of the frame
+     and 50% holds her. */
+  object-position: center 50% !important;
+}
+.hero-wall-lead figcaption { z-index: 1; }
 .hero-wall-grid li { min-height: 0; border-radius: 3px; }
 .hero-wall-grid li img { object-position: center; }
 .hero-wall-grid li:nth-child(1) { grid-column: 1; grid-row: 1; }
@@ -1533,9 +1552,10 @@ html .product-hero-wall .field-text-link {
 .product-hero-wall .sp-tally span { color: var(--sp-on-field-dim); }
 
 /* The lead photograph. One tile, so it can be larger and squarer than a
-   contact-sheet cell, and the crop favours the animal over the pavement. */
+   contact-sheet cell. The crop itself is set on the absolute-fill rule
+   above, which carries !important — a second declaration here would
+   simply lose, so there is not one. */
 .hero-wall-lead { background: #0a1c38; border-color: rgba(143, 183, 255, 0.22); }
-.hero-wall-lead img { object-position: center 45%; }
 
 /* ── The rhythm below the fold ──────────────────────────────────────
    Alternating, so no two neighbouring sections share a ground. */
