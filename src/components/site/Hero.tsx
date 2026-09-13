@@ -23,6 +23,23 @@ import type { Dog } from "@/lib/types";
    the first animal they see it was two blanks under a photograph. The
    count underneath is read from the database rather than typed in, so it
    cannot drift away from what is true.
+
+   THE HEADLINE. The first line has been right for a while: on any Indian
+   street the dogs are already known, individually, by the tea stall, the
+   woman who feeds at seven, the guard on the gate. Nobody argues with it.
+
+   The second line went through "Now it is written down" and then "Now
+   everyone does", and both were the same mistake — they announced a
+   solved outcome directly above the button whose whole job is to make
+   somebody feel the problem. "Everyone" was also an overclaim and faintly
+   surveillant, which is the wrong note for an animal a neighbourhood
+   looks after.
+
+   What it says now is the actual gap, and it is the one sentence that
+   explains why this product has two halves. The knowledge exists. It
+   just never reaches the organisation that could sterilise her,
+   vaccinate her, or treat the leg. The photographs beside it are the
+   rebuttal: here are the ones where it did.
    ════════════════════════════════════════════════════════════════════ */
 
 export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
@@ -44,7 +61,13 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
         <p className="field-eyebrow">The shared record for India&apos;s street animals</p>
         <h1 id="hero-title">
           Somebody already knows this dog.<br />
-          <em>Now everyone does.</em>
+          {/* A non-breaking space binds the last two words. Left to
+              itself the line dropped "her." alone onto a sixth row — a
+              one-word orphan under a 70px headline, which is the most
+              visible typographic fault a hero can have, and
+              text-wrap:balance did not rescue it. Bound, the break lands
+              after "can" at every width instead. */}
+          <em>Just nobody who can&nbsp;help&nbsp;her.</em>
         </h1>
         <p>
           A photograph and a street corner are enough to open a record.

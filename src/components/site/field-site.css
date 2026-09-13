@@ -399,7 +399,13 @@
 }
 
 .product-hero-wall .field-eyebrow{color:#adc8ee}
-.product-hero-wall h1{max-width:16ch;margin:16px 0 20px;font-size:clamp(42px,4.9vw,76px);line-height:.94;color:#fff;letter-spacing:-.045em}
+/* 16ch was measured against the sans. The second line is set in the
+   italic serif, which is wider per character, so "Just nobody who can
+   help her." overflowed and dropped "her." onto a line of its own — a
+   one-word orphan under a 70px headline, which is the most visible
+   typographic fault a hero can have. 19ch fits it, and text-wrap:balance
+   keeps the sans half from orphaning as the viewport moves. */
+.product-hero-wall h1{max-width:19ch;margin:16px 0 20px;font-size:clamp(42px,4.9vw,76px);line-height:.94;color:#fff;letter-spacing:-.045em;text-wrap:balance}
 .product-hero-wall h1 em{color:#ff9a65;font-family:var(--font-display),serif;font-style:italic;font-weight:400}
 /* The note is a small mono caption, not body copy. This selector is a
    class, a class, a class and an element, so it was setting it to the
