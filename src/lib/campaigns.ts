@@ -1,6 +1,7 @@
 "use client";
 
 import { getSupabase } from "./supabase";
+import { isRecordingDemo, recordingDemoBreakdown } from "./recording-demo";
 
 /* Drives: the unit an ABC programme is reported against.
 
@@ -193,6 +194,7 @@ export type Breakdown = {
 };
 
 export async function programmeBreakdown(): Promise<Breakdown | null> {
+  if (isRecordingDemo) return recordingDemoBreakdown;
   const supa = getSupabase();
   if (!supa) return null;
   const { data, error } = await supa.rpc("org_programme_breakdown");

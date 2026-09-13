@@ -3,28 +3,20 @@ on:
   workflow_dispatch:
     inputs:
       public_base_url: { description: 'Live public URL', required: true, default: 'https://www.straypaw.org' }
-      seed_demo: { description: 'Seed the preview demo workspace', required: true, type: boolean, default: true }
 jobs:
   record:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       PUBLIC_BASE_URL: ${{ inputs.public_base_url }}
-      # Set DEMO_BASE_URL once in repository Variables. It must be the owned
-      # preview deployment that matches DEMO_STORAGE_STATE; it is deliberately
-      # not a workflow input, so a dispatch cannot send that session elsewhere.
-      DEMO_BASE_URL: ${{ vars.DEMO_BASE_URL }}
-      DEMO_DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
-      DEMO_NGO_ID: ${{ secrets.DEMO_NGO_ID }}
-      DEMO_STORAGE_STATE: ${{ secrets.DEMO_STORAGE_STATE }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: npm }
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - if: ${{ inputs.seed_demo }}
-        run: npm run demo:seed
+      # demo:record starts a local Next server with NEXT_PUBLIC_DEMO_RECORDING.
+      # It uses in-memory PAWS Chennai data, never a database or production session.
       - run: npm run demo:record
       - uses: actions/upload-artifact@v4
         with: { name: straypaw-demo-footage, path: demo-footage/, if-no-files-found: error, retention-days: 14 }

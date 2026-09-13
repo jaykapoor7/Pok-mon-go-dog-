@@ -12,7 +12,6 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "demo:record": "tsx scripts/record-demo.ts",
-    "demo:seed": "node scripts/seed-demo-recording.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:bundle": "node scripts/build-bundle.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs",

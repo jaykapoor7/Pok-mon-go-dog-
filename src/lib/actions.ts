@@ -19,6 +19,7 @@ import {
   getOwnerToken,
   forgetOwner,
 } from "./ownership";
+import { isRecordingDemo, recordingDemoOrg } from "./recording-demo";
 
 export const IS_LIVE = !!getSupabase();
 
@@ -266,6 +267,7 @@ export async function submitHelper(input: HelperInput): Promise<boolean> {
 
 /** Is the signed-in user a verified partner NGO (may merge profiles, see exact pins)? */
 export async function isNgoMember(): Promise<boolean> {
+  if (isRecordingDemo) return true;
   const supa = getSupabase();
   if (!supa) return false;
   const { data } = await supa.rpc("is_ngo_member");
@@ -322,6 +324,7 @@ export async function getMyNgo(): Promise<{ id: string; name: string; logo_url: 
 
 /** The caller's full organization profile (verified members only). */
 export async function getMyOrg(): Promise<NGO | null> {
+  if (isRecordingDemo) return recordingDemoOrg;
   const supa = getSupabase();
   if (!supa) return null;
   const { data: ngoId } = await supa.rpc("my_ngo");
