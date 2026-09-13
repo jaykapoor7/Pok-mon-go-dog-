@@ -8,8 +8,7 @@ import { RecentSightings } from "@/components/app/RecentSightings";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ByLocality, CoverageBar, ReportsOverTime } from "./ConsoleCharts";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { cityForPoints } from "@/lib/geo/cities";
-import { densestCell, located } from "@/lib/geo/cluster";
+import { located } from "@/lib/geo/cluster";
 import { markerMetaFor } from "@/lib/marker-state";
 import { dogLabel } from "@/lib/utils";
 import type { Dog, Sighting } from "@/lib/types";
@@ -48,18 +47,15 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
 
   const nearby = Boolean(location);
 
-  /* What the screen is about: your 12 km, or the busiest place on the
-     register while nobody has said where you are. */
+  /* The old fallback picked the densest seeded cluster and opened a person
+     in a Delhi-looking dashboard before they had told us where they were.
+     The default is now the shared national register; location turns it into
+     their street, rather than pretending a seed cluster is their home. */
   const inView = useMemo(() => {
     const there = located(dogs);
     if (location) return there.filter((dog) => distanceKm(location, dog) <= RADIUS_KM);
-    return densestCell(there);
+    return there;
   }, [dogs, location]);
-
-  const place = useMemo(
-    () => (location ? null : cityForPoints(inView)),
-    [location, inView]
-  );
 
   const nearbySightings = useMemo(
     () =>
@@ -101,9 +97,7 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
     );
   }
 
-  /* Where the screen says it is looking. Never "India": that is a country,
-     not a place somebody walks a dog in. */
-  const where = nearby ? "around you" : place ? `in ${place}` : "on the register";
+  const where = nearby ? "around you" : "on the shared register";
 
   return (
     <div className="community-home">
@@ -115,18 +109,6 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
               <>
                 Your street, <em>on the record.</em>
               </>
-            ) : place ? (
-              /* NOT "What is known in Delhi." Until somebody shares a
-                 location this falls back to densestCell() — the busiest
-                 cluster on the whole register — and naming that city in
-                 the headline presented another city's data as though it
-                 were the reader's own. Someone opening this in Chennai was
-                 told about Delhi with no indication why. The heading is
-                 now neutral and the fallback says what it is, in the line
-                 under it, next to the control that fixes it. */
-              <>
-                What is known <em>so far.</em>
-              </>
             ) : (
               <>
                 Start with <em>your street.</em>
@@ -136,9 +118,7 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
           <p>
             {nearby
               ? `Every public record within about ${RADIUS_KM} km of you. Public pins are deliberately approximate.`
-              : place
-                ? `You have not shared a location, so this is the busiest part of the record right now — ${place}. Use your location to see your own streets instead.`
-                : "Add the first record and this becomes a map of somewhere real."}
+              : "Start with the shared national record, or use your location to make this your own street."}
           </p>
         </div>
         <div className="community-command-actions">
@@ -161,7 +141,7 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
           <FieldMapPreview
             dogs={inView}
             center={location}
-            place={nearby ? "Around you" : place ?? undefined}
+            place={nearby ? "Around you" : undefined}
           />
 
           {inView.length === 0 && (

@@ -89,7 +89,7 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
               asset: if the page can load, Pinky can load. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/pinky-bengaluru.png"
+            src="/pinky-bengaluru.png?v=20260913"
             alt="Pinky, a community dog reported in Bengaluru, Karnataka"
             width={786}
             height={960}
