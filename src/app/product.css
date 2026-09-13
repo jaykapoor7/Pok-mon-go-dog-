@@ -320,7 +320,16 @@ html .spa.spa .spa-mobile-report{display:none}
 /* A field workspace should have a ground. The map, lists and report form
    remain crisp working surfaces; the space around them now carries the quiet
    scale and orientation of a city atlas instead of defaulting to white. */
-html .spa.spa{background:var(--sp-ground)}html .spa.spa .spa-body{background:var(--sp-ground)}html .spa.spa .spa-side{background:#fffdf9}html .spa.spa .spa-main:not(.flush){position:relative;background:radial-gradient(circle at 93% 8%,#ddcdb366 0 2px,transparent 2.5px),radial-gradient(circle at 78% 17%,#ddcdb344 0 1px,transparent 1.5px),linear-gradient(90deg,transparent 0 91%,#d6c7ae40 91% 91.08%,transparent 91.08%);background-size:43px 43px,31px 31px,100% 100%}html .spa.spa .spa-main:not(.flush)::before{content:"";position:fixed;right:-180px;bottom:-230px;z-index:-1;width:560px;height:560px;border:1px solid #d3c2a740;border-radius:50%;box-shadow:0 0 0 48px #d3c2a726,0 0 0 104px #d3c2a716;pointer-events:none}html .spa.spa .spa-panel,html .spa.spa .report-form{box-shadow:0 8px 24px #4a3a220f}html .spa.spa .partner-map-panel,.community-map .field-map-preview{box-shadow:0 16px 40px #4a3a2220}
+html .spa.spa{background:var(--sp-ground)}html .spa.spa .spa-body{background:var(--sp-ground)}html .spa.spa .spa-side{background:#fffdf9}/* The console ground is the warm ground, and nothing else.
+   What stood here was a repeating dot field (two radial-gradients tiled
+   at 43px and 31px) plus a hairline rule at 91%, and the ::before below
+   it was a fixed 560px circle with two concentric ring shadows in the
+   bottom-right corner. None of it meant anything: the dots were not a
+   grid the content sat on, the rule at 91% aligned to no column, and the
+   circle was a decorative blob. A dot-pattern background is the single
+   fastest way to make a product look generated, and this one was behind
+   every screen in the console. */
+html .spa.spa .spa-main:not(.flush){position:relative;background:var(--sp-ground)}html .spa.spa .spa-panel,html .spa.spa .report-form{box-shadow:0 8px 24px #4a3a220f}html .spa.spa .partner-map-panel,.community-map .field-map-preview{box-shadow:0 16px 40px #4a3a2220}
 
 /* The home is an operations brief: signal, coverage, work requiring a
    decision. It avoids a field of equal-weight shortcut cards. */
@@ -644,6 +653,55 @@ html .spa.spa .spa-side .spa-profile-links.out a.pp-signin,
 html .spa.spa .spa-side .spa-profile-links.out a.pp-code {
   border-radius: var(--ctl-r);
   min-height: var(--ctl-h);
+
+  /* THE LABEL WAS NOT CENTRED, and measuring said why: the sidebar's own
+     `html .spa.spa .spa-side a` sets align-items on these, so the text
+     sat at the TOP of a 44px capsule with 22px of empty space under it.
+     justify-content: center was already being applied, which is why this
+     looked like it should have worked — horizontal centring was correct
+     the whole time and vertical never was.
+
+     The 12px gap comes from the same sidebar rule. On "I have a code",
+     which carries a key icon, 12px is twice the spacing every other
+     control in the system uses; on "Sign in", which has no icon, it is
+     dead space inside a centred flex row. Both go to the control gap. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--ctl-pad);
+  text-align: center;
+  font-size: var(--ctl-fs-sm);
+  font-weight: var(--ctl-fw);
+  line-height: 1;
+  white-space: nowrap;
+  transition: var(--ctl-press-t);
+}
+html .spa.spa .spa-side .spa-profile-links.out a.pp-signin:active,
+html .spa.spa .spa-side .spa-profile-links.out a.pp-code:active {
+  transform: var(--ctl-press);
+}
+
+/* The secondary button's label was #50617b — the sidebar's muted link
+   colour, inherited past the .pp-code rule that meant to set it. A tinted
+   fill with a GREY label is the combination this system specifically
+   avoids, because it reads as disabled. Secondary means accent tint,
+   accent label. */
+html .spa.spa .spa-side .spa-profile-links.out a.pp-code {
+  background: var(--ctl-tint);
+  color: #1f4bb8;
+}
+html .spa.spa .spa-side .spa-profile-links.out a.pp-code:hover {
+  background: var(--ctl-tint-hover);
+  color: #1f4bb8;
+}
+html .spa.spa .spa-side .spa-profile-links.out a.pp-signin {
+  background: var(--sp-ink);
+  color: var(--sp-bone);
+}
+html .spa.spa .spa-side .spa-profile-links.out a.pp-signin:hover {
+  background: #1d2942;
+  color: var(--sp-bone);
 }
 
 /* The report shortcut is the sidebar's one primary action. Same argument. */
@@ -753,4 +811,56 @@ html .spa.spa .csect-head h2 {
   .csect-head { flex-direction: column; }
   .csect { margin-top: var(--sp-6); padding-top: var(--sp-4); }
   html .spa.spa .cpage-head h1 { font-size: var(--sp-t-lg); }
+}
+
+/* ── The account controls on a phone ──────────────────────────────────
+   One ProfilePanel is rendered in the side nav's foot and one in the top
+   bar; exactly one of them is ever displayed. On a desktop the side nav
+   has room for the pair stacked. On a phone the side nav IS the bottom
+   bar, so the foot is hidden and this copy carries the account flow —
+   without it there was no way to sign in from the app at 390px. */
+.spa-top-account { display: none; }
+
+@media (max-width: 900px) {
+  html .spa.spa .spa-top-account { display: block; }
+  /* Compact: the top bar at 390px also holds the wordmark and the search,
+     so the pair sits on one row and the labels do the work rather than
+     the width. */
+  html .spa.spa .spa-top-account .spa-profile,
+  html .spa.spa .spa-top-account .spa-profile-links { margin: 0; padding: 0; border: 0; }
+  html .spa.spa .spa-top-account .spa-profile-links.out {
+    display: flex;
+    flex-direction: row;
+    gap: var(--sp-2);
+  }
+  html .spa.spa .spa-top-account .spa-profile-links.out a.pp-signin,
+  html .spa.spa .spa-top-account .spa-profile-links.out a.pp-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ctl-h);
+    padding: var(--ctl-pad-sm);
+    border-radius: var(--ctl-r);
+    font-size: var(--ctl-fs-sm);
+    font-weight: var(--ctl-fw);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  html .spa.spa .spa-top-account .spa-profile-links.out a.pp-signin {
+    background: var(--sp-ink); color: var(--sp-bone);
+  }
+  html .spa.spa .spa-top-account .spa-profile-links.out a.pp-code {
+    background: var(--ctl-tint); color: #1f4bb8;
+  }
+  /* The signed-in panel would bring an avatar and two links into a bar
+     that has no room for them; the bottom nav covers those screens. */
+  html .spa.spa .spa-top-account .spa-profile-who,
+  html .spa.spa .spa-top-account .spa-profile-links:not(.out) { display: none; }
+}
+
+/* Below 430px the "Main site" label and the pair together overflow, so
+   the exit control keeps its arrow and drops its word. */
+@media (max-width: 430px) {
+  html .spa.spa .spa-exit { font-size: 0; padding: 0 12px; min-width: var(--ctl-h); justify-content: center; }
+  html .spa.spa .spa-exit svg { width: 17px; height: 17px; }
 }

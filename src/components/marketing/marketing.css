@@ -18,19 +18,14 @@
   align-items: center;
   overflow: hidden;
 }
-/* A faint field grid so the ground reads as built, not empty. */
-.mk-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(143, 183, 255, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(143, 183, 255, 0.055) 1px, transparent 1px);
-  background-size: 52px 52px;
-  mask-image: radial-gradient(ellipse at 60% 40%, #000 20%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse at 60% 40%, #000 20%, transparent 78%);
-  pointer-events: none;
-}
+/* The grid that used to sit here was justified in its own comment as
+   making "the ground read as built, not empty" — which is the instinct
+   this design system exists to catch. An empty ground is not a problem to
+   be solved with texture; space is the material. A graph-paper grid on a
+   marketing hero traces to nothing in this product. (Grids on the
+   minimap and the atlas stay: a grid on a MAP is cartographic and means
+   something.) */
+.mk-hero::before { display: none; }
 .mk-hero > * { position: relative; z-index: 1; }
 
 .mk-h1 {

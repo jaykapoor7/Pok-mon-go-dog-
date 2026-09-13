@@ -1075,10 +1075,8 @@
   position: relative;
   min-height: 520px;
   overflow: hidden;
+  /* Graph paper behind a stage: same removal, same reason. */
   background-color: #14213a;
-  background-image: linear-gradient(rgba(143, 183, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(143, 183, 255, 0.08) 1px, transparent 1px);
-  background-size: 44px 44px;
 }
 .sp-stage::after {
   content: "";

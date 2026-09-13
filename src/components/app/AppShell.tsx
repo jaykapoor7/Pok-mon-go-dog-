@@ -322,6 +322,19 @@ export function AppShell({
         </form>
 
         <div className="spa-top-right">
+          {/* The account controls, on a phone.
+
+              They live in the side nav's foot, and on a phone the side nav
+              becomes the 67px bottom bar with the foot hidden — so at 390px
+              there was NO way to sign in or enter a code from anywhere in
+              the app. Measured: zero sign-in affordances on /app at phone
+              width. For a product whose NGO field staff work from a phone,
+              that is the account flow being desktop-only.
+
+              Same component, so it keeps the one source of truth about
+              signed-in state; CSS shows this copy only on a phone and the
+              side-nav copy only on a desktop. */}
+          <div className="spa-top-account"><ProfilePanel /></div>
           <button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15} /> Switch space</button>
           {/* Up here rather than in the side nav's foot, which was carrying
               four controls and a role chip in a 208px column. */}

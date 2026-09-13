@@ -205,7 +205,22 @@
 
 /* Launch surface: a record, not a decorative map. The dark field ground
    gives the public product its own atmosphere without paper-white sprawl. */
-.product-site{background:var(--pl-bone,#f4eee5)}.product-hero-record{max-width:none;min-height:clamp(690px,86svh,820px);padding:clamp(132px,13vw,172px) 6vw 76px;display:grid;grid-template-columns:minmax(0,.88fr) minmax(430px,1.12fr);gap:clamp(40px,8vw,156px);align-items:center;background:#0b1e3d!important;color:#f5f8fd;isolation:isolate}.product-hero-record::before{display:none}.product-hero-record::after{content:"";display:block;position:absolute;inset:0;z-index:-1;width:auto;height:auto;right:auto;top:auto;border:0;border-radius:0;box-shadow:none;background:radial-gradient(circle at 78% 18%,#2d62bd70 0 1px,transparent 1.7px),radial-gradient(circle at 19% 80%,#ed794a44 0 1px,transparent 1.8px),linear-gradient(116deg,transparent 0 49.8%,#5e83bd24 50% 50.08%,transparent 50.18%),linear-gradient(#193c6e88 1px,transparent 1px),linear-gradient(90deg,#193c6e88 1px,transparent 1px);background-size:31px 31px,43px 43px,100% 100%,72px 72px,72px 72px;opacity:.95}.product-hero-record .field-eyebrow{color:#adc8ee}.product-hero-record h1{max-width:810px;margin:20px 0 26px;font-size:clamp(54px,6.3vw,106px);line-height:.88;color:#fff}.product-hero-record h1 em{color:#ff9a65}.product-hero-record .product-hero-copy>p:not(.field-eyebrow){max-width:490px;color:#c8d7eb;font-size:17px}.product-hero-record .field-text-link{color:#eaf1fa;border-color:#8ba8d1}.product-hero-record .product-hero-note{color:#adc5e4!important}.product-hero-record .field-button{background:var(--pl-flame,#f05b40);color:var(--pl-ink,#0b1e3d)}.product-hero-record .field-button:hover{background:#ff7454}.hero-record-stage{position:relative;min-height:470px;overflow:hidden;border:1px solid #5477a4;background:#102c56;box-shadow:18px 20px 0 #06142b55,0 30px 68px #020b1c66}.hero-record-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 74% 31%,#487acb4a 0 2px,transparent 2.7px),linear-gradient(90deg,#83a5ce1c 1px,transparent 1px),linear-gradient(#83a5ce1c 1px,transparent 1px);background-size:25px 25px,50px 50px,50px 50px}.hero-coordinate{position:absolute;border:1px solid #91b7e344;border-radius:50%;animation:record-orbit 10s linear infinite}.hero-coordinate-one{width:440px;height:440px;right:-160px;top:-120px}.hero-coordinate-two{width:290px;height:290px;left:-160px;bottom:-140px;animation-direction:reverse;animation-duration:13s}.hero-record-line{position:absolute;height:1px;background:#91b7e350;transform-origin:left}.hero-record-line-one{width:68%;left:0;top:24%;transform:rotate(-15deg)}.hero-record-line-two{width:53%;right:-8%;bottom:30%;transform:rotate(17deg)}.hero-record-place{position:absolute;z-index:2;top:20px;right:20px;display:flex;align-items:center;gap:7px;color:#cbdcf1;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.06em}.hero-record-place svg{color:#f47d45}.hero-record-file{position:absolute;z-index:2;left:clamp(20px,5vw,68px);right:clamp(20px,5vw,68px);top:50%;transform:translateY(-50%);padding:20px 23px 0;background:#f8fbff;color:#112b51;box-shadow:0 16px 45px #040f2448;animation:record-settle .8s var(--sp-ease) both}.hero-record-file header{display:flex;justify-content:space-between;gap:10px;padding-bottom:16px;border-bottom:1px solid #d6e1ee;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.075em;color:#57708f}.hero-record-live{display:flex;gap:6px;align-items:center;color:#2557cc}.hero-record-live i,.record-story-dot::before{display:block;width:6px;height:6px;background:#f47d45;border-radius:50%;content:""}.hero-record-name{display:flex;gap:14px;align-items:center;padding:20px 0}.hero-record-mark{display:grid;place-items:center;width:45px;height:45px;border:1px solid #b6c8df;color:#2557cc}.hero-record-name div:last-child{display:grid;gap:5px}.hero-record-name span{font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em;color:#5c718c}.hero-record-name b{font-size:23px;letter-spacing:-.045em}.hero-record-file dl{margin:0;border-top:1px solid #d6e1ee}.hero-record-file dl>div{display:grid;grid-template-columns:1fr auto;gap:16px;padding:11px 0;border-bottom:1px solid #dfe7f0;font-size:12px}.hero-record-file dt{color:#5c718b}.hero-record-file dd{display:flex;gap:6px;align-items:center;margin:0;font-weight:600;text-align:right}.hero-record-file dd svg{color:#ef763f}.hero-record-file footer{display:flex;gap:8px;align-items:center;margin:0 -23px;padding:13px 23px;background:#2457ce;color:white;font-size:12px}.hero-record-caption{position:absolute;z-index:2;bottom:19px;left:20px;display:flex;align-items:center;gap:9px;color:#adc5e5;font:9px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em}.hero-record-caption i{display:block;width:32px;height:1px;background:#f47d45}@keyframes record-orbit{to{transform:rotate(360deg)}}@keyframes record-settle{from{opacity:0;transform:translateY(calc(-50% + 24px))}to{opacity:1;transform:translateY(-50%)}}
+.product-site{background:var(--pl-bone,#f4eee5)}.product-hero-record{max-width:none;min-height:clamp(690px,86svh,820px);padding:clamp(132px,13vw,172px) 6vw 76px;display:grid;grid-template-columns:minmax(0,.88fr) minmax(430px,1.12fr);gap:clamp(40px,8vw,156px);align-items:center;background:#0b1e3d!important;color:#f5f8fd;isolation:isolate}.product-hero-record::before{display:none}/* THE HERO GROUND IS A GROUND.
+
+   Five layers were stacked here: a dot field at 31px, a second dot
+   field at 43px, a diagonal streak, and a 72px graph-paper grid made of
+   two more gradients. A dot pattern and a grid are the two fastest ways
+   to make a page look generated, and this had both, behind the first
+   thing anybody sees.
+
+   Nothing replaces them. The hero already carries a wall of real
+   photographs of real recorded animals and one headline; a deep, even
+   field is what lets those read, and texture behind them was competing
+   with the only two things on the screen that mean anything. Quieter is
+   the finished state here, not a step towards one. */
+.product-hero-record::after{display:none}.product-hero-record .field-eyebrow{color:#adc8ee}.product-hero-record h1{max-width:810px;margin:20px 0 26px;font-size:clamp(54px,6.3vw,106px);line-height:.88;color:#fff}.product-hero-record h1 em{color:#ff9a65}.product-hero-record .product-hero-copy>p:not(.field-eyebrow){max-width:490px;color:#c8d7eb;font-size:17px}.product-hero-record .field-text-link{color:#eaf1fa;border-color:#8ba8d1}.product-hero-record .product-hero-note{color:#adc5e4!important}.product-hero-record .field-button{background:var(--pl-flame,#f05b40);color:var(--pl-ink,#0b1e3d)}.product-hero-record .field-button:hover{background:#ff7454}.hero-record-stage{position:relative;min-height:470px;overflow:hidden;border:1px solid #5477a4;background:#102c56;box-shadow:18px 20px 0 #06142b55,0 30px 68px #020b1c66}/* Same again, one layer down: a dot field at 25px over a 50px grid,
+   behind the photographs. Removed for the same reason. */
+.hero-record-stage::before{display:none}.hero-coordinate{position:absolute;border:1px solid #91b7e344;border-radius:50%;animation:record-orbit 10s linear infinite}.hero-coordinate-one{width:440px;height:440px;right:-160px;top:-120px}.hero-coordinate-two{width:290px;height:290px;left:-160px;bottom:-140px;animation-direction:reverse;animation-duration:13s}.hero-record-line{position:absolute;height:1px;background:#91b7e350;transform-origin:left}.hero-record-line-one{width:68%;left:0;top:24%;transform:rotate(-15deg)}.hero-record-line-two{width:53%;right:-8%;bottom:30%;transform:rotate(17deg)}.hero-record-place{position:absolute;z-index:2;top:20px;right:20px;display:flex;align-items:center;gap:7px;color:#cbdcf1;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.06em}.hero-record-place svg{color:#f47d45}.hero-record-file{position:absolute;z-index:2;left:clamp(20px,5vw,68px);right:clamp(20px,5vw,68px);top:50%;transform:translateY(-50%);padding:20px 23px 0;background:#f8fbff;color:#112b51;box-shadow:0 16px 45px #040f2448;animation:record-settle .8s var(--sp-ease) both}.hero-record-file header{display:flex;justify-content:space-between;gap:10px;padding-bottom:16px;border-bottom:1px solid #d6e1ee;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.075em;color:#57708f}.hero-record-live{display:flex;gap:6px;align-items:center;color:#2557cc}.hero-record-live i,.record-story-dot::before{display:block;width:6px;height:6px;background:#f47d45;border-radius:50%;content:""}.hero-record-name{display:flex;gap:14px;align-items:center;padding:20px 0}.hero-record-mark{display:grid;place-items:center;width:45px;height:45px;border:1px solid #b6c8df;color:#2557cc}.hero-record-name div:last-child{display:grid;gap:5px}.hero-record-name span{font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em;color:#5c718c}.hero-record-name b{font-size:23px;letter-spacing:-.045em}.hero-record-file dl{margin:0;border-top:1px solid #d6e1ee}.hero-record-file dl>div{display:grid;grid-template-columns:1fr auto;gap:16px;padding:11px 0;border-bottom:1px solid #dfe7f0;font-size:12px}.hero-record-file dt{color:#5c718b}.hero-record-file dd{display:flex;gap:6px;align-items:center;margin:0;font-weight:600;text-align:right}.hero-record-file dd svg{color:#ef763f}.hero-record-file footer{display:flex;gap:8px;align-items:center;margin:0 -23px;padding:13px 23px;background:#2457ce;color:white;font-size:12px}.hero-record-caption{position:absolute;z-index:2;bottom:19px;left:20px;display:flex;align-items:center;gap:9px;color:#adc5e5;font:9px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em}.hero-record-caption i{display:block;width:32px;height:1px;background:#f47d45}@keyframes record-orbit{to{transform:rotate(360deg)}}@keyframes record-settle{from{opacity:0;transform:translateY(calc(-50% + 24px))}to{opacity:1;transform:translateY(-50%)}}
 
 /* A short depth-change, not a four-screen carousel. The record is the same
    throughout; the context around it changes as the reader moves down. */
@@ -294,30 +309,37 @@
   opacity: 1;
 }
 
-/* Survey paper. */
-.product-hero-wall::before {
-  /* First pass at this used .09 and .045 alpha and was, measurably,
-     there and, visibly, not: a pale blue line at 9% over #0b1e3d is
-     under one step of perceptual difference. Survey paper you cannot
-     see is just navy. */
-  background:
-    repeating-linear-gradient(0deg,  rgba(143, 183, 255, .18) 0 1px, transparent 1px 78px),
-    repeating-linear-gradient(90deg, rgba(143, 183, 255, .18) 0 1px, transparent 1px 78px),
-    repeating-linear-gradient(0deg,  rgba(143, 183, 255, .075) 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(90deg, rgba(143, 183, 255, .075) 0 1px, transparent 1px 26px);
-  /* Fades towards the bottom so the grid does not fight the join with
-     the section below. Held to 78% so most of the hero keeps it. */
-  -webkit-mask-image: linear-gradient(180deg, #000 0 78%, transparent 99%);
-  mask-image: linear-gradient(180deg, #000 0 78%, transparent 99%);
-}
+/* NO GROUND TEXTURE ON THE HERO.
 
-/* The light. Warm where the copy is, cool on the far side. */
+   What stood here was a double grid — 78px blocks with a 26px division
+   inside them, called "survey paper" — and, on top of it, two large
+   radial glows (warm at one corner, cool at the other) plus a third dot
+   field at 47px.
+
+   The reasoning behind it was that the ground should read as "built,
+   not empty", and the same reasoning had put a dot field behind the
+   console, a graph grid behind the marketing heroes, and a 560px ring
+   in the corner of every dashboard screen. Stacked up across the
+   product, that is the look this design system exists to prevent: a
+   grid, a dot pattern and a pair of glowing blobs are three of the
+   first things on its never-do list, and they were all behind the first
+   screen anybody sees.
+
+   The argument that the grid is thematic — survey paper, for a survey
+   instrument — is the one that made it defensible for a while. It does
+   not survive contact with the page: the hero already carries a wall of
+   photographs of real recorded animals and one headline, and texture
+   behind them competes with the only two things on the screen that
+   carry meaning. Theme is not a licence for decoration.
+
+   The reset above stays, because it is load-bearing: it clears the
+   620px ring that .product-hero's own ::after would otherwise paint
+   through the headline. Only the backgrounds are gone. */
+.product-hero-wall::before,
 .product-hero-wall::after {
-  background:
-    radial-gradient(72% 58% at 4% 2%, rgba(240, 91, 64, .30), transparent 64%),
-    radial-gradient(66% 64% at 98% 96%, rgba(45, 98, 189, .46), transparent 66%),
-    radial-gradient(circle at 63% 14%, rgba(143, 183, 255, .55) 0 1.1px, transparent 2px);
-  background-size: 100% 100%, 100% 100%, 47px 47px;
+  background: none;
+  mask-image: none;
+  -webkit-mask-image: none;
 }
 
 /* ── Arrival ───────────────────────────────────────────────────────
@@ -384,18 +406,8 @@
 }
 
 @media (max-width: 900px) {
-  /* A 78px block grid on a phone is four lines and reads as a mistake
-     rather than as paper. One scale, larger. */
-  .product-hero-wall::before {
-    background:
-      repeating-linear-gradient(0deg,  rgba(143, 183, 255, .15) 0 1px, transparent 1px 44px),
-      repeating-linear-gradient(90deg, rgba(143, 183, 255, .15) 0 1px, transparent 1px 44px);
-  }
-  .product-hero-wall::after {
-    background:
-      radial-gradient(105% 40% at 2% 1%, rgba(240, 91, 64, .30), transparent 62%),
-      radial-gradient(110% 38% at 99% 99%, rgba(45, 98, 189, .42), transparent 64%);
-  }
+  /* The phone variants of the same grid and glows went with them. */
+
 }
 
 .product-hero-wall .field-eyebrow{color:#adc8ee}
