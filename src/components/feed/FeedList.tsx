@@ -26,12 +26,15 @@ export function FeedList({ real, total }: { real: Sighting[]; total?: number }) 
       {/* Say which number this is. The feed fetches a page, so once there
           are more sightings than that, "N moments" would be the page size
           rather than the total and would never move again. */}
-      <p className="mb-5 text-sm text-bark-500">
-        {total && total > sightings.length
-          ? `The latest ${sightings.length} of ${total} moments from India's streets`
-          : `${sightings.length} moments from India's streets`}
-      </p>
-      <div className="space-y-6">
+      <div className="feed-ledger-intro">
+        <p>
+          {total && total > sightings.length
+            ? `Showing the latest ${sightings.length} of ${total} reports`
+            : `${sightings.length} reports on the shared record`}
+        </p>
+        <span>Newest first</span>
+      </div>
+      <div className="feed-ledger">
         {sightings.map((s) => (
           <SightingCard key={s.id} sighting={s} />
         ))}

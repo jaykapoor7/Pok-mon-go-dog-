@@ -1427,3 +1427,49 @@ html .sp.product-site .role-help-note {
   .wt-map { margin-left: -20px; margin-right: -20px; }
   .field-footer { align-items: flex-start; flex-direction: column; }
 }
+
+/* Pinky's collage. The lead is deliberately fixed and central; the surrounding
+   live-record photographs are a calm supporting cast rather than a noisy grid. */
+.product-hero-wall { grid-template-columns: minmax(0, .78fr) minmax(440px, 1.22fr); }
+.hero-wall {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(96px, 1fr));
+  width: min(100%, 650px);
+  margin-inline: auto;
+  gap: 8px;
+}
+.hero-wall-lead {
+  grid-column: 2 / span 2;
+  grid-row: 1 / span 2;
+  aspect-ratio: 4 / 5;
+  min-height: 0;
+  box-shadow: 0 20px 46px rgba(11, 30, 61, .16);
+}
+.hero-wall-lead img { object-position: center 63%; }
+.hero-wall-grid li { min-height: 0; border-radius: 3px; }
+.hero-wall-grid li img { object-position: center; }
+.hero-wall-grid li:nth-child(1) { grid-column: 1; grid-row: 1; }
+.hero-wall-grid li:nth-child(2) { grid-column: 4; grid-row: 1; }
+.hero-wall-grid li:nth-child(3) { grid-column: 1; grid-row: 2; }
+.hero-wall-grid li:nth-child(4) { grid-column: 4; grid-row: 2; }
+.hero-wall-grid li:nth-child(5) { grid-column: 1; grid-row: 3; }
+.hero-wall-grid li:nth-child(6) { grid-column: 2; grid-row: 3; }
+.hero-wall-grid li:nth-child(7) { grid-column: 3; grid-row: 3; }
+.hero-wall-grid li:nth-child(8) { grid-column: 4; grid-row: 3; }
+.hero-wall-grid span { display: none; }
+.hero-wall-lead figcaption { padding: 58px 18px 17px; }
+.hero-wall-lead b { font-size: 26px; }
+@media (max-width: 900px) {
+  .product-hero-wall { grid-template-columns: 1fr; }
+  .hero-wall { max-width: 560px; }
+}
+@media (max-width: 560px) {
+  .hero-wall { grid-template-rows: repeat(3, 86px); gap: 6px; }
+  .hero-wall-lead { grid-column: 1 / -1; grid-row: 1 / span 2; aspect-ratio: auto; }
+  .hero-wall-grid li:nth-child(n+5) { display: none; }
+  .hero-wall-grid li:nth-child(1) { grid-column: 1; grid-row: 3; }
+  .hero-wall-grid li:nth-child(2) { grid-column: 2; grid-row: 3; }
+  .hero-wall-grid li:nth-child(3) { grid-column: 3; grid-row: 3; }
+  .hero-wall-grid li:nth-child(4) { grid-column: 4; grid-row: 3; }
+}

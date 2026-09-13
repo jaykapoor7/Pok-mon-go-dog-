@@ -54,15 +54,10 @@ import type { Dog } from "@/lib/types";
 
 export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
   const withPhoto = dogs.filter((d) => d.cover_photo && d.cover_photo.length > 0);
-  /* Pinky leads when she is on the record. She is the animal this project
-     is actually about, and a hero that opens on whichever row the database
-     happened to return first is a hero nobody chose. */
-  const pinky = withPhoto.find((d) => (d.name ?? "").trim().toLowerCase() === "pinky");
-  const lead = pinky ?? withPhoto[0];
-  const rest = withPhoto.filter((d) => d.id !== lead?.id);
-  /* The lead occupies four cells of a four-column grid, so eight tiles
-     complete three full rows with nothing left hanging. */
-  const wall = rest.slice(0, 8);
+  /* Pinky is the opening image by choice, not by the current ordering of a
+     database query. The rest of the wall is still drawn from live StrayPaw
+     records, but the hero starts with the dog Jay wants visitors to meet. */
+  const wall = withPhoto.slice(0, 8);
 
 
   return (
@@ -88,24 +83,22 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
       </div>
 
       <div className="hero-wall" aria-label="Animals currently on the StrayPaw record">
-        {lead && (
-          <figure className="hero-wall-lead">
-            <Image
-              src={lead.cover_photo}
-              alt={`${dogLabel(lead)}, photographed on the street`}
-              width={640}
-              height={640}
-              priority
-              sizes="(max-width: 900px) 92vw, 38vw"
-            />
-            <figcaption>
-              <span className="hero-wall-kicker">
-                <MapPin size={13} /> {lead.zone || "On record"}
-              </span>
-              <b>{dogLabel(lead)}</b>
-            </figcaption>
-          </figure>
-        )}
+        <figure className="hero-wall-lead">
+          <Image
+            src="/pinky-bengaluru.png"
+            alt="Pinky, a community dog reported in Bengaluru, Karnataka"
+            width={786}
+            height={1024}
+            priority
+            sizes="(max-width: 900px) 92vw, 38vw"
+          />
+          <figcaption>
+            <span className="hero-wall-kicker">
+              <MapPin size={13} /> Bengaluru, Karnataka
+            </span>
+            <b>Pinky</b>
+          </figcaption>
+        </figure>
 
         <ul className="hero-wall-grid">
           {wall.map((dog) => (
