@@ -367,17 +367,17 @@ export function AppShell({
           <div className="spa-phone-links">
             {phoneNav.slice(0, 2).map(({ href, label, Icon }) => (
               <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}>
-                <Icon size={20} />
+                <Icon size={23} />
                 <span>{label}</span>
               </Link>
             ))}
             <Link href="/report" className="spa-mobile-report" aria-label="Report a sighting">
-              <Radio size={21} />
+              <Radio size={23} />
               <span>Report</span>
             </Link>
             {phoneNav.slice(2).map(({ href, label, Icon }) => (
               <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}>
-                <Icon size={20} />
+                <Icon size={23} />
                 <span>{label}</span>
               </Link>
             ))}

@@ -94,27 +94,6 @@ html .spa.spa button:disabled{cursor:not-allowed}
 .community-paths{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:30px 0}
 .community-paths>a{display:flex;gap:18px;align-items:center;padding:24px 0;border-top:1px solid var(--sp-line);border-bottom:1px solid var(--sp-line);color:var(--sp-ink)}
 .community-paths>a>div{flex:1}.community-paths b,.community-paths span{display:block}.community-paths b{font-size:16px;font-weight:600}.community-paths span{font-size:13px;color:var(--sp-muted);margin-top:6px}
-/* ── Who is on this map ────────────────────────────────────────────
-   The pins as records. A pin says something is there; a face is the
-   thing somebody recognises, and recognising an animal they have seen
-   before is the whole premise. Scrolls sideways rather than wrapping,
-   because it is a sample of the map and not a directory. */
-.community-animals{margin-top:34px}
-.community-animals .product-section-heading{margin-bottom:14px}
-.community-animal-row{display:flex;gap:14px;list-style:none;margin:0;padding:2px 2px 12px;
-  overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin}
-.community-animal-row>li{display:flex;flex:0 0 164px;scroll-snap-align:start}
-.community-animal-row a{display:block;width:100%;padding:10px;background:#fff;border:1px solid var(--sp-panel-line);
-  border-radius:9px;color:var(--sp-ink);text-decoration:none;transition:border-color .18s,transform .18s}
-.community-animal-row a:hover{border-color:var(--sp-blue)}@media (hover:hover) and (pointer:fine){.community-animal-row a:hover{transform:translateY(-2px)}}
-.community-animal-photo{display:block;width:100%;aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:var(--sp-ground)}
-.community-animal-photo img{width:100%;height:100%;object-fit:cover}
-.community-animal-row b{display:block;margin-top:10px;font-size:14px;letter-spacing:-.02em;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.community-animal-row span{display:block;margin-top:3px;font-size:12px;color:var(--sp-muted);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.community-animal-row i{display:inline-block;width:7px;height:7px;border-radius:50%;margin:9px 6px 0 0;vertical-align:middle}
-.community-animal-row small{font-size:11.5px;color:var(--sp-muted)}
 
 /* The right-hand column is a column, not a leftover. */
 .community-recent{display:flex;flex-direction:column;gap:0}
@@ -239,19 +218,18 @@ html .spa.spa .partner-gate p{font-size:var(--sp-t-sm)}
   .community-counts{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
   .community-counts>button.community-relocate{grid-column:1/-1;width:100%;margin-top:4px}
   .community-counts b{font-size:26px}
-  .community-animals{margin-top:26px}
-  .community-animal-row{padding-right:18px}
+
 }
 @media(max-width:900px){
 html .spa.spa .spa-top{height:64px;padding:0 18px;gap:12px}
 html .spa.spa .spa-brand{font-size:21px}
-html .spa.spa .spa-body{display:block;position:relative;min-height:0;flex:1;padding-bottom:calc(67px + env(safe-area-inset-bottom))}
+html .spa.spa .spa-body{display:block;position:relative;min-height:0;flex:1;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
 html .spa.spa .spa-main{height:100%}
 html .spa.spa .spa-main:not(.flush){padding:25px 20px 40px}
-html .spa.spa .spa-side{position:absolute;top:auto;bottom:0;left:0;right:0;z-index:45;height:calc(67px + env(safe-area-inset-bottom));display:flex;align-items:stretch;padding:0 6px env(safe-area-inset-bottom);border:0;border-top:1px solid var(--sp-line);background:white;overflow:visible;width:auto}
+html .spa.spa .spa-side{position:absolute;top:auto;bottom:0;left:0;right:0;z-index:45;height:calc(80px + env(safe-area-inset-bottom));display:flex;align-items:stretch;padding:0 6px env(safe-area-inset-bottom);border:0;border-top:1px solid var(--sp-line);background:white;overflow:visible;width:auto}
 html .spa.spa .spa-side>.spa-sect,html .spa.spa .spa-side>a.spa-report-shortcut,html .spa.spa .spa-side>.spa-side-foot{display:none}
 html .spa.spa .spa-phone-links{display:grid;grid-template-columns:repeat(4,1fr);flex:4;min-width:0}
-html .spa.spa .spa-phone-links a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;padding:8px 2px;border-radius:0;min-width:0;color:#5c6d81;background:white;border:0}
+html .spa.spa .spa-phone-links a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:11px;padding:10px 2px;border-radius:0;min-width:0;color:#5c6d81;background:white;border:0}
 html .spa.spa .spa-phone-links a[aria-current=page]{color:var(--sp-blue);box-shadow:inset 0 2px 0 var(--sp-blue)}
 html .spa.spa .spa-phone-links a[href="/report"] svg{color:var(--sp-blue)}
 html .spa.spa .spa-more{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 2px;border:0;font-size:10px;color:#5c6d81;background:white;border-radius:0;min-width:0}
@@ -419,21 +397,21 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
   }
 
   /* Every slot is the same object: same height, same stack, same baseline.
-     44px is the floor a finger can reliably hit. */
+     56px, comfortably over the 44px floor a finger can reliably hit. */
   html .spa.spa .spa-side .spa-phone-links > a {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     min-width: 0;
-    min-height: 44px;
-    padding: 7px 2px;
+    min-height: 56px;
+    padding: 9px 2px;
     border: 0;
     border-radius: 0;
     background: transparent;
     color: #5c6d81;
-    font-size: 9.5px;
+    font-size: 11px;
     font-weight: 600;
     line-height: 1.15;
     text-align: center;
@@ -457,16 +435,16 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
-    min-height: 44px;
-    margin: 6px 4px;
-    padding: 6px 2px;
+    min-height: 56px;
+    margin: 8px 5px;
+    padding: 8px 2px;
     border: 0;
-    border-radius: 11px;
+    border-radius: 13px;
     background: var(--sp-blue);
     color: #fff;
-    font-size: 9.5px;
+    font-size: 11px;
     font-weight: 700;
     line-height: 1.15;
     text-decoration: none;
@@ -1170,24 +1148,26 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .community-journal-heading { display:flex; align-items:end; justify-content:space-between; gap:12px; padding:22px 0 15px; }
 .community-journal-heading h2 { margin:7px 0 0; font-family:var(--font-display),Georgia,serif; font-size:27px; font-weight:400; letter-spacing:-.045em; }
 .community-journal-heading a { display:inline-flex; align-items:center; gap:4px; color:var(--sp-blue); font-size:11px; font-weight:600; text-decoration:none; white-space:nowrap; }
-.community-journal .rs { overflow:auto; max-height:336px; padding-right:4px; }
-.community-journal .rs-card { grid-template-columns:58px minmax(0,1fr); gap:10px; padding:9px 0; border-radius:0; border-bottom:1px solid var(--sp-rule); background:transparent; }
-.community-journal .rs-photo { width:58px; height:58px; border-radius:0; }
-.community-journal .rs-time { display:none; }
-.community-journal .rs-title { font-size:13px; }
-.community-journal .rs-note { display:none; }
-.community-journal .rs-tags { display:none; }
+/* The register beside the map. One list, not a sightings journal and an
+   animal strip saying the same thing one after the other: each row is an
+   animal, and the recency the journal used to carry is the right-hand
+   column. */
+.community-register { display:flex; flex-direction:column; min-height:0; margin:0; padding:0; list-style:none; overflow:auto; }
+.community-register > li + li { border-top:1px solid var(--sp-rule); }
+.community-register a { display:grid; grid-template-columns:52px minmax(0,1fr) minmax(0,auto); align-items:center; gap:12px; padding:11px 2px; color:var(--sp-ink); text-decoration:none; }
+.community-register a:hover b { color:var(--sp-blue); }
+.community-register-photo { width:52px; height:52px; overflow:hidden; background:var(--sp-ground); }
+.community-register-photo img { width:100%; height:100%; object-fit:cover; }
+.community-register-who { display:grid; gap:2px; min-width:0; }
+.community-register-who b { font-size:13.5px; font-weight:600; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.community-register-who small { color:var(--sp-muted); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.community-register-state { display:grid; gap:4px; justify-items:end; min-width:0; color:var(--sp-muted); font-size:11px; text-align:right; }
+.community-register-state > span { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.community-register-state i { display:inline-block; width:7px; height:7px; margin-right:6px; border-radius:50%; vertical-align:middle; }
+.community-register .community-register-state em { color:var(--sp-muted); white-space:nowrap; font-family:var(--font-mono),ui-monospace,monospace; font-size:10.5px; font-style:normal; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+.community-register-empty { margin:0; padding:16px 0 20px; color:var(--sp-muted); font-size:12.5px; line-height:1.55; border-top:1px solid var(--sp-rule); }
 .community-journal .community-next-step { margin-top:auto; padding-top:16px; }
 .community-journal .community-next-step p { padding:12px 0; font-size:12px; }
-.community-record-strip { padding:44px 0 40px; border-bottom:1px solid var(--sp-rule); }
-.community-record-strip .product-section-heading { align-items:end; }
-.community-record-strip .product-section-heading h2 { margin-top:7px; font-family:var(--font-display),Georgia,serif; font-size:30px; font-weight:400; letter-spacing:-.045em; }
-.community-record-strip .community-animal-row { gap:0; padding:0; overflow:visible; }
-.community-record-strip .community-animal-row > li { flex:1 1 0; min-width:0; }
-.community-record-strip .community-animal-row a { padding:0 12px 0 0; border:0; border-radius:0; background:transparent; }
-.community-record-strip .community-animal-row > li + li a { padding-left:12px; border-left:1px solid var(--sp-rule); }
-.community-record-strip .community-animal-photo { border-radius:0; }
-.community-record-strip .community-animal-row b { font-family:var(--font-display),Georgia,serif; font-size:18px; font-weight:400; }
 .community-analysis { padding:40px 0 0; }
 .community-analysis-heading { display:flex; align-items:end; justify-content:space-between; gap:24px; padding-bottom:18px; }
 .community-analysis-heading p { max-width:410px; margin:0; color:var(--sp-muted); font-size:13px; line-height:1.5; }
@@ -1268,10 +1248,7 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   .community-field-surface .community-map { min-height:440px; padding:0 0 18px; border-right:0; border-bottom:1px solid var(--sp-rule); }
   .community-field-surface .community-map .field-map-preview { min-height:420px; }
   .community-journal { padding:20px 0; }
-  .community-journal .rs { max-height:300px; }
-  .community-record-strip .community-animal-row { overflow-x:auto; padding-bottom:10px; }
-  .community-record-strip .community-animal-row > li { flex:0 0 150px; }
-  .community-record-strip .community-animal-row > li + li a { border-left:0; }
+  .community-register { max-height:none; }
   .community-analysis .console-charts { grid-template-columns:1fr; }
   .community-analysis .cc + .cc { padding-left:0; border-top:1px solid var(--sp-rule); border-left:0; }
   .feeder-route-brief { grid-template-columns:130px 1fr; }

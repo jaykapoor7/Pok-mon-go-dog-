@@ -4,13 +4,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { FieldMapPreview } from "@/components/site/FieldMapPreview";
-import { RecentSightings } from "@/components/app/RecentSightings";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ByLocality, CoverageBar, ReportsOverTime } from "./ConsoleCharts";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { located } from "@/lib/geo/cluster";
 import { markerMetaFor } from "@/lib/marker-state";
-import { dogLabel } from "@/lib/utils";
+import { dogLabel, timeAgo } from "@/lib/utils";
 import type { Dog, Sighting } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -62,6 +61,24 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
         ? sightings.filter((s) => distanceKm(location, s) <= RADIUS_KM)
         : sightings,
     [sightings, location]
+  );
+
+  /* ONE LIST, NOT TWO.
+
+     This screen used to carry a "Live field journal" of recent sightings
+     beside the map and then, immediately underneath, a "local register"
+     row of the same animals. Two headings, two lists, one dataset: the
+     journal listed sightings, the strip listed the animals those
+     sightings belong to, and in a young register they are very nearly
+     the same rows twice.
+
+     They are one list now, ordered by when the animal was last seen, so
+     the recency the journal carried survives as a column on the register
+     rather than as a second section. The per-sighting stream still
+     exists in full at /feed, which is where an event log belongs. */
+  const register = useMemo(
+    () => [...inView].sort((a, b) => +new Date(b.last_seen) - +new Date(a.last_seen)),
+    [inView]
   );
 
   const stats = useMemo(
@@ -163,14 +180,55 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
           </div>
           <div className="community-journal-heading">
             <div>
-              <span className="product-kicker">Live field journal</span>
-              <h2>Reported recently</h2>
+              <span className="product-kicker">The local register</span>
+              <h2>Who is on this map</h2>
             </div>
-            <Link href="/feed">
-              All activity <ArrowUpRight size={16} />
+            <Link href="/map">
+              Open the map <ArrowUpRight size={16} />
             </Link>
           </div>
-          <RecentSightings sightings={nearbySightings.slice(0, 6)} />
+
+          {register.length > 0 ? (
+            <ul className="community-register">
+              {register.slice(0, 8).map((dog) => {
+                const meta = markerMetaFor(dog);
+                return (
+                  <li key={dog.id}>
+                    <Link href={`/dog/${dog.id}`}>
+                      <DogPhoto
+                        src={dog.cover_photo}
+                        alt=""
+                        seed={dog.id}
+                        className="community-register-photo"
+                      />
+                      <span className="community-register-who">
+                        <b>{dogLabel(dog)}</b>
+                        <small>{dog.zone || "Location on the record"}</small>
+                      </span>
+                      <span className="community-register-state">
+                        <span>
+                          <i style={{ background: meta.color }} aria-hidden />
+                          {meta.label}
+                        </span>
+                        {/* The status beside it can itself read "Seen",
+                            so this column is the figure alone rather than
+                            "Seen · Seen 2d ago". */}
+                        <em aria-label={`Last seen ${timeAgo(dog.last_seen)}`}>
+                          {timeAgo(dog.last_seen)}
+                        </em>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="community-register-empty">
+              No animal is on this part of the register yet. The first report
+              starts it.
+            </p>
+          )}
+
           <div className="community-next-step">
             <p>
               <b>Report what you see.</b> A photograph and a place become a record
@@ -186,21 +244,6 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
           </div>
         </aside>
       </section>
-
-      {inView.length > 0 && (
-        <section className="community-record-strip">
-          <div className="product-section-heading">
-            <div><span className="product-kicker">The local register</span><h2>Who is on this map</h2><p>Open a record to see sightings, care status and what is still unknown.</p></div>
-            <Link href="/map">Open the full map <ArrowUpRight size={16} /></Link>
-          </div>
-          <ul className="community-animal-row">
-            {inView.slice(0, 12).map((dog) => {
-              const meta = markerMetaFor(dog);
-              return <li key={dog.id}><Link href={`/dog/${dog.id}`}><DogPhoto src={dog.cover_photo} alt="" seed={dog.id} className="community-animal-photo" /><b>{dogLabel(dog)}</b><span>{dog.zone || "Location on the record"}</span><i style={{ background: meta.color }} aria-hidden /><small>{meta.label}</small></Link></li>;
-            })}
-          </ul>
-        </section>
-      )}
 
       <section className="community-analysis" aria-label="Local record patterns">
         <div className="community-analysis-heading"><span className="product-kicker">Patterns in the record</span><p>Coverage, reporting pace and place, read together.</p></div>
