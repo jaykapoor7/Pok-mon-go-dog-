@@ -32,20 +32,24 @@ import type { Dog } from "@/lib/types";
    explaining belongs to the sections below it, which is where it now
    lives. The short "no sign-up" line went with it for the same reason.
 
-   THE HEADLINE went through four versions before this one, and the
-   pattern in what failed is worth keeping. "Now it is written down",
-   "Now everyone does" and "Just nobody who can help her" were all
-   variations on the same move: an opening observation followed by a
-   turn. They read as a line of writing rather than as a product, and
-   the turn either overclaimed (everyone does not know this dog) or
-   restated the problem at the exact moment the reader is looking for
-   what the thing IS.
+   THE HEADLINE went through several versions, and the pattern in what
+   failed is worth keeping. "Now it is written down", "Now everyone does"
+   and "Just nobody who can help her" were all variations on the same
+   move: an opening observation followed by a turn. They read as a line
+   of writing rather than as a product, and the turn either overclaimed
+   (everyone does not know this dog) or restated the problem at the exact
+   moment the reader is looking for what the thing IS.
 
-   So it says what it is. A visitor knows the product in two seconds, it
-   cannot drift away from the truth as the register grows, and the
-   emotional work is done by the twenty-two photographs sitting beside
-   it — which is the right division of labour, because a wall of real
-   street dogs argues better than a sentence about them can.
+   What stands now names the subject and then the promise: every stray
+   animal in India, seen, tracked, cared for. The three verbs are the
+   product's own three stages in order — a sighting, a record that
+   persists, and care attached to it — so the line is a description of
+   what the software does rather than a sentiment about dogs.
+
+   A visitor knows the product in two seconds, and the emotional work is
+   done by the twenty-two photographs sitting beside it, which is the
+   right division of labour: a wall of real street dogs argues better
+   than a sentence about them can.
    ════════════════════════════════════════════════════════════════════ */
 
 export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
@@ -66,8 +70,11 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
       <div className="product-hero-copy">
         <p className="field-eyebrow">The shared record for India&apos;s street animals</p>
         <h1 id="hero-title">
-          One map of every<br />
-          <em>street animal in India.</em>
+          Every stray animal in India.<br />
+          {/* "cared for." is bound together. Left free, the line breaks
+              after "cared" at 360px and drops a 45px "for." onto a line of
+              its own under a 44px headline, which reads as a mistake. */}
+          <em>Seen, tracked, cared&nbsp;for.</em>
         </h1>
         <div className="product-hero-actions">
           <Link href="/report" className="field-button">
