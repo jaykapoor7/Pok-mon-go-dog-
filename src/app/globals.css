@@ -660,3 +660,54 @@ a.qa-card:active,
    decorated look the face was dropped to avoid. The emphasis is weight and
    colour, set per component. */
 h1 em, h2 em, h3 em, .product-hero-wall h1 em { font-style: normal; }
+
+/* ── The last of the coarse-pointer floor ────────────────────────────
+   Found by walking every route at 390px and listing every control under
+   44px. Each line below is one of them. Heading-row actions and the
+   "have one emailed to you" prompt are inline anchors, so they need a
+   box before a height means anything; the rest already have one and were
+   simply short.
+
+   Inline links inside a sentence stay exempt on purpose (WCAG 2.5.8),
+   and so does the map's own attribution link, which is not ours. */
+@media (pointer: coarse) {
+  .community-journal-heading > a,
+  .feeder-zones-heading > a,
+  .mk-row a.sp-link,
+  a.font-semibold.text-paw-600 {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ctl-h);
+  }
+
+  .sp-header-code,
+  .sp-header-cta,
+  .community-relocate,
+  .feeder-quiet-link,
+  .report-back button,
+  .report-signin-note button,
+  .inc-tabs button,
+  .vol-select select,
+  select[class*="min-h-"] {
+    min-height: var(--ctl-h);
+  }
+}
+
+/* The last six, each found by measurement rather than by guessing: the
+   feed's report button (42), a drives checkbox drawn at 13, a resources
+   select at 40, an icon-only close button 28px wide, an icon link on
+   /take-action 16px wide, and one "see what else is unknown" link at 19.
+   A checkbox keeps its drawn size and gains the hit area through its
+   label, which is the honest way to widen a box that small. */
+@media (pointer: coarse) {
+  .feed-report-button,
+  .res-controls select,
+  .wwit-link { min-height: var(--ctl-h); }
+  .wwit-link { display: inline-flex; align-items: center; }
+
+  .dr-toggle { min-height: var(--ctl-h); display: flex; align-items: center; gap: 10px; }
+  .dr-toggle input[type="checkbox"] { width: 20px; height: 20px; }
+
+  button.rounded-full.p-1 { min-width: var(--ctl-h); min-height: var(--ctl-h); }
+  a.shrink-0.text-bark-400 { min-width: var(--ctl-h); justify-content: flex-end; }
+}

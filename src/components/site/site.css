@@ -2347,8 +2347,11 @@ html .sp .sp-header-cta { border-radius: 2px; }
 html .sp .sp-header-cta svg { flex: 0 0 auto; }
 @media (max-width: 560px) {
   html .sp .sp-header-actions { grid-template-columns: auto auto auto; gap: 5px; }
+  /* 38px was under the 44px touch floor, and this rule out-ranked every
+     attempt to raise it from elsewhere. The two header actions are the
+     first thing a phone visitor reaches for. */
   html .sp .sp-header-code,
-  html .sp .sp-header-cta { min-height: 38px; padding-left: 10px; padding-right: 10px; }
+  html .sp .sp-header-cta { min-height: var(--ctl-h); padding-left: 10px; padding-right: 10px; }
   html .sp .sp-header-cta svg { display: none; }
 }
 
@@ -2365,4 +2368,13 @@ html .sp .sp-header-cta svg { flex: 0 0 auto; }
   .sp-header-code { padding-left: 7px; padding-right: 7px; font-size: 11.5px; }
   .sp-header-cta { padding-left: 9px; padding-right: 9px; font-size: 11.5px; }
   .sp-header-cta svg { display: none; }
+}
+
+/* The 44px floor, for the two header actions. They were 42: a min-height
+   of 38 plus padding, and the global floor could not out-rank a rule in
+   this file. Two pixels, on the one control a phone visitor reaches for
+   first. */
+@media (pointer: coarse) {
+  .sp-header-code,
+  .sp-header-cta { min-height: var(--ctl-h); }
 }

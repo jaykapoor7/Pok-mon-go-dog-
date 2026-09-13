@@ -1417,3 +1417,13 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
     align-content: center;
   }
 }
+
+/* Controls that sat between 40 and 42px on a phone: each is defined in
+   this file, so the floor has to be stated here to reach them. */
+@media (pointer: coarse) {
+  html .spa.spa .community-relocate,
+  .community-relocate,
+  .feeder-quiet-link,
+  .report-back button,
+  .report-signin-note button { min-height: var(--ctl-h); }
+}

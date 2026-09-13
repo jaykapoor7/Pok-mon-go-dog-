@@ -40,9 +40,12 @@ export function TakeActionClient() {
 
       {/* State picker + readings */}
       <div className="rounded border border-black/[0.08] p-5 dark:border-white/[0.1]">
-        <label className="flex items-center gap-2 text-[13px] font-medium text-bark-600 dark:text-bark-300">
+        {/* flex-wrap and min-w-0: a select holding 36 state names is as wide
+            as its longest option, and on a 390px screen that pushed the
+            whole page 6px sideways. */}
+        <label className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-bark-600 dark:text-bark-300">
           <MapPin className="h-4 w-4 text-paw-500" /> Area
-          <select value={code} onChange={(e) => setCode(e.target.value)} className="ml-2 rounded-md border border-black/[0.12] bg-transparent px-3 py-1.5 text-sm outline-none focus:border-paw-400 dark:border-white/[0.14]">
+          <select value={code} onChange={(e) => setCode(e.target.value)} className="min-w-0 max-w-full flex-1 rounded-md border border-black/[0.12] bg-transparent px-3 py-1.5 text-sm outline-none focus:border-paw-400 dark:border-white/[0.14]">
             {STATES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
           </select>
         </label>

@@ -4303,3 +4303,23 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   .se-sort { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-radius: 12px; }
   .se-sort button { min-height: var(--ctl-h); }
 }
+
+/* Same floor, for the two selector groups defined in this file. */
+@media (pointer: coarse) {
+  .inc-tabs button,
+  .vol-select select,
+  select[class*="min-h-"] { min-height: var(--ctl-h) !important; }
+}
+
+/* Two more from the 390px sweep, defined in this file so the floor has to
+   be stated here: the feed's report button and the evidence-file select.
+   Plus the dialog close control, which is an icon 16px wide sitting in
+   the corner of a sheet — the easiest thing on the screen to miss. */
+@media (pointer: coarse) {
+  .feed-report-button { min-height: var(--ctl-h) !important; }
+  .res-controls select { min-height: var(--ctl-h) !important; }
+  [class*="absolute"][class*="right-4"] > svg,
+  button[aria-label="Close"],
+  button[aria-label="close"] { min-width: var(--ctl-h); min-height: var(--ctl-h); }
+  button[aria-label="Close"] { display: inline-flex; align-items: center; justify-content: center; }
+}
