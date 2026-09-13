@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/site-url";
 // ─────────────────────────────────────────────────────────────
 // Server-only transactional email via Resend (https://resend.com).
 // No SDK, just the REST API. No-ops silently when RESEND_API_KEY is unset, so
@@ -7,8 +8,7 @@
 //   EMAIL_FROM     , e.g. "StrayPaw <hello@straypaw.org>"
 // ─────────────────────────────────────────────────────────────
 
-const SITE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
+const SITE = SITE_URL;
 
 export async function sendEmail(opts: {
   to: string;

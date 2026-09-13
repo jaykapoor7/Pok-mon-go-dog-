@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
 import { allowRequest, clientIp } from "@/lib/rate-limit";
 
+import { SITE_URL } from "@/lib/site-url";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,7 @@ export const dynamic = "force-dynamic";
    lead having to copy anything anywhere.
    ════════════════════════════════════════════════════════════════════ */
 
-const SITE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
+const SITE = SITE_URL;
 
 const ROLE_WORD: Record<string, string> = {
   lead: "team lead",

@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/site-url";
 // ─────────────────────────────────────────────────────────────
 // Server-only Telegram notifier. Pings the operator when something needs
 // attention (new report, NGO/volunteer sign-up). No-ops silently when the
@@ -9,8 +10,7 @@
 //                         https://api.telegram.org/bot<token>/getUpdates)
 // ─────────────────────────────────────────────────────────────
 
-const SITE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
+const SITE = SITE_URL;
 
 export async function notifyTelegram(text: string): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();

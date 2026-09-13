@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
-const SITE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
+import { SITE_URL } from "@/lib/site-url";
+const SITE = SITE_URL;
 
 export default function robots(): MetadataRoute.Robots {
   return {

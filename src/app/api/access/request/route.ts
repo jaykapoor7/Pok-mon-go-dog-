@@ -3,7 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
 import { allowRequest, clientIp } from "@/lib/rate-limit";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
+import { SITE_URL } from "@/lib/site-url";
+const SITE = SITE_URL;
 const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const code = () => Array.from({ length: 6 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
 

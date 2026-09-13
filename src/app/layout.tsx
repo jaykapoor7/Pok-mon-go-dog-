@@ -16,7 +16,9 @@ import { InstallPrompt } from "@/components/ux/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
 import { StorageNotice } from "@/components/site/StorageNotice";
 import { MotionRoot } from "@/components/motion/MotionRoot";
+import { RouteViews } from "@/components/analytics/RouteViews";
 
+import { SITE_URL } from "@/lib/site-url";
 // Interface: DM Sans, restrained, precise, engineered.
 const sans = DM_Sans({
   subsets: ["latin"],
@@ -44,8 +46,7 @@ const mono = DM_Mono({
 // Canonical site URL. Prefer the explicit env var; otherwise the production
 // domain (NOT the per-deployment Vercel URL, which is auth-walled and makes
 // crawlers like Twitterbot fail → gray preview).
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
+const siteUrl = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -162,6 +163,11 @@ export default function RootLayout({
                   handful of milliseconds. */}
               <Suspense fallback={null}>
                 <Chrome>{children}</Chrome>
+              </Suspense>
+              {/* usePathname needs a Suspense boundary for the static
+                  routes to keep prerendering. */}
+              <Suspense fallback={null}>
+                <RouteViews />
               </Suspense>
               <InstallPrompt />
               <StorageNotice />

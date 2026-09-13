@@ -20,6 +20,7 @@ import { getSupabase } from "./supabase";
    ════════════════════════════════════════════════════════════════════ */
 
 export type EventName =
+  | "page_view"
   | "landing_view"
   | "app_opened"
   | "signup"

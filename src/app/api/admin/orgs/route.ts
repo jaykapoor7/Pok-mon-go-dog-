@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
 
+import { SITE_URL } from "@/lib/site-url";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -40,8 +41,7 @@ function reject(state: AuthState) {
   return NextResponse.json({ error: "Wrong password." }, { status: 401 });
 }
 
-const SITE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://straypaw.org";
+const SITE = SITE_URL;
 
 export async function GET(req: Request) {
   const state = authState(req);
