@@ -1563,3 +1563,125 @@ html .product-hero-wall .field-text-link {
 .cx { background: var(--sp-sec-field) !important; }
 .role-help { background: var(--sp-sec-paper-deep) !important; }
 .product-closing { background: var(--sp-sec-accent) !important; }
+
+/* ════════════════════════════════════════════════════════════════════
+   THE RECORD RAIL, under the hero.
+
+   It sits on the hero's own ink ground rather than starting a new
+   section, because it is the rest of the same thought: Pinky, then the
+   register she belongs to. Every value here is a token.
+   ════════════════════════════════════════════════════════════════════ */
+
+.hrail {
+  grid-column: 1 / -1;
+  margin-top: var(--sp-7);
+  padding-top: var(--sp-5);
+  /* A rule, not a box — the rail is separated from the hero by a line
+     and space, the same way every other surface in this product is. */
+  border-top: 1px solid rgba(143, 183, 255, 0.18);
+}
+
+.hrail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+html .hrail-head h2 {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sp-t-micro);
+  font-weight: 400;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--sp-on-field-dim);
+}
+
+.hrail-controls { display: flex; gap: var(--sp-2); }
+.hrail-controls button {
+  display: grid;
+  place-items: center;
+  width: var(--ctl-h);
+  height: var(--ctl-h);
+  border: 0;
+  border-radius: var(--ctl-r);
+  background: rgba(244, 238, 229, 0.10);
+  color: var(--sp-on-field);
+  cursor: pointer;
+  transition: var(--ctl-press-t);
+}
+.hrail-controls button:hover:not(:disabled) { background: rgba(244, 238, 229, 0.20); }
+.hrail-controls button:active:not(:disabled) { transform: var(--ctl-press); }
+/* Dimmed rather than hidden at the ends: a control that disappears moves
+   the one beside it, and a moving target is worse than a quiet one. */
+.hrail-controls button:disabled { opacity: 0.3; cursor: default; }
+.hrail-controls button:focus-visible { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
+
+/* Touch has swipe, so the arrows are for pointers only. */
+@media (hover: none) {
+  .hrail-controls { display: none; }
+}
+
+.hrail-track {
+  display: flex;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: 0 0 var(--sp-2);
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  /* Vertical panning still belongs to the page, so a thumb travelling
+     down the page does not get captured by the rail. */
+  touch-action: pan-y pinch-zoom;
+  scrollbar-width: none;
+}
+.hrail-track::-webkit-scrollbar { display: none; }
+.hrail-track > li { flex: 0 0 auto; scroll-snap-align: start; width: 178px; }
+
+.hrail-track a {
+  display: grid;
+  gap: var(--sp-2);
+  text-decoration: none;
+  color: var(--sp-on-field);
+}
+.hrail-shot {
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--ctl-r-row);
+  background: #0a1c38;
+}
+.hrail-shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hrail-track b {
+  font-size: var(--sp-t-sm);
+  font-weight: 600;
+  line-height: var(--sp-lh-snug);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hrail-where {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-top: calc(var(--sp-1) * -1);
+  font-size: var(--sp-t-micro);
+  color: var(--sp-on-field-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hrail-where svg { flex: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  .hrail-track a:hover .hrail-shot { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
+}
+.hrail-track a:focus-visible .hrail-shot { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
+
+@media (max-width: 700px) {
+  .hrail { margin-top: var(--sp-6); padding-top: var(--sp-4); }
+  /* Two-and-a-bit tiles visible at 390px, so the rail reads as
+     continuing rather than as a row that happens to end. */
+  .hrail-track > li { width: 41vw; max-width: 178px; }
+}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { LiveTally } from "./LiveTally";
+import { HeroRail } from "./HeroRail";
 import type { Dog } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -49,22 +50,17 @@ import type { Dog } from "@/lib/types";
    sentence about her can.
    ════════════════════════════════════════════════════════════════════ */
 
-/* `dogs` stays in the signature because the page still passes it and
-   the wall will come back further down the page; the hero itself no
-   longer reads it. */
-export function Hero({ total }: { dogs: Dog[]; total: number }) {
-  /* ONE PHOTOGRAPH, NOT NINE.
+export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
+  /* ONE SUBJECT, THEN THE REST.
 
-     A grid of eight more dogs used to sit beside Pinky. Two things were
-     wrong with it. It turned the hero into a contact sheet, so no single
-     animal was the subject and the eye had nowhere to rest — and the
-     tiles were whatever eight rows the query happened to return, which
-     on a young register is a thin and arbitrary set.
+     A static grid of eight more dogs used to sit beside Pinky, which
+     turned the hero into a contact sheet: no single animal was the
+     subject, and the tiles were whatever eight rows the query returned.
 
-     One animal, named, with her locality under her, is the stronger
-     argument and the honest one: this is what a record looks like. The
-     wall of the rest belongs further down the page, where there is room
-     to say what it is. */
+     Pinky is the centre now and the rest of the register follows her as
+     a rail underneath — the same photographs, offered as a sequence you
+     push along rather than a block that arrives all at once. See
+     HeroRail for why that shape suits a register. */
 
 
   return (
@@ -111,6 +107,11 @@ export function Hero({ total }: { dogs: Dog[]; total: number }) {
           </figcaption>
         </figure>
       </div>
+
+      {/* Reads the live register. Draws nothing at all below two records,
+          which is the correct picture of a young database rather than a
+          rail of empty space. */}
+      <HeroRail dogs={dogs} />
     </section>
   );
 }
