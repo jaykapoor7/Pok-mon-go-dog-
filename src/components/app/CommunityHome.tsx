@@ -22,9 +22,8 @@ import type { Dog, Sighting } from "@/lib/types";
    showed an empty product.
 
    Nothing here waits for permission now. Without a location the screen
-   frames the busiest place on the register, counts THAT, and puts those
-   animals on the map and in a row of records you can open. Granting a
-   location does not turn the page on, it moves it to your street.
+   stays explicitly national. Granting a location does not turn the page
+   on; it moves the same shared register to the person's own street.
    ════════════════════════════════════════════════════════════════════ */
 
 const RADIUS_KM = 12;
@@ -205,7 +204,14 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
 
       <section className="community-analysis" aria-label="Local record patterns">
         <div className="community-analysis-heading"><span className="product-kicker">Patterns in the record</span><p>Coverage, reporting pace and place — read as one picture of what is known.</p></div>
-        <div className="console-charts"><CoverageBar dogs={inView} /><ReportsOverTime sightings={nearbySightings} /><ByLocality dogs={inView} /></div>
+        <div className="console-charts">
+          <CoverageBar dogs={inView} />
+          <ReportsOverTime sightings={nearbySightings} />
+          {/* Locality rankings only mean something after the person has
+              chosen a geography. Showing a seed-heavy city as “busiest”
+              is not a national signal. */}
+          {nearby && <ByLocality dogs={inView} />}
+        </div>
       </section>
 
       {/* The console's side rail is hidden on a phone, and a phone is

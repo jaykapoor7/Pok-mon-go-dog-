@@ -1082,7 +1082,7 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .community-analysis { padding:40px 0 0; }
 .community-analysis-heading { display:flex; align-items:end; justify-content:space-between; gap:24px; padding-bottom:18px; }
 .community-analysis-heading p { max-width:410px; margin:0; color:var(--sp-muted); font-size:13px; line-height:1.5; }
-.community-analysis .console-charts { gap:0; border-top:1px solid var(--sp-rule); }
+.community-analysis .console-charts { grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:0; border-top:1px solid var(--sp-rule); }
 .community-analysis .cc { padding:24px 20px 0 0; border:0; border-radius:0; background:transparent; }
 .community-analysis .cc + .cc { padding-left:20px; border-left:1px solid var(--sp-rule); }
 

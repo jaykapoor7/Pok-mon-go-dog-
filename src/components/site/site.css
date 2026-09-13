@@ -2318,8 +2318,34 @@ html .sp .sp-header-cta { padding: 0 15px 0 16px; background: var(--sp-ink); col
 html .sp .sp-header-cta:hover { background: var(--sp-blue-deep); }
 html .sp .sp-header-code:active,
 html .sp .sp-header-cta:active { transform: translateY(1px); }
+
+/* Header access is one paired decision. Give both doors the same measured
+   box so their labels sit on the same optical centre instead of inheriting
+   unrelated padding from the old navigation controls. */
+html .sp .sp-header-actions {
+  display: grid;
+  grid-template-columns: 132px 108px auto;
+  align-items: stretch;
+  gap: 7px;
+}
+html .sp .sp-header-code,
+html .sp .sp-header-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+html .sp .sp-header-code { border-radius: 2px; }
+html .sp .sp-header-cta { border-radius: 2px; }
+html .sp .sp-header-cta svg { flex: 0 0 auto; }
 @media (max-width: 560px) {
-  html .sp .sp-header-actions { gap: 5px; }
+  html .sp .sp-header-actions { grid-template-columns: auto auto auto; gap: 5px; }
   html .sp .sp-header-code,
   html .sp .sp-header-cta { min-height: 38px; padding-left: 10px; padding-right: 10px; }
   html .sp .sp-header-cta svg { display: none; }
