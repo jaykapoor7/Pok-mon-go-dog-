@@ -29,7 +29,7 @@
 .street-hero-top{display:grid;grid-template-columns:1.6fr 1fr;gap:6vw;align-items:end;padding-bottom:45px}
 .street-hero-heading h1{font-size:clamp(78px,10.7vw,168px);line-height:.91;letter-spacing:-.075em;margin:24px 0 0}
 .street-hero-heading h1>span{display:block}
-.street-hero-heading em{font-family:var(--font-display),serif;font-weight:400;color:var(--field-accent-ink)}
+.street-hero-heading em{font-family:var(--font-display), system-ui, sans-serif;font-weight:500;color:var(--field-accent-ink)}
 .street-hero-intro{max-width:350px;padding-bottom:7px}
 .street-hero-intro>p:first-child{font-size:25px;line-height:1.25;letter-spacing:-.035em;color:var(--field-ink);margin:0 0 16px;font-weight:500}
 .street-hero-intro>p{font-size:16px;line-height:1.7;color:var(--field-muted);margin:0 0 24px}
@@ -106,7 +106,7 @@
 .field-example-note{margin:0;display:flex;align-items:center;gap:9px;padding:18px 22px;background:#f4f5f7;font-size:12px}
 .field-more{display:grid;grid-template-columns:1fr 1.2fr;gap:8vw}.field-more>div>p{font-size:16px;color:var(--field-muted);line-height:1.7;margin-top:25px}
 .field-paths a{display:flex;align-items:center;gap:22px;border-top:1px solid rgba(11,16,32,0.12);padding:28px 0;color:inherit;text-decoration:none;transition:padding .2s}.field-paths a:hover{padding-left:10px}.field-paths a:last-child{border-bottom:1px solid rgba(11,16,32,0.12)}.field-paths a>span{font-size:12px;color:var(--field-muted);align-self:start;padding-top:5px}.field-paths a>div{flex:1}.field-paths h3{font-size:26px;margin:0 0 9px}.field-paths p{font-size:15px;line-height:1.65;color:var(--field-muted);margin:0}
-.field-closing{padding:90px 6vw 105px;text-align:center;background:#f37a40;color:#10294e}.field-closing h2{font-size:clamp(60px,9vw,140px);line-height:.98;margin:32px 0;letter-spacing:-.065em}.field-closing h2 span{font-family:var(--font-display),serif;font-style:italic;font-weight:400}.field-actions{display:flex;gap:25px;align-items:center;flex-wrap:wrap;margin-top:28px}.field-closing .field-actions{justify-content:center}.field-site .field-closing .field-button{background:var(--field-ink);color:white}
+.field-closing{padding:90px 6vw 105px;text-align:center;background:#f37a40;color:#10294e}.field-closing h2{font-size:clamp(60px,9vw,140px);line-height:.98;margin:32px 0;letter-spacing:-.065em}.field-closing h2 span{font-family:var(--font-display), system-ui, sans-serif;font-style:normal;font-weight:500}.field-actions{display:flex;gap:25px;align-items:center;flex-wrap:wrap;margin-top:28px}.field-closing .field-actions{justify-content:center}.field-site .field-closing .field-button{background:var(--field-ink);color:white}
 .field-footer{display:flex;align-items:center;justify-content:space-between;gap:30px;padding:50px 5vw}
 .field-footer-brand{font-size:30px;letter-spacing:-.06em;font-weight:700;color:var(--field-ink);text-decoration:none}.field-footer-brand span{display:block;font-size:13px;letter-spacing:0;font-weight:400;color:var(--field-muted);margin-top:8px}
 .field-footer nav{display:flex;gap:24px;flex-wrap:wrap}.field-footer nav a{font-size:13px;color:#425a76;text-decoration:none}.field-footer>span{font-size:12px;color:var(--field-muted);line-height:1.8}
@@ -157,7 +157,7 @@
 .record-hero-copy{width:min(690px,58vw);position:relative;z-index:1}
 .record-hero .field-eyebrow{color:#d7e4f5}
 .record-hero h1{font-size:clamp(76px,10.2vw,166px);line-height:.84;letter-spacing:-.085em;margin:25px 0 31px;color:#fff}
-.record-hero h1 span{display:block}.record-hero h1 em{font-family:var(--font-display),serif;font-weight:400;color:#ff9665}
+.record-hero h1 span{display:block}.record-hero h1 em{font-family:var(--font-display), system-ui, sans-serif;font-weight:500;color:#ff9665}
 .record-hero-copy>p:not(.field-eyebrow){font-size:clamp(16px,1.4vw,20px);line-height:1.5;max-width:450px;color:#e2ebf7;margin:0}
 .record-hero-actions{display:flex;align-items:center;gap:24px;margin-top:31px;flex-wrap:wrap}.record-hero .field-button{background:#ff8550;color:#112d55}.record-hero .field-button:hover{background:#ff9d71}.record-hero .field-text-link{color:#fff;border-color:rgba(255,255,255,.55)}
 .record-hero-progress{position:absolute;right:5vw;top:clamp(124px,15vh,180px);display:flex;gap:12px;align-items:center;font:11px var(--font-sans), system-ui, sans-serif;letter-spacing:.08em;color:#e8eff9;z-index:1}.record-hero-progress i{display:block;width:clamp(92px,11vw,160px);height:1px;background:rgba(255,255,255,.4);position:relative}.record-hero-progress i::after{content:"";position:absolute;inset:0 auto 0 0;width:calc(var(--record-progress)*100%);background:#ff8a58}
@@ -178,7 +178,7 @@
 
 /* The public site is a product narrative: an actual live map remains in view
    while a single report grows into field work and evidence. */
-.product-hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(480px,1.1fr);gap:clamp(38px,6vw,96px);align-items:center;max-width:1600px;margin:auto;padding-left:5vw;padding-right:5vw;background:#fff;color:var(--field-ink)}.product-hero-copy{max-width:590px}.product-hero h1{margin:18px 0 22px;font-size:clamp(52px,6.4vw,102px);line-height:.92;letter-spacing:-.075em}.product-hero h1 em{font-family:var(--font-display),serif;font-weight:400;color:var(--field-accent)}.product-hero-copy>p:not(.field-eyebrow){margin:0;max-width:470px;font-size:17px;line-height:1.62;color:var(--field-muted)}.product-hero-actions{display:flex;align-items:center;gap:22px;margin-top:28px;flex-wrap:wrap}/* Was set in the mono face, which is what made a one-line caption look
+.product-hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(480px,1.1fr);gap:clamp(38px,6vw,96px);align-items:center;max-width:1600px;margin:auto;padding-left:5vw;padding-right:5vw;background:#fff;color:var(--field-ink)}.product-hero-copy{max-width:590px}.product-hero h1{margin:18px 0 22px;font-size:clamp(52px,6.4vw,102px);line-height:.92;letter-spacing:-.075em}.product-hero h1 em{font-family:var(--font-display), system-ui, sans-serif;font-weight:500;color:var(--field-accent)}.product-hero-copy>p:not(.field-eyebrow){margin:0;max-width:470px;font-size:17px;line-height:1.62;color:var(--field-muted)}.product-hero-actions{display:flex;align-items:center;gap:22px;margin-top:28px;flex-wrap:wrap}/* Was set in the mono face, which is what made a one-line caption look
    like terminal output. Sans, at a size a caption should actually be. */
 .product-hero-note{margin-top:22px!important;font-size:13.5px!important;line-height:1.5!important;letter-spacing:0!important;color:#9db8dc!important}.hero-product{position:relative;overflow:hidden;border:1px solid #b9cbe1;background:#e9eff8;box-shadow:12px 12px 0 #d6e2f1}.hero-product-top{position:absolute;z-index:2;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1px solid #c9d7e6;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.1em;color:var(--field-muted)}.hero-live-map{position:absolute;inset:40px 0 0}.hero-location{position:absolute;z-index:3;top:57px;left:16px;display:flex;align-items:center;gap:7px;padding:9px 10px;background:#fff;box-shadow:0 4px 15px rgba(11,16,32,0.09);font-size:12px}.hero-location svg{color:var(--field-blue)}.hero-location i{margin-left:5px;padding-left:8px;border-left:1px solid #d8e2ed;color:var(--field-blue-ink);font-style:normal;font-size:11px}.hero-report-card{position:absolute;z-index:3;right:16px;bottom:16px;display:flex;align-items:center;gap:12px;width:min(350px,74%);padding:10px;background:#fff;box-shadow:0 8px 28px rgba(11,16,32,0.145)}.hero-report-card img{width:58px;height:58px;object-fit:cover}.hero-report-copy{display:grid;gap:4px;min-width:0}.hero-report-copy span{font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.08em;color:var(--field-muted)}.hero-report-copy b{font-size:13px}.hero-report-copy small{font-size:11px;color:var(--field-muted)}.hero-report-check{margin-left:auto;color:var(--field-accent);flex:none}.hero-capture{position:absolute;z-index:3;bottom:18px;left:16px;display:flex;align-items:center;gap:7px;font-size:11px;color:#35577f}.hero-capture svg{color:var(--field-accent)}
 /* The bright accent is for fills and marks; text-sized use takes the
@@ -187,7 +187,7 @@
    3.35:1, so text-sized use takes the darker step — the same rule the
    console follows. */
 .product-hero{min-height:clamp(600px,78svh,700px);padding-top:92px;padding-bottom:38px}.hero-product{min-height:400px}.product-story{height:220vh}.product-story-sticky{min-height:78svh;padding-top:56px;padding-bottom:48px}.product-story-surface{height:min(490px,58vh);min-height:350px}.role-help{padding-top:58px;padding-bottom:58px}.product-closing{padding:52px 6vw 58px}
-.role-help{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(45px,10vw,170px);padding:clamp(85px,11vw,155px) 6vw;max-width:1560px;margin:auto}.role-help h2{margin:20px 0 0;font-size:clamp(39px,4.5vw,71px);line-height:.99;letter-spacing:-.065em}.role-help-links{border-top:1px solid #cedae7}.role-help-links a{display:grid;grid-template-columns:1fr 18px;gap:18px;padding:24px 0;color:var(--field-ink);text-decoration:none;border-bottom:1px solid #cedae7;transition:padding .2s ease}.role-help-links a:hover{padding-left:9px}.role-help-links b{font-size:19px;letter-spacing:-.03em}.role-help-links p{max-width:440px;margin:7px 0 0;color:var(--field-muted);font-size:14px;line-height:1.6}.role-help-links svg{margin-top:5px;color:var(--field-blue)}.product-closing{padding:90px 6vw 100px;text-align:center;background:var(--field-ink);color:#f4f5f7}.product-closing h2{margin:25px 0 32px;font-size:clamp(57px,8vw,122px);line-height:.9;letter-spacing:-.075em}.product-closing em{font-family:var(--font-display),serif;font-weight:400;color:var(--field-accent)}.product-closing .field-button{background:var(--field-accent);color:var(--field-ink)}
+.role-help{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(45px,10vw,170px);padding:clamp(85px,11vw,155px) 6vw;max-width:1560px;margin:auto}.role-help h2{margin:20px 0 0;font-size:clamp(39px,4.5vw,71px);line-height:.99;letter-spacing:-.065em}.role-help-links{border-top:1px solid #cedae7}.role-help-links a{display:grid;grid-template-columns:1fr 18px;gap:18px;padding:24px 0;color:var(--field-ink);text-decoration:none;border-bottom:1px solid #cedae7;transition:padding .2s ease}.role-help-links a:hover{padding-left:9px}.role-help-links b{font-size:19px;letter-spacing:-.03em}.role-help-links p{max-width:440px;margin:7px 0 0;color:var(--field-muted);font-size:14px;line-height:1.6}.role-help-links svg{margin-top:5px;color:var(--field-blue)}.product-closing{padding:90px 6vw 100px;text-align:center;background:var(--field-ink);color:#f4f5f7}.product-closing h2{margin:25px 0 32px;font-size:clamp(57px,8vw,122px);line-height:.98;letter-spacing:-.075em}.product-closing em{font-family:var(--font-display), system-ui, sans-serif;font-weight:500;color:var(--field-accent)}.product-closing .field-button{background:var(--field-accent);color:var(--field-ink)}
 @media(max-width:900px){.product-hero{grid-template-columns:1fr;gap:44px;padding:105px 6vw 55px}.product-hero-copy{max-width:680px}.hero-product{min-height:480px}.product-story{height:auto}.product-story-sticky{position:relative;grid-template-columns:1fr;padding:72px 6vw}.product-story-copy{margin-bottom:28px}.product-story-surface{height:560px}.product-story[data-stage] .story-map{inset:0 0 38% 0;opacity:1;transform:none}.product-story[data-stage] .story-report{right:0;bottom:0;opacity:1;transform:none}.product-story[data-stage] .story-dashboard{display:none}.product-story[data-stage] .story-nation{display:none}.role-help{grid-template-columns:1fr;gap:44px;padding:75px 6vw}.product-closing{padding:72px 6vw}}
 @media(max-width:560px){.product-hero h1{font-size:clamp(49px,13vw,71px)}.product-hero-actions{gap:17px}.hero-product{min-height:410px;margin:0 -2vw}.hero-location{top:56px;left:10px}.hero-location i{display:none}.hero-report-card{right:10px;bottom:12px;width:calc(100% - 20px)}.hero-capture{display:none}.product-story-sticky{padding:61px 6vw}.product-story-surface{height:490px}.story-report{width:100%;bottom:0}.product-story-copy h2{font-size:40px}.role-help h2{font-size:42px}.role-help-links a{grid-template-columns:1fr 16px;gap:10px}.product-closing h2{font-size:59px}}
 @media(prefers-reduced-motion:reduce){.story-map,.story-report,.story-dashboard,.story-nation{transition:none!important}}
@@ -418,7 +418,7 @@
    typographic fault a hero can have. 19ch fits it, and text-wrap:balance
    keeps the sans half from orphaning as the viewport moves. */
 .product-hero-wall h1{max-width:19ch;margin:16px 0 20px;font-size:clamp(42px,4.9vw,76px);line-height:.94;color:#fff;letter-spacing:-.045em;text-wrap:balance}
-.product-hero-wall h1 em{color:#ff9a65;font-family:var(--font-display),serif;font-style:italic;font-weight:400}
+.product-hero-wall h1 em{color:#ff9a65;font-family:var(--font-display), system-ui, sans-serif;font-style:normal;font-weight:500}
 /* The note is a small mono caption, not body copy. This selector is a
    class, a class, a class and an element, so it was setting it to the
    lede's 16.5px and the hero ended up with two paragraphs shouting at
@@ -463,7 +463,7 @@
 .hero-wall-lead dd{margin:3px 0 0;font-size:13px;font-weight:600;color:#fff}
 /* "Not checked" is the honest state, coloured as information rather than
    as a failure: closing that gap is what the product is for. */
-.hero-wall-lead dd.q{color:#ff9a65;font-weight:500;font-style:italic}
+.hero-wall-lead dd.q{color:#ff9a65;font-weight:500;font-style:normal}
 
 .hero-wall-grid{display:contents}
 .hero-wall-grid li{position:relative;aspect-ratio:1/1;overflow:hidden;background:#0e2444;border:1px solid #2f527f}
@@ -896,9 +896,9 @@ html .sp.product-site .product-closing .field-button:hover { background: var(--s
   text-wrap: balance;
 }
 .cx-head h2 em {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--sp-flame);
 }
 .cx-head > p {
@@ -1384,7 +1384,11 @@ html .sp.product-site .role-help-note {
 /* The map is the transition from individual sighting to geography. */
 .wt { background: #ede5d9; }
 .wt-inner { max-width: 1360px; padding-left: max(6vw, 28px); padding-right: max(6vw, 28px); }
-.wt-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, .55fr); column-gap: clamp(40px, 10vw, 160px); align-items: end; }
+/* The headline column has a floor. At minmax(0,1.1fr) it shrank to 233px
+   on a 1024px window while the paragraph beside it held its 280px, so
+   the heading broke into five lines and the running text next to it
+   read wider than the heading it supports. */
+.wt-head { display: grid; grid-template-columns: minmax(430px, 1.1fr) minmax(260px, .55fr); column-gap: clamp(36px, 7vw, 140px); align-items: end; }
 .wt-head .field-eyebrow,
 .wt-head h2 { grid-column: 1; }
 .wt-head > p { grid-column: 2; grid-row: 1 / span 2; margin: 0 0 4px; }
@@ -1422,6 +1426,13 @@ html .sp.product-site .role-help-note {
 .field-footer nav a { color: #fff; }
 .field-footer-brand span,
 .field-footer > span { color: #b9c5d8; }
+
+/* Below this the two columns stop being two columns: the paragraph goes
+   under the headline at reading width rather than into a 260px gutter. */
+@media (max-width: 1180px) {
+  .wt-head { grid-template-columns: 1fr; }
+  .wt-head > p { grid-column: 1; grid-row: auto; max-width: 62ch; margin: var(--sp-5) 0 0; }
+}
 
 @media (max-width: 900px) {
   .product-hero-wall { grid-template-columns: 1fr; min-height: unset; padding-top: 116px; }

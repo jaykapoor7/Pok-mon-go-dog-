@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, DM_Mono, Instrument_Serif } from "next/font/google";
+import { DM_Sans, DM_Mono } from "next/font/google";
 import "./tokens.css";
 import "./globals.css";
 import "./design-system.css";
@@ -25,14 +25,13 @@ const sans = DM_Sans({
   display: "swap",
 });
 
-// Display: Instrument Serif, editorial weight for headlines.
-const display = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-  display: "swap",
-});
+/* NO SECOND FACE. The display line used to be Instrument Serif in italic:
+   the hero's second line, "Start with your street.", the big counts. One
+   typeface carries the whole product now, and the emphasis that the serif
+   used to provide comes from weight and colour instead. --font-display
+   still exists, and still means "the display line", but it resolves to the
+   interface face (see tokens.css) so every rule that asked for it keeps
+   working. */
 
 // Data: DM Mono, record IDs, coordinates, telemetry.
 const mono = DM_Mono({
@@ -128,7 +127,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${display.variable} ${mono.variable}`}
+      className={`${sans.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
       <head>

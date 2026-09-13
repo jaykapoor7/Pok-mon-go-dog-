@@ -652,3 +652,11 @@ a.qa-card:active,
 @media (hover: hover) and (pointer: fine) {
   .card-interactive:hover { transform: translateY(-0.125rem); }
 }
+
+/* ── Headline emphasis ───────────────────────────────────────────────
+   The second line of a headline is marked up with <em>, which the browser
+   slopes by default. That slope used to be carried by a second typeface;
+   with one face across the product a synthesised italic is exactly the
+   decorated look the face was dropped to avoid. The emphasis is weight and
+   colour, set per component. */
+h1 em, h2 em, h3 em, .product-hero-wall h1 em { font-style: normal; }

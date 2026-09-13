@@ -29,9 +29,9 @@
 /* The opening headline takes the landing page's emphasis, so the site's
    argument and the site's front door speak in one voice. */
 .mission .sx-intro h1 em {
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 500;
   color: var(--mi-flame-ink);
 }
 
@@ -46,9 +46,9 @@
   text-wrap: balance;
 }
 .mission h2 em {
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 500;
   color: var(--mi-flame-ink);
 }
 .mission p { margin: 0; font-size: 15.5px; line-height: 1.68; color: var(--mi-muted); }

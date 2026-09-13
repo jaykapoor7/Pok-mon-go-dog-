@@ -30,18 +30,18 @@ html .spa.spa .spa-tour,html .spa.spa /* These two were transparent with grey te
 .spa-exit:active{transform:var(--ctl-press)}
 html .spa.spa .spa-tour:hover,html .spa.spa .spa-exit:hover{background:var(--sp-ground);color:var(--sp-blue)}
 html .spa.spa .spa-body{grid-template-columns:224px minmax(0,1fr)}
-html .spa.spa .spa-side{background:#fff;border-right:1px solid var(--sp-line);padding:24px 14px}
+html .spa.spa .spa-side{background:#fff;border-right:1px solid var(--sp-line);padding:14px 14px 16px}
 html .spa.spa .spa-side a{border-radius:var(--ctl-r-row);color:#50617b;min-height:var(--ctl-h);font-size:14px;gap:12px}
 html .spa.spa .spa-side a:hover{background:var(--sp-ground);color:var(--sp-ink)}
 html .spa.spa .spa-side a.active{background:#eaf0fc;color:var(--sp-blue);font-weight:600}
 html .spa.spa .spa-side a.active svg{color:var(--sp-blue)}
-html .spa.spa .spa-side a.spa-report-shortcut{display:flex;align-items:center;justify-content:center;background:var(--sp-blue);color:white;margin-bottom:24px;min-height:var(--ctl-h);padding:0 12px;border-radius:var(--ctl-r);font-size:var(--ctl-fs-sm);font-weight:var(--ctl-fw)}
-html .spa.spa .spa-side-label{font-family:var(--font-sans),sans-serif;font-size:11px;letter-spacing:.06em;color:#64748b;padding:12px 9px}
+html .spa.spa .spa-side a.spa-report-shortcut{display:flex;align-items:center;justify-content:center;background:var(--sp-blue);color:white;margin-bottom:16px;min-height:var(--ctl-h);padding:0 12px;border-radius:var(--ctl-r);font-size:var(--ctl-fs-sm);font-weight:var(--ctl-fw)}
+html .spa.spa .spa-side-label{font-family:var(--font-sans),sans-serif;font-size:11px;letter-spacing:.06em;color:#64748b;padding:8px 9px}
 html .spa.spa .spa-side-count{background:none;color:inherit}
-html .spa.spa .spa-side-foot{margin-top:auto;padding-top:22px}
+html .spa.spa .spa-side-foot{margin-top:auto;padding-top:15px}
 /* Below the two access buttons and quieter than either, with a rule to
    separate it from them rather than a border of its own to compete. */
-html .spa.spa .spa-side-feedback{margin-top:14px;padding-top:13px;border-top:1px solid var(--sp-line)}
+html .spa.spa .spa-side-feedback{margin-top:10px;padding-top:10px;border-top:1px solid var(--sp-line)}
 html .spa.spa .spa-side-feedback .fb-open{width:100%;justify-content:flex-start;text-align:left;font-size:12px;font-weight:500;color:var(--sp-muted)}
 html .spa.spa .spa-side-feedback .fb-open:hover{color:var(--sp-blue)}
 html .spa.spa .spa-main:not(.flush){padding:35px 36px 60px}
@@ -56,7 +56,7 @@ html .spa.spa button:disabled{cursor:not-allowed}
 .product-page-heading h1{font:600 clamp(30px,3.3vw,48px)/1.08 var(--font-sans),sans-serif;letter-spacing:-.055em;margin:12px 0}
 /* The same emphasis the landing headlines use, so the two read as one
    voice rather than a marketing site and an unrelated tool. */
-.product-page-heading h1 em{font-family:var(--font-display),serif;font-style:italic;font-weight:400;color:var(--sp-flame-ink)}
+.product-page-heading h1 em{font-family:var(--font-display), system-ui, sans-serif;font-style:normal;font-weight:500;color:var(--sp-flame-ink)}
 .product-page-heading p{font-size:15px;color:var(--sp-muted);line-height:1.65;margin:0}
 .product-primary{display:inline-flex;gap:10px;align-items:center;justify-content:center;background:var(--sp-blue);color:white;min-height:var(--ctl-h);padding:var(--ctl-pad);border-radius:var(--ctl-r);font-size:var(--ctl-fs);font-weight:var(--ctl-fw);white-space:nowrap;text-decoration:none;transition:background .2s,transform .2s}
 .product-primary:hover{background:#183f9e}@media (hover:hover) and (pointer:fine){.product-primary:hover{transform:translateY(-1px)}}
@@ -915,9 +915,9 @@ html .spa.spa .card { border-radius: 0; box-shadow: none; }
   background: var(--sp-blue);
 }
 html .spa.spa .partner-command-header h1 {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: clamp(36px, 4vw, 52px);
-  font-weight: 400;
+  font-weight: 500;
   line-height: .95;
   letter-spacing: -.055em;
 }
@@ -951,7 +951,7 @@ html .spa.spa .partner-command-header h1 {
 }
 .partner-stat:first-child { padding-left: 0 !important; }
 .partner-stat > div:first-child { color: var(--sp-muted) !important; font-size: var(--sp-t-micro) !important; letter-spacing: .08em; text-transform: uppercase; }
-.partner-stat > div:nth-child(2) { margin-top: 9px; font-family: var(--font-display), Georgia, serif; font-size: clamp(30px, 3vw, 42px) !important; font-weight: 400 !important; line-height: .88; letter-spacing: -.045em !important; }
+.partner-stat > div:nth-child(2) { margin-top: 9px; font-family: var(--font-display), system-ui, sans-serif; font-size: clamp(30px, 3vw, 42px) !important; font-weight: 500 !important; line-height: .88; letter-spacing: -.045em !important; }
 .partner-stat > div:last-child { margin-top: 9px !important; color: var(--sp-muted) !important; }
 
 .partner-insight-pair {
@@ -970,7 +970,7 @@ html .spa.spa .partner-command-header h1 {
   padding-left: var(--sp-6);
   border-left: 1px solid var(--sp-rule);
 }
-.partner-insight-pair .cc figcaption b { font-family: var(--font-display), Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: -.035em; }
+.partner-insight-pair .cc figcaption b { font-family: var(--font-display), system-ui, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -.035em; }
 .partner-insight-pair .cc figcaption span { color: var(--sp-muted); }
 
 .partner-overview .pgm {
@@ -993,7 +993,7 @@ html .spa.spa .partner-command-header h1 {
   background: transparent !important;
 }
 .partner-section-head { margin-bottom: var(--sp-4) !important; }
-.partner-section-head h2 { font-family: var(--font-display), Georgia, serif; font-size: 25px !important; font-weight: 400; letter-spacing: -.04em !important; }
+.partner-section-head h2 { font-family: var(--font-display), system-ui, sans-serif; font-size: 25px !important; font-weight: 600; letter-spacing: -.04em !important; }
 .partner-section-head p { max-width: 36ch; line-height: 1.55; }
 .partner-section-head a { color: var(--sp-blue) !important; }
 .partner-ledger {
@@ -1074,7 +1074,7 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .feed-page { width: min(100%, 1040px); padding-top: 4px; padding-bottom: 80px; }
 .feed-page-head { position: relative; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--sp-rule); }
 .feed-page-head::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 64px; height: 2px; background: var(--sp-blue); }
-.feed-page-head h1 { font-family: var(--font-display), Georgia, serif; font-size: clamp(34px, 4vw, 48px); font-weight: 400; letter-spacing: -.045em; }
+.feed-page-head h1 { font-family: var(--font-display), system-ui, sans-serif; font-size: clamp(34px, 4vw, 48px); font-weight: 500; letter-spacing: -.045em; }
 .feed-report-button { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; background: var(--sp-blue); color: #fff; border-radius: var(--ctl-r); font-size: 13px; font-weight: 600; text-decoration: none; transition: background .16s ease, transform .16s ease; }
 .feed-report-button:hover { background: var(--sp-blue-deep); }
 .feed-report-button:active { transform: scale(.97); }
@@ -1121,7 +1121,7 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   border-bottom:1px solid var(--sp-rule);
 }
 .community-command-header h1,
-.feeder-command-header h1 { max-width:700px; margin:10px 0; font-family:var(--font-display),Georgia,serif; font-size:clamp(42px,4.4vw,68px); font-weight:400; line-height:.91; letter-spacing:-.065em; }
+.feeder-command-header h1 { max-width:700px; margin:10px 0; font-family:var(--font-display), system-ui, sans-serif; font-size:clamp(42px,4.4vw,68px); font-weight:500; line-height:.91; letter-spacing:-.065em; }
 .community-command-header h1 em,
 .feeder-command-header h1 em { color:var(--sp-blue); }
 .community-command-header p,
@@ -1142,11 +1142,11 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .community-signal-line { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid var(--sp-rule); }
 .community-signal-line > div { display:grid; gap:5px; padding:0 16px 16px 0; }
 .community-signal-line > div + div { padding-left:16px; border-left:1px solid var(--sp-rule); }
-.community-signal-line b { font-family:var(--font-display),Georgia,serif; color:var(--sp-ink); font-size:38px; font-weight:400; line-height:.85; letter-spacing:-.06em; font-variant-numeric:tabular-nums; }
+.community-signal-line b { font-family:var(--font-display), system-ui, sans-serif; color:var(--sp-ink); font-size:38px; font-weight:500; line-height:.85; letter-spacing:-.06em; font-variant-numeric:tabular-nums; }
 .community-signal-line b.urgent { color:var(--sp-flame-ink); }
 .community-signal-line span { color:var(--sp-muted); font-size:11px; line-height:1.35; }
 .community-journal-heading { display:flex; align-items:end; justify-content:space-between; gap:12px; padding:22px 0 15px; }
-.community-journal-heading h2 { margin:7px 0 0; font-family:var(--font-display),Georgia,serif; font-size:27px; font-weight:400; letter-spacing:-.045em; }
+.community-journal-heading h2 { margin:7px 0 0; font-family:var(--font-display), system-ui, sans-serif; font-size:21px; font-weight:600; letter-spacing:-.035em; }
 .community-journal-heading a { display:inline-flex; align-items:center; gap:4px; color:var(--sp-blue); font-size:11px; font-weight:600; text-decoration:none; white-space:nowrap; }
 /* The register beside the map. One list, not a sightings journal and an
    animal strip saying the same thing one after the other: each row is an
@@ -1179,9 +1179,9 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .feeder-command-header h1 { font-size:clamp(44px,4.8vw,72px); }
 .feeder-route-brief { display:grid; grid-template-columns:170px minmax(0,1fr) auto; align-items:center; gap:30px; margin-top:28px; padding:28px 0; border-bottom:1px solid var(--sp-rule); }
 .feeder-route-count { display:grid; gap:6px; min-height:104px; align-content:center; padding-right:26px; border-right:1px solid var(--sp-rule); }
-.feeder-route-count b { font-family:var(--font-display),Georgia,serif; font-size:clamp(42px,5vw,64px); font-weight:400; letter-spacing:-.07em; line-height:.8; }
+.feeder-route-count b { font-family:var(--font-display), system-ui, sans-serif; font-size:clamp(42px,5vw,64px); font-weight:500; letter-spacing:-.07em; line-height:.8; }
 .feeder-route-count span { max-width:95px; color:var(--sp-muted); font-size:11px; line-height:1.4; }
-.feeder-route-copy h2 { margin:7px 0; font-family:var(--font-display),Georgia,serif; font-size:30px; font-weight:400; letter-spacing:-.045em; }
+.feeder-route-copy h2 { margin:7px 0; font-family:var(--font-display), system-ui, sans-serif; font-size:30px; font-weight:600; letter-spacing:-.045em; }
 .feeder-route-copy p { max-width:560px; margin:0; color:var(--sp-body); font-size:13px; line-height:1.55; }
 .feeder-action-line { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--sp-rule); }
 .feeder-action-line a { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:12px; min-height:120px; padding:20px 18px 20px 0; color:var(--sp-ink); text-decoration:none; transition:background .16s ease,padding .16s ease; }
@@ -1194,7 +1194,7 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .feeder-action-icon { display:grid; place-items:center; width:30px; height:30px; color:var(--sp-blue); border:1px solid var(--sp-rule); }
 .feeder-zones { margin-top:44px; padding-top:0; border-top:0; }
 .feeder-zones-heading { display:flex; justify-content:space-between; align-items:end; gap:20px; padding-bottom:17px; border-bottom:1px solid var(--sp-rule); }
-.feeder-zones-heading h2 { margin:7px 0 0; font-family:var(--font-display),Georgia,serif; font-size:32px; font-weight:400; letter-spacing:-.05em; }
+.feeder-zones-heading h2 { margin:7px 0 0; font-family:var(--font-display), system-ui, sans-serif; font-size:32px; font-weight:600; letter-spacing:-.05em; }
 .feeder-zones-heading p { margin:7px 0 0; color:var(--sp-muted); font-size:13px; }
 .feeder-zones-heading > a { display:inline-flex; align-items:center; gap:4px; color:var(--sp-blue); font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; }
 .feeder-zone-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; border-bottom:1px solid var(--sp-rule); }
@@ -1207,7 +1207,7 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .partner-operating-intro { display:flex; align-items:end; justify-content:space-between; gap:32px; margin:0; padding:30px 32px; background:var(--sp-ink); color:#fffaf1; }
 .partner-operating-intro > div:first-child { max-width:720px; }
 .partner-operating-intro span { color:#c5d4f5; font-size:10px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
-.partner-operating-intro h2 { max-width:620px; margin:9px 0 8px; font-family:var(--font-display),Georgia,serif; font-size:clamp(27px,3vw,42px); font-weight:400; letter-spacing:-.05em; line-height:.96; }
+.partner-operating-intro h2 { max-width:620px; margin:9px 0 8px; font-family:var(--font-display), system-ui, sans-serif; font-size:clamp(27px,3vw,42px); font-weight:500; letter-spacing:-.05em; line-height:.96; }
 .partner-operating-intro p { max-width:610px; margin:0; color:#d7d6d1; font-size:13px; line-height:1.55; }
 .partner-operating-links { display:flex; gap:8px; flex:none; }
 .partner-operating-links a { display:inline-flex; align-items:center; gap:7px; min-height:40px; padding:0 12px; border:1px solid #ffffff42; color:#fffaf1; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; }
@@ -1222,13 +1222,13 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 .partner-field-map .partner-section-head,
 .partner-field-queue .partner-section-head { margin-bottom:16px !important; }
 .partner-field-map .partner-section-head h2,
-.partner-field-queue .partner-section-head h2 { font-family:var(--font-display),Georgia,serif; font-size:27px !important; font-weight:400; letter-spacing:-.045em !important; }
+.partner-field-queue .partner-section-head h2 { font-family:var(--font-display), system-ui, sans-serif; font-size:27px !important; font-weight:600; letter-spacing:-.045em !important; }
 .partner-field-map .partner-map-panel { height:486px; margin:0; border:0; border-radius:0 !important; }
 .partner-field-map .partner-map-panel::after { top:12px; left:12px; }
 .partner-field-queue { display:flex; min-width:0; flex-direction:column; padding:22px 0 20px 22px; }
 .partner-field-signal { display:grid; grid-template-columns:auto 1fr auto; align-items:end; gap:10px; padding:0 0 16px; border-bottom:1px solid var(--sp-rule); }
 .partner-field-signal span { grid-column:1/-1; color:var(--sp-muted); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-.partner-field-signal b { color:var(--sp-flame-ink); font-family:var(--font-display),Georgia,serif; font-size:48px; font-weight:400; letter-spacing:-.065em; line-height:.76; }
+.partner-field-signal b { color:var(--sp-flame-ink); font-family:var(--font-display), system-ui, sans-serif; font-size:48px; font-weight:500; letter-spacing:-.065em; line-height:.76; }
 .partner-field-signal small { padding-bottom:3px; color:var(--sp-muted); font-size:11px; }
 .partner-field-queue .partner-section-head { margin-top:20px; }
 .partner-field-queue .partner-ledger { max-height:300px; overflow:auto; border-width:1px 0; background:transparent; }
@@ -1330,4 +1330,30 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
      horizontally instead — so on a phone the date, the greeting and the
      organisation line all sat in the middle of a left-aligned page. */
   html .spa.spa .partner-greeting { align-items: stretch; text-align: left; }
+}
+
+/* ── The rail must not scroll ────────────────────────────────────────
+   A navigation column that scrolls hides destinations below its own fold,
+   and the one thing a person looks at the rail for is what else there is.
+   The 44px floor exists for fingers; a mouse is precise, so on a fine
+   pointer each row is 40px and the column fits a 660px-tall window with
+   the sign-in block and the feedback link still in view. */
+@media (hover: hover) and (pointer: fine) {
+  html .spa.spa .spa-side { gap: 0; overflow-y: auto; overscroll-behavior: contain; }
+  html .spa.spa .spa-side a { min-height: 36px; padding: 6px 10px; font-size: 13.5px; }
+  /* The two things the rail ends with stay finger-sized even here: they are
+     the only controls in the column that commit to anything. */
+  html .spa.spa .spa-side .spa-side-foot a { min-height: var(--ctl-h); }
+}
+
+/* A short window (a 13-inch laptop with a toolbar or two) is where the
+   column ran out of room. It tightens one more step rather than hiding a
+   destination, because a rail that scrolls is the thing being fixed. */
+@media (hover: hover) and (pointer: fine) and (max-height: 720px) {
+  html .spa.spa .spa-side { padding: 8px 12px 10px; }
+  html .spa.spa .spa-side a { min-height: 32px; padding: 4px 10px; }
+  html .spa.spa .spa-side-label { padding: 6px 9px 4px; }
+  html .spa.spa .spa-side-foot { padding-top: 10px; }
+  html .spa.spa .spa-side-feedback { margin-top: 7px; padding-top: 7px; }
+  html .spa.spa .spa-side a.spa-report-shortcut { margin-bottom: 10px; }
 }

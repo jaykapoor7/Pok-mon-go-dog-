@@ -154,10 +154,14 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
 
       <section className="community-field-surface" aria-label={`Animal records ${where}`}>
         <div className="community-map">
+          {/* Without a location this map is the whole national register, so
+              it says so. Left to work the place out for itself it printed
+              whichever city the records happen to cluster in, which put
+              "Delhi" over a map of India for everybody. */}
           <FieldMapPreview
             dogs={inView}
             center={location}
-            place={nearby ? "Around you" : undefined}
+            place={nearby ? "Around you" : "Across India"}
           />
 
           {inView.length === 0 && (

@@ -348,8 +348,8 @@
    the band that never gets noticed by eye. */
 .spa-head .spa-mono { color: #5c6472; }
 .spa-head h1 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: 38px;
   line-height: 0.95;
   letter-spacing: -0.04em;
@@ -358,7 +358,7 @@
 /* --vermilion is tuned for dark grounds; on the console it measures
    2.84:1, under the 3:1 a 36px heading needs. --vermilion-ink is the
    counterpart that already exists for accent text on light surfaces. */
-.spa-head h1 em { color: var(--vermilion-ink); font-style: italic; }
+.spa-head h1 em { color: var(--vermilion-ink); font-style: normal; font-weight: 500; }
 /* Primary action, the largest, highest-contrast target on any screen
    (Fitts + Von Restorff: one unmistakable place to click). */
 .spa-cta {
@@ -410,8 +410,8 @@
 }
 .spa-kpi b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 34px;
   line-height: 1;
   margin: 12px 0 4px;
@@ -510,8 +510,8 @@
 .spa-mini { border-top: 1px solid #ccd3dc; padding-top: 20px; }
 .spa-mini svg { color: var(--electric); }
 .spa-mini h4 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 26px;
   line-height: 1;
   margin: 18px 0 8px;
@@ -544,8 +544,8 @@
 }
 .spa-strip .spa-mono { color: #7f889c; }
 .spa-strip h4 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 22px;
   line-height: 1;
   margin: 9px 0 0;
@@ -648,13 +648,13 @@
 .spa-atlas-kicker i { display: block; width: 7px; height: 7px; border-radius: 50%; background: var(--vermilion); box-shadow: 0 0 0 5px rgba(240, 91, 64, .16); }
 .spa-atlas-copy h1 {
   margin: 20px 0 16px;
-  font-family: var(--font-display), "Instrument Serif", serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: clamp(48px, 5.2vw, 76px);
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: -.065em;
   line-height: .82;
 }
-.spa-atlas-copy h1 em { color: var(--electric); font-style: italic; }
+.spa-atlas-copy h1 em { color: var(--electric); font-style: normal; font-weight: 500; }
 .spa-atlas-copy p { max-width: 410px; margin: 0; color: rgba(244,245,247,.78); font-size: 15px; line-height: 1.6; }
 .spa-atlas-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 30px; }
 .spa-atlas-primary {
@@ -701,7 +701,7 @@
 .spa-atlas-stats > div { display: grid; grid-template-columns: 23px auto; grid-template-rows: auto auto; column-gap: 8px; padding: 20px 22px; border-right: 1px solid #e5e9ee; }
 .spa-atlas-stats > div:last-child { border-right: 0; }
 .spa-atlas-stats svg { grid-row: 1 / span 2; width: 17px; margin-top: 4px; color: var(--electric-ink); }
-.spa-atlas-stats b { font-family: var(--font-display), "Instrument Serif", serif; color: var(--ink); font-size: 32px; font-weight: 400; line-height: .9; }
+.spa-atlas-stats b { font-family: var(--font-display), system-ui, sans-serif; color: var(--ink); font-size: 32px; font-weight: 600; line-height: .9; }
 .spa-atlas-stats span { margin-top: 5px; color: #647080; font-size: 12px; }
 .spa-atlas-stats .attention svg, .spa-atlas-stats .attention b { color: var(--vermilion-ink); }
 
@@ -710,7 +710,7 @@
 .spa-atlas-panel { border: 1px solid #ccd3dc; background: #fbfcfd; padding: 24px; }
 .spa-atlas-panel-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
 .spa-atlas-panel-head .spa-mono, .spa-atlas-panel > .spa-mono { color: #66717e; }
-.spa-atlas-panel h2 { margin: 8px 0 0; font-family: var(--font-display), "Instrument Serif", serif; color: var(--ink); font-size: 30px; font-weight: 400; letter-spacing: -.045em; line-height: .93; }
+.spa-atlas-panel h2 { margin: 8px 0 0; font-family: var(--font-display), system-ui, sans-serif; color: var(--ink); font-size: 30px; font-weight: 600; letter-spacing: -.045em; line-height: .93; }
 .spa-atlas-panel-head > a { display: inline-flex; align-items: center; gap: 5px; color: #3a5c9a; font-size: 12px; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .spa-atlas-panel-head > a:hover { color: var(--ink); text-decoration: underline; }
 .spa-atlas-start { background: var(--ink); border-color: var(--ink); color: var(--paper); }
@@ -792,8 +792,8 @@
 }
 .spa-empty svg { color: var(--electric); opacity: 0.75; margin-bottom: 8px; }
 .spa-empty h2 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 30px;
   line-height: 1;
   margin: 0;
@@ -919,8 +919,8 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 28px;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -965,8 +965,8 @@
 .ref-card .spa-mono { color: #5f6875; }
 .ref-card b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: 38px;
   line-height: 1;
   margin: 12px 0 8px;
@@ -993,8 +993,8 @@
 .need-figure { margin: 20px 0 16px; }
 .need-figure b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: 46px;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -1017,7 +1017,7 @@
   color: #5f6875;
 }
 .need-facts dd { margin: 6px 0 0; font-size: 15px; font-weight: 600; }
-.need-facts dd.big { font-family: var(--font-display), serif; font-weight: 400; font-size: 26px; }
+.need-facts dd.big { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: 26px; }
 .need-src { display: block; margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #e4e9ef; color: #656f7c; line-height: 1.6; }
 
 /* ── gaps ───────────────────────────────────────────────────────── */
@@ -1029,8 +1029,8 @@
   padding: 24px 26px;
 }
 .gap-open h2 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 27px;
   line-height: 1.15;
   letter-spacing: -0.03em;
@@ -1172,8 +1172,8 @@
 .se-detail { padding: 22px 20px; }
 .se-detail > .spa-mono { color: #5f6875; }
 .se-detail h3 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 30px;
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -1242,8 +1242,8 @@
 .gap-brief-head { display: grid; grid-template-columns: 1fr auto; gap: 26px; align-items: center; }
 .gap-brief-head .spa-mono { color: var(--electric); }
 .gap-brief-head h2 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 30px;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -1412,8 +1412,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   border-bottom: 1px solid #e4e9ef;
 }
 .vol-route h2 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 27px;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -1473,8 +1473,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   color: var(--paper);
 }
 .why-us h2 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 32px;
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -1557,7 +1557,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 
 .wwit-question {
   margin: 26px 0 0;
-  font-family: var(--font-display), "Instrument Serif", serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: 28px;
   line-height: 1.25;
   letter-spacing: -0.03em;
@@ -1593,8 +1593,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 .wwit-figure.accent .spa-mono { color: #8f9cb2; }
 .wwit-figure b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: 44px;
   line-height: 1;
   margin: 14px 0 8px;
@@ -1640,8 +1640,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
    more light is what buys the contrast. */
 .spa .wwit-next em { color: #f2735b; }
 .wwit-next h3 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 30px;
   line-height: 1.05;
   margin: 10px 0 8px;
@@ -1952,8 +1952,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 }
 .wc-title {
   color: var(--ink);
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 30px;
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -2875,8 +2875,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 a.pgm-figure:hover { background: #f3f6fb; }
 .pgm-value {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 30px;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -3425,8 +3425,8 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 }
 .dogp-head h1 {
   margin: 0;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 32px;
   line-height: 1.1;
   letter-spacing: -0.015em;
@@ -3590,7 +3590,7 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 .med-ledger { border-top: 1px solid var(--line); }
 .med-ledger-head { display: flex; justify-content: space-between; gap: 20px; align-items: end; padding: 20px 0 16px; }
 .med-ledger-head p { max-width: 420px; margin: 6px 0 0; color: #616a79; font-size: 13.5px; line-height: 1.5; }
-.med-ledger-head strong { color: var(--ink); font: 400 34px/1 var(--font-display), Georgia, serif; letter-spacing: -.045em; white-space: nowrap; }
+.med-ledger-head strong { color: var(--ink); font: 400 34px/1 var(--font-display), system-ui, sans-serif; letter-spacing: -.045em; white-space: nowrap; }
 .med-ledger-filters { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 0 18px; border-bottom: 1px solid var(--line); }
 .med-ledger-filters button { padding: 7px 10px; border: 1px solid var(--line); background: transparent; border-radius: 999px; color: #59616d; font: 600 12px/1.2 var(--font-sans); cursor: pointer; }
 .med-ledger-filters button:hover { border-color: #9da7b6; color: var(--ink); }

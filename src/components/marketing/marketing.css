@@ -91,8 +91,8 @@
 .mk-ink .mk-step-n { color: var(--electric); }
 .mk-step b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 25px;
   line-height: 1.08;
   letter-spacing: -0.03em;
@@ -117,8 +117,8 @@
 .mk-bone .mk-stat { background: var(--bone); }
 .mk-stat b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: 40px;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -234,8 +234,8 @@
 }
 .mk-next-card:hover { background: #1d2d49; }
 .mk-next-card b {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 24px;
   letter-spacing: -0.03em;
 }

@@ -276,3 +276,14 @@
   --sp-on-field-dim: #b9c7dd;        /* secondary on ink             */
   --sp-on-field-accent: var(--sp-flame); /* the orange that works on ink */
 }
+
+/* ── Type ────────────────────────────────────────────────────────────
+   Two faces, not three. --font-sans is the product; --font-mono is for a
+   figure that has to be read exactly. --font-display is kept as a NAME
+   for the emphasis line rather than a second typeface: it resolves to the
+   interface face, so the contrast in a headline comes from weight, size
+   and colour. A second display face, set in italic, is the fastest way
+   for a page to read as decorated rather than made. */
+:root {
+  --font-display: var(--font-sans);
+}

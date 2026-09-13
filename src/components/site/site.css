@@ -90,8 +90,8 @@
 .sp-kicker.light { color: #a6a9a0; }
 
 .sp-display {
-  font-family: var(--font-display), "Instrument Serif", ui-serif, Georgia, serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   letter-spacing: -0.06em;
   line-height: 0.9;
   margin: 0;
@@ -340,15 +340,15 @@
 }
 .sp-hero-copy .sp-eyebrow { margin-bottom: 28px; }
 .sp-hero h1 {
-  font-family: var(--font-display), "Instrument Serif", ui-serif, Georgia, serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(64px, 8.8vw, 138px);
   line-height: 0.82;
   letter-spacing: -0.08em;
   margin: 0 0 28px;
   color: var(--ink);
 }
-.sp-hero h1 em { color: var(--vermilion); font-style: italic; }
+.sp-hero h1 em { color: var(--vermilion); font-style: normal; font-weight: 500; }
 .sp-hero-lede {
   font-size: 17px;
   line-height: 1.58;
@@ -488,7 +488,7 @@
   margin-top: 44px;
 }
 .sp-thesis h2 { font-size: clamp(52px, 7.4vw, 100px); }
-.sp-thesis h2 em { font-style: italic; color: var(--vermilion); }
+.sp-thesis h2 em { font-style: normal; font-weight: 500; color: var(--vermilion); }
 .sp-thesis-body { padding-top: 12px; max-width: 400px; }
 .sp-thesis-body p { color: var(--muted); font-size: 17px; line-height: 1.6; margin: 0; }
 .sp-thesis-body p + p { margin-top: 22px; }
@@ -639,8 +639,8 @@
 }
 .sp-gap-card.gap .sp-gap-art { color: var(--vermilion); }
 .sp-gap-card h3 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 34px;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -650,7 +650,7 @@
 .sp-gaps-note {
   max-width: 620px;
   margin: 40px 0 0;
-  font-family: var(--font-display), "Instrument Serif", serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: 26px;
   line-height: 1.28;
   letter-spacing: -0.03em;
@@ -965,8 +965,8 @@
 .chip-scan-step .sp-mono { color: var(--electric); }
 .chip-scan-step b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 26px;
   line-height: 1.1;
   margin: 12px 0 8px;
@@ -1192,8 +1192,8 @@
 .sp-status-dot.cyan { background: var(--cyan); }
 .sp-status-dot.violet { background: var(--violet); }
 .sp-drawer h3 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 32px;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -1240,8 +1240,8 @@
 .sp-company-lead { display: grid; grid-template-columns: 1fr 1fr; gap: 7vw; align-items: end; }
 .sp-company-lead h2 { font-size: clamp(52px, 7.4vw, 100px); margin: 30px 0 0; }
 .sp-company-lead p {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 30px;
   line-height: 1.15;
   max-width: 380px;
@@ -1281,7 +1281,7 @@
 }
 .sp-flow-icon {
   position: relative;
-  font-family: var(--font-display), "Instrument Serif", serif;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: 33px;
   color: var(--vermilion);
 }
@@ -1306,7 +1306,7 @@
   border-top: 1px solid rgba(11, 16, 32, 0.35);
   border-bottom: 1px solid rgba(11, 16, 32, 0.35);
 }
-.sp-proof-num { font-family: var(--font-display), "Instrument Serif", serif; font-size: 44px; }
+.sp-proof-num { font-family: var(--font-display), system-ui, sans-serif; font-size: 44px; }
 .sp-proof span { color: #6f746b; font-family: var(--font-sans), system-ui, sans-serif; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; }
 .sp-proof p { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
 .sp-proof-div { height: 50px; width: 1px; background: rgba(11, 16, 32, 0.25); margin: 0 30px; }
@@ -1335,8 +1335,8 @@
   pointer-events: none;
 }
 .sp-record-quote {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(44px, 5.7vw, 78px);
   line-height: 0.92;
   letter-spacing: -0.06em;
@@ -1399,8 +1399,8 @@
   text-align: center;
 }
 .sp-record-main h3 {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 31px;
   line-height: 1;
   margin: 0 0 10px;
@@ -1409,8 +1409,8 @@
 .sp-record-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 32px; }
 .sp-record-metrics b {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 22px;
   color: var(--electric);
 }
@@ -1450,7 +1450,7 @@
 .sp-partners { padding: 12vw 8vw; background: #e8e4db; }
 .sp-partners-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11vw; margin-top: 40px; }
 .sp-partners-grid h2 { font-size: clamp(52px, 7.4vw, 100px); }
-.sp-partners-grid h2 em { font-style: italic; color: var(--vermilion); }
+.sp-partners-grid h2 em { font-style: normal; font-weight: 500; color: var(--vermilion); }
 .sp-partners-grid p { max-width: 400px; color: var(--muted); font-size: 17px; line-height: 1.6; margin: 0; }
 .sp-partners-grid .sp-link { margin-top: 20px; border-color: var(--ink); }
 
@@ -1518,8 +1518,8 @@
 .sp-loop-n { display: block; color: var(--vermilion-ink); }
 .sp-loop-label {
   display: block;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 22px;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -1575,8 +1575,8 @@
 }
 
 .chs-heading {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(40px, 5.5vw, 78px);
   letter-spacing: -0.06em;
   line-height: 0.9;
@@ -1842,8 +1842,8 @@
   color: var(--electric);
 }
 .sp-for-title {
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 28px;
   line-height: 1.05;
   letter-spacing: -0.04em;
@@ -2107,8 +2107,8 @@
 .sp-part b {
   display: block;
   margin: 14px 0 8px;
-  font-family: var(--font-display), "Instrument Serif", serif;
-  font-weight: 400;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
   font-size: 26px;
   line-height: 1;
   letter-spacing: -0.03em;
