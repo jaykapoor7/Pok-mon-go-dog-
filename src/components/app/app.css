@@ -3053,13 +3053,19 @@ a.pgm-figure:hover { background: #f3f6fb; }
 .spa-profile-links.out { gap: 7px; }
 .spa-profile-links.out .pp-signin,
 .spa-profile-links.out .pp-code {
+  position: relative;
+  display: flex;
+  align-items: center;
   min-height: var(--ctl-h);
+  height: var(--ctl-h);
   justify-content: center;
   gap: 7px;
   border-radius: var(--ctl-r);
   font-size: var(--ctl-fs-sm);
   font-weight: 650;
-  padding: var(--ctl-pad-sm);
+  line-height: 1;
+  text-align: center;
+  padding: 0 14px;
   transition: var(--ctl-press-t);
 }
 /* a.pp-signin, and the extra classes, because "html .spa.spa .spa-side a"
@@ -3074,11 +3080,16 @@ html .spa.spa .spa-profile-links.out a.pp-signin {
 }
 html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; color: var(--paper); }
 .spa-profile-links.out .pp-code {
-  border: 0;
-  background: var(--ctl-tint);
+  border: 1px solid rgba(11, 30, 61, .17);
+  background: transparent;
   color: var(--electric-ink);
 }
-.spa-profile-links.out .pp-code:hover { background: var(--ctl-tint-hover); }
+.spa-profile-links.out .pp-code > svg {
+  position: absolute;
+  left: 14px;
+  margin: 0;
+}
+.spa-profile-links.out .pp-code:hover { border-color: var(--electric-ink); background: #fffdf9; }
 .spa-profile-links.out .pp-signin:active,
 .spa-profile-links.out .pp-code:active { transform: var(--ctl-press); }
 

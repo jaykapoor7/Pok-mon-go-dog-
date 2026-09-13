@@ -136,33 +136,6 @@ export function PartnerOverview() {
         />
       </div>
 
-      <section className="partner-operating-intro" aria-label="Today's operating picture">
-        <div>
-          <span>Today&apos;s operating picture</span>
-          <h2>{!loaded || !user || loadError ? "Open the workspace to see the live queue." : m.urgent ? `${m.urgent} case${m.urgent === 1 ? "" : "s"} need${m.urgent === 1 ? "s" : ""} a decision.` : "The urgent queue is clear."}</h2>
-          <p>{!loaded || !user || loadError ? "Private records appear here for verified organisation members." : m.followDue ? `${m.followDue} follow-up${m.followDue === 1 ? " is" : "s are"} due in the next three days. Use the map to see where the work is concentrated.` : "Use the field map and case queue to direct the next round of work."}</p>
-        </div>
-        <div className="partner-operating-links">
-          <Link href="/partner/cases">Open case queue <ArrowUpRight size={16} /></Link>
-          <Link href="/partner/field">Plan field work <ArrowUpRight size={16} /></Link>
-        </div>
-      </section>
-
-      {/* The strip above is five integers. Five integers are what an
-          operations screen looks like before anybody has asked what the
-          person reading it is trying to decide. These two say where the
-          work is and whether it is speeding up or slowing down — the two
-          questions a coordinator actually opens this page with. */}
-      <div className="console-charts partner-insight-pair">
-        <WeeklyTrend
-          dates={cases.map((c) => c.created_at)}
-          title="Cases opened, last 12 weeks"
-          noun="opened"
-          empty="Your first case starts this."
-        />
-        <ByLocality dogs={markers} />
-      </div>
-
       {(bd?.waiting.ours ?? 0) > 0 && (
         <Link href="/partner/incoming" className="po-nudge">
           <b>
@@ -177,21 +150,36 @@ export function PartnerOverview() {
         </Link>
       )}
 
-      <ProgrammeOverview />
-      <div className="partner-work-grid partner-operating-grid">
-        <section className="partner-section">
-          <SectionHead title="Needs attention" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all cases" />
+      <section className="partner-field-surface" aria-label="Today’s field operations">
+        <section className="partner-field-map">
+          <SectionHead title="Work on the map" sub="Locations from your current case records." href="/partner/map" cta="Open field map" />
+          <div className="partner-map-panel"><MapCanvas dogs={markers} onSelect={dog => { if (dog) router.push(`/partner/cases/${dog.id}`); }}/></div>
+        </section>
+        <aside className="partner-field-queue">
+          <div className="partner-field-signal">
+            <span>Today&apos;s queue</span>
+            <b>{!loaded || !user || loadError ? "—" : m.urgent}</b>
+            <small>urgent case{m.urgent === 1 ? "" : "s"}</small>
+          </div>
+          <SectionHead title="Needs attention" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all" />
           {attention.length === 0 ? <Empty>{!loaded ? "Loading cases…" : loadError ? "Cases could not be loaded." : !user ? "Sign in to see your team’s cases." : "No urgent cases in the loaded records."}</Empty> : (
             <div className="partner-ledger overflow-hidden">
               {attention.map((c) => <CaseRow key={c.id} c={c} />)}
             </div>
           )}
-        </section>
-        <section className="partner-section">
-          <SectionHead title="Work on the map" sub="Locations from your case records." href="/partner/map" cta="Full map" />
-          <div className="partner-map-panel"><MapCanvas dogs={markers} onSelect={dog => { if (dog) router.push(`/partner/cases/${dog.id}`); }}/></div>
-        </section>
-      </div>
+          <Link href="/partner/field" className="partner-field-link">Plan field work <ArrowUpRight size={15} /></Link>
+        </aside>
+      </section>
+
+      <ProgrammeOverview />
+
+      <section className="partner-analysis" aria-label="Programme patterns">
+        <div className="partner-analysis-heading"><span>Patterns in the programme</span><p>New casework and the places it is concentrating — read together before planning the next round.</p></div>
+        <div className="console-charts partner-insight-pair">
+          <WeeklyTrend dates={cases.map((c) => c.created_at)} title="Cases opened, last 12 weeks" noun="opened" empty="Your first case starts this." />
+          <ByLocality dogs={markers} />
+        </div>
+      </section>
 
       {/* Tasks */}
       <section className="mt-10">

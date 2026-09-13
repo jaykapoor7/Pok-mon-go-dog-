@@ -1459,6 +1459,20 @@ html .sp.product-site .role-help-note {
   box-shadow: 0 20px 46px rgba(11, 30, 61, .16);
 }
 .hero-wall-lead img { object-position: center 63%; }
+/* The launch photo is a real <img>, not Next's wrapper. Absolute fill avoids
+   the grid's intrinsic-height cycle that was leaving a thin strip of Pinky
+   above an empty caption field on desktop. */
+.hero-wall-lead > img {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: center 58% !important;
+}
+.hero-wall-lead figcaption { z-index: 1; }
 .hero-wall-grid li { min-height: 0; border-radius: 3px; }
 .hero-wall-grid li img { object-position: center; }
 .hero-wall-grid li:nth-child(1) { grid-column: 1; grid-row: 1; }
