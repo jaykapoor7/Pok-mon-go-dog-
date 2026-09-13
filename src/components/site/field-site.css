@@ -1631,9 +1631,15 @@ html .hrail-head h2 {
   list-style: none;
   overflow-x: auto;
   scroll-snap-type: x proximity;
-  /* Vertical panning still belongs to the page, so a thumb travelling
-     down the page does not get captured by the rail. */
-  touch-action: pan-y pinch-zoom;
+  /* NO touch-action here. `pan-y` was the instinct — "let the page keep
+     vertical scrolling" — and it is exactly backwards: touch-action is a
+     whitelist, so pan-y permits ONLY vertical panning and therefore
+     disables the horizontal swipe this rail exists for. On a phone the
+     tiles simply would not move.
+
+     The default (auto) is correct: the browser picks the axis from the
+     gesture, so a sideways drag scrolls the rail and a downward drag
+     scrolls the page, which is the behaviour pan-y was trying to buy. */
   scrollbar-width: none;
 }
 .hrail-track::-webkit-scrollbar { display: none; }
@@ -1684,4 +1690,40 @@ html .hrail-head h2 {
   /* Two-and-a-bit tiles visible at 390px, so the rail reads as
      continuing rather than as a row that happens to end. */
   .hrail-track > li { width: 41vw; max-width: 178px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   THE HERO'S PHOTO COLUMN, after the wall became one photograph.
+
+   Measured at 390px with a populated rail: .hrail was 1363px wide, which
+   dragged .hero-wall out to 560px inside a 358px hero and squashed Pinky
+   to 560x178. Two separate faults, and the first explains the other.
+
+   MIN-WIDTH. A grid or flex item defaults to min-width:auto, which means
+   "never narrower than my content". The rail's content is eight 178px
+   tiles, so its column refused to be smaller than 1363px and pushed the
+   whole hero wider than the screen. That is also why it would not
+   scroll: it was never overflowing, it was stretching. min-width:0 lets
+   it be as wide as the column and overflow inside itself, which is what
+   makes a horizontal scroller scroll at all.
+
+   THE FIGURE'S HEIGHT. .hero-wall-lead had aspect-ratio:auto applied
+   under 560px — a leftover from the nine-tile layout, where the lead
+   spanned two grid rows and took its height from them. With the grid
+   gone and the image absolutely positioned (so out of flow and unable to
+   give the figure any height of its own), auto meant no height at all.
+   The ratio is stated again here.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* One photograph, so the wall is a block, not a grid of cells. */
+.hero-wall { display: block; min-width: 0; max-width: 560px; }
+.hero-wall-lead { position: relative; aspect-ratio: 1 / 1; overflow: hidden; }
+
+.hrail { min-width: 0; }
+.hrail-track { min-width: 0; }
+
+@media (max-width: 900px) {
+  /* Landscape on a phone: a square photograph plus a headline plus the
+     rail is more than one screen holds, and the animal reads fine wide. */
+  .hero-wall-lead { aspect-ratio: 4 / 3; }
 }
