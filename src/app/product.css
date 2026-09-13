@@ -329,7 +329,7 @@ html .spa.spa .partner-overview .partner-greeting h1{font-size:clamp(30px,3vw,42
 .ev{max-width:1120px!important;margin:auto}.ev header{padding-bottom:28px!important;border-bottom:1px solid var(--sp-line)}.ev h1{font-size:clamp(31px,3.4vw,46px)!important;letter-spacing:-.055em!important}.ev header p{font-size:15px!important;max-width:65ch!important}.ev-grid{display:none!important}.ev-ledger{margin-top:26px;border-top:1px solid var(--sp-line)}.ev-ledger-head,.ev-row{display:grid;grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;gap:18px;align-items:center}.ev-ledger-head{grid-template-columns:24px minmax(200px,.85fr) minmax(260px,1.25fr) auto;padding:11px 14px;color:var(--sp-muted);font:11px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;text-transform:uppercase}.ev-ledger-head span:first-child{grid-column:2}.ev-row{min-height:98px;padding:17px 14px;border-top:1px solid var(--sp-line);color:var(--sp-ink);text-decoration:none;transition:background .18s ease,padding .18s ease}.ev-row:hover{background:#f4f7fb}@media (hover:hover) and (pointer:fine){.ev-row:hover{padding-left:20px}}.ev-row svg{color:var(--sp-blue)}.ev-row b,.ev-row span{display:block}.ev-row b{font-size:16px;letter-spacing:-.025em}.ev-row div>span{margin-top:5px;color:var(--sp-blue);font-size:12px;font-weight:600;line-height:1.45}.ev-row p{margin:0;color:var(--sp-muted);font-size:13px;line-height:1.55}.ev-open{font-size:12px;font-weight:600;color:var(--sp-blue)}
 .evidence-surface .evidence-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:27px 0 34px;border-top:1px solid var(--sp-line);border-bottom:1px solid var(--sp-line)}.evidence-metrics>div{display:grid;gap:5px;padding:21px 22px;border-left:1px solid var(--sp-line)}.evidence-metrics>div:first-child{border-left:0;padding-left:0}.evidence-metrics span,.evidence-metrics small{font-size:12px;color:var(--sp-muted);line-height:1.45}.evidence-metrics b{font-size:31px;line-height:1.1;letter-spacing:-.055em;font-weight:600;color:var(--sp-ink)}.evidence-next{display:flex;align-items:center;justify-content:space-between;gap:25px;margin-top:32px;padding-top:28px;border-top:1px solid var(--sp-line)}.evidence-next b,.evidence-next span{display:block}.evidence-next b{font-size:16px}.evidence-next span{margin-top:5px;color:var(--sp-muted);font-size:13px}
 .evidence-tabs{display:flex;gap:22px;margin:22px 0 0;border-bottom:1px solid var(--sp-line)}.evidence-tabs a{display:inline-flex;align-items:center;min-height:var(--ctl-h);padding:0 1px;border-bottom:2px solid transparent;color:var(--sp-muted);font-size:13px;font-weight:600;text-decoration:none}.evidence-tabs a:hover{color:var(--sp-blue)}.evidence-tabs a[aria-current=page]{border-color:var(--sp-blue);color:var(--sp-blue)}
-.evidence-context-links{display:flex;gap:18px;margin-top:16px}.evidence-context-links a{color:var(--sp-blue);font-size:13px;font-weight:600;text-decoration:none}.evidence-context-links a:hover{text-decoration:underline}
+.evidence-context-links{display:flex;flex-wrap:wrap;gap:12px 18px;margin-top:16px}.evidence-context-links a{color:var(--sp-blue);font-size:13px;font-weight:600;text-decoration:none}.evidence-context-links a:hover{text-decoration:underline}
 
 /* A feeder's desk is intentionally light: their route and records, not an
    NGO dashboard with the permissions removed. */
@@ -1356,4 +1356,62 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   html .spa.spa .spa-side-foot { padding-top: 10px; }
   html .spa.spa .spa-side-feedback { margin-top: 7px; padding-top: 7px; }
   html .spa.spa .spa-side a.spa-report-shortcut { margin-bottom: 10px; }
+}
+
+/* ── The console on a phone ──────────────────────────────────────────
+   A tab bar with six views does not fit 390px, and the two that fall off
+   the end are invisible rather than merely off-screen. It scrolls
+   sideways in its own track, which is the one place the design allows a
+   horizontal scroller, with the page itself still fixed. */
+@media (max-width: 900px) {
+  html .spa.spa .partner-workspace-tabs,
+  html .spa.spa .evidence-tabs {
+    gap: 16px;
+    margin-left: calc(var(--spa-gutter, 20px) * -1);
+    margin-right: calc(var(--spa-gutter, 20px) * -1);
+    padding: 0 var(--spa-gutter, 20px);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  html .spa.spa .partner-workspace-tabs::-webkit-scrollbar,
+  html .spa.spa .evidence-tabs::-webkit-scrollbar { display: none; }
+  html .spa.spa .partner-workspace-tabs a,
+  html .spa.spa .evidence-tabs a { flex: none; white-space: nowrap; }
+
+  /* Every console table becomes a stack of records rather than eleven
+     columns squeezed into a phone. Where a page really needs a grid, it
+     gets its own scroller instead of pushing the page sideways. */
+  html .spa.spa table { display: block; overflow-x: auto; max-width: 100%; }
+
+  /* The dashboard's own furniture. Five metrics across is four too many
+     at this width; two columns keeps the figures readable. */
+  html .spa.spa .partner-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html .spa.spa .partner-field-surface,
+  html .spa.spa .partner-work-grid,
+  html .spa.spa .partner-review-grid { grid-template-columns: 1fr; }
+  html .spa.spa .partner-field-map { border-right: 0; }
+  html .spa.spa .partner-map-panel { height: 300px; }
+}
+
+/* The 44px floor, inside the console's own content. The global floor in
+   globals.css reaches controls that carry the design system's classes;
+   these are the ones written with utility classes in older console
+   screens — a fundraising card link at 34px, a medical sub-tab at 38, a
+   role selector at 40. Inline links inside a sentence are left alone on
+   purpose (WCAG 2.5.8): padding a word out to 44px wrecks the line it
+   sits in. */
+@media (pointer: coarse) {
+  html .spa.spa .spa-main a[class*="rounded"],
+  html .spa.spa .spa-main .partner-field-link,
+  html .spa.spa .spa-main button[class*="rounded"],
+  html .spa.spa .spa-main button[class*="px-"],
+  html .spa.spa .spa-main button[class*="py-"],
+  /* Two selector groups written before the token existed: a medical view
+     switch and the team role picker, both 38-40px. */
+  html .spa.spa .med-ledger-filters button,
+  html .spa.spa .team-roles button {
+    min-height: var(--ctl-h);
+    align-content: center;
+  }
 }

@@ -7,7 +7,6 @@ import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import { PrintButton } from "@/components/partner/PrintButton";
 import { CASE_CATEGORY_META, speciesLabel, type Case, type CaseCategory } from "@/lib/types";
 import { ConsolePage } from "./ConsolePage";
-import { FieldTabs } from "./FieldTabs";
 import { ProgrammeBreakdown } from "@/components/partner/ProgrammeBreakdown";
 
 const WEEKS = 12;
@@ -64,10 +63,9 @@ export function ReportsClient() {
   return (
     <ConsolePage
       kicker="Field work / coverage"
-      title="Analytics"
+      title="Coverage"
       lede="The numbers you send to donors, funders and municipalities."
       actions={<><PrintButton /><ExportCsvButton /></>}
-      tabs={<FieldTabs />}
     >
 
       {/* Programme coverage first. For an organisation running ABC and

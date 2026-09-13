@@ -3,9 +3,7 @@ import { BackLink } from "@/components/app/BackLink";
 import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { StateExplorer, type StateRow } from "@/components/app/StateExplorer";
-import { ORGS } from "@/lib/platform/orgs";
-import { STATES } from "@/lib/platform/geography";
-import { DATASETS } from "@/lib/platform/datasets";
+import { buildStateRows } from "@/lib/platform/stateRows";
 import { BARRIER_META, UNKNOWNS, barrierCounts } from "@/lib/platform/network";
 
 export const dynamic = "force-dynamic";
@@ -15,48 +13,9 @@ export const metadata = {
     "State-by-state street-dog population across India, what each state has published about coverage, and who is working there.",
 };
 
-/** Pull the real, sourced points out of the dataset for one metric. */
-function pointsFor(metric: string) {
-  const m = new Map<
-    string,
-    { value: number; source: string; year: number }
-  >();
-  for (const ds of DATASETS) {
-    for (const p of ds.points) {
-      if (p.metric === metric && p.geo.level === "state") {
-        m.set(p.geo.code, { value: p.value, source: p.source, year: p.year });
-      }
-    }
-  }
-  return m;
-}
-
 export default function GapsPage() {
-  const pop = pointsFor("dog_population");
-  const abc = pointsFor("abc_coverage");
+  const rows: StateRow[] = buildStateRows();
   const counts = barrierCounts();
-
-  const rows: StateRow[] = STATES.map((s) => {
-    const p = pop.get(s.code);
-    const a = abc.get(s.code);
-    const orgs = ORGS.filter((o) => o.stateCode === s.code);
-    const cityGroups = [...new Map(orgs.map((org) => [org.city, orgs.filter((item) => item.city === org.city)]))]
-      .map(([city, entries]) => ({ city, orgs: entries.map((org) => ({ id: org.id, name: org.name, url: org.url })) }))
-      .sort((a, b) => b.orgs.length - a.orgs.length || a.city.localeCompare(b.city));
-    return {
-      code: s.code,
-      name: s.name,
-      population: p?.value ?? null,
-      populationSource: p?.source ?? null,
-      populationYear: p?.year ?? null,
-      // abc_coverage is stored as a percentage; the explorer wants 0–1.
-      abcCoverage: a ? a.value / 100 : null,
-      abcSource: a ? `${a.source} (${a.year})` : null,
-      orgCount: orgs.length,
-      orgs: orgs.map((o) => ({ id: o.id, name: o.name, city: o.city, url: o.url })),
-      cityGroups,
-    };
-  }).filter((r) => r.population !== null || r.orgCount > 0);
 
   const totalPop = rows.reduce((s, r) => s + (r.population ?? 0), 0);
   const withCoverage = rows.filter((r) => r.abcCoverage !== null).length;

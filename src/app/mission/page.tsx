@@ -37,7 +37,7 @@ export default function MissionPage() {
           <div className="mi-head">
             <span className="mi-eyebrow">The record today</span>
             <h2 id="mi-gap">
-              Twenty-eight states and Delhi. <em>Two have a coverage figure.</em>
+              Twenty-eight states, eight union territories. <em>Two have a coverage figure.</em>
             </h2>
             <p>
               Each one coloured by what has been published about it. Not by how

@@ -5,10 +5,9 @@ import { isOverdue, speciesLabel, type Case } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
-import { FieldTabs } from "@/components/partner/FieldTabs";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Field Work, StrayPaw Partner" };
+export const metadata = { title: "Field work, StrayPaw Partner" };
 
 const isOpen = (c: Case) => c.status !== "resolved" && c.status !== "closed";
 const isUrgent = (c: Case) => isOpen(c) && (c.severity === "critical" || c.severity === "high" || isOverdue(c));
@@ -45,11 +44,10 @@ export default async function PartnerFieldPage() {
   return (
     <div>
       <header className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Field Work</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Field work</h1>
         <p className="mt-0.5 text-[13px] text-bark-500">Who is doing what, where, and what remains unfinished.</p>
       </header>
 
-      <FieldTabs />
 
       <div className="space-y-8">
         <TasksSection />

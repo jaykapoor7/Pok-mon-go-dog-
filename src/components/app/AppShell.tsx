@@ -65,12 +65,17 @@ const EDUCATOR_NAV = [
   { href: "/learn", label: "Learn", Icon: BookOpen },
 ];
 
+/* Four destinations and two actions. Seventeen routes had grown under
+   /partner, five of them reachable only by typing the URL; they are
+   grouped now, and the group is what the rail points at. See
+   PartnerTabs for the grouping itself. */
 const NGO_NAV = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
   { href: "/partner/map", label: "Map", Icon: MapPin },
   { href: "/report", label: "Report", Icon: Radio },
   { href: "/partner/animals", label: "Records", Icon: Database },
   { href: "/partner/field", label: "Field work", Icon: CalendarRange },
+  { href: "/partner/team", label: "Organisation", Icon: Building2 },
 ];
 
 const FEEDER_NAV = [

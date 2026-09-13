@@ -3,9 +3,11 @@ import { STATE_BY_CODE, INDIA } from "./geography";
 import { orgCounts } from "./orgs";
 
 // Real data. Every point is a published figure with a named source, year,
-// and confidence level. All 29 states/UTs in the STATES array are covered
-// for population. ABC and ARV remain sparse because India genuinely does
-// not publish comprehensive state-wise coverage data for those metrics.
+// and confidence level. The geography is India's 28 states and 8 union
+// territories. Dog bites and suspected rabies deaths are published for
+// every one of the 36; population comes from the 2019 census; ABC and ARV
+// coverage stay sparse because India genuinely does not publish
+// comprehensive state-wise coverage for them.
 
 function pt(
   code: string, metric: string, value: number, unit: string, year: number,
@@ -25,45 +27,57 @@ function nat(
 }
 
 // ── Street-dog population ──────────────────────────────────────
-// Baseline: 20th Livestock Census (2019) counted 15.3 million stray dogs
-// nationally. State-level estimates below use the most recent available
-// source for each state: NAPRE progress reports (2024-2025), state animal
-// husbandry surveys, municipal corporation censuses, and NGO programme
-// data. Where no newer figure exists, the 2019 census baseline is
-// projected forward using DAHD-cited urban growth rates (~5-8%/yr) and
-// marked as projections with low confidence.
-const RECENT_SOURCE = "NAPRE state-level reporting and DAHD estimates (2024-2025), supplemented by municipal surveys where available";
-const PROJECTED_SOURCE = "20th Livestock Census (2019) baseline projected to 2025 using DAHD-cited urban growth rates";
+// WHAT IS ACTUALLY PUBLISHED. The Department of Animal Husbandry &
+// Dairying publishes one hard number for street dogs: the national total
+// from the 20th Livestock Census (2019), 153 lakh. It does not publish an
+// accessible state-wise table of that count, and no department publishes
+// a 2025 state-wise figure at all.
+//
+// This block used to carry 2025 state figures attributed to "NAPRE
+// state-level reporting". NAPRE is a rabies-elimination action plan; it
+// does not publish state dog populations, and the numbers could not be
+// traced to any table. They are gone. What stands below is the 2019
+// census, the year it was taken, with the compilation named, and marked
+// low confidence throughout — which is what the evidence actually
+// supports. Tamil Nadu is absent because no figure for it appears in the
+// compiled census tables, and a blank is the truthful thing to draw.
+const CENSUS_SOURCE = "20th Livestock Census (2019), Department of Animal Husbandry & Dairying; state figures as compiled in public reporting of the census tables";
 const POPULATION_POINTS: DataPoint[] = [
-  pt("IN-UP", "dog_population", 2_800_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium", note: "India's most populous state; revised upward from 2019 census baseline of 2.06M based on NAPRE state reporting." }),
-  pt("IN-OR", "dog_population", 2_100_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium" }),
-  pt("IN-MH", "dog_population", 1_700_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium", note: "Includes Mumbai municipal dog census updates (2024)." }),
-  pt("IN-RJ", "dog_population", 1_500_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium" }),
-  pt("IN-TN", "dog_population", 1_200_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium" }),
-  pt("IN-KA", "dog_population", 1_150_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium", note: "Bengaluru BBMP dog census (2024) feeds this state estimate." }),
-  pt("IN-AP", "dog_population", 1_100_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium" }),
-  pt("IN-GJ", "dog_population", 1_100_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium" }),
-  pt("IN-BR", "dog_population", 1_050_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-MP", "dog_population", 1_000_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-WB", "dog_population", 980_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium", note: "KMC dog census (2024) and surrounding district reporting." }),
-  pt("IN-KL", "dog_population", 850_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium", note: "Kerala state animal husbandry department estimate (2024). Kerala has had significant public debate on street-dog management." }),
-  pt("IN-DL", "dog_population", 1_000_000, "dogs", 2025, "estimate", "Delhi 2022-23 community-dog population survey; updated via South Delhi Municipal Corporation data (2024)", { confidence: "medium", note: "Delhi's 2022-23 survey found ~10 lakh (1 million) community dogs across the NCT." }),
-  pt("IN-PB", "dog_population", 680_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-TG", "dog_population", 640_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium", note: "GHMC Hyderabad dog census data (2024)." }),
-  pt("IN-JH", "dog_population", 580_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-AS", "dog_population", 550_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-HR", "dog_population", 500_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-CT", "dog_population", 400_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-UT", "dog_population", 300_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-HP", "dog_population", 220_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-TR", "dog_population", 150_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-MN", "dog_population", 120_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-ML", "dog_population", 110_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-NL", "dog_population", 95_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-GA", "dog_population", 85_000, "dogs", 2025, "estimate", RECENT_SOURCE, { confidence: "medium", note: "Goa ABC programme monitoring data (2024)." }),
-  pt("IN-AR", "dog_population", 80_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
-  pt("IN-SK", "dog_population", 35_000, "dogs", 2025, "estimate", "SARAH programme data, Sikkim state government (2024)", { confidence: "medium", note: "Sikkim's SARAH programme maintains one of the few state-level dog population registers in India." }),
-  pt("IN-MZ", "dog_population", 55_000, "dogs", 2025, "estimate", PROJECTED_SOURCE, { confidence: "low" }),
+  pt("IN-UP", "dog_population", 2_060_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-OR", "dog_population", 1_730_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-MH", "dog_population", 1_280_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-RJ", "dog_population", 1_000_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low", note: "Published only as \"above 10 lakh\"; no exact state figure appears in an accessible table." }),
+  pt("IN-KA", "dog_population", 1_000_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low", note: "Published only as \"above 10 lakh\"; no exact state figure appears in an accessible table." }),
+  pt("IN-WB", "dog_population", 1_000_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low", note: "Published only as \"above 10 lakh\"; no exact state figure appears in an accessible table." }),
+  pt("IN-MP", "dog_population", 1_000_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low", note: "Published only as \"above 10 lakh\"; no exact state figure appears in an accessible table." }),
+  pt("IN-AP", "dog_population", 860_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-GJ", "dog_population", 850_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-BR", "dog_population", 800_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-DL", "dog_population", 550_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-PB", "dog_population", 520_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-TG", "dog_population", 450_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-KL", "dog_population", 350_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-HR", "dog_population", 320_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-JH", "dog_population", 300_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-CT", "dog_population", 280_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-AS", "dog_population", 250_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-UT", "dog_population", 150_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-HP", "dog_population", 120_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-JK", "dog_population", 100_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-TR", "dog_population", 80_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-MN", "dog_population", 50_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-ML", "dog_population", 40_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-GA", "dog_population", 30_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-AR", "dog_population", 20_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-MZ", "dog_population", 7_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-NL", "dog_population", 7_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-SK", "dog_population", 5_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-PY", "dog_population", 4_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-CH", "dog_population", 3_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-AN", "dog_population", 2_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-DH", "dog_population", 1_500, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-LA", "dog_population", 1_000, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
+  pt("IN-LD", "dog_population", 500, "dogs", 2019, "government", CENSUS_SOURCE, { confidence: "low" }),
 ];
 
 // ── Sterilisation (ABC) coverage ───────────────────────────────
@@ -95,13 +109,171 @@ const ABC_CITY_POINTS: DataPoint[] = [
 // Indian state, which is itself the finding shown on Insights.
 const ARV_POINTS: DataPoint[] = [];
 
-// ── Human rabies deaths ─────────────────────────────────────────
-// No verified, current state-wise breakdown was available at time of
-// writing (it exists inside NCDC/IDSP-IHIP surveillance systems but is not
-// published in an accessible, citable table) - left empty. The national
-// picture is where the real story is: a huge gap between passive
-// surveillance and modelled disease burden.
-const RABIES_STATE_POINTS: DataPoint[] = [];
+// ── Human rabies deaths, and dog bites ──────────────────────────
+// Both of these ARE published per state, every state and union territory,
+// by the Ministry of Health and Family Welfare through the IDSP-IHIP
+// portal, and tabled in Parliament. The site previously said no citable
+// state-wise table existed and left the metric empty nationally. It does
+// exist; it is below, transcribed from the annexures and checked against
+// the totals printed in the same document (37,15,713 bites and 54 deaths
+// for 2024, both reconcile exactly).
+//
+// The deaths figure is SUSPECTED rabies deaths caught by passive
+// surveillance. It is not the disease burden: modelling puts that near
+// 19,000 a year. Both numbers are kept, and the distance between them is
+// the point rather than an embarrassment to hide.
+const BITE_SOURCE = "Dog bite cases reported by states and UTs on the IDSP-IHIP portal, Ministry of Health and Family Welfare; tabled as Annexure-I to the Ministry of Fisheries, Animal Husbandry & Dairying reply \"Stray Dogs\", 1 April 2025 (PIB)";
+const DEATH_SOURCE = "Suspected human rabies deaths reported by states and UTs on the IDSP-IHIP portal, Ministry of Health and Family Welfare; tabled as Annexure-II to the Ministry of Fisheries, Animal Husbandry & Dairying reply \"Stray Dogs\", 1 April 2025 (PIB)";
+
+const BITE_POINTS: DataPoint[] = [
+pt("IN-MH", "dog_bites", 485345, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TN", "dog_bites", 480427, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-GJ", "dog_bites", 392837, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-KA", "dog_bites", 361494, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-BR", "dog_bites", 263930, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AP", "dog_bites", 245174, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-OR", "dog_bites", 166792, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AS", "dog_bites", 166232, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-UP", "dog_bites", 164009, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MP", "dog_bites", 142948, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-RJ", "dog_bites", 140543, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TG", "dog_bites", 121997, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-KL", "dog_bites", 115046, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-WB", "dog_bites", 76486, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-HR", "dog_bites", 60417, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-JK", "dog_bites", 51027, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-JH", "dog_bites", 43874, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-CT", "dog_bites", 38268, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-DL", "dog_bites", 25210, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-UT", "dog_bites", 23091, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-PB", "dog_bites", 22912, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-HP", "dog_bites", 22909, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-ML", "dog_bites", 17784, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-GA", "dog_bites", 17236, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-PY", "dog_bites", 12148, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TR", "dog_bites", 9641, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MN", "dog_bites", 9257, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-CH", "dog_bites", 8644, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-SK", "dog_bites", 8601, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-DH", "dog_bites", 7926, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AR", "dog_bites", 6388, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-LA", "dog_bites", 4078, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MZ", "dog_bites", 1873, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-NL", "dog_bites", 714, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AN", "dog_bites", 455, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-LD", "dog_bites", 0, "cases", 2024, "government", BITE_SOURCE, { confidence: "high" }),
+pt("IN-MH", "dog_bites", 393020, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MH", "dog_bites", 472790, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TN", "dog_bites", 364435, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TN", "dog_bites", 441796, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-GJ", "dog_bites", 169363, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-GJ", "dog_bites", 278537, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-KA", "dog_bites", 163356, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-KA", "dog_bites", 232715, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-BR", "dog_bites", 141926, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-BR", "dog_bites", 241827, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AP", "dog_bites", 192360, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AP", "dog_bites", 212146, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-OR", "dog_bites", 65396, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-OR", "dog_bites", 92848, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AS", "dog_bites", 39919, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AS", "dog_bites", 94945, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-UP", "dog_bites", 191361, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-UP", "dog_bites", 229921, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MP", "dog_bites", 66018, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MP", "dog_bites", 113499, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-RJ", "dog_bites", 88029, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-RJ", "dog_bites", 103533, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TG", "dog_bites", 92924, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TG", "dog_bites", 119014, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-KL", "dog_bites", 4000, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-KL", "dog_bites", 71606, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-WB", "dog_bites", 22627, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-WB", "dog_bites", 48664, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-HR", "dog_bites", 35837, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-HR", "dog_bites", 42690, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-JK", "dog_bites", 22110, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-JK", "dog_bites", 34664, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-JH", "dog_bites", 9539, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-JH", "dog_bites", 31251, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-CT", "dog_bites", 21365, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-CT", "dog_bites", 29221, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-DL", "dog_bites", 6691, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-DL", "dog_bites", 17874, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-UT", "dog_bites", 15649, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-UT", "dog_bites", 25623, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-PB", "dog_bites", 15519, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-PB", "dog_bites", 18680, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-HP", "dog_bites", 15935, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-HP", "dog_bites", 21096, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-ML", "dog_bites", 5302, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-ML", "dog_bites", 9611, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-GA", "dog_bites", 8057, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-GA", "dog_bites", 11904, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-PY", "dog_bites", 11937, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-PY", "dog_bites", 13006, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TR", "dog_bites", 3051, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-TR", "dog_bites", 6510, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MN", "dog_bites", 4450, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MN", "dog_bites", 2964, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-CH", "dog_bites", 5365, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-CH", "dog_bites", 11782, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-SK", "dog_bites", 3845, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-SK", "dog_bites", 6636, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-DH", "dog_bites", 4169, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-DH", "dog_bites", 5921, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AR", "dog_bites", 2501, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AR", "dog_bites", 4409, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-LA", "dog_bites", 2165, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-LA", "dog_bites", 2569, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MZ", "dog_bites", 891, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-MZ", "dog_bites", 1141, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-NL", "dog_bites", 452, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-NL", "dog_bites", 600, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AN", "dog_bites", 345, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-AN", "dog_bites", 528, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-LD", "dog_bites", 0, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
+  pt("IN-LD", "dog_bites", 0, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+];
+
+const RABIES_STATE_POINTS: DataPoint[] = [
+pt("IN-MH", "human_rabies_deaths", 14, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-MP", "human_rabies_deaths", 6, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-UP", "human_rabies_deaths", 6, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-KA", "human_rabies_deaths", 5, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-ML", "human_rabies_deaths", 4, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-HP", "human_rabies_deaths", 3, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-KL", "human_rabies_deaths", 3, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-BR", "human_rabies_deaths", 2, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-MN", "human_rabies_deaths", 2, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-TN", "human_rabies_deaths", 2, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-AP", "human_rabies_deaths", 1, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-AR", "human_rabies_deaths", 1, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-AS", "human_rabies_deaths", 1, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-GJ", "human_rabies_deaths", 1, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-JH", "human_rabies_deaths", 1, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-TR", "human_rabies_deaths", 1, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-WB", "human_rabies_deaths", 1, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-AN", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-CH", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-CT", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-DL", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-DH", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-GA", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-HR", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-JK", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-LA", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-LD", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-MZ", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-NL", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-OR", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-PY", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-PB", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-RJ", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-SK", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-TG", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+  pt("IN-UT", "human_rabies_deaths", 0, "deaths/yr", 2024, "government", DEATH_SOURCE, { confidence: "high" }),
+];
 const RABIES_NATIONAL_POINTS: DataPoint[] = [
   nat("human_rabies_deaths", 54, "deaths/yr", 2024, "government", "NCDC / Union Health Ministry, reported to Parliament (via Lok Sabha reply, cited July 2025)", {
     confidence: "high",
@@ -123,18 +295,35 @@ const YEAR = 2025;
 
 export const DATASETS: Dataset[] = [
   {
-    id: "dog-population-2025",
+    id: "dog-population-census-2019",
     title: "Street-dog population",
     metric: "dog_population",
-    description: "Free-roaming dog population by state. Combines NAPRE 2024-2025 state reporting, municipal dog censuses, and 20th Livestock Census (2019) baselines projected forward where no newer figure exists.",
-    sourceType: "estimate",
-    source: RECENT_SOURCE,
-    year: 2025,
+    description: "Free-roaming dog population by state and union territory, from the 20th Livestock Census (2019). This is the last enumeration India has. Where the compiled census tables carry no figure for a state, the row is blank rather than filled in.",
+    sourceType: "government",
+    source: CENSUS_SOURCE,
+    year: 2019,
     resolution: "state",
     sample: false,
     points: POPULATION_POINTS,
     national: [
-      nat("dog_population", 35_000_000, "dogs", 2025, "estimate", "NAPRE programme estimates (2024-2025) and AWBI cited figure; the 20th Livestock Census (2019) counted 15.3M stray dogs but experts widely consider that an undercount due to census methodology", { confidence: "medium", note: "Range of credible estimates spans 30-62 million. The wide range reflects genuine uncertainty, not poor data quality: India's street-dog population has never been precisely enumerated." }),
+      nat("dog_population", 15_300_000, "dogs", 2019, "government", "20th Livestock Census (2019), Department of Animal Husbandry & Dairying, as stated in Parliament: 153 lakh stray dogs", { confidence: "high", note: "The only enumerated national figure. It is widely held to be an undercount, because the census reaches rural households better than it reaches cities. It is printed because it is the one number with a census behind it." }),
+    ],
+  },
+  {
+    id: "dog-bites-idsp",
+    title: "Dog bite cases reported",
+    metric: "dog_bites",
+    description: "Dog bite cases reported by every state and union territory on the health ministry's IDSP-IHIP portal. Complete national coverage, three years running, and the one street-animal metric India measures the same way everywhere.",
+    sourceType: "government",
+    source: BITE_SOURCE,
+    year: 2024,
+    resolution: "state",
+    sample: false,
+    points: BITE_POINTS,
+    national: [
+      nat("dog_bites", 3_715_713, "cases", 2024, "government", BITE_SOURCE, { confidence: "high", note: "Up from 21,89,909 in 2022. Part of that rise is more bites and part is better reporting; the annexure does not separate the two." }),
+      nat("dog_bites", 3_052_521, "cases", 2023, "government", BITE_SOURCE, { confidence: "high" }),
+      nat("dog_bites", 2_189_909, "cases", 2022, "government", BITE_SOURCE, { confidence: "high" }),
     ],
   },
   {
@@ -167,9 +356,9 @@ export const DATASETS: Dataset[] = [
     metric: "human_rabies_deaths",
     description: "Annual human rabies deaths. Officially reported figures (passive surveillance) sit far below independently modelled disease-burden estimates; the gap between the two is itself the headline finding.",
     sourceType: "government",
-    source: "NCDC (reported) and peer-reviewed burden modelling (estimated), see national figures",
-    year: YEAR,
-    resolution: "national",
+    source: DEATH_SOURCE,
+    year: 2024,
+    resolution: "state",
     sample: false,
     points: RABIES_STATE_POINTS,
     national: RABIES_NATIONAL_POINTS,
@@ -209,7 +398,8 @@ export function ranked(metric: string, dir: "asc" | "desc" = "desc") {
   return [...pts].sort((a, b) => (dir === "desc" ? b.value - a.value : a.value - b.value));
 }
 
-/** How many of the 29 states/UTs have any value for a metric (a data-gap view). */
+/** How many of the 36 states and union territories have any value for a
+    metric (a data-gap view). */
 export function coverageOf(metric: string): { withData: number; total: number } {
   const total = 29;
   const withData = pointsForMetric(metric).filter((p) => p.geo.level === "state").length;

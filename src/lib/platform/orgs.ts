@@ -2,7 +2,7 @@
 // A real, curated directory of Indian animal-welfare organisations.
 //
 // Every entry below is a real, named organisation, verified against its own
-// site or independent reporting. Coverage spans all 29 states/UTs in the
+// site or independent reporting. Coverage spans the states and union
 // STATES array. This is not a comprehensive registry of every AWBI-recognised
 // body, and listing here does not imply any organisation's activity on
 // StrayPaw itself.

@@ -5,7 +5,14 @@ import type { GeoRef, MetricDef } from "./types";
 // cities and wards are added under a state as data becomes available.
 export const INDIA: GeoRef = { level: "national", code: "IN", name: "India" };
 
+/* India is 28 states and 8 union territories. The array used to hold the 28
+   states plus Delhi and call the set "states", which is wrong twice: it made
+   29 of them, and it left out seven union territories that the government
+   does publish figures for. Every one of the 36 is here, each marked for
+   what it is, so a count of "states" and a count of "states and union
+   territories" can both be correct. */
 export const STATES: GeoRef[] = [
+  // The 28 states.
   ["IN-AP", "Andhra Pradesh"], ["IN-AR", "Arunachal Pradesh"], ["IN-AS", "Assam"],
   ["IN-BR", "Bihar"], ["IN-CT", "Chhattisgarh"], ["IN-GA", "Goa"], ["IN-GJ", "Gujarat"],
   ["IN-HR", "Haryana"], ["IN-HP", "Himachal Pradesh"], ["IN-JH", "Jharkhand"],
@@ -14,8 +21,20 @@ export const STATES: GeoRef[] = [
   ["IN-MZ", "Mizoram"], ["IN-NL", "Nagaland"], ["IN-OR", "Odisha"], ["IN-PB", "Punjab"],
   ["IN-RJ", "Rajasthan"], ["IN-SK", "Sikkim"], ["IN-TN", "Tamil Nadu"],
   ["IN-TG", "Telangana"], ["IN-TR", "Tripura"], ["IN-UP", "Uttar Pradesh"],
-  ["IN-UT", "Uttarakhand"], ["IN-WB", "West Bengal"], ["IN-DL", "Delhi"],
-].map(([code, name]) => ({ level: "state" as const, code, name, parent: "IN" }));
+  ["IN-UT", "Uttarakhand"], ["IN-WB", "West Bengal"],
+].map(([code, name]): GeoRef => ({ level: "state", code, name, parent: "IN", kind: "state" }))
+  .concat(([
+    // The 8 union territories. Delhi is one of them, not a twenty-ninth state.
+    ["IN-AN", "Andaman & Nicobar Islands"], ["IN-CH", "Chandigarh"],
+    ["IN-DH", "Dadra & Nagar Haveli and Daman & Diu"], ["IN-DL", "Delhi"],
+    ["IN-JK", "Jammu & Kashmir"], ["IN-LA", "Ladakh"], ["IN-LD", "Lakshadweep"],
+    ["IN-PY", "Puducherry"],
+  ] as [string, string][]).map(([code, name]): GeoRef => ({ level: "state", code, name, parent: "IN", kind: "ut" })));
+
+/** 28. The number of states, which is not the number of rows above. */
+export const STATE_COUNT = STATES.filter((s) => s.kind === "state").length;
+/** 8. */
+export const UT_COUNT = STATES.filter((s) => s.kind === "ut").length;
 
 export const STATE_BY_CODE = new Map(STATES.map((s) => [s.code, s]));
 
@@ -60,6 +79,7 @@ export const METRICS: MetricDef[] = [
   { id: "abc_coverage", label: "Sterilisation (ABC) coverage", short: "ABC coverage", unit: "%", direction: "higher-better", description: "Share of the free-roaming dog population sterilised under Animal Birth Control programmes." },
   { id: "arv_coverage", label: "Anti-rabies vaccination coverage", short: "ARV coverage", unit: "%", direction: "higher-better", description: "Share of dogs vaccinated against rabies." },
   { id: "human_rabies_deaths", label: "Human rabies deaths", short: "Rabies deaths", unit: "deaths/yr", direction: "lower-better", description: "Reported/estimated annual human rabies deaths." },
+  { id: "dog_bites", label: "Dog bite cases reported", short: "Dog bites", unit: "cases", direction: "lower-better", description: "Dog bite cases the state reported on the health ministry IDSP-IHIP portal." },
   { id: "ngo_presence", label: "Registered welfare organisations", short: "Welfare orgs", unit: "count", direction: "higher-better", description: "Animal-welfare organisations known to operate in the area." },
   { id: "community_reports", label: "Community observations", short: "Reports", unit: "count", direction: "neutral", description: "Sightings and reports contributed through StrayPaw." },
 ];

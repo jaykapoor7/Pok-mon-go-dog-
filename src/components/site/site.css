@@ -2351,3 +2351,18 @@ html .sp .sp-header-cta svg { flex: 0 0 auto; }
   html .sp .sp-header-cta { min-height: 38px; padding-left: 10px; padding-right: 10px; }
   html .sp .sp-header-cta svg { display: none; }
 }
+
+/* 320px is a real phone (an iPhone SE in landscape split view, an old
+   Android) and the bar was 23px over there: wordmark, two actions and the
+   menu control simply do not fit at that width with any padding worth
+   having. The arrow leaves the primary action, which still reads "Open
+   app", and everything tightens one more notch. Nothing is hidden. */
+@media (max-width: 360px) {
+  .sp-header { gap: 5px; padding-left: 10px; padding-right: 8px; }
+  .sp-header-actions { gap: 5px; }
+  .sp-wordmark span { font-size: 15.5px; }
+  .sp-wordmark svg { width: 23px; height: 23px; }
+  .sp-header-code { padding-left: 7px; padding-right: 7px; font-size: 11.5px; }
+  .sp-header-cta { padding-left: 9px; padding-right: 9px; font-size: 11.5px; }
+  .sp-header-cta svg { display: none; }
+}

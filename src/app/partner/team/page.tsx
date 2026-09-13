@@ -1,6 +1,5 @@
 import { InviteCodesClient } from "@/components/partner/InviteCodesClient";
 import { ConsolePage } from "@/components/partner/ConsolePage";
-import { FieldTabs } from "@/components/partner/FieldTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Team, StrayPaw Partner" };
@@ -19,7 +18,6 @@ export default function PartnerTeamPage() {
       kicker="Field work / people"
       title="Team"
       lede="Everyone you add gets six characters of their own. That code is how they sign in, every time, on any phone, with no account and no password. Staff codes open this dashboard; volunteer codes only attribute reports to their name."
-      tabs={<FieldTabs />}
     >
       <InviteCodesClient />
     </ConsolePage>

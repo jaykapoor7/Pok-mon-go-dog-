@@ -24,6 +24,10 @@ export type GeoLevel = "national" | "state" | "district" | "city" | "ward";
 
 export interface GeoRef {
   level: GeoLevel;
+  /** For a level "state" row: whether it is actually a state or a union
+      territory. India has 28 of the first and 8 of the second, and a page
+      that calls all 36 "states" is stating something false. */
+  kind?: "state" | "ut";
   /** Stable code, e.g. "IN", "IN-MH", "IN-MH-PUNE". */
   code: string;
   name: string;

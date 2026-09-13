@@ -1179,16 +1179,16 @@
   letter-spacing: -0.03em;
   margin: 10px 0 20px;
 }
-.se-detail dl { margin: 0; display: grid; gap: 18px; }
-.se-detail dt {
+.se-record dl { margin: 0; display: grid; gap: 18px; }
+.se-record dt {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #5f6875;
 }
-.se-detail dd { margin: 6px 0 0; font-size: 22px; font-weight: 600; }
-.se-detail dd.se-blank { font-size: 15px; font-weight: 500; color: var(--vermilion); }
+.se-record dd { margin: 6px 0 0; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.se-record dd.se-blank { font-size: 15px; font-weight: 500; color: var(--vermilion); }
 .se-city-network { margin-top: 22px; padding-top: 17px; border-top: 1px solid var(--line); }
 .se-city-network-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
 .se-city-network-head b { font-size: 12px; }
@@ -4247,3 +4247,59 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
    "somebody should do something", so it says so in the status colour
    rather than looking like every other number. */
 .community-counts b.urgent { color: #c1391c; }
+
+/* ── The state explorer on a phone ───────────────────────────────────
+   The split layout held a 196px list against a 153px panel at 390px, so
+   the bars painted nothing and every source line broke to a word a line.
+   Below 860px the component renders one column and opens the record
+   under the row that was tapped; these rules dress that tree. */
+.se-delta { margin: 5px 0 0; color: #5a6370; font-size: 12px; }
+.se-chev { margin-left: 2px; color: #8a94a3; transition: transform .18s var(--sp-ease-io, ease); }
+.se-list li.open .se-chev { transform: rotate(180deg); }
+
+.se-body[data-layout="stack"] { display: block; }
+.se-body[data-layout="stack"] .se-list {
+  max-height: none;
+  overflow: visible;
+  border-right: 0;
+  padding: 0;
+}
+.se-body[data-layout="stack"] .se-list li { border-bottom: 1px solid #e2e7ee; }
+.se-body[data-layout="stack"] .se-list li:last-child { border-bottom: 0; }
+.se-body[data-layout="stack"] .se-list button {
+  grid-template-columns: minmax(0, 1fr) 78px 15px;
+  grid-template-areas: "name value chev" "bar bar bar";
+  gap: 7px 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+}
+.se-body[data-layout="stack"] .se-name {
+  grid-area: name;
+  font-size: 14.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.se-body[data-layout="stack"] .se-val { grid-area: value; font-size: 12px; }
+.se-body[data-layout="stack"] .se-chev { grid-area: chev; }
+.se-body[data-layout="stack"] .se-track { grid-area: bar; width: 100%; }
+.se-body[data-layout="stack"] .se-list li.open button.on { box-shadow: none; }
+.se-body[data-layout="stack"] .se-record {
+  padding: 4px 14px 20px;
+  background: #e9f0fb;
+}
+.se-body[data-layout="stack"] .se-record dl { gap: 15px; }
+.se-body[data-layout="stack"] .se-record dd { font-size: 19px; }
+
+/* Four sort controls do not fit a phone in one row: at 320px the strip was
+   355px wide and pushed the whole document sideways, which is what made the
+   site header measure wider than the screen on this page. It wraps, and no
+   control is hidden behind a scroll. */
+@media (max-width: 860px) {
+  .se-bar { flex-direction: column; align-items: stretch; gap: 12px; }
+  /* Two rows of two, in a rounded rectangle. Wrapped inside a capsule the
+     four controls made a lozenge with a dent in it. */
+  .se-sort { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-radius: 12px; }
+  .se-sort button { min-height: var(--ctl-h); }
+}

@@ -186,8 +186,8 @@ export function FeedbackButton({
 
           <footer className="fb-foot">
             <p className="fb-note">
-              Goes straight to the person who builds this. We do not record
-              who you are or where you came from.
+              Read by the StrayPaw team. We do not record who you are or
+              where you came from.
             </p>
             <button
               type="button"
