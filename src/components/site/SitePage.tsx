@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { SiteHeader } from "./SiteHeader";
+import { BackLink } from "@/components/app/BackLink";
 import { SiteFooter } from "./SiteFooter";
 import "./site.css";
 import "./sitepage.css";
@@ -50,6 +51,11 @@ export function SitePage({
     <div className="sp spa sx">
       <SiteHeader />
       <main className={`sx-main sx-${width}`}>
+        {/* Same door as every other pushed-into screen, and outside the
+            intro block on purpose: these pages can be rendered without a
+            kicker or title, and the way out must not disappear with the
+            heading. */}
+        <BackLink fallback="/" />
         {(kicker || title || lede) && (
           <header className={`sx-intro${divider ? "" : " no-rule"}`}>
             {kicker && <span className="sx-kicker spa-mono">{kicker}</span>}

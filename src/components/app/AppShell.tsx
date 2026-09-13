@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import {
+  ArrowLeft,
   ArrowUpRight,
   BookOpen,
   Bookmark,
@@ -230,6 +231,30 @@ export function AppShell({
         ? EDUCATOR_NAV
         : COMMUNITY_NAV;
   const referenceNav = !isNgo && !isFeeder && !isEducator ? COMMUNITY_REFERENCE_NAV : [];
+  /* A destination is anywhere in this role's own navigation — the
+     things the bottom bar and the rail point at. Everything else is a
+     screen you were pushed into and needs a way out. */
+  const destinations = new Set<string>([
+    ...primaryNav.map((n) => n.href),
+    ...referenceNav.map((n) => n.href),
+    ...phoneNav.map((n) => n.href),
+  ]);
+  const showBack =
+    !destinations.has(pathname) &&
+    /* Its own back control steps through the form as well as leaving. */
+    !pathname.startsWith("/report") &&
+    pathname !== "/";
+
+  function goBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    /* No history means a cold link. Land on this role's own home rather
+       than a generic one. */
+    router.push(isNgo ? "/partner" : isFeeder ? "/feeder" : isEducator ? "/education" : "/app");
+  }
+
   const isActive = (href: string) => {
     if (href === "/partner/animals") return pathname.startsWith("/partner/animals") || pathname.startsWith("/partner/cases") || pathname.startsWith("/partner/medical");
     if (href === "/partner/field") return pathname.startsWith("/partner/field") || pathname.startsWith("/partner/incoming") || pathname.startsWith("/partner/drives") || pathname.startsWith("/partner/reports");
@@ -355,6 +380,28 @@ export function AppShell({
         </nav>
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
+          {/* The way back, for every screen that is not a destination.
+
+              A crawl of sixty routes found forty with no back control and
+              twenty-two that were outright dead ends — /orgs, /data,
+              /wards, /sources and /news had zero links in the body, so
+              you arrived and the only way out was the browser. That is
+              the opposite of a maze and it is worse: a maze at least has
+              doors.
+
+              It renders on anything that is not one of the current
+              role's own nav destinations, so the five screens somebody
+              navigates BETWEEN stay clean and everything they get pushed
+              INTO gets a door. /report is excluded because it has its
+              own, which also steps back through the form. */}
+          {showBack && (
+            <div className="spa-back">
+              <button type="button" onClick={goBack}>
+                <ArrowLeft size={15} />
+                Back
+              </button>
+            </div>
+          )}
           {children}
         </main>
       </div>

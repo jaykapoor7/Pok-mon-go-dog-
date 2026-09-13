@@ -124,9 +124,45 @@ html .sp :focus-visible,html .spa :focus-visible {outline-offset:3px;box-shadow:
  html .sp .sp-header-code { font-size:11px; }
  html .sp.mk .mk-hero { padding-top:116px;grid-template-columns:1fr;gap:40px; }
 }
-@media(max-width:430px){html .sp .sp-wordmark span {display:block}html .sp .sp-header-actions{gap:9px}html .sp .sp-header-cta{padding:10px 12px;font-size:12px}}
-/* The wordmark text goes and the code link shortens. This fired at 380px
-   and needed to fire at 430: at 390 — the width most phones report — the
-   long label still pushed the menu button past the right edge, where it was
-   clipped and could not be tapped. */
-@media(max-width:430px){html .sp .sp-wordmark span{display:none}html .sp .sp-header{gap:12px;padding-left:10px;padding-right:10px}html .sp .sp-header-actions{gap:7px}html .sp .sp-header-code{padding:10px 9px;font-size:12px}}
+/* THE WORDMARK STAYS ON A PHONE.
+
+   Two rules used to sit here, one after the other, the first setting
+   `.sp-wordmark span` to block and the second setting it to none. The
+   second won, so the public site showed a bare logo in a white bar with
+   "Code" and "Open app" floating beside it and nothing saying whose site
+   it was — while the console two taps away said "StrayPaw" in full. That
+   is the kind of inconsistency that makes a product feel unfinished.
+
+   It was hidden for a real reason: the long "I have a code" label pushed
+   the menu button off the right edge at 390px, where it could not be
+   tapped. The room comes from the other two controls now — the code link
+   keeps only its short label and both controls set tighter — rather than
+   from deleting the brand.
+
+   Written at this specificity on purpose. `html .sp .sp-wordmark span`
+   is 0-2-2 and beat the plain `.sp-wordmark span` rule in site.css, so
+   an earlier attempt at this fix in that file never applied at all. */
+@media(max-width:430px){
+  html .sp .sp-wordmark span{display:inline;font-size:17px;letter-spacing:-.045em}
+  html .sp .sp-wordmark{gap:7px;font-size:17px}
+  html .sp .sp-wordmark svg{width:26px;height:26px}
+  html .sp .sp-header{gap:8px;padding-left:12px;padding-right:10px}
+  html .sp .sp-header-actions{gap:6px}
+  html .sp .sp-header-code{padding:10px 8px;font-size:12px}
+  html .sp .sp-header-cta{padding:10px 11px;font-size:12px}
+}
+
+/* 320px — the narrowest phone still in use. Everything above fits from
+   360 up; at 320 the menu button was ending 17px past the right edge,
+   which is the exact failure that got the wordmark deleted in the first
+   place. The room comes out of type and padding rather than out of the
+   brand: nothing is removed, five things are just tighter. */
+@media(max-width:340px){
+  html .sp .sp-wordmark span{font-size:15px}
+  html .sp .sp-wordmark{gap:6px;font-size:15px}
+  html .sp .sp-wordmark svg{width:23px;height:23px}
+  html .sp .sp-header{gap:6px;padding-left:8px;padding-right:6px}
+  html .sp .sp-header-actions{gap:4px}
+  html .sp .sp-header-code{padding:10px 6px;font-size:11.5px}
+  html .sp .sp-header-cta{padding:10px 9px;font-size:11.5px}
+}

@@ -554,3 +554,35 @@ html .spa.spa .cc {
   .report-back { margin-bottom: 2px; }
   .report-back button { padding-left: 10px; font-size: 12.5px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   The shell's back control.
+
+   Same object as the report flow's, so a person learns one control and
+   finds it in the same place on every screen they get pushed into.
+   ════════════════════════════════════════════════════════════════════ */
+html .spa.spa .spa-back { margin: 0 0 14px; }
+html .spa.spa .spa-back button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 13px 0 11px;
+  border: 1px solid var(--sp-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--sp-muted);
+  font: 600 13px var(--font-sans), system-ui, sans-serif;
+  cursor: pointer;
+  transition: border-color var(--sp-fast) ease, color var(--sp-fast) ease,
+    background var(--sp-fast) ease;
+}
+html .spa.spa .spa-back button:hover {
+  border-color: var(--sp-blue);
+  color: var(--sp-blue);
+  background: #f6f8fd;
+}
+html .spa.spa .spa-back button svg { flex: none; }
+@media (max-width: 900px) {
+  html .spa.spa .spa-back { margin-bottom: 11px; }
+}

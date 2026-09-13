@@ -31,6 +31,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
 import { timeAgo } from "@/lib/utils";
 import { STATUS_META, type DogStatus } from "@/lib/types";
+import { BackLink } from "@/components/app/BackLink";
 
 const KEY = "straypaw.admin_secret";
 
@@ -860,6 +861,10 @@ export function AdminClient() {
        to moderate on. */
     <div className="mod-page">
      <div className="mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6">
+      {/* This console sits outside the app chrome on purpose, which also
+          left it with no exit: a moderator who finished a queue had the
+          browser and nothing else. */}
+      <BackLink label="Back to site" to="/" />
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded border border-[#dfe4ec] bg-white text-[#4b5b78]">

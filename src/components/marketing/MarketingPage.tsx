@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { Reveal } from "@/components/site/Reveal";
 import "@/components/site/site.css";
 import "./marketing.css";
+import { BackLink } from "@/components/app/BackLink";
 
 /* ════════════════════════════════════════════════════════════════════
    Shared scaffold for the explainer pages behind the header nav.
@@ -35,6 +36,12 @@ export function MarketingPage({
   return (
     <div className="sp mk">
       <SiteHeader />
+      {/* Six explainer pages sit behind this. The header has the site
+          nav, but nobody arriving from a product link knows that is
+          the way out, and nothing on the page said "back". */}
+      <div className="relative z-10 mx-auto w-full max-w-5xl px-5 pt-24 sm:px-8">
+        <BackLink fallback="/" />
+      </div>
       <main>
         <section className="mk-hero">
           <div className="mk-hero-copy">

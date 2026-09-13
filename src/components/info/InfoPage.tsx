@@ -1,3 +1,5 @@
+import { BackLink } from "@/components/app/BackLink";
+
 
 export function InfoPage({
   title,
@@ -10,6 +12,10 @@ export function InfoPage({
 }) {
   return (
     <div className="mx-auto max-w-2xl">
+      {/* These are documents somebody is sent to from a footer or a
+          form. Before this they carried no link in the body at all:
+          you arrived and the browser was the only way out. */}
+      <BackLink fallback="/" />
       <h1 className="font-display text-3xl">{title}</h1>
       {updated && (
         <p className="mt-1 text-xs text-bark-400">Last updated {updated}</p>

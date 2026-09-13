@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import "@/components/site/site.css";
+import { BackLink } from "@/components/app/BackLink";
 
 /** Public pages share the same navigation as the landing page. */
 export function MarketingShell({
@@ -20,6 +21,13 @@ export function MarketingShell({
   return (
     <div className="sp relative min-h-dvh bg-paper text-bark-900 dark:bg-ink dark:text-bark-50">
       <SiteHeader />
+      {/* The header carries the site nav, but nothing on these pages
+          said "back" — and somebody who arrived from a link in the
+          product rather than from the nav has no idea the nav is
+          even the way out. */}
+      <div className="relative z-10 mx-auto w-full max-w-5xl px-5 pt-24 sm:px-8">
+        <BackLink fallback="/" />
+      </div>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-paw-50/70 dark:bg-paw-900/15"

@@ -32,22 +32,20 @@ import type { Dog } from "@/lib/types";
    explaining belongs to the sections below it, which is where it now
    lives. The short "no sign-up" line went with it for the same reason.
 
-   THE HEADLINE. The first line has been right for a while: on any Indian
-   street the dogs are already known, individually, by the tea stall, the
-   woman who feeds at seven, the guard on the gate. Nobody argues with it.
+   THE HEADLINE went through four versions before this one, and the
+   pattern in what failed is worth keeping. "Now it is written down",
+   "Now everyone does" and "Just nobody who can help her" were all
+   variations on the same move: an opening observation followed by a
+   turn. They read as a line of writing rather than as a product, and
+   the turn either overclaimed (everyone does not know this dog) or
+   restated the problem at the exact moment the reader is looking for
+   what the thing IS.
 
-   The second line went through "Now it is written down" and then "Now
-   everyone does", and both were the same mistake — they announced a
-   solved outcome directly above the button whose whole job is to make
-   somebody feel the problem. "Everyone" was also an overclaim and faintly
-   surveillant, which is the wrong note for an animal a neighbourhood
-   looks after.
-
-   What it says now is the actual gap, and it is the one sentence that
-   explains why this product has two halves. The knowledge exists. It
-   just never reaches the organisation that could sterilise her,
-   vaccinate her, or treat the leg. The photographs beside it are the
-   rebuttal: here are the ones where it did.
+   So it says what it is. A visitor knows the product in two seconds, it
+   cannot drift away from the truth as the register grows, and the
+   emotional work is done by the twenty-two photographs sitting beside
+   it — which is the right division of labour, because a wall of real
+   street dogs argues better than a sentence about them can.
    ════════════════════════════════════════════════════════════════════ */
 
 export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
@@ -68,14 +66,8 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
       <div className="product-hero-copy">
         <p className="field-eyebrow">The shared record for India&apos;s street animals</p>
         <h1 id="hero-title">
-          Somebody already knows this dog.<br />
-          {/* A non-breaking space binds the last two words. Left to
-              itself the line dropped "her." alone onto a sixth row — a
-              one-word orphan under a 70px headline, which is the most
-              visible typographic fault a hero can have, and
-              text-wrap:balance did not rescue it. Bound, the break lands
-              after "can" at every width instead. */}
-          <em>Just nobody who can&nbsp;help&nbsp;her.</em>
+          One map of every<br />
+          <em>street animal in India.</em>
         </h1>
         <div className="product-hero-actions">
           <Link href="/report" className="field-button">
