@@ -1741,52 +1741,8 @@ html .hrail-head h2 {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   THE STICKY REPORT BAR (phones) and THE STORAGE NOTICE.
+   THE STORAGE NOTICE.
    ════════════════════════════════════════════════════════════════════ */
-
-.sticky-report { display: none; }
-
-@media (max-width: 900px) {
-  .sticky-report {
-    position: fixed;
-    z-index: 40;
-    left: var(--sp-4);
-    right: var(--sp-4);
-    /* Clears the phone's home indicator rather than sitting under it. */
-    bottom: calc(var(--sp-4) + env(safe-area-inset-bottom));
-    display: block;
-    /* Out of the way until it is wanted: it does not intercept taps on
-       the content behind it while hidden, and it does not animate on
-       first paint. */
-    opacity: 0;
-    transform: translateY(120%);
-    pointer-events: none;
-    transition: opacity var(--sp-base) var(--sp-ease-io),
-                transform var(--sp-base) var(--sp-ease-out);
-  }
-  .sticky-report.is-in { opacity: 1; transform: none; pointer-events: auto; }
-
-  .sticky-report a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sp-2);
-    min-height: var(--ctl-h-lg);
-    border-radius: var(--ctl-r);
-    background: var(--sp-flame);
-    color: var(--sp-ink);
-    font-size: var(--ctl-fs);
-    font-weight: var(--ctl-fw);
-    text-decoration: none;
-    box-shadow: var(--sp-lift);
-    transition: var(--ctl-press-t);
-  }
-  .sticky-report a:active { transform: var(--ctl-press); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sticky-report { transition: none; }
-}
 
 /* ── The storage notice ─────────────────────────────────────────── */
 .snotice {
@@ -1825,8 +1781,6 @@ html .hrail-head h2 {
 .snotice-off { background: var(--ctl-tint); color: #1f4bb8; }
 .snotice-off:hover { background: var(--ctl-tint-hover); }
 
-/* The two fixed elements must not stack on top of each other on a phone. */
 @media (max-width: 900px) {
   .snotice { max-width: none; }
-  body:has(.snotice) .sticky-report { bottom: calc(var(--sp-9) + var(--sp-6) + env(safe-area-inset-bottom)); }
 }

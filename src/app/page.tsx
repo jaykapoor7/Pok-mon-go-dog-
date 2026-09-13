@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
-import { StickyReport } from "@/components/site/StickyReport";
 import { Hero } from "@/components/site/Hero";
 import { LandingMotion } from "@/components/site/LandingMotion";
 import { WhereTheyAre } from "@/components/site/WhereTheyAre";
@@ -56,9 +55,6 @@ export default async function HomePage() {
         </section>
         <section className="product-closing"><span className="field-eyebrow">Start with one animal</span><h2>Know a dog<br /><em>on your street?</em></h2><Link href="/report" className="field-button">Report a sighting <ArrowUpRight size={18} /></Link></section>
       </main>
-      {/* Follows the reader down the page on phones only; see the
-          component for why it defers to the hero and the closing call. */}
-      <StickyReport />
       <footer className="field-footer"><Link href="/" className="field-footer-brand">StrayPaw<span>One sighting. A shared record.</span></Link><nav aria-label="Footer"><Link href="/mission">Mission</Link><Link href="/for-ngos">For NGOs</Link><Link href="/evidence">Evidence</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav><span>Built with care, in India.<br />© {new Date().getFullYear()} StrayPaw</span></footer>
     </div>
   );
