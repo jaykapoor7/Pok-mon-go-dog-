@@ -106,9 +106,16 @@ const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin
     { href: "/evidence", label: "Evidence", Icon: ScanSearch },
   ],
   educator: [
-    { href: "/education", label: "Education", Icon: GraduationCap },
-    { href: "/map", label: "Map", Icon: MapPin },
+    /* Not /education AND /learn. Both sat here, and on a four-slot bar
+       "Education" and "Learn" are two labels a person cannot tell apart.
+       /education is also a signpost rather than a destination: its three
+       steps go to /learn, /map and /report, all of which are already in
+       this bar, so the slot was spent pointing at slots that exist. The
+       reading material is what an educator actually opens, so it stays;
+       the hub is still the role's landing page and is in the drawer. */
     { href: "/learn", label: "Learn", Icon: BookOpen },
+    { href: "/map", label: "Map", Icon: MapPin },
+    { href: "/following", label: "Saved", Icon: Bookmark },
     { href: "/feed", label: "Activity", Icon: Waves },
   ],
   ngo: [

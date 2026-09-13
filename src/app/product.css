@@ -1305,3 +1305,52 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   .partner-field-map .partner-map-panel { height:330px; }
   .partner-analysis-heading { align-items:start; flex-direction:column; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   PHONE FIXES for the console top bar and the dashboard greeting.
+   ════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  /* THE TOP BAR WAS CLIPPING ITS OWN CONTENTS.
+
+     .spa-top is given a fixed `height` at four breakpoints — 72, 68, 64
+     and 62px. A fixed height does not grow, so when the account controls
+     moved into this bar they were cut in half by its bottom edge: the
+     top of each capsule rendered and the rest was outside the box. This
+     was a regression from adding them, and fixed heights are why it
+     failed silently rather than pushing anything.
+
+     A bar sizes to what it holds. min-height keeps the old resting
+     height when there is nothing extra in it. */
+  html .spa.spa .spa-top {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-top: var(--sp-2);
+    padding-bottom: var(--sp-2);
+    row-gap: var(--sp-2);
+  }
+  /* ONE ACCOUNT CONTROL ON A PHONE, not two.
+
+     Both capsules together are 193px, and beside the wordmark, the space
+     switcher and the exit they could not fit a 390px row — so the bar
+     wrapped to three rows and stood 165px tall, a quarter of the screen
+     before any content. Measured, not guessed.
+
+     "Sign in" is the one that stays, and nothing is lost by it: /access
+     carries "Already have a code? Sign in here" straight to /join, so
+     code entry is one tap further rather than unreachable. The pair is
+     still shown in full on the desktop side nav, which has the room. */
+  html .spa.spa .spa-top-right { flex-wrap: nowrap; gap: var(--sp-2); }
+  html .spa.spa .spa-top-account .spa-profile-links.out a.pp-code { display: none; }
+
+  /* THE GREETING WAS CENTRED, and nothing else on the screen is.
+
+     The markup is `flex flex-col … sm:flex-row`, and design-system.css
+     sets align-items:center on .partner-greeting for the row layout. On
+     the column layout that same declaration centres every child
+     horizontally instead — so on a phone the date, the greeting and the
+     organisation line all sat in the middle of a left-aligned page. */
+  html .spa.spa .partner-greeting { align-items: stretch; text-align: left; }
+}
