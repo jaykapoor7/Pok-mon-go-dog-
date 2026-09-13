@@ -60,12 +60,12 @@ export default function TheDataPage() {
         <CoverageBar
           known={pop}
           total={STATES.length}
-          label="states with a published dog population"
+          label="states and union territories with a published dog population"
         />
         <CoverageBar
           known={abc}
           total={STATES.length}
-          label="states with published ABC coverage"
+          label="states and union territories with published ABC coverage"
         />
 
         <div className="mk-stats">

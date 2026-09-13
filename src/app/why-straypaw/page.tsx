@@ -111,7 +111,7 @@ export default function WhyStrayPawPage() {
             <CoverageBar
               known={withPop}
               total={STATES.length}
-              label="states with a published population figure"
+              label="states and union territories with a published population figure"
             />
             {/* The questions themselves, not a count of them. "Never
                 measured, 2 questions" tells a reader nothing they can act on

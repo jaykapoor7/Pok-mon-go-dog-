@@ -29,7 +29,8 @@ export default function OrgsPage() {
       </div>
 
       <p className="spa-lede">
-        {orgs.length} organisations across {states.length} states, each one real,
+        {orgs.length} organisations across {states.length} states and union
+        territories, each one real,
         named and linked. Sourced from published information. Inclusion is not
         an endorsement, and the list is not exhaustive.
       </p>

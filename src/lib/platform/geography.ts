@@ -121,4 +121,15 @@ export const STATE_CENTROIDS: Record<string, { lat: number; lng: number }> = {
   "IN-UT": { lat: 30.07, lng: 79.02 },
   "IN-WB": { lat: 22.99, lng: 87.85 },
   "IN-DL": { lat: 28.61, lng: 77.21 },
+  /* The seven remaining union territories. Anything keyed off a centroid
+     (the map's coverage layer, the mission page's state grid) silently
+     dropped every geography without one, so the site drew 29 places and
+     called them states. */
+  "IN-AN": { lat: 11.67, lng: 92.74 },
+  "IN-CH": { lat: 30.75, lng: 76.78 },
+  "IN-DH": { lat: 20.27, lng: 73.02 },
+  "IN-JK": { lat: 33.78, lng: 76.58 },
+  "IN-LA": { lat: 34.21, lng: 77.61 },
+  "IN-LD": { lat: 10.57, lng: 72.64 },
+  "IN-PY": { lat: 11.94, lng: 79.81 },
 };

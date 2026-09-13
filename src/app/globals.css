@@ -711,3 +711,21 @@ h1 em, h2 em, h3 em, .product-hero-wall h1 em { font-style: normal; }
   button.rounded-full.p-1 { min-width: var(--ctl-h); min-height: var(--ctl-h); }
   a.shrink-0.text-bark-400 { min-width: var(--ctl-h); justify-content: flex-end; }
 }
+
+/* ── Running text has a measure ───────────────────────────────────────
+   Measured at 1440px: 23 routes carried multi-line paragraphs 95 to 181
+   characters wide. Past about 90 the eye loses the start of the next line
+   and a page stops reading as designed. :where() gives this zero
+   specificity, so it is a default any component rule can overrule, and
+   anything that already sets its own max-width keeps it.
+
+   The companion rule is for centred text: a max-width block inside a
+   centred container would otherwise hug the left edge while its text
+   centred inside it, which looks like a mistake. */
+:where(.sx-main, .spa-main, .sp main, .field-site main) p:not([class*="max-w"]) {
+  max-width: 72ch;
+}
+:where(.sx-main, .spa-main, .sp main, .field-site main) :where([class*="text-center"]) p,
+:where(.sx-main, .spa-main, .sp main, .field-site main) p[class*="text-center"] {
+  margin-inline: auto;
+}
