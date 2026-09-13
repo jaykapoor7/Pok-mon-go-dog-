@@ -59,7 +59,7 @@ export default function EducationPage() {
     <SitePage
       kicker="Education layer / before it becomes a case"
       title={<>Understand it, then <em>act where you live.</em></>}
-      lede="Most of StrayPaw deals with an animal after something has happened to it. This is the part that runs before that. It is also the part we are least qualified to write, so it is built to carry teaching material from organisations that already do it well."
+      lede="Most of StrayPaw deals with an animal after something has happened to it. This is the part that runs before that — and it is built to carry teaching material from the organisations who have been doing this work in Indian classrooms for years, credited to them."
       divider={false}
       actions={
         <Link href="/learn" className="spa-cta">

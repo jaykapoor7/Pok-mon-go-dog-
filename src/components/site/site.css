@@ -124,10 +124,10 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 46px;
-  padding: 14px 20px;
-  border-radius: 3px;
-  font-size: 13px;
+  min-height: var(--ctl-h);
+  padding: var(--ctl-pad);
+  border-radius: var(--ctl-r);
+  font-size: var(--ctl-fs-sm);
   font-weight: 600;
   cursor: pointer;
   border: 0;
@@ -135,7 +135,7 @@
   transition: transform 0.16s ease, background 0.2s ease, color 0.2s ease,
     border-color 0.2s ease;
 }
-.sp-btn:active { transform: scale(0.97); }
+.sp-btn:active { transform: var(--ctl-press); }
 .sp-btn:focus-visible { outline: 2px solid var(--electric); outline-offset: 3px; }
 .sp-btn-primary { background: var(--electric); color: var(--ink); }
 .sp-btn-primary:hover { background: #b8d1ff; }
@@ -219,28 +219,29 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 40px;
+  min-height: var(--ctl-h);
   background: var(--electric);
   color: var(--ink);
-  border-radius: 3px;
-  padding: 10px 18px;
-  font-size: 13px;
+  border-radius: var(--ctl-r);
+  padding: var(--ctl-pad);
+  font-size: var(--ctl-fs-sm);
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
   transition: background 0.2s ease, transform 0.12s ease;
 }
 .sp-header-cta:hover { background: #b8d1ff; }
-.sp-header-cta:active { transform: scale(0.98); }
+.sp-header-cta:active { transform: var(--ctl-press); }
 .sp-header-cta:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
 .sp-header-code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 10px 15px;
-  border: 1px solid rgba(244, 245, 247, 0.28);
-  border-radius: 3px;
+  min-height: var(--ctl-h);
+  padding: var(--ctl-pad);
+  border: 0;
+  background: rgba(255, 255, 255, 0.13);
+  border-radius: var(--ctl-r);
   /* Explicit, not inherited. On this dark header, inheriting the body's
      ink painted dark text on a dark ground. */
   color: var(--paper);
@@ -295,7 +296,7 @@
   margin-right: -8px;
   background: transparent;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--ctl-r);
   color: var(--paper);
   cursor: pointer;
   transition: background 0.15s ease;
@@ -1224,9 +1225,11 @@
   background: var(--electric);
   color: var(--ink);
   border: 0;
-  padding: 13px 14px;
-  font-size: 12px;
-  font-weight: 700;
+  border-radius: var(--ctl-r);
+  min-height: var(--ctl-h);
+  padding: 0 18px;
+  font-size: var(--ctl-fs-sm);
+  font-weight: var(--ctl-fw);
   cursor: pointer;
   text-decoration: none;
   transition: background 0.2s ease;

@@ -38,7 +38,7 @@ export function TasksSection({ compact = false }: { compact?: boolean }) {
         <h2 className="text-[13px] font-semibold uppercase tracking-wide text-bark-400">
           Tasks{open.length ? ` (${open.length})` : ""}
         </h2>
-        <button onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1 rounded-md bg-paw-500 px-2.5 py-1.5 text-[12px] font-semibold text-white hover:bg-paw-600">
+        <button onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1 rounded-full bg-paw-500 px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-paw-600">
           <Plus className="h-3.5 w-3.5" /> New task
         </button>
       </div>

@@ -366,21 +366,21 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 42px;
+  min-height: var(--ctl-h);
   background: var(--electric);
   color: var(--ink);
   border: 0;
-  border-radius: 3px;
-  padding: 12px 18px;
-  font-size: 13px;
-  font-weight: 700;
+  border-radius: var(--ctl-r);
+  padding: var(--ctl-pad);
+  font-size: var(--ctl-fs-sm);
+  font-weight: var(--ctl-fw);
   cursor: pointer;
   text-decoration: none;
   flex-shrink: 0;
   transition: background 0.2s ease, transform 0.12s ease;
 }
 .spa-cta:hover { background: #b8d1ff; }
-.spa-cta:active { transform: scale(0.98); }
+.spa-cta:active { transform: var(--ctl-press); }
 .spa-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* KPI strip */
@@ -1095,11 +1095,17 @@
   background: #f2f5f8;
 }
 .se-bar p { margin: 0; color: #5f6875; }
-.se-sort { display: flex; gap: 2px; }
+/* A segmented control: one capsule track, capsule segments inside it,
+   which is what the shape is for — it says "these three are alternatives"
+   before a single word is read. It used to be three separate square boxes
+   with a 2px gap, which said "three unrelated buttons". */
+.se-sort { display: flex; gap: 3px; padding: 3px; border-radius: var(--ctl-r); background: rgba(11, 30, 61, 0.05); }
 .se-sort button {
-  border: 1px solid #ccd3dc;
-  background: #fff;
-  padding: 6px 11px;
+  border: 0;
+  border-radius: var(--ctl-r);
+  background: transparent;
+  min-height: 30px;
+  padding: 0 13px;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.1em;
@@ -1108,8 +1114,9 @@
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
-.se-sort button:hover { border-color: #9fadbf; }
-.se-sort button.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.se-sort button:hover { color: var(--ink); }
+.se-sort button.active { background: var(--ink); color: var(--paper); }
+.se-sort button:active { transform: var(--ctl-press); }
 
 .se-body { display: grid; grid-template-columns: 1.25fr 0.75fr; }
 .se-list {
@@ -1694,7 +1701,7 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   margin-left: -8px;
   background: transparent;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--ctl-r);
   color: var(--paper);
   cursor: pointer;
   flex-shrink: 0;
@@ -1956,11 +1963,14 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   text-align: left;
   background: #fbfcfd;
   border: 1px solid #ccd3dc;
-  border-radius: 4px;
+  /* A row you select, so it takes the row shape rather than the 4px it
+     had — which matched nothing else on the screen. */
+  border-radius: var(--ctl-r-row);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: var(--ctl-press-t);
 }
 .wc-role:hover { border-color: var(--electric); background: #f2f7ff; }
+.wc-role:active { transform: var(--ctl-press); }
 .wc-role:focus-visible { outline: 2px solid var(--electric); outline-offset: 1px; }
 .wc-role svg { color: var(--electric-ink); grid-row: 1 / span 2; }
 /* Its own colour, not the surface's. This is the line that was
@@ -2536,14 +2546,17 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
 /* .btn-ghost is a global component class, and its dark rule sets near-white
    text for a dark page. Inside the console that is white on white — it made
    "Console home" and "All organisations" invisible. */
+/* The console keeps a light surface even under .dark, so the secondary
+   button here takes the same accent tint as everywhere else rather than
+   going transparent — which, after .btn-ghost lost its border, would have
+   left it with no edges at all. */
 .dark .spa .btn-ghost {
-  background-color: transparent;
-  border-color: rgba(0, 0, 0, 0.12);
-  color: var(--ink);
+  background-color: var(--ctl-tint);
+  border: 0;
+  color: #1f4bb8;
 }
 .dark .spa .btn-ghost:hover {
-  border-color: rgba(0, 0, 0, 0.25);
-  background-color: rgba(15, 22, 38, 0.03);
+  background-color: var(--ctl-tint-hover);
 }
 .dark .spa [class*="dark:border-white"] { border-color: #e4e9ef; }
 /* paw-* text is the accent; on a light ground it needs the darker step. */
@@ -3030,13 +3043,14 @@ a.pgm-figure:hover { background: #f3f6fb; }
 .spa-profile-links.out { gap: 7px; }
 .spa-profile-links.out .pp-signin,
 .spa-profile-links.out .pp-code {
-  min-height: 40px;
+  min-height: var(--ctl-h);
   justify-content: center;
   gap: 7px;
-  border-radius: 5px;
-  font-size: 13px;
+  border-radius: var(--ctl-r);
+  font-size: var(--ctl-fs-sm);
   font-weight: 650;
-  padding: 9px 12px;
+  padding: var(--ctl-pad-sm);
+  transition: var(--ctl-press-t);
 }
 /* a.pp-signin, and the extra classes, because "html .spa.spa .spa-side a"
    carries three classes AND two elements and outranked this. The button drew
@@ -3050,11 +3064,13 @@ html .spa.spa .spa-profile-links.out a.pp-signin {
 }
 html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; color: var(--paper); }
 .spa-profile-links.out .pp-code {
-  border: 1px solid var(--electric-ink);
-  background: #fff;
+  border: 0;
+  background: var(--ctl-tint);
   color: var(--electric-ink);
 }
-.spa-profile-links.out .pp-code:hover { background: rgba(71, 111, 183, 0.08); }
+.spa-profile-links.out .pp-code:hover { background: var(--ctl-tint-hover); }
+.spa-profile-links.out .pp-signin:active,
+.spa-profile-links.out .pp-code:active { transform: var(--ctl-press); }
 
 .spa-profile .spa-role-chip {
   justify-self: start;
@@ -3496,18 +3512,19 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 38px;
-  padding: 8px 14px 8px 11px;
+  min-height: var(--ctl-h-sm);
+  padding: 0 17px 0 13px;
   border: 1px solid rgba(11, 16, 32, 0.14);
-  border-radius: 999px;
+  border-radius: var(--ctl-r);
   background: #fff;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: #3f4756;
   cursor: pointer;
-  transition: border-color 0.16s ease, color 0.16s ease;
+  transition: var(--ctl-press-t);
 }
+.backbtn:active { transform: var(--ctl-press); }
 .backbtn:hover { border-color: var(--electric-ink); color: var(--electric-ink); }
 .backbtn:focus-visible { outline: 2px solid var(--electric-ink); outline-offset: 2px; }
 
@@ -3821,8 +3838,8 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 .demo-mode-clear p { margin: 0; font-size: 13px; line-height: 1.6; color: #414b59; }
 .demo-clear-btn, .demo-danger, .demo-cancel {
   display: inline-flex; align-items: center; gap: 6px;
-  min-height: 36px; margin-top: 11px; padding: 8px 13px;
-  border: 1px solid #c3cbd6; border-radius: 3px; background: #fff;
+  min-height: var(--ctl-h-sm); margin-top: 11px; padding: var(--ctl-pad-sm);
+  border: 1px solid #c3cbd6; border-radius: var(--ctl-r); background: #fff;
   font-size: 12.5px; font-weight: 600; color: #414b59; cursor: pointer;
 }
 .demo-clear-btn:hover, .demo-cancel:hover { border-color: #98a3b2; }
@@ -3884,11 +3901,13 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
    a link, because it changes the page rather than leaving it. */
 .vol-more {
   display: inline-flex; align-items: center; gap: 7px;
-  min-height: 40px; margin-top: 12px; padding: 9px 14px;
-  border: 1px solid #c3cbd6; border-radius: 3px; background: #fff;
-  font-size: 13px; font-weight: 600; color: #2f4a73; cursor: pointer;
+  min-height: var(--ctl-h-sm); margin-top: 12px; padding: var(--ctl-pad-sm);
+  border: 0; border-radius: var(--ctl-r); background: var(--ctl-tint);
+  font-size: var(--ctl-fs-sm); font-weight: var(--ctl-fw); color: #1f4bb8; cursor: pointer;
+  transition: var(--ctl-press-t);
 }
-.vol-more:hover { border-color: #98a3b2; background: #f6f9fd; }
+.vol-more:hover { background: var(--ctl-tint-hover); }
+.vol-more:active { transform: var(--ctl-press); }
 .vol-more:focus-visible { outline: 2px solid var(--sp-blue, #2457ce); outline-offset: 2px; }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -4060,6 +4079,75 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   vector-effect: non-scaling-stroke;
 }
 .cc-dot { fill: #2457ce; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; }
+
+/* ── The cursor on the trend chart ──────────────────────────────
+   The plot is the hit area, and it is generous on purpose: 64px of
+   height and the full width, so a thumb does not have to find a 2px
+   line. touch-action keeps a horizontal drag along the chart from
+   also scrolling the page under it, which is the difference between
+   reading a chart and fighting one. */
+.cc-plot {
+  position: relative;
+  touch-action: pan-y;
+  cursor: crosshair;
+  border-radius: var(--sp-radius-sm, 7px);
+}
+.cc-plot:focus-visible {
+  outline: 2px solid var(--sp-blue, #2457ce);
+  outline-offset: 3px;
+}
+
+.cc-guide {
+  position: absolute;
+  top: -2px;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: rgba(36, 87, 206, 0.3);
+  pointer-events: none;
+  transition: left 0.14s var(--sp-ease-io, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+/* Round, because it is HTML rather than a circle inside a stretched
+   viewBox. The translate centres it on the point it marks. */
+.cc-marker {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: #2457ce;
+  box-shadow: 0 0 0 2px #fff;
+  pointer-events: none;
+  transition: left 0.14s var(--sp-ease-io, cubic-bezier(0.4, 0, 0.2, 1)),
+              top 0.14s var(--sp-ease-io, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-guide, .cc-marker { transition: none; }
+}
+
+/* The readout replaces the old static note. Tabular figures, so the
+   number does not shift the date sideways as it changes. */
+.cc-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 9px 0 0;
+  font-size: 12px;
+  color: #5c6d81;
+}
+.cc-readout b {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink, #0b1020);
+  font-variant-numeric: tabular-nums;
+}
+.cc-readout span {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 /* ── Localities ────────────────────────────────────────────────── */
 .cc-zones ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }

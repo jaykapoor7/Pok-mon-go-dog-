@@ -18,8 +18,8 @@ html .sp .sp-nav-panel { background:#ffffff;border-color:#dce4ee;box-shadow:0 14
 html .sp .sp-nav .sp-nav-item b,html .sp .sp-nav .sp-nav-lead b { color:#122d55; }
 html .sp .sp-nav .sp-nav-item span,html .sp .sp-nav .sp-nav-lead span { color:#5c6d81; }
 html .sp .sp-nav .sp-nav-item:hover,html .sp .sp-nav .sp-nav-lead:hover { background:#edf3fc; }
-html .sp .sp-header-code { border:0;color:#50617b;font-size:12px;padding:10px 4px; }
-html .sp .sp-header-cta { background:#2457ce;color:#ffffff;border-radius:4px;min-height:42px;padding:12px 17px; }
+html .sp .sp-header-code { border:0;background:var(--ctl-tint);color:#1f4bb8;font-size:var(--ctl-fs-sm);padding:var(--ctl-pad-sm);min-height:var(--ctl-h);border-radius:var(--ctl-r); }
+html .sp .sp-header-cta { background:#2457ce;color:#ffffff;border-radius:var(--ctl-r);min-height:var(--ctl-h);padding:var(--ctl-pad); }
 html .sp .sp-menu-btn { color:#2457ce; }
 html .sp .sp-header-actions { margin-left:0;gap:20px; }
 html .sp .sp-display { font-family:var(--font-sans),sans-serif;font-weight:600;letter-spacing:-.055em;line-height:1.1; }
@@ -45,13 +45,13 @@ html .spa .spa-tour,html .spa .spa-exit {border-radius:5px;min-height:36px; }
 html .spa .spa-body { grid-template-columns:220px minmax(0,1fr); }
 html .spa .spa-side {padding:22px 13px; }
 html .spa .spa-side-label {font-family:var(--font-sans),sans-serif;font-size:10px;font-weight:650;letter-spacing:.1em;margin-top:16px; }
-html .spa .spa-side a { font-size:13px;min-height:42px;padding:11px 13px;border-radius:5px;gap:11px; }
+html .spa .spa-side a { font-size:13px;min-height:var(--ctl-h);padding:0 13px;border-radius:var(--ctl-r-row);gap:11px; }
 html .spa .spa-side a.active {box-shadow:none; }
 html .spa .spa-main:not(.flush) {padding:34px 38px 60px; }
 html .spa .spa-head h1 { font-family:var(--font-sans),sans-serif;font-weight:600;font-size:34px;letter-spacing:-.045em;line-height:1.12;margin-top:8px; }
 html .spa .spa-head h1 em {font-style:normal; }
 html .spa .spa-mono { font-size:10px;letter-spacing:.07em; }
-html .spa .spa-cta {border-radius:5px;min-height:44px; }
+html .spa .spa-cta {border-radius:var(--ctl-r);min-height:var(--ctl-h); }
 html .spa .spa-kpis {border:0;gap:0;margin:26px 0; }
 html .spa .spa-kpi {padding:20px 22px; }
 html .spa .spa-kpi:last-child { border-right:0; }
@@ -81,7 +81,7 @@ html .spa .pgm-value { font-family:var(--font-sans),sans-serif;font-weight:600;l
 html .spa .pgm-block h2 { font-family:var(--font-sans),sans-serif;font-weight:600; }
 html .spa .partner-overview .partner-greeting {padding:28px;border-radius:7px;align-items:center; }
 html .spa .partner-greeting h1 {font-size:32px;letter-spacing:-.045em; }
-html .spa .partner-greeting>a {padding:12px 17px;border-radius:4px; }
+html .spa .partner-greeting>a {padding:var(--ctl-pad);min-height:var(--ctl-h);border-radius:var(--ctl-r); }
 html .spa .partner-metrics { padding:24px 0; }
 html .spa .partner-overview section>div:first-child h2 { font-size:18px;letter-spacing:-.03em; }
 html .spa .med-ledger-filters button { min-height:38px; }

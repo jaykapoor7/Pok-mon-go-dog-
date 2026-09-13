@@ -127,3 +127,67 @@
   --sp-section: clamp(56px, 8vw, 118px);
   --sp-measure: 62ch;  /* running text, kept readable */
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   CONTROLS.
+
+   A measurement, before the values: across fifteen routes the site drew
+   107 controls using TEN different corner radii (0, 3, 4, 5, 6, 7, 8, 10,
+   999 and 9999px) and fifteen different heights. Nobody chose that. It is
+   what happens when each screen gets its own button rule, and it is the
+   reason the interface reads as assembled rather than designed — a
+   difference the eye registers long before it can name it.
+
+   So: one geometry, three sizes, and nothing else.
+
+   CAPSULE. Every control is fully rounded. This is the single decision
+   that does the most work, because a capsule is unambiguous at any size —
+   a 5px radius on a 44px button is a rectangle with the corners filed
+   off, and it reads as one. The exceptions are containers that happen to
+   be clickable (cards, list rows, map tiles); those keep --sp-radius,
+   because a capsule card is a lozenge.
+
+   THREE HEIGHTS, and 44px is the middle one rather than the largest,
+   since that is the accepted floor for a touch target and most of this
+   product is used one-handed on a phone in the street.
+
+   PRESS. One response, everywhere: the control shrinks slightly and
+   dims, fast, on a symmetric ease because it has to reverse cleanly when
+   a thumb slides off. 0.96 is deliberate — at 0.98 the feedback is
+   invisible on a phone, and below 0.94 a wide button looks like it
+   buckled. --sp-fast (160ms) is the arrival; the press itself is quicker
+   than that, because a control should never feel like it lags a finger.
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --ctl-r: 980px;          /* capsule: any value past half the height */
+  --ctl-h-sm: 36px;        /* dense rows, chips, secondary controls   */
+  --ctl-h: 44px;           /* the default, and the touch-target floor */
+  --ctl-h-lg: 52px;        /* one primary action owning its own line  */
+
+  /* Two shapes, and the difference is what the thing IS. An object you
+     press is a capsule. A ROW you select — a sidebar entry, a list item —
+     is a rounded rectangle, because it is a region of a list rather than
+     a free-standing object, and a capsule row reads as a lozenge floating
+     in a column. This is the only other radius a control may use. */
+  --ctl-r-row: 10px;
+
+  --ctl-pad-sm: 0 15px;
+  --ctl-pad: 0 20px;
+  --ctl-pad-lg: 0 26px;
+
+  --ctl-fs-sm: 13px;
+  --ctl-fs: 14px;
+  --ctl-fs-lg: 15px;
+  --ctl-fw: 600;
+
+  --ctl-press: scale(0.96);
+  --ctl-press-t: transform 0.12s var(--sp-ease-io), background 0.18s var(--sp-ease-io),
+                 border-color 0.18s var(--sp-ease-io), opacity 0.12s var(--sp-ease-io);
+
+  /* The secondary fill. Apple's secondary button is not a white box with
+     a grey outline — it is the accent at low alpha carrying the accent as
+     its label, which keeps it legibly part of the same family as the
+     primary instead of reading as a disabled sibling. */
+  --ctl-tint: rgba(36, 87, 206, 0.10);
+  --ctl-tint-hover: rgba(36, 87, 206, 0.16);
+}

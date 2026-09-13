@@ -99,13 +99,17 @@
     @apply bg-white/75 backdrop-blur-2xl border border-black/[0.06];
   }
 
-  /* Sharp geometry, flat surfaces, the console language. Radius stays in the
-     2–6px band so these primitives sit beside AppShell panels without a
-     visible seam. */
+  /* These primitives now follow the one control geometry defined in
+     tokens.css: a capsule, a fixed height, one press response. The note
+     that used to sit here argued for a 2–6px radius band so buttons would
+     sit flush against console panels — but a panel is a surface and a
+     button is an object on it, and giving them the same corner was the
+     reason neither read as itself. The panels keep their small radius; the
+     controls became capsules. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded font-semibold
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold
            tracking-tight transition-[transform,background-color,box-shadow,border-color]
-           duration-150 ease-out active:scale-[0.97] disabled:opacity-40
+           duration-150 ease-out active:scale-[0.96] disabled:opacity-40
            disabled:pointer-events-none select-none
            focus-visible:outline-none focus-visible:ring-2
            focus-visible:ring-paw-400/40 focus-visible:ring-offset-0;
@@ -117,9 +121,11 @@
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-bark-800 border border-black/[0.12]
-           hover:border-black/25 hover:bg-bark-900/[0.03];
+    @apply btn border-0 font-semibold;
+    background: var(--ctl-tint);
+    color: #1f4bb8;
   }
+  .btn-ghost:hover { background: var(--ctl-tint-hover); }
 
   .chip {
     @apply inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium

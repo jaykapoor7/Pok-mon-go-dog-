@@ -1,3 +1,6 @@
+"use client";
+
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { Dog, Sighting } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -103,7 +106,28 @@ export function ReportsOverTime({ sightings }: { sightings: Sighting[] }) {
   );
 }
 
-/* The same twelve-week shape, for anything with a date on it. */
+/* The same twelve-week shape, for anything with a date on it — and the
+   one chart on the site you can actually interrogate.
+
+   A sparkline answers "is it going up?". The question somebody running
+   field work actually has is "what happened in the week of the 12th?",
+   and a static shape cannot answer it. So this one carries a cursor:
+   move along it and the readout names the week, its date range and its
+   count. It opens on the most recent week rather than blank, because the
+   first frame should already show the value most people came for.
+
+   TIME IS QUANTISED TO THE UTC DAY, deliberately. This component renders
+   on the server and again when it hydrates, and a raw Date.now() taken
+   milliseconds apart can land either side of a week boundary — which
+   silently produces a different set of buckets on the client than the
+   markup the server sent, and React then has to patch a chart that looked
+   correct. Flooring to the day makes both passes agree.
+
+   The marker and the guideline are HTML, not SVG. The plot uses
+   preserveAspectRatio="none" so the path stretches to whatever width it
+   is given, which is right for a line and wrong for a circle — an SVG dot
+   in here renders as an ellipse, wider the wider the panel. Positioning
+   them as absolutely-placed HTML in percentages keeps the dot round. */
 export function WeeklyTrend({
   dates,
   title,
@@ -116,51 +140,114 @@ export function WeeklyTrend({
   empty: string;
 }) {
   const WEEKS = 12;
-  const now = Date.now();
-  const week = 7 * 24 * 60 * 60 * 1000;
+  const DAY = 24 * 60 * 60 * 1000;
+  const week = 7 * DAY;
 
-  const buckets = Array.from({ length: WEEKS }, () => 0);
-  for (const d of dates) {
-    const t = d ? Date.parse(d) : NaN;
-    if (Number.isNaN(t)) continue;
-    const back = Math.floor((now - t) / week);
-    if (back >= 0 && back < WEEKS) buckets[WEEKS - 1 - back] += 1;
-  }
+  const { buckets, peak, spans, total } = useMemo(() => {
+    const now = Math.floor(Date.now() / DAY) * DAY;
+    const b = Array.from({ length: WEEKS }, () => 0);
+    for (const d of dates) {
+      const t = d ? Date.parse(d) : NaN;
+      if (Number.isNaN(t)) continue;
+      const back = Math.floor((now - t) / week);
+      if (back >= 0 && back < WEEKS) b[WEEKS - 1 - back] += 1;
+    }
+    /* Explicit UTC, for the same reason the origin is floored: the server
+       formats in UTC and the reader's browser would otherwise format in
+       its own zone, and the two labels would disagree. */
+    const fmt = (ms: number) =>
+      new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+    const sp = b.map((_, i) => {
+      const endMs = now - (WEEKS - 1 - i) * week;
+      return `${fmt(endMs - week)} – ${fmt(endMs - DAY)}`;
+    });
+    return { buckets: b, peak: Math.max(1, ...b), spans: sp, total: b.reduce((x, y) => x + y, 0) };
+  }, [dates, DAY, week]);
 
-  const peak = Math.max(1, ...buckets);
   const W = 300;
   const H = 64;
-  /* The last point carries a 4.5px marker, so the plot stops short of
-     the viewBox edge — otherwise half the dot is clipped off, which on
-     a phone is exactly the value a reader came for. */
   const PAD = 6;
   const plotW = W - PAD;
   const step = plotW / (WEEKS - 1);
   const pointY = (v: number) => H - (v / peak) * (H - 8) - 3;
   const line = buckets.map((v, i) => `${i * step},${pointY(v)}`).join(" ");
   const area = `0,${H} ${line} ${plotW},${H}`;
-  const totalReports = buckets.reduce((a, b) => a + b, 0);
+
+  /* The cursor rests on the latest week. null is never a state here —
+     "nothing selected" would mean the readout has to empty itself, and a
+     panel that goes blank when your finger leaves it reads as broken. */
+  const [at, setAt] = useState(WEEKS - 1);
+  const plot = useRef<HTMLDivElement>(null);
+
+  const pick = useCallback((clientX: number) => {
+    const el = plot.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0) return;
+    const ratio = (clientX - r.left) / r.width;
+    const i = Math.round(ratio * (WEEKS - 1));
+    setAt(Math.min(WEEKS - 1, Math.max(0, i)));
+  }, []);
+
+  const onKey = (e: React.KeyboardEvent) => {
+    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (d) {
+      e.preventDefault();
+      setAt((v) => Math.min(WEEKS - 1, Math.max(0, v + d)));
+      return;
+    }
+    if (e.key === "Home") { e.preventDefault(); setAt(0); }
+    if (e.key === "End") { e.preventDefault(); setAt(WEEKS - 1); }
+  };
+
+  /* Percentages, so the overlay tracks the stretched plot exactly. */
+  const leftPct = (at * step / W) * 100;
+  const topPct = (pointY(buckets[at]) / H) * 100;
+  const count = buckets[at];
 
   return (
     <figure className="cc cc-time">
       <figcaption>
         <b>{title}</b>
-        <span>{totalReports === 0 ? "Nothing yet" : `${totalReports} ${noun}`}</span>
+        <span>{total === 0 ? "Nothing yet" : `${total} ${noun}`}</span>
       </figcaption>
 
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="cc-spark" role="img"
-        aria-label={`${title}, by week, peaking at ${peak}`}>
-        {/* Recessive baseline, not a grid. */}
-        <line x1="0" y1={H - 1} x2={W} y2={H - 1} className="cc-axis" />
-        <polygon points={area} className="cc-area" />
-        <polyline points={line} className="cc-line" />
-        {/* The last point is the one a reader is looking for, so it is
-            the only marker. ≥8px per the mark spec. */}
-        <circle cx={plotW} cy={pointY(buckets[WEEKS - 1])} r="4.5" className="cc-dot" />
-      </svg>
+      <div
+        ref={plot}
+        className="cc-plot"
+        role="slider"
+        tabIndex={0}
+        aria-label={`${title}, by week. Move to read a week.`}
+        aria-valuemin={0}
+        aria-valuemax={WEEKS - 1}
+        aria-valuenow={at}
+        aria-valuetext={`${spans[at]}: ${count} ${count === 1 ? noun.replace(/s$/, "") : noun}`}
+        onKeyDown={onKey}
+        onPointerMove={(e) => pick(e.clientX)}
+        onPointerDown={(e) => pick(e.clientX)}
+        onPointerLeave={() => setAt(WEEKS - 1)}
+      >
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="cc-spark" aria-hidden>
+          <line x1="0" y1={H - 1} x2={W} y2={H - 1} className="cc-axis" />
+          <polygon points={area} className="cc-area" />
+          <polyline points={line} className="cc-line" />
+        </svg>
 
-      <p className="cc-note">
-        {totalReports === 0 ? empty : `${buckets[WEEKS - 1]} in the last seven days.`}
+        <span className="cc-guide" style={{ left: `${leftPct}%` }} aria-hidden />
+        <span className="cc-marker" style={{ left: `${leftPct}%`, top: `${topPct}%` }} aria-hidden />
+      </div>
+
+      {/* One live region, so a screen reader hears the week change rather
+          than being read the whole chart again. */}
+      <p className="cc-readout" aria-live="polite">
+        {total === 0 ? (
+          empty
+        ) : (
+          <>
+            <b>{count}</b> {count === 1 ? noun.replace(/s$/, "") : noun}
+            <span>{spans[at]}</span>
+          </>
+        )}
       </p>
     </figure>
   );

@@ -272,7 +272,7 @@ function SignInSheet({ onClose }: { onClose: () => void }) {
         aria-labelledby="signin-title"
       >
         <div className="mb-4 flex items-center justify-between">
-          <span className="flex h-11 w-11 items-center justify-center rounded bg-paw-100 text-paw-600">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-paw-100 text-paw-600">
             <KeyRound className="h-5 w-5" />
           </span>
           <button onClick={onClose} className="rounded-full p-1 text-bark-400 hover:bg-bark-100" aria-label="Close">

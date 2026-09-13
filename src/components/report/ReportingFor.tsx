@@ -87,7 +87,7 @@ export function ReportingFor({
             clearVolunteer();
             onChange(null);
           }}
-          className="shrink-0 rounded px-2 py-2 text-xs font-semibold text-bark-500 hover:text-bark-800 dark:hover:text-bark-100"
+          className="shrink-0 rounded-full px-3 py-2 text-xs font-semibold text-bark-500 hover:bg-black/[0.05] hover:text-bark-800 dark:hover:text-bark-100"
         >
           Switch
         </button>
@@ -97,15 +97,21 @@ export function ReportingFor({
 
   if (!opening) {
     return (
-      <div className="flex flex-wrap items-center gap-2 rounded border border-bark-200 px-3.5 py-3 dark:border-white/10">
-        <User className="h-4 w-4 shrink-0 text-bark-400" />
-        <p className="min-w-0 flex-1 text-[13px] text-bark-500">
-          Reporting as a member of the public. No account needed.
-        </p>
+      /* Stacks on a phone. `flex-wrap` alone did not do it: the paragraph
+         is flex-1 and the button is shrink-0, so at 390px the text kept the
+         line and squeezed itself into a four-word column rather than
+         letting the button drop. Stacking until `sm` is the honest fix. */
+      <div className="flex flex-col items-start gap-2.5 rounded border border-bark-200 px-3.5 py-3 sm:flex-row sm:items-center sm:gap-2 dark:border-white/10">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <User className="h-4 w-4 shrink-0 text-bark-400" />
+          <p className="min-w-0 text-[13px] text-bark-500">
+            Reporting as a member of the public. No account needed.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setOpening(true)}
-          className="shrink-0 rounded border border-bark-200 px-3 py-2 text-xs font-semibold hover:border-paw-300 dark:border-white/10"
+          className="shrink-0 rounded-full border border-bark-200 px-4 py-2 text-xs font-semibold hover:border-paw-300 dark:border-white/10"
         >
           Reporting for an NGO?
         </button>
@@ -130,7 +136,7 @@ export function ReportingFor({
             setOrgName(null);
           }}
           aria-label="Close"
-          className="rounded p-2 text-bark-400 hover:text-bark-700"
+          className="rounded-full p-2 text-bark-400 hover:bg-black/[0.05] hover:text-bark-700"
         >
           <X className="h-4 w-4" />
         </button>
@@ -202,7 +208,7 @@ export function ReportingFor({
             onClick={confirm}
             disabled={name.trim().length < 2}
             className={cn(
-              "min-h-[46px] w-full rounded bg-paw-500 text-sm font-semibold text-white",
+              "min-h-[46px] w-full rounded-full bg-paw-500 text-sm font-semibold text-white",
               name.trim().length < 2 && "opacity-40"
             )}
           >

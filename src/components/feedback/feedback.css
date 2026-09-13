@@ -42,10 +42,10 @@
   align-items: center;
   gap: 9px;
   width: 100%;
-  min-height: 40px;
-  padding: 9px 11px;
+  min-height: var(--ctl-h, 44px);
+  padding: 0 15px;
   border: 1px solid var(--fb-line);
-  border-radius: 8px;
+  border-radius: var(--ctl-r, 980px);
   background: #fff;
   color: var(--fb-muted);
   font-size: 13px;
@@ -56,7 +56,7 @@
 }
 .fb-open-quiet:hover { border-color: var(--fb-blue); color: var(--fb-blue); }
 /* Press and spring. It compresses under the finger and comes back. */
-.fb-open-quiet:active { transform: scale(0.975); }
+.fb-open-quiet:active { transform: var(--ctl-press, scale(0.96)); }
 
 /* ── The dialog ────────────────────────────────────────────────── */
 

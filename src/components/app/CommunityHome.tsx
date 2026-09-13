@@ -278,15 +278,22 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
         </section>
       </div>
 
-      {/* The console's side rail is hidden on a phone, and a phone is where
-          most of this gets used. The way to say something is wrong should
-          not be desktop-only. */}
+      {/* The console's side rail is hidden on a phone, and a phone is
+          where most of this gets used, so the way to report a problem
+          cannot be desktop-only.
+
+          The copy here used to explain who builds StrayPaw and invite
+          corrections on that basis. Whatever is true about the size of a
+          team is not the user's business and does not belong in product
+          copy: it asks them to lower their expectations at the exact
+          moment they have hit a problem. The tone across the product is
+          an organisation's, not a person's. */}
       <div className="community-feedback">
         <p>
-          <b>Something not working, or missing?</b> This is built by one
-          person and the useful corrections all come from people using it.
+          <b>Something not working, or missing?</b> Report it and we will
+          look into it.
         </p>
-        <FeedbackButton label="Tell us what to fix" />
+        <FeedbackButton label="Send feedback" />
       </div>
     </div>
   );
