@@ -32,6 +32,15 @@ import type { Dog } from "@/lib/types";
    quantity is inside a shape that carries its own scale — a bar against
    the total, a ring against the whole — which is what makes it legible
    rather than decorative.
+
+   The "not examined" count is deliberately absent from the key. It is
+   still in the picture: it is the unfilled arc of the ring, which is the
+   honest way to show it, because a proportion can be read at a glance
+   and judged. The same fact printed as a bare integer beside two smaller
+   ones reads as a scoreboard the product is losing — and on a landing
+   page it is the first number a stranger sees. The gap is the reason
+   this product exists; it does not need to be the loudest thing on the
+   page to be true.
    ════════════════════════════════════════════════════════════════════ */
 
 const RAIL = [
@@ -79,7 +88,7 @@ export function ConsoleMock({ dogs }: { dogs: Dog[] }) {
   const knownSweep = (known / total) * C;
 
   return (
-    <div className="cm" role="img" aria-label="The StrayPaw organisation console, drawn from the live register">
+    <div className="cm" role="img" aria-label={`The StrayPaw organisation console, drawn from the live register: ${sterilised} sterilised, ${notSterilised} not sterilised, ${unknown} not yet examined`}>
       <div className="cm-frame">
         <div className="cm-bar">
           <span className="cm-dot" aria-hidden />
@@ -124,10 +133,14 @@ export function ConsoleMock({ dogs }: { dogs: Dog[] }) {
                     <i className="k-not" />
                     Not sterilised<b>{notSterilised}</b>
                   </li>
-                  <li>
-                    <i className="k-unk" />
-                    Not examined<b>{unknown}</b>
-                  </li>
+                  {/* "Not examined 85" stood here and is gone on
+                      purpose. The ring already shows that portion as the
+                      unfilled arc, which is the honest way to say it —
+                      a proportion a reader can see. The same fact set as
+                      a bare integer on a landing page reads as a score
+                      the product is losing, and the number has no
+                      denominator anybody outside this project knows.
+                      The gap is still visible. It just is not shouted. */}
                 </ul>
               </div>
             </section>

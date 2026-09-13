@@ -108,8 +108,11 @@ export function LiveTally({ initial }: { initial: number }) {
         <span className="sr-only">{initial} animals on the record</span>
       </p>
       <p className="hero-tally-label">
+        {/* "and counting. Every one of them reported by somebody." sat
+            here. The figure is proof; the sentence under it was prose,
+            and the hero is deliberately down to a photograph, a line and
+            two ways in. Three words is a label, not body copy. */}
         animals on the record
-        <span>and counting. Every one of them reported by somebody.</span>
       </p>
     </div>
   );

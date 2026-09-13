@@ -24,6 +24,14 @@ import type { Dog } from "@/lib/types";
    count underneath is read from the database rather than typed in, so it
    cannot drift away from what is true.
 
+   NO BODY COPY. A paragraph stood under the headline explaining who
+   would read the record afterwards — the woman who feeds her, the
+   stranger who finds her limping, the vaccination round. It was true and
+   it was four lines of prose in the one place on the site where nobody
+   is reading yet. A hero is a photograph, a sentence and a way in; the
+   explaining belongs to the sections below it, which is where it now
+   lives. The short "no sign-up" line went with it for the same reason.
+
    THE HEADLINE. The first line has been right for a while: on any Indian
    street the dogs are already known, individually, by the tea stall, the
    woman who feeds at seven, the guard on the gate. Nobody argues with it.
@@ -69,13 +77,6 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
               after "can" at every width instead. */}
           <em>Just nobody who can&nbsp;help&nbsp;her.</em>
         </h1>
-        <p>
-          A photograph and a street corner are enough to open a record.
-          From then on the woman who feeds her, the stranger who finds her
-          limping in March, and the team running the vaccination round are
-          reading the same page — instead of each starting from nothing.
-        </p>
-
         <div className="product-hero-actions">
           <Link href="/report" className="field-button">
             Report a sighting <ArrowUpRight size={19} />
@@ -84,10 +85,6 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
             See the live map <ArrowUpRight size={17} />
           </Link>
         </div>
-        <p className="product-hero-note">
-          No sign-up, no app to install. It works on the phone already in your hand.
-        </p>
-
         <LiveTally initial={total} />
       </div>
 
