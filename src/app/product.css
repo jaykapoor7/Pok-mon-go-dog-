@@ -507,3 +507,50 @@ html .spa.spa .cc {
     background-attachment: scroll;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   The way out of the report flow.
+
+   /report deliberately hides the side nav, the search and the top-right
+   controls so the form is the only thing on screen. The cost was that it
+   had no exit: on a phone the only way back was a gesture not everybody
+   knows, and on a laptop a browser control nobody looks for once a page
+   feels like an app.
+
+   It spans the whole workspace and sits above both columns, so it reads
+   as "leave this screen" rather than as one more form control. 40px tall
+   on any pointer — it is the control somebody reaches for when they are
+   lost, which is the worst moment to make a target hard to hit.
+   ════════════════════════════════════════════════════════════════════ */
+.report-back {
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+}
+.report-back button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 13px 0 11px;
+  border: 1px solid var(--sp-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--sp-muted);
+  font: 600 13px var(--font-sans), system-ui, sans-serif;
+  cursor: pointer;
+  transition: border-color var(--sp-fast) ease, color var(--sp-fast) ease,
+    background var(--sp-fast) ease;
+}
+.report-back button:hover {
+  border-color: var(--sp-blue);
+  color: var(--sp-blue);
+  background: #f6f8fd;
+}
+.report-back button svg { flex: none; }
+
+@media (max-width: 900px) {
+  /* First thing on the screen under the header, where a thumb already
+     expects a back control to be. */
+  .report-back { margin-bottom: 2px; }
+  .report-back button { padding-left: 10px; font-size: 12.5px; }
+}

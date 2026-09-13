@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -33,6 +34,7 @@ export default function ReportPage() {
   const reduceMotion = useReducedMotion();
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const router = useRouter();
   const [step, setStep] = useState(0); // 0..3
   const [photo, setPhoto] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -134,6 +136,20 @@ export default function ReportPage() {
   }
   function back() { setStep((s) => Math.max(0, s - 1)); }
 
+  /* One control, two jobs, which is how every phone already behaves: at
+     step one there is nothing to go back to inside the form, so back
+     means leave. History first, so it returns to whatever pushed you
+     here — the map, a dog's record, the console home — and /app only
+     when there is no history, which is what happens when somebody opens
+     a shared link cold. */
+  function leaveReport() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/app");
+  }
+
   async function submit() {
     if (!canSubmit || !coords) return;
     setStatus("submitting"); setError(null);
@@ -173,6 +189,27 @@ export default function ReportPage() {
 
   return (
     <div className="report-workspace">
+      {/* The way out.
+
+          /report hides the side nav, the search and the top-right
+          controls to keep the flow clear, which also meant it had no
+          exit at all: once you were in, the only way back was the
+          browser's own button — and on a phone that is a gesture not
+          everybody knows, on a laptop it is a control nobody looks for
+          inside an app. A screen you can be pushed into needs a door.
+
+          It is above the form rather than floating over it, so it keeps
+          its own line and cannot land on top of what you are reading.
+          It sits outside .report-form on purpose: the sticky action bar
+          at the bottom owns Next and Submit, and mixing "leave" into
+          that pair is how people cancel a form they meant to finish. */}
+      <div className="report-back">
+        <button type="button" onClick={step > 0 ? back : leaveReport}>
+          <ArrowLeft size={15} />
+          {step > 0 ? `Back to ${STEPS[step - 1]}` : "Back"}
+        </button>
+      </div>
+
       <aside className="report-aside">
         <span className="product-kicker">Add to the shared record</span>
         <h1>Report a sighting</h1>
