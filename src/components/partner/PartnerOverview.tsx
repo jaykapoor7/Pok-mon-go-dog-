@@ -136,6 +136,18 @@ export function PartnerOverview() {
         />
       </div>
 
+      <section className="partner-operating-intro" aria-label="Today's operating picture">
+        <div>
+          <span>Today&apos;s operating picture</span>
+          <h2>{!loaded || !user || loadError ? "Open the workspace to see the live queue." : m.urgent ? `${m.urgent} case${m.urgent === 1 ? "" : "s"} need${m.urgent === 1 ? "s" : ""} a decision.` : "The urgent queue is clear."}</h2>
+          <p>{!loaded || !user || loadError ? "Private records appear here for verified organisation members." : m.followDue ? `${m.followDue} follow-up${m.followDue === 1 ? " is" : "s are"} due in the next three days. Use the map to see where the work is concentrated.` : "Use the field map and case queue to direct the next round of work."}</p>
+        </div>
+        <div className="partner-operating-links">
+          <Link href="/partner/cases">Open case queue <ArrowUpRight size={16} /></Link>
+          <Link href="/partner/field">Plan field work <ArrowUpRight size={16} /></Link>
+        </div>
+      </section>
+
       {/* The strip above is five integers. Five integers are what an
           operations screen looks like before anybody has asked what the
           person reading it is trying to decide. These two say where the
