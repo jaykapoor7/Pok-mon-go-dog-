@@ -1,7 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
-import { dogLabel } from "@/lib/utils";
 import { LiveTally } from "./LiveTally";
 import type { Dog } from "@/lib/types";
 
@@ -15,14 +13,13 @@ import type { Dog } from "@/lib/types";
    product has sitting unused: photographs of actual street dogs, taken on
    actual streets, already in the database.
 
-   So the hero is the wall of them. Every tile is a real record. The one
-   that is promoted carries where, when, and who filed it. It used to
-   carry the two care statuses as well, both reading "Not checked",
-   because for most animals nobody has. That is true and it belongs on
-   the animal's own record, but as the first thing a visitor reads about
-   the first animal they see it was two blanks under a photograph. The
-   count underneath is read from the database rather than typed in, so it
-   cannot drift away from what is true.
+   So the hero is a photograph of one — Pinky, named, with her locality
+   under her. It used to carry her two care statuses as well, both
+   reading "Not checked", because for most animals nobody has. That is
+   true and it belongs on her own record, but as the first thing a
+   visitor reads about the first animal they meet it was two blanks under
+   a photograph. The count underneath is read from the database rather
+   than typed in, so it cannot drift away from what is true.
 
    NO BODY COPY. A paragraph stood under the headline explaining who
    would read the record afterwards — the woman who feeds her, the
@@ -47,17 +44,27 @@ import type { Dog } from "@/lib/types";
    what the software does rather than a sentiment about dogs.
 
    A visitor knows the product in two seconds, and the emotional work is
-   done by the twenty-two photographs sitting beside it, which is the
-   right division of labour: a wall of real street dogs argues better
-   than a sentence about them can.
+   done by the photograph beside it, which is the right division of
+   labour: one real street dog, looked at properly, argues better than a
+   sentence about her can.
    ════════════════════════════════════════════════════════════════════ */
 
-export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
-  const withPhoto = dogs.filter((d) => d.cover_photo && d.cover_photo.length > 0);
-  /* Pinky is the opening image by choice, not by the current ordering of a
-     database query. The rest of the wall is still drawn from live StrayPaw
-     records, but the hero starts with the dog Jay wants visitors to meet. */
-  const wall = withPhoto.slice(0, 8);
+/* `dogs` stays in the signature because the page still passes it and
+   the wall will come back further down the page; the hero itself no
+   longer reads it. */
+export function Hero({ total }: { dogs: Dog[]; total: number }) {
+  /* ONE PHOTOGRAPH, NOT NINE.
+
+     A grid of eight more dogs used to sit beside Pinky. Two things were
+     wrong with it. It turned the hero into a contact sheet, so no single
+     animal was the subject and the eye had nowhere to rest — and the
+     tiles were whatever eight rows the query happened to return, which
+     on a young register is a thin and arbitrary set.
+
+     One animal, named, with her locality under her, is the stronger
+     argument and the honest one: this is what a record looks like. The
+     wall of the rest belongs further down the page, where there is room
+     to say what it is. */
 
 
   return (
@@ -89,10 +96,10 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
               asset: if the page can load, Pinky can load. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/pinky-bengaluru.png?v=20260913"
+            src="/pinky-bengaluru.jpg"
             alt="Pinky, a community dog reported in Bengaluru, Karnataka"
-            width={786}
-            height={960}
+            width={1090}
+            height={1040}
             loading="eager"
             fetchPriority="high"
           />
@@ -103,21 +110,6 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
             <b>Pinky</b>
           </figcaption>
         </figure>
-
-        <ul className="hero-wall-grid">
-          {wall.map((dog) => (
-            <li key={dog.id}>
-              <Image
-                src={dog.cover_photo}
-                alt={`${dogLabel(dog)}, photographed on the street`}
-                width={220}
-                height={220}
-                sizes="12vw"
-              />
-              <span>{dog.zone || "On record"}</span>
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

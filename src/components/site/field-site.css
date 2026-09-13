@@ -1485,3 +1485,61 @@ html .sp.product-site .role-help-note {
   .hero-wall-grid li:nth-child(3) { grid-column: 3; grid-row: 3; }
   .hero-wall-grid li:nth-child(4) { grid-column: 4; grid-row: 3; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   THE HERO GROUND, AND THE SECTION RHYTHM.
+
+   The hero measured #f7f2ea — the lightest ground on the page, four
+   points from the section directly beneath it. So the most important
+   screen in the product had the least presence, and the fold had no
+   edge. It is the dark field now: the anchor, and the ground the
+   photograph and the orange action were always going to sit best on.
+
+   Every colour below comes from the section-ground tokens, and the type
+   colours come from the --sp-on-field set, so the hero and the console
+   section further down cannot drift apart — they are the same plate.
+
+   This block is last in the file on purpose: it is the authority on the
+   hero's colour, and several earlier rules in here set pieces of it from
+   two different design generations.
+   ════════════════════════════════════════════════════════════════════ */
+
+.product-hero-wall {
+  background: var(--sp-sec-field) !important;
+  color: var(--sp-on-field);
+}
+.product-hero-wall .field-eyebrow { color: var(--sp-on-field-dim); }
+html .product-hero-wall #hero-title { color: var(--sp-on-field); }
+html .product-hero-wall #hero-title em { color: var(--sp-on-field-accent); }
+
+/* One primary action, and on this ground it is the orange rather than
+   the blue: blue on ink is the one pairing in this palette that loses
+   its edge. The map link stays a text link — two filled buttons side by
+   side is two primary actions. */
+html .product-hero-wall .field-button {
+  background: var(--sp-flame);
+  color: var(--sp-ink);
+}
+html .product-hero-wall .field-button:hover { background: #ff7a5c; }
+html .product-hero-wall .field-text-link {
+  color: var(--sp-on-field);
+  border-bottom-color: rgba(244, 238, 229, 0.35);
+}
+.product-hero-wall .hero-tally,
+.product-hero-wall .sp-tally { color: var(--sp-on-field); }
+.product-hero-wall .hero-tally b,
+.product-hero-wall .sp-tally b { color: var(--sp-on-field); }
+.product-hero-wall .hero-tally span,
+.product-hero-wall .sp-tally span { color: var(--sp-on-field-dim); }
+
+/* The lead photograph. One tile, so it can be larger and squarer than a
+   contact-sheet cell, and the crop favours the animal over the pavement. */
+.hero-wall-lead { background: #0a1c38; border-color: rgba(143, 183, 255, 0.22); }
+.hero-wall-lead img { object-position: center 45%; }
+
+/* ── The rhythm below the fold ──────────────────────────────────────
+   Alternating, so no two neighbouring sections share a ground. */
+.wt { background: var(--sp-sec-paper) !important; }
+.cx { background: var(--sp-sec-field) !important; }
+.role-help { background: var(--sp-sec-paper-deep) !important; }
+.product-closing { background: var(--sp-sec-accent) !important; }

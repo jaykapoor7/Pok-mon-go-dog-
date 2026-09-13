@@ -242,3 +242,37 @@
   --sp-lift-sm: 0 1px 2px rgba(11, 30, 61, 0.05);
   --sp-lift: 0 1px 2px rgba(11, 30, 61, 0.04), 0 12px 34px rgba(11, 30, 61, 0.10);
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   SECTION GROUNDS — the landing page's rhythm.
+
+   Measured, the page ran: #f7f2ea hero, #ede5d9, #0b1e3d, #eae0d2,
+   #a8300f. Two problems with that. The hero — the most important screen
+   in the product — was the LIGHTEST thing on the page, and it sat four
+   points away from the section directly beneath it, so the two barely
+   separated and the fold had no edge.
+
+   The rhythm is explicit now and alternates, the way a set of maps in an
+   atlas alternates between the plate and the notes facing it:
+
+     1  HERO          ink      the field, and the anchor
+     2  the streets   bone     paper: where the argument is made
+     3  the console   ink      the second plate
+     4  the roles     shell    paper, one step down so it is not a repeat
+     5  the close     ember    the only saturated ground, used once
+
+   Two paper weights, one dark field used twice, one accent used once.
+   Nothing here is a gradient: a ground is a colour.
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --sp-sec-field: var(--sp-ink);     /* 1 and 3 — the dark plates    */
+  --sp-sec-paper: var(--sp-bone);    /* 2 — the lighter paper        */
+  --sp-sec-paper-deep: var(--sp-shell); /* 4 — one step down         */
+  --sp-sec-accent: var(--sp-ember);  /* 5 — used once, at the close  */
+
+  /* Type on the dark plates. Set here rather than per-section so the
+     hero and the console section cannot drift apart. */
+  --sp-on-field: #f4eee5;            /* headings and body on ink     */
+  --sp-on-field-dim: #b9c7dd;        /* secondary on ink             */
+  --sp-on-field-accent: var(--sp-flame); /* the orange that works on ink */
+}
