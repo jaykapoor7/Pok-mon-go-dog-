@@ -70,6 +70,7 @@ export function DirectoryClient({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by name, city or state"
             aria-label="Search organisations"
+            style={{ minHeight: 44 }}
           />
           {q && (
             <button onClick={() => setQ("")} aria-label="Clear search">

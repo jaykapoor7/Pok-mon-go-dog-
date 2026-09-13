@@ -35,7 +35,15 @@ function authorized(req: Request): boolean {
   const key = new URL(req.url).searchParams.get("key")?.trim();
   if (cronSecret && bearer === cronSecret) return true;
   if (adminSecret && (bearer === adminSecret || key === adminSecret)) return true;
-  return !cronSecret && !adminSecret;
+  /* Fails CLOSED. This used to end `return !cronSecret && !adminSecret`,
+     which meant that on any deployment where neither secret happened to be
+     set, the endpoint was callable by anybody. That is the wrong default
+     for a route that fetches external pages and then writes to the
+     database through the service role: the consequence of forgetting an
+     environment variable should be that a background job stops, not that a
+     stranger can drive it. If no secret is configured there is nothing to
+     authenticate against, so nothing is authorised. */
+  return false;
 }
 
 function meta(html: string, prop: string): string | null {

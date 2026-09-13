@@ -71,6 +71,12 @@ export function PartnerMap({ cases }: { cases: Case[] }) {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 top-14 lg:left-60 lg:top-16">
+      {/* The map fills the screen, so there is nowhere sensible to PUT a
+          heading — but a page with no h1 at all leaves a screen reader and
+          the document outline with nothing to announce it by. This is the
+          one case where a visually hidden heading is the right answer
+          rather than a shortcut. */}
+      <h1 className="sr-only">Map of cases and animals</h1>
       <MapCanvas dogs={markers} onSelect={(d) => setSel({ kind: layer, id: d.id })} />
 
       {/* filter bar */}

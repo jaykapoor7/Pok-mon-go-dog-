@@ -3,21 +3,34 @@
    The code itself is set large and widely tracked, because it gets
    compared character by character against a phone screen. */
 
+/* The card used to be #fff on a ground that also resolved to #fff — a
+   contrast ratio of 1.00, so the only thing separating the sign-in form
+   from the page was a hairline at 12% alpha. It read as text floating on
+   nothing. The ground is the warm shell now, which is what the rest of
+   the product stands on, and the card lifts off it.
+
+   `place-items: center` on a 100dvh grid was also pushing the card ~110px
+   down a phone screen with nothing above it. It starts near the top on a
+   phone and only centres when there is room to spare. */
 .join-wrap {
   min-height: 100dvh;
   display: grid;
-  place-items: center;
-  padding: 24px 18px 64px;
-  background: var(--paper, #f4f5f7);
+  place-items: start center;
+  padding: 20px 18px 56px;
+  background: var(--sp-shell, #f3ede4);
   color: var(--ink, #0b1020);
+}
+@media (min-height: 760px) {
+  .join-wrap { place-items: center; }
 }
 
 .join-card {
   width: 100%;
   max-width: 440px;
   background: #fff;
-  border: 1px solid rgba(11, 16, 32, 0.12);
-  border-radius: 8px;
+  border: 1px solid rgba(11, 16, 32, 0.10);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(11, 30, 61, 0.04), 0 12px 34px rgba(11, 30, 61, 0.10);
   padding: 30px 26px 24px;
 }
 
@@ -75,14 +88,18 @@
   width: 100%;
   min-height: 48px;
   padding: 11px 13px;
-  border: 1.5px solid rgba(11, 16, 32, 0.18);
-  border-radius: 6px;
-  background: #fff;
+  /* The field sits on a white card, so its edge has to carry the whole
+     job of saying "type here". At 18% alpha it did not. */
+  border: 1.5px solid rgba(11, 16, 32, 0.30);
+  border-radius: 10px;
+  background: var(--sp-paper, #fffdf9);
   color: var(--ink, #0b1020);
   font: inherit;
-  font-size: 15px;
+  font-size: 16px; /* 16px, so iOS does not zoom the page on focus */
   outline: none;
 }
+/* The placeholder was light enough to read as a disabled field. */
+.join-input::placeholder { color: #6b7789; opacity: 1; }
 .join-input:focus {
   border-color: var(--electric-ink, #476fb7);
   box-shadow: 0 0 0 3px rgba(71, 111, 183, 0.16);

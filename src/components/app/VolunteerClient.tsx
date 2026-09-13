@@ -81,6 +81,7 @@ export function VolunteerClient({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search organisation, city or state…"
             aria-label="Search organisations"
+            style={{ minHeight: 44 }}
             enterKeyHint="search"
             autoComplete="off"
           />

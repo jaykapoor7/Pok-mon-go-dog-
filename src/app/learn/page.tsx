@@ -137,9 +137,10 @@ export default function LearnPage() {
                       href={r.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 text-bark-300 hover:text-paw-500"
+                      aria-label={`Open the source: ${r.title}`}
+                      className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-bark-300 hover:bg-black/[0.05] hover:text-paw-500"
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      <ExternalLink className="h-4 w-4" aria-hidden />
                     </a>
                   )}
                 </div>

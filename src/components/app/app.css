@@ -1114,6 +1114,9 @@
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
+@media (pointer: coarse) {
+  .se-sort button { min-height: var(--ctl-h); }
+}
 .se-sort button:hover { color: var(--ink); }
 .se-sort button.active { background: var(--ink); color: var(--paper); }
 .se-sort button:active { transform: var(--ctl-press); }
@@ -1696,8 +1699,8 @@ a.dir-card:hover .dir-card-head svg { color: var(--electric); }
   display: none;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   margin-left: -8px;
   background: transparent;
   border: 0;
@@ -3512,8 +3515,8 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: var(--ctl-h-sm);
-  padding: 0 17px 0 13px;
+  min-height: var(--ctl-h);
+  padding: 0 18px 0 14px;
   border: 1px solid rgba(11, 16, 32, 0.14);
   border-radius: var(--ctl-r);
   background: #fff;
@@ -3895,6 +3898,37 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   /* A select is a control a thumb has to land on, and the browser's own
      height is under it. */
   select { min-height: 44px; }
+
+  /* ── The rest of the controls that were sitting just under the floor.
+
+     A sweep of every route at 390px found 475 undersized targets. Almost
+     none were badly wrong; the pattern was 40px and 43px — near enough to
+     look fine in a screenshot and far enough to be missed by a thumb on a
+     moving bus, which is where this app is actually used. Inline links
+     inside a sentence are deliberately left alone: padding a word out to
+     44px inside a paragraph wrecks the line spacing and helps nobody
+     (WCAG 2.5.8 exempts them for the same reason). */
+  .sp-footer-bottom a,
+  .sp-footer nav a,
+  .fb-open,
+  .backbtn,
+  .sp-menu-btn,
+  .spa-menu-btn,
+  .spa-side a,
+  .spa-tabs a,
+  .partner-tabs a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .sp-menu-btn, .spa-menu-btn { min-width: 44px; justify-content: center; }
+
+  /* The shared Button at its small size is 36px, which is right on a
+     desktop and two sizes too small under a thumb. */
+  .spa button.h-9, .spa a.h-9, button.h-9, a.h-9 { min-height: 44px; }
+
+  /* Map controls come from maplibre's own stylesheet at 29px. */
+  .maplibregl-ctrl button { min-width: 44px; min-height: 44px; }
 }
 
 /* The "show the rest" control on a route. Reads as a control rather than

@@ -116,8 +116,16 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
                 Your street, <em>on the record.</em>
               </>
             ) : place ? (
+              /* NOT "What is known in Delhi." Until somebody shares a
+                 location this falls back to densestCell() — the busiest
+                 cluster on the whole register — and naming that city in
+                 the headline presented another city's data as though it
+                 were the reader's own. Someone opening this in Chennai was
+                 told about Delhi with no indication why. The heading is
+                 now neutral and the fallback says what it is, in the line
+                 under it, next to the control that fixes it. */
               <>
-                What is known <em>in {place}.</em>
+                What is known <em>so far.</em>
               </>
             ) : (
               <>
@@ -129,7 +137,7 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
             {nearby
               ? `Every public record within about ${RADIUS_KM} km of you. Public pins are deliberately approximate.`
               : place
-                ? `The part of the map with the most records on it. Use your location to swap this for your own street.`
+                ? `You have not shared a location, so this is the busiest part of the record right now — ${place}. Use your location to see your own streets instead.`
                 : "Add the first record and this becomes a map of somewhere real."}
           </p>
         </div>

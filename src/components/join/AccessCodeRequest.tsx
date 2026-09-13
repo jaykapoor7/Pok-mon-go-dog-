@@ -42,7 +42,6 @@ export function AccessCodeRequest({ role }: { role: "individual" | "feeder" }) {
   return (
     <main className="join-wrap">
       <div className="join-card">
-        <Link className="join-back" href="/app?choose=1">Back to StrayPaw</Link>
         {sent && emailed ? (
           <>
             <span className="join-sent-mark" aria-hidden><MailCheck size={20} /></span>

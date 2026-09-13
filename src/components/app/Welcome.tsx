@@ -212,14 +212,23 @@ export function Welcome() {
   function pick(r: Role) {
     setRole(r);
     storeRole(r);
-    if (r === "ngo") {
-      finish("/partner");
-      return;
-    }
-    /* A role is a choice of workspace, not an account gate. Community
-       members and feeders should be able to see the small orientation and
-       get straight to the map or reporting. Keeping a personal code is an
-       optional follow-up when they want their history on another device. */
+    /* Every role gets its own orientation, the NGO one included.
+
+       This used to read `if (r === "ngo") { finish("/partner"); return; }`,
+       which meant the one role whose workspace actually needs explaining —
+       the console, the queue, the drives — was the only role dropped into
+       it cold. TOURS.ngo was written and then never reachable. Somebody
+       picking "I work at an organisation", or using Switch space to get
+       back here, landed on /partner having been told nothing.
+
+       Nothing else was missing: the last card already routes by
+       ROLE_META[role].home, which is /partner for this role, and it
+       already offers "Enter my code" alongside. Removing the early return
+       was the whole fix.
+
+       A role is a choice of workspace, not an account gate, so the tour
+       never blocks: every card can be skipped and the product is fully
+       usable behind it. */
     setStep(1);
   }
 

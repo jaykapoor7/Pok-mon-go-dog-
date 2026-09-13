@@ -130,7 +130,7 @@ export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="spa-profile">
       <div className="spa-profile-links out">
-        <Link href="/access" onClick={onNavigate} className="pp-signin">Get a code</Link>
+        <Link href="/access" onClick={onNavigate} className="pp-signin">Sign in</Link>
         <Link href="/join" onClick={onNavigate} className="pp-code">
           <KeyRound size={14} /> I have a code
         </Link>

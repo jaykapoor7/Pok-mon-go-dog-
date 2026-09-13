@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { exchangeToken } from "@/lib/auth-exchange";
 import { saveVolunteer } from "@/lib/volunteer";
@@ -137,11 +136,6 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
   return (
     <div className="join-wrap">
       <div className="join-card">
-        {/* Somebody who opened this by mistake, or wants to look at the site
-            first, needs a way out that is not the browser's back gesture. */}
-        <Link className="join-back" href="/">
-          <ArrowLeft size={15} /> Back to StrayPaw
-        </Link>
         <h1>Sign in with your code</h1>
         <p className="join-lede">
           Enter the email that received your StrayPaw code, then the six

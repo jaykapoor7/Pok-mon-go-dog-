@@ -291,8 +291,8 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   margin-right: -8px;
   background: transparent;
   border: 0;
@@ -2281,7 +2281,7 @@
   .sp-footer-bottom a {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    min-height: var(--ctl-h);
   }
   .sp-footer-bottom a { padding: 0 2px; }
   /* The wordmark is the way home; it should not be a 30px sliver. */

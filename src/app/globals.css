@@ -580,12 +580,21 @@ a.qa-card:active,
 
    The height is a floor rather than a size, so nothing that already
    clears it moves.
+
+   THE FLOOR IS 44px, not the 40 it used to be. 40 was a compromise that
+   looked fine in a screenshot and failed in the hand: a sweep of every
+   route at 390px found 475 undersized targets, and almost all of them
+   were sitting at exactly 40 or 43 because of the rules below. `button`
+   here out-ranks most per-component rules, so this number, not the
+   component, was setting the size of nearly every control on a phone.
+   It is --ctl-h now, so the floor and the control scale in tokens.css
+   cannot drift apart again.
    ════════════════════════════════════════════════════════════════════ */
 @media (pointer: coarse) {
   button:not(.skip-link),
   a.inline-flex,
   [role="button"] {
-    min-height: 40px;
+    min-height: var(--ctl-h);
   }
   /* A flex row that is now taller than its text needs its content
      centred in the new height rather than sitting at the top of it. */
@@ -599,7 +608,7 @@ a.qa-card:active,
   .sp-footer nav a {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    min-height: var(--ctl-h);
   }
 }
 
@@ -617,7 +626,7 @@ a.qa-card:active,
   .field-text-link {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    min-height: var(--ctl-h);
   }
 }
 
@@ -629,7 +638,7 @@ a.qa-card:active,
   a.hover\:text-paw-600 {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    min-height: var(--ctl-h);
   }
 }
 
