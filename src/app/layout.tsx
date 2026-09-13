@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, DM_Mono, Instrument_Serif } from "next/font/google";
 import "./tokens.css";
@@ -140,7 +141,28 @@ export default function RootLayout({
           <MotionRoot>
             <AuthProvider>
               <Haptics />
-              <Chrome>{children}</Chrome>
+              {/* The boundary is not decoration. Several screens call
+                  useSearchParams() — the map, the partner animal list,
+                  the new-case form — and a client component that reads
+                  it bails out of prerendering. Next requires that bail
+                  to happen inside a Suspense boundary, and without one
+                  it fails the build while prerendering /_not-found,
+                  which inherits this layout.
+
+                  It showed up as an INTERMITTENT failure: the same
+                  commit built green twice and red twice, depending on
+                  how the client chunks happened to be split. An
+                  intermittent build failure is worse than a reliable
+                  one — it passes locally and fails on a deploy nobody
+                  is watching. The boundary makes it deterministic.
+
+                  Fallback is null: these are whole page bodies, and a
+                  skeleton the size of a page flashing before the real
+                  one is worse than nothing appearing for the same
+                  handful of milliseconds. */}
+              <Suspense fallback={null}>
+                <Chrome>{children}</Chrome>
+              </Suspense>
               <InstallPrompt />
               <Toaster />
             </AuthProvider>

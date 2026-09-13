@@ -43,7 +43,7 @@ export default async function HomePage() {
       <main>
         <Hero dogs={showcase} total={total} />
         <WhereTheyAre dogs={mapDogs} />
-        <ConsoleShowcase dogs={mapDogs} />
+        <ConsoleShowcase />
         <section className="role-help" aria-labelledby="role-help-title">
           <div><span className="field-eyebrow">Four doors, one record</span><h2 id="role-help-title">You already have<br />a part in this.</h2><p className="role-help-note">Nobody has to become a different kind of person to use this. What you already do on your own street is the work.</p></div>
           <div className="role-help-links">

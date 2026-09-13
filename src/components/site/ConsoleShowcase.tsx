@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ConsoleMock } from "./ConsoleMock";
-import type { Dog } from "@/lib/types";
 import {
   ArrowUpRight,
   CalendarRange,
@@ -82,7 +81,7 @@ const STATIONS = [
   },
 ];
 
-export function ConsoleShowcase({ dogs }: { dogs: Dog[] }) {
+export function ConsoleShowcase() {
   return (
     <section className="cx" aria-labelledby="cx-title">
       {/* Drawn rather than photographed: a faint contour field, so the
@@ -100,10 +99,11 @@ export function ConsoleShowcase({ dogs }: { dogs: Dog[] }) {
             This is the workspace a partner organisation runs its streets
             from, and the route one animal takes through it — from a
             stranger&apos;s photograph to a road somebody can prove was covered.
+            The panel below is shown with sample data.
           </p>
         </header>
 
-        <ConsoleMock dogs={dogs} />
+        <ConsoleMock />
 
         <p className="cx-lede">
           One animal, through six screens.

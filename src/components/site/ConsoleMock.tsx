@@ -6,41 +6,35 @@ import {
   Stethoscope,
   Sun,
 } from "lucide-react";
-import { dogLabel } from "@/lib/utils";
-import { markerMetaFor } from "@/lib/marker-state";
-import type { Dog } from "@/lib/types";
 
 /* ════════════════════════════════════════════════════════════════════
-   The console, drawn.
+   The console, drawn — with sample data.
 
-   A rendering of the organisation workspace: the rail an NGO navigates,
-   the three panels it opens on, the coverage map and the queue of
-   animals waiting on a decision.
+   This panel is an illustration, and it is the only thing on the site
+   that is. Everything else — the map, the hero wall, the counts, the
+   feed — reads the live register and draws thin when the register is
+   thin, which is the rule this project runs on.
 
-   Everything inside it is read from the live register. The bars are the
-   real distribution of sterilisation status; the zone chart is the real
-   count per locality; the queue rows are real animals with their real
-   localities and their real marker colours. Nothing is typed in, which
-   is the only way a picture of a dashboard is allowed to exist on a page
-   that claims the product is honest — if the register is thin, this
-   draws thin, and that is the correct behaviour.
+   The exception is deliberate and narrow. This panel's job is to show
+   an organisation the SHAPE of the workspace: a rail, a coverage ring,
+   bars by locality, a queue of animals waiting on a decision. Wired to
+   a young register it drew "0 / 0 / no localities recorded yet", which
+   teaches a visiting NGO nothing about the software and quietly argues
+   against it. A showroom photographs the sofa in a furnished room; it
+   is not claiming you own the room.
 
-   No headline figure sits on its own. A number with no denominator is
-   the thing that made the last version of this section unreadable: a
-   visitor has no idea whether it is a large number or a small one, so it
-   communicates nothing and asks to be taken as a boast. Here every
-   quantity is inside a shape that carries its own scale — a bar against
-   the total, a ring against the whole — which is what makes it legible
-   rather than decorative.
+   WHAT KEEPS THAT HONEST IS THE LABEL. The frame used to say "Live
+   register". With invented rows behind it that would have stopped being
+   an illustration and become a false statement on the page. It says
+   "Sample workspace" now, and the section caption says the same. The
+   line never to cross is an invented number presented as a
+   measurement — so nothing here is cited anywhere, totalled into a
+   claim, or repeated as evidence.
 
-   The "not examined" count is deliberately absent from the key. It is
-   still in the picture: it is the unfilled arc of the ring, which is the
-   honest way to show it, because a proportion can be read at a glance
-   and judged. The same fact printed as a bare integer beside two smaller
-   ones reads as a scoreboard the product is losing — and on a landing
-   page it is the first number a stranger sees. The gap is the reason
-   this product exists; it does not need to be the loudest thing on the
-   page to be true.
+   The figures are sized like a real mid-size city NGO a year or two in,
+   not like a success story: 214 animals, roughly three-quarters
+   examined, and a backlog that is visibly not finished. Somebody
+   running field work should recognise their own week in it.
    ════════════════════════════════════════════════════════════════════ */
 
 const RAIL = [
@@ -52,48 +46,53 @@ const RAIL = [
   { label: "Coverage", Icon: MapIcon },
 ];
 
-export function ConsoleMock({ dogs }: { dogs: Dog[] }) {
-  const total = dogs.length || 1;
+/* Sample, and internally consistent: the care split sits inside TOTAL,
+   and the locality counts sum to a plausible share of it. */
+const TOTAL = 214;
+const STERILISED = 128;
+const NOT_STERILISED = 34;
 
-  /* The care-status split, exactly as the console's own filter groups it. */
-  const sterilised = dogs.filter((d) => d.sterilisation_status === "sterilised").length;
-  const notSterilised = dogs.filter((d) => d.sterilisation_status === "not_sterilised").length;
-  const unknown = total - sterilised - notSterilised;
+const ZONES: [string, number][] = [
+  ["Lajpat Nagar", 41],
+  ["Karol Bagh", 36],
+  ["Dwarka", 28],
+  ["Rohini", 24],
+  ["Saket", 19],
+  ["Najafgarh", 12],
+];
 
-  /* Coverage by locality: the six busiest, longest bar first. A field
-     team reads this to decide where the next drive goes. */
-  const byZone = Object.entries(
-    dogs.reduce<Record<string, number>>((acc, d) => {
-      const z = (d.zone || "").trim();
-      if (z) acc[z] = (acc[z] ?? 0) + 1;
-      return acc;
-    }, {})
-  )
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
-  const zoneMax = byZone[0]?.[1] ?? 1;
+/* Described the way the register actually labels an animal nobody has
+   named yet — a coat, a condition, a locality — rather than as invented
+   pets with invented names. */
+const QUEUE: { name: string; zone: string; urgent: boolean }[] = [
+  { name: "Brindle female, limping", zone: "Lajpat Nagar", urgent: true },
+  { name: "Tan male, torn ear", zone: "Karol Bagh", urgent: true },
+  { name: "Black and white, pups nearby", zone: "Dwarka", urgent: false },
+  { name: "Cream female", zone: "Rohini", urgent: false },
+];
 
-  /* The queue: flagged animals first, then the ones nobody has examined. */
-  const queue = [
-    ...dogs.filter((d) => d.needs_help),
-    ...dogs.filter(
-      (d) => !d.needs_help && (!d.sterilisation_status || d.sterilisation_status === "unknown")
-    ),
-  ].slice(0, 4);
+export function ConsoleMock() {
+  const zoneMax = ZONES[0][1];
 
-  /* The ring: one sweep, drawn with a dash offset rather than an arc
-     path, so the proportion is arithmetic instead of trigonometry. */
+  /* One sweep, drawn with a dash offset rather than an arc path, so the
+     proportion is arithmetic instead of trigonometry. */
   const C = 2 * Math.PI * 34;
-  const known = sterilised + notSterilised;
-  const knownSweep = (known / total) * C;
+  const known = STERILISED + NOT_STERILISED;
+  const knownSweep = (known / TOTAL) * C;
 
   return (
-    <div className="cm" role="img" aria-label={`The StrayPaw organisation console, drawn from the live register: ${sterilised} sterilised, ${notSterilised} not sterilised, ${unknown} not yet examined`}>
+    <div
+      className="cm"
+      role="img"
+      aria-label={`Sample view of the StrayPaw organisation console: ${STERILISED} sterilised and ${NOT_STERILISED} not sterilised out of ${TOTAL}, coverage by locality, and a queue of animals waiting on a decision. Example data, not a live register.`}
+    >
       <div className="cm-frame">
         <div className="cm-bar">
           <span className="cm-dot" aria-hidden />
           <b>Organisation console</b>
-          <span className="cm-chip">Live register</span>
+          {/* Says what it is. With invented rows behind it, "Live
+              register" would have been a claim rather than a picture. */}
+          <span className="cm-chip">Sample workspace</span>
         </div>
 
         <div className="cm-body">
@@ -127,20 +126,18 @@ export function ConsoleMock({ dogs }: { dogs: Dog[] }) {
                 <ul className="cm-key">
                   <li>
                     <i className="k-ster" />
-                    Sterilised<b>{sterilised}</b>
+                    Sterilised<b>{STERILISED}</b>
                   </li>
                   <li>
                     <i className="k-not" />
-                    Not sterilised<b>{notSterilised}</b>
+                    Not sterilised<b>{NOT_STERILISED}</b>
                   </li>
-                  {/* "Not examined 85" stood here and is gone on
-                      purpose. The ring already shows that portion as the
-                      unfilled arc, which is the honest way to say it —
-                      a proportion a reader can see. The same fact set as
-                      a bare integer on a landing page reads as a score
-                      the product is losing, and the number has no
-                      denominator anybody outside this project knows.
-                      The gap is still visible. It just is not shouted. */}
+                  {/* The remainder — the animals nobody has examined —
+                      is the unfilled arc of the ring, and is deliberately
+                      not printed as a figure. A proportion can be read
+                      and judged at a glance; the same fact as a bare
+                      integer beside two smaller ones reads as a
+                      scoreboard. */}
                 </ul>
               </div>
             </section>
@@ -152,7 +149,7 @@ export function ConsoleMock({ dogs }: { dogs: Dog[] }) {
                 <span>busiest localities</span>
               </header>
               <ul>
-                {byZone.map(([zone, n], i) => (
+                {ZONES.map(([zone, n], i) => (
                   <li key={zone} style={{ "--i": i } as React.CSSProperties}>
                     <span className="cm-zone-name">{zone}</span>
                     <span className="cm-track">
@@ -161,7 +158,6 @@ export function ConsoleMock({ dogs }: { dogs: Dog[] }) {
                     <span className="cm-zone-n">{n}</span>
                   </li>
                 ))}
-                {byZone.length === 0 && <li className="cm-thin">No localities recorded yet.</li>}
               </ul>
             </section>
 
@@ -172,17 +168,16 @@ export function ConsoleMock({ dogs }: { dogs: Dog[] }) {
                 <span>flagged first</span>
               </header>
               <ul>
-                {queue.map((d, i) => (
-                  <li key={d.id} style={{ "--i": i } as React.CSSProperties}>
-                    <i style={{ background: markerMetaFor(d).color }} aria-hidden />
-                    <span className="cm-q-name">{dogLabel(d)}</span>
-                    <span className="cm-q-zone">{d.zone || "Location on record"}</span>
-                    <span className={`cm-q-tag${d.needs_help ? " urgent" : ""}`}>
-                      {d.needs_help ? "Needs help" : "Not examined"}
+                {QUEUE.map(({ name, zone, urgent }, i) => (
+                  <li key={name} style={{ "--i": i } as React.CSSProperties}>
+                    <i style={{ background: urgent ? "#f05b40" : "#5f8ce0" }} aria-hidden />
+                    <span className="cm-q-name">{name}</span>
+                    <span className="cm-q-zone">{zone}</span>
+                    <span className={`cm-q-tag${urgent ? " urgent" : ""}`}>
+                      {urgent ? "Needs help" : "Not examined"}
                     </span>
                   </li>
                 ))}
-                {queue.length === 0 && <li className="cm-thin">Nothing open.</li>}
               </ul>
             </section>
           </div>
