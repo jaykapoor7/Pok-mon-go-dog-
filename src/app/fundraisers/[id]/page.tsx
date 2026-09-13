@@ -55,7 +55,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
 
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
         <span className="chip bg-paw-100 font-semibold text-paw-700">
-          {cat.emoji} {cat.label}
+          {cat.label}
         </span>
         {f.featured && (
           <span className="inline-flex items-center gap-1 rounded-full bg-paw-500 px-2.5 py-1 font-bold text-white">

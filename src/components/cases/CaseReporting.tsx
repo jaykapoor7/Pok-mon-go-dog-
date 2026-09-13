@@ -55,8 +55,7 @@ export function CaseReporting({ cases }: { cases: Case[] }) {
             {s.byCategory.map((c) => (
               <li key={c.category} className="flex items-center justify-between text-sm">
                 <span className="text-bark-600 dark:text-bark-300">
-                  {CASE_CATEGORY_META[c.category as keyof typeof CASE_CATEGORY_META]?.emoji}{" "}
-                  {CASE_CATEGORY_META[c.category as keyof typeof CASE_CATEGORY_META]?.label ?? c.category}
+                                    {CASE_CATEGORY_META[c.category as keyof typeof CASE_CATEGORY_META]?.label ?? c.category}
                 </span>
                 <span className="font-semibold">{c.count}</span>
               </li>

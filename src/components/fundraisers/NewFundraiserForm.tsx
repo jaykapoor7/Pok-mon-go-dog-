@@ -90,7 +90,7 @@ export function NewFundraiserForm() {
       </Link>
 
       <header className="mb-5">
-        <h1 className="font-display text-2xl sm:text-3xl">Start a fundraiser 💛</h1>
+        <h1 className="font-display text-2xl sm:text-3xl">Start a fundraiser</h1>
         <p className="text-sm text-bark-500">
           Donors give directly through your own link, StrayPaw just hosts the
           campaign and sends people your way.
@@ -139,7 +139,7 @@ export function NewFundraiserForm() {
                     : "border-bark-200 text-bark-600 dark:border-white/10 dark:text-bark-200"
                 )}
               >
-                {c.emoji} {c.label}
+                {c.label}
               </button>
             ))}
           </div>

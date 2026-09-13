@@ -128,7 +128,7 @@ export function EditSightingSheet({
                         : "border-bark-200 text-bark-600 dark:border-white/10 dark:text-bark-200"
                     )}
                   >
-                    {MOOD_META[m].emoji} {MOOD_META[m].label}
+                    {MOOD_META[m].label}
                   </button>
                 );
               })}

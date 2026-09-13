@@ -86,7 +86,7 @@ export default function InsightsPage() {
         <article className="rounded border border-black/[0.08] bg-paw-50 p-6 dark:border-white/[0.1] dark:bg-paw-900/15 lg:col-span-2">
           <div className="mb-3 flex items-center gap-2 text-paw-700 dark:text-paw-300"><Search className="h-4 w-4" /><span className="text-[11.5px] font-semibold uppercase tracking-widest">The biggest gap is data itself</span></div>
           <h2 className="font-display text-xl leading-snug tracking-tight">Most states are missing most metrics, including the one metric they were ordered to publish.</h2>
-          <p className="mt-2 text-sm text-bark-600 dark:text-bark-300">You can&apos;t manage what you can&apos;t measure. Closing these gaps, not adding another opinion about what should be done, is the highest-leverage thing this platform and its contributors can do.</p>
+          <p className="mt-2 text-sm text-bark-600 dark:text-bark-300">You can&apos;t manage what you can&apos;t measure. Closing these gaps matters more than adding another opinion about what should be done, and it is what this platform and its contributors are for.</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             {gaps.map(({ m, withData, total }) => <CoverageMeter key={m.id} withData={withData} total={total} label={m.short} />)}
           </div>

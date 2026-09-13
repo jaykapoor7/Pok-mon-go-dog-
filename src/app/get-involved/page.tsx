@@ -39,7 +39,7 @@ const ROUTES: {
   {
     id: "abc",
     title: "Sterilisation programme support",
-    body: "Assisting ABC drives: catching, holding, post-operative care and release. The single highest-leverage work in street-animal welfare.",
+    body: "Assisting ABC drives: catching, holding, post-operative care and release. The work that changes a street’s dog population, rather than one animal’s day.",
     focus: "ABC",
     commitment: "Scheduled camps",
   },

@@ -81,7 +81,7 @@ function NewsCard({ n }: { n: NewsItem }) {
     >
       <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
         <span className="chip bg-paw-100 font-semibold text-paw-700">
-          {cat.emoji} {cat.label}
+          {cat.label}
         </span>
         {n.source_name && <span className="text-bark-500">{n.source_name}</span>}
         {n.published_at && <span className="text-bark-400">· {formatDate(n.published_at)}</span>}

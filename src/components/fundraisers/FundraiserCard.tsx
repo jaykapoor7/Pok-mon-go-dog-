@@ -32,7 +32,7 @@ export function FundraiserCard({ f }: { f: Fundraiser }) {
       <div className="p-4">
         <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
           <span className="chip bg-paw-100 font-semibold text-paw-700">
-            {cat.emoji} {cat.label}
+            {cat.label}
           </span>
           {f.created_by_name && <span className="text-bark-500">{f.created_by_name}</span>}
         </div>

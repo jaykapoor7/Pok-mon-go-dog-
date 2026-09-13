@@ -7,7 +7,10 @@ import { cn } from "@/lib/utils";
  * `.chip` span.
  *
  * The colours stay in STATUS_META, because a dog's status colour is the same
- * value the map markers use and it has to keep matching them. What Badge
+ * value the map markers use and it has to keep matching them. The emoji that
+ * used to sit beside the label is gone: the chip is already coloured by
+ * state, so the emoji said the same thing twice, in the register of a
+ * consumer app rather than a field record. What Badge
  * brings is the parts that were missing: a real focus ring, the transition
  * and border treatment every other control has, and one definition of what a
  * small pill looks like across the app.
@@ -26,7 +29,6 @@ export function StatusBadge({
       className={cn("gap-1.5 border-transparent text-white shadow-sm", className)}
       style={{ backgroundColor: meta.color }}
     >
-      <span aria-hidden>{meta.emoji}</span>
       {meta.label}
     </Badge>
   );
@@ -35,8 +37,7 @@ export function StatusBadge({
 export function MoodChip({ mood }: { mood: MoodTag }) {
   const meta = MOOD_META[mood];
   return (
-    <Badge variant="secondary" className="gap-1.5 font-medium">
-      <span aria-hidden>{meta.emoji}</span>
+    <Badge variant="secondary" className="font-medium">
       {meta.label}
     </Badge>
   );

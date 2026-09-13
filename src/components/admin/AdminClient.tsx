@@ -1391,7 +1391,7 @@ function DogsList({
                     : "border-bark-200 text-bark-600 hover:border-paw-300 dark:border-white/10 dark:text-bark-300"
                 }`}
               >
-                {STATUS_META[s].emoji} {STATUS_META[s].label}
+                {STATUS_META[s].label}
               </button>
             ))}
           </div>

@@ -136,7 +136,7 @@ function NewCaseInner() {
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((c) => (
               <Chip key={c} active={category === c} onClick={() => setCategory(c)}>
-                {CASE_CATEGORY_META[c].emoji} {CASE_CATEGORY_META[c].label}
+                {CASE_CATEGORY_META[c].label}
               </Chip>
             ))}
           </div>

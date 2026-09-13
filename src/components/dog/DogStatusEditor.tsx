@@ -114,7 +114,7 @@ export function DogStatusEditor({
                           : "border-bark-200 text-bark-600 dark:border-white/10 dark:text-bark-200"
                       )}
                     >
-                      {STATUS_META[s].emoji} {STATUS_META[s].label}
+                      {STATUS_META[s].label}
                     </button>
                   ))}
                 </div>

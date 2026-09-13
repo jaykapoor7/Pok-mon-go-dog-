@@ -1795,3 +1795,9 @@ html .hrail-head h2 {
 @media (max-width: 900px) {
   .snotice { max-width: none; }
 }
+
+/* The hero tally label measured 3.05:1 — --sp-muted on the dark hero
+   ground, inherited from somewhere the cascade would not name. Stated
+   here with enough weight to hold, at 8.6:1. */
+html .field-site .product-hero-wall .hero-tally-label { color: #cddcef; }
+html .field-site .product-hero-wall .hero-tally-label span { color: #9db8dc; }

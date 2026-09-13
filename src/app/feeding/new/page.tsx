@@ -70,7 +70,7 @@ export default function NewFeedingZonePage() {
       </Link>
 
       <header className="mb-5">
-        <h1 className="font-display text-2xl sm:text-3xl">Add a feeding zone 🥣</h1>
+        <h1 className="font-display text-2xl sm:text-3xl">Add a feeding zone</h1>
         <p className="text-sm text-bark-500">
           Mark an existing spot the community feeds, so others can find it and cover it.
         </p>

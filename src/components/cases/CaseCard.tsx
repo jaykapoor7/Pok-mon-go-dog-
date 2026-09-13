@@ -1,9 +1,6 @@
 import Link from "next/link";
-import { MapPin, Clock } from "lucide-react";
-import {
-  CASE_CATEGORY_META,
-  type Case,
-} from "@/lib/types";
+import { MapPin, Clock, Ambulance, Scissors, LifeBuoy, Syringe, ClipboardList } from "lucide-react";
+import { type Case } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import {
   CaseStatusBadge,
@@ -13,16 +10,30 @@ import {
   VerifiedBadge,
 } from "./CaseBadges";
 
+/* A drawn icon rather than an emoji. Each one names the thing the case is
+   about, which is what an icon is for; an emoji at this size renders in
+   whichever cartoon set the reader's device ships and reads as a consumer
+   app rather than a case file. */
+const CASE_ICON = {
+  injury: Ambulance,
+  sterilisation: Scissors,
+  rescue: LifeBuoy,
+  vaccination: Syringe,
+  other: ClipboardList,
+} as const;
+
 export function CaseCard({ c }: { c: Case }) {
-  const cat = CASE_CATEGORY_META[c.category];
   return (
     <Link
       href={`/cases/${c.id}`}
       className="card card-interactive block p-4 hover:border-black/10 dark:hover:border-white/10"
     >
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded bg-bark-900/[0.05] text-base dark:bg-white/[0.06]">
-          {cat.emoji}
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded bg-bark-900/[0.05] text-bark-500 dark:bg-white/[0.06]">
+          {(() => {
+            const Icon = CASE_ICON[c.category as keyof typeof CASE_ICON] ?? ClipboardList;
+            return <Icon size={17} aria-hidden />;
+          })()}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
