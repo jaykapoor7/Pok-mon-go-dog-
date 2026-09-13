@@ -84,13 +84,17 @@ export function Hero({ dogs, total }: { dogs: Dog[]; total: number }) {
 
       <div className="hero-wall" aria-label="Animals currently on the StrayPaw record">
         <figure className="hero-wall-lead">
-          <Image
+          {/* A local launch image should not depend on the remote image
+              optimizer at render time. This is deliberately a direct public
+              asset: if the page can load, Pinky can load. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/pinky-bengaluru.png"
             alt="Pinky, a community dog reported in Bengaluru, Karnataka"
             width={786}
-            height={1024}
-            priority
-            sizes="(max-width: 900px) 92vw, 38vw"
+            height={960}
+            loading="eager"
+            fetchPriority="high"
           />
           <figcaption>
             <span className="hero-wall-kicker">
