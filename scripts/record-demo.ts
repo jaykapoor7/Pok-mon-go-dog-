@@ -78,11 +78,12 @@ async function desktop(file: string, flow: (page: Page) => Promise<void>) {
   await finish(ctx, file);
 }
 
-await mkdir(out, { recursive: true });
-const demoUrl = await startLocalDemo();
-browser = await chromium.launch({ headless: true });
+async function main() {
+  await mkdir(out, { recursive: true });
+  const demoUrl = await startLocalDemo();
+  browser = await chromium.launch({ headless: true });
 
-try {
+  try {
   await desktop("01_full_walkthrough", async (page) => {
     await page.goto(publicUrl, { waitUntil: "networkidle" });
     await dismiss(page); await pause(page, 1800); await still(page, "01_landing");
@@ -119,13 +120,19 @@ try {
     await click(page, /^map$/i); await pause(page, 1800); await click(page, /^urgent$/i); await pause(page, 1400);
   });
 
-  const mobile = await context(true);
-  const page = await mobile.newPage();
-  await page.goto(`${publicUrl}/app`, { waitUntil: "networkidle" });
-  await dismiss(page); await pause(page, 1800);
-  await click(page, /report/i); await pause(page, 1500);
-  await finish(mobile, "06_mobile_walkthrough");
-} finally {
-  await browser.close();
-  localApp?.kill("SIGTERM");
+    const mobile = await context(true);
+    const page = await mobile.newPage();
+    await page.goto(`${publicUrl}/app`, { waitUntil: "networkidle" });
+    await dismiss(page); await pause(page, 1800);
+    await click(page, /report/i); await pause(page, 1500);
+    await finish(mobile, "06_mobile_walkthrough");
+  } finally {
+    await browser.close();
+    localApp?.kill("SIGTERM");
+  }
 }
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
