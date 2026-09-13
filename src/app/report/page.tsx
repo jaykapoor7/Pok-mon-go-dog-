@@ -426,7 +426,7 @@ export default function ReportPage() {
       {/* ── Success overlay ── */}
       <AnimatePresence>
         {status === "done" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] flex items-center justify-center bg-bark-950/60 p-6 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] flex items-center justify-center bg-bark-950/70 p-6">
             <motion.div initial={{ scale: 0.85, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-sm rounded-[2rem] bg-white p-8 text-center shadow-warm dark:bg-bark-900">
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.1 }} className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
                 <Clock className="h-9 w-9" />

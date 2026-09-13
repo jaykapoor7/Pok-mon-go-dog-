@@ -46,6 +46,21 @@ function randomId() {
   }
 }
 
+/* The opt-out set by StorageNotice. Checked on every call rather than
+   read once at module load, so turning it off takes effect immediately
+   instead of at the next full page load. Storage access is wrapped for
+   the same reason it is everywhere else in this file: reading it throws
+   in private mode, and analytics must never be what breaks a report. */
+const OPT_OUT_KEY = "straypaw.analytics.optout";
+
+function hasOptedOut(): boolean {
+  try {
+    return localStorage.getItem(OPT_OUT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 /** A stable id for this browser, or null when storage is unavailable. */
 function anonId(): string | null {
   try {
@@ -85,6 +100,7 @@ export function track(
 ): void {
   try {
     if (typeof window === "undefined") return;
+    if (hasOptedOut()) return;
 
     if (opts.once) {
       if (oncePerSession.has(name)) return;

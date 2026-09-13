@@ -14,6 +14,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
+import { StorageNotice } from "@/components/site/StorageNotice";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 
 // Interface: DM Sans, restrained, precise, engineered.
@@ -164,6 +165,7 @@ export default function RootLayout({
                 <Chrome>{children}</Chrome>
               </Suspense>
               <InstallPrompt />
+              <StorageNotice />
               <Toaster />
             </AuthProvider>
           </MotionRoot>

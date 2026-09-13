@@ -199,7 +199,7 @@ export function NeighbourhoodModel({ progress, reduced }: { progress: number; re
   }, []);
 
   return <><div className="neighbour-model" ref={host}>
-    {!ready && <Image className="neighbour-model-fallback" src="/field-observation-atlas.png" alt="" fill sizes="(max-width: 760px) 100vw, 55vw"/>}
+    {!ready && <Image className="neighbour-model-fallback" src="/field-observation-atlas.webp" alt="" fill sizes="(max-width: 760px) 100vw, 55vw"/>}
   </div>{ready && <div className="neighbour-view-controls" role="group" aria-label="3D scene viewpoint">
     <button type="button" aria-pressed={view === "street"} onClick={() => setView("street")}>Street view</button>
     <button type="button" aria-pressed={view === "above"} onClick={() => setView("above")}>From above</button>
