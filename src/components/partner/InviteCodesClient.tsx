@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BackLink } from "@/components/app/BackLink";
 import { Check, Copy, KeyRound, Loader2, UserPlus, Users } from "lucide-react";
 import {
   createTeamCode,
@@ -116,7 +115,6 @@ export function InviteCodesClient() {
 
   return (
     <>
-      <BackLink label="Back to the dashboard" to="/partner" />
       <div className="imp-drop">
         <UserPlus size={26} strokeWidth={1.3} />
         <div>

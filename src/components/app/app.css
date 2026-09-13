@@ -367,8 +367,15 @@
   justify-content: center;
   gap: 7px;
   min-height: var(--ctl-h);
-  background: var(--electric);
-  color: var(--ink);
+  /* The PRIMARY action, so it takes the primary treatment: solid blue,
+     white label. It used to be --electric, a pale tint with dark ink,
+     which is this system's SECONDARY weight — so on any screen where
+     .spa-cta was the main action ("New drive", "Open the map") the most
+     important control on the page read as the least important one, and
+     sat next to .product-primary elsewhere in solid blue doing the same
+     job. Three button kinds, one weight each. */
+  background: var(--sp-blue);
+  color: #fff;
   border: 0;
   border-radius: var(--ctl-r);
   padding: var(--ctl-pad);
@@ -379,7 +386,7 @@
   flex-shrink: 0;
   transition: background 0.2s ease, transform 0.12s ease;
 }
-.spa-cta:hover { background: #b8d1ff; }
+.spa-cta:hover { background: var(--sp-blue-deep); }
 .spa-cta:active { transform: var(--ctl-press); }
 .spa-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 

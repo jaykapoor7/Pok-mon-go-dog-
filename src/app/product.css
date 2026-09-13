@@ -158,8 +158,24 @@ html .spa.spa .qa-card svg{color:var(--sp-blue)}
 .partner-overview .pgm-block h2{font-family:var(--font-sans),sans-serif;font-size:18px}
 .partner-overview .pgm-value{font-family:var(--font-sans),sans-serif;font-size:32px;letter-spacing:-.05em}
 .partner-overview .pgm-pct{line-height:1.7}
-.partner-gate{border:1px solid var(--sp-line);border-left:3px solid var(--sp-blue);box-shadow:none;background:white}
-.partner-gate p{max-width:760px}
+/* The access notice is a NOTICE, not a panel.
+
+   It was a white card with a full border sitting directly above every
+   page title in the console, which made it compete with the heading it
+   was supposed to be subordinate to — the first thing a visiting NGO
+   read on every screen was a box about signing in rather than the name
+   of the screen. A left rule and a tint say the same thing at a fraction
+   of the weight, which is this product's default separator anyway. */
+.partner-gate{
+  border:0;
+  border-left:2px solid var(--sp-blue);
+  border-radius:0 var(--sp-radius-sm) var(--sp-radius-sm) 0;
+  box-shadow:none;
+  background:var(--ctl-tint);
+  padding:var(--sp-3) var(--sp-4);
+}
+.partner-gate p{max-width:var(--sp-measure);font-size:var(--sp-t-sm);color:var(--sp-body)}
+html .spa.spa .partner-gate p{font-size:var(--sp-t-sm)}
 .report-workspace{max-width:1000px;margin:auto;display:grid;grid-template-columns:240px minmax(0,560px);gap:45px}
 .report-aside{padding:12px 0}
 .report-aside h1{font-family:var(--font-sans),sans-serif;font-size:34px;line-height:1.08;letter-spacing:-.055em;font-weight:600;margin:12px 0}
@@ -632,3 +648,109 @@ html .spa.spa .spa-side .spa-profile-links.out a.pp-code {
 
 /* The report shortcut is the sidebar's one primary action. Same argument. */
 html .spa.spa .spa-side a.spa-report-shortcut { border-radius: var(--ctl-r); }
+
+/* ════════════════════════════════════════════════════════════════════
+   CONSOLE PAGE — the one header every partner screen uses.
+
+   Ten screens each built this themselves and landed a few pixels apart.
+   Everything below comes from tokens; there is no typed value in here
+   that is not on a scale.
+   ════════════════════════════════════════════════════════════════════ */
+
+.cpage { min-width: 0; }
+.cpage-read { max-width: var(--sp-measure); }
+
+.cpage-head {
+  margin-bottom: var(--sp-6);
+  padding-bottom: var(--sp-4);
+  /* A rule, not a box. */
+  border-bottom: 1px solid var(--sp-line);
+}
+/* When a page carries tabs, THEY close the header off, so the rule above
+   would be a second line 40px from the first. */
+.cpage-head:has(.partner-workspace-tabs),
+.cpage-head:has(.partner-record-tabs) {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.cpage-headline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-5);
+}
+.cpage-titling { min-width: 0; }
+
+/* The register's own label. Mono because it names a section of a record
+   system, tracked because it is read as a label rather than as a word. */
+.cpage-kicker {
+  display: block;
+  margin-bottom: var(--sp-2);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sp-t-micro);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--sp-muted);
+}
+
+html .spa.spa .cpage-head h1 {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: var(--sp-t-xl);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: var(--sp-lh-tight);
+  color: var(--sp-ink);
+  text-wrap: balance;
+}
+
+.cpage-lede {
+  margin: var(--sp-2) 0 0;
+  max-width: var(--sp-measure);
+  font-size: var(--sp-t-sm);
+  line-height: var(--sp-lh-snug);
+  color: var(--sp-muted);
+}
+
+.cpage-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* ── Sections inside a page ──────────────────────────────────────── */
+.csect { margin-top: var(--sp-7); padding-top: var(--sp-5); border-top: 1px solid var(--sp-line); }
+.csect-bare { margin-top: 0; padding-top: 0; border-top: 0; }
+.csect-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+html .spa.spa .csect-head h2 {
+  margin: 0;
+  font-size: var(--sp-t-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: var(--sp-lh-snug);
+  color: var(--sp-ink);
+}
+.csect-meta { margin: var(--sp-1) 0 0; font-size: var(--sp-t-sm); color: var(--sp-muted); }
+.csect-actions { display: flex; flex-shrink: 0; align-items: center; gap: var(--sp-2); }
+
+/* ── Phone ───────────────────────────────────────────────────────────
+   The actions come off the title's line. Two buttons beside a heading at
+   390px leaves the heading about 90px wide, which is the layout that
+   breaks first and the one this product can least afford, since the
+   console is used one-handed outdoors. */
+@media (max-width: 720px) {
+  .cpage-headline { flex-direction: column; align-items: stretch; gap: var(--sp-4); }
+  .cpage-actions { flex-wrap: wrap; }
+  .cpage-actions > * { flex: 1 1 auto; justify-content: center; }
+  .csect-head { flex-direction: column; }
+  .csect { margin-top: var(--sp-6); padding-top: var(--sp-4); }
+  html .spa.spa .cpage-head h1 { font-size: var(--sp-t-lg); }
+}

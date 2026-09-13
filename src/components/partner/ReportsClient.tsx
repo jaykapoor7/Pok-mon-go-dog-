@@ -6,6 +6,8 @@ import { getPartnerCases } from "@/lib/cases";
 import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
 import { PrintButton } from "@/components/partner/PrintButton";
 import { CASE_CATEGORY_META, speciesLabel, type Case, type CaseCategory } from "@/lib/types";
+import { ConsolePage } from "./ConsolePage";
+import { FieldTabs } from "./FieldTabs";
 import { ProgrammeBreakdown } from "@/components/partner/ProgrammeBreakdown";
 
 const WEEKS = 12;
@@ -60,14 +62,13 @@ export function ReportsClient() {
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-paw-500" /></div>;
 
   return (
-    <div>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Analytics</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">The numbers you send to donors, funders and municipalities.</p>
-        </div>
-        <div className="flex items-center gap-2"><PrintButton /><ExportCsvButton /></div>
-      </header>
+    <ConsolePage
+      kicker="Field work / coverage"
+      title="Analytics"
+      lede="The numbers you send to donors, funders and municipalities."
+      actions={<><PrintButton /><ExportCsvButton /></>}
+      tabs={<FieldTabs />}
+    >
 
       {/* Programme coverage first. For an organisation running ABC and
           rabies work these are the numbers that get reported; case counts
@@ -160,7 +161,7 @@ export function ReportsClient() {
           </div>
         </section>
       )}
-    </div>
+    </ConsolePage>
   );
 }
 

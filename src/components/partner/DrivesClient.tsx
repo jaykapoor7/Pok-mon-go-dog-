@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BackLink } from "@/components/app/BackLink";
 import Link from "next/link";
 import { Archive, CalendarRange, Loader2, MapPin, Plus, Users } from "lucide-react";
 import {
@@ -126,7 +125,6 @@ export function DrivesClient() {
 
   return (
     <>
-      <BackLink label="Back to the dashboard" to="/partner" />
       <div className="dr-head">
         <button
           type="button"

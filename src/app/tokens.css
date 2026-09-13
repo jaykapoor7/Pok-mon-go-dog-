@@ -191,3 +191,54 @@
   --ctl-tint: rgba(36, 87, 206, 0.10);
   --ctl-tint-hover: rgba(36, 87, 206, 0.16);
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   TYPE SCALE.
+
+   There wasn't one. A sweep of the landing page found fourteen distinct
+   font sizes in use, the console nine to eleven, with 12px and 13px and
+   14px all doing the same job on the same screen a few pixels apart —
+   which reads as carelessness rather than as a hierarchy, because a
+   reader cannot tell whether a 1px difference is meant to signify
+   anything.
+
+   Seven steps, and nothing between them. The ratio widens as it climbs:
+   tight at the small end where the difference has to be legible without
+   being loud, generous at the display end where the jump is the point.
+
+   --sp-t-micro is the mono label: uppercase, tracked, used for the
+   kicker over a heading and for column headers. It is deliberately the
+   only size below 13, because under a thumb outdoors 11px is already
+   the floor.
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --sp-t-micro: 11px;    /* tracked mono labels, column heads      */
+  --sp-t-sm: 13px;       /* captions, secondary, dense table cells */
+  --sp-t-base: 15px;     /* running text                           */
+  --sp-t-md: 17px;       /* lede, section intro                    */
+  --sp-t-lg: 21px;       /* sub-heads                              */
+  --sp-t-xl: 28px;       /* section headings                       */
+  --sp-t-2xl: clamp(30px, 4vw, 40px);   /* page headings           */
+  --sp-t-display: clamp(38px, 6.4vw, 68px); /* one per page        */
+
+  --sp-lh-tight: 1.1;    /* display and headings   */
+  --sp-lh-snug: 1.35;    /* sub-heads, table cells */
+  --sp-lh: 1.6;          /* running text           */
+
+  /* ── ELEVATION ────────────────────────────────────────────────────
+     Eighteen distinct box-shadows were in use, including four different
+     hard offset shadows (6px, 8px, 12px, 15px, 18px) that were never
+     meant to coexist. Shadow is the strongest "this is a separate
+     object" signal there is, so spending it eighteen ways means it
+     signifies nothing.
+
+     Two values. --sp-lift is the resting shadow for a surface that has
+     genuinely left the page — a dialog, a popover, the one panel a
+     screen is about. --sp-lift-sm is for something that only needs to
+     sit a hair proud of its ground. MOST SURFACES GET NEITHER: a
+     hairline and space is the default separator in this product, and a
+     shadow is the exception that marks the single most important thing
+     on a screen. */
+  --sp-lift-sm: 0 1px 2px rgba(11, 30, 61, 0.05);
+  --sp-lift: 0 1px 2px rgba(11, 30, 61, 0.04), 0 12px 34px rgba(11, 30, 61, 0.10);
+}
