@@ -235,7 +235,169 @@
   gap:clamp(40px,7vw,110px);align-items:center;
   background:#0b1e3d!important;color:#f5f8fd;isolation:isolate;
 }
-.product-hero-wall::before,.product-hero-wall::after{display:none}
+
+/* ════════════════════════════════════════════════════════════════════
+   The hero's ground and its arrival.
+
+   Both of these were switched off. The rule that stood here was
+   `.product-hero-wall::before, .product-hero-wall::after {display:none}`
+   — it killed the two background layers the earlier hero had used — and
+   the section was never added to LandingMotion's observer list, so the
+   first thing anybody saw was a flat navy rectangle with a finished page
+   already sitting on it. Every other section on this page got a drawn
+   ground and an entrance. The one above the fold got neither.
+
+   The ground is the same survey vocabulary as the console section
+   further down, so the page reads as one system rather than as two
+   designs that happen to share a palette: a block grid, a finer
+   division inside it, one warm light where the sun would be and one
+   cool counterweight opposite. Drawn entirely with gradients on two
+   pseudo-elements — no image, no extra DOM, one paint.
+
+   The arrival is a CSS load sequence rather than a scroll observer.
+   This content is above the fold: parking it at opacity 0 waiting for
+   an IntersectionObserver is how a hero ends up blank in a screenshot,
+   a link preview, or for anybody who lands with JavaScript still
+   parsing. `animation … both` starts on its own, finishes in under a
+   second, and needs nothing to trigger it.
+   ════════════════════════════════════════════════════════════════════ */
+
+.product-hero-wall::before,
+.product-hero-wall::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  display: block;
+  /* .product-hero-wall also carries .product-hero, whose ::after is a
+     620px ring with two box-shadow haloes. Setting inset alone left its
+     border-radius and box-shadow behind, and a huge pale arc came up
+     through the headline — so those are cleared here.
+
+     The four offsets are then written out individually ON PURPOSE. The
+     first attempt cleared the ring with `right: auto; bottom: auto`
+     alongside `width: auto`, which is the combination that makes an
+     absolutely-positioned box size to its own content: the element had
+     no content, so it computed to 0x0 and painted nothing at all. The
+     grid was in the stylesheet, resolved correctly in the computed
+     style, and covered no pixels. */
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* Survey paper. */
+.product-hero-wall::before {
+  /* First pass at this used .09 and .045 alpha and was, measurably,
+     there and, visibly, not: a pale blue line at 9% over #0b1e3d is
+     under one step of perceptual difference. Survey paper you cannot
+     see is just navy. */
+  background:
+    repeating-linear-gradient(0deg,  rgba(143, 183, 255, .18) 0 1px, transparent 1px 78px),
+    repeating-linear-gradient(90deg, rgba(143, 183, 255, .18) 0 1px, transparent 1px 78px),
+    repeating-linear-gradient(0deg,  rgba(143, 183, 255, .075) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, rgba(143, 183, 255, .075) 0 1px, transparent 1px 26px);
+  /* Fades towards the bottom so the grid does not fight the join with
+     the section below. Held to 78% so most of the hero keeps it. */
+  -webkit-mask-image: linear-gradient(180deg, #000 0 78%, transparent 99%);
+  mask-image: linear-gradient(180deg, #000 0 78%, transparent 99%);
+}
+
+/* The light. Warm where the copy is, cool on the far side. */
+.product-hero-wall::after {
+  background:
+    radial-gradient(72% 58% at 4% 2%, rgba(240, 91, 64, .30), transparent 64%),
+    radial-gradient(66% 64% at 98% 96%, rgba(45, 98, 189, .46), transparent 66%),
+    radial-gradient(circle at 63% 14%, rgba(143, 183, 255, .55) 0 1.1px, transparent 2px);
+  background-size: 100% 100%, 100% 100%, 47px 47px;
+}
+
+/* ── Arrival ───────────────────────────────────────────────────────
+   Copy first, left to right, then the wall. Transform and opacity only.
+   The lead photograph is the thing the whole section exists to show, so
+   it is not last in the queue — it comes in with the headline. */
+@media (prefers-reduced-motion: no-preference) {
+  .product-hero-wall .field-eyebrow,
+  .product-hero-wall h1,
+  .product-hero-wall .product-hero-copy > p:not(.field-eyebrow),
+  .product-hero-wall .product-hero-actions,
+  .product-hero-wall .product-hero-note,
+  .product-hero-wall .hero-tally {
+    animation: hero-rise .62s var(--sp-ease) both;
+  }
+  .product-hero-wall .field-eyebrow { animation-delay: .04s; }
+  .product-hero-wall h1 { animation-delay: .10s; }
+  .product-hero-wall .product-hero-copy > p:not(.field-eyebrow) { animation-delay: .18s; }
+  .product-hero-wall .product-hero-actions { animation-delay: .25s; }
+  .product-hero-wall .product-hero-note { animation-delay: .31s; }
+  .product-hero-wall .hero-tally { animation-delay: .37s; }
+
+  /* The lead photograph settles rather than rises: it is a large object
+     and 14px of travel on something that size reads as a jolt. */
+  .hero-wall-lead { animation: hero-settle .8s var(--sp-ease) .12s both; }
+
+  /* The eight tiles, 55ms apart, in reading order. Capped at eight
+     because a ninth would still be arriving after a second. */
+  .hero-wall-grid li { animation: hero-tile .5s var(--sp-ease) both; }
+  .hero-wall-grid li:nth-child(1) { animation-delay: .30s; }
+  .hero-wall-grid li:nth-child(2) { animation-delay: .355s; }
+  .hero-wall-grid li:nth-child(3) { animation-delay: .41s; }
+  .hero-wall-grid li:nth-child(4) { animation-delay: .465s; }
+  .hero-wall-grid li:nth-child(5) { animation-delay: .52s; }
+  .hero-wall-grid li:nth-child(6) { animation-delay: .575s; }
+  .hero-wall-grid li:nth-child(7) { animation-delay: .63s; }
+  .hero-wall-grid li:nth-child(8) { animation-delay: .685s; }
+}
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hero-settle {
+  from { opacity: 0; transform: scale(.972); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hero-tile {
+  from { opacity: 0; transform: translateY(10px) scale(.965); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Reduced motion: the ground stays, the travel goes. Nothing is hidden
+   and nothing waits — the section is simply already assembled. */
+@media (prefers-reduced-motion: reduce) {
+  .product-hero-wall .field-eyebrow,
+  .product-hero-wall h1,
+  .product-hero-wall .product-hero-copy > p,
+  .product-hero-wall .product-hero-actions,
+  .product-hero-wall .product-hero-note,
+  .product-hero-wall .hero-tally,
+  .hero-wall-lead,
+  .hero-wall-grid li { animation: none; opacity: 1; transform: none; }
+}
+
+@media (max-width: 900px) {
+  /* A 78px block grid on a phone is four lines and reads as a mistake
+     rather than as paper. One scale, larger. */
+  .product-hero-wall::before {
+    background:
+      repeating-linear-gradient(0deg,  rgba(143, 183, 255, .15) 0 1px, transparent 1px 44px),
+      repeating-linear-gradient(90deg, rgba(143, 183, 255, .15) 0 1px, transparent 1px 44px);
+  }
+  .product-hero-wall::after {
+    background:
+      radial-gradient(105% 40% at 2% 1%, rgba(240, 91, 64, .30), transparent 62%),
+      radial-gradient(110% 38% at 99% 99%, rgba(45, 98, 189, .42), transparent 64%);
+  }
+}
+
 .product-hero-wall .field-eyebrow{color:#adc8ee}
 .product-hero-wall h1{max-width:16ch;margin:16px 0 20px;font-size:clamp(42px,4.9vw,76px);line-height:.94;color:#fff;letter-spacing:-.045em}
 .product-hero-wall h1 em{color:#ff9a65;font-family:var(--font-display),serif;font-style:italic;font-weight:400}
