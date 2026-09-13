@@ -2295,7 +2295,10 @@
 }
 
 /* Launch header: these are two distinct doors, not generic SaaS pills. */
-html .sp .sp-header { background: rgba(255, 253, 249, .94); border-bottom-color: rgba(11, 30, 61, .13); }
+/* Opaque. At 94% the hero's headline showed straight through the bar
+   as the page scrolled under it, which on the dark hero read as two
+   overlapping pieces of text. A header is a surface, not a veil. */
+html .sp .sp-header { background: var(--sp-paper); border-bottom-color: rgba(11, 30, 61, .13); }
 html .sp .sp-header-actions { gap: 8px; }
 html .sp .sp-header-code,
 html .sp .sp-header-cta {

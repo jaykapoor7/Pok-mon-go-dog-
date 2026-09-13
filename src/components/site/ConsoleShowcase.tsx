@@ -47,37 +47,37 @@ const STATIONS = [
     Icon: Inbox,
     href: "/partner/incoming",
     label: "Incoming",
-    line: "A neighbour's report lands in the queue for the streets you cover.",
+    line: "A report arrives in the queue for the streets you cover.",
   },
   {
     Icon: ClipboardList,
     href: "/partner/animals",
     label: "The animal",
-    line: "It stops being a message and becomes a record that keeps its history.",
+    line: "It becomes a record that keeps its own history.",
   },
   {
     Icon: Stethoscope,
     href: "/partner/cases",
     label: "A case",
-    line: "Somebody's name is on it, with a status you can answer for.",
+    line: "It is assigned to a person, with a status you can report on.",
   },
   {
     Icon: Syringe,
     href: "/partner/medical",
     label: "Care history",
-    line: "Sterilisation, vaccination and treatment, each with a date behind it.",
+    line: "Sterilisation, vaccination and treatment, each with a date.",
   },
   {
     Icon: CalendarRange,
     href: "/partner/drives",
     label: "The next drive",
-    line: "The animal joins a round that is planned rather than remembered.",
+    line: "The animal is added to a scheduled round.",
   },
   {
     Icon: MapIcon,
     href: "/partner/reports",
     label: "Coverage",
-    line: "And the map finally shows which roads have actually been worked.",
+    line: "The map shows which roads have been covered.",
   },
 ];
 
@@ -92,21 +92,21 @@ export function ConsoleShowcase() {
         <header className="cx-head">
           <span className="field-eyebrow">Inside the organisation console</span>
           <h2 id="cx-title">
-            A report should not end<br />
-            <em>where the map does.</em>
+            What happens after<br />
+            <em>a report comes in.</em>
           </h2>
           <p>
-            This is the workspace a partner organisation runs its streets
-            from, and the route one animal takes through it — from a
-            stranger&apos;s photograph to a road somebody can prove was covered.
-            The panel below is shown with sample data.
+            Partner organisations work from this console. It takes a
+            report through to a record of what was done, so coverage can
+            be counted rather than estimated. The panel below uses sample
+            data.
           </p>
         </header>
 
         <ConsoleMock />
 
         <p className="cx-lede">
-          One animal, through six screens.
+          One animal, across six screens.
         </p>
 
         <ol className="cx-rail">
@@ -126,7 +126,7 @@ export function ConsoleShowcase() {
 
         <div className="cx-foot">
           <p>
-            Every step above is a screen your team can open today.
+            Every step above is a screen your team can open.
           </p>
           <Link href="/for-ngos" className="cx-cta">
             See the workspace <ArrowUpRight size={16} />

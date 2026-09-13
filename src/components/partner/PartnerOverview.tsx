@@ -105,44 +105,45 @@ export function PartnerOverview() {
           decided by what has come in and not been filed, and how the
           current drive is going. Rescue casework matters and is still
           here, but it is not the whole job any more. */}
-      {/* An em-dash, not "No data", and not 0.
+      {/* "Not loaded", not "No data", and not 0.
 
-          Signed out, all five of these read "No data" — five absences
+          Signed out, all five of these read "No data": five absences
           shouted in 34px serif, directly under a notice that had already
           explained why they were empty. On a phone that is the entire
           first screen an NGO sees, and it reads as a broken product
-          rather than a new one.
+          rather than a new one. Stat sets a string value small and grey
+          instead of at display size, so this reads as a state rather
+          than as a headline.
 
-          A dash is the ordinary convention for a figure that is not
-          available, and it keeps the distinction this product is built
-          on: unknown is not zero. A real 0 still prints as 0, and means
+          It also keeps the distinction this product is built on:
+          unknown is not zero. A real 0 still prints as 0, and means
           nothing is waiting. */}
       <div className="partner-metrics grid grid-cols-2 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
         <Stat
           label="Waiting to file"
-          value={!loaded || !user || loadError ? "—" : bd?.waiting.ours ?? 0}
+          value={!loaded || !user || loadError ? "Not loaded" : bd?.waiting.ours ?? 0}
           detail="from your team"
           tone={bd?.waiting.ours ? "text-status-hungry" : undefined}
         />
         <Stat
           label="Unclaimed nearby"
-          value={!loaded || !user || loadError ? "—" : bd?.waiting.community ?? 0}
+          value={!loaded || !user || loadError ? "Not loaded" : bd?.waiting.community ?? 0}
           detail="community sightings"
         />
         <Stat
           label="Drives running"
-          value={!loaded || !user || loadError ? "—" : bd?.drives.filter((d) => !d.archived).length ?? 0}
+          value={!loaded || !user || loadError ? "Not loaded" : bd?.drives.filter((d) => !d.archived).length ?? 0}
           detail="census, ABC, rabies"
         />
         <Stat
           label="Urgent cases"
-          value={!loaded || !user || loadError ? "—" : m.urgent}
+          value={!loaded || !user || loadError ? "Not loaded" : m.urgent}
           detail="need a decision"
           tone={m.urgent ? "text-status-injured" : undefined}
         />
         <Stat
           label="Follow-ups due"
-          value={!loaded || !user || loadError ? "—" : m.followDue}
+          value={!loaded || !user || loadError ? "Not loaded" : m.followDue}
           detail="next 3 days"
           tone={m.followDue ? "text-status-hungry" : undefined}
         />
@@ -170,7 +171,7 @@ export function PartnerOverview() {
         <aside className="partner-field-queue">
           <div className="partner-field-signal">
             <span>Today&apos;s queue</span>
-            <b>{!loaded || !user || loadError ? "—" : m.urgent}</b>
+            <b>{!loaded || !user || loadError ? "Not loaded" : m.urgent}</b>
             <small>urgent case{m.urgent === 1 ? "" : "s"}</small>
           </div>
           <SectionHead title="Needs attention" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all" />
@@ -186,7 +187,7 @@ export function PartnerOverview() {
       <ProgrammeOverview />
 
       <section className="partner-analysis" aria-label="Programme patterns">
-        <div className="partner-analysis-heading"><span>Patterns in the programme</span><p>New casework and the places it is concentrating — read together before planning the next round.</p></div>
+        <div className="partner-analysis-heading"><span>Patterns in the programme</span><p>New casework, and where it is concentrating.</p></div>
         <div className="console-charts partner-insight-pair">
           <WeeklyTrend dates={cases.map((c) => c.created_at)} title="Cases opened, last 12 weeks" noun="opened" empty="Your first case starts this." />
           <ByLocality dogs={markers} />
@@ -204,10 +205,10 @@ export function PartnerOverview() {
           <div className="partner-activity">
             <div className="flex items-end justify-between">
               <div>
-                <div className={cn("font-semibold tracking-tight text-bark-900 dark:text-bark-50", !loaded || !user || loadError ? "text-base text-bark-400" : "text-3xl")}>{!loaded || !user || loadError ? "—" : cases.length}</div>
+                <div className={cn("font-semibold tracking-tight text-bark-900 dark:text-bark-50", !loaded || !user || loadError ? "text-base text-bark-400" : "text-3xl")}>{!loaded || !user || loadError ? "Not loaded" : cases.length}</div>
                 <div className="mt-1 text-[13px] text-bark-500">Total cases logged</div>
               </div>
-              <div className="text-right text-[13px] font-medium text-paw-600">{!loaded || !user || loadError ? "—" : `${m.rate}%`}<div className="text-[11.5px] font-normal text-bark-400">resolved</div></div>
+              <div className="text-right text-[13px] font-medium text-paw-600">{!loaded || !user || loadError ? "Not loaded" : `${m.rate}%`}<div className="text-[11.5px] font-normal text-bark-400">resolved</div></div>
             </div>
             <div className="mt-6 flex h-24 items-end gap-1.5">
               {weeks.map((w, i) => <div key={i} className={cn("flex-1 rounded-t-sm", i >= 9 ? "bg-paw-500" : "bg-paw-500/25")} style={{ height: `${(w / weekMax) * 100}%` }} title={`${w}`} />)}

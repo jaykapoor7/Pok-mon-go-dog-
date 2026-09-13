@@ -1727,3 +1727,15 @@ html .hrail-head h2 {
      rail is more than one screen holds, and the animal reads fine wide. */
   .hero-wall-lead { aspect-ratio: 4 / 3; }
 }
+
+/* The headline's leading, on a phone.
+
+   line-height was .94 against a 44px font size, so the line box was
+   smaller than the type in it. On a desktop, where the headline is one
+   or two very large lines, that reads as tight display setting. On a
+   phone it wraps to four lines, the second pair set in a serif italic
+   with commas and descenders, and they collided. 1.04 gives the
+   descenders somewhere to go and still reads as display setting. */
+@media (max-width: 700px) {
+  html .product-hero-wall h1 { line-height: 1.04; letter-spacing: -0.035em; }
+}

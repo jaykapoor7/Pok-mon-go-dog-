@@ -45,15 +45,15 @@ export default async function HomePage() {
         <WhereTheyAre dogs={mapDogs} />
         <ConsoleShowcase />
         <section className="role-help" aria-labelledby="role-help-title">
-          <div><span className="field-eyebrow">Four doors, one record</span><h2 id="role-help-title">You already have<br />a part in this.</h2><p className="role-help-note">Nobody has to become a different kind of person to use this. What you already do on your own street is the work.</p></div>
+          <div><span className="field-eyebrow">Four ways in</span><h2 id="role-help-title">Choose how you<br />use StrayPaw.</h2><p className="role-help-note">Each one opens a different part of the same record.</p></div>
           <div className="role-help-links">
-            <Link href="/app?choose=1"><div><b>Neighbour</b><p>Report the dog you walk past. Follow what happens to her, and get told when it does.</p></div><ArrowUpRight size={18} /></Link>
-            <Link href="/app?choose=1"><div><b>Feeder</b><p>Your round, your zones, and the animals you already know by sight — held together in one place.</p></div><ArrowUpRight size={18} /></Link>
-            <Link href="/education"><div><b>Educator</b><p>Teach it with the animals on your own road, from material written by people who actually teach.</p></div><ArrowUpRight size={18} /></Link>
-            <Link href="/partner-apply"><div><b>Organisation</b><p>Turn a stream of reports into field work somebody is answerable for, with the history to prove it.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/app?choose=1"><div><b>Neighbour</b><p>Report an animal you pass. Follow what happens to it and get updates.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/app?choose=1"><div><b>Feeder</b><p>Keep your feeding zones, your route and the animals you know in one place.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/education"><div><b>Educator</b><p>Teaching material, used with the animals on your own street.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/partner-apply"><div><b>Organisation</b><p>Turn incoming reports into tracked field work, with a full history.</p></div><ArrowUpRight size={18} /></Link>
           </div>
         </section>
-        <section className="product-closing"><span className="field-eyebrow">It starts with one animal somebody remembers</span><h2>Know one dog?<br /><em>Begin there.</em></h2><Link href="/report" className="field-button">Report a sighting <ArrowUpRight size={18} /></Link></section>
+        <section className="product-closing"><span className="field-eyebrow">Start with one animal</span><h2>Know a dog<br /><em>on your street?</em></h2><Link href="/report" className="field-button">Report a sighting <ArrowUpRight size={18} /></Link></section>
       </main>
       <footer className="field-footer"><Link href="/" className="field-footer-brand">StrayPaw<span>One sighting. A shared record.</span></Link><nav aria-label="Footer"><Link href="/mission">Mission</Link><Link href="/for-ngos">For NGOs</Link><Link href="/evidence">Evidence</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav><span>Built with care, in India.<br />© {new Date().getFullYear()} StrayPaw</span></footer>
     </div>

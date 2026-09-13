@@ -203,7 +203,7 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
       )}
 
       <section className="community-analysis" aria-label="Local record patterns">
-        <div className="community-analysis-heading"><span className="product-kicker">Patterns in the record</span><p>Coverage, reporting pace and place — read as one picture of what is known.</p></div>
+        <div className="community-analysis-heading"><span className="product-kicker">Patterns in the record</span><p>Coverage, reporting pace and place, read together.</p></div>
         <div className="console-charts">
           <CoverageBar dogs={inView} />
           <ReportsOverTime sightings={nearbySightings} />

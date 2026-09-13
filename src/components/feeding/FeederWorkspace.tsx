@@ -40,7 +40,7 @@ export function FeederWorkspace() {
       </header>
 
       <section className="feeder-route-brief" aria-label="Feeder route status">
-        <div className="feeder-route-count"><b>{user ? (loading ? "—" : zones.length) : "Your"}</b><span>{user ? "places on the route" : "route, remembered"}</span></div>
+        <div className="feeder-route-count"><b>{user ? (loading ? "…" : zones.length) : "Your"}</b><span>{user ? "places on the route" : "route, remembered"}</span></div>
         <div className="feeder-route-copy"><span className="product-kicker">{user ? "Route status" : "A personal field record"}</span><h2>{user ? "The places you return to, together." : "Keep your route across devices."}</h2><p>{user ? "Mark the places you cover, return to a known animal, and add the next careful sighting when something changes." : "Sign in to see the zones you cover, mark a visit, and return to the dogs you have recorded."}</p></div>
         {!user && ready && <button type="button" className="product-primary" onClick={openSignIn}>Sign in <ArrowUpRight size={17} /></button>}
       </section>

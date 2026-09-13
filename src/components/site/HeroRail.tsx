@@ -38,6 +38,12 @@ import type { Dog } from "@/lib/types";
    and they hide themselves at the ends rather than sitting there dead.
    ════════════════════════════════════════════════════════════════════ */
 
+/** True when the reporter gave the animal a name, so dogLabel is not
+    already spending the locality on the first line. */
+function named(dog: Dog) {
+  return Boolean(dog.name && dog.name.trim() && (dog.zone || dog.city));
+}
+
 export function HeroRail({ dogs }: { dogs: Dog[] }) {
   const withPhoto = dogs.filter((d) => d.cover_photo && d.cover_photo.length > 0);
   const rail = useRef<HTMLUListElement>(null);
@@ -118,10 +124,15 @@ export function HeroRail({ dogs }: { dogs: Dog[] }) {
                 />
               </span>
               <b>{dogLabel(dog)}</b>
-              <span className="hrail-where">
-                <MapPin size={12} aria-hidden />
-                {dog.zone || dog.city || "On the record"}
-              </span>
+              {/* Only when the animal has a name of its own. dogLabel falls
+                  back to "Dog near Adyar" for an unnamed record, so printing
+                  the locality underneath as well said Adyar twice. */}
+              {named(dog) && (
+                <span className="hrail-where">
+                  <MapPin size={12} aria-hidden />
+                  {dog.zone || dog.city}
+                </span>
+              )}
             </Link>
           </li>
         ))}
