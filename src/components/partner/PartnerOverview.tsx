@@ -85,7 +85,7 @@ export function PartnerOverview() {
   return (
     <div className="partner-overview">
       {/* Page title */}
-      <div className="partner-greeting mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="partner-greeting partner-command-header mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <div className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-[0.18em] text-paw-600">{dateLabel || " "}</div>
           <h1 className="text-2xl font-semibold tracking-tight text-bark-900 dark:text-bark-50 sm:text-3xl">
@@ -93,7 +93,7 @@ export function PartnerOverview() {
           </h1>
           <p className="mt-1.5 text-[14px] text-bark-500">{org?.name ?? "Not in an organisation yet"}{location ? ` · ${location}` : ""}</p>
         </div>
-        <Link href="/partner/cases/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600"><Plus className="h-4 w-4" /> New case</Link>
+        <Link href="/partner/cases/new" className="partner-primary inline-flex shrink-0 items-center gap-1.5"><Plus className="h-4 w-4" /> New case</Link>
       </div>
 
       {loadError && <p role="alert" className="partner-empty">We couldn’t load your workspace. Please refresh to try again.</p>}
@@ -105,7 +105,7 @@ export function PartnerOverview() {
           decided by what has come in and not been filed, and how the
           current drive is going. Rescue casework matters and is still
           here, but it is not the whole job any more. */}
-      <div className="partner-metrics grid grid-cols-2 gap-y-6 border-y border-black/[0.08] py-6 dark:border-white/[0.1] sm:grid-cols-3 lg:grid-cols-5">
+      <div className="partner-metrics grid grid-cols-2 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
         <Stat
           label="Waiting to file"
           value={!loaded || !user || loadError ? "No data" : bd?.waiting.ours ?? 0}
@@ -141,7 +141,7 @@ export function PartnerOverview() {
           person reading it is trying to decide. These two say where the
           work is and whether it is speeding up or slowing down — the two
           questions a coordinator actually opens this page with. */}
-      <div className="console-charts">
+      <div className="console-charts partner-insight-pair">
         <WeeklyTrend
           dates={cases.map((c) => c.created_at)}
           title="Cases opened, last 12 weeks"
@@ -166,11 +166,11 @@ export function PartnerOverview() {
       )}
 
       <ProgrammeOverview />
-      <div className="partner-work-grid">
+      <div className="partner-work-grid partner-operating-grid">
         <section className="partner-section">
           <SectionHead title="Needs attention" sub="Cases that need a decision or dispatch." href="/partner/cases" cta="View all cases" />
           {attention.length === 0 ? <Empty>{!loaded ? "Loading cases…" : loadError ? "Cases could not be loaded." : !user ? "Sign in to see your team’s cases." : "No urgent cases in the loaded records."}</Empty> : (
-            <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
+            <div className="partner-ledger overflow-hidden">
               {attention.map((c) => <CaseRow key={c.id} c={c} />)}
             </div>
           )}
@@ -186,10 +186,10 @@ export function PartnerOverview() {
         <TasksSection compact />
       </section>
 
-      <div className="partner-work-grid">
+      <div className="partner-work-grid partner-review-grid">
         <section className="partner-section">
           <SectionHead title="Case activity" sub="New cases logged over time." />
-          <div className="rounded-lg border border-black/[0.08] p-5 dark:border-white/[0.1]">
+          <div className="partner-activity">
             <div className="flex items-end justify-between">
               <div>
                 <div className={cn("font-semibold tracking-tight text-bark-900 dark:text-bark-50", !loaded || !user || loadError ? "text-base text-bark-400" : "text-3xl")}>{!loaded || !user || loadError ? "No data" : cases.length}</div>
@@ -207,7 +207,7 @@ export function PartnerOverview() {
       <section className="partner-section">
         <SectionHead title="Recent reports" sub="The latest activity across your cases." href="/partner/cases" cta="Open case queue" />
         {activity.length === 0 ? <Empty>{!loaded ? "Loading recent activity…" : !user ? "Your team’s activity will appear after sign-in." : "No cases in the loaded records."}</Empty> : (
-          <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
+          <div className="partner-ledger overflow-hidden">
             {activity.map((c) => <CaseRow key={c.id} c={c} />)}
           </div>
         )}
@@ -225,7 +225,7 @@ function Stat({ label, value, detail, tone }: { label: string; value: number | s
      than at the display size, which would run "No data" off the column. */
   const isFigure = typeof value === "number";
   return (
-    <div className="border-l border-black/[0.08] pl-4 first:border-l-0 first:pl-0 dark:border-white/[0.1]">
+    <div className="partner-stat border-l border-black/[0.08] pl-4 first:border-l-0 first:pl-0 dark:border-white/[0.1]">
       <div className="mb-2 text-[12px] text-bark-500">{label}</div>
       <div
         className={cn(
@@ -251,7 +251,7 @@ function QuickAction({ href, icon: Icon, label }: { href: string; icon: any; lab
 
 function SectionHead({ title, sub, href, cta }: { title: string; sub: string; href?: string; cta?: string }) {
   return (
-    <div className="mb-3 flex items-end justify-between">
+    <div className="partner-section-head mb-3 flex items-end justify-between">
       <div>
         <h2 className="text-[15px] font-semibold text-bark-900 dark:text-bark-50">{title}</h2>
         <p className="mt-0.5 text-[13px] text-bark-500">{sub}</p>
@@ -263,7 +263,7 @@ function SectionHead({ title, sub, href, cta }: { title: string; sub: string; hr
 
 function CaseRow({ c }: { c: Case }) {
   return (
-    <Link href={`/partner/cases/${c.id}`} className="flex items-center gap-4 border-b border-black/[0.06] p-3.5 last:border-0 hover:bg-black/[0.02] dark:border-white/[0.06] dark:hover:bg-white/[0.03]">
+    <Link href={`/partner/cases/${c.id}`} className="partner-case-row flex items-center gap-4 border-b border-black/[0.06] p-3.5 last:border-0 hover:bg-black/[0.02] dark:border-white/[0.06] dark:hover:bg-white/[0.03]">
       <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-bark-100 dark:bg-bark-800">
         {c.photos?.[0] ? <img src={c.photos[0]} alt="" className="h-full w-full object-cover" /> : <span className="grid h-full w-full place-items-center text-bark-300"><PawPrint className="h-5 w-5" /></span>}
       </div>
