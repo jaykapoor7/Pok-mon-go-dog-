@@ -9,7 +9,21 @@
 .sp-map .sp-map-profile-link{color:#2457ce}
 .sp-map .sp-map-detail-actions>button{background:#2457ce}
 .sp-map .sp-map-title h2{color:#122d55}
-@media(max-width:800px){.sp-map .sp-map-report{bottom:226px;right:12px;padding:12px 15px;font-size:12px}}
+/* ── "Report here" on a phone ────────────────────────────────────────
+   bottom:226px was a magic number chosen to clear the results sheet
+   (175px tall, 40px from the bottom). The sheet is only there when a
+   filter or a search has results, and with no sheet the button hovered
+   270px up the map with nothing under it, which reads as a bug because
+   it is one.
+
+   It sits at the bottom of the map now, and moves up only when the thing
+   it has to clear is actually on screen. :has() asks that question
+   directly rather than guessing from a breakpoint. */
+@media(max-width:800px){
+  .sp-map .sp-map-report{bottom:16px;right:12px;padding:12px 15px;font-size:12px}
+  .sp-map:has(.sp-map-results) .sp-map-report{bottom:226px}
+  .sp-map:has(.sp-map-empty-state) .sp-map-report{bottom:16px}
+}
 .sp-map { display:flex;width:100%;height:100%;overflow:hidden;background:#edf0f4;color:#0b1020; }
 .sp-map-canvas { position:relative;flex:1;min-width:0;overflow:hidden; }
 .sp-map button { font:inherit;cursor:pointer; }

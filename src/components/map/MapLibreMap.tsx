@@ -658,6 +658,18 @@ export function MapLibreMap({
     };
   }, []);
 
+  /* stateCoverage() walks every state against every dataset. It was
+     called in the render body, so it ran again on each render of the
+     largest component in the app for a layer that is usually off. */
+  const coverageDots = useMemo(() => (showGaps && !preview ? stateCoverage() : []), [showGaps, preview]);
+
+  /* Capped once, not per render: see the pixelRatio prop below. Read
+     lazily because it does not exist on the server. */
+  const pixelRatio = useMemo(() => {
+    if (typeof window === "undefined") return 1;
+    return Math.min(window.devicePixelRatio || 1, 2);
+  }, []);
+
   /* Keep the canvas the size of the box it is in.
      
      `reuseMaps` hands a new mount the previous map's canvas, and a canvas
@@ -887,6 +899,16 @@ export function MapLibreMap({
       onMouseEnter={preview ? undefined : () => setCursor("pointer")}
       onMouseLeave={preview ? undefined : () => setCursor("")}
       style={{ width: "100%", height: "100%" }}
+      /* WHY THE RENDER RESOLUTION IS CAPPED.
+
+         MapLibre draws at devicePixelRatio by default. A current Android
+         phone reports 3, so every frame of a pan is nine times the pixels
+         of a logical one, on the weakest GPU any of this runs on. At the
+         sizes a marker and a label are drawn here, 2 is indistinguishable
+         and costs 44% fewer pixels per frame.
+
+         Desktop keeps whatever the display asks for. */
+      pixelRatio={pixelRatio}
       reuseMaps
       // Disable the default full-width bar; the full map adds a compact,
       // collapsible attribution below so OSM/MapLibre stay credited without the
@@ -947,7 +969,7 @@ export function MapLibreMap({
           has actually been published about it. Thirty-odd DOM nodes, which is
           a number the browser does not mind. */}
       {showGaps && !preview &&
-        stateCoverage().map((st) => {
+        coverageDots.map((st) => {
           const meta = STATUS_META[st.status];
           return (
             <Marker key={st.code} longitude={st.lng} latitude={st.lat} anchor="center">
