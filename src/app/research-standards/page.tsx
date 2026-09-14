@@ -5,7 +5,6 @@ import {
   Stat,
 } from "@/components/marketing/MarketingPage";
 import { LoopFigure, ResolveFigure } from "@/components/marketing/figures";
-import { Reveal } from "@/components/site/Reveal";
 import { UNKNOWNS, barrierCounts } from "@/lib/platform/network";
 
 export const metadata = {
@@ -139,13 +138,11 @@ export default function ResearchStandardsPage() {
 
         <div className="mk-list">
           {METHODS.map((m) => (
-            <Reveal key={m.title}>
-              <div className="mk-row">
-                <b>{m.title}</b>
-                <span className="mk-tag">{m.tag}</span>
-                <p>{m.body}</p>
-              </div>
-            </Reveal>
+            <div key={m.title} className="mk-row">
+              <b>{m.title}</b>
+              <span className="mk-tag">{m.tag}</span>
+              <p>{m.body}</p>
+            </div>
           ))}
         </div>
       </Band>
@@ -266,13 +263,11 @@ export default function ResearchStandardsPage() {
             ["Limitations stated by us, not found by reviewers", "What the study cannot show is part of the study."],
             ["Underlying data available to the funder", "Aggregated openly; individual records available for verification."],
           ].map(([t, d]) => (
-            <Reveal key={t}>
-              <div className="mk-row">
-                <b>{t}</b>
-                <span className="mk-tag">COMMITMENT</span>
-                <p>{d}</p>
-              </div>
-            </Reveal>
+            <div key={t} className="mk-row">
+              <b>{t}</b>
+              <span className="mk-tag">COMMITMENT</span>
+              <p>{d}</p>
+            </div>
           ))}
         </div>
       </Band>

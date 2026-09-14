@@ -4,7 +4,6 @@ import {
   Stat,
 } from "@/components/marketing/MarketingPage";
 import { CoverageBar, LoopFigure } from "@/components/marketing/figures";
-import { Reveal } from "@/components/site/Reveal";
 import { UNKNOWNS, BARRIER_META, barrierCounts } from "@/lib/platform/network";
 import { STATES } from "@/lib/platform/geography";
 import { DATASETS } from "@/lib/platform/datasets";
@@ -104,19 +103,17 @@ export default function TheDataPage() {
 
         <div className="mk-list">
           {UNKNOWNS.map((u) => (
-            <Reveal key={u.id}>
-              <div className="mk-row">
-                <b>{u.question}</b>
-                <span className="mk-tag">{BARRIER_META[u.barrier].label}</span>
-                <p>
-                  <strong>Held by:</strong> {u.heldBy}
-                  <br />
-                  <strong>Best available today:</strong> {u.bestAvailable}
-                  <br />
-                  <strong>Resolved by:</strong> {u.resolvedBy}
-                </p>
-              </div>
-            </Reveal>
+            <div key={u.id} className="mk-row">
+              <b>{u.question}</b>
+              <span className="mk-tag">{BARRIER_META[u.barrier].label}</span>
+              <p>
+                <strong>Held by:</strong> {u.heldBy}
+                <br />
+                <strong>Best available today:</strong> {u.bestAvailable}
+                <br />
+                <strong>Resolved by:</strong> {u.resolvedBy}
+              </p>
+            </div>
           ))}
         </div>
       </Band>

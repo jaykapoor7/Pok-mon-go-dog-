@@ -5,7 +5,6 @@ import {
   Stat,
 } from "@/components/marketing/MarketingPage";
 import { LoopFigure, CoverageBar } from "@/components/marketing/figures";
-import { Reveal } from "@/components/site/Reveal";
 import { UNKNOWNS, barrierCounts, BARRIER_META } from "@/lib/platform/network";
 import { STATES } from "@/lib/platform/geography";
 import { DATASETS } from "@/lib/platform/datasets";
@@ -118,13 +117,11 @@ export default function WhyStrayPawPage() {
                 or check; the question and who holds the answer does. */}
             <div className="mk-list">
               {UNKNOWNS.map((u) => (
-                <Reveal key={u.id}>
-                  <div className="mk-row">
-                    <b>{u.question}</b>
-                    <span className="mk-tag">{BARRIER_META[u.barrier].short}</span>
-                    <p>{u.heldBy ? `Held by ${u.heldBy}.` : "Nobody holds this."} {u.resolvedBy}</p>
-                  </div>
-                </Reveal>
+                <div key={u.id} className="mk-row">
+                  <b>{u.question}</b>
+                  <span className="mk-tag">{BARRIER_META[u.barrier].short}</span>
+                  <p>{u.heldBy ? `Held by ${u.heldBy}.` : "Nobody holds this."} {u.resolvedBy}</p>
+                </div>
               ))}
             </div>
           </figure>

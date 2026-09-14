@@ -5,7 +5,6 @@ import {
   Stat,
 } from "@/components/marketing/MarketingPage";
 import { ResolveFigure, LoopFigure } from "@/components/marketing/figures";
-import { Reveal } from "@/components/site/Reveal";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { ORGS, statesWithOrgs } from "@/lib/platform/orgs";
@@ -72,16 +71,14 @@ export default function HowToHelpPage() {
       <Band tone="paper" kicker="PICK ONE" title="What actually" accent="moves the needle.">
         <div className="mk-list">
           {WAYS.map((w) => (
-            <Reveal key={w.href}>
-              <div className="mk-row">
-                <b>{w.title}</b>
-                <span className="mk-tag">{w.tag}</span>
-                <p>{w.body}</p>
-                <Link href={w.href} className="sp-link" style={{ marginTop: 12 }}>
-                  {w.cta} <ArrowUpRight size={14} />
-                </Link>
-              </div>
-            </Reveal>
+            <div key={w.href} className="mk-row">
+              <b>{w.title}</b>
+              <span className="mk-tag">{w.tag}</span>
+              <p>{w.body}</p>
+              <Link href={w.href} className="sp-link" style={{ marginTop: 12 }}>
+                {w.cta} <ArrowUpRight size={14} />
+              </Link>
+            </div>
           ))}
         </div>
       </Band>

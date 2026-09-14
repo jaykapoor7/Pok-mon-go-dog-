@@ -13,6 +13,20 @@ import { BackLink } from "@/components/app/BackLink";
    Every page is: a full-bleed dark hero, alternating dense sections, and
    a next-step footer. Sections carry their own ground colour so the page
    never falls back to an empty white band.
+
+   MOTION IS SPENT IN ONE PLACE. Every element here used to arrive on
+   scroll: each band's kicker, each band's headline, each numbered step,
+   each card in the footer. On /for-ngos that was twenty-one separate
+   entrances in one page, which is the "everything fades up as you
+   scroll" pattern that makes a page read as assembled from a template —
+   and it means nothing is emphasised, because emphasis is a contrast and
+   there was nothing to contrast against.
+
+   The hero keeps its stagger: it is one composed moment, it plays on
+   load rather than on scroll, and it is the page introducing itself.
+   Everything below it is simply there when the reader arrives, which is
+   also what a reader skimming quickly, a screenshot, and a link preview
+   all get.
    ════════════════════════════════════════════════════════════════════ */
 
 export function MarketingPage({
@@ -69,18 +83,14 @@ export function MarketingPage({
         {children}
 
         <section className="mk-next">
-          <Reveal>
-            <div className="sp-kicker light">WHERE TO GO NEXT</div>
-          </Reveal>
+          <div className="sp-kicker light">WHERE TO GO NEXT</div>
           <div className="mk-next-grid">
-            {next.map((n, i) => (
-              <Reveal key={n.href} delay={i * 70}>
-                <Link href={n.href} className="mk-next-card">
-                  <b>{n.label}</b>
-                  <span>{n.note}</span>
-                  <ArrowUpRight size={14} />
-                </Link>
-              </Reveal>
+            {next.map((n) => (
+              <Link key={n.href} href={n.href} className="mk-next-card">
+                <b>{n.label}</b>
+                <span>{n.note}</span>
+                <ArrowUpRight size={14} />
+              </Link>
             ))}
           </div>
         </section>
@@ -119,22 +129,18 @@ export function Band({
   return (
     <section className={`mk-band mk-${tone}`}>
       {kicker && (
-        <Reveal>
-          <div className={`sp-kicker ${tone === "ink" ? "light" : ""}`}>{kicker}</div>
-        </Reveal>
+        <div className={`sp-kicker ${tone === "ink" ? "light" : ""}`}>{kicker}</div>
       )}
       {title && (
-        <Reveal delay={60}>
-          <h2 className="sp-display mk-h2">
-            {title}
-            {accent && (
-              <>
-                {" "}
-                <span>{accent}</span>
-              </>
-            )}
-          </h2>
-        </Reveal>
+        <h2 className="sp-display mk-h2">
+          {title}
+          {accent && (
+            <>
+              {" "}
+              <span>{accent}</span>
+            </>
+          )}
+        </h2>
       )}
       {children}
     </section>
@@ -149,14 +155,12 @@ export function Steps({
 }) {
   return (
     <div className="mk-steps">
-      {items.map((s, i) => (
-        <Reveal key={s.n} delay={i * 60}>
-          <div className="mk-step">
-            <span className="sp-mono mk-step-n">{s.n}</span>
-            <b>{s.title}</b>
-            <p>{s.body}</p>
-          </div>
-        </Reveal>
+      {items.map((s) => (
+        <div key={s.n} className="mk-step">
+          <span className="sp-mono mk-step-n">{s.n}</span>
+          <b>{s.title}</b>
+          <p>{s.body}</p>
+        </div>
       ))}
     </div>
   );
