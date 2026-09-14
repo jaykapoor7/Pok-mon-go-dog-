@@ -1,3 +1,4 @@
+import { sized } from "@/lib/photo/src";
 // ─────────────────────────────────────────────────────────────
 // Dog photographs as map icons.
 //
@@ -251,7 +252,9 @@ export async function renderPhotoIcon(spec: DogIconSpec): Promise<Rendered | nul
   if (inFlight) return inFlight;
 
   const work = (async () => {
-    const img = await loadImage(spec.photo!);
+    /* The marker is a 56px square. Asking for the original meant pulling a
+       whole camera file per pin to paint a thumbnail; see lib/photo/src. */
+    const img = await loadImage(sized(spec.photo!, BOX));
     if (!img) return null;
     const made = newCanvas();
     if (!made) return null;

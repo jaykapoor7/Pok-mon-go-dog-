@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
+import { compressForUpload } from "@/lib/photo/compress";
 import { mapOrg } from "./data";
 import { mapFundraiser } from "./fundraisers";
 import type { NGO, Fundraiser } from "./types";
@@ -65,11 +66,24 @@ export async function uploadPhoto(file: File): Promise<string> {
   if (file.size > MAX_UPLOAD_BYTES) {
     throw new Error("That image is over 8 MB, please pick a smaller one.");
   }
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  /* Compressed here rather than at each call site: the report flow exports
+     through PhotoStudio already, but case photos, proof photos and
+     fundraiser covers were going up at full camera resolution — which is
+     the path organisations use, and the one that decides the storage and
+     egress bill. Returns the original untouched if anything fails. */
+  const upload = await compressForUpload(file);
+  const ext = upload.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supa.storage
     .from("sightings")
-    .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+    .upload(path, upload, {
+      contentType: upload.type || "image/jpeg",
+      upsert: false,
+      /* A year. These are immutable — the path carries a uuid — so a
+         browser and any CDN in front of it should never re-fetch one. The
+         default is an hour, which meant paying egress again every hour. */
+      cacheControl: "31536000",
+    });
   if (error) throw new Error(`Photo upload failed: ${error.message}`);
   return supa.storage.from("sightings").getPublicUrl(path).data.publicUrl;
 }

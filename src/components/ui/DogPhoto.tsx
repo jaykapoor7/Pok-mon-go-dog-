@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PawPrint } from "lucide-react";
 import { cn, seededRandom } from "@/lib/utils";
+import { sized } from "@/lib/photo/src";
 
 const GRADIENTS = [
   ["#5b86f0", "#2f4fc0"],
@@ -24,6 +25,7 @@ export function DogPhoto({
   className,
   imgClassName,
   fit = "cover",
+  width = 384,
 }: {
   /* Nullable on purpose. dogs.cover_photo is null for most animals on a
      young register, and callers were already passing that null straight
@@ -36,6 +38,9 @@ export function DogPhoto({
   /** "cover" fills (may crop); "contain" shows the WHOLE photo over a blurred
    *  fill so a dog's head/body is never cut off. */
   fit?: "cover" | "contain";
+  /** Roughly how wide this is drawn, in css pixels. The image is requested
+   *  at that size rather than at whatever size it was uploaded. */
+  width?: number;
 }) {
   const [failed, setFailed] = useState(false);
   /* No photograph is not a failed photograph, but it takes the same path:
@@ -44,6 +49,10 @@ export function DogPhoto({
      detail panel opened on a torn-page glyph for every animal nobody has
      photographed yet, which is most of them. */
   const missing = !src || src.trim() === "";
+  const at = sized(src, width);
+  /* The blurred backdrop is 10% scaled and 20px blurred: it does not need
+     to be sharp, and asking for a small one is free. */
+  const backdrop = sized(src, 64, 55);
   const [from, to] = GRADIENTS[
     Math.floor(seededRandom(seed ?? src ?? alt) * GRADIENTS.length)
   ];
@@ -55,13 +64,13 @@ export function DogPhoto({
           <>
             {/* blurred backdrop fills the frame; foreground shows the full dog */}
             <img
-              src={src}
+              src={backdrop}
               alt=""
               aria-hidden
               className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl"
             />
             <img
-              src={src}
+              src={at}
               alt={alt}
               loading="lazy"
               onError={() => setFailed(true)}
@@ -70,7 +79,7 @@ export function DogPhoto({
           </>
         ) : (
           <img
-            src={src}
+            src={at}
             alt={alt}
             loading="lazy"
             onError={() => setFailed(true)}

@@ -22,6 +22,27 @@ export function PartnerApplyForm() {
     if (!files.length) return;
     const supa = getSupabase();
     if (!supa) { setError("File uploads aren't available right now. You can email documents instead."); return; }
+    /* This bucket had no limit of any kind: any file, any size, straight
+       from the browser to storage with the public key. A registration
+       document is a photograph or a PDF, and eight of them is already a
+       generous application. */
+    const OK_TYPE = /^(image\/(jpe?g|png|webp|heic|heif)|application\/pdf)$/i;
+    const MAX_BYTES = 8 * 1024 * 1024;
+    if (docs.length + files.length > 8) {
+      setError("Eight documents is the limit. Email anything further and we will attach it.");
+      return;
+    }
+    const tooBig = files.find((f) => f.size > MAX_BYTES);
+    if (tooBig) {
+      setError(`${tooBig.name} is over 8 MB. Please send a smaller scan or photograph.`);
+      return;
+    }
+    const wrongType = files.find((f) => f.type && !OK_TYPE.test(f.type));
+    if (wrongType) {
+      setError(`${wrongType.name} is not a document we can read. Use a PDF or a photograph.`);
+      return;
+    }
+
     setUploading(true); setError(null);
     try {
       for (const file of files) {
