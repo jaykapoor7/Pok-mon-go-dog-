@@ -34,6 +34,7 @@ import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
+import { groupFor } from "@/components/partner/PartnerTabs";
 import { readStoredRole, type Role } from "@/lib/roles";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
@@ -125,9 +126,17 @@ const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin
   ],
   ngo: [
     { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
-    { href: "/partner/map", label: "Map", Icon: MapPin },
     { href: "/partner/animals", label: "Records", Icon: Database },
+    /* Organisation, not Map. Adding people to a team was reachable only
+       from a desktop: the phone bar had no entry for it and no tab bar
+       leads there from the four that were here. The map is still one tap
+       from the dashboard, which carries its own map panel, and from Field
+       work; adding a teammate was not reachable at all. */
     { href: "/partner/field", label: "Field work", Icon: CalendarRange },
+    /* "Team", not "Organisation": a fifth of a 390px screen is 73px, and
+       the longer word was rendering clipped mid-letter. It is also what
+       the page itself is called. */
+    { href: "/partner/team", label: "Team", Icon: Building2 },
   ],
   funder: [
     { href: "/what-would-it-take", label: "Programme", Icon: LayoutGrid },
@@ -267,10 +276,31 @@ export function AppShell({
     router.push(isNgo ? "/partner" : isFeeder ? "/feeder" : isEducator ? "/education" : "/app");
   }
 
+  /* WHY THIS IS NOT startsWith().
+
+     It was, and "/partner/animals".startsWith("/partner") is true — so
+     Dashboard was marked as the current page on every single screen of
+     the console, and the phone bar carried a blue indicator over
+     Dashboard while you were standing in Records. The same trap applies
+     to "/app" and "/map" for anything nested under them.
+
+     An index route matches exactly. A section root matches its own group,
+     which CONSOLE_GROUPS already defines for the tab bars, so the rail
+     and the tabs can never disagree about where you are. Anything else
+     matches a real child path, never a prefix of a sibling's name. */
   const isActive = (href: string) => {
-    if (href === "/partner/animals") return pathname.startsWith("/partner/animals") || pathname.startsWith("/partner/cases") || pathname.startsWith("/partner/medical");
-    if (href === "/partner/field") return pathname.startsWith("/partner/field") || pathname.startsWith("/partner/incoming") || pathname.startsWith("/partner/drives") || pathname.startsWith("/partner/reports");
-    return pathname.startsWith(href);
+    if (pathname === href) return true;
+    const group = groupFor(pathname);
+    if (group) return group.root === href;
+    /* Only the CLOSEST ancestor lights up. Without this "/partner/map"
+       also matched "/partner", because a prefix test cannot tell a parent
+       from the index route of the same space. */
+    if (!pathname.startsWith(`${href}/`)) return false;
+    const candidates = [...primaryNav, ...referenceNav, ...phoneNav].map((item) => item.href);
+    const closest = candidates
+      .filter((candidate) => pathname === candidate || pathname.startsWith(`${candidate}/`))
+      .sort((a, b) => b.length - a.length)[0];
+    return closest === href;
   };
 
   /* Placed after every hook so the hook order stays stable either way. */

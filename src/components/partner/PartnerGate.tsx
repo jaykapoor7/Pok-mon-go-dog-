@@ -143,7 +143,12 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
 
   return (
     <AccessCtx.Provider value={{ member: member === true, ready: resolved }}>
-      {resolved && !member && (!dismissed || !user) && (
+      {/* `(!dismissed || !user)` meant Dismiss did nothing at all when
+          signed out — and signed out is exactly when this notice says
+          "Sign in to load your team's records", so the button was dead in
+          the one state it is most often seen in. Dismissing dismisses.
+          Signing in is still one tap away in the header and in the rail. */}
+      {resolved && !member && !dismissed && (
         /* A callout is what Alert is for. This was a styled div doing the
            same job without the role="alert" that tells a screen reader
            something has appeared, and re-specifying its own border, tint and

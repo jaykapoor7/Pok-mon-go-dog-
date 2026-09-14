@@ -230,7 +230,7 @@ html .spa.spa .spa-side{position:absolute;top:auto;bottom:0;left:0;right:0;z-ind
 html .spa.spa .spa-side>.spa-sect,html .spa.spa .spa-side>a.spa-report-shortcut,html .spa.spa .spa-side>.spa-side-foot{display:none}
 html .spa.spa .spa-phone-links{display:grid;grid-template-columns:repeat(4,1fr);flex:4;min-width:0}
 html .spa.spa .spa-phone-links a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12.5px;padding:7px 2px;border-radius:0;min-width:0;color:#556475;background:white;border:0}
-html .spa.spa .spa-phone-links a[aria-current=page]{color:var(--sp-blue);box-shadow:inset 0 2px 0 var(--sp-blue)}
+html .spa.spa .spa-phone-links a[aria-current=page]{color:var(--sp-blue)}
 html .spa.spa .spa-phone-links a[href="/report"] svg{color:var(--sp-blue)}
 html .spa.spa .spa-more{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 2px;border:0;font-size:10px;color:#556475;background:white;border-radius:0;min-width:0}
 html .spa.spa .spa-menu-btn{display:none}
@@ -426,8 +426,10 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
   html .spa.spa .spa-side .spa-phone-links > a svg { flex: none; }
 
   html .spa.spa .spa-side .spa-phone-links > a[aria-current="page"] {
+    /* No top rule. It hung against the bar's own edge, far from the icon
+       it referred to, and read as a stray border; the selection is the
+       tinted lozenge under the icon instead. */
     color: var(--sp-blue);
-    box-shadow: inset 0 2px 0 var(--sp-blue);
   }
 
   /* The centre slot. Not a bigger version of its neighbours — a different
@@ -1426,4 +1428,73 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   .feeder-quiet-link,
   .report-back button,
   .report-signin-note button { min-height: var(--ctl-h); }
+}
+
+/* ── The phone bar, finished ─────────────────────────────────────────
+   The current item was marked with a 2px rule pinned to the TOP of its
+   cell, which is a desktop tab treatment applied upside down: the line
+   sits against the bar's own top edge, far from the icon it refers to,
+   and reads as a stray border rather than a selection. It looked like a
+   bug even when it was pointing at the right cell — and until the
+   isActive fix it usually was not.
+
+   The selection is now the thing itself: the icon sits on a soft tinted
+   lozenge, the label goes blue, and the two move together. --ctl-r-row
+   is the shape this design system uses for a row you SELECT, which is
+   exactly what a tab is.
+
+   Everything moves on one token'd curve, so a tap reads as one motion
+   rather than three properties changing at their own speeds. */
+@media (max-width: 900px) {
+  html .spa.spa .spa-phone-links > a {
+    position: relative;
+    gap: 5px;
+    transition: color var(--sp-fast) var(--sp-ease-io);
+  }
+  /* The lozenge. A pseudo-element so it can sit behind the icon without
+     another wrapper, and so it can scale independently of the label. */
+  html .spa.spa .spa-phone-links > a::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    width: 58px;
+    max-width: 100%;
+    height: 34px;
+    transform: translateX(-50%) scale(.82);
+    border-radius: var(--ctl-r-row);
+    background: var(--ctl-tint);
+    opacity: 0;
+    transition: opacity var(--sp-fast) var(--sp-ease-io),
+                transform var(--sp-base) var(--sp-ease);
+    pointer-events: none;
+  }
+  html .spa.spa .spa-phone-links > a[aria-current="page"]::before {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  html .spa.spa .spa-phone-links > a svg,
+  html .spa.spa .spa-phone-links > a span { position: relative; }
+  html .spa.spa .spa-phone-links > a[aria-current="page"] span { font-weight: 650; }
+  /* A press reads on the whole cell, not just the label. */
+  html .spa.spa .spa-phone-links > a:active { transform: var(--ctl-press); }
+  html .spa.spa .spa-side a.spa-mobile-report:active { transform: var(--ctl-press); }
+  html .spa.spa .spa-side a.spa-mobile-report {
+    transition: background var(--sp-fast) var(--sp-ease-io),
+                transform var(--sp-fast) var(--sp-ease-io);
+    box-shadow: 0 6px 16px rgba(36, 87, 206, 0.28);
+  }
+  /* The bar itself: one hairline, and a little lift off the content so it
+     reads as a layer above the page rather than a strip glued to it. */
+  html .spa.spa .spa-side {
+    border-top: 1px solid var(--sp-line);
+    box-shadow: 0 -1px 14px rgba(11, 30, 61, 0.05);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html .spa.spa .spa-phone-links > a,
+  html .spa.spa .spa-phone-links > a::before,
+  html .spa.spa .spa-side a.spa-mobile-report { transition: none; }
+  html .spa.spa .spa-phone-links > a:active,
+  html .spa.spa .spa-side a.spa-mobile-report:active { transform: none; }
 }
