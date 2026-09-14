@@ -134,7 +134,7 @@ export function DirectoryClient({
           <h2>No organisations match those filters</h2>
           <p>
             No listed organisation fits those filters. The directory covers{" "}
-            {states.length} states, try widening it.
+            {states.length} states and union territories, try widening it.
           </p>
         </div>
       ) : (

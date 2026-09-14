@@ -106,10 +106,9 @@ export default function ForNgosPage() {
         accent="Apply if it fits."
       >
         <p className="mk-body">
-          The workspace is open to browse without an account, you can see
-          exactly what your team would be working in before committing to
-          anything. Case records stay empty until you sign in with a verified
-          organisation account, at which point your own data populates it.
+          Browse the workspace without an account and see exactly what your
+          team would be working in. Records stay empty until a verified
+          organisation signs in.
         </p>
         <Steps
           items={[

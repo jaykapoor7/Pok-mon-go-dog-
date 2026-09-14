@@ -59,9 +59,9 @@ export default function InsightsPage() {
           <h2 className="font-display text-xl leading-snug tracking-tight">
             {popPoints[0] ? <>{popPoints[0].geo.name} has the highest estimated street-dog population at {nf(popPoints[0].value)}.</> : "Population data is limited to a handful of states."}
           </h2>
-          <p className="mt-2 text-sm text-bark-600 dark:text-bark-300">Combines NAPRE 2024-2025 state reporting, municipal dog censuses, and 20th Livestock Census baselines projected forward. All {popPoints.length} states covered; low-confidence projections are flagged.</p>
+          <p className="mt-2 text-sm text-bark-600 dark:text-bark-300">From the 20th Livestock Census (2019), the last time anybody counted. {popPoints.length} of India&apos;s 36 states and union territories have a figure; the rest were never enumerated separately.</p>
           <div className="mt-4"><RankedBars points={popPoints} max={8} /></div>
-          <p className="mt-3 flex items-center gap-2 text-[12px] text-bark-400"><SourceBadge type="estimate" /> NAPRE reporting (2024-2025), municipal censuses, projected census baselines.</p>
+          <p className="mt-3 flex items-center gap-2 text-[12px] text-bark-400"><SourceBadge type="government" /> 20th Livestock Census (2019), Department of Animal Husbandry &amp; Dairying.</p>
         </article>
 
         {/* ABC: what little we know */}

@@ -43,9 +43,12 @@ export default function GapsPage() {
 
       <div className="spa-kpis">
         <div className="spa-kpi">
-          <span>States covered</span>
+          {/* rows.length is the whole geography, not the number with a
+              figure — the label said "with a published population" over a
+              count of every state and union territory. */}
+          <span>Places on the record</span>
           <b>{rows.length}</b>
-          <small>with a published population figure</small>
+          <small>28 states and 8 union territories</small>
         </div>
         <div className="spa-kpi">
           <span>Animals accounted for</span>
@@ -57,7 +60,7 @@ export default function GapsPage() {
           <b>
             {withCoverage}/{rows.length}
           </b>
-          <small>states reporting sterilisation coverage</small>
+          <small>have published a sterilisation coverage figure</small>
         </div>
       </div>
 

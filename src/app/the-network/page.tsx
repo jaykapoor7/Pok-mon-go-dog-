@@ -91,7 +91,7 @@ export default function TheNetworkPage() {
             />
             <Stat
               value={`${states.size}`}
-              label="States with at least one listed organisation"
+              label="States and union territories with a listed organisation"
               source={`Across ${STATES.length} states and union territories covered`}
             />
           </div>

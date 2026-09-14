@@ -71,7 +71,7 @@ export default function TheDataPage() {
           <Stat
             value={`${pop} / ${STATES.length}`}
             label="Population published"
-            source="NAPRE state reporting, municipal censuses, Livestock Census baselines"
+            source="20th Livestock Census (2019), Department of Animal Husbandry &amp; Dairying"
           />
           <Stat
             value={`${abc} / ${STATES.length}`}

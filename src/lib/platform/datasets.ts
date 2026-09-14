@@ -1,5 +1,5 @@
 import type { Dataset, DataPoint, SourceType, Confidence } from "./types";
-import { STATE_BY_CODE, INDIA } from "./geography";
+import { STATE_BY_CODE, STATES, INDIA } from "./geography";
 import { orgCounts } from "./orgs";
 
 // Real data. Every point is a published figure with a named source, year,
@@ -401,8 +401,19 @@ export function ranked(metric: string, dir: "asc" | "desc" = "desc") {
 /** How many of the 36 states and union territories have any value for a
     metric (a data-gap view). */
 export function coverageOf(metric: string): { withData: number; total: number } {
-  const total = 29;
-  const withData = pointsForMetric(metric).filter((p) => p.geo.level === "state").length;
+  /* 29 was hardcoded here, and it was the denominator on /explore and
+     /insights while everything else counted the real geography — which is
+     how the site came to say "35 / 29 states". It is the length of the
+     list, so it moves when the list does.
+
+     withData counted POINTS, not places. Dog bites carry three years per
+     state, so that number was about to read 108 of 36. Distinct codes. */
+  const total = STATES.length;
+  const withData = new Set(
+    pointsForMetric(metric)
+      .filter((p) => p.geo.level === "state")
+      .map((p) => p.geo.code)
+  ).size;
   return { withData, total };
 }
 

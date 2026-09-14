@@ -28,7 +28,7 @@ export default function MissionPage() {
           A national estimate <em>is not a map.</em>
         </>
       }
-      lede="Most Indian states have a published street-dog population estimate. Two have a published sterilisation rate. None publishes either ward by ward, which is the only scale at which the work actually happens. StrayPaw exists to build that record for real places, one ward at a time, and to publish it with its method attached so anybody can argue with it."
+      lede="Almost every state publishes a street-dog estimate. Two publish a sterilisation rate. None publishes either ward by ward, which is the only scale the work happens at. We build that record, method attached."
       width="wide"
     >
       <div className="mission">
@@ -40,11 +40,10 @@ export default function MissionPage() {
               Twenty-eight states, eight union territories. <em>Two have a coverage figure.</em>
             </h2>
             <p>
-              Each one coloured by what has been published about it. Not by how
-              much work is happening there: by whether a figure exists that
-              somebody outside the programme could check. Almost every state has
-              an estimate of how many street dogs it has. Almost none has a
-              published answer to how many of them have been reached.
+              Coloured by what has been published, not by how much work is
+              happening there: by whether a figure exists that somebody outside
+              the programme could check. Almost every state estimates how many
+              street dogs it has. Almost none says how many have been reached.
             </p>
           </div>
 

@@ -87,7 +87,7 @@ export default function ResearchStandardsPage() {
       kicker="RESEARCH STANDARDS"
       title="A defined protocol."
       accent="Published either way."
-      lede="Institutional funders do not avoid this field because they doubt the need. They avoid it because most work here cannot say what it would take to be proven wrong. Every StrayPaw study is built to be falsifiable, measured against established methods, and published whatever it finds."
+      lede="Funders avoid this field because most work in it cannot say what would prove it wrong. Every StrayPaw study is falsifiable, measured against established methods, and published either way."
       figure={<LoopFigure />}
       next={[
         { label: "For funders", href: "/for-funders", note: "How a programme gets scoped, costed and verified." },
@@ -162,12 +162,10 @@ export default function ResearchStandardsPage() {
           chosen by the people being measured.
         </p>
         <p className="mk-body">
-          ICAM&rsquo;s guidance covers the impact areas a dog population
-          programme is expected to move, population size and density, animal
-          welfare, rabies and other zoonoses, dog bites, shelter intake and
-          euthanasia, and public attitudes, with recommended measurement
-          methods for each. A StrayPaw study states which of these it is
-          powered to detect a change in, and which it is not.
+          ICAM names the impact areas a programme is expected to move:
+          population size, welfare, rabies, bites, shelter intake and public
+          attitudes. Every study says which of them it is powered to detect a
+          change in, and which it is not.
         </p>
         <Steps
           items={[

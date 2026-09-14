@@ -38,10 +38,10 @@ export default function ForFundersPage() {
       >
         <p className="mk-body">
           Sterilisation only reduces a population if it clears a coverage
-          threshold in a defined area. Below that threshold the animals you
-          treat are replaced faster than you treat them, and the money produces
-          real welfare benefit for individual dogs but no population effect at
-          all. Both outcomes get reported the same way: as a count of surgeries.
+          threshold in a defined area. Below it, animals are replaced faster
+          than they are treated: real welfare benefit for individual dogs, no
+          population effect. Both outcomes are reported the same way, as a
+          count of surgeries.
         </p>
         <p className="mk-body">
           The distinction requires knowing the denominator, how many animals

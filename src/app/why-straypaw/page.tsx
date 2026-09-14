@@ -59,11 +59,11 @@ export default function WhyStrayPawPage() {
           whether the vaccination is still in date.
         </p>
         <p className="mk-body">
-          Multiply that by every animal in a city and the result is the state
-          Indian street-animal work is actually in: enormous effort, almost no
-          accumulated knowledge. Programmes cannot prove what they achieved.
-          Funders cannot tell a working intervention from a busy one. And the
-          same animal gets counted, or missed, many times over.
+          Multiply that by a city and you have the state of the field:
+          enormous effort, almost no accumulated knowledge. Programmes cannot
+          prove what they achieved, funders cannot tell a working intervention
+          from a busy one, and the same animal is counted, or missed, many
+          times over.
         </p>
 
         <div className="mk-stats">

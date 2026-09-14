@@ -64,7 +64,7 @@ export default function HowToHelpPage() {
       figure={<ResolveFigure />}
       next={[
         { label: "Report an animal", href: "/report", note: "The fastest way to contribute something real." },
-        { label: "Find a volunteering route", href: "/get-involved", note: `${ORGS.length} organisations across ${states.length} states.` },
+        { label: "Find a volunteering route", href: "/get-involved", note: `${ORGS.length} organisations across ${states.length} states and union territories.` },
         { label: "See what is missing", href: "/the-data", note: "Where the gaps are, and who holds the numbers." },
       ]}
     >
@@ -118,7 +118,7 @@ export default function HowToHelpPage() {
           />
           <Stat
             value={String(states.length)}
-            label="States with a listed organisation"
+            label="States and union territories with a listed organisation"
             source="Filterable by the kind of work you want to do"
           />
           <Stat

@@ -23,7 +23,7 @@ export default function EvidencePage() {
     <SitePage
       kicker="Public evidence"
       title={<>What is known,<br /><em>state by state.</em></>}
-      lede={`What the government publishes for each of India's 28 states and 8 union territories: dog bites reported, suspected rabies deaths, the last population census, and sterilisation coverage where a figure exists at all. Where nobody has published one the row says so, because an absence is part of the picture and rounding it to zero would not be.`}
+      lede={`What the government publishes for each of India's 28 states and 8 union territories: dog bites, suspected rabies deaths, the last population census, and sterilisation coverage where it exists. Where nobody has published a figure, the row says so.`}
       actions={
         <Link href="/map" className="product-primary">
           See the live map <ArrowUpRight size={16} />
