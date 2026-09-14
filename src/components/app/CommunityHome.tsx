@@ -81,13 +81,27 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
     [inView]
   );
 
-  const stats = useMemo(
-    () => ({
-      recorded: inView.length,
-      needsHelp: inView.filter((d) => d.needs_help).length,
-    }),
-    [inView]
-  );
+  /* COUNT THE RECORD, NOT THE MAP.
+
+     This counted inView, which is located(dogs): every animal whose
+     coordinates are finite and not exactly 0,0. An organisation that
+     registers an animal without a location gets 0,0 from the database
+     (register_org_animal coalesces a missing lat/lng to zero), so the
+     record existed, was listed nowhere, and was counted nowhere — the
+     headline read lower than the number of animals actually on file, with
+     nothing on screen to say why.
+
+     The headline is now every record. The map still draws only what it can
+     place, and when those two numbers differ the screen says so rather
+     than quietly using the smaller one. */
+  const stats = useMemo(() => {
+    const scope = location ? inView : dogs;
+    return {
+      recorded: scope.length,
+      needsHelp: scope.filter((d) => d.needs_help).length,
+      unplaced: location ? 0 : dogs.length - inView.length,
+    };
+  }, [dogs, inView, location]);
 
   function findMe() {
     if (!navigator.geolocation) {
@@ -179,7 +193,18 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
 
         <aside className="community-journal">
           <div className="community-signal-line">
-            <div><b>{stats.recorded}</b><span>animals recorded {where}</span></div>
+            <div>
+              <b>{stats.recorded}</b>
+              <span>
+                animals recorded {where}
+                {stats.unplaced > 0 && (
+                  <>
+                    <br />
+                    {stats.unplaced} without a location yet, so not on the map
+                  </>
+                )}
+              </span>
+            </div>
             <div><b className={stats.needsHelp > 0 ? "urgent" : undefined}>{stats.needsHelp}</b><span>need attention</span></div>
           </div>
           <div className="community-journal-heading">
