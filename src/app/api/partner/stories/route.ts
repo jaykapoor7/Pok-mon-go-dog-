@@ -11,15 +11,14 @@ async function actor(request: Request) {
   if (!identity.user) return null;
   const { data: member } = await admin.from("ngo_members").select("ngo_id").eq("user_id", identity.user.id).maybeSingle();
   if (!member?.ngo_id) return null;
-  const { data: ngo } = await admin.from("ngos").select("verified").eq("id", member.ngo_id).maybeSingle();
-  return ngo?.verified ? { admin, ngoId: member.ngo_id as string } : null;
+  return member?.ngo_id ? { admin, ngoId: member.ngo_id as string } : null;
 }
 
 function clean(value: unknown, max = 600) { return String(value ?? "").trim().slice(0, max); }
 
 export async function POST(request: Request) {
   const current = await actor(request);
-  if (!current) return NextResponse.json({ error: "Verified partner access required." }, { status: 401 });
+  if (!current) return NextResponse.json({ error: "Organisation access required." }, { status: 401 });
   const body = await request.json();
   const caseId = clean(body.caseId, 80);
   const title = clean(body.title, 120);

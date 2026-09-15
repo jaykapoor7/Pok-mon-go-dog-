@@ -77,7 +77,7 @@ export async function getOrgAnimals(ngoId: string): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data } = await supa
-    .from("dogs")
+    .from("public_animal_profiles")
     .select("*")
     .eq("ngo_id", ngoId)
     .order("last_seen", { ascending: false })
@@ -122,7 +122,7 @@ export async function getCityStats(): Promise<CityStats> {
        absent from “Animals recorded”. */
     const [{ data }, { count }] = await Promise.all([
       supa.rpc("get_city_stats"),
-      supa.from("dogs").select("id", { count: "exact", head: true }),
+      supa.from("public_animal_profiles").select("id", { count: "exact", head: true }),
     ]);
     if (data) {
       const stats = data as CityStats;
@@ -145,11 +145,11 @@ export async function getAllDogs(): Promise<Dog[]> {
   const supa = getSupabase();
   if (supa) {
     const { data } = await supa
-      .from("dogs")
+      .from("public_animal_profiles")
       .select("*")
       .order("last_seen", { ascending: false })
       .limit(2000);
-    if (data) return data.map(mapDog);
+    if (data) return data.map(mapDog).filter((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng) && (dog.lat !== 0 || dog.lng !== 0));
   }
   return [];
 }
@@ -162,7 +162,7 @@ export async function getAllDogs(): Promise<Dog[]> {
 export async function countDogs(): Promise<number> {
   const supa = getSupabase();
   if (!supa) return 0;
-  const { count } = await supa.from("dogs").select("id", { count: "exact", head: true });
+  const { count } = await supa.from("public_animal_profiles").select("id", { count: "exact", head: true });
   return count ?? 0;
 }
 
@@ -178,7 +178,7 @@ export async function countUnchecked(): Promise<number> {
   const supa = getSupabase();
   if (!supa) return 0;
   const { count } = await supa
-    .from("dogs")
+    .from("public_animal_profiles")
     .select("id", { count: "exact", head: true })
     .or("sterilisation_status.is.null,sterilisation_status.eq.unknown");
   return count ?? 0;
@@ -189,7 +189,7 @@ export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data } = await supa
-    .from("dogs")
+    .from("public_animal_profiles")
     .select("*")
     .not("cover_photo", "is", null)
     .order("last_seen", { ascending: false })
@@ -205,7 +205,7 @@ export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
 export async function getDogById(id: string): Promise<Dog | null> {
   const supa = getSupabase();
   if (supa) {
-    const { data } = await supa.from("dogs").select("*").eq("id", id).single();
+    const { data } = await supa.from("public_animal_profiles").select("*").eq("id", id).single();
     return data ? mapDog(data) : null;
   }
   return null;
@@ -237,7 +237,7 @@ export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
   const supa = getSupabase();
   if (supa) {
     const { data } = await supa
-      .from("sightings")
+      .from("public_live_sightings")
       .select("*")
       .eq("status", "live")
       .order("created_at", { ascending: false })
@@ -255,7 +255,7 @@ export async function countLiveSightings(): Promise<number> {
   const supa = getSupabase();
   if (!supa) return 0;
   const { count } = await supa
-    .from("sightings")
+    .from("public_live_sightings")
     .select("id", { count: "exact", head: true })
     .eq("status", "live");
   return count ?? 0;
@@ -265,7 +265,7 @@ export async function getAllSightings(limit = 100): Promise<Sighting[]> {
   const supa = getSupabase();
   if (supa) {
     const { data } = await supa
-      .from("sightings")
+      .from("public_live_sightings")
       .select("*")
       .eq("status", "live")
       .order("created_at", { ascending: false })
@@ -286,11 +286,11 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
 
     const [sightingsRes, feedRes, vaccRes, sterRes, commentsRes] =
       await Promise.all([
-        supa.from("sightings").select("*").eq("dog_id", id).eq("status", "live").order("created_at", { ascending: false }),
-        supa.from("feed_events").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
-        supa.from("vaccinations").select("*").eq("dog_id", id),
-        supa.from("sterilisations").select("*").eq("dog_id", id),
-        supa.from("comments").select("*").eq("dog_id", id).order("created_at", { ascending: true }),
+        supa.from("public_live_sightings").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
+        supa.from("public_feed_events").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
+        supa.from("public_vaccinations").select("*").eq("dog_id", id),
+        supa.from("public_sterilisations").select("*").eq("dog_id", id),
+        supa.from("public_comments").select("*").eq("dog_id", id).order("created_at", { ascending: true }),
       ]);
 
     const sightings = (sightingsRes.data ?? []).map(mapSighting);

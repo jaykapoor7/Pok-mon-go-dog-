@@ -23,7 +23,7 @@ import {
  * curious about how cases get handled should not hit a wall.
  *
  * What membership controls is the records themselves. Case data loads through
- * a session-scoped RPC, so signed out or unverified the workspace renders
+ * a session-scoped RPC, so signed out or not yet a member the workspace renders
  * genuinely empty, the rows never reach the page rather than being hidden in
  * the markup.
  *
@@ -97,7 +97,7 @@ export function PartnerWrite({
         </p>
         <p className="partner-write-wall-note">
           {user
-            ? "Records can only be changed by verified members of an organisation."
+            ? "Records can only be changed by members of an organisation."
             : "Your organisation's six-character code is the sign-in. Reading this workspace needs no account."}
         </p>
       </div>
@@ -158,7 +158,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
           <AlertTitle>{user ? "Your organisation access is not active yet." : "Sign in to load your team’s records."}</AlertTitle>
           <AlertDescription>
             <p className="leading-relaxed">
-              You can explore the workspace now. Private records are available only to verified members of your organisation.
+              You can explore the workspace now. Private records are available only to members of your organisation.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {!user ? (

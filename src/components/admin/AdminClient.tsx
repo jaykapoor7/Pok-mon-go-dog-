@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { OrgSetup } from "@/components/admin/OrgSetup";
+import { MasterImport } from "@/components/admin/MasterImport";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Lock,
@@ -26,6 +27,7 @@ import {
   ExternalLink,
   Building2,
   Flag as FlagIcon,
+  FileSpreadsheet,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { haptic } from "@/lib/haptics";
@@ -84,6 +86,10 @@ interface AdminDog {
   ear_notch: string | null;
   cover_photo: string | null;
   last_seen: string | null;
+  ngo_id: string | null;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  ngos: { name: string } | { name: string }[] | null;
 }
 
 interface AdminPartnerRequest {
@@ -121,7 +127,7 @@ interface AdminFundraiser {
   created_at: string;
 }
 
-type Tab = "queue" | "partners" | "orgs" | "reports" | "feedback" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
+type Tab = "queue" | "partners" | "orgs" | "imports" | "reports" | "feedback" | "verify" | "dogs" | "feeding" | "fundraisers" | "volunteers" | "ngos";
 
 type AdminContentReport = {
   id: string; reason: string; details: string | null; link: string | null;
@@ -831,6 +837,7 @@ export function AdminClient() {
       title: "Access",
       items: [
         { key: "orgs", label: "Organisations", icon: <Building2 className="h-4 w-4" />, count: orgs.length },
+        { key: "imports", label: "Master imports", icon: <FileSpreadsheet className="h-4 w-4" />, count: 0 },
       ],
     },
     {
@@ -988,6 +995,8 @@ export function AdminClient() {
         <HelperList helpers={volunteers} kind="volunteer" busyId={busyId} onToggle={toggleAck} />
       )}
       {tab === "orgs" && <OrgSetup secret={secret} />}
+
+      {tab === "imports" && <MasterImport secret={secret} />}
 
       {tab === "ngos" && (
         <HelperList helpers={ngos} kind="ngo" busyId={busyId} onToggle={toggleAck} />
@@ -1328,7 +1337,7 @@ function DogsList({
         </span>
         <h2 className="font-display text-lg">No dogs yet</h2>
         <p className="mt-1 text-sm text-bark-500">
-          Approved dogs will appear here for editing.
+          NGO and community dog profiles appear here as soon as they are uploaded.
         </p>
       </div>
     );
@@ -1358,6 +1367,10 @@ function DogsList({
               </a>
               <p className="truncate text-xs text-bark-400">
                 {d.zone} · {d.last_seen ? timeAgo(d.last_seen) : "-"}
+              </p>
+              <p className="truncate text-[11px] text-bark-400">
+                Uploaded by {d.created_by_name || d.created_by_id || "historic source"}
+                {d.ngos ? ` · ${(Array.isArray(d.ngos) ? d.ngos[0] : d.ngos)?.name ?? "organisation"}` : d.ngo_id ? " · organisation" : " · community"}
               </p>
             </div>
             <button

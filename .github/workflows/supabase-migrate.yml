@@ -12,6 +12,7 @@ on:
           - pilot
           - personal
           - wards
+          - security-audit
 
 permissions:
   contents: read
@@ -41,10 +42,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Apply migration
+      - name: Apply migration or read-only security audit
         env:
           # Supabase direct connections resolve IPv6-first. GitHub-hosted
           # runners are IPv4-only, so this must be the Session Pooler URI
           # (Connect → Session pooler → URI), stored as this repository secret.
           SUPABASE_POOLER_URL: ${{ secrets.SUPABASE_POOLER_URL }}
-        run: npm run db:migrate -- "${{ inputs.migration_set }}"
+        run: |
+          if [ "${{ inputs.migration_set }}" = "security-audit" ]; then
+            npm run db:security:audit
+          else
+            npm run db:migrate -- "${{ inputs.migration_set }}"
+          fi

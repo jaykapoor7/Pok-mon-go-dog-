@@ -92,7 +92,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       <p className="mt-0.5 text-[13px] text-bark-500">Link the case to an animal in your registry, or add a new one with a photo.</p>
 
       {/* Opening a case writes to the organisation's records, which the
-          database refuses from anyone who is not a verified member. Better
+          database refuses from anyone who is not an organisation member. Better
           to say so here than after the form has been filled in. */}
       <div className="mt-5">
         <PartnerWrite what="open a case">

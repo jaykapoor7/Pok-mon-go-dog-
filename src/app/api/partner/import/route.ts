@@ -131,9 +131,7 @@ async function identity(accessToken: string | null) {
     .eq("user_id", userData.user.id)
     .maybeSingle();
   if (!membership?.ngo_id) return null;
-  const { data: ngo } = await admin.from("ngos").select("verified").eq("id", membership.ngo_id).maybeSingle();
-  if (!ngo?.verified) return null;
-  return { admin, userId: userData.user.id, ngoId: membership.ngo_id as string };
+  return { admin, userId: userData.user.id, userLabel: userData.user.email ?? null, ngoId: membership.ngo_id as string };
 }
 
 function caseCategory(condition: string): "injury" | "sterilisation" | "rescue" | "vaccination" | "other" {
@@ -203,7 +201,7 @@ export async function POST(request: Request) {
 
     if (action !== "commit") return NextResponse.json({ error: "Unknown import action." }, { status: 400 });
     const actor = await identity(accessToken);
-    if (!actor) return NextResponse.json({ error: "Sign in with a verified organisation account to import records." }, { status: 401 });
+    if (!actor) return NextResponse.json({ error: "Sign in with an organisation account to import records." }, { status: 401 });
     const decisions = JSON.parse(text(body.get("decisions")) || "{}") as Record<string, { decision: "new" | "merge" | "review" | "skip"; matchedDogId?: string }>;
 
     const sourceKind = file.name.split(".").pop()?.toLowerCase() ?? "xlsx";
@@ -258,6 +256,8 @@ export async function POST(request: Request) {
             lng: usableCoordinates(normalized) ? normalized.longitude : 0,
             status: "seen",
             color: normalized.colour ?? "Unknown",
+            created_by_id: actor.userId,
+            created_by_name: actor.userLabel,
             sex: normalized.sex ?? null,
             /* Case detail stays with the private episode. The public animal
                card gets only its verified identity and coarse location. */
@@ -277,7 +277,7 @@ export async function POST(request: Request) {
           description: [normalized.caseDetail, normalized.detailedStatus].filter(Boolean).join("\n") || null,
           zone: normalized.location ?? null,
           category: caseCategory(normalized.condition ?? ""),
-          status: /closed|completed|released|recovered/i.test(normalized.status ?? "") ? "closed" : "unverified",
+          status: /closed|completed|released|recovered/i.test(normalized.status ?? "") ? "closed" : "in_progress",
           condition_text: normalized.condition ?? null,
           follow_up_at: dateValue(normalized.reviewDate)?.slice(0, 10) ?? null,
           provenance: "imported_historical_record",
