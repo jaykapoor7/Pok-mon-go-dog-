@@ -6,10 +6,8 @@ import { LandingMotion } from "@/components/site/LandingMotion";
 import { WhereTheyAre } from "@/components/site/WhereTheyAre";
 import { ConsoleShowcase } from "@/components/site/ConsoleShowcase";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { PartnerBar } from "@/components/site/PartnerBar";
 import { CaseStory } from "@/components/site/CaseStory";
 import { getShowcaseDogs, getAllDogs, countDogs } from "@/lib/data";
-import { getOperationalPartners } from "@/lib/partners";
 import { getFeaturedStories } from "@/lib/stories";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
@@ -33,11 +31,10 @@ export default async function HomePage() {
      stranger's photograph under Pinky's name, showed five pins on a map of
      Delhi, and printed two invented counts. Nothing on this page is allowed
      to come from anywhere but the database. */
-  const [showcase, mapDogs, total, partners, stories] = await Promise.all([
+  const [showcase, mapDogs, total, stories] = await Promise.all([
     getShowcaseDogs(18),
     getAllDogs(),
     countDogs(),
-    getOperationalPartners(),
     getFeaturedStories(1),
   ]);
 
@@ -48,7 +45,6 @@ export default async function HomePage() {
       <SiteHeader />
       <main>
         <Hero dogs={showcase} total={total} />
-        <PartnerBar partners={partners} />
         <CaseStory story={stories[0] ?? null} />
         <WhereTheyAre dogs={mapDogs} />
         <ConsoleShowcase />

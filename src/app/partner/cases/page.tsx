@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { PartnerCasesLive } from "@/components/partner/PartnerCasesLive";
-import { RecordsTabs } from "@/components/partner/RecordsTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Cases, StrayPaw Partner" };
@@ -18,7 +17,6 @@ export default function PartnerCasesPage() {
           <Plus className="h-4 w-4" /> New case
         </Link>
       </header>
-      <RecordsTabs />
       <PartnerCasesLive />
     </div>
   );

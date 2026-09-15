@@ -1,5 +1,4 @@
 import { MedicalClient } from "@/components/partner/MedicalClient";
-import { RecordsTabs } from "@/components/partner/RecordsTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Medical, StrayPaw Partner" };
@@ -16,7 +15,6 @@ export default function PartnerMedicalPage() {
           care, always connected to the animal.
         </p>
       </header>
-      <RecordsTabs />
       <MedicalClient />
     </div>
   );

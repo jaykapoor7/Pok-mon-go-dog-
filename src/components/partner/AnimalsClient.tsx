@@ -13,7 +13,6 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { SPECIES, speciesLabel, STATUS_META } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { RecordsTabs } from "@/components/partner/RecordsTabs";
 
 const FILTER =
   "min-h-[40px] rounded-md border border-black/[0.09] bg-transparent px-2 text-[13px] outline-none focus:border-paw-400 dark:border-white/[0.12]";
@@ -121,7 +120,6 @@ export function AnimalsClient() {
           </button>
         </div>
         </div>
-        <RecordsTabs />
       </header>
 
       {creating && <CreateAnimal onDone={() => { setCreating(false); load(); }} />}

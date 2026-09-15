@@ -395,9 +395,9 @@ export function AppShell({
           </div>
           {isNgo && <div className="spa-ngo-actions" aria-label="Quick actions">
             <p>Quick actions</p>
-            <Link href="/report"><Radio size={16} />Report</Link>
-            <Link href="/partner/cases/new"><Plus size={16} />New case</Link>
-            <Link href="/partner/import"><Database size={16} />Import</Link>
+            <Link href="/report" className="spa-ngo-action spa-ngo-action-primary"><Radio size={16} /><span><b>Report an animal</b><small>Log a new sighting</small></span><ArrowUpRight size={15} /></Link>
+            <Link href="/partner/cases/new" className="spa-ngo-action"><Plus size={16} /><span><b>New case</b><small>Start team follow-up</small></span><ArrowUpRight size={15} /></Link>
+            <Link href="/partner/import" className="spa-ngo-action"><Database size={16} /><span><b>Import records</b><small>Bring in a register</small></span><ArrowUpRight size={15} /></Link>
           </div>}
           {referenceNav.length > 0 && (
             <div className="spa-reference-nav" aria-label="Community reference spaces">

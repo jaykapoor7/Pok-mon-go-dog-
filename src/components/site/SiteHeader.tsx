@@ -26,7 +26,6 @@ const LINKS: NavItem[] = [
     ],
   },
   { label: "For NGOs", href: "/for-ngos" },
-  { label: "Our work", href: "/work" },
   { label: "Partners", href: "/partners" },
   /* A core area, not a resources page: it is where somebody goes before an
      animal becomes a case, and it carries partner teaching material. */
