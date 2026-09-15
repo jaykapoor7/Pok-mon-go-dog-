@@ -43,5 +43,8 @@ jobs:
 
       - name: Apply migration
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          # Supabase direct connections resolve IPv6-first. GitHub-hosted
+          # runners are IPv4-only, so this must be the Session Pooler URI
+          # (Connect → Session pooler → URI), stored as this repository secret.
+          SUPABASE_POOLER_URL: ${{ secrets.SUPABASE_POOLER_URL }}
         run: npm run db:migrate -- "${{ inputs.migration_set }}"

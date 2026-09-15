@@ -66,13 +66,22 @@ if (!files) {
   process.exit(1);
 }
 
-const url = process.env.DATABASE_URL ?? fromEnvFile("DATABASE_URL");
+/* The direct `db.<project>.supabase.co:5432` endpoint is IPv6-first. GitHub
+   hosted runners do not have an IPv6 route, so migrations must prefer the
+   Supabase Session Pooler (the IPv4-compatible URI from Connect → Session
+   pooler). Keep DATABASE_URL as a fallback for local development and for
+   self-hosted databases. */
+const url =
+  process.env.SUPABASE_POOLER_URL ??
+  process.env.DATABASE_URL ??
+  fromEnvFile("SUPABASE_POOLER_URL") ??
+  fromEnvFile("DATABASE_URL");
 if (!url) {
   console.error(
-    "No DATABASE_URL.\n" +
-      "Supabase → Project Settings → Database → Connection string → URI.\n" +
-      "Then either put it in .env.local as DATABASE_URL=..., or:\n" +
-      "  DATABASE_URL='postgresql://...' npm run db:migrate -- " + set
+    "No Supabase connection URL.\n" +
+      "For GitHub Actions, add SUPABASE_POOLER_URL using Supabase Connect → Session pooler.\n" +
+      "For local development, add SUPABASE_POOLER_URL or DATABASE_URL to .env.local.\n" +
+      "  SUPABASE_POOLER_URL='postgresql://...' npm run db:migrate -- " + set
   );
   process.exit(1);
 }
@@ -111,7 +120,18 @@ const client = new pg.Client({
   statement_timeout: 0,
 });
 
-await client.connect();
+try {
+  await client.connect();
+} catch (err) {
+  if (err?.code === "ENETUNREACH" && String(err?.address ?? "").includes(":")) {
+    console.error(
+      "\nThis runner reached an IPv6-only Supabase address. " +
+        "Use the IPv4-compatible Session Pooler URI (Supabase Connect → Session pooler) " +
+        "as SUPABASE_POOLER_URL; do not use the direct db.<project>.supabase.co URI in GitHub Actions."
+    );
+  }
+  throw err;
+}
 console.log(`Connected. Running set "${set}", ${files.length} files.\n`);
 
 for (const file of files) {
