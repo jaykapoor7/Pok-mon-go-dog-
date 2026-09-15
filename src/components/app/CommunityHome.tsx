@@ -11,6 +11,8 @@ import { located } from "@/lib/geo/cluster";
 import { markerMetaFor } from "@/lib/marker-state";
 import { dogLabel, timeAgo } from "@/lib/utils";
 import type { Dog, Sighting } from "@/lib/types";
+import type { PublicProgramme } from "@/lib/public-programmes";
+import { PublicProgrammes } from "./PublicProgrammes";
 
 /* ════════════════════════════════════════════════════════════════════
    The neighbourhood home.
@@ -38,7 +40,7 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
   return earth * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }
 
-export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sighting[] }) {
+export function CommunityHome({ dogs, sightings, programmes }: { dogs: Dog[]; sightings: Sighting[]; programmes: PublicProgramme[] }) {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -285,6 +287,8 @@ export function CommunityHome({ dogs, sightings }: { dogs: Dog[]; sightings: Sig
           {nearby && <ByLocality dogs={inView} />}
         </div>
       </section>
+
+      <PublicProgrammes programmes={programmes} />
 
       {/* The console's side rail is hidden on a phone, and a phone is
           where most of this gets used, so the way to report a problem

@@ -38,6 +38,7 @@ const PARTS = [
   ["public-dataset.sql", "The published dataset: one citable row per survey"],
   ["ward-density.sql", "Ward/district boundaries and the coverage headline"],
   ["map-search.sql", "Searching wards and districts, and the India-only mask"],
+  ["operational-records.sql", "Longitudinal records, imports, evidence and follow-ups"],
 ];
 
 const RULE = "═".repeat(64);

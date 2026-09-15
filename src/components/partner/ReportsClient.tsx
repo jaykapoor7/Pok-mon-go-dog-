@@ -8,6 +8,7 @@ import { PrintButton } from "@/components/partner/PrintButton";
 import { CASE_CATEGORY_META, speciesLabel, type Case, type CaseCategory } from "@/lib/types";
 import { ConsolePage } from "./ConsolePage";
 import { ProgrammeBreakdown } from "@/components/partner/ProgrammeBreakdown";
+import { ExportStudio } from "@/components/partner/ExportStudio";
 
 const WEEKS = 12;
 
@@ -67,6 +68,8 @@ export function ReportsClient() {
       lede="The numbers you send to donors, funders and municipalities."
       actions={<><PrintButton /><ExportCsvButton /></>}
     >
+
+      <ExportStudio />
 
       {/* Programme coverage first. For an organisation running ABC and
           rabies work these are the numbers that get reported; case counts

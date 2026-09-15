@@ -14,6 +14,7 @@
     "demo:record": "tsx scripts/record-demo.ts",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:bundle": "node scripts/build-bundle.mjs",
+    "import:pawesome": "node scripts/stage-pawesome-import.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs",
     "check:fixtures": "node scripts/no-fixtures.mjs",
     "prebuild": "node scripts/no-fixtures.mjs"
@@ -45,7 +46,8 @@
     "react-map-gl": "^7.1.7",
     "sonner": "^2.0.8",
     "tailwind-merge": "^2.5.2",
-    "three": "^0.186.0"
+    "three": "^0.186.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -61,8 +63,8 @@
     "pg": "^8.23.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "typescript": "^5"
   },
   "browserslist": [
     "chrome >= 111",

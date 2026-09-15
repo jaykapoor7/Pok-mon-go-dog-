@@ -390,6 +390,15 @@
 .spa-cta:active { transform: var(--ctl-press); }
 .spa-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
+/* The NGO rail is an operating surface: navigation answers where am I,
+   while these compact actions answer what needs to happen next. */
+.spa-ngo-actions { display: grid; gap: 5px; margin: 18px 10px 4px; padding-top: 15px; border-top: 1px solid var(--sp-rule, rgba(10,28,56,.12)); }
+.spa-ngo-actions p { margin: 0 0 2px; padding: 0 7px; color: var(--sp-muted, #66748a); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.spa-ngo-actions a { display: flex; align-items: center; gap: 8px; min-height: 35px; padding: 7px 8px; border: 1px solid rgba(36,87,206,.18); border-radius: 7px; color: var(--sp-blue, #2457ce); font-size: 13px; font-weight: 700; }
+.spa-ngo-actions a:first-of-type { background: var(--sp-blue, #2457ce); border-color: var(--sp-blue, #2457ce); color: #fff; }
+.spa-ngo-actions a:hover { background: rgba(36,87,206,.08); }
+.spa-ngo-actions a:first-of-type:hover { background: var(--sp-blue-deep, #153f9f); }
+
 /* KPI strip */
 .spa-kpis {
   display: grid;
@@ -4323,3 +4332,10 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   button[aria-label="close"] { min-width: var(--ctl-h); min-height: var(--ctl-h); }
   button[aria-label="Close"] { display: inline-flex; align-items: center; justify-content: center; }
 }
+
+.export-studio{margin-bottom:38px;padding:24px;border:1px solid rgba(11,30,61,.12);background:linear-gradient(135deg,#f5f8fc,#fff)}.export-studio-intro{max-width:620px}.export-studio h2{margin:7px 0;font-size:24px;letter-spacing:-.04em;color:#0b1e3d}.export-studio-intro p{margin:0;color:#637187;font-size:13px;line-height:1.55}.export-studio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}.export-studio-grid article{padding:16px;background:#fff;border:1px solid rgba(11,30,61,.1)}.export-studio-grid article>svg{color:#2457ce}.export-studio-grid h3{margin:12px 0 5px;font-size:15px;color:#0b1e3d}.export-studio-grid p{min-height:59px;margin:0;color:#637187;font-size:12px;line-height:1.5}.export-studio-grid article>div{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.export-studio-action{display:inline-flex;min-height:34px;align-items:center;gap:6px;padding:7px 9px;border:1px solid rgba(11,30,61,.13);background:#fff;color:#2457ce;font-size:11.5px;font-weight:700}.export-studio-action:hover{border-color:#2457ce}.export-studio-action:disabled{opacity:.6}@media(max-width:800px){.export-studio-grid{grid-template-columns:1fr}.export-studio-grid p{min-height:unset}}
+
+/* Intentionally published programme summaries are distinct from the personal
+   animal register above: no individual profile, reporter contact or exact
+   location leaks into this community surface. */
+.community-programmes{margin-top:64px;padding-top:34px;border-top:1px solid rgba(11,30,61,.12)}.community-programmes-heading{display:flex;justify-content:space-between;gap:28px;align-items:end}.community-programmes-heading h2{margin:7px 0;font-size:26px;letter-spacing:-.035em;color:#0b1e3d}.community-programmes-heading p{max-width:580px;margin:0;color:#637187;font-size:13px;line-height:1.55}.community-programmes-heading>a{display:inline-flex;flex:none;align-items:center;gap:5px;color:#2457ce;font-size:13px;font-weight:700}.community-programme-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px}.community-programme-grid article{padding:18px;border:1px solid rgba(11,30,61,.11);background:#fff}.community-programme-top{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:700;color:#2457ce}.community-programme-top span{display:flex;align-items:center;gap:5px}.community-programme-top a{color:#56667c}.community-programme-grid h3{margin:18px 0 5px;font-size:17px;letter-spacing:-.025em;color:#0b1e3d}.community-programme-place{display:flex;align-items:center;gap:5px;margin:0;color:#637187;font-size:12px}.community-programme-summary{margin:14px 0;color:#44546a;font-size:13px;line-height:1.5}.community-programme-grid dl{display:flex;gap:22px;margin:18px 0 0;padding-top:12px;border-top:1px solid rgba(11,30,61,.09)}.community-programme-grid dt{font-size:11px;color:#718097}.community-programme-grid dd{margin:3px 0 0;font-size:17px;font-weight:700;color:#0b1e3d}@media(max-width:800px){.community-programmes-heading{align-items:start;flex-direction:column}.community-programme-grid{grid-template-columns:1fr}}

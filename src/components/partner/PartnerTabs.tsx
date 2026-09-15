@@ -62,6 +62,7 @@ export const CONSOLE_GROUPS: {
       { href: "/partner/team", label: "Team" },
       { href: "/partner/volunteers", label: "Volunteers" },
       { href: "/partner/fundraising", label: "Fundraising" },
+      { href: "/partner/stories", label: "Stories" },
       { href: "/partner/resources", label: "Evidence files" },
       { href: "/partner/settings", label: "Settings" },
     ],

@@ -105,6 +105,37 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
 
 import type { MedicalEvent } from "./types";
 
+export interface AnimalTimelineEvent {
+  id: string;
+  event_type: string;
+  title: string;
+  details: string | null;
+  occurred_at: string;
+  provenance: string;
+}
+
+/** The canonical, append-only operational timeline for one animal. Older
+ * sightings/cases remain visible in the profile; this adds the richer care
+ * and follow-up events created by the operational record migration. */
+export async function getAnimalTimeline(dogId: string): Promise<AnimalTimelineEvent[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa
+    .from("animal_timeline_events")
+    .select("id,event_type,title,details,occurred_at,provenance")
+    .eq("dog_id", dogId)
+    .order("occurred_at", { ascending: false });
+  if (error) return [];
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    event_type: row.event_type,
+    title: row.title,
+    details: row.details ?? null,
+    occurred_at: row.occurred_at,
+    provenance: row.provenance,
+  }));
+}
+
 export interface PartnerMedicalEvent extends MedicalEvent {
   animal: {
     id: string;

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, MapPin, Circle, Pencil, Loader2, Check } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { isNgoMember } from "@/lib/actions";
-import { updateAnimal, getMedicalEvents, addMedicalEvent, setAnimalOwner } from "@/lib/animal-actions";
+import { updateAnimal, getMedicalEvents, getAnimalTimeline, addMedicalEvent, setAnimalOwner, type AnimalTimelineEvent } from "@/lib/animal-actions";
 import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
 import { speciesLabel, STATUS_META, isOverdue, MEDICAL_KINDS, type Dog, type Sighting, type Case, type DogStatus, type MedicalEvent } from "@/lib/types";
 import { formatDate, timeAgo } from "@/lib/utils";
@@ -23,11 +23,13 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
   const [member, setMember] = useState(false);
   const [editing, setEditing] = useState(false);
   const [medical, setMedical] = useState<MedicalEvent[]>([]);
+  const [operationalTimeline, setOperationalTimeline] = useState<AnimalTimelineEvent[]>([]);
   const st = STATUS_META[dog.status];
 
   useEffect(() => {
     isNgoMember().then(setMember).catch(() => {});
     getMedicalEvents(dog.id).then(setMedical).catch(() => {});
+    getAnimalTimeline(dog.id).then(setOperationalTimeline).catch(() => {});
   }, [dog.id]);
 
   const TABS: { key: Tab; label: string }[] = [
@@ -42,6 +44,7 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
 
   // merged chronological timeline
   const events = [
+    ...operationalTimeline.map((event) => ({ t: event.occurred_at, kind: "care" as const, label: event.title, sub: event.details })),
     ...cases.map((c) => ({ t: c.created_at, kind: "case" as const, label: `Case opened · ${c.title}`, sub: c.zone })),
     ...sightings.map((s) => ({ t: s.created_at, kind: "obs" as const, label: "Observation recorded", sub: s.zone })),
   ].sort((a, b) => +new Date(b.t) - +new Date(a.t));
@@ -148,7 +151,7 @@ export function AnimalRecord({ dog, sightings, cases }: { dog: Dog; sightings: S
             <p className="py-8 text-center text-[14px] text-bark-400">No history yet.</p>
           ) : events.map((e, i) => (
             <div key={i} className="relative">
-              <span className={cn("absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full", e.kind === "case" ? "bg-paw-500" : "bg-bark-300")} />
+              <span className={cn("absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full", e.kind === "case" ? "bg-paw-500" : e.kind === "care" ? "bg-status-vaccinated" : "bg-bark-300")} />
               <p className="text-[12px] text-bark-400">{formatDate(e.t)}</p>
               <p className="mt-0.5 text-[14px] text-bark-800 dark:text-bark-100">{e.label}</p>
               {e.sub && <p className="text-[12px] text-bark-400">{e.sub}</p>}

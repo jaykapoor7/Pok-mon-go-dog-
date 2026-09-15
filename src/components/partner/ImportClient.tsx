@@ -1,307 +1,92 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
-import {
-  Check,
-  FileImage,
-  Loader2,
-  Plus,
-  Trash2,
-  TriangleAlert,
-  Upload,
-} from "lucide-react";
-import { reportSighting, uploadPhoto } from "@/lib/actions";
-import { addDocument } from "@/lib/documents";
-import { CITIES } from "@/lib/delhi";
-import { formatPlace } from "@/lib/delhi";
+import { useMemo, useRef, useState } from "react";
+import { Check, ChevronRight, FileSpreadsheet, Loader2, ShieldAlert, Upload } from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+import { useAuth } from "@/components/auth/AuthProvider";
 
-/* ════════════════════════════════════════════════════════════════════
-   Bringing paper and WhatsApp records in.
+type Mapping = Record<string, string | null>;
+type PreviewRow = { sourceRowNumber: number; raw: Record<string, unknown>; normalized: Record<string, string | undefined> };
+type Match = { id: string; label: string; reasons: string[] };
+type Preview = { sheetNames: string[]; sheetName: string; headers: string[]; mapping: Mapping; sample: PreviewRow[]; rows: Array<{ sourceRowNumber: number }>; matches: Record<number, Match[]> };
+type Decision = "new" | "merge" | "review" | "skip";
 
-   Almost no organisation starts digital. Records live in ward registers,
-   ABC ledgers and WhatsApp threads, and the usual advice, "re-enter it
-   all", is why they never move.
+const FIELDS: Array<[string, string]> = [
+  ["animalCode", "Legacy animal ID"], ["name", "Animal name"], ["species", "Species"], ["sex", "Sex"], ["colour", "Colour / identifiers"], ["location", "Location"], ["condition", "Condition"], ["date", "Report date"], ["reviewDate", "Review / follow-up"], ["detailedStatus", "Treatment / outcome notes"], ["programme", "Programme / drive"],
+];
 
-   So: attach the original as evidence, transcribe the few fields that
-   matter beside it, and file both together. The photo stays with the
-   record as provenance, which is what makes the entry checkable later.
-
-   Deliberately not automated. OCR on a handwritten Hindi ward register
-   would produce confident nonsense, and a wrong sterilisation record is
-   worse than no record. A person reads it; the tool just removes the
-   friction around them.
-   ════════════════════════════════════════════════════════════════════ */
-
-type Draft = {
-  id: string;
-  file: File;
-  preview: string;
-  nickname: string;
-  locality: string;
-  cityIdx: number;
-  notes: string;
-  state: "idle" | "saving" | "done" | "error";
-  error?: string;
-};
-
-const MAX_BATCH = 20;
+async function accessToken() {
+  const supa = getSupabase();
+  if (!supa) return "";
+  const { data } = await supa.auth.getSession();
+  return data.session?.access_token ?? "";
+}
 
 export function ImportClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const { user, openSignIn } = useAuth();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const [mapping, setMapping] = useState<Mapping>({});
+  const [decisions, setDecisions] = useState<Record<number, { decision: Decision; matchedDogId?: string }>>({});
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<{ imported: number; review: number; failed: number; sourceStored: boolean } | null>(null);
+  const mapped = useMemo(() => Object.values(mapping).filter(Boolean).length, [mapping]);
 
-  function addFiles(files: FileList | null) {
-    if (!files) return;
-    const room = MAX_BATCH - drafts.length;
-    const next: Draft[] = Array.from(files)
-      .slice(0, Math.max(0, room))
-      .filter((f) => f.type.startsWith("image/"))
-      .map((f) => ({
-        id: crypto.randomUUID(),
-        file: f,
-        preview: URL.createObjectURL(f),
-        nickname: "",
-        locality: "",
-        cityIdx: 0,
-        notes: "",
-        state: "idle" as const,
-      }));
-    setDrafts((d) => [...d, ...next]);
+  async function read(next = file, selectedSheet?: string) {
+    if (!next) return;
+    setBusy(true); setError(null); setResult(null);
+    try {
+      const form = new FormData();
+      form.append("action", "preview"); form.append("file", next); form.append("accessToken", await accessToken());
+      if (selectedSheet) form.append("sheetName", selectedSheet);
+      if (Object.keys(mapping).length) form.append("mapping", JSON.stringify(mapping));
+      const res = await fetch("/api/partner/import", { method: "POST", body: form });
+      const data = await res.json(); if (!res.ok) throw new Error(data.error || "Could not read this workbook.");
+      setPreview(data); setMapping(data.mapping); setDecisions({});
+    } catch (e) { setError(e instanceof Error ? e.message : "Could not read this workbook."); }
+    finally { setBusy(false); }
   }
 
-  function patch(id: string, p: Partial<Draft>) {
-    setDrafts((d) => d.map((x) => (x.id === id ? { ...x, ...p } : x)));
+  async function commit() {
+    if (!file || !preview) return;
+    if (!user) return openSignIn();
+    setBusy(true); setError(null);
+    try {
+      const form = new FormData();
+      form.append("action", "commit"); form.append("file", file); form.append("sheetName", preview.sheetName);
+      form.append("mapping", JSON.stringify(mapping)); form.append("decisions", JSON.stringify(decisions)); form.append("accessToken", await accessToken());
+      const res = await fetch("/api/partner/import", { method: "POST", body: form });
+      const data = await res.json(); if (!res.ok) throw new Error(data.error || "Import could not be started."); setResult(data);
+    } catch (e) { setError(e instanceof Error ? e.message : "Import could not be started."); }
+    finally { setBusy(false); }
   }
 
-  function remove(id: string) {
-    setDrafts((d) => {
-      const gone = d.find((x) => x.id === id);
-      if (gone) URL.revokeObjectURL(gone.preview);
-      return d.filter((x) => x.id !== id);
-    });
+  function rowDecision(row: PreviewRow): { decision: Decision; matchedDogId?: string } {
+    const saved = decisions[row.sourceRowNumber]; if (saved) return saved;
+    /* Historic rows are evidence, not proof of a distinct animal. Even an
+       apparently unmatched row waits for a conscious "new" decision; the
+       full workbook therefore stages safely by default instead of minting
+       hundreds of accidental identities. */
+    return { decision: "review" };
   }
 
-  const ready = drafts.filter(
-    (d) => d.state === "idle" && d.locality.trim().length > 0
-  );
+  return <div className="space-y-5">
+    <section className="rounded-xl border border-black/[.08] bg-white/70 p-5 dark:border-white/10 dark:bg-white/[.03]">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div className="flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paw-50 text-paw-600 dark:bg-paw-900/30"><FileSpreadsheet className="h-5 w-5" /></span><div><h2 className="font-semibold text-bark-900 dark:text-bark-50">Bring your existing workbook</h2><p className="mt-1 max-w-xl text-[13px] leading-relaxed text-bark-500">Choose an operational worksheet, map its columns, review duplicate candidates, then import the result with the original file and every raw row retained as provenance.</p></div></div><button type="button" className="spa-cta shrink-0" onClick={() => fileRef.current?.click()} disabled={busy}><Upload className="h-4 w-4" /> Choose file</button><input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={(e) => { const next = e.target.files?.[0] ?? null; setFile(next); setPreview(null); setMapping({}); if (next) void read(next); }} /></div>
+      {file && <p className="mt-4 border-t border-black/[.06] pt-3 text-[12px] text-bark-500 dark:border-white/[.08]"><b className="text-bark-700 dark:text-bark-200">{file.name}</b> · {(file.size / 1024 / 1024).toFixed(1)} MB · {preview ? `${preview.rows.length.toLocaleString()} rows detected` : "reading…"}</p>}
+    </section>
 
-  async function fileAll() {
-    if (!ready.length || busy) return;
-    setBusy(true);
-    // Sequential: these are uploads, and a burst of parallel writes from a
-    // field connection fails more often than it finishes faster.
-    for (const d of ready) {
-      patch(d.id, { state: "saving" });
-      try {
-        const city = CITIES[d.cityIdx];
-        /* Upload once and reuse the URL for both the sighting and the filed
-           document, so the transcription and the page it came from point at
-           the same image rather than two copies of it. */
-        const photoUrl = await uploadPhoto(d.file);
-        await reportSighting({
-          file: null,
-          fallbackPhotoUrl: photoUrl,
-          lat: city.lat,
-          lng: city.lng,
-          zone: formatPlace(d.locality.trim(), city.name),
-          nickname: d.nickname.trim() || undefined,
-          moods: [],
-          notes:
-            [d.notes.trim(), "Transcribed from an existing paper or message record."]
-              .filter(Boolean)
-              .join(", "),
-        });
-        /* Best effort: a failure here must not lose the sighting that was
-           just filed successfully, so it is reported but not thrown. */
-        try {
-          await addDocument({
-            url: photoUrl,
-            kind: "register_page",
-            title: d.nickname.trim() || d.locality.trim() || "Imported record",
-            notes: d.notes.trim() || undefined,
-          });
-        } catch {
-          /* The org may not be verified yet; the sighting still stands. */
-        }
-        patch(d.id, { state: "done" });
-      } catch (e) {
-        patch(d.id, {
-          state: "error",
-          error: e instanceof Error ? e.message : "Could not file this record.",
-        });
-      }
-    }
-    setBusy(false);
-  }
-
-  const done = drafts.filter((d) => d.state === "done").length;
-
-  return (
-    <>
-      <div className="imp-drop">
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          hidden
-          aria-label="Choose register pages or screenshots to import"
-          onChange={(e) => {
-            addFiles(e.target.files);
-            e.target.value = "";
-          }}
-        />
-        <FileImage size={26} strokeWidth={1.3} />
-        <div>
-          <b>Add register pages or screenshots</b>
-          <span>
-            Photograph a ward register, an ABC ledger page, or screenshot a
-            WhatsApp thread. Up to {MAX_BATCH} at a time.
-          </span>
-        </div>
-        <button
-          type="button"
-          className="spa-cta"
-          onClick={() => inputRef.current?.click()}
-          disabled={drafts.length >= MAX_BATCH}
-        >
-          <Plus size={14} /> Choose images
-        </button>
-      </div>
-
-      {drafts.length === 0 ? (
-        <div className="spa-note">
-          <TriangleAlert size={16} />
-          <span>
-            <b>Nothing is read automatically.</b> Handwriting in a ward register
-            does not survive OCR intact, and a wrongly transcribed sterilisation
-            is worse than no record at all. You type the few fields that matter;
-            the original image stays attached so anyone can check the entry
-            against it later.
-          </span>
-        </div>
-      ) : (
-        <>
-          <div className="imp-list">
-            {drafts.map((d) => (
-              <div key={d.id} className={`imp-card ${d.state}`}>
-                <div className="imp-thumb">
-                  <Image
-                    src={d.preview}
-                    alt=""
-                    width={150}
-                    height={150}
-                    className="imp-img"
-                    unoptimized
-                  />
-                </div>
-
-                <div className="imp-fields">
-                  <label>
-                    <span>Animal name or ID (optional)</span>
-                    <input
-                      value={d.nickname}
-                      onChange={(e) => patch(d.id, { nickname: e.target.value })}
-                      placeholder="As written in the register"
-                      disabled={d.state !== "idle"}
-                    />
-                  </label>
-                  <label>
-                    <span>Locality *</span>
-                    <input
-                      value={d.locality}
-                      onChange={(e) => patch(d.id, { locality: e.target.value })}
-                      placeholder="Ward, colony or street"
-                      disabled={d.state !== "idle"}
-                    />
-                  </label>
-                  <label>
-                    <span>City</span>
-                    <select
-                      value={d.cityIdx}
-                      onChange={(e) =>
-                        patch(d.id, { cityIdx: Number(e.target.value) })
-                      }
-                      disabled={d.state !== "idle"}
-                    >
-                      {CITIES.map((c, i) => (
-                        <option key={c.name} value={i}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="imp-wide">
-                    <span>What the record says</span>
-                    <textarea
-                      rows={2}
-                      value={d.notes}
-                      onChange={(e) => patch(d.id, { notes: e.target.value })}
-                      placeholder="e.g. Sterilised 12 Mar, released same ward. Rabies vaccine given."
-                      disabled={d.state !== "idle"}
-                    />
-                  </label>
-                </div>
-
-                <div className="imp-state">
-                  {d.state === "idle" && (
-                    <button
-                      type="button"
-                      onClick={() => remove(d.id)}
-                      aria-label="Remove this page"
-                      className="imp-del"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                  {d.state === "saving" && <Loader2 size={16} className="imp-spin" />}
-                  {d.state === "done" && (
-                    <span className="imp-ok">
-                      <Check size={14} /> Filed
-                    </span>
-                  )}
-                  {d.state === "error" && (
-                    <span className="imp-err" title={d.error}>
-                      <TriangleAlert size={14} /> Failed
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="imp-bar">
-            <span className="spa-mono">
-              {ready.length} ready · {done} filed · {drafts.length} total
-            </span>
-            <button
-              type="button"
-              className="spa-cta"
-              onClick={fileAll}
-              disabled={!ready.length || busy}
-            >
-              {busy ? (
-                <>
-                  <Loader2 size={14} className="imp-spin" /> Filing…
-                </>
-              ) : (
-                <>
-                  <Upload size={14} /> File {ready.length || ""} record
-                  {ready.length === 1 ? "" : "s"}
-                </>
-              )}
-            </button>
-          </div>
-          {ready.length === 0 && drafts.some((d) => d.state === "idle") && (
-            <p className="imp-hint">
-              Each record needs a locality before it can be filed, that is what
-              puts it on the map.
-            </p>
-          )}
-        </>
-      )}
-    </>
-  );
+    {preview && !result && <>
+      <section className="rounded-xl border border-black/[.08] p-5 dark:border-white/10"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-semibold uppercase tracking-[.13em] text-paw-600">Step 1</p><h2 className="mt-1 font-semibold text-bark-900 dark:text-bark-50">Choose a sheet and map it</h2><p className="mt-1 text-[13px] text-bark-500">{mapped} fields mapped. Empty mappings remain in the raw import and can be mapped later.</p></div><select aria-label="Workbook sheet" value={preview.sheetName} onChange={(e) => void read(file, e.target.value)} className="rounded-md border border-black/[.1] bg-transparent px-3 py-2 text-sm dark:border-white/10">{preview.sheetNames.map((name) => <option key={name}>{name}</option>)}</select></div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{FIELDS.map(([key, label]) => <label key={key} className="flex items-center justify-between gap-3 rounded-md border border-black/[.06] px-3 py-2 dark:border-white/[.08]"><span className="text-[12px] text-bark-500">{label}</span><select value={mapping[key] ?? ""} onChange={(e) => setMapping((current) => ({ ...current, [key]: e.target.value || null }))} className="max-w-[55%] truncate bg-transparent text-right text-[12px] font-medium text-bark-800 outline-none dark:text-bark-100"><option value="">Not mapped</option>{preview.headers.map((header) => <option key={header} value={header}>{header}</option>)}</select></label>)}</div>
+        <button type="button" onClick={() => void read(file, preview.sheetName)} disabled={busy} className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-paw-600 hover:underline">Refresh preview <ChevronRight className="h-4 w-4" /></button>
+      </section>
+      <section className="rounded-xl border border-black/[.08] p-5 dark:border-white/10"><div><p className="text-[11px] font-semibold uppercase tracking-[.13em] text-paw-600">Step 2</p><h2 className="mt-1 font-semibold text-bark-900 dark:text-bark-50">Review identity decisions</h2><p className="mt-1 text-[13px] leading-relaxed text-bark-500">Matching name, colour or locality is not enough to silently merge. Rows with possible matches stop for review. This preview shows the first 40 rows; the same rules apply to the rest.</p></div><div className="mt-4 overflow-hidden rounded-lg border border-black/[.08] dark:border-white/10">{preview.sample.map((row) => { const current = rowDecision(row); const candidates = preview.matches?.[row.sourceRowNumber] ?? []; return <div key={row.sourceRowNumber} className="grid gap-3 border-b border-black/[.06] px-3 py-3 last:border-0 dark:border-white/[.06] md:grid-cols-[1fr_190px] md:items-center"><div className="min-w-0"><p className="truncate text-[13px] font-medium text-bark-900 dark:text-bark-50">{row.normalized.animalCode || row.normalized.name || row.normalized.condition || "Untitled historic record"}</p><p className="mt-0.5 truncate text-[12px] text-bark-500">Row {row.sourceRowNumber} · {[row.normalized.location, row.normalized.condition, row.normalized.date].filter(Boolean).join(" · ") || "No mapped identity detail"}</p>{candidates.length > 0 && <p className="mt-1 text-[11px] text-status-hungry">Possible match: {candidates[0].label} ({candidates[0].reasons.join(", ")})</p>}</div><select aria-label={`Decision for row ${row.sourceRowNumber}`} value={current.decision} onChange={(e) => { const next = e.target.value as Decision; setDecisions((all) => ({ ...all, [row.sourceRowNumber]: { decision: next, matchedDogId: next === "merge" ? candidates[0]?.id : undefined } })); }} className="min-w-0 rounded-md border border-black/[.1] bg-transparent px-2 py-1.5 text-[12px] dark:border-white/10"><option value="new">New animal + case</option><option value="review">Review later</option><option value="skip">Skip</option>{candidates.length > 0 && <option value="merge">Merge into candidate</option>}</select></div>; })}</div></section>
+      <section className="flex flex-col justify-between gap-4 rounded-xl bg-bark-900 p-5 text-white sm:flex-row sm:items-center dark:bg-white dark:text-bark-900"><div><h2 className="font-semibold">Ready to stage this import?</h2><p className="mt-1 max-w-xl text-[13px] leading-relaxed text-white/70 dark:text-bark-500">New records receive permanent StrayPaw IDs. Every imported case stays attributed to this workbook and row. Review rows stay private until your team resolves them.</p></div><button type="button" onClick={() => void commit()} disabled={busy || !user} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-paw-500 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}{user ? "Stage import" : "Sign in to import"}</button></section>
+    </>}
+    {result && <section className="rounded-xl border border-status-vaccinated/30 bg-status-vaccinated/10 p-5 text-status-vaccinated"><div className="flex gap-3"><Check className="mt-0.5 h-5 w-5" /><div><h2 className="font-semibold">Import staged</h2><p className="mt-1 text-[13px]">{result.imported} records imported · {result.review} need identity review · {result.failed} failed rows. {result.sourceStored ? "The original workbook is attached to this batch." : "The rows were saved, but the original file could not be stored."}</p></div></div></section>}
+    {error && <p role="alert" className="rounded-lg bg-status-injured/10 px-4 py-3 text-[13px] font-medium text-status-injured"><ShieldAlert className="mr-2 inline h-4 w-4" />{error}</p>}
+  </div>;
 }

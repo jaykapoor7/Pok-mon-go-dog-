@@ -23,6 +23,7 @@ import {
   Heart,
   LayoutGrid,
   MapPin,
+  Plus,
   Radio,
   Repeat2,
   ScanSearch,
@@ -72,11 +73,11 @@ const EDUCATOR_NAV = [
    PartnerTabs for the grouping itself. */
 const NGO_NAV = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
+  { href: "/partner/cases", label: "Cases", Icon: Radio },
+  { href: "/partner/animals", label: "Animals", Icon: Database },
   { href: "/partner/map", label: "Map", Icon: MapPin },
-  { href: "/report", label: "Report", Icon: Radio },
-  { href: "/partner/animals", label: "Records", Icon: Database },
-  { href: "/partner/field", label: "Field work", Icon: CalendarRange },
-  { href: "/partner/team", label: "Organisation", Icon: Building2 },
+  { href: "/partner/reports", label: "Analytics", Icon: ScanSearch },
+  { href: "/partner/team", label: "Team", Icon: Building2 },
 ];
 
 const FEEDER_NAV = [
@@ -392,6 +393,12 @@ export function AppShell({
           <div className="spa-primary-nav">
             {primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={`${isActive(href) ? "active " : ""}${label === "Report" ? "spa-report-shortcut" : ""}`}><Icon size={17}/>{label}</Link>)}
           </div>
+          {isNgo && <div className="spa-ngo-actions" aria-label="Quick actions">
+            <p>Quick actions</p>
+            <Link href="/report"><Radio size={16} />Report</Link>
+            <Link href="/partner/cases/new"><Plus size={16} />New case</Link>
+            <Link href="/partner/import"><Database size={16} />Import</Link>
+          </div>}
           {referenceNav.length > 0 && (
             <div className="spa-reference-nav" aria-label="Community reference spaces">
               <p>Explore</p>
