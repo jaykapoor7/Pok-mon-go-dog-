@@ -4149,9 +4149,15 @@ alter table dogs add column if not exists updated_at timestamptz not null defaul
 
 -- Keep a separately-owned permanent ID. `code` remains an NGO's own legacy
 -- identifier, so imports do not overwrite labels teams already recognize.
+-- Full UUID-derived suffixes are intentional: the earlier eight-character
+-- display suffix collided on seeded UUIDs that shared a prefix. A permanent
+-- ID must be unique by construction, not merely likely to be unique.
 update dogs
-set straypaw_id = 'SPA-' || upper(left(coalesce(species, 'animal'), 3)) || '-' || upper(left(replace(id::text, '-', ''), 8))
-where straypaw_id is null or btrim(straypaw_id) = '';
+set straypaw_id = 'SPA-' || upper(left(coalesce(species, 'animal'), 3)) || '-' || upper(replace(id::text, '-', ''))
+where straypaw_id is null
+   or btrim(straypaw_id) = ''
+   -- Repair values written by the first attempted version of this migration.
+   or straypaw_id ~ '^SPA-[A-Z]{3}-[0-9A-F]{8}$';
 
 create unique index if not exists dogs_straypaw_id_idx on dogs (straypaw_id) where straypaw_id is not null;
 create index if not exists dogs_ngo_identity_idx on dogs (ngo_id, code) where ngo_id is not null and code is not null;
@@ -4164,7 +4170,7 @@ create or replace function assign_straypaw_id()
 returns trigger language plpgsql as $$
 begin
   if new.straypaw_id is null or btrim(new.straypaw_id) = '' then
-    new.straypaw_id := 'SPA-' || upper(left(coalesce(new.species, 'animal'), 3)) || '-' || upper(left(replace(new.id::text, '-', ''), 8));
+    new.straypaw_id := 'SPA-' || upper(left(coalesce(new.species, 'animal'), 3)) || '-' || upper(replace(new.id::text, '-', ''));
   end if;
   return new;
 end $$;
@@ -4184,8 +4190,10 @@ alter table cases add column if not exists provenance text not null default 'com
 alter table cases add column if not exists verification_state text not null default 'submitted';
 
 update cases
-set case_code = 'SPC-' || upper(left(replace(id::text, '-', ''), 8))
-where case_code is null or btrim(case_code) = '';
+set case_code = 'SPC-' || upper(replace(id::text, '-', ''))
+where case_code is null
+   or btrim(case_code) = ''
+   or case_code ~ '^SPC-[0-9A-F]{8}$';
 
 create unique index if not exists cases_case_code_idx on cases (case_code) where case_code is not null;
 create index if not exists cases_ngo_stage_idx on cases (ngo_id, stage, last_activity_at desc) where ngo_id is not null;
@@ -4195,7 +4203,7 @@ create or replace function assign_case_code()
 returns trigger language plpgsql as $$
 begin
   if new.case_code is null or btrim(new.case_code) = '' then
-    new.case_code := 'SPC-' || upper(left(replace(new.id::text, '-', ''), 8));
+    new.case_code := 'SPC-' || upper(replace(new.id::text, '-', ''));
   end if;
   return new;
 end $$;
