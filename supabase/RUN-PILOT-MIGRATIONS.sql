@@ -4157,6 +4157,21 @@ create unique index if not exists dogs_straypaw_id_idx on dogs (straypaw_id) whe
 create index if not exists dogs_ngo_identity_idx on dogs (ngo_id, code) where ngo_id is not null and code is not null;
 create index if not exists dogs_ngo_location_idx on dogs (ngo_id, zone) where ngo_id is not null;
 
+-- Historic imports and future reports receive a permanent ID at creation,
+-- not on a later clean-up pass. The UUID remains the database key; this is
+-- the safe, human-readable cross-system ID shown to NGOs and in exports.
+create or replace function assign_straypaw_id()
+returns trigger language plpgsql as $$
+begin
+  if new.straypaw_id is null or btrim(new.straypaw_id) = '' then
+    new.straypaw_id := 'SPA-' || upper(left(coalesce(new.species, 'animal'), 3)) || '-' || upper(left(replace(new.id::text, '-', ''), 8));
+  end if;
+  return new;
+end $$;
+drop trigger if exists dogs_assign_straypaw_id on dogs;
+create trigger dogs_assign_straypaw_id before insert on dogs
+for each row execute function assign_straypaw_id();
+
 -- ── Cases remain the operational episode, now with a useful next action ───
 
 alter table cases add column if not exists case_code text;
@@ -4175,6 +4190,18 @@ where case_code is null or btrim(case_code) = '';
 create unique index if not exists cases_case_code_idx on cases (case_code) where case_code is not null;
 create index if not exists cases_ngo_stage_idx on cases (ngo_id, stage, last_activity_at desc) where ngo_id is not null;
 create index if not exists cases_ngo_followup_idx on cases (ngo_id, follow_up_at) where ngo_id is not null and follow_up_at is not null;
+
+create or replace function assign_case_code()
+returns trigger language plpgsql as $$
+begin
+  if new.case_code is null or btrim(new.case_code) = '' then
+    new.case_code := 'SPC-' || upper(left(replace(new.id::text, '-', ''), 8));
+  end if;
+  return new;
+end $$;
+drop trigger if exists cases_assign_case_code on cases;
+create trigger cases_assign_case_code before insert on cases
+for each row execute function assign_case_code();
 
 -- ── First-class follow-ups and a unified timeline ─────────────────────────
 

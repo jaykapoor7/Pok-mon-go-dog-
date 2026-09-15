@@ -37,6 +37,10 @@ export default function EvidencePage() {
           <div><span>Suspected rabies deaths, 2024</span><b>{deathsTotal}</b><small>what surveillance caught; modelling puts the real toll near 19,000</small></div>
           <div><span>Sterilisation coverage published</span><b>{withCoverage}/{rows.length}</b><small>the rest have released no figure at all</small></div>
         </section>
+        <section className="evidence-next" id="straypaw-record">
+          <div><b>StrayPaw&apos;s own evidence</b><span>Read the public case stories and completed drives documented on this platform for the first time.</span></div>
+          <Link href="/work" className="product-primary">See our work <ArrowUpRight size={16} /></Link>
+        </section>
         <StateExplorer rows={rows} />
         <footer className="evidence-next">
           <div><b>Need to scope the work?</b><span>Use published figures to build a costed programme for a state.</span></div>

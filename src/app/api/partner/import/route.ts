@@ -20,6 +20,8 @@ type Normalized = {
   reviewDate?: string;
   detailedStatus?: string;
   programme?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 const FIELDS: Record<string, RegExp> = {
@@ -36,6 +38,8 @@ const FIELDS: Record<string, RegExp> = {
   reviewDate: /review|appoint|follow.?up|next date/i,
   detailedStatus: /detailed status|update|outcome|completed/i,
   programme: /programme|program|drive|campaign/i,
+  latitude: /^(latitude|lat)$/i,
+  longitude: /^(longitude|lng|lon)$/i,
 };
 
 function text(value: unknown): string {
@@ -76,7 +80,21 @@ function normalize(row: Record<string, unknown>, mapping: Mapping): Normalized {
     reviewDate: field(row, mapping, "reviewDate") || undefined,
     detailedStatus: field(row, mapping, "detailedStatus") || undefined,
     programme: field(row, mapping, "programme") || undefined,
+    latitude: Number.isFinite(Number(field(row, mapping, "latitude"))) ? Number(field(row, mapping, "latitude")) : undefined,
+    longitude: Number.isFinite(Number(field(row, mapping, "longitude"))) ? Number(field(row, mapping, "longitude")) : undefined,
   };
+}
+
+function usableCoordinates(record: Normalized) {
+  return Number.isFinite(record.latitude) && Number.isFinite(record.longitude) && record.latitude !== 0 && record.longitude !== 0 && Math.abs(record.latitude!) <= 90 && Math.abs(record.longitude!) <= 180;
+}
+
+function hasDefensibleIdentity(record: Normalized) {
+  /* A name on a sterilisation ledger can be a feeder, volunteer or dog, and
+     an injury description is not an animal ID. A new permanent profile is
+     allowed only when the operator has supplied a stable legacy ID, or a
+     useful identity bundle to substantiate the choice. */
+  return Boolean(record.animalCode || (record.name && record.location && (record.sex || record.colour)));
 }
 
 function readWorkbook(file: File, requestedSheet?: string) {
@@ -229,18 +247,21 @@ export async function POST(request: Request) {
       try {
         let dogId = choice.matchedDogId ?? null;
         if (choice.decision === "new") {
+          if (!hasDefensibleIdentity(normalized)) throw new Error("This row needs identity review before a permanent animal profile can be created.");
           const { data: dog, error: dogError } = await actor.admin.from("dogs").insert({
             ngo_id: actor.ngoId,
             name: normalized.name ?? null,
             code: normalized.animalCode ?? null,
             species: normalized.species ?? "dog",
             zone: normalized.location ?? "",
-            lat: 0,
-            lng: 0,
+            lat: usableCoordinates(normalized) ? normalized.latitude : 0,
+            lng: usableCoordinates(normalized) ? normalized.longitude : 0,
             status: "seen",
             color: normalized.colour ?? "Unknown",
             sex: normalized.sex ?? null,
-            intake_notes: [normalized.caseDetail, normalized.detailedStatus].filter(Boolean).join("\n") || null,
+            /* Case detail stays with the private episode. The public animal
+               card gets only its verified identity and coarse location. */
+            intake_notes: null,
             provenance: "imported_historical_record",
             source_metadata: { import_batch_id: batch.id, source_row: row.sourceRowNumber },
           }).select("id").single();
