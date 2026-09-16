@@ -119,3 +119,26 @@
     background-size: 20px 20px;
   }
 }
+
+/* Marker click opens a compact profile preview, not a second full profile
+   drawer. The full longitudinal record lives at /dog/[id]. */
+.sp-map-detail{
+  top:auto;
+  bottom:16px;
+  right:16px;
+  left:auto;
+  width:min(390px,calc(100% - 32px));
+  max-height:none;
+  overflow:visible;
+  overscroll-behavior:auto;
+  background:#f4f0e8;
+  border:1px solid rgba(11,30,61,.10);
+  border-radius:16px;
+  box-shadow:0 18px 50px rgba(11,30,61,.22);
+}
+.sp-map.has-selection .sp-map-controls{right:16px}
+@media(max-width:1100px) and (min-width:801px){.sp-map.has-selection .sp-map-toolbar{max-width:calc(100% - 90px)}}
+@media(max-width:800px){
+  .sp-map-detail{left:12px;right:12px;bottom:12px;width:auto;max-height:none;border-radius:16px;animation:map-detail-up .24s ease-out}
+  .sp-map.has-selection .sp-map-controls{right:12px}
+}
