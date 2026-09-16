@@ -7,6 +7,11 @@ export type StandardAnimalRecord = {
   classification: string;
   eventDate: string | null;
   locality: string | null;
+  animalName: string | null;
+  animalCode: string | null;
+  sex: string | null;
+  colour: string | null;
+  sourceStatus: string | null;
   condition: string | null;
   caseDetail: string | null;
   treatmentUpdate: string | null;
@@ -49,6 +54,11 @@ type NormalizedSource = {
   classification?: string;
   event_date?: string | null;
   locality?: string | null;
+  animal_name?: string | null;
+  animal_code?: string | null;
+  sex?: string | null;
+  colour?: string | null;
+  status?: string | null;
   condition?: string | null;
   case_detail?: string | null;
   treatment_update?: string | null;
@@ -73,6 +83,11 @@ function recordFrom(meta: any, provenance: string, fallbackId: string): Standard
     classification: n.classification,
     eventDate: n.event_date ?? null,
     locality: n.locality ?? null,
+    animalName: n.animal_name ?? null,
+    animalCode: n.animal_code ?? null,
+    sex: n.sex ?? null,
+    colour: n.colour ?? null,
+    sourceStatus: n.status ?? null,
     condition: n.condition ?? null,
     caseDetail: n.case_detail ?? null,
     treatmentUpdate: n.treatment_update ?? null,
