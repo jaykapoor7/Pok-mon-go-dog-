@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { isAccepted, parseMasterWorkbook } from "@/lib/master-import/pipeline";
 import { assessLocalities, commitStaged, planImport } from "@/lib/master-import/commit";
+import { resolveExistingStaging } from "@/lib/master-import/staging";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -50,12 +51,16 @@ export async function POST(req: Request) {
   }
   if (action !== "stage") return NextResponse.json({ error: "Analyse a workbook before staging it." }, { status: 400 });
 
-  const { data: already } = await supa.from("import_batches").select("id,status,rows_total").eq("ngo_id", ngoId).eq("workbook_hash", preview.workbookHash);
-  if (already?.length) return NextResponse.json({ ok: true, alreadyStaged: true, batchIds: already.map((batch) => batch.id), rowsStaged: already.reduce((total, batch) => total + (batch.rows_total ?? 0), 0), preview });
+  let existing;
+  try { existing = await resolveExistingStaging(supa, ngoId, preview.workbookHash, preview.sheets.map((sheet) => ({ name: sheet.name, rows: sheet.rows.length }))); }
+  catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Could not inspect existing workbook staging." }, { status: 500 }); }
+  if (existing && !existing.clearedIncomplete) return NextResponse.json({ ok: true, alreadyStaged: true, batchIds: existing.batchIds, rowsStaged: existing.rowsStaged, preview });
 
   const storagePath = `${ngoId}/master/${preview.workbookHash}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
   const uploaded = await supa.storage.from("imports").upload(storagePath, Buffer.from(buffer), { contentType: file.type || "application/octet-stream", upsert: false });
-  if (uploaded.error) return NextResponse.json({ error: `Workbook could not be stored privately: ${uploaded.error.message}` }, { status: 500 });
+  // The deterministic path is keyed by the workbook bytes. A failed staging
+  // retry may therefore reuse its already-private, identical upload.
+  if (uploaded.error && !/already exists|duplicate/i.test(uploaded.error.message)) return NextResponse.json({ error: `Workbook could not be stored privately: ${uploaded.error.message}` }, { status: 500 });
 
   const batchIds: string[] = [];
   for (const sheet of preview.sheets) {

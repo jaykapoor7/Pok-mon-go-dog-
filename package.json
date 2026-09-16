@@ -22,6 +22,7 @@
     "test:master-import": "node --import tsx scripts/test-master-import.ts",
     "test:master-import:pagination": "node --import tsx scripts/test-master-import-pagination.ts",
     "test:master-import:locality": "node --import tsx scripts/test-master-import-locality-concurrency.ts",
+    "test:master-import:staging": "node --import tsx scripts/test-master-import-staging-retry.ts",
     "test:case-input-validation": "node --import tsx scripts/test-case-input-validation.ts",
     "test:v1-cleanup-chunks": "node --import tsx scripts/test-v1-cleanup-chunks.ts",
     "prebuild": "node scripts/no-fixtures.mjs"

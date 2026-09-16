@@ -106,7 +106,10 @@ function normalize(sheet: string, sourceRowNumber: number, raw: Record<string, s
     admit_date: sourceDate(value(raw, /admit date/i), fallbackYear),
     release_date: sourceDate(value(raw, /release date/i), fallbackYear),
   } satisfies Omit<NormalizedImportRow, "fingerprint">;
-  return { ...record, fingerprint: fingerprint({ sheet: normalKey(sheet), ...record, source_row: undefined }) };
+  // A workbook may legitimately repeat the same operational details on two
+  // physical spreadsheet rows. The row number is therefore part of staging
+  // identity; workbook bytes, not this fingerprint, provide retry idempotency.
+  return { ...record, fingerprint: fingerprint({ sheet: normalKey(sheet), ...record }) };
 }
 
 function specialAdoptFoster(sheet: string, sourceRowNumber: number, raw: Record<string, string>, fallbackYear: number | null) {
@@ -122,7 +125,7 @@ function specialAdoptFoster(sheet: string, sourceRowNumber: number, raw: Record<
     normalized.source_subrecord = subrecord;
     normalized.classification = subrecord;
     normalized.classification_reason = `${subrecord === "adoption" ? "Adoption" : "Foster"} register`;
-    normalized.fingerprint = fingerprint({ ...normalized, source_row: undefined });
+    normalized.fingerprint = fingerprint({ ...normalized });
     events.push({ sourceRowNumber, raw, normalized });
   }
   return events;
