@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { isAccepted, parseMasterWorkbook } from "@/lib/master-import/pipeline";
-import { assessLocalities, commitStaged, planImport } from "@/lib/master-import/commit";
+import { assessLocalities, planImport } from "@/lib/master-import/commit";
+import { commitStagedChunk } from "@/lib/master-import/commit-resumable";
 import { resolveExistingStaging } from "@/lib/master-import/staging";
 
 export const runtime = "nodejs";
@@ -31,10 +32,10 @@ export async function POST(req: Request) {
     if (!Array.isArray(batchIds) || !batchIds.every((id) => typeof id === "string")) return NextResponse.json({ error: "No staged batches were selected." }, { status: 400 });
     const { data: batches, error: batchError } = await supa.from("import_batches").select("id,ngo_id,status").in("id", batchIds);
     if (batchError) return NextResponse.json({ error: batchError.message }, { status: 500 });
-    if ((batches ?? []).length !== batchIds.length || (batches ?? []).some((batch) => batch.ngo_id !== ngoId || !["staged", "reviewing"].includes(batch.status))) {
+    if ((batches ?? []).length !== batchIds.length || (batches ?? []).some((batch) => batch.ngo_id !== ngoId || !["staged", "reviewing", "imported"].includes(batch.status))) {
       return NextResponse.json({ error: "Only this organisation's staged import batches can be committed." }, { status: 403 });
     }
-    try { return NextResponse.json({ ok: true, ...(await commitStaged(supa, ngo, batchIds)) }); }
+    try { return NextResponse.json({ ok: true, ...(await commitStagedChunk(supa, ngo, batchIds)) }); }
     catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Could not commit staged import." }, { status: 500 }); }
   }
 
@@ -58,8 +59,6 @@ export async function POST(req: Request) {
 
   const storagePath = `${ngoId}/master/${preview.workbookHash}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
   const uploaded = await supa.storage.from("imports").upload(storagePath, Buffer.from(buffer), { contentType: file.type || "application/octet-stream", upsert: false });
-  // The deterministic path is keyed by the workbook bytes. A failed staging
-  // retry may therefore reuse its already-private, identical upload.
   if (uploaded.error && !/already exists|duplicate/i.test(uploaded.error.message)) return NextResponse.json({ error: `Workbook could not be stored privately: ${uploaded.error.message}` }, { status: 500 });
 
   const batchIds: string[] = [];
