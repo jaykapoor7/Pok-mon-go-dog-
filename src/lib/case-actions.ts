@@ -108,6 +108,35 @@ export async function setCaseFollowup(caseId: string, followUpAt: string | null)
   return data === true;
 }
 
+export interface CaseFollowup {
+  id: string;
+  due_at: string;
+  note: string | null;
+  status: string;
+  kind: string;
+  created_at: string;
+}
+
+/** A dated follow-up is a first-class operational record, not just a date on
+ * a case. The database trigger places it on the linked animal timeline. */
+export async function addCaseFollowup(input: { caseId: string; dogId?: string | null; dueAt: string; note?: string | null }): Promise<string | null> {
+  const supa = getSupabase();
+  if (!supa) return "demo-followup";
+  const { data, error } = await supa.rpc("add_case_followup", {
+    p_case_id: input.caseId, p_dog_id: input.dogId ?? null, p_due_at: input.dueAt, p_note: input.note?.trim() || null,
+  });
+  if (error) throw new Error(error.message);
+  return (data as string) ?? null;
+}
+
+export async function getCaseFollowups(caseId: string): Promise<CaseFollowup[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.from("animal_followups").select("id,due_at,note,status,kind,created_at").eq("case_id", caseId).order("due_at", { ascending: false });
+  if (error) return [];
+  return (data ?? []).map((row: any) => ({ id: row.id, due_at: row.due_at, note: row.note ?? null, status: row.status, kind: row.kind, created_at: row.created_at }));
+}
+
 export async function claimCase(caseId: string, actor: Actor): Promise<boolean> {
   const supa = getSupabase();
   if (!supa) return true;
@@ -194,4 +223,13 @@ export async function setCaseCost(
   });
   if (error) throw new Error(error.message);
   return data === true;
+}
+
+/** Strict UI validation mirrors numeric(12,2): normal INR integers and
+ * decimals are accepted, while malformed/negative values never become ₹0. */
+export function parseINRAmount(value: string): number | null {
+  const text = value.trim().replace(/^₹\s*/, "").replace(/,/g, "");
+  if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return null;
+  const amount = Number(text);
+  return Number.isFinite(amount) && amount <= 9_999_999_999.99 ? amount : null;
 }

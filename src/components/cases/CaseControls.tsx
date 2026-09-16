@@ -22,6 +22,7 @@ import {
   claimCase,
   updateCaseStatus,
   addCaseNote,
+  parseINRAmount,
   setCaseCost,
 } from "@/lib/case-actions";
 import { isNgoMember, uploadPhoto } from "@/lib/actions";
@@ -138,6 +139,16 @@ export function CaseControls({ c }: { c: Case }) {
 
   const change = (to: CaseStatus, opts?: { resolution?: CaseResolution; note?: string }) =>
     run(() => updateCaseStatus(c.id, to, actor, opts));
+
+  function saveCost() {
+    const parsedEstimate = estimate === "" ? null : parseINRAmount(estimate);
+    const parsedSpent = spent === "" ? null : parseINRAmount(spent);
+    if ((estimate !== "" && parsedEstimate === null) || (spent !== "" && parsedSpent === null)) {
+      setError("Enter a valid INR amount, for example 2500 or 2500.50.");
+      return;
+    }
+    void run(() => setCaseCost(c.id, { estimate: parsedEstimate, spent: parsedSpent }));
+  }
 
   const verifiedBadge =
     c.status === "resolved" ? (
@@ -354,22 +365,15 @@ export function CaseControls({ c }: { c: Case }) {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-bark-500">Estimated (₹)</label>
-                  <input type="number" inputMode="numeric" value={estimate} onChange={(e) => setEstimate(e.target.value)} className="w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
+                  <input type="text" inputMode="decimal" value={estimate} onChange={(e) => setEstimate(e.target.value)} placeholder="0.00" className="w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-bark-500">Spent so far (₹)</label>
-                  <input type="number" inputMode="numeric" value={spent} onChange={(e) => setSpent(e.target.value)} className="w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
+                  <input type="text" inputMode="decimal" value={spent} onChange={(e) => setSpent(e.target.value)} placeholder="0.00" className="w-full rounded border border-black/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900" />
                 </div>
               </div>
               <button
-                onClick={() =>
-                  run(() =>
-                    setCaseCost(c.id, {
-                      estimate: estimate === "" ? null : Math.max(0, parseInt(estimate, 10) || 0),
-                      spent: spent === "" ? null : Math.max(0, parseInt(spent, 10) || 0),
-                    })
-                  )
-                }
+                onClick={saveCost}
                 disabled={busy}
                 className="btn-primary w-full py-2.5 text-sm"
               >

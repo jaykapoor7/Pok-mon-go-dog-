@@ -441,6 +441,46 @@ begin
   return found;
 end $$;
 
+-- A dated note is a real follow-up record. It powers the appointments list,
+-- case history and (when linked) the canonical animal timeline via the
+-- existing animal_followups trigger.
+create or replace function add_case_followup(
+  p_case_id uuid, p_dog_id uuid default null, p_due_at date default null, p_note text default null
+) returns uuid language plpgsql security definer set search_path = public as $$
+declare v_ngo uuid; v_dog uuid; v_id uuid;
+begin
+  select my_ngo() into v_ngo;
+  if v_ngo is null or p_due_at is null then raise exception 'Organisation access and a follow-up date are required'; end if;
+  if not exists (select 1 from cases where id = p_case_id and ngo_id = v_ngo) then raise exception 'That case is not in your organisation'; end if;
+  select coalesce(p_dog_id, dog_id) into v_dog from cases where id = p_case_id;
+  if v_dog is not null and not exists (select 1 from dogs where id = v_dog and ngo_id = v_ngo) then raise exception 'That animal is not in your organisation'; end if;
+  insert into animal_followups (ngo_id, dog_id, case_id, due_at, kind, note, created_by)
+  values (v_ngo, v_dog, p_case_id, p_due_at, 'follow-up', nullif(btrim(p_note), ''), auth.uid()) returning id into v_id;
+  update cases set follow_up_at = p_due_at, last_activity_at = now(), updated_at = now() where id = p_case_id and ngo_id = v_ngo;
+  insert into case_updates (case_id, actor_id, actor_name, type, note)
+  values (p_case_id, auth.uid(), nullif(auth.jwt() ->> 'email', ''), 'note',
+          'Follow-up scheduled for ' || to_char(p_due_at, 'DD Mon YYYY') || case when nullif(btrim(p_note), '') is null then '' else E'\n' || btrim(p_note) end);
+  return v_id;
+end $$;
+
+-- Costs are INR values, not counts. Preserve paise when a team records a
+-- normal decimal amount and reject negative values rather than coercing them.
+alter table cases add column if not exists cost_estimate numeric(12,2);
+alter table cases add column if not exists cost_spent numeric(12,2);
+alter table cases alter column cost_estimate type numeric(12,2) using cost_estimate::numeric;
+alter table cases alter column cost_spent type numeric(12,2) using cost_spent::numeric;
+drop function if exists set_case_cost(uuid, integer, integer);
+create or replace function set_case_cost(
+  p_case_id uuid, p_estimate numeric default null, p_spent numeric default null
+) returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  if p_estimate is not null and p_estimate < 0 then raise exception 'Estimated cost cannot be negative'; end if;
+  if p_spent is not null and p_spent < 0 then raise exception 'Spent cost cannot be negative'; end if;
+  update cases set cost_estimate = coalesce(p_estimate, cost_estimate), cost_spent = coalesce(p_spent, cost_spent), last_activity_at = now(), updated_at = now()
+   where id = p_case_id and ngo_id = my_ngo();
+  return found;
+end $$;
+
 create or replace function add_medical_event(
   p_dog_id uuid, p_case_id uuid default null, p_kind text default 'treatment',
   p_event_date date default current_date, p_notes text default null, p_performed_by text default null
@@ -512,6 +552,8 @@ grant execute on function claim_case(uuid,uuid,text) to authenticated;
 grant execute on function update_case_status(uuid,case_status,uuid,text,case_resolution,text,text,text,text) to authenticated;
 grant execute on function add_case_note(uuid,uuid,text,text) to authenticated;
 grant execute on function set_case_followup(uuid,date) to authenticated;
+grant execute on function add_case_followup(uuid,uuid,date,text) to authenticated;
+grant execute on function set_case_cost(uuid,numeric,numeric) to authenticated;
 grant execute on function add_medical_event(uuid,uuid,text,date,text,text) to authenticated;
 grant execute on function ngo_set_dog_care(uuid,boolean,boolean,boolean) to authenticated;
 grant execute on function submit_survey_response(uuid,uuid,double precision,double precision,text,text,int,jsonb,text) to authenticated;
@@ -521,6 +563,8 @@ revoke execute on function claim_case(uuid,uuid,text) from public;
 revoke execute on function update_case_status(uuid,case_status,uuid,text,case_resolution,text,text,text,text) from public;
 revoke execute on function add_case_note(uuid,uuid,text,text) from public;
 revoke execute on function set_case_followup(uuid,date) from public;
+revoke execute on function add_case_followup(uuid,uuid,date,text) from public;
+revoke execute on function set_case_cost(uuid,numeric,numeric) from public;
 revoke execute on function add_medical_event(uuid,uuid,text,date,text,text) from public;
 revoke execute on function ngo_set_dog_care(uuid,boolean,boolean,boolean) from public;
 revoke execute on function submit_survey_response(uuid,uuid,double precision,double precision,text,text,int,jsonb,text) from public;

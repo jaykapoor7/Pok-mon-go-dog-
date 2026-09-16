@@ -402,7 +402,7 @@ function DocumentCard({
 
             <div className="res-links">
               {animal && (
-                <Link href={`/dog/${animal.id}`} className="res-linked">
+                <Link href={`/partner/animals/${animal.id}`} className="res-linked">
                   <Link2 size={12} /> {animalLabel(animal)}
                 </Link>
               )}

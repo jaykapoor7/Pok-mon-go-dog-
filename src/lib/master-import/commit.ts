@@ -18,6 +18,7 @@ const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim(
 const normal = (value: unknown) => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const label = (value: string) => value.replace(/_/g, " ");
 const sourceDate = (row: NormalizedImportRow) => row.event_date ? Date.parse(row.event_date) : Number.NaN;
+export const LOCALITY_GEOCODE_CONCURRENCY = 8;
 
 async function page<T>(load: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) {
   const result: T[] = [];
@@ -59,8 +60,21 @@ export async function assessLocalities(supa: any, rows: NormalizedImportRow[], n
   const recordsFound = [...groups.values()].reduce((sum, group) => sum + group.records, 0);
   if (!recordsFound) return { recordsFound: 0, successfullyGeocoded: 0, unresolved: 0, geocoderConfigured: Boolean(token()), requiredEnv: null };
   if (!token()) return { recordsFound, successfullyGeocoded: 0, unresolved: recordsFound, geocoderConfigured: false, requiredEnv: "MAPBOX_ACCESS_TOKEN" };
+  // `locality` always reads the cache before calling Mapbox. Resolve only the
+  // unique locality groups, with a bounded worker pool so a large workbook
+  // finishes previewing promptly without flooding the geocoder.
+  const work = [...groups.values()];
   let successfullyGeocoded = 0;
-  for (const group of groups.values()) if (await locality(supa, group.row, ngo)) successfullyGeocoded += group.records;
+  let next = 0;
+  const worker = async () => {
+    for (;;) {
+      const index = next++;
+      if (index >= work.length) return;
+      const group = work[index];
+      if (await locality(supa, group.row, ngo)) successfullyGeocoded += group.records;
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(LOCALITY_GEOCODE_CONCURRENCY, work.length) }, worker));
   return { recordsFound, successfullyGeocoded, unresolved: recordsFound - successfullyGeocoded, geocoderConfigured: true, requiredEnv: null };
 }
 function requireMapped(status: LocalityStatus) {

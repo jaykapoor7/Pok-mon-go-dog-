@@ -11,6 +11,14 @@ type Result = { ngo?: string; rowsStaged?: number; alreadyStaged?: boolean; batc
 type CleanupPlan = { batches: number; sourceRows: number; cases: number; syntheticProfiles: number; syntheticTimelineEvents: number };
 type ReviewRow = { id: string; source_row_number: number; source_subrecord: string | null; classification: string; decision: "new" | "merge" | "review" | "skip"; normalized: { locality?: string | null; event_date?: string | null; animal_name?: string | null; condition?: string | null; classification_reason?: string | null } };
 const label = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+async function readApiResponse(res: Response): Promise<any> {
+  const body = await res.text();
+  try { return body ? JSON.parse(body) : {}; }
+  catch {
+    const timeout = res.status === 408 || res.status === 504 || res.status >= 500;
+    return { error: timeout ? `The server timed out while processing this workbook (${res.status}). Please retry; no import was committed.` : `The server returned an unreadable response (${res.status}). Please retry.` };
+  }
+}
 
 export function MasterImport({ secret }: { secret: string }) {
   const [orgs, setOrgs] = useState<Org[]>([]);
@@ -37,7 +45,7 @@ export function MasterImport({ secret }: { secret: string }) {
     const body = new FormData(); body.set("action", action); body.set("ngoId", ngoId); body.set("file", file);
     try {
       const res = await fetch("/api/admin/imports", { method: "POST", headers: { Authorization: `Bearer ${secret}` }, body });
-      const data = await res.json(); if (!res.ok) throw new Error(data.error ?? "Import could not be processed.");
+      const data = await readApiResponse(res); if (!res.ok) throw new Error(data.error ?? "Import could not be processed.");
       if (action === "preview") setPreview(data.preview); else { setResult(data); if (data.batchIds?.length) void loadReview(data.batchIds); }
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Import could not be processed."); }
     finally { setBusy(false); }
