@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { StorageNotice } from "@/components/site/StorageNotice";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 import { RouteViews } from "@/components/analytics/RouteViews";
+import { Analytics } from "@vercel/analytics/next";
 
 import { SITE_URL } from "@/lib/site-url";
 // Interface: DM Sans, restrained, precise, engineered.
@@ -174,6 +175,7 @@ export default function RootLayout({
             </AuthProvider>
           </MotionRoot>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
