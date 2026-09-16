@@ -4712,6 +4712,112 @@ begin
   return v_id;
 end $$;
 
+-- A case opened from an NGO workspace is already a record owned by that
+-- team. It starts in progress and assigned to the signed-in uploader; there
+-- is no separate StrayPaw approval state. The caller cannot provide a
+-- different actor or organisation.
+create or replace function create_case(
+  p_title text, p_description text default null, p_dog_id uuid default null,
+  p_zone text default null, p_lat float default null, p_lng float default null,
+  p_severity case_severity default 'normal', p_category case_category default 'other',
+  p_tags text[] default '{}', p_actor_id uuid default null, p_actor_name text default null,
+  p_species text default 'dog'
+) returns uuid language plpgsql security definer set search_path = public as $$
+declare v_id uuid; v_ngo uuid; v_name text;
+begin
+  if auth.uid() is null or (p_actor_id is not null and p_actor_id <> auth.uid()) then
+    raise exception 'Sign in as the case uploader';
+  end if;
+  select my_ngo() into v_ngo;
+  if v_ngo is null then raise exception 'Organisation access required'; end if;
+  if p_dog_id is not null and not exists (select 1 from dogs where id = p_dog_id and ngo_id = v_ngo) then
+    raise exception 'That animal is not in your organisation';
+  end if;
+  v_name := coalesce(nullif(auth.jwt() ->> 'email', ''), nullif(btrim(p_actor_name), ''));
+  insert into cases (dog_id, title, description, zone, lat, lng, severity, category,
+                     tags, species, status, ngo_id, assignee_id, assignee_name,
+                     created_by_id, created_by_name)
+  values (p_dog_id, p_title, p_description, p_zone, p_lat, p_lng, p_severity,
+          p_category, p_tags, coalesce(p_species, 'dog'), 'in_progress', v_ngo,
+          auth.uid(), v_name, auth.uid(), v_name)
+  returning id into v_id;
+  insert into case_updates (case_id, actor_id, actor_name, type, to_status, note)
+  values (v_id, auth.uid(), v_name, 'created', 'in_progress', 'Case opened by organisation');
+  return v_id;
+end $$;
+
+-- A report made under a valid organisation code is an organisation upload,
+-- not a public sighting awaiting moderation. It immediately creates (or
+-- updates) that organisation's animal record and a live map observation.
+-- The service-only route resolves the code; this function still refuses to
+-- attach an NGO's report to another NGO's animal.
+create or replace function report_sighting_for_org(
+  p_photo_url text, p_lat float, p_lng float, p_zone text, p_ngo_id uuid,
+  p_code_id uuid, p_volunteer_name text, p_nickname text default null,
+  p_mood_tags text[] default '{}', p_notes text default null,
+  p_owner_hash text default null, p_user_id uuid default null,
+  p_reporter_email text default null, p_claimed_dog_id uuid default null,
+  p_sterilisation_status text default null, p_vaccination_status text default null
+) returns json language plpgsql security definer set search_path = public as $$
+declare v_dog uuid; v_sighting uuid; v_status dog_status := 'seen';
+  v_needs_help boolean := false; v_friendly boolean := true; v_who text;
+  v_ster text; v_vacc text;
+begin
+  v_who := nullif(btrim(coalesce(p_volunteer_name, '')), '');
+  if p_lat not between -90 and 90 or p_lng not between -180 and 180 then
+    raise exception 'Coordinates are outside the valid range';
+  end if;
+  if 'injured' = any(coalesce(p_mood_tags, '{}')) then v_status := 'injured'; v_needs_help := true;
+  elsif 'hungry' = any(coalesce(p_mood_tags, '{}')) then v_status := 'hungry'; v_needs_help := true; end if;
+  v_friendly := 'friendly' = any(coalesce(p_mood_tags, '{}')) or not ('shy' = any(coalesce(p_mood_tags, '{}')));
+  v_ster := case when p_sterilisation_status in ('sterilised','not_sterilised','unknown') then p_sterilisation_status else 'unknown' end;
+  v_vacc := case when p_vaccination_status in ('vaccinated','not_vaccinated','unknown') then p_vaccination_status else 'unknown' end;
+  if p_claimed_dog_id is not null then
+    select id into v_dog from dogs where id = p_claimed_dog_id and ngo_id = p_ngo_id;
+  end if;
+  if v_dog is null then
+    insert into dogs (name, zone, lat, lng, status, cover_photo, is_friendly, needs_help,
+                      trust_score, sightings_count, first_seen, last_seen, ngo_id,
+                      sterilisation_status, vaccination_status, created_by_id, created_by_name)
+    values (p_nickname, p_zone, p_lat, p_lng, v_status, p_photo_url, v_friendly, v_needs_help,
+            80, 1, now(), now(), p_ngo_id, v_ster, v_vacc, p_user_id, v_who)
+    returning id into v_dog;
+  else
+    update dogs set last_seen = now(), name = coalesce(name, p_nickname),
+      cover_photo = coalesce(nullif(cover_photo, ''), p_photo_url),
+      status = case when v_needs_help then v_status else status end,
+      needs_help = needs_help or v_needs_help,
+      sterilisation_status = case when v_ster <> 'unknown' then v_ster else sterilisation_status end,
+      vaccination_status = case when v_vacc <> 'unknown' then v_vacc else vaccination_status end
+    where id = v_dog;
+  end if;
+  insert into sightings (dog_id, reporter_name, photo_url, lat, lng, zone, nickname,
+                         mood_tags, notes, trust_score, owner_hash, status, user_id,
+                         reporter_email, claimed_dog_id, identity_method,
+                         sterilisation_status, vaccination_status, ngo_id, volunteer_name, invite_code_id)
+  values (v_dog, v_who, p_photo_url, p_lat, p_lng, p_zone, p_nickname,
+          coalesce(p_mood_tags, '{}'), p_notes, 80, p_owner_hash, 'live', p_user_id,
+          nullif(lower(btrim(coalesce(p_reporter_email, ''))), ''), p_claimed_dog_id,
+          case when p_claimed_dog_id is null then 'organisation_created' else 'organisation_confirmed' end,
+          v_ster, v_vacc, p_ngo_id, v_who, p_code_id)
+  returning id into v_sighting;
+  update org_invite_codes set uses = uses + 1 where id = p_code_id;
+  return json_build_object('dog_id', v_dog, 'sighting_id', v_sighting,
+    'status', 'live', 'trust_score', 80, 'ngo_id', p_ngo_id, 'volunteer_name', v_who);
+end $$;
+
+-- Bring through existing code-attributed reports as well. These already carry
+-- an organisation, image and captured coordinates; unlike anonymous public
+-- reports, they are operational uploads and should not wait in moderation.
+do $$
+declare r record;
+begin
+  for r in select id from sightings where ngo_id is not null and status = 'pending'
+  loop
+    perform approve_sighting(r.id, null);
+  end loop;
+end $$;
+
 -- No user-controlled actor or organisation values in write functions.
 create or replace function claim_case(p_case_id uuid, p_actor_id uuid, p_actor_name text)
 returns boolean language plpgsql security definer set search_path = public as $$
@@ -4854,6 +4960,8 @@ grant execute on function my_ngo() to authenticated;
 grant execute on function is_member_of_ngo(uuid) to authenticated;
 grant execute on function get_precise_locations(uuid[]) to authenticated;
 grant execute on function create_animal(text,text,text,text,double precision,double precision,text,text) to authenticated;
+grant execute on function create_case(text,text,uuid,text,float,float,case_severity,case_category,text[],uuid,text,text) to authenticated;
+grant execute on function report_sighting_for_org(text,float,float,text,uuid,uuid,text,text,text[],text,text,uuid,text,uuid,text,text) to service_role;
 grant execute on function claim_case(uuid,uuid,text) to authenticated;
 grant execute on function update_case_status(uuid,case_status,uuid,text,case_resolution,text,text,text,text) to authenticated;
 grant execute on function add_case_note(uuid,uuid,text,text) to authenticated;
@@ -4862,6 +4970,7 @@ grant execute on function add_medical_event(uuid,uuid,text,date,text,text) to au
 grant execute on function ngo_set_dog_care(uuid,boolean,boolean,boolean) to authenticated;
 grant execute on function submit_survey_response(uuid,uuid,double precision,double precision,text,text,int,jsonb,text) to authenticated;
 revoke execute on function create_animal(text,text,text,text,double precision,double precision,text,text) from public;
+revoke execute on function create_case(text,text,uuid,text,float,float,case_severity,case_category,text[],uuid,text,text) from public;
 revoke execute on function claim_case(uuid,uuid,text) from public;
 revoke execute on function update_case_status(uuid,case_status,uuid,text,case_resolution,text,text,text,text) from public;
 revoke execute on function add_case_note(uuid,uuid,text,text) from public;

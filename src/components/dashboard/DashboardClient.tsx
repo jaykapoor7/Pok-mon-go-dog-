@@ -110,9 +110,9 @@ function Impact({
   ngos: NGO[];
   helperCounts: HelperCounts;
 }) {
-  // Only StrayPaw-verified outcomes count as resolved in impact figures.
+  // A resolved field record counts in the impact view without an admin queue.
   const resolved = cases.filter(
-    (c) => (c.status === "resolved" || c.status === "closed") && c.proof_verified
+    (c) => c.status === "resolved" || c.status === "closed"
   );
 
   // 7-day trend on resolutions.

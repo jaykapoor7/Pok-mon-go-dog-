@@ -58,10 +58,8 @@ export function OverdueBadge({ c }: { c: Case }) {
   );
 }
 
-/**
- * Verification badge for resolved cases, visible to everyone so the outcome's
- * credibility is public. Only shows on resolved/closed cases.
- */
+/** A resolved record is labelled by its documentation, never held behind an
+    admin verification queue. */
 export function VerifiedBadge({ c }: { c: Case }) {
   if (c.status !== "resolved" && c.status !== "closed") return null;
   if (c.proof_verified) {
@@ -73,7 +71,7 @@ export function VerifiedBadge({ c }: { c: Case }) {
   }
   return (
     <span className="chip bg-status-hungry/15 font-semibold text-status-hungry">
-      <ShieldQuestion className="h-3 w-3" /> Proof pending
+      <ShieldQuestion className="h-3 w-3" /> Outcome documented
     </span>
   );
 }

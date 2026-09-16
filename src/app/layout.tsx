@@ -5,7 +5,6 @@ import "./tokens.css";
 import "./globals.css";
 import "./design-system.css";
 import "./product.css";
-import "mapbox-gl/dist/mapbox-gl.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Chrome } from "@/components/nav/Chrome";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";

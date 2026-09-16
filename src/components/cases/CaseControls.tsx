@@ -143,16 +143,16 @@ export function CaseControls({ c }: { c: Case }) {
     c.status === "resolved" ? (
       c.proof_verified ? (
         <div className="flex items-center gap-2 rounded bg-status-sterilised/10 px-4 py-2.5 text-sm font-semibold text-status-sterilised">
-          <ShieldCheck className="h-4 w-4" /> Outcome verified by StrayPaw
+          <ShieldCheck className="h-4 w-4" /> Outcome documented by the field team
         </div>
       ) : (
         <div className="flex items-center gap-2 rounded bg-status-hungry/10 px-4 py-2.5 text-sm font-semibold text-bark-600 dark:text-bark-200">
-          <ShieldQuestion className="h-4 w-4 text-status-hungry" /> Proof submitted · pending StrayPaw verification
+          <ShieldQuestion className="h-4 w-4 text-status-hungry" /> Outcome documented by the field team
         </div>
       )
     ) : null;
 
-  // Signed in but not a verified partner NGO → can read + add notes, but not act.
+  // Signed in but not an organisation member → can read + add notes, but not act.
   const canAct = ngoMember === true;
 
   return (
@@ -162,7 +162,7 @@ export function CaseControls({ c }: { c: Case }) {
       {ngoMember === false && (
         <div className="card p-4 text-sm text-bark-600 dark:text-bark-200">
           <p className="flex items-center gap-2 font-semibold">
-            <Lock className="h-4 w-4 text-paw-500" /> Verified partners only
+            <Lock className="h-4 w-4 text-paw-500" /> Organisation members only
           </p>
           <p className="mt-1 text-bark-500">
             Claiming and resolving cases is limited to verified partner NGOs.{" "}

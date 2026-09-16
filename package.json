@@ -14,6 +14,7 @@
     "demo:record": "tsx scripts/record-demo.ts",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:security:audit": "node scripts/db-security-audit.mjs",
+    "db:security:matrix": "node scripts/db-rls-matrix.mjs",
     "db:bundle": "node scripts/build-bundle.mjs",
     "import:pawesome": "node scripts/stage-pawesome-import.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs",
