@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { reconcileHistoricAnimals } from "@/lib/master-import/reconcile";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -129,7 +130,7 @@ export async function POST(req: Request) {
     const cases = sheet.rows.map((row) => {
       const n = row.normalized;
       const title = [n.condition || `${sheet.name} record`, n.location].filter(Boolean).join(" · ");
-      return { ngo_id: ngoId, title, description: [n.case_detail, n.treatment_update, n.review ? `Follow-up: ${n.review}` : null].filter(Boolean).join("\n") || null, zone: n.location, category: category(n.condition, sheet.name), status: status(n.status), condition_text: n.condition, provenance: "imported_historical_record", verification_state: "needs_review", created_at: date(n.date) ?? new Date().toISOString(), last_activity_at: date(n.date) ?? new Date().toISOString() };
+      return { ngo_id: ngoId, title, description: [n.case_detail, n.treatment_update, n.review ? `Follow-up: ${n.review}` : null].filter(Boolean).join("\n") || null, zone: n.location, category: category(n.condition, sheet.name), status: status(n.status), condition_text: n.condition, provenance: "imported_historical_record", verification_state: "verified", created_at: date(n.date) ?? new Date().toISOString(), last_activity_at: date(n.date) ?? new Date().toISOString() };
     });
     const importedCaseIds: string[] = [];
     for (let start = 0; start < cases.length; start += 250) {
@@ -159,7 +160,7 @@ export async function POST(req: Request) {
         ngo_id: ngoId, name, kind: "sterilisation", zone: ngo.city ?? "Coimbatore",
         notes: "Historic operational ledger imported from the organisation workbook.",
         source_rows_count: sheet.rows.length, public_visibility: "summary",
-        public_summary: `${sheet.rows.length} historic ledger entries imported from the organisation’s sterilisation drive. These are source records, not automatically deduplicated animal profiles.`,
+        public_summary: `${sheet.rows.length} dogs sterilised through this Pawesome drive.`,
         published_at: new Date().toISOString(), archived_at: new Date().toISOString(),
       };
       const write = existing
@@ -172,5 +173,6 @@ export async function POST(req: Request) {
     rowsStaged += sheet.rows.length;
     batches.push({ sheet: sheet.name, rows: sheet.rows.length });
   }
-  return NextResponse.json({ ok: true, ngo: ngo.name, rowsStaged, casesCreated, batches, programmes });
+  const animals = await reconcileHistoricAnimals(supa, ngoId);
+  return NextResponse.json({ ok: true, ngo: ngo.name, rowsStaged, casesCreated, batches, programmes, animals });
 }

@@ -52,20 +52,20 @@ export default async function EvidencePage() {
           <div className="evidence-field-record-head">
             <span className="sx-kicker spa-mono">StrayPaw field record</span>
             <h2 id="field-record-title">What our partners have <em>documented.</em></h2>
-            <p>Resolved care stories, completed drives and study work are published here only when the field team has checked the record and chosen to share it. Unresolved cases, exact locations and reporter contacts stay private.</p>
+            <p>Care stories, completed drives and study work shared by our field partners live here. Unresolved cases, exact locations and reporter contacts stay private.</p>
           </div>
 
           <div className="evidence-work-grid">
             <section className="evidence-work-section" aria-labelledby="care-stories-title">
               <div className="evidence-work-heading"><span>Care stories</span><Link href="/partners">Meet the partners <ArrowUpRight size={13} /></Link></div>
               <h3 id="care-stories-title">Care, rescue and recovery in sequence.</h3>
-              {stories.length ? <div className="evidence-story-list">{stories.map((story) => <article key={story.id} className="evidence-story-card"><h4>{story.title}</h4><p>{story.public_summary}</p>{story.location_label && <span><MapPin size={13} /> {story.location_label}</span>}{story.stages.length > 0 && <ol>{story.stages.slice(0, 4).map((stage, index) => <li key={`${stage.label}-${index}`}>{stage.date ? `${stage.date} · ` : ""}{stage.label}</li>)}</ol>}</article>)}</div> : <p className="evidence-empty">Published care stories will appear here after a partner verifies the outcome.</p>}
+              {stories.length ? <div className="evidence-story-list">{stories.map((story) => <article key={story.id} className="evidence-story-card"><h4>{story.title}</h4><p>{story.public_summary}</p>{story.location_label && <span><MapPin size={13} /> {story.location_label}</span>}{story.stages.length > 0 && <ol>{story.stages.slice(0, 4).map((stage, index) => <li key={`${stage.label}-${index}`}>{stage.date ? `${stage.date} · ` : ""}{stage.label}</li>)}</ol>}</article>)}</div> : <p className="evidence-empty">Care stories from partner teams will appear here.</p>}
             </section>
 
             <section className="evidence-work-section" aria-labelledby="drives-title">
               <div className="evidence-work-heading"><span>Completed drives</span><Link href="/partners">Partner directory <ArrowUpRight size={13} /></Link></div>
               <h3 id="drives-title">Programme totals with a named team behind them.</h3>
-              {programmes.length ? <div className="evidence-programme-list">{programmes.map((programme) => <article key={programme.id} className="evidence-programme-card"><p>{programme.ngo_name}</p><h4>{programme.name}</h4>{programme.public_summary && <span>{programme.public_summary}</span>}<small>{programme.animals_recorded.toLocaleString()} records documented{programme.sterilised_recorded ? ` · ${programme.sterilised_recorded.toLocaleString()} sterilised` : ""}{programme.vaccinated_recorded ? ` · ${programme.vaccinated_recorded.toLocaleString()} vaccinated` : ""}</small></article>)}</div> : <p className="evidence-empty">A completed drive appears after its partner confirms the aggregate and publication details.</p>}
+              {programmes.length ? <div className="evidence-programme-list">{programmes.map((programme) => { const total = programme.kind === "sterilisation" ? programme.sterilised_recorded : programme.kind === "vaccination" ? programme.vaccinated_recorded : programme.animals_recorded; const label = programme.kind === "sterilisation" ? "dogs sterilised" : programme.kind === "vaccination" ? "animals vaccinated" : "animals helped"; return <article key={programme.id} className="evidence-programme-card"><p>{programme.ngo_name}</p><h4>{programme.name}</h4>{programme.public_summary && <span>{programme.public_summary}</span>}<small>{total.toLocaleString()} {label}</small></article>; })}</div> : <p className="evidence-empty">Completed drives from partner teams will appear here.</p>}
             </section>
 
             <section className="evidence-work-section evidence-studies" aria-labelledby="studies-title">
