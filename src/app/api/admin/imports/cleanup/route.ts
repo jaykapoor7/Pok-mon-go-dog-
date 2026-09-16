@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { deleteIdChunks, updateBatchChunks } from "@/lib/master-import/cleanup";
 
 export const runtime = "nodejs";
 
@@ -44,11 +45,13 @@ export async function POST(req: Request) {
     // This targets only the known broken V1 footprint: legacy master batches,
     // their imported cases, HIST codes, and the V1 provenance marker. It does
     // not touch community records or any pre-existing/ordinary NGO animal.
-    if (events.length) { const { error } = await supa.from("animal_timeline_events").delete().in("id", events.map((event) => event.id)); if (error) throw new Error(error.message); }
-    if (caseIds.length) { const { error } = await supa.from("cases").delete().in("id", caseIds); if (error) throw new Error(error.message); }
-    if (syntheticDogs.length) { const { error } = await supa.from("dogs").delete().in("id", syntheticDogs.map((dog) => dog.id)); if (error) throw new Error(error.message); }
-    if (batchIds.length) { const { error } = await supa.from("import_batches").update({ status: "rolled_back", completed_at: new Date().toISOString() }).in("id", batchIds); if (error) throw new Error(error.message); }
-    return NextResponse.json({ ok: true, cleaned: plan });
+    const deletedTimelineEvents = events.length ? await deleteIdChunks(supa, "animal_timeline_events", events.map((event) => event.id)) : 0;
+    const deletedCases = caseIds.length ? await deleteIdChunks(supa, "cases", caseIds) : 0;
+    const deletedSyntheticProfiles = syntheticDogs.length ? await deleteIdChunks(supa, "dogs", syntheticDogs.map((dog) => dog.id)) : 0;
+    // A failed chunk leaves batches eligible for a safe retry. Only a complete
+    // successful run marks the exact V1 batches as rolled back.
+    const rolledBackBatches = batchIds.length ? await updateBatchChunks(supa, batchIds, { status: "rolled_back", completed_at: new Date().toISOString() }) : 0;
+    return NextResponse.json({ ok: true, cleaned: plan, deleted: { animal_timeline_events: deletedTimelineEvents, cases: deletedCases, synthetic_dogs: deletedSyntheticProfiles, import_batches: rolledBackBatches } });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not prepare import cleanup." }, { status: 500 });
   }
