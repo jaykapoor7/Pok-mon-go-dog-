@@ -40,13 +40,35 @@ function yearForSheet(name: string) {
   return match ? Number(match[1]) : null;
 }
 
+function explicitYear(value: string) {
+  const full = value.match(/\b(20\d{2})\b/);
+  if (full) return Number(full[1]);
+  const short = value.match(/(?:-|\/)(2\d)(?:\D|$)/);
+  return short ? 2000 + Number(short[1]) : null;
+}
+
+/** A ledger sometimes writes `31-Jan` in the event column but has dated
+ * admission/release cells elsewhere. Use only that explicit workbook year;
+ * never accept JavaScript's arbitrary year-2001 fallback for a partial date. */
+function inferredYearForSheet(matrix: unknown[][], name: string) {
+  const named = yearForSheet(name);
+  if (named) return named;
+  const tally = new Map<number, number>();
+  for (const row of matrix) for (const cell of row) {
+    const year = explicitYear(clean(cell));
+    if (year) tally.set(year, (tally.get(year) ?? 0) + 1);
+  }
+  return [...tally.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]?.[0] ?? null;
+}
+
 /** Spreadsheet dates such as "2-Jan" must retain their source sheet's year;
  * they are never silently turned into an import-time timestamp. */
 export function sourceDate(value: string | null, fallbackYear: number | null) {
   if (!value) return null;
   const text = clean(value).replace(/-$/, "");
   if (!text) return null;
-  const withYear = /\b20\d{2}\b/.test(text) ? text : fallbackYear ? `${text}-${fallbackYear}` : text;
+  const withYear = explicitYear(text) ? text : fallbackYear ? `${text}-${fallbackYear}` : null;
+  if (!withYear) return null;
   const parsed = new Date(withYear);
   return Number.isNaN(parsed.valueOf()) ? null : parsed.toISOString();
 }
@@ -65,7 +87,7 @@ function classify(sheet: string, row: Record<string, string>) : Pick<NormalizedI
   return { classification: "manual_review", classification_reason: "Worksheet needs a mapping review" };
 }
 
-function normalize(sheet: string, sourceRowNumber: number, raw: Record<string, string>): NormalizedImportRow {
+function normalize(sheet: string, sourceRowNumber: number, raw: Record<string, string>, fallbackYear = yearForSheet(sheet)): NormalizedImportRow {
   const kind = classify(sheet, raw);
   const date = value(raw, /^(date|reported|request date)$/i);
   const locality = value(raw, /^(location|locality|area|ward|zone|place)$/i);
@@ -74,20 +96,20 @@ function normalize(sheet: string, sourceRowNumber: number, raw: Record<string, s
   const animalName = value(raw, /^(animal|dog) name$|^nickname$/i);
   const record = {
     source_sheet: sheet, source_row: sourceRowNumber,
-    ...kind, event_date: sourceDate(date, yearForSheet(sheet)), locality, city: null,
+    ...kind, event_date: sourceDate(date, fallbackYear), locality, city: null,
     animal_name: animalName,
     animal_code: value(raw, /(animal|dog).{0,8}(id|code)|^animal id$/i),
     sex: value(raw, /^sex$|^gender$/i), colour: value(raw, /colou?r|markings?/i),
     condition, status: value(raw, /^status$|completed|outcome/i), case_detail: caseDetail,
     treatment_update: value(raw, /^detailed status$|treatment|update/i),
-    review: value(raw, /review|appoint|next dose|next date/i), rescue_plan: value(raw, /rescue plan/i),
-    admit_date: sourceDate(value(raw, /admit date/i), yearForSheet(sheet)),
-    release_date: sourceDate(value(raw, /release date/i), yearForSheet(sheet)),
+    review: value(raw, /review|appoint|appt|next dose|next date/i), rescue_plan: value(raw, /rescue plan/i),
+    admit_date: sourceDate(value(raw, /admit date/i), fallbackYear),
+    release_date: sourceDate(value(raw, /release date/i), fallbackYear),
   } satisfies Omit<NormalizedImportRow, "fingerprint">;
   return { ...record, fingerprint: fingerprint({ sheet: normalKey(sheet), ...record, source_row: undefined }) };
 }
 
-function specialAdoptFoster(sheet: string, sourceRowNumber: number, raw: Record<string, string>) {
+function specialAdoptFoster(sheet: string, sourceRowNumber: number, raw: Record<string, string>, fallbackYear: number | null) {
   const events: ParsedImportRow[] = [];
   const adoption = clean(raw.Adoptions);
   const foster = clean(raw.Foster);
@@ -96,7 +118,7 @@ function specialAdoptFoster(sheet: string, sourceRowNumber: number, raw: Record<
     ["foster", foster, raw["Month__foster"], raw["Location__foster"]],
   ] as const)) {
     if (!label) continue;
-    const normalized = normalize(sheet, sourceRowNumber, { "Animal name": label, Date: date, Location: locality, Status: subrecord });
+    const normalized = normalize(sheet, sourceRowNumber, { "Animal name": label, Date: date, Location: locality, Status: subrecord }, fallbackYear);
     normalized.source_subrecord = subrecord;
     normalized.classification = subrecord;
     normalized.classification_reason = `${subrecord === "adoption" ? "Adoption" : "Foster"} register`;
@@ -124,6 +146,7 @@ export function parseMasterWorkbook(buffer: ArrayBuffer, _filename = "workbook.x
   const sheets: ParsedSheet[] = [];
   for (const name of book.SheetNames) {
     const matrix = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[name], { header: 1, defval: "", raw: false });
+    const fallbackYear = inferredYearForSheet(matrix, name);
     const headerIndex = matrix.slice(0, 20).reduce((best, row, index) => headerScore(row) > headerScore(matrix[best] ?? []) ? index : best, 0);
     if (headerScore(matrix[headerIndex] ?? []) < 2) continue;
     const originalHeaders = (matrix[headerIndex] ?? []).map((cell, index) => clean(cell) || `Column ${index + 1}`);
@@ -133,8 +156,8 @@ export function parseMasterWorkbook(buffer: ArrayBuffer, _filename = "workbook.x
       const raw = Object.fromEntries(headers.map((header, index) => [header, clean(cells[index])]).filter(([, cell]) => Boolean(cell))) as Record<string, string>;
       if (!Object.keys(raw).length) return [];
       const sourceRowNumber = headerIndex + offset + 2;
-      if (/adopt.*foster/i.test(name)) return specialAdoptFoster(name, sourceRowNumber, raw);
-      return [{ sourceRowNumber, raw: Object.fromEntries(Object.entries(raw).filter(([header]) => !PRIVATE_HEADER.test(header))) as Record<string, string>, normalized: normalize(name, sourceRowNumber, raw) }];
+      if (/adopt.*foster/i.test(name)) return specialAdoptFoster(name, sourceRowNumber, raw, fallbackYear);
+      return [{ sourceRowNumber, raw: Object.fromEntries(Object.entries(raw).filter(([header]) => !PRIVATE_HEADER.test(header))) as Record<string, string>, normalized: normalize(name, sourceRowNumber, raw, fallbackYear) }];
     });
     sheets.push({ name, rows, headerRow: headerIndex + 1 });
   }

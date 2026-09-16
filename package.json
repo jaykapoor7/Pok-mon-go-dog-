@@ -20,6 +20,7 @@
     "audit:contrast": "node scripts/contrast-audit.mjs",
     "check:fixtures": "node scripts/no-fixtures.mjs",
     "test:master-import": "node --import tsx scripts/test-master-import.ts",
+    "test:master-import:pagination": "node --import tsx scripts/test-master-import-pagination.ts",
     "prebuild": "node scripts/no-fixtures.mjs"
   },
   "dependencies": {

@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { hasDefensibleIdentity, isAccepted, parseMasterWorkbook, type NormalizedImportRow } from "@/lib/master-import/pipeline";
+import { assessLocalities as assessImportLocalities, commitStaged as commitImport } from "@/lib/master-import/commit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+export type LocalityStatus = {
+  recordsFound: number;
+  successfullyGeocoded: number;
+  unresolved: number;
+  geocoderConfigured: boolean;
+  requiredEnv: "MAPBOX_ACCESS_TOKEN" | null;
+};
 
 function authorised(req: Request) {
   const secret = process.env.ADMIN_SECRET?.trim();
@@ -35,16 +43,23 @@ function statusFor(row: NormalizedImportRow) {
   return "seen";
 }
 
+function geocoderToken() {
+  return process.env.MAPBOX_ACCESS_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_TOKEN || null;
+}
+function localityKey(row: NormalizedImportRow, ngo: any) {
+  return [row.locality, ngo.city, ngo.state, "India"].filter(Boolean).join(", ").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 async function locality(supa: any, row: NormalizedImportRow, ngo: any) {
   if (!row.locality) return null;
   const query = [row.locality, ngo.city, ngo.state, "India"].filter(Boolean).join(", ");
-  const key = query.toLowerCase().replace(/\s+/g, " ").trim();
+  const key = localityKey(row, ngo);
   const { data: cached } = await supa.from("import_location_cache").select("lat,lng,precision").eq("normalized_query", key).maybeSingle();
   if (cached?.precision === "approximate" && cached.lat !== null && cached.lng !== null) return cached;
-  const token = process.env.MAPBOX_ACCESS_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const token = geocoderToken();
   if (!token) { await supa.from("import_location_cache").upsert({ normalized_query: key, locality: row.locality, city: ngo.city, state: ngo.state, precision: "unresolved" }, { onConflict: "normalized_query" }); return null; }
   try {
-    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${encodeURIComponent(token)}&country=in&limit=1`);
+    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${encodeURIComponent(token)}&country=in&limit=1`, { signal: AbortSignal.timeout(8_000) });
     const payload = await response.json(); const center = payload.features?.[0]?.center;
     if (!Array.isArray(center) || !Number.isFinite(center[0]) || !Number.isFinite(center[1])) throw new Error("not found");
     const result = { normalized_query: key, locality: row.locality, city: ngo.city, state: ngo.state, lat: center[1], lng: center[0], provider: "mapbox", precision: "approximate" };
@@ -53,9 +68,43 @@ async function locality(supa: any, row: NormalizedImportRow, ngo: any) {
   } catch { await supa.from("import_location_cache").upsert({ normalized_query: key, locality: row.locality, city: ngo.city, state: ngo.state, precision: "unresolved" }, { onConflict: "normalized_query" }); return null; }
 }
 
+/** Geocode every unique locality before a commit. It makes a missing key or
+ * an ambiguous/unresolved locality a hard stop rather than silently creating
+ * an unmapped "public" record. Counts are record counts, not animal counts. */
+async function assessLocalities(supa: any, rows: NormalizedImportRow[], ngo: any): Promise<LocalityStatus> {
+  const groups = new Map<string, { row: NormalizedImportRow; records: number }>();
+  for (const row of rows) {
+    if (!isAccepted(row) || !row.locality) continue;
+    const key = localityKey(row, ngo);
+    const current = groups.get(key);
+    if (current) current.records++;
+    else groups.set(key, { row, records: 1 });
+  }
+  const recordsFound = [...groups.values()].reduce((sum, group) => sum + group.records, 0);
+  if (!recordsFound) return { recordsFound: 0, successfullyGeocoded: 0, unresolved: 0, geocoderConfigured: Boolean(geocoderToken()), requiredEnv: null };
+  if (!geocoderToken()) return { recordsFound, successfullyGeocoded: 0, unresolved: recordsFound, geocoderConfigured: false, requiredEnv: "MAPBOX_ACCESS_TOKEN" };
+  let successfullyGeocoded = 0;
+  for (const group of groups.values()) {
+    if (await locality(supa, group.row, ngo)) successfullyGeocoded += group.records;
+  }
+  return { recordsFound, successfullyGeocoded, unresolved: recordsFound - successfullyGeocoded, geocoderConfigured: true, requiredEnv: null };
+}
+
+function requireMappedLocalities(status: LocalityStatus) {
+  if (!status.recordsFound) return;
+  if (!status.geocoderConfigured) throw new Error(`Map publishing is blocked: set ${status.requiredEnv} in the production server environment, then redeploy and re-run the preview.`);
+  if (status.unresolved) throw new Error(`Map publishing is blocked: ${status.unresolved.toLocaleString()} locality records could not be geocoded. Correct those localities in the review step and re-run the preview.`);
+}
+
 async function commitStaged(supa: any, ngo: any, batchIds: string[]) {
   const rows = await page<any>((from, to) => supa.from("import_rows").select("id,batch_id,normalized,matched_dog_id,classification,decision,imported_dog_id,imported_case_id").in("batch_id", batchIds).order("id").range(from, to));
   const dogs = await page<any>((from, to) => supa.from("dogs").select("id,code,name,zone,sex,color").eq("ngo_id", ngo.id).order("id").range(from, to));
+  const pendingRows = rows
+    .filter((source) => !source.imported_case_id && !source.imported_dog_id && source.decision !== "skip")
+    .map((source) => source.normalized as NormalizedImportRow)
+    .filter((row) => Boolean(row && isAccepted(row)));
+  const localityStatus = await assessLocalities(supa, pendingRows, ngo);
+  requireMappedLocalities(localityStatus);
   let casesCreated = 0; let profilesCreated = 0; let review = 0; let medical = 0;
   const campaignTotals = new Map<string, number>();
   for (const source of rows) {
@@ -126,7 +175,7 @@ async function commitStaged(supa: any, ngo: any, batchIds: string[]) {
     if (write.error) throw new Error(write.error.message);
   }
   await supa.from("import_batches").update({ status: review ? "reviewing" : "imported", rows_imported: casesCreated + medical, rows_needing_review: review, completed_at: new Date().toISOString() }).in("id", batchIds);
-  return { casesCreated, profilesCreated, medicalEvents: medical, rowsNeedingReview: review };
+  return { casesCreated, profilesCreated, medicalEvents: medical, rowsNeedingReview: review, localityStatus };
 }
 function label(value: string) { return value.replace(/_/g, " "); }
 
@@ -149,7 +198,7 @@ export async function POST(req: Request) {
     if ((batches ?? []).length !== batchIds.length || (batches ?? []).some((batch) => batch.ngo_id !== ngoId || !["staged", "reviewing"].includes(batch.status))) {
       return NextResponse.json({ error: "Only this organisation's staged import batches can be committed." }, { status: 403 });
     }
-    try { return NextResponse.json({ ok: true, ...(await commitStaged(supa, ngo, batchIds)) }); }
+    try { return NextResponse.json({ ok: true, ...(await commitImport(supa, ngo, batchIds)) }); }
     catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Could not commit staged import." }, { status: 500 }); }
   }
   if (!(file instanceof File)) return NextResponse.json({ error: "Choose an organisation and workbook." }, { status: 400 });
@@ -157,7 +206,10 @@ export async function POST(req: Request) {
 
   const buffer = await file.arrayBuffer();
   const preview = parseMasterWorkbook(buffer, file.name);
-  if (action === "preview") return NextResponse.json({ ngo: ngo.name, preview: { ...preview, sheets: preview.sheets.map((sheet) => ({ name: sheet.name, headerRow: sheet.headerRow, rows: sheet.rows.slice(0, 12) })) } });
+  if (action === "preview") {
+    const localityStatus = await assessImportLocalities(supa, preview.sheets.flatMap((sheet) => sheet.rows.map((row) => row.normalized)), ngo);
+    return NextResponse.json({ ngo: ngo.name, preview: { ...preview, localityStatus, sheets: preview.sheets.map((sheet) => ({ name: sheet.name, headerRow: sheet.headerRow, rows: sheet.rows.slice(0, 12) })) } });
+  }
   if (action !== "stage") return NextResponse.json({ error: "Analyse a workbook before staging it." }, { status: 400 });
 
   const { data: already } = await supa.from("import_batches")

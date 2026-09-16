@@ -20,7 +20,7 @@ async function allRows(supa: any, table: string, select: string, apply: (query: 
 
 export async function POST(req: Request) {
   if (!permitted(req)) return NextResponse.json({ error: "Operator access required." }, { status: 401 });
-  const { ngoId, execute } = await req.json().catch(() => ({}));
+  const { ngoId, execute, confirmation } = await req.json().catch(() => ({}));
   if (typeof ngoId !== "string" || !ngoId) return NextResponse.json({ error: "Choose an organisation." }, { status: 400 });
   const supa = getSupabaseAdmin();
   if (!supa) return NextResponse.json({ error: "Service role not configured." }, { status: 500 });
@@ -39,6 +39,7 @@ export async function POST(req: Request) {
     const syntheticDogs = dogs.filter((dog) => dog.intake_notes === "Historic Pawesome record imported from the organisation workbook.");
     const plan = { batches: batchIds.length, sourceRows: importedRows.length, cases: caseIds.length, syntheticProfiles: syntheticDogs.length, syntheticTimelineEvents: events.length };
     if (!execute) return NextResponse.json({ ok: true, plan });
+    if (confirmation !== "REMOVE_BROKEN_V1") return NextResponse.json({ error: "Read the exact cleanup preview, then confirm removal of the broken V1 records." }, { status: 400 });
 
     // This targets only the known broken V1 footprint: legacy master batches,
     // their imported cases, HIST codes, and the V1 provenance marker. It does
