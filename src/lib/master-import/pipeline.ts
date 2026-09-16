@@ -132,6 +132,27 @@ export function hasDefensibleIdentity(row: NormalizedImportRow) {
   return Boolean(row.animal_code || (row.animal_name && row.locality && (row.sex || row.colour)));
 }
 
+/**
+ * A workbook may not contain a formal animal ID.  That is not a reason to
+ * throw a legitimate operational record away: the import creates a native
+ * profile, then uses only explicit workbook identifiers (or an exact
+ * workbook-local signature) when it needs to attach another row to it.
+ */
+export function workbookAnimalKey(row: NormalizedImportRow) {
+  if (row.animal_code) return `code:${normalKey(row.animal_code)}`;
+  if (row.animal_name) return `name:${normalKey(row.animal_name)}@${normalKey(row.locality)}`;
+  return `row:${row.fingerprint}`;
+}
+
+/** Only an explicit identifier is reliable enough to join different sheets
+ * automatically.  Locality/condition heuristics are intentionally handled
+ * by the importer only when they identify a single candidate. */
+export function explicitWorkbookIdentity(row: NormalizedImportRow) {
+  if (row.animal_code) return `code:${normalKey(row.animal_code)}`;
+  if (row.animal_name) return `name:${normalKey(row.animal_name)}@${normalKey(row.locality)}`;
+  return null;
+}
+
 export function isAccepted(row: NormalizedImportRow) {
   if (["expense", "summary", "template", "skip"].includes(row.classification)) return false;
   if (row.classification === "sterilisation") return Boolean(row.event_date && row.locality);

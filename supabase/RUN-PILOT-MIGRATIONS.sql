@@ -4553,6 +4553,60 @@ revoke all on import_location_cache from anon, authenticated;
 alter table cases add column if not exists imported_at timestamptz;
 alter table cases add column if not exists source_event_at timestamptz;
 
+-- Master Import writes the same canonical objects used by the rest of
+-- StrayPaw. These links make every generated object traceable to a specific
+-- organisation workbook/batch without creating a disconnected archive.
+alter table dogs add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table cases add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table cases add column if not exists source_metadata jsonb not null default '{}'::jsonb;
+alter table medical_events add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table medical_events add column if not exists source_metadata jsonb not null default '{}'::jsonb;
+alter table animal_followups add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table animal_followups add column if not exists source_metadata jsonb not null default '{}'::jsonb;
+
+create index if not exists dogs_import_batch_idx on dogs (import_batch_id) where import_batch_id is not null;
+create index if not exists cases_import_batch_idx on cases (import_batch_id) where import_batch_id is not null;
+create index if not exists medical_events_import_batch_idx on medical_events (import_batch_id) where import_batch_id is not null;
+create index if not exists animal_followups_import_batch_idx on animal_followups (import_batch_id) where import_batch_id is not null;
+
+-- The operational-record triggers already create a timeline entry for native
+-- medical/follow-up rows. Preserve import provenance and the original source
+-- date there as well, rather than making a parallel import-only timeline.
+create or replace function timeline_from_medical_event()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_ngo uuid;
+begin
+  select ngo_id into v_ngo from dogs where id = new.dog_id;
+  if new.dog_id is not null then
+    insert into animal_timeline_events (ngo_id, dog_id, case_id, event_type, title, details, occurred_at, actor_id, actor_name, provenance, source_ref, visibility)
+    values (v_ngo, new.dog_id, new.case_id, 'medical:' || new.kind,
+            initcap(replace(new.kind, '_', ' ')), new.notes,
+            coalesce(new.event_date::timestamptz, now()), new.created_by_id,
+            new.performed_by,
+            case when new.import_batch_id is null then 'ngo_record' else 'imported_historical_record' end,
+            case when new.import_batch_id is null then jsonb_build_object('medical_event_id', new.id)
+                 else coalesce(new.source_metadata, '{}'::jsonb) || jsonb_build_object('medical_event_id', new.id, 'import_batch_id', new.import_batch_id) end,
+            case when new.import_batch_id is null then 'private' else 'partner' end);
+  end if;
+  return new;
+end $$;
+
+create or replace function timeline_from_followup()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.dog_id is not null then
+    insert into animal_timeline_events (ngo_id, dog_id, case_id, followup_id, event_type, title, details, occurred_at, provenance, source_ref, visibility)
+    values (new.ngo_id, new.dog_id, new.case_id, new.id, 'followup:' || new.status,
+            case new.status when 'done' then 'Follow-up completed' when 'missed' then 'Follow-up missed' when 'postponed' then 'Follow-up postponed' when 'cancelled' then 'Follow-up cancelled' else 'Follow-up due' end,
+            new.note, coalesce(new.completed_at, new.due_at),
+            case when new.import_batch_id is null then 'ngo_record' else 'imported_historical_record' end,
+            case when new.import_batch_id is null then jsonb_build_object('followup_id', new.id)
+                 else coalesce(new.source_metadata, '{}'::jsonb) || jsonb_build_object('followup_id', new.id, 'import_batch_id', new.import_batch_id) end,
+            case when new.import_batch_id is null then 'private' else 'partner' end);
+  end if;
+  return new;
+end $$;
+
 
 -- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- ┃ security-hardening-rls.sql
@@ -4633,7 +4687,8 @@ from sightings
 where status = 'live';
 
 -- Historic NGO activity is public only as a coarse, plain-language marker.
--- It has no informer data, treatment notes or claimed animal identity.
+-- It has no informer data or treatment notes. Each marker can safely link to
+-- the already-public native animal profile without exposing exact intake data.
 create or replace view public_field_activity as
 select 'case:' || c.id::text as id, c.dog_id, c.ngo_id, n.name as ngo_name,
        c.title, coalesce(c.source_event_at, c.created_at) as occurred_at,
@@ -4650,7 +4705,26 @@ select 'case:' || c.id::text as id, c.dog_id, c.ngo_id, n.name as ngo_name,
  where c.provenance = 'imported_historical_record'
    and c.source_event_at is not null
    and c.lat between -90 and 90 and c.lng between -180 and 180
-   and not (c.lat = 0 and c.lng = 0);
+   and not (c.lat = 0 and c.lng = 0)
+union all
+select 'medical:' || m.id::text as id, d.id as dog_id, d.ngo_id, n.name as ngo_name,
+       'NGO ' || initcap(replace(m.kind, '_', ' ')) as title,
+       m.event_date::timestamptz as occurred_at,
+       null::text as reporter_name,
+       null::text as photo_url,
+       round(d.lat::numeric, 2)::double precision as lat,
+       round(d.lng::numeric, 2)::double precision as lng,
+       d.zone, 'NGO ' || initcap(replace(m.kind, '_', ' ')) as nickname,
+       array['historical_ngo_record', m.kind]::text[] as mood_tags,
+       'Historical NGO care record'::text as notes, 70::int as trust_score,
+       0::int as likes, 'live'::text as status, m.event_date::timestamptz as created_at
+  from medical_events m
+  join dogs d on d.id = m.dog_id
+  left join ngos n on n.id = d.ngo_id
+ where m.import_batch_id is not null
+   and d.provenance = 'imported_historical_record'
+   and d.lat between -90 and 90 and d.lng between -180 and 180
+   and not (d.lat = 0 and d.lng = 0);
 
 create or replace view public_feed_events as
 select id, dog_id, reporter_name, food_type, created_at from feed_events;

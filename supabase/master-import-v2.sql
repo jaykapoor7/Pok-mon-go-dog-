@@ -47,3 +47,57 @@ revoke all on import_location_cache from anon, authenticated;
 -- event date separately so unknown dates do not become import-time activity.
 alter table cases add column if not exists imported_at timestamptz;
 alter table cases add column if not exists source_event_at timestamptz;
+
+-- Master Import writes the same canonical objects used by the rest of
+-- StrayPaw. These links make every generated object traceable to a specific
+-- organisation workbook/batch without creating a disconnected archive.
+alter table dogs add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table cases add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table cases add column if not exists source_metadata jsonb not null default '{}'::jsonb;
+alter table medical_events add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table medical_events add column if not exists source_metadata jsonb not null default '{}'::jsonb;
+alter table animal_followups add column if not exists import_batch_id uuid references import_batches(id) on delete set null;
+alter table animal_followups add column if not exists source_metadata jsonb not null default '{}'::jsonb;
+
+create index if not exists dogs_import_batch_idx on dogs (import_batch_id) where import_batch_id is not null;
+create index if not exists cases_import_batch_idx on cases (import_batch_id) where import_batch_id is not null;
+create index if not exists medical_events_import_batch_idx on medical_events (import_batch_id) where import_batch_id is not null;
+create index if not exists animal_followups_import_batch_idx on animal_followups (import_batch_id) where import_batch_id is not null;
+
+-- The operational-record triggers already create a timeline entry for native
+-- medical/follow-up rows. Preserve import provenance and the original source
+-- date there as well, rather than making a parallel import-only timeline.
+create or replace function timeline_from_medical_event()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_ngo uuid;
+begin
+  select ngo_id into v_ngo from dogs where id = new.dog_id;
+  if new.dog_id is not null then
+    insert into animal_timeline_events (ngo_id, dog_id, case_id, event_type, title, details, occurred_at, actor_id, actor_name, provenance, source_ref, visibility)
+    values (v_ngo, new.dog_id, new.case_id, 'medical:' || new.kind,
+            initcap(replace(new.kind, '_', ' ')), new.notes,
+            coalesce(new.event_date::timestamptz, now()), new.created_by_id,
+            new.performed_by,
+            case when new.import_batch_id is null then 'ngo_record' else 'imported_historical_record' end,
+            case when new.import_batch_id is null then jsonb_build_object('medical_event_id', new.id)
+                 else coalesce(new.source_metadata, '{}'::jsonb) || jsonb_build_object('medical_event_id', new.id, 'import_batch_id', new.import_batch_id) end,
+            case when new.import_batch_id is null then 'private' else 'partner' end);
+  end if;
+  return new;
+end $$;
+
+create or replace function timeline_from_followup()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.dog_id is not null then
+    insert into animal_timeline_events (ngo_id, dog_id, case_id, followup_id, event_type, title, details, occurred_at, provenance, source_ref, visibility)
+    values (new.ngo_id, new.dog_id, new.case_id, new.id, 'followup:' || new.status,
+            case new.status when 'done' then 'Follow-up completed' when 'missed' then 'Follow-up missed' when 'postponed' then 'Follow-up postponed' when 'cancelled' then 'Follow-up cancelled' else 'Follow-up due' end,
+            new.note, coalesce(new.completed_at, new.due_at),
+            case when new.import_batch_id is null then 'ngo_record' else 'imported_historical_record' end,
+            case when new.import_batch_id is null then jsonb_build_object('followup_id', new.id)
+                 else coalesce(new.source_metadata, '{}'::jsonb) || jsonb_build_object('followup_id', new.id, 'import_batch_id', new.import_batch_id) end,
+            case when new.import_batch_id is null then 'private' else 'partner' end);
+  end if;
+  return new;
+end $$;

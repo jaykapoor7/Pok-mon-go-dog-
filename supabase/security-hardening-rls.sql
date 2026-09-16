@@ -73,7 +73,8 @@ from sightings
 where status = 'live';
 
 -- Historic NGO activity is public only as a coarse, plain-language marker.
--- It has no informer data, treatment notes or claimed animal identity.
+-- It has no informer data or treatment notes. Each marker can safely link to
+-- the already-public native animal profile without exposing exact intake data.
 create or replace view public_field_activity as
 select 'case:' || c.id::text as id, c.dog_id, c.ngo_id, n.name as ngo_name,
        c.title, coalesce(c.source_event_at, c.created_at) as occurred_at,
@@ -90,7 +91,26 @@ select 'case:' || c.id::text as id, c.dog_id, c.ngo_id, n.name as ngo_name,
  where c.provenance = 'imported_historical_record'
    and c.source_event_at is not null
    and c.lat between -90 and 90 and c.lng between -180 and 180
-   and not (c.lat = 0 and c.lng = 0);
+   and not (c.lat = 0 and c.lng = 0)
+union all
+select 'medical:' || m.id::text as id, d.id as dog_id, d.ngo_id, n.name as ngo_name,
+       'NGO ' || initcap(replace(m.kind, '_', ' ')) as title,
+       m.event_date::timestamptz as occurred_at,
+       null::text as reporter_name,
+       null::text as photo_url,
+       round(d.lat::numeric, 2)::double precision as lat,
+       round(d.lng::numeric, 2)::double precision as lng,
+       d.zone, 'NGO ' || initcap(replace(m.kind, '_', ' ')) as nickname,
+       array['historical_ngo_record', m.kind]::text[] as mood_tags,
+       'Historical NGO care record'::text as notes, 70::int as trust_score,
+       0::int as likes, 'live'::text as status, m.event_date::timestamptz as created_at
+  from medical_events m
+  join dogs d on d.id = m.dog_id
+  left join ngos n on n.id = d.ngo_id
+ where m.import_batch_id is not null
+   and d.provenance = 'imported_historical_record'
+   and d.lat between -90 and 90 and d.lng between -180 and 180
+   and not (d.lat = 0 and d.lng = 0);
 
 create or replace view public_feed_events as
 select id, dog_id, reporter_name, food_type, created_at from feed_events;

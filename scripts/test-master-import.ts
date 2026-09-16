@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import * as XLSX from "xlsx";
 import { parseMasterWorkbook } from "../src/lib/master-import/pipeline";
+import { planImport } from "../src/lib/master-import/commit";
 
 function bytes(book: XLSX.WorkBook) {
   return XLSX.write(book, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
@@ -25,11 +26,16 @@ const parsed = parseMasterWorkbook(bytes(book), "renamed-by-user.xlsx");
 assert.equal(parsed.counts.sterilisation, 76, "all ledger rows remain classified as sterilisation source rows");
 assert.equal(parsed.acceptedRows, 65, "only operational rows, including both adopt/foster events, are eligible");
 assert.equal(parsed.identityCandidates, 1, "a named animal must also have corroborating traits before profile matching");
-assert.equal(parsed.unidentified, 64, "operational rows without a defensible identity stay events, not invented dogs");
+assert.equal(parsed.unidentified, 64, "identity confidence remains visible for workbook-local matching");
 const drive = parsed.sheets.find((sheet) => sheet.name === "Chiloo Sterilization Drive");
 assert.equal(drive?.rows.filter((row) => row.normalized.event_date && row.normalized.locality).length, 61, "drive campaign total counts only dated locality records");
 const foster = parsed.sheets.find((sheet) => sheet.name === "Adopt - Foster");
 assert.deepEqual(foster?.rows.map((row) => row.normalized.source_subrecord), ["adoption", "foster"], "one physical row may create two explicitly labelled source events");
 assert.match(parsed.sheets.find((sheet) => sheet.name === "Rescue Requests 2025")!.rows[0].normalized.event_date ?? "", /^2025-01-02T/, "sheet year is retained for partial dates");
+
+const plan = planImport(parsed.sheets.flatMap((sheet) => sheet.rows.map((row) => ({ normalized: row.normalized, matched_dog_id: null, decision: row.normalized.event_date && row.normalized.locality ? "new" : "skip", imported_dog_id: null, imported_case_id: null }))));
+assert.equal(plan.profilesToCreate, 65, "valid unnamed ledger records become native animal profiles");
+assert.equal(plan.sterilisations, 61, "only dated, located sterilisation records become native care events");
+assert.equal(plan.cases, 4, "rescue, adoption and foster records become canonical cases");
 
 console.log("Master import parser regression checks passed.");

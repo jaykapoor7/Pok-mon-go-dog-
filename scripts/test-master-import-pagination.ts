@@ -24,6 +24,7 @@ const sourceRows: Row[] = Array.from({ length: total }, (_, index) => ({
 }));
 
 const caseWrites: any[] = [];
+const dogWrites: any[] = [];
 const ranges: number[] = [];
 
 class Query {
@@ -43,11 +44,14 @@ class Query {
     if (this.table === "import_location_cache") return Promise.resolve({ data: { lat: 11.0168, lng: 76.9558, precision: "approximate" }, error: null });
     return Promise.resolve({ data: null, error: null });
   }
-  insert(payload: any) { this.operation = "insert"; this.payload = payload; if (this.table === "cases") caseWrites.push(payload); return this; }
+  insert(payload: any) { this.operation = "insert"; this.payload = payload; if (this.table === "cases") caseWrites.push(payload); if (this.table === "dogs") dogWrites.push(payload); return this; }
   update(payload: any) { this.operation = "update"; this.payload = payload; return this; }
   upsert() { return Promise.resolve({ error: null }); }
-  single() { return Promise.resolve({ data: this.table === "cases" ? { id: `case-${caseWrites.length}` } : null, error: null }); }
-  then(resolve: (value: any) => unknown, reject?: (reason: any) => unknown) { return Promise.resolve({ data: null, error: null }).then(resolve, reject); }
+  single() { return Promise.resolve({ data: this.table === "cases" ? { id: `case-${caseWrites.length}` } : this.table === "dogs" ? { id: `dog-${dogWrites.length}` } : null, error: null }); }
+  then(resolve: (value: any) => unknown, reject?: (reason: any) => unknown) {
+    if (this.table === "import_rows" && this.operation === "update" && this.filterId) Object.assign(sourceRows.find((row) => row.id === this.filterId)!, this.payload);
+    return Promise.resolve({ data: null, error: null }).then(resolve, reject);
+  }
 }
 
 async function main() {
@@ -56,11 +60,17 @@ async function main() {
   const result = await commitStaged(supa, { id: "ngo-pawesome", name: "The Pawsome People Project", city: "Coimbatore", state: "Tamil Nadu" }, ["batch-pawesome"]);
 
   assert.equal(result.casesCreated, total, "every staged source row must survive the import path");
+  assert.equal(result.profilesCreated, total, "every valid unnamed rescue record must become a native profile");
   assert.equal(caseWrites.length, total, "the database write path must not stop at 1,000 rows");
+  assert.equal(dogWrites.length, total, "the profile creation path must not stop at 1,000 rows");
   assert.deepEqual(ranges, [0, 500, 1000, 1500, 2000], "import_rows must be paginated in 500-row reads");
   assert.deepEqual(result.localityStatus, { recordsFound: total, successfullyGeocoded: total, unresolved: 0, geocoderConfigured: true, requiredEnv: null });
 
-  console.log(`Master import pagination integration passed: ${total} staged rows committed across ${ranges.length} pages.`);
+  const retry = await commitStaged(supa, { id: "ngo-pawesome", name: "The Pawsome People Project", city: "Coimbatore", state: "Tamil Nadu" }, ["batch-pawesome"]);
+  assert.equal(retry.profilesCreated, 0, "a committed workbook must not create profiles again on retry");
+  assert.equal(retry.casesCreated, 0, "a committed workbook must not create cases again on retry");
+
+  console.log(`Master import pagination integration passed: ${total} staged rows committed across 5 pages and a retry created 0 duplicates.`);
 }
 
 void main();
