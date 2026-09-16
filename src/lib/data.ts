@@ -14,6 +14,7 @@ import type {
   DogStatus,
   DogSize,
   MoodTag,
+  FieldActivity,
 } from "./types";
 
 // ── Location privacy ─────────────────────────────────────────
@@ -63,6 +64,8 @@ function mapDog(row: any): Dog {
     community_notes: [],
     species: row.species ?? "dog",
     ngo_id: row.ngo_id ?? null,
+    ngo_name: row.ngo_name ?? null,
+    provenance: row.provenance ?? null,
     code: row.code ?? null,
     assignee_id: row.assignee_id ?? null,
     assignee_name: row.assignee_name ?? null,
@@ -97,7 +100,7 @@ function mapSighting(row: any): Sighting {
        surface says what fits it. */
     user_name: row.reporter_name ?? "",
     user_avatar: null,
-    photo_url: row.photo_url,
+    photo_url: row.photo_url ?? null,
     lat: coarse(row.lat),
     lng: coarse(row.lng),
     zone: row.zone ?? "India",
@@ -108,7 +111,31 @@ function mapSighting(row: any): Sighting {
     likes: row.likes ?? 0,
     status: (row.status ?? "live") as "pending" | "live",
     created_at: row.created_at,
+    source_kind: row.source_kind ?? "community_sighting",
   };
+}
+
+function mapFieldActivity(row: any): FieldActivity {
+  return {
+    id: row.id,
+    dog_id: row.dog_id ?? null,
+    ngo_id: row.ngo_id ?? null,
+    ngo_name: row.ngo_name ?? null,
+    lat: coarse(row.lat),
+    lng: coarse(row.lng),
+    zone: row.zone ?? "India",
+    title: row.title ?? "Historic NGO field record",
+    occurred_at: row.occurred_at ?? row.created_at,
+  };
+}
+
+async function readPages<T>(load: (from: number, to: number) => PromiseLike<{ data: T[] | null }>) {
+  const rows: T[] = [];
+  for (let from = 0; ; from += 500) {
+    const { data } = await load(from, from + 499);
+    rows.push(...(data ?? []));
+    if (!data || data.length < 500) return rows;
+  }
 }
 
 // ── Stats ────────────────────────────────────────────────────
@@ -144,12 +171,12 @@ export async function getCityStats(): Promise<CityStats> {
 export async function getAllDogs(): Promise<Dog[]> {
   const supa = getSupabase();
   if (supa) {
-    const { data } = await supa
+    const data = await readPages<any>((from, to) => supa
       .from("public_animal_profiles")
       .select("*")
       .order("last_seen", { ascending: false })
-      .limit(2000);
-    if (data) return data.map(mapDog).filter((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng) && (dog.lat !== 0 || dog.lng !== 0));
+      .range(from, to));
+    return data.map(mapDog).filter((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng) && (dog.lat !== 0 || dog.lng !== 0));
   }
   return [];
 }
@@ -236,13 +263,14 @@ export function filterDogs(dogs: Dog[], filter: MapFilter): Dog[] {
 export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
   const supa = getSupabase();
   if (supa) {
-    const { data } = await supa
-      .from("public_live_sightings")
-      .select("*")
-      .eq("status", "live")
-      .order("created_at", { ascending: false })
-      .limit(limit);
-    if (data) return data.map(mapSighting);
+    const [sightings, activity] = await Promise.all([
+      supa.from("public_live_sightings").select("*").eq("status", "live").order("created_at", { ascending: false }).limit(limit),
+      supa.from("public_field_activity").select("*").order("occurred_at", { ascending: false }).limit(limit),
+    ]);
+    return [
+      ...(sightings.data ?? []).map(mapSighting),
+      ...(activity.data ?? []).map((row: any) => mapSighting({ ...row, created_at: row.occurred_at, source_kind: "historic_ngo_record", status: "live" })),
+    ].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)).slice(0, limit);
   }
   return [];
 }
@@ -254,25 +282,38 @@ export async function getRecentSightings(limit = 12): Promise<Sighting[]> {
 export async function countLiveSightings(): Promise<number> {
   const supa = getSupabase();
   if (!supa) return 0;
-  const { count } = await supa
-    .from("public_live_sightings")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "live");
-  return count ?? 0;
+  const [{ count: sightings }, { count: activity }] = await Promise.all([
+    supa.from("public_live_sightings").select("id", { count: "exact", head: true }).eq("status", "live"),
+    supa.from("public_field_activity").select("id", { count: "exact", head: true }),
+  ]);
+  return (sightings ?? 0) + (activity ?? 0);
 }
 
 export async function getAllSightings(limit = 100): Promise<Sighting[]> {
   const supa = getSupabase();
   if (supa) {
-    const { data } = await supa
-      .from("public_live_sightings")
-      .select("*")
-      .eq("status", "live")
-      .order("created_at", { ascending: false })
-      .limit(limit);
-    if (data) return data.map(mapSighting);
+    const [sightings, activity] = await Promise.all([
+      supa.from("public_live_sightings").select("*").eq("status", "live").order("created_at", { ascending: false }).limit(limit),
+      supa.from("public_field_activity").select("*").order("occurred_at", { ascending: false }).limit(limit),
+    ]);
+    return [
+      ...(sightings.data ?? []).map(mapSighting),
+      ...(activity.data ?? []).map((row: any) => mapSighting({ ...row, created_at: row.occurred_at, source_kind: "historic_ngo_record", status: "live" })),
+    ].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)).slice(0, limit);
   }
   return [];
+}
+
+/** Locality-level historic NGO work intentionally published to the map. */
+export async function getPublicFieldActivity(): Promise<FieldActivity[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const rows = await readPages<any>((from, to) => supa
+    .from("public_field_activity")
+    .select("*")
+    .order("occurred_at", { ascending: false })
+    .range(from, to));
+  return rows.map(mapFieldActivity).filter((row) => Number.isFinite(row.lat) && Number.isFinite(row.lng) && (row.lat !== 0 || row.lng !== 0));
 }
 
 // ── Dog profile (aggregate) ──────────────────────────────────
@@ -297,7 +338,7 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
 
     // Enrich the profile with photos + notes drawn from its sightings.
     dog.photos = Array.from(
-      new Set([dog.cover_photo, ...sightings.map((s) => s.photo_url)].filter(Boolean))
+      new Set([dog.cover_photo, ...sightings.map((s) => s.photo_url)].filter((photo): photo is string => Boolean(photo)))
     ).slice(0, 6);
     dog.community_notes = Array.from(
       new Set(sightings.map((s) => s.notes).filter(Boolean) as string[])

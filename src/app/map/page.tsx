@@ -1,6 +1,6 @@
 import { MapView } from "@/components/map/MapView";
 import { AppShell } from "@/components/app/AppShell";
-import { getAllDogs } from "@/lib/data";
+import { getAllDogs, getPublicFieldActivity } from "@/lib/data";
 import { getFeedingZones } from "@/lib/feeding-zones";
 
 export const dynamic = "force-dynamic";
@@ -12,10 +12,10 @@ export const metadata = {
 };
 
 export default async function MapPage() {
-  const [dogs, feedingZones] = await Promise.all([getAllDogs(), getFeedingZones()]);
+  const [dogs, feedingZones, fieldActivity] = await Promise.all([getAllDogs(), getFeedingZones(), getPublicFieldActivity()]);
   return (
     <AppShell flush>
-      <MapView dogs={dogs} feedingZones={feedingZones} />
+      <MapView dogs={dogs} feedingZones={feedingZones} fieldActivity={fieldActivity} />
     </AppShell>
   );
 }

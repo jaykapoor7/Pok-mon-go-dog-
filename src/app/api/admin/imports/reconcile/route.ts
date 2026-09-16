@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
-import { reconcileHistoricAnimals } from "@/lib/master-import/reconcile";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -11,13 +9,8 @@ export async function POST(req: Request) {
   if (!secret || !auth?.startsWith("Bearer ") || auth.slice(7).trim() !== secret) {
     return NextResponse.json({ error: "Operator access required." }, { status: 401 });
   }
-  const { ngoId } = await req.json().catch(() => ({}));
-  if (typeof ngoId !== "string" || !ngoId) return NextResponse.json({ error: "Choose an organisation." }, { status: 400 });
-  const supa = getSupabaseAdmin();
-  if (!supa) return NextResponse.json({ error: "Service role not configured." }, { status: 500 });
-  try {
-    return NextResponse.json({ ok: true, ...(await reconcileHistoricAnimals(supa, ngoId)) });
-  } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not build animal records." }, { status: 500 });
-  }
+  // Deliberately retired: the first master-import version created one HIST
+  // profile per source row. V2 stages, matches and commits only defensible
+  // identities, so this endpoint must never mint another synthetic profile.
+  return NextResponse.json({ error: "Historic profile reconciliation has been retired. Use the staged master-import review instead." }, { status: 410 });
 }

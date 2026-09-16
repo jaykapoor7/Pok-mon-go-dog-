@@ -4,7 +4,7 @@
 .spa .dog-profile { max-width: 1240px; padding-bottom: 72px; }
 .dog-profile > .back-link { margin-bottom: 18px; }
 .dog-profile .dogp-intro { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); gap: 0; margin-top: 14px; border: 1px solid var(--sp-rule, rgba(11,30,61,.14)); background: #fffdf9; }
-.dog-profile .dogp-cover { height: min(680px, 74vh); margin: 0; border-radius: 0; overflow: hidden; background: #e6ddd0; }
+.dog-profile .dogp-cover { position: relative; height: min(680px, 74vh); margin: 0; border-radius: 0; overflow: hidden; background: #e6ddd0; }
 .dog-profile .dogp-cover img { object-position: center; }
 .dog-profile .dogp-overview { min-width: 0; padding: clamp(26px, 4vw, 52px); background: #fffdf9; }
 .dogp-record-label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--sp-muted, #5d6b7c); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }

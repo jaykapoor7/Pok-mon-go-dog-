@@ -60,8 +60,9 @@ select
   d.status, d.cover_photo, d.size, d.color, d.is_friendly, d.needs_help,
   d.sterilised, d.vaccinated, d.sterilisation_status, d.vaccination_status,
   d.ear_notch, d.trust_score, d.sightings_count, d.feed_count,
-  d.first_seen, d.last_seen, d.last_fed_at, d.created_at, d.ngo_id, d.code
-from dogs d;
+  d.first_seen, d.last_seen, d.last_fed_at, d.created_at, d.ngo_id, d.code,
+  d.provenance, n.name as ngo_name
+from dogs d left join ngos n on n.id = d.ngo_id;
 
 create or replace view public_live_sightings as
 select id, dog_id, reporter_name, photo_url,
@@ -70,6 +71,26 @@ select id, dog_id, reporter_name, photo_url,
        zone, nickname, mood_tags, notes, trust_score, likes, status, created_at
 from sightings
 where status = 'live';
+
+-- Historic NGO activity is public only as a coarse, plain-language marker.
+-- It has no informer data, treatment notes or claimed animal identity.
+create or replace view public_field_activity as
+select 'case:' || c.id::text as id, c.dog_id, c.ngo_id, n.name as ngo_name,
+       c.title, coalesce(c.source_event_at, c.created_at) as occurred_at,
+       null::text as reporter_name,
+       null::text as photo_url,
+       round(c.lat::numeric, 2)::double precision as lat,
+       round(c.lng::numeric, 2)::double precision as lng,
+       c.zone, c.title as nickname, array['historical_ngo_record']::text[] as mood_tags,
+       'Historical NGO field record'::text as notes, 70::int as trust_score,
+       0::int as likes, 'live'::text as status,
+       coalesce(c.source_event_at, c.created_at) as created_at
+  from cases c
+  left join ngos n on n.id = c.ngo_id
+ where c.provenance = 'imported_historical_record'
+   and c.source_event_at is not null
+   and c.lat between -90 and 90 and c.lng between -180 and 180
+   and not (c.lat = 0 and c.lng = 0);
 
 create or replace view public_feed_events as
 select id, dog_id, reporter_name, food_type, created_at from feed_events;
@@ -95,7 +116,7 @@ select c.id, c.name, c.kind, c.starts_on, c.ends_on, c.zone, c.public_summary,
  group by c.id, n.id;
 
 grant select on public_animal_profiles, public_live_sightings,
-  public_feed_events, public_vaccinations, public_sterilisations, public_comments
+  public_field_activity, public_feed_events, public_vaccinations, public_sterilisations, public_comments
   to anon, authenticated;
 
 -- Base tables are never the public API. Direct reads are only for an

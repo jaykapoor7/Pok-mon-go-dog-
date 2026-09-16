@@ -31,7 +31,7 @@ import {
   renderPhotoIcon,
   type DogIconSpec,
 } from "./dogIcon";
-import type { Dog, FeedingZone } from "@/lib/types";
+import type { Dog, FeedingZone, FieldActivity } from "@/lib/types";
 import { stateCoverage, STATUS_META } from "@/lib/platform/coverage";
 import {
   WARD_METRICS,
@@ -119,6 +119,8 @@ const INDIA_BOUNDS: [[number, number], [number, number]] = [
 const MIN_ZOOM = 3.4;
 
 const SRC = "dogs";
+const ACTIVITY_SRC = "field-activity";
+const ACTIVITY_LAYER = "field-activity-dots";
 const PHOTO_LAYER = "dog-photos";
 const CLUSTER_LAYER = "dog-clusters";
 const CLUSTER_STACK_LAYER = "dog-cluster-stack";
@@ -166,6 +168,23 @@ const selectedLayer: CircleLayerSpecification = {
     ],
     "circle-stroke-width": 3,
     "circle-stroke-color": "#e16a34",
+  },
+};
+
+/* A distinct, quiet marker for historic NGO records. It never pretends that
+   a case row is an identified dog: it is a locality-level field activity
+   point and intentionally remains separate from the profile-photo layer. */
+const activityLayer: CircleLayerSpecification = {
+  id: ACTIVITY_LAYER,
+  type: "circle",
+  source: ACTIVITY_SRC,
+  paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 2.5, 10, 4, 15, 5],
+    "circle-color": "#8fb7ff",
+    "circle-opacity": 0.72,
+    "circle-stroke-width": 1,
+    "circle-stroke-color": "#ffffff",
+    "circle-stroke-opacity": 0.9,
   },
 };
 
@@ -420,6 +439,7 @@ export function MapLibreMap({
   bounds,
   preview,
   feedingZones = [],
+  fieldActivity = [],
   onReady,
   showGaps = false,
   wards = null,
@@ -434,6 +454,7 @@ export function MapLibreMap({
   bounds?: [[number, number], [number, number]] | null;
   preview?: boolean;
   feedingZones?: FeedingZone[];
+  fieldActivity?: FieldActivity[];
   onReady?: (api: MapApi) => void;
   /** Overlay showing what each state has actually published. */
   showGaps?: boolean;
@@ -782,6 +803,15 @@ export function MapLibreMap({
     [dogs]
   );
 
+  const activityData = useMemo(() => ({
+    type: "FeatureCollection" as const,
+    features: fieldActivity.map((record) => ({
+      type: "Feature" as const,
+      properties: { id: record.id, title: record.title, zone: record.zone, ngo: record.ngo_name ?? "NGO team" },
+      geometry: { type: "Point" as const, coordinates: [record.lng, record.lat] },
+    })),
+  }), [fieldActivity]);
+
   /* A tap has two useful outcomes: a photo opens an animal, a cluster moves
      the camera to the first zoom where that group becomes legible. This is
      the same direct, predictable behaviour people expect from a consumer
@@ -929,6 +959,12 @@ export function MapLibreMap({
         <Source id={WARD_SRC} type="geojson" data={wards} promoteId="ward_id">
           <Layer {...wardFillLayer(wardMetric)} />
           <Layer {...wardLineLayer} />
+        </Source>
+      )}
+
+      {fieldActivity.length > 0 && (
+        <Source id={ACTIVITY_SRC} type="geojson" data={activityData}>
+          <Layer {...activityLayer} />
         </Source>
       )}
 

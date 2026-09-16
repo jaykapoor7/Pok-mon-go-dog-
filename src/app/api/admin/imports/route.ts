@@ -1,178 +1,194 @@
 import { NextResponse } from "next/server";
-import * as XLSX from "xlsx";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { reconcileHistoricAnimals } from "@/lib/master-import/reconcile";
+import { hasDefensibleIdentity, isAccepted, parseMasterWorkbook, type NormalizedImportRow } from "@/lib/master-import/pipeline";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-type AuthState = "ok" | "unset" | "bad";
-type SheetRow = { sourceRowNumber: number; raw: Record<string, string>; normalized: Record<string, string | null> };
-type Programme = { name: string; records: number };
-
-function authState(req: Request): AuthState {
+function authorised(req: Request) {
   const secret = process.env.ADMIN_SECRET?.trim();
-  if (!secret) return "unset";
   const auth = req.headers.get("authorization");
-  return auth?.startsWith("Bearer ") && auth.slice(7).trim() === secret ? "ok" : "bad";
+  return Boolean(secret && auth?.startsWith("Bearer ") && auth.slice(7).trim() === secret);
 }
-
-function reject(state: AuthState) {
-  return NextResponse.json(
-    { error: state === "unset" ? "Set ADMIN_SECRET in Vercel and redeploy to use master imports." : "Wrong operator key." },
-    { status: state === "unset" ? 503 : 401 },
-  );
-}
-
 const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
-const privateHeader = /informer|contact|phone|mobile|email|whatsapp/i;
-const operationalSheet = /rescue|review|appoint|tvt|sterili[sz]|adopt|foster|treatment|medical|vaccin/i;
 
-function headerScore(row: unknown[]): number {
-  const joined = row.map(clean).filter(Boolean).join(" | ").toLowerCase();
-  return Number(/date/.test(joined)) + Number(/location|area|zone|ward/.test(joined)) + Number(/case|detail|injury|status|animal|dog|colour|gender/.test(joined));
+async function page<T>(load: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) {
+  const result: T[] = [];
+  for (let from = 0; ; from += 500) {
+    const { data, error } = await load(from, from + 499);
+    if (error) throw new Error(error.message);
+    result.push(...(data ?? []));
+    if (!data || data.length < 500) return result;
+  }
 }
 
-function value(row: Record<string, string>, matcher: RegExp) {
-  const key = Object.keys(row).find((header) => matcher.test(header));
-  return key ? clean(row[key]) || null : null;
+function same(value: string | null | undefined) { return clean(value).toLowerCase(); }
+function eventKind(row: NormalizedImportRow) {
+  if (row.classification === "sterilisation") return "sterilisation";
+  if (row.classification === "vaccination") return "vaccination";
+  if (row.classification === "treatment") return "treatment";
+  return "rescue";
+}
+function statusFor(row: NormalizedImportRow) {
+  const text = `${row.condition ?? ""} ${row.status ?? ""}`.toLowerCase();
+  if (/injur|wound|fracture|maggot|tvt|mange|rta|skin/.test(text)) return "injured";
+  return "seen";
 }
 
-function category(condition: string | null, sheetName: string) {
-  const text = `${condition ?? ""} ${sheetName}`.toLowerCase();
-  if (/sterili|abc|neuter|spay/.test(text)) return "sterilisation";
-  if (/rabies|arv|vaccin/.test(text)) return "vaccination";
-  if (/rescue|caught|trap/.test(text)) return "rescue";
-  if (/tvt|injur|wound|maggot|fracture|rta|mange|skin|bite/.test(text)) return "injury";
-  return "other";
+async function locality(supa: any, row: NormalizedImportRow, ngo: any) {
+  if (!row.locality) return null;
+  const query = [row.locality, ngo.city, ngo.state, "India"].filter(Boolean).join(", ");
+  const key = query.toLowerCase().replace(/\s+/g, " ").trim();
+  const { data: cached } = await supa.from("import_location_cache").select("lat,lng,precision").eq("normalized_query", key).maybeSingle();
+  if (cached?.precision === "approximate" && cached.lat !== null && cached.lng !== null) return cached;
+  const token = process.env.MAPBOX_ACCESS_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  if (!token) { await supa.from("import_location_cache").upsert({ normalized_query: key, locality: row.locality, city: ngo.city, state: ngo.state, precision: "unresolved" }, { onConflict: "normalized_query" }); return null; }
+  try {
+    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${encodeURIComponent(token)}&country=in&limit=1`);
+    const payload = await response.json(); const center = payload.features?.[0]?.center;
+    if (!Array.isArray(center) || !Number.isFinite(center[0]) || !Number.isFinite(center[1])) throw new Error("not found");
+    const result = { normalized_query: key, locality: row.locality, city: ngo.city, state: ngo.state, lat: center[1], lng: center[0], provider: "mapbox", precision: "approximate" };
+    await supa.from("import_location_cache").upsert(result, { onConflict: "normalized_query" });
+    return result;
+  } catch { await supa.from("import_location_cache").upsert({ normalized_query: key, locality: row.locality, city: ngo.city, state: ngo.state, precision: "unresolved" }, { onConflict: "normalized_query" }); return null; }
 }
 
-function status(value: string | null) {
-  // Historic rows are team records, not public submissions awaiting a
-  // moderator. Keep completed work closed and the remainder visible to the
-  // organisation as active care instead of labelling everything “unverified”.
-  return /closed|complete|healed|released|recovered|treated/i.test(value ?? "") ? "closed" : "in_progress";
+async function commitStaged(supa: any, ngo: any, batchIds: string[]) {
+  const rows = await page<any>((from, to) => supa.from("import_rows").select("id,batch_id,normalized,matched_dog_id,classification,decision,imported_dog_id,imported_case_id").in("batch_id", batchIds).order("id").range(from, to));
+  const dogs = await page<any>((from, to) => supa.from("dogs").select("id,code,name,zone,sex,color").eq("ngo_id", ngo.id).order("id").range(from, to));
+  let casesCreated = 0; let profilesCreated = 0; let review = 0; let medical = 0;
+  const campaignTotals = new Map<string, number>();
+  for (const source of rows) {
+    const row = source.normalized as NormalizedImportRow;
+    // Commits are retry-safe: an already-created case/medical record is never
+    // written again. A still-unmatched row remains reviewable for a later
+    // human link without duplicating its original event.
+    if (!row || !isAccepted(row) || source.decision === "skip" || source.imported_case_id || source.imported_dog_id) continue;
+    let dogId = source.matched_dog_id as string | null;
+    if (!dogId && hasDefensibleIdentity(row)) {
+      const candidate = dogs.find((dog) =>
+        (row.animal_code && same(dog.code) === same(row.animal_code)) ||
+        (!row.animal_code && same(dog.name) === same(row.animal_name) && same(dog.zone) === same(row.locality) && ((row.sex && same(dog.sex) === same(row.sex)) || (row.colour && same(dog.color) === same(row.colour)))));
+      dogId = candidate?.id ?? null;
+      if (!dogId) {
+        const point = await locality(supa, row, ngo);
+        if (point) {
+          const { data: dog, error } = await supa.from("dogs").insert({ ngo_id: ngo.id, code: row.animal_code || null, name: row.animal_name, species: "dog", sex: row.sex, color: row.colour || "Unknown", zone: row.locality, lat: point.lat, lng: point.lng, location_precision: "approximate", status: statusFor(row), first_seen: row.event_date, last_seen: row.event_date, provenance: "imported_historical_record", source_metadata: { source: "master_import_v2", fingerprint: row.fingerprint } }).select("id,code,name,zone,sex,color").single();
+          if (error || !dog) throw new Error(error?.message ?? "Could not create identified animal profile.");
+          dogId = dog.id; dogs.push(dog); profilesCreated++;
+        }
+      }
+    }
+    if (row.classification === "sterilisation") { campaignTotals.set(row.source_sheet, (campaignTotals.get(row.source_sheet) ?? 0) + 1); }
+    if (row.classification === "treatment" || row.classification === "follow_up" || row.classification === "sterilisation" || row.classification === "vaccination") {
+      if (!dogId || !row.event_date) { review++; continue; }
+      if (row.classification === "follow_up") {
+        const { error } = await supa.from("animal_followups").insert({ ngo_id: ngo.id, dog_id: dogId, due_at: row.event_date, kind: "imported follow-up", note: [row.treatment_update, row.review, row.case_detail].filter(Boolean).join("\n") || null });
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await supa.from("medical_events").insert({ dog_id: dogId, kind: eventKind(row), event_date: row.event_date.slice(0, 10), notes: [row.case_detail, row.treatment_update, row.review].filter(Boolean).join("\n") || null, performed_by: ngo.name });
+        if (error) throw new Error(error.message); medical++;
+        if (row.classification === "sterilisation") {
+          const { error: dogError } = await supa.from("dogs").update({ sterilised: true, sterilisation_status: "sterilised", last_seen: row.event_date }).eq("id", dogId).eq("ngo_id", ngo.id);
+          if (dogError) throw new Error(dogError.message);
+        }
+        if (row.classification === "vaccination") {
+          const { error: dogError } = await supa.from("dogs").update({ vaccinated: true, vaccination_status: "vaccinated", last_seen: row.event_date }).eq("id", dogId).eq("ngo_id", ngo.id);
+          if (dogError) throw new Error(dogError.message);
+        }
+      }
+      await supa.from("import_rows").update({ decision: "merge", imported_dog_id: dogId }).eq("id", source.id);
+      continue;
+    }
+    if (row.classification !== "rescue" && row.classification !== "adoption" && row.classification !== "foster") { review++; continue; }
+    const point = await locality(supa, row, ngo);
+    const { data: record, error } = await supa.from("cases").insert({ dog_id: dogId, ngo_id: ngo.id, title: [row.condition || `${label(row.classification)} record`, row.locality].filter(Boolean).join(" · "), description: [row.case_detail, row.treatment_update, row.rescue_plan, row.review].filter(Boolean).join("\n") || null, zone: row.locality, lat: point?.lat ?? null, lng: point?.lng ?? null, category: row.classification === "rescue" ? "rescue" : "other", status: /closed|complete|released|recovered|healed/i.test(row.status ?? "") ? "closed" : "in_progress", condition_text: row.condition, provenance: "imported_historical_record", verification_state: "verified", source_event_at: row.event_date, imported_at: new Date().toISOString() }).select("id").single();
+    if (error || !record) throw new Error(error?.message ?? "Could not create case.");
+    casesCreated++;
+    if (dogId && row.event_date) {
+      const { error: timelineError } = await supa.from("animal_timeline_events").insert({
+        ngo_id: ngo.id, dog_id: dogId, case_id: record.id, event_type: `import:${row.classification}`,
+        title: row.condition || `${label(row.classification)} record`,
+        details: [row.case_detail, row.treatment_update, row.rescue_plan, row.review].filter(Boolean).join("\n") || null,
+        occurred_at: row.event_date, provenance: "imported_historical_record",
+        source_ref: { import_row_id: source.id, fingerprint: row.fingerprint }, visibility: "partner",
+      });
+      if (timelineError) throw new Error(timelineError.message);
+      const { error: dogError } = await supa.from("dogs").update({ last_seen: row.event_date }).eq("id", dogId).eq("ngo_id", ngo.id);
+      if (dogError) throw new Error(dogError.message);
+    }
+    await supa.from("import_rows").update({ decision: dogId ? "merge" : "review", imported_dog_id: dogId, imported_case_id: record.id }).eq("id", source.id);
+  }
+  for (const [name, count] of campaignTotals) {
+    const campaign = { ngo_id: ngo.id, name, kind: "sterilisation", zone: ngo.city, source_rows_count: count, public_visibility: "summary", public_summary: `${count} validated sterilisation records from this completed drive.`, published_at: new Date().toISOString(), archived_at: new Date().toISOString() };
+    const { data: exists } = await supa.from("campaigns").select("id").eq("ngo_id", ngo.id).eq("name", name).maybeSingle();
+    const write = exists ? await supa.from("campaigns").update(campaign).eq("id", exists.id) : await supa.from("campaigns").insert(campaign);
+    if (write.error) throw new Error(write.error.message);
+  }
+  await supa.from("import_batches").update({ status: review ? "reviewing" : "imported", rows_imported: casesCreated + medical, rows_needing_review: review, completed_at: new Date().toISOString() }).in("id", batchIds);
+  return { casesCreated, profilesCreated, medicalEvents: medical, rowsNeedingReview: review };
 }
-
-function date(value: string | null) {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.valueOf()) ? null : parsed.toISOString();
-}
-
-function parseSheet(book: XLSX.WorkBook, sheetName: string): SheetRow[] {
-  const matrix = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[sheetName], { header: 1, defval: "", raw: false });
-  const headerIndex = matrix.slice(0, 20).reduce((best, row, index) => headerScore(row) > headerScore(matrix[best] ?? []) ? index : best, 0);
-  if (headerScore(matrix[headerIndex] ?? []) < 2) return [];
-  const headers = (matrix[headerIndex] ?? []).map((cell, index) => clean(cell) || `Column ${index + 1}`);
-  return matrix.slice(headerIndex + 1).map((cells, offset) => {
-    const raw: Record<string, string> = Object.fromEntries(
-      headers
-        .map((header, index) => [header, clean(cells[index])] as const)
-        .filter(([, cell]) => Boolean(cell)),
-    );
-    const condition = value(raw, /injury|condition|diagnosis|type/i);
-    const detail = value(raw, /case detail|description|details?|adoption/i);
-    const location = value(raw, /location|locality|area|ward|zone|place/i);
-    const currentStatus = value(raw, /^status$|completed|outcome/i);
-    return {
-      sourceRowNumber: headerIndex + offset + 2,
-      raw: Object.fromEntries(Object.entries(raw).filter(([header]) => !privateHeader.test(header))),
-      normalized: {
-        source_sheet: sheetName,
-        date: value(raw, /^(date|reported|request date|month)$/i),
-        location,
-        condition,
-        case_detail: detail,
-        status: currentStatus,
-        treatment_update: value(raw, /detailed status|update|treatment|details?/i),
-        review: value(raw, /review|appoint|next dose|next date/i),
-        animal_name: value(raw, /^(animal|dog) name$|^nickname$/i),
-        animal_code: value(raw, /(animal|dog).{0,8}(id|code)|^id$/i),
-        sex: value(raw, /^sex$|^gender$/i),
-        colour: value(raw, /colou?r|markings?/i),
-      },
-    };
-  }).filter((row) => Object.keys(row.raw).length > 0);
-}
+function label(value: string) { return value.replace(/_/g, " "); }
 
 export async function POST(req: Request) {
-  const state = authState(req);
-  if (state !== "ok") return reject(state);
+  if (!authorised(req)) return NextResponse.json({ error: "Operator access required." }, { status: 401 });
   const supa = getSupabaseAdmin();
   if (!supa) return NextResponse.json({ error: "Service role not configured." }, { status: 500 });
-
   const body = await req.formData();
+  const action = clean(body.get("action")) || "preview";
   const ngoId = clean(body.get("ngoId"));
   const file = body.get("file");
-  if (!ngoId || !(file instanceof File)) return NextResponse.json({ error: "Choose an organisation and workbook." }, { status: 400 });
+  if (!ngoId) return NextResponse.json({ error: "Choose an organisation." }, { status: 400 });
+  const { data: ngo } = await supa.from("ngos").select("id,name,city,state").eq("id", ngoId).maybeSingle();
+  if (!ngo) return NextResponse.json({ error: "That organisation was not found." }, { status: 404 });
+  if (action === "commit") {
+    const batchIds = JSON.parse(clean(body.get("batchIds")) || "[]");
+    if (!Array.isArray(batchIds) || !batchIds.every((id) => typeof id === "string")) return NextResponse.json({ error: "No staged batches were selected." }, { status: 400 });
+    const { data: batches, error: batchError } = await supa.from("import_batches").select("id,ngo_id,status").in("id", batchIds);
+    if (batchError) return NextResponse.json({ error: batchError.message }, { status: 500 });
+    if ((batches ?? []).length !== batchIds.length || (batches ?? []).some((batch) => batch.ngo_id !== ngoId || !["staged", "reviewing"].includes(batch.status))) {
+      return NextResponse.json({ error: "Only this organisation's staged import batches can be committed." }, { status: 403 });
+    }
+    try { return NextResponse.json({ ok: true, ...(await commitStaged(supa, ngo, batchIds)) }); }
+    catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Could not commit staged import." }, { status: 500 }); }
+  }
+  if (!(file instanceof File)) return NextResponse.json({ error: "Choose an organisation and workbook." }, { status: 400 });
   if (!/\.(xlsx|xls|csv)$/i.test(file.name) || file.size > 25 * 1024 * 1024) return NextResponse.json({ error: "Use an Excel or CSV file below 25 MB." }, { status: 400 });
 
-  const { data: ngo } = await supa.from("ngos").select("id,name,city").eq("id", ngoId).maybeSingle();
-  if (!ngo) return NextResponse.json({ error: "That organisation was not found." }, { status: 404 });
+  const buffer = await file.arrayBuffer();
+  const preview = parseMasterWorkbook(buffer, file.name);
+  if (action === "preview") return NextResponse.json({ ngo: ngo.name, preview: { ...preview, sheets: preview.sheets.map((sheet) => ({ name: sheet.name, headerRow: sheet.headerRow, rows: sheet.rows.slice(0, 12) })) } });
+  if (action !== "stage") return NextResponse.json({ error: "Analyse a workbook before staging it." }, { status: 400 });
 
-  const book = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
-  const sheets = book.SheetNames.filter((name) => operationalSheet.test(name)).map((name) => ({ name, rows: parseSheet(book, name) })).filter((sheet) => sheet.rows.length);
-  if (!sheets.length) return NextResponse.json({ error: "No operational sheets were found. Name a sheet Rescue, Treatment, Review, TVT, Sterilization, Adoption or Foster." }, { status: 400 });
+  const { data: already } = await supa.from("import_batches")
+    .select("id,status,rows_total")
+    .eq("ngo_id", ngoId).eq("workbook_hash", preview.workbookHash);
+  if (already?.length) return NextResponse.json({ ok: true, alreadyStaged: true, batchIds: already.map((batch) => batch.id), rowsStaged: already.reduce((total, batch) => total + (batch.rows_total ?? 0), 0), preview });
 
-  const storagePath = `${ngoId}/master/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
-  const upload = await supa.storage.from("imports").upload(storagePath, Buffer.from(await file.arrayBuffer()), { contentType: file.type || "application/octet-stream", upsert: false });
-  if (upload.error) return NextResponse.json({ error: `Workbook could not be stored privately: ${upload.error.message}` }, { status: 500 });
+  const storagePath = `${ngoId}/master/${preview.workbookHash}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+  const uploaded = await supa.storage.from("imports").upload(storagePath, Buffer.from(buffer), { contentType: file.type || "application/octet-stream", upsert: false });
+  if (uploaded.error) return NextResponse.json({ error: `Workbook could not be stored privately: ${uploaded.error.message}` }, { status: 500 });
 
-  let casesCreated = 0;
-  let rowsStaged = 0;
-  const batches: Array<{ sheet: string; rows: number }> = [];
-  const programmes: Programme[] = [];
-  for (const sheet of sheets) {
-    const { data: batch, error: batchError } = await supa.from("import_batches").insert({ ngo_id: ngoId, source_filename: file.name, source_kind: file.name.split(".").pop()?.toLowerCase() ?? "xlsx", source_storage_path: storagePath, sheet_name: sheet.name, mapping: { master_import: true }, status: "reviewing", rows_total: sheet.rows.length }).select("id").single();
-    if (batchError || !batch) return NextResponse.json({ error: batchError?.message ?? "Could not start import batch." }, { status: 500 });
-
-    const cases = sheet.rows.map((row) => {
-      const n = row.normalized;
-      const title = [n.condition || `${sheet.name} record`, n.location].filter(Boolean).join(" · ");
-      return { ngo_id: ngoId, title, description: [n.case_detail, n.treatment_update, n.review ? `Follow-up: ${n.review}` : null].filter(Boolean).join("\n") || null, zone: n.location, category: category(n.condition, sheet.name), status: status(n.status), condition_text: n.condition, provenance: "imported_historical_record", verification_state: "verified", created_at: date(n.date) ?? new Date().toISOString(), last_activity_at: date(n.date) ?? new Date().toISOString() };
-    });
-    const importedCaseIds: string[] = [];
-    for (let start = 0; start < cases.length; start += 250) {
-      const { data, error } = await supa.from("cases").insert(cases.slice(start, start + 250)).select("id");
-      if (error || !data || data.length !== cases.slice(start, start + 250).length) {
-        return NextResponse.json({ error: `Cases could not be created: ${error?.message ?? "missing inserted records"}` }, { status: 500 });
-      }
-      importedCaseIds.push(...data.map((record) => record.id));
-    }
-    const importRows = sheet.rows.map((row, index) => ({
-      batch_id: batch.id,
-      source_row_number: row.sourceRowNumber,
-      raw_row: row.raw,
-      normalized: row.normalized,
-      decision: "review",
-      imported_case_id: importedCaseIds[index],
+  const batchIds: string[] = [];
+  for (const sheet of preview.sheets) {
+    const { data: batch, error } = await supa.from("import_batches").insert({
+      ngo_id: ngoId, source_filename: file.name, source_kind: file.name.split(".").pop()?.toLowerCase() ?? "xlsx",
+      source_storage_path: storagePath, sheet_name: sheet.name, workbook_hash: preview.workbookHash,
+      mapping: { master_import_v2: true }, preview: { counts: preview.counts, accepted: sheet.rows.filter((row) => isAccepted(row.normalized)).length },
+      status: "staged", rows_total: sheet.rows.length, rows_needing_review: sheet.rows.filter((row) => isAccepted(row.normalized)).length,
+    }).select("id").single();
+    if (error || !batch) return NextResponse.json({ error: error?.message ?? "Could not stage import batch." }, { status: 500 });
+    batchIds.push(batch.id);
+    const rows = sheet.rows.map((row) => ({
+      batch_id: batch.id, source_row_number: row.sourceRowNumber, source_subrecord: row.normalized.source_subrecord ?? null,
+      raw_row: row.raw, normalized: { ...row.normalized, city: ngo.city ?? null }, row_fingerprint: row.normalized.fingerprint,
+      classification: row.normalized.classification, decision: isAccepted(row.normalized) ? "review" : "skip",
+      error: isAccepted(row.normalized) ? null : row.normalized.classification_reason,
     }));
-    for (let start = 0; start < importRows.length; start += 250) {
-      const { error } = await supa.from("import_rows").insert(importRows.slice(start, start + 250));
-      if (error) return NextResponse.json({ error: `Source rows could not be staged: ${error.message}` }, { status: 500 });
+    for (let start = 0; start < rows.length; start += 250) {
+      const write = await supa.from("import_rows").insert(rows.slice(start, start + 250));
+      if (write.error) return NextResponse.json({ error: `Rows could not be staged: ${write.error.message}` }, { status: 500 });
     }
-    await supa.from("import_batches").update({ rows_imported: sheet.rows.length, rows_needing_review: sheet.rows.length, completed_at: new Date().toISOString() }).eq("id", batch.id);
-    if (/sterili[sz]/i.test(sheet.name)) {
-      const name = sheet.name.replace(/\s+/g, " ").trim();
-      const { data: existing } = await supa.from("campaigns").select("id").eq("ngo_id", ngoId).eq("name", name).maybeSingle();
-      const programme = {
-        ngo_id: ngoId, name, kind: "sterilisation", zone: ngo.city ?? "Coimbatore",
-        notes: "Historic operational ledger imported from the organisation workbook.",
-        source_rows_count: sheet.rows.length, public_visibility: "summary",
-        public_summary: `${sheet.rows.length} dogs sterilised through this Pawesome drive.`,
-        published_at: new Date().toISOString(), archived_at: new Date().toISOString(),
-      };
-      const write = existing
-        ? await supa.from("campaigns").update(programme).eq("id", existing.id)
-        : await supa.from("campaigns").insert(programme);
-      if (write.error) return NextResponse.json({ error: `Programme could not be published: ${write.error.message}` }, { status: 500 });
-      programmes.push({ name, records: sheet.rows.length });
-    }
-    casesCreated += cases.length;
-    rowsStaged += sheet.rows.length;
-    batches.push({ sheet: sheet.name, rows: sheet.rows.length });
   }
-  const animals = await reconcileHistoricAnimals(supa, ngoId);
-  return NextResponse.json({ ok: true, ngo: ngo.name, rowsStaged, casesCreated, batches, programmes, animals });
+  return NextResponse.json({ ok: true, ngo: ngo.name, batchIds, rowsStaged: preview.totalRows, preview });
 }

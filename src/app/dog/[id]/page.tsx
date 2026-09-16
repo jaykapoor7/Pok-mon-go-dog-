@@ -11,6 +11,8 @@ import {
   Quote,
   ArrowRight,
   ClipboardList,
+  Building2,
+  UsersRound,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { StatusBadge } from "@/components/ui/Badges";
@@ -72,6 +74,8 @@ export default async function DogProfilePage({
   const lastVaccine = vaccinations[0];
   const sterilisation = sterilisations.find((s) => s.status === "completed");
   const scheduled = sterilisations.find((s) => s.status === "scheduled");
+  const fromNgo = Boolean(dog.ngo_id);
+  const sourceLabel = fromNgo ? dog.ngo_name || "NGO record" : dog.provenance === "community_report" ? "Community report" : "Feeder record";
 
   return (
     <div className="dog-profile mx-auto px-4 sm:px-6">
@@ -80,9 +84,13 @@ export default async function DogProfilePage({
       <div className="dogp-intro">
       <div className="dogp-cover">
         <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="h-full w-full" />
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-bark-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm backdrop-blur">
+          {fromNgo ? <Building2 className="h-3.5 w-3.5" /> : <UsersRound className="h-3.5 w-3.5" />}
+          {sourceLabel}
+        </span>
       </div>
       <div className="dogp-overview">
-      <div className="dogp-record-label"><StatusBadge status={dog.status} /><span>Community dog record</span></div>
+      <div className="dogp-record-label"><StatusBadge status={dog.status} /><span>{sourceLabel}</span></div>
       <div className="dogp-head">
         <div className="min-w-0">
           <h1>{dogLabel(dog)}</h1>

@@ -42,7 +42,8 @@
 --  12. ward-density.sql             Ward/district boundaries and the coverage headline
 --  13. map-search.sql               Searching wards and districts, and the India-only mask
 --  14. operational-records.sql      Longitudinal records, imports, evidence and follow-ups
---  15. security-hardening-rls.sql   Live-catalog RLS hardening and safe public data projections
+--  15. master-import-v2.sql         Staged, idempotent workbook imports and locality cache
+--  16. security-hardening-rls.sql   Live-catalog RLS hardening and safe public data projections
 --
 -- After this file, load the boundaries:
 --     districts-india-1of5.sql … -5of5.sql   641 districts, national tier
@@ -4499,6 +4500,61 @@ where not exists (select 1 from ngos where slug = 'the-pawsome-people-project' o
 
 
 -- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- ┃ master-import-v2.sql
+-- ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- Generic staged workbook imports. These fields are additive: raw workbook
+-- rows remain the provenance record while classification and fingerprints make
+-- retries safe and auditable.
+
+alter table import_batches add column if not exists workbook_hash text;
+alter table import_batches add column if not exists preview jsonb not null default '{}'::jsonb;
+alter table import_rows add column if not exists classification text;
+alter table import_rows add column if not exists row_fingerprint text;
+alter table import_rows add column if not exists source_subrecord text;
+alter table import_rows add column if not exists imported_sighting_id uuid references sightings(id) on delete set null;
+alter table dogs add column if not exists location_precision text not null default 'exact'
+  check (location_precision in ('exact', 'approximate', 'unknown'));
+
+create unique index if not exists import_batches_ngo_workbook_hash_idx
+  on import_batches (ngo_id, workbook_hash, coalesce(sheet_name, ''))
+  where workbook_hash is not null and status <> 'rolled_back';
+create unique index if not exists import_rows_batch_fingerprint_idx
+  on import_rows (batch_id, row_fingerprint, coalesce(source_subrecord, ''))
+  where row_fingerprint is not null;
+-- A physical spreadsheet row can legitimately contain distinct adoption and
+-- foster sub-records. The old two-column constraint rejected that shape.
+alter table import_rows drop constraint if exists import_rows_batch_id_source_row_number_key;
+create unique index if not exists import_rows_batch_source_row_subrecord_idx
+  on import_rows (batch_id, source_row_number, coalesce(source_subrecord, ''));
+
+-- Cached locality results prevent repeated geocoder calls and keep the source
+-- distinction clear: this is a neighbourhood approximation, never a claim of
+-- a precise pickup point.
+create table if not exists import_location_cache (
+  id uuid primary key default gen_random_uuid(),
+  normalized_query text not null unique,
+  locality text not null,
+  city text,
+  state text,
+  country text not null default 'India',
+  lat double precision,
+  lng double precision,
+  provider text,
+  precision text not null default 'unresolved' check (precision in ('approximate', 'unresolved')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table import_location_cache enable row level security;
+revoke all on import_location_cache from anon, authenticated;
+
+-- An import row may exist without a known animal. Keep the exact original
+-- event date separately so unknown dates do not become import-time activity.
+alter table cases add column if not exists imported_at timestamptz;
+alter table cases add column if not exists source_event_at timestamptz;
+
+
+-- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- ┃ security-hardening-rls.sql
 -- ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -4564,8 +4620,9 @@ select
   d.status, d.cover_photo, d.size, d.color, d.is_friendly, d.needs_help,
   d.sterilised, d.vaccinated, d.sterilisation_status, d.vaccination_status,
   d.ear_notch, d.trust_score, d.sightings_count, d.feed_count,
-  d.first_seen, d.last_seen, d.last_fed_at, d.created_at, d.ngo_id, d.code
-from dogs d;
+  d.first_seen, d.last_seen, d.last_fed_at, d.created_at, d.ngo_id, d.code,
+  d.provenance, n.name as ngo_name
+from dogs d left join ngos n on n.id = d.ngo_id;
 
 create or replace view public_live_sightings as
 select id, dog_id, reporter_name, photo_url,
@@ -4574,6 +4631,26 @@ select id, dog_id, reporter_name, photo_url,
        zone, nickname, mood_tags, notes, trust_score, likes, status, created_at
 from sightings
 where status = 'live';
+
+-- Historic NGO activity is public only as a coarse, plain-language marker.
+-- It has no informer data, treatment notes or claimed animal identity.
+create or replace view public_field_activity as
+select 'case:' || c.id::text as id, c.dog_id, c.ngo_id, n.name as ngo_name,
+       c.title, coalesce(c.source_event_at, c.created_at) as occurred_at,
+       null::text as reporter_name,
+       null::text as photo_url,
+       round(c.lat::numeric, 2)::double precision as lat,
+       round(c.lng::numeric, 2)::double precision as lng,
+       c.zone, c.title as nickname, array['historical_ngo_record']::text[] as mood_tags,
+       'Historical NGO field record'::text as notes, 70::int as trust_score,
+       0::int as likes, 'live'::text as status,
+       coalesce(c.source_event_at, c.created_at) as created_at
+  from cases c
+  left join ngos n on n.id = c.ngo_id
+ where c.provenance = 'imported_historical_record'
+   and c.source_event_at is not null
+   and c.lat between -90 and 90 and c.lng between -180 and 180
+   and not (c.lat = 0 and c.lng = 0);
 
 create or replace view public_feed_events as
 select id, dog_id, reporter_name, food_type, created_at from feed_events;
@@ -4599,7 +4676,7 @@ select c.id, c.name, c.kind, c.starts_on, c.ends_on, c.zone, c.public_summary,
  group by c.id, n.id;
 
 grant select on public_animal_profiles, public_live_sightings,
-  public_feed_events, public_vaccinations, public_sterilisations, public_comments
+  public_field_activity, public_feed_events, public_vaccinations, public_sterilisations, public_comments
   to anon, authenticated;
 
 -- Base tables are never the public API. Direct reads are only for an

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { PawPrint } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Dog, FeedingZone } from "@/lib/types";
+import type { Dog, FeedingZone, FieldActivity } from "@/lib/types";
 import type { MapApi } from "./MapLibreMap";
 import type { WardFeatureCollection, WardMetric } from "@/lib/wards";
 
@@ -68,6 +68,8 @@ export function MapCanvas(props: {
   preview?: boolean;
   /** Feeding-zone pins (community feeding spots) rendered alongside dogs. */
   feedingZones?: FeedingZone[];
+  /** Published historic NGO work, shown as locality-level activity dots. */
+  fieldActivity?: FieldActivity[];
   /** Handed the map's imperative controls once it has loaded. */
   onReady?: (api: MapApi) => void;
   /** Overlay showing what each state has actually published. */

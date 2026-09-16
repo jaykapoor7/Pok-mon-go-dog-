@@ -32,6 +32,8 @@ export interface User {
   avatar_url: string | null;
   is_ngo: boolean;
   ngo_id: string | null;
+  ngo_name?: string | null;
+  provenance?: string | null;
   sightings_count: number;
   trust_level: number; // 0–100, reputation of the reporter
   created_at: string;
@@ -43,7 +45,7 @@ export interface Sighting {
   user_id: string;
   user_name: string;
   user_avatar: string | null;
-  photo_url: string;
+  photo_url: string | null;
   lat: number;
   lng: number;
   zone: string; // human-readable Delhi locality
@@ -54,6 +56,22 @@ export interface Sighting {
   likes: number;
   status: "pending" | "live"; // moderation state; only "live" is public
   created_at: string;
+  /** Public activity from an organisation's historic workbook. It is a
+   * locality-level field record, not a community sighting or a fabricated
+   * animal profile. */
+  source_kind?: "community_sighting" | "historic_ngo_record";
+}
+
+export interface FieldActivity {
+  id: string;
+  dog_id: string | null;
+  ngo_id: string | null;
+  ngo_name: string | null;
+  lat: number;
+  lng: number;
+  zone: string;
+  title: string;
+  occurred_at: string;
 }
 
 export interface FeedEvent {
@@ -160,6 +178,8 @@ export interface Dog {
   // Animal registry (animals.sql), org-owned longitudinal records.
   species?: string;
   ngo_id?: string | null;
+  ngo_name?: string | null;
+  provenance?: string | null;
   code?: string | null;
   assignee_id?: string | null;
   assignee_name?: string | null;

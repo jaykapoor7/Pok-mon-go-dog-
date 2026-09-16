@@ -39,6 +39,7 @@ const PARTS = [
   ["ward-density.sql", "Ward/district boundaries and the coverage headline"],
   ["map-search.sql", "Searching wards and districts, and the India-only mask"],
   ["operational-records.sql", "Longitudinal records, imports, evidence and follow-ups"],
+  ["master-import-v2.sql", "Staged, idempotent workbook imports and locality cache"],
   ["security-hardening-rls.sql", "Live-catalog RLS hardening and safe public data projections"],
 ];
 

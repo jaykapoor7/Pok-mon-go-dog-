@@ -19,6 +19,7 @@
     "import:pawesome": "node scripts/stage-pawesome-import.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs",
     "check:fixtures": "node scripts/no-fixtures.mjs",
+    "test:master-import": "node --import tsx scripts/test-master-import.ts",
     "prebuild": "node scripts/no-fixtures.mjs"
   },
   "dependencies": {

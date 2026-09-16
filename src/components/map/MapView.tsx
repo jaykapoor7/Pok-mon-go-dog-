@@ -9,7 +9,7 @@ import { MapCanvas } from "@/components/map/MapCanvas";
 import { orgAnimals } from "@/lib/programme";
 import { distanceMeters } from "@/lib/utils";
 import { STATUS_META } from "@/lib/platform/coverage";
-import type { Dog, FeedingZone } from "@/lib/types";
+import type { Dog, FeedingZone, FieldActivity } from "@/lib/types";
 import type { MapApi } from "@/components/map/MapLibreMap";
 import "./map.css";
 
@@ -28,9 +28,11 @@ const BORDER_MED = "rgba(255,255,255,0.12)";
 export function MapView({
   dogs: allDogs,
   feedingZones = [],
+  fieldActivity = [],
 }: {
   dogs: Dog[];
   feedingZones?: FeedingZone[];
+  fieldActivity?: FieldActivity[];
 }) {
   const [selected, setSelected] = useState<Dog | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -116,7 +118,7 @@ export function MapView({
   const hasPlace = Boolean(urlCentre || bboxParam || orgCentre || coords);
   const recordBounds = useMemo(() => {
     if (hasPlace) return null;
-    const pts = allDogs.filter(
+    const pts = [...allDogs, ...fieldActivity].filter(
       (d) => Number.isFinite(d.lat) && Number.isFinite(d.lng) && (d.lat !== 0 || d.lng !== 0)
     );
     if (pts.length < 2) return null;
@@ -124,7 +126,7 @@ export function MapView({
       [Math.min(...pts.map((d) => d.lng)), Math.min(...pts.map((d) => d.lat))],
       [Math.max(...pts.map((d) => d.lng)), Math.max(...pts.map((d) => d.lat))],
     ] as [[number, number], [number, number]];
-  }, [hasPlace, allDogs]);
+  }, [hasPlace, allDogs, fieldActivity]);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
@@ -210,6 +212,7 @@ export function MapView({
             center={center}
             bounds={urlBounds ?? recordBounds}
             feedingZones={feedingZones}
+            fieldActivity={fieldActivity}
             onReady={setMapApi}
             showGaps={showGaps}
           />
@@ -305,7 +308,8 @@ export function MapView({
             router.push(point ? `/report?lat=${point.lat}&lng=${point.lng}` : "/report");
           }}><Plus size={18}/> Report here</button>
 
-          {dogs.length === 0 && <div className="sp-map-empty-state" role="status"><b>{only ? "No animal records match this filter." : "No animal records here yet."}</b>{only ? <button onClick={() => setOnly(null)}>Show all records</button> : <Link href="/report">Report a sighting</Link>}</div>}
+          {fieldActivity.length > 0 && <div className="absolute bottom-5 right-16 z-[2] rounded border border-white/20 bg-[#10182b]/90 px-3 py-2 text-[10px] font-semibold uppercase tracking-[.12em] text-white/80 shadow-sm backdrop-blur">{fieldActivity.length.toLocaleString()} NGO field records</div>}
+          {dogs.length === 0 && fieldActivity.length === 0 && <div className="sp-map-empty-state" role="status"><b>{only ? "No animal records match this filter." : "No animal records here yet."}</b>{only ? <button onClick={() => setOnly(null)}>Show all records</button> : <Link href="/report">Report a sighting</Link>}</div>}
           {drawerOpen && selected && <aside className="sp-map-detail" aria-label="Animal details">
             <MapAnimalDetails key={selected.id} dog={selected} distance={dist === null ? null : fmtDist(dist)} onClose={closeDrawer}/>
           </aside>}
