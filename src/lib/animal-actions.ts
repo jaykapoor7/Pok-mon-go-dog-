@@ -82,13 +82,21 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
   if (!supa) return [];
   const { data: ngoId } = await supa.rpc("my_ngo");
   if (!ngoId) return [];
-  const { data } = await supa
-    .from("dogs")
-    .select("id, name, code, species, zone, status, cover_photo, assignee_name, last_seen, lat, lng")
-    .eq("ngo_id", ngoId)
-    .order("last_seen", { ascending: false })
-    .limit(1000);
-  return (data ?? []).map((r: any) => ({
+
+  const rows: any[] = [];
+  for (let from = 0; ; from += 500) {
+    const { data, error } = await supa
+      .from("dogs")
+      .select("id, name, code, species, zone, status, cover_photo, assignee_name, last_seen, lat, lng")
+      .eq("ngo_id", ngoId)
+      .order("last_seen", { ascending: false })
+      .range(from, from + 499);
+    if (error) return [];
+    rows.push(...(data ?? []));
+    if (!data || data.length < 500) break;
+  }
+
+  return rows.map((r: any) => ({
     id: r.id,
     name: r.name ?? null,
     code: r.code ?? null,
