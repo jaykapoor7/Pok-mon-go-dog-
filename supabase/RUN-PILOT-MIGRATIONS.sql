@@ -4519,9 +4519,17 @@ declare r record;
 begin
   for r in
     select c.relname
-      from pg_class c
+     from pg_class c
       join pg_namespace n on n.oid = c.relnamespace
      where n.nspname = 'public' and c.relkind = 'r'
+       -- PostGIS's spatial_ref_sys is extension-owned metadata. It is not a
+       -- StrayPaw/client table and the application role must not alter it.
+       and not exists (
+         select 1 from pg_depend d
+         join pg_extension e on e.oid = d.refobjid
+         where d.classid = 'pg_class'::regclass and d.objid = c.oid
+           and d.deptype = 'e'
+       )
   loop
     execute format('alter table public.%I enable row level security', r.relname);
   end loop;
