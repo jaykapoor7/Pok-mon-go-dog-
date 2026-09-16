@@ -4,7 +4,7 @@ import { isAccepted, parseMasterWorkbook } from "@/lib/master-import/pipeline";
 import { assessLocalities, commitStaged, planImport } from "@/lib/master-import/commit";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
 function authorised(req: Request) {
