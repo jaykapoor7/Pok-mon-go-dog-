@@ -1,52 +1,21 @@
-import Link from "next/link";
-import { BackLink } from "@/components/app/BackLink";
 import { notFound } from "next/navigation";
-import {
-  MapPin,
-  Eye,
-  Utensils,
-  Syringe,
-  Scissors,
-  Calendar,
-  Quote,
-  ArrowRight,
-  ClipboardList,
-  Building2,
-  UsersRound,
-} from "lucide-react";
-import { DogPhoto } from "@/components/ui/DogPhoto";
-import { StatusBadge } from "@/components/ui/Badges";
-import { DogActions } from "@/components/dog/DogActions";
-import { DogLocation } from "@/components/dog/DogLocation";
-import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
-import { ShareDog } from "@/components/dog/ShareDog";
-import { FollowButton } from "@/components/dog/FollowButton";
-import { AddComment } from "@/components/dog/AddComment";
-import { SightingTimeline } from "@/components/dog/SightingTimeline";
 import { PageView } from "@/components/analytics/PageView";
-import { AnimalDocuments } from "@/components/dog/AnimalDocuments";
-import { CaseCard } from "@/components/cases/CaseCard";
+import { UnifiedAnimalProfile } from "@/components/dog/UnifiedAnimalProfile";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
-import { timeAgo, formatDate, formatNumber, dogLabel } from "@/lib/utils";
-
-import "./profile.css";
+import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
+import { dogLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const profile = await getDogProfile(id);
-  if (!profile) return { title: "Dog not found, StrayPaw" };
+  if (!profile) return { title: "Animal not found, StrayPaw" };
   const { dog } = profile;
   const label = dogLabel(dog);
   const title = `${label}, StrayPaw`;
-  const description = `Follow this street dog around ${dog.zone}. ${dog.sightings_count} sightings tracked by the community.`;
-  // Use the dog's own photo as the share image when available.
+  const description = `${label}'s longitudinal StrayPaw record: location, care, interventions and field history.`;
   const images = dog.cover_photo ? [dog.cover_photo] : undefined;
   return {
     title,
@@ -56,333 +25,19 @@ export async function generateMetadata({
   };
 }
 
-export default async function DogProfilePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [profile, dogCases] = await Promise.all([
+  const [profile, cases, operational] = await Promise.all([
     getDogProfile(id),
     getCasesForDog(id),
+    getProfileOperationalRecord(id),
   ]);
   if (!profile) notFound();
 
-  const { dog, sightings, feedEvents, vaccinations, sterilisations, comments } =
-    profile;
-
-  const lastVaccine = vaccinations[0];
-  const sterilisation = sterilisations.find((s) => s.status === "completed");
-  const scheduled = sterilisations.find((s) => s.status === "scheduled");
-  const fromNgo = Boolean(dog.ngo_id);
-  const sourceLabel = fromNgo ? dog.ngo_name || "NGO record" : dog.provenance === "community_report" ? "Community report" : "Feeder record";
-
   return (
-    <div className="dog-profile mx-auto px-4 sm:px-6">
-      <BackLink label="Back to the map" fallback="/map" />
-      <PageView name="animal_viewed" props={{ observations: sightings.length }} />
-      <div className="dogp-intro">
-      <div className="dogp-cover">
-        <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="h-full w-full" />
-        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-bark-900/85 px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm backdrop-blur">
-          {fromNgo ? <Building2 className="h-3.5 w-3.5" /> : <UsersRound className="h-3.5 w-3.5" />}
-          {sourceLabel}
-        </span>
-      </div>
-      <div className="dogp-overview">
-      <div className="dogp-record-label"><StatusBadge status={dog.status} /><span>{sourceLabel}</span></div>
-      <div className="dogp-head">
-        <div className="min-w-0">
-          <h1>{dogLabel(dog)}</h1>
-          <p>
-            <MapPin className="h-4 w-4" /> Around {dog.zone} · {dog.size} ·{" "}
-            {dog.color}
-          </p>
-        </div>
-        <FollowButton dogId={dog.id} className="shrink-0" />
-      </div>
-
-      {/* quick stats */}
-      <div className="dogp-stats">
-        <Stat icon={<Eye className="h-4 w-4" />} value={formatNumber(dog.sightings_count)} label="sightings" />
-        <Stat icon={<Utensils className="h-4 w-4" />} value={formatNumber(dog.feed_count)} label="meals" />
-        <Stat icon={<Calendar className="h-4 w-4" />} value={timeAgo(dog.last_seen)} label="last seen" />
-      </div>
-
-      {/* health */}
-      <Section title="Health & care">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <HealthCard
-            icon={<Syringe className="h-5 w-5" />}
-            title="Vaccination"
-            ok={dog.vaccinated}
-            pendingLabel={dog.vaccination_status === "not_vaccinated" ? "Not vaccinated" : "Not recorded"}
-            okText={
-              lastVaccine
-                ? `${lastVaccine.vaccine} · ${formatDate(lastVaccine.date)}`
-                : "Vaccinated"
-            }
-            pendingText={dog.vaccination_status === "not_vaccinated" ? "Recorded as not vaccinated" : "Vaccination status has not been recorded"}
-            sub={lastVaccine?.administered_by ?? undefined}
-          />
-          <HealthCard
-            icon={<Scissors className="h-5 w-5" />}
-            title="Sterilisation"
-            ok={dog.sterilised}
-            pendingLabel={scheduled ? "Scheduled" : dog.sterilisation_status === "not_sterilised" ? "Not sterilised" : "Not recorded"}
-            okText={
-              sterilisation
-                ? `Completed · ${formatDate(sterilisation.date)}`
-                : "Sterilised"
-            }
-            pendingText={
-              scheduled
-                ? `Scheduled · ${formatDate(scheduled.date)}`
-                : dog.sterilisation_status === "not_sterilised" ? "Recorded as not sterilised" : "Sterilisation status has not been recorded"
-            }
-            sub={sterilisation?.performed_by ?? scheduled?.performed_by ?? undefined}
-          />
-        </div>
-        {dog.ear_notch && (
-          <p className="mt-3 flex items-center gap-2 rounded bg-status-sterilised/10 px-4 py-2.5 text-sm font-medium text-status-sterilised">
-            <Scissors className="h-4 w-4" />
-            Ear-notched ({dog.ear_notch}), the recognised sterilisation mark, so this
-            dog isn&apos;t caught again.
-          </p>
-        )}
-      </Section>
-
-      {/* actions */}
-      <div className="mt-5">
-        <DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help} />
-      </div>
-
-      {/* share card, drives a rich preview via the dog's OG image */}
-      <div className="mt-3">
-        <ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone} />
-      </div>
-
-      {/* location, general area for all, exact for partner NGOs */}
-      <div className="mt-3">
-        <DogLocation dogId={dog.id} zone={dog.zone} />
-      </div>
-
-      {/* status editing, only shown to signed-in contributors */}
-      <DogStatusEditor
-        dogId={dog.id}
-        contributorIds={Array.from(
-          new Set(sightings.map((s) => s.user_id).filter(Boolean))
-        )}
-        initial={{
-          status: dog.status,
-          needs_help: dog.needs_help,
-          vaccinated: dog.vaccinated,
-          sterilised: dog.sterilised,
-          is_friendly: dog.is_friendly,
-          ear_notch: dog.ear_notch ?? null,
-        }}
-      />
-
-      </div>
-      </div>
-      {/* best photos */}
-      {dog.photos.length > 1 && (
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {dog.photos.map((p, i) => (
-            <DogPhoto
-              key={i}
-              src={p}
-              alt={`Street dog photo ${i + 1}`}
-              seed={`${dog.id}-${i}`}
-              className="aspect-square rounded"
-            />
-          ))}
-        </div>
-      )}
-
-      <div className="dogp-history">
-      {/* NGO continuity: cases linked to this dog over time */}
-      <Section title="Cases">
-        {dogCases.length > 0 && (
-          <div className="mb-3 space-y-2">
-            {dogCases.map((c) => (
-              <CaseCard key={c.id} c={c} />
-            ))}
-          </div>
-        )}
-        <Link
-          href={`/cases/new?dog=${dog.id}`}
-          className="flex items-center justify-center gap-2 rounded border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-bark-700 transition-colors hover:border-black/20 dark:border-white/10 dark:text-bark-200"
-        >
-          <ClipboardList className="h-4 w-4 text-paw-500" /> Open a case for this dog
-        </Link>
-      </Section>
-
-      {/* community notes */}
-      {dog.community_notes.length > 0 && (
-        <Section title="Community notes">
-          <div className="space-y-2">
-            {dog.community_notes.map((note, i) => (
-              <div
-                key={i}
-                className="flex gap-2 rounded bg-paw-50 px-4 py-3 text-sm text-bark-700"
-              >
-                <Quote className="h-4 w-4 shrink-0 text-paw-400" />
-                {note}
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* timeline */}
-      <Section title="Sightings timeline">
-        {/* Only counted once the record actually spans more than one
-            observation, a single-sighting page is not yet a timeline, and
-            counting it as one would flatter the number that matters most. */}
-        {sightings.length > 1 && <PageView name="timeline_viewed" />}
-        <SightingTimeline sightings={sightings} />
-      </Section>
-
-      {/* The scans this animal's entries came from. Renders nothing unless
-          the viewer's organisation filed them. */}
-      <AnimalDocuments dogId={id} />
-
-      {/* feeding history */}
-      {feedEvents.length > 0 && (
-        <Section title="Feeding history">
-          <div className="space-y-2">
-            {feedEvents.slice(0, 6).map((f) => (
-              <div
-                key={f.id}
-                className="flex items-center justify-between rounded bg-status-hungry/10 px-4 py-2.5 text-sm"
-              >
-                <span className="flex items-center gap-2 font-medium text-bark-700">
-                  <Utensils className="h-4 w-4 text-status-hungry" />
-                  {f.user_name} · {f.food_type}
-                </span>
-                <span className="text-xs text-bark-400">{timeAgo(f.created_at)}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* comments */}
-      <Section title={`Community (${comments.length})`}>
-        <AddComment dogId={dog.id} />
-        {comments.length === 0 ? (
-          <p className="text-sm text-bark-400">
-            No notes yet, be the first to add one.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {comments.map((c) => (
-              <div key={c.id} className="flex gap-3">
-                {c.user_avatar ? (
-                  <img
-                    src={c.user_avatar}
-                    alt={c.user_name}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="h-8 w-8 rounded-full bg-paw-200" />
-                )}
-                <div className="rounded bg-bark-50 px-4 py-2">
-                  <p className="text-xs font-semibold">
-                    {c.user_name}{" "}
-                    <span className="font-normal text-bark-400">
-                      · {timeAgo(c.created_at)}
-                    </span>
-                  </p>
-                  <p className="text-sm text-bark-700">{c.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
-
-      </div>
-      <div className="mt-8 flex justify-center">
-        <Link href="/map" className="btn-ghost px-6 py-3">
-          Back to the map <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function Stat({
-  icon,
-  value,
-  label,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-}) {
-  return (
-    <div className="dogp-stat">
-      <span className="text-sm font-bold leading-tight">{value}</span>
-      <span className="text-[11.5px] text-bark-400">{label}</span>
-    </div>
-  );
-}
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="dogp-section mt-8">
-      <h2 className="mb-3 font-display text-lg">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function HealthCard({
-  icon,
-  title,
-  ok,
-  okText,
-  pendingText,
-  pendingLabel,
-  sub,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  ok: boolean;
-  okText: string;
-  pendingText: string;
-  pendingLabel: string;
-  sub?: string;
-}) {
-  return (
-    <div className="card p-4">
-      <div className="mb-1 flex items-center gap-2">
-        <span
-          className={ok ? "text-status-vaccinated" : "text-bark-300"}
-        >
-          {icon}
-        </span>
-        <span className="font-display text-sm">{title}</span>
-        <span
-          className={`chip ml-auto ${
-            ok
-              ? "bg-status-vaccinated/15 text-status-vaccinated"
-              : "bg-bark-100 text-bark-500"
-          }`}
-        >
-          {ok ? "Recorded" : pendingLabel}
-        </span>
-      </div>
-      <p className="text-sm text-bark-700">{ok ? okText : pendingText}</p>
-      {sub && <p className="mt-0.5 text-xs text-bark-400">{sub}</p>}
-    </div>
+    <>
+      <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
+      <UnifiedAnimalProfile profile={profile} cases={cases} operational={operational} />
+    </>
   );
 }
