@@ -5,198 +5,68 @@ import { CITY_COORDS, coordsForCity } from "@/lib/platform/city-coords";
 import { searchPlaces, type PlaceHit } from "@/lib/wards";
 import { searchAnimalIdentity } from "@/lib/animal-identity";
 
-/* ════════════════════════════════════════════════════════════════════
-   Console search.
-
-   The search box used to push /map?q=… , which the map ignores. It reads
-   lat/lng. So typing anywhere in the console did nothing. This resolves a
-   query against everything the app can actually navigate to, and hands
-   back a real destination.
-   ════════════════════════════════════════════════════════════════════ */
-
 export type SearchKind = "place" | "ward" | "state" | "org" | "page" | "animal";
+export type SearchHit = { kind: SearchKind; label: string; detail: string; href: string };
 
-export type SearchHit = {
-  kind: SearchKind;
-  label: string;
-  /** Secondary line, state, city, or what the page is for. */
-  detail: string;
-  href: string;
-};
-
-/** Fixed destinations worth reaching by name rather than by nav hunting. */
+/* Search only exposes destinations that do a real job. Placeholder, planning,
+   and overlapping evidence pages stay out of navigation until they earn a
+   place in the product. */
 const PAGES: { label: string; detail: string; href: string; terms: string }[] = [
-  { label: "Living map", detail: "All sightings, studies and outcomes", href: "/map", terms: "map sightings clusters live" },
-  { label: "Report an animal", detail: "Add a sighting or flag a need", href: "/report", terms: "report add sighting new" },
-  { label: "Adoption", detail: "Animals listed for adoption by organisations", href: "/adopt", terms: "adopt adoption rehome foster home listing" },
-  { label: "Resources", detail: "Filed register pages, ledgers and medical notes", href: "/partner/resources", terms: "resources documents scans register ledger records paper notes files" },
-  { label: "Data gaps", detail: "State-by-state coverage picture", href: "/gaps", terms: "gaps data coverage unknown missing evidence" },
-  { label: "What would it take?", detail: "Cost a scoped intervention", href: "/what-would-it-take", terms: "cost costing budget plan scope funding wwit" },
-  { label: "Studies", detail: "Commissioned survey work", href: "/studies", terms: "studies research survey" },
-  { label: "Interventions", detail: "Funded work in progress", href: "/interventions", terms: "interventions programmes work" },
-  { label: "Outcomes", detail: "The closed-record register", href: "/outcomes", terms: "outcomes results register verified" },
-  { label: "Needs", detail: "Outstanding animal needs", href: "/needs", terms: "needs urgent help" },
-  { label: "Organisation directory", detail: "NGOs across India", href: "/orgs", terms: "orgs ngos directory organisations partners" },
-  { label: "Volunteer", detail: "Routes into the work", href: "/get-involved", terms: "volunteer help involved" },
-  { label: "Following", detail: "Animals you follow", href: "/following", terms: "following saved bookmarks" },
+  { label: "Map", detail: "Find recorded animals and places", href: "/map", terms: "map animals sightings places" },
+  { label: "Report an animal", detail: "Add an animal or new sighting", href: "/report", terms: "report add sighting new animal" },
+  { label: "Rescues", detail: "Open rescue and care cases", href: "/rescues", terms: "rescue active cases care" },
+  { label: "Completed cases", detail: "Resolved animal case stories", href: "/outcomes", terms: "completed closed resolved outcomes cases" },
+  { label: "Timeline", detail: "Chronological public field activity", href: "/timeline", terms: "timeline activity treatment followup history" },
+  { label: "Organisation directory", detail: "Animal-welfare organisations", href: "/orgs", terms: "orgs ngos directory organisations partners" },
+  { label: "Saved animals", detail: "Animals you follow", href: "/following", terms: "following saved bookmarks animals" },
 ];
 
-function norm(s: string) {
-  return s.toLowerCase().trim();
-}
+function norm(s: string) { return s.toLowerCase().trim(); }
 
-/**
- * Ranked matches for a query. Prefix matches beat substring matches, and
- * places rank above pages so "Pune" goes to the map rather than a menu item.
- */
 export function search(query: string, limit = 8): SearchHit[] {
   const q = norm(query);
   if (q.length < 2) return [];
-
   const scored: { hit: SearchHit; score: number }[] = [];
-
   const consider = (hit: SearchHit, haystack: string, base: number) => {
     const h = norm(haystack);
     if (!h.includes(q)) return;
-    // Prefix matches are almost always what was meant.
     scored.push({ hit, score: base + (h.startsWith(q) ? 0 : 10) });
   };
 
-  for (const c of CITIES) {
-    consider(
-      {
-        kind: "place",
-        label: c.name,
-        detail: "Jump the map here",
-        href: `/map?lat=${c.lat}&lng=${c.lng}`,
-      },
-      c.name,
-      0
-    );
-  }
+  for (const c of CITIES) consider({ kind: "place", label: c.name, detail: "Jump the map here", href: `/map?lat=${c.lat}&lng=${c.lng}` }, c.name, 0);
+  for (const st of STATES) consider({ kind: "state", label: st.name, detail: "Open this area on the network", href: `/gaps?state=${encodeURIComponent(st.code)}` }, st.name, 2);
 
-  for (const st of STATES) {
-    consider(
-      {
-        kind: "state",
-        label: st.name,
-        detail: "Coverage, population and organisations",
-        href: `/gaps?state=${encodeURIComponent(st.code)}`,
-      },
-      st.name,
-      2
-    );
-  }
-
-  /* Every city an organisation is in, whether or not it is one of the
-     twenty the map already knew about. Searching "Bhubaneswar" should reach
-     Bhubaneswar. */
   const seenCity = new Set(CITIES.map((c) => norm(c.name)));
   for (const [name, at] of Object.entries(CITY_COORDS)) {
     if (seenCity.has(norm(name))) continue;
-    consider(
-      {
-        kind: "place",
-        label: name,
-        detail: "Jump the map here",
-        href: `/map?lat=${at.lat}&lng=${at.lng}`,
-      },
-      name,
-      1
-    );
+    consider({ kind: "place", label: name, detail: "Jump the map here", href: `/map?lat=${at.lat}&lng=${at.lng}` }, name, 1);
   }
 
   for (const o of ORGS) {
     const stateName = STATE_BY_CODE.get(o.stateCode)?.name ?? "";
     const at = coordsForCity(o.city);
-    consider(
-      {
-        kind: "org",
-        label: o.name,
-        /* An organisation is a place as much as it is a record. Someone
-           searching one on a console whose main surface is a map wants to
-           see where it works, so this opens the map over its city rather
-           than a directory row. The directory is still reachable by name
-           from the Organisation directory result. */
-        detail: at
-          ? `Open the map on ${[o.city, stateName].filter(Boolean).join(", ")}`
-          : [o.city, stateName].filter(Boolean).join(", ") || "Organisation",
-        href: at
-          ? `/map?lat=${at.lat}&lng=${at.lng}&org=${encodeURIComponent(o.name)}`
-          : `/orgs?q=${encodeURIComponent(o.name)}`,
-      },
-      `${o.name} ${o.city} ${stateName}`,
-      4
-    );
+    consider({
+      kind: "org", label: o.name,
+      detail: at ? `Open the map on ${[o.city, stateName].filter(Boolean).join(", ")}` : [o.city, stateName].filter(Boolean).join(", ") || "Organisation",
+      href: at ? `/map?lat=${at.lat}&lng=${at.lng}&org=${encodeURIComponent(o.name)}` : `/orgs?q=${encodeURIComponent(o.name)}`,
+    }, `${o.name} ${o.city} ${stateName}`, 4);
   }
 
-  for (const p of PAGES) {
-    consider(
-      { kind: "page", label: p.label, detail: p.detail, href: p.href },
-      `${p.label} ${p.terms}`,
-      6
-    );
-  }
-
-  return scored
-    .sort((a, b) => a.score - b.score || a.hit.label.length - b.hit.label.length)
-    .slice(0, limit)
-    .map((s) => s.hit);
+  for (const p of PAGES) consider({ kind: "page", label: p.label, detail: p.detail, href: p.href }, `${p.label} ${p.terms}`, 6);
+  return scored.sort((a,b)=>a.score-b.score || a.hit.label.length-b.hit.label.length).slice(0,limit).map(s=>s.hit);
 }
 
-export const KIND_LABEL: Record<SearchKind, string> = {
-  place: "Place",
-  ward: "Area",
-  state: "State",
-  org: "Organisation",
-  page: "Go to",
-  animal: "Animal",
-};
+export const KIND_LABEL: Record<SearchKind,string> = { place:"Place", ward:"Area", state:"State", org:"Organisation", page:"Go to", animal:"Animal" };
 
-
-/* ── Database-backed search ───────────────────────────────────────────
-   Wards/districts and permanent StrayPaw animal IDs live in Postgres, so
-   they are looked up rather than bundled. Animal identity is searched only
-   by StrayPaw's own permanent ID — an NGO/source code is not the platform
-   identity and should not silently masquerade as one. */
 export async function searchAreas(query: string, limit = 4): Promise<SearchHit[]> {
-  const [places, animals] = await Promise.all([
-    searchPlaces(query, limit),
-    searchAnimalIdentity(query, limit),
-  ]);
-  const animalHits: SearchHit[] = animals.map((animal) => ({
-    kind: "animal",
-    label: animal.straypaw_id,
-    detail: [animal.name || animal.species || "Animal", animal.zone].filter(Boolean).join(" · "),
-    href: `/dog/${animal.id}`,
-  }));
-  return [...animalHits, ...places.map(toHit)].slice(0, limit);
+  const [places, animals] = await Promise.all([searchPlaces(query, limit), searchAnimalIdentity(query, limit)]);
+  const animalHits: SearchHit[] = animals.map((animal) => ({ kind:"animal", label:animal.straypaw_id, detail:[animal.name || animal.species || "Animal", animal.zone].filter(Boolean).join(" · "), href:`/dog/${animal.id}` }));
+  return [...animalHits, ...places.map(toHit)].slice(0,limit);
 }
 
 function toHit(p: PlaceHit): SearchHit {
-  /* "Ward 172" is what the boundary data calls it; the zone is what a
-     person in Chennai calls the part of the city it is in, so both go in.
-     Districts carry their own name and their state. */
-  const label =
-    p.level === "district"
-      ? p.ward_name ?? `District ${p.ward_no}`
-      : p.ward_name ?? `Ward ${p.ward_no}`;
-  const where =
-    p.level === "district"
-      ? p.state ?? "India"
-      : [p.zone_name, p.city].filter(Boolean).join(", ");
-  /* Said plainly, because an area with nothing recorded in it is the
-     finding rather than an empty result. */
-  const count =
-    p.animals > 0
-      ? `${p.animals} recorded`
-      : "nothing recorded here yet";
-  return {
-    kind: "ward",
-    label,
-    detail: `${where} · ${count}`,
-    href:
-      `/map?lat=${p.lat.toFixed(5)}&lng=${p.lng.toFixed(5)}` +
-      `&bbox=${p.min_lng.toFixed(4)},${p.min_lat.toFixed(4)},${p.max_lng.toFixed(4)},${p.max_lat.toFixed(4)}`,
-  };
+  const label = p.level === "district" ? p.ward_name ?? `District ${p.ward_no}` : p.ward_name ?? `Ward ${p.ward_no}`;
+  const where = p.level === "district" ? p.state ?? "India" : [p.zone_name,p.city].filter(Boolean).join(", ");
+  const count = p.animals > 0 ? `${p.animals} recorded` : "nothing recorded here yet";
+  return { kind:"ward", label, detail:`${where} · ${count}`, href:`/map?lat=${p.lat.toFixed(5)}&lng=${p.lng.toFixed(5)}&bbox=${p.min_lng.toFixed(4)},${p.min_lat.toFixed(4)},${p.max_lng.toFixed(4)},${p.max_lat.toFixed(4)}` };
 }
