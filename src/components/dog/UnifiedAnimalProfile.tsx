@@ -5,6 +5,7 @@ import { DogActions } from "@/components/dog/DogActions";
 import { DogStatusEditor } from "@/components/dog/DogStatusEditor";
 import { FollowButton } from "@/components/dog/FollowButton";
 import { ShareDog } from "@/components/dog/ShareDog";
+import { RecordExportActions } from "@/components/dog/RecordExportActions";
 import { AddComment } from "@/components/dog/AddComment";
 import { AnimalDocuments } from "@/components/dog/AnimalDocuments";
 import type { Case, DogProfile } from "@/lib/types";
@@ -39,13 +40,19 @@ export function UnifiedAnimalProfile({profile,cases,operational}:{profile:DogPro
  ].sort((a,b)=>+new Date(b.date)-+new Date(a.date));
  const sourceHistory=imported.map(row=>({id:`source-${row.id}-${row.classification}`,date:row.eventDate,type:row.classification,title:row.condition||recordLabel(row.classification),detail:sourceDetail(row),href:null as string|null}));
  const history=nativeHistory.length?nativeHistory:sourceHistory;
+ const exportRows=[
+  ...cases.map(row=>({date:row.source_event_at||row.created_at,type:`case:${row.category}`,title:row.title,detail:row.description})),
+  ...operational.medical.map(row=>({date:row.eventDate,type:`care:${row.kind}`,title:recordLabel(row.kind),detail:row.notes})),
+  ...operational.followUps.map(row=>({date:row.dueAt,type:"follow_up",title:recordLabel(row.kind),detail:row.note})),
+  ...operational.timeline.map(row=>({date:row.occurredAt,type:row.eventType,title:row.title,detail:row.details})),
+ ].sort((a,b)=>+new Date(b.date||0)-+new Date(a.date||0));
 
  return <main className="min-h-screen bg-[#f7f5ef] text-[#0b1e3d]"><div className="mx-auto max-w-5xl px-4 pb-20 pt-6 sm:px-6">
   <header className="grid overflow-hidden border-y border-black/[.09] bg-white md:grid-cols-[300px_1fr]">
    <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="h-[280px] w-full md:h-full md:min-h-[340px]"/>
    <div className="flex flex-col justify-between p-6 sm:p-8">
     <div><div className="flex flex-wrap items-center justify-between gap-3"><span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[.12em] opacity-55"><Building2 size={13}/>{sourceName}</span><FollowButton dogId={dog.id}/></div><h1 className="mt-4 text-4xl font-semibold tracking-[-.05em]">{dogLabel(dog)}</h1><p className="mt-3 flex flex-wrap items-center gap-2 text-sm opacity-70"><MapPin size={14}/>{locality||"Location not recorded"}<span>·</span><span className="capitalize">{dog.species||"animal"}</span>{sex&&<><span>·</span><span>{sex}</span></>}</p><p className="mt-5 max-w-2xl text-sm leading-6 opacity-80">{dog.intake_notes||firstValue(imported,row=>row.caseDetail)||firstValue(imported,row=>row.condition)||"No intake note recorded."}</p></div>
-    <div className="mt-7 flex flex-wrap gap-2 border-t border-black/[.08] pt-5"><DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help}/><ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone}/></div>
+    <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-black/[.08] pt-5"><DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help}/><ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone}/><RecordExportActions name={dogLabel(dog)} animalId={code||dog.id} locality={locality||null} rows={exportRows}/></div>
    </div>
   </header>
 
