@@ -97,6 +97,7 @@ export async function GET(request:Request){
   }
   blocks.push({text:"Evidence note",size:13,bold:true,gapBefore:14,gapAfter:5},{text:"Prepared from the organisation's StrayPaw records. Aggregate programme totals and individually traceable animal records remain distinct. Private reporter contact fields are excluded by default. Source records remain available in the evidence workbook and provenance trail.",size:9});
   const pdf=buildPdf(blocks);
+  const body=Uint8Array.from(pdf);
   const date=new Date().toISOString().slice(0,10);
-  return new Response(pdf,{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="straypaw-government-report-${date}.pdf"`,"Cache-Control":"no-store"}});
+  return new Response(body,{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="straypaw-government-report-${date}.pdf"`,"Cache-Control":"no-store"}});
 }
