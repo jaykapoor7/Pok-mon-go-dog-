@@ -17,9 +17,10 @@ export function PartnerRecordHome(){
  const [rows,setRows]=useState<PartnerRecordRow[]|null>(null),[animals,setAnimals]=useState(0);
  useEffect(()=>{if(!ready||!user)return;Promise.all([getPartnerRecordRows(),getMyAnimals()]).then(([r,a])=>{setRows(r);setAnimals(a.length)}).catch(()=>{setRows([]);setAnimals(0)})},[ready,user?.id]);
  const stats=useMemo(()=>{
-  const all=rows??[],now=Date.now(),rescues=all.filter(r=>r.kind==="rescue"),care=all.filter(r=>r.kind==="care"),follow=all.filter(r=>r.kind==="follow_up");
+  const all=rows??[],now=new Date(),currentYear=now.getFullYear(),firstYear=currentYear-2,rescues=all.filter(r=>r.kind==="rescue"),care=all.filter(r=>r.kind==="care"),follow=all.filter(r=>r.kind==="follow_up");
   const open=rescues.filter(r=>!closed(r.status)),completed=rescues.filter(r=>closed(r.status));
-  const overdue=follow.filter(r=>!followDone(r.status)&&+new Date(r.date)<now),next7=follow.filter(r=>!followDone(r.status)&&+new Date(r.date)>=now&&+new Date(r.date)<=now+7*86400000);
+  const validFollow=follow.filter(r=>{const d=new Date(r.date);return Number.isFinite(+d)&&d.getFullYear()>=firstYear&&d.getFullYear()<=currentYear});
+  const overdue=validFollow.filter(r=>!followDone(r.status)&&+new Date(r.date)<+now),next7=validFollow.filter(r=>!followDone(r.status)&&+new Date(r.date)>=+now&&+new Date(r.date)<=+now+7*86400000);
   const treatment=care.filter(r=>careMatch(r,/treat|chemo|tvt|surgery|wound|diagnostic|rehab|medicine|admission/)).length;
   const vaccination=care.filter(r=>careMatch(r,/vaccin|rabies|arv/)).length;
   const sterilisation=care.filter(r=>careMatch(r,/sterili|abc|spay|neuter/)).length;
