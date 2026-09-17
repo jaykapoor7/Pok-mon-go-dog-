@@ -21,54 +21,475 @@ export type MoodTag =
 
 export type DogSize = "puppy" | "small" | "medium" | "large";
 
-export interface LatLng { lat: number; lng: number; }
-export interface User { id:string; name:string; avatar_url:string|null; is_ngo:boolean; ngo_id:string|null; ngo_name?:string|null; provenance?:string|null; sightings_count:number; trust_level:number; created_at:string; }
-export interface Sighting { id:string; dog_id:string|null; user_id:string; user_name:string; user_avatar:string|null; photo_url:string|null; lat:number; lng:number; zone:string; nickname:string|null; mood_tags:MoodTag[]; notes:string|null; trust_score:number; likes:number; status:"pending"|"live"; created_at:string; source_kind?:"community_sighting"|"historic_ngo_record"; }
-export interface FieldActivity { id:string; dog_id:string|null; ngo_id:string|null; ngo_name:string|null; lat:number; lng:number; zone:string; title:string; occurred_at:string; }
-export interface FeedEvent { id:string; dog_id:string; user_id:string; user_name:string; food_type:string|null; created_at:string; }
-export interface Vaccination { id:string; dog_id:string; vaccine:string; administered_by:string|null; ngo_id:string|null; date:string; }
-export interface Sterilisation { id:string; dog_id:string; status:"scheduled"|"completed"; performed_by:string|null; ngo_id:string|null; date:string; }
-export interface Comment { id:string; dog_id:string; user_id:string; user_name:string; user_avatar:string|null; body:string; created_at:string; }
-export interface NGO { id:string; name:string; area:string; logo_url:string|null; dogs_helped:number; verified:boolean; slug?:string|null; mission?:string|null; about?:string|null; website?:string|null; contact_email?:string|null; contact_phone?:string|null; city?:string|null; state?:string|null; areas_of_work?:string[]; cover_photo?:string|null; founded_year?:number|null; registration_no?:string|null; verified_at?:string|null; config?:{modules?:string[];animal_noun?:string}|null; }
-export interface DogMatch { id:string; dog_id_a:string; dog_id_b:string; confidence:number; reason:string; status:"suggested"|"merged"|"rejected"; }
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  is_ngo: boolean;
+  ngo_id: string | null;
+  ngo_name?: string | null;
+  provenance?: string | null;
+  sightings_count: number;
+  trust_level: number;
+  created_at: string;
+}
+
+export interface Sighting {
+  id: string;
+  dog_id: string | null;
+  user_id: string;
+  user_name: string;
+  user_avatar: string | null;
+  photo_url: string | null;
+  lat: number;
+  lng: number;
+  zone: string;
+  nickname: string | null;
+  mood_tags: MoodTag[];
+  notes: string | null;
+  trust_score: number;
+  likes: number;
+  status: "pending" | "live";
+  created_at: string;
+  source_kind?: "community_sighting" | "historic_ngo_record";
+}
+
+export interface FieldActivity {
+  id: string;
+  dog_id: string | null;
+  ngo_id: string | null;
+  ngo_name: string | null;
+  lat: number;
+  lng: number;
+  zone: string;
+  title: string;
+  occurred_at: string;
+}
+
+export interface FeedEvent {
+  id: string;
+  dog_id: string;
+  user_id: string;
+  user_name: string;
+  food_type: string | null;
+  created_at: string;
+}
+
+export interface Vaccination {
+  id: string;
+  dog_id: string;
+  vaccine: string;
+  administered_by: string | null;
+  ngo_id: string | null;
+  date: string;
+}
+
+export interface Sterilisation {
+  id: string;
+  dog_id: string;
+  status: "scheduled" | "completed";
+  performed_by: string | null;
+  ngo_id: string | null;
+  date: string;
+}
+
+export interface Comment {
+  id: string;
+  dog_id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar: string | null;
+  body: string;
+  created_at: string;
+}
+
+export interface NGO {
+  id: string;
+  name: string;
+  area: string;
+  logo_url: string | null;
+  dogs_helped: number;
+  verified: boolean;
+  slug?: string | null;
+  mission?: string | null;
+  about?: string | null;
+  website?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  city?: string | null;
+  state?: string | null;
+  areas_of_work?: string[];
+  cover_photo?: string | null;
+  founded_year?: number | null;
+  registration_no?: string | null;
+  verified_at?: string | null;
+  config?: { modules?: string[]; animal_noun?: string } | null;
+}
+
+export interface DogMatch {
+  id: string;
+  dog_id_a: string;
+  dog_id_b: string;
+  confidence: number;
+  reason: string;
+  status: "suggested" | "merged" | "rejected";
+}
 
 export interface Dog {
-  id:string; name:string|null; zone:string; colony?:string|null; city?:string|null; lat:number; lng:number; status:DogStatus; cover_photo:string; photos:string[]; size:DogSize; color:string; is_friendly:boolean; needs_help:boolean; sterilised:boolean; vaccinated:boolean; sterilisation_status?:"sterilised"|"not_sterilised"|"unknown"; vaccination_status?:"vaccinated"|"not_vaccinated"|"unknown"; ear_notch?:string|null; trust_score:number; sightings_count:number; feed_count:number; first_seen:string; last_seen:string; last_fed_at:string|null; community_notes:string[]; species?:string; ngo_id?:string|null; ngo_name?:string|null; provenance?:string|null; code?:string|null; assignee_id?:string|null; assignee_name?:string|null; intake_notes?:string|null; owner_name?:string|null; owner_contact?:string|null;
+  id: string;
+  name: string | null;
+  zone: string;
+  colony?: string | null;
+  city?: string | null;
+  lat: number;
+  lng: number;
+  status: DogStatus;
+  cover_photo: string;
+  photos: string[];
+  size: DogSize;
+  color: string;
+  is_friendly: boolean;
+  needs_help: boolean;
+  sterilised: boolean;
+  vaccinated: boolean;
+  sterilisation_status?: "sterilised" | "not_sterilised" | "unknown";
+  vaccination_status?: "vaccinated" | "not_vaccinated" | "unknown";
+  ear_notch?: string | null;
+  trust_score: number;
+  sightings_count: number;
+  feed_count: number;
+  first_seen: string;
+  last_seen: string;
+  last_fed_at: string | null;
+  community_notes: string[];
+  species?: string;
+  ngo_id?: string | null;
+  ngo_name?: string | null;
+  provenance?: string | null;
+  code?: string | null;
+  assignee_id?: string | null;
+  assignee_name?: string | null;
+  intake_notes?: string | null;
+  owner_name?: string | null;
+  owner_contact?: string | null;
 }
 
-export const MEDICAL_KINDS:{id:string;label:string}[]=[{id:"vaccination",label:"Vaccination"},{id:"deworming",label:"Deworming"},{id:"sterilisation",label:"Sterilisation"},{id:"wound",label:"Wound care"},{id:"treatment",label:"Treatment"},{id:"rescue",label:"Rescue"},{id:"rehabilitation",label:"Rehabilitation"},{id:"checkup",label:"Check-up"}];
-export interface MedicalEvent { id:string; dog_id:string|null; case_id:string|null; kind:string; event_date:string; notes:string|null; performed_by:string|null; created_at:string; }
-export interface DogProfile { dog:Dog; sightings:Sighting[]; feedEvents:FeedEvent[]; vaccinations:Vaccination[]; sterilisations:Sterilisation[]; comments:Comment[]; }
-export interface CityStats { dogsSpotted:number; dogsFed:number; dogsSterilised:number; dogsVaccinated:number; needsHelp:number; volunteers:number; }
+export const MEDICAL_KINDS: { id: string; label: string }[] = [
+  { id: "vaccination", label: "Vaccination" },
+  { id: "deworming", label: "Deworming" },
+  { id: "sterilisation", label: "Sterilisation" },
+  { id: "wound", label: "Wound care" },
+  { id: "treatment", label: "Treatment" },
+  { id: "rescue", label: "Rescue" },
+  { id: "rehabilitation", label: "Rehabilitation" },
+  { id: "checkup", label: "Check-up" },
+];
 
-export const STATUS_META:Record<DogStatus,{label:string;emoji:string;color:string}>={seen:{label:"Seen",emoji:"🐕",color:"#9A9C88"},hungry:{label:"Hungry",emoji:"🍗",color:"#D9A441"},injured:{label:"Injured",emoji:"🚑",color:"#C0492E"},sterilised:{label:"Sterilised",emoji:"✂️",color:"#3E8473"},vaccinated:{label:"Vaccinated",emoji:"💉",color:"#4E8A5F"}};
-export const MOOD_META:Record<MoodTag,{label:string;emoji:string}>={friendly:{label:"Friendly",emoji:"🥰"},hungry:{label:"Hungry",emoji:"🍗"},injured:{label:"Injured",emoji:"🚑"},sleeping:{label:"Sleeping",emoji:"😴"},puppies:{label:"Puppies",emoji:"🐶"},shy:{label:"Shy",emoji:"🙈"},playful:{label:"Playful",emoji:"🎾"}};
-export type MapFilter="all"|"recent"|"friendly"|"needs_help"|"sterilised"|"vaccinated";
+export interface MedicalEvent {
+  id: string;
+  dog_id: string | null;
+  case_id: string | null;
+  kind: string;
+  event_date: string;
+  notes: string | null;
+  performed_by: string | null;
+  created_at: string;
+}
 
-export type CaseStatus="unverified"|"assigned"|"in_progress"|"resolved"|"closed";
-export type CaseSeverity="low"|"normal"|"high"|"critical";
-export type CaseCategory="injury"|"sterilisation"|"rescue"|"vaccination"|"other";
-export type CaseResolution="sterilized"|"rescued"|"treated";
-export type CaseUpdateType="created"|"claimed"|"assigned"|"status_changed"|"note"|"reopened";
-export interface Volunteer { id:string; name:string; phone:string|null; ngo_id:string|null; }
+export interface DogProfile {
+  dog: Dog;
+  sightings: Sighting[];
+  feedEvents: FeedEvent[];
+  vaccinations: Vaccination[];
+  sterilisations: Sterilisation[];
+  comments: Comment[];
+}
+
+export interface CityStats {
+  dogsSpotted: number;
+  dogsFed: number;
+  dogsSterilised: number;
+  dogsVaccinated: number;
+  needsHelp: number;
+  volunteers: number;
+}
+
+export const STATUS_META: Record<DogStatus, { label: string; emoji: string; color: string }> = {
+  seen: { label: "Seen", emoji: "🐕", color: "#9A9C88" },
+  hungry: { label: "Hungry", emoji: "🍗", color: "#D9A441" },
+  injured: { label: "Injured", emoji: "🚑", color: "#C0492E" },
+  sterilised: { label: "Sterilised", emoji: "✂️", color: "#3E8473" },
+  vaccinated: { label: "Vaccinated", emoji: "💉", color: "#4E8A5F" },
+};
+
+export const MOOD_META: Record<MoodTag, { label: string; emoji: string }> = {
+  friendly: { label: "Friendly", emoji: "🥰" },
+  hungry: { label: "Hungry", emoji: "🍗" },
+  injured: { label: "Injured", emoji: "🚑" },
+  sleeping: { label: "Sleeping", emoji: "😴" },
+  puppies: { label: "Puppies", emoji: "🐶" },
+  shy: { label: "Shy", emoji: "🙈" },
+  playful: { label: "Playful", emoji: "🎾" },
+};
+
+export type MapFilter =
+  | "all"
+  | "recent"
+  | "friendly"
+  | "needs_help"
+  | "sterilised"
+  | "vaccinated";
+
+export type CaseStatus =
+  | "unverified"
+  | "assigned"
+  | "in_progress"
+  | "resolved"
+  | "closed";
+
+export type CaseSeverity = "low" | "normal" | "high" | "critical";
+export type CaseCategory = "injury" | "sterilisation" | "rescue" | "vaccination" | "other";
+export type CaseResolution = "sterilized" | "rescued" | "treated";
+export type CaseUpdateType = "created" | "claimed" | "assigned" | "status_changed" | "note" | "reopened";
+
+export interface Volunteer {
+  id: string;
+  name: string;
+  phone: string | null;
+  ngo_id: string | null;
+}
+
 export interface Case {
-  id:string; dog_id:string|null; title:string; description:string|null; zone:string|null; lat:number|null; lng:number|null; severity:CaseSeverity; category:CaseCategory; tags:string[]; status:CaseStatus; resolution:CaseResolution|null; assignee_id:string|null; assignee_name:string|null; ngo_id:string|null; created_by_id:string|null; created_by_name:string|null; created_at:string; updated_at:string; last_activity_at:string; due_at:string|null; resolved_at?:string|null; before_url?:string|null; after_url?:string|null; outcome_note?:string|null; proof_verified?:boolean; verified_at?:string|null; cost_estimate?:number|null; cost_spent?:number|null; species?:string; follow_up_at?:string|null; medical_notes?:string|null; photos?:string[];
-  /** Original field date for imported historical work. This is the date used in longitudinal reporting; created_at may be the import timestamp on older records. */
-  source_event_at?:string|null;
-  condition_text?:string|null;
-  stage?:string|null;
+  id: string;
+  dog_id: string | null;
+  title: string;
+  description: string | null;
+  zone: string | null;
+  lat: number | null;
+  lng: number | null;
+  severity: CaseSeverity;
+  category: CaseCategory;
+  tags: string[];
+  status: CaseStatus;
+  resolution: CaseResolution | null;
+  assignee_id: string | null;
+  assignee_name: string | null;
+  ngo_id: string | null;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+  last_activity_at: string;
+  due_at: string | null;
+  resolved_at?: string | null;
+  before_url?: string | null;
+  after_url?: string | null;
+  outcome_note?: string | null;
+  proof_verified?: boolean;
+  verified_at?: string | null;
+  cost_estimate?: number | null;
+  cost_spent?: number | null;
+  species?: string;
+  follow_up_at?: string | null;
+  medical_notes?: string | null;
+  photos?: string[];
+  source_event_at?: string | null;
+  condition_text?: string | null;
+  stage?: string | null;
 }
 
-export const SPECIES:{id:string;label:string;plural:string}[]=[{id:"dog",label:"Dog",plural:"Dogs"},{id:"donkey",label:"Donkey",plural:"Donkeys"},{id:"mule",label:"Mule",plural:"Mules"},{id:"cat",label:"Cat",plural:"Cats"},{id:"cattle",label:"Cattle",plural:"Cattle"},{id:"horse",label:"Horse",plural:"Horses"},{id:"other",label:"Animal",plural:"Animals"}];
-export function speciesLabel(id:string|null|undefined):string{return SPECIES.find(s=>s.id===id)?.label??"Animal"}
+export const SPECIES: { id: string; label: string; plural: string }[] = [
+  { id: "dog", label: "Dog", plural: "Dogs" },
+  { id: "donkey", label: "Donkey", plural: "Donkeys" },
+  { id: "mule", label: "Mule", plural: "Mules" },
+  { id: "cat", label: "Cat", plural: "Cats" },
+  { id: "cattle", label: "Cattle", plural: "Cattle" },
+  { id: "horse", label: "Horse", plural: "Horses" },
+  { id: "other", label: "Animal", plural: "Animals" },
+];
 
-export interface Survey { id:string; ngo_id:string|null; title:string; species:string; description:string|null; status:string; created_by_id:string|null; created_at:string; }
-export interface SurveyArea { id:string; survey_id:string; name:string; code:string|null; target_count:number|null; status:string; response_count?:number; animal_count?:number; }
-export interface VetCamp { id:string; name:string; village:string|null; district:string|null; lat:number|null; lng:number|null; camp_date:string|null; status:string; notes:string|null; created_at:string; }
-export interface SurveyResponse { id:string; survey_id:string; area_id:string|null; lat:number|null; lng:number|null; photo_url:string|null; species:string|null; count:number; attributes:Record<string,unknown>; notes:string|null; created_at:string; }
+export function speciesLabel(id: string | null | undefined): string {
+  return SPECIES.find((s) => s.id === id)?.label ?? "Animal";
+}
 
-export interface EducationCampaign { id:string; title:string; description:string|null; target_audience:string|null; start_date:string|null; end_date:string|null; status:string; created_at:string; }
-export interface EducationSession { id:string; campaign_id:string|null; title:string; venue:string|null; session_date:string|null; attendees:number; notes:string|null; created_at:string; }
-export interface EducationMaterial { id:string; title:string; url:string; kind:string; created_at:string; }
-export interface FeedingZone { id:string; name:string; zone:string|null; lat:number|null; lng:number|null; notes:string|null; created_at:string; }
-export interface FeedingSchedule { id:string; feeding_zone_id:string; feeder_name:string|null; weekday:number|null; time_of_day:string|null; notes:string|null; created_at:string; }
+export interface Survey {
+  id: string;
+  ngo_id: string | null;
+  title: string;
+  species: string;
+  description: string | null;
+  status: string;
+  created_by_id: string | null;
+  created_at: string;
+}
+
+export interface SurveyArea {
+  id: string;
+  survey_id: string;
+  name: string;
+  code: string | null;
+  target_count: number | null;
+  status: string;
+  response_count?: number;
+  animal_count?: number;
+}
+
+export interface VetCamp {
+  id: string;
+  name: string;
+  village: string | null;
+  district: string | null;
+  lat: number | null;
+  lng: number | null;
+  camp_date: string | null;
+  status: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface SurveyResponse {
+  id: string;
+  survey_id: string;
+  area_id: string | null;
+  lat: number | null;
+  lng: number | null;
+  photo_url: string | null;
+  species: string | null;
+  count: number;
+  attributes: Record<string, unknown>;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CaseUpdate {
+  id: string;
+  case_id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  type: CaseUpdateType;
+  from_status: CaseStatus | null;
+  to_status: CaseStatus | null;
+  note: string | null;
+  created_at: string;
+}
+
+export const FEEDING_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+export type FeedingDay = (typeof FEEDING_DAYS)[number];
+
+export interface FeedingZone {
+  id: string;
+  name: string;
+  description: string | null;
+  zone: string | null;
+  lat: number;
+  lng: number;
+  photo_url: string | null;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  last_fed_at: string | null;
+  volunteer_count: number;
+}
+
+export interface FeedingZoneVolunteer {
+  id: string;
+  feeding_zone_id: string;
+  user_id: string;
+  user_name: string;
+  days: FeedingDay[];
+  created_at: string;
+}
+
+export interface FeedingZoneCheckin {
+  id: string;
+  feeding_zone_id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export interface Fundraiser {
+  id: string;
+  ngo_id: string | null;
+  title: string;
+  story: string | null;
+  category: string;
+  goal_amount: number | null;
+  currency: string;
+  donate_url: string;
+  cover_photo: string | null;
+  deadline: string | null;
+  raised_reported: number | null;
+  status: string;
+  featured: boolean;
+  budget: BudgetLine[];
+  outcome: string | null;
+  case_id?: string | null;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export interface BudgetLine {
+  label: string;
+  amount: number;
+}
+
+export interface FundraiserUpdate {
+  id: string;
+  fundraiser_id: string;
+  body: string;
+  photo_url: string | null;
+  created_at: string;
+}
+
+export const FUNDRAISER_CATEGORIES: { value: string; label: string; emoji: string }[] = [
+  { value: "medical", label: "Medical", emoji: "🏥" },
+  { value: "bills", label: "Pending bills", emoji: "🧾" },
+  { value: "sterilisation", label: "Sterilisation", emoji: "✂️" },
+  { value: "food", label: "Food", emoji: "🍗" },
+  { value: "shelter", label: "Shelter", emoji: "🏠" },
+  { value: "emergency", label: "Emergency", emoji: "🚨" },
+  { value: "other", label: "General", emoji: "🐾" },
+];
+
+export function fundraiserCategory(value: string) {
+  return FUNDRAISER_CATEGORIES.find((c) => c.value === value) ?? FUNDRAISER_CATEGORIES[6];
+}
+
+export const CASE_STATUS_META: Record<CaseStatus, { label: string; color: string }> = {
+  unverified: { label: "Unverified", color: "#9A9C88" },
+  assigned: { label: "Assigned", color: "#4E7C8A" },
+  in_progress: { label: "In Progress", color: "#D9A441" },
+  resolved: { label: "Resolved", color: "#3E8473" },
+  closed: { label: "Closed", color: "#7A7C6A" },
+};
+
+export const CASE_SEVERITY_META: Record<CaseSeverity, { label: string; color: string }> = {
+  low: { label: "Low", color: "#9A9C88" },
+  normal: { label: "Normal", color: "#3b63e0" },
+  high: { label: "High", color: "#D9A441" },
+  critical: { label: "Critical", color: "#C0492E" },
+};
+
+export const CASE_CATEGORY_META: Record<CaseCategory, { label: string; emoji: string }> = {
+  injury: { label: "Injury", emoji: "🚑" },
+  sterilisation: { label: "Sterilisation", emoji: "✂️" },
+  rescue: { label: "Rescue", emoji: "🆘" },
+  vaccination: { label: "Vaccination", emoji: "💉" },
+  other: { label: "Other", emoji: "📋" },
+};
+
+export const OVERDUE_DAYS = 5;
+
+export function isOverdue(c: Case): boolean {
+  if (c.status === "resolved" || c.status === "closed") return false;
+  const days = (Date.now() - +new Date(c.last_activity_at)) / 86_400_000;
+  return days >= OVERDUE_DAYS;
+}
