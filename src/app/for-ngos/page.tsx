@@ -22,99 +22,43 @@ export default function ForNgosPage() {
       lede="You already know how to run a catch, a surgery, a release. What usually breaks is everything around it: which animal this was, what was done last time, and how to show a funder any of it six months later."
       figure={<ResolveFigure />}
       next={[
-        { label: "Open the workspace", href: "/partner/cases", note: "Look around it now, no account needed." },
+        { label: "See public evidence", href: "/care", note: "See how animal-linked care and outcomes look before joining." },
         { label: "Apply to partner", href: "/partner-apply", note: "Verification is free for animal-welfare organisations." },
-        { label: "Bring your records", href: "/partner/import", note: "Paper registers and WhatsApp threads, imported as they are." },
+        { label: "Already have access?", href: "/join", note: "Use the code issued to your organisation or team." },
       ]}
     >
-      <Band
-        tone="paper"
-        kicker="WHAT IT DOES"
-        title="The parts nobody funds,"
-        accent="but everybody needs."
-      >
+      <Band tone="paper" kicker="WHAT IT DOES" title="The parts nobody funds," accent="but everybody needs.">
         <Steps
           items={[
-            {
-              n: "01",
-              title: "Cases",
-              body: "Community reports land in one queue sorted by severity. Claim, assign, work and resolve, with an activity timeline and follow-ups on every case.",
-            },
-            {
-              n: "02",
-              title: "Animal registry",
-              body: "A living record per animal: identity, photos, location, medical history. It stays attached to the animal rather than to whoever saw it last.",
-            },
-            {
-              n: "03",
-              title: "Medical",
-              body: "Vaccinations, deworming, sterilisations and wound care logged once. Coverage and herd-immunity figures are worked out for you.",
-            },
-            {
-              n: "04",
-              title: "Reporting",
-              body: "The numbers a funder asks for, produced from the work you already recorded rather than reconstructed from memory at the end of a grant.",
-            },
+            { n: "01", title: "Cases", body: "Community reports and team intakes become one working queue with assignment, follow-up and outcomes." },
+            { n: "02", title: "Animal registry", body: "A durable StrayPaw identity keeps photos, locality, source IDs, cases and care history attached to the same animal." },
+            { n: "03", title: "Care & projects", body: "Treatment, vaccination, ABC and flexible programme registers stay searchable instead of disappearing into separate sheets." },
+            { n: "04", title: "Evidence", body: "Operational analytics, map patterns, evidence workbooks and government-ready reports come from the records your team already keeps." },
           ]}
         />
       </Band>
 
-      <Band
-        tone="ink"
-        kicker="WHAT IT IS NOT"
-        title="We do not want to run"
-        accent="your programme."
-      >
+      <Band tone="ink" kicker="WHAT IT IS NOT" title="We do not want to run" accent="your programme.">
         <div className="mk-split">
           <div>
-            <p className="mk-body">
-              StrayPaw does not do fieldwork, does not compete for your grants,
-              and does not sit between you and your funders. Local knowledge is
-              the part that cannot be built remotely, and it is the part you
-              already have.
-            </p>
-            <p className="mk-body">
-              What we build is the layer underneath: identity, records and
-              measurement, so that the work you do is legible to the next
-              organisation that meets the same animal, and provable to whoever
-              paid for it.
-            </p>
-            <p className="mk-body">
-              Your data stays yours. Case records resolve per organisation, so
-              you see your own and nobody else&rsquo;s.
-            </p>
+            <p className="mk-body">StrayPaw does not do fieldwork, compete for your grants, or sit between you and your funders. Local knowledge stays with the team doing the work.</p>
+            <p className="mk-body">The platform is the layer underneath: identity, records, follow-up, measurement and proof, so the next person who meets the same animal starts with context instead of another blank spreadsheet row.</p>
+            <p className="mk-body">Public evidence is deliberately limited to safe, publishable records. Your operational workspace and private source records are available only to verified organisation members.</p>
           </div>
           <div className="mk-stats" style={{ marginTop: 0 }}>
-            <Stat
-              value={String(ORGS.length)}
-              label="Organisations in the public directory"
-              source="Each entry verified against a public presence, with contact and coverage area"
-            />
-            <Stat
-              value="Free"
-              label="For verified animal-welfare organisations"
-              source="Verification exists to protect animal records, not to gate the product"
-            />
+            <Stat value={String(ORGS.length)} label="Organisations in the public directory" source="Each entry checked against a public presence, contact and coverage area" />
+            <Stat value="Free" label="For verified animal-welfare organisations" source="Verification protects operational animal records; it is not a paid gate" />
           </div>
         </div>
       </Band>
 
-      <Band
-        tone="bone"
-        kicker="GETTING STARTED"
-        title="Look first."
-        accent="Apply if it fits."
-      >
-        <p className="mk-body">
-          Browse the workspace without an account and see exactly what your
-          team would be working in. Records stay empty until a verified
-          organisation signs in.
-        </p>
+      <Band tone="bone" kicker="GETTING STARTED" title="See the evidence." accent="Then bring your records.">
+        <p className="mk-body">The public map, animal profiles, care and outcomes are open to inspect. The NGO workspace is private because it contains operational records, imports, follow-ups and team activity.</p>
         <Steps
           items={[
-            { n: "01", title: "Look around", body: "Open the workspace and walk through cases, animals, field ops and medical." },
-            { n: "02", title: "Apply", body: "Tell us who you are and what area you cover. We review every application personally." },
-            { n: "03", title: "Bring your records", body: "Paper registers and WhatsApp logs can be imported, that is how most organisations arrive." },
+            { n: "01", title: "See the public side", body: "Look at the map, animal histories, care records and outcomes to understand how field work becomes traceable evidence." },
+            { n: "02", title: "Apply", body: "Tell us who you are and what area you cover. Verified organisations receive workspace access." },
+            { n: "03", title: "Bring your records", body: "Inside the workspace, upload the spreadsheets and registers you already use. StrayPaw maps their sheets before anything is staged." },
           ]}
         />
       </Band>
