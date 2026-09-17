@@ -75,6 +75,14 @@ function normalizedFrom(meta: any): NormalizedSource | null {
   return value && typeof value === "object" ? value as NormalizedSource : null;
 }
 
+function sourceKey(batchId: string | null | undefined, fingerprint: string | null | undefined) {
+  return batchId && fingerprint ? `${batchId}:${fingerprint}` : null;
+}
+
+function metadataKey(meta: any) {
+  return sourceKey(meta?.import_batch_id, meta?.row_fingerprint);
+}
+
 function recordFrom(meta: any, provenance: string, fallbackId: string): StandardAnimalRecord | null {
   const n = normalizedFrom(meta);
   if (!n?.classification) return null;
@@ -101,18 +109,57 @@ function recordFrom(meta: any, provenance: string, fallbackId: string): Standard
   };
 }
 
+/**
+ * The raw workbook classifier is provenance, not final medical truth. Older
+ * rows could be labelled vaccination even when the native import/backfill
+ * correctly resolved them into a rescue case or non-vaccine treatment. For
+ * profile display, preserve the source row but prefer the native domain facts
+ * created from it so the care summary cannot repeat a known false-positive.
+ */
+function canonicalizeImportRow(row: any, caseCategoryBySource: Map<string, string>, medicalKindsBySource: Map<string, Set<string>>) {
+  const normalized = { ...(row.normalized ?? {}) } as NormalizedSource;
+  if (normalized.classification !== "vaccination") return normalized;
+
+  const key = sourceKey(row.batch_id, normalized.fingerprint);
+  if (!key) return normalized;
+  const medicalKinds = medicalKindsBySource.get(key);
+  if (medicalKinds?.has("vaccination")) return normalized;
+
+  const caseCategory = caseCategoryBySource.get(key);
+  if (caseCategory === "vaccination") return normalized;
+  if (caseCategory === "sterilisation") return { ...normalized, classification: "sterilisation" };
+  if (caseCategory) return { ...normalized, classification: "rescue" };
+  if (medicalKinds?.has("sterilisation")) return { ...normalized, classification: "sterilisation" };
+  if (medicalKinds && medicalKinds.size > 0) return { ...normalized, classification: "treatment" };
+  return normalized;
+}
+
 export async function getProfileOperationalRecord(dogId: string): Promise<ProfileOperationalRecord> {
   const supa = getSupabaseAdmin();
   if (!supa) return { imported: [], medical: [], followUps: [], timeline: [] };
 
   const [dogRes, casesRes, medicalRes, followRes, timelineRes, importRowsRes] = await Promise.all([
     supa.from("dogs").select("id,source_metadata,provenance").eq("id", dogId).maybeSingle(),
-    supa.from("cases").select("id,source_metadata,created_at").eq("dog_id", dogId),
+    supa.from("cases").select("id,category,source_metadata,created_at").eq("dog_id", dogId),
     supa.from("medical_events").select("id,kind,event_date,notes,performed_by,source_metadata").eq("dog_id", dogId).order("event_date", { ascending: false }),
     supa.from("animal_followups").select("id,due_at,kind,note,source_metadata").eq("dog_id", dogId).order("due_at", { ascending: false }),
     supa.from("animal_timeline_events").select("id,event_type,title,details,occurred_at,provenance,source_ref").eq("dog_id", dogId).order("occurred_at", { ascending: false }),
-    supa.from("import_rows").select("id,normalized,decision,error").eq("imported_dog_id", dogId),
+    supa.from("import_rows").select("id,batch_id,normalized,decision,error").eq("imported_dog_id", dogId),
   ]);
+
+  const caseCategoryBySource = new Map<string, string>();
+  for (const row of casesRes.data ?? []) {
+    const key = metadataKey(row.source_metadata);
+    if (key && row.category) caseCategoryBySource.set(key, row.category);
+  }
+  const medicalKindsBySource = new Map<string, Set<string>>();
+  for (const row of medicalRes.data ?? []) {
+    const key = metadataKey(row.source_metadata);
+    if (!key) continue;
+    const kinds = medicalKindsBySource.get(key) ?? new Set<string>();
+    kinds.add(row.kind);
+    medicalKindsBySource.set(key, kinds);
+  }
 
   const imported = new Map<string, StandardAnimalRecord>();
   const add = (meta: any, provenance: string, fallbackId: string) => {
@@ -122,7 +169,9 @@ export async function getProfileOperationalRecord(dogId: string): Promise<Profil
     if (!imported.has(key)) imported.set(key, record);
   };
 
-  for (const row of importRowsRes.data ?? []) add({ normalized: row.normalized }, "import_row", `import:${row.id}`);
+  for (const row of importRowsRes.data ?? []) {
+    add({ normalized: canonicalizeImportRow(row, caseCategoryBySource, medicalKindsBySource) }, "import_row", `import:${row.id}`);
+  }
   if (dogRes.data) add(dogRes.data.source_metadata, dogRes.data.provenance ?? "animal", `dog:${dogId}`);
   for (const row of casesRes.data ?? []) add(row.source_metadata, "case", `case:${row.id}`);
   for (const row of medicalRes.data ?? []) add(row.source_metadata, "medical", `medical:${row.id}`);
