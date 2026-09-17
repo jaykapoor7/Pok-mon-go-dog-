@@ -1,5 +1,6 @@
 import { PartnerOverview } from "@/components/partner/PartnerOverview";
 import { HistoricalImpactStrip } from "@/components/partner/HistoricalImpactStrip";
+import { OperationalInsights } from "@/components/partner/OperationalInsights";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Today, StrayPaw Partner" };
@@ -7,5 +8,5 @@ export const metadata = { title: "Today, StrayPaw Partner" };
 /* All organisation data loads client-side through the authenticated Supabase
    session and RLS. Nothing private is rendered into signed-out HTML. */
 export default function PartnerOverviewPage() {
-  return <><HistoricalImpactStrip /><PartnerOverview /></>;
+  return <><HistoricalImpactStrip /><PartnerOverview /><OperationalInsights /></>;
 }
