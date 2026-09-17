@@ -38,3 +38,32 @@ where c.public_visibility in ('summary', 'public')
 group by c.id, n.id;
 
 grant select on public_programme_cards to anon, authenticated;
+
+-- Community case stories. This is deliberately narrower than the private
+-- NGO case table: no reporter details, phone numbers, exact coordinates,
+-- raw descriptions, costs, assignments or private medical notes. It exposes
+-- just enough to browse rescue/completion records and then open the already
+-- public animal profile for the full longitudinal story.
+create or replace view public_case_stories as
+select
+  c.id,
+  c.dog_id,
+  c.ngo_id,
+  n.name as ngo_name,
+  c.category::text as category,
+  c.status::text as status,
+  c.title,
+  coalesce(nullif(c.zone, ''), d.zone) as zone,
+  coalesce(c.source_event_at, c.created_at) as occurred_at,
+  c.resolved_at,
+  c.resolution::text as outcome,
+  d.name as animal_name,
+  d.code as animal_code,
+  d.species,
+  d.cover_photo
+from cases c
+left join ngos n on n.id = c.ngo_id
+join dogs d on d.id = c.dog_id
+where c.dog_id is not null;
+
+grant select on public_case_stories to anon, authenticated;
