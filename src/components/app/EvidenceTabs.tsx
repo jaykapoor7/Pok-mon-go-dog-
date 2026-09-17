@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 
 const VIEWS = [
   { href: "/evidence", label: "Coverage" },
-  { href: "/studies", label: "Published studies" },
-  { href: "/interventions", label: "Interventions" },
+  { href: "/programmes", label: "Programmes" },
+  { href: "/outcomes", label: "Outcomes" },
 ];
 
 export function EvidenceTabs() {
