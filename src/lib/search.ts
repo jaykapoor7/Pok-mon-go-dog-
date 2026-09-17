@@ -1,5 +1,5 @@
 import { CITIES } from "@/lib/delhi";
-import { STATES, STATE_BY_CODE } from "@/lib/platform/geography";
+import { STATES, STATE_BY_CODE, STATE_CENTROIDS } from "@/lib/platform/geography";
 import { ORGS } from "@/lib/platform/orgs";
 import { CITY_COORDS, coordsForCity } from "@/lib/platform/city-coords";
 import { searchPlaces, type PlaceHit } from "@/lib/wards";
@@ -32,7 +32,15 @@ export function search(query: string, limit = 8): SearchHit[] {
   };
 
   for (const c of CITIES) consider({ kind: "place", label: c.name, detail: "Jump the map here", href: `/map?lat=${c.lat}&lng=${c.lng}` }, c.name, 0);
-  for (const st of STATES) consider({ kind: "state", label: st.name, detail: "Open this area on the network", href: `/gaps?state=${encodeURIComponent(st.code)}` }, st.name, 2);
+  for (const st of STATES) {
+    const at = STATE_CENTROIDS[st.code];
+    consider({
+      kind: "state",
+      label: st.name,
+      detail: "Open this state on the animal map",
+      href: at ? `/map?lat=${at.lat}&lng=${at.lng}&area=${encodeURIComponent(st.name)}` : "/map",
+    }, st.name, 2);
+  }
 
   const seenCity = new Set(CITIES.map((c) => norm(c.name)));
   for (const [name, at] of Object.entries(CITY_COORDS)) {
