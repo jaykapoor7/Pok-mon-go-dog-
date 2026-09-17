@@ -12,6 +12,8 @@ export type PublicProgramme = {
   ngo_slug: string | null;
   city: string | null;
   state: string | null;
+  source_rows_count: number;
+  traceable_animals_recorded: number;
   animals_recorded: number;
   sterilised_recorded: number;
   vaccinated_recorded: number;
@@ -35,40 +37,33 @@ export function programmePrimaryTotal(programme: PublicProgramme) {
   return programme.animals_recorded;
 }
 
-/** Historical register summaries can contain a verified resolved/closed count
- * even when animal-profile status was never rewritten. Keep that figure
- * separate from the programme's row count rather than guessing from dogs. */
 export function programmeCompletedTotal(programme: PublicProgramme) {
   const summary = programme.public_summary ?? "";
   const match = summary.match(/([\d,]+)\s+(?:carry|have)\s+(?:a\s+)?closed or resolved outcome/i);
   return match ? Number(match[1].replace(/,/g, "")) : 0;
 }
 
+function normalise(row:any):PublicProgramme {
+  return {
+    ...row,
+    source_rows_count:Number(row.source_rows_count??0),
+    traceable_animals_recorded:Number(row.traceable_animals_recorded??0),
+    animals_recorded:Number(row.animals_recorded??0),
+    sterilised_recorded:Number(row.sterilised_recorded??0),
+    vaccinated_recorded:Number(row.vaccinated_recorded??0),
+  };
+}
+
 export async function getPublicProgrammes(limit = 100): Promise<PublicProgramme[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data } = await supa
-    .from("public_programme_cards")
-    .select("*")
-    .order("ends_on", { ascending: false, nullsFirst: false })
-    .limit(limit);
-  return (data ?? []).map((row: any) => ({
-    ...row,
-    animals_recorded: Number(row.animals_recorded ?? 0),
-    sterilised_recorded: Number(row.sterilised_recorded ?? 0),
-    vaccinated_recorded: Number(row.vaccinated_recorded ?? 0),
-  }));
+  const { data } = await supa.from("public_programme_cards").select("*").order("ends_on", { ascending: false, nullsFirst: false }).limit(limit);
+  return (data ?? []).map(normalise);
 }
 
 export async function getPublicProgramme(id: string): Promise<PublicProgramme | null> {
   const supa = getSupabase();
   if (!supa) return null;
   const { data } = await supa.from("public_programme_cards").select("*").eq("id", id).maybeSingle();
-  if (!data) return null;
-  return {
-    ...(data as any),
-    animals_recorded: Number((data as any).animals_recorded ?? 0),
-    sterilised_recorded: Number((data as any).sterilised_recorded ?? 0),
-    vaccinated_recorded: Number((data as any).vaccinated_recorded ?? 0),
-  };
+  return data ? normalise(data) : null;
 }
