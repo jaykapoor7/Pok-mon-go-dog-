@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { FieldMapPreview } from "@/components/site/FieldMapPreview";
@@ -10,36 +10,21 @@ import { located } from "@/lib/geo/cluster";
 import { markerMetaFor } from "@/lib/marker-state";
 import { dogLabel, timeAgo } from "@/lib/utils";
 import type { Dog, Sighting } from "@/lib/types";
-import { publishedTotals } from "@/lib/dataset";
-import { programmeCategory, programmeCompletedTotal, programmePrimaryTotal, type PublicProgramme } from "@/lib/public-programmes";
 
 const RADIUS_KM = 12;
 function distanceKm(a:{lat:number;lng:number},b:{lat:number;lng:number}){const r=(v:number)=>v*Math.PI/180,e=6371,dLat=r(b.lat-a.lat),dLng=r(b.lng-a.lng),x=Math.sin(dLat/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLng/2)**2;return e*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-function EvidenceRow({href,title,count,detail}:{href:string;title:string;count:number;detail:string}){return <Link href={href} className="grid gap-2 border-b border-black/[.08] py-4 transition hover:bg-black/[.02] sm:grid-cols-[220px_90px_minmax(0,1fr)_20px] sm:items-center"><b className="text-sm">{title}</b><strong className="text-2xl tabular-nums">{count.toLocaleString()}</strong><span className="text-xs leading-relaxed opacity-70">{detail}</span><ArrowUpRight size={15}/></Link>}
 
-export function CommunityHome({dogs,sightings:_sightings,programmes,organisationCount}:{dogs:Dog[];sightings:Sighting[];programmes:PublicProgramme[];organisationCount:number}){
- const [location,setLocation]=useState<{lat:number;lng:number}|null>(null),[locating,setLocating]=useState(false),[locationError,setLocationError]=useState<string|null>(null),[surveyCount,setSurveyCount]=useState(0);
- useEffect(()=>{publishedTotals().then(t=>setSurveyCount(t?.surveys??0)).catch(()=>setSurveyCount(0))},[]);
+export function CommunityHome({dogs,sightings:_sightings}:{dogs:Dog[];sightings:Sighting[]}){
+ const [location,setLocation]=useState<{lat:number;lng:number}|null>(null),[locating,setLocating]=useState(false),[locationError,setLocationError]=useState<string|null>(null);
  const inView=useMemo(()=>{const rows=located(dogs);return location?rows.filter(d=>distanceKm(location,d)<=RADIUS_KM):rows},[dogs,location]);
  const register=useMemo(()=>[...inView].sort((a,b)=>+new Date(b.last_seen)-+new Date(a.last_seen)),[inView]);
  const stats=useMemo(()=>{const scope=location?inView:dogs;return{recorded:scope.length,needsHelp:scope.filter(d=>d.needs_help).length}},[dogs,inView,location]);
- const work=useMemo(()=>{
-  const by=(category:ReturnType<typeof programmeCategory>)=>programmes.filter(p=>programmeCategory(p)===category);
-  const sum=(rows:PublicProgramme[])=>rows.reduce((n,p)=>n+programmePrimaryTotal(p),0);
-  return{
-   completed:programmes.reduce((n,p)=>n+programmeCompletedTotal(p),0),
-   vaccination:sum(by("vaccination")),
-   sterilisation:sum(by("sterilisation")),
-   treatment:sum(by("treatment")),
-   programmes:programmes.length,
-  };
- },[programmes]);
  function findMe(){if(!navigator.geolocation){setLocationError("This browser cannot share a location.");return}setLocating(true);navigator.geolocation.getCurrentPosition(({coords})=>{setLocation({lat:coords.latitude,lng:coords.longitude});setLocating(false);setLocationError(null)},()=>{setLocationError("We could not get your location. The shared register still works.");setLocating(false)},{timeout:10000,maximumAge:300000})}
  return <div className="community-home">
-  <header className="community-command-header"><div><span className="product-kicker">Community record</span><h1>{location?<>Your street, <em>on the record.</em></>:<>Animals and work, <em>on the record.</em></>}</h1><p>{location?`Public records within about ${RADIUS_KM} km. Locations are deliberately approximate.`:"Find animals and inspect documented NGO work. Use your location to narrow the animal register."}</p></div><div className="community-command-actions"><button type="button" onClick={findMe} disabled={locating} className="community-relocate"><Crosshair size={15}/>{locating?"Finding you":location?"Refresh location":"Use my location"}</button><Link className="product-primary" href="/report"><Plus size={18}/>Report an animal</Link></div></header>
+  <header className="community-command-header"><div><span className="product-kicker">Community record</span><h1>{location?<>Your street, <em>on the record.</em></>:<>Animals and work, <em>on the record.</em></>}</h1><p>{location?`Public records within about ${RADIUS_KM} km. Locations are deliberately approximate.`:"Find an animal, follow its story, or report one that is missing from the record."}</p></div><div className="community-command-actions"><button type="button" onClick={findMe} disabled={locating} className="community-relocate"><Crosshair size={15}/>{locating?"Finding you":location?"Refresh location":"Use my location"}</button><Link className="product-primary" href="/report"><Plus size={18}/>Report an animal</Link></div></header>
   {locationError&&<p role="status" className="community-location-error">{locationError}</p>}
   <section className="community-field-surface" aria-label="Public animal register"><div className="community-map"><FieldMapPreview dogs={inView} center={location} place={location?"Around you":"Across India"}/>{!inView.length&&<div className="community-local-empty"><MapPin size={17}/><span><b>No record here yet.</b> A photograph and place are enough.</span><Link href="/report">Report one <ArrowUpRight size={14}/></Link></div>}</div><aside className="community-journal"><div className="community-signal-line"><div><b>{stats.recorded}</b><span>animals recorded</span></div><div><b className={stats.needsHelp?"urgent":undefined}>{stats.needsHelp}</b><span>need attention</span></div></div><div className="community-journal-heading"><div><span className="product-kicker">Animal register</span><h2>Find an animal</h2></div><Link href="/map">Open map <ArrowUpRight size={16}/></Link></div>{register.length?<ul className="community-register">{register.slice(0,8).map(d=>{const meta=markerMetaFor(d);return <li key={d.id}><Link href={`/dog/${d.id}`}><DogPhoto src={d.cover_photo} alt="" seed={d.id} className="community-register-photo"/><span className="community-register-who"><b>{dogLabel(d)}</b><small>{d.zone||"Location recorded"}</small></span><span className="community-register-state"><span><i style={{background:meta.color}} aria-hidden/>{meta.label}</span><em>{timeAgo(d.last_seen)}</em></span></Link></li>})}</ul>:<p className="community-register-empty">No animals in this part of the register yet.</p>}<Link href="/map" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">Search all animals <ArrowUpRight size={15}/></Link></aside></section>
-  <section className="mt-10" aria-labelledby="evidence"><div className="mb-2"><span className="product-kicker">Documented NGO work</span><h2 id="evidence" className="mt-1 text-xl font-semibold">Open the records behind the work</h2><p className="mt-1 text-sm opacity-70">Each total comes from the evidence layer it describes: outcomes, programme registers, published surveys or the organisation directory.</p></div><div className="border-t border-black/[.09]"><EvidenceRow href="/outcomes" title="Completed cases" count={work.completed} detail="Closed or resolved outcomes documented in published historical registers."/><EvidenceRow href="/programmes?kind=vaccination" title="Rabies / vaccination" count={work.vaccination} detail="Explicit published vaccination and ARV records."/><EvidenceRow href="/programmes?kind=sterilisation" title="ABC / sterilisation" count={work.sterilisation} detail="Published sterilisation records and programme work."/><EvidenceRow href="/programmes?kind=treatment" title="Rescue & treatment" count={work.treatment} detail="Published rescue, treatment, TVT and care registers."/><EvidenceRow href="/programmes" title="Programmes & registers" count={work.programmes} detail="Browse the named field programmes and historical registers behind these totals."/><EvidenceRow href="/data" title="Studies & surveys" count={surveyCount} detail="Published census, survey and structured field-study datasets."/><EvidenceRow href="/orgs" title="Organisation directory" count={organisationCount} detail="Browse the organisations listed across the StrayPaw network."/></div></section>
+  <section className="mt-9 border-y border-black/[.09] py-5"><div className="flex flex-wrap items-center justify-between gap-4"><div><span className="product-kicker">Field stories</span><h2 className="mt-1 text-xl font-semibold">Follow what happened after an animal was reported.</h2><p className="mt-1 max-w-2xl text-sm opacity-65">Rescues, completed cases and the chronological field timeline now live in three focused community views instead of a directory of programme links.</p></div><div className="flex flex-wrap gap-2"><Link href="/rescues" className="rounded-full border border-black/[.1] px-4 py-2 text-sm font-semibold">Rescues</Link><Link href="/outcomes" className="rounded-full border border-black/[.1] px-4 py-2 text-sm font-semibold">Completed</Link><Link href="/timeline" className="rounded-full border border-black/[.1] px-4 py-2 text-sm font-semibold">Timeline</Link></div></div></section>
   <div className="community-feedback"><p><b>Something not working, or missing?</b> Report it and we will look into it.</p><FeedbackButton label="Send feedback"/></div>
  </div>
 }
