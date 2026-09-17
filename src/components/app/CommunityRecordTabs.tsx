@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/rescues", label: "Rescues" },
-  { href: "/outcomes", label: "Completed" },
-  { href: "/timeline", label: "Timeline" },
+  { href: "/care", label: "Care" },
+  { href: "/outcomes", label: "Outcomes" },
 ];
 
 export function CommunityRecordTabs() {
