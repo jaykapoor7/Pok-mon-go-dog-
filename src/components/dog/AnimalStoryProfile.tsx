@@ -38,6 +38,15 @@ const label = (value: string) => LABELS[value] ?? value.replace(/^import:/, "").
 const when = (value: string | null | undefined) => value ? formatDate(value) : "Date not recorded";
 function firstValue<T>(rows: StandardAnimalRecord[], pick: (row: StandardAnimalRecord) => T | null | undefined) { for (const row of rows) { const v = pick(row); if (v !== null && v !== undefined && String(v).trim()) return v; } return null; }
 function sourceDetail(row: StandardAnimalRecord) { return [row.condition, row.caseDetail, row.treatmentUpdate, row.rescuePlan, row.review].filter((v): v is string => Boolean(v?.trim())).join(" · "); }
+function followState(status: string | null, dueAt: string | null, completedAt: string | null) {
+  const s = String(status ?? "").toLowerCase();
+  if (completedAt || /done|completed/.test(s)) return "Completed";
+  if (/missed/.test(s)) return "Missed";
+  if (/postponed|rescheduled/.test(s)) return "Postponed";
+  if (/cancelled|canceled/.test(s)) return "Cancelled";
+  if (dueAt && +new Date(dueAt) < Date.now()) return "Overdue";
+  return "Due";
+}
 
 type JourneyEvent = { id: string; date: string | null; type: string; title: string; detail: string | null; href?: string | null };
 
@@ -61,7 +70,10 @@ export function AnimalStoryProfile({ profile, cases, operational, identity }: { 
   const journey: JourneyEvent[] = [
     ...cases.map((row) => ({ id: `case-${row.id}`, date: row.source_event_at || row.created_at, type: "rescue", title: row.title || row.condition_text || "Rescue case", detail: row.description || row.condition_text || null, href: `/cases/${row.id}` })),
     ...operational.medical.map((row) => ({ id: `medical-${row.id}`, date: row.eventDate, type: row.kind, title: label(row.kind), detail: row.notes })),
-    ...operational.followUps.map((row) => ({ id: `follow-${row.id}`, date: row.dueAt, type: "follow_up", title: label(row.kind || "follow_up"), detail: row.note })),
+    ...operational.followUps.map((row) => {
+      const state = followState(row.status, row.dueAt, row.completedAt);
+      return { id: `follow-${row.id}`, date: row.completedAt || row.dueAt, type: "follow_up", title: `${label(row.kind || "follow_up")} · ${state}`, detail: row.note };
+    }),
     ...operational.timeline.map((row) => ({ id: `timeline-${row.id}`, date: row.occurredAt, type: row.eventType, title: row.title, detail: row.details })),
   ].filter((row) => row.date).sort((a, b) => +new Date(a.date || 0) - +new Date(b.date || 0));
 
@@ -69,6 +81,8 @@ export function AnimalStoryProfile({ profile, cases, operational, identity }: { 
   const firstStory = journey[0];
   const lastStory = journey[journey.length - 1];
   const statusLabel = activeCases.length ? "Rescue in progress" : completedCases.length ? "Completed journey" : dog.needs_help ? "Needs attention" : "Recorded animal";
+  const completedFollowups = operational.followUps.filter((row) => Boolean(row.completedAt) || /done|completed/i.test(String(row.status))).length;
+  const pendingFollowups = operational.followUps.length - completedFollowups;
 
   return <main className="min-h-screen bg-[#f7f5ef] text-[#0b1e3d]"><div className="mx-auto max-w-5xl px-4 pb-20 pt-6 sm:px-6">
     <header className="grid overflow-hidden rounded-2xl border border-black/[.08] bg-white md:grid-cols-[340px_1fr]">
@@ -91,7 +105,7 @@ export function AnimalStoryProfile({ profile, cases, operational, identity }: { 
       <Stat label="First record" value={firstStory ? when(firstStory.date) : when(dog.first_seen)} />
       <Stat label="Rescue cases" value={String(cases.length)} />
       <Stat label="Care events" value={String(operational.medical.length)} />
-      <Stat label="Follow-ups" value={String(operational.followUps.length)} />
+      <Stat label="Follow-ups" value={operational.followUps.length ? `${completedFollowups} done · ${pendingFollowups} remaining` : "0"} />
     </section>
 
     <section className="mt-10">
