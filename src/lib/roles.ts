@@ -1,42 +1,32 @@
 /* ════════════════════════════════════════════════════════════════════
    Who is using StrayPaw.
 
-   Several audiences share one console but arrive wanting different things,
-   so the role decides what gets surfaced first, not what is permitted.
-   Permission is a separate question, answered by NGO membership, and it
-   only ever gates *writing*: every read surface stays open.
+   The product currently has two entry modes: community and organisation.
+   Older feeder / educator / funder experiments remain described below so
+   their route work is not destroyed, but they are intentionally not valid
+   stored roles until those workflows earn their way back into the product.
    ════════════════════════════════════════════════════════════════════ */
 
 export type Role = "individual" | "feeder" | "educator" | "ngo" | "funder";
 
-export const ROLES: Role[] = ["individual", "feeder", "educator", "ngo", "funder"];
+export const ROLES: Role[] = ["individual", "ngo"];
 
 export const ROLE_META: Record<
   Role,
   {
-    /** How this role is offered in the picker: what you came here to do. */
     label: string;
-    /** One word for the chip in the side nav, where a sentence will not fit. */
     short: string;
     blurb: string;
-    /** Where this role lands after choosing. */
     home: string;
-    /** Console routes hoisted to the top of the sidebar for this role. */
     priority: string[];
-    /** The application route this role starts from, if any. */
     apply: string | null;
     applyLabel: string | null;
   }
 > = {
   individual: {
-    label: "I want to report an animal",
-    short: "Resident",
-    blurb:
-      "You see street animals where you live and want to report one, follow what happens to it, or help out.",
-    /* The neighbourhood home, not the raw map. /app is the one screen that
-       shows somebody what is happening near them and what to do next;
-       sending a new member to /map drops them on a tool with no context,
-       which is what made the tour's last button feel like it had failed. */
+    label: "I want to report or follow street animals",
+    short: "Community",
+    blurb: "Report an animal, follow what happens to it, and use the shared map without joining an organisation.",
     home: "/app",
     priority: ["/app", "/map", "/report", "/following"],
     apply: null,
@@ -45,42 +35,38 @@ export const ROLE_META: Record<
   feeder: {
     label: "I care for dogs in my area",
     short: "Feeder",
-    blurb:
-      "You know a group of street dogs well and want their feeding zone, sightings, and care status to stay together.",
-    home: "/feeder",
-    priority: ["/feeder", "/map", "/report", "/following"],
+    blurb: "Experimental role currently folded into Community.",
+    home: "/app",
+    priority: ["/app", "/map", "/report", "/following"],
     apply: null,
     applyLabel: null,
   },
   educator: {
     label: "I teach",
     short: "Educator",
-    blurb:
-      "You take a class, a club or a session, and you want the street animals in your own locality to be the material rather than an abstraction.",
-    home: "/education",
-    priority: ["/education", "/learn", "/map", "/report"],
+    blurb: "Experimental role currently folded into Community.",
+    home: "/app",
+    priority: ["/app", "/map", "/report"],
     apply: null,
     applyLabel: null,
   },
   ngo: {
     label: "I work at an organisation",
     short: "Organisation",
-    blurb:
-      "You run field work: ABC drives, vaccination, rescue, feeding. You need the records to hold together.",
+    blurb: "Run field work, keep animal records together, and turn operational data into evidence.",
     home: "/partner",
-    priority: ["/partner", "/partner/incoming", "/partner/drives", "/partner/cases"],
+    priority: ["/partner", "/partner/cases", "/partner/records", "/partner/drives"],
     apply: "/partner-apply",
     applyLabel: "Apply to partner",
   },
   funder: {
     label: "I fund this work",
     short: "Funder",
-    blurb:
-      "You are placing CSR or grant money and need a programme that is scoped, costed and measurable.",
-    home: "/what-would-it-take",
-    priority: ["/what-would-it-take", "/gaps", "/outcomes", "/studies"],
-    apply: "/contact?subject=Fund%20a%20programme",
-    applyLabel: "Start a funding conversation",
+    blurb: "Experimental role currently folded into the public evidence layer.",
+    home: "/app",
+    priority: ["/app", "/map", "/outcomes", "/programmes"],
+    apply: null,
+    applyLabel: null,
   },
 };
 
@@ -90,15 +76,12 @@ export function isRole(v: unknown): v is Role {
   return typeof v === "string" && (ROLES as string[]).includes(v);
 }
 
-/** Reads the stored role. Returns null when nothing has been chosen yet. */
 export function readStoredRole(): Role | null {
   if (typeof window === "undefined") return null;
   try {
     const v = window.localStorage.getItem(ROLE_KEY);
     return isRole(v) ? v : null;
   } catch {
-    // Private mode and blocked site-data both throw here; no stored role is
-    // a perfectly good answer, so fall through rather than breaking render.
     return null;
   }
 }
@@ -107,6 +90,6 @@ export function storeRole(role: Role) {
   try {
     window.localStorage.setItem(ROLE_KEY, role);
   } catch {
-    /* nothing to do, the picker just reappears next visit */
+    /* The role picker can reappear next visit. */
   }
 }
