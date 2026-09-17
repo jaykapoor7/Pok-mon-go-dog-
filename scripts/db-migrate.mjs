@@ -2,20 +2,8 @@
 // ─────────────────────────────────────────────────────────────
 // Run StrayPaw's SQL files against a Postgres database, in order.
 //
-// The Supabase SQL editor works, but it is one paste per file, it gives no
-// running order, and a file that fails halfway leaves you guessing what
-// applied. Seven pastes is also seven chances to run them out of order,
-// which is how most of the migration failures on this project happened.
-//
 // Usage:
 //   DATABASE_URL=postgresql://... node scripts/db-migrate.mjs pilot
-//
-// The connection string is Supabase → Project Settings → Database →
-// Connection string → URI. Use the session pooler or direct connection;
-// the transaction pooler (port 6543) cannot run DDL reliably.
-//
-// Sets are declared below rather than globbed, because order matters and a
-// directory listing does not know that.
 // ─────────────────────────────────────────────────────────────
 
 import { readFileSync, existsSync } from "node:fs";
@@ -27,20 +15,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const sql = (f) => join(root, "supabase", f);
 
 const SETS = {
-  /* Everything, on an empty project. */
-  all: ["RUN-ALL-MIGRATIONS.sql", "RUN-PILOT-MIGRATIONS.sql", ...districts(), "wards-chennai.sql"],
-  /* The pilot layer on a project that already has the base schema. */
-  pilot: ["RUN-PILOT-MIGRATIONS.sql", ...districts(), "wards-chennai.sql"],
-  /* Just the density map: rebuilds the wards table, then reloads it. */
+  all: ["RUN-ALL-MIGRATIONS.sql", "RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", ...districts(), "wards-chennai.sql"],
+  pilot: ["RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", ...districts(), "wards-chennai.sql"],
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
-  /* A narrowly scoped live update for personal community/feeder access. */
   personal: ["personal-access-codes.sql"],
-  /* The twenty photographed Delhi animals. Its own set, not part of `all`,
-     because it is content rather than structure: running the schema again
-     should not quietly re-seed records somebody may have since edited by
-     hand. Idempotent on fixed ids, so running it twice updates rather than
-     duplicates. Read the header in the file before running it — the
-     photographs are real, the coordinates and timestamps were assigned. */
   delhi: ["seed-delhi-photographs.sql"],
 };
 
@@ -48,8 +26,6 @@ function districts() {
   return [1, 2, 3, 4, 5].map((n) => `districts-india-${n}of5.sql`);
 }
 
-/* .env.local is where Next keeps these already, so read it rather than
-   asking the user to export the same value a second time. */
 function fromEnvFile(key) {
   const p = join(root, ".env.local");
   if (!existsSync(p)) return null;
@@ -66,11 +42,6 @@ if (!files) {
   process.exit(1);
 }
 
-/* The direct `db.<project>.supabase.co:5432` endpoint is IPv6-first. GitHub
-   hosted runners do not have an IPv6 route, so migrations must prefer the
-   Supabase Session Pooler (the IPv4-compatible URI from Connect → Session
-   pooler). Keep DATABASE_URL as a fallback for local development and for
-   self-hosted databases. */
 const url =
   process.env.SUPABASE_POOLER_URL ??
   process.env.DATABASE_URL ??
@@ -92,10 +63,6 @@ if (missing.length) {
   process.exit(1);
 }
 
-/* The bundle is generated from the parts. Running a stale one is how a fix
-   that exists in the repository fails in the database, which has happened
-   twice on this project — so it is checked before anything connects rather
-   than discovered afterwards. */
 if (files.includes("RUN-PILOT-MIGRATIONS.sql")) {
   const { execFileSync } = await import("node:child_process");
   try {
@@ -113,10 +80,7 @@ if (files.includes("RUN-PILOT-MIGRATIONS.sql")) {
 
 const client = new pg.Client({
   connectionString: url,
-  /* Supabase terminates TLS with its own CA. Verification here would need
-     their root bundle shipped alongside; the connection is still encrypted. */
   ssl: url.includes("localhost") || url.includes("127.0.0.1") ? false : { rejectUnauthorized: false },
-  /* Loading 641 district polygons is a slow single statement. */
   statement_timeout: 0,
 });
 
@@ -144,8 +108,6 @@ for (const file of files) {
     console.log("FAILED");
     console.error(`\n${file} failed:\n  ${err.message}`);
     if (err.position) {
-      /* Point at the offending line rather than a character offset nobody
-         can count to in a 300 KB file. */
       const upto = readFileSync(sql(file), "utf8").slice(0, Number(err.position));
       console.error(`  at line ${upto.split("\n").length}`);
     }
@@ -155,8 +117,6 @@ for (const file of files) {
   }
 }
 
-/* Say what is actually in the database now, so "it ran" and "it worked"
-   are not taken to be the same statement. */
 try {
   const { rows } = await client.query(`
     select
