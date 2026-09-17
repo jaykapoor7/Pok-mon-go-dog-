@@ -30,6 +30,7 @@ export const CONSOLE_GROUPS: {
       { href: "/partner/field", label: "Today" },
       { href: "/partner/incoming", label: "Incoming" },
       { href: "/partner/drives", label: "Drives" },
+      { href: "/partner/projects", label: "Projects" },
       { href: "/partner/operations", label: "Operations" },
       { href: "/partner/feeding", label: "Feeding zones" },
       { href: "/partner/surveys", label: "Surveys" },
