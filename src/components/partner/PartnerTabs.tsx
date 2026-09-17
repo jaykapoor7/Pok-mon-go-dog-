@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+/*
+ * Keep the console navigation about jobs, not tables. Secondary routes still
+ * exist and can be linked contextually, but they do not deserve permanent
+ * tabs just because the backend supports them.
+ */
 export const CONSOLE_GROUPS: {
   id: string;
   label: string;
@@ -16,8 +21,7 @@ export const CONSOLE_GROUPS: {
     tabs: [
       { href: "/partner/animals", label: "Animals" },
       { href: "/partner/cases", label: "Cases" },
-      { href: "/partner/medical", label: "Medical" },
-      { href: "/partner/records", label: "Explorer" },
+      { href: "/partner/records", label: "Search records" },
       { href: "/partner/quality", label: "Data quality" },
       { href: "/partner/import", label: "Import" },
     ],
@@ -28,13 +32,9 @@ export const CONSOLE_GROUPS: {
     root: "/partner/field",
     tabs: [
       { href: "/partner/field", label: "Today" },
-      { href: "/partner/incoming", label: "Incoming" },
       { href: "/partner/drives", label: "Drives" },
       { href: "/partner/projects", label: "Projects" },
       { href: "/partner/operations", label: "Operations" },
-      { href: "/partner/feeding", label: "Feeding zones" },
-      { href: "/partner/surveys", label: "Surveys" },
-      { href: "/partner/reports", label: "Coverage" },
     ],
   },
   {
@@ -44,16 +44,27 @@ export const CONSOLE_GROUPS: {
     tabs: [
       { href: "/partner/team", label: "Team" },
       { href: "/partner/volunteers", label: "Volunteers" },
-      { href: "/partner/fundraising", label: "Fundraising" },
-      { href: "/partner/stories", label: "Stories" },
-      { href: "/partner/resources", label: "Evidence files" },
       { href: "/partner/settings", label: "Settings" },
     ],
   },
 ];
 
 export function groupFor(pathname: string) {
-  return CONSOLE_GROUPS.find((g) => g.tabs.some((t) => pathname === t.href || pathname.startsWith(`${t.href}/`))) ?? null;
+  /* Hidden secondary routes still belong to a workspace, so the shell can
+     navigate back to the right root even when no permanent tab is shown. */
+  const secondary: Record<string, string> = {
+    "/partner/medical": "records",
+    "/partner/incoming": "field",
+    "/partner/feeding": "field",
+    "/partner/surveys": "field",
+    "/partner/fundraising": "org",
+    "/partner/stories": "org",
+    "/partner/resources": "org",
+  };
+  const direct = CONSOLE_GROUPS.find((g) => g.tabs.some((t) => pathname === t.href || pathname.startsWith(`${t.href}/`)));
+  if (direct) return direct;
+  const id = Object.entries(secondary).find(([href]) => pathname === href || pathname.startsWith(`${href}/`))?.[1];
+  return id ? CONSOLE_GROUPS.find((g) => g.id === id) ?? null : null;
 }
 
 export function PartnerTabs() {
