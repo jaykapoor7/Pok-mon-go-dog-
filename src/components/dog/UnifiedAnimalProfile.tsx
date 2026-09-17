@@ -10,6 +10,7 @@ import { AddComment } from "@/components/dog/AddComment";
 import { AnimalDocuments } from "@/components/dog/AnimalDocuments";
 import type { Case, DogProfile } from "@/lib/types";
 import type { ProfileOperationalRecord, StandardAnimalRecord } from "@/lib/animal-profile-record";
+import type { PublicAnimalIdentity } from "@/lib/animal-identity";
 import { dogLabel, formatDate, timeAgo } from "@/lib/utils";
 
 const LABELS:Record<string,string>={rescue:"Rescue",treatment:"Treatment",follow_up:"Follow-up",sterilisation:"Sterilisation",vaccination:"Vaccination",adoption:"Adoption",foster:"Foster",observation:"Observation"};
@@ -19,14 +20,15 @@ const dateOrUnknown=(value:string|null|undefined)=>value?formatDate(value):"Not 
 function firstValue<T>(rows:StandardAnimalRecord[],pick:(row:StandardAnimalRecord)=>T|null|undefined){for(const row of rows){const value=pick(row);if(value!==null&&value!==undefined&&String(value).trim())return value}return null}
 function sourceDetail(row:StandardAnimalRecord){return [row.condition,row.caseDetail,row.treatmentUpdate,row.rescuePlan,row.review].filter((v):v is string=>Boolean(v?.trim())).join(" · ")}
 
-export function UnifiedAnimalProfile({profile,cases,operational}:{profile:DogProfile;cases:Case[];operational:ProfileOperationalRecord}){
+export function UnifiedAnimalProfile({profile,cases,operational,identity}:{profile:DogProfile;cases:Case[];operational:ProfileOperationalRecord;identity:PublicAnimalIdentity|null}){
  const {dog,sightings,comments}=profile;
  const imported=operational.imported;
  const sourceName=dog.ngo_name||(dog.ngo_id?"NGO record":"Community record");
  const sex=firstValue(imported,row=>row.sex);
  const colour=firstValue(imported,row=>row.colour)||dog.color;
  const locality=firstValue(imported,row=>row.locality)||dog.zone;
- const code=firstValue(imported,row=>row.animalCode)||dog.code;
+ const sourceCode=identity?.source_code||firstValue(imported,row=>row.animalCode)||dog.code;
+ const straypawId=identity?.straypaw_id||null;
  const communitySightings=sightings.filter(row=>row.source_kind!=="historic_ngo_record");
  const vaccineEvents=operational.medical.filter(row=>row.kind==="vaccination").length||profile.vaccinations.length;
  const sterilisationEvents=operational.medical.filter(row=>row.kind==="sterilisation").length||profile.sterilisations.length;
@@ -51,12 +53,12 @@ export function UnifiedAnimalProfile({profile,cases,operational}:{profile:DogPro
   <header className="grid overflow-hidden border-y border-black/[.09] bg-white md:grid-cols-[300px_1fr]">
    <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="h-[280px] w-full md:h-full md:min-h-[340px]"/>
    <div className="flex flex-col justify-between p-6 sm:p-8">
-    <div><div className="flex flex-wrap items-center justify-between gap-3"><span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[.12em] opacity-55"><Building2 size={13}/>{sourceName}</span><FollowButton dogId={dog.id}/></div><h1 className="mt-4 text-4xl font-semibold tracking-[-.05em]">{dogLabel(dog)}</h1><p className="mt-3 flex flex-wrap items-center gap-2 text-sm opacity-70"><MapPin size={14}/>{locality||"Location not recorded"}<span>·</span><span className="capitalize">{dog.species||"animal"}</span>{sex&&<><span>·</span><span>{sex}</span></>}</p><p className="mt-5 max-w-2xl text-sm leading-6 opacity-80">{dog.intake_notes||firstValue(imported,row=>row.caseDetail)||firstValue(imported,row=>row.condition)||"No intake note recorded."}</p></div>
-    <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-black/[.08] pt-5"><DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help}/><ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone}/><RecordExportActions name={dogLabel(dog)} animalId={code||dog.id} locality={locality||null} rows={exportRows}/></div>
+    <div><div className="flex flex-wrap items-center justify-between gap-3"><span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[.12em] opacity-55"><Building2 size={13}/>{sourceName}</span><FollowButton dogId={dog.id}/></div><h1 className="mt-4 text-4xl font-semibold tracking-[-.05em]">{dogLabel(dog)}</h1>{straypawId&&<p className="mt-2 font-mono text-xs font-semibold tracking-wide text-[#2457ce]">{straypawId}</p>}<p className="mt-3 flex flex-wrap items-center gap-2 text-sm opacity-70"><MapPin size={14}/>{locality||"Location not recorded"}<span>·</span><span className="capitalize">{dog.species||"animal"}</span>{sex&&<><span>·</span><span>{sex}</span></>}</p><p className="mt-5 max-w-2xl text-sm leading-6 opacity-80">{dog.intake_notes||firstValue(imported,row=>row.caseDetail)||firstValue(imported,row=>row.condition)||"No intake note recorded."}</p></div>
+    <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-black/[.08] pt-5"><DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help}/><ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone}/><RecordExportActions name={dogLabel(dog)} animalId={straypawId||dog.id} locality={locality||null} rows={exportRows}/></div>
    </div>
   </header>
 
-  <section className="mt-9"><SectionHead kicker="Record" title="Animal details"/><div className="mt-3 grid border-t border-black/[.1] sm:grid-cols-2"><Field label="Animal ID" value={code||"Not recorded"}/><Field label="Name" value={dog.name||firstValue(imported,row=>row.animalName)||"Not named"}/><Field label="Sex" value={sex||"Not recorded"}/><Field label="Colour / markings" value={colour||"Not recorded"}/><Field label="Locality" value={locality||"Not recorded"}/><Field label="First recorded" value={dateOrUnknown(dog.first_seen)}/><Field label="Last recorded" value={dateOrUnknown(dog.last_seen)}/><Field label="Current state" value={String(dog.status).replace(/_/g," ")}/></div></section>
+  <section className="mt-9"><SectionHead kicker="Record" title="Animal details"/><div className="mt-3 grid border-t border-black/[.1] sm:grid-cols-2"><Field label="StrayPaw ID" value={straypawId||"Not loaded"}/><Field label="Source / organisation ID" value={sourceCode||"None recorded"}/><Field label="Name" value={dog.name||firstValue(imported,row=>row.animalName)||"Not named"}/><Field label="Sex" value={sex||"Not recorded"}/><Field label="Colour / markings" value={colour||"Not recorded"}/><Field label="Locality" value={locality||"Not recorded"}/><Field label="First recorded" value={dateOrUnknown(dog.first_seen)}/><Field label="Last recorded" value={dateOrUnknown(dog.last_seen)}/><Field label="Current state" value={String(dog.status).replace(/_/g," ")}/></div></section>
 
   <section className="mt-10"><SectionHead kicker="Care" title="What has been done"/><div className="mt-3 border-t border-black/[.1]"><Care label="Cases" value={`${cases.length} recorded`} detail="Open a case below to inspect its full record."/><Care label="Treatment / medical care" value={treatmentEvents?`${treatmentEvents} events`:"No treatment event recorded"}/><Care label="Rabies / vaccination" value={dog.vaccinated||vaccineEvents?"Recorded":"Unknown / not established"} detail={vaccineEvents?`${vaccineEvents} traceable event${vaccineEvents===1?"":"s"}`:undefined}/><Care label="ABC / sterilisation" value={dog.sterilised||sterilisationEvents?"Recorded":"Unknown / not established"} detail={sterilisationEvents?`${sterilisationEvents} traceable event${sterilisationEvents===1?"":"s"}`:undefined}/><Care label="Follow-up / review" value={operational.followUps.length?`${operational.followUps.length} recorded`:"No follow-up recorded"}/><Care label="Outcome" value={outcome}/></div></section>
 
@@ -77,5 +79,5 @@ export function UnifiedAnimalProfile({profile,cases,operational}:{profile:DogPro
 }
 
 function SectionHead({kicker,title}:{kicker:string;title:string}){return <div><span className="text-[11px] font-semibold uppercase tracking-[.14em] opacity-50">{kicker}</span><h2 className="mt-1 text-xl font-semibold tracking-tight">{title}</h2></div>}
-function Field({label,value}:{label:string;value:string}){return <div className="grid grid-cols-[140px_1fr] gap-3 border-b border-black/[.08] py-3 sm:px-2"><span className="text-xs opacity-55">{label}</span><b className="text-sm font-medium capitalize">{value}</b></div>}
+function Field({label,value}:{label:string;value:string}){return <div className="grid grid-cols-[140px_1fr] gap-3 border-b border-black/[.08] py-3 sm:px-2"><span className="text-xs opacity-55">{label}</span><b className="text-sm font-medium">{value}</b></div>}
 function Care({label,value,detail}:{label:string;value:string;detail?:string}){return <div className="grid gap-1 border-b border-black/[.08] py-4 sm:grid-cols-[220px_180px_1fr]"><b className="text-sm">{label}</b><span className="text-sm">{value}</span>{detail?<small className="leading-5 opacity-60">{detail}</small>:<span/>}</div>}
