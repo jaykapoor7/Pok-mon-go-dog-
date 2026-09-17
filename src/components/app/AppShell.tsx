@@ -20,7 +20,6 @@ import {
   CalendarRange,
   Database,
   GraduationCap,
-  Heart,
   LayoutGrid,
   MapPin,
   Plus,
@@ -40,22 +39,18 @@ import { readStoredRole, type Role } from "@/lib/roles";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
+/* Community navigation follows the public story of the work, not the
+   database schema. Map/search/report remain actions inside those surfaces. */
 const COMMUNITY_NAV = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
-  { href: "/map", label: "Map", Icon: MapPin },
-  { href: "/report", label: "Report", Icon: Radio },
-  { href: "/following", label: "Saved animals", Icon: Bookmark },
+  { href: "/rescues", label: "Rescues", Icon: Radio },
+  { href: "/outcomes", label: "Completed", Icon: Database },
+  { href: "/timeline", label: "Timeline", Icon: Waves },
 ];
 
-/* These are useful reference spaces, but they are not the four things a
-   neighbour opens StrayPaw to do. Keeping them visibly grouped preserves
-   access on desktop without presenting a flat, seven-item product menu. */
-const COMMUNITY_REFERENCE_NAV = [
-  { href: "/feed", label: "Recent activity", Icon: Radio },
-  { href: "/education", label: "Education", Icon: GraduationCap },
-  { href: "/orgs", label: "Organisations", Icon: Heart },
-  { href: "/evidence", label: "Evidence", Icon: ScanSearch },
-];
+/* Secondary public resources stay searchable and linkable, but do not earn
+   permanent navigation simply because a route exists. */
+const COMMUNITY_REFERENCE_NAV: { href: string; label: string; Icon: typeof MapPin }[] = [];
 
 /* An educator opens StrayPaw for the material, not the field work, so
    education takes the slot the dashboard would have. The rest is the same
@@ -67,15 +62,13 @@ const EDUCATOR_NAV = [
   { href: "/learn", label: "Learn", Icon: BookOpen },
 ];
 
-/* Four destinations and two actions. Seventeen routes had grown under
-   /partner, five of them reachable only by typing the URL; they are
-   grouped now, and the group is what the rail points at. See
-   PartnerTabs for the grouping itself. */
+/* Pawesome's operational register clarified the real NGO jobs: decide what
+   needs action, work the records, run field work, understand patterns, and
+   manage the team. Cases/animals/maps remain available inside those jobs. */
 const NGO_NAV = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
-  { href: "/partner/cases", label: "Cases", Icon: Radio },
-  { href: "/partner/animals", label: "Animals", Icon: Database },
-  { href: "/partner/map", label: "Map", Icon: MapPin },
+  { href: "/partner/animals", label: "Records", Icon: Database },
+  { href: "/partner/field", label: "Field work", Icon: CalendarRange },
   { href: "/partner/reports", label: "Analytics", Icon: ScanSearch },
   { href: "/partner/team", label: "Team", Icon: Building2 },
 ];
@@ -89,22 +82,14 @@ const FEEDER_NAV = [
 ];
 
 /* ── The phone bar ────────────────────────────────────────────────
-   Written out per role rather than filtered out of the lists above.
-   The filter approach matched labels against a DIFFERENT array, so any
-   name that had moved silently vanished: a resident's bar asked for
-   "Evidence", which lives in the reference list, and rendered three items
-   into a four-column grid with a dead cell on the end.
-
-   Two on each side of Report. Report is the one thing this product exists
-   to collect and the thumb sits in the middle of the screen, so it goes in
-   the middle of the bar rather than last on the right. */
+   Two on each side of Report. Report remains the central action; the four
+   surrounding destinations match the role's actual workflow. */
 const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin }[]> = {
   individual: [
     { href: "/app", label: "Home", Icon: LayoutGrid },
-    { href: "/map", label: "Map", Icon: MapPin },
-    { href: "/following", label: "Saved", Icon: Bookmark },
-    /* Not Radio: that is Report, in the middle of the same bar. */
-    { href: "/feed", label: "Activity", Icon: Waves },
+    { href: "/rescues", label: "Rescues", Icon: Radio },
+    { href: "/outcomes", label: "Completed", Icon: Database },
+    { href: "/timeline", label: "Timeline", Icon: Waves },
   ],
   feeder: [
     { href: "/feeder", label: "My patch", Icon: Utensils },
@@ -113,13 +98,6 @@ const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin
     { href: "/evidence", label: "Evidence", Icon: ScanSearch },
   ],
   educator: [
-    /* Not /education AND /learn. Both sat here, and on a four-slot bar
-       "Education" and "Learn" are two labels a person cannot tell apart.
-       /education is also a signpost rather than a destination: its three
-       steps go to /learn, /map and /report, all of which are already in
-       this bar, so the slot was spent pointing at slots that exist. The
-       reading material is what an educator actually opens, so it stays;
-       the hub is still the role's landing page and is in the drawer. */
     { href: "/learn", label: "Learn", Icon: BookOpen },
     { href: "/map", label: "Map", Icon: MapPin },
     { href: "/following", label: "Saved", Icon: Bookmark },
@@ -128,16 +106,8 @@ const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin
   ngo: [
     { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
     { href: "/partner/animals", label: "Records", Icon: Database },
-    /* Organisation, not Map. Adding people to a team was reachable only
-       from a desktop: the phone bar had no entry for it and no tab bar
-       leads there from the four that were here. The map is still one tap
-       from the dashboard, which carries its own map panel, and from Field
-       work; adding a teammate was not reachable at all. */
     { href: "/partner/field", label: "Field work", Icon: CalendarRange },
-    /* "Team", not "Organisation": a fifth of a 390px screen is 73px, and
-       the longer word was rendering clipped mid-letter. It is also what
-       the page itself is called. */
-    { href: "/partner/team", label: "Team", Icon: Building2 },
+    { href: "/partner/reports", label: "Analytics", Icon: ScanSearch },
   ],
   funder: [
     { href: "/what-would-it-take", label: "Programme", Icon: LayoutGrid },
@@ -178,16 +148,9 @@ export function AppShell({
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
-    /* Enter takes the highlighted result. Pushing the raw text at the map
-       did nothing. It reads lat/lng, not a free-text query. */
     if (hits[cursor]) go(hits[cursor]);
   }
 
-  /* Static answers land on the keystroke; wards and districts are a round
-     trip and arrive after. Merged rather than replaced so the list does not
-     jump under a finger already moving towards a result, and the request is
-     tagged so a slow answer to "che" cannot overwrite the results for
-     "chennai". */
   const searchSeq = useRef(0);
   function onQueryChange(v: string) {
     setQuery(v);
@@ -200,8 +163,6 @@ export function AppShell({
     searchAreas(v)
       .then((areas) => {
         if (seq !== searchSeq.current || !areas.length) return;
-        /* Areas sit under places but above pages: someone typing a ward
-           number wants the ward, someone typing a city wants the city. */
         setHits((prev) => {
           const keep = prev.filter((h) => h.kind !== "ward");
           const head = keep.filter((h) => h.kind === "place" || h.kind === "state");
@@ -225,8 +186,6 @@ export function AppShell({
     }
   }
 
-  /* Read after mount: localStorage is not available during SSR, and reading it
-     during render would desync the server and client markup. */
   useEffect(() => {
     setRole(readStoredRole());
   }, [pathname]);
@@ -236,13 +195,6 @@ export function AppShell({
   const isReporting = pathname.startsWith("/report");
   const isEducator = role === "educator" || pathname.startsWith("/education");
 
-  /* The phone bar follows the PERSON, not the URL. The desktop rail can
-     take its cue from the surface you are standing on, because the rail
-     also carries "Main site" and the role chip. The phone bar is the only
-     navigation a phone has, so when a resident opened a /partner link the
-     URL flipped every one of its four items to an NGO destination and each
-     one went further into /partner. There was no way back out of a console
-     they are not a member of. */
   const phoneRole: Role = role ?? "individual";
   const phoneNav = PHONE_NAV[phoneRole];
   const primaryNav = isNgo
@@ -253,9 +205,6 @@ export function AppShell({
         ? EDUCATOR_NAV
         : COMMUNITY_NAV;
   const referenceNav = !isNgo && !isFeeder && !isEducator ? COMMUNITY_REFERENCE_NAV : [];
-  /* A destination is anywhere in this role's own navigation — the
-     things the bottom bar and the rail point at. Everything else is a
-     screen you were pushed into and needs a way out. */
   const destinations = new Set<string>([
     ...primaryNav.map((n) => n.href),
     ...referenceNav.map((n) => n.href),
@@ -263,7 +212,6 @@ export function AppShell({
   ]);
   const showBack =
     !destinations.has(pathname) &&
-    /* Its own back control steps through the form as well as leaving. */
     !pathname.startsWith("/report") &&
     pathname !== "/";
 
@@ -272,30 +220,13 @@ export function AppShell({
       router.back();
       return;
     }
-    /* No history means a cold link. Land on this role's own home rather
-       than a generic one. */
     router.push(isNgo ? "/partner" : isFeeder ? "/feeder" : isEducator ? "/education" : "/app");
   }
 
-  /* WHY THIS IS NOT startsWith().
-
-     It was, and "/partner/animals".startsWith("/partner") is true — so
-     Dashboard was marked as the current page on every single screen of
-     the console, and the phone bar carried a blue indicator over
-     Dashboard while you were standing in Records. The same trap applies
-     to "/app" and "/map" for anything nested under them.
-
-     An index route matches exactly. A section root matches its own group,
-     which CONSOLE_GROUPS already defines for the tab bars, so the rail
-     and the tabs can never disagree about where you are. Anything else
-     matches a real child path, never a prefix of a sibling's name. */
   const isActive = (href: string) => {
     if (pathname === href) return true;
     const group = groupFor(pathname);
     if (group) return group.root === href;
-    /* Only the CLOSEST ancestor lights up. Without this "/partner/map"
-       also matched "/partner", because a prefix test cannot tell a parent
-       from the index route of the same space. */
     if (!pathname.startsWith(`${href}/`)) return false;
     const candidates = [...primaryNav, ...referenceNav, ...phoneNav].map((item) => item.href);
     const closest = candidates
@@ -304,7 +235,6 @@ export function AppShell({
     return closest === href;
   };
 
-  /* Placed after every hook so the hook order stays stable either way. */
   if (nested) return <>{children}</>;
 
   return (
@@ -319,7 +249,6 @@ export function AppShell({
         <Link href="/app" className="spa-brand">
           <StrayPawMark size={34} />
           <span>StrayPaw</span>
-
         </Link>
 
         <form className="spa-search" onSubmit={handleSearch} role="search">
@@ -327,7 +256,7 @@ export function AppShell({
           <input
             ref={searchRef}
             type="search"
-            placeholder="Search places or organisations"
+            placeholder="Search StrayPaw ID, place or organisation"
             aria-label="Search the network"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
@@ -336,7 +265,6 @@ export function AppShell({
             role="combobox"
             aria-expanded={hits.length > 0}
             aria-controls="spa-search-results"
-            /* Mobile keyboards show a "search" key instead of "return". */
             enterKeyHint="search"
             autoComplete="off"
             autoCorrect="off"
@@ -365,22 +293,8 @@ export function AppShell({
         </form>
 
         <div className="spa-top-right">
-          {/* The account controls, on a phone.
-
-              They live in the side nav's foot, and on a phone the side nav
-              becomes the 67px bottom bar with the foot hidden — so at 390px
-              there was NO way to sign in or enter a code from anywhere in
-              the app. Measured: zero sign-in affordances on /app at phone
-              width. For a product whose NGO field staff work from a phone,
-              that is the account flow being desktop-only.
-
-              Same component, so it keeps the one source of truth about
-              signed-in state; CSS shows this copy only on a phone and the
-              side-nav copy only on a desktop. */}
           <div className="spa-top-account"><ProfilePanel /></div>
           <button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15} /> Switch space</button>
-          {/* Up here rather than in the side nav's foot, which was carrying
-              four controls and a role chip in a 208px column. */}
           <Link href="/" className="spa-exit">
             <ArrowUpRight size={13} /> Main site
           </Link>
@@ -425,15 +339,6 @@ export function AppShell({
             ))}
           </div>
           <div className="spa-side-foot">
-            {/* The console is where somebody is when something annoys them,
-                so the suggestion box is here rather than only in a footer
-                three pages away.
-
-                A text link, not a button. It sat as a third bordered block
-                directly above "Get a code" and "I have a code", which are
-                the two things this corner is actually for, and three
-                buttons of the same weight stacked in a rail is a fight
-                none of them wins. */}
             <ProfilePanel />
             <div className="spa-side-feedback">
               <FeedbackButton label="Send feedback" />
@@ -442,20 +347,6 @@ export function AppShell({
         </nav>
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
-          {/* The way back, for every screen that is not a destination.
-
-              A crawl of sixty routes found forty with no back control and
-              twenty-two that were outright dead ends — /orgs, /data,
-              /wards, /sources and /news had zero links in the body, so
-              you arrived and the only way out was the browser. That is
-              the opposite of a maze and it is worse: a maze at least has
-              doors.
-
-              It renders on anything that is not one of the current
-              role's own nav destinations, so the five screens somebody
-              navigates BETWEEN stay clean and everything they get pushed
-              INTO gets a door. /report is excluded because it has its
-              own, which also steps back through the form. */}
           {showBack && (
             <div className="spa-back">
               <button type="button" onClick={goBack}>
