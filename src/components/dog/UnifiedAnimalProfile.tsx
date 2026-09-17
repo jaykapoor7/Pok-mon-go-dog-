@@ -35,6 +35,8 @@ export function UnifiedAnimalProfile({profile,cases,operational,identity}:{profi
  const treatmentEvents=operational.medical.filter(row=>!["vaccination","sterilisation"].includes(row.kind)).length;
  const resolvedCase=cases.find(row=>["resolved","closed"].includes(String(row.status).toLowerCase()));
  const outcome=resolvedCase?.resolution?String(resolvedCase.resolution).replace(/_/g," "):resolvedCase?"Completed":"No completed outcome recorded";
+ const state=String(dog.status??"").toLowerCase();
+ const photoTone=dog.needs_help?"urgent" as const:["resolved","released","adopted","safe"].includes(state)?"resolved" as const:"active" as const;
 
  const nativeHistory=[
   ...cases.map(row=>({id:`case-${row.id}`,date:row.created_at,type:row.category,title:row.title,detail:row.description,href:`/cases/${row.id}`})),
@@ -51,7 +53,7 @@ export function UnifiedAnimalProfile({profile,cases,operational,identity}:{profi
 
  return <main className="min-h-screen bg-[#f7f5ef] text-[#0b1e3d]"><div className="mx-auto max-w-5xl px-4 pb-20 pt-6 sm:px-6">
   <header className="grid overflow-hidden border-y border-black/[.09] bg-white md:grid-cols-[300px_1fr]">
-   <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} className="h-[280px] w-full md:h-full md:min-h-[340px]"/>
+   <DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} tone={photoTone} className="h-[280px] w-full md:h-full md:min-h-[340px]"/>
    <div className="flex flex-col justify-between p-6 sm:p-8">
     <div><div className="flex flex-wrap items-center justify-between gap-3"><span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[.12em] opacity-55"><Building2 size={13}/>{sourceName}</span><FollowButton dogId={dog.id}/></div><h1 className="mt-4 text-4xl font-semibold tracking-[-.05em]">{dogLabel(dog)}</h1>{straypawId&&<p className="mt-2 font-mono text-xs font-semibold tracking-wide text-[#2457ce]">{straypawId}</p>}<p className="mt-3 flex flex-wrap items-center gap-2 text-sm opacity-70"><MapPin size={14}/>{locality||"Location not recorded"}<span>·</span><span className="capitalize">{dog.species||"animal"}</span>{sex&&<><span>·</span><span>{sex}</span></>}</p><p className="mt-5 max-w-2xl text-sm leading-6 opacity-80">{dog.intake_notes||firstValue(imported,row=>row.caseDetail)||firstValue(imported,row=>row.condition)||"No intake note recorded."}</p></div>
     <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-black/[.08] pt-5"><DogActions dogId={dog.id} name={dogLabel(dog)} needsHelp={dog.needs_help}/><ShareDog dogId={dog.id} label={dogLabel(dog)} zone={dog.zone}/><RecordExportActions name={dogLabel(dog)} animalId={straypawId||dog.id} locality={locality||null} rows={exportRows}/></div>
