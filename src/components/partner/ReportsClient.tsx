@@ -3,70 +3,141 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { getPartnerRecordRows, type PartnerRecordRow } from "@/lib/partner-record-explorer";
-import { PrintButton } from "@/components/partner/PrintButton";
 import { ConsolePage } from "./ConsolePage";
-import { ProgrammeBreakdown } from "@/components/partner/ProgrammeBreakdown";
 import { ExportStudio } from "@/components/partner/ExportStudio";
 
-const closed=(status:string|null)=>["resolved","closed"].includes(String(status??"").toLowerCase());
-const followDone=(status:string|null)=>["done","completed"].includes(String(status??"").toLowerCase());
-const followMissed=(status:string|null)=>["missed","cancelled","canceled"].includes(String(status??"").toLowerCase());
-const careMatch=(row:PartnerRecordRow,re:RegExp)=>row.kind==="care"&&re.test(row.subtype.toLowerCase());
-const percent=(n:number,d:number)=>d?Math.round((n/d)*100):0;
+const closed = (status: string | null) => ["resolved", "closed"].includes(String(status ?? "").toLowerCase());
+const followDone = (status: string | null) => ["done", "completed"].includes(String(status ?? "").toLowerCase());
+const followMissed = (status: string | null) => ["missed", "cancelled", "canceled"].includes(String(status ?? "").toLowerCase());
+const careMatch = (row: PartnerRecordRow, re: RegExp) => row.kind === "care" && re.test(row.subtype.toLowerCase());
+const percent = (n: number, d: number) => d ? Math.round((n / d) * 100) : 0;
 
-export function ReportsClient(){
- const [rows,setRows]=useState<PartnerRecordRow[]|null>(null);
- useEffect(()=>{getPartnerRecordRows().then(setRows).catch(()=>setRows([]))},[]);
- const stats=useMemo(()=>{
-  const all=rows??[],now=Date.now(),rescues=all.filter(r=>r.kind==="rescue"),followups=all.filter(r=>r.kind==="follow_up"),outcomes=all.filter(r=>r.kind==="outcome"),care=all.filter(r=>r.kind==="care");
-  const openRescues=rescues.filter(r=>!closed(r.status)),completedRescues=rescues.filter(r=>closed(r.status));
-  const overdue=followups.filter(r=>!followDone(r.status)&&!followMissed(r.status)&&+new Date(r.date)<now),upcoming=followups.filter(r=>!followDone(r.status)&&!followMissed(r.status)&&+new Date(r.date)>=now);
-  const vaccination=care.filter(r=>careMatch(r,/vaccin|rabies|arv/)),sterilisation=care.filter(r=>careMatch(r,/sterili|abc|spay|neuter/)),treatment=care.filter(r=>careMatch(r,/treat|chemo|tvt|surgery|wound|diagnostic|rehab|medicine|admission/)),otherCare=Math.max(0,care.length-vaccination.length-sterilisation.length-treatment.length);
-  const completedFollowups=followups.filter(r=>followDone(r.status)),missedFollowups=followups.filter(r=>followMissed(r.status));
-  const outcomeCounts=new Map<string,number>();for(const r of outcomes)outcomeCounts.set(r.subtype,(outcomeCounts.get(r.subtype)??0)+1);
-  const localityCounts=new Map<string,number>();for(const r of all.filter(r=>r.kind!=="follow_up")){const key=r.locality||"Locality not recorded";localityCounts.set(key,(localityCounts.get(key)??0)+1)}
-  const years=new Map<string,{rescue:number;care:number;follow:number;outcome:number}>();for(const r of all){const y=String(new Date(r.date).getFullYear());if(y==="NaN")continue;const value=years.get(y)??{rescue:0,care:0,follow:0,outcome:0};if(r.kind==="rescue")value.rescue++;if(r.kind==="care")value.care++;if(r.kind==="follow_up")value.follow++;if(r.kind==="outcome")value.outcome++;years.set(y,value)}
-  const journeys=new Map<string,{rescue:boolean;care:boolean;follow:boolean;outcome:boolean}>();for(const r of all){if(!r.caseId)continue;const j=journeys.get(r.caseId)??{rescue:false,care:false,follow:false,outcome:false};if(r.kind==="rescue")j.rescue=true;if(r.kind==="care")j.care=true;if(r.kind==="follow_up")j.follow=true;if(r.kind==="outcome")j.outcome=true;journeys.set(r.caseId,j)}
-  const journeyRows=[...journeys.values()].filter(j=>j.rescue);
-  const months=Array.from({length:18},(_,i)=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-(17-i));const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;return{key,label:d.toLocaleDateString("en-IN",{month:"short",year:"2-digit"}),rescue:0,care:0,follow:0}}),monthBy=new Map(months.map(m=>[m.key,m]));
-  for(const r of all){const d=new Date(r.date);if(Number.isNaN(+d))continue;const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`,m=monthBy.get(key);if(!m)continue;if(r.kind==="rescue")m.rescue++;if(r.kind==="care")m.care++;if(r.kind==="follow_up")m.follow++}
-  return{rescues,openRescues,completedRescues,care,vaccination,sterilisation,treatment,otherCare,followups,overdue,upcoming,completedFollowups,missedFollowups,outcomes,outcomeCounts,localities:[...localityCounts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10),years:[...years.entries()].sort((a,b)=>b[0].localeCompare(a[0])),months,completionRate:percent(completedRescues.length,rescues.length),followRate:percent(completedFollowups.length,followups.length),journey:{intake:journeyRows.length,care:journeyRows.filter(j=>j.care).length,follow:journeyRows.filter(j=>j.follow).length,outcome:journeyRows.filter(j=>j.outcome).length}};
- },[rows]);
- if(rows===null)return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-paw-500"/></div>;
- const monthlyMax=Math.max(1,...stats.months.map(m=>m.rescue+m.care+m.follow)),localityMax=Math.max(1,...stats.localities.map(([,n])=>n)),outcomeMax=Math.max(1,...stats.outcomeCounts.values()),careTotal=Math.max(1,stats.care.length),followTotal=Math.max(1,stats.followups.length),journeyMax=Math.max(1,stats.journey.intake);
- const careSlices=[{label:"Treatment",value:stats.treatment.length},{label:"Vaccination",value:stats.vaccination.length},{label:"Sterilisation",value:stats.sterilisation.length},{label:"Other",value:stats.otherCare}];
- let acc=0;const careStops=careSlices.map((s,i)=>{const start=acc;acc+=percent(s.value,careTotal);return `${["#2457ce","#f05b40","#0b1e3d","#b7bec8"][i]} ${start}% ${Math.min(100,acc)}%`}).join(",");
- return <ConsolePage kicker="Field work / analytics" title="Operational analytics" lede="Quantitative analysis of workload, care, follow-up, geography and outcomes using the actual event dates in your records." actions={<PrintButton/>}>
-  <ExportStudio/>
+export function ReportsClient() {
+  const [rows, setRows] = useState<PartnerRecordRow[] | null>(null);
+  useEffect(() => { getPartnerRecordRows().then(setRows).catch(() => setRows([])); }, []);
 
-  <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-   <Kpi label="Rescue cases" value={stats.rescues.length} sub={`${stats.openRescues.length} open`}/><Kpi label="Case completion" value={`${stats.completionRate}%`} sub={`${stats.completedRescues.length} closed/resolved`}/><Kpi label="Care events" value={stats.care.length} sub={`${stats.treatment.length} treatment`}/><Kpi label="Follow-up completion" value={`${stats.followRate}%`} sub={`${stats.overdue.length} overdue`}/><Kpi label="Recorded outcomes" value={stats.outcomes.length} sub={`${stats.localities.length} top localities shown`}/>
-  </section>
+  const stats = useMemo(() => {
+    const all = rows ?? [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const firstYear = currentYear - 2;
+    const inWindow = (row: PartnerRecordRow) => {
+      const d = new Date(row.date);
+      return Number.isFinite(+d) && d.getFullYear() >= firstYear && d.getFullYear() <= currentYear;
+    };
 
-  <section className="mt-7 rounded-xl border border-black/[.08] bg-white p-5"><div><h2 className="text-xl font-semibold">18-month workload trend</h2><p className="mt-1 text-sm text-bark-500">Rescue, care and follow-up volume by source event date. This avoids the false spike created by importing historical spreadsheets.</p></div><div className="mt-6 flex h-64 items-end gap-1.5 border-b border-black/[.08] px-1">{stats.months.map(m=>{const total=m.rescue+m.care+m.follow;return <div key={m.key} className="flex h-full min-w-0 flex-1 flex-col justify-end"><div className="flex w-full flex-col justify-end overflow-hidden rounded-t bg-black/[.04]" style={{height:`${Math.max(3,(total/monthlyMax)*100)}%`}}><div className="bg-[#2457ce]" style={{height:`${total?(m.rescue/total)*100:0}%`}}/><div className="bg-[#f05b40]" style={{height:`${total?(m.care/total)*100:0}%`}}/><div className="bg-[#0b1e3d]" style={{height:`${total?(m.follow/total)*100:0}%`}}/></div><span className="mt-2 hidden -rotate-45 origin-top-left whitespace-nowrap text-[9px] opacity-50 sm:block">{m.label}</span></div>})}</div><div className="mt-4 flex flex-wrap gap-5 text-xs"><Legend color="#2457ce" label="Rescue"/><Legend color="#f05b40" label="Care"/><Legend color="#0b1e3d" label="Follow-up"/></div></section>
+    const rescues = all.filter((r) => r.kind === "rescue" && inWindow(r));
+    const care = all.filter((r) => r.kind === "care" && inWindow(r));
+    const followups = all.filter((r) => r.kind === "follow_up" && inWindow(r));
+    const completedRescues = rescues.filter((r) => closed(r.status));
 
-  <div className="mt-6 grid gap-5 lg:grid-cols-2">
-   <Visual title="Care mix" lede="What share of the organisation's recorded care falls into each programme or treatment category."><div className="mt-5 flex flex-col items-center gap-6 sm:flex-row"><div className="relative grid size-40 shrink-0 place-items-center rounded-full" style={{background:`conic-gradient(${careStops})`}}><div className="grid size-24 place-items-center rounded-full bg-white text-center"><b className="text-2xl">{stats.care.length.toLocaleString()}</b><span className="block text-[10px] opacity-55">care events</span></div></div><div className="w-full">{careSlices.map((s,i)=><div key={s.label} className="flex items-center justify-between border-b border-black/[.07] py-2 text-sm"><span className="flex items-center gap-2"><i className="size-2.5 rounded-full" style={{background:["#2457ce","#f05b40","#0b1e3d","#b7bec8"][i]}}/>{s.label}</span><b>{s.value.toLocaleString()} · {percent(s.value,careTotal)}%</b></div>)}</div></div></Visual>
-   <Visual title="Follow-up performance" lede="How review work is progressing across completed, missed/cancelled, overdue and future follow-ups."><div className="mt-6 overflow-hidden rounded-full bg-black/[.06]"><div className="flex h-5 w-full"><Segment value={stats.completedFollowups.length} total={followTotal} color="#2457ce"/><Segment value={stats.missedFollowups.length} total={followTotal} color="#b7bec8"/><Segment value={stats.overdue.length} total={followTotal} color="#f05b40"/><Segment value={stats.upcoming.length} total={followTotal} color="#0b1e3d"/></div></div><div className="mt-5 grid grid-cols-2 gap-3 text-sm"><Mini label="Completed" value={stats.completedFollowups.length} pct={percent(stats.completedFollowups.length,followTotal)}/><Mini label="Missed / cancelled" value={stats.missedFollowups.length} pct={percent(stats.missedFollowups.length,followTotal)}/><Mini label="Overdue" value={stats.overdue.length} pct={percent(stats.overdue.length,followTotal)}/><Mini label="Upcoming" value={stats.upcoming.length} pct={percent(stats.upcoming.length,followTotal)}/></div></Visual>
-  </div>
+    const treatment = care.filter((r) => careMatch(r, /treat|chemo|tvt|surgery|wound|diagnostic|rehab|medicine|admission/));
+    const vaccination = care.filter((r) => careMatch(r, /vaccin|rabies|arv/));
+    const sterilisation = care.filter((r) => careMatch(r, /sterili|abc|spay|neuter/));
+    const otherCare = Math.max(0, care.length - treatment.length - vaccination.length - sterilisation.length);
 
-  <div className="mt-6 grid gap-5 lg:grid-cols-2">
-   <Visual title="Case journey" lede="Case-linked evidence from rescue intake through care, follow-up and outcome.">{[["Rescue / intake",stats.journey.intake],["Reached care",stats.journey.care],["Has follow-up",stats.journey.follow],["Recorded outcome",stats.journey.outcome]].map(([label,value])=><Funnel key={String(label)} label={String(label)} value={Number(value)} max={journeyMax}/>)}</Visual>
-   <Visual title="Outcome distribution" lede="What happened after intervention, using structured outcome records.">{stats.outcomeCounts.size?[...stats.outcomeCounts.entries()].sort((a,b)=>b[1]-a[1]).map(([label,n])=><HBar key={label} label={label.replace(/_/g," ")} value={n} max={outcomeMax}/>):<p className="mt-5 text-sm opacity-55">No structured outcomes recorded.</p>}</Visual>
-  </div>
+    const completedFollowups = followups.filter((r) => followDone(r.status));
+    const missedFollowups = followups.filter((r) => followMissed(r.status));
+    const pendingFollowups = followups.filter((r) => !followDone(r.status) && !followMissed(r.status));
+    const overdue = pendingFollowups.filter((r) => +new Date(r.date) < +now);
 
-  <section className="mt-6 rounded-xl border border-black/[.08] bg-white p-5"><h2 className="text-xl font-semibold">Locality concentration</h2><p className="mt-1 text-sm text-bark-500">Where rescue and care workload clusters. This is operational demand, not a street-animal population estimate.</p><div className="mt-5 grid gap-x-8 gap-y-3 md:grid-cols-2">{stats.localities.map(([place,n])=><HBar key={place} label={place} value={n} max={localityMax}/>)}</div></section>
+    const years = [firstYear, firstYear + 1, currentYear].map((year) => {
+      const inYear = (r: PartnerRecordRow) => new Date(r.date).getFullYear() === year;
+      return { year, rescue: rescues.filter(inYear).length, care: care.filter(inYear).length };
+    });
 
-  <section className="mt-7 rounded-xl border border-black/[.08] bg-white p-5"><h2 className="text-xl font-semibold">Historical workload</h2><p className="mt-1 text-sm text-bark-500">Annual event totals from the original source dates.</p><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[620px] text-sm"><thead><tr className="border-b border-black/[.08] text-left text-xs opacity-55"><th className="py-3">Year</th><th>Rescue</th><th>Care</th><th>Follow-up</th><th>Outcome</th></tr></thead><tbody>{stats.years.map(([year,v])=><tr key={year} className="border-b border-black/[.07]"><th className="py-3 text-left">{year}</th><td>{v.rescue.toLocaleString()}</td><td>{v.care.toLocaleString()}</td><td>{v.follow.toLocaleString()}</td><td>{v.outcome.toLocaleString()}</td></tr>)}</tbody></table></div></section>
+    const localityCounts = new Map<string, number>();
+    for (const row of [...rescues, ...care]) {
+      const place = row.locality || "Not recorded";
+      localityCounts.set(place, (localityCounts.get(place) ?? 0) + 1);
+    }
 
-  <section className="mt-8"><div className="mb-4"><span className="text-[11px] font-semibold uppercase tracking-[.14em] text-bark-400">Programme analytics</span><h2 className="mt-1 text-xl font-semibold">Coverage by drive</h2><p className="mt-1 text-sm text-bark-500">Programme coverage remains separate from casework so aggregate drive totals are never mistaken for traceable case counts.</p></div><ProgrammeBreakdown/></section>
- </ConsolePage>
+    return {
+      rescues,
+      care,
+      treatment,
+      vaccination,
+      sterilisation,
+      otherCare,
+      completedRescues,
+      completionRate: percent(completedRescues.length, rescues.length),
+      followups,
+      completedFollowups,
+      missedFollowups,
+      overdue,
+      followRate: percent(completedFollowups.length, followups.length),
+      years,
+      localities: [...localityCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8),
+      firstYear,
+      currentYear,
+    };
+  }, [rows]);
+
+  if (rows === null) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-paw-500" /></div>;
+
+  const maxYear = Math.max(1, ...stats.years.map((y) => y.rescue + y.care));
+  const maxLocality = Math.max(1, ...stats.localities.map(([, n]) => n));
+  const careTotal = Math.max(1, stats.care.length);
+
+  return <ConsolePage
+    kicker="Field work / analytics"
+    title="Operational analytics"
+    lede={`Four signals from ${stats.firstYear}–${stats.currentYear}: workload, follow-up reliability, care delivered and where work concentrates.`}
+  >
+    <ExportStudio />
+
+    <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <Kpi label="Rescue cases" value={stats.rescues.length} sub={`${stats.completedRescues.length.toLocaleString()} closed or resolved`} />
+      <Kpi label="Case completion" value={`${stats.completionRate}%`} sub="Share of rescue cases closed or resolved" />
+      <Kpi label="Follow-up completion" value={`${stats.followRate}%`} sub={`${stats.overdue.length.toLocaleString()} overdue`} />
+      <Kpi label="Care events" value={stats.care.length} sub="Traceable intervention records" />
+    </section>
+
+    <section className="mt-6 rounded-xl border border-black/[.08] bg-white p-5">
+      <h2 className="text-xl font-semibold">Workload by year</h2>
+      <p className="mt-1 text-sm text-bark-500">Rescue and care volume for the three meaningful operating years. Imported outlier dates outside this window are not treated as real workload history.</p>
+      <div className="mt-6 grid gap-5 sm:grid-cols-3">
+        {stats.years.map((y) => {
+          const total = y.rescue + y.care;
+          return <div key={y.year}>
+            <div className="flex items-end justify-between"><b className="text-sm">{y.year}</b><span className="text-xs opacity-55">{total.toLocaleString()} events</span></div>
+            <div className="mt-3 flex h-36 items-end gap-2 rounded-lg bg-black/[.025] px-4 pt-4">
+              <div className="w-1/2 rounded-t bg-[#2457ce]" style={{ height: `${Math.max(4, (y.rescue / maxYear) * 100)}%` }} title={`${y.rescue} rescues`} />
+              <div className="w-1/2 rounded-t bg-[#f05b40]" style={{ height: `${Math.max(4, (y.care / maxYear) * 100)}%` }} title={`${y.care} care events`} />
+            </div>
+            <div className="mt-2 flex justify-between text-xs"><span>Rescue <b>{y.rescue.toLocaleString()}</b></span><span>Care <b>{y.care.toLocaleString()}</b></span></div>
+          </div>;
+        })}
+      </div>
+      <div className="mt-4 flex gap-5 text-xs"><Legend color="#2457ce" label="Rescue" /><Legend color="#f05b40" label="Care" /></div>
+    </section>
+
+    <div className="mt-6 grid gap-5 lg:grid-cols-2">
+      <section className="rounded-xl border border-black/[.08] bg-white p-5">
+        <h2 className="text-xl font-semibold">Follow-up performance</h2>
+        <p className="mt-1 text-sm text-bark-500">Excel can list review dates. This shows whether the follow-up system is actually being completed.</p>
+        <div className="mt-6 h-4 overflow-hidden rounded-full bg-black/[.06]"><div className="flex h-full"><Segment value={stats.completedFollowups.length} total={stats.followups.length} color="#2457ce" /><Segment value={stats.missedFollowups.length} total={stats.followups.length} color="#b7bec8" /><Segment value={stats.overdue.length} total={stats.followups.length} color="#f05b40" /></div></div>
+        <div className="mt-5 grid grid-cols-3 gap-3"><Mini label="Completed" value={stats.completedFollowups.length} /><Mini label="Missed / cancelled" value={stats.missedFollowups.length} /><Mini label="Overdue" value={stats.overdue.length} /></div>
+      </section>
+
+      <section className="rounded-xl border border-black/[.08] bg-white p-5">
+        <h2 className="text-xl font-semibold">Care delivered</h2>
+        <p className="mt-1 text-sm text-bark-500">The care categories field teams already record, turned into defensible traceable totals.</p>
+        <div className="mt-5"><CareBar label="Treatment / medical" value={stats.treatment.length} total={careTotal} /><CareBar label="Rabies / vaccination" value={stats.vaccination.length} total={careTotal} /><CareBar label="ABC / sterilisation" value={stats.sterilisation.length} total={careTotal} />{stats.otherCare > 0 && <CareBar label="Other care" value={stats.otherCare} total={careTotal} />}</div>
+      </section>
+    </div>
+
+    <section className="mt-6 rounded-xl border border-black/[.08] bg-white p-5">
+      <h2 className="text-xl font-semibold">Where workload concentrates</h2>
+      <p className="mt-1 text-sm text-bark-500">Top localities across the same three-year window. This helps allocate vans, volunteers and field time; it is not a population estimate.</p>
+      <div className="mt-5 grid gap-x-8 gap-y-4 md:grid-cols-2">{stats.localities.map(([place, n]) => <LocalityBar key={place} label={place} value={n} max={maxLocality} />)}</div>
+    </section>
+  </ConsolePage>;
 }
 
-function Kpi({label,value,sub}:{label:string;value:number|string;sub:string}){return <div className="rounded-xl border border-black/[.08] bg-white p-4"><strong className="text-3xl tabular-nums tracking-tight">{typeof value==="number"?value.toLocaleString():value}</strong><span className="mt-1 block text-sm font-semibold">{label}</span><small className="mt-1 block text-xs text-bark-500">{sub}</small></div>}
-function Visual({title,lede,children}:{title:string;lede:string;children:React.ReactNode}){return <section className="rounded-xl border border-black/[.08] bg-white p-5"><h2 className="text-xl font-semibold">{title}</h2><p className="mt-1 text-sm text-bark-500">{lede}</p>{children}</section>}
-function Legend({color,label}:{color:string;label:string}){return <span className="flex items-center gap-2"><i className="size-2.5 rounded-sm" style={{background:color}}/>{label}</span>}
-function Segment({value,total,color}:{value:number;total:number;color:string}){return <div title={`${value}`} style={{width:`${percent(value,total)}%`,background:color}}/>}
-function Mini({label,value,pct}:{label:string;value:number;pct:number}){return <div className="rounded-lg bg-black/[.025] p-3"><b className="text-xl tabular-nums">{value.toLocaleString()}</b><span className="block text-xs font-semibold">{label}</span><small className="text-[11px] opacity-55">{pct}% of follow-ups</small></div>}
-function Funnel({label,value,max}:{label:string;value:number;max:number}){const p=percent(value,max);return <div className="mt-4"><div className="flex justify-between text-sm"><span>{label}</span><b>{value.toLocaleString()} · {p}%</b></div><div className="mt-1.5 h-7 overflow-hidden rounded bg-black/[.05]"><div className="grid h-full place-items-center rounded bg-[#2457ce] text-[10px] font-semibold text-white" style={{width:`${Math.max(4,p)}%`}}>{p>=18?`${p}%`:""}</div></div></div>}
-function HBar({label,value,max}:{label:string;value:number;max:number}){const p=percent(value,max);return <div><div className="flex justify-between gap-4 text-xs"><span className="truncate capitalize">{label}</span><b>{value.toLocaleString()}</b></div><div className="mt-1.5 h-2 overflow-hidden rounded-full bg-black/[.06]"><div className="h-full rounded-full bg-[#0b1e3d]" style={{width:`${Math.max(3,p)}%`}}/></div></div>}
+function Kpi({ label, value, sub }: { label: string; value: number | string; sub: string }) { return <div className="rounded-xl border border-black/[.08] bg-white p-4"><strong className="text-3xl tabular-nums tracking-tight">{typeof value === "number" ? value.toLocaleString() : value}</strong><span className="mt-1 block text-sm font-semibold">{label}</span><small className="mt-1 block text-xs leading-5 text-bark-500">{sub}</small></div>; }
+function Legend({ color, label }: { color: string; label: string }) { return <span className="flex items-center gap-2"><i className="size-2.5 rounded-sm" style={{ background: color }} />{label}</span>; }
+function Segment({ value, total, color }: { value: number; total: number; color: string }) { return <div style={{ width: `${percent(value, Math.max(1, total))}%`, background: color }} />; }
+function Mini({ label, value }: { label: string; value: number }) { return <div className="rounded-lg bg-black/[.025] p-3"><b className="text-xl tabular-nums">{value.toLocaleString()}</b><span className="mt-1 block text-[11px] font-semibold leading-4">{label}</span></div>; }
+function CareBar({ label, value, total }: { label: string; value: number; total: number }) { const p = percent(value, total); return <div className="mt-4"><div className="flex justify-between gap-3 text-xs"><span>{label}</span><b>{value.toLocaleString()} · {p}%</b></div><div className="mt-1.5 h-2 overflow-hidden rounded-full bg-black/[.06]"><div className="h-full rounded-full bg-[#2457ce]" style={{ width: `${p}%` }} /></div></div>; }
+function LocalityBar({ label, value, max }: { label: string; value: number; max: number }) { const p = percent(value, max); return <div><div className="flex justify-between gap-4 text-xs"><span className="truncate capitalize">{label}</span><b>{value.toLocaleString()}</b></div><div className="mt-1.5 h-2 overflow-hidden rounded-full bg-black/[.06]"><div className="h-full rounded-full bg-[#0b1e3d]" style={{ width: `${Math.max(3, p)}%` }} /></div></div>; }
