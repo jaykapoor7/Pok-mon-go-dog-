@@ -2,81 +2,39 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Download, Search } from "lucide-react";
 import { getPartnerRecordRows, type PartnerRecordKind, type PartnerRecordRow } from "@/lib/partner-record-explorer";
 import { formatDate } from "@/lib/utils";
 
-const FILTERS: Array<{ id: "all" | PartnerRecordKind | "vaccination" | "sterilisation" | "treatment"; label: string }> = [
-  { id: "all", label: "All records" },
-  { id: "rescue", label: "Rescues" },
-  { id: "care", label: "All care" },
-  { id: "vaccination", label: "Rabies / vaccination" },
-  { id: "sterilisation", label: "ABC / sterilisation" },
-  { id: "treatment", label: "Treatment" },
-  { id: "follow_up", label: "Follow-ups" },
-  { id: "outcome", label: "Outcomes" },
+const PAGE_SIZE=100;
+const FILTERS:Array<{id:"all"|PartnerRecordKind|"vaccination"|"sterilisation"|"treatment"|"overdue";label:string}>=[
+ {id:"all",label:"All records"},{id:"rescue",label:"Rescues"},{id:"care",label:"All care"},{id:"vaccination",label:"Rabies / vaccination"},{id:"sterilisation",label:"ABC / sterilisation"},{id:"treatment",label:"Treatment"},{id:"follow_up",label:"Follow-ups"},{id:"overdue",label:"Overdue"},{id:"outcome",label:"Outcomes"},
 ];
-
-function matchesFilter(row: PartnerRecordRow, filter: string) {
-  if (filter === "all") return true;
-  if (["vaccination", "sterilisation", "treatment"].includes(filter)) {
-    return row.kind === "care" && row.subtype.toLowerCase().includes(filter);
-  }
-  return row.kind === filter;
+function isOverdue(row:PartnerRecordRow){if(row.kind!=="follow_up")return false;const status=String(row.status??"").toLowerCase();if(["done","completed","cancelled","canceled","missed"].includes(status))return false;return +new Date(row.date)<Date.now()}
+function matchesFilter(row:PartnerRecordRow,filter:string){
+ if(filter==="all")return true;if(filter==="overdue")return isOverdue(row);
+ if(filter==="vaccination")return row.kind==="care"&&/vaccin|rabies|arv/.test(row.subtype.toLowerCase());
+ if(filter==="sterilisation")return row.kind==="care"&&/sterili|abc|spay|neuter/.test(row.subtype.toLowerCase());
+ if(filter==="treatment")return row.kind==="care"&&/treat|chemo|tvt|surgery|wound|diagnostic|rehab|medicine|admission/.test(row.subtype.toLowerCase());
+ return row.kind===filter;
 }
+function destination(row:PartnerRecordRow){if(row.caseId)return `/partner/cases/${row.caseId}`;if(row.animalId)return `/partner/animals/${row.animalId}`;return "/partner/records"}
+const esc=(v:unknown)=>{const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s};
 
-function destination(row: PartnerRecordRow) {
-  if (row.caseId) return `/partner/cases/${row.caseId}`;
-  if (row.animalId) return `/partner/animals/${row.animalId}`;
-  return "/partner/records";
+export function PartnerRecordExplorer({initialFilter="all"}:{initialFilter?:string}){
+ const [rows,setRows]=useState<PartnerRecordRow[]|null>(null),[query,setQuery]=useState(""),[filter,setFilter]=useState(initialFilter),[locality,setLocality]=useState(""),[year,setYear]=useState(""),[species,setSpecies]=useState(""),[status,setStatus]=useState(""),[sort,setSort]=useState("newest"),[page,setPage]=useState(1);
+ useEffect(()=>{getPartnerRecordRows().then(setRows).catch(()=>setRows([]))},[]);
+ const options=useMemo(()=>{const r=rows??[];return{localities:[...new Set(r.map(x=>x.locality).filter(Boolean) as string[])].sort(),years:[...new Set(r.map(x=>String(new Date(x.date).getFullYear())).filter(x=>x!=="NaN"))].sort((a,b)=>b.localeCompare(a)),species:[...new Set(r.map(x=>x.species).filter(Boolean) as string[])].sort(),statuses:[...new Set(r.map(x=>x.status).filter(Boolean) as string[])].sort()}},[rows]);
+ const visible=useMemo(()=>{if(!rows)return[];const q=query.trim().toLowerCase();const out=rows.filter(row=>{if(!matchesFilter(row,filter))return false;if(locality&&row.locality!==locality)return false;if(year&&String(new Date(row.date).getFullYear())!==year)return false;if(species&&row.species!==species)return false;if(status&&row.status!==status)return false;if(!q)return true;return[row.title,row.detail,row.locality,row.animalLabel,row.subtype,row.status,row.species].filter(Boolean).some(v=>String(v).toLowerCase().includes(q))});return out.sort((a,b)=>sort==="oldest"?+new Date(a.date)-+new Date(b.date):sort==="locality"?String(a.locality??"").localeCompare(String(b.locality??"")):sort==="status"?String(a.status??"").localeCompare(String(b.status??"")):+new Date(b.date)-+new Date(a.date))},[rows,query,filter,locality,year,species,status,sort]);
+ const pages=Math.max(1,Math.ceil(visible.length/PAGE_SIZE)),safePage=Math.min(page,pages),shown=visible.slice((safePage-1)*PAGE_SIZE,safePage*PAGE_SIZE);
+ function resetFilters(){setQuery("");setFilter("all");setLocality("");setYear("");setSpecies("");setStatus("");setSort("newest");setPage(1)}
+ function exportCsv(){const cols=["date","type","animal","species","locality","status","detail","case_id"];const body=visible.map(r=>[r.date,r.subtype,r.animalLabel,r.species,r.locality,r.status,r.detail,r.caseId].map(esc).join(","));const blob=new Blob([[cols.join(","),...body].join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`straypaw-records-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url)}
+ const changed=(fn:(value:string)=>void)=>(value:string)=>{fn(value);setPage(1)};
+ return <section>
+  <div className="border-y border-black/[.08] py-4 dark:border-white/[.1]"><div className="flex flex-wrap gap-2">{FILTERS.map(item=><button key={item.id} type="button" onClick={()=>{setFilter(item.id);setPage(1)}} className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${filter===item.id?"border-paw-500 bg-paw-50 text-paw-700":"border-black/[.08] text-bark-600 dark:border-white/[.1] dark:text-bark-300"}`}>{item.label}</button>)}</div><div className="mt-4 grid gap-2 md:grid-cols-[minmax(220px,1fr)_repeat(5,minmax(120px,auto))]"><label className="flex items-center gap-2 border border-black/[.1] bg-white px-3 dark:border-white/[.1] dark:bg-bark-950"><Search size={15}/><input value={query} onChange={e=>{setQuery(e.target.value);setPage(1)}} placeholder="Search animal, locality, condition…" className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none"/></label><Select value={year} onChange={changed(setYear)} label="All years" items={options.years}/><Select value={locality} onChange={changed(setLocality)} label="All localities" items={options.localities}/><Select value={species} onChange={changed(setSpecies)} label="All species" items={options.species}/><Select value={status} onChange={changed(setStatus)} label="All statuses" items={options.statuses}/><select value={sort} onChange={e=>{setSort(e.target.value);setPage(1)}} className="h-10 border border-black/[.1] bg-white px-2 text-xs dark:border-white/[.1] dark:bg-bark-950"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="locality">Locality A–Z</option><option value="status">Status A–Z</option></select></div></div>
+  <div className="flex flex-wrap items-center justify-between gap-3 py-4 text-xs text-bark-500"><span>{rows===null?"Loading records…":`${visible.length.toLocaleString()} matching records`}</span><div className="flex gap-3"><button type="button" onClick={resetFilters} className="font-semibold text-paw-600">Reset</button><button type="button" onClick={exportCsv} disabled={!visible.length} className="inline-flex items-center gap-1 font-semibold text-paw-600 disabled:opacity-40"><Download size={13}/>Export filtered</button></div></div>
+  {rows!==null&&visible.length===0?<p className="border-t border-black/[.08] py-8 text-sm text-bark-500">No records match this view.</p>:<div className="border-t border-black/[.08] dark:border-white/[.1]">{shown.map(row=><Link key={row.id} href={destination(row)} className="grid gap-2 border-b border-black/[.07] py-4 transition hover:bg-black/[.02] dark:border-white/[.08] dark:hover:bg-white/[.03] sm:grid-cols-[105px_145px_minmax(0,1fr)_120px_135px_18px] sm:items-center"><time className="text-xs tabular-nums text-bark-400">{formatDate(row.date)}</time><span className="text-xs font-semibold capitalize text-paw-700">{row.subtype.replace(/_/g," ")}</span><span className="min-w-0"><b className="block truncate text-sm text-bark-900 dark:text-bark-50">{row.animalLabel||row.title}</b><small className="mt-0.5 block line-clamp-2 text-xs leading-relaxed text-bark-500">{row.detail||row.title}</small></span><span className="truncate text-xs capitalize text-bark-500">{row.species||"animal"}</span><span className="truncate text-xs text-bark-500">{row.locality||"Locality not recorded"}</span><ArrowUpRight size={15} className="hidden text-paw-600 sm:block"/></Link>)}</div>}
+  {visible.length>PAGE_SIZE&&<div className="flex items-center justify-between border-t border-black/[.08] py-4 text-xs"><button type="button" disabled={safePage<=1} onClick={()=>setPage(p=>Math.max(1,p-1))} className="inline-flex items-center gap-1 font-semibold disabled:opacity-30"><ArrowLeft size={13}/>Previous</button><span>Page {safePage} of {pages}</span><button type="button" disabled={safePage>=pages} onClick={()=>setPage(p=>Math.min(pages,p+1))} className="inline-flex items-center gap-1 font-semibold disabled:opacity-30">Next <ArrowRight size={13}/></button></div>}
+ </section>
 }
-
-export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter?: string }) {
-  const [rows, setRows] = useState<PartnerRecordRow[] | null>(null);
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState(initialFilter);
-
-  useEffect(() => {
-    getPartnerRecordRows().then(setRows).catch(() => setRows([]));
-  }, []);
-
-  const visible = useMemo(() => {
-    if (!rows) return [];
-    const q = query.trim().toLowerCase();
-    return rows.filter((row) => {
-      if (!matchesFilter(row, filter)) return false;
-      if (!q) return true;
-      return [row.title, row.detail, row.locality, row.animalLabel, row.subtype, row.status]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(q));
-    });
-  }, [rows, filter, query]);
-
-  return <section>
-    <div className="flex flex-col gap-3 border-y border-black/[.08] py-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/[.1]">
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((item) => <button key={item.id} type="button" onClick={() => setFilter(item.id)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${filter === item.id ? "border-paw-500 bg-paw-50 text-paw-700" : "border-black/[.08] text-bark-600 hover:border-black/20 dark:border-white/[.1] dark:text-bark-300"}`}>{item.label}</button>)}
-      </div>
-      <label className="flex min-w-64 items-center gap-2 rounded-md border border-black/[.1] bg-white px-3 dark:border-white/[.1] dark:bg-bark-950">
-        <Search size={15} className="text-bark-400" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search animal, locality, condition…" className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none" />
-      </label>
-    </div>
-
-    <div className="flex items-center justify-between py-4 text-xs text-bark-500">
-      <span>{rows === null ? "Loading records…" : `${visible.length.toLocaleString()} matching records`}</span>
-      {query && <button type="button" onClick={() => setQuery("")} className="font-semibold text-paw-600">Clear search</button>}
-    </div>
-
-    {rows !== null && visible.length === 0 ? <p className="border-t border-black/[.08] py-8 text-sm text-bark-500">No records match this view.</p> : <div className="border-t border-black/[.08] dark:border-white/[.1]">
-      {visible.slice(0, 400).map((row) => <Link key={row.id} href={destination(row)} className="grid gap-2 border-b border-black/[.07] py-4 transition hover:bg-black/[.02] dark:border-white/[.08] dark:hover:bg-white/[.03] sm:grid-cols-[110px_150px_minmax(0,1fr)_160px_18px] sm:items-center">
-        <time className="text-xs tabular-nums text-bark-400">{formatDate(row.date)}</time>
-        <span className="text-xs font-semibold capitalize text-paw-700">{row.subtype.replace(/_/g, " ")}</span>
-        <span className="min-w-0"><b className="block truncate text-sm text-bark-900 dark:text-bark-50">{row.animalLabel || row.title}</b><small className="mt-0.5 block line-clamp-2 text-xs leading-relaxed text-bark-500">{row.detail || row.title}</small></span>
-        <span className="truncate text-xs text-bark-500">{row.locality || "Locality not recorded"}</span>
-        <ArrowUpRight size={15} className="hidden text-paw-600 sm:block" />
-      </Link>)}
-      {visible.length > 400 && <p className="py-4 text-xs text-bark-500">Showing the first 400 matches. Narrow the search to find a specific record.</p>}
-    </div>}
-  </section>;
-}
+function Select({value,onChange,label,items}:{value:string;onChange:(value:string)=>void;label:string;items:string[]}){return <select value={value} onChange={e=>onChange(e.target.value)} className="h-10 border border-black/[.1] bg-white px-2 text-xs dark:border-white/[.1] dark:bg-bark-950"><option value="">{label}</option>{items.map(item=><option key={item} value={item}>{item}</option>)}</select>}
