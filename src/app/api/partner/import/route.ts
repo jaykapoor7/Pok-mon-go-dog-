@@ -24,6 +24,9 @@ type Normalized = {
   longitude?: number;
 };
 
+type SheetKind = "rescue" | "care" | "follow_up" | "programme" | "operations" | "survey" | "administrative" | "unknown";
+type ParsedSheet = { sheetName: string; headers: string[]; rows: Array<{ sourceRowNumber: number; raw: Record<string, unknown> }> };
+
 const FIELDS: Record<string, RegExp> = {
   name: /^(name|animal|dog name|nickname)$/i,
   animalCode: /(animal|dog).{0,8}(id|code)|^id$/i,
@@ -90,33 +93,53 @@ function usableCoordinates(record: Normalized) {
 }
 
 function hasDefensibleIdentity(record: Normalized) {
-  /* A name on a sterilisation ledger can be a feeder, volunteer or dog, and
-     an injury description is not an animal ID. A new permanent profile is
-     allowed only when the operator has supplied a stable legacy ID, or a
-     useful identity bundle to substantiate the choice. */
   return Boolean(record.animalCode || (record.name && record.location && (record.sex || record.colour)));
+}
+
+function parseSheet(sheet: XLSX.WorkSheet, sheetName: string): ParsedSheet {
+  const matrix = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "", raw: false });
+  const headerIndex = matrix.findIndex((row) => Array.isArray(row) && row.filter((cell) => text(cell)).length >= 2);
+  if (headerIndex < 0) return { sheetName, headers: [], rows: [] };
+  const headers = (matrix[headerIndex] as unknown[]).map(normaliseHeader);
+  const rows = matrix.slice(headerIndex + 1)
+    .map((values, offset) => {
+      const raw: Record<string, unknown> = {};
+      headers.forEach((header, index) => { if (header) raw[header] = (values as unknown[])[index] ?? ""; });
+      return { sourceRowNumber: headerIndex + offset + 2, raw };
+    })
+    .filter(({ raw }) => Object.values(raw).some((value) => text(value)));
+  return { sheetName, headers, rows };
+}
+
+function classifySheet(sheet: ParsedSheet): { kind: SheetKind; label: string; confidence: "high" | "medium" | "review"; reason: string } {
+  const name = sheet.sheetName.toLowerCase();
+  const headers = sheet.headers.join(" ").toLowerCase();
+  const all = `${name} ${headers}`;
+  if (/salary|advance|house rent|payroll|appoint|staff rent/.test(name)) return { kind:"administrative", label:"Administrative / private", confidence:"high", reason:"Staff, salary or rent sheet; keep outside animal records." };
+  if (/van|vehicle|transport|petrol|diesel|odometer/.test(all)) return { kind:"operations", label:"Operations", confidence:"high", reason:"Vehicle, distance, fuel or route fields detected." };
+  if (/sterili|\babc\b|campaign|drive/.test(name) || /programme|program|campaign|drive/.test(headers)) return { kind:"programme", label:"Programme / drive", confidence:"high", reason:"Programme or drive structure detected." };
+  if (/tvt|medical|treatment|vaccin|rabies|arv|surgery|clinic/.test(name) || /diagnosis|treatment|medicine|dose|vaccine/.test(headers)) return { kind:"care", label:"Care / medical", confidence:"high", reason:"Treatment, diagnosis, vaccination or clinical fields detected." };
+  if (/review|follow.?up|appoint/.test(name) || /review|follow.?up|next date|appointment/.test(headers)) return { kind:"follow_up", label:"Follow-up", confidence:"high", reason:"Review or follow-up fields detected." };
+  if (/survey|census|questionnaire|ward count|kind index/.test(all)) return { kind:"survey", label:"Survey / census", confidence:"high", reason:"Survey, census or questionnaire structure detected." };
+  if (/rescue|request|case|intake/.test(name) || /injury|condition|reported|request/.test(headers)) return { kind:"rescue", label:"Rescue / case register", confidence:"medium", reason:"Rescue, intake or condition fields detected." };
+  return { kind:"unknown", label:"Needs review", confidence:"review", reason:"No safe workflow classification yet; review the sheet before importing." };
 }
 
 function readWorkbook(file: File, requestedSheet?: string) {
   return file.arrayBuffer().then((buffer) => {
     const book = XLSX.read(buffer, { type: "array", cellDates: true });
-    const sheetName = requestedSheet && book.SheetNames.includes(requestedSheet)
-      ? requestedSheet
-      : book.SheetNames[0];
-    if (!sheetName) throw new Error("This workbook has no readable sheets.");
-    const sheet = book.Sheets[sheetName];
-    const matrix = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "", raw: false });
-    const headerIndex = matrix.findIndex((row) => Array.isArray(row) && row.filter((cell) => text(cell)).length >= 2);
-    if (headerIndex < 0) throw new Error("We could not find a header row in this sheet.");
-    const headers = (matrix[headerIndex] as unknown[]).map(normaliseHeader);
-    const rows = matrix.slice(headerIndex + 1)
-      .map((values, offset) => {
-        const raw: Record<string, unknown> = {};
-        headers.forEach((header, index) => { if (header) raw[header] = (values as unknown[])[index] ?? ""; });
-        return { sourceRowNumber: headerIndex + offset + 2, raw };
-      })
-      .filter(({ raw }) => Object.values(raw).some((value) => text(value)));
-    return { sheetNames: book.SheetNames, sheetName, headers, rows };
+    if (!book.SheetNames.length) throw new Error("This workbook has no readable sheets.");
+    const parsedSheets = book.SheetNames.map((name) => parseSheet(book.Sheets[name], name));
+    const selectedName = requestedSheet && book.SheetNames.includes(requestedSheet) ? requestedSheet : book.SheetNames[0];
+    const selected = parsedSheets.find((sheet) => sheet.sheetName === selectedName) ?? parsedSheets[0];
+    if (!selected.headers.length) throw new Error("We could not find a header row in this sheet.");
+    const sheetProfiles = parsedSheets.map((sheet) => ({
+      name: sheet.sheetName,
+      rows: sheet.rows.length,
+      headers: sheet.headers,
+      ...classifySheet(sheet),
+    }));
+    return { sheetNames: book.SheetNames, sheetProfiles, ...selected };
   });
 }
 
@@ -233,7 +256,7 @@ export async function POST(request: Request) {
         batch_id: batch.id,
         source_row_number: row.sourceRowNumber,
         raw_row: row.raw,
-        normalized,
+        normalized: { ...normalized, source_sheet: parsed.sheetName },
         decision: choice.decision,
         matched_dog_id: choice.matchedDogId ?? null,
       };
@@ -259,11 +282,9 @@ export async function POST(request: Request) {
             created_by_id: actor.userId,
             created_by_name: actor.userLabel,
             sex: normalized.sex ?? null,
-            /* Case detail stays with the private episode. The public animal
-               card gets only its verified identity and coarse location. */
             intake_notes: null,
             provenance: "imported_historical_record",
-            source_metadata: { import_batch_id: batch.id, source_row: row.sourceRowNumber },
+            source_metadata: { import_batch_id: batch.id, source_row: row.sourceRowNumber, source_sheet: parsed.sheetName },
           }).select("id").single();
           if (dogError || !dog) throw new Error(dogError?.message ?? "Animal could not be created.");
           dogId = dog.id;
@@ -307,7 +328,7 @@ export async function POST(request: Request) {
           occurred_at: dateValue(normalized.date) ?? new Date().toISOString(),
           actor_id: actor.userId,
           provenance: "imported_historical_record",
-          source_ref: { import_batch_id: batch.id, source_row: row.sourceRowNumber },
+          source_ref: { import_batch_id: batch.id, source_row: row.sourceRowNumber, source_sheet: parsed.sheetName },
         });
         importRow.imported_dog_id = dogId;
         importRow.imported_case_id = caseRecord.id;
