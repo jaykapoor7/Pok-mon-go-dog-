@@ -1,74 +1,17 @@
-import Link from "next/link";
-import { BackLink } from "@/components/app/BackLink";
-import { ArrowUpRight, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
-import { PreLaunch } from "@/components/app/PreLaunch";
+import { CommunityRecordTabs } from "@/components/app/CommunityRecordTabs";
+import { CommunityCaseRows } from "@/components/app/CommunityCaseRows";
+import { getPublicCaseStories } from "@/lib/community-case-stories";
 
 export const dynamic = "force-dynamic";
-export const metadata = {
-  title: "Outcomes, StrayPaw",
-  description:
-    "Every funded action keeps a verifiable record. No intervention has closed yet, so this register is empty.",
-};
+export const metadata = { title: "Completed cases, StrayPaw" };
 
-/* What a closed record will carry. Describing the schema is honest; filling
-   it with an example would not be. */
-const RECORD_FIELDS = [
-  ["Geography", "Where the work happened, at the finest resolution the fieldwork supports"],
-  ["Method", "How reach was counted, and by whom"],
-  ["Reach", "Animals actually treated, not animals targeted"],
-  ["Funding", "Amount, funder, and what it was spent against"],
-  ["Partner", "The organisation that executed it"],
-  ["Verification", "Who checked, when, and what they checked against"],
-  ["Confidence", "How much the method supports the number"],
-];
-
-export default function OutcomesPage() {
-  return (
-    <AppShell>
-      <BackLink label="Back to the evidence" to="/evidence" />
-      <div className="spa-head">
-        <div>
-          <span className="spa-mono">Evidence layer / outcomes</span>
-          <h1>
-            Measure the <em>answer.</em>
-          </h1>
-        </div>
-        <Link href="/studies" className="spa-cta">
-          View studies <ArrowUpRight size={14} />
-        </Link>
-      </div>
-
-      <p className="spa-lede">
-        An outcome closes the loop: funding, execution, reach and verification
-        stay attached to the study that identified the need.
-      </p>
-
-      <PreLaunch
-        Icon={ShieldCheck}
-        what="outcome records"
-        fills="An outcome appears here when a funded intervention closes and its reach has been verified in the field."
-        cta={{ href: "/what-would-it-take", label: "Cost an intervention" }}
-      />
-
-      <section className="queue">
-        <h2 className="queue-head">
-          <span className="spa-mono">The record format</span>
-          What every closed outcome will carry
-        </h2>
-        <p className="queue-lede">
-          Published in full, including the confidence rating. A record that
-          cannot support scrutiny is not worth keeping.
-        </p>
-        <dl className="schema">
-          {RECORD_FIELDS.map(([field, desc]) => (
-            <div key={field}>
-              <dt>{field}</dt>
-              <dd>{desc}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-    </AppShell>
-  );
+export default async function OutcomesPage() {
+  const rows = await getPublicCaseStories();
+  const completed = rows.filter((row) => ["resolved", "closed"].includes(String(row.status).toLowerCase()));
+  return <AppShell><main className="mx-auto w-full max-w-5xl px-4 py-7 sm:px-6 lg:px-8">
+    <CommunityRecordTabs />
+    <header className="mb-6"><span className="product-kicker">Community records</span><h1 className="mt-1 text-3xl font-semibold tracking-tight">Completed cases</h1><p className="mt-2 max-w-2xl text-sm leading-6 opacity-65">Resolved and closed field cases. Open any animal to see the full chronology, care history, outcome and source record behind the case.</p></header>
+    <CommunityCaseRows rows={completed} empty="No completed case stories are currently published." />
+  </main></AppShell>;
 }
