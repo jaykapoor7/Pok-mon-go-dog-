@@ -1,68 +1,54 @@
 "use client";
 
 import { useState } from "react";
-import { PawPrint } from "lucide-react";
-import { cn, seededRandom } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { sized } from "@/lib/photo/src";
 
-const GRADIENTS = [
-  ["#5b86f0", "#2f4fc0"],
-  ["#D9A441", "#3b63e0"],
-  ["#3E8473", "#2842a0"],
-  ["#C06A86", "#2f4fc0"],
-  ["#5b86f0", "#1f3168"],
-  ["#3b63e0", "#141821"],
-];
+export type PhotoTone = "urgent" | "active" | "resolved" | "neutral";
+
+const FALLBACK_COLOURS: Record<PhotoTone, string> = {
+  urgent: "#efd0c7",
+  active: "#dce6f3",
+  resolved: "#dfe8df",
+  neutral: "#e9e7e2",
+};
 
 /**
- * Image with a warm gradient + paw fallback. Guarantees something beautiful
- * renders even if a remote photo fails or the app is offline.
+ * Animal image with a deliberately quiet fallback.
+ *
+ * Missing photos are represented as a flat state colour rather than fake
+ * artwork, icons or gradients. When the caller knows the animal's state it
+ * can pass a tone; generic/non-animal uses remain neutral.
  */
 export function DogPhoto({
   src,
   alt,
-  seed,
+  seed: _seed,
   className,
   imgClassName,
   fit = "cover",
   width = 384,
+  tone = "neutral",
 }: {
-  /* Nullable on purpose. dogs.cover_photo is null for most animals on a
-     young register, and callers were already passing that null straight
-     through — the type just did not admit it. */
   src: string | null | undefined;
   alt: string;
   seed?: string;
   className?: string;
   imgClassName?: string;
-  /** "cover" fills (may crop); "contain" shows the WHOLE photo over a blurred
-   *  fill so a dog's head/body is never cut off. */
   fit?: "cover" | "contain";
-  /** Roughly how wide this is drawn, in css pixels. The image is requested
-   *  at that size rather than at whatever size it was uploaded. */
   width?: number;
+  tone?: PhotoTone;
 }) {
   const [failed, setFailed] = useState(false);
-  /* No photograph is not a failed photograph, but it takes the same path:
-     without this an <img> was rendered with no src, which paints the
-     browser's broken-image icon and never fires onError — so the animal
-     detail panel opened on a torn-page glyph for every animal nobody has
-     photographed yet, which is most of them. */
   const missing = !src || src.trim() === "";
   const at = sized(src, width);
-  /* The blurred backdrop is 10% scaled and 20px blurred: it does not need
-     to be sharp, and asking for a small one is free. */
   const backdrop = sized(src, 64, 55);
-  const [from, to] = GRADIENTS[
-    Math.floor(seededRandom(seed ?? src ?? alt) * GRADIENTS.length)
-  ];
 
   return (
     <div className={cn("relative overflow-hidden bg-bark-100", className)}>
       {!failed && !missing ? (
         fit === "contain" ? (
           <>
-            {/* blurred backdrop fills the frame; foreground shows the full dog */}
             <img
               src={backdrop}
               alt=""
@@ -88,11 +74,11 @@ export function DogPhoto({
         )
       ) : (
         <div
-          className="flex h-full w-full items-center justify-center"
-          style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
-        >
-          <PawPrint className="h-1/3 w-1/3 text-white/70" />
-        </div>
+          className="h-full w-full"
+          style={{ backgroundColor: FALLBACK_COLOURS[tone] }}
+          role="img"
+          aria-label={`${alt || "Animal"}: no photo available`}
+        />
       )}
     </div>
   );
