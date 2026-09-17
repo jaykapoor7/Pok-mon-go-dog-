@@ -1,10 +1,10 @@
 -- Public programme evidence: keep aggregate register totals separate from
 -- individually linked animal records. Safe to rerun.
 --
--- IMPORTANT: CREATE OR REPLACE VIEW requires all existing columns to keep
--- their names and ordinal positions. The original public_programme_cards view
--- ended with animals_recorded, sterilised_recorded, vaccinated_recorded, so
--- the new evidence columns are appended after those three.
+-- IMPORTANT: CREATE OR REPLACE VIEW requires every existing column to keep
+-- its name, ordinal position AND data type. The original three count columns
+-- are bigint because PostgreSQL count() returns bigint, so keep them bigint
+-- and append the two new evidence columns afterwards.
 
 create or replace view public_programme_cards as
 select
@@ -19,17 +19,17 @@ select
   n.slug as ngo_slug,
   n.city,
   n.state,
-  coalesce(nullif(count(d.id), 0), c.source_rows_count)::integer as animals_recorded,
+  coalesce(nullif(count(d.id), 0), c.source_rows_count) as animals_recorded,
   coalesce(
     nullif(count(d.id) filter (where d.sterilisation_status = 'sterilised'), 0),
     case when c.kind = 'sterilisation' then c.source_rows_count else 0 end
-  )::integer as sterilised_recorded,
+  ) as sterilised_recorded,
   coalesce(
     nullif(count(d.id) filter (where d.vaccination_status = 'vaccinated'), 0),
     case when c.kind = 'vaccination' then c.source_rows_count else 0 end
-  )::integer as vaccinated_recorded,
-  c.source_rows_count::integer as source_rows_count,
-  count(d.id)::integer as traceable_animals_recorded
+  ) as vaccinated_recorded,
+  c.source_rows_count as source_rows_count,
+  count(d.id) as traceable_animals_recorded
 from campaigns c
 join ngos n on n.id = c.ngo_id
 left join dogs d on d.campaign_id = c.id
