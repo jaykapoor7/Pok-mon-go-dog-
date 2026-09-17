@@ -39,22 +39,17 @@ import { readStoredRole, type Role } from "@/lib/roles";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
-/* Community navigation follows the public story of the work, not the
-   database schema. Map/search/report remain actions inside those surfaces. */
+/* Community navigation mirrors the public animal-work lifecycle. Map/search
+   and reporting remain actions inside the experience rather than extra tabs. */
 const COMMUNITY_NAV = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/rescues", label: "Rescues", Icon: Radio },
-  { href: "/outcomes", label: "Completed", Icon: Database },
-  { href: "/timeline", label: "Timeline", Icon: Waves },
+  { href: "/care", label: "Care", Icon: Waves },
+  { href: "/outcomes", label: "Outcomes", Icon: Database },
 ];
 
-/* Secondary public resources stay searchable and linkable, but do not earn
-   permanent navigation simply because a route exists. */
 const COMMUNITY_REFERENCE_NAV: { href: string; label: string; Icon: typeof MapPin }[] = [];
 
-/* An educator opens StrayPaw for the material, not the field work, so
-   education takes the slot the dashboard would have. The rest is the same
-   community console: a teacher still reports and still reads the map. */
 const EDUCATOR_NAV = [
   { href: "/education", label: "Education", Icon: GraduationCap },
   { href: "/map", label: "Map", Icon: MapPin },
@@ -81,15 +76,14 @@ const FEEDER_NAV = [
   { href: "/evidence", label: "Evidence", Icon: ScanSearch },
 ];
 
-/* ── The phone bar ────────────────────────────────────────────────
-   Two on each side of Report. Report remains the central action; the four
+/* Two on each side of Report. Report remains the central action; the four
    surrounding destinations match the role's actual workflow. */
 const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin }[]> = {
   individual: [
     { href: "/app", label: "Home", Icon: LayoutGrid },
     { href: "/rescues", label: "Rescues", Icon: Radio },
-    { href: "/outcomes", label: "Completed", Icon: Database },
-    { href: "/timeline", label: "Timeline", Icon: Waves },
+    { href: "/care", label: "Care", Icon: Waves },
+    { href: "/outcomes", label: "Outcomes", Icon: Database },
   ],
   feeder: [
     { href: "/feeder", label: "My patch", Icon: Utensils },
@@ -116,11 +110,6 @@ const PHONE_NAV: Record<Role, { href: string; label: string; Icon: typeof MapPin
     { href: "/outcomes", label: "Outcomes", Icon: Database },
   ],
 };
-/* Set once an AppShell is mounted. Chrome wraps app routes in a shell from
-   a hand-maintained route list, while several pages also mount one directly;
-   whenever those two disagree the console renders inside itself. Rather than
-   keep the list perfectly in sync forever, a nested shell detects the outer
-   one and renders as a plain passthrough. */
 const InShell = createContext(false);
 
 export function AppShell({
@@ -241,9 +230,7 @@ export function AppShell({
    <InShell.Provider value={true}>
     <div className={`spa${isReporting ? " spa-reporting" : ""}`}>
       <Welcome />
-      <a href="#spa-main" className="skip-link">
-        Skip to content
-      </a>
+      <a href="#spa-main" className="skip-link">Skip to content</a>
 
       <div className="spa-top">
         <Link href="/app" className="spa-brand">
@@ -295,9 +282,7 @@ export function AppShell({
         <div className="spa-top-right">
           <div className="spa-top-account"><ProfilePanel /></div>
           <button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15} /> Switch space</button>
-          <Link href="/" className="spa-exit">
-            <ArrowUpRight size={13} /> Main site
-          </Link>
+          <Link href="/" className="spa-exit"><ArrowUpRight size={13} /> Main site</Link>
         </div>
       </div>
 
@@ -340,19 +325,14 @@ export function AppShell({
           </div>
           <div className="spa-side-foot">
             <ProfilePanel />
-            <div className="spa-side-feedback">
-              <FeedbackButton label="Send feedback" />
-            </div>
+            <div className="spa-side-feedback"><FeedbackButton label="Send feedback" /></div>
           </div>
         </nav>
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
           {showBack && (
             <div className="spa-back">
-              <button type="button" onClick={goBack}>
-                <ArrowLeft size={15} />
-                Back
-              </button>
+              <button type="button" onClick={goBack}><ArrowLeft size={15} />Back</button>
             </div>
           )}
           {children}
