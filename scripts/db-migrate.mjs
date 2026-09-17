@@ -79,14 +79,14 @@ if (files.includes("RUN-PILOT-MIGRATIONS.sql")) {
 }
 
 /*
- * Later additive migrations may append columns to a public view that also
- * appears earlier inside the generated pilot bundle. PostgreSQL does not let
- * CREATE OR REPLACE VIEW remove those appended columns on a rerun. Preserve
- * the permanent StrayPaw ID column in the bundled public animal projection so
- * running the same pilot set remains safe and idempotent.
+ * Later additive migrations append columns to public views that also appear
+ * earlier inside the generated bundle. PostgreSQL does not let CREATE OR
+ * REPLACE VIEW remove those appended columns on a rerun. Normalize the older
+ * bundled definitions in memory so the pilot/all sets stay safe to repeat.
  */
 function normalizeRerunnableSql(file, text) {
   if (file !== "RUN-PILOT-MIGRATIONS.sql" && file !== "RUN-ALL-MIGRATIONS.sql") return text;
+
   const oldAnimalViewTail =
     "  d.provenance, n.name as ngo_name\n" +
     "from dogs d left join ngos n on n.id = d.ngo_id;";
@@ -94,7 +94,21 @@ function normalizeRerunnableSql(file, text) {
     "  d.provenance, n.name as ngo_name,\n" +
     "  d.straypaw_id\n" +
     "from dogs d left join ngos n on n.id = d.ngo_id;";
-  return text.replace(oldAnimalViewTail, compatibleAnimalViewTail);
+
+  const oldProgrammeViewTail =
+    "       coalesce(nullif(count(d.id) filter (where d.vaccination_status = 'vaccinated'), 0),\n" +
+    "                case when c.kind = 'vaccination' then c.source_rows_count else 0 end) as vaccinated_recorded\n" +
+    "  from campaigns c join ngos n on n.id = c.ngo_id left join dogs d on d.campaign_id = c.id";
+  const compatibleProgrammeViewTail =
+    "       coalesce(nullif(count(d.id) filter (where d.vaccination_status = 'vaccinated'), 0),\n" +
+    "                case when c.kind = 'vaccination' then c.source_rows_count else 0 end) as vaccinated_recorded,\n" +
+    "       c.source_rows_count as source_rows_count,\n" +
+    "       count(d.id) as traceable_animals_recorded\n" +
+    "  from campaigns c join ngos n on n.id = c.ngo_id left join dogs d on d.campaign_id = c.id";
+
+  return text
+    .replace(oldAnimalViewTail, compatibleAnimalViewTail)
+    .replace(oldProgrammeViewTail, compatibleProgrammeViewTail);
 }
 
 const client = new pg.Client({
