@@ -8,6 +8,7 @@ import {
   deriveProgrammes,
   latestHistoricalDate,
   shouldHaveRescueCase,
+  strictSterilisationRecorded,
   strictVaccinationRecorded,
   type EnrichmentSource,
 } from "@/lib/master-import/enrichment";
@@ -16,6 +17,7 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const CHUNK_SIZE = 40;
+const RUN_VERSION = `${WORKBOOK_ENRICHMENT_VERSION}:native-followups-v2`;
 const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
 
 function authorised(req: Request) {
@@ -47,7 +49,7 @@ function sourceMetadata(source: EnrichmentSource, derivedEventKey?: string) {
     source_subrecord: source.normalized.source_subrecord ?? null,
     row_fingerprint: source.normalized.fingerprint,
     normalized: source.normalized,
-    enrichment_version: WORKBOOK_ENRICHMENT_VERSION,
+    enrichment_version: RUN_VERSION,
     ...(derivedEventKey ? { derived_event_key: derivedEventKey } : {}),
   };
 }
@@ -59,6 +61,13 @@ async function inChunks<T>(items: T[], size: number, run: (chunk: T[]) => Promis
 function rowTextSafe(source: EnrichmentSource) {
   const row = source.normalized;
   return clean([row.condition, row.status, row.case_detail, row.treatment_update, row.review, row.rescue_plan, ...Object.values(source.raw_row ?? {})].filter(Boolean).join(" "));
+}
+function explicitTimelineEvents(source: EnrichmentSource) {
+  const row = source.normalized;
+  const events: Array<{ key: string; eventType: string; title: string; details: string; occurredAt: string }> = [];
+  if (row.admit_date) events.push({ key: `history:${row.fingerprint}:admission:${row.admit_date.slice(0, 10)}`, eventType: "import:admission", title: "Admitted for care", details: row.treatment_update || row.case_detail || "Admission recorded in source workbook", occurredAt: row.admit_date });
+  if (row.release_date) events.push({ key: `history:${row.fingerprint}:release:${row.release_date.slice(0, 10)}`, eventType: "import:release", title: "Released / discharged", details: row.treatment_update || row.status || "Release recorded in source workbook", occurredAt: row.release_date });
+  return events;
 }
 
 export async function POST(req: Request) {
@@ -80,9 +89,10 @@ export async function POST(req: Request) {
     if (!batchIds.length) return NextResponse.json({ error: "No native master-import batch is available for this organisation." }, { status: 404 });
 
     const sources = await page<EnrichmentSource & { decision?: string; error?: string | null }>((from, to) => supa.from("import_rows").select("id,batch_id,raw_row,normalized,classification,decision,imported_dog_id,imported_case_id,error").in("batch_id", batchIds).order("id").range(from, to));
-    const [cases, medical, timelines, dogs] = await Promise.all([
+    const [cases, medical, followUps, timelines, dogs] = await Promise.all([
       page<any>((from, to) => supa.from("cases").select("id,dog_id,import_batch_id,source_metadata,status,created_at,last_activity_at").in("import_batch_id", batchIds).order("id").range(from, to)),
       page<any>((from, to) => supa.from("medical_events").select("id,dog_id,kind,import_batch_id,source_metadata").in("import_batch_id", batchIds).order("id").range(from, to)),
+      page<any>((from, to) => supa.from("animal_followups").select("id,dog_id,case_id,import_batch_id,source_metadata").in("import_batch_id", batchIds).order("id").range(from, to)),
       page<any>((from, to) => supa.from("animal_timeline_events").select("id,dog_id,case_id,event_type,source_ref").eq("ngo_id", ngoId).eq("provenance", "imported_historical_record").order("id").range(from, to)),
       page<any>((from, to) => supa.from("dogs").select("id,lat,lng,zone,status,provenance,import_batch_id").in("import_batch_id", batchIds).order("id").range(from, to)),
     ]);
@@ -97,6 +107,8 @@ export async function POST(req: Request) {
       if (item.source_metadata?.derived_event_key) derivedMedical.add(item.source_metadata.derived_event_key);
       else if (key) baseMedicalBySource.set(key, item);
     }
+    const derivedFollowUps = new Set<string>();
+    for (const item of followUps) if (item.source_metadata?.derived_event_key) derivedFollowUps.add(item.source_metadata.derived_event_key);
     const derivedTimeline = new Set<string>();
     for (const item of timelines) if (item.source_ref?.derived_event_key) derivedTimeline.add(item.source_ref.derived_event_key);
 
@@ -104,9 +116,11 @@ export async function POST(req: Request) {
     const rescueSources = animalSources.filter(shouldHaveRescueCase);
     const caseMissing = rescueSources.filter((source) => { const key = sourceKey(source.batch_id, source.normalized.fingerprint); return !source.imported_case_id && !(key && caseBySource.has(key)); });
     const medicalCandidates = animalSources.flatMap((source) => deriveMedicalEvents(source).map((event) => ({ source, event })));
-    const historyCandidates = animalSources.flatMap((source) => deriveHistoryEvents(source).map((event) => ({ source, event })));
+    const followupCandidates = animalSources.flatMap((source) => deriveHistoryEvents(source).map((event) => ({ source, event })));
+    const explicitTimelineCandidates = animalSources.flatMap((source) => explicitTimelineEvents(source).map((event) => ({ source, event })));
     const missingMedical = medicalCandidates.filter(({ event }) => !derivedMedical.has(event.key));
-    const missingHistory = historyCandidates.filter(({ event }) => !derivedTimeline.has(event.key));
+    const missingFollowUps = followupCandidates.filter(({ event }) => !derivedFollowUps.has(event.key));
+    const missingExplicitTimeline = explicitTimelineCandidates.filter(({ event }) => !derivedTimeline.has(event.key));
     const falsePositiveVaccinations = animalSources.filter((source) => {
       if (!shouldHaveRescueCase(source) || source.classification !== "vaccination") return false;
       const key = sourceKey(source.batch_id, source.normalized.fingerprint);
@@ -114,12 +128,26 @@ export async function POST(req: Request) {
       return Boolean(existing?.kind === "vaccination" && !strictVaccinationRecorded(source));
     });
     const programmes = deriveProgrammes(sources);
-    const remainingSources = animalSources.filter((source) => source.normalized.enrichment_version !== WORKBOOK_ENRICHMENT_VERSION);
-    const preview = { sourceRows: sources.length, animalRows: animalSources.length, rescueRows: rescueSources.length, missingRescueCases: caseMissing.length, derivedMedicalEvents: medicalCandidates.length, missingMedicalEvents: missingMedical.length, historicalFollowupEvents: historyCandidates.length, missingHistoricalFollowupEvents: missingHistory.length, falsePositiveVaccinations: falsePositiveVaccinations.length, rowsRemaining: remainingSources.length, programmes };
+    const remainingSources = animalSources.filter((source) => source.normalized.enrichment_version !== RUN_VERSION);
+    const preview = {
+      sourceRows: sources.length,
+      animalRows: animalSources.length,
+      rescueRows: rescueSources.length,
+      missingRescueCases: caseMissing.length,
+      derivedMedicalEvents: medicalCandidates.length,
+      missingMedicalEvents: missingMedical.length,
+      historicalFollowupEvents: followupCandidates.length,
+      missingHistoricalFollowupEvents: missingFollowUps.length,
+      historicalTimelineEvents: explicitTimelineCandidates.length,
+      missingHistoricalTimelineEvents: missingExplicitTimeline.length,
+      falsePositiveVaccinations: falsePositiveVaccinations.length,
+      rowsRemaining: remainingSources.length,
+      programmes,
+    };
     if (mode === "preview") return NextResponse.json({ ok: true, ngo: ngo.name, preview });
 
     const work = remainingSources.slice(0, CHUNK_SIZE);
-    let casesCreated = 0, casesUpdated = 0, careEventsCreated = 0, historyEventsCreated = 0, vaccinationCorrections = 0;
+    let casesCreated = 0, casesUpdated = 0, careEventsCreated = 0, followupsCreated = 0, historyEventsCreated = 0, vaccinationCorrections = 0;
     for (const source of work) {
       const row = source.normalized;
       const dogId = source.imported_dog_id as string;
@@ -130,7 +158,29 @@ export async function POST(req: Request) {
 
       if (shouldHaveRescueCase(source)) {
         const state = deriveCaseState(source);
-        const casePatch: Record<string, unknown> = { dog_id: dogId, ngo_id: ngoId, title: [row.condition || "Rescue record", row.locality].filter(Boolean).join(" · "), description: detail(source), zone: row.locality, category: state.category, status: state.status, severity: /critical|severe|unable to (?:move|stand)|profuse|massive bleeding/i.test(rowTextSafe(source)) ? "high" : "normal", resolution: state.resolution, outcome_note: state.outcomeNote, stage: state.stage, condition_text: row.condition, source_event_at: row.event_date, created_at: row.event_date, last_activity_at: state.lastActivityAt, updated_at: state.lastActivityAt, resolved_at: state.resolvedAt, provenance: "imported_historical_record", verification_state: "verified", import_batch_id: source.batch_id, source_metadata: sourceMetadata(source) };
+        const casePatch: Record<string, unknown> = {
+          dog_id: dogId,
+          ngo_id: ngoId,
+          title: [row.condition || "Rescue record", row.locality].filter(Boolean).join(" · "),
+          description: detail(source),
+          zone: row.locality,
+          category: state.category,
+          status: state.status,
+          severity: /critical|severe|unable to (?:move|stand)|profuse|massive bleeding/i.test(rowTextSafe(source)) ? "high" : "normal",
+          resolution: state.resolution,
+          outcome_note: state.outcomeNote,
+          stage: state.stage,
+          condition_text: row.condition,
+          source_event_at: row.event_date,
+          created_at: row.event_date,
+          last_activity_at: state.lastActivityAt,
+          updated_at: state.lastActivityAt,
+          resolved_at: state.resolvedAt,
+          provenance: "imported_historical_record",
+          verification_state: "verified",
+          import_batch_id: source.batch_id,
+          source_metadata: sourceMetadata(source),
+        };
         if (!caseRecord) {
           const { data, error } = await supa.from("cases").insert({ ...casePatch, lat: dog.lat, lng: dog.lng, imported_at: new Date().toISOString() }).select("id,dog_id").single();
           if (error || !data) throw new Error(error?.message ?? "Could not create a missing historical case.");
@@ -152,9 +202,6 @@ export async function POST(req: Request) {
 
       for (const event of deriveMedicalEvents(source)) {
         if (derivedMedical.has(event.key)) continue;
-        // The original import already created one primary medical row for a
-        // single-label medical source. Keep that row as the first event, then
-        // add only distinct dated/secondary care from the richer source text.
         if (baseMedical?.kind === event.kind && source.classification === event.kind && event.eventDate === row.event_date?.slice(0, 10)) continue;
         const { error } = await supa.from("medical_events").insert({ dog_id: dogId, case_id: caseRecord?.id ?? null, kind: event.kind, event_date: event.eventDate, notes: event.note, performed_by: ngo.name, import_batch_id: source.batch_id, source_metadata: sourceMetadata(source, event.key) });
         if (error) throw new Error(error.message);
@@ -162,13 +209,36 @@ export async function POST(req: Request) {
       }
 
       for (const event of deriveHistoryEvents(source)) {
+        if (derivedFollowUps.has(event.key)) continue;
+        const status = event.followupStatus ?? "done";
+        const note = event.followupStatus ? event.details : `Historical review/appointment recorded in the source workbook; completion was not explicit. ${event.details}`;
+        const { error } = await supa.from("animal_followups").insert({
+          ngo_id: ngoId,
+          dog_id: dogId,
+          case_id: caseRecord?.id ?? null,
+          due_at: event.occurredAt,
+          status,
+          kind: event.eventType.replace("import:followup:", "historical "),
+          note,
+          completed_at: status === "done" ? event.occurredAt : null,
+          import_batch_id: source.batch_id,
+          source_metadata: sourceMetadata(source, event.key),
+        });
+        if (error) throw new Error(error.message);
+        derivedFollowUps.add(event.key);
+        // The database trigger creates the corresponding partner timeline entry.
+        derivedTimeline.add(event.key);
+        followupsCreated += 1;
+      }
+
+      for (const event of explicitTimelineEvents(source)) {
         if (derivedTimeline.has(event.key)) continue;
         const { error } = await supa.from("animal_timeline_events").insert({ ngo_id: ngoId, dog_id: dogId, case_id: caseRecord?.id ?? null, event_type: event.eventType, title: event.title, details: event.details, occurred_at: event.occurredAt, provenance: "imported_historical_record", source_ref: sourceMetadata(source, event.key), visibility: "partner" });
         if (error) throw new Error(error.message);
         derivedTimeline.add(event.key); historyEventsCreated += 1;
       }
 
-      const normalized = { ...row, enrichment_version: WORKBOOK_ENRICHMENT_VERSION };
+      const normalized = { ...row, enrichment_version: RUN_VERSION };
       const { error: sourceError } = await supa.from("import_rows").update({ normalized, imported_case_id: caseRecord?.id ?? source.imported_case_id ?? null, error: null }).eq("id", source.id);
       if (sourceError) throw new Error(sourceError.message);
       source.normalized = normalized;
@@ -184,6 +254,9 @@ export async function POST(req: Request) {
       await inChunks(clearVaccination, 100, async (ids) => { const { error } = await supa.from("dogs").update({ vaccinated: false, vaccination_status: "unknown" }).in("id", ids).eq("ngo_id", ngoId); if (error) throw new Error(error.message); });
       await inChunks([...strictVaccinated], 100, async (ids) => { const { error } = await supa.from("dogs").update({ vaccinated: true, vaccination_status: "vaccinated" }).in("id", ids).eq("ngo_id", ngoId); if (error) throw new Error(error.message); });
 
+      const strictSterilised = new Set(allDogSources.filter(strictSterilisationRecorded).map((source) => source.imported_dog_id as string));
+      await inChunks([...strictSterilised], 100, async (ids) => { const { error } = await supa.from("dogs").update({ sterilised: true, sterilisation_status: "sterilised" }).in("id", ids).eq("ngo_id", ngoId); if (error) throw new Error(error.message); });
+
       const latestByDog = new Map<string, EnrichmentSource>();
       for (const source of allDogSources.filter(shouldHaveRescueCase)) {
         const id = source.imported_dog_id as string;
@@ -196,17 +269,17 @@ export async function POST(req: Request) {
         if (state.status === "resolved") neutral.push(id); else if (state.category === "injury") injured.push(id); else neutral.push(id);
       }
       await inChunks(neutral, 100, async (ids) => { const { error } = await supa.from("dogs").update({ status: "seen", needs_help: false }).in("id", ids).eq("ngo_id", ngoId); if (error) throw new Error(error.message); });
-      await inChunks(injured, 100, async (ids) => { const { error } = await supa.from("dogs").update({ status: "injured" }).in("id", ids).eq("ngo_id", ngoId); if (error) throw new Error(error.message); });
+      await inChunks(injured, 100, async (ids) => { const { error } = await supa.from("dogs").update({ status: "injured", needs_help: true }).in("id", ids).eq("ngo_id", ngoId); if (error) throw new Error(error.message); });
 
       for (const programme of programmes) {
-        const campaign = { ngo_id: ngoId, name: programme.name, kind: programme.kind, starts_on: programme.startsOn, ends_on: programme.endsOn, zone: ngo.city, notes: `${WORKBOOK_ENRICHMENT_VERSION}:${programme.key}`, source_rows_count: programme.count, public_visibility: "summary", public_summary: programme.publicSummary, published_at: new Date().toISOString(), archived_at: new Date().toISOString() };
+        const campaign = { ngo_id: ngoId, name: programme.name, kind: programme.kind, starts_on: programme.startsOn, ends_on: programme.endsOn, zone: ngo.city, notes: `${RUN_VERSION}:${programme.key}`, source_rows_count: programme.count, public_visibility: "summary", public_summary: programme.publicSummary, published_at: new Date().toISOString(), archived_at: new Date().toISOString() };
         const { data: exists } = await supa.from("campaigns").select("id").eq("ngo_id", ngoId).eq("name", programme.name).maybeSingle();
         const write = exists ? await supa.from("campaigns").update(campaign).eq("id", exists.id) : await supa.from("campaigns").insert(campaign);
         if (write.error) throw new Error(write.error.message);
       }
     }
 
-    return NextResponse.json({ ok: true, ngo: ngo.name, completed: afterRemaining === 0, processedThisRequest: work.length, remainingRows: afterRemaining, casesCreated, casesUpdated, careEventsCreated, historyEventsCreated, vaccinationCorrections, preview });
+    return NextResponse.json({ ok: true, ngo: ngo.name, completed: afterRemaining === 0, processedThisRequest: work.length, remainingRows: afterRemaining, casesCreated, casesUpdated, careEventsCreated, followupsCreated, historyEventsCreated, vaccinationCorrections, preview });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not enrich the imported workbook." }, { status: 500 });
   }
