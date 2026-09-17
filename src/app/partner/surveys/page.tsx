@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ClipboardCheck, ArrowRight } from "lucide-react";
-import { getSurveys } from "@/lib/surveys";
+import { getSurveys, isProjectSurvey } from "@/lib/surveys";
 import { speciesLabel } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { SurveyCreate } from "@/components/surveys/SurveyCreate";
@@ -9,13 +9,13 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Surveys, StrayPaw Partner" };
 
 export default async function PartnerSurveysPage() {
-  const surveys = await getSurveys();
+  const surveys = (await getSurveys()).filter((survey) => !isProjectSurvey(survey));
   return (
     <div>
       <header className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Surveys &amp; census</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">Structured field counts across wards, villages and districts.</p>
+          <p className="mt-0.5 text-[13px] text-bark-500">Structured geographic counts across wards, villages and districts. Flexible programme registers live under Projects instead.</p>
         </div>
         <SurveyCreate />
       </header>
