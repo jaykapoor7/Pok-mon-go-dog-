@@ -10,11 +10,9 @@ export type SearchHit = { kind: SearchKind; label: string; detail: string; href:
 
 /* Search only exposes destinations that do a real job. */
 const PAGES: { label: string; detail: string; href: string; terms: string }[] = [
-  { label: "Map", detail: "Find recorded animals and places", href: "/map", terms: "map animals sightings places" },
+  { label: "Map", detail: "Find recorded animals, clusters and places", href: "/map", terms: "map animals sightings places clusters gaps" },
   { label: "Report an animal", detail: "Add an animal or new sighting", href: "/report", terms: "report add sighting new animal" },
-  { label: "Rescues", detail: "Open rescue cases and animals needing action", href: "/rescues", terms: "rescue active cases urgent" },
-  { label: "Care", detail: "Treatment, ABC and vaccination activity", href: "/care", terms: "care treatment medical abc sterilisation vaccination rabies arv" },
-  { label: "Outcomes", detail: "Resolved and closed animal case stories", href: "/outcomes", terms: "outcomes completed closed resolved cases" },
+  { label: "Animal stories", detail: "Rescue, care, follow-up and outcomes in one timeline", href: "/stories", terms: "stories rescue care treatment follow up outcomes completed active cases" },
   { label: "Organisation directory", detail: "Animal-welfare organisations", href: "/orgs", terms: "orgs ngos directory organisations partners" },
   { label: "Saved animals", detail: "Animals you follow", href: "/following", terms: "following saved bookmarks animals" },
 ];
