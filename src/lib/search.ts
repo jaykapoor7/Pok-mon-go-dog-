@@ -3,6 +3,7 @@ import { STATES, STATE_BY_CODE } from "@/lib/platform/geography";
 import { ORGS } from "@/lib/platform/orgs";
 import { CITY_COORDS, coordsForCity } from "@/lib/platform/city-coords";
 import { searchPlaces, type PlaceHit } from "@/lib/wards";
+import { searchAnimalIdentity } from "@/lib/animal-identity";
 
 /* ════════════════════════════════════════════════════════════════════
    Console search.
@@ -13,7 +14,7 @@ import { searchPlaces, type PlaceHit } from "@/lib/wards";
    back a real destination.
    ════════════════════════════════════════════════════════════════════ */
 
-export type SearchKind = "place" | "ward" | "state" | "org" | "page";
+export type SearchKind = "place" | "ward" | "state" | "org" | "page" | "animal";
 
 export type SearchHit = {
   kind: SearchKind;
@@ -149,21 +150,27 @@ export const KIND_LABEL: Record<SearchKind, string> = {
   state: "State",
   org: "Organisation",
   page: "Go to",
+  animal: "Animal",
 };
 
 
-/* ── Wards and districts, which live in the database ──────────────────
-   Everything above is a static list bundled with the app. Municipal wards
-   and districts are rows in Postgres — 641 districts and 200 Chennai wards
-   at the time of writing, more as pilots land — so they are looked up
-   rather than shipped, and merged into the results as they arrive.
-
-   Kept separate from search() rather than making that function async: the
-   static answers should appear on the first keystroke instead of waiting on
-   a round trip that may return nothing. */
+/* ── Database-backed search ───────────────────────────────────────────
+   Wards/districts and permanent StrayPaw animal IDs live in Postgres, so
+   they are looked up rather than bundled. Animal identity is searched only
+   by StrayPaw's own permanent ID — an NGO/source code is not the platform
+   identity and should not silently masquerade as one. */
 export async function searchAreas(query: string, limit = 4): Promise<SearchHit[]> {
-  const hits = await searchPlaces(query, limit);
-  return hits.map(toHit);
+  const [places, animals] = await Promise.all([
+    searchPlaces(query, limit),
+    searchAnimalIdentity(query, limit),
+  ]);
+  const animalHits: SearchHit[] = animals.map((animal) => ({
+    kind: "animal",
+    label: animal.straypaw_id,
+    detail: [animal.name || animal.species || "Animal", animal.zone].filter(Boolean).join(" · "),
+    href: `/dog/${animal.id}`,
+  }));
+  return [...animalHits, ...places.map(toHit)].slice(0, limit);
 }
 
 function toHit(p: PlaceHit): SearchHit {
