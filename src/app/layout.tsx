@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { StorageNotice } from "@/components/site/StorageNotice";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 import { RouteViews } from "@/components/analytics/RouteViews";
+import { RoleSwitchFallback } from "@/components/app/RoleSwitchFallback";
 
 import { SITE_URL } from "@/lib/site-url";
 // Interface: DM Sans, restrained, precise, engineered.
@@ -141,6 +142,7 @@ export default function RootLayout({
           <MotionRoot>
             <AuthProvider>
               <Haptics />
+              <RoleSwitchFallback />
               {/* The boundary is not decoration. Several screens call
                   useSearchParams() — the map, the partner animal list,
                   the new-case form — and a client component that reads
