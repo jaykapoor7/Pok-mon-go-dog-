@@ -8,15 +8,13 @@ import { searchAnimalIdentity } from "@/lib/animal-identity";
 export type SearchKind = "place" | "ward" | "state" | "org" | "page" | "animal";
 export type SearchHit = { kind: SearchKind; label: string; detail: string; href: string };
 
-/* Search only exposes destinations that do a real job. Placeholder, planning,
-   and overlapping evidence pages stay out of navigation until they earn a
-   place in the product. */
+/* Search only exposes destinations that do a real job. */
 const PAGES: { label: string; detail: string; href: string; terms: string }[] = [
   { label: "Map", detail: "Find recorded animals and places", href: "/map", terms: "map animals sightings places" },
   { label: "Report an animal", detail: "Add an animal or new sighting", href: "/report", terms: "report add sighting new animal" },
-  { label: "Rescues", detail: "Open rescue and care cases", href: "/rescues", terms: "rescue active cases care" },
-  { label: "Completed cases", detail: "Resolved animal case stories", href: "/outcomes", terms: "completed closed resolved outcomes cases" },
-  { label: "Timeline", detail: "Chronological public field activity", href: "/timeline", terms: "timeline activity treatment followup history" },
+  { label: "Rescues", detail: "Open rescue cases and animals needing action", href: "/rescues", terms: "rescue active cases urgent" },
+  { label: "Care", detail: "Treatment, ABC and vaccination activity", href: "/care", terms: "care treatment medical abc sterilisation vaccination rabies arv" },
+  { label: "Outcomes", detail: "Resolved and closed animal case stories", href: "/outcomes", terms: "outcomes completed closed resolved cases" },
   { label: "Organisation directory", detail: "Animal-welfare organisations", href: "/orgs", terms: "orgs ngos directory organisations partners" },
   { label: "Saved animals", detail: "Animals you follow", href: "/following", terms: "following saved bookmarks animals" },
 ];
