@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Download, Loader2, Plus } from "lucide-react";
-import { getSurveys, getSurveyResponses, type } from "@/lib/surveys";
+import { getSurveys, getSurveyResponses } from "@/lib/surveys";
 import { createSurvey, submitSurveyResponse } from "@/lib/survey-actions";
 
 const MARKER="STRAYPAW_PROJECT_FIELDS:";
@@ -19,7 +19,7 @@ export function ProjectRegisters(){
  useEffect(()=>{reload().catch(()=>setProjects([]))},[]);
  useEffect(()=>{if(!selected){setResponses([]);return}getSurveyResponses(selected,1000).then(r=>setResponses(r as unknown as ResponseRow[])).catch(()=>setResponses([]))},[selected]);
  const project=projects?.find(p=>p.id===selected)||null,fields=project?fieldsOf(project):[];
- async function makeProject(e:FormEvent){e.preventDefault();const f=fieldText.split(/[,\n]/).map(x=>x.trim()).filter(Boolean);if(!name.trim()||!f.length)return;setBusy(true);setError(null);try{const id=await createSurvey(name.trim(),species,`${MARKER}${f.join("|")}\n${description.trim()}`);await reload();if(id)setSelected(id);setName("");setFieldText("");setDescription("")}catch(e){setError(e instanceof Error?e.message:"Could not create project") }finally{setBusy(false)}}
+ async function makeProject(e:FormEvent){e.preventDefault();const f=fieldText.split(/[,\n]/).map(x=>x.trim()).filter(Boolean);if(!name.trim()||!f.length)return;setBusy(true);setError(null);try{const id=await createSurvey(name.trim(),species,`${MARKER}${f.join("|")}\n${description.trim()}`);await reload();if(id)setSelected(id);setName("");setFieldText("");setDescription("")}catch(e){setError(e instanceof Error?e.message:"Could not create project")}finally{setBusy(false)}}
  async function addEntry(e:FormEvent){e.preventDefault();if(!project)return;setBusy(true);setError(null);try{await submitSurveyResponse({surveyId:project.id,species:project.species,count:1,attributes:Object.fromEntries(fields.map(f=>[f,values[f]||""])),notes:notes||null});setValues({});setNotes("");setResponses(await getSurveyResponses(project.id,1000) as unknown as ResponseRow[])}catch(e){setError(e instanceof Error?e.message:"Could not save entry")}finally{setBusy(false)}}
  function exportCsv(){if(!project)return;const cols=["created_at",...fields,"notes"];const esc=(v:unknown)=>{const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s};const csv=[cols.join(","),...responses.map(r=>[r.created_at,...fields.map(f=>r.attributes?.[f]),r.notes].map(esc).join(","))].join("\n");const url=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));const a=document.createElement("a");a.href=url;a.download=`${project.title.toLowerCase().replace(/[^a-z0-9]+/g,"-")}-register.csv`;a.click();URL.revokeObjectURL(url)}
  if(projects===null)return <div className="flex justify-center py-20"><Loader2 className="h-5 w-5 animate-spin"/></div>;
