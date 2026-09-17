@@ -1,176 +1,51 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
-import { getPartnerCases } from "@/lib/cases";
-import { ExportCsvButton } from "@/components/dashboard/ExportCsvButton";
+import { ArrowUpRight, Loader2 } from "lucide-react";
+import { getPartnerRecordRows, type PartnerRecordRow } from "@/lib/partner-record-explorer";
 import { PrintButton } from "@/components/partner/PrintButton";
-import { CASE_CATEGORY_META, speciesLabel, type Case, type CaseCategory } from "@/lib/types";
 import { ConsolePage } from "./ConsolePage";
 import { ProgrammeBreakdown } from "@/components/partner/ProgrammeBreakdown";
 import { ExportStudio } from "@/components/partner/ExportStudio";
 
-const WEEKS = 12;
+const closed=(status:string|null)=>["resolved","closed"].includes(String(status??"").toLowerCase());
+const followDone=(status:string|null)=>["done","completed"].includes(String(status??"").toLowerCase());
+const followMissed=(status:string|null)=>["missed","cancelled","canceled"].includes(String(status??"").toLowerCase());
+const careMatch=(row:PartnerRecordRow,re:RegExp)=>row.kind==="care"&&re.test(row.subtype.toLowerCase());
 
-export function ReportsClient() {
-  const [cases, setCases] = useState<Case[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => { getPartnerCases().then(setCases).finally(() => setLoading(false)); }, []);
-
-  const stats = useMemo(() => {
-    const resolved = cases.filter((c) => c.status === "resolved");
-    const byRes: Record<string, number> = { treated: 0, sterilized: 0, rescued: 0 };
-    for (const c of resolved) if (c.resolution) byRes[c.resolution] = (byRes[c.resolution] ?? 0) + 1;
-    const byCat = new Map<string, number>();
-    for (const c of cases) byCat.set(c.category, (byCat.get(c.category) ?? 0) + 1);
-    const bySpecies = new Map<string, number>();
-    for (const c of cases) bySpecies.set(c.species ?? "dog", (bySpecies.get(c.species ?? "dog") ?? 0) + 1);
-    const rate = cases.length ? Math.round((resolved.length / cases.length) * 100) : 0;
-
-    const now = Date.now();
-    const weeks = Array.from({ length: WEEKS }, (_, i) => {
-      const end = now - (WEEKS - 1 - i) * 7 * 86_400_000;
-      const start = end - 7 * 86_400_000;
-      const count = cases.filter((c) => { const t = +new Date(c.created_at); return t > start && t <= end; }).length;
-      return { count, label: new Date(end).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) };
-    });
-    return { resolved, byRes, byCat, bySpecies, rate, weeks };
-  }, [cases]);
-
-  const { weeks } = stats;
-  const wMax = Math.max(1, ...weeks.map((w) => w.count));
-  const totalNew = weeks.reduce((a, w) => a + w.count, 0);
-
-  // SVG trend geometry
-  const W = 640, H = 150, PAD = 8;
-  const pts = weeks.map((w, i) => {
-    const x = PAD + (i / (WEEKS - 1)) * (W - PAD * 2);
-    const y = H - PAD - (w.count / wMax) * (H - PAD * 2);
-    return [x, y] as const;
-  });
-  const line = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const area = `${line} L${pts[pts.length - 1][0].toFixed(1)},${H - PAD} L${pts[0][0].toFixed(1)},${H - PAD} Z`;
-
-  const oTot = stats.byRes.treated + stats.byRes.sterilized + stats.byRes.rescued;
-  const oSafe = oTot ? Math.round((stats.byRes.rescued / oTot) * 100) : 0;
-  const oTreat = oTot ? Math.round((stats.byRes.treated / oTot) * 100) : 0;
-  const oSter = Math.max(0, 100 - oSafe - oTreat);
-  const donut = `conic-gradient(#3b7de6 0 ${oSafe}%, #d9a441 ${oSafe}% ${oSafe + oTreat}%, #3e8473 ${oSafe + oTreat}% 100%)`;
-  const catMax = Math.max(1, ...[...stats.byCat.values()]);
-
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-paw-500" /></div>;
-
-  return (
-    <ConsolePage
-      kicker="Field work / coverage"
-      title="Coverage"
-      lede="The numbers you send to donors, funders and municipalities."
-      actions={<><PrintButton /><ExportCsvButton /></>}
-    >
-
-      <ExportStudio />
-
-      {/* Programme coverage first. For an organisation running ABC and
-          rabies work these are the numbers that get reported; case counts
-          are the second half of the job, not the headline. */}
-      <ProgrammeBreakdown />
-
-      <h2 className="mb-3 mt-9 text-[13px] font-semibold uppercase tracking-[0.07em] text-bark-500">
-        Casework
-      </h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Metric label="Total cases" value={cases.length} />
-        <Metric label="Resolved" value={stats.resolved.length} accent />
-        <Metric label="Resolution rate" value={`${stats.rate}%`} />
-        <Metric label="New · 12 wks" value={totalNew} />
-      </div>
-
-      {/* Weekly trend */}
-      <section className="mt-6 rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <h2 className="font-semibold tracking-tight text-bark-900 dark:text-bark-50">New cases over time</h2>
-            <p className="text-[13px] text-bark-500">Last {WEEKS} weeks</p>
-          </div>
-          <span className="text-[13px] font-medium text-paw-600">peak {wMax}/wk</span>
-        </div>
-        <div className="overflow-x-auto">
-          <svg viewBox={`0 0 ${W} ${H}`} className="h-40 w-full min-w-[520px]" preserveAspectRatio="none">
-            {[0.25, 0.5, 0.75].map((g) => (
-              <line key={g} x1={PAD} x2={W - PAD} y1={PAD + g * (H - PAD * 2)} y2={PAD + g * (H - PAD * 2)} stroke="currentColor" className="text-black/[0.06] dark:text-white/10" strokeWidth="1" />
-            ))}
-            <path d={area} fill="#3b7de6" fillOpacity="0.12" />
-            <path d={line} fill="none" stroke="#3b7de6" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-            {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i === pts.length - 1 ? 4 : 2.5} fill="#3b7de6" />)}
-          </svg>
-        </div>
-        <div className="mt-1 flex justify-between text-[11.5px] text-bark-400">
-          <span>{weeks[0].label}</span><span>{weeks[Math.floor(WEEKS / 2)].label}</span><span>this week</span>
-        </div>
-      </section>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        {/* Category bars */}
-        <section className="rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
-          <h2 className="mb-4 font-semibold tracking-tight text-bark-900 dark:text-bark-50">Cases by type</h2>
-          {stats.byCat.size === 0 ? <p className="text-[13px] text-bark-400">No cases yet.</p> : (
-            <div className="space-y-3">
-              {[...stats.byCat.entries()].sort((a, b) => b[1] - a[1]).map(([cat, n]) => (
-                <div key={cat}>
-                  <div className="mb-1 flex items-center justify-between text-[13px]">
-                    <span className="text-bark-700 dark:text-bark-200">{CASE_CATEGORY_META[cat as CaseCategory]?.label ?? cat}</span>
-                    <span className="font-medium tabular-nums text-bark-900 dark:text-bark-50">{n}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-bark-100 dark:bg-bark-800"><div className="h-full rounded-full bg-paw-500" style={{ width: `${(n / catMax) * 100}%` }} /></div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Outcomes donut */}
-        <section className="rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
-          <h2 className="font-semibold tracking-tight text-bark-900 dark:text-bark-50">Outcomes</h2>
-          <p className="text-[13px] text-bark-500">What happened to resolved cases</p>
-          {oTot === 0 ? <p className="mt-6 text-[13px] text-bark-400">No resolved outcomes yet.</p> : (
-            <div className="mt-5 flex items-center gap-7">
-              <div className="relative grid size-32 shrink-0 place-items-center rounded-full" style={{ background: donut }}>
-                <div className="grid size-20 place-items-center rounded-full bg-white text-center dark:bg-bark-900">
-                  <span className="text-xl font-semibold text-bark-900 dark:text-bark-50">{stats.resolved.length}<span className="block text-[11.5px] font-normal text-bark-400">resolved</span></span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2.5 text-[13px]">
-                <span className="flex items-center gap-2"><i className="inline-block size-2.5 rounded-full" style={{ background: "#3b7de6" }} /> Rescued <b className="ml-auto tabular-nums">{oSafe}%</b></span>
-                <span className="flex items-center gap-2"><i className="inline-block size-2.5 rounded-full" style={{ background: "#d9a441" }} /> Treated <b className="ml-auto tabular-nums">{oTreat}%</b></span>
-                <span className="flex items-center gap-2"><i className="inline-block size-2.5 rounded-full" style={{ background: "#3e8473" }} /> Sterilised <b className="ml-auto tabular-nums">{oSter}%</b></span>
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
-
-      {stats.bySpecies.size > 1 && (
-        <section className="mt-6 rounded border border-black/[0.08] bg-white/70 p-5 dark:border-white/[0.1] dark:bg-bark-900/50">
-          <h2 className="mb-3 font-semibold tracking-tight text-bark-900 dark:text-bark-50">Cases by species</h2>
-          <div className="flex flex-wrap gap-2">
-            {[...stats.bySpecies.entries()].sort((a, b) => b[1] - a[1]).map(([s, n]) => (
-              <span key={s} className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] px-3 py-1.5 text-[13px] dark:border-white/[0.1]">
-                {speciesLabel(s)} <b className="tabular-nums text-paw-600">{n}</b>
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-    </ConsolePage>
-  );
+export function ReportsClient(){
+ const [rows,setRows]=useState<PartnerRecordRow[]|null>(null);
+ useEffect(()=>{getPartnerRecordRows().then(setRows).catch(()=>setRows([]))},[]);
+ const stats=useMemo(()=>{
+  const all=rows??[],rescues=all.filter(r=>r.kind==="rescue"),followups=all.filter(r=>r.kind==="follow_up"),outcomes=all.filter(r=>r.kind==="outcome"),care=all.filter(r=>r.kind==="care"),now=Date.now();
+  const openRescues=rescues.filter(r=>!closed(r.status));
+  const overdue=followups.filter(r=>!followDone(r.status)&&!followMissed(r.status)&&+new Date(r.date)<now);
+  const upcoming=followups.filter(r=>!followDone(r.status)&&!followMissed(r.status)&&+new Date(r.date)>=now);
+  const vaccination=care.filter(r=>careMatch(r,/vaccin|rabies|arv/));
+  const sterilisation=care.filter(r=>careMatch(r,/sterili|abc|spay|neuter/));
+  const treatment=care.filter(r=>careMatch(r,/treat|chemo|tvt|surgery|wound|diagnostic|rehab|medicine|admission/));
+  const completedFollowups=followups.filter(r=>followDone(r.status)),missedFollowups=followups.filter(r=>followMissed(r.status));
+  const outcomeCounts=new Map<string,number>();for(const r of outcomes)outcomeCounts.set(r.subtype,(outcomeCounts.get(r.subtype)??0)+1);
+  const localityCounts=new Map<string,number>();for(const r of all.filter(r=>r.kind!=="follow_up")){const key=r.locality||"Locality not recorded";localityCounts.set(key,(localityCounts.get(key)??0)+1)}
+  const years=new Map<string,{rescue:number;care:number;follow:number;outcome:number}>();for(const r of all){const y=String(new Date(r.date).getFullYear());if(y==="NaN")continue;const value=years.get(y)??{rescue:0,care:0,follow:0,outcome:0};if(r.kind==="rescue")value.rescue++;if(r.kind==="care")value.care++;if(r.kind==="follow_up")value.follow++;if(r.kind==="outcome")value.outcome++;years.set(y,value)}
+  const journeys=new Map<string,{rescue:boolean;care:boolean;follow:boolean;outcome:boolean}>();for(const r of all){if(!r.caseId)continue;const j=journeys.get(r.caseId)??{rescue:false,care:false,follow:false,outcome:false};if(r.kind==="rescue")j.rescue=true;if(r.kind==="care")j.care=true;if(r.kind==="follow_up")j.follow=true;if(r.kind==="outcome")j.outcome=true;journeys.set(r.caseId,j)}
+  const journeyRows=[...journeys.values()].filter(j=>j.rescue);
+  return{rescues,openRescues,care,vaccination,sterilisation,treatment,followups,overdue,upcoming,completedFollowups,missedFollowups,outcomes,outcomeCounts,localities:[...localityCounts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12),years:[...years.entries()].sort((a,b)=>b[0].localeCompare(a[0])),journey:{intake:journeyRows.length,care:journeyRows.filter(j=>j.care).length,follow:journeyRows.filter(j=>j.follow).length,outcome:journeyRows.filter(j=>j.outcome).length}};
+ },[rows]);
+ if(rows===null)return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-paw-500"/></div>;
+ return <ConsolePage kicker="Field work / reports" title="Operational report" lede="What needs action, what work was delivered, what happened next and where the workload sits." actions={<PrintButton/>}>
+  <ExportStudio/>
+  <Section title="Work requiring action" lede="Current queue only. Historical completed reviews stay out of this section."><div className="border-t border-black/[.09]"><Row href="/partner/records?view=rescue" label="Open rescue cases" value={stats.openRescues.length} detail="Cases not yet closed or resolved."/><Row href="/partner/records?view=overdue" label="Overdue follow-ups" value={stats.overdue.length} detail="Pending reviews or appointments whose due date has passed."/><Row href="/partner/records?view=follow_up" label="Upcoming follow-ups" value={stats.upcoming.length} detail="Pending reviews with a future due date."/></div></Section>
+  <Section title="Care delivered" lede="Event-level care from the native medical record, not keyword counts from a dashboard."><div className="border-t border-black/[.09]"><Row href="/partner/records?view=vaccination" label="Rabies / vaccination" value={stats.vaccination.length} detail="Traceable vaccination and ARV events."/><Row href="/partner/records?view=sterilisation" label="ABC / sterilisation" value={stats.sterilisation.length} detail="Traceable sterilisation events."/><Row href="/partner/records?view=treatment" label="Treatment / medical" value={stats.treatment.length} detail="Treatment, TVT, surgery, wound care, diagnostics and related care."/><Row href="/partner/records?view=care" label="All care events" value={stats.care.length} detail="Every medical event on the organisation record."/></div></Section>
+  <Section title="Follow-up completion" lede="Review work is separated into completed, missed/cancelled and still actionable records."><div className="border-t border-black/[.09]"><Row href="/partner/records?view=follow_up" label="Completed" value={stats.completedFollowups.length} detail="Follow-ups marked done or completed."/><Row href="/partner/records?view=follow_up" label="Missed / cancelled" value={stats.missedFollowups.length} detail="Historical or current reviews that did not happen."/><Row href="/partner/records?view=overdue" label="Still overdue" value={stats.overdue.length} detail="Outstanding work that needs attention now."/></div></Section>
+  <Section title="Case journey" lede="How many rescue cases have evidence at each later stage. These are case-linked records, not a decorative funnel."><div className="border-t border-black/[.09]"><PlainRow label="Rescue / intake" value={stats.journey.intake}/><PlainRow label="Reached care" value={stats.journey.care}/><PlainRow label="Has follow-up" value={stats.journey.follow}/><PlainRow label="Has recorded outcome" value={stats.journey.outcome}/></div></Section>
+  <Section title="Recorded outcomes" lede="What happened to animals and cases after intervention."><div className="border-t border-black/[.09]">{stats.outcomeCounts.size?[...stats.outcomeCounts.entries()].sort((a,b)=>b[1]-a[1]).map(([label,n])=><PlainRow key={label} label={label.replace(/_/g," ")} value={n}/>):<p className="py-5 text-sm opacity-60">No structured outcomes recorded.</p>}</div></Section>
+  <Section title="Work by locality" lede="Where rescue and care records concentrate. Use this to plan field coverage, not as a population estimate."><div className="border-t border-black/[.09]">{stats.localities.map(([place,n])=><PlainRow key={place} label={place} value={n}/>)}</div></Section>
+  <Section title="Historical workload" lede="Year-by-year source history using the event dates on the records, not import time."><div className="overflow-x-auto border-t border-black/[.09]"><table className="w-full min-w-[620px] text-sm"><thead><tr className="border-b border-black/[.08] text-left text-xs opacity-55"><th className="py-3">Year</th><th>Rescue</th><th>Care</th><th>Follow-up</th><th>Outcome</th></tr></thead><tbody>{stats.years.map(([year,v])=><tr key={year} className="border-b border-black/[.07]"><th className="py-3 text-left">{year}</th><td>{v.rescue.toLocaleString()}</td><td>{v.care.toLocaleString()}</td><td>{v.follow.toLocaleString()}</td><td>{v.outcome.toLocaleString()}</td></tr>)}</tbody></table></div></Section>
+  <section className="mt-12"><div className="mb-4"><span className="text-[11px] font-semibold uppercase tracking-[.14em] text-bark-400">Programmes</span><h2 className="mt-1 text-xl font-semibold">Coverage by drive</h2><p className="mt-1 text-sm text-bark-500">Keep programme coverage separate from casework so an aggregate drive total is never mistaken for a case count.</p></div><ProgrammeBreakdown/></section>
+ </ConsolePage>
 }
-
-function Metric({ label, value, accent }: { label: string; value: number | string; accent?: boolean }) {
-  return (
-    <div className="rounded border border-black/[0.08] bg-white/70 px-4 py-4 dark:border-white/[0.1] dark:bg-bark-900/50">
-      <div className={`text-2xl font-semibold tabular-nums tracking-tight ${accent ? "text-paw-600" : "text-bark-900 dark:text-bark-50"}`}>{value}</div>
-      <div className="mt-0.5 text-[12px] text-bark-500">{label}</div>
-    </div>
-  );
-}
+function Section({title,lede,children}:{title:string;lede:string;children:React.ReactNode}){return <section className="mt-10"><h2 className="text-xl font-semibold tracking-tight">{title}</h2><p className="mt-1 text-sm text-bark-500">{lede}</p><div className="mt-4">{children}</div></section>}
+function Row({href,label,value,detail}:{href:string;label:string;value:number;detail:string}){return <Link href={href} className="grid gap-2 border-b border-black/[.08] py-4 hover:bg-black/[.02] sm:grid-cols-[220px_100px_1fr_18px] sm:items-center"><b className="text-sm">{label}</b><strong className="text-2xl tabular-nums">{value.toLocaleString()}</strong><span className="text-xs leading-5 text-bark-500">{detail}</span><ArrowUpRight size={15}/></Link>}
+function PlainRow({label,value}:{label:string;value:number}){return <div className="grid grid-cols-[1fr_100px] items-center border-b border-black/[.08] py-3"><span className="text-sm capitalize">{label}</span><strong className="text-right text-lg tabular-nums">{value.toLocaleString()}</strong></div>}
