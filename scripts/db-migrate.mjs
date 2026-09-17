@@ -78,6 +78,25 @@ if (files.includes("RUN-PILOT-MIGRATIONS.sql")) {
   }
 }
 
+/*
+ * Later additive migrations may append columns to a public view that also
+ * appears earlier inside the generated pilot bundle. PostgreSQL does not let
+ * CREATE OR REPLACE VIEW remove those appended columns on a rerun. Preserve
+ * the permanent StrayPaw ID column in the bundled public animal projection so
+ * running the same pilot set remains safe and idempotent.
+ */
+function normalizeRerunnableSql(file, text) {
+  if (file !== "RUN-PILOT-MIGRATIONS.sql" && file !== "RUN-ALL-MIGRATIONS.sql") return text;
+  const oldAnimalViewTail =
+    "  d.provenance, n.name as ngo_name\n" +
+    "from dogs d left join ngos n on n.id = d.ngo_id;";
+  const compatibleAnimalViewTail =
+    "  d.provenance, n.name as ngo_name,\n" +
+    "  d.straypaw_id\n" +
+    "from dogs d left join ngos n on n.id = d.ngo_id;";
+  return text.replace(oldAnimalViewTail, compatibleAnimalViewTail);
+}
+
 const client = new pg.Client({
   connectionString: url,
   ssl: url.includes("localhost") || url.includes("127.0.0.1") ? false : { rejectUnauthorized: false },
@@ -101,14 +120,16 @@ console.log(`Connected. Running set "${set}", ${files.length} files.\n`);
 for (const file of files) {
   const started = Date.now();
   process.stdout.write(`  ${file.padEnd(30)}`);
+  const raw = readFileSync(sql(file), "utf8");
+  const statement = normalizeRerunnableSql(file, raw);
   try {
-    await client.query(readFileSync(sql(file), "utf8"));
+    await client.query(statement);
     console.log(`ok   ${((Date.now() - started) / 1000).toFixed(1)}s`);
   } catch (err) {
     console.log("FAILED");
     console.error(`\n${file} failed:\n  ${err.message}`);
     if (err.position) {
-      const upto = readFileSync(sql(file), "utf8").slice(0, Number(err.position));
+      const upto = statement.slice(0, Number(err.position));
       console.error(`  at line ${upto.split("\n").length}`);
     }
     console.error("\nNothing after this file ran. Fix it and run the same command again;\nevery file here is safe to repeat.");
