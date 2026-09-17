@@ -3,131 +3,85 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase, isSupabaseConfigured } from "./supabase";
-import type {
-  Case,
-  CaseUpdate,
-  CaseStatus,
-  CaseSeverity,
-  CaseCategory,
-} from "./types";
+import type { Case, CaseUpdate, CaseStatus, CaseSeverity, CaseCategory } from "./types";
 import { isRecordingDemo, recordingDemoCases } from "./recording-demo";
 
 export const CASES_LIVE = isSupabaseConfigured;
 
 function mapCase(r: any): Case {
   return {
-    id: r.id,
-    dog_id: r.dog_id ?? null,
-    title: r.title,
-    description: r.description ?? null,
-    zone: r.zone ?? null,
-    lat: r.lat ?? null,
-    lng: r.lng ?? null,
-    severity: (r.severity ?? "normal") as CaseSeverity,
-    category: (r.category ?? "other") as CaseCategory,
-    tags: r.tags ?? [],
-    status: (r.status ?? "unverified") as CaseStatus,
-    resolution: r.resolution ?? null,
-    assignee_id: r.assignee_id ?? null,
-    assignee_name: r.assignee_name ?? null,
-    ngo_id: r.ngo_id ?? null,
-    created_by_id: r.created_by_id ?? null,
-    created_by_name: r.created_by_name ?? null,
-    created_at: r.created_at,
-    updated_at: r.updated_at ?? r.created_at,
-    last_activity_at: r.last_activity_at ?? r.created_at,
-    due_at: r.due_at ?? null,
-    resolved_at: r.resolved_at ?? null,
-    before_url: r.before_url ?? null,
-    after_url: r.after_url ?? null,
-    outcome_note: r.outcome_note ?? null,
-    proof_verified: r.proof_verified ?? false,
-    verified_at: r.verified_at ?? null,
-    cost_estimate: r.cost_estimate ?? null,
-    cost_spent: r.cost_spent ?? null,
-    species: r.species ?? "dog",
-    follow_up_at: r.follow_up_at ?? null,
-    medical_notes: r.medical_notes ?? null,
+    id: r.id, dog_id: r.dog_id ?? null, title: r.title, description: r.description ?? null,
+    zone: r.zone ?? null, lat: r.lat ?? null, lng: r.lng ?? null,
+    severity: (r.severity ?? "normal") as CaseSeverity, category: (r.category ?? "other") as CaseCategory,
+    tags: r.tags ?? [], status: (r.status ?? "unverified") as CaseStatus, resolution: r.resolution ?? null,
+    assignee_id: r.assignee_id ?? null, assignee_name: r.assignee_name ?? null, ngo_id: r.ngo_id ?? null,
+    created_by_id: r.created_by_id ?? null, created_by_name: r.created_by_name ?? null,
+    created_at: r.created_at, updated_at: r.updated_at ?? r.created_at, last_activity_at: r.last_activity_at ?? r.created_at,
+    due_at: r.due_at ?? null, resolved_at: r.resolved_at ?? null, before_url: r.before_url ?? null,
+    after_url: r.after_url ?? null, outcome_note: r.outcome_note ?? null, proof_verified: r.proof_verified ?? false,
+    verified_at: r.verified_at ?? null, cost_estimate: r.cost_estimate ?? null, cost_spent: r.cost_spent ?? null,
+    species: r.species ?? "dog", follow_up_at: r.follow_up_at ?? null, medical_notes: r.medical_notes ?? null,
     photos: r.photos ?? [],
   };
 }
 
 function mapUpdate(r: any): CaseUpdate {
-  return {
-    id: r.id,
-    case_id: r.case_id,
-    actor_id: r.actor_id ?? null,
-    actor_name: r.actor_name ?? null,
-    type: r.type,
-    from_status: r.from_status ?? null,
-    to_status: r.to_status ?? null,
-    note: r.note ?? null,
-    created_at: r.created_at,
-  };
+  return { id: r.id, case_id: r.case_id, actor_id: r.actor_id ?? null, actor_name: r.actor_name ?? null,
+    type: r.type, from_status: r.from_status ?? null, to_status: r.to_status ?? null, note: r.note ?? null, created_at: r.created_at };
+}
+
+async function pagedCases(query: (from: number, to: number) => any) {
+  const rows: any[] = [];
+  for (let from = 0; ; from += 500) {
+    const { data, error } = await query(from, from + 499);
+    if (error) break;
+    rows.push(...(data ?? []));
+    if (!data || data.length < 500) break;
+  }
+  return rows;
 }
 
 export async function getCases(): Promise<Case[]> {
   if (isRecordingDemo) return recordingDemoCases;
   const supa = getSupabase();
-  if (supa) {
-    const { data } = await supa
-      .from("cases")
-      .select("*")
-      .order("last_activity_at", { ascending: false })
-      .limit(500);
-    if (data) return data.map(mapCase);
-  }
-  return [];
+  if (!supa) return [];
+  const rows = await pagedCases((from, to) => supa.from("cases").select("*").order("last_activity_at", { ascending: false }).range(from, to));
+  return rows.map(mapCase);
 }
 
 /**
- * Cases scoped to the signed-in partner's org, their own claimed cases plus
- * the shared pool of unclaimed community reports. Runs client-side with the
- * authenticated session (my_org_cases uses my_ngo()), so each NGO sees only
- * their own data. Falls back to the shared list on older DBs without the RPC.
+ * Complete case history for the signed-in organisation, plus the shared
+ * unclaimed pool. The base-table read is RLS-scoped to my_ngo() and is paged,
+ * so a historical register with 2,000+ cases is never silently truncated.
+ * my_org_cases() is retained only to add the shared community pool; rows are
+ * de-duplicated by id.
  */
 export async function getPartnerCases(): Promise<Case[]> {
   if (isRecordingDemo) return recordingDemoCases;
   const supa = getSupabase();
   if (!supa) return [];
-  const { data, error } = await supa.rpc("my_org_cases");
-  /* No fallback to the shared list. This used to return getCases() when the
-     RPC was missing, which meant any failure of the scoped read, including
-     having no session at all, answered with every organisation's cases.
-     Nothing is the correct answer to a scoped question that could not be
-     scoped. */
-  if (error) return [];
-  return (data ?? []).map(mapCase);
+
+  const own = await pagedCases((from, to) => supa.from("cases").select("*").order("last_activity_at", { ascending: false }).range(from, to));
+  const { data: shared } = await supa.rpc("my_org_cases");
+  const merged = new Map<string, any>();
+  for (const row of [...own, ...(shared ?? [])]) merged.set(row.id, row);
+  return [...merged.values()].map(mapCase).sort((a, b) => +new Date(b.last_activity_at) - +new Date(a.last_activity_at));
 }
 
 export async function getCasesForDog(dogId: string): Promise<Case[]> {
   const supa = getSupabase();
-  if (supa) {
-    const { data } = await supa
-      .from("cases")
-      .select("*")
-      .eq("dog_id", dogId)
-      .order("last_activity_at", { ascending: false });
-    if (data) return data.map(mapCase);
-  }
-  return [];
+  if (!supa) return [];
+  const rows = await pagedCases((from, to) => supa.from("cases").select("*").eq("dog_id", dogId).order("last_activity_at", { ascending: false }).range(from, to));
+  return rows.map(mapCase);
 }
 
-export async function getCaseById(
-  id: string
-): Promise<{ case: Case; updates: CaseUpdate[] } | null> {
+export async function getCaseById(id: string): Promise<{ case: Case; updates: CaseUpdate[] } | null> {
   const supa = getSupabase();
-  if (supa) {
-    const [{ data: c }, { data: u }] = await Promise.all([
-      supa.from("cases").select("*").eq("id", id).single(),
-      supa
-        .from("case_updates")
-        .select("*")
-        .eq("case_id", id)
-        .order("created_at", { ascending: true }),
-    ]);
-    if (!c) return null;
-    return { case: mapCase(c), updates: (u ?? []).map(mapUpdate) };
-  }
-  return null;
+  if (!supa) return null;
+  const [{ data: c }, { data: u }] = await Promise.all([
+    supa.from("cases").select("*").eq("id", id).single(),
+    supa.from("case_updates").select("*").eq("case_id", id).order("created_at", { ascending: true }),
+  ]);
+  if (!c) return null;
+  return { case: mapCase(c), updates: (u ?? []).map(mapUpdate) };
 }
