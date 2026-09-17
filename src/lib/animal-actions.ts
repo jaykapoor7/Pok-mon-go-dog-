@@ -171,15 +171,20 @@ export async function getPartnerMedicalEvents(): Promise<PartnerMedicalEvent[]> 
   const { data: ngoId, error: orgError } = await supa.rpc("my_ngo");
   if (orgError || !ngoId) return [];
 
-  const { data, error } = await supa
-    .from("medical_events")
-    .select("id, dog_id, case_id, kind, event_date, notes, performed_by, created_at, dogs!inner(id, name, code, zone, cover_photo, ngo_id)")
-    .eq("dogs.ngo_id", ngoId)
-    .order("event_date", { ascending: false })
-    .limit(1000);
-  if (error) return [];
+  const rows: any[] = [];
+  for (let from = 0; ; from += 500) {
+    const { data, error } = await supa
+      .from("medical_events")
+      .select("id, dog_id, case_id, kind, event_date, notes, performed_by, created_at, dogs!inner(id, name, code, zone, cover_photo, ngo_id)")
+      .eq("dogs.ngo_id", ngoId)
+      .order("event_date", { ascending: false })
+      .range(from, from + 499);
+    if (error) return [];
+    rows.push(...(data ?? []));
+    if (!data || data.length < 500) break;
+  }
 
-  return (data ?? []).flatMap((r: any) => {
+  return rows.flatMap((r: any) => {
     const animal = Array.isArray(r.dogs) ? r.dogs[0] : r.dogs;
     if (!animal) return [];
     return [{
