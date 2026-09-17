@@ -9,12 +9,10 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
   { path: "/map", priority: 0.9, freq: "daily" },
   { path: "/app", priority: 0.8, freq: "daily" },
   { path: "/report", priority: 0.8, freq: "monthly" },
+  { path: "/stories", priority: 0.9, freq: "daily" },
 
   { path: "/evidence", priority: 0.8, freq: "weekly" },
   { path: "/programmes", priority: 0.8, freq: "weekly" },
-  { path: "/rescues", priority: 0.8, freq: "daily" },
-  { path: "/care", priority: 0.8, freq: "daily" },
-  { path: "/outcomes", priority: 0.8, freq: "weekly" },
   { path: "/gaps", priority: 0.5, freq: "monthly" },
   { path: "/needs", priority: 0.6, freq: "weekly" },
   { path: "/insights", priority: 0.6, freq: "weekly" },
