@@ -36,7 +36,9 @@ export type ProfileOperationalRecord = {
   followUps: Array<{
     id: string;
     dueAt: string | null;
+    completedAt: string | null;
     kind: string;
+    status: string | null;
     note: string | null;
   }>;
   timeline: Array<{
@@ -142,7 +144,7 @@ export async function getProfileOperationalRecord(dogId: string): Promise<Profil
     supa.from("dogs").select("id,source_metadata,provenance").eq("id", dogId).maybeSingle(),
     supa.from("cases").select("id,category,source_metadata,created_at").eq("dog_id", dogId),
     supa.from("medical_events").select("id,kind,event_date,notes,performed_by,source_metadata").eq("dog_id", dogId).order("event_date", { ascending: false }),
-    supa.from("animal_followups").select("id,due_at,kind,note,source_metadata").eq("dog_id", dogId).order("due_at", { ascending: false }),
+    supa.from("animal_followups").select("id,due_at,completed_at,kind,status,note,source_metadata").eq("dog_id", dogId).order("due_at", { ascending: false }),
     supa.from("animal_timeline_events").select("id,event_type,title,details,occurred_at,provenance,source_ref").eq("dog_id", dogId).order("occurred_at", { ascending: false }),
     supa.from("import_rows").select("id,batch_id,normalized,decision,error").eq("imported_dog_id", dogId),
   ]);
@@ -190,7 +192,9 @@ export async function getProfileOperationalRecord(dogId: string): Promise<Profil
     followUps: (followRes.data ?? []).map((row: any) => ({
       id: row.id,
       dueAt: row.due_at ?? null,
+      completedAt: row.completed_at ?? null,
       kind: row.kind ?? "follow-up",
+      status: row.status ?? null,
       note: row.note ?? null,
     })),
     timeline: (timelineRes.data ?? []).map((row: any) => ({
