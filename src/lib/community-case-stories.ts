@@ -45,6 +45,19 @@ export async function getPublicCaseStories(): Promise<PublicCaseStory[]> {
   return rows;
 }
 
+function mapTimelineRow(row: any): PublicTimelineEvent {
+  return {
+    id: row.id,
+    dog_id: row.dog_id ?? null,
+    ngo_id: row.ngo_id ?? null,
+    ngo_name: row.ngo_name ?? null,
+    title: row.title ?? "Field activity",
+    occurred_at: row.occurred_at,
+    zone: row.zone ?? null,
+  };
+}
+
+/** Generic public activity feed. The limit is intentional for timeline pages. */
 export async function getPublicTimeline(limit = 500): Promise<PublicTimelineEvent[]> {
   const supa = getSupabase();
   if (!supa) return [];
@@ -54,13 +67,30 @@ export async function getPublicTimeline(limit = 500): Promise<PublicTimelineEven
     .order("occurred_at", { ascending: false })
     .limit(limit);
   if (error) return [];
-  return (data ?? []).map((row: any) => ({
-    id: row.id,
-    dog_id: row.dog_id ?? null,
-    ngo_id: row.ngo_id ?? null,
-    ngo_name: row.ngo_name ?? null,
-    title: row.title ?? "Field activity",
-    occurred_at: row.occurred_at,
-    zone: row.zone ?? null,
-  }));
+  return (data ?? []).map(mapTimelineRow);
+}
+
+/**
+ * Complete public care ledger.
+ *
+ * public_field_activity contains both cases and care. Filtering after a global
+ * limit silently dropped older medical events once case volume grew. Filter in
+ * the database first, then page every matching medical row instead.
+ */
+export async function getPublicCareTimeline(): Promise<PublicTimelineEvent[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const rows: PublicTimelineEvent[] = [];
+  for (let from = 0; ; from += 500) {
+    const { data, error } = await supa
+      .from("public_field_activity")
+      .select("*")
+      .like("id", "medical:%")
+      .order("occurred_at", { ascending: false })
+      .range(from, from + 499);
+    if (error) return rows;
+    rows.push(...(data ?? []).map(mapTimelineRow));
+    if (!data || data.length < 500) break;
+  }
+  return rows;
 }
