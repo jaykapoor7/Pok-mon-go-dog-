@@ -1,4 +1,5 @@
 import { AdminClient } from "@/components/admin/AdminClient";
+import { ModerationEnrichment } from "@/components/admin/ModerationEnrichment";
 
 // Same moderation tool as /admin, on a fresh path. /admin can get stuck behind
 // a cached edge 404 on some hosts; this alias is guaranteed to route.
@@ -10,5 +11,5 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default function ModeratePage() {
-  return <AdminClient />;
+  return <><AdminClient /><ModerationEnrichment /></>;
 }
