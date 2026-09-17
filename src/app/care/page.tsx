@@ -2,16 +2,21 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { CommunityRecordTabs } from "@/components/app/CommunityRecordTabs";
-import { getPublicTimeline } from "@/lib/community-case-stories";
+import { getPublicCareTimeline } from "@/lib/community-case-stories";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Care records, StrayPaw" };
 
-export default async function CarePage() {
-  const all = await getPublicTimeline(1200);
-  const rows = all.filter((row) => row.id.startsWith("medical:"));
+function careKind(title: string) {
+  const t = title.toLowerCase();
+  if (/vaccin|rabies|arv/.test(t)) return "Rabies / vaccination";
+  if (/sterili|\babc\b|spay|neuter/.test(t)) return "ABC / sterilisation";
+  return "Treatment / medical";
+}
 
+export default async function CarePage() {
+  const rows = await getPublicCareTimeline();
   return <AppShell><main className="mx-auto w-full max-w-5xl px-4 py-7 sm:px-6 lg:px-8">
     <CommunityRecordTabs />
     <header className="mb-6">
@@ -20,8 +25,9 @@ export default async function CarePage() {
       <p className="mt-2 max-w-2xl text-sm leading-6 opacity-65">Published treatment, medical, ABC / sterilisation and rabies / vaccination activity. Each record opens the animal behind the work so care is shown as part of one continuous history.</p>
     </header>
     <div className="border-t border-black/[.09]">
-      {rows.length ? rows.map((row) => <div key={row.id} className="grid gap-2 border-b border-black/[.08] py-4 sm:grid-cols-[120px_160px_minmax(0,1fr)_18px] sm:items-center">
+      {rows.length ? rows.map((row) => <div key={row.id} className="grid gap-2 border-b border-black/[.08] py-4 sm:grid-cols-[120px_150px_160px_minmax(0,1fr)_18px] sm:items-center">
         <time className="text-xs tabular-nums opacity-55">{formatDate(row.occurred_at)}</time>
+        <span className="text-[11px] font-semibold uppercase tracking-[.08em] opacity-55">{careKind(row.title)}</span>
         <span className="truncate text-xs font-semibold">{row.ngo_name || "Care record"}</span>
         <span className="min-w-0"><b className="block text-sm">{row.title}</b>{row.zone && <small className="mt-0.5 block text-xs opacity-60">{row.zone}</small>}</span>
         {row.dog_id ? <Link href={`/dog/${row.dog_id}`} aria-label="Open animal record"><ArrowUpRight size={15}/></Link> : <span/>}
