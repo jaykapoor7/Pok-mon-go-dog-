@@ -1,12 +1,10 @@
-import { PartnerOverview } from "@/components/partner/PartnerOverview";
-import { HistoricalImpactStrip } from "@/components/partner/HistoricalImpactStrip";
-import { OperationalInsights } from "@/components/partner/OperationalInsights";
+import { PartnerRecordHome } from "@/components/partner/PartnerRecordHome";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Today, StrayPaw Partner" };
+export const metadata = { title: "Organisation record, StrayPaw Partner" };
 
-/* All organisation data loads client-side through the authenticated Supabase
-   session and RLS. Nothing private is rendered into signed-out HTML. */
+/* The NGO home is an index into the organisation's native records. Detailed
+   operational history stays behind authenticated RLS reads in the client. */
 export default function PartnerOverviewPage() {
-  return <><HistoricalImpactStrip /><PartnerOverview /><OperationalInsights /></>;
+  return <PartnerRecordHome />;
 }
