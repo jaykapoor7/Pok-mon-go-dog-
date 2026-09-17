@@ -79,36 +79,76 @@ if (files.includes("RUN-PILOT-MIGRATIONS.sql")) {
 }
 
 /*
- * Later additive migrations append columns to public views that also appear
- * earlier inside the generated bundle. PostgreSQL does not let CREATE OR
- * REPLACE VIEW remove those appended columns on a rerun. Normalize the older
- * bundled definitions in memory so the pilot/all sets stay safe to repeat.
+ * programme-evidence.sql deliberately extends two views that are also defined
+ * earlier inside the generated pilot bundle. PostgreSQL's CREATE OR REPLACE
+ * VIEW cannot remove columns, so replaying the older bundled definitions on a
+ * database that already has the extended views fails with "cannot drop
+ * columns from view".
+ *
+ * Normalize every bundled occurrence of those two views to the current column
+ * shape before execution. Match the whole view body rather than a formatting-
+ * sensitive tail so this remains safe if the generated SQL is reflowed.
  */
 function normalizeRerunnableSql(file, text) {
   if (file !== "RUN-PILOT-MIGRATIONS.sql" && file !== "RUN-ALL-MIGRATIONS.sql") return text;
 
-  const oldAnimalViewTail =
-    "  d.provenance, n.name as ngo_name\n" +
-    "from dogs d left join ngos n on n.id = d.ngo_id;";
-  const compatibleAnimalViewTail =
-    "  d.provenance, n.name as ngo_name,\n" +
-    "  d.straypaw_id\n" +
-    "from dogs d left join ngos n on n.id = d.ngo_id;";
+  const animalView = `create or replace view public_animal_profiles as
+select
+  d.id, d.name, d.species, d.zone,
+  case when d.lat between -90 and 90 and d.lng between -180 and 180
+         and not (d.lat = 0 and d.lng = 0)
+       then round(d.lat::numeric, 2)::double precision end as lat,
+  case when d.lat between -90 and 90 and d.lng between -180 and 180
+         and not (d.lat = 0 and d.lng = 0)
+       then round(d.lng::numeric, 2)::double precision end as lng,
+  d.status, d.cover_photo, d.size, d.color, d.is_friendly, d.needs_help,
+  d.sterilised, d.vaccinated, d.sterilisation_status, d.vaccination_status,
+  d.ear_notch, d.trust_score, d.sightings_count, d.feed_count,
+  d.first_seen, d.last_seen, d.last_fed_at, d.created_at, d.ngo_id, d.code,
+  d.provenance, n.name as ngo_name,
+  d.straypaw_id
+from dogs d left join ngos n on n.id = d.ngo_id;`;
 
-  const oldProgrammeViewTail =
-    "       coalesce(nullif(count(d.id) filter (where d.vaccination_status = 'vaccinated'), 0),\n" +
-    "                case when c.kind = 'vaccination' then c.source_rows_count else 0 end) as vaccinated_recorded\n" +
-    "  from campaigns c join ngos n on n.id = c.ngo_id left join dogs d on d.campaign_id = c.id";
-  const compatibleProgrammeViewTail =
-    "       coalesce(nullif(count(d.id) filter (where d.vaccination_status = 'vaccinated'), 0),\n" +
-    "                case when c.kind = 'vaccination' then c.source_rows_count else 0 end) as vaccinated_recorded,\n" +
-    "       c.source_rows_count as source_rows_count,\n" +
-    "       count(d.id) as traceable_animals_recorded\n" +
-    "  from campaigns c join ngos n on n.id = c.ngo_id left join dogs d on d.campaign_id = c.id";
+  const programmeView = `create or replace view public_programme_cards as
+select
+  c.id,
+  c.name,
+  c.kind,
+  c.starts_on,
+  c.ends_on,
+  c.zone,
+  c.public_summary,
+  n.name as ngo_name,
+  n.slug as ngo_slug,
+  n.city,
+  n.state,
+  coalesce(nullif(count(d.id), 0), c.source_rows_count) as animals_recorded,
+  coalesce(
+    nullif(count(d.id) filter (where d.sterilisation_status = 'sterilised'), 0),
+    case when c.kind = 'sterilisation' then c.source_rows_count else 0 end
+  ) as sterilised_recorded,
+  coalesce(
+    nullif(count(d.id) filter (where d.vaccination_status = 'vaccinated'), 0),
+    case when c.kind = 'vaccination' then c.source_rows_count else 0 end
+  ) as vaccinated_recorded,
+  c.source_rows_count as source_rows_count,
+  count(d.id) as traceable_animals_recorded
+from campaigns c
+join ngos n on n.id = c.ngo_id
+left join dogs d on d.campaign_id = c.id
+where c.public_visibility in ('summary', 'public')
+  and c.archived_at is not null
+group by c.id, n.id;`;
 
   return text
-    .replace(oldAnimalViewTail, compatibleAnimalViewTail)
-    .replace(oldProgrammeViewTail, compatibleProgrammeViewTail);
+    .replace(
+      /create or replace view public_animal_profiles as[\s\S]*?from dogs d left join ngos n on n\.id = d\.ngo_id;/g,
+      animalView
+    )
+    .replace(
+      /create or replace view public_programme_cards as[\s\S]*?group by c\.id, n\.id;/g,
+      programmeView
+    );
 }
 
 const client = new pg.Client({
