@@ -4,6 +4,7 @@ import { UnifiedAnimalProfile } from "@/components/dog/UnifiedAnimalProfile";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
 import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
+import { getPublicAnimalIdentity } from "@/lib/animal-identity";
 import { dogLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -27,17 +28,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [profile, cases, operational] = await Promise.all([
+  const [profile, cases, operational, identity] = await Promise.all([
     getDogProfile(id),
     getCasesForDog(id),
     getProfileOperationalRecord(id),
+    getPublicAnimalIdentity(id),
   ]);
   if (!profile) notFound();
 
   return (
     <>
       <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
-      <UnifiedAnimalProfile profile={profile} cases={cases} operational={operational} />
+      <UnifiedAnimalProfile profile={profile} cases={cases} operational={operational} identity={identity} />
     </>
   );
 }
