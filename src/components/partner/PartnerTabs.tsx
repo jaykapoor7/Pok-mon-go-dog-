@@ -3,27 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-/* ════════════════════════════════════════════════════════════════════
-   The organisation console has four places, not seventeen.
-
-   Seventeen routes had grown under /partner. Five of them — feeding
-   zones, volunteer sign-ups, surveys, resources and fundraising — had no
-   link pointing at them from anywhere in the product: they were built,
-   they worked, and the only way to reach one was to type the URL. The
-   rest were reachable but scattered, which is what "loads of random
-   features" describes.
-
-   Nothing is deleted here. Every route keeps working and keeps its data;
-   what changes is that each one now belongs to exactly one group, and
-   the group is what the rail navigates to. A person opens Records, or
-   Field work, or Organisation, and everything of that kind is in front
-   of them.
-
-   One definition, rendered once in the partner layout, so a new page
-   gets its navigation by being added to the list below rather than by
-   remembering to paste a tab bar into it.
-   ════════════════════════════════════════════════════════════════════ */
-
 export const CONSOLE_GROUPS: {
   id: string;
   label: string;
@@ -38,6 +17,8 @@ export const CONSOLE_GROUPS: {
       { href: "/partner/animals", label: "Animals" },
       { href: "/partner/cases", label: "Cases" },
       { href: "/partner/medical", label: "Medical" },
+      { href: "/partner/records", label: "Explorer" },
+      { href: "/partner/quality", label: "Data quality" },
       { href: "/partner/import", label: "Import" },
     ],
   },
@@ -49,6 +30,7 @@ export const CONSOLE_GROUPS: {
       { href: "/partner/field", label: "Today" },
       { href: "/partner/incoming", label: "Incoming" },
       { href: "/partner/drives", label: "Drives" },
+      { href: "/partner/operations", label: "Operations" },
       { href: "/partner/feeding", label: "Feeding zones" },
       { href: "/partner/surveys", label: "Surveys" },
       { href: "/partner/reports", label: "Coverage" },
@@ -69,34 +51,15 @@ export const CONSOLE_GROUPS: {
   },
 ];
 
-/** The group a path belongs to, or null for the dashboard and the map,
-    which are destinations in their own right and carry no tabs. */
 export function groupFor(pathname: string) {
-  return (
-    CONSOLE_GROUPS.find((g) =>
-      g.tabs.some((t) => pathname === t.href || pathname.startsWith(`${t.href}/`))
-    ) ?? null
-  );
+  return CONSOLE_GROUPS.find((g) => g.tabs.some((t) => pathname === t.href || pathname.startsWith(`${t.href}/`))) ?? null;
 }
 
 export function PartnerTabs() {
   const pathname = usePathname();
   const group = groupFor(pathname);
   if (!group) return null;
-
-  return (
-    <nav className="partner-workspace-tabs" aria-label={`${group.label} views`}>
-      {group.tabs.map(({ href, label }) => (
-        <Link
-          key={href}
-          href={href}
-          aria-current={
-            pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined
-          }
-        >
-          {label}
-        </Link>
-      ))}
-    </nav>
-  );
+  return <nav className="partner-workspace-tabs" aria-label={`${group.label} views`}>
+    {group.tabs.map(({ href, label }) => <Link key={href} href={href} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined}>{label}</Link>)}
+  </nav>;
 }
