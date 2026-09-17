@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageView } from "@/components/analytics/PageView";
-import { UnifiedAnimalProfile } from "@/components/dog/UnifiedAnimalProfile";
+import { AnimalStoryProfile } from "@/components/dog/AnimalStoryProfile";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
 import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { dog } = profile;
   const label = dogLabel(dog);
   const title = `${label}, StrayPaw`;
-  const description = `${label}'s longitudinal StrayPaw record: location, care, interventions and field history.`;
+  const description = `${label}'s StrayPaw story: rescue, care, follow-ups and outcome in one longitudinal record.`;
   const images = dog.cover_photo ? [dog.cover_photo] : undefined;
   return {
     title,
@@ -39,7 +39,7 @@ export default async function DogProfilePage({ params }: { params: Promise<{ id:
   return (
     <>
       <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
-      <UnifiedAnimalProfile profile={profile} cases={cases} operational={operational} identity={identity} />
+      <AnimalStoryProfile profile={profile} cases={cases} operational={operational} identity={identity} />
     </>
   );
 }
