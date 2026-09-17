@@ -1,6 +1,9 @@
 import { getSupabase } from "./supabase";
 import type { Survey, SurveyArea, SurveyResponse } from "./types";
 
+export const PROJECT_MARKER = "STRAYPAW_PROJECT_FIELDS:";
+export const isProjectSurvey = (survey: Pick<Survey, "description">) => (survey.description ?? "").includes(PROJECT_MARKER);
+
 function mapSurvey(r: any): Survey {
   return {
     id: r.id,
@@ -12,6 +15,18 @@ function mapSurvey(r: any): Survey {
     created_by_id: r.created_by_id ?? null,
     created_at: r.created_at,
   };
+}
+
+async function paged(load: (from: number, to: number) => any, max = 25000) {
+  const rows: any[] = [];
+  for (let from = 0; from < max; from += 500) {
+    const to = Math.min(from + 499, max - 1);
+    const { data, error } = await load(from, to);
+    if (error) return rows;
+    rows.push(...(data ?? []));
+    if (!data || data.length < 500) break;
+  }
+  return rows;
 }
 
 export async function getSurveys(): Promise<Survey[]> {
@@ -32,12 +47,12 @@ export async function getSurveyById(id: string): Promise<Survey | null> {
 export async function getSurveyAreas(surveyId: string): Promise<SurveyArea[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const [{ data: areas }, { data: responses }] = await Promise.all([
+  const [{ data: areas }, responses] = await Promise.all([
     supa.from("survey_areas").select("*").eq("survey_id", surveyId).order("created_at"),
-    supa.from("survey_responses").select("area_id, count").eq("survey_id", surveyId),
+    paged((from, to) => supa.from("survey_responses").select("area_id, count").eq("survey_id", surveyId).range(from, to)),
   ]);
   const byArea = new Map<string, { responses: number; animals: number }>();
-  for (const r of responses ?? []) {
+  for (const r of responses) {
     if (!r.area_id) continue;
     const cur = byArea.get(r.area_id) ?? { responses: 0, animals: 0 };
     cur.responses += 1;
@@ -56,16 +71,23 @@ export async function getSurveyAreas(surveyId: string): Promise<SurveyArea[]> {
   }));
 }
 
-export async function getSurveyResponses(surveyId: string, limit = 500): Promise<SurveyResponse[]> {
+/**
+ * Load large field projects safely instead of inheriting Supabase's 1,000-row
+ * response ceiling. max is a caller-controlled safety bound, not a page size.
+ */
+export async function getSurveyResponses(surveyId: string, max = 25000): Promise<SurveyResponse[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data } = await supa
-    .from("survey_responses")
-    .select("*")
-    .eq("survey_id", surveyId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []).map((r: any) => ({
+  const rows = await paged(
+    (from, to) => supa
+      .from("survey_responses")
+      .select("*")
+      .eq("survey_id", surveyId)
+      .order("created_at", { ascending: false })
+      .range(from, to),
+    max,
+  );
+  return rows.map((r: any) => ({
     id: r.id,
     survey_id: r.survey_id,
     area_id: r.area_id ?? null,
