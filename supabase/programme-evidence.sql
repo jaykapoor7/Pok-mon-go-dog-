@@ -67,3 +67,25 @@ join dogs d on d.id = c.dog_id
 where c.dog_id is not null;
 
 grant select on public_case_stories to anon, authenticated;
+
+-- Public animal profiles expose the permanent StrayPaw identity as an
+-- additional final column. `code` remains the NGO/source identifier and is
+-- never promoted into StrayPaw identity.
+create or replace view public_animal_profiles as
+select
+  d.id, d.name, d.species, d.zone,
+  case when d.lat between -90 and 90 and d.lng between -180 and 180
+         and not (d.lat = 0 and d.lng = 0)
+       then round(d.lat::numeric, 2)::double precision end as lat,
+  case when d.lat between -90 and 90 and d.lng between -180 and 180
+         and not (d.lat = 0 and d.lng = 0)
+       then round(d.lng::numeric, 2)::double precision end as lng,
+  d.status, d.cover_photo, d.size, d.color, d.is_friendly, d.needs_help,
+  d.sterilised, d.vaccinated, d.sterilisation_status, d.vaccination_status,
+  d.ear_notch, d.trust_score, d.sightings_count, d.feed_count,
+  d.first_seen, d.last_seen, d.last_fed_at, d.created_at, d.ngo_id, d.code,
+  d.provenance, n.name as ngo_name,
+  d.straypaw_id
+from dogs d left join ngos n on n.id = d.ngo_id;
+
+grant select on public_animal_profiles to anon, authenticated;
