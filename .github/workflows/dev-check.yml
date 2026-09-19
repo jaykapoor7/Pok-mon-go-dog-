@@ -21,5 +21,13 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+      - name: Import and case regression tests
+        run: |
+          npm run test:master-import
+          npm run test:master-import:pagination
+          npm run test:master-import:locality
+          npm run test:master-import:staging
+          npm run test:master-import:resume
+          npm run test:case-input-validation
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=critical
