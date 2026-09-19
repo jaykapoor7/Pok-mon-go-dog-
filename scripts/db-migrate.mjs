@@ -15,8 +15,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const sql = (f) => join(root, "supabase", f);
 
 const SETS = {
-  all: ["RUN-ALL-MIGRATIONS.sql", "RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", ...districts(), "wards-chennai.sql"],
-  pilot: ["RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", ...districts(), "wards-chennai.sql"],
+  all: ["RUN-ALL-MIGRATIONS.sql", "RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql"],
+  pilot: ["RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql"],
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   personal: ["personal-access-codes.sql"],
   delhi: ["seed-delhi-photographs.sql"],
