@@ -32,6 +32,7 @@ export type ProgrammeStats = {
 
 export type OrgAnimal = {
   id: string;
+  straypaw_id: string | null;
   name: string | null;
   code: string | null;
   species: string | null;
