@@ -8,7 +8,7 @@ export type NormalizedImportRow = {
   source_sheet: string; source_row: number; source_subrecord?: "adoption" | "foster";
   classification: ImportClassification; classification_reason: string;
   event_date: string | null; locality: string | null; city: string | null;
-  animal_name: string | null; animal_code: string | null; sex: string | null; colour: string | null;
+  animal_name: string | null; animal_code: string | null; species?: string | null; sex: string | null; colour: string | null;
   condition: string | null; status: string | null; case_detail: string | null;
   treatment_update: string | null; review: string | null; rescue_plan: string | null;
   admit_date: string | null; release_date: string | null; fingerprint: string;
@@ -73,6 +73,19 @@ export function sourceDate(value: string | null, fallbackYear: number | null) {
   return Number.isNaN(parsed.valueOf()) ? null : parsed.toISOString();
 }
 
+
+function inferredSpecies(sheet: string, row: Record<string, string>) {
+  const explicit = value(row, /^species$|animal type|animal species/i);
+  if (explicit) return normalKey(explicit).replace(/\s+/g, "_");
+  const text = normalKey([sheet, ...Object.values(row)].join(" "));
+  if (/\b(donkey|mule)\b/.test(text)) return "donkey";
+  if (/\b(horse|equine|pony)\b/.test(text)) return "horse";
+  if (/\b(cattle|cow|bull|calf|bovine)\b/.test(text)) return "cattle";
+  if (/\bcat|kitten|feline\b/.test(text)) return "cat";
+  if (/\bdog|puppy|canine\b/.test(text)) return "dog";
+  return "animal";
+}
+
 function classify(sheet: string, row: Record<string, string>) : Pick<NormalizedImportRow, "classification" | "classification_reason"> {
   const name = normalKey(sheet);
   const joined = Object.values(row).map(clean).join(" ").toLowerCase();
@@ -98,7 +111,8 @@ function normalize(sheet: string, sourceRowNumber: number, raw: Record<string, s
     source_sheet: sheet, source_row: sourceRowNumber,
     ...kind, event_date: sourceDate(date, fallbackYear), locality, city: null,
     animal_name: animalName,
-    animal_code: value(raw, /(animal|dog).{0,8}(id|code)|^animal id$/i),
+    animal_code: value(raw, /(animal|dog|cat|horse|cattle).{0,8}(id|code)|^animal id$/i),
+    species: inferredSpecies(sheet, raw),
     sex: value(raw, /^sex$|^gender$/i), colour: value(raw, /colou?r|markings?/i),
     condition, status: value(raw, /^status$|completed|outcome/i), case_detail: caseDetail,
     treatment_update: value(raw, /^detailed status$|treatment|update/i),
