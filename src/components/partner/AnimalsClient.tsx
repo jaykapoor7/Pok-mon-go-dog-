@@ -109,7 +109,7 @@ export function AnimalsClient() {
         <div className="flex shrink-0 items-center gap-2">
           {animals.length > 0 && (
             <button
-              onClick={() => downloadCsv("animals.csv", animals.map((a) => ({ code: a.code, name: a.name, species: a.species, status: a.status, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, location: a.zone, assignee: a.assignee_name, recorded_by: a.recorded_by, recorded_on: a.created_at, last_seen: a.last_seen })))}
+              onClick={() => downloadCsv("animals.csv", animals.map((a) => ({ straypaw_id: a.straypaw_id, source_id: a.code, name: a.name, species: a.species, status: a.status, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, location: a.zone, assignee: a.assignee_name, recorded_by: a.recorded_by, recorded_on: a.created_at, last_seen: a.last_seen })))}
               className="inline-flex items-center gap-1.5 rounded-md border border-black/[0.1] px-3 py-2 text-[13px] font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/[0.12] dark:text-bark-200"
             >
               <Download className="h-4 w-4" /> Export
@@ -127,7 +127,7 @@ export function AnimalsClient() {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[180px] flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, code or area…" aria-label="Search animals" className="min-h-[40px] w-full rounded-md border border-black/[0.09] bg-transparent py-2 pl-9 pr-3 text-sm outline-none focus:border-paw-400 dark:border-white/[0.12]" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search StrayPaw ID, source ID, name or area…" aria-label="Search animals" className="min-h-[40px] w-full rounded-md border border-black/[0.09] bg-transparent py-2 pl-9 pr-3 text-sm outline-none focus:border-paw-400 dark:border-white/[0.12]" />
         </div>
         <select aria-label="Sterilisation status" value={ster} onChange={(e) => setSter(e.target.value)} className={FILTER}>
           <option value="">Sterilisation: all</option>
@@ -175,22 +175,22 @@ export function AnimalsClient() {
         </p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
-          <div className="hidden grid-cols-[40px_92px_1fr_150px_128px_84px] items-center gap-3 border-b border-black/[0.08] bg-bark-50 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/[0.1] dark:bg-white/[0.02] sm:grid">
-            <span></span><span>Code</span><span>Animal</span><span>Location</span><span>Programme</span><span className="text-right">Updated</span>
+          <div className="hidden grid-cols-[40px_118px_1fr_150px_128px_84px] items-center gap-3 border-b border-black/[0.08] bg-bark-50 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-bark-400 dark:border-white/[0.1] dark:bg-white/[0.02] sm:grid">
+            <span></span><span>StrayPaw ID</span><span>Animal</span><span>Location</span><span>Programme</span><span className="text-right">Updated</span>
           </div>
           <ul>
             {rows.map((a) => {
               const st = STATUS_META[a.status as keyof typeof STATUS_META];
               return (
                 <li key={a.id} className="border-b border-black/[0.06] last:border-0 dark:border-white/[0.06]">
-                  <Link href={`/partner/animals/${a.id}`} className="grid grid-cols-[40px_1fr_auto] items-center gap-3 px-4 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] sm:grid-cols-[40px_92px_1fr_150px_128px_84px]">
+                  <Link href={`/partner/animals/${a.id}`} className="grid grid-cols-[40px_1fr_auto] items-center gap-3 px-4 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] sm:grid-cols-[40px_118px_1fr_150px_128px_84px]">
                     <div className="h-8 w-8 overflow-hidden rounded-md bg-bark-100 dark:bg-bark-800">
                       <DogPhoto src={a.cover_photo ?? ""} alt={a.name ?? "Animal"} seed={a.id} className="h-full w-full" />
                     </div>
-                    <span className="hidden truncate text-[13px] font-medium tabular-nums text-bark-500 sm:block">{a.code ?? "-"}</span>
+                    <span className="hidden min-w-0 sm:block"><b className="block truncate font-mono text-[12px] text-paw-600">{a.straypaw_id ?? "ID pending"}</b>{a.code && <small className="block truncate text-[10.5px] text-bark-400">Source {a.code}</small>}</span>
                     <div className="min-w-0">
                       <p className="truncate text-[14px] font-medium text-bark-900 dark:text-bark-50">{a.name || speciesLabel(a.species ?? "dog")}</p>
-                      <p className="truncate text-[12px] text-bark-400 sm:hidden">{a.code ? `${a.code} · ` : ""}{a.zone}</p>
+                      <p className="truncate text-[12px] text-bark-400 sm:hidden">{a.straypaw_id ? `${a.straypaw_id} · ` : ""}{a.code ? `Source ${a.code} · ` : ""}{a.zone}</p>
                       <span className="mt-1 flex gap-1 sm:hidden">
                         <StatusPill kind="ster" value={a.sterilisation_status} />
                         <StatusPill kind="vacc" value={a.vaccination_status} />
@@ -256,7 +256,7 @@ function CreateAnimal({ onDone }: { onDone: () => void }) {
     <div className="mb-5 space-y-3 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
       <div className="grid gap-3 sm:grid-cols-2">
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
-        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Animal ID, e.g. DDS-00421" className={INPUT} />
+        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Your source ID / tag (optional)" className={INPUT} />
       </div>
       <div className="flex flex-wrap gap-2">
         {SPECIES.filter((s) => s.id !== "other").map((s) => (
