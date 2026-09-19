@@ -12,7 +12,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { CaseControls } from "@/components/cases/CaseControls";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { isNgoMember, uploadPhoto } from "@/lib/actions";
-import { addCaseFollowup, addCasePhoto, assignCase, getCaseFollowups, setCaseFollowup, setCaseMedical, updateCaseFollowupStatus, type CaseFollowup } from "@/lib/case-actions";
+import { addCaseFollowup, addCasePhoto, assignCase, getCaseFollowups, setCaseMedical, updateCaseFollowupStatus, type CaseFollowup } from "@/lib/case-actions";
 import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
 import { formatINR } from "@/lib/fundraisers";
 import { speciesLabel, isOverdue, type Case, type CaseStatus, type CaseUpdate } from "@/lib/types";
@@ -290,11 +290,6 @@ function Followups({ c, canEdit, followups, onChanged }: { c: Case; canEdit: boo
     try { await addCaseFollowup({ caseId: c.id, dogId: c.dog_id, dueAt: date, note }); setNote(""); await refresh(); }
     finally { setBusy(false); }
   }
-  async function clear() {
-    setBusy(true);
-    try { await setCaseFollowup(c.id, null); setDate(""); router.refresh(); }
-    finally { setBusy(false); }
-  }
   async function setStatus(id: string, status: "done" | "missed" | "cancelled") {
     setBusy(true);
     try { await updateCaseFollowupStatus({ followupId: id, status }); await refresh(); }
@@ -322,7 +317,7 @@ function Followups({ c, canEdit, followups, onChanged }: { c: Case; canEdit: boo
                 </div>
                 {canEdit && !["done","missed","cancelled"].includes(item.status) && <div className="flex gap-1.5">
                   <button disabled={busy} onClick={() => setStatus(item.id,"done")} className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50">Done</button>
-                  <button disabled={busy} onClick={() => setStatus(item.id,"missed")} className="rounded-full bg-black/[.04] px-2.5 py-1 text-[11.5px] font-semibold text-bark-500 hover:bg-black/[.07] disabled:opacity-50">Missed</button>
+                  <button disabled={busy} onClick={() => setStatus(item.id,"missed")} className="rounded-full bg-black/[.04] px-2.5 py-1 text-[11.5px] font-semibold text-bark-500 hover:bg-black/[.07] disabled:opacity-50">Missed</button><button disabled={busy} onClick={() => setStatus(item.id,"cancelled")} className="rounded-full px-2 py-1 text-[11px] font-semibold text-bark-400 hover:text-bark-700 disabled:opacity-50">Cancel</button>
                 </div>}
               </div>
               {item.note && <p className="mt-2 whitespace-pre-wrap text-[13px] leading-5 text-bark-600 dark:text-bark-300">{item.note}</p>}
@@ -348,7 +343,6 @@ function Followups({ c, canEdit, followups, onChanged }: { c: Case; canEdit: boo
             <button onClick={save} disabled={busy || !date} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Add follow-up
             </button>
-            {c.follow_up_at && <button onClick={clear} disabled={busy} className="rounded-md px-3 py-2 text-[13px] font-medium text-bark-500 hover:bg-black/[0.04]">Clear case date</button>}
           </div>
         </div>
       )}
