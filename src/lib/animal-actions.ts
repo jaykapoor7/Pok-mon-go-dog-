@@ -5,6 +5,7 @@ import { isRecordingDemo, recordingDemoAnimals } from "./recording-demo";
 
 export interface AnimalRow {
   id: string;
+  straypaw_id: string | null;
   name: string | null;
   code: string | null;
   species: string;
@@ -87,7 +88,7 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
   for (let from = 0; ; from += 500) {
     const { data, error } = await supa
       .from("dogs")
-      .select("id, name, code, species, zone, status, cover_photo, assignee_name, last_seen, lat, lng")
+      .select("id, straypaw_id, name, code, species, zone, status, cover_photo, assignee_name, last_seen, lat, lng")
       .eq("ngo_id", ngoId)
       .order("last_seen", { ascending: false })
       .range(from, from + 499);
@@ -98,6 +99,7 @@ export async function getMyAnimals(): Promise<AnimalRow[]> {
 
   return rows.map((r: any) => ({
     id: r.id,
+    straypaw_id: r.straypaw_id ?? null,
     name: r.name ?? null,
     code: r.code ?? null,
     species: r.species ?? "dog",
