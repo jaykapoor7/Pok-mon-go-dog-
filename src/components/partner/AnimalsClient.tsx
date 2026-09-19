@@ -53,6 +53,8 @@ export function AnimalsClient() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 200;
 
   /* Filters start from the URL, so the dashboard figures can link straight
      to their own list and a filtered view can be shared or bookmarked. */
@@ -77,7 +79,8 @@ export function AnimalsClient() {
       // Inclusive of the end date: someone picking the 5th means that day.
       to: to ? new Date(new Date(to).getTime() + 86_400_000).toISOString() : null,
       needsHelp: needsOnly ? true : null,
-      limit: 500,
+      limit: PAGE_SIZE,
+      offset: page * PAGE_SIZE,
     })
       .then(setAnimals)
       .finally(() => setLoading(false));
@@ -87,15 +90,16 @@ export function AnimalsClient() {
     const t = setTimeout(load, q ? 250 : 0);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, ster, vacc, zone, from, to, needsOnly]);
+  }, [q, ster, vacc, zone, from, to, needsOnly, page]);
 
   useEffect(() => { orgZones().then(setZones).catch(() => undefined); }, []);
+  useEffect(() => { setPage(0); }, [q, ster, vacc, zone, from, to, needsOnly]);
 
   const rows = animals;
   const total = animals[0]?.total_count ?? 0;
   const filtered = Boolean(q || ster || vacc || zone || from || to || needsOnly);
   const clearAll = () => {
-    setQ(""); setSter(""); setVacc(""); setZone(""); setFrom(""); setTo("");
+    setQ(""); setSter(""); setVacc(""); setZone(""); setFrom(""); setTo(""); setPage(0);
   };
 
   return (
@@ -214,6 +218,16 @@ export function AnimalsClient() {
               );
             })}
           </ul>
+        </div>
+      )}
+
+      {!loading && total > PAGE_SIZE && (
+        <div className="mt-4 flex items-center justify-between border-t border-black/[0.08] pt-4 text-[12.5px] dark:border-white/[0.1]">
+          <span className="text-bark-500">Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total.toLocaleString()}</span>
+          <div className="flex gap-2">
+            <button disabled={page===0} onClick={()=>setPage(p=>Math.max(0,p-1))} className="rounded-full border border-black/[0.1] px-3 py-1.5 font-semibold disabled:opacity-35 dark:border-white/[0.12]">Previous</button>
+            <button disabled={(page+1)*PAGE_SIZE>=total} onClick={()=>setPage(p=>p+1)} className="rounded-full border border-black/[0.1] px-3 py-1.5 font-semibold disabled:opacity-35 dark:border-white/[0.12]">Next</button>
+          </div>
         </div>
       )}
     </div>
