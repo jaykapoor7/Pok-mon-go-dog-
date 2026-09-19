@@ -91,9 +91,9 @@ export async function reconcileHistoricAnimals(supa: any, ngoId: string) {
       return {
         ngo_id: ngoId,
         code: profile.code,
-        name: n.animal_name || `Recorded dog · ${n.location || "Pawesome"}`,
-        species: "dog",
-        zone: n.location || "Coimbatore",
+        name: n.animal_name || `Recorded ${(n as any).species || "animal"}${n.location ? ` · ${n.location}` : ""}`,
+        species: (n as any).species || "animal",
+        zone: n.location || "",
         // A no-coordinate historic profile is intentionally unpinned. It is
         // still a real record/timeline, but never becomes a false map marker.
         lat: 0,
@@ -124,7 +124,7 @@ export async function reconcileHistoricAnimals(supa: any, ngoId: string) {
     .from("animal_timeline_events")
     .select("source_ref")
     .eq("ngo_id", ngoId)
-    .eq("provenance", "pawesome_master_import");
+    .eq("provenance", "imported_historical_record");
   if (previousEventsError) throw new Error(previousEventsError.message);
   for (const event of previousEvents ?? []) {
     const source = event.source_ref;
@@ -146,7 +146,7 @@ export async function reconcileHistoricAnimals(supa: any, ngoId: string) {
       event_type: /sterili[sz]/i.test(batch.sheet_name ?? "") ? "sterilisation" : "historic_case",
       title: n.condition || `${batch.sheet_name ?? "Historic"} record`,
       details: [n.case_detail, n.treatment_update, n.review].filter(Boolean).join("\n") || null,
-      occurred_at: occurredAt(n.date), provenance: "pawesome_master_import", source_ref: { import_row: sourceRef },
+      occurred_at: occurredAt(n.date), provenance: "imported_historical_record", source_ref: { import_row: sourceRef },
     }];
   });
   for (const group of chunks(events)) {
@@ -168,7 +168,7 @@ export async function reconcileHistoricAnimals(supa: any, ngoId: string) {
     const name = tidy(batch.sheet_name);
     if (!name || !count) continue;
     const { error } = await supa.from("campaigns")
-      .update({ source_rows_count: count, public_summary: `${count} dogs sterilised through this Pawesome drive.` })
+      .update({ source_rows_count: count, public_summary: `${count} validated sterilisation records from this historical drive.` })
       .eq("ngo_id", ngoId)
       .eq("name", name);
     if (error) throw new Error(error.message);
