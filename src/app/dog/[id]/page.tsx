@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageView } from "@/components/analytics/PageView";
-import { AnimalStoryProfile } from "@/components/dog/AnimalStoryProfile";
+import { UnifiedAnimalProfile } from "@/components/dog/UnifiedAnimalProfile";
 import { getDogProfile } from "@/lib/data";
 import { getCasesForDog } from "@/lib/cases";
 import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
@@ -39,7 +39,7 @@ export default async function DogProfilePage({ params }: { params: Promise<{ id:
   return (
     <>
       <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
-      <AnimalStoryProfile profile={profile} cases={cases} operational={operational} identity={identity} />
+      <UnifiedAnimalProfile profile={profile} cases={cases} operational={operational} identity={identity} />
     </>
   );
 }
