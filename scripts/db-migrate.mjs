@@ -17,6 +17,7 @@ const sql = (f) => join(root, "supabase", f);
 const SETS = {
   all: ["RUN-ALL-MIGRATIONS.sql", "RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql"],
   pilot: ["RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql"],
+  rollout: ["rollout-hardening.sql"],
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   personal: ["personal-access-codes.sql"],
   delhi: ["seed-delhi-photographs.sql"],
