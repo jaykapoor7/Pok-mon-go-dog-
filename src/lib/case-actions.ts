@@ -114,6 +114,7 @@ export interface CaseFollowup {
   note: string | null;
   status: string;
   kind: string;
+  completed_at: string | null;
   created_at: string;
 }
 
@@ -132,9 +133,22 @@ export async function addCaseFollowup(input: { caseId: string; dogId?: string | 
 export async function getCaseFollowups(caseId: string): Promise<CaseFollowup[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data, error } = await supa.from("animal_followups").select("id,due_at,note,status,kind,created_at").eq("case_id", caseId).order("due_at", { ascending: false });
+  const { data, error } = await supa.from("animal_followups").select("id,due_at,note,status,kind,completed_at,created_at").eq("case_id", caseId).order("due_at", { ascending: false });
   if (error) return [];
-  return (data ?? []).map((row: any) => ({ id: row.id, due_at: row.due_at, note: row.note ?? null, status: row.status, kind: row.kind, created_at: row.created_at }));
+  return (data ?? []).map((row: any) => ({ id: row.id, due_at: row.due_at, note: row.note ?? null, status: row.status, kind: row.kind, completed_at: row.completed_at ?? null, created_at: row.created_at }));
+}
+
+export async function updateCaseFollowupStatus(input: { followupId: string; status: "upcoming" | "done" | "missed" | "postponed" | "cancelled"; note?: string | null; dueAt?: string | null }): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("update_case_followup_status", {
+    p_followup_id: input.followupId,
+    p_status: input.status,
+    p_note: input.note ?? null,
+    p_due_at: input.dueAt ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
 }
 
 export async function claimCase(caseId: string, actor: Actor): Promise<boolean> {
