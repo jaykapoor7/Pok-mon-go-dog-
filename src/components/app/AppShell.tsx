@@ -159,11 +159,11 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           <p className="spa-nav-context">{isNgo ? "NGO operations" : "Community"}</p>
           <div className="spa-primary-nav">{primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={isActive(href) ? "active" : ""}><Icon size={17}/>{label}</Link>)}</div>
 
-          {isNgo && <div className="spa-ngo-actions" aria-label="Quick actions">
-            <p>Quick actions</p>
-            <Link href="/partner/cases/new" className="spa-ngo-action spa-ngo-action-primary"><Plus size={16}/><span><b>New rescue case</b><small>Start an operational record</small></span><ArrowUpRight size={15}/></Link>
-            <Link href="/report" className="spa-ngo-action"><Radio size={16}/><span><b>Report an animal</b><small>Add a field sighting</small></span><ArrowUpRight size={15}/></Link>
-            <Link href="/partner/import" className="spa-ngo-action"><Database size={16}/><span><b>Import workbook</b><small>Bring in existing registers</small></span><ArrowUpRight size={15}/></Link>
+          {isNgo && <div className="spa-quick-list" aria-label="Quick actions">
+            <p>Start</p>
+            <Link href="/partner/cases/new" className="spa-quick-primary"><Plus size={15}/><span>New rescue case</span></Link>
+            <Link href="/report"><Radio size={14}/><span>Report an animal</span></Link>
+            <Link href="/partner/import"><Database size={14}/><span>Import workbook</span></Link>
           </div>}
 
           <div className="spa-phone-links">
