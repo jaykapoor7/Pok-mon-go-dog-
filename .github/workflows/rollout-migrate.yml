@@ -1,0 +1,33 @@
+name: Apply rollout hardening
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/rollout-hardening.sql"
+      - "scripts/db-migrate.mjs"
+      - ".github/workflows/rollout-migrate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: straypaw-supabase-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Apply rollout migration
+        env:
+          SUPABASE_POOLER_URL: ${{ secrets.SUPABASE_POOLER_URL }}
+        run: npm run db:migrate -- rollout
