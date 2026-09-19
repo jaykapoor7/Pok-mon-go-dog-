@@ -22,7 +22,7 @@ export default function ForNgosPage() {
       lede="You already know how to run a catch, a surgery, a release. What usually breaks is everything around it: which animal this was, what was done last time, and how to show a funder any of it six months later."
       figure={<ResolveFigure />}
       next={[
-        { label: "See public evidence", href: "/care", note: "See how animal-linked care and outcomes look before joining." },
+        { label: "See public evidence", href: "/stories", note: "See how rescue, care, follow-up and outcomes stay attached to one animal." },
         { label: "Apply to partner", href: "/partner-apply", note: "Verification is free for animal-welfare organisations." },
         { label: "Already have access?", href: "/join", note: "Use the code issued to your organisation or team." },
       ]}
@@ -53,7 +53,7 @@ export default function ForNgosPage() {
       </Band>
 
       <Band tone="bone" kicker="GETTING STARTED" title="See the evidence." accent="Then bring your records.">
-        <p className="mk-body">The public map, animal profiles, care and outcomes are open to inspect. The NGO workspace is private because it contains operational records, imports, follow-ups and team activity.</p>
+        <p className="mk-body">The public map, animal profiles and rescue stories are open to inspect. The NGO workspace is private because it contains operational records, imports, follow-ups and team activity.</p>
         <Steps
           items={[
             { n: "01", title: "See the public side", body: "Look at the map, animal histories, care records and outcomes to understand how field work becomes traceable evidence." },
