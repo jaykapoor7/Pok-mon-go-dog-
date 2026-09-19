@@ -12,7 +12,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { CaseControls } from "@/components/cases/CaseControls";
 import { CaseTimeline } from "@/components/cases/CaseTimeline";
 import { isNgoMember, uploadPhoto } from "@/lib/actions";
-import { addCaseFollowup, addCasePhoto, assignCase, getCaseFollowups, setCaseFollowup, setCaseMedical, type CaseFollowup } from "@/lib/case-actions";
+import { addCaseFollowup, addCasePhoto, assignCase, getCaseFollowups, setCaseFollowup, setCaseMedical, updateCaseFollowupStatus, type CaseFollowup } from "@/lib/case-actions";
 import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
 import { formatINR } from "@/lib/fundraisers";
 import { speciesLabel, isOverdue, type Case, type CaseStatus, type CaseUpdate } from "@/lib/types";
@@ -282,21 +282,52 @@ function Followups({ c, canEdit, followups, onChanged }: { c: Case; canEdit: boo
   const [date, setDate] = useState(c.follow_up_at ?? "");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+
+  async function refresh() { await onChanged(); router.refresh(); }
   async function save() {
     if (!date) return;
     setBusy(true);
-    try { await addCaseFollowup({ caseId: c.id, dogId: c.dog_id, dueAt: date, note }); setNote(""); await onChanged(); router.refresh(); } finally { setBusy(false); }
+    try { await addCaseFollowup({ caseId: c.id, dogId: c.dog_id, dueAt: date, note }); setNote(""); await refresh(); }
+    finally { setBusy(false); }
   }
   async function clear() {
     setBusy(true);
-    try { await setCaseFollowup(c.id, null); setDate(""); router.refresh(); } finally { setBusy(false); }
+    try { await setCaseFollowup(c.id, null); setDate(""); router.refresh(); }
+    finally { setBusy(false); }
   }
+  async function setStatus(id: string, status: "done" | "missed" | "cancelled") {
+    setBusy(true);
+    try { await updateCaseFollowupStatus({ followupId: id, status }); await refresh(); }
+    finally { setBusy(false); }
+  }
+
   const overdue = c.follow_up_at && new Date(c.follow_up_at) < new Date();
+  const active = followups.filter((f) => !["done","missed","cancelled"].includes(f.status));
+  const finished = followups.filter((f) => ["done","missed","cancelled"].includes(f.status));
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {followups.length > 0 ? (
-        <div className="space-y-2">
-          {followups.slice(0, 5).map((item) => <div key={item.id} className="rounded-md border border-black/[0.07] px-3 py-2 text-[13px] dark:border-white/[0.1]"><p className="font-medium text-bark-800 dark:text-bark-100">{formatDate(item.due_at)}</p>{item.note && <p className="mt-0.5 whitespace-pre-wrap text-bark-500">{item.note}</p>}</div>)}
+        <div className="divide-y divide-black/[0.07] border-y border-black/[0.08] dark:divide-white/[0.08] dark:border-white/[0.1]">
+          {[...active, ...finished].slice(0, 8).map((item) => {
+            const late = !["done","missed","cancelled"].includes(item.status) && new Date(item.due_at) < new Date();
+            const done = item.status === "done";
+            return <div key={item.id} className="py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[13px] font-semibold text-bark-800 dark:text-bark-100">{formatDate(item.due_at)}</p>
+                  <p className={cn("mt-0.5 text-[11.5px] font-semibold uppercase tracking-wide", done ? "text-emerald-700 dark:text-emerald-300" : late ? "text-status-injured" : "text-bark-400")}>
+                    {done ? "Completed" : late ? "Overdue" : item.status.replace("_"," ")}
+                  </p>
+                </div>
+                {canEdit && !["done","missed","cancelled"].includes(item.status) && <div className="flex gap-1.5">
+                  <button disabled={busy} onClick={() => setStatus(item.id,"done")} className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50">Done</button>
+                  <button disabled={busy} onClick={() => setStatus(item.id,"missed")} className="rounded-full bg-black/[.04] px-2.5 py-1 text-[11.5px] font-semibold text-bark-500 hover:bg-black/[.07] disabled:opacity-50">Missed</button>
+                </div>}
+              </div>
+              {item.note && <p className="mt-2 whitespace-pre-wrap text-[13px] leading-5 text-bark-600 dark:text-bark-300">{item.note}</p>}
+            </div>
+          })}
         </div>
       ) : c.follow_up_at ? (
         <div className="flex items-center gap-2 text-[14px]">
@@ -304,17 +335,20 @@ function Followups({ c, canEdit, followups, onChanged }: { c: Case; canEdit: boo
           <span className="font-medium">Follow-up {overdue ? "was due" : "due"} {formatDate(c.follow_up_at)}</span>
         </div>
       ) : <Empty>No follow-up scheduled.</Empty>}
+
       {canEdit && (
-        <div className="grid gap-2">
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-            className="rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-[14px] outline-none focus:border-paw-400 dark:border-white/[0.12]" />
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="What needs to happen? (optional note)" className="resize-y rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-[14px] outline-none focus:border-paw-400 dark:border-white/[0.12]" />
-          <div className="flex flex-wrap items-center gap-2"><button onClick={save} disabled={busy || !date} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Set
-          </button>
-          {c.follow_up_at && (
-            <button onClick={clear} disabled={busy} className="rounded-md px-3 py-2 text-[13px] font-medium text-bark-500 hover:bg-black/[0.04]">Clear next date</button>
-          )}
+        <div className="grid gap-2 border-t border-black/[.08] pt-4 dark:border-white/[.1]">
+          <div className="grid gap-2 sm:grid-cols-[170px_1fr]">
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+              className="rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-[14px] outline-none focus:border-paw-400 dark:border-white/[0.12]" />
+            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="What needs to happen at this follow-up?"
+              className="rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-[14px] outline-none focus:border-paw-400 dark:border-white/[0.12]" />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={save} disabled={busy || !date} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Add follow-up
+            </button>
+            {c.follow_up_at && <button onClick={clear} disabled={busy} className="rounded-md px-3 py-2 text-[13px] font-medium text-bark-500 hover:bg-black/[0.04]">Clear case date</button>}
           </div>
         </div>
       )}
