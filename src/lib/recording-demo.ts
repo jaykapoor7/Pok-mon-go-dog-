@@ -47,7 +47,7 @@ export const recordingDemoCases: Case[] = records.map(([title, zone, lat, lng, s
 }));
 
 export const recordingDemoAnimals: AnimalRow[] = recordingDemoCases.map((c, index) => ({
-  id: c.dog_id!, name: ["Maya", "Kavi", "Tara", "Muthu", "Chotu", "Nila"][index % 6],
+  id: c.dog_id!, straypaw_id: `SP-D-DM${String(index + 1).padStart(4, "0")}`, name: ["Maya", "Kavi", "Tara", "Muthu", "Chotu", "Nila"][index % 6],
   code: `PC-${String(204 + index).padStart(3, "0")}`, species: "dog", zone: c.zone ?? "Chennai",
   status: c.status === "resolved" ? "sterilised" : c.severity === "high" || c.severity === "critical" ? "injured" : "seen",
   cover_photo: "", assignee_name: c.assignee_name, last_seen: c.last_activity_at, lat: c.lat ?? 0, lng: c.lng ?? 0,
