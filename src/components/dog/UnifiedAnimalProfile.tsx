@@ -25,7 +25,7 @@ export function UnifiedAnimalProfile({profile,cases,operational,identity}:{profi
  const urgent=Boolean(dog.needs_help);
  const tone=urgent?"urgent" as const:complete?"resolved" as const:"active" as const;
  const resolvedCase=cases.find(row=>["resolved","closed"].includes(String(row.status).toLowerCase()));
- const outcome=clean(resolvedCase?.resolution)||null;
+ const outcome=clean(resolvedCase?.outcome_note||resolvedCase?.resolution)||null;
  const condition=firstValue(imported,row=>row.condition)||cases[0]?.title||firstValue(imported,row=>row.caseDetail)||null;
  const intro=dog.intake_notes||firstValue(imported,row=>row.caseDetail)||condition||null;
  const sourceName=dog.ngo_name||(dog.ngo_id?"NGO record":"Community record");
@@ -33,8 +33,8 @@ export function UnifiedAnimalProfile({profile,cases,operational,identity}:{profi
  const events=[
   ...cases.map(row=>({id:`case-${row.id}`,date:row.source_event_at||row.created_at,type:"rescue",title:row.title||"Rescue recorded",text:row.description||null,href:`/cases/${row.id}`})),
   ...operational.medical.map(row=>({id:`care-${row.id}`,date:row.eventDate,type:row.kind,title:label(row.kind),text:row.notes||null,href:null as string|null})),
-  ...operational.followUps.map(row=>({id:`follow-${row.id}`,date:row.dueAt,type:"follow_up",title:`Follow-up · ${clean((row as any).status)||label(row.kind)}`,text:row.note||null,href:null as string|null})),
-  ...operational.timeline.map(row=>({id:`timeline-${row.id}`,date:row.occurredAt,type:row.eventType,title:row.title,text:row.details||null,href:null as string|null})),
+  ...operational.followUps.map(row=>{const status=row.completedAt?"Completed":clean(row.status)||"Due";return {id:`follow-${row.id}`,date:row.completedAt||row.dueAt,type:"follow_up",title:`Follow-up · ${status}`,text:row.note||null,href:null as string|null}}),
+  ...operational.timeline.filter(row=>!row.eventType.startsWith("medical:")&&!row.eventType.startsWith("followup:")).map(row=>({id:`timeline-${row.id}`,date:row.occurredAt,type:row.eventType,title:row.title,text:row.details||null,href:null as string|null})),
  ].filter(item=>item.date).sort((a,b)=>+new Date(a.date||0)-+new Date(b.date||0));
  const sourceEvents=imported.map(row=>({id:`source-${row.id}-${row.classification}`,date:row.eventDate,type:row.classification,title:row.condition||label(row.classification),text:detail(row)||null,href:null as string|null})).filter(item=>item.date).sort((a,b)=>+new Date(a.date||0)-+new Date(b.date||0));
  const journey=events.length?events:sourceEvents;
