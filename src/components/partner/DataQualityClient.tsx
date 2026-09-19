@@ -19,16 +19,18 @@ export function DataQualityClient(){
   const parsed=records.map(r=>Date.parse(r.date)).filter(Number.isFinite).sort((a,b)=>a-b);
   const median=parsed.length?parsed[Math.floor(parsed.length/2)]:now;
   for(const r of records){if(!r.animalId)continue;const t=Date.parse(r.date)||0;if(r.kind==="care")latestCare.set(r.animalId,Math.max(latestCare.get(r.animalId)||0,t));if(r.kind==="follow_up")latestFollow.set(r.animalId,Math.max(latestFollow.get(r.animalId)||0,t));}
+  const missingPermanentId=animals.filter(a=>!a.straypaw_id?.trim());
   const missingSourceCode=animals.filter(a=>!a.code?.trim());
   const missingLocality=animals.filter(a=>!a.zone?.trim());
   const staleOpen=records.filter(r=>r.kind==="rescue"&&!/resolved|closed/i.test(r.status||"")&&now-(Date.parse(r.date)||now)>30*DAY);
   const completedNoOutcome=records.filter(r=>r.kind==="rescue"&&/resolved|closed/i.test(r.status||"")&&r.caseId&&!outcomeByCase.has(r.caseId));
   const careNoFollow=animals.filter(a=>{const c=latestCare.get(a.id)||0;return c>0&&(latestFollow.get(a.id)||0)<c;});
   const suspiciousDates=records.filter(r=>{const t=Date.parse(r.date);return !Number.isFinite(t)||t>now+30*DAY||Math.abs(t-median)>5*365*DAY;});
-  return {missingSourceCode,missingLocality,staleOpen,completedNoOutcome,careNoFollow,suspiciousDates};
+  return {missingPermanentId,missingSourceCode,missingLocality,staleOpen,completedNoOutcome,careNoFollow,suspiciousDates};
  },[animals,records]);
  if(!issues)return <div className="flex justify-center py-20"><Loader2 className="h-5 w-5 animate-spin"/></div>;
  const rows=[
+  {title:"Animals missing StrayPaw ID",count:issues.missingPermanentId.length,detail:"Permanent identity is missing. Run the rollout migration before relying on cross-register search or exports.",href:"/partner/animals"},
   {title:"Animals missing source ID",count:issues.missingSourceCode.length,detail:"The StrayPaw profile still exists, but this record cannot be matched cleanly back to an NGO spreadsheet, clinic register or tag.",href:"/partner/animals"},
   {title:"Animals missing locality",count:issues.missingLocality.length,detail:"Cannot support ward/locality reporting, cluster analysis or repeat-hotspot work.",href:"/partner/animals"},
   {title:"Suspicious record dates",count:issues.suspiciousDates.length,detail:"Unparseable, future or extreme outlier dates can distort yearly analytics and map activity. Review the source before changing it.",href:"/partner/records"},
