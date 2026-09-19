@@ -296,7 +296,9 @@ export function deriveProgrammes(sources: EnrichmentSource[]): ProgrammeCandidat
   const sterilisation = valid.filter((source) => isSterilisationRegister(source.normalized) && source.normalized.event_date && source.normalized.locality);
   if (sterilisation.length) {
     const d = dates(sterilisation);
-    programme.push({ key: "import:sterilisation", name: "Chiloo Sterilization Drive", kind: "sterilisation", ...d, count: sterilisation.length, publicSummary: `${sterilisation.length} sterilisation records from the organisation's historical field register.` });
+    const names = [...new Set(sterilisation.map((source) => clean(source.normalized.source_sheet)).filter(Boolean))];
+    const name = names.length === 1 ? names[0] : "Sterilisation field records";
+    programme.push({ key: "import:sterilisation", name, kind: "sterilisation", ...d, count: sterilisation.length, publicSummary: `${sterilisation.length} sterilisation records from the organisation's historical field register.` });
   }
 
   const tvt = valid.filter((source) => isTvtRegister(source.normalized) && source.normalized.event_date);
