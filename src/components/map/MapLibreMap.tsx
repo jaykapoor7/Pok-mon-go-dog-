@@ -112,10 +112,11 @@ const STYLE_FONT: Record<string, string> = {
    screen it fitted THAT, and the map opened over Afghanistan with India down
    in the corner. Fencing to the country instead means the country is what
    fills the screen. */
-const INDIA_BOUNDS: [[number, number], [number, number]] = [
+const INDIA_FIT_BOUNDS: [[number, number], [number, number]] = [
   [67.0, 5.5],
   [98.5, 37.5],
 ];
+const INDIA_MAX_BOUNDS: [number, number, number, number] = [67.0, 5.5, 98.5, 37.5];
 const MIN_ZOOM = 3.4;
 
 const SRC = "dogs";
@@ -893,7 +894,7 @@ export function MapLibreMap({
           return on;
         },
         fitIndia: () =>
-          mapRef.current?.fitBounds(INDIA_BOUNDS, { duration: 700, padding: 24 }),
+          mapRef.current?.fitBounds(INDIA_FIT_BOUNDS, { duration: 700, padding: 24 }),
         getCenter: () => {
           const c = mapRef.current?.getCenter();
           return c ? { lat: c.lat, lng: c.lng } : null;
@@ -915,7 +916,7 @@ export function MapLibreMap({
         zoom: center ? (preview ? 10.5 : 13) : INDIA_ZOOM,
       }}
       mapStyle={styleUrl}
-      maxBounds={INDIA_BOUNDS}
+      maxBounds={INDIA_MAX_BOUNDS}
       minZoom={MIN_ZOOM}
       maxZoom={18}
       /* No onMove handler. The viewport used to be pushed into React state on
