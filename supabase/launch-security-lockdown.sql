@@ -291,3 +291,25 @@ revoke execute on function st_estimatedextent(text,text,text)
   from public, anon, authenticated;
 revoke execute on function st_estimatedextent(text,text,text,boolean)
   from public, anon, authenticated;
+
+
+-- 7) Reporter identity is private. Preserve public API column names so clients
+-- remain compatible, but never expose reporter names from community records.
+create or replace view public_live_sightings as
+select id, dog_id, null::text as reporter_name, photo_url,
+       round(lat::numeric, 2)::double precision as lat,
+       round(lng::numeric, 2)::double precision as lng,
+       zone, nickname, mood_tags, notes, trust_score, likes, status, created_at
+from sightings
+where status = 'live';
+
+create or replace view public_feed_events as
+select id, dog_id, null::text as reporter_name, food_type, created_at
+from feed_events;
+
+create or replace view public_comments as
+select id, dog_id, null::text as reporter_name, body, created_at
+from comments;
+
+grant select on public_live_sightings, public_feed_events, public_comments
+  to anon, authenticated;
