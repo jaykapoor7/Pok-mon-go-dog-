@@ -45,10 +45,24 @@ returns boolean language sql stable security definer set search_path = public as
   );
 $$;
 
+-- These public projections may already exist with a wider/older column shape.
+-- PostgreSQL cannot remove or reorder view columns via CREATE OR REPLACE VIEW,
+-- so explicitly drop only these API views before recreating the hardened shapes.
+-- No CASCADE: if another database object unexpectedly depends on one of them,
+-- fail rather than silently deleting that dependency.
+drop view if exists public_programme_cards;
+drop view if exists public_comments;
+drop view if exists public_sterilisations;
+drop view if exists public_vaccinations;
+drop view if exists public_feed_events;
+drop view if exists public_field_activity;
+drop view if exists public_live_sightings;
+drop view if exists public_animal_profiles;
+
 -- Public animal data has its own projection. This makes every NGO-created
 -- animal profile visible on the public map immediately, without exposing
 -- internal intake notes, owner contacts, exact coordinates or staff fields.
-create or replace view public_animal_profiles as
+create view public_animal_profiles as
 select
   d.id, d.name, d.species, d.zone,
   case when d.lat between -90 and 90 and d.lng between -180 and 180
@@ -64,7 +78,7 @@ select
   d.provenance, n.name as ngo_name
 from dogs d left join ngos n on n.id = d.ngo_id;
 
-create or replace view public_live_sightings as
+create view public_live_sightings as
 select id, dog_id, reporter_name, photo_url,
        round(lat::numeric, 2)::double precision as lat,
        round(lng::numeric, 2)::double precision as lng,
@@ -75,7 +89,7 @@ where status = 'live';
 -- Historic NGO activity is public only as a coarse, plain-language marker.
 -- It has no informer data or treatment notes. Each marker can safely link to
 -- the already-public native animal profile without exposing exact intake data.
-create or replace view public_field_activity as
+create view public_field_activity as
 select 'case:' || c.id::text as id, c.dog_id, c.ngo_id, n.name as ngo_name,
        c.title, coalesce(c.source_event_at, c.created_at) as occurred_at,
        null::text as reporter_name,
@@ -112,18 +126,18 @@ select 'medical:' || m.id::text as id, d.id as dog_id, d.ngo_id, n.name as ngo_n
    and d.lat between -90 and 90 and d.lng between -180 and 180
    and not (d.lat = 0 and d.lng = 0);
 
-create or replace view public_feed_events as
+create view public_feed_events as
 select id, dog_id, reporter_name, food_type, created_at from feed_events;
-create or replace view public_vaccinations as
+create view public_vaccinations as
 select id, dog_id, vaccine, administered_by, date from vaccinations;
-create or replace view public_sterilisations as
+create view public_sterilisations as
 select id, dog_id, status, performed_by, date from sterilisations;
-create or replace view public_comments as
+create view public_comments as
 select id, dog_id, reporter_name, body, created_at from comments;
 
 -- Public programme totals always reflect the work described by the programme.
 alter table campaigns add column if not exists source_rows_count integer not null default 0;
-create or replace view public_programme_cards as
+create view public_programme_cards as
 select c.id, c.name, c.kind, c.starts_on, c.ends_on, c.zone, c.public_summary,
        n.name as ngo_name, n.slug as ngo_slug, n.city, n.state,
        coalesce(nullif(count(d.id), 0), c.source_rows_count) as animals_recorded,
