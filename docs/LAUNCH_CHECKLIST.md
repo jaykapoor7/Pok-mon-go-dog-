@@ -9,17 +9,20 @@ does real work once the **Required** block is done.
 ## 1. Supabase project
 
 - [ ] Create / open the Supabase project that holds the Pawesome data.
-- [ ] Run the SQL in the Supabase SQL editor **in this exact order** (all three
-      are idempotent and safe to re-run; they do not delete data):
-  1. [ ] `supabase/RUN-ALL-MIGRATIONS.sql` — the canonical bundle. Paste the
+- [x] Production database migrations are applied **in this exact order** (all four
+      are idempotent and safe to re-run; they do not delete real records):
+  1. [x] `supabase/RUN-ALL-MIGRATIONS.sql` — the canonical bundle. Paste the
          whole file, run once. Includes the base schema, RPCs / SECURITY DEFINER
          functions, email accounts, and all feature tables.
-  2. [ ] `supabase/security-hardening-rls.sql` — **the privacy gate.** Enables
+  2. [x] `supabase/security-hardening-rls.sql` — **the privacy gate.** Enables
          fail-closed RLS on every base table and re-exposes only narrow, safe
          public views. This is what keeps reporter info, staff pay/rent, and raw
          source rows private. NOT included in RUN-ALL — run it separately.
-  3. [ ] `supabase/rollout-hardening.sql` — final rollout constraints. Also NOT
+  3. [x] `supabase/rollout-hardening.sql` — final rollout constraints. Also NOT
          in RUN-ALL — run it separately.
+  4. [x] `supabase/launch-security-lockdown.sql` — final least-privilege gate.
+         Removes implicit PUBLIC RPC execution, locks function search paths,
+         redacts public identity fields, and hardens feeding-zone/case write paths.
 - [ ] Make yourself a partner NGO member so the console shows real data
       (replace the email):
   ```sql
@@ -101,17 +104,28 @@ an existing build).
 ---
 
 ## 5. Privacy gate (do before going public)
-- [ ] Confirm RLS is ON for every table (security-hardening SQL). Reporter email/
-      name, staff pay/rent, and raw source rows must be readable only by the
-      service role, never by the anon key.
-- [ ] Spot-check: hit a public read with the anon key and confirm no PII columns
-      come back.
+- [x] Confirm RLS is ON for every **app-owned** table. The only Security Advisor
+      RLS exception is PostGIS's extension-owned `spatial_ref_sys` metadata table.
+- [x] Public identity spot-check: reporter names and feeding-zone user UUIDs are
+      redacted; reporter email and raw/internal records are not in public views.
+- [x] SECURITY DEFINER write audit: admin/moderation/report-ingest functions are
+      service-role-only; signed-in operational writes validate caller identity /
+      organisation ownership. Public community actions remain deliberately public.
+- [ ] Supabase Auth dashboard: enable **Leaked Password Protection**. This is an
+      account-level Auth setting, not a database migration, and cannot be changed
+      through the connected database tool.
+- Note: Supabase Security Advisor will continue to flag deliberate public
+  SECURITY DEFINER projections/RPCs and the non-relocatable PostGIS extension.
+  These are reviewed architecture exceptions, not unprotected app tables.
 
 ---
 
 ## Status at handoff
 - Code: build green, typecheck clean, 0 broken internal links, mobile-clean.
-- On `main` at commit `7d2aae6`.
-- Not done here (needs your accounts/secrets): the steps above, and confirming the
-  Pawesome dataset is present in the target Supabase project (not touched, per
-  instruction).
+- Supabase production schema/hardening: applied and audited on project
+  `toujthlzjmhmoyykmayx`.
+- Repository source migrations are synced with the production privacy fixes.
+- Remaining account-level Supabase action: enable Leaked Password Protection;
+  auth email/SMTP remains a launch configuration choice.
+- Remaining launch work is primarily Vercel environment/secrets, deployment,
+  domain/DNS, and live smoke testing.
