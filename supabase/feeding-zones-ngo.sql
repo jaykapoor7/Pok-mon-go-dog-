@@ -11,7 +11,7 @@ alter table feeding_zones add column if not exists ngo_id uuid;
 create or replace view feeding_zone_public as
 select
   fz.id, fz.name, fz.description, fz.zone, fz.lat, fz.lng, fz.photo_url,
-  fz.created_by_id, fz.created_by_name, fz.created_at, fz.last_fed_at,
+  null::uuid as created_by_id, fz.created_by_name, fz.created_at, fz.last_fed_at,
   (select count(*) from feeding_zone_volunteers v where v.feeding_zone_id = fz.id) as volunteer_count,
   fz.ngo_id
 from feeding_zones fz;
@@ -30,6 +30,9 @@ begin
   if v_ngo is null then raise exception 'Only partner organisations can add org feeding zones.'; end if;
   if coalesce(btrim(p_name), '') = '' then raise exception 'A name is required.'; end if;
   if p_lat is null or p_lng is null then raise exception 'A location is required.'; end if;
+  if p_lat not between -90 and 90 or p_lng not between -180 and 180 then
+    raise exception 'Coordinates are outside the valid range';
+  end if;
   insert into feeding_zones (name, description, zone, lat, lng, photo_url, created_by_id, ngo_id)
   values (btrim(p_name), nullif(btrim(coalesce(p_description,'')), ''), nullif(btrim(coalesce(p_zone,'')), ''),
           p_lat, p_lng, p_photo_url, auth.uid(), v_ngo)
