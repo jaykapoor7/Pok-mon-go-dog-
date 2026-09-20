@@ -63,13 +63,17 @@ drop view if exists feeding_zone_public;
 create or replace view feeding_zone_public as
 select
   fz.id, fz.name, fz.description, fz.zone, fz.lat, fz.lng, fz.photo_url,
-  fz.created_by_id, fz.created_by_name, fz.created_at, fz.last_fed_at,
+  null::uuid as created_by_id, fz.created_by_name, fz.created_at, fz.last_fed_at,
   (select count(*) from feeding_zone_volunteers v where v.feeding_zone_id = fz.id) as volunteer_count
 from feeding_zones fz;
 
 create or replace view feeding_zone_volunteer_public as
-select id, feeding_zone_id, user_id, user_name, days, created_at
+select id, feeding_zone_id, null::uuid as user_id, user_name, days, created_at
 from feeding_zone_volunteers;
+
+create or replace view feeding_zone_checkin_public as
+select id, feeding_zone_id, null::uuid as actor_id, actor_name, note, created_at
+from feeding_zone_checkins;
 
 -- ════════════════════════════════════════════════════════════════
 -- Functions (SECURITY DEFINER; writes are validated server-side)
@@ -98,7 +102,7 @@ begin
                             created_by_id, created_by_name)
   values (btrim(p_name), nullif(btrim(coalesce(p_description,'')), ''),
           nullif(btrim(coalesce(p_zone,'')), ''), p_lat, p_lng, p_photo_url,
-          p_actor_id, p_actor_name)
+          auth.uid(), nullif(btrim(coalesce(p_actor_name,'')), ''))
   returning id into v_id;
   return v_id;
 end;
@@ -148,8 +152,11 @@ create or replace function checkin_feeding_zone(
 )
 returns void language plpgsql security definer set search_path = public as $$
 begin
+  if auth.uid() is null or auth.uid() <> p_actor_id then
+    raise exception 'Sign in as the person checking in';
+  end if;
   insert into feeding_zone_checkins (feeding_zone_id, actor_id, actor_name, note)
-  values (p_zone_id, p_actor_id, p_actor_name, nullif(btrim(coalesce(p_note,'')), ''));
+  values (p_zone_id, auth.uid(), nullif(btrim(coalesce(p_actor_name,'')), ''), nullif(btrim(coalesce(p_note,'')), ''));
   update feeding_zones set last_fed_at = now() where id = p_zone_id;
 end;
 $$;
@@ -177,9 +184,10 @@ create policy feeding_zone_checkins_read on feeding_zone_checkins for select usi
 -- read `contact` even if a future policy is added carelessly.
 revoke select on feeding_zone_volunteers from anon, authenticated;
 
-grant select on feeding_zone_public, feeding_zone_volunteer_public to anon, authenticated, service_role;
+grant select on feeding_zone_public, feeding_zone_volunteer_public, feeding_zone_checkin_public to anon, authenticated, service_role;
 grant execute on function create_feeding_zone(text,text,text,double precision,double precision,text,uuid,text)
   to anon, authenticated, service_role;
 grant execute on function volunteer_for_feeding_zone(uuid,uuid,text,text,text[]) to authenticated;
 grant execute on function withdraw_feeding_volunteer(uuid,uuid) to authenticated;
-grant execute on function checkin_feeding_zone(uuid,uuid,text,text) to anon, authenticated, service_role;
+revoke execute on function checkin_feeding_zone(uuid,uuid,text,text) from public, anon;
+grant execute on function checkin_feeding_zone(uuid,uuid,text,text) to authenticated, service_role;
