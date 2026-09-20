@@ -4348,3 +4348,57 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 .spa-quick-list>a svg { color:var(--sp-blue,#2457ce); flex:none; }
 .spa-quick-list>a:hover { color:var(--sp-blue,#2457ce); }
 .spa-quick-list>a.spa-quick-primary { color:var(--sp-blue,#2457ce); font-weight:750; }
+
+
+/* ── organisation settings ─────────────────────────────────────────
+   This is an operational profile editor, not a marketing page. The group
+   boundaries make a long form scannable and keep its action close at hand
+   without changing the underlying profile or upload flow. */
+.org-settings-page { max-width: 920px; margin: 0 auto; }
+.org-settings-page__header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin:2px 0 26px; }
+.org-settings-page__eyebrow,.org-settings__section-kicker { margin:0 0 7px; color:var(--electric-ink); font-family:var(--font-mono),ui-monospace,monospace; font-size:10.5px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+.org-settings-page__header h1 { margin:0; color:var(--ink); font-family:var(--font-display),Georgia,serif; font-size:clamp(30px,4vw,38px); font-weight:400; letter-spacing:-.045em; line-height:1; }
+.org-settings-page__header p:not(.org-settings-page__eyebrow) { margin:9px 0 0; color:#5a6370; font-size:13px; line-height:1.55; }
+.org-settings-page__hint { max-width:225px; margin:0!important; padding:10px 12px; border-left:2px solid var(--electric); background:#edf4ff; color:#43546d!important; font-size:12px!important; }
+.org-settings__identity { border-color:#cbd5e1; box-shadow:0 1px 0 rgba(11,16,32,.04); }
+.org-settings__cover { height:112px; background:linear-gradient(115deg,#273a5a 0%,#476fb7 57%,#8fb7ff 100%); }
+.org-settings__identity-content { padding:0 22px 22px; }
+.org-settings__identity-actions { display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-top:15px; }
+.org-settings__edit-button { display:inline-flex; min-height:36px; align-items:center; gap:7px; margin-left:auto; border:1px solid #b9c6d5; border-radius:3px; padding:8px 12px; background:#fff; color:#26324a; font-size:12px; font-weight:700; transition:background .16s ease,border-color .16s ease; }
+.org-settings__edit-button:hover { border-color:#7e9bc3; background:#f5f8fc; }
+.org-settings__section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:12px; }
+.org-settings__section-heading h3 { margin:0; }
+.org-settings__editor { overflow:hidden; padding:0; border-color:#cbd5e1; }
+.org-settings__editor-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:22px 22px 19px; border-bottom:1px solid #d8e0e9; background:#fbfcfe; }
+.org-settings__editor-heading h3 { margin:0; }
+.org-settings__editor-heading > p { max-width:310px; margin:0; color:#5a6370; font-size:12.5px; line-height:1.5; }
+.org-settings__form-section { min-width:0; margin:0; padding:22px; border:0; border-bottom:1px solid #d8e0e9; }
+.org-settings__form-section legend { display:flex; align-items:center; gap:8px; padding:0; color:var(--ink); font-size:14px; font-weight:700; letter-spacing:-.01em; }
+.org-settings__form-section legend svg { color:var(--electric-ink); }
+.org-settings__section-description { max-width:650px; margin:5px 0 17px; color:#5a6370; font-size:12.5px; line-height:1.5; }
+.org-settings__media-fields { display:grid; grid-template-columns:100px minmax(0,1fr); gap:16px; align-items:end; }
+.org-settings__logo-upload,.org-settings__cover-upload { display:grid; place-items:center; overflow:hidden; border:1px dashed #9cadc0; border-radius:4px; background:#f5f8fc; color:#5a6b80; transition:background .16s ease,border-color .16s ease; }
+.org-settings__logo-upload { width:76px; height:76px; }
+.org-settings__cover-upload { width:100%; height:76px; }
+.org-settings__logo-upload:hover,.org-settings__cover-upload:hover { border-color:var(--electric-ink); background:#edf4ff; }
+.org-settings__field { margin-top:16px; }
+.org-settings__form-section input,.org-settings__form-section textarea { border-color:#bdc9d7; box-shadow:inset 0 1px 1px rgba(11,16,32,.02); }
+.org-settings__form-section input:focus,.org-settings__form-section textarea:focus { border-color:var(--electric-ink); box-shadow:0 0 0 3px rgba(71,111,183,.15); }
+.org-settings__save-bar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 22px; background:#f5f8fc; }
+.org-settings__save-bar p { display:flex; align-items:flex-start; gap:7px; max-width:440px; margin:0; color:#526176; font-size:12px; line-height:1.45; }
+.org-settings__save-bar p svg { flex:none; margin-top:1px; color:var(--electric-ink); }
+
+@media (max-width: 650px) {
+  .org-settings-page__header,.org-settings__editor-heading,.org-settings__section-heading { align-items:flex-start; flex-direction:column; gap:10px; }
+  .org-settings-page__hint { max-width:none; width:100%; }
+  .org-settings__cover { height:92px; }
+  .org-settings__identity-content { padding:0 16px 18px; }
+  .org-settings__identity-actions { align-items:flex-start; }
+  .org-settings__edit-button { margin-left:0; }
+  .org-settings__editor-heading,.org-settings__form-section { padding:18px 16px; }
+  .org-settings__media-fields { grid-template-columns:1fr; gap:14px; }
+  .org-settings__save-bar { position:sticky; bottom:0; z-index:4; flex-direction:column; align-items:stretch; padding:14px 16px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid #cbd5e1; box-shadow:0 -6px 18px rgba(11,16,32,.08); }
+  .org-settings__save-bar .btn-primary { width:100%; }
+}
+
+
