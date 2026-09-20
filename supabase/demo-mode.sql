@@ -127,7 +127,8 @@ set search_path = public as $$
 $$;
 
 grant execute on function is_member_of_ngo(uuid)     to anon, authenticated, service_role;
-grant execute on function org_is_in_demo_mode(uuid)  to anon, authenticated, service_role;
+revoke execute on function org_is_in_demo_mode(uuid) from public, anon, authenticated;
+grant execute on function org_is_in_demo_mode(uuid) to service_role;
 
 -- ── 4. the trigger that stamps ────────────────────────────────────
 
