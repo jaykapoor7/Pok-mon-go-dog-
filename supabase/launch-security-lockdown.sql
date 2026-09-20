@@ -216,3 +216,78 @@ revoke execute on function checkin_feeding_zone(uuid,uuid,text,text)
   from public, anon;
 grant execute on function checkin_feeding_zone(uuid,uuid,text,text)
   to authenticated, service_role;
+
+
+-- 6) Guard legacy write RPCs that predate strict auth scoping.
+create or replace function upsert_volunteer(
+  p_id uuid, p_name text, p_phone text default null
+)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is null or auth.uid() <> p_id then
+    raise exception 'Sign in as this volunteer';
+  end if;
+  insert into volunteers (id, name, phone)
+  values (auth.uid(), nullif(btrim(coalesce(p_name,'')), ''), nullif(btrim(coalesce(p_phone,'')), ''))
+  on conflict (id) do update
+    set name = excluded.name,
+        phone = coalesce(excluded.phone, volunteers.phone);
+end $$;
+revoke execute on function upsert_volunteer(uuid,text,text) from public, anon;
+grant execute on function upsert_volunteer(uuid,text,text) to authenticated, service_role;
+
+create or replace function assign_case(
+  p_case_id uuid,
+  p_assignee_id uuid,
+  p_assignee_name text,
+  p_actor_id uuid,
+  p_actor_name text
+)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare v_ngo uuid;
+begin
+  if auth.uid() is null or auth.uid() <> p_actor_id then
+    raise exception 'Sign in as the assigning user';
+  end if;
+  select my_ngo() into v_ngo;
+  if v_ngo is null then raise exception 'Organisation access required'; end if;
+  if not exists (select 1 from cases where id = p_case_id and ngo_id = v_ngo) then
+    raise exception 'Case is not in your organisation';
+  end if;
+  if not exists (
+    select 1 from ngo_members
+    where ngo_id = v_ngo and user_id = p_assignee_id
+  ) then
+    raise exception 'Assignee is not in your organisation';
+  end if;
+
+  update cases set
+    assignee_id = p_assignee_id,
+    assignee_name = nullif(btrim(coalesce(p_assignee_name,'')), ''),
+    status = case when status = 'unverified' then 'assigned' else status end,
+    updated_at = now(),
+    last_activity_at = now()
+  where id = p_case_id and ngo_id = v_ngo;
+
+  insert into case_updates (case_id, actor_id, actor_name, type, note)
+  values (
+    p_case_id, auth.uid(), nullif(btrim(coalesce(p_actor_name,'')), ''),
+    'assigned', 'Assigned to ' || coalesce(nullif(btrim(p_assignee_name), ''), 'team member')
+  );
+end $$;
+revoke execute on function assign_case(uuid,uuid,text,uuid,text) from public, anon;
+grant execute on function assign_case(uuid,uuid,text,uuid,text) to authenticated, service_role;
+
+-- Observation relinking is an operator/reviewer action, never a normal client RPC.
+revoke execute on function relink_sighting(uuid,uuid,text,text)
+  from public, anon, authenticated;
+grant execute on function relink_sighting(uuid,uuid,text,text) to service_role;
+
+-- PostGIS ships these SECURITY DEFINER helpers in public. StrayPaw does not call
+-- them through PostgREST, so do not expose them as RPC endpoints to clients.
+revoke execute on function st_estimatedextent(text,text)
+  from public, anon, authenticated;
+revoke execute on function st_estimatedextent(text,text,text)
+  from public, anon, authenticated;
+revoke execute on function st_estimatedextent(text,text,text,boolean)
+  from public, anon, authenticated;
