@@ -10,6 +10,9 @@ import {
   Loader2,
   Plus,
   HeartHandshake,
+  Info,
+  Mail,
+  MapPin,
   Pencil,
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/org/VerifiedBadge";
@@ -68,11 +71,11 @@ export function OrgManager() {
   const location = [org.city, org.state].filter(Boolean).join(", ") || org.area;
 
   return (
-    <div className="space-y-6">
+    <div className="org-settings space-y-6">
       {/* Identity header */}
-      <div className="card overflow-hidden">
-        <div className="h-24 bg-gradient-to-br from-paw-500 to-paw-700" />
-        <div className="px-5 pb-5">
+      <div className="card org-settings__identity overflow-hidden">
+        <div className="org-settings__cover" />
+        <div className="org-settings__identity-content">
           <div className="-mt-8 flex items-end gap-3">
             <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded border-4 border-white bg-white shadow-card dark:border-bark-900 dark:bg-bark-900">
               {org.logo_url ? (
@@ -89,7 +92,7 @@ export function OrgManager() {
               {location && <p className="text-xs text-bark-500">{location}</p>}
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="org-settings__identity-actions">
             <VerifiedBadge verified={org.verified} size="sm" />
             {org.slug && (
               <Link
@@ -102,7 +105,7 @@ export function OrgManager() {
             )}
             <button
               onClick={() => setEditing((v) => !v)}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] px-3 py-1.5 text-xs font-semibold text-bark-700 transition-colors hover:bg-black/[0.04] dark:border-white/10 dark:text-bark-200"
+              className="org-settings__edit-button"
             >
               <Pencil className="h-3.5 w-3.5" /> {editing ? "Close" : "Edit profile"}
             </button>
@@ -125,11 +128,14 @@ export function OrgManager() {
       {editing && <ProfileEditor org={org} onSaved={(o) => { setOrg(o); setEditing(false); }} />}
 
       {/* Campaigns */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-lg tracking-tightest text-bark-900 dark:text-bark-50">
+      <section className="org-settings__campaigns" aria-labelledby="campaigns-heading">
+        <div className="org-settings__section-heading">
+          <div>
+            <p className="org-settings__section-kicker">Fundraising</p>
+          <h3 id="campaigns-heading" className="font-display text-lg tracking-tightest text-bark-900 dark:text-bark-50">
             Your campaigns
           </h3>
+          </div>
           <Link href="/fundraisers/new" className="btn-primary px-3.5 py-2 text-sm">
             <Plus className="h-4 w-4" /> New campaign
           </Link>
@@ -279,19 +285,28 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
   }
 
   return (
-    <div className="card space-y-4 p-5">
-      <h3 className="font-display text-lg tracking-tightest text-bark-900 dark:text-bark-50">
-        Edit your public profile
-      </h3>
-
-      {/* logo + cover */}
-      <div className="flex flex-wrap gap-3">
+    <section className="card org-settings__editor" aria-labelledby="profile-editor-heading">
+      <div className="org-settings__editor-heading">
         <div>
-          <span className={LABEL}>Logo</span>
+          <p className="org-settings__section-kicker">Public profile</p>
+          <h3 id="profile-editor-heading" className="font-display text-lg tracking-tightest text-bark-900 dark:text-bark-50">
+            Make your organisation easy to trust
+          </h3>
+        </div>
+        <p>Keep this information current so supporters and partners can reach you.</p>
+      </div>
+
+      <fieldset className="org-settings__form-section">
+        <legend>Brand and introduction</legend>
+        <p className="org-settings__section-description">Use a recognisable logo and a concise description of your work.</p>
+        <div className="org-settings__media-fields">
+          <div>
+            <span className={LABEL}>Organisation logo</span>
           <button
             type="button"
             onClick={() => logoRef.current?.click()}
-            className="grid h-16 w-16 place-items-center overflow-hidden rounded border border-dashed border-bark-300 bg-bark-50 text-bark-400 dark:bg-bark-800"
+            className="org-settings__logo-upload"
+            aria-label="Upload organisation logo"
           >
             {uploading === "logo" ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -303,13 +318,14 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
             )}
           </button>
           <input ref={logoRef} type="file" accept="image/*" hidden onChange={(e) => pick("logo", e)} />
-        </div>
-        <div className="min-w-0 flex-1">
+          </div>
+          <div className="min-w-0 flex-1">
           <span className={LABEL}>Cover photo</span>
           <button
             type="button"
             onClick={() => coverRef.current?.click()}
-            className="grid h-16 w-full place-items-center overflow-hidden rounded border border-dashed border-bark-300 bg-bark-50 text-bark-400 dark:bg-bark-800"
+            className="org-settings__cover-upload"
+            aria-label="Upload cover photo"
           >
             {uploading === "cover" ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -321,10 +337,10 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
             )}
           </button>
           <input ref={coverRef} type="file" accept="image/*" hidden onChange={(e) => pick("cover", e)} />
+          </div>
         </div>
-      </div>
 
-      <div>
+        <div className="org-settings__field">
         <span className={LABEL}>Mission (one or two lines)</span>
         <textarea
           className={cn(INPUT, "min-h-[64px] resize-y")}
@@ -332,9 +348,22 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
           onChange={(e) => set("mission", e.target.value)}
           placeholder="What your organization does, in a sentence."
         />
-      </div>
+        </div>
+        <div className="org-settings__field">
+          <span className={LABEL}>About (full story, optional)</span>
+          <textarea
+            className={cn(INPUT, "min-h-[120px] resize-y")}
+            value={form.about}
+            onChange={(e) => set("about", e.target.value)}
+            placeholder="The longer story of your work, milestones and impact."
+          />
+        </div>
+      </fieldset>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <fieldset className="org-settings__form-section">
+        <legend><MapPin className="h-4 w-4" /> Where you work</legend>
+        <p className="org-settings__section-description">This helps local supporters find your organisation and understand your coverage.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <span className={LABEL}>City</span>
           <input className={INPUT} value={form.city} onChange={(e) => set("city", e.target.value)} />
@@ -343,19 +372,17 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
           <span className={LABEL}>State</span>
           <input className={INPUT} value={form.state} onChange={(e) => set("state", e.target.value)} />
         </div>
-      </div>
+        </div>
+        <div className="org-settings__field">
+          <span className={LABEL}>Areas of work (comma separated)</span>
+          <input className={INPUT} value={form.areas} onChange={(e) => set("areas", e.target.value)} placeholder="Rescue, Veterinary treatment, Sterilisation, Awareness" />
+        </div>
+      </fieldset>
 
-      <div>
-        <span className={LABEL}>Areas of work (comma separated)</span>
-        <input
-          className={INPUT}
-          value={form.areas}
-          onChange={(e) => set("areas", e.target.value)}
-          placeholder="Rescue, Veterinary treatment, Sterilisation, Awareness"
-        />
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
+      <fieldset className="org-settings__form-section">
+        <legend><Mail className="h-4 w-4" /> Contact and credentials</legend>
+        <p className="org-settings__section-description">Share the public contact details and registration information you want supporters to see.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <span className={LABEL}>Website</span>
           <input className={INPUT} value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://" />
@@ -372,29 +399,22 @@ function ProfileEditor({ org, onSaved }: { org: NGO; onSaved: (o: NGO) => void }
           <span className={LABEL}>Contact phone</span>
           <input className={INPUT} value={form.contact_phone} onChange={(e) => set("contact_phone", e.target.value)} />
         </div>
-      </div>
-
-      <div>
-        <span className={LABEL}>Registration / trust number (optional)</span>
-        <input className={INPUT} value={form.registration_no} onChange={(e) => set("registration_no", e.target.value)} placeholder="e.g. 12A / 80G / society reg no." />
-      </div>
-
-      <div>
-        <span className={LABEL}>About (full story, optional)</span>
-        <textarea
-          className={cn(INPUT, "min-h-[100px] resize-y")}
-          value={form.about}
-          onChange={(e) => set("about", e.target.value)}
-          placeholder="The longer story of your work, milestones and impact."
-        />
-      </div>
+        </div>
+        <div className="org-settings__field">
+          <span className={LABEL}>Registration / trust number (optional)</span>
+          <input className={INPUT} value={form.registration_no} onChange={(e) => set("registration_no", e.target.value)} placeholder="e.g. 12A / 80G / society reg no." />
+        </div>
+      </fieldset>
 
       {error && <p className="text-sm font-medium text-status-injured">{error}</p>}
 
-      <button onClick={save} disabled={busy} className="btn-primary w-full py-3">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-        Save profile
-      </button>
-    </div>
+      <div className="org-settings__save-bar">
+        <p><Info className="h-4 w-4" /> Your changes will be visible after saving.</p>
+        <button onClick={save} disabled={busy} className="btn-primary px-5 py-3">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          {busy ? "Saving profile…" : "Save profile"}
+        </button>
+      </div>
+    </section>
   );
 }
