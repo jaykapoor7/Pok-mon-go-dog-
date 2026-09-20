@@ -313,3 +313,10 @@ from comments;
 
 grant select on public_live_sightings, public_feed_events, public_comments
   to anon, authenticated;
+
+
+-- Demo-mode state lookup is an internal helper used by trigger logic, not a
+-- browser API. Keep it off PostgREST client roles.
+revoke execute on function org_is_in_demo_mode(uuid)
+  from public, anon, authenticated;
+grant execute on function org_is_in_demo_mode(uuid) to service_role;
