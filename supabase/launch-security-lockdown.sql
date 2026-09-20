@@ -320,3 +320,8 @@ grant select on public_live_sightings, public_feed_events, public_comments
 revoke execute on function org_is_in_demo_mode(uuid)
   from public, anon, authenticated;
 grant execute on function org_is_in_demo_mode(uuid) to service_role;
+
+
+-- Reporter-bearing base tables are never public APIs. Public clients read only
+-- the redacted projections above.
+revoke select on comments, feed_events from anon, authenticated;
