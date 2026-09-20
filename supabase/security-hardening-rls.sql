@@ -79,7 +79,7 @@ select
 from dogs d left join ngos n on n.id = d.ngo_id;
 
 create view public_live_sightings as
-select id, dog_id, reporter_name, photo_url,
+select id, dog_id, null::text as reporter_name, photo_url,
        round(lat::numeric, 2)::double precision as lat,
        round(lng::numeric, 2)::double precision as lng,
        zone, nickname, mood_tags, notes, trust_score, likes, status, created_at
@@ -127,13 +127,13 @@ select 'medical:' || m.id::text as id, d.id as dog_id, d.ngo_id, n.name as ngo_n
    and not (d.lat = 0 and d.lng = 0);
 
 create view public_feed_events as
-select id, dog_id, reporter_name, food_type, created_at from feed_events;
+select id, dog_id, null::text as reporter_name, food_type, created_at from feed_events;
 create view public_vaccinations as
 select id, dog_id, vaccine, administered_by, date from vaccinations;
 create view public_sterilisations as
 select id, dog_id, status, performed_by, date from sterilisations;
 create view public_comments as
-select id, dog_id, reporter_name, body, created_at from comments;
+select id, dog_id, null::text as reporter_name, body, created_at from comments;
 
 -- Public programme totals always reflect the work described by the programme.
 alter table campaigns add column if not exists source_rows_count integer not null default 0;
