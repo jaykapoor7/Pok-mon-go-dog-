@@ -155,7 +155,7 @@ grant select on public_animal_profiles, public_live_sightings,
 
 -- Base tables are never the public API. Direct reads are only for an
 -- authenticated member's own organisation (or a reporter's own submission).
-revoke select on dogs, sightings, cases, case_updates, medical_events,
+revoke select on dogs, sightings, comments, feed_events, cases, case_updates, medical_events,
   surveys, survey_areas, survey_responses, volunteers, import_batches,
   import_rows, animal_followups, animal_timeline_events, evidence_items,
   evidence_reviews, operational_audit_log from anon, authenticated;
