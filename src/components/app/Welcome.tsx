@@ -81,8 +81,14 @@ export function Welcome() {
 
   function finish(go?: string) {
     try { window.localStorage.setItem(TOUR_KEY, "1"); } catch {}
+    /* Navigate before closing the dialog. Closing first introduced a race where
+       the tour unmounted/re-rendered but the workspace push occasionally never
+       committed under concurrent rendering. Route changes unmount it anyway. */
+    if (go) {
+      router.push(go);
+      return;
+    }
     setStep(-1);
-    if (go) router.push(go);
   }
 
   function pick(next: EntryRole) {
