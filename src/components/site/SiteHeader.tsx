@@ -74,15 +74,13 @@ export function SiteHeader() {
             <div
               key={l.href}
               className={`sp-nav-group ${menu === l.href ? "on" : ""}`}
-              onMouseEnter={() => setMenu(l.href)}
-              onMouseLeave={() => setMenu(null)}
             >
               <button
                 type="button"
                 className="sp-nav-trigger"
                 aria-expanded={menu === l.href}
                 aria-haspopup="true"
-                onClick={() => setMenu(menu === l.href ? null : l.href)}
+                onClick={() => setMenu((current) => current === l.href ? null : l.href)}
               >
                 {l.label}
                 <ChevronDown size={13} />

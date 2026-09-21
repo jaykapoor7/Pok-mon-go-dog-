@@ -27,7 +27,7 @@ export function FieldMapPreview({ dogs, center, place, chrome = true }: { dogs: 
     : null;
 
   return (
-    <div className="field-map-preview">
+    <div className="field-map-preview relative h-full min-h-[300px] w-full overflow-hidden bg-[#e5eaf0]">
       <MapCanvas
         dogs={dogs}
         bounds={center ? null : bounds}

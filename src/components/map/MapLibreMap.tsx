@@ -11,8 +11,9 @@ import Map, {
   type MapLayerMouseEvent,
   type MapRef,
 } from "react-map-gl/maplibre";
-import type {
-  Map as MapLibreInstance,
+import {
+  setWorkerUrl,
+  type Map as MapLibreInstance,
   CircleLayerSpecification,
   DataDrivenPropertyValueSpecification,
   PropertyValueSpecification,
@@ -33,6 +34,8 @@ import {
 } from "./dogIcon";
 import type { Dog, FeedingZone, FieldActivity } from "@/lib/types";
 import { stateCoverage, STATUS_META } from "@/lib/platform/coverage";
+
+setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 import {
   WARD_METRICS,
   WARD_RAMP,

@@ -79,7 +79,7 @@ export async function getFeedingZoneCheckins(zoneId: string, limit = 20): Promis
   const supa = getSupabase();
   if (!supa) return [];
   const { data } = await supa
-    .from("feeding_zone_checkins")
+    .from("feeding_zone_checkin_public")
     .select("*")
     .eq("feeding_zone_id", zoneId)
     .order("created_at", { ascending: false })

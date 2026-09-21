@@ -71,11 +71,8 @@ export async function getPublicTimeline(limit = 500): Promise<PublicTimelineEven
 }
 
 /**
- * Complete public care ledger.
- *
- * public_field_activity contains both cases and care. Filtering after a global
- * limit silently dropped older medical events once case volume grew. Filter in
- * the database first, then page every matching medical row instead.
+ * Complete public care ledger. Filtering in the database, then paging, avoids
+ * silently losing older medical events once case volume grows.
  */
 export async function getPublicCareTimeline(): Promise<PublicTimelineEvent[]> {
   const supa = getSupabase();
@@ -93,4 +90,24 @@ export async function getPublicCareTimeline(): Promise<PublicTimelineEvent[]> {
     if (!data || data.length < 500) break;
   }
   return rows;
+}
+
+/**
+ * Public stories are outcome records, not a mirror of the entire case table.
+ * A story needs a linked animal, an issue, an outcome, a date, and at least
+ * one care event. Imported rows with partial or contradictory status data stay
+ * in the operational register until the field record is complete.
+ */
+export async function getPublishedCaseStories(): Promise<PublicCaseStory[]> {
+  const [cases, care] = await Promise.all([getPublicCaseStories(), getPublicCareTimeline()]);
+  const animalsWithCare = new Set(care.map((event) => event.dog_id).filter((id): id is string => Boolean(id)));
+  return cases.filter((story) =>
+    Boolean(
+      story.dog_id &&
+      story.title?.trim() &&
+      story.outcome?.trim() &&
+      story.occurred_at &&
+      animalsWithCare.has(story.dog_id),
+    ),
+  );
 }
