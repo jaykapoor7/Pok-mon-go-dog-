@@ -34,3 +34,10 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /blob-report/
+
+# MapLibre's worker and shared chunk are copied out of node_modules into
+# public/ by scripts/copy-maplibre-worker.mjs, which runs on prebuild and
+# predev. They are build output, not source: committing them would duplicate
+# node_modules in the repository and let the copy drift from the installed
+# maplibre-gl version. Vercel regenerates them during its own build.
+/public/maplibre/
