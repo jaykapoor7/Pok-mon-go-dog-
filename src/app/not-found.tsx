@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, MapPin, PawPrint } from "lucide-react";
-import { SiteHeader } from "@/components/site/SiteHeader";
 import "@/components/site/site.css";
 
 export const metadata = { title: "Not found, StrayPaw" };
@@ -8,8 +7,7 @@ export const metadata = { title: "Not found, StrayPaw" };
 export default function NotFound() {
   return (
     <div className="sp min-h-screen bg-[#f4f5f7] text-[#0b1020]">
-      <SiteHeader />
-      <main className="mx-auto flex min-h-screen max-w-7xl items-center px-5 pb-16 pt-28 sm:px-8 lg:px-12">
+      <div data-not-found-recovery className="mx-auto flex min-h-[72vh] max-w-7xl items-center px-5 py-12 sm:px-8 lg:px-12">
         <section className="grid w-full gap-10 border-y border-[#0b1020]/10 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:py-16">
           <div>
             <p className="sp-kicker"><span>404</span> · Record not found</p>
@@ -39,7 +37,7 @@ export default function NotFound() {
             </div>
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }
