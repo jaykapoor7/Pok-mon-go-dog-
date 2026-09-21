@@ -20,27 +20,36 @@ export function StatusBadge({
   status,
   className,
 }: {
-  status: DogStatus;
+  status: DogStatus | string;
   className?: string;
 }) {
-  const meta = STATUS_META[status];
+  const meta = STATUS_META[status as DogStatus];
+  const label = meta?.label ?? humanLabel(status);
+  const color = meta?.color ?? "#596273";
   return (
     <Badge
       className={cn("gap-1.5 border-transparent text-white shadow-sm", className)}
-      style={{ backgroundColor: meta.color }}
+      style={{ backgroundColor: color }}
     >
-      {meta.label}
+      {label}
     </Badge>
   );
 }
 
-export function MoodChip({ mood }: { mood: MoodTag }) {
-  const meta = MOOD_META[mood];
+export function MoodChip({ mood }: { mood: MoodTag | string }) {
+  const meta = MOOD_META[mood as MoodTag];
   return (
     <Badge variant="secondary" className="font-medium">
-      {meta.label}
+      {meta?.label ?? humanLabel(mood)}
     </Badge>
   );
+}
+
+function humanLabel(value: string) {
+  return value
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Recorded";
 }
 
 /** Small circular trust-score gauge. */
