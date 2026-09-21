@@ -10,6 +10,14 @@ on:
 permissions:
   contents: read
 
+# Pushing a branch again supersedes the run already in flight for it. Without
+# this they both run to completion, and a stale run failing on code nobody is
+# looking at any more still sends a failure email. Keyed by ref so main and dev
+# never cancel each other.
+concurrency:
+  group: quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     runs-on: ubuntu-latest

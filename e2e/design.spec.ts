@@ -56,6 +56,12 @@ test("community choice stays account-free and lands in the community record", as
   await expect(page.getByRole("heading", { name: /The record becomes useful on the map/i })).toBeVisible();
   await page.getByRole("button", { name: /Begin/i }).click();
   await expect(page).toHaveURL(/\/app$/);
+  /* The dialog must actually be gone, not merely behind the page. A Radix
+     dialog marks the rest of the document aria-hidden while it is open, so
+     leaving it mounted takes the whole workspace out of the accessibility
+     tree even when it looks dismissed. Asserting its absence states the
+     requirement directly instead of inferring it. */
+  await expect(page.locator('[role="dialog"]')).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Animals in your area." })).toBeVisible();
   await expect(page.locator('a[href="/report"]').filter({ hasText: "Report an animal" }).first()).toBeVisible();
 });
