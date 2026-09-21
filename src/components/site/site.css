@@ -2160,8 +2160,12 @@
   cursor: pointer;
   transition: color 0.2s ease;
 }
-.sp-nav-trigger:hover,
 .sp-nav-group.on .sp-nav-trigger { color: var(--electric); }
+/* Touch fires a synthetic hover that then sticks, leaving a trigger looking
+   open after its menu closed. Only a real pointer gets the hover colour. */
+@media (hover: hover) and (pointer: fine) {
+  .sp-nav-trigger:hover { color: var(--electric); }
+}
 .sp-nav-trigger:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
 .sp-nav-trigger svg { transition: transform 0.2s ease; }
 .sp-nav-group.on .sp-nav-trigger svg { transform: rotate(180deg); }
@@ -2182,14 +2186,23 @@
   transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
 }
 .sp-nav-group.on .sp-nav-panel { opacity: 1; visibility: visible; transform: none; }
-/* A hover bridge, so the pointer can cross the gap without the panel closing. */
-.sp-nav-group::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  height: 12px;
+/* A hover bridge, so the pointer can cross the gap without the panel closing.
+
+   Gated to hovering pointers, because on a touchscreen there is no gap to
+   cross and the bridge becomes an invisible 12px strip lying over whatever
+   sits below the group. In the stacked mobile nav that is the next link:
+   measured at 390px the group ended at 183px and "For NGOs" began at 188px,
+   so a tap at 187px hit the group instead of the link. A hover affordance
+   must not eat touch targets. */
+@media (hover: hover) and (pointer: fine) {
+  .sp-nav-group::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 12px;
+  }
 }
 
 /* `.sp-nav a` is inline-flex for its touch target, which laid the title and
@@ -2204,8 +2217,10 @@
   color: var(--paper);
   transition: background 0.14s ease;
 }
-.sp-nav .sp-nav-item:hover,
-.sp-nav .sp-nav-lead:hover { background: rgba(143, 183, 255, 0.12); }
+@media (hover: hover) and (pointer: fine) {
+  .sp-nav .sp-nav-item:hover,
+  .sp-nav .sp-nav-lead:hover { background: rgba(143, 183, 255, 0.12); }
+}
 .sp-nav-item:focus-visible,
 .sp-nav-lead:focus-visible { outline: 2px solid var(--electric); outline-offset: -2px; }
 .sp-nav-lead {
