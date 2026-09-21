@@ -1527,3 +1527,35 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   html .spa.spa .spa-phone-links > a:active,
   html .spa.spa .spa-side a.spa-mobile-report:active { transform: none; }
 }
+
+/* ── trust strip ──────────────────────────────────────────────────
+   Rules and spacing rather than cards, so it reads as a masthead line
+   under the hero instead of three more boxes on a page that already has
+   enough. Figures are tabular so they do not shift as the count climbs. */
+.trust-strip {
+  display: grid;
+  gap: 14px;
+  padding: 22px var(--sp-gutter, clamp(20px, 5vw, 64px));
+  border-bottom: 1px solid var(--sp-line, #e3d9ca);
+  background: var(--sp-bone, #f4eee5);
+}
+.trust-figures { display: flex; flex-wrap: wrap; gap: 8px 30px; margin: 0; }
+.trust-figures div { display: flex; align-items: baseline; gap: 7px; }
+.trust-figures dt {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--sp-ink, #0b1e3d);
+}
+.trust-figures dd { margin: 0; font-size: 13px; color: var(--sp-muted, #5d6b7c); }
+.trust-partner { display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px; margin: 0; font-size: 13.5px; }
+.trust-partner span { color: var(--sp-muted, #5d6b7c); }
+.trust-partner a { color: var(--sp-ink, #0b1e3d); text-decoration: none; }
+.trust-partner a:hover { color: var(--sp-blue, #2457ce); }
+.trust-source { margin: 0; max-width: 62ch; font-size: 12px; line-height: 1.6; color: var(--sp-muted, #5d6b7c); }
+.trust-source a { color: var(--sp-blue, #2457ce); }
+@media (max-width: 520px) {
+  .trust-figures { gap: 6px 20px; }
+  .trust-figures dt { font-size: 17px; }
+}

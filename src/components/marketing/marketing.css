@@ -256,3 +256,34 @@
   .mk-band { padding: 12vw 6vw; }
   .mk-next { padding: 12vw 6vw; }
 }
+
+/* ── awaiting-content blocks ──────────────────────────────────────
+   Some sections cannot be written by the people who build the site: a
+   founder's own words, a colleague's name and face, the registered entity
+   type. Those are marked here rather than filled with plausible-looking
+   stand-ins, because a fake advisor or an invented entity on a page a
+   tender officer reads is worse than an honest gap. Each block says what
+   belongs there and who supplies it, so the page reads as deliberate while
+   it waits instead of looking broken. */
+.mk-awaiting {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 18px 20px;
+  border: 1px dashed var(--sp-line, #e3d9ca);
+  border-radius: var(--sp-radius, 10px);
+  background: rgba(36, 87, 206, 0.03);
+}
+.mk-awaiting > b {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sp-blue, #2457ce);
+}
+.mk-awaiting > strong { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.mk-awaiting > span { font-size: 13.5px; line-height: 1.6; color: var(--sp-muted, #5d6b7c); }
+.mk-awaiting-grid { display: grid; gap: 14px; margin-top: 24px; }
+@media (min-width: 700px) { .mk-awaiting-grid { grid-template-columns: 1fr 1fr; } }
+.mk-awaiting-grid .mk-awaiting { margin-top: 0; }

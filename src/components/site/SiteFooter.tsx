@@ -12,6 +12,7 @@ export function SiteFooter({ className = "" }: { className?: string }) {
         <span>STRAYPAW © 2026</span>
         <span className="sp-footer-links">
           <Link href="/mission">MISSION</Link>
+          <Link href="/about">ABOUT</Link>
           <Link href="/evidence">EVIDENCE</Link>
           <Link href="/transparency">TRANSPARENCY</Link>
           <Link href="/changelog">CHANGELOG</Link>

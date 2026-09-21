@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { Hero } from "@/components/site/Hero";
+import { TrustStrip } from "@/components/site/TrustStrip";
 import { LandingMotion } from "@/components/site/LandingMotion";
 import { WhereTheyAre } from "@/components/site/WhereTheyAre";
 import { ConsoleShowcase } from "@/components/site/ConsoleShowcase";
@@ -45,6 +46,10 @@ export default async function HomePage() {
       <SiteHeader />
       <main>
         <Hero dogs={showcase} total={total} />
+        {/* Directly under the hero: who is already on the record, and one
+            named organisation. Named partners carry further than anonymous
+            totals, and every figure here is derived rather than typed. */}
+        <TrustStrip total={total} />
         <CaseStory story={stories[0] ?? null} />
         <WhereTheyAre dogs={mapDogs} />
         <ConsoleShowcase />
