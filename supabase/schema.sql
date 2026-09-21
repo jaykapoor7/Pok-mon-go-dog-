@@ -346,8 +346,11 @@ create or replace function add_comment(
 )
 returns void language plpgsql security definer set search_path = public as $$
 begin
+  -- Columns and values must line up: reporter_name takes the name and body
+  -- takes the comment. These were transposed, which stored every comment as
+  -- its author's name and every author's name as the comment.
   insert into comments (dog_id, reporter_name, body)
-  values (p_dog_id, p_body, p_reporter_name);
+  values (p_dog_id, p_reporter_name, p_body);
 end;
 $$;
 

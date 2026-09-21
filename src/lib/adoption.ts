@@ -14,9 +14,11 @@ export type AdoptableAnimal = {
   summary: string | null;
   good_with: string | null;
   needs: string | null;
+  /* No phone or email. adoptable_animals is readable with the public anon
+     key, so publishing a personal phone number there put it behind nothing
+     at all, and no screen ever read these. Reaching a lister goes through
+     the organisation. */
   contact_name: string | null;
-  contact_phone: string | null;
-  contact_email: string | null;
   sterilised: boolean | null;
   vaccinated: boolean | null;
   is_friendly: boolean | null;
