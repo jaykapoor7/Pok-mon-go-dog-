@@ -29,7 +29,7 @@ test("open app asks which workspace a person needs", async ({ page }) => {
   await page.goto("/app?choose=1");
   const picker = page.getByRole("dialog");
   await expect(picker.getByRole("heading", { name: "How will you use StrayPaw?" })).toBeVisible();
-  await expect(picker.getByRole("button", { name: /I want to report an animal/i })).toBeVisible();
+  await expect(picker.getByRole("button", { name: /I want to report or follow street animals/i })).toBeVisible();
   await expect(picker.getByRole("button", { name: /I work at an organisation/i })).toBeVisible();
   await expect(picker.getByText(/I fund this work/i)).toHaveCount(0);
 });
@@ -57,7 +57,7 @@ test("community choice stays account-free and lands in the community record", as
   await page.getByRole("button", { name: /Begin/i }).click();
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole("heading", { name: "Animals in your area." })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
+  await expect(page.locator('a[href="/report"]').filter({ hasText: "Report an animal" }).first()).toBeVisible();
 });
 
 test("community home keeps location and reporting within immediate reach", async ({ page }) => {
