@@ -13,7 +13,7 @@ or structure still owed · **TODO** specified but not built.
 
 | Route | Job | Primary action | Status |
 |---|---|---|---|
-| `/` | Convert: understand in five seconds, then act | Report a sighting | THIN — hero, map section, evidence and audience split are live; the trust strip with named partners, the testimonial component and the `SEC. —` divider system are not built |
+| `/` | Convert: understand in five seconds, then act | Report a sighting | OK — hero, trust strip with named partner, map section, evidence and audience split are live; the `SEC. —` divider system is not built |
 
 ## Product
 
@@ -24,7 +24,7 @@ or structure still owed · **TODO** specified but not built.
 | `/report` | File a sighting | Submit sighting | OK — photo skippable, migration applied in production; offline queue-and-sync not built |
 | `/feed` | The public ledger | Open a record | OK — deduplicated |
 | `/dog/[id]` | The atomic unit: one animal's record | Follow / open case | OK — SSR, indexable, schema.org, in the sitemap |
-| `/following` | Saved animals | Find an animal | THIN |
+| `/following` | Saved animals | Find an animal | OK — every card titled, ordered most-recently-seen, carries a seen-time |
 | `/you` | Community dashboard, "My StrayPaw" | — | TODO — not built |
 
 ## Audiences
@@ -55,7 +55,7 @@ or structure still owed · **TODO** specified but not built.
 
 | Route | Job | Primary action | Status |
 |---|---|---|---|
-| `/help` | Animals needing care | Offer help | THIN — cards say "Needs Help" without saying what is needed |
+| `/help` | Animals needing care | Offer help | OK — cards state the recorded need and the latest human note; unknown kept distinct from no |
 | `/resources` | Emergency utility | Call a helpline | OK — first-aid steps no longer obscured |
 | `/learn` | Explainers | Read | OK — population figure reconciled |
 | `/orgs` | Directory of organisations | Open an organisation | OK |
@@ -64,7 +64,7 @@ or structure still owed · **TODO** specified but not built.
 
 | Route | Job | Primary action | Status |
 |---|---|---|---|
-| `/about` | The humans | — | THIN — redirects to `/mission`; team, advisors, founder story and entity type are not built |
+| `/about` | The humans | Request a pilot / contact | OK — entity, team, advisors, founder story and open role render as designed awaiting-content states |
 | `/mission` | Why this exists | Get involved | OK |
 | `/what-we-do` | The journey | Report | OK |
 | `/transparency` | The register, counted | Read the evidence | OK |

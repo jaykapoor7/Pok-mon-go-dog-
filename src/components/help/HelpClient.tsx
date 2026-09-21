@@ -6,6 +6,7 @@ import { HeartHandshake, MapPin, HandHelping, Utensils, ArrowRight } from "lucid
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { HelperForm, type HelperTarget } from "@/components/help/HelperForm";
 import { markerStateFor, MARKER_META } from "@/lib/marker-state";
+import { needsFor, latestNote, placeLabel } from "@/lib/help-needs";
 import { distanceMeters, dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
@@ -101,6 +102,8 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
         ) : (
           needy.map((dog) => {
             const meta = MARKER_META[markerStateFor(dog)];
+            const needs = needsFor(dog);
+            const note = latestNote(dog);
             return (
               <div key={dog.id} className="card flex items-center gap-3 p-3">
                 <Link href={`/dog/${dog.id}`} className="shrink-0">
@@ -116,14 +119,33 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
                     {dogLabel(dog)}
                   </Link>
                   <p className="mt-0.5 flex items-center gap-1 text-xs text-bark-500">
-                    <MapPin className="h-3.5 w-3.5" /> {dog.zone}
+                    <MapPin className="h-3.5 w-3.5" /> {placeLabel(dog.zone)}
                   </p>
-                  <span
-                    className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold text-white"
-                    style={{ backgroundColor: meta.color }}
-                  >
-                    {meta.label}
-                  </span>
+                  {/* Say what is needed, not only that something is. A reader
+                      deciding whether they are the right person to help cannot
+                      act on "Needs Help" alone. Every line below is read from
+                      the record; the last human note outranks any label. */}
+                  {note && <p className="mt-1 text-xs leading-5 text-bark-600">{note}</p>}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold text-white"
+                      style={{ backgroundColor: meta.color }}
+                    >
+                      {meta.label}
+                    </span>
+                    {needs.map((n) => (
+                      <span
+                        key={n.label}
+                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11.5px] font-medium ${
+                          n.urgent
+                            ? "border-red-300 bg-red-50 text-red-700"
+                            : "border-bark-200 bg-bark-50 text-bark-600"
+                        }`}
+                      >
+                        {n.label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <button
                   onClick={() => helpDog(dog)}
