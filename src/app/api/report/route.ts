@@ -173,6 +173,23 @@ export async function POST(req: Request) {
 
   if (error) {
     console.error("report_sighting failed:", error);
+
+    /* The photo became optional in the product before it can become optional
+       in every deployment: sightings.photo_url is NOT NULL until
+       supabase/photo-optional.sql has been run. Rather than answer a skipped
+       photo with a raw constraint error, say the one thing the reporter can
+       act on. This keeps a deployment that is mid-migration usable instead of
+       failing the report, and the branch simply stops being reachable once
+       the migration lands. */
+    const notNullPhoto =
+      error.code === "23502" && /photo_url/i.test(`${error.message} ${error.details ?? ""}`);
+    if (notNullPhoto && !photoUrl) {
+      return NextResponse.json(
+        { error: "This StrayPaw still needs a photo with each sighting. Please add one and try again." },
+        { status: 400 }
+      );
+    }
+
     // Surface the real reason so setup issues (missing schema, permissions)
     // are obvious instead of a generic message.
     const detail = [error.message, error.hint, error.code]
