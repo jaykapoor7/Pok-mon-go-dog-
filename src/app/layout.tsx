@@ -173,8 +173,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    /* lang and data-locale are rendered here, matching LocaleProvider's
+       default, so neither attribute appears on <html> after hydration.
+       The provider rewrites them only when a visitor has actually chosen a
+       different language. */
     <html
       lang="en"
+      data-locale="en"
       className={`${sans.variable} ${mono.variable} ${devanagari.variable} ${tamil.variable} ${telugu.variable} ${kannada.variable}`}
       suppressHydrationWarning
     >

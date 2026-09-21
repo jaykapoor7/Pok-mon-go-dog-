@@ -35,6 +35,16 @@ export default function ReportPage() {
 
   const router = useRouter();
   const [step, setStep] = useState(0); // 0..3
+  /* Auth resolves on the client only, and the sign-in note below depends on
+     it. Rendering that note during the first client pass produced a
+     hydration mismatch on /report -- the server had no element there and the
+     client had one -- which React reports as error #418 and which the
+     browser suite catches intermittently, depending on whether the auth
+     update lands before hydration commits. This flag can only turn true in
+     an effect, which runs after the commit, so the first client render is
+     identical to the server's by construction. */
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const [photo, setPhoto] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   /* What came off the camera, while it is being framed. Never uploaded. */
@@ -245,7 +255,7 @@ export default function ReportPage() {
         </div>
       </div>
 
-      {ready && !isAuthed && step === 0 && (
+      {hydrated && ready && !isAuthed && step === 0 && (
         <div className="report-signin-note">
           <p>No account needed. Sign in if you want to edit this report from another device.</p>
           <button onClick={openSignIn}>Sign in</button>

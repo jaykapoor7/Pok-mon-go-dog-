@@ -58,10 +58,20 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     /* Keep the document in step so screen readers announce the right
-       language and the browser picks the right font and hyphenation. */
+       language and the browser picks the right font and hyphenation.
+
+       Written only when it would actually change. The server already
+       renders lang="en" and data-locale="en", so an English visitor -- the
+       default, and every visitor's first paint -- gets no write at all.
+       Touching <html> immediately after hydration was surfacing an
+       intermittent hydration error on /report. */
     try {
-      document.documentElement.lang = LOCALES[locale].htmlLang;
-      document.documentElement.setAttribute("data-locale", locale);
+      const root = document.documentElement;
+      const next = LOCALES[locale].htmlLang;
+      if (root.lang !== next) root.lang = next;
+      if (root.getAttribute("data-locale") !== locale) {
+        root.setAttribute("data-locale", locale);
+      }
     } catch {
       /* Nothing to do if the document is unavailable. */
     }
