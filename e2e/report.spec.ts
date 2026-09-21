@@ -121,7 +121,8 @@ test.describe("public routes", () => {
   ];
 
   for (const route of ROUTES) {
-    test(`${route} renders without throwing`, async ({ page }) => {
+    test(`${route} renders without throwing`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "route smoke runs once; mobile behavior has dedicated tests");
       const errors = collectPageErrors(page);
       const res = await page.goto(route);
       expect(res?.status(), `${route} status`).toBeLessThan(400);
@@ -139,7 +140,8 @@ test.describe("public routes", () => {
     await expect(page.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
   });
 
-  test("primary public navigation does not point at a missing route", async ({ page, request }) => {
+  test("primary public navigation does not point at a missing route", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "internal-link crawl is viewport-independent");
     const hrefs = new Set<string>();
     for (const route of ["/", "/app", "/partner"]) {
       await page.goto(route);
@@ -160,7 +162,8 @@ test.describe("public routes", () => {
 });
 
 test.describe("resilience", () => {
-  test("renders with browser storage blocked", async ({ page }) => {
+  test("renders with browser storage blocked", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "storage behavior is viewport-independent");
     /* Private mode, blocked site data and some enterprise policies make these
        accessors *throw*, not return null. An unguarded read in an app-wide
        effect takes the whole tree down with it, which has happened here
