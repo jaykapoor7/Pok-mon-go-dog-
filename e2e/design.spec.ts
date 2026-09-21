@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
 
-test("landing leads with a real field record and keeps reporting within reach", async ({ page }) => {
+test("landing makes the core action and live map immediately reachable", async ({ page }) => {
   await page.goto("/");
   const hero = page.locator(".product-hero");
-  await expect(hero.getByRole("heading", { level: 1, name: /A street animal should not have to/i })).toBeVisible();
+  await expect(hero.getByRole("heading", { level: 1, name: /Every stray animal in India/i })).toBeVisible();
   await expect(hero.getByRole("link", { name: "See the live map" })).toHaveAttribute("href", "/map");
   await expect(hero.getByRole("link", { name: "Report a sighting" })).toHaveAttribute("href", "/report");
-  await expect(hero.locator(".hero-record-stage")).toBeVisible();
-  await expect(page.locator(".product-story")).toBeVisible();
+  await expect(hero.locator(".hero-wall-lead")).toBeVisible();
+  await expect(page.locator(".role-help")).toBeVisible();
 });
 
 test("a code sign-in always asks for the receiving email", async ({ page }) => {
@@ -22,7 +22,7 @@ test("reduced motion keeps the landing readable without animated reveals", async
   await page.goto("/");
   await expect(page.locator(".product-hero h1")).toBeVisible();
   await expect(page.locator(".field-site")).not.toHaveAttribute("data-motion", "on");
-  await expect(page.locator(".product-story")).toBeVisible();
+  await expect(page.locator(".hero-wall-lead")).toBeVisible();
 });
 
 test("open app asks which workspace a person needs", async ({ page }) => {
@@ -34,43 +34,74 @@ test("open app asks which workspace a person needs", async ({ page }) => {
   await expect(picker.getByText(/I fund this work/i)).toHaveCount(0);
 });
 
-test("the entry choice opens the right product surface", async ({ page }) => {
+test("the organisation entry tour ends in the partner workspace", async ({ page }) => {
   await page.goto("/app?choose=1");
   await page.getByRole("button", { name: /I work at an organisation/i }).click();
+  await expect(page.getByRole("heading", { name: /Organisation records stay in a verified workspace/i })).toBeVisible();
+  await page.getByRole("button", { name: /Next/i }).click();
+  await expect(page.getByRole("heading", { name: /Your existing records can come with you/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Enter my code/i })).toHaveAttribute("href", "/join");
+  await page.getByRole("button", { name: /Begin/i }).click();
   await expect(page).toHaveURL(/\/partner$/);
   await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Following" })).toHaveCount(0);
 });
 
-test("community choice stays account-free", async ({ page }) => {
+test("community choice stays account-free and lands in the community record", async ({ page }) => {
   await page.goto("/app?choose=1");
-  await page.getByRole("button", { name: /I want to report an animal/i }).click();
-  await expect(page.getByRole("heading", { name: /Reporting takes a photo and a spot on the map/i })).toBeVisible();
+  await page.getByRole("button", { name: /I want to report or follow street animals/i }).click();
+  await expect(page.getByRole("heading", { name: /Report what you actually see/i })).toBeVisible();
   await expect(page.getByText(/you@email\.com/i)).toHaveCount(0);
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await page.getByRole("button", { name: "Next", exact: true }).click();
-  await page.getByRole("button", { name: /open the map/i }).click();
-  await expect(page).toHaveURL(/\/map$/);
+  await expect(page.getByRole("heading", { name: /The record becomes useful on the map/i })).toBeVisible();
+  await page.getByRole("button", { name: /Begin/i }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByRole("heading", { name: "Animals in your area." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
 });
 
-test("community home starts local rather than presenting a national tally as nearby", async ({ page }) => {
+test("community home keeps location and reporting within immediate reach", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("straypaw.role", "individual"));
   await page.goto("/app");
-  await expect(page.getByRole("heading", { name: "Start with your street." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Animals in your area." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Use my location" })).toBeVisible();
-  await expect(page.getByText(/Animals recorded nearby/i)).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
+  await expect(page.getByText("Nearby animals")).toBeVisible();
 });
 
-test("public map filters and list remain operable without records", async ({ page }) => {
+test("public map filters and insight controls remain operable without records", async ({ page }) => {
   await page.goto("/map");
   const filter = page.getByRole("button", { name: /need help/i });
   await expect(filter).toBeVisible();
   await filter.click();
   await expect(filter).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("No animal records match this filter.")).toBeVisible();
+  await expect(page.getByText("No mapped animal records match this view.")).toBeVisible();
   await page.getByRole("button", { name: "Show all records" }).click();
   await expect(filter).toHaveAttribute("aria-pressed", "false");
-  await expect(page.locator("#map-animal-list")).toHaveCount(0);
+  await expect(page.getByText("No animal records here yet.")).toBeVisible();
+
+  const density = page.getByRole("button", { name: "Density" });
+  await density.click();
+  await expect(density).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("complementary", { name: "Animal density clusters" })).toBeVisible();
+});
+
+
+test("mobile public navigation exposes the core destinations without overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: "Toggle navigation" });
+  await expect(toggle).toBeVisible();
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  const nav = page.locator(".sp-nav");
+  await expect(nav.getByRole("link", { name: "Mission" })).toBeVisible();
+  const involved = nav.getByRole("button", { name: "Get involved" });
+  await involved.click();
+  await expect(involved).toHaveAttribute("aria-expanded", "true");
+  await expect(nav.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
+  await expect(nav.getByRole("link", { name: "For NGOs", exact: true }).first()).toHaveAttribute("href", "/for-ngos");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 });
 
 for (const route of ["/", "/app", "/map", "/partner", "/partner/animals", "/partner/medical", "/partner/incoming", "/partner/team", "/partner/reports"]) {
