@@ -9,7 +9,11 @@
    first in layout.tsx. They were declared here AND in site.css, with the
    two copies disagreeing about --sp-ease. */
 html .spa,html .spa-scope{--ink:var(--sp-ink);--paper:var(--sp-ground);--electric-ink:var(--sp-blue);--primary:222 68% 47%;--primary-foreground:0 0% 100%;--ring:222 68% 47%;color:var(--sp-ink)}
-html .sp .sp-header{background:#fff;border-bottom:1px solid var(--sp-line);box-shadow:none}
+/* A flex item defaults to min-width:auto, which is its content size, so at
+   320px the header refused to shrink below its contents and stood 4px wider
+   than the page. min-width:0 lets it shrink; its children already handle
+   truncation and the burger keeps the nav reachable. */
+html .sp .sp-header{background:#fff;border-bottom:1px solid var(--sp-line);box-shadow:none;min-width:0;max-width:100%}
 html .sp .sp-wordmark{color:var(--sp-ink);letter-spacing:-.055em}
 html .sp .sp-header-cta{background:var(--sp-blue);color:#fff}
 html .sp .sp-nav.open{background:#fff}
@@ -1386,12 +1390,19 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
    sideways in its own track, which is the one place the design allows a
    horizontal scroller, with the page itself still fixed. */
 @media (max-width: 900px) {
+  /* --spa-gutter was never defined anywhere, so this always fell back to
+     20px while the surrounding container actually pads 16px at phone
+     widths. The tab strip is a deliberate edge-to-edge scroller, but
+     pulling 20px against a 16px gutter overshot the viewport by 4px on
+     each side and put a horizontal scrollbar on /evidence. Declared here
+     so the bleed and the gutter are the same number by construction. */
   html .spa.spa .partner-workspace-tabs,
   html .spa.spa .evidence-tabs {
+    --spa-gutter: 16px;
     gap: 16px;
-    margin-left: calc(var(--spa-gutter, 20px) * -1);
-    margin-right: calc(var(--spa-gutter, 20px) * -1);
-    padding: 0 var(--spa-gutter, 20px);
+    margin-left: calc(var(--spa-gutter) * -1);
+    margin-right: calc(var(--spa-gutter) * -1);
+    padding: 0 var(--spa-gutter);
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
