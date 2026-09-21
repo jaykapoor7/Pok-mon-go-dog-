@@ -156,7 +156,7 @@ export function DirectoryClient({
 
                 <p className="dir-place">
                   <MapPin size={12} /> {o.city}, {o.stateName}
-                  {o.founded && <span className="dir-since">est. {o.founded}</span>}
+                  {o.founded && <>{" "}<span className="dir-since">est. {o.founded}</span></>}
                 </p>
 
                 <p className="dir-summary">{o.summary}</p>

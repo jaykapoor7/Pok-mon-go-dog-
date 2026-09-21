@@ -8,7 +8,7 @@ import { METRICS } from "@/lib/platform/geography";
 
 export const dynamic = "force-static";
 export const metadata = {
-  title: "Insights - StrayPaw",
+  title: "Insights, StrayPaw",
   description: "What the data shows: sterilisation and vaccination gaps, the true scale of rabies under-reporting, and where information itself is missing. Derived from real, sourced datasets, never fabricated.",
 };
 

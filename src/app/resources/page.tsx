@@ -112,7 +112,10 @@ export default function ResourcesPage() {
           <ol className="mt-4 space-y-2">
             {POST_BITE_STEPS.map((step, i) => (
               <li key={i} className="flex gap-3 text-sm text-bark-700">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-paw-50 text-xs font-bold text-paw-600">
+                {/* The <ol> already numbers this step; the circle is the
+                    visual form of that number, so it is hidden from assistive
+                    tech instead of being read twice ("1. 1Wash the wound"). */}
+                <span aria-hidden className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-paw-50 text-xs font-bold text-paw-600">
                   {i + 1}
                 </span>
                 {step}

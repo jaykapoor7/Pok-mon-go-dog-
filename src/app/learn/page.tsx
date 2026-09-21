@@ -25,7 +25,7 @@ const SECTIONS = [
     icon: Dog,
     title: "Living alongside street dogs",
     content: [
-      "India has an estimated 60 million or more free-roaming dogs. Most are community dogs that live in and around human settlements, surviving on food waste and handouts. They are a permanent part of the urban ecosystem, not a temporary problem waiting for removal.",
+      "India has never completed a street-dog count it can fully stand behind. The last enumerated national figure, the 20th Livestock Census (2019), recorded 1.53 crore (15.3 million) stray dogs; modelled estimates run several times higher, commonly cited at 6 crore (60 million) or more, because a household census reaches villages far better than it reaches cities. Treat 15.3 million as a counted floor and the true number as unknown but larger, and say which one you mean. Most are community dogs that live in and around human settlements, surviving on food waste and handouts. They are a permanent part of the urban ecosystem, not a temporary problem waiting for removal.",
       "Community dogs that are sterilised and vaccinated tend to be calmer, territorial (which deters new unvaccinated dogs from entering an area), and pose a lower public-health risk. Feeding dogs at fixed times and in designated spots reduces scavenging, street fouling, and conflict with residents.",
       "If a street dog growls, barks, or shows teeth, give it space. Never corner, chase, or hit a dog. Most aggression is fear-based and ends when the perceived threat withdraws.",
     ],

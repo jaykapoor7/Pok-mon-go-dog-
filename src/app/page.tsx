@@ -14,7 +14,7 @@ import "@/components/site/field-site.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "StrayPaw · One sighting, a shared record",
+  title: "StrayPaw, every street animal on the record",
   description: "A shared map and operational record for India's street animals. One sighting becomes coordinated action and better local evidence.",
 };
 

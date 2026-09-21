@@ -54,7 +54,7 @@ export const metadata: Metadata = {
      this, the same page reachable on a preview domain and on straypaw.org
      competes with itself in the index. */
   alternates: { canonical: "./" },
-  title: "StrayPaw, Every street dog, on the record",
+  title: "StrayPaw, every street animal on the record",
   description:
     "A permanent identity and a shared record for India's street animals, so NGOs, municipalities and funders work from the same data instead of three different notebooks.",
   keywords: [
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     "CSR",
   ],
   openGraph: {
-    title: "StrayPaw, Every street dog, on the record",
+    title: "StrayPaw, every street animal on the record",
     description:
       "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
     type: "website",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw, Every street dog, on the record",
+    title: "StrayPaw, every street animal on the record",
     description:
       "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
     /* A real file rather than a generated route. The generated one drew a

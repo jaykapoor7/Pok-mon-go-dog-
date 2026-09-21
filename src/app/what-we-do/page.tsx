@@ -13,7 +13,7 @@ export const metadata = {
 type Step = { title: string; body: string };
 
 const COMMUNITY: Step[] = [
-  { title: "Spot & report", body: "A photo and a location puts any street animal on one shared, public map in seconds. No account needed." },
+  { title: "Spot & report", body: "A photo and a location put any street animal on one shared, public map in seconds. No account needed." },
   { title: "Track the rescue", body: "A sighting becomes a documented case: condition, treatment, cost, a photo timeline, and a clear outcome." },
   { title: "Map feeding zones", body: "Record the spots that already get fed and the volunteers who show up, so no corner and no animal is missed." },
 ];
@@ -25,16 +25,19 @@ const ORGS: Step[] = [
 
 function Timeline({ steps, offset }: { steps: Step[]; offset: number }) {
   return (
-    <ol className="relative">
+    /* The visible numeral in the circle IS the numbering, so the list must not
+       also announce its own. start= keeps the second list continuing from the
+       first (4,5,6) instead of restarting, and aria-hidden on the circle stops
+       screen readers and text extraction reading "1. 1". */
+    <ol className="relative" start={offset + 1}>
       {steps.map((s, idx) => {
-        const num = String(offset + idx + 1).padStart(2, "0");
         const last = idx === steps.length - 1;
         return (
           <li key={s.title} className="relative flex gap-4 pb-7 last:pb-0">
             {!last && (
               <span aria-hidden className="absolute left-[18px] top-10 h-[calc(100%-2.5rem)] w-px -translate-x-1/2 bg-paw-200 dark:bg-paw-500/30" />
             )}
-            <span className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paw-600 font-display text-sm text-white">
+            <span aria-hidden className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paw-600 font-display text-sm text-white">
               {offset + idx + 1}
             </span>
             <div className="flex-1 pt-0.5">

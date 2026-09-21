@@ -79,7 +79,8 @@ export default function NeedsPage() {
               <p className="need-legend spa-mono">
                 <span className="key have" /> {Math.round(plan.coverageNow * 100)}% covered
                 &nbsp;·&nbsp;
-                <span className="key need" /> {Math.round((plan.coverageTarget - plan.coverageNow) * 100)}% to go
+                <span className="key need" /> {Math.round((plan.coverageTarget - plan.coverageNow) * 100)} points to the{" "}
+                {Math.round(plan.coverageTarget * 100)}% target
               </p>
 
               <dl className="need-facts">
