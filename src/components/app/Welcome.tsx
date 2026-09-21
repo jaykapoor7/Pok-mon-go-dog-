@@ -63,6 +63,7 @@ export function Welcome() {
   const onReportFlow = pathname?.startsWith("/report") ?? false;
   const [step, setStep] = useState(-1);
   const [role, setRole] = useState<EntryRole | null>(null);
+  const [leaving, setLeaving] = useState<string | null>(null);
 
   useEffect(() => {
     if (onReportFlow) return;
@@ -79,17 +80,35 @@ export function Welcome() {
     return () => window.removeEventListener(TOUR_EVENT, open);
   }, []);
 
+  /* Dismiss once the router has arrived where finish() sent it. A push to a
+     different route usually unmounts this first and the effect never runs;
+     a push to the route we are already on does not, and this is what closes
+     the tour in that case. */
+  useEffect(() => {
+    if (leaving && pathname === leaving) setStep(-1);
+  }, [leaving, pathname]);
+
   function finish(go?: string) {
     try { window.localStorage.setItem(TOUR_KEY, "1"); } catch {}
-    /* Navigate before closing the dialog. Closing first introduced a race where
-       the tour unmounted/re-rendered but the workspace push occasionally never
-       committed under concurrent rendering. */
-    if (go) router.push(go);
-    /* ...but close it either way. Relying on the route change to unmount the
-       tour assumed the destination was somewhere else. "Begin" sends a
-       community visitor to /app, and the tour opens at /app?choose=1, so that
-       push is to the route they are already on: nothing unmounts, and they
-       were left stuck behind a dialog with no remaining step. */
+    /* Navigate first, and never close in the same breath. Closing the dialog
+       synchronously races the push: the tour unmounts, the component
+       re-renders, and the navigation occasionally never commits, stranding
+       an organisation on /app instead of /partner.
+
+       Leaving it to the route change to unmount the tour is not enough
+       either. A community visitor picks their role at /app?choose=1 and
+       "Begin" sends them to /app, which is the route they are already on:
+       the push still clears the query, but nothing unmounts, and they were
+       left stuck behind a dialog with no step remaining.
+
+       So record where we are going, push, and let the effect below dismiss
+       the tour once the router has actually arrived. Nothing closes before
+       the push has been dispatched, and a same-route push still closes. */
+    if (go) {
+      setLeaving(go);
+      router.push(go);
+      return;
+    }
     setStep(-1);
   }
 
