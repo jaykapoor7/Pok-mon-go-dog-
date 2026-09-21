@@ -57,28 +57,35 @@ const mono = DM_Mono({
    as boxes. Noto is the family designed for exactly this: one set of metrics
    across scripts. Each is subset to its own script so a reader downloads
    only the one they are using, and each swaps rather than blocking a first
-   paint on a slow connection. */
+   paint on a slow connection.
+
+   Two weights, not four. These faces carry interface chrome -- navigation,
+   controls, status words -- which needs a regular and a bold and nothing
+   in between. Four weights across four families meant sixteen font files
+   fetched at build time, which is a large, slow and failure-prone
+   dependency for a build to carry, and a heavier download for exactly the
+   low-bandwidth readers these languages are for. */
 const devanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-devanagari",
   display: "swap",
 });
 const tamil = Noto_Sans_Tamil({
   subsets: ["tamil"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-tamil",
   display: "swap",
 });
 const telugu = Noto_Sans_Telugu({
   subsets: ["telugu"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-telugu",
   display: "swap",
 });
 const kannada = Noto_Sans_Kannada({
   subsets: ["kannada"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-kannada",
   display: "swap",
 });

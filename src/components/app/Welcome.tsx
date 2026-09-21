@@ -83,11 +83,13 @@ export function Welcome() {
     try { window.localStorage.setItem(TOUR_KEY, "1"); } catch {}
     /* Navigate before closing the dialog. Closing first introduced a race where
        the tour unmounted/re-rendered but the workspace push occasionally never
-       committed under concurrent rendering. Route changes unmount it anyway. */
-    if (go) {
-      router.push(go);
-      return;
-    }
+       committed under concurrent rendering. */
+    if (go) router.push(go);
+    /* ...but close it either way. Relying on the route change to unmount the
+       tour assumed the destination was somewhere else. "Begin" sends a
+       community visitor to /app, and the tour opens at /app?choose=1, so that
+       push is to the route they are already on: nothing unmounts, and they
+       were left stuck behind a dialog with no remaining step. */
     setStep(-1);
   }
 

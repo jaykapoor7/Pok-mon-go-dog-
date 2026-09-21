@@ -52,13 +52,27 @@ test.describe("reporting", () => {
     expect(errors).toEqual([]);
   });
 
-  test("will not advance without a photo, then will with one", async ({ page }) => {
+  /* A photo used to be required to leave the first step. It is not any more:
+     somebody standing in front of an animal they cannot photograph still has
+     a sighting worth recording, and the location is the part the register
+     cannot do without. This asserts the current contract -- the step can be
+     passed either way -- and the location gate below still proves the flow
+     holds where it genuinely must. */
+  test("can pass the photo step with a photo or by skipping it", async ({ page }) => {
     await page.goto("/report");
     const next = page.getByRole("button", { name: /next|continue/i }).first();
 
-    await expect(next).toBeDisabled();
+    await expect(next).toBeEnabled();
+    await expect(page.getByRole("button", { name: /skip for now/i })).toBeVisible();
+
     await addPhoto(page);
     await expect(next).toBeEnabled();
+  });
+
+  test("skipping the photo still reaches the location step", async ({ page }) => {
+    await page.goto("/report");
+    await page.getByRole("button", { name: /skip for now/i }).click();
+    await expect(page.getByText(/where is it/i)).toBeVisible();
   });
 
   test("will not advance past location until a point is set", async ({ page }) => {
