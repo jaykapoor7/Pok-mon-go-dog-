@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { isClosedStatus } from "./rescue-taxonomy";
 
 export type PublicCaseStory = {
   id: string;
@@ -97,6 +98,11 @@ export async function getPublicCareTimeline(): Promise<PublicTimelineEvent[]> {
  * A story needs a linked animal, an issue, an outcome, a date, and at least
  * one care event. Imported rows with partial or contradictory status data stay
  * in the operational register until the field record is complete.
+ *
+ * The status check is not optional: both public surfaces label every published
+ * story "Completed" outright, so a case whose outcome field holds an interim
+ * note while the case is still open would be publicly announced as finished.
+ * Filtering on the closed status here is what makes that label true.
  */
 export async function getPublishedCaseStories(): Promise<PublicCaseStory[]> {
   const [cases, care] = await Promise.all([getPublicCaseStories(), getPublicCareTimeline()]);
@@ -107,6 +113,7 @@ export async function getPublishedCaseStories(): Promise<PublicCaseStory[]> {
       story.title?.trim() &&
       story.outcome?.trim() &&
       story.occurred_at &&
+      isClosedStatus(story.status) &&
       animalsWithCare.has(story.dog_id),
     ),
   );
