@@ -1,17 +1,19 @@
-name: Dev branch check
+name: Quality gate
 
 on:
   push:
-    branches: [dev]
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  typecheck:
+  quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,5 +31,9 @@ jobs:
           npm run test:master-import:staging
           npm run test:master-import:resume
           npm run test:case-input-validation
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser regression suite
+        run: npm run test:e2e
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=critical
