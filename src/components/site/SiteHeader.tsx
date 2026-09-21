@@ -23,6 +23,7 @@ const LINKS: NavItem[] = [
       { label: "What an area needs", href: "/take-action", note: "Pick a place, see what its data says" },
       { label: "For NGOs", href: "/for-ngos", note: "Bring your team's records in" },
       { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
+      { label: "For municipal bodies", href: "/for-governments", note: "Ward coverage you can audit" },
     ],
   },
   { label: "For NGOs", href: "/for-ngos" },

@@ -40,6 +40,7 @@ const OWN_CHROME = new Set<string>([
   "/the-network",
   "/for-funders",
   "/for-ngos",
+  "/for-governments",
   "/the-data",
   "/how-to-help",
   "/research-standards",
