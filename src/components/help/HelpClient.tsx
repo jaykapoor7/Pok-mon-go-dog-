@@ -65,7 +65,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
               <HandHelping className="h-4 w-4" /> Register to volunteer
             </button>
             <Link
-              href="/partnerships"
+              href="/for-ngos"
               className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/15 active:scale-95"
             >
               <HeartHandshake className="h-4 w-4" /> Are you an NGO?
