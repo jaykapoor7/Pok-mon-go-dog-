@@ -296,10 +296,31 @@ export async function getAllSightings(limit = 100): Promise<Sighting[]> {
       supa.from("public_live_sightings").select("*").eq("status", "live").order("created_at", { ascending: false }).limit(limit),
       supa.from("public_field_activity").select("*").order("occurred_at", { ascending: false }).limit(limit),
     ]);
-    return [
+    /* Two sources feed one ledger, and the same event can appear in both:
+       a sighting a partner also files as field activity arrives twice with
+       different ids, which is why the feed showed identical adjacent rows.
+       Collapse on what makes an event the same event -- the animal, the
+       minute, the place and what was recorded -- keeping whichever copy
+       sorts first. Rows that genuinely differ are untouched. */
+    const merged = [
       ...(sightings.data ?? []).map(mapSighting),
       ...(activity.data ?? []).map((row: any) => mapSighting({ ...row, created_at: row.occurred_at, source_kind: "historic_ngo_record", status: "live" })),
-    ].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)).slice(0, limit);
+    ].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+
+    const seen = new Set<string>();
+    const unique: Sighting[] = [];
+    for (const row of merged) {
+      const key = [
+        row.dog_id ?? "",
+        String(row.created_at ?? "").slice(0, 16),
+        (row.zone ?? "").toLowerCase().trim(),
+        (row.notes ?? "").toLowerCase().trim(),
+      ].join("|");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(row);
+    }
+    return unique.slice(0, limit);
   }
   return [];
 }

@@ -41,12 +41,37 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
   { path: "/report-content", priority: 0.3, freq: "yearly" },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+/* Animal records are the atomic unit of this product and the thing worth
+   citing, so each one belongs in the sitemap rather than being reachable
+   only by browsing. The cap is deliberate: a sitemap has a 50,000-URL limit
+   and this is generated per request, so the register's most recently active
+   records are listed rather than all of it. Split into indexed sitemaps if
+   the register outgrows this. */
+const MAX_RECORDS = 5000;
+
+async function recordEntries(now: Date): Promise<MetadataRoute.Sitemap> {
+  try {
+    const { getAllDogs } = await import("@/lib/data");
+    const dogs = await getAllDogs();
+    return dogs.slice(0, MAX_RECORDS).map((dog) => ({
+      url: `${SITE}/dog/${dog.id}`,
+      lastModified: dog.last_seen ? new Date(dog.last_seen) : now,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+  } catch {
+    /* The register being unreachable must not take the sitemap with it. */
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  return ROUTES.map(({ path, priority, freq }) => ({
+  const routes = ROUTES.map(({ path, priority, freq }) => ({
     url: `${SITE}${path}`,
     lastModified: now,
     changeFrequency: freq,
     priority,
   }));
+  return [...routes, ...(await recordEntries(now))];
 }

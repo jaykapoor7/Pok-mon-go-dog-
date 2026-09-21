@@ -85,13 +85,28 @@ export function WhereTheyAre({ dogs }: { dogs: Dog[] }) {
         </header>
 
         <div className="wt-map" ref={frame}>
-          {live && focus.length > 0 ? (
-            <FieldMapPreview dogs={focus} place={place ?? undefined} />
+          {focus.length > 0 ? (
+            live ? (
+              <FieldMapPreview dogs={focus} place={place ?? undefined} />
+            ) : (
+              /* Holds the height so the page does not jump, and says what
+                 is coming rather than sitting blank. */
+              <div className="wt-map-wait" aria-hidden>
+                <span>Loading the map</span>
+              </div>
+            )
           ) : (
-            /* Holds the height so the page does not jump, and says what
-               is coming rather than sitting blank. */
-            <div className="wt-map-wait" aria-hidden>
-              <span>Loading the map</span>
+            /* No animal on the record yet has a usable location. Saying
+               "Loading the map" here would be waiting for something that is
+               never going to arrive, and it rendered as an empty box. Name
+               the state and give it the one action that changes it. */
+            <div className="wt-map-wait">
+              <span>
+                No animal has a recorded location yet.{" "}
+                <Link href="/report" className="wt-link">
+                  Report the first one
+                </Link>
+              </span>
             </div>
           )}
         </div>
