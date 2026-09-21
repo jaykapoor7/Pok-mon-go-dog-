@@ -16,16 +16,16 @@ function buildStories(cases:PublicCaseStory[],care:Awaited<ReturnType<typeof get
  return [...byDog.entries()].map(([dogId,rows]):Story=>{const ordered=[...rows].sort((a,b)=>+new Date(b.occurred_at)-+new Date(a.occurred_at)),active=false,outcome=ordered.find(row=>row.outcome)?.outcome??null;return{dogId,latest:ordered[0],cases:ordered,careCount:careByDog.get(dogId)??0,active,outcome}}).sort((a,b)=>Number(b.active)-Number(a.active)||+new Date(b.latest.occurred_at)-+new Date(a.latest.occurred_at));
 }
 export default async function StoriesPage(){
- const [cases,care]=await Promise.all([getPublishedCaseStories(),getPublicCareTimeline()]),stories=buildStories(cases,care);
+ const [cases,care]=await Promise.all([getPublishedCaseStories(),getPublicCareTimeline()]),stories=buildStories(cases,care).slice(0,24);
  return <AppShell><main className="min-h-screen bg-[#f4f1e9] text-[#0b1e3d]"><div className="mx-auto max-w-7xl px-4 pb-16 pt-7 sm:px-6 lg:px-8">
   <header className="flex flex-col gap-6 border-b border-[#0b1e3d]/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
-   <div><p className="text-[11px] font-bold uppercase tracking-[.16em] text-[#2457ce]">Animal stories</p><h1 className="mt-2 max-w-3xl text-[clamp(2.5rem,6vw,4.8rem)] font-semibold leading-[.91] tracking-[-.065em]">Completed rescue stories.</h1><p className="mt-4 max-w-2xl text-sm leading-6 opacity-55">Every published story includes the issue, care, outcome and date.</p></div>
+   <div><p className="text-[11px] font-bold uppercase tracking-[.16em] text-[#2457ce]">Animal stories</p><h1 className="mt-2 max-w-3xl text-[clamp(2.5rem,6vw,4.8rem)] font-semibold leading-[.91] tracking-[-.065em]">Recent completed rescues.</h1><p className="mt-4 max-w-2xl text-sm leading-6 opacity-55">Each story includes the issue, care, outcome and date.</p></div>
    <Link href="/report" className="inline-flex h-11 items-center gap-2 self-start rounded-full bg-[#f05b40] px-5 text-sm font-semibold text-white sm:self-auto">Report an animal <ArrowUpRight size={14}/></Link>
   </header>
 
-  <div className="border-b border-[#0b1e3d]/10 py-5 text-sm text-[#0b1e3d]/60">{stories.length} documented rescue stories</div>
+  <div className="border-b border-[#0b1e3d]/10 py-5 text-sm text-[#0b1e3d]/60">{stories.length} recent rescue stories</div>
 
-  <StorySection title="Rescue stories" lede="Each story has a recorded issue, care, outcome and date." stories={stories} empty="No completed rescue stories are published yet."/>
+  <StorySection title="Recent cases" lede="Completed cases with a recorded issue, care, outcome and date." stories={stories} empty="No completed rescue stories are published yet."/>
  </div></main></AppShell>;
 }
 function StorySection({title,lede,stories,empty}:{title:string;lede:string;stories:Story[];empty:string}){
