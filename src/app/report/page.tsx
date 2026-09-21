@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Camera, Loader2, Check, PawPrint, ArrowRight, ArrowLeft, Clock, LogIn, MapPin, Tag,
 } from "lucide-react";
@@ -31,7 +31,6 @@ type Status = "idle" | "submitting" | "done";
 
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
-  const reduceMotion = useReducedMotion();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
@@ -45,13 +44,7 @@ export default function ReportPage() {
      again is the step most reports are lost at. A photograph's own EXIF
      still overrides this later, because the camera was standing closer to
      the animal than the map was. */
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(() => {
-    if (typeof window === "undefined") return null;
-    const q = new URLSearchParams(window.location.search);
-    const lat = Number(q.get("lat"));
-    const lng = Number(q.get("lng"));
-    return looksIndian(lat, lng) ? { lat, lng } : null;
-  });
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [zone, setZone] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
   const [moods, setMoods] = useState<MoodTag[]>([]);
@@ -74,6 +67,16 @@ export default function ReportPage() {
 
   useEffect(() => {
     setVolunteer(readVolunteer());
+  }, []);
+
+  /* URL-derived coordinates are browser state. Reading them in the useState
+     initializer made the first client render differ from SSR on map-to-report
+     links. Seed them after hydration instead. EXIF can still refine them later. */
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const lat = Number(q.get("lat"));
+    const lng = Number(q.get("lng"));
+    if (looksIndian(lat, lng)) setCoords({ lat, lng });
   }, []);
 
   /* Opens the funnel. Everything else is measured against this number. */
@@ -247,10 +250,10 @@ export default function ReportPage() {
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={{ opacity: 0, x: reduceMotion ? 0 : 16 }}
+          initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: reduceMotion ? 0 : -16 }}
-          transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.23, 1, 0.32, 1] }}
+          exit={{ opacity: 0, x: -16 }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
         >
           {/* ── Step 0: photo ── */}
           {step === 0 && (
