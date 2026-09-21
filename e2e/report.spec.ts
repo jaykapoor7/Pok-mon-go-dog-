@@ -22,7 +22,11 @@ function collectPageErrors(page: Page) {
 
 
 async function addPhoto(page: Page) {
-  await page.setInputFiles('input[type="file"]', {
+  /* The file input is present in SSR HTML before React has attached onChange.
+     Waiting for this client-only auth-ready note proves hydration has completed,
+     so setting the file cannot disappear into an unhydrated input. */
+  await expect(page.locator(".report-signin-note")).toBeVisible();
+  await page.getByLabel("Choose a photo of the animal").setInputFiles({
     name: "dog.jpg",
     mimeType: "image/jpeg",
     buffer: TEST_JPEG,
