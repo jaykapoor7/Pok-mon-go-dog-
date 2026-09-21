@@ -65,7 +65,7 @@ test("community home keeps location and reporting within immediate reach", async
   await page.goto("/app");
   await expect(page.getByRole("heading", { name: "Animals in your area." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Use my location" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
+  await expect(page.locator('a[href="/report"]').filter({ hasText: "Report an animal" }).first()).toBeVisible();
   await expect(page.getByText("Nearby animals")).toBeVisible();
 });
 
@@ -87,7 +87,8 @@ test("public map filters and insight controls remain operable without records", 
 });
 
 
-test("mobile public navigation exposes the core destinations without overflow", async ({ page }) => {
+test("mobile public navigation exposes the core destinations without overflow", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "phone navigation only");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const toggle = page.getByRole("button", { name: "Toggle navigation" });
@@ -99,8 +100,8 @@ test("mobile public navigation exposes the core destinations without overflow", 
   const involved = nav.getByRole("button", { name: "Get involved" });
   await involved.click();
   await expect(involved).toHaveAttribute("aria-expanded", "true");
-  await expect(nav.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
-  await expect(nav.getByRole("link", { name: "For NGOs", exact: true }).first()).toHaveAttribute("href", "/for-ngos");
+  await expect(nav.getByRole("menuitem", { name: /Report an animal/i })).toHaveAttribute("href", "/report");
+  await expect(nav.getByRole("menuitem", { name: /For NGOs/i })).toHaveAttribute("href", "/for-ngos");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 });
 
