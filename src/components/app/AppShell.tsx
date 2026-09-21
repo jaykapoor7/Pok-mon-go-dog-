@@ -157,7 +157,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
       <div className="spa-body">
         <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
           <p className="spa-nav-context">{isNgo ? "NGO operations" : "Community"}</p>
-          <div className="spa-primary-nav">{primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined} className={isActive(href) ? "active" : ""}><Icon size={17}/>{label}</Link>)}</div>
+          <div className="spa-primary-nav">{primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} prefetch aria-current={isActive(href) ? "page" : undefined} className={isActive(href) ? "active" : ""}><Icon size={17}/>{label}</Link>)}</div>
 
           {isNgo && <div className="spa-quick-list" aria-label="Quick actions">
             <p>Start</p>

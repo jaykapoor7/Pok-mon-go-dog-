@@ -1,18 +1,20 @@
 import { OrgManager } from "@/components/dashboard/OrgManager";
-import { DemoMode } from "@/components/partner/DemoMode";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings, StrayPaw Partner" };
 
 export default function PartnerSettingsPage() {
   return (
-    <div>
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Organisation</h1>
-        <p className="mt-0.5 text-[13px] text-bark-500">Your public profile, verification and campaigns.</p>
+    <div className="org-settings-page">
+      <header className="org-settings-page__header">
+        <div>
+          <p className="org-settings-page__eyebrow">Partner workspace</p>
+          <h1>Organisation settings</h1>
+          <p>Your public profile, verification details and active campaigns.</p>
+        </div>
+        <p className="org-settings-page__hint">Changes appear on your public organisation page.</p>
       </header>
       <OrgManager />
-      <DemoMode />
     </div>
   );
 }
