@@ -54,7 +54,23 @@ function randomId() {
    in private mode, and analytics must never be what breaks a report. */
 const OPT_OUT_KEY = "straypaw.analytics.optout";
 
+/* Do Not Track is a stated preference not to be counted, and first-party
+   counting is still counting. Honouring it costs one check and means the
+   opt-out does not depend on somebody finding the notice. Browsers spell it
+   in three places; any of them set to "1" / "yes" is treated as a no. */
+function browserSaysNo(): boolean {
+  try {
+    const nav = navigator as Navigator & { msDoNotTrack?: string };
+    const win = window as Window & { doNotTrack?: string };
+    const signal = nav.doNotTrack ?? win.doNotTrack ?? nav.msDoNotTrack;
+    return signal === "1" || signal === "yes";
+  } catch {
+    return false;
+  }
+}
+
 function hasOptedOut(): boolean {
+  if (browserSaysNo()) return true;
   try {
     return localStorage.getItem(OPT_OUT_KEY) === "1";
   } catch {

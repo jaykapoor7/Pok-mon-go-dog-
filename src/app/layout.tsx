@@ -14,6 +14,7 @@ import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
 import { StorageNotice } from "@/components/site/StorageNotice";
+import { ServiceWorker } from "@/components/site/ServiceWorker";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 import { RouteViews } from "@/components/analytics/RouteViews";
 import { RoleSwitchFallback } from "@/components/app/RoleSwitchFallback";
@@ -172,6 +173,7 @@ export default function RootLayout({
               </Suspense>
               <InstallPrompt />
               <StorageNotice />
+              <ServiceWorker />
               <Toaster />
             </AuthProvider>
           </MotionRoot>
