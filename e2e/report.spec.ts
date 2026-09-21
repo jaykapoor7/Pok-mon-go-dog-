@@ -10,13 +10,9 @@ import { test, expect, type Page } from "@playwright/test";
    here with a mock that would pass whatever the backend actually did.
    ════════════════════════════════════════════════════════════════════ */
 
-/** A 1x1 JPEG. Enough to satisfy the file input and the type check. */
-const TINY_JPEG = Buffer.from(
-  "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a" +
-    "HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAA" +
-    "AAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==",
-  "base64"
-);
+/** A real 64×48 JPEG. The old 1×1 fixture was accepted by the file input but
+ * decoded inconsistently in headless Chromium, making the photo-editor tests flaky. */
+const TEST_JPEG = Buffer.from("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAwAEADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDeooor5Q+lCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9k=", "base64");
 
 function collectPageErrors(page: Page) {
   const errors: string[] = [];
@@ -29,7 +25,7 @@ async function addPhoto(page: Page) {
   await page.setInputFiles('input[type="file"]', {
     name: "dog.jpg",
     mimeType: "image/jpeg",
-    buffer: TINY_JPEG,
+    buffer: TEST_JPEG,
   });
   const usePhoto = page.getByRole("button", { name: "Use this photo" });
   await expect(usePhoto).toBeEnabled();
@@ -135,9 +131,10 @@ test.describe("public routes", () => {
     const res = await page.goto("/this-route-should-never-exist");
     expect(res?.status()).toBe(404);
     await expect(page.getByRole("heading", { name: "This trail ends here." })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
-    await expect(page.getByRole("link", { name: "Open live map" })).toHaveAttribute("href", "/map");
-    await expect(page.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
+    const recovery = page.locator("[data-not-found-recovery]");
+    await expect(recovery.getByRole("link", { name: "Home", exact: true })).toHaveAttribute("href", "/");
+    await expect(recovery.getByRole("link", { name: "Open live map" })).toHaveAttribute("href", "/map");
+    await expect(recovery.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
   });
 
   test("primary public navigation does not point at a missing route", async ({ page, request }, testInfo) => {
