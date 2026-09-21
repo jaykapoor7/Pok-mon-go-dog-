@@ -2,18 +2,27 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 
+/* tKey names an entry in the nav dictionary. An item without one keeps its
+   English label, which is the honest outcome while translation is partial:
+   a reader sees their language where it exists and English where it does
+   not, rather than a half-translated sentence. */
+type NavKey = keyof Dictionary["nav"];
 type NavItem = {
   label: string;
   href: string;
+  tKey?: NavKey;
   /* Items with children open a panel; the parent stays a real link so it
      still works on touch and for anyone navigating by keyboard. */
-  children?: { label: string; href: string; note: string }[];
+  children?: { label: string; href: string; note: string; tKey?: NavKey }[];
 };
 
 const LINKS: NavItem[] = [
-  { label: "Mission", href: "/mission" },
+  { label: "Mission", href: "/mission", tKey: "mission" },
   {
     label: "Get involved",
     href: "/how-to-help",
@@ -21,12 +30,12 @@ const LINKS: NavItem[] = [
       { label: "Report an animal", href: "/report", note: "A photo and a place is enough" },
       { label: "Volunteer with an organisation", href: "/get-involved", note: "Routed to a named group near you" },
       { label: "What an area needs", href: "/take-action", note: "Pick a place, see what its data says" },
-      { label: "For NGOs", href: "/for-ngos", note: "Bring your team's records in" },
+      { label: "For NGOs", href: "/for-ngos", note: "Bring your team's records in", tKey: "forNgos" },
       { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
-      { label: "For municipal bodies", href: "/for-governments", note: "Ward coverage you can audit" },
+      { label: "For municipal bodies", href: "/for-governments", note: "Ward coverage you can audit", tKey: "forGovernments" },
     ],
   },
-  { label: "For NGOs", href: "/for-ngos" },
+  { label: "For NGOs", href: "/for-ngos", tKey: "forNgos" },
   { label: "Partners", href: "/partners" },
   /* A core area, not a resources page: it is where somebody goes before an
      animal becomes a case, and it carries partner teaching material. */
@@ -35,6 +44,11 @@ const LINKS: NavItem[] = [
 ];
 
 export function SiteHeader() {
+  const { t } = useLocale();
+  /* Falls back to the English label written in LINKS whenever an item has
+     no dictionary key, so adding a nav item never risks a blank label. */
+  const label = (item: { label: string; tKey?: NavKey }) =>
+    item.tKey ? t.nav[item.tKey] : item.label;
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -83,7 +97,7 @@ export function SiteHeader() {
                 aria-haspopup="true"
                 onClick={() => setMenu((current) => current === l.href ? null : l.href)}
               >
-                {l.label}
+                {label(l)}
                 <ChevronDown size={13} />
               </button>
 
@@ -102,7 +116,7 @@ export function SiteHeader() {
                     role="menuitem"
                     onClick={closeAll}
                   >
-                    <b>{c.label}</b>
+                    <b>{label(c)}</b>
                     <span>{c.note}</span>
                   </Link>
                 ))}
@@ -110,7 +124,7 @@ export function SiteHeader() {
             </div>
           ) : (
             <Link key={l.href} href={l.href} onClick={closeAll}>
-              {l.label}
+              {label(l)}
             </Link>
           )
         )}
@@ -134,6 +148,7 @@ export function SiteHeader() {
         <Link href="/app?choose=1" className="sp-header-cta">
           Open app <ArrowUpRight size={15} />
         </Link>
+        <LanguageSwitcher />
         <button
           className="sp-menu-btn"
           onClick={() => setOpen(!open)}

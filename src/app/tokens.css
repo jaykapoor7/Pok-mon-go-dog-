@@ -287,3 +287,23 @@
 :root {
   --font-display: var(--font-sans);
 }
+
+/* ── Indic script font stacks ─────────────────────────────────────
+   DM Sans has no Devanagari, Tamil, Telugu or Kannada coverage, so a page
+   in those languages would fall back to whatever the device happens to
+   carry. LocaleProvider stamps data-locale on <html>, and each locale
+   prepends its Noto face ahead of DM Sans: Latin text (record codes,
+   numerals, organisation names, which are never translated) keeps rendering
+   in DM Sans because Noto is only consulted for the glyphs DM Sans lacks.
+   One rule per script, no component needs to know. */
+:root[data-locale="hi"] body { font-family: var(--font-devanagari), var(--font-sans), system-ui, sans-serif; }
+:root[data-locale="ta"] body { font-family: var(--font-tamil), var(--font-sans), system-ui, sans-serif; }
+:root[data-locale="te"] body { font-family: var(--font-telugu), var(--font-sans), system-ui, sans-serif; }
+:root[data-locale="kn"] body { font-family: var(--font-kannada), var(--font-sans), system-ui, sans-serif; }
+
+/* Figures, record codes and coordinates stay monospaced in every language:
+   a record code that changes shape between locales stops being a shared
+   identifier, which is the one thing it exists to be. */
+:root[data-locale] .spa-mono,
+:root[data-locale] .sp-mono,
+:root[data-locale] [class*="mono"] { font-family: var(--font-mono), ui-monospace, monospace; }

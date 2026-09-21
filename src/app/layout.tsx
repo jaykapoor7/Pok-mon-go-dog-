@@ -1,6 +1,13 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, DM_Mono } from "next/font/google";
+import {
+  DM_Sans,
+  DM_Mono,
+  Noto_Sans_Devanagari,
+  Noto_Sans_Tamil,
+  Noto_Sans_Telugu,
+  Noto_Sans_Kannada,
+} from "next/font/google";
 import "./tokens.css";
 import "./globals.css";
 import "./design-system.css";
@@ -14,6 +21,7 @@ import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
 import { StorageNotice } from "@/components/site/StorageNotice";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { ServiceWorker } from "@/components/site/ServiceWorker";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 import { RouteViews } from "@/components/analytics/RouteViews";
@@ -41,6 +49,37 @@ const mono = DM_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-mono",
+  display: "swap",
+});
+
+/* DM Sans covers Latin only, so Hindi, Tamil, Telugu and Kannada would fall
+   back to whatever the device happens to have and render inconsistently, or
+   as boxes. Noto is the family designed for exactly this: one set of metrics
+   across scripts. Each is subset to its own script so a reader downloads
+   only the one they are using, and each swaps rather than blocking a first
+   paint on a slow connection. */
+const devanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-devanagari",
+  display: "swap",
+});
+const tamil = Noto_Sans_Tamil({
+  subsets: ["tamil"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-tamil",
+  display: "swap",
+});
+const telugu = Noto_Sans_Telugu({
+  subsets: ["telugu"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-telugu",
+  display: "swap",
+});
+const kannada = Noto_Sans_Kannada({
+  subsets: ["kannada"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-kannada",
   display: "swap",
 });
 
@@ -129,7 +168,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${mono.variable}`}
+      className={`${sans.variable} ${mono.variable} ${devanagari.variable} ${tamil.variable} ${telugu.variable} ${kannada.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -138,6 +177,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-dvh font-sans">
         <ThemeProvider>
+          {/* Wraps everything so any component can read the chosen language,
+              and sits outside AuthProvider because the language control is
+              usable signed out. */}
+          <LocaleProvider>
           {/* Outside AuthProvider so it covers every framer-motion
               component in the tree, including the auth modal itself. */}
           <MotionRoot>
@@ -177,6 +220,7 @@ export default function RootLayout({
               <Toaster />
             </AuthProvider>
           </MotionRoot>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>
