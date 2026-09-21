@@ -9,7 +9,7 @@ does real work once the **Required** block is done.
 ## 1. Supabase project
 
 - [ ] Create / open the Supabase project that holds the Pawesome data.
-- [x] Production database migrations are applied **in this exact order** (all four
+- [x] Production database migrations are applied **in this exact order** (all five
       are idempotent and safe to re-run; they do not delete real records):
   1. [x] `supabase/RUN-ALL-MIGRATIONS.sql` — the canonical bundle. Paste the
          whole file, run once. Includes the base schema, RPCs / SECURITY DEFINER
@@ -20,7 +20,11 @@ does real work once the **Required** block is done.
          source rows private. NOT included in RUN-ALL — run it separately.
   3. [x] `supabase/rollout-hardening.sql` — final rollout constraints. Also NOT
          in RUN-ALL — run it separately.
-  4. [x] `supabase/launch-security-lockdown.sql` — final least-privilege gate.
+  4. [x] `supabase/photo-optional.sql` — drops the NOT NULL on
+         `public.sightings.photo_url` so a located, described sighting can be
+         filed without a photograph. Applied and verified against production;
+         existing rows and photographs were untouched.
+  5. [x] `supabase/launch-security-lockdown.sql` — final least-privilege gate.
          Removes implicit PUBLIC RPC execution, locks function search paths,
          redacts public identity fields, and hardens feeding-zone/case write paths.
 - [ ] Make yourself a partner NGO member so the console shows real data
@@ -86,8 +90,9 @@ an existing build).
 
 ## 4. Smoke test on the live URL
 - [ ] Home `/`, Map `/map`, Stories `/stories`, Orgs `/orgs` load with real data.
-- [ ] `/report`: submit a photo + location → success; if Turnstile is on, the
-      human check appears and blocks a missing token.
+- [ ] `/report`: submit a photo + location → success; then file one with
+      "Skip for now" and confirm a photo-less sighting is accepted. If Turnstile
+      is on, the human check appears and blocks a missing token.
 - [ ] Moderation: `GET /api/admin/sightings` with
       `Authorization: Bearer <ADMIN_SECRET>` lists the pending report; `POST`
       `{ "action":"approve", "id":"<id>" }` approves it and it appears publicly.

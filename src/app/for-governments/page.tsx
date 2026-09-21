@@ -1,5 +1,6 @@
 import { MarketingPage, Band, Steps, Stat } from "@/components/marketing/MarketingPage";
 import { LoopFigure } from "@/components/marketing/figures";
+import { PartnerProof } from "@/components/marketing/PartnerProof";
 
 export const metadata = {
   title: "For municipal bodies, coverage you can audit",
@@ -88,6 +89,7 @@ export default function ForGovernmentsPage() {
           imported and returned to you as a coverage history you own. There is no
           licence fee for the pilot and no obligation to continue.
         </p>
+        <PartnerProof heading="Organisations on the record" />
       </Band>
     </MarketingPage>
   );

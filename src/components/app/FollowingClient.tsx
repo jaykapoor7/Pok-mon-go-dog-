@@ -42,7 +42,12 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
 
   // Follows are kept on-device, so the list is resolved client-side against
   // the animals passed in from the server.
-  const followed = dogs.filter((d) => ids.includes(String(d.id)));
+  /* Most recently seen first. Somebody opens this page to find out what has
+     happened since they last looked, and the order the follow ids happen to
+     be stored in does not answer that. */
+  const followed = dogs
+    .filter((d) => ids.includes(String(d.id)))
+    .sort((a, b) => +new Date(b.last_seen ?? 0) - +new Date(a.last_seen ?? 0));
   const reportHistory = user && reports.length > 0 ? <section className="my-report-history">
     <div className="spa-panel-head"><b>Reports you filed</b><span>{reports.length} on your account</span></div>
     <div className="my-report-list">
@@ -190,10 +195,17 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
               )}
             </div>
             <div className="follow-body">
-              {dog.name && <b>{dog.name}</b>}
+              {/* Every card gets a title. An unnamed animal used to render
+                  with no heading at all, leaving a photograph and a locality
+                  that read as a broken card; dogLabel is what the rest of the
+                  product already uses to name one. */}
+              <b>{dogLabel(dog)}</b>
               <span className="spa-mono dim">
                 <MapPin size={11} /> {place}
               </span>
+              {dog.last_seen && (
+                <span className="spa-mono dim">Seen {timeAgo(dog.last_seen)}</span>
+              )}
               <div className="follow-tags">
                 {dog.sterilised && <span className="chip-mini">Sterilised</span>}
                 {dog.vaccinated && <span className="chip-mini">Vaccinated</span>}

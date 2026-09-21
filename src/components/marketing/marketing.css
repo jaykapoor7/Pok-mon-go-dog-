@@ -287,3 +287,38 @@
 .mk-awaiting-grid { display: grid; gap: 14px; margin-top: 24px; }
 @media (min-width: 700px) { .mk-awaiting-grid { grid-template-columns: 1fr 1fr; } }
 .mk-awaiting-grid .mk-awaiting { margin-top: 0; }
+
+/* ── partner proof ────────────────────────────────────────────────
+   A short register of who is already on the record: rows with a hairline
+   between them rather than a row of cards, so it reads as an entry in the
+   same ledger the rest of the product keeps. */
+.proof { margin-top: 30px; }
+.proof-kicker {
+  margin: 0 0 4px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--sp-muted, #5d6b7c);
+}
+.proof-list { margin: 0; padding: 0; list-style: none; }
+.proof-list > li { padding: 18px 0; border-top: 1px solid var(--sp-line, #e3d9ca); }
+.proof-id { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.proof-id a { text-decoration: none; color: inherit; }
+.proof-id b { font-size: 16px; font-weight: 650; letter-spacing: -0.015em; }
+.proof-id a:hover b { color: var(--sp-blue, #2457ce); }
+.proof-where { font-size: 13px; color: var(--sp-muted, #5d6b7c); }
+.proof-mission { margin: 6px 0 0; max-width: 62ch; font-size: 13.5px; line-height: 1.6; color: var(--sp-body, #42526b); }
+.proof-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.proof-status,
+.proof-area {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--ctl-r-row, 10px);
+}
+.proof-status { background: rgba(36, 87, 206, 0.1); color: var(--sp-blue, #2457ce); }
+.proof-area { border: 1px solid var(--sp-line, #e3d9ca); color: var(--sp-muted, #5d6b7c); }

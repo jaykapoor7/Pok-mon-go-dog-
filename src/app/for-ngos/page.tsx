@@ -6,6 +6,7 @@ import {
 } from "@/components/marketing/MarketingPage";
 import { ResolveFigure } from "@/components/marketing/figures";
 import { ORGS } from "@/lib/platform/orgs";
+import { PartnerProof } from "@/components/marketing/PartnerProof";
 
 export const metadata = {
   title: "For NGOs, better tools, same fieldwork",
@@ -61,6 +62,7 @@ export default function ForNgosPage() {
             { n: "03", title: "Bring your records", body: "Inside the workspace, upload the spreadsheets and registers you already use. StrayPaw maps their sheets before anything is staged." },
           ]}
         />
+        <PartnerProof />
       </Band>
     </MarketingPage>
   );

@@ -176,11 +176,12 @@ export async function POST(req: Request) {
 
     /* The photo became optional in the product before it can become optional
        in every deployment: sightings.photo_url is NOT NULL until
-       supabase/photo-optional.sql has been run. Rather than answer a skipped
-       photo with a raw constraint error, say the one thing the reporter can
-       act on. This keeps a deployment that is mid-migration usable instead of
-       failing the report, and the branch simply stops being reachable once
-       the migration lands. */
+       supabase/photo-optional.sql has been run. That migration is applied on
+       production, so this branch is unreachable there; it is kept for
+       previews, local databases and any future deployment that starts from an
+       older schema, where answering a skipped photo with a raw constraint
+       error would fail the report instead of saying the one actionable
+       thing. */
     const notNullPhoto =
       error.code === "23502" && /photo_url/i.test(`${error.message} ${error.details ?? ""}`);
     if (notNullPhoto && !photoUrl) {

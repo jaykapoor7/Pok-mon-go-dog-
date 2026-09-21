@@ -21,7 +21,7 @@ or structure still owed · **TODO** specified but not built.
 |---|---|---|---|
 | `/map` | The public live map | Report here | OK |
 | `/app` | Community home: animals near you | Report an animal | OK |
-| `/report` | File a sighting | Submit sighting | OK — photo is now skippable; offline queue-and-sync not built |
+| `/report` | File a sighting | Submit sighting | OK — photo skippable, migration applied in production; offline queue-and-sync not built |
 | `/feed` | The public ledger | Open a record | OK — deduplicated |
 | `/dog/[id]` | The atomic unit: one animal's record | Follow / open case | OK — SSR, indexable, schema.org, in the sitemap |
 | `/following` | Saved animals | Find an animal | THIN |
