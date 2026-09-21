@@ -84,17 +84,34 @@ test.describe("public routes", () => {
     "/",
     "/report",
     "/app",
+    "/feed",
     "/map",
+    "/stories",
     "/orgs",
+    "/partners",
     "/gaps",
     "/get-involved",
     "/adopt",
+    "/education",
+    "/mission",
+    "/for-ngos",
+    "/for-funders",
+    "/contact",
+    "/privacy",
     "/what-would-it-take",
     "/how-to-help",
     "/why-straypaw",
     "/the-network",
     "/the-data",
     "/research-standards",
+    "/partner",
+    "/partner/cases",
+    "/partner/animals",
+    "/partner/map",
+    "/partner/reports",
+    "/partner/team",
+    "/partner/settings",
+    "/partner/import",
   ];
 
   for (const route of ROUTES) {
@@ -106,6 +123,34 @@ test.describe("public routes", () => {
       expect(errors, `${route} console errors`).toEqual([]);
     });
   }
+
+  test("unknown routes use the branded recovery page", async ({ page }) => {
+    const res = await page.goto("/this-route-should-never-exist");
+    expect(res?.status()).toBe(404);
+    await expect(page.getByRole("heading", { name: "This trail ends here." })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+    await expect(page.getByRole("link", { name: "Open live map" })).toHaveAttribute("href", "/map");
+    await expect(page.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
+  });
+
+  test("primary public navigation does not point at a missing route", async ({ page, request }) => {
+    const hrefs = new Set<string>();
+    for (const route of ["/", "/app", "/partner"]) {
+      await page.goto(route);
+      const links = await page.locator('a[href^="/"]').evaluateAll((nodes) =>
+        nodes.map((node) => (node as HTMLAnchorElement).getAttribute("href") || "")
+      );
+      links.forEach((href) => {
+        const clean = href.split("#")[0];
+        if (clean && !clean.startsWith("/api/")) hrefs.add(clean);
+      });
+    }
+
+    for (const href of hrefs) {
+      const res = await request.get(href);
+      expect(res.status(), `broken internal link: ${href}`).toBeLessThan(400);
+    }
+  });
 });
 
 test.describe("resilience", () => {
