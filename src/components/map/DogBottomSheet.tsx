@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { markerMetaFor, fedRecently } from "@/lib/marker-state";
+import { placeLabel } from "@/lib/help-needs";
 import { timeAgo, dogLabel, distanceMeters } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
 
@@ -38,7 +39,11 @@ export function DogBottomSheet({
     const url = `${window.location.origin}/dog/${dog.id}`;
     const data = {
       title: `${dogLabel(dog)}, StrayPaw`,
-      text: `Meet this street dog around ${dog.zone}.`,
+      /* An imported record can carry "Awaiting location" as its zone;
+         sharing "around Awaiting location" invents a place. */
+      text: /^awaiting|^unknown/i.test(String(dog.zone ?? "").trim()) || !dog.zone
+        ? "Meet this street dog on the StrayPaw record."
+        : `Meet this street dog around ${dog.zone}.`,
       url,
     };
     try {
@@ -126,7 +131,7 @@ export function DogBottomSheet({
                 </h2>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-bark-500">
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4" /> {dog.zone}
+                    <MapPin className="h-4 w-4" /> {placeLabel(dog.zone)}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Clock className="h-4 w-4" /> Seen {timeAgo(dog.last_seen)}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { placeLabel } from "@/lib/help-needs";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { MoodChip } from "@/components/ui/Badges";
 import { DeleteSightingButton } from "@/components/sighting/DeleteSightingButton";
@@ -45,7 +46,7 @@ export function SightingTimeline({ sightings }: { sightings: Sighting[] }) {
                   }
                 />
               </div>
-              <p className="text-xs text-bark-500">{s.zone}</p>
+              <p className="text-xs text-bark-500">{placeLabel(s.zone)}</p>
               {s.notes && <p className="mt-1 text-sm text-bark-700">{s.notes}</p>}
               <div className="mt-1 flex flex-wrap gap-1">
                 {s.mood_tags.map((m) => (
