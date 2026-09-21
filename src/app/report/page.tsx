@@ -125,8 +125,13 @@ export default function ReportPage() {
   }
 
   const consentDone = c1 && c2 && c3;
-  const canAdvance = step === 0 ? !!photo : step === 1 ? !!coords : true;
-  const canSubmit = !!photo && !!coords && consentDone && status === "idle" && (!HAS_TURNSTILE || !!token);
+  /* A photo is welcome, not required. Somebody standing in front of an
+     animal they cannot photograph -- a phone with no storage, a dog that
+     will not let them close, a person who simply will not hold up a camera
+     in that street -- still has a sighting worth recording. The location is
+     the part the register cannot do without. */
+  const canAdvance = step === 1 ? !!coords : true;
+  const canSubmit = !!coords && consentDone && status === "idle" && (!HAS_TURNSTILE || !!token);
 
   function next() {
     if (!canAdvance) return;
@@ -422,7 +427,14 @@ export default function ReportPage() {
           </button>
         )}
       </div>
-      {step === 0 && !photo && !raw && <p className="mt-2 text-center text-xs text-bark-400">Add a photo to continue.</p>}
+      {step === 0 && !photo && !raw && (
+        <p className="mt-2 text-center text-xs text-bark-400">
+          A photo helps a field team recognise the animal.{" "}
+          <button type="button" onClick={next} className="font-semibold text-paw-600 underline underline-offset-2">
+            Skip for now
+          </button>
+        </p>
+      )}
       {step === 1 && !coords && <p className="mt-2 text-center text-xs text-bark-400">Set a location to continue.</p>}
       {step === 3 && !consentDone && <p className="mt-2 text-center text-xs text-bark-400">Please confirm all three to submit.</p>}
 

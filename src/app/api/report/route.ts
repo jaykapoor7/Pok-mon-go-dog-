@@ -62,12 +62,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const photoUrl = String(body.photoUrl ?? "");
+  /* A photo is welcome but not required. Refusing a located, described
+     sighting because nobody could take a photograph turns the product away
+     at the exact moment it is standing in front of the animal. The column
+     is nullable (supabase/photo-optional.sql); null means "no photograph",
+     never an empty string, so a missing photo stays distinguishable from a
+     broken one. */
+  const photoUrl = String(body.photoUrl ?? "").trim() || null;
   const lat = Number(body.lat);
   const lng = Number(body.lng);
-  if (!photoUrl || Number.isNaN(lat) || Number.isNaN(lng)) {
+  if (Number.isNaN(lat) || Number.isNaN(lng)) {
     return NextResponse.json(
-      { error: "A photo and location are required." },
+      { error: "A location is required." },
       { status: 400 }
     );
   }

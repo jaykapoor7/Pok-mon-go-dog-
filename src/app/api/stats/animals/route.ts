@@ -12,8 +12,13 @@ export async function GET() {
   const supa = getSupabase();
   if (!supa) return NextResponse.json({ count: null }, { status: 503 });
 
+  /* The same public projection countDogs() reads, and the same one the map
+     and the community app list from. It used to count the raw `dogs` table,
+     which holds a different row set, so the landing hero rendered the public
+     total server-side and then animated down to the raw count on the first
+     poll. One public number, one source. */
   const { count, error } = await supa
-    .from("dogs")
+    .from("public_animal_profiles")
     .select("id", { count: "exact", head: true });
 
   if (error) return NextResponse.json({ count: null }, { status: 500 });

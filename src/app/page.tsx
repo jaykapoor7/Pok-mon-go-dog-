@@ -51,13 +51,17 @@ export default async function HomePage() {
         <section className="role-help" aria-labelledby="role-help-title">
           <div><span className="field-eyebrow">Four ways in</span><h2 id="role-help-title">Choose how you<br />use StrayPaw.</h2><p className="role-help-note">Each one opens a different part of the same record.</p></div>
           <div className="role-help-links">
-            <Link href="/app?choose=1"><div><b>Neighbour</b><p>Report an animal you pass. Follow what happens to it and get updates.</p></div><ArrowUpRight size={18} /></Link>
-            <Link href="/app?choose=1"><div><b>Feeder</b><p>Keep your feeding zones, your route and the animals you know in one place.</p></div><ArrowUpRight size={18} /></Link>
+            {/* Each card goes where its own sentence says it goes. Neighbour
+                and Feeder both pointed at /app?choose=1, which made the choice
+                illusory: two different promises, one destination, and the
+                reader had to pick their role again on arrival. */}
+            <Link href="/report"><div><b>Neighbour</b><p>Report an animal you pass. Follow what happens to it and get updates.</p></div><ArrowUpRight size={18} /></Link>
+            <Link href="/feeder"><div><b>Feeder</b><p>Keep your feeding zones, your route and the animals you know in one place.</p></div><ArrowUpRight size={18} /></Link>
             <Link href="/education"><div><b>Educator</b><p>Teaching material, used with the animals on your own street.</p></div><ArrowUpRight size={18} /></Link>
             <Link href="/partner-apply"><div><b>Organisation</b><p>Turn incoming reports into tracked field work, with a full history.</p></div><ArrowUpRight size={18} /></Link>
           </div>
         </section>
-        <section className="product-closing"><span className="field-eyebrow">Start with one animal</span><h2>Know a dog<br /><em>on your street?</em></h2><Link href="/report" className="field-button">Report a sighting <ArrowUpRight size={18} /></Link></section>
+        <section className="product-closing"><span className="field-eyebrow">Start with one animal</span><h2>Know an animal<br /><em>on your street?</em></h2><Link href="/report" className="field-button">Report a sighting <ArrowUpRight size={18} /></Link></section>
       </main>
       <footer className="field-footer"><Link href="/" className="field-footer-brand">StrayPaw<span>One sighting. A shared record.</span></Link><nav aria-label="Footer"><Link href="/mission">Mission</Link><Link href="/for-ngos">For NGOs</Link><Link href="/evidence">Evidence</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav><span>Built with care, in India.<br />© {new Date().getFullYear()} StrayPaw</span></footer>
     </div>

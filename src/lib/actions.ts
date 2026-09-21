@@ -101,12 +101,15 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
     );
   }
 
-  // Upload the photo to storage (client-side, anon).
-  let photoUrl = input.fallbackPhotoUrl ?? "";
+  /* Upload the photo to storage (client-side, anon), if there is one. A
+     sighting without a photograph is still a sighting: the report flow lets
+     the photo step be skipped, so this sends null rather than refusing.
+     Null, never "", so the record distinguishes "no photograph was taken"
+     from "the photograph failed to upload". */
+  let photoUrl: string | null = input.fallbackPhotoUrl?.trim() || null;
   if (input.file) {
     photoUrl = await uploadPhoto(input.file);
   }
-  if (!photoUrl) throw new Error("A photo is required");
 
   // A secret ownership token, sent raw to the server (which stores only its
   // hash) and kept locally so this device can later delete the sighting.
