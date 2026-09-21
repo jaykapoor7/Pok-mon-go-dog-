@@ -97,7 +97,7 @@ export function WhereTheyAre({ dogs }: { dogs: Dog[] }) {
         </div>
 
         <div className="wt-foot">
-          <p className="wt-hint">Tap any animal to open its record.</p>
+          <p className="wt-hint">Select any animal to open its record.</p>
           <Link href="/map" className="wt-link">
             Open the full map <ArrowUpRight size={15} />
           </Link>

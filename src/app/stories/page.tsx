@@ -23,7 +23,7 @@ export default async function StoriesPage(){
    <Link href="/report" className="inline-flex h-11 items-center gap-2 self-start rounded-full bg-[#f05b40] px-5 text-sm font-semibold text-white sm:self-auto">Report an animal <ArrowUpRight size={14}/></Link>
   </header>
 
-  <div className="border-b border-[#0b1e3d]/10 py-5 text-sm text-[#0b1e3d]/60">{stories.length} recent rescue stories</div>
+  <div className="border-b border-[#0b1e3d]/10 py-5 text-sm text-[#0b1e3d]/60">{stories.length} recent cases</div>
 
   <StorySection title="Recent cases" lede="Completed cases with a recorded issue, care, outcome and date." stories={stories} empty="No completed rescue stories are published yet."/>
  </div></main></AppShell>;
