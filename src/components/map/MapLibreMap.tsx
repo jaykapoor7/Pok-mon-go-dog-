@@ -626,45 +626,33 @@ export function MapLibreMap({
      photograph replaces it in place when it arrives. A marker that waited for
      the network would blink into existence halfway through a pan. */
   const iconPending = useRef<Set<string>>(new Set());
-  useEffect(() => {
+  const onMissing = useCallback((e: { id: string }) => {
+    const iconId = e.id;
     const pending = iconPending.current;
+    if (!dogIdFromIcon(iconId) || pending.has(iconId)) return;
+    const spec = iconSpecs.current[iconId];
+    if (!spec) return;
+    pending.add(iconId);
 
-    const onMissing = (e: { id: string }) => {
-      const iconId = e.id;
-      if (!dogIdFromIcon(iconId) || pending.has(iconId)) return;
-      const spec = iconSpecs.current[iconId];
-      if (!spec) return;
-      pending.add(iconId);
+    const m = mapRef.current?.getMap?.();
+    if (!m) return;
+    if (!m.hasImage(iconId)) {
+      const placeholder = renderFallbackIcon(spec);
+      if (placeholder) m.addImage(iconId, placeholder, { pixelRatio: 2 });
+    }
 
-      const m = mapRef.current?.getMap?.();
-      if (!m) return;
-      if (!m.hasImage(iconId)) {
-        const placeholder = renderFallbackIcon(spec);
-        if (placeholder) m.addImage(iconId, placeholder, { pixelRatio: 2 });
-      }
+    renderPhotoIcon(spec)
+      .then((withPhoto) => {
+        if (!withPhoto || !m.hasImage(iconId)) return;
+        m.updateImage(iconId, withPhoto);
+      })
+      .catch(() => {});
+  }, []);
 
-      renderPhotoIcon(spec)
-        .then((withPhoto) => {
-          /* The style can be swapped or the component unmounted while a
-             photograph is still downloading, and updating an image on a map
-             that has moved on throws. */
-          if (!withPhoto || !m.hasImage(iconId)) return;
-          m.updateImage(iconId, withPhoto);
-        })
-        .catch(() => {});
-    };
-
-    /* Attached once the map instance actually exists.
-     *
-     * The first version of this read mapRef.current inside an effect with an
-     * empty dependency list and returned early when it was null — which it
-     * always is on the first commit, because react-map-gl assigns the ref
-     * while rendering its own child. So the listener was never attached at
-     * all, no icon was ever built, and the symbol layer pointed at images
-     * that did not exist: every animal silently drew nothing.
-     *
-     * Same requestAnimationFrame wait the camera controls below use, for
-     * the same reason. */
+  /* The listener must exist before the first symbol is painted. The Map prop
+     handles that first frame, while this native listener also covers a style
+     reload after the fallback basemap is selected. */
+  useEffect(() => {
     let map: MapLibreInstance | null = null;
     let raf = 0;
     const attach = () => {
@@ -676,12 +664,11 @@ export function MapLibreMap({
       map.on("styleimagemissing", onMissing);
     };
     attach();
-
     return () => {
       cancelAnimationFrame(raf);
       map?.off("styleimagemissing", onMissing);
     };
-  }, []);
+  }, [onMissing]);
 
   /* stateCoverage() walks every state against every dataset. It was
      called in the render body, so it ran again on each render of the
@@ -928,6 +915,7 @@ export function MapLibreMap({
          most of why this scrolls smoothly. */
       onLoad={() => setTilesFailed(false)}
       onError={handleMapError}
+      onStyleImageMissing={onMissing}
       interactiveLayerIds={preview ? undefined : wards ? INTERACTIVE_WITH_WARDS : INTERACTIVE}
       onClick={preview ? undefined : handleClick}
       onMouseEnter={preview ? undefined : () => setCursor("pointer")}
