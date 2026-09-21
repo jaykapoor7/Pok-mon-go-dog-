@@ -75,7 +75,7 @@ export default function ResourcesPage() {
         />
 
         {/* ── Emergency helplines ── */}
-        <section id="helplines" className="mt-12 scroll-mt-28">
+        <section id="helplines" className="mt-12 scroll-mt-40">
           <h2 className="flex items-center gap-2 font-display text-xl text-bark-900">
             <Phone className="h-5 w-5 text-paw-500" />
             Emergency rescue helplines
@@ -101,7 +101,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── Post-bite care ── */}
-        <section id="post-bite" className="mt-12 scroll-mt-28">
+        <section id="post-bite" className="mt-12 scroll-mt-40">
           <h2 className="font-display text-xl text-bark-900">
             What to do after a dog bite
           </h2>
@@ -127,7 +127,7 @@ export default function ResourcesPage() {
         <ResourcesDirectory />
 
         {/* ── Data & research ── */}
-        <section id="data" className="mt-12 scroll-mt-28">
+        <section id="data" className="mt-12 scroll-mt-40">
           <h2 className="font-display text-xl text-bark-900">
             Data and research
           </h2>

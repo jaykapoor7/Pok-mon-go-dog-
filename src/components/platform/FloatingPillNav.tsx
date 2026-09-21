@@ -34,7 +34,11 @@ export function FloatingPillNav({ sections }: { sections: PillSection[] }) {
   function scrollTo(id: string) {
     const el = document.getElementById(id);
     if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 120;
+    /* Clear the stuck bar rather than land under it: it sticks at 56px
+       and stands about 61px tall, so a heading placed at 120px was only
+       three pixels clear and rounded under it on some viewports. */
+    const barBottom = barRef.current?.getBoundingClientRect().bottom ?? 117;
+    const y = el.getBoundingClientRect().top + window.scrollY - (barBottom + 24);
     window.scrollTo({ top: y, behavior: "smooth" });
   }
 
@@ -43,10 +47,14 @@ export function FloatingPillNav({ sections }: { sections: PillSection[] }) {
     if (pill) pill.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
   }, [active]);
 
+  /* The bar is opaque, not translucent. It sits over the post-bite first-aid
+     steps on /resources; at 90% with a blur the text underneath smears
+     through it and reads as garbled rather than being cleanly hidden, which
+     is the worst of both outcomes for medical guidance. */
   return (
     <nav
       ref={barRef}
-      className="sticky top-14 z-40 -mx-4 flex gap-1.5 overflow-x-auto border-b border-black/[0.06] bg-paper/90 px-4 py-2 backdrop-blur-md no-scrollbar sm:-mx-6 sm:px-6 dark:border-white/[0.08] dark:bg-ink/90"
+      className="sticky top-14 z-40 -mx-4 flex gap-1.5 overflow-x-auto border-b border-black/[0.06] bg-paper px-4 py-2 no-scrollbar sm:-mx-6 sm:px-6 dark:border-white/[0.08] dark:bg-ink"
     >
       {sections.map((s) => (
         <button

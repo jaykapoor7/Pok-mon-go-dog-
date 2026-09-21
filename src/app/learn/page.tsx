@@ -91,7 +91,7 @@ export default function LearnPage() {
         {SECTIONS.map((s) => {
           const Icon = s.icon;
           return (
-            <section key={s.id} id={s.id} className="mt-12 scroll-mt-28">
+            <section key={s.id} id={s.id} className="mt-12 scroll-mt-40">
               <h2 className="flex items-center gap-2 font-display text-xl text-bark-900">
                 <Icon className="h-5 w-5 text-paw-500" />
                 {s.title}
@@ -108,7 +108,7 @@ export default function LearnPage() {
         })}
 
         {/* Key sources */}
-        <section id="sources" className="mt-12 scroll-mt-28">
+        <section id="sources" className="mt-12 scroll-mt-40">
           <h2 className="flex items-center gap-2 font-display text-xl text-bark-900">
             <BookOpen className="h-5 w-5 text-paw-500" />
             Key sources and further reading
