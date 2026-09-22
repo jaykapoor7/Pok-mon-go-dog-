@@ -45,6 +45,12 @@ export function PartnerRecordHome() {
   const [animals, setAnimals] = useState<AnimalRow[]>([]);
   const [org, setOrg] = useState<NGO | null>(null);
   const [today, setToday] = useState("");
+  /* How much of the queue is worth showing before the map. Six rows fit a
+     desktop column beside a 378px map; on a phone the same six push "where
+     is it" a full screen further down, and the strip above has already
+     given the counts. Resolved after mount, so the server renders the
+     desktop count and nothing hydrates against a width it cannot know. */
+  const [queueRows, setQueueRows] = useState(6);
 
   useEffect(() => {
     if (!ready) return;
@@ -59,6 +65,14 @@ export function PartnerRecordHome() {
   /* Short form: spelled out, the date wrapped the header's eyebrow onto a
      second line of tracked capitals at phone widths. */
   useEffect(() => { setToday(new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })); }, []);
+
+  useEffect(() => {
+    const phone = window.matchMedia("(max-width: 640px)");
+    const apply = () => setQueueRows(phone.matches ? 4 : 6);
+    apply();
+    phone.addEventListener("change", apply);
+    return () => phone.removeEventListener("change", apply);
+  }, []);
 
   const s = useMemo(() => {
     const all = rows ?? [], now = Date.now();
@@ -161,7 +175,7 @@ export function PartnerRecordHome() {
         {s.queue.length === 0
           ? <p className="pr-empty">{blank ? "Nothing is queued yet. The first case you open appears here." : "Nothing is overdue and no rescue is open. This is the state you want."}</p>
           : <ul className="pr-list">
-              {s.queue.slice(0, 7).map(({ r, urgent }) => <li key={`${r.source}-${r.id}`}>
+              {s.queue.slice(0, queueRows).map(({ r, urgent }) => <li key={`${r.source}-${r.id}`}>
                 <Link href={href(r)}>
                   <i className={urgent ? "hot" : ""} aria-hidden/>
                   <span className="pr-what"><b>{sentence(r.title || (urgent ? "Follow-up due" : "Open rescue"))}</b><small>{who(r)}</small></span>
@@ -169,8 +183,7 @@ export function PartnerRecordHome() {
                 </Link>
               </li>)}
             </ul>}
-        {s.queue.length > 7 && <Link href="/partner/records" className="pr-more">{num(s.queue.length - 7)} more waiting <ArrowUpRight size={13}/></Link>}
-        <div className="pr-tasks"><TasksSection compact/></div>
+        {s.queue.length > queueRows && <Link href="/partner/records" className="pr-more">{num(s.queue.length - queueRows)} more waiting <ArrowUpRight size={13}/></Link>}
       </div>
 
       <div className="pr-geo">
@@ -178,7 +191,9 @@ export function PartnerRecordHome() {
         <div className="pr-map">
           {markers.length
             ? <MapCanvas dogs={markers} onSelect={dog => { if (dog) router.push(`/partner/animals/${dog.id}`); }}/>
-            : <p className="pr-map-empty">No animal on your register carries a location yet. Coordinates arrive with a report, a case, or an import.</p>}
+            : <p className="pr-map-empty">{user
+                ? "No animal on your register carries a location yet. Coordinates arrive with a report, a case, or an import."
+                : "Sign in with your organisation's code to see your animals on the map."}</p>}
         </div>
         {s.places.length > 0 && <ul className="pr-places">
           {s.places.map(p => <li key={p.name}><Link href="/partner/map">
@@ -187,6 +202,12 @@ export function PartnerRecordHome() {
           </Link></li>)}
         </ul>}
       </div>
+
+      {/* Tasks sit under the queue on a desktop, where there is a column for
+          them. On a phone they follow the map instead: stacked in the
+          column's own order they put "where is it" 1,144px down the page,
+          which is a map nobody scrolls far enough to find. */}
+      <div className="pr-tasks"><TasksSection compact/></div>
     </section>
 
     {/* Underway, and what changed — two running lists, one continuous band. */}

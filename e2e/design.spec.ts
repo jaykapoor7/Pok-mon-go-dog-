@@ -117,6 +117,25 @@ test("mobile public navigation exposes the core destinations without overflow", 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 });
 
+/* The dashboard's own map answers "where is it", the second question the
+   console exists to answer. Stacked naively on a phone it landed 1,144px
+   down the page, below the queue and the whole tasks block, which is a map
+   nobody scrolls far enough to find. Geography comes before tasks. */
+test("the dashboard map is drawn, and comes before tasks", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("straypaw.role", "ngo"));
+  await page.goto("/partner");
+  const map = page.locator(".pr-map");
+  await expect(map).toBeVisible();
+  expect((await map.boundingBox())?.height ?? 0).toBeGreaterThan(200);
+  const geoBeforeTasks = await page.evaluate(() => {
+    const geo = document.querySelector(".pr-geo"), tasks = document.querySelector(".pr-tasks");
+    if (!geo || !tasks) return null;
+    /* DOCUMENT_POSITION_FOLLOWING: tasks comes after geo. */
+    return Boolean(geo.compareDocumentPosition(tasks) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  expect(geoBeforeTasks).toBe(true);
+});
+
 /* The field map positions itself against the console shell. It used to do
    that with hardcoded pixel values — fixed at top:56px, bottom:0,
    left:240px — and on a phone that produced a page with no map on it at

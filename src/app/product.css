@@ -1705,9 +1705,15 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 .pr-eyebrow a,.pr-more { display:inline-flex; align-items:center; gap:4px; color:var(--sp-blue); font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; }
 .pr-empty { margin:0; padding:16px 0 4px; border-top:1px solid var(--sp-rule); color:var(--sp-muted); font-size:12.5px; line-height:1.6; }
 
-.pr-work { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.12fr); border-bottom:1px solid var(--sp-rule); }
-.pr-queue { display:flex; min-width:0; flex-direction:column; padding:20px 24px 24px 0; border-right:1px solid var(--sp-rule); }
-.pr-geo { display:flex; min-width:0; flex-direction:column; padding:20px 0 24px 24px; }
+/* Three areas, not two columns with tasks nested inside the queue. Nested,
+   the phone had no way to read them in a different order, and stacking the
+   column whole put the map 1,144px down the page — below the queue and the
+   whole tasks block. Named areas let the desktop keep queue-over-tasks
+   beside the map while the phone reads queue, map, tasks. */
+.pr-work { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.12fr); grid-template-rows:auto 1fr; grid-template-areas:"queue geo" "tasks geo"; border-bottom:1px solid var(--sp-rule); }
+.pr-queue { grid-area:queue; display:flex; min-width:0; flex-direction:column; padding:20px 24px 0 0; border-right:1px solid var(--sp-rule); }
+.pr-tasks { grid-area:tasks; min-width:0; padding:0 24px 24px 0; border-right:1px solid var(--sp-rule); }
+.pr-geo { grid-area:geo; display:flex; min-width:0; flex-direction:column; padding:20px 0 24px 24px; }
 
 .pr-list,.pr-changes,.pr-places { margin:0; padding:0; list-style:none; }
 .pr-list li,.pr-changes li,.pr-places li { border-top:1px solid var(--sp-rule); }
@@ -1737,9 +1743,9 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 .pr .pr-places em,.pr .pr-changes em { color:var(--sp-muted); font-family:var(--font-mono), ui-monospace, monospace; font-size:11.5px; font-style:normal; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .pr .pr-places em { color:var(--sp-ink); font-size:14px; font-weight:600; }
 
-/* Tasks belong to the queue, so they continue it instead of arriving as a
-   separate widget with its own visual language. */
-.pr-tasks { margin-top:auto; padding-top:20px; }
+/* Tasks continue the queue rather than arriving as a separate widget with
+   its own visual language. */
+.pr-tasks > section { padding-top:20px; }
 .pr-tasks h2 { color:var(--sp-muted) !important; font-size:10px !important; font-weight:700 !important; letter-spacing:.11em !important; text-transform:uppercase; }
 .pr-tasks > section > div:first-child { border-top:1px solid var(--sp-rule); padding-top:14px; }
 /* The tasks block arrived with a solid blue pill of its own, which made a
@@ -1771,8 +1777,10 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 .pr-foot-links a { color:var(--sp-blue); font-weight:600; text-decoration:none; }
 
 @media (max-width:1000px) {
-  .pr-work,.pr-flow { grid-template-columns:1fr; }
+  .pr-work { grid-template-columns:1fr; grid-template-rows:none; grid-template-areas:"queue" "geo" "tasks"; }
+  .pr-flow { grid-template-columns:1fr; }
   .pr-queue { padding:18px 0 22px; border-right:0; }
+  .pr-tasks { padding:0 0 22px; border-right:0; border-top:1px solid var(--sp-rule); }
   .pr-geo { padding:0 0 22px; border-top:1px solid var(--sp-rule); }
   .pr-geo .pr-eyebrow { padding-top:18px; }
   .pr-flow > div { padding:20px 0 22px; }
@@ -1785,7 +1793,9 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   /* Four figures in a row at 390px is four columns of 80px, which clips
      every label. Two by two reads, and the two that matter come first. */
   .pr-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .pr-strip a { padding:14px 12px 14px 0; }
+  .pr-strip a { padding:12px 12px 12px 0; }
+  .pr-list a { padding:10px 0; }
+  .pr-eyebrow { margin-bottom:2px; }
   .pr-strip a + a { padding-left:0; border-left:0; }
   .pr-strip a:nth-child(even) { padding-left:14px; border-left:1px solid var(--sp-rule); }
   .pr-strip a:nth-child(n+3) { border-top:1px solid var(--sp-rule); }
