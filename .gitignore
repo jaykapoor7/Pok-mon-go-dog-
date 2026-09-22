@@ -41,3 +41,14 @@ next-env.d.ts
 # node_modules in the repository and let the copy drift from the installed
 # maplibre-gl version. Vercel regenerates them during its own build.
 /public/maplibre/
+
+# Output from the /founder: skills in .claude/skills/founder/. They write a
+# founder/ directory at the repository root and read each other's files from
+# it, so it accumulates whatever the skills are told about StrayPaw's stage,
+# metrics, team and any raise. That is working material, and some of it is
+# not ours to publish, so it stays local.
+#
+# Rooted on purpose: a bare "founder/" would also match the skill pack at
+# .claude/skills/founder/ and the sample output inside its examples, which
+# are committed and must stay that way.
+/founder/
