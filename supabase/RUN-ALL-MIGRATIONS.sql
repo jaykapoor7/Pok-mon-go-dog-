@@ -338,6 +338,15 @@ create or replace function log_feed(
 )
 returns void language plpgsql security definer set search_path = public as $$
 begin
+  /* Anonymous and, until a production hotfix, unbounded: one call inserts a
+     feed event and moves three publicly shown fields on the animal
+     (feed_count, last_fed_at, last_seen). Keyed per animal so flooding one
+     record is what stops, and silent because feeding is a fire-and-forget
+     signal where an error would interrupt an unrelated flow. Mirrors the
+     deployed definition exactly. */
+  if not check_rate_limit(p_dog_id::text, 'log_feed', 10, 600) then
+    return;
+  end if;
   insert into feed_events (dog_id, reporter_name, food_type)
   values (p_dog_id, p_reporter_name, p_food_type);
   update dogs
@@ -352,6 +361,11 @@ $$;
 create or replace function log_seen(p_dog_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
+  /* Moves last_seen and a public tally. Silent past the limit, keyed per
+     animal. Mirrors production. */
+  if not check_rate_limit(p_dog_id::text, 'log_seen', 20, 600) then
+    return;
+  end if;
   update dogs set last_seen = now(), sightings_count = sightings_count + 1
   where id = p_dog_id;
 end;
@@ -363,6 +377,16 @@ create or replace function add_comment(
 )
 returns void language plpgsql security definer set search_path = public as $$
 begin
+  if p_body is null or btrim(p_body) = '' then
+    raise exception 'A comment needs some text.';
+  end if;
+  /* Per animal, so flooding one record's comments is what stops rather than
+     a city's commenting. Raises, unlike the counters, because somebody
+     should know their comment did not post. Mirrors production. */
+  if not check_rate_limit(p_dog_id::text, 'add_comment', 10, 600) then
+    raise exception 'Too many comments on this animal just now. Please try again shortly.';
+  end if;
+
   -- Columns and values must line up: reporter_name takes the name and body
   -- takes the comment. These were transposed, which stored every comment as
   -- its author's name and every author's name as the comment.
@@ -375,6 +399,11 @@ $$;
 create or replace function like_sighting(p_sighting_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
+  /* An anonymous counter anybody can increment. Silent past the limit, and
+     keyed per sighting. Mirrors production. */
+  if not check_rate_limit(p_sighting_id::text, 'like_sighting', 30, 60) then
+    return;
+  end if;
   update sightings set likes = likes + 1 where id = p_sighting_id;
 end;
 $$;
@@ -1467,6 +1496,15 @@ create or replace function log_feed(
 )
 returns void language plpgsql security definer set search_path = public as $$
 begin
+  /* Anonymous and, until a production hotfix, unbounded: one call inserts a
+     feed event and moves three publicly shown fields on the animal
+     (feed_count, last_fed_at, last_seen). Keyed per animal so flooding one
+     record is what stops, and silent because feeding is a fire-and-forget
+     signal where an error would interrupt an unrelated flow. Mirrors the
+     deployed definition exactly. */
+  if not check_rate_limit(p_dog_id::text, 'log_feed', 10, 600) then
+    return;
+  end if;
   insert into feed_events (dog_id, reporter_name, food_type)
   values (p_dog_id, p_reporter_name, p_food_type);
   update dogs

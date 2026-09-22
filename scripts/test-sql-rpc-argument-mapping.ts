@@ -73,6 +73,34 @@ for (const file of readdirSync(SQL_DIR).filter((f) => f.endsWith(".sql"))) {
   }
 }
 
+/* The anonymous write RPCs must stay rate-limited. Each is callable from a
+   browser with the public key and each moves a publicly shown number, so an
+   unbounded one lets anybody inflate it. log_feed shipped unbounded and was
+   hotfixed in production; this asserts the canonical sources carry the limit
+   so a rebuild cannot quietly regress to the old body. */
+const MUST_RATE_LIMIT = ["add_comment", "like_sighting", "log_seen", "log_feed"];
+const CANONICAL = ["schema.sql", "RUN-ALL-MIGRATIONS.sql"];
+
+for (const file of CANONICAL) {
+  const sql = readFileSync(path.join(SQL_DIR, file), "utf8");
+  for (const fn of MUST_RATE_LIMIT) {
+    const defRe = new RegExp(
+      `create\\s+or\\s+replace\\s+function\\s+${fn}\\s*\\([\\s\\S]*?\\$\\$[\\s\\S]*?\\$\\$`,
+      "gi",
+    );
+    const defs = sql.match(defRe) ?? [];
+    if (!defs.length) continue; // not defined in this file
+    defs.forEach((def, i) => {
+      assert.ok(
+        /check_rate_limit\s*\(/i.test(def),
+        `${file}: ${fn}() definition #${i + 1} has no check_rate_limit call. ` +
+          `Anonymous write RPCs must stay bounded; production rate-limits this one.`,
+      );
+      checked += 1;
+    });
+  }
+}
+
 assert.ok(
   checked > 0,
   "No add_comment/log_feed INSERT mappings were found to check. The migrations " +

@@ -107,3 +107,55 @@ create view adoptable_animals as
    where a.status = 'open';
 
 grant select on adoptable_animals to anon, authenticated, service_role;
+
+-- ── 4. log_feed (already live; recorded here so rebuilds match) ─────
+--
+-- Applied directly to production as a hotfix and mirrored into schema.sql
+-- and the RUN-ALL bundle. It is repeated here so a database rebuilt from
+-- this file alone cannot regress to the unbounded version.
+--
+-- log_feed is anonymous by design, and one call did four things: inserted a
+-- feed event, incremented dogs.feed_count, and moved last_fed_at and
+-- last_seen. Three of those are shown publicly, so an unbounded anonymous
+-- caller could make an animal look continuously fed and freshly seen.
+--
+-- Silent rather than raising: feeding is a fire-and-forget signal, and an
+-- error would interrupt a flow that has nothing to do with the limit.
+--
+-- PRODUCTION ALREADY HAS THIS. Re-running is harmless (create or replace,
+-- identical body) but unnecessary.
+create or replace function log_feed(
+  p_dog_id uuid,
+  p_reporter_name text default null,
+  p_food_type text default null
+)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not check_rate_limit(p_dog_id::text, 'log_feed', 10, 600) then
+    return;
+  end if;
+  insert into feed_events (dog_id, reporter_name, food_type)
+  values (p_dog_id, p_reporter_name, p_food_type);
+  update dogs
+  set feed_count = feed_count + 1,
+      last_fed_at = now(),
+      last_seen = now()
+  where id = p_dog_id;
+end;
+$$;
+
+-- ── Audit corrections, recorded so they are not "fixed" again ───────
+--
+-- create_feeding_zone is anonymous ON PURPOSE. launch-security-lockdown.sql
+-- grants it so a guest can create a feeding zone without an account. An
+-- earlier pass read that as an oversight; it is not. Do not revoke it
+-- without a product decision to remove guest zone creation, and if that
+-- decision is ever made, remove the guest flow at the same time rather
+-- than leaving a button that fails.
+--
+-- st_estimatedextent is owned by the PostGIS extension. Revoking it does
+-- not remove the effective platform grants, so the advisor keeps reporting
+-- it however many times the revoke is applied. It is an extension/platform
+-- exception, not a StrayPaw finding, and it should be left alone rather
+-- than modified again: changing PostGIS grants to quiet a warning risks
+-- the geometry functions the map depends on.
