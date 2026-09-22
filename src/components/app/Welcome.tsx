@@ -17,6 +17,16 @@ import { Button } from "@/components/ui/button";
 const TOUR_KEY = "straypaw.tour.v2";
 export const TOUR_EVENT = "straypaw:tour";
 
+/* How many Welcome dialogs are mounted. RoleSwitchFallback reads this so it
+   only takes over when there is no in-place picker to open: both listen to
+   the same event, and without this the fallback's hard navigation reloaded
+   the page out from under the dialog every time, so the in-place picker
+   never actually ran. */
+let mountedTours = 0;
+export function tourIsMounted() {
+  return mountedTours > 0;
+}
+
 export function openTour() {
   window.dispatchEvent(new CustomEvent(TOUR_EVENT));
 }
@@ -75,9 +85,13 @@ export function Welcome() {
   }, [onReportFlow, pathname]);
 
   useEffect(() => {
+    mountedTours += 1;
     const open = () => { setRole(null); setStep(0); };
     window.addEventListener(TOUR_EVENT, open);
-    return () => window.removeEventListener(TOUR_EVENT, open);
+    return () => {
+      mountedTours -= 1;
+      window.removeEventListener(TOUR_EVENT, open);
+    };
   }, []);
 
   /* Dismiss once the router has arrived where finish() sent it. A push to a

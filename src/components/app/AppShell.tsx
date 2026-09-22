@@ -30,7 +30,6 @@ import { Welcome, openTour } from "./Welcome";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
 import { groupFor } from "@/components/partner/PartnerTabs";
-import { readStoredRole } from "@/lib/roles";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import "./app.css";
 
@@ -68,8 +67,14 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   const [cursor, setCursor] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  /* Which space you are in is decided by where you are, not by what you
+     once picked. Including the stored role here meant anybody who had ever
+     chosen "organisation" saw the NGO navigation on /app as well, so the
+     community space became unreachable without clearing storage: the two
+     dashboards stopped being separate. The stored role still decides where
+     the picker sends you; it does not decide what you see once you arrive. */
   useEffect(() => {
-    setIsNgo(pathname.startsWith("/partner") || readStoredRole() === "ngo");
+    setIsNgo(pathname.startsWith("/partner"));
   }, [pathname]);
 
   function go(hit: SearchHit) {
