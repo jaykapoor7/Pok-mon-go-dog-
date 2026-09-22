@@ -40,8 +40,18 @@ export function PartnerMap({cases:initialCases}:{cases:Case[]}){
  const markers=useMemo(()=>{if(layer==="cases")return filteredCases.map(caseMarker);let list=animals.filter(a=>a.lat&&a.lng);if(species!=="all")list=list.filter(a=>a.species===species);return list.map(animalMarker)},[layer,filteredCases,animals,species]);
  const hotspots=useMemo(()=>{if(layer!=="cases")return[];const cell=.025,bins=new Map<string,{count:number;zone:Map<string,number>;categories:Map<string,number>}>();for(const c of filteredCases){if(c.lat==null||c.lng==null)continue;const key=`${Math.floor(c.lat/cell)}:${Math.floor(c.lng/cell)}`,bin=bins.get(key)??{count:0,zone:new Map(),categories:new Map()};bin.count++;const z=c.zone||"Mapped area";bin.zone.set(z,(bin.zone.get(z)??0)+1);const cat=rescueCategory(caseText(c));bin.categories.set(cat,(bin.categories.get(cat)??0)+1);bins.set(key,bin)}return[...bins.values()].map(b=>({count:b.count,zone:[...b.zone.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"Mapped area",category:[...b.categories.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"Rescue"})).sort((a,b)=>b.count-a.count).slice(0,5)},[filteredCases,layer]);
  const selectedCase=sel?.kind==="cases"?cases.find(c=>c.id===sel.id):null,selectedAnimal=sel?.kind==="animals"?animals.find(a=>a.id===sel.id):null;
- return <div className="fixed bottom-0 left-0 right-0 top-14 bg-[#f4f1e9] lg:left-60 lg:top-16 lg:grid lg:grid-cols-[292px_1fr]">
-  <aside className="hidden min-h-0 flex-col border-r border-[#0b1e3d]/10 bg-[#f4f1e9] p-5 text-[#0b1e3d] lg:flex">
+ /* The map fills the shell's own main area rather than positioning itself
+    against hardcoded shell measurements. It used to be `fixed` at top:56px,
+    bottom:0, left:240px — none of which is true any more: the phone top bar
+    is 113px, the phone tab bar owns the bottom 60px, and the desktop rail is
+    216px under a 68px bar. On a phone the consequences were worse than a few
+    pixels of misalignment: the wrapper was a fixed block, the map pane was
+    auto-height, and the map itself asks for height:100% of it, so the whole
+    page rendered as an empty rectangle with its own toolbar hidden behind
+    the top bar. Anchored to .spa-main it is correct at every width, and it
+    stays correct when the shell changes. */
+ return <div className="partner-map-shell">
+  <aside className="partner-map-side hidden min-h-0 flex-col border-r border-[#0b1e3d]/10 text-[#0b1e3d] lg:flex">
    <div className="border-b border-[#0b1e3d]/10 pb-5"><p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#2457ce]">Field map</p><h1 className="mt-1 text-2xl font-semibold tracking-[-.04em]">Where the work is.</h1><p className="mt-2 text-xs leading-5 opacity-50">See demand, unfinished work and repeat patterns in place.</p></div>
    <div className="flex gap-5 border-b border-[#0b1e3d]/10 py-4 text-sm font-semibold"><button onClick={()=>setLayer("cases")} className={layer==="cases"?"":"opacity-35"}>Cases</button><button onClick={()=>setLayer("animals")} className={layer==="animals"?"":"opacity-35"}>Animals</button><span className="ml-auto tabular-nums opacity-35">{markers.length}</span></div>
    {layer==="cases"&&<div className="border-b border-[#0b1e3d]/10 py-4"><p className="mb-2 text-[10px] font-bold uppercase tracking-[.12em] opacity-30">View</p><div className="grid grid-cols-2 gap-x-3 gap-y-2">{LENSES.map(x=><button key={x.id} onClick={()=>setLens(x.id)} className={`text-left text-xs font-semibold ${lens===x.id?"text-[#2457ce]":"opacity-45"}`}>{x.label}</button>)}</div></div>}
@@ -50,12 +60,15 @@ export function PartnerMap({cases:initialCases}:{cases:Case[]}){
    <p className="mt-auto pt-3 text-[10px] leading-4 opacity-35">Concentrations describe mapped records, not population prevalence.</p>
   </aside>
 
-  <div className="relative min-h-0">
+  <div className="partner-map-pane relative min-h-0">
    <MapCanvas dogs={markers} onSelect={d=>setSel({kind:layer,id:d.id})}/>
-   <div className="absolute inset-x-3 top-3 z-20 flex flex-wrap items-center gap-2 border border-[#0b1e3d]/10 bg-[#f4f1e9]/95 px-3 py-2 text-xs shadow-sm backdrop-blur lg:hidden">
-    <button onClick={()=>setLayer("cases")} className={layer==="cases"?"font-semibold":"opacity-40"}>Cases</button><button onClick={()=>setLayer("animals")} className={layer==="animals"?"font-semibold":"opacity-40"}>Animals</button>
-    {layer==="cases"&&<select value={lens} onChange={e=>setLens(e.target.value as Lens)} className="ml-auto bg-transparent font-semibold outline-none">{LENSES.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select>}
-    <span className="tabular-nums opacity-40">{markers.length}</span>
+   {/* The map's controls on a phone. One row: what you are looking at,
+       which view of it, and how many that is. */}
+   <div className="partner-map-bar lg:hidden">
+    <button onClick={()=>setLayer("cases")} aria-pressed={layer==="cases"}>Cases</button>
+    <button onClick={()=>setLayer("animals")} aria-pressed={layer==="animals"}>Animals</button>
+    {layer==="cases"&&<select value={lens} onChange={e=>setLens(e.target.value as Lens)} aria-label="View">{LENSES.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select>}
+    <span>{markers.length}</span>
    </div>
    {(selectedCase||selectedAnimal)&&<aside className="absolute inset-y-0 right-0 z-30 w-full max-w-sm border-l border-[#0b1e3d]/10 bg-[#f4f1e9] p-6 text-[#0b1e3d] shadow-xl">
     <button onClick={()=>setSel(null)} className="absolute right-4 top-4 grid h-8 w-8 place-items-center opacity-45" aria-label="Close"><X size={16}/></button>

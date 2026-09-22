@@ -117,6 +117,50 @@ test("mobile public navigation exposes the core destinations without overflow", 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 });
 
+/* The field map positions itself against the console shell. It used to do
+   that with hardcoded pixel values — fixed at top:56px, bottom:0,
+   left:240px — and on a phone that produced a page with no map on it at
+   all: a fixed block whose map pane was auto-height, under a top bar that
+   is 113px, over a tab bar that owns the bottom 60px. Measuring the drawn
+   map against the shell states the requirement without naming a number. */
+test("the field map fills the console area at every width", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("straypaw.role", "ngo"));
+  await page.goto("/partner/map");
+  await expect(page.locator(".partner-map-shell")).toBeVisible();
+  const box = await page.evaluate(() => {
+    const pane = document.querySelector(".partner-map-pane");
+    const top = document.querySelector(".spa-top");
+    const nav = document.querySelector(".spa-side");
+    if (!pane || !top || !nav) return null;
+    const p = pane.getBoundingClientRect(), t = top.getBoundingClientRect(), n = nav.getBoundingClientRect();
+    return { paneTop: p.top, paneBottom: p.bottom, paneHeight: p.height, topBottom: t.bottom, navTop: n.top, navIsBar: n.width === window.innerWidth, viewport: window.innerHeight };
+  });
+  expect(box).not.toBeNull();
+  /* A map with no height is the bug this guards. */
+  expect(box!.paneHeight).toBeGreaterThan(200);
+  /* It starts below the top bar rather than behind it. */
+  expect(box!.paneTop).toBeGreaterThanOrEqual(box!.topBottom - 1);
+  /* On a phone it stops at the tab bar instead of running underneath it. */
+  if (box!.navIsBar) expect(box!.paneBottom).toBeLessThanOrEqual(box!.navTop + 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+});
+
+/* Three separate rules decided this, and on /partner/map and /partner/cases
+   more than one of them said yes, so the phone tab bar showed two selected
+   tabs at once. */
+for (const route of ["/app", "/map", "/partner", "/partner/map", "/partner/animals", "/partner/cases", "/partner/reports"]) {
+  test(`${route} marks exactly one navigation destination as current`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("straypaw.role", "ngo"));
+    await page.goto(route);
+    await expect(page.locator(".spa-side")).toBeVisible();
+    const current = await page.evaluate(() => {
+      const sel = window.innerWidth > 900 ? ".spa-primary-nav a" : ".spa-phone-links > a";
+      return [...document.querySelectorAll(sel)].filter(a => a.getAttribute("aria-current") === "page").map(a => a.textContent?.trim() ?? "");
+    });
+    expect(current.length, `current destinations: ${current.join(", ")}`).toBe(1);
+  });
+}
+
 for (const route of ["/", "/app", "/map", "/partner", "/partner/animals", "/partner/medical", "/partner/incoming", "/partner/team", "/partner/reports"]) {
   test(`${route} fits its viewport and opens without client errors`, async ({ page }) => {
     const errors: string[] = [];

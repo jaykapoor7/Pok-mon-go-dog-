@@ -1899,3 +1899,38 @@ html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
 @media (min-width:901px) {
   body:has(.spa) .snotice { left: auto; right: var(--sp-4); }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   THE NGO FIELD MAP (/partner/map)
+
+   It fills the console's main area instead of positioning itself against
+   measurements of the shell it sits in. .spa-main is already the box
+   between the top bar, the rail and the phone tab bar, and it is already
+   position:relative, so inset:0 is the whole correct region at every
+   width with no numbers to keep in sync.
+
+   The phone layout is a flex column, which is what actually gives the map
+   pane a height. As a plain block it had none, and the map asks for 100%
+   of its parent — so the page was an empty rectangle.
+   ════════════════════════════════════════════════════════════════════ */
+.partner-map-shell { position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; min-height:0; background:var(--sp-ground); }
+.partner-map-pane { flex:1 1 auto; min-height:0; }
+.partner-map-side { padding:var(--sp-5); background:var(--sp-ground); border-color:var(--sp-rule) !important; }
+@media (min-width:1024px) {
+  .partner-map-shell { display:grid; grid-template-columns:292px minmax(0,1fr); }
+}
+/* The map's own toolbar sits inside the pane, so it clears the top bar by
+   construction; it only needs to clear the map's zoom controls. */
+@media (max-width:1023px) {
+  .partner-map-shell > .partner-map-pane > .absolute.inset-x-3 { border-radius:0; }
+}
+
+/* The field map's phone control row. It was a translucent backdrop-blur
+   panel whose four children wrapped onto two lines at 390px, and whose
+   text-only buttons were about 20px of tap target. Solid, one row, and
+   each control at the touch floor. */
+.partner-map-bar { position:absolute; z-index:20; top:12px; right:12px; left:12px; display:flex; align-items:stretch; gap:2px; border:1px solid var(--sp-rule); background:var(--sp-paper); box-shadow:0 4px 14px rgba(11,30,61,.10); }
+.partner-map-bar > button { flex:none; min-height:var(--ctl-h); padding:0 13px; border:0; background:transparent; color:var(--sp-muted); font-size:13px; font-weight:var(--ctl-fw); cursor:pointer; }
+.partner-map-bar > button[aria-pressed="true"] { color:var(--sp-ink); box-shadow:inset 0 -2px 0 var(--sp-blue); }
+.partner-map-bar > select { flex:1 1 auto; min-width:0; min-height:var(--ctl-h); margin-left:auto; padding:0 6px; border:0; border-left:1px solid var(--sp-rule); background:transparent; color:var(--sp-ink); font-size:13px; font-weight:var(--ctl-fw); text-align:right; text-align-last:right; outline:none; }
+.partner-map-bar > span { display:grid; flex:none; place-items:center; min-width:42px; padding:0 10px; border-left:1px solid var(--sp-rule); color:var(--sp-muted); font-family:var(--font-mono), ui-monospace, monospace; font-size:12px; font-variant-numeric:tabular-nums; }

@@ -129,13 +129,25 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   const destinations = new Set(primaryNav.map((n) => n.href));
   const showBack = !destinations.has(pathname) && !pathname.startsWith("/report") && pathname !== "/";
 
-  const isActive = (href: string) => {
-    if (pathname === href) return true;
-    const group = groupFor(pathname);
-    if (group?.root === href) return true;
-    if (!pathname.startsWith(`${href}/`)) return false;
-    return primaryNav.filter((item) => pathname.startsWith(`${item.href}/`)).sort((a, b) => b.href.length - a.href.length)[0]?.href === href;
-  };
+  /* Exactly one destination is current, decided once rather than asked of
+     each item in turn. Asked separately, three rules could all say yes:
+     /partner/map lit Map (exact) and Dashboard (the longest item whose
+     href + "/" prefixes it, since "/partner/map" does not start with
+     "/partner/map/"), and /partner/cases lit Records (its group root) and
+     Dashboard for the same reason. The phone tab bar showed two selected
+     tabs on both. The rules are a precedence order: an exact destination,
+     then the workspace group a secondary route belongs to, then the
+     longest enclosing destination. */
+  const currentHref = (() => {
+    const exact = primaryNav.find((item) => item.href === pathname);
+    if (exact) return exact.href;
+    const root = groupFor(pathname)?.root;
+    if (root && primaryNav.some((item) => item.href === root)) return root;
+    return primaryNav
+      .filter((item) => pathname.startsWith(`${item.href}/`))
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
+  })();
+  const isActive = (href: string) => href === currentHref;
 
   function goBack() {
     if (typeof window !== "undefined" && window.history.length > 1) return router.back();
