@@ -729,3 +729,52 @@ h1 em, h2 em, h3 em, .product-hero-wall h1 em { font-style: normal; }
 :where(.sx-main, .spa-main, .sp main, .field-site main) p[class*="text-center"] {
   margin-inline: auto;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   THE STORAGE NOTICE.
+
+   Moved here from field-site.css, which only / and /partners import.
+   Everywhere else — the whole console included — the notice rendered
+   unstyled at the foot of the document: running text and two default
+   buttons reading "Got itDon't count my visits".
+   ════════════════════════════════════════════════════════════════════ */
+/* ── The storage notice ─────────────────────────────────────────── */
+.snotice {
+  position: fixed;
+  z-index: 60;
+  left: var(--sp-4);
+  right: var(--sp-4);
+  bottom: calc(var(--sp-4) + env(safe-area-inset-bottom));
+  max-width: 460px;
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-lg);
+  background: var(--sp-paper);
+  box-shadow: var(--sp-lift);
+}
+.snotice p {
+  margin: 0 0 var(--sp-4);
+  font-size: var(--sp-t-sm);
+  line-height: var(--sp-lh);
+  color: var(--sp-body);
+}
+.snotice a { color: var(--sp-blue); text-decoration: underline; text-underline-offset: 2px; }
+.snotice-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.snotice-actions button {
+  min-height: var(--ctl-h);
+  padding: var(--ctl-pad);
+  border: 0;
+  border-radius: var(--ctl-r);
+  font-size: var(--ctl-fs-sm);
+  font-weight: var(--ctl-fw);
+  cursor: pointer;
+  transition: var(--ctl-press-t);
+}
+.snotice-actions button:active { transform: var(--ctl-press); }
+.snotice-ok { background: var(--sp-ink); color: var(--sp-bone); }
+.snotice-off { background: var(--ctl-tint); color: #1f4bb8; }
+.snotice-off:hover { background: var(--ctl-tint-hover); }
+
+@media (max-width: 900px) {
+  .snotice { max-width: none; }
+}

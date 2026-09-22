@@ -227,15 +227,17 @@ html .spa.spa .partner-gate p{font-size:var(--sp-t-sm)}
 @media(max-width:900px){
 html .spa.spa .spa-top{height:64px;padding:0 18px;gap:12px}
 html .spa.spa .spa-brand{font-size:21px}
-html .spa.spa .spa-body{display:block;position:relative;min-height:0;flex:1;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+html .spa.spa .spa-body{display:block;position:relative;min-height:0;flex:1;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
 html .spa.spa .spa-main{height:100%}
 html .spa.spa .spa-main:not(.flush){padding:25px 20px 40px}
-html .spa.spa .spa-side{position:absolute;top:auto;bottom:0;left:0;right:0;z-index:45;height:calc(80px + env(safe-area-inset-bottom));display:flex;align-items:stretch;padding:0 6px env(safe-area-inset-bottom);border:0;border-top:1px solid var(--sp-line);background:white;overflow:visible;width:auto}
+html .spa.spa .spa-side{position:absolute;top:auto;bottom:0;left:0;right:0;z-index:45;height:calc(60px + env(safe-area-inset-bottom));display:flex;align-items:stretch;padding:0 6px env(safe-area-inset-bottom);border:0;border-top:1px solid var(--sp-line);background:white;overflow:visible;width:auto}
 html .spa.spa .spa-side>.spa-sect,html .spa.spa .spa-side>a.spa-report-shortcut,html .spa.spa .spa-side>.spa-side-foot{display:none}
-html .spa.spa .spa-phone-links{display:grid;grid-template-columns:repeat(4,1fr);flex:4;min-width:0}
-html .spa.spa .spa-phone-links a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12.5px;padding:7px 2px;border-radius:0;min-width:0;color:#556475;background:white;border:0}
-html .spa.spa .spa-phone-links a[aria-current=page]{color:var(--sp-blue)}
-html .spa.spa .spa-phone-links a[href="/report"] svg{color:var(--sp-blue)}
+/* The NGO rail's "Start" shortcuts were never hidden on a phone, so on
+   /partner they rendered inside the 60px tab bar: the word START and three
+   full-width links sharing the row with five destinations, which squeezed
+   every label down to "Dash…" and "Recor…". They belong to the desktop
+   column; on a phone the same actions live on the screens themselves. */
+html .spa.spa .spa-side>.spa-quick-list{display:none}
 html .spa.spa .spa-more{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 2px;border:0;font-size:10px;color:#556475;background:white;border-radius:0;min-width:0}
 html .spa.spa .spa-menu-btn{display:none}
 html .spa.spa .spa-tour{display:none}
@@ -348,7 +350,6 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
  html .spa.spa .spa-global-report{display:none}
  html .spa.spa .spa-switch{font-size:0;min-width:40px;justify-content:center;padding:8px}.spa-switch svg{width:18px;height:18px}
  html .spa.spa .spa-side>.spa-nav-context,html .spa.spa .spa-side>.spa-primary-nav,html .spa.spa .spa-side>.spa-reference-nav,html .spa.spa .spa-side>.spa-side-foot{display:none}
- html .spa.spa .spa-phone-links{grid-template-columns:repeat(4,minmax(0,1fr));flex:4}
  /* a.spa-mobile-report, not .spa-mobile-report: the phone Report button
     is a descendant of .spa-side, so "html .spa.spa .spa-side a" (three
     classes AND two elements) outranked the three-classes-one-element
@@ -410,17 +411,18 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 4px;
     min-width: 0;
-    min-height: 64px;
-    padding: 6px 2px;
+    min-height: 56px;
+    padding: 5px 1px;
     border: 0;
     border-radius: 0;
     background: transparent;
     color: #556475;
-    font-size: 13px;
+    font-size: 10.5px;
     font-weight: 600;
-    line-height: 1.15;
+    letter-spacing: -.01em;
+    line-height: 1.1;
     text-align: center;
     text-decoration: none;
     /* The label is one word wide and the column is a fifth of a phone. */
@@ -429,6 +431,16 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
     text-overflow: ellipsis;
   }
   html .spa.spa .spa-side .spa-phone-links > a svg { flex: none; }
+  /* The label is the affordance. One line, and an ellipsis where a word
+     such as "Organisations" cannot fit a fifth of a 390px screen. */
+  html .spa.spa .spa-side .spa-phone-links > a span,
+  html .spa.spa .spa-side a.spa-mobile-report span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   html .spa.spa .spa-side .spa-phone-links > a[aria-current="page"] {
     /* No top rule. It hung against the bar's own edge, far from the icon
@@ -444,18 +456,19 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 4px;
     min-width: 0;
-    min-height: 64px;
-    margin: 4px 4px;
-    padding: 6px 2px;
+    min-height: 56px;
+    margin: 2px 3px;
+    padding: 5px 1px;
     border: 0;
-    border-radius: 16px;
+    border-radius: var(--ctl-r-row);
     background: var(--sp-blue);
     color: #fff;
-    font-size: 13px;
+    font-size: 10.5px;
     font-weight: 700;
-    line-height: 1.15;
+    letter-spacing: -.01em;
+    line-height: 1.1;
     text-decoration: none;
     box-shadow: 0 3px 10px rgba(36, 87, 206, 0.34);
   }
@@ -470,38 +483,17 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.product-page-heading
 /* ════════════════════════════════════════════════════════════════════
    The console ground.
 
-   What was here: a flat fill, two stray dot-grids and one fixed circle
-   bottom-right that most screens never scrolled far enough to meet. On a
-   phone the circle sat off the edge entirely, so the app opened on a
-   plain beige rectangle.
-
-   This is a field tool for a city, so the ground is survey paper: a fine
-   grid at the scale of a street block, a coarser one over it, and one
-   warm wash in the top corner so the page has a light source rather than
-   being evenly lit. All of it is a background-image on a single element,
-   which costs one paint and no extra DOM.
-
-   Kept deliberately faint — every value below 7% alpha. This is the
-   surface somebody reads case notes on for an hour; it has to hold still
-   underneath them.
+   Flat, and warm. What stood here was a survey-paper texture: two
+   repeating-linear-gradient pairs at 96px and 24px plus two radial washes,
+   behind every screen in the console. It was argued for as a light source
+   and a street-block scale, but it is a grid pattern with a glow in the
+   corner, and it sat underneath dashboards that group their own content
+   with rules — so the page carried two grids that agreed about nothing.
+   The ground's job is to hold still under an hour of case notes.
    ════════════════════════════════════════════════════════════════════ */
 html .spa.spa .spa-main:not(.flush) {
   position: relative;
   background-color: var(--sp-ground);
-  background-image:
-    /* the warm light, top right */
-    radial-gradient(120% 80% at 88% -6%, rgba(244, 125, 69, .055), transparent 62%),
-    /* a cool counterweight, bottom left, so it is not one-sided */
-    radial-gradient(90% 70% at -8% 106%, rgba(36, 87, 206, .04), transparent 65%),
-    /* block grid */
-    repeating-linear-gradient(0deg, rgba(11, 30, 61, .035) 0 1px, transparent 1px 96px),
-    repeating-linear-gradient(90deg, rgba(11, 30, 61, .035) 0 1px, transparent 1px 96px),
-    /* the finer division inside each block */
-    repeating-linear-gradient(0deg, rgba(11, 30, 61, .022) 0 1px, transparent 1px 24px),
-    repeating-linear-gradient(90deg, rgba(11, 30, 61, .022) 0 1px, transparent 1px 24px);
-  /* One plane. Mixing fixed and scrolling layers made the two slide
-     against each other and the texture read as blotches. */
-  background-attachment: scroll;
 }
 /* The old decorative ring; the ground carries the depth now. */
 html .spa.spa .spa-main:not(.flush)::before { content: none; }
@@ -517,16 +509,7 @@ html .spa.spa .cc {
 @media (max-width: 900px) {
   /* A 96px block grid on a 390px screen is four lines and reads as a
      mistake. One scale, larger, so it stays texture rather than pattern. */
-  html .spa.spa .spa-main:not(.flush) {
-    background-image:
-      radial-gradient(150% 55% at 94% -4%, rgba(244, 125, 69, .05), transparent 58%),
-      repeating-linear-gradient(0deg, rgba(11, 30, 61, .021) 0 1px, transparent 1px 38px),
-      repeating-linear-gradient(90deg, rgba(11, 30, 61, .021) 0 1px, transparent 1px 38px);
-    /* All scroll together. A fixed layer under scrolling ones is what
-       made the texture look blotchy rather than like paper: the two were
-       moving against each other. */
-    background-attachment: scroll;
-  }
+  html .spa.spa .spa-main:not(.flush) { background-color: var(--sp-ground); }
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -885,10 +868,17 @@ html .spa.spa .spa-top {
   background: rgba(255, 253, 249, .96);
   border-color: #e4dacb;
 }
-html .spa.spa .spa-side {
-  background: #f1e9de;
-  border-color: #dfd3c3;
-  padding: 20px 12px;
+/* Desktop only. Unscoped, this padding also applied to the phone tab bar —
+   the same element — and 20px of vertical padding inside a 60px bar left a
+   20px content box, so the five slots were laid out 19px tall and then
+   overflowed 21px below the bottom of the screen with their labels cut off.
+   This was the actual cause of the clipped phone navigation. */
+@media (min-width:901px) {
+  html .spa.spa .spa-side {
+    background: #f1e9de;
+    border-color: #dfd3c3;
+    padding: 20px 12px;
+  }
 }
 html .spa.spa .spa-side a { border-radius: 6px; }
 html .spa.spa .spa-side a.active {
@@ -1076,7 +1066,10 @@ html .spa .dtable th,
 html .spa .ds-table th { background: #f1e9de; color: var(--sp-muted); }
 html .spa .dtable tr + tr td,
 html .spa .ds-table tr + tr td { border-color: var(--sp-rule); }
-html .spa .partner-gate { border-radius: 0; background: #e9effd; }
+/* A notice, not a panel. It opens the NGO console for anybody signed out,
+   so at full tint it was the loudest thing above a dashboard it is only
+   commenting on. */
+html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 
 @media (max-width: 900px) {
   .partner-insight-pair { grid-template-columns: 1fr; }
@@ -1477,7 +1470,7 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 @media (max-width: 900px) {
   html .spa.spa .spa-phone-links > a {
     position: relative;
-    gap: 5px;
+    gap: 4px;
     transition: color var(--sp-fast) var(--sp-ease-io);
   }
   /* The lozenge. A pseudo-element so it can sit behind the icon without
@@ -1485,11 +1478,11 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
   html .spa.spa .spa-phone-links > a::before {
     content: "";
     position: absolute;
-    top: 4px;
+    top: 3px;
     left: 50%;
-    width: 58px;
+    width: 48px;
     max-width: 100%;
-    height: 34px;
+    height: 30px;
     transform: translateX(-50%) scale(.82);
     border-radius: var(--ctl-r-row);
     background: var(--ctl-tint);
@@ -1558,4 +1551,351 @@ html .spa .partner-gate { border-radius: 0; background: #e9effd; }
 @media (max-width: 520px) {
   .trust-figures { gap: 6px 20px; }
   .trust-figures dt { font-size: 17px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   COMMUNITY HOME (/app)
+
+   One workspace, not a column of cards. The map and the register of
+   nearby animals share a single ruled surface: the register is a reading
+   of the map, so it is divided from it by a hairline rather than floated
+   beside it as a second panel. Nothing here carries a radius, a fill and
+   a shadow at the same time; the rules and the spacing do the grouping.
+
+   The phone layout is deliberately not this composition stacked. Stacked,
+   it opened with a 430px map above a 430px list and the first animal sat
+   860px down the page. Here the map takes a little under half the
+   viewport and the register starts immediately under it, so records are
+   on the first screen and Report is in the header above them.
+   ════════════════════════════════════════════════════════════════════ */
+
+.ch { max-width:1360px; margin:0 auto; }
+
+.ch-head { display:flex; align-items:flex-end; justify-content:space-between; gap:28px; padding-bottom:18px; border-bottom:1px solid var(--sp-rule); }
+.ch-head h1 { margin:0; font-family:var(--font-display), system-ui, sans-serif; font-size:clamp(30px,3.6vw,50px); font-weight:500; letter-spacing:-.055em; line-height:.95; }
+.ch-tally { margin:9px 0 0; color:var(--sp-muted); font-size:13px; }
+.ch-tally b { color:var(--sp-ink); font-family:var(--font-mono), ui-monospace, monospace; font-size:14px; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+.ch-tally b.ch-urgent { color:var(--sp-ember); }
+.ch-dot { padding:0 8px; color:var(--sp-rule); }
+/* The single orange thing on the page, because filing a record is the one
+   action this screen exists to make obvious. */
+.ch-report { display:inline-flex; flex:none; align-items:center; gap:8px; min-height:var(--ctl-h); padding:var(--ctl-pad); border-radius:var(--ctl-r); background:var(--sp-flame-deep); color:#fffdf9; font-size:var(--ctl-fs); font-weight:var(--ctl-fw); text-decoration:none; transition:background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io); }
+.ch-report:hover { background:var(--sp-ember); }
+.ch-report:active { transform:var(--ctl-press); }
+.ch-error { margin:14px 0 0; color:var(--sp-ember); font-size:13px; }
+
+.ch-work { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(300px,.64fr); margin-top:0; border-bottom:1px solid var(--sp-rule); }
+.ch-map { position:relative; min-width:0; padding:20px 22px 22px 0; border-right:1px solid var(--sp-rule); }
+.ch-map .field-map-preview { height:clamp(400px,52vh,560px); min-height:0; border-radius:0; }
+.ch-map .field-map-place,.ch-map .field-map-selected { border-radius:0; box-shadow:none; }
+.ch-map .field-map-place { top:14px; left:14px; border-left:2px solid var(--sp-blue); }
+.ch-locate { position:absolute; z-index:4; top:34px; right:36px; display:inline-flex; align-items:center; gap:6px; min-height:var(--ctl-h-sm); padding:var(--ctl-pad-sm); border:0; border-radius:var(--ctl-r); background:var(--sp-paper); color:var(--sp-blue); font-size:var(--ctl-fs-sm); font-weight:var(--ctl-fw); cursor:pointer; box-shadow:0 6px 18px rgba(11,30,61,.16); transition:transform var(--sp-fast) var(--sp-ease-io); }
+.ch-locate:active { transform:var(--ctl-press); }
+.ch-locate:disabled { opacity:.7; cursor:wait; }
+.ch-map-empty { position:absolute; z-index:4; right:36px; bottom:38px; left:16px; max-width:var(--sp-measure); margin:0; padding:13px 15px; background:var(--sp-paper); color:var(--sp-muted); font-size:12.5px; line-height:1.55; box-shadow:0 10px 30px rgba(11,30,61,.16); }
+.ch-map-empty b { color:var(--sp-ink); }
+.ch-map-empty a { color:var(--sp-blue); font-weight:600; text-decoration:none; white-space:nowrap; }
+
+.ch-register { display:flex; min-width:0; flex-direction:column; padding:20px 0 22px 24px; }
+.ch-register-head,.ch-activity-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:0 0 4px; }
+.ch-register-head > span,.ch-activity-head > span { color:var(--sp-muted); font-size:10px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+.ch-register-head a,.ch-activity-head a,.ch-more { display:inline-flex; align-items:center; gap:4px; color:var(--sp-blue); font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; }
+
+.ch-list { margin:0; padding:0; list-style:none; }
+.ch-list li { border-top:1px solid var(--sp-rule); }
+.ch-list a { display:grid; grid-template-columns:46px minmax(0,1fr) minmax(0,auto); align-items:center; gap:13px; padding:11px 0; color:var(--sp-ink); text-decoration:none; }
+.ch-list a:hover b { color:var(--sp-blue); }
+.ch-thumb { width:46px; height:46px; overflow:hidden; background:var(--sp-ground); }
+.ch-thumb img { width:100%; height:100%; object-fit:cover; }
+.ch-who { display:grid; gap:2px; min-width:0; }
+.ch-who b { font-size:13.5px; font-weight:600; letter-spacing:-.015em; }
+.ch-who b,.ch-who small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ch-who small { color:var(--sp-muted); font-size:11.5px; }
+.ch-when { display:grid; gap:3px; justify-items:end; min-width:0; text-align:right; }
+.ch-when small { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+.ch-when small:first-child { color:var(--sp-body); }
+/* The state is carried by a dot, not by seven lines of orange text. Every
+   row on a list of animals that need help was rendering its label in the
+   accent, which spends the one colour this page reserves for the action. */
+.ch-when i { display:inline-block; width:6px; height:6px; margin-right:6px; border-radius:50%; vertical-align:middle; }
+.ch-when small:last-child { color:var(--sp-muted); font-family:var(--font-mono), ui-monospace, monospace; font-size:10.5px; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+/* The register is as tall as the map beside it, so the way out of the list
+   sits at the foot of the column rather than floating halfway up it. */
+.ch-more { margin-top:auto; padding-top:14px; border-top:1px solid var(--sp-rule); }
+
+.ch-activity { padding:30px 0 0; }
+.ch-activity ul { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0; padding:0; list-style:none; border-top:1px solid var(--sp-rule); }
+.ch-activity li:nth-child(even) a { padding-left:18px; border-left:1px solid var(--sp-rule); }
+.ch-activity li:nth-child(n+3) { border-top:1px solid var(--sp-rule); }
+.ch-activity a { display:grid; grid-template-columns:44px minmax(0,1fr) auto; align-items:center; gap:13px; padding:14px 18px 14px 0; color:var(--sp-ink); text-decoration:none; }
+.ch-activity a > svg { color:var(--sp-blue); }
+.ch-activity a:hover b { color:var(--sp-blue); }
+.ch-act-thumb { width:44px; height:44px; overflow:hidden; background:var(--sp-ground); }
+.ch-act-thumb img { width:100%; height:100%; object-fit:cover; }
+.ch-activity a > span { display:grid; gap:3px; min-width:0; }
+.ch-activity b,.ch-activity small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ch-activity b { font-size:13.5px; font-weight:600; letter-spacing:-.015em; }
+.ch-activity small { color:var(--sp-muted); font-size:11.5px; }
+
+.ch-foot { margin:26px 0 0; padding-top:16px; border-top:1px solid var(--sp-rule); color:var(--sp-muted); font-size:11.5px; }
+
+@media (max-width:900px) {
+  .ch-work { grid-template-columns:1fr; }
+  .ch-map { padding:16px 0 0; border-right:0; }
+  .ch-map .field-map-preview { height:clamp(240px,44vh,400px); }
+  .ch-locate { top:28px; right:14px; }
+  .ch-map-empty { right:14px; bottom:14px; left:14px; }
+  .ch-register { padding:6px 0 18px; }
+  .ch-activity ul { grid-template-columns:1fr; }
+  .ch-activity li:nth-child(even) a { padding-left:0; border-left:0; }
+  .ch-activity li + li { border-top:1px solid var(--sp-rule); }
+  .ch-activity a { padding-right:0; }
+}
+@media (max-width:640px) {
+  .ch-head { align-items:stretch; flex-direction:column; gap:14px; padding-bottom:14px; }
+  .ch-head h1 { font-size:clamp(26px,7.5vw,34px); }
+  .ch-report { justify-content:center; }
+  .ch-list a { grid-template-columns:42px minmax(0,1fr) minmax(0,auto); gap:11px; padding:10px 0; }
+  .ch-thumb { width:42px; height:42px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   NGO OPERATIONS CONSOLE (/partner)
+
+   Five questions, in the order a field team asks them: what needs
+   attention, where is it, what is underway, what changed, what next.
+   Each is a movement of one page. The status strip is part of the header
+   rather than three tiles; the queue and the map share one ruled surface
+   because the map is where the queue is; the programme and the ledger run
+   as lists. Nothing here is a floating card, and the only orange marks
+   the count that is actually late.
+   ════════════════════════════════════════════════════════════════════ */
+
+.pr { max-width:1420px; margin:0 auto; }
+.pr-loading { padding:40px 0; color:var(--sp-muted); font-size:13px; }
+
+.pr-head { display:flex; align-items:flex-end; justify-content:space-between; gap:28px; padding-bottom:18px; }
+.pr-org { margin:0 0 9px; color:var(--sp-muted); font-size:11px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+.pr-org span { padding:0 3px; color:var(--sp-rule); }
+.pr-head h1 { margin:0; font-family:var(--font-display), system-ui, sans-serif; font-size:clamp(30px,3.4vw,48px); font-weight:500; letter-spacing:-.055em; line-height:.95; }
+.pr-head-actions { display:flex; flex:none; align-items:center; gap:10px; }
+.pr-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:var(--ctl-h); padding:var(--ctl-pad); border-radius:var(--ctl-r); background:var(--sp-blue); color:#fffdf9; font-size:var(--ctl-fs); font-weight:var(--ctl-fw); text-decoration:none; transition:background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io); }
+.pr-primary:hover { background:var(--sp-blue-deep); }
+.pr-primary:active,.pr-quiet:active { transform:var(--ctl-press); }
+.pr-quiet { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:var(--ctl-h); padding:var(--ctl-pad-sm); border-radius:var(--ctl-r); background:var(--ctl-tint); color:var(--sp-blue); font-size:var(--ctl-fs-sm); font-weight:var(--ctl-fw); text-decoration:none; transition:background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io); }
+.pr-quiet:hover { background:var(--ctl-tint-hover); }
+
+/* The strip is the header's second line, not a row of tiles: hairlines
+   between the figures, none around them. */
+.pr-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--sp-rule); border-bottom:1px solid var(--sp-rule); }
+.pr-strip a { display:grid; align-content:center; gap:6px; padding:18px 20px 18px 0; color:var(--sp-ink); text-decoration:none; }
+.pr-strip a + a { padding-left:20px; border-left:1px solid var(--sp-rule); }
+.pr-strip b { font-family:var(--font-display), system-ui, sans-serif; font-size:clamp(30px,3.2vw,42px); font-weight:500; letter-spacing:-.06em; line-height:.85; font-variant-numeric:tabular-nums; }
+.pr-strip b.hot { color:var(--sp-ember); }
+.pr-strip span { color:var(--sp-muted); font-size:11.5px; line-height:1.35; }
+.pr-strip a:hover span { color:var(--sp-blue); }
+
+.pr-setup { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:24px; padding:26px 0; border-bottom:1px solid var(--sp-rule); }
+.pr-setup h2 { margin:0; font-family:var(--font-display), system-ui, sans-serif; font-size:26px; font-weight:600; letter-spacing:-.04em; }
+.pr-setup p { max-width:var(--sp-measure); margin:8px 0 0; color:var(--sp-body); font-size:13.5px; line-height:1.6; }
+.pr-setup-actions { display:flex; flex:none; gap:10px; }
+
+.pr-eyebrow { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:0 0 4px; }
+.pr-eyebrow > span { color:var(--sp-muted); font-size:10px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+.pr-eyebrow a,.pr-more { display:inline-flex; align-items:center; gap:4px; color:var(--sp-blue); font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; }
+.pr-empty { margin:0; padding:16px 0 4px; border-top:1px solid var(--sp-rule); color:var(--sp-muted); font-size:12.5px; line-height:1.6; }
+
+.pr-work { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.12fr); border-bottom:1px solid var(--sp-rule); }
+.pr-queue { display:flex; min-width:0; flex-direction:column; padding:20px 24px 24px 0; border-right:1px solid var(--sp-rule); }
+.pr-geo { display:flex; min-width:0; flex-direction:column; padding:20px 0 24px 24px; }
+
+.pr-list,.pr-changes,.pr-places { margin:0; padding:0; list-style:none; }
+.pr-list li,.pr-changes li,.pr-places li { border-top:1px solid var(--sp-rule); }
+.pr-list a { display:grid; grid-template-columns:8px minmax(0,1fr) minmax(0,auto); align-items:center; gap:13px; padding:12px 0; color:var(--sp-ink); text-decoration:none; }
+.pr-list a:hover b { color:var(--sp-blue); }
+.pr-list i { width:8px; height:8px; border-radius:50%; background:var(--sp-rule); }
+.pr-list i.hot { background:var(--sp-flame-deep); }
+.pr-what,.pr-place { display:grid; gap:2px; min-width:0; }
+.pr-what b,.pr-place b { font-size:13.5px; font-weight:600; letter-spacing:-.015em; }
+.pr-what b,.pr-what small,.pr-place b,.pr-place small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pr-what small,.pr-place small { color:var(--sp-muted); font-size:11.5px; }
+.pr-when { display:grid; gap:3px; justify-items:end; min-width:0; text-align:right; }
+.pr-when small { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+.pr-when small:first-child { color:var(--sp-ink); font-weight:600; text-transform:capitalize; }
+.pr-when small:last-child { color:var(--sp-muted); font-family:var(--font-mono), ui-monospace, monospace; font-size:10.5px; font-variant-numeric:tabular-nums; }
+.pr-more { margin-top:13px; padding-top:13px; border-top:1px solid var(--sp-rule); }
+
+.pr-map { position:relative; min-width:0; height:clamp(320px,42vh,430px); overflow:hidden; margin-top:12px; background:#e5eaf0; }
+.pr-map-empty { display:grid; align-content:center; height:100%; margin:0; padding:0 24px; color:var(--sp-muted); font-size:12.5px; line-height:1.6; }
+.pr-places { margin-top:16px; }
+.pr-places a,.pr-changes a { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:14px; padding:11px 0; color:var(--sp-ink); text-decoration:none; }
+.pr-places a:hover b,.pr-changes a:hover b { color:var(--sp-blue); }
+.pr-places b { text-transform:capitalize; }
+/* Prefixed with .pr because app.css carries a blanket `.spa em { color:
+   var(--vermilion-ink) }` at the same specificity and later in the cascade,
+   which was painting every locality count and every timestamp here red. */
+.pr .pr-places em,.pr .pr-changes em { color:var(--sp-muted); font-family:var(--font-mono), ui-monospace, monospace; font-size:11.5px; font-style:normal; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.pr .pr-places em { color:var(--sp-ink); font-size:14px; font-weight:600; }
+
+/* Tasks belong to the queue, so they continue it instead of arriving as a
+   separate widget with its own visual language. */
+.pr-tasks { margin-top:auto; padding-top:20px; }
+.pr-tasks h2 { color:var(--sp-muted) !important; font-size:10px !important; font-weight:700 !important; letter-spacing:.11em !important; text-transform:uppercase; }
+.pr-tasks > section > div:first-child { border-top:1px solid var(--sp-rule); padding-top:14px; }
+/* The tasks block arrived with a solid blue pill of its own, which made a
+   second primary action on a screen that already has one. */
+.pr-tasks > section > div:first-child > button,
+.pr-tasks button.btn-primary,.pr-tasks .btn-primary { min-height:var(--ctl-h-sm); padding:var(--ctl-pad-sm); border-radius:var(--ctl-r); background:var(--ctl-tint) !important; color:var(--sp-blue) !important; font-size:var(--ctl-fs-sm); font-weight:var(--ctl-fw); box-shadow:none !important; }
+/* The task list's own bordered box reads as a card inside a column that
+   groups everything else with rules. Rules here too. */
+.pr-tasks ul { border:0 !important; border-radius:0 !important; border-top:1px solid var(--sp-rule) !important; }
+.pr-tasks ul > li { padding-left:0 !important; padding-right:0 !important; border-color:var(--sp-rule) !important; }
+.pr-tasks p[class*="border-dashed"] { border:0 !important; border-top:1px solid var(--sp-rule) !important; border-radius:0 !important; padding:16px 0 4px !important; text-align:left !important; font-size:12.5px !important; }
+
+.pr-flow { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border-bottom:1px solid var(--sp-rule); }
+.pr-flow > div { min-width:0; padding:22px 24px 24px 0; }
+.pr-flow > div + div { padding:22px 0 24px 24px; border-left:1px solid var(--sp-rule); }
+.pr-bars { display:grid; gap:15px; padding-top:14px; border-top:1px solid var(--sp-rule); }
+.pr-bars p { display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin:0 0 7px; }
+.pr-bars p span { color:var(--sp-ink); font-size:13px; font-weight:500; text-transform:capitalize; }
+.pr .pr-bars p em { color:var(--sp-muted); font-family:var(--font-mono), ui-monospace, monospace; font-size:11.5px; font-style:normal; font-variant-numeric:tabular-nums; }
+.pr-bar { height:3px; background:rgba(11,30,61,.09); }
+.pr-bar > div { height:100%; background:var(--sp-blue); }
+.pr-bar > div.lead { background:var(--sp-flame-deep); }
+
+.pr-foot { display:flex; align-items:baseline; justify-content:space-between; gap:24px; padding:18px 0 0; color:var(--sp-muted); font-size:12.5px; }
+.pr-foot p { margin:0; }
+.pr-foot b { color:var(--sp-ink); font-family:var(--font-mono), ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+.pr-foot span { padding:0 6px; color:var(--sp-rule); }
+.pr-foot-links { display:flex; gap:18px; }
+.pr-foot-links a { color:var(--sp-blue); font-weight:600; text-decoration:none; }
+
+@media (max-width:1000px) {
+  .pr-work,.pr-flow { grid-template-columns:1fr; }
+  .pr-queue { padding:18px 0 22px; border-right:0; }
+  .pr-geo { padding:0 0 22px; border-top:1px solid var(--sp-rule); }
+  .pr-geo .pr-eyebrow { padding-top:18px; }
+  .pr-flow > div { padding:20px 0 22px; }
+  .pr-flow > div + div { padding:20px 0 22px; border-top:1px solid var(--sp-rule); border-left:0; }
+}
+@media (max-width:640px) {
+  .pr-head { align-items:stretch; flex-direction:column; gap:14px; padding-bottom:14px; }
+  .pr-head h1 { font-size:clamp(26px,7.5vw,34px); }
+  .pr-head-actions { flex-direction:column; align-items:stretch; }
+  /* Four figures in a row at 390px is four columns of 80px, which clips
+     every label. Two by two reads, and the two that matter come first. */
+  .pr-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .pr-strip a { padding:14px 12px 14px 0; }
+  .pr-strip a + a { padding-left:0; border-left:0; }
+  .pr-strip a:nth-child(even) { padding-left:14px; border-left:1px solid var(--sp-rule); }
+  .pr-strip a:nth-child(n+3) { border-top:1px solid var(--sp-rule); }
+  .pr-strip b { font-size:30px; }
+  /* The top bar already carries a full-width search field on a phone, so
+     "Find a record" was the same action twice, 64px apart. */
+  .pr-head-actions .pr-quiet { display:none; }
+  .pr-setup { grid-template-columns:1fr; }
+  .pr-setup-actions { flex-direction:column; }
+  .pr-map { height:clamp(240px,40vh,340px); }
+  .pr-foot { align-items:stretch; flex-direction:column; gap:12px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   THE SHELL ON A DESKTOP
+
+   Three surfaces were competing: a filled top bar, a filled white side
+   column with a filled white active chip inside it, and a dashboard with
+   its own surfaces. The navigation is the least important of the three —
+   it is how you leave this screen, not part of it — so it gives up its
+   fill and keeps only a hairline and its type. The page beneath gains the
+   room the panel was spending on itself.
+
+   Scoped to min-width:901px on purpose: below that the same element is
+   the phone tab bar, which does need a fill of its own.
+   ════════════════════════════════════════════════════════════════════ */
+@media (min-width:901px) {
+  html .spa.spa .spa-body { grid-template-columns:216px minmax(0,1fr); }
+  /* Navigation, not a second panel. */
+  html .spa.spa .spa-side { padding:22px 14px 18px; border-right:1px solid var(--sp-rule); background:transparent; }
+  html .spa.spa .spa-nav-context { margin:0 0 12px; padding:0 10px; }
+  html .spa.spa .spa-side .spa-primary-nav a { border-radius:var(--ctl-r-row); color:var(--sp-body); font-size:13px; font-weight:600; }
+  html .spa.spa .spa-side .spa-primary-nav a:hover { background:rgba(11,30,61,.045); color:var(--sp-ink); }
+  /* The current destination is marked, not boxed: ink, weight and a rule
+     on the edge it belongs to. The white chip it replaced read as a card
+     inside a card. */
+  html .spa.spa .spa-side .spa-primary-nav a.active { background:transparent; box-shadow:inset 2px 0 0 var(--sp-blue); color:var(--sp-ink); font-weight:700; }
+  html .spa.spa .spa-side .spa-primary-nav a.active svg { color:var(--sp-blue); }
+  html .spa.spa .spa-quick-list { margin:22px 0 4px; padding-top:16px; }
+  html .spa.spa .spa-quick-list > p,html .spa.spa .spa-quick-list > a { padding-left:10px; padding-right:10px; }
+  html .spa.spa .spa-side-foot { border-top:1px solid var(--sp-rule); }
+
+  /* Content room. 32px of gutter beside a 216px rail is what made the
+     dashboards feel crowded against their own navigation. */
+  html .spa.spa .spa-main:not(.flush) { padding:30px 44px 56px; }
+}
+@media (min-width:1500px) {
+  html .spa.spa .spa-main:not(.flush) { padding:34px 60px 64px; }
+}
+
+/* The top bar is one row with three jobs, in order of how often they are
+   used: where you are, what you are looking for, who you are. Search was
+   the same weight as "Main site"; it is the reason the bar exists. */
+html .spa.spa .spa-top-right .spa-exit { opacity:.78; font-weight:600; }
+html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
+
+/* ════════════════════════════════════════════════════════════════════
+   THE PHONE, MEASURED
+
+   Three things were wrong at 390 and 320, and all three were measured
+   rather than guessed.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width:900px) {
+  /* 1. The tab bar's five slots were hanging 21px below the bottom of the
+     screen, so every label was cut in half. .spa-side still inherited
+     flex-direction:column from the desktop rail — the mobile override sets
+     display:flex and align-items but never the direction — so the grid
+     inside it was laid out as a column item and resolved to a 19px track
+     that its own 56px children then overflowed.
+     An explicit height on the grid does not fix it either: a percentage
+     height resolves to auto here, and any declared height stops the item
+     stretching at all. The direction is the fix; the grid then stretches
+     to the bar on its own. */
+  html .spa.spa .spa-side { flex-direction:row; align-items:stretch; }
+  html .spa.spa .spa-side .spa-phone-links { align-items:stretch; }
+}
+
+@media (max-width:640px) {
+  /* 2. Report was on the screen twice: a full-width orange button in the
+     header and the blue centre slot of the tab bar, which is always there
+     and always reachable with a thumb. Two primary actions for one job is
+     one too many, and removing the header copy gives the register 72px —
+     the difference between one animal above the fold and three. */
+  .ch-report { display:none; }
+  .ch-map { padding-top:12px; }
+  .ch-map .field-map-preview { height:clamp(200px,34vh,300px); }
+  .ch-head { gap:0; }
+  .ch-tally { margin-top:7px; }
+}
+
+@media (max-width:360px) {
+  /* 3. At 320 the top bar ran to three rows — 165px of chrome before the
+     page began — because the wordmark and the three account controls could
+     not share 288px. The mark alone still says which product this is. */
+  html .spa.spa .spa-brand span { display:none; }
+  html .spa.spa .spa-top { height:106px; padding:0 10px; }
+}
+
+/* The storage notice inside the console.
+
+   It is fixed to the bottom-left of the viewport, which on a phone put it
+   directly over the tab bar (it ended 44px below the bar's top edge) and on
+   a desktop over the sign-in block at the foot of the navigation rail. Same
+   notice, moved clear of the two things the console keeps in those corners.
+   :has() is the only way to see the shell from an element that is not
+   inside it; where it is unsupported the notice simply keeps its default
+   position, which is the behaviour every other route already has. */
+@media (max-width:900px) {
+  body:has(.spa) .snotice { bottom: calc(60px + var(--sp-3) + env(safe-area-inset-bottom)); }
+}
+@media (min-width:901px) {
+  body:has(.spa) .snotice { left: auto; right: var(--sp-4); }
 }

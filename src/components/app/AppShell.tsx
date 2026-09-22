@@ -172,9 +172,9 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           </div>}
 
           <div className="spa-phone-links">
-            {phoneNav.slice(0, 2).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={30}/><span>{label}</span></Link>)}
-            <Link href="/report" className="spa-mobile-report" aria-label="Report an animal"><Radio size={30}/><span>Report</span></Link>
-            {phoneNav.slice(2).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={30}/><span>{label}</span></Link>)}
+            {phoneNav.slice(0, 2).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+            <Link href="/report" className="spa-mobile-report" aria-label="Report an animal"><Radio size={20}/><span>Report</span></Link>
+            {phoneNav.slice(2).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
           </div>
 
           <div className="spa-side-foot"><ProfilePanel/><div className="spa-side-feedback"><FeedbackButton label="Send feedback"/></div></div>

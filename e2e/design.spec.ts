@@ -62,17 +62,23 @@ test("community choice stays account-free and lands in the community record", as
      tree even when it looks dismissed. Asserting its absence states the
      requirement directly instead of inferring it. */
   await expect(page.locator('[role="dialog"]')).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Animals in your area." })).toBeVisible();
-  await expect(page.locator('a[href="/report"]').filter({ hasText: "Report an animal" }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Animals in your area" })).toBeVisible();
+  /* Reporting has to be reachable, not phrased a particular way. On a phone
+     the header's copy of this action is gone and the tab bar's permanent
+     centre slot carries it, so asserting the long label tested the desktop
+     wording rather than the requirement. */
+  await expect(page.locator('a[href="/report"]:visible').first()).toBeVisible();
 });
 
 test("community home keeps location and reporting within immediate reach", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("straypaw.role", "individual"));
   await page.goto("/app");
-  await expect(page.getByRole("heading", { name: "Animals in your area." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Animals in your area" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Use my location" })).toBeVisible();
-  await expect(page.locator('a[href="/report"]').filter({ hasText: "Report an animal" }).first()).toBeVisible();
-  await expect(page.getByText("Nearby animals")).toBeVisible();
+  await expect(page.locator('a[href="/report"]:visible').first()).toBeVisible();
+  /* The register of nearby animals is attached to the map under one rule
+     rather than titled as a separate panel. */
+  await expect(page.locator(".ch-register-head")).toContainText("Nearby");
 });
 
 test("public map filters and insight controls remain operable without records", async ({ page }) => {

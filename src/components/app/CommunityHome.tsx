@@ -2,7 +2,7 @@
 
 import { useMemo,useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight,Crosshair,MapPin,Plus } from "lucide-react";
+import { ArrowUpRight,Crosshair,Plus } from "lucide-react";
 import { FieldMapPreview } from "@/components/site/FieldMapPreview";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { located } from "@/lib/geo/cluster";
@@ -15,25 +15,87 @@ import type { Dog,Sighting } from "@/lib/types";
 const RADIUS_KM=12;
 function distanceKm(a:{lat:number;lng:number},b:{lat:number;lng:number}){const r=(v:number)=>v*Math.PI/180,e=6371,dLat=r(b.lat-a.lat),dLng=r(b.lng-a.lng),x=Math.sin(dLat/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLng/2)**2;return e*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function tone(d:Dog){if(d.needs_help)return "urgent" as const;return ["resolved","released","adopted","safe"].includes(String(d.status??"").toLowerCase())?"resolved" as const:"active" as const}
+/* Imported records are named after the place and month they were filed --
+   "Dog · Sukrawar Pettai · Sep 2026" -- so printing the zone underneath the
+   name said the locality twice in two lines, and falling back to the species
+   said "dog" under a line beginning "Dog". The second line carries the
+   locality only when the name has not already spent it, and otherwise who is
+   keeping the record, which is the part a reader does not already have. */
+function subline(d:Dog){const name=dogLabel(d).toLowerCase(),zone=(d.zone||"").trim();if(zone&&!name.includes(zone.toLowerCase()))return zone;return d.ngo_name||d.code||"Community record"}
 
+/* The community workspace.
+
+   Composed as one surface rather than a column of boxes. The map is the
+   spatial backbone and the register of nearby animals is attached to it,
+   divided by a rule instead of floated beside it as a second card, because
+   the list is a reading of the map and not an unrelated panel.
+
+   The phone layout is not this composition stacked. Stacking gave a 430px
+   map above a 430px list, so the first screen was 860px of dashboard with
+   no animal visible on it. On a phone the map takes a little under half the
+   viewport and the register begins immediately underneath, so the first
+   records are readable without scrolling and Report is never far away. */
 export function CommunityHome({dogs,sightings:_sightings,stories}:{dogs:Dog[];sightings:Sighting[];stories:PublicCaseStory[]}){
  const [location,setLocation]=useState<{lat:number;lng:number}|null>(null),[locating,setLocating]=useState(false),[error,setError]=useState<string|null>(null);
  const inView=useMemo(()=>{const rows=located(dogs);return location?rows.filter(d=>distanceKm(location,d)<=RADIUS_KM):rows},[dogs,location]);
  const register=useMemo(()=>[...inView].sort((a,b)=>Number(b.needs_help)-Number(a.needs_help)||+new Date(b.last_seen)-+new Date(a.last_seen)),[inView]);
  const scope=location?inView:dogs,needsHelp=scope.filter(d=>d.needs_help).length;
- const recent=useMemo(()=>{const seen=new Set<string>(),out:PublicCaseStory[]=[];for(const s of stories){if(!s.dog_id||seen.has(s.dog_id))continue;seen.add(s.dog_id);out.push(s);if(out.length===3)break}return out},[stories]);
+ const recent=useMemo(()=>{const seen=new Set<string>(),out:PublicCaseStory[]=[];for(const s of stories){if(!s.dog_id||seen.has(s.dog_id))continue;seen.add(s.dog_id);out.push(s);if(out.length===4)break}return out},[stories]);
  function findMe(){if(!navigator.geolocation){setError("Location is not available in this browser.");return}setLocating(true);navigator.geolocation.getCurrentPosition(({coords})=>{setLocation({lat:coords.latitude,lng:coords.longitude});setLocating(false);setError(null)},()=>{setError("We could not get your location. You can still explore the shared map.");setLocating(false)},{timeout:10000,maximumAge:300000})}
- return <main className="min-h-screen bg-[#f4f1e9] text-[#0b1e3d]"><div className="mx-auto max-w-7xl px-4 pb-16 pt-7 sm:px-6 lg:px-8">
-  <header className="flex flex-col gap-6 border-b border-[#0b1e3d]/10 pb-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.16em] text-[#2457ce]">Community record</p><h1 className="mt-2 max-w-3xl text-[clamp(2.5rem,6vw,4.8rem)] font-semibold leading-[.91] tracking-[-.065em]">Animals in your area.</h1><p className="mt-4 max-w-xl text-sm leading-6 opacity-55">Find animals, report a concern and follow recorded care.</p></div><Link href="/report" className="inline-flex h-11 items-center gap-2 self-start rounded-full bg-[#f05b40] px-5 text-sm font-semibold text-white sm:self-auto"><Plus size={16}/>Report an animal</Link></header>
-  {error&&<p className="mt-3 text-xs text-[#b84734]">{error}</p>}
 
-  <section className="mt-7 overflow-hidden border-y border-[#0b1e3d]/10 bg-white lg:grid lg:grid-cols-[1.65fr_.75fr]">
-   <div className="relative min-h-[430px] lg:min-h-[590px]"><div className="absolute inset-0"><FieldMapPreview dogs={inView} center={location} place={location?"Around you":"Across India"}/></div><button onClick={findMe} disabled={locating} className="absolute left-4 top-4 z-10 inline-flex h-9 items-center gap-2 rounded-full bg-white/95 px-3 text-xs font-semibold shadow-sm backdrop-blur"><Crosshair size={13}/>{locating?"Finding you":location?"Around you":"Use my location"}</button>{!inView.length&&<div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 bg-white p-4 text-sm shadow-sm"><span><b>No animal recorded here yet.</b><span className="ml-2 opacity-55">A photo and location are enough.</span></span><Link href="/report" className="font-semibold">Report <ArrowUpRight className="inline" size={14}/></Link></div>}</div>
-   <aside className="flex min-h-[430px] flex-col border-t border-[#0b1e3d]/10 p-5 lg:min-h-0 lg:border-l lg:border-t-0 lg:p-6"><div className="flex items-end justify-between border-b border-[#0b1e3d]/10 pb-4"><div><p className="text-[11px] font-bold uppercase tracking-[.13em] opacity-35">Nearby animals</p><p className="mt-1 text-sm"><b className="text-xl">{scope.length}</b> <span className="opacity-45">animals</span>{needsHelp>0&&<><span className="mx-2 opacity-20">·</span><b className="text-[#f05b40]">{needsHelp}</b> <span className="opacity-45">need help</span></>}</p></div><Link href="/map" className="text-xs font-semibold text-[#2457ce]">Full map</Link></div><div className="divide-y divide-[#0b1e3d]/8">{register.slice(0,6).map(d=>{const m=markerMetaFor(d);return <Link href={`/dog/${d.id}`} key={d.id} className="grid grid-cols-[48px_1fr_auto] items-center gap-3 py-3"><DogPhoto src={d.cover_photo} alt="" seed={d.id} tone={tone(d)} className="h-12 w-12 rounded-lg object-cover"/><span className="min-w-0"><b className="block truncate text-sm">{dogLabel(d)}</b><small className="block truncate text-xs opacity-45">{d.zone||"Location recorded"}</small></span><span className="text-right"><small className="block text-[10px] font-semibold" style={{color:m.color}}>{m.label}</small><small className="mt-1 block text-[10px] opacity-35">{timeAgo(d.last_seen)}</small></span></Link>})}</div><Link href="/map" className="mt-auto inline-flex items-center gap-1 pt-5 text-xs font-semibold">Find an animal <ArrowUpRight size={13}/></Link></aside>
+ return <main className="ch">
+  {/* One line of orientation, the live count, and the action. A workspace
+      does not need a marketing headline every time it opens. */}
+  <header className="ch-head">
+   <div className="ch-head-id">
+    <h1>Animals in your area</h1>
+    <p className="ch-tally">
+     <b>{scope.length.toLocaleString("en-IN")}</b> on the record
+     {needsHelp>0&&<><span className="ch-dot">·</span><b className="ch-urgent">{needsHelp.toLocaleString("en-IN")}</b> need help</>}
+    </p>
+   </div>
+   <Link href="/report" className="ch-report"><Plus size={16}/>Report an animal</Link>
+  </header>
+  {error&&<p className="ch-error">{error}</p>}
+
+  {/* Map and register share one surface: the rule between them is the only
+      separation, so the list reads as what the map contains. */}
+  <section className="ch-work" aria-label="Animals near you">
+   <div className="ch-map">
+    <FieldMapPreview dogs={inView} center={location} place={location?"Around you":"Across India"}/>
+    <button onClick={findMe} disabled={locating} className="ch-locate"><Crosshair size={13}/>{locating?"Finding you":location?"Around you":"Use my location"}</button>
+    {!inView.length&&<p className="ch-map-empty"><b>No animal recorded here yet.</b> A photo and a location are enough. <Link href="/report">Report the first</Link></p>}
+   </div>
+
+   <div className="ch-register">
+    <p className="ch-register-head"><span>Nearby</span><Link href="/map">Full map <ArrowUpRight size={12}/></Link></p>
+    <ul className="ch-list">
+     {register.slice(0,7).map(d=>{const m=markerMetaFor(d);return <li key={d.id}>
+      <Link href={`/dog/${d.id}`}>
+       <DogPhoto src={d.cover_photo} alt="" seed={d.id} tone={tone(d)} className="ch-thumb"/>
+       <span className="ch-who"><b>{dogLabel(d)}</b><small>{subline(d)}</small></span>
+       <span className="ch-when"><small><i style={{background:m.color}} aria-hidden/>{m.label}</small><small>{timeAgo(d.last_seen)}</small></span>
+      </Link>
+     </li>})}
+    </ul>
+    {register.length>7&&<Link href="/map" className="ch-more">See all {register.length.toLocaleString("en-IN")} nearby <ArrowUpRight size={13}/></Link>}
+   </div>
   </section>
 
-  <section className="mt-10"><div className="flex items-end justify-between gap-4 border-b border-[#0b1e3d]/10 pb-4"><div><p className="text-[11px] font-bold uppercase tracking-[.14em] opacity-35">Rescue stories</p><h2 className="mt-1 text-2xl font-semibold tracking-[-.035em]">Recent rescue updates</h2></div><Link href="/stories" className="text-xs font-semibold text-[#2457ce]">View recent stories <ArrowUpRight className="inline" size={13}/></Link></div>{recent.length?<div className="grid md:grid-cols-3">{recent.map((s,i)=>{const name=s.animal_name||s.animal_code||"Animal record",category=rescueCategory({subtype:s.category,title:s.title,detail:s.outcome});return <Link key={s.dog_id} href={`/dog/${s.dog_id}`} className={`group py-6 md:px-6 ${i?"border-t border-[#0b1e3d]/10 md:border-l md:border-t-0":""} md:first:pl-0`}><DogPhoto src={s.cover_photo} alt={name} seed={s.dog_id} tone="resolved" className="aspect-[16/9] w-full rounded-xl object-cover"/><div className="mt-4 flex items-start justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[.1em] text-[#46755a]">Completed</p><h3 className="mt-1 text-lg font-semibold tracking-[-.025em]">{name}</h3><p className="mt-1 line-clamp-2 text-sm leading-5 opacity-55">{s.title||category}</p></div><ArrowUpRight size={16} className="mt-1 shrink-0 opacity-20 transition group-hover:opacity-70"/></div></Link>})}</div>:<p className="py-8 text-sm opacity-50">Completed rescues appear here once the record is complete.</p>}</section>
+  {/* Activity flows on from the register as a list, not a second grid. */}
+  {recent.length>0&&<section className="ch-activity" aria-label="Recent rescue updates">
+   <p className="ch-activity-head"><span>Recently completed</span><Link href="/stories">All stories <ArrowUpRight size={12}/></Link></p>
+   <ul>
+    {recent.map(s=>{const name=s.animal_name||s.animal_code||"Animal record",category=rescueCategory({subtype:s.category,title:s.title,detail:s.outcome});return <li key={s.dog_id}>
+     <Link href={`/dog/${s.dog_id}`}>
+      <DogPhoto src={s.cover_photo} alt="" seed={s.dog_id} tone="resolved" className="ch-act-thumb"/>
+      <span><b>{name}</b><small>{[category,s.outcome].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(" · ")||s.title}</small></span>
+      <ArrowUpRight size={15}/>
+     </Link>
+    </li>})}
+   </ul>
+  </section>}
 
-  <footer className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#0b1e3d]/10 pt-5 text-xs"><span className="opacity-45">Locations are approximate. Sensitive details are private.</span><div className="flex gap-5 font-semibold"><Link href="/map">Map</Link><Link href="/stories">Stories</Link><Link href="/orgs">Organisations</Link></div></footer>
- </div></main>;
+  <p className="ch-foot">Locations are approximate. Sensitive details stay private.</p>
+ </main>;
 }
