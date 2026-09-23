@@ -27,6 +27,10 @@ does real work once the **Required** block is done.
   5. [x] `supabase/launch-security-lockdown.sql` — final least-privilege gate.
          Removes implicit PUBLIC RPC execution, locks function search paths,
          redacts public identity fields, and hardens feeding-zone/case write paths.
+  6. [x] `supabase/spatial-ref-sys-client-guard.sql` — blocks INSERT/UPDATE/DELETE
+         from API client roles on PostGIS's extension-owned `spatial_ref_sys`.
+         Supabase owns that table as `supabase_admin`, so project migrations cannot
+         enable RLS on it; Security Advisor may still show the platform-owned RLS lint.
 - [ ] Make yourself a partner NGO member so the console shows real data
       (replace the email):
   ```sql
@@ -111,6 +115,9 @@ an existing build).
 ## 5. Privacy gate (do before going public)
 - [x] Confirm RLS is ON for every **app-owned** table. The only Security Advisor
       RLS exception is PostGIS's extension-owned `spatial_ref_sys` metadata table.
+      Client DML on that table is blocked by `spatial-ref-sys-client-guard.sql`;
+      the remaining advisor finding is ownership/platform metadata, not an
+      unguarded StrayPaw table.
 - [x] Public identity spot-check: reporter names and feeding-zone user UUIDs are
       redacted; reporter email and raw/internal records are not in public views.
 - [x] SECURITY DEFINER write audit: admin/moderation/report-ingest functions are
