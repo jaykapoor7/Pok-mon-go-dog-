@@ -1,6 +1,8 @@
 import Link from "next/link";
 import "./civic.css";
 import { LAB, fmt, dateLabel, photo, shortId, veeraEntries } from "../data";
+import { CITIES, SAMPLE } from "../data";
+import { IndiaLocator } from "../India";
 import { hexbin, projector } from "../geo";
 import { Band } from "./parts";
 import { Machine, type MItem, type MHex } from "./Machine";
@@ -46,6 +48,24 @@ export function CivicLanding() {
         <Link href="/lab/civic/ngo" className="ci-btn ghost">For organisations and municipalities <span className="arr">→</span></Link>
       </div>
 
+      <section className="ci-cities" aria-label="Where the register is">
+        <div className="ci-cities-board">
+          <span className="lbl">On the register in · north to south</span>
+          <ol>
+            {CITIES.slice().sort((a, b) => b.lat - a.lat).map((c) => (
+              <li key={c.city}>
+                <b>{c.city.toUpperCase()}</b>
+                <span className="st">{c.state}</span>
+                <span className="mono n">{fmt(c.animals)}</span>
+                <span className="note">{c.city === SAMPLE ? "sample city for the maps in this register" : `${fmt(c.reports)} resident reports`}</span>
+              </li>
+            ))}
+          </ol>
+          <p>{fmt(t.animals)} animals across India. Maps of a whole city use Coimbatore, our densest register, as the sample.</p>
+        </div>
+        <div className="ci-cities-map"><IndiaLocator width={300} ink="#0b1e3d" accent="#2457ce" font="var(--ci-mono)" size={11} /></div>
+      </section>
+
       <section className="ci-line-sec" aria-label="How the register works">
         <div className="ci-sec-h">
           <span className="num">02</span>
@@ -77,7 +97,7 @@ export function CivicLanding() {
               })}
             </tbody>
           </table>
-          <div className="ci-form-f">{v.place}, Coimbatore · held by {vr.ngo} · vaccinations on days 0, 4, 8, 16, 29 follow the spacing of an anti-rabies (ARV) schedule · every row is the organisation&apos;s own entry</div>
+          <div className="ci-form-f">{v.place}, Coimbatore · vaccinations on days 0, 4, 8, 16, 29 follow the spacing of an anti-rabies (ARV) schedule · every row is an entry on the StrayPaw register</div>
         </div>
       </section>
     </main>

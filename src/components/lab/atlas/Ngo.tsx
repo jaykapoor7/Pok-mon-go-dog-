@@ -38,14 +38,14 @@ export function AtlasNgo() {
   });
   const recent = LAB.cbe.events.filter((e) => e[2] >= 731).map((e) => [e[0], e[1]] as [number, number]);
   const month = LAB.cbe.monthly[LAB.cbe.monthly.length - 1];
-  const reg = t.coimbatore;
+  const reg = t.animals;
   return (
     <main className="la night">
       <section className="la-ops" aria-label="Operations plate">
         <Masthead over current="/lab/atlas/ngo" />
         <div className="la-ops-head">
           <span className="cap">Operations plate · Tue 23 Sep 2026</span>
-          <h1>The Pawsome People Project</h1>
+          <h1>Field operations<span className="it"> — sample desk, Coimbatore</span></h1>
           <div className="la-ops-figs">
             <div><b className="hot">{fmt(t.unverified)}</b><span>reports waiting to be verified</span></div>
             <div><b>{fmt(t.inProgress)}</b><span>cases in progress</span></div>
@@ -56,7 +56,7 @@ export function AtlasNgo() {
       </section>
 
       <section className="la-sheet" aria-label="Programme sheet">
-        <span className="cap">Programme sheet · the register, not a sample</span>
+        <span className="cap">Programme sheet · the whole StrayPaw register, India</span>
         <h2>Of {fmt(reg)} animals on the register, <span className="it">what has been done.</span></h2>
         <div className="la-cover">
           <div className="la-cover-row">

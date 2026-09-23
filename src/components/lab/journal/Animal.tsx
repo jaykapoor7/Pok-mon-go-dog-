@@ -38,7 +38,7 @@ export function JournalAnimal() {
               {field("Sterilised", blank("not recorded"))}
               {field("Vaccinated", blank("not recorded"))}
               {field("Case", `in progress · day ${day}`)}
-              {field("Held by", r.ngo)}
+              {field("Register", "StrayPaw · India")}
             </div>
             <div className="fj-stamps-abs" aria-hidden>
               <Stamp r={-8}>Injured</Stamp>

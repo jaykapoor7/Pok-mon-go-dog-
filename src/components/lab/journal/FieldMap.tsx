@@ -66,7 +66,7 @@ export function JournalMap() {
   });
   return (
     <main className="fj">
-      <Mast current="/lab/journal/map" right="Survey sheets · Coimbatore" />
+      <Mast current="/lab/journal/map" right="Survey sheets · sample city: Coimbatore" />
       <Survey days={days} W={W} H={H} terrain={terrain} stipple={stipple} kmPx={kmPx} total={ev.length} />
     </main>
   );

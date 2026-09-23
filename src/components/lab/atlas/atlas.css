@@ -329,3 +329,14 @@
   .la-conv path.draw { animation: none; stroke-dashoffset: 0; }
   .la-veil img { transition: none; }
 }
+
+/* the register across India, in the plate legend */
+.la-india { margin: 26px 0 0; }
+.la-india figcaption { margin-bottom: 10px; font-family: var(--la-cond); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+@media (max-width: 1100px) { .la-india { display: none; } }
+.la-india-m { display: none; }
+@media (max-width: 1100px) {
+  .la-india-m { display: grid; gap: 14px; justify-items: start; margin: 0; padding: 36px var(--la-gutter) 44px; background: var(--la-night, #0b1e3d); color: #efe7da; }
+  .la-india-m figcaption { font-family: var(--la-mono); font-size: 11px; line-height: 1.5; opacity: 0.75; max-width: 40ch; }
+}
+.la-fkey-cap { display: block; margin-bottom: 8px; font-family: var(--la-cond); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }

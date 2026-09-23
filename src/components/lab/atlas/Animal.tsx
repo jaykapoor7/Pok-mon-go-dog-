@@ -18,7 +18,7 @@ export function AtlasAnimal() {
       <div className="la-page">
         <div className="la-title">
           <div>
-            <span className="cap"><Link href="/lab/atlas/map">Atlas</Link> › Coimbatore › RS Puram › Record {shortId(r.id)}</span>
+            <span className="cap"><Link href="/lab/atlas/map">Atlas</Link> › India › Coimbatore › RS Puram › Record {shortId(r.id)}</span>
             <h1>Dog, RS Puram</h1>
             <p><span className="it">Reported three times on {dateLabel(r.firstSeen)}. Case in progress, day {open}.</span></p>
           </div>
@@ -39,7 +39,7 @@ export function AtlasAnimal() {
           <div>
             <dl className="la-reg">
               <dt>Record</dt><dd><span className="mono">{shortId(r.id)}</span> · one identity for this animal</dd>
-              <dt>Held by</dt><dd>{r.ngo}</dd>
+              <dt>Register</dt><dd>StrayPaw · India</dd>
               <dt>Where</dt><dd>RS Puram, Coimbatore <span className="it dim">— exact position withheld while injured</span></dd>
               <dt>Condition</dt><dd>Injured · maggot wound to the face</dd>
               <dt>Sterilisation</dt><dd><span className="la-open" />Not yet recorded</dd>

@@ -19,7 +19,7 @@ export function CivicMap() {
   const locs: CLoc[] = LAB.cbe.localities.map((l) => ({ name: l.name, animals: l.animals, help: l.help, sterilised: l.sterilised, cases: l.cases }));
   return (
     <main className="ci">
-      <Band current="/lab/civic/map" code="COVERAGE · COIMBATORE" />
+      <Band current="/lab/civic/map" code="COVERAGE · SAMPLE CITY: COIMBATORE" />
       <Coverage hexes={hexes} locs={locs} box={[76.86, 10.88, 77.08, 11.12]} />
     </main>
   );

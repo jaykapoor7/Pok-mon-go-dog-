@@ -1,6 +1,6 @@
 "use client";
 
-/* One record, filling up. The card is the organisation's own record of a
+/* One record, filling up. The card is StrayPaw's record of a
    dog found in Veerakeralam: as it scrolls into view each entry is typed on
    in the order it was made, the dose boxes are ticked, and the stamps land
    in the order the work was done. Nothing is added that the record does
@@ -11,7 +11,7 @@ import { Stamp } from "./parts";
 
 type Entry = { day: number; date: string; label: string; kind: string };
 
-export function CaseCard({ id, ngo, place, entries, dateOf }: { id: string; ngo: string; place: string; entries: Entry[]; dateOf: Record<string, string> }) {
+export function CaseCard({ id, place, entries, dateOf }: { id: string; place: string; entries: Entry[]; dateOf: Record<string, string> }) {
   const ref = useRef<HTMLDivElement>(null);
   const [on, setOn] = useState(false);
   useEffect(() => {
@@ -30,7 +30,7 @@ export function CaseCard({ id, ngo, place, entries, dateOf }: { id: string; ngo:
       <div className="fj-card-top">
         <b>RECORD {id}</b>
         <span>{place} · Coimbatore</span>
-        <span>{ngo}</span>
+        <span>StrayPaw register</span>
       </div>
       <div className="fj-card-body">
         <div className="fj-ruled" style={{ ["--fj-mx" as string]: "0px" }}>
@@ -66,7 +66,7 @@ export function CaseCard({ id, ngo, place, entries, dateOf }: { id: string; ngo:
           </div>
         </div>
       </div>
-      <div className="fj-card-foot">Transcribed from the public record. Held by {ngo}; the entries are the organisation&apos;s, in its order, unedited.</div>
+      <div className="fj-card-foot">Transcribed from the StrayPaw register: every entry, in the order it was made, unedited.</div>
     </div>
   );
 }

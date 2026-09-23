@@ -34,11 +34,11 @@ export function CivicNgo() {
   const pins: OPin[] = q.map((x, i) => { const z = zoneAt(x.zone); return z ? { n: i + 1, lng: z[0], lat: z[1], hot: x.status === "unverified" } : null; }).filter(Boolean) as OPin[];
   const recent = LAB.cbe.events.filter((e) => e[2] >= 731);
   const hexes: OHex[] = hexbin(recent, (e) => [e[0], e[1]], 11, 0.55).map((h) => ({ ring: h.ring, c: h.items.length }));
-  const reg = t.coimbatore;
+  const reg = t.animals;
   return (
     <main className="ci">
       <Band current="/lab/civic/ngo" code="OPERATIONS · TUE 23 SEP 2026" />
-      <div className="ci-sub"><span className="lbl">The Pawsome People Project · Coimbatore</span><span className="lbl mono">{fmt(reg)} animals on the register</span></div>
+      <div className="ci-sub"><span className="lbl">Field operations · sample desk: Coimbatore, our densest register</span><span className="lbl mono">{fmt(reg)} animals on the StrayPaw register · India</span></div>
       <section className="ci-kpis" aria-label="Today">
         <div className="ci-kpi alert"><span className="lbl">To verify</span><b>{t.unverified}</b><p>reports waiting to be checked against a record</p></div>
         <div className="ci-kpi"><span className="lbl">In progress</span><b>{t.inProgress}</b><p>cases being worked</p></div>

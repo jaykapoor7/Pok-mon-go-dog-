@@ -75,6 +75,7 @@ export function FieldMapPlate({ events, animals, localities, box }: { events: Ev
     <>
       <div className="la-fmap-map"><LabMap palette={NIGHT} bounds={box} padding={{ top: 80, bottom: 80, left: 40, right: 360 }} onLoad={onLoad} /></div>
       <aside className="la-fkey" aria-label="Atlas key">
+        <span className="la-fkey-cap">Sample city · our densest register</span>
         <h1>Coimbatore<span className="it">field plate, 2024 – 2026</span></h1>
         <ul>
           {KEY.map((x) => (

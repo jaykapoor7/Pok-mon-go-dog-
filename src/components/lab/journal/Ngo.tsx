@@ -4,7 +4,7 @@ import { Mast, Stamp, Tally, PenBar } from "./parts";
 
 export function JournalNgo() {
   const t = LAB.totals;
-  const ngo = LAB.records.veerakeralam.ngo ?? "The Pawsome People Project";
+  const desk = "Sample desk · Coimbatore";
   const q = LAB.queue.slice().sort((a, b) => (a.status === "unverified" ? -1 : 0) - (b.status === "unverified" ? -1 : 0) || b.at.localeCompare(a.at));
   const months = LAB.cbe.monthly.slice(-24);
   const thisMonth = months[months.length - 1];
@@ -18,7 +18,7 @@ export function JournalNgo() {
   const cmax = causes[0][1];
   return (
     <main className="fj">
-      <Mast current="/lab/journal/ngo" right={ngo} />
+      <Mast current="/lab/journal/ngo" right={desk} />
       <div className="fj-spread">
         <section className="fj-page fj-ruled" aria-label="Open cases">
           <div className="fj-pagehead"><span>Duty log · {dateLabel(LAB.snapshot)}</span><span>p. 1</span></div>
@@ -35,13 +35,13 @@ export function JournalNgo() {
             ))}
           </ul>
         </section>
-        <section className="fj-page fj-ruled" aria-label="The organisation's record">
-          <div className="fj-pagehead"><span>{ngo} · Coimbatore</span><span>p. 2</span></div>
+        <section className="fj-page fj-ruled" aria-label="The register">
+          <div className="fj-pagehead"><span>StrayPaw register · India</span><span>p. 2</span></div>
           <div className="fj-tallies">
             <div className="fj-tally"><span className="caps">To verify</span><Tally n={t.unverified} color="var(--fj-stamp)" /><span className="t">{t.unverified} reports</span></div>
             <div className="fj-tally"><span className="caps">Opened in {dateLabel(thisMonth.m + "-01", "month").split(" ")[0]}</span><Tally n={thisMonth.cases} /><span className="t">{thisMonth.cases} cases · {thisMonth.resolved} closed</span></div>
             <div className="fj-tally"><span className="caps">Cases closed, all time</span><b>{fmt(t.resolved)}</b></div>
-            <div className="fj-tally"><span className="caps">Animals on record, Coimbatore</span><b>{fmt(t.coimbatore)}</b></div>
+            <div className="fj-tally"><span className="caps">Animals on the register, India</span><b>{fmt(t.animals)}</b></div>
           </div>
 
           <h2 className="caps" style={{ marginTop: 30, lineHeight: "30px" }}>Programme, of {fmt(t.animals)} animals</h2>

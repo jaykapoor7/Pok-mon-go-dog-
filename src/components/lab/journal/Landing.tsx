@@ -3,6 +3,7 @@ import "./journal.css";
 import { LAB, fmt, dateLabel, photo, sighting, veeraEntries, shortId, ago } from "../data";
 import { Mast, Stamp } from "./parts";
 import { CaseCard } from "./CaseCard";
+import { IndiaLocator } from "../India";
 
 export function JournalLanding() {
   const t = LAB.totals;
@@ -37,6 +38,12 @@ export function JournalLanding() {
             <Link href="/lab/journal/map">Read the survey sheets →</Link>
             <Link href="/lab/journal/ngo">For field teams and NGOs →</Link>
           </div>
+          <figure className="fj-india">
+            <figcaption className="t">Where the pages come from — {fmt(t.animals)} animals across India. Coimbatore, our densest register, is the sample city in these pages.</figcaption>
+            <div className="fj-sheet fj-squared" style={{ ["--fj-sq" as string]: "16px", padding: 18 }}>
+              <IndiaLocator width={220} ink="#1a2437" accent="#d4421f" font="var(--fj-type)" size={11} />
+            </div>
+          </figure>
         </section>
         <section className="fj-page fj-ruled" aria-label="Page 2">
           <div className="fj-pagehead"><span>Filed from the street</span><span>p. 2</span></div>
@@ -59,9 +66,9 @@ export function JournalLanding() {
       <section className="fj-card-sec" aria-label="One record">
         <header>
           <h2>A record is a card that fills&nbsp;up.</h2>
-          <p>A dog was found with a maggot wound in {v.place} on {dateLabel(v.start)}. Here is its record as {vr.ngo} kept it — twenty-nine days, from the first entry to the case being closed. Last written {ago(v.entries[v.entries.length - 1].date)}.</p>
+          <p>A dog was found with a maggot wound in {v.place} on {dateLabel(v.start)}. Here is its StrayPaw record — twenty-nine days, from the first entry to the case being closed. Last written {ago(v.entries[v.entries.length - 1].date)}.</p>
         </header>
-        <CaseCard id={shortId(vr.id)} ngo={vr.ngo ?? ""} place={v.place} entries={v.entries} dateOf={dateOf} />
+        <CaseCard id={shortId(vr.id)} place={v.place} entries={v.entries} dateOf={dateOf} />
       </section>
     </main>
   );

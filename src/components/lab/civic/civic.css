@@ -303,3 +303,20 @@
   .ci-reg-r.new { animation: none; }
   .ci-junction .j-line { animation: none; stroke-dashoffset: 0; }
 }
+
+/* where the register is: a destination board */
+.ci-cities { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: center; padding: clamp(40px, 6vw, 80px) var(--ci-g); border-top: 3px solid var(--ci-rule); }
+.ci-cities-board ol { margin: 14px 0 0; padding: 0; list-style: none; border-top: 2px solid var(--ci-ink); }
+.ci-cities-board li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; grid-template-areas: "c n v" "s t t"; column-gap: 20px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--ci-hair); }
+.ci-cities-board li b { grid-area: c; font-size: clamp(24px, 3.4vw, 44px); font-weight: 800; font-stretch: 118%; letter-spacing: -0.01em; line-height: 1.05; }
+.ci-cities-board li .n { grid-area: v; font-size: clamp(20px, 2.6vw, 34px); }
+.ci-cities-board li .st { grid-area: s; font-size: 13px; color: var(--ci-grey); }
+.ci-cities-board li .note { grid-area: n; font-size: 13px; color: var(--ci-grey); }
+.ci-cities-board li.sample b, .ci-cities-board li.sample .n { color: var(--ci-blue); }
+.ci-cities-board p { margin-top: 16px; max-width: 58ch; font-size: 15px; line-height: 1.5; color: var(--ci-grey); }
+.ci-cities-map { justify-self: center; width: 100%; max-width: 300px; }
+@media (max-width: 760px) {
+  .ci-cities { grid-template-columns: 1fr; }
+  .ci-cities-board li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "c v" "n n" "s s"; }
+  .ci-cities-map { max-width: 240px; justify-self: start; }
+}

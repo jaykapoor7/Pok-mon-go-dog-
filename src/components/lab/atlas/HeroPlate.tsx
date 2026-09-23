@@ -19,7 +19,7 @@ const DURATION = 15000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const EPOCH = Date.UTC(2024, 0, 1);
 
-export function HeroPlate({ events, box, total }: { events: Ev[]; box: Box; total: number }) {
+export function HeroPlate({ events, box, total, children }: { events: Ev[]; box: Box; total: number; children?: React.ReactNode }) {
   const [day, setDay] = useState(events[events.length - 1]?.[2] ?? 0);
   const [n, setN] = useState({ all: total, cases: 0, abc: 0, vacc: 0 });
   const [ticks, setTicks] = useState<{ t: { x: number; label: string }[]; l: { y: number; label: string }[]; km: number; west: number } | null>(null);
@@ -127,11 +127,11 @@ export function HeroPlate({ events, box, total }: { events: Ev[]; box: Box; tota
         )}
         <div className="la-mobile-when" aria-hidden>
           <b className="mono">{when}</b>
-          <span>{n.all.toLocaleString("en-IN")} field records<br />Coimbatore</span>
+          <span>{n.all.toLocaleString("en-IN")} field records<br />sample city: Coimbatore</span>
         </div>
       </div>
       <aside className="la-legend" aria-label="Plate legend">
-        <div className="la-when">{when}<small>Coimbatore · field records to date</small></div>
+        <div className="la-when">{when}<small>Sample city: Coimbatore · field records to date</small></div>
         <div className="la-counts">
           <div><span>Field records</span><b>{n.all.toLocaleString("en-IN")}</b></div>
           <div><span>Cases opened</span><b>{n.cases.toLocaleString("en-IN")}</b></div>
@@ -139,6 +139,7 @@ export function HeroPlate({ events, box, total }: { events: Ev[]; box: Box; tota
           <div><span>Vaccinations</span><b>{n.vacc.toLocaleString("en-IN")}</b></div>
         </div>
         <button type="button" className="la-replay" onClick={() => run.current()}>Replay 2024 → 2026</button>
+        {children}
         <div className="la-key">
           <div><svg width="28" height="10"><circle cx="5" cy="5" r="4" fill="#f05b40" /></svg><span>A case, while it is new</span></div>
           <div><svg width="28" height="10"><circle cx="5" cy="5" r="1.6" fill="#efe7da" opacity=".6" /></svg><span>Care recorded</span></div>

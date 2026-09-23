@@ -2,7 +2,7 @@
 
 /* Survey sheets. Each sheet is one real day of field work in Coimbatore,
    drawn on squared paper over the pencilled terrain of everything the
-   organisation has ever recorded. The day's entries are joined in pen, in
+   register holds for the city. The day's entries are joined in pen, in
    the order a walker would visit them — the record keeps the date of each
    entry, not the time, so the route is the shortest reasonable path and
    says so. Turning the page redraws the route. */
@@ -19,7 +19,7 @@ export function Survey({ days, W, H, terrain, stipple, kmPx, total }: { days: SD
   return (
     <div className="fj-spread fj-survey">
       <section className="fj-page fj-ruled" aria-label="Field log">
-        <div className="fj-pagehead"><span>Coimbatore · field log</span><span>sheet {i + 1} of {days.length}</span></div>
+        <div className="fj-pagehead"><span>Sample city: Coimbatore · field log</span><span>sheet {i + 1} of {days.length}</span></div>
         <h1 className="t" style={{ fontSize: "clamp(26px, 3vw, 40px)", lineHeight: "60px", marginTop: 30 }}>{d.weekday} {d.date}</h1>
         <p className="t" style={{ fontSize: 15, lineHeight: "30px" }}>{d.stops.length} entries at {new Set(d.stops.map((s) => s.place)).size} places · route ≈ {d.length.toFixed(0)} km</p>
         <p className="t" style={{ fontSize: 15, lineHeight: "30px", color: "var(--fj-grey)" }}>{Object.entries(counts).map(([k, n]) => `${n} × ${k.toLowerCase()}`).join(" · ")}</p>

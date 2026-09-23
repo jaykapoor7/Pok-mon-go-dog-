@@ -261,3 +261,8 @@
 @media (max-width: 760px) { .fj-stamps { display: flex; flex-wrap: wrap; gap: 18px 22px; } }
 @media (max-width: 760px) { .fj-tab-more { display: none; } .fj-today { padding-bottom: 76px; } }
 @media (max-width: 760px) { .fj-field .blank { min-width: 48px; margin-right: 6px; } }
+
+.fj-india { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: start; margin: calc(var(--fj-lh) * 2) 0 0; }
+.fj-india figcaption { font-size: 14px; line-height: var(--fj-lh); max-width: 30ch; }
+.fj-india .fj-sheet { margin: 0; width: max-content; max-width: 100%; }
+@media (max-width: 760px) { .fj-india { grid-template-columns: 1fr; } }

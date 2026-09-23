@@ -15,7 +15,7 @@ export function CivicAnimal() {
       <Band current="/lab/civic/map" code={`REC ${shortId(r.id).toUpperCase()}`} />
       <div className="ci-recband">
         <div>
-          <span className="lbl">Animal record · Coimbatore · RS Puram</span>
+          <span className="lbl">Animal record · India · Coimbatore · RS Puram</span>
           <h1>{shortId(r.id)}</h1>
           <p>Dog · injured · case open, day {day}</p>
         </div>
@@ -36,7 +36,7 @@ export function CivicAnimal() {
             <div className="ci-field unknown"><span className="lbl">Sterilisation · ABC</span><b>Not recorded</b></div>
             <div className="ci-field unknown"><span className="lbl">Vaccination</span><b>Not recorded</b></div>
             <div className="ci-field"><span className="lbl">Locality</span><b>RS Puram</b></div>
-            <div className="ci-field"><span className="lbl">Held by</span><b style={{ fontSize: 17 }}>{r.ngo}</b></div>
+            <div className="ci-field"><span className="lbl">Register</span><b style={{ fontSize: 17 }}>StrayPaw · India</b></div>
           </div>
           <div className="ci-junction">
             <h2>3 reports → 1 record</h2>

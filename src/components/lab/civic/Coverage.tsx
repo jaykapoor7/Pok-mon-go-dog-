@@ -77,7 +77,7 @@ export function Coverage({ hexes, locs, box }: { hexes: CHex[]; locs: CLoc[]; bo
       </div>
       <aside className="ci-cov-side">
         <header>
-          <span className="lbl" style={{ color: "#6b7485" }}>Coverage · Coimbatore · 2024–2026</span>
+          <span className="lbl" style={{ color: "#6b7485" }}>Coverage · sample city: Coimbatore · 2024–2026</span>
           <h1>Where the register reaches</h1>
           <p>Every hexagon is about a square kilometre. An empty hexagon means nothing has been recorded there — not that nothing is there.</p>
         </header>

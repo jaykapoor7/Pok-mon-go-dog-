@@ -22,6 +22,7 @@ export type AnimalRecord = {
 };
 export type QueueItem = { id: string; dog: string; at: string; status: string; category: string; title: string; zone: string; photo: string | null };
 export type Outcome = { id: string; dog: string; at: string; opened: string; category: string; zone: string; outcome: string };
+export type City = { city: string; state: string; lat: number; lng: number; animals: number; reports: number };
 export type Month = { m: string; cases: number; care: number; sterilised: number; vaccinated: number; rescue: number; resolved: number };
 
 type Lab = {
@@ -32,6 +33,7 @@ type Lab = {
   records: { veerakeralam: AnimalRecord; rspuram: AnimalRecord };
   queue: QueueItem[];
   outcomes: Outcome[];
+  india: City[];
 };
 
 export const LAB = raw as unknown as Lab;
@@ -137,3 +139,7 @@ export function veeraEntries() {
 
 /** Where a locality is, from the centroid of everything recorded under its name. */
 export const zoneAt = (name: string) => LAB.cbe.zones[name.trim().toLowerCase()] ?? null;
+
+/** Where the register is, across India. Coimbatore is shown throughout as the sample city: it is the densest register we hold. */
+export const SAMPLE = "Coimbatore";
+export const CITIES = LAB.india;
