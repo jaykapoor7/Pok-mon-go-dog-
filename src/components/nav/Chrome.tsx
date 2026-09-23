@@ -85,6 +85,9 @@ export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   if (OWN_CHROME.has(pathname)) return <>{children}</>;
+  /* The design lab draws its own world on every screen; it never ships to
+     production (the lab layout 404s there). */
+  if (pathname.startsWith("/lab")) return <>{children}</>;
   if (SELF_SHELLED.has(pathname) || pathname.startsWith("/partner")) {
     return <>{children}</>;
   }

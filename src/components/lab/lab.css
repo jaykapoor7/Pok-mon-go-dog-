@@ -1,0 +1,25 @@
+/* Lab chrome: deliberately neutral, so it never reads as part of a direction. */
+.labbar { position: fixed; z-index: 9000; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); font: 500 11px/1.3 ui-monospace, "IBM Plex Mono", monospace; color: #fff; }
+.labbar button.labbar-toggle { min-height: 32px; padding: 0 12px; border: 1px solid #333; border-radius: 4px; background: #111; color: #ddd; font: inherit; letter-spacing: .04em; cursor: pointer; }
+.labbar button.labbar-toggle b { color: #fff; margin-right: 4px; }
+.labbar-panel { position: absolute; right: 0; bottom: 40px; width: min(92vw, 520px); padding: 12px; border: 1px solid #333; border-radius: 6px; background: #111; display: grid; gap: 10px; }
+.labbar-panel a { color: #bbb; text-decoration: none; }
+.labbar-panel a:hover, .labbar-panel a[aria-current="page"] { color: #fff; text-decoration: underline; }
+.labbar-row { display: grid; gap: 4px; }
+.labbar-row > span { color: #fff; }
+.labbar-row > div { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+
+/* Index: plain on purpose, so none of the three directions frames the others. */
+.lab-index { min-height: 100svh; padding: clamp(28px, 6vw, 80px) clamp(18px, 5vw, 72px); background: #fafafa; color: #111; font-family: ui-sans-serif, system-ui, sans-serif; }
+.lab-index header p { margin: 0; font: 500 12px/1.4 ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; color: #666; }
+.lab-index h1 { margin: 14px 0 0; font-size: clamp(34px, 5vw, 64px); font-weight: 600; letter-spacing: -.035em; line-height: 1; }
+.lab-index .sub { max-width: 680px; margin-top: 18px; font: 400 16px/1.55 ui-sans-serif, system-ui, sans-serif; text-transform: none; letter-spacing: 0; color: #444; }
+.lab-index ol { list-style: none; margin: 48px 0 0; padding: 0; border-top: 1px solid #111; }
+.lab-index li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; padding: 28px 0; border-bottom: 1px solid #ddd; }
+.lab-dir b { font: 600 13px ui-monospace, monospace; }
+.lab-dir h2 { margin: 6px 0 0; font-size: 28px; letter-spacing: -.02em; }
+.lab-dir p { margin: 8px 0 0; color: #555; font-size: 15px; line-height: 1.5; max-width: 520px; }
+.lab-index nav { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; align-content: start; }
+.lab-index nav a { color: #111; text-decoration: none; min-height: 36px; display: flex; align-items: center; border-bottom: 1px solid #eee; font-size: 15px; }
+.lab-index nav a:hover { text-decoration: underline; }
+@media (max-width: 720px) { .lab-index li { grid-template-columns: 1fr; gap: 16px; } }
