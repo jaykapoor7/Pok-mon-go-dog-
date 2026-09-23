@@ -23,3 +23,8 @@
 .lab-index nav a { color: #111; text-decoration: none; min-height: 36px; display: flex; align-items: center; border-bottom: 1px solid #eee; font-size: 15px; }
 .lab-index nav a:hover { text-decoration: underline; }
 @media (max-width: 720px) { .lab-index li { grid-template-columns: 1fr; gap: 16px; } }
+.lab-system { margin: 0 0 40px; padding: 24px; background: #0b1e3d; color: #f3ede4; }
+.lab-system p { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+.lab-system h2 { margin: 8px 0 14px; font-size: 28px; }
+.lab-system nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.lab-system a { color: #9fb9ef; }

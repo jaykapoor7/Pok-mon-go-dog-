@@ -1,0 +1,12 @@
+import { SystemLanding } from "./Landing";
+import { SystemAnimal } from "./Animal";
+import { SystemCase } from "./Case";
+import { SystemMap } from "./FieldMap";
+import { SystemNgo } from "./Ngo";
+import { SystemHome } from "./Home";
+import { SystemCoverage } from "./Coverage";
+import { SystemAnalytics } from "./Analytics";
+import { SystemOrganisation } from "./Organisation";
+import { SystemProject } from "./Project";
+export { SYSTEM_SCREENS } from "./screens";
+export const SYSTEM = { landing: SystemLanding, home: SystemHome, animal: SystemAnimal, case: SystemCase, map: SystemMap, coverage: SystemCoverage, ngo: SystemNgo, organisation: SystemOrganisation, project: SystemProject, analytics: SystemAnalytics };
