@@ -56,6 +56,7 @@ export function SystemAnimal() {
             <div><dt>First entry</dt><dd className="m">{dateLabel(v.start)}</dd></div>
             <div><dt>Last entry</dt><dd className="m">{dateLabel(c?.resolved ?? r.lastSeen)} <span className="dim">· {sinceLast} days ago</span></dd></div>
           </dl>
+          <div className="sx-id-acts"><Link href={`/lab/system/spatial?animal=${r.id.slice(0, 8)}&view=3d`} className="sx-btn">View in city</Link><Link href={`/lab/system/spatial?animal=${r.id.slice(0, 8)}`} className="sx-btn quiet">View on map</Link></div>
           <ol className="sx-line sx-id-line" style={{ ["--n" as string]: 4 }} aria-label="Where this animal is on the line">
             <li className="sx-stn here"><i /><span className="lbl">Report</span><b>Field intake</b></li>
             <li className="sx-stn here"><i /><span className="lbl">Record</span><b className="m">{shortId(r.id)}</b></li>

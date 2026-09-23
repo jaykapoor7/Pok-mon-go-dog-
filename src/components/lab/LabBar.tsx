@@ -24,7 +24,7 @@ function Bar() {
           <Link href="/lab" onClick={() => setOpen(false)}>All directions</Link>
           <div className="labbar-row">
             <span>Field system · Atlas + Civic</span>
-            <div>{SYSTEM_SCREENS.map((s) => <Link key={s.id} href={`/lab/system/${s.id}`} aria-current={dir === "system" && s.id === screen ? "page" : undefined} onClick={() => setOpen(false)}>{s.name}</Link>)}</div>
+            <div><Link href="/lab/system/spatial" onClick={() => setOpen(false)}>Spatial</Link>{SYSTEM_SCREENS.map((s) => <Link key={s.id} href={`/lab/system/${s.id}`} aria-current={dir === "system" && s.id === screen ? "page" : undefined} onClick={() => setOpen(false)}>{s.name}</Link>)}</div>
           </div>
           {DIRECTIONS.map((d) => (
             <div key={d.id} className="labbar-row">

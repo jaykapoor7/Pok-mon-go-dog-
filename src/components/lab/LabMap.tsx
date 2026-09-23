@@ -37,7 +37,7 @@ export const PAPER: Palette = {
   boundary: "rgba(11,30,61,0.2)", label: "#0b1e3d", labelHalo: "#efe7da", labelOpacity: 0.55,
 };
 
-function restyle(map: MLMap, p: Palette) {
+export function restyle(map: MLMap, p: Palette) {
   // Paint names vary by layer type; the style decides which apply.
   const set = (id: string, prop: string, v: unknown) => { try { (map.setPaintProperty as (i: string, p: string, v: unknown) => void).call(map, id, prop, v); } catch { /* layer absent */ } };
   const hide = (id: string) => { try { map.setLayoutProperty(id, "visibility", "none"); } catch { /* absent */ } };
@@ -78,7 +78,7 @@ function restyle(map: MLMap, p: Palette) {
    vector basemap is fetched afterwards and slid in *beneath* them. If the
    tiles are slow, the plate is already legible; if they never arrive, it
    still is, because the city's shape comes from its records. */
-async function underlay(map: MLMap, palette: Palette) {
+export async function underlay(map: MLMap, palette: Palette) {
   const res = await fetch("https://tiles.openfreemap.org/styles/positron");
   if (!res.ok) return;
   const style = (await res.json()) as { sources: Record<string, unknown>; layers: { id: string; type: string }[]; sprite?: string };

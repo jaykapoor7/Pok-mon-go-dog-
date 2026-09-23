@@ -15,7 +15,7 @@ export default function LabIndex() {
       <section className="lab-system">
         <p>The integrated system · Atlas + Civic</p>
         <h2>StrayPaw field system</h2>
-        <nav>{SYSTEM_SCREENS.map((s) => <Link key={s.id} href={`/lab/system/${s.id}`}>{s.name} →</Link>)}</nav>
+        <nav><Link href="/lab/system/spatial">Spatial intelligence →</Link>{SYSTEM_SCREENS.map((s) => <Link key={s.id} href={`/lab/system/${s.id}`}>{s.name} →</Link>)}</nav>
       </section>
       <ol>
         {DIRECTIONS.map((d) => (

@@ -3,7 +3,7 @@ import { projector, type Box } from "../geo";
 
 const NAV = [
   { href: "/lab/system/home", label: "Nearby" },
-  { href: "/lab/system/map", label: "Map" },
+  { href: "/lab/system/spatial", label: "Map" },
   { href: "/lab/system/coverage", label: "Coverage" },
   { href: "/lab/system/ngo", label: "Operations" },
   { href: "/lab/system/organisation", label: "Organisations" },
@@ -51,7 +51,7 @@ const I = {
 export function Tabs({ current }: { current?: string }) {
   const t = [
     { href: "/lab/system/home", label: "Nearby", i: I.near },
-    { href: "/lab/system/map", label: "Map", i: I.map },
+    { href: "/lab/system/spatial", label: "Map", i: I.map },
     { href: "/lab/system/home#report", label: "Report", i: I.plus, report: true },
     { href: "/lab/system/ngo", label: "Work", i: I.work },
     { href: "/lab/system/animal", label: "Records", i: I.rec },

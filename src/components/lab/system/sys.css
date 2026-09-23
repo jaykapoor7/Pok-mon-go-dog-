@@ -869,3 +869,4 @@
 .sx-proj-tpl li { display: grid; grid-template-columns: 34px 220px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--sx-line); font-size: 14.5px; }
 .sx-proj-tpl li .hatch { height: 10px; outline: 1px solid var(--sx-line-2); }
 @media (max-width: 860px) { .sx-proj-def { grid-template-columns: 1fr 1fr; } .sx-proj-def div:nth-child(3) { padding-left: var(--sx-g); border-left: 0; } .sx-proj-grid { grid-template-columns: 1fr; } .sx-proj-grid > section:nth-child(even) { border-left: 0; } .sx-proj-line .sx-line { --n: 2 !important; row-gap: 28px; } .sx-proj-line .sx-line::before { display: none; } .sx-proj-tpl li { grid-template-columns: 30px minmax(0, 1fr) 60px; } }
+.sx-id-acts { display: flex; flex-wrap: wrap; gap: 10px; }
