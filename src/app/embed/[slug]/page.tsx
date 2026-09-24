@@ -26,11 +26,11 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
   const impact = await getPublicOrgImpact(org.id);
   const location = [org.city, org.state].filter(Boolean).join(", ") || org.area;
   const extraMetrics = [
-    impact.sterilised > 0 && { value: impact.sterilised, label: "Documented as sterilised" },
-    impact.vaccinated > 0 && { value: impact.vaccinated, label: "Documented as vaccinated" },
+    impact.sterilised > 0 && { value: impact.sterilised, label: "Sterilised" },
+    impact.vaccinated > 0 && { value: impact.vaccinated, label: "Vaccinated" },
     impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
-    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Cases resolved" },
-  ].filter(Boolean).slice(0, 3) as { value: number; label: string }[];
+    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Resolved cases" },
+  ].filter(Boolean) as { value: number; label: string }[];
   const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
   return (
@@ -42,6 +42,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
             <img className={styles.logo} src={org.logo_url} alt={`${org.name} logo`} />
           ) : <span className={styles.logoFallback} aria-hidden="true">{initials || "NGO"}</span>}
           <div className={styles.identityCopy}>
+            <p className={styles.live}><span aria-hidden="true" />Live records</p>
             <h1 className={styles.name}>{org.name}</h1>
             {location && <p className={styles.place}>{location}</p>}
           </div>
@@ -63,6 +64,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
               ))}
             </div>
           )}
+          {extraMetrics.length > 0 && <p className={styles.metricsNote}>Documented through StrayPaw</p>}
           <a className={styles.cta} href={`${SITE_URL}/org/${org.slug}`} target="_blank" rel="noopener noreferrer">
             <span>View live records</span><ArrowUpRight aria-hidden="true" size={17} strokeWidth={2} />
           </a>
