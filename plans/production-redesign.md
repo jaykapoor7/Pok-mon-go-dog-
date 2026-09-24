@@ -1,6 +1,6 @@
 # StrayPaw production redesign — the plan
 
-- **Status**: PLAN FOR REVIEW. No production code has been changed.
+- **Status**: APPROVED, in implementation on `claude/pensive-sagan-0sivge`. See [Decisions](#15-decisions) for what was approved and the build order that replaced §12.
 - **Base**: `main` at `fdf8464`
 - **Lab source**: `claude/straypaw-delhi-app-toifso` at `1f8a27b` (Atlas / Civic / Journal directions, `/lab/system`, `/lab/system/spatial`). Not merged into `main`.
 - **Data**: the live Supabase register, read with aggregate queries only. No names, contacts or free text were copied into this document.
@@ -26,7 +26,7 @@ The target: **today's StrayPaw, with the same features and flows, redesigned wit
 12. [Migration order](#12-migration-order)
 13. [Testing strategy](#13-testing-strategy)
 14. [What will NOT change](#14-what-will-not-change)
-15. [Decisions needed from you](#15-decisions-needed-from-you)
+15. [Decisions](#15-decisions)
 
 ---
 
@@ -402,7 +402,7 @@ A line under every legend reads: **"Recorded animals, not population."**
 - The URL state `?mode=&cell=&t=&from=&to=&f=` is shared with `/insights` and `/partner/reports`.
 - Selecting an area on the map recomputes analytics. Changing an analytics filter recolours the map.
 
-**7.7 2D Intelligence | 3D City**
+**7.7 2D Intelligence | 3D City** — *out of scope (decision 2): no Google tiles, Cesium, building extrusions or fallbacks in this redesign. Kept here only as a record of the idea.*
 - A segmented toggle. 3D is lazy-loaded.
 - **3D City (a)**: Google Photorealistic 3D Tiles in CesiumJS, loaded from the CDN only when opened, *if* a key is configured and photogrammetry exists near the focus. The lab's coverage test is reused.
 - **3D City (b)**, the fallback: satellite imagery plus **OpenStreetMap building footprints**. **Only buildings with a recorded height are extruded; the rest are drawn flat as footprints.** Nothing is generated. Each view states its source.
@@ -595,6 +595,8 @@ The importer (`lib/master-import/*`) learns items 3, 5, 6, 8 and 9, so future wo
 
 ## 12. Migration order
 
+> **Superseded by the approved order in §15.** 3D City (P7 below) is out of scope, and analytics now follows the map directly: map and analytics are designed as one connected system. The table is kept as the dependency record.
+
 Each phase is one or more PRs, each shippable and verified on the production build. Nothing lands as a big bang. The order puts the priorities you named early while respecting dependencies.
 
 | Phase | Work | Depends on | Size |
@@ -641,7 +643,7 @@ Each phase is one or more PRs, each shippable and verified on the production bui
 - **Case lifecycle statuses** and the enum values stored today.
 - **Security and privacy**: the RLS model, public rounding to 0.01°, no coordinates in JSON-LD, reporter identity never public, the **no-auto-merge** policy.
 - **URLs**: every existing route keeps working. Any merge uses redirects only.
-- **Brand**: name, mark, headline wording, fonts (DM Sans / Instrument Serif / DM Mono), colour tokens (extended, never recoloured).
+- **Brand**: name, mark, headline wording, fonts (DM Sans / DM Mono, with Newsreader as the editorial face for large figures and one emphasis line — Instrument Serif had already been removed from `main`), colour tokens (extended, never recoloured).
 - **Map stack**: MapLibre with the keyless OpenFreeMap and CARTO fallback (restyled, not replaced).
 - **i18n**: the five languages and the dictionary structure.
 - **Out of scope beyond a token pass**: fundraisers, education, feeding, surveys, volunteers, stories, feed, and the marketing and legal pages.
@@ -650,7 +652,20 @@ Each phase is one or more PRs, each shippable and verified on the production bui
 
 ---
 
-## 15. Decisions needed from you
+## 15. Decisions
+
+Approved, with these answers:
+
+1. **Sample city — yes.** The landing page uses Coimbatore as its *sample city*, the partner stays unnamed, and the page says plainly that it is a sample, not "StrayPaw = Coimbatore".
+2. **3D City — out.** No Google, Cesium, TopoExport, 3D buildings or fallbacks for now. Relief on the 2D map (cells raised by what they hold) is the only depth.
+3. **Stale cases — build the review tool.** Surface stale and incomplete cases for a person to review. Nothing is ever closed automatically.
+4. **Imported `resolved_at` — flag and exclude.** `resolved_at_source` is `recorded`, `import_derived` or `import_assumed`. Only recorded dates on cases closed after field work feed time-to-resolution. Assumed dates are counted as excluded. The source data is untouched.
+5. **Sparse public cells — "few".** A public cell or locality with one or two records shows "few", not an exact count. A share over one or two animals is not drawn. Members see their records.
+6. **Order:** Foundations → Hero / Landing → Map + spatial intelligence → Analytics → NGO dashboard → Dog profile → Community home → Cases / organisations / projects → full consistency and clean-up. Map and analytics are one connected system. Push to `main` only once everything is green and visually QA'd.
+
+Standing instructions that came with the approval: keep every existing feature and flow; the lab is inspiration, not a replacement; keep the map visually minimal and let analytics explain the numbers; use the rescue-data findings to improve workflows (stale cases, ABC/ARV completeness, repeated places, "animal not found", seasonality), not only charts; restore Follow, Share, Comment and Export on profiles; stop sending every animal row to the browser; and hold the *whole* site to the higher creative standard — the workflows are right, the visuals are not.
+
+### The questions as they were asked
 
 1. **Sample-city framing.** Depth exists only for Coimbatore. May the landing page and public analytics name Coimbatore as the sample city, while keeping the partner organisation unnamed as the lab did? (Recommended: yes.)
 2. **3D City source.** Google Photorealistic 3D Tiles needs a Google Maps Platform key with billing and Google's attribution. Approve it, or ship the OpenStreetMap-footprint 3D only? (Recommended: ship OSM first and add Google once the lab's coverage test passes for Coimbatore and Delhi.)

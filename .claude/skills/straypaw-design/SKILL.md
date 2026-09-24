@@ -144,10 +144,12 @@ reads as disabled), **plain** (text only, for tertiary actions).
 
 ## Typography
 
-Three faces, already wired: **DM Sans** (`--font-sans`, everything), **Instrument
-Serif** (`--font-display`, italic, for the second line of a headline and for large
-figures), **DM Mono** (`--font-mono`, for data that must be read exactly — counts,
-coordinates, route paths, dates, record codes).
+Three faces, already wired: **DM Sans** (`--font-sans`, the interface — everything
+that is not one of the two jobs below), **Newsreader** (`--font-serif-stack`, the
+editorial face, with exactly two jobs: the large figure a section is about, and the
+one emphasis line under a headline — often italic), and **DM Mono** (`--font-mono`,
+for data that must be read exactly — counts in a table, coordinates, cell codes,
+dates, record IDs). `--font-display` is a name, not a face: it resolves to DM Sans.
 
 - Monospace is **information, not decoration**. Use it where the reader needs to
   compare or transcribe a value. Never as a stylistic flourish.
@@ -236,6 +238,68 @@ like every other AI-generated product, and they are out of bounds:
   the absence.
 - "Not examined" is drawn as the unfilled part of a shape, never as a third colour and
   never as a bare integer beside two others, which reads as a scoreboard.
+
+## Data and space
+
+The register is drawn in one visual language wherever it appears — the landing
+plate, the map, analytics, a profile, a dashboard — so a reader learns each
+encoding once. The code for it lives in `src/lib/spatial` (dataset, builder,
+engine, measures) and `src/components/system` (Hatch, ShareBand, Figure, Spark,
+ScaleLadder, HexPlate); reuse them rather than drawing a second version.
+
+**The unit of place is one H3 cell at resolution 8 (≈0.74 km²).** The same cell
+appears on the landing plate, the map, in analytics filters and on a profile.
+In public, nothing is placed finer than its cell: a record's dot is drawn at a
+fixed point *inside* its cell, never at an address.
+
+**One dataset, never rows.** Screens read the compact dataset from
+`/api/spatial` (cached, flat integer tuples, ≈90 KB gzipped for the whole
+register) and compute with the pure functions in `engine.ts`/`measures.ts`.
+Never ship every animal row to the browser. An organisation's view is the same
+dataset built with the member's own token, so RLS decides what it holds.
+
+Encodings — these meanings are fixed:
+
+- **Recorded density: sequential blue**, light to deep (`--sp-seq-*`, `--sp-nseq-*`
+  on night). More is always darker. Nothing else uses this ramp.
+- **Attention: flame** (`--sp-flame`, `pal.att`) — injured, open, critical. It
+  marks what needs someone, never decoration.
+- **Not recorded is hatched** (`<Hatch>`, ShareBand `hatch: true`, the map's
+  `hatch-*` pattern). Never a colour, never zero, never omitted. A share is drawn
+  as the recorded part *inside* the whole, at its real size, with the rest hatched.
+- **Not mapped is a dashed edge.** The honeycomb carries on one ring past the last
+  record, so the end of the data never reads as the end of the city.
+- **Coverage is ink weight, not hue** — well / partly / weakly mapped, too few
+  records, not mapped — so it can never be read as density. Thresholds live in
+  `coverageOf()`; use `COVERAGE_TEXT` for the words.
+- ARV is teal (`--sp-arv`), feeding points ochre (`pal.feed`). Neither is a warning.
+
+Words that go with them, always: **"Recorded animals, not population."** A light or
+empty place is "not recorded" or "not mapped", never "no dogs", "low need" or "safe".
+
+**Sparse public places read "few".** On public screens, a count of one or two for a
+cell or locality prints as *few* (`fewOr(n, isPublic)`, `FEW = 3`). A share over
+one or two animals is not drawn; a fixed small mark says "recorded here" instead.
+Members of the organisation that holds the records see exact numbers.
+
+**Time.** Day zero is 2000-01-01 and `-1` means "no date". Every clock starts at
+`robustStart()`, where the record really begins. Stray early dates are folded
+into the first month and never dropped. Future-dated records are left out of
+anything drawn over time and counted as an evidence issue. Time-to-resolution
+uses recorded resolution dates on cases closed after field work only. An
+imported date that had to be assumed is counted and excluded, never averaged in.
+
+**Map ↔ analytics contract.** Both read the same URL state, so a place chosen in
+one opens in the other: `/map?mode=&city=&q=<locality>&cell=<h3>&m=<month>&lens=`
+and `/insights?city=&q=&cell=` (`/partner/reports` for an organisation).
+
+**Grounds.** `NIGHT` (the map and landing plate), `PAPER` (daylight), `PLATE` (night
+with no borrowed lettering) in `components/map/basemap.ts`. Data draws first; the
+streets are slid in underneath and may never block it. A graticule on a map is
+information; a grid behind a page is decoration.
+
+`npm run test:spatial` runs the builder and engine on a synthetic city; extend it
+when a rule above changes.
 
 ## Verify by measuring, not by eyeballing
 
