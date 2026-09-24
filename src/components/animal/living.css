@@ -216,3 +216,25 @@
   .lr { max-width: none; }
   .lr-portrait { max-height: 320px; }
 }
+
+/* ── the place, as a portrait ──────────────────────────────────────── */
+.lr-portrait.is-place { display: block; }
+.lr-placemap { position: relative; margin: 0; width: 100%; height: 100%; min-height: 360px; background: var(--sp-night, #07142b); }
+.lr-placemap-canvas { position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease; }
+.lr-placemap.is-ready .lr-placemap-canvas { opacity: 1; }
+.lr-placemap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(7, 20, 43, 0.55) 100%), linear-gradient(to top, rgba(7, 20, 43, 0.92), transparent 42%); }
+.lr-placemap figcaption { position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 2; display: grid; gap: 4px; color: #efe7da; }
+.lr-placemap-k { font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(239, 231, 218, 0.7); }
+.lr-placemap figcaption b { font-family: var(--font-serif-stack); font-size: clamp(24px, 3vw, 32px); font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; }
+.lr-placemap figcaption > span:nth-child(3) { font-size: 12.5px; line-height: 1.45; color: rgba(239, 231, 218, 0.78); max-width: 42ch; }
+.lr-placemap .maplibregl-ctrl-attrib { background: rgba(7, 20, 43, 0.6); color: rgba(239, 231, 218, 0.6); z-index: 3; }
+.lr-placemap .maplibregl-ctrl-bottom-right { top: 0; bottom: auto; }
+.lr-placemap-credit { font-size: 10px; color: rgba(239, 231, 218, 0.45); }
+.lr-plate.is-map { width: 100%; }
+.lr-placemap.is-area { min-height: 0; aspect-ratio: 4 / 3; border-radius: 20px; overflow: hidden; }
+.lr-placemap.is-area::after { background: linear-gradient(to top, rgba(7, 20, 43, 0.85), transparent 30%); }
+.lr-placemap-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 12px; color: rgba(239, 231, 218, 0.85); }
+.lr-placemap-key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; margin-right: -6px; }
+.lr-placemap-key i.is-self { background: rgba(240, 91, 64, 0.5); box-shadow: inset 0 0 0 1.5px #f7a08c; }
+.lr-placemap-key i.is-some { background: #4f7fe0; }
+.lr-placemap-key i.is-none { box-shadow: inset 0 0 0 1px rgba(239, 231, 218, 0.5); }

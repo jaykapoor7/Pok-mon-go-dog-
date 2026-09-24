@@ -23,11 +23,15 @@ export function CareLanes({ events, from, label }: { events: LivingEvent[]; from
   const now = Date.now();
   const t0 = Math.min(...[from, ...events.map((e) => e.date)].filter(Boolean).map((d) => Date.parse(d as string)), now - 60 * 86_400_000);
   const span = Math.max(60 * 86_400_000, now - t0);
+  /* Only the lanes that hold something: an animal with one request should
+     not be drawn as four empty tracks. */
+  const lanes = LANES.filter((l) => events.some((e) => e.lane === l.id));
+  const shown = lanes.length ? lanes : LANES.slice(0, 1);
   const W = 1000, padL = 104, padR = 16, laneH = 34, top = 8;
-  const H = top + LANES.length * laneH + 28;
+  const H = top + shown.length * laneH + 28;
   const x = (iso: string) => padL + ((Date.parse(iso) - t0) / span) * (W - padL - padR);
   const xNow = padL + ((now - t0) / span) * (W - padL - padR);
-  const y = (lane: Lane) => top + LANES.findIndex((l) => l.id === lane) * laneH + laneH / 2;
+  const y = (lane: Lane) => top + Math.max(0, shown.findIndex((l) => l.id === lane)) * laneH + laneH / 2;
   const ticks: { x: number; label: string; year: boolean }[] = [];
   const d0 = new Date(t0);
   for (let d = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1)); +d <= now; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + (span > 700 * 86_400_000 ? 3 : 1), 1))) {
@@ -38,7 +42,7 @@ export function CareLanes({ events, from, label }: { events: LivingEvent[]; from
   return (
     <figure className="lr-lanes">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
-        {LANES.map((l) => (
+        {shown.map((l) => (
           <g key={l.id}>
             <line x1={padL} x2={W - padR} y1={y(l.id)} y2={y(l.id)} className="lr-lane-rule" />
             <text x={0} y={y(l.id) + 4} className="lr-lane-label">{l.label}</text>
@@ -70,14 +74,9 @@ export function CareLanes({ events, from, label }: { events: LivingEvent[]; from
         })}
       </svg>
       <figcaption>
-        <span><i className="is-done" /> request closed after field work</span>
-        <span><i className="is-open" /> still open</span>
-        <span><i className="is-none" /> closed without action</span>
-        <span><i className="is-ster" /> sterilised</span>
-        <span><i className="is-vacc" /> vaccinated</span>
-        <span><i className="is-care" /> other care</span>
-        <span><i className="is-miss" /> follow-up missed</span>
-        <span><i className="is-sight" /> seen by a resident</span>
+        {([["done", "request closed after field work"], ["open", "still open"], ["none", "closed without action"], ["ster", "sterilised"], ["vacc", "vaccinated"], ["care", "other care"], ["miss", "follow-up missed"], ["sight", "seen by a resident"]] as const)
+          .filter(([t]) => events.some((e) => e.tone === t || (t === "sight" && e.lane === "sight")))
+          .map(([t, l]) => <span key={t}><i className={`is-${t}`} /> {l}</span>)}
       </figcaption>
     </figure>
   );

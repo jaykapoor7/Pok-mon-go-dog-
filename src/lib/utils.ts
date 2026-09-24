@@ -73,7 +73,11 @@ export function pluralize(n: number, singular: string, plural?: string) {
  * them by area. A genuinely user-given nickname is still honoured when present.
  */
 export function dogLabel(dog: { name?: string | null; zone?: string | null }): string {
-  const name = dog.name?.trim();
+  let name = dog.name?.trim();
+  /* Imported records arrive with a generated label, "Dog · KK Pudur · Oct
+     2024" — a filing line, not a name anyone gave the animal. */
+  const generated = name ? /^(dog|cat|animal|puppy|kitten)\s*·\s*([^·]+)/i.exec(name) : null;
+  if (generated) { name = undefined; if (!dog.zone?.trim()) dog = { ...dog, zone: generated[2].trim() }; }
   /* Names come from whatever the reporter typed on their phone, so a good
      share of them arrive all in lower case — the animal leading the hero
      is recorded as "pinky". Capitalising a name that carries no capitals

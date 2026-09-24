@@ -16,8 +16,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { HexPlate } from "@/components/system/HexPlate";
-import { HatchDef } from "@/components/system/Hatch";
+import { PlaceMap } from "./PlaceMap";
 import type { Living, LivingEvent } from "@/lib/animal/living";
 import { fewOr } from "@/lib/spatial/engine";
 import { CareLanes } from "./CareLanes";
@@ -64,11 +63,7 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
           {r.photo ? (
             <DogPhoto src={r.photo} alt={r.label} seed={r.id} tone={r.known.health === "needs_help" ? "urgent" : "neutral"} className="lr-photo" />
           ) : r.place ? (
-            <figure className="lr-noplate">
-              <HexPlate width={420} height={420} box={r.place.box} night label={`Where ${r.label} is recorded`}
-                cells={r.place.cells.map((c) => ({ key: c.key, ring: c.ring, fill: c.self ? "var(--sp-flame)" : c.n ? ["#1b3f80", "#2a5bb8", "#4f7fe0", "#93b1f0"][Math.min(3, Math.floor(Math.sqrt(c.n / 30) * 4))] : "rgba(239,231,218,0.06)" }))} />
-              <figcaption>No photograph yet. This is where it is recorded: its cell, in flame, among the cells around it.</figcaption>
-            </figure>
+            <PlaceMap center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
           ) : <DogPhoto src={null} alt={r.label} seed={r.id} className="lr-photo" />}
           {r.photos.length > 1 && <span className="lr-count sys-mono">{r.photos.length} photographs</span>}
         </div>
@@ -171,22 +166,16 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
             <p className="lr-sec-n sys-mono">{unresolved.length ? "05" : "04"}</p>
             <h2>Where it lives</h2>
             <p>
-              Its cell holds <b>{fewOr(r.place.here, scope === "public")}</b> recorded animal{r.place.here === 1 ? "" : "s"}. The darker cells around it hold more; the pale ones are where nobody has recorded one yet — which is not the same as none being there.
+              Its cell holds <b>{fewOr(r.place.here, scope === "public")}</b> recorded animal{r.place.here === 1 ? "" : "s"}. The brighter areas around it hold more; the dashed ones are where nobody has recorded an animal yet — which is not the same as none being there.
             </p>
             <p className="lr-place-links">
               <Link href={mapHref}>Open this cell on the map <ArrowUpRight size={13} /></Link>
               <Link href={`${scope === "org" ? "/partner/reports" : "/insights"}?cell=${r.place.cell}`}>Explain this place <ArrowUpRight size={13} /></Link>
             </p>
           </header>
-          <figure className="lr-plate">
-            <svg width="0" height="0" aria-hidden className="lr-defs"><defs><HatchDef id="lr-none" /></defs></svg>
-            <HexPlate width={420} height={360} box={r.place.box} hatchId="lr-none" scaleBarKm={1} label={`The cells around ${r.label}`}
-              cells={r.place.cells.map((c) => ({
-                key: c.key, ring: c.ring,
-                fill: c.n ? ["var(--sp-seq-1)", "var(--sp-seq-2)", "var(--sp-seq-3)", "var(--sp-seq-4)", "var(--sp-seq-5)"][Math.min(4, Math.floor(Math.sqrt(c.n / 30) * 5))] : "transparent",
-                hatch: !c.n, selected: c.self, title: c.self ? `This animal's cell: ${c.n} recorded` : `${c.n} recorded`,
-              }))} />
-          </figure>
+          <div className="lr-plate is-map">
+            <PlaceMap variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={0} />
+          </div>
         </section>
       )}
 
