@@ -123,20 +123,20 @@ async function readPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
   }
 
   if (!supa) return empty;
-  const [profilesResult, caseRecords, activeCases, resolvedCases] = await Promise.all([
-    supa.from("public_animal_profiles")
-      .select("id, sterilised, vaccinated, sterilisation_status, vaccination_status")
-      .eq("ngo_id", ngoId)
-      .limit(5000),
+  const [animals, sterilised, vaccinated, caseRecords, activeCases, resolvedCases] = await Promise.all([
+    supa.from("public_animal_profiles").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
+    supa.from("public_animal_profiles").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
+      .or("sterilisation_status.eq.sterilised,and(sterilisation_status.is.null,sterilised.eq.true)"),
+    supa.from("public_animal_profiles").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
+      .or("vaccination_status.eq.vaccinated,and(vaccination_status.is.null,vaccinated.eq.true)"),
     supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
     supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).in("status_class", ["open", "in_progress"]),
     supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status_class", "closed"),
   ]);
-  const rows = profilesResult.data ?? [];
   return {
-    animalsRecorded: rows.length,
-    sterilised: rows.filter((row: any) => row.sterilisation_status === "sterilised" || (row.sterilisation_status == null && row.sterilised)).length,
-    vaccinated: rows.filter((row: any) => row.vaccination_status === "vaccinated" || (row.vaccination_status == null && row.vaccinated)).length,
+    animalsRecorded: animals.count ?? 0,
+    sterilised: sterilised.count ?? 0,
+    vaccinated: vaccinated.count ?? 0,
     caseRecords: caseRecords.count ?? 0,
     activeCases: activeCases.count ?? 0,
     resolvedCases: resolvedCases.count ?? 0,
