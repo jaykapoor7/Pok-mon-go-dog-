@@ -1265,8 +1265,6 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 .trust-partner span { color: var(--sp-muted, #5d6b7c); }
 .trust-partner a { color: var(--sp-ink, #0b1e3d); text-decoration: none; }
 .trust-partner a:hover { color: var(--sp-blue, #2457ce); }
-.trust-source { margin: 0; max-width: 62ch; font-size: 12px; line-height: 1.6; color: var(--sp-muted, #5d6b7c); }
-.trust-source a { color: var(--sp-blue, #2457ce); }
 @media (max-width: 520px) {
   .trust-figures { gap: 6px 20px; }
   .trust-figures dt { font-size: 17px; }

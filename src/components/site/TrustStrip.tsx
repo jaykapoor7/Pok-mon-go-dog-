@@ -49,12 +49,6 @@ export async function TrustStrip({ total }: { total: number }) {
         </p>
       )}
 
-      <p className="trust-source">
-        Counts are read from the register and the{" "}
-        <Link href="/orgs">public directory</Link>, each entry naming its own
-        source. What the register cannot yet answer is listed on{" "}
-        <Link href="/gaps">what is known</Link>.
-      </p>
     </section>
   );
 }

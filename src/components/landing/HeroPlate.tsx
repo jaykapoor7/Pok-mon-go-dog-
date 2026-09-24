@@ -23,7 +23,6 @@ import { pointInCell } from "@/components/spatial/data";
 const DURATION = 15000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthOf = (day: number) => { const d = new Date(EPOCH_MS + day * 86_400_000); return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
-const yearOf = (day: number) => new Date(EPOCH_MS + day * 86_400_000).getUTCFullYear();
 
 type Props = {
   city: string;
@@ -168,17 +167,11 @@ export function HeroPlate({ city, box, rings, events }: Props) {
       <div className={`ld-plate ${ready ? "is-ready" : ""}`} ref={el} aria-hidden />
       <div className="ld-meter" aria-live="off">
         <p className="ld-meter-when">
-          <span className="sys-eyebrow is-night">Sample city · {city}</span>
+          <span>Sample city · {city}</span>
           <b className="sys-mono">{monthOf(t.day)}</b>
         </p>
-        <dl>
-          <div><dt><i className="ld-dot is-case" aria-hidden />Cases opened</dt><dd className="sys-mono">{t.cases.toLocaleString("en-IN")}</dd></div>
-          <div><dt><i className="ld-dot is-care" aria-hidden />Care recorded</dt><dd className="sys-mono">{t.care.toLocaleString("en-IN")}</dd></div>
-          <div><dt><i className="ld-dot is-light" aria-hidden />Places with work</dt><dd className="sys-mono">{t.cells.toLocaleString("en-IN")}</dd></div>
-        </dl>
-        <p className="ld-ramp-note">Each point is one event — a case opened or care given — not one animal. The glow is where they gather.</p>
         <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
-          {playing ? "Filling in…" : `Replay ${events.length ? yearOf(events[1]) : ""} → today`}
+          {playing ? "Filling in…" : "Replay"}
         </button>
       </div>
     </>

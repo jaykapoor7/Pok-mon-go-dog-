@@ -49,7 +49,6 @@ export function RequestFlow({ requests, status, reasons, noActionTotal }: {
     tone: r.reason === "could_not_locate" ? TONE.lost : TONE.reason,
     hatch: r.reason === "unspecified",
   }));
-  const lost = reasons.find((r) => r.reason === "could_not_locate")?.n ?? 0;
 
   /* ── the diagram (u along the flow, v across it) ─────────────────── */
   const W = 1000, V0 = 190;
@@ -147,12 +146,6 @@ export function RequestFlow({ requests, status, reasons, noActionTotal }: {
         ))}
       </ol>
 
-      {lost > 0 && (
-        <p className="ld-flow-callout">
-          <b>{fmt(lost)} times</b> the animal could not be found or caught — the largest reason a request never became a rescue.
-          A precise place, a photograph and a second sighting are exactly what a StrayPaw report carries.
-        </p>
-      )}
     </div>
   );
 }

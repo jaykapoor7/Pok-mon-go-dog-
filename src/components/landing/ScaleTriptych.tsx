@@ -75,10 +75,8 @@ export function ScaleTriptych({ city, ladder }: {
           <LightsMap center={street.center} box={boxOf(street.cells, 0)} outline={focusCell ? ringOf(focusCell) : undefined} lights={dots.map(({ d: [lng, lat], focus }) => ({ lng, lat, help: focus }))} dot={2.2} credit={false} label={`One cell in ${locality.name}, with ${street.animals} animals recorded`} />
         </div>
         <figcaption>
-          <span className="sys-eyebrow">Street · one cell, 0.74 km²</span>
-          <b className="ld-scale-n">{street.animals.toLocaleString("en-IN")}</b>
-          <span>animals recorded in one cell of {locality.name}, outlined in flame, and its neighbours. Each light is one record, placed inside its cell rather than at an address the register does not hold.</span>
-          <Link href={q("cell", street.cell)} className="sys-link">See this cell <ArrowUpRight size={14} /></Link>
+          <span className="sys-eyebrow">Street · one cell</span>
+          <Link href={q("cell", street.cell)} className="ld-scale-go"><b className="ld-scale-n">{street.animals.toLocaleString("en-IN")}</b><span>animals in one cell of {locality.name} <ArrowUpRight size={14} aria-hidden /></span></Link>
         </figcaption>
       </figure>
       <figure className="ld-scale">
@@ -86,10 +84,8 @@ export function ScaleTriptych({ city, ladder }: {
           <LightsMap center={street.center} box={boxOf(locality.cells, 0)} lights={lightsOf(locality.cells, 80, street.cell)} dot={1.6} credit={false} label={`Around ${locality.name}: ${locality.animals} animals in ${locality.recordedCells} of ${locality.cellCount} cells`} />
         </div>
         <figcaption>
-          <span className="sys-eyebrow">Neighbourhood · around {locality.name}</span>
-          <b className="ld-scale-n">{locality.animals.toLocaleString("en-IN")}</b>
-          <span>animals in {locality.recordedCells} of the {locality.cellCount} cells within about three kilometres. The dark streets have nothing recorded yet — which is not the same as no dogs.</span>
-          <Link href={q("q", locality.name)} className="sys-link">Open {locality.name} <ArrowUpRight size={14} /></Link>
+          <span className="sys-eyebrow">Neighbourhood · 3 km</span>
+          <Link href={q("q", locality.name)} className="ld-scale-go"><b className="ld-scale-n">{locality.animals.toLocaleString("en-IN")}</b><span>animals around {locality.name} <ArrowUpRight size={14} aria-hidden /></span></Link>
         </figcaption>
       </figure>
       <figure className="ld-scale">
@@ -97,10 +93,8 @@ export function ScaleTriptych({ city, ladder }: {
           <LightsMap center={street.center} box={ladder.city.box} lights={lightsOf(ladder.city.cells, 60)} dot={1.1} label={`${city}: ${ladder.city.animals} animals across ${ladder.city.cellCount} cells`} />
         </div>
         <figcaption>
-          <span className="sys-eyebrow">City · {city}, the sample</span>
-          <b className="ld-scale-n">{ladder.city.animals.toLocaleString("en-IN")}</b>
-          <span>animals across {ladder.city.cellCount} cells: the recorded footprint of one partner&apos;s rescue register, not a census of the city&apos;s dogs.</span>
-          <Link href={q("city", city)} className="sys-link">Open the city <ArrowUpRight size={14} /></Link>
+          <span className="sys-eyebrow">City · sample</span>
+          <Link href={q("city", city)} className="ld-scale-go"><b className="ld-scale-n">{ladder.city.animals.toLocaleString("en-IN")}</b><span>animals across {city} <ArrowUpRight size={14} aria-hidden /></span></Link>
         </figcaption>
       </figure>
     </div>

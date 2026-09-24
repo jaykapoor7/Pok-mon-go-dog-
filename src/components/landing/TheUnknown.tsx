@@ -32,6 +32,7 @@ export function TheUnknown({ total, ster, vacc, photo }: { total: number; ster: 
           <ShareBand
             height={30}
             night
+            legend={false}
             total={total}
             parts={[
               { key: "yes", n: r.k.yes, color: r.key === "arv" ? "var(--sp-arv-night)" : "var(--sp-nseq-4)", label: r.yes },
@@ -42,8 +43,7 @@ export function TheUnknown({ total, ster, vacc, photo }: { total: number; ster: 
         </div>
       ))}
       <p className="ld-unknown-ask">
-        See a notched ear or a vaccination collar? That single observation moves an animal out of the hatched part of the bar.
-        <Link href="/report" className="sys-link is-night">Add it to the record <ArrowUpRight size={14} /></Link>
+        <Link href="/report" className="sys-link is-night">Seen a notched ear? Add it to the record <ArrowUpRight size={14} /></Link>
       </p>
     </div>
   );

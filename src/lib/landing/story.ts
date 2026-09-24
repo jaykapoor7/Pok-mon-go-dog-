@@ -30,7 +30,7 @@ function coreBox(ds: SpatialDataset, cells: number[], lo: number, hi: number, pa
   return [q(xs, lo) - pad, q(ys, lo) - pad, q(xs, hi) + pad, q(ys, hi) + pad];
 }
 
-function buildStory(ds: SpatialDataset, pinky: { id: string; straypaw_id: string | null } | null) {
+function buildStory(ds: SpatialDataset) {
   const ix = buildIndex(ds);
   const city = 0; // busiest first
   const sample = ds.cities[city];
@@ -91,7 +91,6 @@ function buildStory(ds: SpatialDataset, pinky: { id: string; straypaw_id: string
   };
 
   /* every request, a square */
-  const conditions = conditionOutcome(ds, allCases).map((r) => ({ condition: r.condition, total: r.total, by: r.by }));
 
   /* the scale ladder: one well-recorded cell → its neighbourhood → the city.
      The cell is chosen for the richness of what surrounds it, not for the
@@ -137,7 +136,7 @@ function buildStory(ds: SpatialDataset, pinky: { id: string; straypaw_id: string
   const knowledge = animalKnowledge(ds, ix, null, ds.today);
 
   /* the register across India */
-  const india = ds.cities.filter((c) => c.animals > 0).map((c) => ({ name: c.name, state: c.state, lng: c.lng, lat: c.lat, animals: c.animals }));
+  const citiesWithAnimals = ds.cities.filter((c) => c.animals > 0).length;
 
   return {
     totals: {
@@ -146,17 +145,14 @@ function buildStory(ds: SpatialDataset, pinky: { id: string; straypaw_id: string
       care: countOf(ds.care, K_STRIDE),
       sightings: countOf(ds.sightings, 4),
       residentAnimals: knowledge.resident,
-      cities: india.length,
+      cities: citiesWithAnimals,
       sampleShare: sample ? sample.animals / Math.max(1, countOf(ds.animals, A_STRIDE)) : 0,
       cityCases: cityCases.length,
     },
     hero,
     flow,
-    conditions,
     ladder,
     knowledge,
-    india,
-    pinky,
     today: ds.today,
     built: ds.built,
   };
@@ -165,13 +161,7 @@ function buildStory(ds: SpatialDataset, pinky: { id: string; straypaw_id: string
 export async function getLandingStory() {
   const ds = await getPublicDataset(null);
   if (!ds || !ds.cities.length) return null;
-  let pinky: { id: string; straypaw_id: string | null } | null = null;
-  try {
-    const supa = getSupabase();
-    const { data } = await supa!.from("public_spatial_animals").select("id,straypaw_id").ilike("name", "pinky").not("cover_photo", "is", null).limit(1);
-    pinky = data?.[0] ?? null;
-  } catch { /* the photograph stands without its link */ }
-  return buildStory(ds, pinky);
+  return buildStory(ds);
 }
 
 /** Resident photographs on the record, newest first, for the register strip. */
