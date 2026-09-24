@@ -114,6 +114,7 @@
 .sm-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
 .sm-dot.is-ink { background: var(--sm-text); }
 .sm-dot.is-help { background: var(--sp-flame); }
+.sm-dot.is-undated { background: transparent; box-shadow: inset 0 0 0 1.4px var(--sm-text); }
 .sm-dot.is-res { background: #93b1f0; }
 .sm.is-paper .sm-dot.is-res { background: var(--sp-seq-5); }
 .sm-dot.is-ring { background: transparent; box-shadow: inset 0 0 0 1.5px var(--sm-text); }
@@ -267,7 +268,11 @@
   .sm .maplibregl-ctrl-bottom-right { right: 0; bottom: 118px; }
   .sm-top { top: 8px; left: 8px; right: 8px; width: auto; gap: 6px; }
   .sm-top .sys-ladder { max-width: calc(100vw - 72px); overflow: hidden; white-space: nowrap; }
-  .sm-modes { flex-wrap: nowrap; overflow-x: auto; max-width: calc(100vw - 64px); scrollbar-width: none; }
+  .sm-modes { flex-wrap: nowrap; overflow-x: auto; max-width: calc(100vw - 64px); scrollbar-width: none; scroll-behavior: smooth; }
+  /* More chips past the edge: that edge fades, so the row reads as a row that scrolls. */
+  .sm-modes[data-more="right"] { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+  .sm-modes[data-more="left"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px); mask-image: linear-gradient(90deg, transparent, #000 36px); }
+  .sm-modes[data-more="both"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
   .sm-modes::-webkit-scrollbar { display: none; }
   .sm-modes button { flex: none; height: 36px; }
   .sm-q { max-width: calc(100vw - 64px); padding: 8px 10px; gap: 6px; }

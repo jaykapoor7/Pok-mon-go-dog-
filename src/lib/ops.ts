@@ -55,3 +55,11 @@ const DAY = 86_400_000;
 /** Open, older than ninety days, and nothing recorded for thirty: work for a person to decide. */
 export const isStale = (c: OpenCase, now = Date.now()) =>
   !!c.occurred_at && now - Date.parse(c.occurred_at) > 90 * DAY && (!c.last_activity_at || now - Date.parse(c.last_activity_at) > 30 * DAY);
+
+/** The live queue's order. Overdue follow-ups first, then critical cases,
+    then the rest; within each group the OLDEST first — the item that has
+    waited longest is the one most likely to be forgotten behind newer
+    work. `age` is days waited (days overdue, for a follow-up). */
+export type QueueItem = { kind: "followup" | "case"; crit: boolean; age: number };
+export const queueRank = (x: QueueItem) => (x.kind === "followup" ? 0 : x.crit ? 1 : 2);
+export const queueOrder = (a: QueueItem, b: QueueItem) => queueRank(a) - queueRank(b) || b.age - a.age;

@@ -17,7 +17,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import {
-  A, A_STRIDE, AF, C, C_STRIDE, DAY_MS, EPOCH_MS, EPOCH_YEAR, K, K_STRIDE, S, S_STRIDE, SF,
+  A, A_STRIDE, AF, C, C_STRIDE, DAY_MS, EPOCH_MS, EPOCH_YEAR, K, K_STRIDE, RES, S, S_STRIDE, SF, UNDATED,
   type SpatialDataset,
 } from "./types";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, type Condition, type Triage } from "@/lib/register/taxonomy";
@@ -119,12 +119,44 @@ export const kase = (ds: SpatialDataset, i: number) => {
   };
 };
 
-/** Is the case open on day t? Closed cases close on their recorded or assumed day. */
-export const openOn = (ds: SpatialDataset, i: number, t: number) => {
+/** What a case was on day t — the one rule the map, its clock and the
+    analytics share.
+    none:    not reported yet (or undated itself)
+    open:    reported, and not resolved by t
+    closed:  resolved by t — on a known day, or, for a case whose resolution
+             day is unknown, as of today
+    undated: reported by t and resolved by today, but when is unknown, so on
+             a day before today it may have been open or resolved. It is
+             neither counted as open nor as resolved on that day; it is
+             shown as its own thing, "resolved, date unknown". */
+export type CaseState = "none" | "open" | "closed" | "undated";
+export const caseStateOn = (ds: SpatialDataset, i: number, t: number): CaseState => {
   const o = i * C_STRIDE, day = ds.cases[o + C.day], closed = ds.cases[o + C.closedDay];
-  if (day > t || day < 0) return false;
-  return closed < 0 || closed > t;
+  if (day < 0 || day > t) return "none";
+  if (closed === UNDATED) return t >= ds.today ? "closed" : "undated";
+  if (closed < 0) return "open";
+  return closed > t ? "open" : "closed";
 };
+/** Is the case open on day t? Only on what is known: see caseStateOn. */
+export const openOn = (ds: SpatialDataset, i: number, t: number) => caseStateOn(ds, i, t) === "open";
+/** Resolved on day t (on a known day, or as of today when the day is unknown). */
+export const resolvedOn = (ds: SpatialDataset, i: number, t: number) => caseStateOn(ds, i, t) === "closed";
+/** Still open today, whatever the history. */
+export const openNow = (ds: SpatialDataset, i: number) => ds.cases[i * C_STRIDE + C.closedDay] === -1;
+/** A resolved case whose resolution day is not known. */
+export const resolutionUndated = (ds: SpatialDataset, i: number) => ds.cases[i * C_STRIDE + C.closedDay] === UNDATED;
+
+/** The days on which a field team is known to have worked on a case: its
+    first field action and a dated closure after field work. Reporting a
+    case is not field work; nor is closing one without it, nor closing it on
+    review (that is the day the register caught up). */
+export function caseFieldDays(ds: SpatialDataset, i: number): number[] {
+  const o = i * C_STRIDE, day = ds.cases[o + C.day], fa = ds.cases[o + C.firstAction], closed = ds.cases[o + C.closedDay];
+  const out: number[] = [];
+  if (day >= 0 && fa >= 0) out.push(day + fa);
+  if (closed >= 0 && ds.cases[o + C.resolvedSrc] !== RES.reviewed && STATUSES[ds.cases[o + C.status]] === "closed") out.push(closed);
+  return out;
+}
 
 export const triage = (c: Condition, overrides?: Partial<Record<string, Triage>>): Triage =>
   overrides?.[c] ?? DEFAULT_TRIAGE[c] ?? "Routine";
@@ -139,7 +171,7 @@ export function animalVisible(ds: SpatialDataset, i: number, t: number, f: Filte
   if (f.vacc === "unknown" && (flags & (AF.vaccYes | AF.vaccNo))) return false;
   if (f.vacc === "due") { const lv = ds.animals[o + A.lastVacc]; if (!(lv >= 0 && lv <= t && lv < t - 365)) return false; }
   if (f.health === "help" && !(flags & AF.help)) return false;
-  if (f.health === "injured" && !(flags & (AF.injured | AF.help))) return false;
+  if (f.health === "injured" && !(flags & AF.injured)) return false;
   const last = Math.min(Math.max(ds.animals[o + A.last], first), t);
   if (f.seen === "90" && last < t - 90) return false;
   if (f.seen === "365" && last < t - 365) return false;
@@ -154,6 +186,8 @@ export type CellStat = {
   animals: number;
   help: number;
   injured: number;
+  /** Animals that are injured or need help, each counted once. */
+  medical: number;
   sterYes: number;
   sterNo: number;
   vaccYes: number;
@@ -172,9 +206,17 @@ export type CellStat = {
   abc: number;
   arv: number;
   sightings: number;
+  /** Resolved cases whose resolution day is unknown, reported by t (under the filters). */
+  undated: number;
+  /* Everything below is counted before any filter: how well a place is
+     known does not depend on what the reader is looking at. */
   events: number;
   recentEvents: number;
   lastActivity: number;
+  /** The last day a field team is known to have worked here (-1: never recorded). */
+  lastField: number;
+  /** Field-team events in the twelve months to t. */
+  recentField: number;
   coverage: Coverage;
 };
 
@@ -186,7 +228,14 @@ export function coverageOf(observed: number, since: number, events: number): Cov
   return "unmapped";
 }
 
-/** Every cell's state on day t, under the filters. */
+/** Every cell's state on day t, under the filters.
+    Coverage — how well a place is known — is computed from everything
+    recorded there before any filter applies, and its "field work" is field-
+    team activity only (a field-recorded animal's first record, a first field
+    action, a dated closure after field work, a care event). A resident's
+    sighting or an animal's last-seen date counts as a record, never as a
+    visit. The filters then narrow what is counted, never how well a place
+    is known. */
 export function cellStats(ds: SpatialDataset, ix: Index, t: number, f: Filters = NO_FILTERS, city = -1): CellStat[] {
   const out: CellStat[] = [];
   const COULD_NOT = ds.dict.closure.indexOf("could_not_locate");
@@ -196,20 +245,26 @@ export function cellStats(ds: SpatialDataset, ix: Index, t: number, f: Filters =
   for (let c = 0; c < ds.cells.length; c++) {
     if (city >= 0 && ds.cellCity[c] !== city) continue;
     const s: CellStat = {
-      cell: c, animals: 0, help: 0, injured: 0, sterYes: 0, sterNo: 0, vaccYes: 0, vaccNo: 0, due: 0, resident: 0, photo: 0,
-      observed: 0, cases: 0, open: 0, critical: 0, noAction: 0, couldNotLocate: 0, care: 0, abc: 0, arv: 0, sightings: 0,
-      events: 0, recentEvents: 0, lastActivity: -1, coverage: "unmapped",
+      cell: c, animals: 0, help: 0, injured: 0, medical: 0, sterYes: 0, sterNo: 0, vaccYes: 0, vaccNo: 0, due: 0, resident: 0, photo: 0,
+      observed: 0, cases: 0, open: 0, critical: 0, noAction: 0, couldNotLocate: 0, care: 0, abc: 0, arv: 0, sightings: 0, undated: 0,
+      events: 0, recentEvents: 0, lastActivity: -1, lastField: -1, recentField: 0, coverage: "unmapped",
+    };
+    const field = (d: number) => {
+      if (d < 0 || d > t) return;
+      if (d > s.lastField) s.lastField = d;
+      if (d > t - 365) s.recentField++;
     };
     for (const i of ix.animalsByCell[c]) {
-      const o = i * A_STRIDE, first = ds.animals[o + A.first];
+      const o = i * A_STRIDE, first = ds.animals[o + A.first], fl = ds.animals[o + A.flags];
       if (first > t) continue;
       s.observed++;
       s.lastActivity = Math.max(s.lastActivity, Math.min(Math.max(ds.animals[o + A.last], first), t));
+      if (!(fl & AF.resident)) field(first);
       if (!animalVisible(ds, i, t, f)) continue;
-      const fl = ds.animals[o + A.flags];
       s.animals++;
       if (fl & AF.help) s.help++;
       if (fl & AF.injured) s.injured++;
+      if (fl & (AF.help | AF.injured)) s.medical++;
       if (fl & AF.sterYes) s.sterYes++;
       if (fl & AF.sterNo) s.sterNo++;
       if (fl & AF.vaccYes) s.vaccYes++;
@@ -222,15 +277,19 @@ export function cellStats(ds: SpatialDataset, ix: Index, t: number, f: Filters =
     for (const i of ix.casesByCell[c]) {
       const o = i * C_STRIDE, day = ds.cases[o + C.day];
       if (day > t || day < 0) continue;
+      s.events++;
+      if (day > t - 365) s.recentEvents++;
+      s.lastActivity = Math.max(s.lastActivity, day);
+      for (const d of caseFieldDays(ds, i)) field(d);
       if (f.condition >= 0 && ds.cases[o + C.cond] !== f.condition) continue;
       if (f.source === "field" && ds.cases[o + C.source] === 1) continue;
       if (f.source === "resident" && ds.cases[o + C.source] !== 1) continue;
-      s.cases++; s.events++;
-      if (day > t - 365) s.recentEvents++;
-      s.lastActivity = Math.max(s.lastActivity, day);
+      s.cases++;
       if (ds.cases[o + C.status] === NO_ACTION) s.noAction++;
       if (ds.cases[o + C.closure] === COULD_NOT) s.couldNotLocate++;
-      if (openOn(ds, i, t)) {
+      const state = caseStateOn(ds, i, t);
+      if (state === "undated") s.undated++;
+      if (state === "open") {
         s.open++;
         if (DEFAULT_TRIAGE[(CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded") as Condition] === "Critical") s.critical++;
       }
@@ -241,6 +300,7 @@ export function cellStats(ds: SpatialDataset, ix: Index, t: number, f: Filters =
       s.care++; s.events++;
       if (day > t - 365) s.recentEvents++;
       s.lastActivity = Math.max(s.lastActivity, day);
+      field(day);
       if (ds.care[o + K.kind] === ABC) s.abc++;
       if (ds.care[o + K.kind] === ARV) s.arv++;
     }
@@ -251,8 +311,7 @@ export function cellStats(ds: SpatialDataset, ix: Index, t: number, f: Filters =
       if (day > t - 365) s.recentEvents++;
       s.lastActivity = Math.max(s.lastActivity, day);
     }
-    const since = s.lastActivity < 0 ? Infinity : t - s.lastActivity;
-    s.coverage = coverageOf(s.observed, since, s.events);
+    s.coverage = coverageOf(s.observed, s.lastField < 0 ? Infinity : t - s.lastField, s.events);
     out.push(s);
   }
   return out;
@@ -268,11 +327,11 @@ export function modeValue(mode: Mode, s: CellStat): number {
     case "arv":
       return s.animals;
     case "medical":
-      return s.injured + s.help;
+      return s.medical;
     case "cases":
       return s.open;
     case "activity":
-      return s.recentEvents;
+      return s.recentField;
   }
 }
 

@@ -172,12 +172,11 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           <b className="sys-mono">{monthOf(t.day)}</b>
         </p>
         <dl>
-          <div><dt>Field records</dt><dd className="sys-mono">{t.records.toLocaleString("en-IN")}</dd></div>
           <div><dt><i className="ld-dot is-case" aria-hidden />Cases opened</dt><dd className="sys-mono">{t.cases.toLocaleString("en-IN")}</dd></div>
           <div><dt><i className="ld-dot is-care" aria-hidden />Care recorded</dt><dd className="sys-mono">{t.care.toLocaleString("en-IN")}</dd></div>
           <div><dt><i className="ld-dot is-light" aria-hidden />Places with work</dt><dd className="sys-mono">{t.cells.toLocaleString("en-IN")}</dd></div>
         </dl>
-        <p className="ld-ramp-note">Each point is one field record; the glow is where they gather.</p>
+        <p className="ld-ramp-note">Each point is one event — a case opened or care given — not one animal. The glow is where they gather.</p>
         <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
           {playing ? "Filling in…" : `Replay ${events.length ? yearOf(events[1]) : ""} → today`}
         </button>

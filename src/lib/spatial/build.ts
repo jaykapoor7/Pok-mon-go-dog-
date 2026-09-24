@@ -23,12 +23,13 @@ import {
   CARE_KINDS, CLOSURE_REASONS, CONDITIONS, INTAKES, SEVERITIES, STATUSES,
 } from "@/lib/register/taxonomy";
 import {
-  A, A_STRIDE, AF, C, C_STRIDE, H3_RES, K_STRIDE, RES, S_STRIDE, SF, dayOf,
+  A, A_STRIDE, AF, C, C_STRIDE, H3_RES, K_STRIDE, RES, S_STRIDE, SF, UNDATED, dayOf,
   type CityInfo, type FrontierCell, type NextCell, type SpatialDataset,
 } from "./types";
+import { coverageOf } from "./engine";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 8;
+export const DATASET_VERSION = 9;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -305,6 +306,7 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
   });
 
   /* cases */
+  const today = dayOf(now.toISOString());
   const cases: number[] = [];
   rows.cases.forEach((c, i) => {
     const cell = caseCell[i];
@@ -312,10 +314,22 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
     const day = dayOf(c.occurred_at);
     const status = c.status_class && STATUSES.includes(c.status_class as never) ? c.status_class : "unknown";
     const open = status === "open" || status === "in_progress";
-    // Closed on its resolution date; failing that, on the day a person
-    // reviewed and closed it (it was open on the register until then);
-    // failing both, the day it opened.
-    const closed = open ? -1 : c.resolved_at ? Math.max(day, dayOf(c.resolved_at)) : c.reviewed_at ? Math.max(day, dayOf(c.reviewed_at)) : day;
+    // A resolution day is used only when the source actually knows it: a
+    // recorded date, a date the import read from its workbook, or the day a
+    // person closed it on the register. An assumed date (an import that had
+    // none stored the opening day) and a date in the future (a data-entry
+    // error) are not dates: the case is resolved, date unknown. The source
+    // row is left as it is; only its reading here changes.
+    const src = c.resolved_at_source === "recorded" ? RES.recorded : c.resolved_at_source === "import_derived" ? RES.workbook : null;
+    const within = (d: number) => (d >= 0 && d <= today ? Math.max(day, d) : -1);
+    let closed = -1, resolvedSrc: number = RES.assumed;
+    if (!open) {
+      const dated = src !== null && c.resolved_at ? within(dayOf(c.resolved_at)) : -1;
+      const reviewed = c.reviewed_at ? within(dayOf(c.reviewed_at)) : -1;
+      if (dated >= 0) { closed = dated; resolvedSrc = src!; }
+      else if (reviewed >= 0) { closed = reviewed; resolvedSrc = RES.reviewed; }
+      else closed = UNDATED;
+    }
     const cond = c.condition_class && CONDITIONS.includes(c.condition_class as never) ? c.condition_class : "Not recorded";
     cases.push(
       cell,
@@ -327,7 +341,7 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
       c.intake_channel ? dictIndex(INTAKES, c.intake_channel) : -1,
       typeof c.first_action_days === "number" ? c.first_action_days : -1,
       closed,
-      c.resolved_at_source === "recorded" ? RES.recorded : c.resolved_at_source === "import_derived" ? RES.workbook : RES.assumed,
+      resolvedSrc,
       Math.max(0, dictIndex(SEVERITIES, c.severity)),
       c.followups_done ?? 0, c.followups_missed ?? 0, c.followups_upcoming ?? 0,
       orgOf(c.ngo_id),
@@ -347,7 +361,6 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
     sightings.push(cell, s.dog_id ? animalIdx.get(s.dog_id) ?? -1 : -1, dayOf(s.created_at), f);
   });
 
-  const today = dayOf(now.toISOString());
   const { frontier, next } = frontierAndNext(cells, cellCity, cellLocality, localities, centers, animals, cases, care, sightings, today);
 
   return {
@@ -394,22 +407,48 @@ function outlineOf(cells: string[]): [number, number][][][] {
 
 /* ── the edge of what is known, and where to look next ──────────────── */
 
+/** Why a place is suggested next, in words that claim only what is known.
+    "Nothing recorded" and "no field-team record" are different facts: a
+    place can hold residents' sightings and never a field team's record. */
+export function nextReasons(neighbours: number, ownAnimals: number, ownEvents: number, fieldMonths: number | null): string[] {
+  const recorded = ownAnimals + ownEvents;
+  return [
+    `${neighbours.toLocaleString("en-IN")} animals recorded in the six cells around it`,
+    recorded === 0 ? "nothing recorded here"
+      : ownAnimals === 0 ? `no animals recorded here, ${ownEvents === 1 ? "one other record" : `${ownEvents} other records`}`
+      : ownAnimals <= 2 ? `only ${ownAnimals === 1 ? "one animal" : "two animals"} recorded here`
+      : `${ownAnimals} animals recorded here`,
+    fieldMonths == null ? "no field-team record here" : `no field-team activity recorded for ${fieldMonths} months`,
+  ];
+}
+
 function frontierAndNext(
   cells: string[], cellCity: number[], cellLocality: number[], localities: string[], centers: number[],
   animals: number[], cases: number[], care: number[], sightings: number[], today: number,
 ): { frontier: FrontierCell[]; next: NextCell[] } {
   const nCells = cells.length;
   const obs = new Array(nCells).fill(0);
-  const last = new Array(nCells).fill(-1);
   const events = new Array(nCells).fill(0);
+  /* Field-team activity only — the same rule the map's coverage uses
+     (engine.fieldDaysOf): a field-recorded animal's first record, a first
+     field action, a dated closure after field work, a care event. A
+     resident's sighting or a last-seen date is a record, not a visit. */
+  const lastField = new Array(nCells).fill(-1);
+  const seeField = (c: number, d: number) => { if (d >= 0 && d <= today && d > lastField[c]) lastField[c] = d; };
+  const CLOSED = STATUSES.indexOf("closed");
   for (let i = 0; i < animals.length; i += A_STRIDE) {
     const c = animals[i + A.cell];
     obs[c]++;
-    last[c] = Math.max(last[c], animals[i + A.last], animals[i + A.first]);
+    if (!(animals[i + A.flags] & AF.resident)) seeField(c, animals[i + A.first]);
   }
-  for (let i = 0; i < cases.length; i += C_STRIDE) { const c = cases[i + C.cell]; events[c]++; last[c] = Math.max(last[c], cases[i + C.day]); }
-  for (let i = 0; i < care.length; i += K_STRIDE) { const c = care[i]; events[c]++; last[c] = Math.max(last[c], care[i + 2]); }
-  for (let i = 0; i < sightings.length; i += S_STRIDE) { const c = sightings[i]; events[c]++; last[c] = Math.max(last[c], sightings[i + 2]); }
+  for (let i = 0; i < cases.length; i += C_STRIDE) {
+    const c = cases[i + C.cell], day = cases[i + C.day], fa = cases[i + C.firstAction];
+    events[c]++;
+    if (day >= 0 && fa >= 0) seeField(c, day + fa);
+    if (cases[i + C.status] === CLOSED && cases[i + C.resolvedSrc] !== RES.reviewed) seeField(c, cases[i + C.closedDay]);
+  }
+  for (let i = 0; i < care.length; i += K_STRIDE) { const c = care[i]; events[c]++; seeField(c, care[i + 2]); }
+  for (let i = 0; i < sightings.length; i += S_STRIDE) events[sightings[i]]++;
 
   const byKey = new Map(cells.map((k, i) => [k, i]));
   const frontier: FrontierCell[] = [];
@@ -434,33 +473,27 @@ function frontierAndNext(
 
   const obsOf = (k: string) => { const i = byKey.get(k); return i === undefined ? 0 : obs[i]; };
   const candidates: NextCell[] = [];
-  const consider = (k: string, city: number, own: number, lastDay: number, locality: string) => {
+  const consider = (k: string, city: number, own: number, ownEvents: number, fieldDay: number, locality: string) => {
     const nb = neighbours(k).reduce((a, n) => a + obsOf(n), 0);
     if (nb < 12) return;
-    const months = lastDay < 0 ? null : Math.round((today - lastDay) / 30.4);
+    const months = fieldDay < 0 ? null : Math.round((today - fieldDay) / 30.4);
     if (months != null && months < 12) return;
     const [lat, lng] = cellToLatLng(k);
     candidates.push({
       cell: k, center: [round5(lng), round5(lat)], city, locality, neighbours: nb,
-      reasons: [
-        `${nb.toLocaleString("en-IN")} animals recorded in the six cells around it`,
-        own === 0 ? "nothing recorded here at all" : own <= 2 ? `only ${own === 1 ? "one record" : "two records"} here` : "records here are thin",
-        months == null ? "never visited by a field team" : `no field record for ${months} months`,
-      ],
+      reasons: nextReasons(nb, own, ownEvents, months),
     });
   };
   cells.forEach((k, i) => {
-    const since = last[i] < 0 ? Infinity : today - last[i];
-    const strong = obs[i] >= 8 && since <= 180;
-    const partial = obs[i] >= 3 && since <= 365;
-    if (strong || partial) return;
-    consider(k, cellCity[i], obs[i], last[i], cellLocality[i] >= 0 ? localities[cellLocality[i]] : "");
+    const c = coverageOf(obs[i], lastField[i] < 0 ? Infinity : today - lastField[i], events[i]);
+    if (c === "strong" || c === "partial") return;
+    consider(k, cellCity[i], obs[i], events[i], lastField[i], cellLocality[i] >= 0 ? localities[cellLocality[i]] : "");
   });
   for (const [k, city] of frontierNear) {
     // Name an unrecorded cell after its busiest recorded neighbour.
     let best = -1, bn = -1;
     for (const n of neighbours(k)) { const i = byKey.get(n); if (i !== undefined && obs[i] > bn) { bn = obs[i]; best = i; } }
-    consider(k, city, 0, -1, best >= 0 && cellLocality[best] >= 0 ? localities[cellLocality[best]] : "");
+    consider(k, city, 0, 0, -1, best >= 0 && cellLocality[best] >= 0 ? localities[cellLocality[best]] : "");
   }
   candidates.sort((a, b) => b.neighbours - a.neighbours);
   // One suggestion per locality: two adjacent cells of the same place are one visit.

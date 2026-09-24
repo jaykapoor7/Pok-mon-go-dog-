@@ -10,6 +10,7 @@
    ───────────────────────────────────────────────────────────── */
 
 import { getSupabase } from "./supabase";
+import { spatialChanged } from "./spatial/refresh";
 
 export type ReviewDecision = "still_active" | "closed_done" | "closed_no_action" | "other_ngo" | "set_reason";
 export type ReviewReason = "could_not_locate" | "died" | "recovered" | "caller_unreachable" | "duplicate" | "not_attended" | "other";
@@ -93,5 +94,7 @@ export async function reviewCase(input: {
     p_note: input.note?.trim() || null,
   });
   if (error) return { ok: false, error: error.message };
-  return (data as { ok: boolean; error?: string; status_class?: string }) ?? { ok: false, error: "No answer from the register." };
+  const out = (data as { ok: boolean; error?: string; status_class?: string }) ?? { ok: false, error: "No answer from the register." };
+  if (out.ok) spatialChanged();
+  return out;
 }

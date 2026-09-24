@@ -53,7 +53,7 @@
 }
 .ld-meter-when { margin: 0; display: grid; gap: 4px; }
 .ld-meter-when b { font-size: 26px; font-weight: 500; letter-spacing: -0.02em; color: var(--sp-night-text); }
-.ld-meter dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.ld-meter dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
 .ld-meter dl > div { display: grid; gap: 2px; }
 .ld-meter dt { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--sp-night-dim); }
 .ld-meter dd { margin: 0; font-size: 17px; color: var(--sp-night-text); }
@@ -237,7 +237,7 @@
   .ld-hero-copy { padding: calc(var(--sp-7) + 28px) var(--sp-gutter) var(--sp-5); max-width: none; }
   .ld-plate { position: relative; inset: auto; height: 62svh; min-height: 360px; max-height: 560px; opacity: 1; }
   .ld-meter { position: relative; right: auto; bottom: auto; width: auto; margin: 0; border-radius: 0; border-width: 1px 0 0; background: var(--sp-night); padding: var(--sp-4) var(--sp-gutter); }
-  .ld-meter dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ld-meter dl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ld-meter dd { font-size: 15px; }
   .ld-stage { display: flex; flex-direction: column; }
   .ld-hero-copy { order: 1; }
@@ -261,7 +261,7 @@
   .ld-scale-plate { max-width: 360px; }
 }
 @media (max-width: 420px) {
-  .ld-meter dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ld-meter dl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ld-hero-actions { gap: var(--sp-3) var(--sp-5); }
 }
 .ld-dot.is-light { background: #dbe7ff; box-shadow: 0 0 6px 1px rgba(79, 127, 224, 0.8); }

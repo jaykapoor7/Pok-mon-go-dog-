@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { getSupabase } from "./supabase";
+import { spatialChanged } from "./spatial/refresh";
 import type {
   CaseStatus,
   CaseSeverity,
@@ -69,6 +70,7 @@ export async function createCase(
     p_species: input.species ?? "dog",
   });
   if (error) throw new Error(error.message);
+  spatialChanged();
   return (data as string) ?? null;
 }
 
@@ -127,6 +129,7 @@ export async function addCaseFollowup(input: { caseId: string; dogId?: string | 
     p_case_id: input.caseId, p_dog_id: input.dogId ?? null, p_due_at: input.dueAt, p_note: input.note?.trim() || null,
   });
   if (error) throw new Error(error.message);
+  spatialChanged();
   return (data as string) ?? null;
 }
 
@@ -148,6 +151,7 @@ export async function updateCaseFollowupStatus(input: { followupId: string; stat
     p_due_at: input.dueAt ?? null,
   });
   if (error) throw new Error(error.message);
+  if (data === true) spatialChanged();
   return data === true;
 }
 
@@ -161,6 +165,7 @@ export async function claimCase(caseId: string, actor: Actor): Promise<boolean> 
     p_actor_name: actor.name,
   });
   if (error) throw new Error(error.message);
+  if (data === true) spatialChanged();
   return data === true;
 }
 
@@ -195,7 +200,9 @@ export async function updateCaseStatus(
     p_outcome_note: opts.outcomeNote ?? null,
   });
   if (error) throw new Error(error.message);
-  return (data as StatusResult) ?? { ok: false, error: "Unknown error" };
+  const out = (data as StatusResult) ?? { ok: false, error: "Unknown error" };
+  if (out.ok) spatialChanged();
+  return out;
 }
 
 /** Assign (or reassign) a case to a teammate. */
@@ -210,6 +217,7 @@ export async function assignCase(caseId: string, assignee: { id: string; name: s
     p_actor_name: actor.name,
   });
   if (error) throw new Error(error.message);
+  spatialChanged();
 }
 
 export async function addCaseNote(caseId: string, actor: Actor, note: string) {

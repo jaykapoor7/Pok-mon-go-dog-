@@ -32,7 +32,7 @@ import { Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal } from "luci
 import { ScaleLadder, type Rung } from "@/components/system/ScaleLadder";
 import { NIGHT, PAPER, groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
-  animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf,
+  animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf, caseStateOn, resolvedOn, resolutionUndated,
   type CellStat, type Filters, type Mode,
 } from "@/lib/spatial/engine";
 import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, type NextCell, type SpatialDataset } from "@/lib/spatial/types";
@@ -183,45 +183,59 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
   const prev = useMemo(() => (ds && ix && mode === "change" ? cellStats(ds, ix, t - 365, NO_FILTERS) : []), [ds, ix, t, mode]);
   const statOf = useMemo(() => new Map(stats.map((s) => [s.cell, s])), [stats]);
 
-  /* Which cases the Cases mode is asking about, on day t. */
-  const caseMatch = useCallback((i: number): boolean => {
-    if (!ds || !ix) return false;
+  /* Which cases the Cases mode is asking about, on day t: 0 not asked
+     about, 1 a match, 2 a case whose resolution day is unknown — drawn as
+     its own thing, never counted as open or as resolved on a day it may
+     not have been (engine.caseStateOn). */
+  const caseKind = useCallback((i: number): 0 | 1 | 2 => {
+    if (!ds || !ix) return 0;
     const o = i * C_STRIDE, day = ds.cases[o + C.day];
-    if (day < 0 || day > t) return false;
-    if (filters.condition >= 0 && ds.cases[o + C.cond] !== filters.condition) return false;
-    if (filters.source === "field" && ds.cases[o + C.source] === 1) return false;
-    if (filters.source === "resident" && ds.cases[o + C.source] !== 1) return false;
+    if (day < 0 || day > t) return 0;
+    if (filters.condition >= 0 && ds.cases[o + C.cond] !== filters.condition) return 0;
+    if (filters.source === "field" && ds.cases[o + C.source] === 1) return 0;
+    if (filters.source === "resident" && ds.cases[o + C.source] !== 1) return 0;
     const st = STATUSES[ds.cases[o + C.status]];
+    const state = caseStateOn(ds, i, t);
+    const critical = DEFAULT_TRIAGE[(CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded") as Condition] === "Critical";
     switch (lens) {
-      case "open": return openOn(ds, i, t);
-      case "critical": return openOn(ds, i, t) && DEFAULT_TRIAGE[(CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded") as Condition] === "Critical";
-      case "followup": return ds.cases[o + C.fuUp] > 0 || ds.cases[o + C.fuMissed] > 0;
-      case "noaction": return st === "no_action" || st === "not_attended";
-      case "repeat": { const a = ds.cases[o + C.animal]; return a >= 0 && ix.casesByAnimal[a].length > 1; }
-      case "resolved": { const cd = ds.cases[o + C.closedDay]; return cd >= 0 && cd <= t && st !== "no_action" && st !== "not_attended"; }
+      case "open": return state === "open" ? 1 : state === "undated" ? 2 : 0;
+      case "critical": return !critical ? 0 : state === "open" ? 1 : state === "undated" ? 2 : 0;
+      case "followup": return ds.cases[o + C.fuUp] > 0 || ds.cases[o + C.fuMissed] > 0 ? 1 : 0;
+      case "noaction": return st === "no_action" || st === "not_attended" ? 1 : 0;
+      case "repeat": { const a = ds.cases[o + C.animal]; return a >= 0 && ix.casesByAnimal[a].length > 1 ? 1 : 0; }
+      case "resolved": return st === "no_action" || st === "not_attended" || st === "other_ngo" || !resolvedOn(ds, i, t) ? 0 : resolutionUndated(ds, i) ? 2 : 1;
     }
   }, [ds, ix, t, lens, filters.condition, filters.source]);
+  const caseMatch = useCallback((i: number) => caseKind(i) > 0, [caseKind]);
+  /* Counted: matches, and resolved cases even when their day is unknown;
+     an undated case on the open question is shown, not counted. */
   const lensCounts = useMemo(() => {
     if (!ds || !ix || mode !== "cases") return null;
     const m = new Int32Array(ds.cells.length);
-    for (let i = 0; i < ix.nCases; i++) if (caseMatch(i)) m[ds.cases[i * C_STRIDE + C.cell]]++;
+    for (let i = 0; i < ix.nCases; i++) { const k = caseKind(i); if (k === 1 || (k === 2 && lens === "resolved")) m[ds.cases[i * C_STRIDE + C.cell]]++; }
     return m;
-  }, [ds, ix, mode, caseMatch]);
+  }, [ds, ix, mode, caseKind, lens]);
+  const undatedShown = useMemo(() => {
+    if (!ds || !ix || mode !== "cases") return 0;
+    let n = 0;
+    for (let i = 0; i < ix.nCases; i++) if (caseKind(i) === 2) n++;
+    return n;
+  }, [ds, ix, mode, caseKind]);
 
   const value = useCallback((s: CellStat): number => {
     switch (mode) {
       case "animals": case "density": case "coverage": case "abc": case "arv": return s.animals;
-      case "medical": return s.injured + s.help;
+      case "medical": return s.medical;
       case "cases": return lensCounts ? lensCounts[s.cell] : s.open;
-      case "activity": return s.recentEvents;
-      case "change": return s.recentEvents;
+      case "activity": return s.recentField;
+      case "change": return s.recentField;
     }
   }, [mode, lensCounts]);
   const br = useMemo(() => breaks(stats.map(value), 5), [stats, value]);
 
   type ChangeClass = "new" | "up" | "steady" | "down" | "stopped" | null;
   const changeOf = useCallback((s: CellStat): ChangeClass => {
-    const before = prev[s.cell]?.recentEvents ?? 0, now = s.recentEvents;
+    const before = prev[s.cell]?.recentField ?? 0, now = s.recentField;
     if (!before && !now) return null;
     if (!before) return "new";
     if (!now) return "stopped";
@@ -281,15 +295,17 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     const feats: GeoJSON.Feature[] = [];
     const rings = new Map<number, [number, number][]>();
     for (let i = 0; i < ix.nCases; i++) {
-      if (mode === "cases" ? !caseMatch(i) : !openOn(ds, i, t)) continue;
+      const kind = mode === "cases" ? caseKind(i) : openOn(ds, i, t) ? 1 : 0;
+      if (!kind) continue;
       const o = i * C_STRIDE, c = ds.cases[o + C.cell];
       if (filters.condition >= 0 && ds.cases[o + C.cond] !== filters.condition) continue;
       let r = rings.get(c); if (!r) { r = ringOf(ds, c); rings.set(c, r); }
       const cond = (CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded") as Condition;
-      feats.push({ type: "Feature", properties: { age: t - ds.cases[o + C.day], crit: DEFAULT_TRIAGE[cond] === "Critical" ? 1 : 0, c }, geometry: { type: "Point", coordinates: pointInCell(r, i * 7 + 3) } });
+      /* An undated case carries no waiting rings: how long it waited is not known. */
+      feats.push({ type: "Feature", properties: { age: kind === 2 ? -1 : t - ds.cases[o + C.day], crit: kind === 1 && DEFAULT_TRIAGE[cond] === "Critical" ? 1 : 0, u: kind === 2 ? 1 : 0, c }, geometry: { type: "Point", coordinates: pointInCell(r, i * 7 + 3) } });
     }
     return { type: "FeatureCollection" as const, features: feats };
-  }, [ds, ix, t, mode, filters.condition, caseMatch]);
+  }, [ds, ix, t, mode, filters.condition, caseKind]);
 
   /* Field work: every care event of the last twelve months, as a spark inside its cell. */
   const carePts = useMemo(() => {
@@ -436,8 +452,9 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     } });
     map.addLayer({ id: "cases", type: "circle", source: "cases", layout: { visibility: "none" }, paint: {
       "circle-radius": Z(9, 2.2, 15, 4.6),
-      "circle-color": ["case", ["==", ["get", "crit"], 1], pal.att[3], pal.ink] as ExpressionSpecification,
-      "circle-stroke-color": pal.bg, "circle-stroke-width": 1,
+      "circle-color": ["case", ["==", ["get", "u"], 1], T, ["==", ["get", "crit"], 1], pal.att[3], pal.ink] as ExpressionSpecification,
+      "circle-stroke-color": ["case", ["==", ["get", "u"], 1], pal.ink, pal.bg] as ExpressionSpecification,
+      "circle-stroke-width": ["case", ["==", ["get", "u"], 1], 1.2, 1] as ExpressionSpecification,
     } });
     map.addLayer({ id: "feeding", type: "circle", source: "feeding", layout: { visibility: "none" }, paint: {
       "circle-radius": Z(10, 4, 15, 7.5), "circle-color": pal.bg, "circle-stroke-color": pal.feed, "circle-stroke-width": 2.4,
@@ -505,7 +522,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     try { map.setFilter("pts", ps.filter); map.setFilter("pts-halo", ps.filter); map.setFilter("heat", ps.filter); } catch { /* ok */ }
     ["case-r365", "case-r180", "case-r90", "case-r30"].forEach((id) => set(id, "circle-stroke-color", L.ring));
     set("case-pulse", "circle-color", pal.att[3]);
-    set("cases", "circle-color", ["case", ["==", ["get", "crit"], 1], pal.att[3], pal.ink]); set("cases", "circle-stroke-color", pal.bg);
+    set("cases", "circle-color", ["case", ["==", ["get", "u"], 1], T, ["==", ["get", "crit"], 1], pal.att[3], pal.ink]); set("cases", "circle-stroke-color", ["case", ["==", ["get", "u"], 1], pal.ink, pal.bg]);
     set("next", "circle-color", pal.bg); set("next-n", "text-color", pal.ink);
     set("feeding", "circle-color", pal.bg); set("feeding", "circle-stroke-color", pal.feed);
     set("sel", "line-color", pal.ink);
@@ -606,7 +623,35 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
   }, [ds, padding, selCells]);
 
   const choose = useCallback((s: Sel) => { setSel(s); setSheet(s.t === "cell" || s.t === "empty" ? "open" : "peek"); }, []);
+  /* The mode chips scroll sideways on a phone: fade the edge that has more
+     behind it, and keep the chosen mode in view. */
+  const modesRef = useRef<HTMLDivElement>(null);
+  const [modesMore, setModesMore] = useState<"" | "right" | "left" | "both">("");
+  const readModesEdge = useCallback(() => {
+    const el = modesRef.current; if (!el) return;
+    const left = el.scrollLeft > 2, right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+    setModesMore(left && right ? "both" : left ? "left" : right ? "right" : "");
+  }, []);
   useEffect(() => {
+    const el = modesRef.current; if (!el) return;
+    const on = el.querySelector<HTMLElement>(".is-on");
+    if (on) {
+      const l = on.offsetLeft - 8, r = on.offsetLeft + on.offsetWidth + 8;
+      if (l < el.scrollLeft) el.scrollLeft = l;
+      else if (r > el.scrollLeft + el.clientWidth) el.scrollLeft = r - el.clientWidth;
+    }
+    readModesEdge();
+  }, [mode, phone, readModesEdge]);
+  useEffect(() => {
+    window.addEventListener("resize", readModesEdge);
+    return () => window.removeEventListener("resize", readModesEdge);
+  }, [readModesEdge]);
+
+  /* A link to a point or an area sets the view itself; the city chosen for
+     the side panel must not then fly the camera out to the whole city. */
+  const keepLinkedView = useRef(false);
+  useEffect(() => {
+    if (keepLinkedView.current) { keepLinkedView.current = false; return; }
     if (sel && ready && layersReady) camera(sel, false);
     // The camera moves when the selection changes, not when its helpers are rebuilt.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -640,13 +685,16 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
       if (li >= 0) { const c = ds.cellLocality.findIndex((x) => x === li); s = { t: "locality", city: ds.cellCity[c], locality: li }; }
     } else if (Number.isFinite(lat) && Number.isFinite(lng)) {
       s = { t: "city", city: nearestCity(lng, lat) };
+      keepLinkedView.current = true;
       setSel(s); setSheet("peek");
       mapRef.current?.jumpTo({ center: [lng, lat], zoom: 13.5 });
       return;
     } else if (bbox && bbox.length === 4 && bbox.every(Number.isFinite)) {
-      s = { t: "city", city: nearestCity((bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2) };
+      const [w, so, e, n] = bbox;
+      s = { t: "city", city: nearestCity((w + e) / 2, (so + n) / 2) };
+      keepLinkedView.current = true;
       setSel(s); setSheet("peek");
-      mapRef.current?.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { padding: 30, duration: 0 });
+      mapRef.current?.fitBounds([[Math.min(w, e), Math.min(so, n)], [Math.max(w, e), Math.max(so, n)]], { padding: 30, duration: 0, maxZoom: 17 });
       return;
     }
     if (focus?.startsWith("animal:")) {
@@ -718,8 +766,8 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
       const n = (x: number) => fewOr(x, pub);
       const v = mode === "coverage" ? COVERAGE_TEXT[s.coverage].label
         : mode === "cases" ? `${n(value(s))} ${LENSES.find((l) => l.id === lens)!.unit}`
-        : mode === "medical" ? `${n(s.injured + s.help)} injured or needing help`
-        : mode === "activity" || mode === "change" ? `${n(s.recentEvents)} field records this year`
+        : mode === "medical" ? `${n(s.medical)} injured or needing help`
+        : mode === "activity" || mode === "change" ? `${n(s.recentField)} field-team records this year`
         : (mode === "abc" || mode === "arv") && pub && isSparse(s.animals) ? "few records — too few for a share"
         : mode === "abc" ? `${n(s.sterYes)} of ${n(s.animals)} sterilised on record`
         : mode === "arv" ? `${n(s.vaccYes)} of ${n(s.animals)} vaccinated on record`
@@ -816,8 +864,13 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     );
     if (mode === "cases") return (
       <ul className="sm-key">
-        <li><i className="sm-dot is-help" />Critical</li><li><i className="sm-dot is-ink" />Other</li>
-        <li><i className="sm-rings" />A ring for each month, quarter, half-year and year it has waited</li>
+        {lens === "resolved"
+          ? <li><i className="sm-dot is-ink" />Resolved on a known day</li>
+          : <><li><i className="sm-dot is-help" />Critical</li><li><i className="sm-dot is-ink" />Other</li></>}
+        {undatedShown > 0 && <li><i className="sm-dot is-undated" />{lens === "resolved"
+          ? `Resolved, date unknown (${undatedShown.toLocaleString("en-IN")}) — the source never recorded when`
+          : `Closed on an unknown day (${undatedShown.toLocaleString("en-IN")}) — may still have been open then; not counted as open`}</li>}
+        {lens !== "resolved" && <li><i className="sm-rings" />A ring for each month, quarter, half-year and year it has waited</li>}
       </ul>
     );
     const ramp = pal.seq;
@@ -850,7 +903,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
       <div className="sm-top">
         {notice && <div className="sm-notice">{notice}</div>}
         <ScaleLadder rungs={rungs} night={ground === "night"} />
-        <div className="sm-modes" role="tablist" aria-label="What the map shows">
+        <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.map((x) => (
             <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => setMode(x.id)}>{x.label}</button>
           ))}

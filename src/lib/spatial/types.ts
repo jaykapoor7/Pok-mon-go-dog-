@@ -54,9 +54,15 @@ export const C = {
 } as const;
 /** Where a case's closing date came from (C.resolvedSrc). Only RECORDED
     dates are a measurement; WORKBOOK dates were derived from an imported
-    sheet and are reported separately, with that caveat; ASSUMED means the
-    import had no date and used the day the case opened — never averaged. */
-export const RES = { assumed: 0, recorded: 1, workbook: 2 } as const;
+    sheet and are reported separately, with that caveat; REVIEWED is the day
+    a person closed it on the register; ASSUMED means the source had no date
+    at all (an import stored the opening day in its place). An assumed date
+    is never used as a date: such a case is "resolved, date unknown", and
+    C.closedDay holds UNDATED for it. */
+export const RES = { assumed: 0, recorded: 1, workbook: 2, reviewed: 3 } as const;
+/** C.closedDay of a case that is resolved but whose resolution day is not
+    known. -1 remains "still open". */
+export const UNDATED = -2;
 export const C_STRIDE = 16;
 
 /* Care tuple (medical events). */

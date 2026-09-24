@@ -9,20 +9,22 @@
 
 import assert from "node:assert/strict";
 import { gridDisk, latLngToCell } from "h3-js";
-import { assemble, type AnimalRow, type CaseRow, type CareRow } from "../src/lib/spatial/build";
+import { assemble, nextReasons, type AnimalRow, type CaseRow, type CareRow, type SightRow } from "../src/lib/spatial/build";
 import {
-  animalVisible, breaks, buildIndex, cellStats, coverageOf, FEW, fewOr, firstDay, isSparse, robustStart,
-  monthEndDay, monthLabel, monthOfDay, monthStartDay, NO_FILTERS, openOn, rankOf,
+  animalVisible, breaks, buildIndex, caseStateOn, cellStats, coverageOf, FEW, fewOr, firstDay, isSparse, modeValue, robustStart,
+  monthEndDay, monthLabel, monthOfDay, monthStartDay, NO_FILTERS, openOn, rankOf, resolutionUndated, resolvedOn, type Filters,
 } from "../src/lib/spatial/engine";
 import { animalKnowledge, casesIn, closureReasons, firstAction, monthly, openAging, resolution, statusTotals } from "../src/lib/spatial/measures";
 import { completeness, courses, fates, ledger, season } from "../src/lib/spatial/report";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, STATUS_META } from "../src/lib/register/taxonomy";
-import { C, C_STRIDE, dayOf, H3_RES } from "../src/lib/spatial/types";
+import { C, C_STRIDE, dayOf, H3_RES, RES, UNDATED } from "../src/lib/spatial/types";
+import { queueOrder, type QueueItem } from "../src/lib/ops";
+import { placeLine } from "../src/lib/utils";
 
 const NOW = new Date("2026-09-24T12:00:00Z");
 const c0 = latLngToCell(11.0168, 76.9558, H3_RES);
 const disk = gridDisk(c0, 2).filter((k) => k !== c0);
-const [c1, c2, c3, c4, c5, c6] = disk;
+const [c1, c2, c3, c4, c5, c6, c7] = disk;
 
 let seq = 0;
 const animal = (cell: string, first: string, last: string, extra: Partial<AnimalRow> = {}): AnimalRow => ({
@@ -39,11 +41,14 @@ const kase = (cell: string, dog: string | null, occurred: string, extra: Partial
   followups_done: 0, followups_missed: 0, followups_upcoming: 0, ...extra,
 });
 
-/* c0: ten animals, recent work — well mapped. */
+/* c0: ten animals, recent work — well mapped. Three need attention: one
+   needs help only (9), one is injured and needs help (8), one is injured
+   only (7). */
 const strong = Array.from({ length: 10 }, (_, i) => animal(c0, "2025-01-10", "2026-08-20", {
   sterilisation_status: i < 4 ? "sterilised" : i < 6 ? "not_sterilised" : "unknown",
   vaccination_status: i < 3 ? "vaccinated" : "unknown",
-  needs_help: i === 9,
+  needs_help: i === 9 || i === 8,
+  status: i === 8 || i === 7 ? "injured" : "seen",
 }));
 /* c1: four animals, last seen within the year — partly mapped. */
 const partial = Array.from({ length: 4 }, () => animal(c1, "2025-02-01", "2026-01-15"));
@@ -53,7 +58,10 @@ const lonely = animal(c2, "2026-03-01", "2026-03-01");
 const stale = Array.from({ length: 3 }, () => animal(c3, "2024-02-01", "2024-06-01"));
 /* c4–c6: one each, so the city has enough recorded cells to have an edge. */
 const scattered = [c4, c5, c6].map((k) => animal(k, "2025-05-01", "2025-05-01"));
-const animals = [...strong, ...partial, lonely, ...stale, ...scattered];
+/* c7: nine animals recorded by residents, seen last week — and never a
+   field team's record. Busy, but not well mapped. */
+const residentOnly = Array.from({ length: 9 }, () => animal(c7, "2026-08-01", "2026-09-15", { source: "resident" }));
+const animals = [...strong, ...partial, lonely, ...stale, ...scattered, ...residentOnly];
 
 const cases: CaseRow[] = [
   kase(c0, strong[9].id, "2026-09-01T08:00:00Z", { condition_class: "Road accident", status_class: "open", severity: "critical" }),
@@ -65,13 +73,24 @@ const cases: CaseRow[] = [
   kase(c1, partial[0].id, "2019-05-01T08:00:00Z", { resolved_at: "2019-05-20T08:00:00Z", resolved_at_source: "recorded" }),
   /* Open for more than ninety days: stale work for review, never auto-closed. */
   kase(c1, partial[1].id, "2026-01-02T08:00:00Z", { status_class: "in_progress", condition_class: "Maggot wound" }),
+  /* A workbook date in 2030: a data-entry error, not a date. */
+  kase(c1, partial[2].id, "2025-11-01T08:00:00Z", { resolved_at: "2030-08-23T08:00:00Z", resolved_at_source: "import_derived" }),
+  /* Closed by a person reviewing stale work: dated, but not field work. */
+  kase(c1, partial[3].id, "2025-12-01T08:00:00Z", { reviewed_at: "2026-02-10T08:00:00Z" }),
 ];
 const care: CareRow[] = [
   { dog_id: strong[0].id, kind: "sterilisation", event_date: "2026-06-02", h3_r8: null },
   { dog_id: strong[0].id, kind: "vaccination", event_date: "2025-03-01", h3_r8: null },
+  /* c1's only recent field-team work: a treatment in January. */
+  { dog_id: partial[2].id, kind: "treatment", event_date: "2026-01-20", h3_r8: null },
 ];
+const sight = (cell: string, created: string): SightRow => ({
+  dog_id: null, created_at: created, h3_r8: cell, lat: null, lng: null, sterilisation_status: null, vaccination_status: null, has_photo: false,
+});
+/* Residents keep seeing animals in c3 and c7; no field team has been. */
+const sightings: SightRow[] = [sight(c3, "2026-09-10T08:00:00Z"), sight(c3, "2026-09-12T08:00:00Z"), sight(c7, "2026-09-20T08:00:00Z")];
 
-const ds = assemble({ animals, cases, care, sightings: [], orgs: [] }, "public", NOW);
+const ds = assemble({ animals, cases, care, sightings, orgs: [] }, "public", NOW);
 const ix = buildIndex(ds);
 const at = (k: string) => { const i = ds.cells.indexOf(k); assert.ok(i >= 0, `cell ${k} is in the dataset`); return i; };
 const today = ds.today;
@@ -145,7 +164,7 @@ assert.equal(openOn(ds, aging.stale[0], today), true);
 /* ── evidence quality ──────────────────────────────────────────────────── */
 const all = casesIn(ds, { cells: null, from: 0, to: today });
 const res = resolution(ds, all);
-assert.equal(res.excluded, 1, "an assumed import date is left out of time-to-resolution");
+assert.equal(res.excluded, 3, "an assumed date, a date in the future and a review closure are left out of time-to-resolution");
 assert.equal(res.known, 2, "two closures carry a recorded date; a no-action request is not a resolution");
 assert.ok([9, 19].includes(res.median!));
 assert.equal(res.workbook.n, 1, "a date the import took from its workbook is measured apart");
@@ -165,7 +184,7 @@ const know = animalKnowledge(ds, ix, new Set([at(c0)]), today);
 assert.equal(know.total, 10);
 assert.deepEqual(know.ster, { yes: 4, no: 2, unknown: 4 });
 assert.equal(know.vacc.yes + know.vacc.no + know.vacc.unknown, know.total);
-assert.equal(know.help, 1);
+assert.equal(know.help, 2);
 assert.equal(know.due, 1, "a vaccination eighteen months old is due a booster");
 assert.ok(animalVisible(ds, 0, today, NO_FILTERS));
 assert.ok(!animalVisible(ds, 0, dayOf("2024-12-31"), NO_FILTERS), "not drawn before it was first recorded");
@@ -220,6 +239,168 @@ assert.equal(se.surge?.month, 0);
   const own = assemble({ animals, cases: cases.map((c) => ({ ...c, ngo_id: "org-1" })), care, sightings: [], orgs: [{ id: "org-1", name: "A Real Partner" }] }, "org", NOW);
   assert.ok(own.dict.org.includes("A Real Partner"), "an organisation's own dataset keeps its name");
 }
+
+/* ── medical: injured means injured; each animal counts once ──────────── */
+{
+  const c0s = stats.get(at(c0))!;
+  assert.equal(c0s.help, 2, "two animals need help");
+  assert.equal(c0s.injured, 2, "two animals are injured");
+  assert.equal(c0s.medical, 3, "three animals need medical attention — the one both injured and needing help counts once");
+  assert.equal(modeValue("medical", c0s), 3, "the Medical layer is coloured by animals, never injured + help");
+  const inj = new Map(cellStats(ds, ix, today, { ...NO_FILTERS, health: "injured" }).map((x) => [x.cell, x]));
+  assert.equal(inj.get(at(c0))!.animals, 2, "the Injured filter shows injured animals only");
+  const helpOnly = strong.findIndex((a) => a.needs_help && a.status !== "injured");
+  assert.ok(!animalVisible(ds, helpOnly, today, { ...NO_FILTERS, health: "injured" }), "needs help is not injured");
+  assert.ok(animalVisible(ds, helpOnly, today, { ...NO_FILTERS, health: "help" }));
+}
+
+/* ── coverage: independent of filters, field-team activity only ─────────── */
+{
+  const condition = CONDITIONS.indexOf("Road accident");
+  const filterSets: Filters[] = [
+    { ...NO_FILTERS, condition },
+    { ...NO_FILTERS, source: "field" },
+    { ...NO_FILTERS, source: "resident" },
+    { ...NO_FILTERS, ster: "yes" },
+    { ...NO_FILTERS, ster: "unknown" },
+    { ...NO_FILTERS, vacc: "yes" },
+    { ...NO_FILTERS, vacc: "due" },
+    { ...NO_FILTERS, health: "injured" },
+    { ...NO_FILTERS, seen: "90" },
+  ];
+  for (const t of [today, dayOf("2026-02-01"), dayOf("2025-06-01")]) {
+    const base = cellStats(ds, ix, t);
+    for (const fs of filterSets) {
+      const got = cellStats(ds, ix, t, fs);
+      base.forEach((b, k) => {
+        assert.equal(got[k].coverage, b.coverage, `coverage of cell ${b.cell} does not change under ${JSON.stringify(fs)}`);
+        assert.equal(got[k].lastField, b.lastField, "field-team activity does not change under a filter");
+        assert.equal(got[k].events, b.events, "what is recorded does not change under a filter");
+      });
+    }
+  }
+  /* A condition or source filter narrows the case counts, not the coverage. */
+  const byCond = new Map(cellStats(ds, ix, today, { ...NO_FILTERS, condition }).map((x) => [x.cell, x]));
+  assert.equal(byCond.get(at(c0))!.cases, 1, "one Road accident request in c0");
+  assert.equal(byCond.get(at(c0))!.coverage, "strong");
+  const bySource = new Map(cellStats(ds, ix, today, { ...NO_FILTERS, source: "resident" }).map((x) => [x.cell, x]));
+  assert.equal(bySource.get(at(c0))!.cases, 0);
+  assert.equal(bySource.get(at(c0))!.coverage, "strong");
+  /* Field work is field-team activity: residents' sightings and last-seen dates are records, not visits. */
+  const c7s = stats.get(at(c7))!;
+  assert.equal(c7s.observed, 9);
+  assert.equal(c7s.lastField, -1, "nine resident records and a sighting last week are not field work");
+  assert.equal(c7s.coverage, "weak", "busy with residents' records, but not well mapped");
+  const c3s = stats.get(at(c3))!;
+  assert.equal(c3s.lastField, dayOf("2024-02-01"), "c3's last field-team record is its 2024 animals, not this month's sightings");
+  assert.equal(c3s.coverage, "weak", "fresh resident sightings do not make an old place mapped");
+  assert.equal(c3s.recentField, 0);
+  assert.equal(modeValue("activity", c3s), 0, "the Field work layer does not count residents' sightings");
+  assert.ok(c3s.recentEvents >= 2, "the sightings are still recorded");
+  const c1s = stats.get(at(c1))!;
+  assert.equal(c1s.lastField, dayOf("2026-01-20"), "c1's January treatment is its latest field work; the review closure in February is not");
+  assert.equal(c1s.coverage, "partial");
+  /* The coverage rule text says what the rule measures. */
+  assert.ok(/field work/.test("8 or more animals, and field work in the last six months"));
+}
+
+/* ── resolution dates: an unknown day is never used as a day ───────────── */
+{
+  /* Every fixture case has a cell, so dataset order is fixture order. */
+  const idxOf = (dog: string) => cases.findIndex((c) => c.dog_id === dog);
+  const assumed = idxOf(strong[1].id);
+  const future = idxOf(partial[2].id);
+  const reviewed = idxOf(partial[3].id);
+  const dated = idxOf(strong[0].id);
+  assert.equal(ds.cases[assumed * C_STRIDE + C.closedDay], UNDATED, "an assumed import date is stored as unknown");
+  assert.equal(ds.cases[assumed * C_STRIDE + C.resolvedSrc], RES.assumed);
+  assert.ok(resolutionUndated(ds, assumed));
+  /* It does not vanish on its opening day, and it is not called open or resolved on a day it may not have been. */
+  for (const d of ["2026-05-01", "2026-05-02", "2026-07-15"]) {
+    assert.equal(caseStateOn(ds, assumed, dayOf(d)), "undated", `on ${d} it is "resolved, date unknown"`);
+    assert.equal(openOn(ds, assumed, dayOf(d)), false);
+    assert.equal(resolvedOn(ds, assumed, dayOf(d)), false);
+  }
+  assert.equal(caseStateOn(ds, assumed, dayOf("2026-04-30")), "none", "not before it was reported");
+  assert.equal(caseStateOn(ds, assumed, today), "closed", "as of today it is resolved");
+  /* A workbook date in the future is not a date: before, it kept the case "open" until 2030. */
+  assert.equal(ds.cases[future * C_STRIDE + C.closedDay], UNDATED);
+  assert.equal(openOn(ds, future, today), false, "a closed case with a 2030 date is not open today");
+  assert.equal(caseStateOn(ds, future, today), "closed");
+  /* A review closure is a real day on the register. */
+  assert.equal(ds.cases[reviewed * C_STRIDE + C.resolvedSrc], RES.reviewed);
+  assert.equal(caseStateOn(ds, reviewed, dayOf("2026-01-15")), "open", "open until someone closed it on review");
+  assert.equal(caseStateOn(ds, reviewed, dayOf("2026-02-10")), "closed");
+  /* A recorded date behaves as a date. */
+  assert.equal(caseStateOn(ds, dated, dayOf("2026-06-05")), "open");
+  assert.equal(caseStateOn(ds, dated, dayOf("2026-06-10")), "closed");
+  /* Map and analytics read the same rule: the cell counts, the open-work measure and the case state agree on every day. */
+  const inScopeAll = casesIn(ds, { cells: null, from: 0, to: today });
+  for (const d of ["2025-12-15", "2026-01-15", "2026-05-15", "2026-07-15", "2026-09-24"]) {
+    const t = dayOf(d);
+    const cells = cellStats(ds, ix, t);
+    const openByState = [...Array(ix.nCases).keys()].filter((i) => caseStateOn(ds, i, t) === "open").length;
+    const undatedByState = [...Array(ix.nCases).keys()].filter((i) => caseStateOn(ds, i, t) === "undated").length;
+    assert.equal(cells.reduce((a, x) => a + x.open, 0), openByState, `map cells count the same open work as the rule on ${d}`);
+    assert.equal(cells.reduce((a, x) => a + x.undated, 0), undatedByState, `map cells count the same undated cases on ${d}`);
+    assert.equal(openAging(ds, inScopeAll, t).open, openByState, `analytics count the same open work as the map on ${d}`);
+  }
+  assert.equal(stats.get(at(c0))!.undated, 0, "as of today, an undated case is resolved");
+  const midMay = new Map(cellStats(ds, ix, dayOf("2026-05-15")).map((x) => [x.cell, x]));
+  assert.equal(midMay.get(at(c0))!.undated, 2, "in May, c0 holds two cases closed on an unknown day: the assumed import, and April's no-action request that never said when");
+  /* Still-open-today counts in the monthly series are the cases with no resolution at all. */
+  assert.equal(series.open.reduce((a, b) => a + b, 0), 2);
+}
+
+/* ── map next: what is known, said precisely ──────────────────────────── */
+{
+  assert.deepEqual(nextReasons(14, 0, 0, null), ["14 animals recorded in the six cells around it", "nothing recorded here", "no field-team record here"]);
+  assert.deepEqual(nextReasons(14, 2, 3, 18), ["14 animals recorded in the six cells around it", "only two animals recorded here", "no field-team activity recorded for 18 months"]);
+  assert.equal(nextReasons(20, 0, 4, null)[1], "no animals recorded here, 4 other records");
+  /* A place residents report from, next to a mapped one, is suggested — and never described as unvisited by anyone. */
+  const hub = latLngToCell(11.0168, 76.9558, H3_RES);
+  const [edge, far] = gridDisk(hub, 1).filter((k) => k !== hub);
+  const nAnimals = [
+    ...Array.from({ length: 13 }, () => animal(hub, "2026-08-01", "2026-09-01", { zone: "Hub" })),
+    animal(edge, "2026-09-01", "2026-09-20", { source: "resident", zone: "Edge" }),
+    animal(edge, "2026-09-02", "2026-09-20", { source: "resident", zone: "Edge" }),
+    animal(far, "2024-03-01", "2024-03-01", { zone: "Far" }),
+  ];
+  const nds = assemble({ animals: nAnimals, cases: [], care: [], sightings: [sight(edge, "2026-09-21T08:00:00Z")], orgs: [] }, "public", NOW);
+  const byCell = new Map(nds.next.map((n) => [n.cell, n]));
+  const e = byCell.get(edge);
+  assert.ok(e, "a resident-only place beside a mapped one is suggested next, though residents were there last week");
+  assert.deepEqual(e!.reasons.slice(1), ["only two animals recorded here", "no field-team record here"]);
+  for (const n of [...nds.next, ...ds.next]) {
+    for (const r of n.reasons) assert.ok(!/never visited/i.test(r), `"${r}" claims more than is known`);
+    assert.ok(/^no field-team (record here|activity recorded for \d+ months)$/.test(n.reasons[2]), n.reasons[2]);
+  }
+  const f = byCell.get(far);
+  if (f) assert.match(f.reasons[2], /^no field-team activity recorded for \d+ months$/, "a place a field team last recorded in 2024 says how long ago");
+  assert.ok(!byCell.has(hub), "a well-mapped place is never suggested");
+}
+
+/* ── the NGO queue: overdue follow-ups, then critical, then the rest; oldest first in each ── */
+{
+  const items: (QueueItem & { id: string })[] = [
+    { id: "new-routine", kind: "case", crit: false, age: 2 },
+    { id: "old-routine", kind: "case", crit: false, age: 60 },
+    { id: "new-critical", kind: "case", crit: true, age: 1 },
+    { id: "old-critical", kind: "case", crit: true, age: 20 },
+    { id: "late-followup", kind: "followup", crit: false, age: 3 },
+    { id: "later-followup", kind: "followup", crit: false, age: 12 },
+  ];
+  assert.deepEqual([...items].sort(queueOrder).map((x) => x.id),
+    ["later-followup", "late-followup", "old-critical", "new-critical", "old-routine", "new-routine"],
+    "within each group the item that has waited longest comes first");
+}
+
+/* ── places are never said twice ───────────────────────────────────────── */
+assert.equal(placeLine("Saket, Delhi", "Delhi"), "Saket, Delhi");
+assert.equal(placeLine("Masakalipalayam, Kasturba Gandhinagar 2nd st", "Coimbatore"), "Masakalipalayam, Kasturba Gandhinagar 2nd st, Coimbatore");
+assert.equal(placeLine(null, "Delhi"), "Delhi");
+assert.equal(placeLine("delhi", "Delhi"), "delhi", "the same place in another case is the same place");
+assert.equal(placeLine(null, undefined), "");
 
 /* ── taxonomy ──────────────────────────────────────────────────────────── */
 for (const c of CONDITIONS) assert.ok(DEFAULT_TRIAGE[c], `${c} has a default triage`);

@@ -33,7 +33,7 @@ import { HatchDef } from "@/components/system/Hatch";
 import { ShareBand } from "@/components/system/ShareBand";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { getMyOrg } from "@/lib/actions";
-import { dueFollowups, isStale, openCases, recentChanges, type Change, type DueFollowup, type OpenCase } from "@/lib/ops";
+import { dueFollowups, isStale, openCases, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase } from "@/lib/ops";
 import { MONTHS } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn } from "@/lib/spatial/measures";
 import { futureDated, season } from "@/lib/spatial/report";
@@ -72,6 +72,7 @@ export function OpsRoom() {
   const [cell, setCell] = useState<string | null>(null);
   const [hot, setHot] = useState<string | null>(null);
   const [queueRows, setQueueRows] = useState(8);
+  const [cityPick, setCityPick] = useState<number | null>(null);
 
   useEffect(() => { setToday(new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })); }, []);
   useEffect(() => {
@@ -130,15 +131,24 @@ export function OpsRoom() {
       items.push({ key: `f-${f.id}`, kind: "followup", f, c, crit: c ? critical(c) : false, cell: c?.h3_r8 ?? null, age: ageDays(f.due_at) });
     }
     for (const c of s.liveWork) items.push({ key: `c-${c.id}`, kind: "case", c, crit: critical(c), cell: c.h3_r8, age: ageDays(c.occurred_at) });
-    const rank = (x: (typeof items)[number]) => (x.kind === "followup" ? 0 : x.crit ? 1 : 2);
-    return items.sort((a, b) => rank(a) - rank(b) || (a.kind === "followup" ? b.age - a.age : a.age - b.age));
+    return items.sort(queueOrder);
   }, [s]);
   const shown = cell ? queue.filter((q) => q.cell === cell) : queue;
 
   /* ── the plate: where the open work is ─────────────────────────────── */
+  /* An organisation can work in more than one city: the plate opens on the
+     city holding most of its open work, and every city with work can be
+     chosen. */
+  const cityWork = useMemo(() => {
+    if (!ds || !isMember) return [] as { city: number; n: number }[];
+    const cellIdx = new Map(ds.cells.map((k, i) => [k, i]));
+    const n = new Array(ds.cities.length).fill(0);
+    for (const c of [...s.liveWork, ...s.stale]) { const i = c.h3_r8 ? cellIdx.get(c.h3_r8) : undefined; if (i !== undefined) n[ds.cellCity[i]]++; }
+    return n.map((v, city) => ({ city, n: v })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n);
+  }, [ds, isMember, s]);
   const plate = useMemo(() => {
     if (!ds || !isMember || !ds.cities.length) return null;
-    const city = 0;
+    const city = cityPick ?? cityWork[0]?.city ?? 0;
     const liveBy = new Map<string, number>(), staleBy = new Map<string, number>();
     for (const c of s.liveWork) if (c.h3_r8) liveBy.set(c.h3_r8, (liveBy.get(c.h3_r8) ?? 0) + 1);
     for (const c of s.stale) if (c.h3_r8) staleBy.set(c.h3_r8, (staleBy.get(c.h3_r8) ?? 0) + 1);
@@ -156,8 +166,8 @@ export function OpsRoom() {
         title: `${ds.cellLocality[i] >= 0 ? ds.localities[ds.cellLocality[i]] : "Cell"}: ${v} live${st ? `, ${st} stale` : ""}`,
       });
     }
-    return { cells, box: ds.cities[city].box, name: ds.cities[city].name };
-  }, [ds, isMember, s, cell, hot]);
+    return { cells, box: ds.cities[city].box, name: ds.cities[city].name, city };
+  }, [ds, isMember, s, cell, hot, cityPick, cityWork]);
 
   const loading = open === null || !ready || !accessReady;
   if (loading) return <main className="pr ops"><p className="ops-state">Reading the organisation&rsquo;s record…</p></main>;
@@ -250,7 +260,17 @@ export function OpsRoom() {
         </div>
 
         <div className="pr-geo ops-geo">
-          <p className="ops-eyebrow"><span>Where the open work is{plate ? ` · ${plate.name}` : ""}</span><Link href="/partner/map?mode=cases">Field map <ArrowUpRight size={12} /></Link></p>
+          <p className="ops-eyebrow">
+            <span>Where the open work is{plate && cityWork.length <= 1 ? ` · ${plate.name}` : ""}</span>
+            {plate && ds && cityWork.length > 1 && (
+              <label className="ops-city"><span className="sys-sr">City</span>
+                <select value={plate.city} onChange={(e) => { setCityPick(Number(e.target.value)); setCell(null); }}>
+                  {cityWork.map((c) => <option key={c.city} value={c.city}>{ds.cities[c.city].name} · {num(c.n)} open</option>)}
+                </select>
+              </label>
+            )}
+            <Link href="/partner/map?mode=cases">Field map <ArrowUpRight size={12} /></Link>
+          </p>
           <div className="pr-map ops-map">
             {plate ? (
               <>

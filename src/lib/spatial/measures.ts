@@ -8,7 +8,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, RES, type SpatialDataset } from "./types";
-import { monthOfDay, openOn, robustStart, type Index } from "./engine";
+import { monthOfDay, openNow, openOn, robustStart, type Index } from "./engine";
 import { CONDITIONS, STATUSES, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 
 export type Scope = { cells: Set<number> | null; from: number; to: number; condition?: number; source?: "all" | "field" | "resident" };
@@ -91,7 +91,7 @@ export function monthly(ds: SpatialDataset, idx: number[], from: number, to: num
     if (m >= n) continue;
     total[m]++;
     if (ds.cases[o + C.status] === NO) noAction[m]++;
-    if (ds.cases[o + C.closedDay] < 0) open[m]++;
+    if (openNow(ds, i)) open[m]++;
   }
   return { m0, total, noAction, open };
 }
@@ -122,10 +122,12 @@ export function resolution(ds: SpatialDataset, idx: number[]) {
   const CLOSED = STATUSES.indexOf("closed");
   for (const i of idx) {
     const o = i * C_STRIDE, closed = ds.cases[o + C.closedDay];
-    if (closed < 0 || ds.cases[o + C.status] !== CLOSED) continue;
+    if (ds.cases[o + C.status] !== CLOSED) continue;
     const src = ds.cases[o + C.resolvedSrc], d = closed - ds.cases[o + C.day];
-    if (src === RES.recorded) recorded.push(d);
-    else if (src === RES.workbook) workbook.push(d);
+    // Resolved, date unknown — and a day someone closed it on review, which
+    // is when the register caught up, not when the animal was helped.
+    if (closed >= 0 && src === RES.recorded) recorded.push(d);
+    else if (closed >= 0 && src === RES.workbook) workbook.push(d);
     else excluded++;
   }
   const q = (v: number[], f: number) => { if (!v.length) return null; v.sort((a, b) => a - b); return v[Math.min(v.length - 1, Math.floor(f * v.length))]; };

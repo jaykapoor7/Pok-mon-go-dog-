@@ -255,7 +255,7 @@ export function Response({ c }: { c: Ctx }) {
           <p className="an-note">
             {res.known >= 5 ? <>From {n(res.known)} closures with a recorded date. </> : <>{res.known ? `Only ${n(res.known)} closure${res.known === 1 ? " has" : "s have"} a recorded date. ` : "No closure has a recorded date. "}</>}
             {res.workbook.n > 0 && <>{n(res.workbook.n)} imported closures carry a date taken from the source workbook: median {res.workbook.median} days, three in four within {res.workbook.p75} — read those as indicative. </>}
-            {res.excluded > 0 && <>{n(res.excluded)} imported closures had no date at all and are left out, not counted as same-day.</>}
+            {res.excluded > 0 && <>{n(res.excluded)} closures are resolved, date unknown — the source never recorded when, or only when the case was closed on review — and are left out, not counted as same-day.</>}
           </p>
         </div>
         <div>

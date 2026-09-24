@@ -4,6 +4,7 @@ import { ORGS } from "@/lib/platform/orgs";
 import { CITY_COORDS, coordsForCity } from "@/lib/platform/city-coords";
 import { searchPlaces, type PlaceHit } from "@/lib/wards";
 import { searchAnimalIdentity } from "@/lib/animal-identity";
+import { placeLine } from "@/lib/utils";
 
 export type SearchKind = "place" | "ward" | "state" | "org" | "page" | "animal";
 export type SearchHit = { kind: SearchKind; label: string; detail: string; href: string };
@@ -70,7 +71,7 @@ export async function searchAreas(query: string, limit = 4): Promise<SearchHit[]
 
 function toHit(p: PlaceHit): SearchHit {
   const label = p.level === "district" ? p.ward_name ?? `District ${p.ward_no}` : p.ward_name ?? `Ward ${p.ward_no}`;
-  const where = p.level === "district" ? p.state ?? "India" : [p.zone_name,p.city].filter(Boolean).join(", ");
+  const where = p.level === "district" ? p.state ?? "India" : placeLine(p.zone_name, p.city);
   const count = p.animals > 0 ? `${p.animals} recorded` : "nothing recorded here yet";
   return { kind:"ward", label, detail:`${where} · ${count}`, href:`/map?lat=${p.lat.toFixed(5)}&lng=${p.lng.toFixed(5)}&bbox=${p.min_lng.toFixed(4)},${p.min_lat.toFixed(4)},${p.max_lng.toFixed(4)},${p.max_lat.toFixed(4)}` };
 }

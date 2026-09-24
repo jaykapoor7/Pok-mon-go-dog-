@@ -13,6 +13,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { placeLine } from "@/lib/utils";
 
 export type PhotoRow = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; last_seen: string | null };
 
@@ -57,7 +58,7 @@ export function PhotoRegister({ rows, total }: { rows: PhotoRow[]; total: number
               </span>
               <b>{label(r)}</b>
               <span className="sys-mono">{r.straypaw_id ?? "ID pending"}</span>
-              {(r.zone || r.city) && <small>{[r.zone, r.city].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</small>}
+              {(r.zone || r.city) && <small>{placeLine(r.zone, r.city)}</small>}
             </Link>
           </li>
         ))}

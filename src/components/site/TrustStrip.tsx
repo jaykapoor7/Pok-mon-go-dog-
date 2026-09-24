@@ -41,9 +41,10 @@ export async function TrustStrip({ total }: { total: number }) {
       {lead && (
         <p className="trust-partner">
           <span>Built with</span>
+          {/* Unnamed here, as on every general page; the partners page names them. */}
           <Link href="/partners">
-            <b>{lead.name}</b>
-            {lead.city ? `, ${lead.city}` : ""}
+            <b>a partner rescue organisation</b>
+            {lead.city ? ` in ${lead.city}` : ""}
           </Link>
         </p>
       )}

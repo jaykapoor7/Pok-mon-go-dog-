@@ -23,6 +23,7 @@ import { CareLanes } from "./CareLanes";
 import { RecordActions } from "./RecordActions";
 import { CommunityPanel } from "./CommunityPanel";
 import "./living.css";
+import { placeLine as joinPlace } from "@/lib/utils";
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = (iso: string | null) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
@@ -54,7 +55,7 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
     href: scope === "org" ? "#org-care" : reportHref, cta: scope === "org" ? "Record sterilisation" : "Report a sighting",
   });
 
-  const placeLine = [r.locality, r.city].filter(Boolean).join(", ");
+  const placeLine = joinPlace(r.locality, r.city);
   return (
     <article className="lr" aria-labelledby="lr-name">
       {/* ── who, and where ─────────────────────────────────────────── */}
@@ -80,7 +81,7 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
           </p>
           <p className="lr-status">
             <span className={`lr-pill ${status.c}`}>{status.t}</span>
-            <span className="lr-keeper">{r.keeper} · {r.source === "resident" ? "first reported by a resident" : "a field record"}</span>
+            <span className="lr-keeper">{r.keeper} · {r.source === "resident" ? "first reported by a resident" : "recorded in the field"}</span>
           </p>
           <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
         </div>
@@ -92,7 +93,7 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
         <Known title="Vaccination" state={r.known.vacc} yes="Vaccinated" no="Not vaccinated" when={r.known.vaccAt ? `${day(r.known.vaccAt)}${r.known.boosterDue ? " · booster due" : ""}` : r.known.vacc === "yes" ? "on the record" : null} warn={r.known.boosterDue} />
         <div className={`lr-fact ${r.known.health !== "none" ? "is-hot" : ""}`}>
           <p className="lr-fact-t">Health</p>
-          <p className="lr-fact-v">{r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "No problem recorded"}</p>
+          <p className="lr-fact-v">{r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "No health concern recorded"}</p>
           <p className="lr-fact-w">{r.known.health === "none" ? "which is not the same as healthy" : "flagged on the record"}</p>
         </div>
         <div className="lr-fact">

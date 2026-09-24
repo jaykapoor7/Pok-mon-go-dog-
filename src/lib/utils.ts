@@ -111,3 +111,20 @@ export function displayReporter(name: string | null | undefined): string | null 
   const trimmed = (name ?? "").trim();
   return trimmed.length > 0 ? trimmed : null;
 }
+
+/** A place written from parts that may already contain each other —
+    "Saket, Delhi" and "Delhi" — without saying any part twice. */
+export function placeLine(...parts: (string | null | undefined)[]): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of parts) {
+    for (const bit of String(part ?? "").split(",")) {
+      const b = bit.trim();
+      const k = b.toLowerCase();
+      if (!b || seen.has(k)) continue;
+      seen.add(k);
+      out.push(b);
+    }
+  }
+  return out.join(", ");
+}
