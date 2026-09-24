@@ -307,3 +307,81 @@
 :root[data-locale] .spa-mono,
 :root[data-locale] .sp-mono,
 :root[data-locale] [class*="mono"] { font-family: var(--font-mono), ui-monospace, monospace; }
+
+/* ════════════════════════════════════════════════════════════════════
+   DATA AND SPACE.
+
+   The register is drawn in one visual language wherever it appears — the
+   landing plate, the map, analytics, a profile, a dashboard — so a reader
+   learns each encoding once:
+
+   • Recorded density is a sequential blue, light to deep. "More" always
+     means darker, and nothing else is ever drawn in this ramp.
+   • Attention (injured, open, urgent) is flame, used sparingly: it marks
+     what needs someone, never decoration.
+   • NOT RECORDED IS HATCHED. Never a colour, never zero, never omitted.
+   • NOT MAPPED IS A DASHED EDGE. The honeycomb carries on past the last
+     record, faintly, so the end of the data never reads as the end of the
+     city.
+   • Coverage — how well a place is known — is a different question from
+     how many animals it holds, and gets its own scale: ink weight, not
+     hue, so it can never be read as density.
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --font-serif-stack: var(--font-serif), "Newsreader", Georgia, "Times New Roman", serif;
+
+  /* Night: the plate the city is drawn on, on the landing and the map. */
+  --sp-night: #07142b;
+  --sp-night-2: #0c2548;
+  --sp-night-3: #13305e;
+  --sp-night-line: rgba(239, 231, 218, 0.12);
+  --sp-night-text: #efe7da;
+  --sp-night-dim: rgba(239, 231, 218, 0.62);
+  --sp-night-faint: rgba(239, 231, 218, 0.36);
+
+  /* Sequential: recorded density, light ground → deep blue. */
+  --sp-seq-0: #ece4d6;
+  --sp-seq-1: #c8d4f0;
+  --sp-seq-2: #93aee9;
+  --sp-seq-3: #5b82dc;
+  --sp-seq-4: #2457ce;
+  --sp-seq-5: #16398f;
+
+  /* The same ramp on night: dark ground → bright blue. */
+  --sp-nseq-1: #132b55;
+  --sp-nseq-2: #1b3f80;
+  --sp-nseq-3: #2a5bb8;
+  --sp-nseq-4: #4f7fe0;
+  --sp-nseq-5: #93b1f0;
+
+  /* Attention: flame, three weights. */
+  --sp-att-1: #f6d2c7;
+  --sp-att-2: #f0957c;
+  --sp-att-3: #f05b40;
+  --sp-att-4: #b93a1d;
+
+  /* Care kinds that need their own hue on a map: vaccination reads cool. */
+  --sp-arv: #58b4c4;
+  --sp-arv-night: #7fc9d6;
+
+  /* Coverage: ink weight, strongest to none. */
+  --sp-cov-strong: rgba(11, 30, 61, 0.78);
+  --sp-cov-partial: rgba(11, 30, 61, 0.52);
+  --sp-cov-weak: rgba(11, 30, 61, 0.30);
+  --sp-cov-insufficient: rgba(11, 30, 61, 0.14);
+
+  /* Status along Report → Record → Case → Outcome. */
+  --sp-st-closed: var(--sp-blue);
+  --sp-st-other: #7f9ee6;
+  --sp-st-progress: var(--sp-flame);
+  --sp-st-open: var(--sp-flame-deep);
+  --sp-st-noaction: #56657a;
+  --sp-st-unattended: #2a3a55;
+
+  /* The hatch: "not recorded", as a CSS ground. The SVG twin lives in
+     components/system/Hatch.tsx and draws the same 45° line at the same
+     weight, so a band and a hexagon agree. */
+  --sp-hatch-line: rgba(11, 30, 61, 0.34);
+  --sp-hatch: repeating-linear-gradient(135deg, var(--sp-hatch-line) 0 1.5px, transparent 1.5px 6px);
+  --sp-hatch-night: repeating-linear-gradient(135deg, rgba(239, 231, 218, 0.28) 0 1.5px, transparent 1.5px 6px);
+}

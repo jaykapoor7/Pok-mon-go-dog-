@@ -11,6 +11,7 @@ on:
         options:
           - pilot
           - rollout
+          - register
           - personal
           - wards
           - security-audit

@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import {
   DM_Sans,
   DM_Mono,
+  Newsreader,
   Noto_Sans_Devanagari,
   Noto_Sans_Tamil,
   Noto_Sans_Telugu,
@@ -12,6 +13,7 @@ import "./tokens.css";
 import "./globals.css";
 import "./design-system.css";
 import "./product.css";
+import "./system.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Chrome } from "@/components/nav/Chrome";
 import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
@@ -33,6 +35,19 @@ const sans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+/* THE EDITORIAL FACE. Newsreader carries two jobs and no others: the large
+   figure a section is about (2,188 requests; 96% unknown), and the one
+   emphasis line under a headline. It was drawn for reading at display sizes
+   on screens, which is what separates it from the decorative italic that
+   was removed below. One use per view; the interface stays DM Sans. */
+const serif = Newsreader({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -180,7 +195,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-locale="en"
-      className={`${sans.variable} ${mono.variable} ${devanagari.variable} ${tamil.variable} ${telugu.variable} ${kannada.variable}`}
+      className={`${sans.variable} ${mono.variable} ${serif.variable} ${devanagari.variable} ${tamil.variable} ${telugu.variable} ${kannada.variable}`}
       suppressHydrationWarning
     >
       <head>
