@@ -145,9 +145,9 @@ test("the dashboard map is drawn, and comes before tasks", async ({ page }) => {
 test("the field map fills the console area at every width", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("straypaw.role", "ngo"));
   await page.goto("/partner/map");
-  await expect(page.locator(".partner-map-shell")).toBeVisible();
+  await expect(page.locator(".sm-host")).toBeVisible();
   const box = await page.evaluate(() => {
-    const pane = document.querySelector(".partner-map-pane");
+    const pane = document.querySelector(".sm-host");
     const top = document.querySelector(".spa-top");
     const nav = document.querySelector(".spa-side");
     if (!pane || !top || !nav) return null;

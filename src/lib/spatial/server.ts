@@ -8,7 +8,7 @@
 import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabase, getSupabaseAdmin } from "@/lib/supabase";
-import { assemble, healCells, readOrgRows, readPublicRows } from "./build";
+import { assemble, DATASET_VERSION, healCells, readOrgRows, readPublicRows } from "./build";
 import type { SpatialDataset } from "./types";
 
 export const SPATIAL_TAG = "spatial";
@@ -29,7 +29,7 @@ async function buildPublic(city: string | null): Promise<SpatialDataset | null> 
 /** The public register as a spatial dataset; `city` narrows it to one city. */
 export const getPublicDataset = unstable_cache(
   async (city: string | null = null) => buildPublic(city),
-  ["spatial-public-v1"],
+  [`spatial-public-v${DATASET_VERSION}`],
   { revalidate: 600, tags: [SPATIAL_TAG] },
 );
 

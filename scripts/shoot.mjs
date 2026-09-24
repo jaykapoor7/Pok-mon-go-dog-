@@ -18,7 +18,8 @@ for (const spec of routes) {
   const widths = w ? w.split(",").map(Number) : [390, 1280];
   for (const width of widths) {
     const ctx = await browser.newContext({ viewport: { width, height: width < 700 ? 844 : 860 }, deviceScaleFactor: 1, reducedMotion: process.env.MOTION === "on" ? "no-preference" : "reduce" });
-    await ctx.addInitScript(() => { try { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("straypaw.analytics.optout", "1"); if (!location.search.includes("tour")) localStorage.setItem("straypaw.tour.v2", "1"); } catch {} });
+    /* LS='{"key":"value"}' seeds extra localStorage, e.g. the map's paper ground. */
+    await ctx.addInitScript((extra) => { try { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("straypaw.analytics.optout", "1"); if (!location.search.includes("tour")) localStorage.setItem("straypaw.tour.v2", "1"); for (const [k, v] of Object.entries(extra)) localStorage.setItem(k, v); } catch {} }, JSON.parse(process.env.LS || "{}"));
     const page = await ctx.newPage();
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));

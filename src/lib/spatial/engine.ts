@@ -338,4 +338,12 @@ export const monthLabel = (m: number, long = false) => `${long ? ["January","Feb
 export const dayLabel = (day: number) => { const d = new Date(Date.UTC(2024, 0, 1) + day * 86_400_000); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 
 export const fmt = (n: number) => n.toLocaleString("en-IN");
+
+/** Below this many records, a public figure for a small place reads "few".
+    One or two records are an anecdote, not a rate — and an exact "1" in a
+    0.74 km² cell points at one household's report. Members of the
+    organisation that holds the records still see them. */
+export const FEW = 3;
+export const isSparse = (n: number) => n > 0 && n < FEW;
+export const fewOr = (n: number, guard: boolean) => (guard && isSparse(n) ? "few" : fmt(n));
 export const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);

@@ -1,21 +1,23 @@
-import { MapView } from "@/components/map/MapView";
+import { Suspense } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { getAllDogs, getPublicFieldActivity } from "@/lib/data";
-import { getFeedingZones } from "@/lib/feeding-zones";
-
-export const dynamic = "force-dynamic";
+import { SpatialMap } from "@/components/spatial/SpatialMap";
 
 export const metadata = {
   title: "Map, StrayPaw",
   description:
-    "Signals, studies, needs and outcomes on one map. Zoom from a city to a cluster and see what is known, what is missing, and who can execute.",
+    "The register on one map: where animals are recorded, how densely, how well each place is mapped, where sterilisation and vaccination are recorded or unknown, and where work is open.",
 };
 
-export default async function MapPage() {
-  const [dogs, feedingZones, fieldActivity] = await Promise.all([getAllDogs(), getFeedingZones(), getPublicFieldActivity()]);
+/* The public map. The data arrives from /api/spatial (one cached dataset of
+   cells and counts), not as every animal row: see lib/spatial. */
+export default function MapPage() {
   return (
     <AppShell flush>
-      <MapView dogs={dogs} feedingZones={feedingZones} fieldActivity={fieldActivity} />
+      <div className="sm-host">
+        <Suspense fallback={null}>
+          <SpatialMap scope="public" />
+        </Suspense>
+      </div>
     </AppShell>
   );
 }

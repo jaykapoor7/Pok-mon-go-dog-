@@ -1,10 +1,8 @@
-import { getCases } from "@/lib/cases";
-import { PartnerMap } from "@/components/partner/PartnerMap";
+import { OrgSpatialMap } from "@/components/spatial/OrgSpatialMap";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Map, StrayPaw Partner" };
+export const metadata = { title: "Field map, StrayPaw Partner" };
 
-export default async function PartnerMapPage() {
-  const cases = await getCases();
-  return <PartnerMap cases={cases} />;
+export default function PartnerMapPage() {
+  return <OrgSpatialMap />;
 }

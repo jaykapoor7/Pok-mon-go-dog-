@@ -27,6 +27,8 @@ export type Palette = {
   labels?: boolean; minorRoads?: boolean; buildings?: boolean;
   /** Colours the data layers use on this ground. */
   cellEdge: string; ink: string; dim: string; seq: string[]; att: string[]; arv: string; hatch: string;
+  /** Feeding points: the one warm mark that is not a warning. */
+  feed: string;
 };
 
 export const NIGHT: Palette = {
@@ -40,6 +42,7 @@ export const NIGHT: Palette = {
   att: ["#3b1f2c", "#6d2a2c", "#a8392b", "#e05537", "#f7a08c"],
   arv: "#7fc9d6",
   hatch: "rgba(239,231,218,0.30)",
+  feed: "#e3b35b",
 };
 
 /** The landing plate: night, with no borrowed lettering competing with the headline. */
@@ -55,6 +58,7 @@ export const PAPER: Palette = {
   att: ["#f6d2c7", "#f0b09c", "#f0957c", "#f05b40", "#b93a1d"],
   arv: "#3c98a8",
   hatch: "rgba(11,30,61,0.34)",
+  feed: "#a8740f",
 };
 
 export const GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";

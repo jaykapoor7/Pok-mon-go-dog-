@@ -27,6 +27,9 @@ import {
   type CityInfo, type FrontierCell, type NextCell, type SpatialDataset,
 } from "./types";
 
+/** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
+export const DATASET_VERSION = 3;
+
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
   city: string | null; state: string | null; zone: string | null;
@@ -89,7 +92,7 @@ export async function healCells(admin: SupabaseClient | null) {
 }
 
 export async function readPublicRows(supa: SupabaseClient, city?: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // The query builder's type is deep; the city filter only needs its eq().
   const scoped = (q: any) => (city ? q.eq("city", city) : q);
   const [animals, cases, care, sightings, orgs] = await Promise.all([
     readAll<AnimalRow>((f, t) => scoped(supa.from("public_spatial_animals").select(
@@ -218,8 +221,14 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
     const xs = own.map((i) => centers[i * 2]), ys = own.map((i) => centers[i * 2 + 1]);
     const known = CITIES.find((c) => c.name.toLowerCase() === name.toLowerCase());
     const pad = 0.012;
+    // The city is framed on where most of its records are: a handful of
+    // outlying cells (a rescue on the highway out of town) should not make
+    // the whole city a speck in the middle of the screen.
+    const sx = [...xs].sort((a, b) => a - b), sy = [...ys].sort((a, b) => a - b);
+    const q = (v: number[], f: number) => v[Math.min(v.length - 1, Math.max(0, Math.floor(f * (v.length - 1))))];
+    const [lo, hi] = xs.length >= 40 ? [0.03, 0.97] : [0, 1];
     const box: [number, number, number, number] = xs.length
-      ? [Math.min(...xs) - pad, Math.min(...ys) - pad, Math.max(...xs) + pad, Math.max(...ys) + pad]
+      ? [q(sx, lo) - pad, q(sy, lo) - pad, q(sx, hi) + pad, q(sy, hi) + pad]
       : [68, 7, 90, 33];
     return {
       name,
