@@ -87,6 +87,9 @@ export default function ReportPage() {
     const lat = Number(q.get("lat"));
     const lng = Number(q.get("lng"));
     if (looksIndian(lat, lng)) setCoords({ lat, lng });
+    /* From an animal's profile: this sighting is of that animal. */
+    const dog = q.get("dog");
+    if (dog && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dog)) setClaimedDogId(dog);
   }, []);
 
   /* Opens the funnel. Everything else is measured against this number. */

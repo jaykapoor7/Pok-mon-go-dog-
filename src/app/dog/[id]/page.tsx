@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { PageView } from "@/components/analytics/PageView";
-import { UnifiedAnimalProfile } from "@/components/dog/UnifiedAnimalProfile";
+import { LivingRecord } from "@/components/animal/LivingRecord";
+import { buildLiving } from "@/lib/animal/living";
 import { getDogProfile } from "@/lib/data";
-import { getCasesForDog } from "@/lib/cases";
 import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
 import { getPublicAnimalIdentity } from "@/lib/animal-identity";
 import { dogLabel } from "@/lib/utils";
@@ -29,13 +29,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [profile, cases, operational, identity] = await Promise.all([
+  const [profile, operational, identity] = await Promise.all([
     getDogProfile(id),
-    getCasesForDog(id),
     getProfileOperationalRecord(id),
     getPublicAnimalIdentity(id),
   ]);
   if (!profile) notFound();
+  const record = await buildLiving(profile, operational, identity);
 
   const { dog } = profile;
   const label = dogLabel(dog);
@@ -80,7 +80,7 @@ export default async function DogProfilePage({ params }: { params: Promise<{ id:
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
-      <UnifiedAnimalProfile profile={profile} cases={cases} operational={operational} identity={identity} />
+      <LivingRecord r={record} scope="public" />
     </>
   );
 }
