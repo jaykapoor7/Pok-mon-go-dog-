@@ -14,8 +14,12 @@
    unit of place, and a selected cell asks the server for its animals.
    ════════════════════════════════════════════════════════════════════ */
 
-/** Day zero of the register's clock. The imported register begins in 2024. */
-export const EPOCH_MS = Date.UTC(2024, 0, 1);
+/** Day zero of the register's clock. Far enough back that any real record —
+    an organisation importing a decade of paper registers — gets a positive
+    day; -1 is kept for "no date". Screens start their clocks at the first
+    record, never at the epoch. */
+export const EPOCH_YEAR = 2000;
+export const EPOCH_MS = Date.UTC(EPOCH_YEAR, 0, 1);
 export const DAY_MS = 86_400_000;
 export const dayOf = (iso: string | null | undefined): number => {
   if (!iso) return -1;

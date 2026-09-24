@@ -32,7 +32,7 @@ import { Crosshair, Layers, Minus, Mountain, Plus, SlidersHorizontal } from "luc
 import { ScaleLadder, type Rung } from "@/components/system/ScaleLadder";
 import { NIGHT, PAPER, groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
-  animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf,
+  animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf,
   type CellStat, type Filters, type Mode,
 } from "@/lib/spatial/engine";
 import { A, A_STRIDE, AF, C, C_STRIDE, type NextCell, type SpatialDataset } from "@/lib/spatial/types";
@@ -125,17 +125,18 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
   }, []);
 
   /* ── the clock ─────────────────────────────────────────────────────── */
-  const m0 = 0;
+  const m0 = useMemo(() => (ds ? monthOfDay(firstDay(ds)) : 0), [ds]);
   const mNow = ds ? monthOfDay(ds.today) : 0;
   const m = month ?? mNow;
   const t = ds ? Math.min(monthEndDay(m), ds.today) : 0;
   const series = useMemo(() => {
     if (!ds) return [] as number[];
     const s = new Array(mNow - m0 + 1).fill(0);
-    for (let i = 0; i < ds.cases.length; i += C_STRIDE) { const d = ds.cases[i + C.day]; if (d >= 0 && d <= ds.today) s[monthOfDay(d) - m0]++; }
-    for (let i = 0; i < ds.care.length; i += 4) { const d = ds.care[i + 2]; if (d >= 0 && d <= ds.today) s[monthOfDay(d) - m0]++; }
+    // Records dated before the clock starts are folded into its first month.
+    for (let i = 0; i < ds.cases.length; i += C_STRIDE) { const d = ds.cases[i + C.day]; if (d >= 0 && d <= ds.today) s[Math.max(0, monthOfDay(d) - m0)]++; }
+    for (let i = 0; i < ds.care.length; i += 4) { const d = ds.care[i + 2]; if (d >= 0 && d <= ds.today) s[Math.max(0, monthOfDay(d) - m0)]++; }
     return s;
-  }, [ds, mNow]);
+  }, [ds, mNow, m0]);
   useEffect(() => {
     if (!playing) return;
     const id = setInterval(() => setMonth((x) => {
@@ -465,7 +466,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     const lat = parseFloat(params.get("lat") ?? ""), lng = parseFloat(params.get("lng") ?? "");
     const bbox = params.get("bbox")?.split(",").map(Number);
     const mParam = Number(params.get("m"));
-    if (Number.isFinite(mParam) && params.get("m")) setMonth(Math.max(0, Math.min(mNow, mParam)));
+    if (Number.isFinite(mParam) && params.get("m")) setMonth(Math.max(m0, Math.min(mNow, mParam)));
     const byCity = (name: string) => ds.cities.findIndex((c) => c.name.toLowerCase() === name.toLowerCase());
     const nearestCity = (x: number, y: number) => ds.cities.reduce((b, c, i) => ((c.lng - x) ** 2 + (c.lat - y) ** 2 < (ds.cities[b].lng - x) ** 2 + (ds.cities[b].lat - y) ** 2 ? i : b), 0);
     let s: Sel = { t: "city", city: 0 };
@@ -500,7 +501,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     }
     setSel(s); setSheet(s.t === "cell" || s.t === "empty" ? "open" : "peek");
     camera(s, true);
-  }, [ds, ready, layersReady, params, camera, choose, mNow]);
+  }, [ds, ready, layersReady, params, camera, choose, mNow, m0]);
 
   /* ── keep the URL in step, without navigating ────────────────────── */
   useEffect(() => {

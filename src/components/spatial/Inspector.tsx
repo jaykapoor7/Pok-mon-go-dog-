@@ -18,7 +18,7 @@ import { ArrowUpRight, X } from "lucide-react";
 import { ShareBand } from "@/components/system/ShareBand";
 import { MiniBars } from "@/components/system/Spark";
 import { getSupabase } from "@/lib/supabase";
-import { COVERAGE_TEXT, COVERAGE_ORDER, cellStats, fewOr, FEW, fmt, isSparse, monthLabel, NO_FILTERS, type CellStat, type Index } from "@/lib/spatial/engine";
+import { COVERAGE_TEXT, COVERAGE_ORDER, cellStats, fewOr, FEW, fmt, isSparse, monthLabel, monthOfDay, NO_FILTERS, type CellStat, type Index } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, conditionOutcome, monthly, statusTotals } from "@/lib/spatial/measures";
 import type { NextCell, SpatialDataset } from "@/lib/spatial/types";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
@@ -160,7 +160,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
     : sel.t === "cell" ? (ds.cellLocality[sel.cell] >= 0 ? ds.localities[ds.cellLocality[sel.cell]] : "One cell")
     : "Not mapped yet";
   const kicker = sel.t === "india" ? "The register, by city"
-    : sel.t === "city" ? `${ds.cities[sel.city].state || "City"} · as of ${monthLabel(monthOf(t))}`
+    : sel.t === "city" ? `${ds.cities[sel.city].state || "City"} · as of ${monthLabel(monthOfDay(t))}`
     : sel.t === "locality" ? `Locality in ${ds.cities[sel.city].name}`
     : sel.t === "cell" ? "One cell · 0.74 km²"
     : "An unmapped cell at the edge of the record";
@@ -383,4 +383,3 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
   );
 }
 
-function monthOf(day: number) { const d = new Date(Date.UTC(2024, 0, 1) + day * 86_400_000); return (d.getUTCFullYear() - 2024) * 12 + d.getUTCMonth(); }

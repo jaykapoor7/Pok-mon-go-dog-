@@ -25,6 +25,7 @@
     "test:master-import:staging": "node --import tsx scripts/test-master-import-staging-retry.ts",
     "test:master-import:resume": "node --import tsx scripts/test-master-import-resume.ts",
     "test:case-input-validation": "node --import tsx scripts/test-case-input-validation.ts",
+    "test:spatial": "node --import tsx scripts/test-spatial.ts",
     "test:v1-cleanup-chunks": "node --import tsx scripts/test-v1-cleanup-chunks.ts",
     "prebuild": "node scripts/no-fixtures.mjs && node scripts/copy-maplibre-worker.mjs",
     "predev": "node scripts/copy-maplibre-worker.mjs",

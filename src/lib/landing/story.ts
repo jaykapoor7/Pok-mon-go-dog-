@@ -14,7 +14,7 @@
 import { cellToBoundary, gridDisk } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
 import { getPublicDataset } from "@/lib/spatial/server";
-import { buildIndex, cellStats, NO_FILTERS } from "@/lib/spatial/engine";
+import { buildIndex, cellStats, NO_FILTERS, robustStart } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, closureReasons, conditionOutcome, firstAction, statusTotals } from "@/lib/spatial/measures";
 import { A_STRIDE, C, C_STRIDE, K, K_STRIDE, countOf, type SpatialDataset } from "@/lib/spatial/types";
 import type { StatusClass } from "@/lib/register/taxonomy";
@@ -60,6 +60,11 @@ function buildStory(ds: SpatialDataset, pinky: { id: string; straypaw_id: string
     if (d > ds.today) { futureDated++; continue; }
     events.push(localIdx.get(c)!, d, 1);
   }
+  // The replay starts where the record really begins; a stray early date
+  // (a 2011 vaccination in a 2024 import) joins the first frame instead of
+  // stretching the replay across empty years.
+  const start = robustStart(Array.from({ length: events.length / 3 }, (_, i) => events[i * 3 + 1]));
+  for (let i = 1; i < events.length; i += 3) if (events[i] < start) events[i] = start;
   // sort by day
   const order = Array.from({ length: events.length / 3 }, (_, i) => i).sort((a, b) => events[a * 3 + 1] - events[b * 3 + 1]);
   const sorted: number[] = [];

@@ -17,7 +17,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import {
-  A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, S, S_STRIDE, SF,
+  A, A_STRIDE, AF, C, C_STRIDE, DAY_MS, EPOCH_MS, EPOCH_YEAR, K, K_STRIDE, S, S_STRIDE, SF,
   type SpatialDataset,
 } from "./types";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, type Condition, type Triage } from "@/lib/register/taxonomy";
@@ -331,11 +331,35 @@ export const scaleRing = (ring: [number, number][], c: [number, number], k: numb
 /* ── time ─────────────────────────────────────────────────────────────── */
 
 export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-export const monthOfDay = (day: number) => { const d = new Date(Date.UTC(2024, 0, 1) + day * 86_400_000); return (d.getUTCFullYear() - 2024) * 12 + d.getUTCMonth(); };
-export const monthEndDay = (m: number) => Math.round((Date.UTC(2024, m + 1, 0) - Date.UTC(2024, 0, 1)) / 86_400_000);
-export const monthStartDay = (m: number) => Math.round((Date.UTC(2024, m, 1) - Date.UTC(2024, 0, 1)) / 86_400_000);
-export const monthLabel = (m: number, long = false) => `${long ? ["January","February","March","April","May","June","July","August","September","October","November","December"][((m % 12) + 12) % 12] : MONTHS[((m % 12) + 12) % 12]} ${2024 + Math.floor(m / 12)}`;
-export const dayLabel = (day: number) => { const d = new Date(Date.UTC(2024, 0, 1) + day * 86_400_000); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+export const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+/** Months are counted from the epoch: month 0 is January of EPOCH_YEAR. */
+export const monthOfDay = (day: number) => { const d = new Date(EPOCH_MS + day * DAY_MS); return (d.getUTCFullYear() - EPOCH_YEAR) * 12 + d.getUTCMonth(); };
+export const monthEndDay = (m: number) => Math.round((Date.UTC(EPOCH_YEAR, m + 1, 0) - EPOCH_MS) / DAY_MS);
+export const monthStartDay = (m: number) => Math.round((Date.UTC(EPOCH_YEAR, m, 1) - EPOCH_MS) / DAY_MS);
+export const yearOfMonth = (m: number) => EPOCH_YEAR + Math.floor(m / 12);
+export const monthLabel = (m: number, long = false) => `${(long ? MONTHS_LONG : MONTHS)[((m % 12) + 12) % 12]} ${yearOfMonth(m)}`;
+export const dayLabel = (day: number) => { const d = new Date(EPOCH_MS + day * DAY_MS); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+
+/** Where a clock over these days should start. A register of any size has
+    a few stray early dates (a 2011 vaccination typed into a 2024 import);
+    starting at the very first one would squeeze the real record into the
+    last inch of the axis. Past a couple of hundred records, the earliest
+    half-percent are folded into the first month instead. */
+export function robustStart(days: number[]): number {
+  const v = days.filter((d) => d >= 0).sort((a, b) => a - b);
+  if (!v.length) return -1;
+  return v.length >= 200 ? v[Math.floor(v.length * 0.005)] : v[0];
+}
+
+/** The day the register's clock starts: where its record really begins. */
+export function firstDay(ds: SpatialDataset): number {
+  const days: number[] = [];
+  for (let i = 0; i < ds.cases.length; i += C_STRIDE) { const d = ds.cases[i + C.day]; if (d <= ds.today) days.push(d); }
+  for (let i = 0; i < ds.care.length; i += K_STRIDE) { const d = ds.care[i + K.day]; if (d <= ds.today) days.push(d); }
+  for (let i = 0; i < ds.animals.length; i += A_STRIDE) { const d = ds.animals[i + A.first]; if (d <= ds.today) days.push(d); }
+  const s = robustStart(days);
+  return s < 0 ? ds.today : s;
+}
 
 export const fmt = (n: number) => n.toLocaleString("en-IN");
 

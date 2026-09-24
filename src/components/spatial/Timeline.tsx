@@ -11,7 +11,7 @@
 
 import { useCallback, useRef } from "react";
 import { Pause, Play } from "lucide-react";
-import { monthLabel } from "@/lib/spatial/engine";
+import { monthLabel, yearOfMonth } from "@/lib/spatial/engine";
 
 export function Timeline({ series, m0, m, onChange, playing, onPlay, night }: {
   /** Records per month, from month index m0. */
@@ -47,7 +47,7 @@ export function Timeline({ series, m0, m, onChange, playing, onPlay, night }: {
   };
   const idx = m - m0;
   const years: { i: number; y: number }[] = [];
-  for (let i = 0; i < n; i++) if ((m0 + i) % 12 === 0) years.push({ i, y: 2024 + Math.floor((m0 + i) / 12) });
+  for (let i = 0; i < n; i++) if ((m0 + i) % 12 === 0) years.push({ i, y: yearOfMonth(m0 + i) });
 
   return (
     <div className={`sm-time ${night ? "is-night" : ""}`}>

@@ -17,11 +17,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "maplibre-gl";
 import { PLATE, groundStyle, underlay } from "@/components/map/basemap";
+import { EPOCH_MS } from "@/lib/spatial/types";
 
 const DURATION = 15000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const EPOCH = Date.UTC(2024, 0, 1);
-const monthOf = (day: number) => { const d = new Date(EPOCH + day * 86_400_000); return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+const monthOf = (day: number) => { const d = new Date(EPOCH_MS + day * 86_400_000); return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+const yearOf = (day: number) => new Date(EPOCH_MS + day * 86_400_000).getUTCFullYear();
 
 type Props = {
   city: string;
@@ -178,7 +179,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
         </dl>
         <div className="ld-ramp" aria-hidden><span>1</span><i /><span>60+ records in a cell</span></div>
         <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
-          {playing ? "Filling in…" : "Replay 2024 → today"}
+          {playing ? "Filling in…" : `Replay ${events.length ? yearOf(events[1]) : ""} → today`}
         </button>
       </div>
     </>

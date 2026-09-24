@@ -8,7 +8,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, type SpatialDataset } from "./types";
-import { monthOfDay, openOn, type Index } from "./engine";
+import { monthOfDay, openOn, robustStart, type Index } from "./engine";
 import { CONDITIONS, STATUSES, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 
 export type Scope = { cells: Set<number> | null; from: number; to: number; condition?: number; source?: "all" | "field" | "resident" };
@@ -76,15 +76,19 @@ export function closureReasons(ds: SpatialDataset, idx: number[]) {
   };
 }
 
-/** Requests per calendar month, from the first month to the last. */
+/** Requests per calendar month, from the first request in the period (or `from`, if later) to `to`. */
 export function monthly(ds: SpatialDataset, idx: number[], from: number, to: number) {
-  const m0 = monthOfDay(Math.max(0, from)), m1 = monthOfDay(to);
+  const first = robustStart(idx.map((i) => ds.cases[i * C_STRIDE + C.day]));
+  const m0 = monthOfDay(Math.max(0, from, first >= 0 ? first : to)), m1 = monthOfDay(to);
   const n = Math.max(1, m1 - m0 + 1);
   const total = new Array(n).fill(0), noAction = new Array(n).fill(0), open = new Array(n).fill(0);
   const NO = STATUSES.indexOf("no_action");
   for (const i of idx) {
-    const o = i * C_STRIDE, m = monthOfDay(ds.cases[o + C.day]) - m0;
-    if (m < 0 || m >= n) continue;
+    const o = i * C_STRIDE, day = ds.cases[o + C.day];
+    if (day < from || day > to) continue;
+    // Stray early dates are folded into the first month, never dropped.
+    const m = Math.max(0, monthOfDay(day) - m0);
+    if (m >= n) continue;
     total[m]++;
     if (ds.cases[o + C.status] === NO) noAction[m]++;
     if (ds.cases[o + C.closedDay] < 0) open[m]++;
@@ -107,13 +111,17 @@ export function firstAction(ds: SpatialDataset, idx: number[]) {
   return { bins, known: values.length, unknown: bins[5], median: q(0.5), p75: q(0.75), p90: q(0.9) };
 }
 
-/** Time to resolution, from recorded resolution dates only. Imported dates that had to be assumed are left out. */
+/** Time to resolution, from recorded resolution dates only. Imported dates
+    that had to be assumed are left out and counted, never averaged in.
+    Only cases closed after field work count: a request closed without
+    action, or handed to another organisation, was not resolved here. */
 export function resolution(ds: SpatialDataset, idx: number[]) {
   const values: number[] = [];
   let excluded = 0;
+  const CLOSED = STATUSES.indexOf("closed");
   for (const i of idx) {
     const o = i * C_STRIDE, closed = ds.cases[o + C.closedDay];
-    if (closed < 0) continue;
+    if (closed < 0 || ds.cases[o + C.status] !== CLOSED) continue;
     if (ds.cases[o + C.reliable] !== 1) { excluded++; continue; }
     values.push(closed - ds.cases[o + C.day]);
   }
