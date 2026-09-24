@@ -84,6 +84,7 @@ const SELF_SHELLED = new Set<string>([
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+  if (pathname.startsWith("/embed/") || pathname.startsWith("/org/")) return <>{children}</>;
   if (OWN_CHROME.has(pathname)) return <>{children}</>;
   if (SELF_SHELLED.has(pathname) || pathname.startsWith("/partner")) {
     return <>{children}</>;

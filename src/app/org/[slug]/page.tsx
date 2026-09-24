@@ -1,213 +1,175 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  MapPin,
-  Globe,
-  Mail,
-  Phone,
-  Calendar,
-  HeartHandshake,
-  CheckCircle2,
-  Activity,
-} from "lucide-react";
+import { Globe, Mail, MapPin, Phone } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { Logo } from "@/components/brand/Logo";
 import { VerifiedBadge } from "@/components/org/VerifiedBadge";
-import { FundraiserCard } from "@/components/fundraisers/FundraiserCard";
-import { getOrgBySlug, getOrgImpact } from "@/lib/data";
-import { getFundraisersByOrg } from "@/lib/fundraisers";
+import {
+  getPublicOrgActivity,
+  getPublicOrgAnimals,
+  getPublicOrgBySlug,
+  getPublicOrgImpact,
+  getPublicOrgProgrammes,
+} from "@/lib/org-public";
+import styles from "./org-profile.module.css";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const org = await getOrgBySlug(slug);
+  const org = await getPublicOrgBySlug(slug);
   if (!org) return { title: "Organization not found, StrayPaw" };
   return {
-    title: `${org.name}, Animal welfare on StrayPaw`,
-    description:
-      org.mission?.slice(0, 150) ??
-      `${org.name} documents rescue cases and runs transparent campaigns on StrayPaw.`,
+    title: org.name + ", public records",
+    description: org.mission?.slice(0, 150) ?? ("Public animal welfare records documented by " + org.name + "."),
     ...(org.cover_photo ? { openGraph: { images: [org.cover_photo] } } : {}),
   };
 }
 
-function Stat({ value, label, icon: Icon }: { value: number; label: string; icon: any }) {
-  return (
-    <div className="flex items-center gap-3 rounded border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-bark-900">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded bg-paw-50 text-paw-600 dark:bg-paw-900/30 dark:text-paw-300">
-        <Icon className="h-5 w-5" />
-      </span>
-      <div>
-        <div className="font-display text-xl tracking-tightest text-bark-900 dark:text-bark-50">
-          {new Intl.NumberFormat("en-IN").format(value)}
-        </div>
-        <div className="text-xs text-bark-500">{label}</div>
-      </div>
-    </div>
-  );
+const formatter = new Intl.NumberFormat("en-IN");
+const dateFormatter = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+function date(value: string | null | undefined) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.valueOf()) ? null : dateFormatter.format(parsed);
+}
+
+function metricList(impact: Awaited<ReturnType<typeof getPublicOrgImpact>>) {
+  return [
+    impact.animalsRecorded > 0 && { value: impact.animalsRecorded, label: "Animals on record" },
+    impact.sterilised > 0 && { value: impact.sterilised, label: "Documented as sterilised" },
+    impact.vaccinated > 0 && { value: impact.vaccinated, label: "Documented as vaccinated" },
+    impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
+    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Resolved cases" },
+  ].filter(Boolean) as { value: number; label: string }[];
 }
 
 export default async function OrgProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const org = await getOrgBySlug(slug);
-  if (!org) notFound();
+  const org = await getPublicOrgBySlug(slug);
+  if (!org?.slug) notFound();
 
-  const [impact, campaigns] = await Promise.all([
-    getOrgImpact(org.id),
-    getFundraisersByOrg(org.id),
+  const [impact, animals, activity, programmes] = await Promise.all([
+    getPublicOrgImpact(org.id),
+    getPublicOrgAnimals(org.id, 18),
+    getPublicOrgActivity(org.id, 10),
+    getPublicOrgProgrammes(org.slug, 6),
   ]);
-
+  const metrics = metricList(impact);
   const location = [org.city, org.state].filter(Boolean).join(", ") || org.area;
+  const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const caseRecords = activity.filter((item) => item.kind === "case");
+  const recentActivity = activity.slice(caseRecords.length ? Math.min(caseRecords.length, 3) : 0, 8);
 
   return (
-    <div className="pb-24">
-      {/* Cover */}
-      <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-paw-500 to-paw-700 sm:h-56">
-        {org.cover_photo && (
-          <DogPhoto
-            src={org.cover_photo}
-            alt={org.name}
-            seed={org.id}
-            className="h-full w-full object-cover"
-          />
-        )}
-      </div>
+    <main className={styles.page}>
+      <header className={styles.topbar}>
+        <Link className={styles.brand} href="/">StrayPaw</Link>
+        <Link className={styles.back} href="/orgs">All organisations</Link>
+      </header>
 
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <Link
-          href="/orgs"
-          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
-        >
-          <ArrowLeft className="h-4 w-4" /> All organizations
-        </Link>
-
-        {/* Header card */}
-        <div className="-mt-2 flex flex-col gap-4 sm:flex-row sm:items-end">
-          <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded border-4 border-paper bg-white shadow-card dark:border-ink dark:bg-bark-900 sm:h-24 sm:w-24">
-            {org.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={org.logo_url} alt={org.name} className="h-full w-full object-cover" />
-            ) : (
-              <Logo size="lg" showWordmark={false} />
+      <section className={styles.hero}>
+        <div className={styles.heroInner}>
+          <div>
+            <div className={styles.identity}>
+              {org.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className={styles.logo} src={org.logo_url} alt={org.name + " logo"} />
+              ) : <span className={styles.logoFallback} aria-hidden="true">{initials || "NGO"}</span>}
+              <div>
+                <p className={styles.eyebrow}>Public organisation record</p>
+                <div className={styles.titleRow}>
+                  <h1 className={styles.title}>{org.name}</h1>
+                  {org.verified && <VerifiedBadge verified size="sm" />}
+                </div>
+                {location && <p className={styles.location}><MapPin aria-hidden="true" size={16} />{location}</p>}
+              </div>
+            </div>
+            {org.mission && <p className={styles.mission}>{org.mission}</p>}
+            {org.areas_of_work && org.areas_of_work.length > 0 && (
+              <div className={styles.workTags} aria-label="Areas of work">
+                {org.areas_of_work.map((area) => <span className={styles.workTag} key={area}>{area}</span>)}
+              </div>
             )}
           </div>
-          <div className="min-w-0 flex-1 pb-1">
-            <div className="mb-1.5">
-              <VerifiedBadge verified={org.verified} />
-            </div>
-            <h1 className="font-display text-2xl tracking-tightest text-bark-900 dark:text-bark-50 sm:text-3xl">
-              {org.name}
-            </h1>
-            {location && (
-              <Link href="/map" className="mt-1 flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
-                <MapPin className="h-4 w-4" /> {location}
-              </Link>
-            )}
-          </div>
-        </div>
 
-        {/* Mission */}
-        {org.mission && (
-          <p className="mt-5 text-lg leading-relaxed text-bark-700 dark:text-bark-200">
-            {org.mission}
-          </p>
-        )}
-
-        {/* Impact, real counts only */}
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Stat value={impact.casesResolved} label="cases resolved" icon={CheckCircle2} />
-          <Stat value={impact.casesActive} label="active cases" icon={Activity} />
-          <Stat value={impact.campaignsActive} label="active campaigns" icon={HeartHandshake} />
-        </div>
-
-        {/* Areas of work */}
-        {org.areas_of_work && org.areas_of_work.length > 0 && (
-          <section className="mt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-bark-400">
-              Operating area and current work
-            </h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {org.areas_of_work.map((a) => (
-                <span key={a} className="chip bg-paw-50 font-medium text-paw-700 dark:bg-paw-900/30 dark:text-paw-300">
-                  {a}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Active campaigns */}
-        {campaigns.length > 0 && (
-          <section className="mt-8">
-            <h2 className="font-display text-xl tracking-tightest text-bark-900 dark:text-bark-50">
-              Active campaigns
-            </h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {campaigns.map((f) => (
-                <FundraiserCard key={f.id} f={f} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* About */}
-        {org.about && (
-          <section className="mt-8">
-            <h2 className="font-display text-xl tracking-tightest text-bark-900 dark:text-bark-50">
-              About {org.name}
-            </h2>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-bark-700 dark:text-bark-200">
-              {org.about}
-            </p>
-          </section>
-        )}
-
-        {/* Contact */}
-        <section className="mt-8 rounded border border-black/[0.06] bg-white p-5 dark:border-white/10 dark:bg-bark-900">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-bark-400">
-            Get in touch
-          </h2>
-          <div className="mt-3 flex flex-col gap-2.5 text-sm">
-            {org.website && (
-              <a
-                href={org.website}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className="inline-flex items-center gap-2 font-medium text-paw-600 hover:underline"
-              >
-                <Globe className="h-4 w-4" /> {org.website.replace(/^https?:\/\//, "")}
-              </a>
-            )}
-            {org.contact_email && (
-              <a href={`mailto:${org.contact_email}`} className="inline-flex items-center gap-2 font-medium text-paw-600 hover:underline">
-                <Mail className="h-4 w-4" /> {org.contact_email}
-              </a>
-            )}
-            {org.contact_phone && (
-              <a href={`tel:${org.contact_phone}`} className="inline-flex items-center gap-2 font-medium text-bark-700 dark:text-bark-200">
-                <Phone className="h-4 w-4" /> {org.contact_phone}
-              </a>
-            )}
-            {org.founded_year && (
-              <p className="inline-flex items-center gap-2 text-bark-500">
-                <Calendar className="h-4 w-4" /> Founded {org.founded_year}
-              </p>
-            )}
-            {!org.website && !org.contact_email && !org.contact_phone && (
-              <p className="text-bark-400">
-                No public contact details are listed for this organisation.
-              </p>
-            )}
-          </div>
-          {org.registration_no && (
-            <p className="mt-3 border-t border-black/[0.06] pt-3 text-xs text-bark-400 dark:border-white/10">
-              Registration: {org.registration_no}
-            </p>
+          {(org.website || org.contact_email || org.contact_phone) && (
+            <aside className={styles.contact} aria-label="Public contact information">
+              <p className={styles.contactTitle}>Public contact</p>
+              {org.website && <a href={org.website} target="_blank" rel="noopener noreferrer nofollow"><Globe aria-hidden="true" size={16} />{org.website.replace(/^https?:\/\//, "")}</a>}
+              {org.contact_email && <a href={"mailto:" + org.contact_email}><Mail aria-hidden="true" size={16} />{org.contact_email}</a>}
+              {org.contact_phone && <a href={"tel:" + org.contact_phone}><Phone aria-hidden="true" size={16} />{org.contact_phone}</a>}
+            </aside>
           )}
-        </section>
+        </div>
+      </section>
+
+      <div className={styles.main}>
+        {metrics.length > 0 && (
+          <section className={styles.section} aria-labelledby="impact-heading">
+            <div className={styles.sectionLead}>
+              <h2 className={styles.sectionTitle} id="impact-heading">Live impact summary</h2>
+              <p className={styles.sectionText}>Counts update from records maintained through StrayPaw. They document what this organisation has recorded, not claims about work performed by StrayPaw.</p>
+            </div>
+            <div className={styles.metrics}>
+              {metrics.map((metric) => <div className={styles.metric} key={metric.label}><strong className={styles.metricValue}>{formatter.format(metric.value)}</strong><span className={styles.metricLabel}>{metric.label}</span></div>)}
+            </div>
+          </section>
+        )}
+
+        {animals.length > 0 && (
+          <section className={styles.section} aria-labelledby="animals-heading">
+            <div className={styles.sectionLead}>
+              <h2 className={styles.sectionTitle} id="animals-heading">Animals on record</h2>
+              <p className={styles.sectionText}>Public animal profiles attributed to {org.name}. Location details are intentionally not shown here.</p>
+            </div>
+            <div className={styles.animalGrid}>
+              {animals.map((animal) => {
+                const status = animal.sterilisation_status === "sterilised" ? "Documented as sterilised" : animal.vaccination_status === "vaccinated" ? "Documented as vaccinated" : date(animal.last_seen) ? ("Last documented " + date(animal.last_seen)) : "Public record";
+                return <Link className={styles.animal} href={"/dog/" + animal.id} key={animal.id}><DogPhoto className={styles.animalImage} src={animal.cover_photo} seed={animal.id} alt={animal.name ?? "Animal record"} /><div className={styles.animalCopy}><p className={styles.animalName}>{animal.name ?? "Animal record"}</p><p className={styles.animalMeta}>{status}</p></div></Link>;
+              })}
+            </div>
+          </section>
+        )}
+
+        {caseRecords.length > 0 && (
+          <section className={styles.section} aria-labelledby="work-heading">
+            <div className={styles.sectionLead}>
+              <h2 className={styles.sectionTitle} id="work-heading">Their work / case records</h2>
+              <p className={styles.sectionText}>Only public-safe field records are shown. Private case descriptions, staff details and sensitive locations remain in the organisation workspace.</p>
+            </div>
+            <div className={styles.recordList}>
+              {caseRecords.slice(0, 5).map((record) => <div className={styles.record} key={record.id}><div className={styles.recordMain}><p className={styles.recordTitle}>Field case documented</p><p className={styles.recordMeta}>{[record.area, date(record.occurredAt)].filter(Boolean).join(" · ")}</p></div>{record.animalId && <Link className={styles.recordLink} href={"/dog/" + record.animalId}>View animal record</Link>}</div>)}
+            </div>
+          </section>
+        )}
+
+        {recentActivity.length > 0 && (
+          <section className={styles.section} aria-labelledby="activity-heading">
+            <div className={styles.sectionLead}>
+              <h2 className={styles.sectionTitle} id="activity-heading">Recent documented activity</h2>
+              <p className={styles.sectionText}>A concise public timeline of work that has been deliberately published through StrayPaw&apos;s safe field activity record.</p>
+            </div>
+            <div className={styles.recordList}>
+              {recentActivity.map((record) => <div className={styles.record} key={record.id}><div className={styles.recordMain}><p className={styles.recordTitle}>{record.kind === "care" ? "Animal care recorded" : "Field case documented"}</p><p className={styles.recordMeta}>{[record.area, date(record.occurredAt)].filter(Boolean).join(" · ")}</p></div>{record.animalId && <Link className={styles.recordLink} href={"/dog/" + record.animalId}>View record</Link>}</div>)}
+            </div>
+          </section>
+        )}
+
+        {programmes.length > 0 && (
+          <section className={styles.section} aria-labelledby="programmes-heading">
+            <div className={styles.sectionLead}>
+              <h2 className={styles.sectionTitle} id="programmes-heading">Programmes / campaigns</h2>
+              <p className={styles.sectionText}>Public programme summaries published by {org.name}.</p>
+            </div>
+            <div className={styles.programmes}>{programmes.map((programme) => <article className={styles.programme} key={programme.id}><p className={styles.programmeKind}>{programme.kind}</p><h3 className={styles.programmeTitle}>{programme.name}</h3>{programme.summary && <p className={styles.programmeText}>{programme.summary}</p>}<p className={styles.programmeMeta}>{[programme.area, date(programme.startsOn), date(programme.endsOn)].filter(Boolean).join(" · ")}</p></article>)}</div>
+          </section>
+        )}
+
+        {org.about && <section className={styles.section} aria-labelledby="about-heading"><div className={styles.sectionLead}><h2 className={styles.sectionTitle} id="about-heading">About {org.name}</h2><p className={styles.about}>{org.about}</p></div></section>}
+        <footer className={styles.footer}>Data infrastructure by StrayPaw</footer>
       </div>
-    </div>
+    </main>
   );
 }

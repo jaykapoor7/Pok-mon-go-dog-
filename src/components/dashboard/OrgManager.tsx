@@ -26,6 +26,7 @@ import {
 import { formatINR } from "@/lib/fundraisers";
 import type { NGO, Fundraiser } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { WebsiteWidget } from "@/components/partner/WebsiteWidget";
 
 const INPUT =
   "w-full rounded border border-black/[0.08] bg-white px-3.5 py-2.5 text-sm text-bark-900 outline-none transition-colors placeholder:text-bark-400 focus:border-paw-400 focus:ring-2 focus:ring-paw-400/30 dark:border-white/10 dark:bg-bark-900 dark:text-bark-50";
@@ -126,6 +127,8 @@ export function OrgManager() {
       </div>
 
       {editing && <ProfileEditor org={org} onSaved={(o) => { setOrg(o); setEditing(false); }} />}
+
+      <WebsiteWidget org={org} />
 
       {/* Campaigns */}
       <section className="org-settings__campaigns" aria-labelledby="campaigns-heading">
