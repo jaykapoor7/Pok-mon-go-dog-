@@ -181,6 +181,49 @@ export async function getAllDogs(): Promise<Dog[]> {
   return [];
 }
 
+/* Bounded reads, so no screen sends the whole register to the browser. */
+
+/** The animals someone follows (ids are kept on their device). */
+export async function getDogsByIds(ids: string[]): Promise<Dog[]> {
+  const supa = getSupabase();
+  const clean = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 100);
+  if (!supa || !clean.length) return [];
+  const { data } = await supa.from("public_animal_profiles").select("*").in("id", clean);
+  return (data ?? []).map(mapDog);
+}
+
+/** Animals flagged as needing help, most recently seen first. */
+export async function getNeedsHelpDogs(limit = 200): Promise<Dog[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa.from("public_animal_profiles").select("*").eq("needs_help", true).order("last_seen", { ascending: false }).limit(limit);
+  return (data ?? []).map(mapDog).filter((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng) && (dog.lat !== 0 || dog.lng !== 0));
+}
+
+/** A few animals worth following: those needing help, then the most seen. */
+export async function getSuggestedDogs(limit = 60): Promise<Dog[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const [help, seen] = await Promise.all([
+    supa.from("public_animal_profiles").select("*").eq("needs_help", true).order("last_seen", { ascending: false }).limit(limit),
+    supa.from("public_animal_profiles").select("*").order("sightings_count", { ascending: false }).limit(limit),
+  ]);
+  const byId = new Map<string, Dog>();
+  for (const row of [...(help.data ?? []), ...(seen.data ?? [])]) { const d = mapDog(row); if (!byId.has(d.id)) byId.set(d.id, d); }
+  return [...byId.values()];
+}
+
+/** Search the public register by name, place or source ID. */
+export async function searchDogs(q: string, limit = 10): Promise<Dog[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const t = q.replace(/[,()%*\\]/g, " ").trim();
+  let query = supa.from("public_animal_profiles").select("*");
+  if (t) query = query.or(`name.ilike.%${t}%,zone.ilike.%${t}%,code.ilike.%${t}%`);
+  const { data } = await query.order("last_seen", { ascending: false }).limit(limit);
+  return (data ?? []).map(mapDog);
+}
+
 /** Small, real sample of dogs that have a cover photo, for the landing
  *  page's reported-dogs showcase. Returns an empty array (never fabricated
  *  entries) when no dogs with photos exist yet. */

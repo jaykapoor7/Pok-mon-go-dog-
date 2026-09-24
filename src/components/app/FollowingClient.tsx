@@ -11,8 +11,9 @@ import { formatPlace } from "@/lib/delhi";
 import { dogLabel, timeAgo } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMySightings } from "@/lib/actions";
+import { getDogsByIds } from "@/lib/data";
 
-export function FollowingClient({ dogs }: { dogs: Dog[] }) {
+export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
   const { ids } = useFollows();
   const { user } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
@@ -40,13 +41,20 @@ export function FollowingClient({ dogs }: { dogs: Dog[] }) {
     return () => { live = false; };
   }, [user?.id]);
 
-  // Follows are kept on-device, so the list is resolved client-side against
-  // the animals passed in from the server.
+  // Follows are kept on-device, so the followed animals are read by id from
+  // here — never by sending the whole register to the page.
+  const [followedRows, setFollowedRows] = useState<Dog[]>([]);
+  const idKey = ids.join(",");
+  useEffect(() => {
+    if (!idKey) { setFollowedRows([]); return; }
+    let live = true;
+    getDogsByIds(idKey.split(",")).then((rows) => { if (live) setFollowedRows(rows); }).catch(() => {});
+    return () => { live = false; };
+  }, [idKey]);
   /* Most recently seen first. Somebody opens this page to find out what has
      happened since they last looked, and the order the follow ids happen to
      be stored in does not answer that. */
-  const followed = dogs
-    .filter((d) => ids.includes(String(d.id)))
+  const followed = [...followedRows]
     .sort((a, b) => +new Date(b.last_seen ?? 0) - +new Date(a.last_seen ?? 0));
   const reportHistory = user && reports.length > 0 ? <section className="my-report-history">
     <div className="spa-panel-head"><b>Reports you filed</b><span>{reports.length} on your account</span></div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Camera, Check, Search, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createCase } from "@/lib/case-actions";
 import { createAnimal } from "@/lib/animal-actions";
 import { uploadPhoto } from "@/lib/actions";
-import { getAllDogs } from "@/lib/data";
+import { getDogsByIds, searchDogs } from "@/lib/data";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { CASE_CATEGORY_META, CASE_SEVERITY_META, SPECIES, type CaseCategory, type CaseSeverity, type Dog } from "@/lib/types";
 import { cn, dogLabel } from "@/lib/utils";
@@ -44,14 +44,24 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { getAllDogs().then(setDogs).catch(() => {}); }, []);
+  /* The picker searches the register as you type — a bounded read, never
+     the whole register sent to the browser. The chosen animal is kept so
+     it stays selected when the search moves on. */
+  const [picked, setPicked] = useState<Dog | null>(null);
+  useEffect(() => {
+    let live = true;
+    const t = setTimeout(() => { searchDogs(q, q.trim() ? 10 : 8).then((rows) => { if (live) setDogs(rows); }).catch(() => {}); }, q.trim() ? 220 : 0);
+    return () => { live = false; clearTimeout(t); };
+  }, [q]);
+  useEffect(() => {
+    if (!dogId) { setPicked(null); return; }
+    const inList = dogs.find((d) => d.id === dogId);
+    if (inList) setPicked(inList);
+    else getDogsByIds([dogId]).then((rows) => setPicked(rows[0] ?? null)).catch(() => {});
+  }, [dogId, dogs]);
 
-  const selectedDog = useMemo(() => dogs.find((d) => d.id === dogId) ?? null, [dogs, dogId]);
-  const matches = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    if (!t) return dogs.slice(0, 8);
-    return dogs.filter((d) => dogLabel(d).toLowerCase().includes(t) || (d.zone ?? "").toLowerCase().includes(t) || (d.code ?? "").toLowerCase().includes(t)).slice(0, 10);
-  }, [dogs, q]);
+  const selectedDog = picked;
+  const matches = dogs;
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;

@@ -1,5 +1,5 @@
 import { HelpClient } from "@/components/help/HelpClient";
-import { getAllDogs } from "@/lib/data";
+import { getNeedsHelpDogs } from "@/lib/data";
 
 export const metadata = {
   title: "Help a dog, StrayPaw",
@@ -10,6 +10,7 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function HelpPage() {
-  const dogs = await getAllDogs();
+  /* Only the animals flagged as needing help: the page lists nothing else. */
+  const dogs = await getNeedsHelpDogs();
   return <HelpClient dogs={dogs} />;
 }

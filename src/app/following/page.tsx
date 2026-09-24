@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/app/AppShell";
 import { FollowingClient } from "@/components/app/FollowingClient";
-import { getAllDogs } from "@/lib/data";
+import { getSuggestedDogs } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -9,7 +9,9 @@ export const metadata = {
 };
 
 export default async function FollowingPage() {
-  const dogs = await getAllDogs();
+  /* Suggestions only; the animals someone follows are fetched by id on
+     their device, where the follows are kept. */
+  const suggestions = await getSuggestedDogs();
 
   return (
     <AppShell>
@@ -27,7 +29,7 @@ export default async function FollowingPage() {
         appear here too, with their latest review status.
       </p>
 
-      <FollowingClient dogs={dogs} />
+      <FollowingClient suggestions={suggestions} />
     </AppShell>
   );
 }
