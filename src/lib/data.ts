@@ -524,9 +524,12 @@ export async function getOrgImpact(
 ): Promise<{ casesResolved: number; casesActive: number; campaignsActive: number }> {
   const supa = getSupabase();
   if (!supa) return { casesResolved: 0, casesActive: 0, campaignsActive: 0 };
+  // Cases themselves are readable only by their organisation; the public
+  // facts view carries what may be counted in public. Reading `cases` here
+  // (no session) always answered zero.
   const [resolved, active, campaigns] = await Promise.all([
-    supa.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status", "resolved"),
-    supa.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).neq("status", "resolved"),
+    supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status_class", "closed"),
+    supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).in("status_class", ["open", "in_progress"]),
     supa.from("fundraisers").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status", "active"),
   ]);
   return {

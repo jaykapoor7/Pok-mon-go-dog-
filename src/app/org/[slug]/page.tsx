@@ -117,8 +117,8 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
 
         {/* Impact, real counts only */}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Stat value={impact.casesResolved} label="cases resolved" icon={CheckCircle2} />
-          <Stat value={impact.casesActive} label="active cases" icon={Activity} />
+          <Stat value={impact.casesResolved} label="cases closed after field work" icon={CheckCircle2} />
+          <Stat value={impact.casesActive} label="cases open now" icon={Activity} />
           <Stat value={impact.campaignsActive} label="active campaigns" icon={HeartHandshake} />
         </div>
 

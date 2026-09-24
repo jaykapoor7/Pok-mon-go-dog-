@@ -248,3 +248,66 @@ end $$;
 
 revoke all on function public.review_case(uuid, text, text, text, text) from public, anon;
 grant execute on function public.review_case(uuid, text, text, text, text) to authenticated;
+
+-- ── 4. A status a person sets outranks the workbook too ─────────────
+-- An imported case keeps the workbook's status in source_metadata, and
+-- the facts trigger reads it until status_reviewed_at is set. Without
+-- this, a member who resolved an imported "in progress" case through the
+-- proof flow saw it stay "in progress" everywhere it was counted: the
+-- workbook status won. A status change made here is a person's decision,
+-- so it marks the case reviewed. Resolving with proof or reopening also
+-- clears a no-action closure reason, which no longer describes the case.
+--
+-- Imported cases also carry a workflow status that can disagree with the
+-- register (16 read "resolved" while their register says in progress), so
+-- "is this change available" is judged against where the case really is,
+-- its status_class, not the enum alone.
+create or replace function public.update_case_status(
+  p_case_id uuid, p_to_status case_status, p_actor_id uuid, p_actor_name text,
+  p_resolution case_resolution default null, p_note text default null,
+  p_before_url text default null, p_after_url text default null, p_outcome_note text default null
+)
+returns json
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare c cases; v_type case_update_type := 'status_changed'; v_open boolean;
+begin
+  if auth.uid() is null or auth.uid() <> p_actor_id or my_ngo() is null then
+    return json_build_object('ok', false, 'error', 'Organisation access required.');
+  end if;
+  select * into c from cases where id = p_case_id and ngo_id = my_ngo();
+  if not found then return json_build_object('ok', false, 'error', 'Case not found in your organisation.'); end if;
+  if c.assignee_id is distinct from auth.uid() then
+    return json_build_object('ok', false, 'error', 'Only the assignee can update this case.');
+  end if;
+  v_open := coalesce(c.status_class, case when c.status in ('resolved', 'closed') then 'closed' else 'open' end) in ('open', 'in_progress');
+  if p_to_status = 'unverified'
+     or (p_to_status = c.status and (p_to_status in ('resolved', 'closed')) <> v_open) then
+    return json_build_object('ok', false, 'error', 'That status change is not available.');
+  end if;
+  if p_to_status = 'resolved' and (p_resolution is null
+      or coalesce(btrim(coalesce(p_after_url, c.after_url, '')), '') = ''
+      or coalesce(btrim(coalesce(p_outcome_note, c.outcome_note, '')), '') = '') then
+    return json_build_object('ok', false, 'error', 'Resolution, after photo and outcome note are required.');
+  end if;
+  if not v_open and p_to_status in ('in_progress', 'assigned') then v_type := 'reopened'; end if;
+  update cases set status = p_to_status,
+      resolution = case when p_to_status = 'resolved' then p_resolution when p_to_status = 'in_progress' then null else resolution end,
+      resolved_at = case when p_to_status = 'resolved' then now() when v_type = 'reopened' then null else resolved_at end,
+      before_url = coalesce(p_before_url, before_url), after_url = coalesce(p_after_url, after_url),
+      outcome_note = coalesce(p_outcome_note, outcome_note),
+      proof_verified = case when p_to_status = 'resolved' or v_type = 'reopened' then false else proof_verified end,
+      verified_at = case when p_to_status = 'resolved' or v_type = 'reopened' then null else verified_at end,
+      closure_reason = case when p_to_status in ('resolved', 'in_progress') then null else closure_reason end,
+      status_reviewed_at = now(),
+      updated_at = now(), last_activity_at = now()
+    where id = p_case_id and ngo_id = my_ngo();
+  insert into case_updates (case_id, actor_id, actor_name, type, from_status, to_status, note)
+    values (p_case_id, auth.uid(), nullif(btrim(p_actor_name), ''), v_type, c.status, p_to_status, p_note);
+  return json_build_object('ok', true, 'status', p_to_status);
+end $function$;
+
+revoke all on function public.update_case_status(uuid, case_status, uuid, text, case_resolution, text, text, text, text) from public, anon;
+grant execute on function public.update_case_status(uuid, case_status, uuid, text, case_resolution, text, text, text, text) to authenticated;

@@ -32,6 +32,13 @@ const nextConfig = {
       /* /dashboard was already a client-side redirect component. Doing it
          here is one hop instead of two, and search engines see it. */
       { source: "/dashboard", destination: "/partner", permanent: true },
+      /* Cases live in the organisation workspace. /cases was a second copy of
+         the register whose server reads had no session and so always came
+         back empty; old links and the query they carry (?q, ?dog) still land. */
+      { source: "/cases", destination: "/partner/cases", permanent: true },
+      { source: "/cases/new", has: [{ type: "query", key: "dog", value: "(?<dog>.+)" }], destination: "/partner/cases/new?dogId=:dog", permanent: true },
+      { source: "/cases/new", destination: "/partner/cases/new", permanent: true },
+      { source: "/cases/:id", destination: "/partner/cases/:id", permanent: true },
     ];
   },
 

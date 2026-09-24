@@ -213,6 +213,14 @@ assert.deepEqual(se.peaks, [9, 10], "October and November are busy in both years
 assert.equal(se.surge?.year, 2025, "the one-off January is reported as a surge");
 assert.equal(se.surge?.month, 0);
 
+/* ── nobody is named in public ─────────────────────────────────────────── */
+{
+  const named = assemble({ animals, cases: cases.map((c) => ({ ...c, ngo_id: "org-1" })), care, sightings: [], orgs: [{ id: "org-1", name: "A Real Partner" }] }, "public", NOW);
+  assert.ok(!named.dict.org.includes("A Real Partner"), "the public dataset never carries an organisation's name");
+  const own = assemble({ animals, cases: cases.map((c) => ({ ...c, ngo_id: "org-1" })), care, sightings: [], orgs: [{ id: "org-1", name: "A Real Partner" }] }, "org", NOW);
+  assert.ok(own.dict.org.includes("A Real Partner"), "an organisation's own dataset keeps its name");
+}
+
 /* ── taxonomy ──────────────────────────────────────────────────────────── */
 for (const c of CONDITIONS) assert.ok(DEFAULT_TRIAGE[c], `${c} has a default triage`);
 for (const s of STATUSES) assert.ok(STATUS_META[s], `${s} has a label`);

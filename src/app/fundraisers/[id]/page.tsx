@@ -98,7 +98,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       )}
 
       {f.case_id && (
-        <Link href={`/cases/${f.case_id}`} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-paw-600 hover:underline">
+        <Link href={`/partner/cases/${f.case_id}`} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-paw-600 hover:underline">
           <ClipboardList className="h-4 w-4" /> View the case this funds
         </Link>
       )}

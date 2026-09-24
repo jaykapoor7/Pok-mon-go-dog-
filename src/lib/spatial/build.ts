@@ -28,7 +28,7 @@ import {
 } from "./types";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 6;
+export const DATASET_VERSION = 7;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -107,7 +107,7 @@ export async function readPublicRows(supa: SupabaseClient, city?: string) {
     readAll<SightRow>((f, t) => scoped(supa.from("public_sighting_facts").select(
       "dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo",
     )).order("id").range(f, t)),
-    Promise.resolve(supa.from("ngos").select("id,name")).then((r) => (r.data ?? []) as { id: string; name: string }[], () => [] as { id: string; name: string }[]),
+    Promise.resolve([] as { id: string; name: string }[]),
   ]);
   return { animals, cases, care, sightings, orgs };
 }
@@ -373,7 +373,9 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
       intake: [...INTAKES],
       care: [...CARE_KINDS],
       severity: [...SEVERITIES],
-      org: [...orgIds.keys()].map((id) => orgNames.get(id) ?? "Organisation"),
+      // In public, an organisation is a position, never a name: the sample
+      // city's partner stays unnamed, and nothing public needs to say who.
+      org: [...orgIds.keys()].map((id, i) => (scope === "public" ? `Organisation ${i + 1}` : orgNames.get(id) ?? "Organisation")),
     },
     frontier,
     next,

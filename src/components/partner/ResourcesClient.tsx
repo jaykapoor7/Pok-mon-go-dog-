@@ -407,7 +407,7 @@ function DocumentCard({
                 </Link>
               )}
               {kase && (
-                <Link href={`/cases/${kase.id}`} className="res-linked">
+                <Link href={`/partner/cases/${kase.id}`} className="res-linked">
                   <Link2 size={12} /> {kase.title}
                 </Link>
               )}
