@@ -29,9 +29,12 @@ async function load(scope: Scope): Promise<SpatialDataset> {
   return r.json();
 }
 
-export function useSpatialDataset(scope: Scope, userKey?: string | null) {
-  const [s, setS] = useState<State>({ ds: null, error: null, loading: true });
+/** The dataset for a scope. `enabled: false` loads nothing — for a screen
+    that only needs it once someone is signed in as a member. */
+export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled = true) {
+  const [s, setS] = useState<State>({ ds: null, error: null, loading: enabled });
   useEffect(() => {
+    if (!enabled) { setS({ ds: null, error: null, loading: false }); return; }
     let live = true;
     const key = `${scope}:${userKey ?? ""}`;
     if (!cache.has(key)) cache.set(key, load(scope));
@@ -39,7 +42,7 @@ export function useSpatialDataset(scope: Scope, userKey?: string | null) {
       .then((ds) => { if (live) setS({ ds, error: null, loading: false }); })
       .catch((e: Error) => { cache.delete(key); if (live) setS({ ds: null, error: e.message, loading: false }); });
     return () => { live = false; };
-  }, [scope, userKey]);
+  }, [scope, userKey, enabled]);
   const ix: Index | null = useMemo(() => (s.ds ? buildIndex(s.ds) : null), [s.ds]);
   return { ...s, ix };
 }

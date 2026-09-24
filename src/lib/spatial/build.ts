@@ -28,7 +28,7 @@ import {
 } from "./types";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 5;
+export const DATASET_VERSION = 6;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -46,6 +46,8 @@ export type CaseRow = {
   intake_channel: string | null; severity: string | null; first_action_days: number | null;
   resolved_at: string | null; resolved_at_source: string | null; source: string | null;
   followups_done: number | null; followups_missed: number | null; followups_upcoming: number | null;
+  /** When a person reviewed an open case and closed it (case-review.sql). */
+  reviewed_at?: string | null;
 };
 export type CareRow = { dog_id: string | null; kind: string | null; event_date: string | null; h3_r8: string | null };
 export type SightRow = {
@@ -99,7 +101,7 @@ export async function readPublicRows(supa: SupabaseClient, city?: string) {
       "id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id",
     )).order("id").range(f, t)),
     readAll<CaseRow>((f, t) => scoped(supa.from("public_case_facts").select(
-      "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming",
+      "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at",
     )).order("id").range(f, t)),
     readAll<CareRow>((f, t) => scoped(supa.from("public_care_facts").select("dog_id,kind,event_date,h3_r8")).order("id").range(f, t)),
     readAll<SightRow>((f, t) => scoped(supa.from("public_sighting_facts").select(
@@ -117,7 +119,7 @@ export async function readOrgRows(supa: SupabaseClient) {
       "id,h3_r8,lat,lng,city,state,zone,location_precision,provenance,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id",
     ).order("id").range(f, t)),
     readAll<CaseRow & { provenance?: string | null; occurred_at: string | null }>((f, t) => supa.from("org_case_facts").select(
-      "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_at,resolved_at,resolved_at_source,provenance,followups_done,followups_missed,followups_upcoming",
+      "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_at,resolved_at,resolved_at_source,provenance,followups_done,followups_missed,followups_upcoming,reviewed_at",
     ).order("id").range(f, t)),
     readAll<CareRow & { dog_id: string }>((f, t) => supa.from("medical_events").select("dog_id,kind,event_date").order("id").range(f, t)),
   ]);
@@ -310,7 +312,10 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
     const day = dayOf(c.occurred_at);
     const status = c.status_class && STATUSES.includes(c.status_class as never) ? c.status_class : "unknown";
     const open = status === "open" || status === "in_progress";
-    const closed = open ? -1 : c.resolved_at ? Math.max(day, dayOf(c.resolved_at)) : day;
+    // Closed on its resolution date; failing that, on the day a person
+    // reviewed and closed it (it was open on the register until then);
+    // failing both, the day it opened.
+    const closed = open ? -1 : c.resolved_at ? Math.max(day, dayOf(c.resolved_at)) : c.reviewed_at ? Math.max(day, dayOf(c.reviewed_at)) : day;
     const cond = c.condition_class && CONDITIONS.includes(c.condition_class as never) ? c.condition_class : "Not recorded";
     cases.push(
       cell,

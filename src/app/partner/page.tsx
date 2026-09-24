@@ -1,10 +1,11 @@
-import { PartnerRecordHome } from "@/components/partner/PartnerRecordHome";
+import { OpsRoom } from "@/components/partner/OpsRoom";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Organisation record, StrayPaw Partner" };
+export const metadata = { title: "Operations, StrayPaw Partner" };
 
-/* The NGO home is an index into the organisation's native records. Detailed
-   operational history stays behind authenticated RLS reads in the client. */
+/* The NGO home: the operations room. Aggregates come from the compact
+   spatial dataset; the few rows it lists by name are bounded reads under
+   the member's own session (lib/ops.ts). */
 export default function PartnerOverviewPage() {
-  return <PartnerRecordHome />;
+  return <OpsRoom />;
 }

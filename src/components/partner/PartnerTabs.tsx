@@ -21,6 +21,7 @@ export const CONSOLE_GROUPS: {
     tabs: [
       { href: "/partner/animals", label: "Animals" },
       { href: "/partner/cases", label: "Cases" },
+      { href: "/partner/review", label: "Case review" },
       { href: "/partner/records", label: "Search records" },
       { href: "/partner/quality", label: "Data quality" },
       { href: "/partner/import", label: "Import" },

@@ -15,12 +15,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const sql = (f) => join(root, "supabase", f);
 
 const SETS = {
-  all: ["RUN-ALL-MIGRATIONS.sql", "RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql", "register-intelligence.sql"],
-  pilot: ["RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql", "register-intelligence.sql"],
+  all: ["RUN-ALL-MIGRATIONS.sql", "RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql", "register-intelligence.sql", "case-review.sql"],
+  pilot: ["RUN-PILOT-MIGRATIONS.sql", "programme-evidence.sql", "rollout-hardening.sql", ...districts(), "wards-chennai.sql", "register-intelligence.sql", "case-review.sql"],
   rollout: ["rollout-hardening.sql"],
   /* Place and facts for the map, analytics and dashboards. Needs the
      district boundaries loaded first; safe to run again. */
-  register: ["register-intelligence.sql"],
+  register: ["register-intelligence.sql", "case-review.sql"],
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   personal: ["personal-access-codes.sql"],
   delhi: ["seed-delhi-photographs.sql"],
