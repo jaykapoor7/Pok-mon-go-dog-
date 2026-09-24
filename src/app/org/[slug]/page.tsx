@@ -41,7 +41,7 @@ function metricList(impact: Awaited<ReturnType<typeof getPublicOrgImpact>>) {
     impact.sterilised > 0 && { value: impact.sterilised, label: "Documented as sterilised" },
     impact.vaccinated > 0 && { value: impact.vaccinated, label: "Documented as vaccinated" },
     impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
-    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Resolved cases" },
+    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Closed after field work" },
   ].filter(Boolean) as { value: number; label: string }[];
 }
 

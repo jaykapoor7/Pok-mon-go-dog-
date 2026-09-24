@@ -29,7 +29,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
     impact.sterilised > 0 && { value: impact.sterilised, label: "Sterilised" },
     impact.vaccinated > 0 && { value: impact.vaccinated, label: "Vaccinated" },
     impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
-    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Resolved cases" },
+    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Closed after field work" },
   ].filter(Boolean) as { value: number; label: string }[];
   const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
