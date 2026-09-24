@@ -88,59 +88,30 @@ function drawFrame(ctx: Ctx, color: string, urgent: boolean) {
   ctx.fill();
 }
 
-/* Same palette and the same seeding as DogPhoto, so an animal with no
-   photograph looks the same on the map as it does in a list rather than
-   turning into a different creature between the two. */
-const GRADIENTS: [string, string][] = [
-  ["#5b86f0", "#2f4fc0"],
-  ["#D9A441", "#3b63e0"],
-  ["#3E8473", "#2842a0"],
-  ["#C06A86", "#2f4fc0"],
-  ["#5b86f0", "#1f3168"],
-  ["#3b63e0", "#141821"],
+/* An animal with no photograph: a navy disc and a plain line drawing of a
+   dog, the same mark the map's street-level portraits use. No gradients,
+   no seeded colours — every such animal looks the same, because the
+   difference between them is not something we have recorded. */
+const DOG_PATHS = [
+  "M11.25 16.25h1.5L12 17z", "M16 14v.5", "M8 14v.5",
+  "M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444a11.702 11.702 0 0 0-.493-3.309",
+  "M8.5 8.5c-.384 1.05-1.083 2.028-2.344 2.5-1.931.722-3.576-.297-3.656-1-.113-.994 1.177-6.53 4-7 1.923-.321 3.651.845 3.651 2.235A7.497 7.497 0 0 1 14 5.277c0-1.39 1.844-2.598 3.767-2.277 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5",
 ];
 
-/** DogPhoto's seededRandom, inlined so this file has no React dependency. */
-function seeded(seed: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return ((h >>> 0) % 10000) / 10000;
-}
-
-function drawPawFallback(ctx: Ctx, seed: string, r: number) {
-  const [from, to] = GRADIENTS[Math.floor(seeded(seed) * GRADIENTS.length)];
-  const g = ctx.createLinearGradient(
-    BOX / 2 - r, BOX / 2 - r,
-    BOX / 2 + r, BOX / 2 + r
-  );
-  g.addColorStop(0, from);
-  g.addColorStop(1, to);
-  ctx.fillStyle = g;
+function drawPawFallback(ctx: Ctx, _seed: string, r: number) {
+  ctx.fillStyle = "#0b1e3d";
   circle(ctx, r);
   ctx.fill();
-
-  /* A paw, plainly: four toes over a pad. Small enough that detail would be
-     lost anyway, so it is built from ellipses rather than a traced path. */
-  const cx = BOX / 2;
-  const cy = BOX / 2;
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  const toes: [number, number, number][] = [
-    [cx - 6.2, cy - 3.4, 2.5],
-    [cx - 2.1, cy - 6.0, 2.7],
-    [cx + 2.1, cy - 6.0, 2.7],
-    [cx + 6.2, cy - 3.4, 2.5],
-  ];
-  for (const [x, y, r] of toes) {
-    ctx.beginPath();
-    ctx.ellipse(x, y, r, r * 1.25, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + 3.6, 6.4, 5.2, 0, 0, Math.PI * 2);
-  ctx.fill();
+  const s = (r * 1.25) / 24;
+  ctx.save();
+  ctx.translate(BOX / 2 - 12 * s, BOX / 2 - 12.5 * s);
+  ctx.scale(s, s);
+  ctx.strokeStyle = "#efe7da";
+  ctx.lineWidth = 1.7;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (const d of DOG_PATHS) ctx.stroke(new Path2D(d));
+  ctx.restore();
 }
 
 /**

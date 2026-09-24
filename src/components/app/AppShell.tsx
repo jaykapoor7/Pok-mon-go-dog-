@@ -51,7 +51,7 @@ const NGO_NAV = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
   { href: "/partner/animals", label: "Records", Icon: Database },
   { href: "/partner/map", label: "Map", Icon: MapPin },
-  { href: "/partner/reports", label: "Reports", Icon: ScanSearch },
+  { href: "/partner/reports", label: "Analysis", Icon: ScanSearch },
   { href: "/partner/team", label: "Team", Icon: Building2 },
 ];
 

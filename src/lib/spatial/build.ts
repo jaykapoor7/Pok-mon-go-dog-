@@ -16,7 +16,7 @@
    published (0.01°) position, which is never finer than the truth.
    ════════════════════════════════════════════════════════════════════ */
 
-import { cellToBoundary, cellToLatLng, gridDisk, latLngToCell } from "h3-js";
+import { cellToBoundary, cellToLatLng, cellsToMultiPolygon, gridDisk, latLngToCell } from "h3-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CITIES } from "@/lib/geo/cities";
 import {
@@ -28,7 +28,7 @@ import {
 } from "./types";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 7;
+export const DATASET_VERSION = 8;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -379,7 +379,17 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
     },
     frontier,
     next,
+    outline: outlineOf(cells),
   };
+}
+
+/** The recorded cells merged into one outline, for the map's coverage fog. */
+function outlineOf(cells: string[]): [number, number][][][] {
+  if (!cells.length) return [];
+  try {
+    const r = (x: number) => Math.round(x * 1e5) / 1e5;
+    return cellsToMultiPolygon(cells, true).map((poly) => poly.map((ring) => ring.map(([lng, lat]) => [r(lng), r(lat)] as [number, number])));
+  } catch { return []; }
 }
 
 /* ── the edge of what is known, and where to look next ──────────────── */

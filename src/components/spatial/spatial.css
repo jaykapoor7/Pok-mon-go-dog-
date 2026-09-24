@@ -302,3 +302,70 @@
    covers the partner main, the way the previous field map did. */
 .sm-host { position: relative; width: 100%; height: 100%; min-height: 420px; }
 .sm-host.is-fill { position: absolute; inset: 0; z-index: 1; min-height: 0; }
+
+/* ── light, terrain, fog and rings ───────────────────────────────── */
+.sm-dot.is-ink { background: #dbe7ff; box-shadow: 0 0 6px 1px rgba(79, 127, 224, 0.8); }
+.sm.is-paper .sm-dot.is-ink { background: var(--sp-seq-5); box-shadow: none; }
+.sm-dot.is-help { box-shadow: 0 0 6px 1px rgba(240, 91, 64, 0.7); }
+.sm-dot.is-abc { background: #6f9bff; box-shadow: 0 0 6px 1px rgba(111, 155, 255, 0.7); }
+.sm-dot.is-arv { background: #7fc9d6; box-shadow: 0 0 6px 1px rgba(127, 201, 214, 0.7); }
+.sm-dot.is-due { background: #f7a08c; }
+.sm-dot.is-unk { background: rgba(239, 231, 218, 0.3); width: 6px; height: 6px; }
+.sm.is-paper .sm-dot.is-unk { background: rgba(11, 30, 61, 0.28); }
+.sm-dot.is-sky { background: #bfe8ee; box-shadow: 0 0 6px 1px rgba(127, 201, 214, 0.8); }
+.sm.is-paper .sm-dot.is-abc { background: #2457ce; box-shadow: none; }
+.sm.is-paper .sm-dot.is-arv { background: #3c98a8; box-shadow: none; }
+.sm.is-paper .sm-dot.is-sky { background: #2a7a88; box-shadow: none; }
+.sm-sw.is-fog { width: 18px; height: 12px; border-radius: 2px; clip-path: none; background: var(--sp-hatch-night), rgba(3, 10, 24, 0.66); box-shadow: inset 0 0 0 1px rgba(239, 231, 218, 0.25); }
+.sm.is-paper .sm-sw.is-fog { background: var(--sp-hatch), rgba(239, 231, 218, 0.78); }
+.sm-rings { width: 20px; height: 20px; flex: none; border-radius: 50%; background: radial-gradient(circle, var(--sm-text) 0 2.5px, transparent 3px 5px, var(--sm-dim) 5px 5.8px, transparent 6px 8px, var(--sm-dim) 8px 8.8px, transparent 9px); opacity: 0.9; }
+.sm-key-note { flex-basis: 100%; font-style: italic; opacity: 0.85; }
+.sm-ramp.is-terrain em { flex-basis: 100%; }
+
+/* ── street-level portraits ─────────────────────────────────────── */
+.sm-pin {
+  position: relative; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: #0b1e3d; box-shadow: 0 0 0 2.5px #efe7da, 0 6px 16px rgba(0, 0, 0, 0.45);
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.sm-pin:hover, .sm-pin:focus-visible { transform: scale(1.12); z-index: 2; outline: none; }
+.sm-pin img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+.sm-pin.is-help { box-shadow: 0 0 0 3px #f05b40, 0 0 0 7px rgba(240, 91, 64, 0.25), 0 6px 16px rgba(0, 0, 0, 0.45); }
+.sm-pin.is-ster { box-shadow: 0 0 0 3px #6f9bff, 0 6px 16px rgba(0, 0, 0, 0.45); }
+.sm-pin.is-mono { background: radial-gradient(circle at 50% 38%, #1b3f80, #0b1e3d 70%); }
+.sm-pin-mono { display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-serif-stack); font-size: 19px; color: #efe7da; }
+.sm-pin-name {
+  position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis;
+  padding: 2px 7px; border-radius: 999px; background: rgba(7, 20, 43, 0.82); color: #efe7da; font: 600 10.5px/1.4 var(--font-sans, system-ui);
+  opacity: 0; pointer-events: none; transition: opacity 0.16s ease;
+}
+.sm-pin:hover .sm-pin-name, .sm-pin:focus-visible .sm-pin-name { opacity: 1; }
+.sm-zoomhint {
+  position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); margin: 0; padding: 7px 14px; border-radius: 999px; z-index: 3;
+  background: rgba(7, 20, 43, 0.78); color: #efe7da; font-size: 12.5px; font-weight: 600; pointer-events: none; white-space: nowrap;
+}
+.sm.is-paper .sm-zoomhint { background: rgba(11, 30, 61, 0.85); }
+.sm-card {
+  position: absolute; left: 16px; bottom: 150px; z-index: 8; width: min(340px, calc(100% - 32px)); display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px;
+  padding: 12px; border-radius: 18px; background: #fffdf9; color: #0b1e3d; box-shadow: 0 24px 50px rgba(0, 0, 0, 0.4);
+}
+.sm-card-x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(11, 30, 61, 0.06); color: #0b1e3d; cursor: pointer; }
+.sm-card-ph { width: 96px; height: 96px; border-radius: 14px; overflow: hidden; background: #0b1e3d; }
+.sm-card-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sm-card-ph.is-mono { display: grid; place-items: center; background: radial-gradient(circle at 50% 38%, #1b3f80, #0b1e3d 70%); }
+.sm-card-ph.is-mono span { font-family: var(--font-serif-stack); font-size: 40px; color: #efe7da; }
+.sm-card-b { display: grid; align-content: start; gap: 4px; min-width: 0; padding-right: 24px; }
+.sm-card-code { margin: 0; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #5d6b7c; }
+.sm-card-n { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-card-tags { margin: 2px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.sm-card-tags span { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(11, 30, 61, 0.06); }
+.sm-card-tags .is-help { background: #f05b40; color: #1a0d08; }
+.sm-card-tags .is-yes { background: rgba(36, 87, 206, 0.12); color: #1b46b0; }
+.sm-card-tags .is-unk { background: var(--sp-hatch), rgba(11, 30, 61, 0.03); color: #5d6b7c; }
+.sm-card-seen { margin: 2px 0 0; font-size: 12px; color: #5d6b7c; }
+.sm-card-go { margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: #2457ce; text-decoration: none; }
+@media (max-width: 760px) { .sm-card { bottom: 170px; left: 12px; } .sm-zoomhint { bottom: 190px; } }
+.sm-pin-mono.is-glyph svg { width: 22px; height: 22px; color: #efe7da; }
+.sm-card-ph.is-mono i { display: grid; place-items: center; width: 56px; height: 56px; color: #efe7da; }
+.sm-card-ph.is-mono i svg { width: 56px; height: 56px; }
+.sm-card-tags .is-unk { background: none; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, 0.2); color: #5d6b7c; }

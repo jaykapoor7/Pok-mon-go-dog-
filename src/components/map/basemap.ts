@@ -33,10 +33,12 @@ export type Palette = {
 
 export const NIGHT: Palette = {
   name: "night",
-  bg: "#07142b", water: "#0c2548", land: "#07142b", park: "#081733", building: "#0b1c3a",
-  road: "rgba(239,231,218,0.045)", roadMajor: "rgba(239,231,218,0.10)", rail: "rgba(239,231,218,0.06)",
-  boundary: "rgba(239,231,218,0.12)", label: "#efe7da", labelHalo: "#07142b", labelOpacity: 0.34,
-  labels: true, minorRoads: true, buildings: true, showRoadNames: false,
+  /* A city at night: the grid of streets readable, the arterials a warm
+     sodium glow, water and parks a shade apart, names quiet but legible. */
+  bg: "#07142b", water: "#0f2d55", land: "#081731", park: "#0a2436", building: "#0f2345",
+  road: "rgba(239,231,218,0.11)", roadMajor: "rgba(236,196,132,0.34)", rail: "rgba(239,231,218,0.09)",
+  boundary: "rgba(239,231,218,0.16)", label: "#efe7da", labelHalo: "#07142b", labelOpacity: 0.62,
+  labels: true, minorRoads: true, buildings: true, showRoadNames: true,
   cellEdge: "rgba(7,20,43,0.95)", ink: "#efe7da", dim: "rgba(239,231,218,0.55)",
   seq: ["#132b55", "#1b3f80", "#2a5bb8", "#4f7fe0", "#93b1f0"],
   att: ["#3b1f2c", "#6d2a2c", "#a8392b", "#e05537", "#f7a08c"],
@@ -46,7 +48,7 @@ export const NIGHT: Palette = {
 };
 
 /** The landing plate: night, with no borrowed lettering competing with the headline. */
-export const PLATE: Palette = { ...NIGHT, labels: false, road: "rgba(239,231,218,0.05)", roadMajor: "rgba(239,231,218,0.11)" };
+export const PLATE: Palette = { ...NIGHT, labels: false, showRoadNames: false, water: "#0c2548", land: "#07142b", park: "#081733", building: "#0b1c3a", road: "rgba(239,231,218,0.05)", roadMajor: "rgba(239,231,218,0.11)" };
 
 export const PAPER: Palette = {
   name: "paper",

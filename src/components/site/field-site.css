@@ -25,30 +25,12 @@
 }
 .field-site h1,.field-site h2,.field-site h3{font-family:var(--font-sans),sans-serif;font-weight:600;letter-spacing:-.055em}
 .field-site .field-eyebrow{font-size:12px;font-weight:600;line-height:1.6;letter-spacing:.08em;text-transform:uppercase}
-.street-hero{padding:125px 5vw 0;max-width:1800px;margin:auto}
-.street-hero-top{display:grid;grid-template-columns:1.6fr 1fr;gap:6vw;align-items:end;padding-bottom:45px}
-.street-hero-heading h1{font-size:clamp(78px,10.7vw,168px);line-height:.91;letter-spacing:-.075em;margin:24px 0 0}
-.street-hero-heading h1>span{display:block}
-.street-hero-heading em{font-family:var(--font-display), system-ui, sans-serif;font-weight:500;color:var(--field-accent-ink)}
-.street-hero-intro{max-width:350px;padding-bottom:7px}
-.street-hero-intro>p:first-child{font-size:25px;line-height:1.25;letter-spacing:-.035em;color:var(--field-ink);margin:0 0 16px;font-weight:500}
-.street-hero-intro>p{font-size:16px;line-height:1.7;color:var(--field-muted);margin:0 0 24px}
 .field-site .field-button{display:inline-flex;justify-content:space-between;align-items:center;gap:30px;background:var(--field-blue);color:white;padding:0 24px;min-height:var(--ctl-h-lg);border-radius:var(--ctl-r);font-size:var(--ctl-fs);font-weight:var(--ctl-fw);text-decoration:none;transition:background .2s,transform .2s;box-shadow:none}
 .field-site .field-button:hover{background:#153a8f}@media (hover:hover) and (pointer:fine){.field-site .field-button:hover{transform:translateY(-2px)}}
 .field-site .field-button:active{transform:translateY(0)}
 .field-site .field-button svg{transition:transform .2s}
 @media (hover:hover) and (pointer:fine){.field-site .field-button:hover svg{transform:translate(2px,-2px)}}
 .field-text-link{display:inline-flex;align-items:center;gap:16px;font-size:14px;color:inherit;text-decoration:none;padding:13px 0;border-bottom:1px solid currentColor}
-.street-hero-intro>.field-text-link{display:flex;width:fit-content;margin-top:12px}
-.street-hero-frame{height:clamp(380px,43vw,650px);position:relative;isolation:isolate;overflow:hidden;border-radius:4px;background:var(--field-ink)}
-.street-hero-image{position:absolute;inset:-40px 0;transform:translateY(var(--image-shift,0px));will-change:transform}
-.street-hero-image img{object-fit:cover;object-position:50% 56%}
-.street-hero-frame::after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(transparent,rgba(7,22,32,.65));z-index:-0;pointer-events:none}
-.street-image-title{position:absolute;bottom:86px;left:35px;max-width:9ch;font-size:clamp(30px,4vw,60px);line-height:1.02;color:#fff;font-weight:500;letter-spacing:-.05em;z-index:1}
-.street-image-bottom{position:absolute;bottom:25px;left:35px;right:35px;display:flex;justify-content:space-between;align-items:end;gap:25px;color:white;z-index:1}
-.street-image-bottom a{display:flex;align-items:center;gap:12px;font-size:14px;color:inherit;text-decoration:none}
-.street-image-bottom>span{font-size:11px}
-.street-hero-foot{display:flex;justify-content:space-between;gap:20px;font-size:12px;color:var(--field-muted);padding:18px 0;border-bottom:1px solid rgba(11,16,32,0.12)}
 .field-intro-strip{display:grid;grid-template-columns:1fr 1.2fr auto;gap:40px;align-items:center;padding:45px 5vw;max-width:1800px;margin:auto}
 .field-intro-strip>span{font-size:21px;font-weight:600;letter-spacing:-.04em}
 .field-intro-strip p{font-size:15px;line-height:1.65;color:var(--field-muted);margin:0;max-width:420px}
@@ -112,14 +94,12 @@
 .field-footer nav{display:flex;gap:24px;flex-wrap:wrap}.field-footer nav a{font-size:13px;color:#425a76;text-decoration:none}.field-footer>span{font-size:12px;color:var(--field-muted);line-height:1.8}
 .field-site[data-motion=on] .reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s var(--sp-ease)}
 .field-site[data-motion=on] .reveal.is-in{opacity:1;transform:none}
-.field-site[data-motion=on] .street-hero-heading h1>span{animation:street-arrive .8s var(--sp-ease) both}
-.field-site[data-motion=on] .street-hero-heading h1>span:nth-child(2){animation-delay:.12s}
 @keyframes street-arrive{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 .field-site a:focus-visible,.field-site button:focus-visible{outline:3px solid #ed763e;outline-offset:5px}
 @media(min-width:761px){.field-how .field-section-heading{position:sticky;top:120px;align-self:start}}
-@media(max-width:1100px){.street-hero{padding-top:105px}.street-hero-top{gap:30px}.street-hero-heading h1{font-size:clamp(75px,11vw,120px)}.street-hero-intro>p:first-child{font-size:21px}.field-intro-strip{grid-template-columns:1fr 1.3fr}.field-intro-strip>a{grid-column:1/-1}.field-dogs{grid-template-columns:1fr 1fr}.field-footer{flex-wrap:wrap}}
-@media(max-width:760px){.street-hero{padding:100px 6vw 0}.street-hero-top{grid-template-columns:1fr;gap:25px;padding-bottom:30px}.street-hero-heading h1{font-size:clamp(66px,17vw,112px);margin-top:20px}.street-hero .field-eyebrow{font-size:10px;letter-spacing:.05em}.street-hero-intro{max-width:480px}.street-hero-intro>p:first-child{font-size:21px;margin-bottom:10px}.street-hero-intro>p{font-size:15px;margin-bottom:20px}.street-hero-intro>.field-text-link{display:inline-flex;margin:0 0 0 18px}.field-site .field-button{gap:22px;font-size:13px;padding:14px 18px;min-height:48px}.street-hero-frame{height:420px;margin:0 -6vw;border-radius:0}.street-hero-image img{object-position:64% 50%}.street-image-title{font-size:40px;left:6vw;bottom:85px}.street-image-bottom{left:6vw;right:6vw;bottom:24px}.street-image-bottom>span{max-width:90px;text-align:right;font-size:9px}.street-image-bottom a{font-size:12px}.street-hero-foot{font-size:11px;line-height:1.5;gap:30px}.field-intro-strip{grid-template-columns:1fr;padding:32px 6vw;gap:15px}.field-intro-strip>span{font-size:20px}.field-intro-strip p{font-size:14px}.field-section,.field-map-section{padding:60px 6vw}.field-section-heading h2,.field-team h2,.field-more h2{font-size:clamp(36px,8vw,54px)}.field-heading-row{display:block}.field-heading-row>p{margin-top:22px;font-size:15px}.field-map-preview{height:400px;margin:0 -3vw}.field-map-place{top:12px;left:12px;padding:12px}.field-map-footer{align-items:start;flex-direction:column;gap:8px}.field-dogs{gap:18px 12px}.field-dogs a>svg{display:none}.field-how,.field-team,.field-more{grid-template-columns:1fr;gap:35px}.field-photo-story>img{height:420px}.field-how .field-section-heading{padding-top:0}.field-steps h3{font-size:25px}.field-steps p{font-size:15px}.field-workspace-example{box-shadow:8px 8px 0 #234777}.field-example-top{padding:16px;font-size:9px}.field-example-animal{padding:22px 16px}.field-example-animal h3{font-size:23px}.field-paths h3{font-size:23px}.field-paths a{gap:15px}.field-closing{padding:65px 6vw}.field-footer{padding:35px 6vw;gap:28px}.field-footer nav{order:3;width:100%;gap:18px}}
-@media(max-width:390px){.street-hero-intro>.field-text-link{margin:10px 0 0;display:flex}.street-hero-heading h1{font-size:18vw}.field-dogs{grid-template-columns:1fr}}
+@media(max-width:1100px){.field-intro-strip{grid-template-columns:1fr 1.3fr}.field-intro-strip>a{grid-column:1/-1}.field-dogs{grid-template-columns:1fr 1fr}.field-footer{flex-wrap:wrap}}
+@media(max-width:760px){.field-site .field-button{gap:22px;font-size:13px;padding:14px 18px;min-height:48px}.field-intro-strip{grid-template-columns:1fr;padding:32px 6vw;gap:15px}.field-intro-strip>span{font-size:20px}.field-intro-strip p{font-size:14px}.field-section,.field-map-section{padding:60px 6vw}.field-section-heading h2,.field-team h2,.field-more h2{font-size:clamp(36px,8vw,54px)}.field-heading-row{display:block}.field-heading-row>p{margin-top:22px;font-size:15px}.field-map-preview{height:400px;margin:0 -3vw}.field-map-place{top:12px;left:12px;padding:12px}.field-map-footer{align-items:start;flex-direction:column;gap:8px}.field-dogs{gap:18px 12px}.field-dogs a>svg{display:none}.field-how,.field-team,.field-more{grid-template-columns:1fr;gap:35px}.field-photo-story>img{height:420px}.field-how .field-section-heading{padding-top:0}.field-steps h3{font-size:25px}.field-steps p{font-size:15px}.field-workspace-example{box-shadow:8px 8px 0 #234777}.field-example-top{padding:16px;font-size:9px}.field-example-animal{padding:22px 16px}.field-example-animal h3{font-size:23px}.field-paths h3{font-size:23px}.field-paths a{gap:15px}.field-closing{padding:65px 6vw}.field-footer{padding:35px 6vw;gap:28px}.field-footer nav{order:3;width:100%;gap:18px}}
+@media(max-width:390px){.field-dogs{grid-template-columns:1fr}}
 @media (prefers-reduced-motion: reduce) {
   /* This used to be `transition: none !important` on every descendant
      of the public landing page — not "gentler", literally zero. It took
@@ -138,7 +118,6 @@
     scroll-behavior: auto !important;
     transition-property: opacity, color, background-color, border-color, box-shadow !important;
   }
-  .street-hero-image { transform: none !important; }
   .field-site[data-motion="on"] .reveal { opacity: 1; transform: none; }
   /* The drawn console and the six-station rail arrive without travel. */
   .field-site[data-motion="on"] .cm-frame,
@@ -168,44 +147,36 @@
 .record-intro{max-width:1560px;margin:auto;padding:clamp(78px,8vw,112px) 6vw;display:grid;grid-template-columns:minmax(280px,.84fr) minmax(400px,1.16fr);gap:clamp(50px,11vw,170px);background:#fff;color:var(--field-ink)}
 .record-intro-copy{align-self:start;position:sticky;top:122px}.record-intro h2{font-size:clamp(39px,4.4vw,68px);line-height:1;letter-spacing:-.066em;margin:21px 0 25px}.record-intro h2 span{color:#58789e}.record-intro-copy>p{font-size:16px;line-height:1.72;color:var(--field-muted);max-width:400px;margin:0}.record-intro-copy .field-inline-link{margin-top:14px}
 .record-stages{border-top:1px solid #cbd8e6}.record-stage{min-height:205px;padding:20px 0 24px;display:grid;grid-template-columns:104px minmax(0,1fr) 158px;gap:24px;border-bottom:1px solid #cbd8e6;align-items:start;position:relative}.record-stage::before{content:"";position:absolute;left:0;top:0;width:0;height:2px;background:var(--field-accent);transition:width .75s var(--sp-ease)}.record-stage.is-in::before{width:100%}.record-stage-number{font:11px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em;color:#506a89;padding-top:6px}.record-stage h3{font-size:clamp(25px,2.3vw,36px);line-height:1.03;margin:0 0 10px;letter-spacing:-.055em}.record-stage p{font-size:15px;line-height:1.6;color:var(--field-muted);max-width:400px;margin:0}.record-stage-data{border-left:2px solid var(--field-accent);padding:0 0 0 12px;margin-top:9px}.record-stage-data span,.record-stage-data b{display:block}.record-stage-data span{font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.08em;color:#6a7d94}.record-stage-data b{font-size:12px;line-height:1.4;margin-top:7px;font-weight:600;color:#274c79}
-.map-chapter{background:#e7eef9;padding-top:clamp(82px,10vw,140px);padding-bottom:clamp(82px,10vw,130px)}.map-chapter .field-map-preview{height:min(690px,74vh);border:1px solid #bed0e5;border-radius:2px;box-shadow:12px 12px 0 #c8d8ee}.map-chapter .field-map-footer{margin-top:28px}.map-chapter .field-map-footer p{font-size:15px}.map-chapter .field-heading-row{margin-bottom:52px}.map-chapter .field-heading-row h2{font-size:clamp(47px,5.4vw,82px)}
 .field-how{padding-top:clamp(110px,15vw,205px)}
 .field-site[data-motion=on] .record-hero-copy>*{animation:record-arrive .8s var(--sp-ease) both}.field-site[data-motion=on] .record-hero-copy h1{animation-delay:.08s}.field-site[data-motion=on] .record-hero-copy>p:not(.field-eyebrow){animation-delay:.17s}.field-site[data-motion=on] .record-hero-actions{animation-delay:.25s}.field-site[data-motion=on] .record-hero-card{animation:record-card-arrive .9s .3s var(--sp-ease) both}
 @keyframes record-arrive{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}@keyframes record-card-arrive{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:translateX(0)}}
 @media(max-width:960px){.record-hero{min-height:760px}.record-hero-copy{width:min(610px,70vw)}.record-hero-card{width:280px}.record-intro{gap:55px;grid-template-columns:.8fr 1.2fr}.record-stage{grid-template-columns:86px minmax(0,1fr)}.record-stage-data{grid-column:2}.record-intro-copy{position:static}}
-@media(max-width:760px){.record-hero{min-height:max(720px,100svh);padding:105px 6vw 76px;align-items:flex-start}.record-hero-image{inset:0 -48% 0 -28%;transform:scale(calc(1.04 + var(--record-progress)*.05))}.record-hero-image img{object-position:61% 50%}.record-hero-shade{background:linear-gradient(180deg,rgba(5,20,42,.78) 0%,rgba(6,22,43,.42) 44%,rgba(5,20,42,.92) 100%),linear-gradient(90deg,rgba(5,20,42,.76),transparent 92%)}.record-hero-copy{width:100%}.record-hero h1{font-size:clamp(70px,18vw,104px);margin:20px 0 24px}.record-hero-copy>p:not(.field-eyebrow){max-width:330px;font-size:15px;line-height:1.55}.record-hero-actions{gap:14px;margin-top:23px}.record-hero .field-text-link{font-size:12px;gap:9px}.record-hero-progress{right:6vw;top:auto;bottom:269px}.record-hero-progress i{width:85px}.record-hero-card{width:auto;left:6vw;right:6vw;bottom:69px;padding-top:13px}.record-hero-card h2{font-size:24px;margin:17px 0}.record-hero-card dl>div{padding:9px 0}.record-hero-card>p{display:none}.record-hero-scroll{left:auto;right:6vw;bottom:23px}.record-hero-scroll span{display:none}.record-intro{display:block;padding:75px 6vw 55px}.record-intro h2{font-size:clamp(39px,10vw,55px)}.record-intro-copy>p{font-size:15px}.record-stages{margin-top:56px}.record-stage{min-height:0;grid-template-columns:1fr;gap:13px;padding:19px 0 25px}.record-stage-data{grid-column:auto;margin-top:3px;max-width:225px}.record-stage h3{font-size:28px}.record-stage p{font-size:14px}.map-chapter{padding:67px 6vw 80px}.map-chapter .field-heading-row{margin-bottom:30px}.map-chapter .field-map-preview{height:560px;margin:0 -2vw;box-shadow:6px 6px 0 #c8d8ee}.map-chapter .field-heading-row h2{font-size:clamp(43px,11vw,62px)}.field-how{padding-top:85px}}
+@media(max-width:760px){.record-hero{min-height:max(720px,100svh);padding:105px 6vw 76px;align-items:flex-start}.record-hero-image{inset:0 -48% 0 -28%;transform:scale(calc(1.04 + var(--record-progress)*.05))}.record-hero-image img{object-position:61% 50%}.record-hero-shade{background:linear-gradient(180deg,rgba(5,20,42,.78) 0%,rgba(6,22,43,.42) 44%,rgba(5,20,42,.92) 100%),linear-gradient(90deg,rgba(5,20,42,.76),transparent 92%)}.record-hero-copy{width:100%}.record-hero h1{font-size:clamp(70px,18vw,104px);margin:20px 0 24px}.record-hero-copy>p:not(.field-eyebrow){max-width:330px;font-size:15px;line-height:1.55}.record-hero-actions{gap:14px;margin-top:23px}.record-hero .field-text-link{font-size:12px;gap:9px}.record-hero-progress{right:6vw;top:auto;bottom:269px}.record-hero-progress i{width:85px}.record-hero-card{width:auto;left:6vw;right:6vw;bottom:69px;padding-top:13px}.record-hero-card h2{font-size:24px;margin:17px 0}.record-hero-card dl>div{padding:9px 0}.record-hero-card>p{display:none}.record-hero-scroll{left:auto;right:6vw;bottom:23px}.record-hero-scroll span{display:none}.record-intro{display:block;padding:75px 6vw 55px}.record-intro h2{font-size:clamp(39px,10vw,55px)}.record-intro-copy>p{font-size:15px}.record-stages{margin-top:56px}.record-stage{min-height:0;grid-template-columns:1fr;gap:13px;padding:19px 0 25px}.record-stage-data{grid-column:auto;margin-top:3px;max-width:225px}.record-stage h3{font-size:28px}.record-stage p{font-size:14px}.field-how{padding-top:85px}}
 @media(prefers-reduced-motion:reduce){.record-hero-image,.record-hero-card{transform:none!important}.record-hero-scroll svg{animation:none!important}.field-site[data-motion=on] .record-hero-copy>*,.field-site[data-motion=on] .record-hero-card{animation:none!important}}
 
 /* The public site is a product narrative: an actual live map remains in view
-   while a single report grows into field work and evidence. */
-.product-hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(480px,1.1fr);gap:clamp(38px,6vw,96px);align-items:center;max-width:1600px;margin:auto;padding-left:5vw;padding-right:5vw;background:#fff;color:var(--field-ink)}.product-hero-copy{max-width:590px}.product-hero h1{margin:18px 0 22px;font-size:clamp(52px,6.4vw,102px);line-height:.92;letter-spacing:-.075em}.product-hero h1 em{font-family:var(--font-display), system-ui, sans-serif;font-weight:500;color:var(--field-accent)}.product-hero-copy>p:not(.field-eyebrow){margin:0;max-width:470px;font-size:17px;line-height:1.62;color:var(--field-muted)}.product-hero-actions{display:flex;align-items:center;gap:22px;margin-top:28px;flex-wrap:wrap}/* Was set in the mono face, which is what made a one-line caption look
-   like terminal output. Sans, at a size a caption should actually be. */
-.product-hero-note{margin-top:22px!important;font-size:13.5px!important;line-height:1.5!important;letter-spacing:0!important;color:#9db8dc!important}.hero-product{position:relative;overflow:hidden;border:1px solid #b9cbe1;background:#e9eff8;box-shadow:12px 12px 0 #d6e2f1}.hero-product-top{position:absolute;z-index:2;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1px solid #c9d7e6;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.1em;color:var(--field-muted)}.hero-live-map{position:absolute;inset:40px 0 0}.hero-location{position:absolute;z-index:3;top:57px;left:16px;display:flex;align-items:center;gap:7px;padding:9px 10px;background:#fff;box-shadow:0 4px 15px rgba(11,16,32,0.09);font-size:12px}.hero-location svg{color:var(--field-blue)}.hero-location i{margin-left:5px;padding-left:8px;border-left:1px solid #d8e2ed;color:var(--field-blue-ink);font-style:normal;font-size:11px}.hero-report-card{position:absolute;z-index:3;right:16px;bottom:16px;display:flex;align-items:center;gap:12px;width:min(350px,74%);padding:10px;background:#fff;box-shadow:0 8px 28px rgba(11,16,32,0.145)}.hero-report-card img{width:58px;height:58px;object-fit:cover}.hero-report-copy{display:grid;gap:4px;min-width:0}.hero-report-copy span{font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.08em;color:var(--field-muted)}.hero-report-copy b{font-size:13px}.hero-report-copy small{font-size:11px;color:var(--field-muted)}.hero-report-check{margin-left:auto;color:var(--field-accent);flex:none}.hero-capture{position:absolute;z-index:3;bottom:18px;left:16px;display:flex;align-items:center;gap:7px;font-size:11px;color:#35577f}.hero-capture svg{color:var(--field-accent)}
+   while a single report grows into field work and evidence. *//* Was set in the mono face, which is what made a one-line caption look
+   like terminal output. Sans, at a size a caption should actually be. */.hero-product{position:relative;overflow:hidden;border:1px solid #b9cbe1;background:#e9eff8;box-shadow:12px 12px 0 #d6e2f1}.hero-product-top{position:absolute;z-index:2;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1px solid #c9d7e6;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.1em;color:var(--field-muted)}.hero-live-map{position:absolute;inset:40px 0 0}.hero-location{position:absolute;z-index:3;top:57px;left:16px;display:flex;align-items:center;gap:7px;padding:9px 10px;background:#fff;box-shadow:0 4px 15px rgba(11,16,32,0.09);font-size:12px}.hero-location svg{color:var(--field-blue)}.hero-location i{margin-left:5px;padding-left:8px;border-left:1px solid #d8e2ed;color:var(--field-blue-ink);font-style:normal;font-size:11px}.hero-report-card{position:absolute;z-index:3;right:16px;bottom:16px;display:flex;align-items:center;gap:12px;width:min(350px,74%);padding:10px;background:#fff;box-shadow:0 8px 28px rgba(11,16,32,0.145)}.hero-report-card img{width:58px;height:58px;object-fit:cover}.hero-report-copy{display:grid;gap:4px;min-width:0}.hero-report-copy span{font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.08em;color:var(--field-muted)}.hero-report-copy b{font-size:13px}.hero-report-copy small{font-size:11px;color:var(--field-muted)}.hero-report-check{margin-left:auto;color:var(--field-accent);flex:none}.hero-capture{position:absolute;z-index:3;bottom:18px;left:16px;display:flex;align-items:center;gap:7px;font-size:11px;color:#35577f}.hero-capture svg{color:var(--field-accent)}
 /* The bright accent is for fills and marks; text-sized use takes the
-   darker step, which is the same rule the console follows. */
-.story-case>span{color:var(--field-accent-ink)}.story-report footer{display:flex;justify-content:space-between;padding:12px 15px;background:var(--field-blue);color:#fff;font-size:12px;font-weight:600}.story-dashboard{right:0;bottom:0;width:67%;background:#fff;color:var(--field-ink);box-shadow:0 14px 45px #061a3542;transform:translateX(25px)}.story-dashboard header small{margin-left:auto;color:var(--field-blue);font-size:10px}.story-case{display:flex;align-items:center;gap:10px;padding:15px;border-bottom:1px solid #dce6ef}.story-case>div{display:grid;gap:4px;flex:1}.story-case b{font-size:13px}.story-case small{color:var(--field-muted);font-size:11px}/* The bright accent is for fills and marks. At 11px on white it is
+   darker step, which is the same rule the console follows. *//* The bright accent is for fills and marks. At 11px on white it is
    3.35:1, so text-sized use takes the darker step — the same rule the
-   console follows. */
-.product-hero{min-height:clamp(600px,78svh,700px);padding-top:92px;padding-bottom:38px}.hero-product{min-height:400px}.product-story{height:220vh}.product-story-sticky{min-height:78svh;padding-top:56px;padding-bottom:48px}.product-story-surface{height:min(490px,58vh);min-height:350px}.role-help{padding-top:58px;padding-bottom:58px}.product-closing{padding:52px 6vw 58px}
-.role-help{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(45px,10vw,170px);padding:clamp(85px,11vw,155px) 6vw;max-width:1560px;margin:auto}.role-help h2{margin:20px 0 0;font-size:clamp(39px,4.5vw,71px);line-height:.99;letter-spacing:-.065em}.role-help-links{border-top:1px solid #cedae7}.role-help-links a{display:grid;grid-template-columns:1fr 18px;gap:18px;padding:24px 0;color:var(--field-ink);text-decoration:none;border-bottom:1px solid #cedae7;transition:padding .2s ease}.role-help-links a:hover{padding-left:9px}.role-help-links b{font-size:19px;letter-spacing:-.03em}.role-help-links p{max-width:440px;margin:7px 0 0;color:var(--field-muted);font-size:14px;line-height:1.6}.role-help-links svg{margin-top:5px;color:var(--field-blue)}.product-closing{padding:90px 6vw 100px;text-align:center;background:var(--field-ink);color:#f4f5f7}.product-closing h2{margin:25px 0 32px;font-size:clamp(57px,8vw,122px);line-height:.98;letter-spacing:-.075em}.product-closing em{font-family:var(--font-display), system-ui, sans-serif;font-weight:500;color:var(--field-accent)}.product-closing .field-button{background:var(--field-accent);color:var(--field-ink)}
-@media(max-width:900px){.product-hero{grid-template-columns:1fr;gap:44px;padding:105px 6vw 55px}.product-hero-copy{max-width:680px}.hero-product{min-height:480px}.product-story{height:auto}.product-story-sticky{position:relative;grid-template-columns:1fr;padding:72px 6vw}.product-story-copy{margin-bottom:28px}.product-story-surface{height:560px}.product-story[data-stage] .story-map{inset:0 0 38% 0;opacity:1;transform:none}.product-story[data-stage] .story-report{right:0;bottom:0;opacity:1;transform:none}.product-story[data-stage] .story-dashboard{display:none}.product-story[data-stage] .story-nation{display:none}.role-help{grid-template-columns:1fr;gap:44px;padding:75px 6vw}.product-closing{padding:72px 6vw}}
-@media(max-width:560px){.product-hero h1{font-size:clamp(49px,13vw,71px)}.product-hero-actions{gap:17px}.hero-product{min-height:410px;margin:0 -2vw}.hero-location{top:56px;left:10px}.hero-location i{display:none}.hero-report-card{right:10px;bottom:12px;width:calc(100% - 20px)}.hero-capture{display:none}.product-story-sticky{padding:61px 6vw}.product-story-surface{height:490px}.story-report{width:100%;bottom:0}.product-story-copy h2{font-size:40px}.role-help h2{font-size:42px}.role-help-links a{grid-template-columns:1fr 16px;gap:10px}.product-closing h2{font-size:59px}}
-@media(prefers-reduced-motion:reduce){.story-map,.story-report,.story-dashboard,.story-nation{transition:none!important}}
+   console follows. */.hero-product{min-height:400px}.role-help{padding-top:58px;padding-bottom:58px}
+.role-help{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(45px,10vw,170px);padding:clamp(85px,11vw,155px) 6vw;max-width:1560px;margin:auto}.role-help h2{margin:20px 0 0;font-size:clamp(39px,4.5vw,71px);line-height:.99;letter-spacing:-.065em}.role-help-links{border-top:1px solid #cedae7}.role-help-links a{display:grid;grid-template-columns:1fr 18px;gap:18px;padding:24px 0;color:var(--field-ink);text-decoration:none;border-bottom:1px solid #cedae7;transition:padding .2s ease}.role-help-links a:hover{padding-left:9px}.role-help-links b{font-size:19px;letter-spacing:-.03em}.role-help-links p{max-width:440px;margin:7px 0 0;color:var(--field-muted);font-size:14px;line-height:1.6}.role-help-links svg{margin-top:5px;color:var(--field-blue)}
+@media(max-width:900px){.hero-product{min-height:480px}.role-help{grid-template-columns:1fr;gap:44px;padding:75px 6vw}}
+@media(max-width:560px){.hero-product{min-height:410px;margin:0 -2vw}.hero-location{top:56px;left:10px}.hero-location i{display:none}.hero-report-card{right:10px;bottom:12px;width:calc(100% - 20px)}.hero-capture{display:none}.role-help h2{font-size:42px}.role-help-links a{grid-template-columns:1fr 16px;gap:10px}}
 
 /* The public surface has a field-atlas ground: quiet enough for the map to
    lead, but with enough spatial character that the product no longer floats
    on a blank white page. */
-.product-site{background:#f4f5f7}.product-hero{position:relative;isolation:isolate;overflow:hidden;background:#f4f5f7}.product-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,transparent 0 89%,#b8cbe333 89% 89.15%,transparent 89.15%),linear-gradient(0deg,transparent 0 76%,#b8cbe333 76% 76.2%,transparent 76.2%),radial-gradient(circle at 12% 18%,#f8d0ba88 0 2px,transparent 3px),radial-gradient(circle at 61% 81%,#6e97d733 0 2px,transparent 3px);background-size:100% 100%,100% 100%,41px 41px,37px 37px;opacity:.85}.product-hero::after{content:"";position:absolute;z-index:-1;width:min(48vw,620px);height:min(48vw,620px);right:-20vw;top:-35vw;border:1px solid #8fb7ff55;border-radius:50%;box-shadow:0 0 0 44px #8fb7ff22,0 0 0 89px #8fb7ff11}.role-help{background:#f4f5f7}.role-help-links{background:#f4f5f7}.product-hero .hero-product{box-shadow:18px 18px 0 #bed0e566,0 20px 55px rgba(11,16,32,0.125)}.product-hero .hero-product::after{content:"";position:absolute;inset:9px;pointer-events:none;border:1px solid #fff8;z-index:5}
+.product-site{background:#f4f5f7}.role-help{background:#f4f5f7}.role-help-links{background:#f4f5f7}
 
 /* One frame per stage. Earlier versions left report, dashboard, and coverage
    frames sliding across each other during a scroll update; these states keep
    the map as a quiet trace while exactly one working surface takes focus. */
 
-@media(max-width:900px){.product-hero::after{width:310px;height:310px;right:-160px;top:-120px}.product-story{height:245vh!important}.product-story-sticky{position:sticky!important;top:0;display:grid!important;min-height:100svh!important;grid-template-rows:auto minmax(0,1fr);align-content:center;padding-top:36px!important;padding-bottom:30px!important}.product-story-copy{margin-bottom:18px}.product-story-copy p{font-size:14px}.product-story-surface{height:min(58svh,500px)!important;min-height:330px}.story-report,.story-dashboard{inset:10px!important}.story-report-row{padding:9px 12px}.story-dashboard header,.story-report header{padding:11px 12px}.story-case{padding:11px}.story-atlas-panel{right:10px;bottom:10px;width:calc(100% - 20px);padding:14px}.story-atlas-panel p{margin:10px 0 12px}.product-story[data-stage] .story-map{inset:0!important}.product-story[data-stage="0"] .story-map{opacity:1;transform:none}.product-story[data-stage="1"] .story-map,.product-story[data-stage="2"] .story-map{opacity:.16;transform:scale(.97)}.product-story[data-stage="3"] .story-map{opacity:0;transform:scale(.94)}}
-
 /* Launch surface: a record, not a decorative map. The dark field ground
    gives the public product its own atmosphere without paper-white sprawl. */
-.product-site{background:var(--pl-bone,#f4eee5)}.product-hero-record{max-width:none;min-height:clamp(690px,86svh,820px);padding:clamp(132px,13vw,172px) 6vw 76px;display:grid;grid-template-columns:minmax(0,.88fr) minmax(430px,1.12fr);gap:clamp(40px,8vw,156px);align-items:center;background:#0b1e3d!important;color:#f5f8fd;isolation:isolate}.product-hero-record::before{display:none}/* THE HERO GROUND IS A GROUND.
+.product-site{background:var(--pl-bone,#f4eee5)}/* THE HERO GROUND IS A GROUND.
 
    Five layers were stacked here: a dot field at 31px, a second dot
    field at 43px, a diagonal streak, and a 72px graph-paper grid made of
@@ -217,8 +188,7 @@
    photographs of real recorded animals and one headline; a deep, even
    field is what lets those read, and texture behind them was competing
    with the only two things on the screen that mean anything. Quieter is
-   the finished state here, not a step towards one. */
-.product-hero-record::after{display:none}.product-hero-record .field-eyebrow{color:#adc8ee}.product-hero-record h1{max-width:810px;margin:20px 0 26px;font-size:clamp(54px,6.3vw,106px);line-height:.88;color:#fff}.product-hero-record h1 em{color:#ff9a65}.product-hero-record .product-hero-copy>p:not(.field-eyebrow){max-width:490px;color:#c8d7eb;font-size:17px}.product-hero-record .field-text-link{color:#eaf1fa;border-color:#8ba8d1}.product-hero-record .product-hero-note{color:#adc5e4!important}.product-hero-record .field-button{background:var(--pl-flame,#f05b40);color:var(--pl-ink,#0b1e3d)}.product-hero-record .field-button:hover{background:#ff7454}.hero-record-stage{position:relative;min-height:470px;overflow:hidden;border:1px solid #5477a4;background:#102c56;box-shadow:18px 20px 0 #06142b55,0 30px 68px #020b1c66}/* Same again, one layer down: a dot field at 25px over a 50px grid,
+   the finished state here, not a step towards one. */.hero-record-stage{position:relative;min-height:470px;overflow:hidden;border:1px solid #5477a4;background:#102c56;box-shadow:18px 20px 0 #06142b55,0 30px 68px #020b1c66}/* Same again, one layer down: a dot field at 25px over a 50px grid,
    behind the photographs. Removed for the same reason. */
 .hero-record-stage::before{display:none}.hero-coordinate{position:absolute;border:1px solid #91b7e344;border-radius:50%;animation:record-orbit 10s linear infinite}.hero-coordinate-one{width:440px;height:440px;right:-160px;top:-120px}.hero-coordinate-two{width:290px;height:290px;left:-160px;bottom:-140px;animation-direction:reverse;animation-duration:13s}.hero-record-line{position:absolute;height:1px;background:#91b7e350;transform-origin:left}.hero-record-line-one{width:68%;left:0;top:24%;transform:rotate(-15deg)}.hero-record-line-two{width:53%;right:-8%;bottom:30%;transform:rotate(17deg)}.hero-record-place{position:absolute;z-index:2;top:20px;right:20px;display:flex;align-items:center;gap:7px;color:#cbdcf1;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.06em}.hero-record-place svg{color:#f47d45}.hero-record-file{position:absolute;z-index:2;left:clamp(20px,5vw,68px);right:clamp(20px,5vw,68px);top:50%;transform:translateY(-50%);padding:20px 23px 0;background:#f8fbff;color:#112b51;box-shadow:0 16px 45px #040f2448;animation:record-settle .8s var(--sp-ease) both}.hero-record-file header{display:flex;justify-content:space-between;gap:10px;padding-bottom:16px;border-bottom:1px solid #d6e1ee;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.075em;color:#57708f}.hero-record-live{display:flex;gap:6px;align-items:center;color:#2557cc}.hero-record-live i,.record-story-dot::before{display:block;width:6px;height:6px;background:#f47d45;border-radius:50%;content:""}.hero-record-name{display:flex;gap:14px;align-items:center;padding:20px 0}.hero-record-mark{display:grid;place-items:center;width:45px;height:45px;border:1px solid #b6c8df;color:#2557cc}.hero-record-name div:last-child{display:grid;gap:5px}.hero-record-name span{font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em;color:#5c718c}.hero-record-name b{font-size:23px;letter-spacing:-.045em}.hero-record-file dl{margin:0;border-top:1px solid #d6e1ee}.hero-record-file dl>div{display:grid;grid-template-columns:1fr auto;gap:16px;padding:11px 0;border-bottom:1px solid #dfe7f0;font-size:12px}.hero-record-file dt{color:#5c718b}.hero-record-file dd{display:flex;gap:6px;align-items:center;margin:0;font-weight:600;text-align:right}.hero-record-file dd svg{color:#ef763f}.hero-record-file footer{display:flex;gap:8px;align-items:center;margin:0 -23px;padding:13px 23px;background:#2457ce;color:white;font-size:12px}.hero-record-caption{position:absolute;z-index:2;bottom:19px;left:20px;display:flex;align-items:center;gap:9px;color:#adc5e5;font:9px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em}.hero-record-caption i{display:block;width:32px;height:1px;background:#f47d45}@keyframes record-orbit{to{transform:rotate(360deg)}}@keyframes record-settle{from{opacity:0;transform:translateY(calc(-50% + 24px))}to{opacity:1;transform:translateY(-50%)}}
 
@@ -229,11 +199,8 @@
    becomes the ground — and the closing headline's own accent word then
    sits vermilion on vermilion at 1.17:1, which is not low contrast, it is
    invisible. The accent still carries the italic line, against ink. */
-.product-closing{background:var(--pl-ink,#0b1e3d)!important;color:var(--pl-bone,#f4eee5)}
-.product-closing em{color:var(--field-accent)}
-.product-closing .field-button{background:var(--field-accent);color:var(--field-ink)}
-@media(max-width:900px){.product-hero-record{grid-template-columns:1fr;gap:48px;min-height:unset;padding:120px 6vw 58px}.product-hero-record h1{font-size:clamp(55px,12.5vw,82px)}.hero-record-stage{min-height:450px}.product-record-story{height:142vh!important}.product-record-story .product-story-sticky{grid-template-columns:1fr!important;grid-template-rows:auto minmax(360px,1fr);gap:25px;padding:42px 6vw 30px!important;min-height:100svh!important}.record-story-rail{display:flex;gap:8px;margin-top:22px;overflow:auto}.record-story-rail button{flex:0 0 auto;width:auto;padding:8px 0;border-top:1px solid #b5c6da;border-bottom:1px solid #b5c6da}.record-story-rail button span{display:none}.record-story-surface{min-height:360px;height:auto!important}.record-story-record{width:min(330px,73%)}.record-story-layer{width:160px;padding:10px 11px}.record-story-team{right:10px;top:12px}.record-story-neighbour{left:10px;top:12px}.record-story-feeder{right:10px;bottom:48px}.record-story-footer{left:12px;bottom:13px;font-size:10px}}
-@media(max-width:560px){.product-hero-record{padding-top:108px}.product-hero-record h1{line-height:.9}.hero-record-stage{min-height:405px;margin:0 -2vw}.hero-record-file{left:18px;right:18px;padding:17px 17px 0}.hero-record-file footer{margin:0 -17px;padding:12px 17px;font-size:10px}.hero-record-file dl>div{font-size:11px}.hero-record-place{top:15px;right:14px;font-size:9px}.hero-record-caption{left:14px;bottom:14px;font-size:8px}.product-record-story{height:124vh!important}.product-record-story .product-story-copy h2{font-size:39px}.record-story-record{width:78%;padding:14px}.record-story-profile{padding:13px 0}.record-story-profile b{font-size:15px}.record-story-layer{width:144px}.record-story-layer b{font-size:11px}.record-story-layer small{font-size:9px}.record-story-neighbour,.record-story-team{top:10px}.record-story-feeder{bottom:43px}.product-record-story[data-view="1"] .record-story-record,.product-record-story[data-view="2"] .record-story-record{transform:translate(-50%,-50%) scale(.94)}}
+@media(max-width:900px){.hero-record-stage{min-height:450px}.record-story-rail{display:flex;gap:8px;margin-top:22px;overflow:auto}.record-story-rail button{flex:0 0 auto;width:auto;padding:8px 0;border-top:1px solid #b5c6da;border-bottom:1px solid #b5c6da}.record-story-rail button span{display:none}.record-story-surface{min-height:360px;height:auto!important}.record-story-record{width:min(330px,73%)}.record-story-layer{width:160px;padding:10px 11px}.record-story-team{right:10px;top:12px}.record-story-neighbour{left:10px;top:12px}.record-story-feeder{right:10px;bottom:48px}.record-story-footer{left:12px;bottom:13px;font-size:10px}}
+@media(max-width:560px){.hero-record-stage{min-height:405px;margin:0 -2vw}.hero-record-file{left:18px;right:18px;padding:17px 17px 0}.hero-record-file footer{margin:0 -17px;padding:12px 17px;font-size:10px}.hero-record-file dl>div{font-size:11px}.hero-record-place{top:15px;right:14px;font-size:9px}.hero-record-caption{left:14px;bottom:14px;font-size:8px}.record-story-record{width:78%;padding:14px}.record-story-profile{padding:13px 0}.record-story-profile b{font-size:15px}.record-story-layer{width:144px}.record-story-layer b{font-size:11px}.record-story-layer small{font-size:9px}.record-story-neighbour,.record-story-team{top:10px}.record-story-feeder{bottom:43px}}
 @media(prefers-reduced-motion:reduce){.hero-coordinate{animation:none}.hero-record-file{animation:none}.record-story-record,.record-story-layer{transition:none}}
 
 /* ── Hero: the record wall ─────────────────────────────────────────────────
@@ -243,13 +210,6 @@
    is built portrait-first — the lead is a tall cell two columns wide and two
    rows deep, which is close enough to a phone photo's shape that almost
    nothing is cropped, and the tiles around it are squares. */
-.product-hero-wall{
-  max-width:none;min-height:clamp(600px,80svh,760px);
-  padding:clamp(104px,9vw,128px) 6vw 56px;
-  display:grid;grid-template-columns:minmax(0,.92fr) minmax(440px,1.08fr);
-  gap:clamp(40px,7vw,110px);align-items:center;
-  background:#0b1e3d!important;color:#f5f8fd;isolation:isolate;
-}
 
 /* ════════════════════════════════════════════════════════════════════
    The hero's ground and its arrival.
@@ -277,38 +237,6 @@
    second, and needs nothing to trigger it.
    ════════════════════════════════════════════════════════════════════ */
 
-.product-hero-wall::before,
-.product-hero-wall::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  display: block;
-  /* .product-hero-wall also carries .product-hero, whose ::after is a
-     620px ring with two box-shadow haloes. Setting inset alone left its
-     border-radius and box-shadow behind, and a huge pale arc came up
-     through the headline — so those are cleared here.
-
-     The four offsets are then written out individually ON PURPOSE. The
-     first attempt cleared the ring with `right: auto; bottom: auto`
-     alongside `width: auto`, which is the combination that makes an
-     absolutely-positioned box size to its own content: the element had
-     no content, so it computed to 0x0 and painted nothing at all. The
-     grid was in the stylesheet, resolved correctly in the computed
-     style, and covered no pixels. */
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: auto;
-  height: auto;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  opacity: 1;
-}
-
 /* NO GROUND TEXTURE ON THE HERO.
 
    What stood here was a double grid — 78px blocks with a 26px division
@@ -335,32 +263,12 @@
    The reset above stays, because it is load-bearing: it clears the
    620px ring that .product-hero's own ::after would otherwise paint
    through the headline. Only the backgrounds are gone. */
-.product-hero-wall::before,
-.product-hero-wall::after {
-  background: none;
-  mask-image: none;
-  -webkit-mask-image: none;
-}
 
 /* ── Arrival ───────────────────────────────────────────────────────
    Copy first, left to right, then the wall. Transform and opacity only.
    The lead photograph is the thing the whole section exists to show, so
    it is not last in the queue — it comes in with the headline. */
 @media (prefers-reduced-motion: no-preference) {
-  .product-hero-wall .field-eyebrow,
-  .product-hero-wall h1,
-  .product-hero-wall .product-hero-copy > p:not(.field-eyebrow),
-  .product-hero-wall .product-hero-actions,
-  .product-hero-wall .product-hero-note,
-  .product-hero-wall .hero-tally {
-    animation: hero-rise .62s var(--sp-ease) both;
-  }
-  .product-hero-wall .field-eyebrow { animation-delay: .04s; }
-  .product-hero-wall h1 { animation-delay: .10s; }
-  .product-hero-wall .product-hero-copy > p:not(.field-eyebrow) { animation-delay: .18s; }
-  .product-hero-wall .product-hero-actions { animation-delay: .25s; }
-  .product-hero-wall .product-hero-note { animation-delay: .31s; }
-  .product-hero-wall .hero-tally { animation-delay: .37s; }
 
   /* The lead photograph settles rather than rises: it is a large object
      and 14px of travel on something that size reads as a jolt. */
@@ -395,12 +303,6 @@
 /* Reduced motion: the ground stays, the travel goes. Nothing is hidden
    and nothing waits — the section is simply already assembled. */
 @media (prefers-reduced-motion: reduce) {
-  .product-hero-wall .field-eyebrow,
-  .product-hero-wall h1,
-  .product-hero-wall .product-hero-copy > p,
-  .product-hero-wall .product-hero-actions,
-  .product-hero-wall .product-hero-note,
-  .product-hero-wall .hero-tally,
   .hero-wall-lead,
   .hero-wall-grid li { animation: none; opacity: 1; transform: none; }
 }
@@ -409,25 +311,16 @@
   /* The phone variants of the same grid and glows went with them. */
 
 }
-
-.product-hero-wall .field-eyebrow{color:#adc8ee}
 /* 16ch was measured against the sans. The second line is set in the
    italic serif, which is wider per character, so "Just nobody who can
    help her." overflowed and dropped "her." onto a line of its own — a
    one-word orphan under a 70px headline, which is the most visible
    typographic fault a hero can have. 19ch fits it, and text-wrap:balance
    keeps the sans half from orphaning as the viewport moves. */
-.product-hero-wall h1{max-width:19ch;margin:16px 0 20px;font-size:clamp(42px,4.9vw,76px);line-height:.94;color:#fff;letter-spacing:-.045em;text-wrap:balance}
-.product-hero-wall h1 em{color:#ff9a65;font-family:var(--font-display), system-ui, sans-serif;font-style:normal;font-weight:500}
 /* The note is a small mono caption, not body copy. This selector is a
    class, a class, a class and an element, so it was setting it to the
    lede's 16.5px and the hero ended up with two paragraphs shouting at
    the same volume. */
-.product-hero-wall .product-hero-copy>p:not(.field-eyebrow):not(.product-hero-note){max-width:44ch;color:#c8d7eb;font-size:16.5px;line-height:1.58}
-.product-hero-wall .field-button{background:#f47d45;color:#112b51}
-.product-hero-wall .field-button:hover{background:#ff986a}
-.product-hero-wall .field-text-link{color:#eaf1fa;border-color:#8ba8d1}
-.product-hero-wall .product-hero-note{color:#9db8dc!important}
 
 /* One tally. The number is the product's only honest headline, so it gets
    the space three repetitive stats were using — and it moves, which is the
@@ -479,8 +372,6 @@
 }
 
 @media(max-width:900px){
-  .product-hero-wall{grid-template-columns:1fr;gap:40px;min-height:unset;padding:116px 6vw 54px}
-  .product-hero-wall h1{font-size:clamp(44px,11vw,70px)}
   .hero-tally{margin-top:28px;padding-top:22px;column-gap:11px}
   .hero-tally-figure{font-size:clamp(46px,14vw,64px)}
   .hero-tally-label{font-size:12.5px}
@@ -553,127 +444,14 @@
    is faces in a grid, this is one map holding most of the width. The map
    is the object, so everything around it is set quietly. */
 
-.wt{background:var(--pl-bone);color:var(--pl-ink)}
-.wt-inner{max-width:1220px;margin:0 auto;padding:clamp(70px,9vw,118px) 6vw}
-
-.wt .field-eyebrow{color:var(--pl-ember)}
-.wt h2{
-  max-width:20ch;margin:18px 0 0;
-  font-size:clamp(34px,4.4vw,64px);line-height:1;letter-spacing:-.05em;
-  color:var(--pl-ink);text-wrap:balance;
-}
-.wt h2 em{font-style:normal;color:var(--pl-flame-deep)}
-.wt-head>p{
-  max-width:60ch;margin:20px 0 0;
-  color:var(--pl-body);font-size:16px;line-height:1.68;
-}
-
 /* The centre of the section. Wide, tall enough to read as a place rather
    than a thumbnail, and the only thing here with a frame. */
-.wt-map{
-  position:relative;margin-top:clamp(34px,4.5vw,54px);
-  height:clamp(340px,52vh,560px);overflow:hidden;
-  border:1px solid rgba(11,30,61,.22);
-  background:#dfe6ef;
-  box-shadow:0 18px 44px rgba(11,30,61,.13);
-}
-.wt-map .field-map-preview{height:100%;margin:0;border:0;border-radius:0;box-shadow:none}
-.wt-map canvas{border-radius:0}
-.wt-map-wait{
-  display:grid;place-items:center;height:100%;
-  font:11px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;
-  /* 5.09:1 on the placeholder ground. #6b7a90 measured 3.47. */
-  text-transform:uppercase;color:#516075;
-}
-
-.wt-foot{
-  display:flex;align-items:end;justify-content:space-between;
-  gap:26px;flex-wrap:wrap;
-  margin-top:26px;padding-top:22px;
-  border-top:1px solid rgba(11,30,61,.15);
-}
-.wt-facts{display:flex;gap:clamp(26px,5vw,64px);flex-wrap:wrap;margin:0}
-.wt-facts>div{display:grid;gap:6px}
-.wt-facts dt{
-  font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;
-  text-transform:uppercase;color:#5d6b80;
-}
-.wt-facts dd{
-  margin:0;font-size:20px;font-weight:600;letter-spacing:-.025em;
-  color:var(--pl-ink);font-variant-numeric:tabular-nums;
-}
-.wt-link{
-  display:inline-flex;align-items:center;gap:7px;
-  color:var(--pl-deepsky);font-size:14px;font-weight:600;text-decoration:none;
-  border-bottom:1px solid currentColor;padding-bottom:2px;
-}
-.wt-link:hover{color:var(--pl-ember)}
-
-.wt-hint{margin:0;color:#5d6b80;font-size:13px}
 
 /* ── the other half: the same records as a worklist ───────────────── */
 
-.wt-dash{
-  display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
-  gap:clamp(26px,4vw,58px);align-items:center;
-  margin-top:clamp(46px,6vw,78px);padding-top:clamp(34px,4vw,48px);
-  border-top:1px solid rgba(11,30,61,.15);
-}
-.wt-dash-head h3{
-  max-width:16ch;margin:14px 0 0;
-  font-size:clamp(24px,2.6vw,36px);line-height:1.06;letter-spacing:-.04em;
-  color:var(--pl-ink);
-}
-.wt-dash-head>p{max-width:46ch;margin:14px 0 18px;color:var(--pl-body);font-size:15px;line-height:1.66}
-
-.wt-panel{
-  overflow:hidden;border:1px solid rgba(11,30,61,.22);
-  background:#fff;box-shadow:0 16px 40px rgba(11,30,61,.13);
-}
-.wt-panel-bar{
-  display:flex;align-items:center;gap:9px;
-  padding:12px 15px;border-bottom:1px solid rgba(11,30,61,.12);
-  background:var(--pl-ink);color:#fff;
-}
-.wt-panel-bar b{font-size:13px;font-weight:600}
-.wt-dot{width:8px;height:8px;border-radius:50%;background:var(--pl-flame);flex:none}
-.wt-panel-live{
-  margin-left:auto;font:10px var(--font-sans), system-ui, sans-serif;letter-spacing:.09em;
-  text-transform:uppercase;color:#9db8dc;
-}
-
-.wt-panel-rows{list-style:none;margin:0;padding:0}
-.wt-panel-rows li{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;
-  gap:10px;align-items:center;padding:11px 15px;
-  border-bottom:1px solid rgba(11,30,61,.08);font-size:12.5px;
-}
-.wt-panel-rows li:last-child{border-bottom:0}
-.wt-row-name{font-weight:600;color:var(--pl-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wt-row-tag{
-  font:9.5px var(--font-sans), system-ui, sans-serif;letter-spacing:.07em;text-transform:uppercase;
-  color:#41618f;white-space:nowrap;
-}
-.wt-row-tag.q{color:var(--pl-ember)}
-.wt-panel-foot{
-  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
-  padding:11px 15px;border-top:1px solid rgba(11,30,61,.1);
-  background:#faf7f2;color:#5d6b80;font-size:11.5px;
-}
-
 @media(max-width:860px){
-  .wt-inner{padding:clamp(48px,8vw,70px) 6vw}
-  .wt h2{max-width:none;font-size:clamp(30px,7.6vw,40px)}
-  .wt-head>p{font-size:14.5px;margin-top:15px}
-  .wt-map{height:clamp(280px,42vh,360px);margin-top:26px}
-  .wt-foot{align-items:start;gap:14px;margin-top:20px;padding-top:18px}
   /* One column, and the panel keeps the three figures side by side
      because they are short and the comparison is the point. */
-  .wt-dash{grid-template-columns:1fr;gap:22px;margin-top:34px;padding-top:28px}
-  .wt-dash-head h3{max-width:none;font-size:clamp(22px,6vw,28px)}
-  .wt-dash-head>p{font-size:14.5px;margin-bottom:14px}
-      .wt-panel-rows li{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px 12px}
-  .wt-row-zone{display:none}
 }
 
 /* ── the rest of the page, on the same palette ──────────────────── */
@@ -689,13 +467,8 @@
 
 /* Was #0b1020 — a different dark from the hero's, which is what made the
    bottom of the page look like a different site. */
-.product-site .product-closing{background:var(--pl-ink);color:var(--pl-bone)}
-.product-site .product-closing .field-eyebrow{color:var(--pl-sky)}
-.product-site .product-closing em{color:var(--pl-flame)}
 /* Navy on flame is 4.95:1. White on it is 3.35 — the button label is
    small text and needs 4.5. */
-.product-site .product-closing .field-button{background:var(--pl-flame);color:var(--pl-ink)}
-.product-site .product-closing .field-button:hover{background:#ff7454}
 
 .product-site .field-footer{background:var(--pl-deep);color:#c6d4e6}
 .product-site .field-footer a{color:#c6d4e6}
@@ -726,10 +499,7 @@
 }
 
 .product-site .sp-header,
-.product-site .product-hero,
-.product-site .wt-inner,
 .product-site .role-help,
-.product-site .product-closing,
 .product-site .field-footer {
   max-width: none;
   margin-inline: 0;
@@ -749,34 +519,6 @@ html .sp.product-site .sp-header {
 /* ── The console miniature ──────────────────────────────────────────
    Built to look like the product rather than like a diagram of it: the
    same title bar, the same stat treatment, the same case rows. */
-.wt-panel-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  border-bottom:1px solid rgba(11,30,61,.12)}
-.wt-panel-stats>div{display:grid;gap:3px;padding:13px 15px}
-.wt-panel-stats>div+div{border-left:1px solid rgba(11,30,61,.1)}
-.wt-panel-stats span{font:9.5px var(--font-sans),system-ui,sans-serif;letter-spacing:.09em;
-  text-transform:uppercase;color:#5d6b80}
-.wt-panel-stats b{font-size:25px;font-weight:600;letter-spacing:-.04em;line-height:1.05;
-  color:var(--pl-ink);font-variant-numeric:tabular-nums}
-.wt-panel-stats b.q{color:var(--pl-ember)}
-.wt-panel-stats small{font-size:10.5px;line-height:1.35;color:#6a788c}
-
-.wt-panel-listhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
-  padding:11px 15px 8px}
-.wt-panel-listhead b{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#41618f}
-.wt-panel-listhead span{font:9.5px var(--font-sans),system-ui,sans-serif;letter-spacing:.08em;
-  text-transform:uppercase;color:#8a97a8}
-.wt-panel-list ul{list-style:none;margin:0;padding:0}
-.wt-panel-list li{display:grid;grid-template-columns:8px minmax(0,1fr) minmax(0,auto) auto;
-  gap:10px;align-items:center;padding:10px 15px;border-top:1px solid rgba(11,30,61,.08)}
-.wt-panel-list i{width:8px;height:8px;border-radius:50%}
-.wt-row-zone{font-size:12px;color:#6a788c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wt-row-tag.urgent{color:#c0492e}
-
-@media(max-width:860px){
-  .wt-panel-stats>div{padding:11px 12px}
-  .wt-panel-stats b{font-size:21px}
-  .wt-panel-list li{grid-template-columns:8px minmax(0,1fr) auto;gap:8px;padding:9px 12px}
-}
 
 /* ════════════════════════════════════════════════════════════════════
    The landing's background rhythm, set in one place.
@@ -833,18 +575,6 @@ html .sp.product-site .role-help-links a:hover { background: rgba(11, 30, 61, 0.
 
 /* 4. Closing, the accent block. Against shell above: 5.6. Against the
       deep footer below: 3.2 — a real edge in both directions. */
-html .sp.product-site .product-closing {
-  background: var(--sp-ember) !important;
-  color: #fff;
-}
-html .sp.product-site .product-closing .field-eyebrow { color: #ffd9c9; }
-html .sp.product-site .product-closing h2 { color: #fff; }
-html .sp.product-site .product-closing em { color: #ffcbb6; }
-html .sp.product-site .product-closing .field-button {
-  background: #fff;
-  color: var(--sp-ember);
-}
-html .sp.product-site .product-closing .field-button:hover { background: var(--sp-bone); color: var(--sp-ember); }
 
 /* 5. Footer stays deep, and now lands against a light block: 11.63. */
 
@@ -1195,9 +925,6 @@ html .sp.product-site .role-help-note {
 }
 .cm-key i { width: 9px; height: 9px; border-radius: 2.5px; }
 .cm-key b { font-size: 12.5px; color: #fff; font-variant-numeric: tabular-nums; }
-.k-ster { background: #5f8ce0; }
-.k-not { background: var(--sp-flame); }
-.k-unk { background: rgba(143, 183, 255, .28); }
 
 /* ── Coverage bars ─────────────────────────────────────────────── */
 .cm-zones ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
@@ -1353,23 +1080,6 @@ html .sp.product-site .role-help-note {
    floating browser-frame treatment.
    ═══════════════════════════════════════════════════════════════════ */
 .field-site { background: #f7f2ea; }
-.product-hero-wall {
-  min-height: min(760px, 92svh);
-  grid-template-columns: minmax(0, .84fr) minmax(390px, 1.16fr);
-  gap: clamp(38px, 7vw, 116px);
-  padding: clamp(124px, 11vw, 162px) max(6vw, 28px) clamp(64px, 7vw, 104px);
-  background: #f7f2ea !important;
-  color: var(--sp-ink);
-}
-.product-hero-wall::before,
-.product-hero-wall::after { display: none; }
-.product-hero-wall .field-eyebrow { color: var(--sp-ember); }
-.product-hero-wall h1 { color: var(--sp-ink); }
-.product-hero-wall h1 em { color: var(--sp-flame-deep); }
-.product-hero-wall .field-button { background: var(--sp-blue); color: #fff; }
-.product-hero-wall .field-button:hover { background: var(--sp-blue-deep); }
-.product-hero-wall .field-text-link { color: var(--sp-ink); border-color: rgba(11, 30, 61, .38); }
-.product-hero-wall .hero-tally { border-top-color: var(--sp-rule); }
 .hero-tally-figure { color: var(--sp-ink); }
 .hero-tally-label,
 .hero-tally-label span { color: var(--sp-muted); }
@@ -1382,20 +1092,10 @@ html .sp.product-site .role-help-note {
 .hero-wall-grid span { background: linear-gradient(transparent, rgba(7, 22, 48, .76)); }
 
 /* The map is the transition from individual sighting to geography. */
-.wt { background: #ede5d9; }
-.wt-inner { max-width: 1360px; padding-left: max(6vw, 28px); padding-right: max(6vw, 28px); }
 /* The headline column has a floor. At minmax(0,1.1fr) it shrank to 233px
    on a 1024px window while the paragraph beside it held its 280px, so
    the heading broke into five lines and the running text next to it
    read wider than the heading it supports. */
-.wt-head { display: grid; grid-template-columns: minmax(430px, 1.1fr) minmax(260px, .55fr); column-gap: clamp(36px, 7vw, 140px); align-items: end; }
-.wt-head .field-eyebrow,
-.wt-head h2 { grid-column: 1; }
-.wt-head > p { grid-column: 2; grid-row: 1 / span 2; margin: 0 0 4px; }
-.wt-map { margin-top: var(--sp-7); border: 1px solid rgba(11, 30, 61, .16); border-radius: 0; box-shadow: none; }
-.wt-map .field-map-preview,
-.wt-map canvas { border-radius: 0; }
-.wt-foot { border-top: 0; padding-top: var(--sp-4); }
 
 /* The product story has a dark operational chapter, but it is a clean
    ink field; the visual connection comes from rules and the rail. */
@@ -1420,7 +1120,6 @@ html .sp.product-site .role-help-note {
 .role-help-links { border-color: var(--sp-rule); }
 .role-help-links a { border-color: var(--sp-rule); }
 .role-help-links a:hover { background: #fffdf9 !important; padding-left: 14px; }
-.product-closing { background: var(--sp-ink) !important; }
 .field-footer { background: var(--sp-ink); border-top: 1px solid rgba(255,255,255,.16); }
 .field-footer-brand,
 .field-footer nav a { color: #fff; }
@@ -1429,31 +1128,20 @@ html .sp.product-site .role-help-note {
 
 /* Below this the two columns stop being two columns: the paragraph goes
    under the headline at reading width rather than into a 260px gutter. */
-@media (max-width: 1180px) {
-  .wt-head { grid-template-columns: 1fr; }
-  .wt-head > p { grid-column: 1; grid-row: auto; max-width: 62ch; margin: var(--sp-5) 0 0; }
-}
 
 @media (max-width: 900px) {
-  .product-hero-wall { grid-template-columns: 1fr; min-height: unset; padding-top: 116px; }
-  .wt-head { grid-template-columns: 1fr; }
-  .wt-head > p { grid-column: 1; grid-row: auto; margin: var(--sp-5) 0 0; }
   .cm-main { grid-template-columns: 1fr; }
   .cm-card,
   .cm-card:nth-child(2) { border-right: 0; }
 }
 @media (max-width: 560px) {
-  .product-hero-wall { padding-left: 20px; padding-right: 20px; }
   .hero-wall { margin: 0 -2px; }
-  .wt-inner,
   .role-help { padding-left: 20px; padding-right: 20px; }
-  .wt-map { margin-left: -20px; margin-right: -20px; }
   .field-footer { align-items: flex-start; flex-direction: column; }
 }
 
 /* Pinky's collage. The lead is deliberately fixed and central; the surrounding
    live-record photographs are a calm supporting cast rather than a noisy grid. */
-.product-hero-wall { grid-template-columns: minmax(0, .78fr) minmax(440px, 1.22fr); }
 .hero-wall {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1503,7 +1191,6 @@ html .sp.product-site .role-help-note {
 .hero-wall-lead figcaption { padding: 58px 18px 17px; }
 .hero-wall-lead b { font-size: 26px; }
 @media (max-width: 900px) {
-  .product-hero-wall { grid-template-columns: 1fr; }
   .hero-wall { max-width: 560px; }
 }
 @media (max-width: 560px) {
@@ -1534,33 +1221,10 @@ html .sp.product-site .role-help-note {
    two different design generations.
    ════════════════════════════════════════════════════════════════════ */
 
-.product-hero-wall {
-  background: var(--sp-sec-field) !important;
-  color: var(--sp-on-field);
-}
-.product-hero-wall .field-eyebrow { color: var(--sp-on-field-dim); }
-html .product-hero-wall #hero-title { color: var(--sp-on-field); }
-html .product-hero-wall #hero-title em { color: var(--sp-on-field-accent); }
-
 /* One primary action, and on this ground it is the orange rather than
    the blue: blue on ink is the one pairing in this palette that loses
    its edge. The map link stays a text link — two filled buttons side by
    side is two primary actions. */
-html .product-hero-wall .field-button {
-  background: var(--sp-flame);
-  color: var(--sp-ink);
-}
-html .product-hero-wall .field-button:hover { background: #ff7a5c; }
-html .product-hero-wall .field-text-link {
-  color: var(--sp-on-field);
-  border-bottom-color: rgba(244, 238, 229, 0.35);
-}
-.product-hero-wall .hero-tally,
-.product-hero-wall .sp-tally { color: var(--sp-on-field); }
-.product-hero-wall .hero-tally b,
-.product-hero-wall .sp-tally b { color: var(--sp-on-field); }
-.product-hero-wall .hero-tally span,
-.product-hero-wall .sp-tally span { color: var(--sp-on-field-dim); }
 
 /* The lead photograph. One tile, so it can be larger and squarer than a
    contact-sheet cell. The crop itself is set on the absolute-fill rule
@@ -1570,10 +1234,8 @@ html .product-hero-wall .field-text-link {
 
 /* ── The rhythm below the fold ──────────────────────────────────────
    Alternating, so no two neighbouring sections share a ground. */
-.wt { background: var(--sp-sec-paper) !important; }
 .cx { background: var(--sp-sec-field) !important; }
 .role-help { background: var(--sp-sec-paper-deep) !important; }
-.product-closing { background: var(--sp-sec-accent) !important; }
 
 /* ════════════════════════════════════════════════════════════════════
    THE RECORD RAIL, under the hero.
@@ -1747,9 +1409,6 @@ html .hrail-head h2 {
    phone it wraps to four lines, the second pair set in a serif italic
    with commas and descenders, and they collided. 1.04 gives the
    descenders somewhere to go and still reads as display setting. */
-@media (max-width: 700px) {
-  html .product-hero-wall h1 { line-height: 1.04; letter-spacing: -0.035em; }
-}
 
 /* ════════════════════════════════════════════════════════════════════
    THE STORAGE NOTICE.
@@ -1763,14 +1422,11 @@ html .hrail-head h2 {
 /* The hero tally label measured 3.05:1 — --sp-muted on the dark hero
    ground, inherited from somewhere the cascade would not name. Stated
    here with enough weight to hold, at 8.6:1. */
-html .field-site .product-hero-wall .hero-tally-label { color: #cddcef; }
-html .field-site .product-hero-wall .hero-tally-label span { color: #9db8dc; }
 
 /* Confirmed partner presence: a quiet bridge from the public promise to the
    actual field teams, not a logo graveyard. */
-.partner-bar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;padding:18px 5vw;border-top:1px solid var(--sp-rule,#cad8e8);border-bottom:1px solid var(--sp-rule,#cad8e8);background:#f5f8fc;color:var(--sp-ink,#0b1e3d)}.partner-bar-label{display:flex;align-items:center;gap:8px;font:600 11px var(--font-sans),system-ui,sans-serif;letter-spacing:.11em;text-transform:uppercase;color:var(--sp-blue,#2457ce)}.partner-bar-list{display:flex;min-width:0;gap:14px}.partner-bar-list a{min-width:0;border-left:1px solid var(--sp-rule,#cad8e8);padding-left:14px;font-size:13px;font-weight:650;line-height:1.2}.partner-bar-list small{display:block;overflow:hidden;margin-top:3px;color:var(--field-muted);font-size:11px;font-weight:400;text-overflow:ellipsis;white-space:nowrap}.partner-bar-link{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--sp-blue,#2457ce)}
 .partners-page{min-height:100vh;color:var(--sp-ink,#0b1e3d)}.partners-hero{max-width:1040px;padding:170px 6vw 110px}.partners-hero h1{margin:18px 0 24px;font-size:clamp(54px,7.4vw,112px);line-height:.9;letter-spacing:-.07em}.partners-hero h1 em{font-style:normal;color:var(--sp-flame,#f05b40)}.partners-hero>p:not(.field-eyebrow){max-width:610px;margin:0 0 30px;color:var(--field-muted);font-size:17px;line-height:1.6}.partners-directory{display:grid;grid-template-columns:minmax(240px,.74fr) minmax(0,1.26fr);gap:8vw;padding:76px 6vw 112px;background:#eaf0f7}.partners-directory h2{margin:12px 0;font-size:clamp(36px,4vw,60px);line-height:.95;letter-spacing:-.05em}.partners-directory-head p{max-width:340px;color:var(--field-muted);line-height:1.55}.partners-directory-grid{display:grid;gap:14px}.partner-directory-card{display:grid;grid-template-columns:58px 1fr;gap:18px;padding:24px;border:1px solid #b8cbe3;background:#fff;box-shadow:7px 7px 0 #d4e0ee}.partner-directory-mark{display:grid;width:58px;height:58px;place-items:center;overflow:hidden;background:var(--sp-ink,#0b1e3d);color:#fff;font-size:17px;font-weight:750;letter-spacing:-.06em}.partner-directory-mark img{width:100%;height:100%;object-fit:cover}.partner-status{display:flex;align-items:center;gap:6px;color:var(--sp-blue,#2457ce);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.partner-directory-card h2{margin:7px 0 4px;font-size:24px;line-height:1.05}.partner-place{display:flex;align-items:center;gap:5px;color:var(--field-muted);font-size:13px}.partner-mission{margin:14px 0;color:#344863;font-size:14px;line-height:1.55}.partner-areas{display:flex;flex-wrap:wrap;gap:6px}.partner-areas span{padding:4px 7px;border:1px solid #c7d5e5;color:#36577b;font-size:11px;font-weight:650}.partners-cta{display:flex;align-items:end;justify-content:space-between;gap:40px;padding:90px 6vw;background:var(--sp-ink,#0b1e3d);color:#fff}.partners-cta h2{margin:12px 0 0;font-size:clamp(38px,5vw,74px);line-height:.92;letter-spacing:-.06em}.partners-cta .field-button{background:var(--sp-flame,#f05b40);color:var(--sp-ink,#0b1e3d)}
-@media(max-width:760px){.partner-bar{grid-template-columns:1fr auto;gap:12px;padding:15px 20px}.partner-bar-label{grid-column:1/-1}.partner-bar-list{overflow:hidden}.partner-bar-list a{font-size:12px}.partner-bar-list a:not(:first-child){display:none}.partners-hero{padding:125px 20px 72px}.partners-directory{grid-template-columns:1fr;gap:38px;padding:62px 20px 78px}.partners-cta{align-items:flex-start;flex-direction:column;padding:66px 20px}.partner-directory-card{padding:19px;grid-template-columns:48px 1fr}.partner-directory-mark{width:48px;height:48px}}
+@media(max-width:760px){.partners-hero{padding:125px 20px 72px}.partners-directory{grid-template-columns:1fr;gap:38px;padding:62px 20px 78px}.partners-cta{align-items:flex-start;flex-direction:column;padding:66px 20px}.partner-directory-card{padding:19px;grid-template-columns:48px 1fr}.partner-directory-mark{width:48px;height:48px}}
 
 /* An earned public story: its clinical/detail timeline is deliberately only
    present when a field team has chosen to publish it. Pinky remains the

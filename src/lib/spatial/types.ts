@@ -120,6 +120,8 @@ export type SpatialDataset = {
   };
   frontier: FrontierCell[];
   next: NextCell[];
+  /** The recorded area as one outline: polygons of [lng, lat] rings, holes after the first ring. */
+  outline?: [number, number][][][];
 };
 
 export const countOf = (flat: number[], stride: number) => Math.floor(flat.length / stride);

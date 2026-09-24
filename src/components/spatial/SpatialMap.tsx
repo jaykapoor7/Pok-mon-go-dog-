@@ -28,14 +28,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
-import { Crosshair, Layers, Minus, Mountain, Plus, SlidersHorizontal } from "lucide-react";
+import { Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal } from "lucide-react";
 import { ScaleLadder, type Rung } from "@/components/system/ScaleLadder";
 import { NIGHT, PAPER, groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
   animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf,
   type CellStat, type Filters, type Mode,
 } from "@/lib/spatial/engine";
-import { A, A_STRIDE, AF, C, C_STRIDE, type NextCell, type SpatialDataset } from "@/lib/spatial/types";
+import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, type NextCell, type SpatialDataset } from "@/lib/spatial/types";
+import { densityContours, LEVELS } from "@/lib/spatial/contours";
+import { Portraits } from "./Portraits";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, type Condition } from "@/lib/register/taxonomy";
 import { getSupabase } from "@/lib/supabase";
 import { useSpatialDataset, ringOf, flatRing, pointInCell, scaleRing, boxOfRings, INDIA_BOX, type Scope } from "./data";
@@ -45,11 +47,11 @@ import "./spatial.css";
 
 type ModeDef = { id: Mode | "change"; label: string; q: string };
 const MODES: ModeDef[] = [
-  { id: "animals", label: "Animals", q: "Where animals are recorded — one dot each, inside its cell" },
-  { id: "density", label: "Density", q: "Where recorded animals cluster" },
-  { id: "coverage", label: "Coverage", q: "How well each place is mapped, and where the record stops" },
-  { id: "abc", label: "ABC", q: "Where sterilisation is recorded — and where it is unknown" },
-  { id: "arv", label: "ARV", q: "Where vaccination is recorded, and where boosters are due" },
+  { id: "animals", label: "Animals", q: "Every recorded animal, as a point of light" },
+  { id: "density", label: "Density", q: "Where recorded animals gather, drawn as terrain" },
+  { id: "coverage", label: "Coverage", q: "How well each place is mapped — the fog is where nothing is recorded" },
+  { id: "abc", label: "ABC", q: "Sterilisation, animal by animal — and where it is unknown" },
+  { id: "arv", label: "ARV", q: "Vaccination, animal by animal, and where a booster is due" },
   { id: "medical", label: "Medical", q: "Where injured and sick animals are recorded" },
   { id: "cases", label: "Cases", q: "Where work is open, and how long it has waited" },
   { id: "activity", label: "Field work", q: "Where field teams worked in the twelve months before this date" },
@@ -80,6 +82,28 @@ function hatchImage(color: string) {
   return g.getImageData(0, 0, s, s);
 }
 
+/* The lights the data draws with, on each ground. */
+function lightsOf(p: Palette) {
+  return p.name === "night" ? {
+    core: "#dbe7ff", halo: "#4f7fe0", help: "#ff8a6e", res: "#93b1f0", unknown: "rgba(239,231,218,0.42)",
+    abc: "#6f9bff", arv: "#7fc9d6", due: "#f7a08c", ring: "#efe7da", fog: "rgba(3,10,24,0.66)",
+    heat: ["rgba(19,43,85,0)", "rgba(27,63,128,0.35)", "rgba(42,91,184,0.55)", "rgba(79,127,224,0.65)", "rgba(147,177,240,0.7)", "rgba(219,231,255,0.8)"],
+    flame: ["rgba(59,31,44,0)", "rgba(109,42,44,0.5)", "#a8392b", "#e05537", "#f7a08c", "#ffe3da"],
+    sky: ["rgba(15,50,60,0)", "rgba(30,90,100,0.45)", "#3c98a8", "#7fc9d6", "#bfe8ee", "#f0fbfc"],
+    skyCore: "#bfe8ee",
+    band: ["#1b3f80", "#2a5bb8", "#3f6fd0", "#4f7fe0", "#7ea3ec", "#93b1f0", "#dbe7ff"],
+  } : {
+    core: "#16398f", halo: "#5b82dc", help: "#d4421f", res: "#2457ce", unknown: "rgba(11,30,61,0.28)",
+    abc: "#2457ce", arv: "#3c98a8", due: "#d4421f", ring: "#0b1e3d", fog: "rgba(239,231,218,0.78)",
+    heat: ["rgba(200,212,240,0)", "rgba(200,212,240,0.55)", "#93aee9", "#5b82dc", "#2457ce", "#16398f"],
+    flame: ["rgba(246,210,199,0)", "rgba(246,210,199,0.6)", "#f0b09c", "#f0957c", "#f05b40", "#b93a1d"],
+    sky: ["rgba(200,230,235,0)", "rgba(170,215,222,0.55)", "#7fc0cc", "#3c98a8", "#2a7a88", "#1d5c67"],
+    skyCore: "#2a7a88",
+    band: ["#c8d4f0", "#93aee9", "#7496e2", "#5b82dc", "#2457ce", "#1b46b0", "#16398f"],
+  };
+}
+const heatRamp = (c: string[]) => ["interpolate", ["linear"], ["heatmap-density"], 0, c[0], 0.12, c[1], 0.3, c[2], 0.55, c[3], 0.8, c[4], 1, c[5]];
+
 export function SpatialMap({ scope = "public", userKey = null, notice = null }: { scope?: Scope; userKey?: string | null; notice?: React.ReactNode }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -89,7 +113,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
   const pal: Palette = ground === "night" ? NIGHT : PAPER;
 
-  const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? "density") as AnyMode;
+  const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? "animals") as AnyMode;
   const [mode, setMode] = useState<AnyMode>(initialMode);
   const [lens, setLens] = useState<CaseLens>((LENSES.find((l) => l.id === params.get("lens"))?.id ?? "open") as CaseLens);
   const [month, setMonth] = useState<number | null>(null);
@@ -97,7 +121,9 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
   const [sel, setSel] = useState<Sel | null>(null);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [relief, setRelief] = useState(false);
+  /* The hex grid is an analysis overlay: on by default only where a mode is about cells. */
+  const [grid, setGrid] = useState(params.get("grid") === "1");
+  const [zoom, setZoom] = useState(4);
   const [sheet, setSheet] = useState<"peek" | "open">("peek");
   const [hover, setHover] = useState<{ x: number; y: number; text: string } | null>(null);
   const [ready, setReady] = useState(false);
@@ -208,7 +234,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     const r = rankOf(value(s), br);
     const seq = pal.seq, att = pal.att;
     switch (mode) {
-      case "animals": return s.animals ? { c: seq[1], o: ground === "night" ? 0.45 : 0.35 } : { c: T, o: 0 };
+      case "animals": return r < 0 ? { c: T, o: 0 } : { c: seq[Math.min(4, r)], o: 0.72 };
       case "density": return r < 0 ? { c: T, o: 0 } : { c: seq[Math.min(4, r)], o: 0.9, h: (r + 1) * 260 };
       case "coverage": {
         const ink = ground === "night" ? "239,231,218" : "11,30,61";
@@ -241,7 +267,11 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
       const o = i * A_STRIDE, c = ds.animals[o + A.cell], f = ds.animals[o + A.flags];
       let r = rings.get(c); if (!r) { r = ringOf(ds, c); rings.set(c, r); }
       const k = f & (AF.help | AF.injured) ? 1 : f & AF.resident ? 2 : 0;
-      feats.push({ type: "Feature", properties: { k, c }, geometry: { type: "Point", coordinates: pointInCell(r, i + 1) } });
+      /* What the programmes know about this one animal: 1 yes, 2 no, 3 booster due, 0 not recorded. */
+      const st = f & AF.sterYes ? 1 : f & AF.sterNo ? 2 : 0;
+      const lv = ds.animals[o + A.lastVacc];
+      const va = f & AF.vaccYes ? (lv >= 0 && lv <= t && lv < t - 365 ? 3 : 1) : f & AF.vaccNo ? 2 : 0;
+      feats.push({ type: "Feature", properties: { k, st, va, c }, geometry: { type: "Point", coordinates: pointInCell(r, i + 1) } });
     }
     return { type: "FeatureCollection" as const, features: feats };
   }, [ds, ix, t, filters]);
@@ -260,6 +290,37 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     }
     return { type: "FeatureCollection" as const, features: feats };
   }, [ds, ix, t, mode, filters.condition, caseMatch]);
+
+  /* Field work: every care event of the last twelve months, as a spark inside its cell. */
+  const carePts = useMemo(() => {
+    if (!ds || !ix || mode !== "activity") return EMPTY;
+    const feats: GeoJSON.Feature[] = [];
+    const rings = new Map<number, [number, number][]>();
+    const n = Math.floor(ds.care.length / K_STRIDE);
+    for (let i = 0; i < n; i++) {
+      const o = i * K_STRIDE, day = ds.care[o + K.day], c = ds.care[o + K.cell];
+      if (day < 0 || day > t || day < t - 365 || c < 0) continue;
+      let r = rings.get(c); if (!r) { r = ringOf(ds, c); rings.set(c, r); }
+      feats.push({ type: "Feature", properties: { c, age: t - day }, geometry: { type: "Point", coordinates: pointInCell(r, i * 13 + 5) } });
+    }
+    return { type: "FeatureCollection" as const, features: feats };
+  }, [ds, ix, t, mode]);
+
+  /* Density as terrain: recorded animals smoothed and cut into contour bands. */
+  const terrain = useMemo(() => {
+    if (!ds || mode !== "density") return EMPTY;
+    return densityContours(stats.filter((s) => s.animals > 0).map((s) => ({ lng: ds.centers[s.cell * 2], lat: ds.centers[s.cell * 2 + 1], w: s.animals, city: ds.cellCity[s.cell] })));
+  }, [ds, stats, mode]);
+
+  /* The fog: everything outside the recorded area, with the record cut out of it. */
+  const fog = useMemo(() => {
+    if (!ds?.outline?.length) return EMPTY;
+    const world: [number, number][] = [[40, -5], [120, -5], [120, 45], [40, 45], [40, -5]];
+    const holes = ds.outline.map((poly) => poly[0]);
+    const islands = ds.outline.flatMap((poly) => poly.slice(1).map((ring) => ({ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [ring] } })));
+    const edge = { type: "Feature" as const, properties: { edge: 1 }, geometry: { type: "MultiLineString" as const, coordinates: ds.outline.flat() } };
+    return { type: "FeatureCollection" as const, features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [world, ...holes] } }, ...islands, edge] as GeoJSON.Feature[] };
+  }, [ds]);
 
   const inner = useMemo(() => {
     if (!ds || (mode !== "abc" && mode !== "arv")) return EMPTY;
@@ -317,39 +378,69 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     map.addSource("cells", { type: "geojson", data: { type: "FeatureCollection", features: cellFeatures } });
     map.addSource("frontier", { type: "geojson", data: { type: "FeatureCollection", features: ds.frontier.map((f, i) => ({ type: "Feature", id: i, properties: { k: f.cell, near: f.near, city: f.city }, geometry: { type: "Polygon", coordinates: [flatRing(f.ring)] } })) } });
     ["inner", "cases", "sel", "next", "feeding"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
-    map.addSource("pts", { type: "geojson", data: EMPTY, cluster: true, clusterRadius: 38, clusterMaxZoom: 13 });
+    ["pts", "care", "terrain", "fog"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
     map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: ds.cities.map((c, i) => ({ type: "Feature", properties: { i, n: c.animals, name: c.name }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) } });
 
     const fs = (k: string, d: number | string) => ["coalesce", ["feature-state", k], d] as ExpressionSpecification;
+    const Z = (a: number, b: number, c: number, d: number) => ["interpolate", ["linear"], ["zoom"], a, b, c, d] as ExpressionSpecification;
+    const L = lightsOf(pal);
+
     map.addLayer({ id: "frontier-fill", type: "fill", source: "frontier", paint: { "fill-color": T, "fill-opacity": 0 } });
     map.addLayer({ id: "frontier-line", type: "line", source: "frontier", layout: { visibility: "none" }, paint: { "line-color": pal.dim, "line-width": 1, "line-dasharray": [2, 2.5], "line-opacity": ["case", ["==", ["get", "near"], 1], 0.55, 0.25] as ExpressionSpecification } });
+
+    /* The fog over everything unrecorded, and the edge of the record. */
+    map.addLayer({ id: "fog", type: "fill", source: "fog", filter: ["!", ["has", "edge"]], layout: { visibility: "none" }, paint: { "fill-color": L.fog, "fill-opacity": 1 } });
+    map.addLayer({ id: "fog-hatch", type: "fill", source: "fog", filter: ["!", ["has", "edge"]], layout: { visibility: "none" }, paint: { "fill-pattern": pal.name === "night" ? "hatch-night" : "hatch-paper", "fill-opacity": 0.35 } });
+    map.addLayer({ id: "fog-edge", type: "line", source: "fog", filter: ["has", "edge"], layout: { visibility: "none" }, paint: { "line-color": pal.ink, "line-width": 1.6, "line-opacity": 0.8 } });
+
+    /* Terrain: each band a little brighter than the one below. */
+    map.addLayer({ id: "terrain-fill", type: "fill", source: "terrain", layout: { visibility: "none" }, paint: { "fill-color": ["match", ["get", "rank"], ...LEVELS.flatMap((_, i) => [i, L.band[Math.min(L.band.length - 1, i)]]), L.band[0]] as unknown as ExpressionSpecification, "fill-opacity": pal.name === "night" ? 0.28 : 0.3 } });
+    map.addLayer({ id: "terrain-line", type: "line", source: "terrain", layout: { visibility: "none", "line-join": "round" }, paint: {
+      "line-color": ["match", ["get", "rank"], ...LEVELS.flatMap((_, i) => [i, L.band[Math.min(L.band.length - 1, i)]]), L.band[0]] as unknown as ExpressionSpecification,
+      "line-width": ["interpolate", ["linear"], ["get", "rank"], 0, 0.8, 6, 2.2] as ExpressionSpecification, "line-opacity": 0.95,
+    } });
+    map.addLayer({ id: "terrain-label", type: "symbol", source: "terrain", minzoom: 11.6, layout: { visibility: "none", "symbol-placement": "line", "text-field": ["concat", ["to-string", ["get", "v"]], " / km²"], "text-font": ["Noto Sans Regular"], "text-size": 10, "symbol-spacing": 320 }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.6, "text-opacity": 0.8 } });
+
     map.addLayer({ id: "cells", type: "fill", source: "cells", paint: { "fill-color": fs("c", T), "fill-opacity": fs("o", 0) } });
     map.addLayer({ id: "cells-hatch", type: "fill", source: "cells", paint: { "fill-pattern": "hatch-night", "fill-opacity": fs("hatch", 0) } });
-    map.addLayer({ id: "cells-3d", type: "fill-extrusion", source: "cells", layout: { visibility: "none" }, paint: { "fill-extrusion-color": fs("c", T), "fill-extrusion-height": fs("h", 0), "fill-extrusion-opacity": 0.92 } });
     map.addLayer({ id: "inner", type: "fill", source: "inner", paint: { "fill-color": ["case", ["==", ["get", "k"], 1], pal.att[3], pal.seq[3]] as ExpressionSpecification, "fill-opacity": ["case", ["==", ["get", "k"], 2], 0.55, 0.95] as ExpressionSpecification } });
     map.addLayer({ id: "cells-edge", type: "line", source: "cells", paint: { "line-color": fs("line", pal.cellEdge), "line-width": ["case", ["!=", ["feature-state", "line"], null], 1.4, 0.8] as ExpressionSpecification, "line-opacity": ["case", [">", fs("o", 0), 0], 1, ["!=", ["feature-state", "line"], null], 1, [">", fs("hatch", 0), 0], 1, 0] as ExpressionSpecification } });
-    map.addLayer({ id: "clusters", type: "circle", source: "pts", filter: ["has", "point_count"], layout: { visibility: "none" }, paint: {
-      "circle-radius": ["interpolate", ["linear"], ["get", "point_count"], 2, 9, 30, 15, 200, 26] as ExpressionSpecification,
-      "circle-color": pal.seq[3], "circle-opacity": 0.92, "circle-stroke-color": pal.bg, "circle-stroke-width": 2,
+
+    /* Light: a soft glow where records gather, fading as the streets come in. */
+    map.addLayer({ id: "heat", type: "heatmap", source: "pts", maxzoom: 16, layout: { visibility: "none" }, paint: {
+      "heatmap-weight": 0.6, "heatmap-intensity": Z(9, 0.18, 14, 0.5), "heatmap-radius": Z(9, 7, 14, 26),
+      "heatmap-opacity": Z(11, 0.75, 15.5, 0), "heatmap-color": heatRamp(L.heat) as ExpressionSpecification,
     } });
-    map.addLayer({ id: "clusters-n", type: "symbol", source: "pts", filter: ["has", "point_count"], layout: { visibility: "none", "text-field": ["get", "point_count_abbreviated"], "text-font": ["Noto Sans Bold"], "text-size": 11, "text-allow-overlap": true }, paint: { "text-color": "#fffdf9" } });
-    map.addLayer({ id: "pts", type: "circle", source: "pts", filter: ["!", ["has", "point_count"]], layout: { visibility: "none" }, paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 2.6, 15, 4.6, 17, 6.5] as ExpressionSpecification,
-      "circle-color": ["match", ["get", "k"], 1, pal.att[3], 2, pal.seq[4], pal.ink] as ExpressionSpecification,
+    map.addLayer({ id: "heat-care", type: "heatmap", source: "care", maxzoom: 16, layout: { visibility: "none" }, paint: {
+      "heatmap-weight": 1, "heatmap-intensity": Z(9, 0.6, 14, 1.3), "heatmap-radius": Z(9, 10, 14, 30),
+      "heatmap-opacity": Z(11, 0.85, 15.5, 0), "heatmap-color": heatRamp(L.sky) as ExpressionSpecification,
+    } });
+    map.addLayer({ id: "pts-halo", type: "circle", source: "pts", layout: { visibility: "none" }, paint: {
+      "circle-radius": Z(9, 2.5, 16, 11), "circle-blur": 1, "circle-color": L.halo, "circle-opacity": 0.3,
+    } });
+    map.addLayer({ id: "pts", type: "circle", source: "pts", layout: { visibility: "none" }, paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 1.1, 12, 2.1, 15, 4, 17, 6] as ExpressionSpecification,
+      "circle-color": L.core, "circle-stroke-color": pal.bg, "circle-stroke-width": Z(13, 0, 15, 1),
+    } });
+    map.addLayer({ id: "care-pts", type: "circle", source: "care", minzoom: 12, layout: { visibility: "none" }, paint: {
+      "circle-radius": Z(12, 1.4, 16, 3.4), "circle-color": L.skyCore, "circle-opacity": ["interpolate", ["linear"], ["get", "age"], 0, 1, 365, 0.35] as ExpressionSpecification,
+    } });
+
+    /* An open case is a beacon; every ring around it is time it has waited — a month, a quarter, half a year, a year. */
+    [[365, 24, 0.22], [180, 18, 0.32], [90, 12.5, 0.45], [30, 8, 0.62]].forEach(([age, r, o]) => map.addLayer({
+      id: `case-r${age}`, type: "circle", source: "cases", filter: [">=", ["get", "age"], age], layout: { visibility: "none" },
+      paint: { "circle-radius": Z(9, r * 0.42, 15, r), "circle-color": T, "circle-stroke-color": L.ring, "circle-stroke-width": 1, "circle-stroke-opacity": o },
+    }));
+    map.addLayer({ id: "case-pulse", type: "circle", source: "cases", filter: ["==", ["get", "crit"], 1], layout: { visibility: "none" }, paint: {
+      "circle-radius": Z(9, 4, 15, 9), "circle-color": pal.att[3], "circle-opacity": 0.35, "circle-blur": 0.6,
+    } });
+    map.addLayer({ id: "cases", type: "circle", source: "cases", layout: { visibility: "none" }, paint: {
+      "circle-radius": Z(9, 2.2, 15, 4.6),
+      "circle-color": ["case", ["==", ["get", "crit"], 1], pal.att[3], pal.ink] as ExpressionSpecification,
       "circle-stroke-color": pal.bg, "circle-stroke-width": 1,
     } });
-    /* An open case is a ring that widens as it waits; a critical one is solid. */
-    map.addLayer({ id: "cases", type: "circle", source: "cases", layout: { visibility: "none" }, paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["interpolate", ["linear"], ["get", "age"], 0, 2.5, 30, 4, 180, 7, 365, 9], 15, ["interpolate", ["linear"], ["get", "age"], 0, 4, 30, 7, 180, 12, 365, 16]] as ExpressionSpecification,
-      "circle-color": pal.att[3],
-      "circle-opacity": ["case", ["==", ["get", "crit"], 1], 0.95, 0] as ExpressionSpecification,
-      "circle-stroke-color": ["case", ["==", ["get", "crit"], 1], pal.bg, pal.ink] as ExpressionSpecification,
-      "circle-stroke-width": ["case", ["==", ["get", "crit"], 1], 1.2, 1.3] as ExpressionSpecification,
-      "circle-stroke-opacity": ["interpolate", ["linear"], ["get", "age"], 0, 0.95, 365, 0.5] as ExpressionSpecification,
-    } });
     map.addLayer({ id: "feeding", type: "circle", source: "feeding", layout: { visibility: "none" }, paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 4, 15, 7] as ExpressionSpecification,
-      "circle-color": pal.bg, "circle-stroke-color": pal.feed, "circle-stroke-width": 2.4,
+      "circle-radius": Z(10, 4, 15, 7.5), "circle-color": pal.bg, "circle-stroke-color": pal.feed, "circle-stroke-width": 2.4,
     } });
     map.addLayer({ id: "next", type: "circle", source: "next", layout: { visibility: "none" }, paint: { "circle-radius": 11, "circle-color": pal.bg, "circle-stroke-color": pal.att[3], "circle-stroke-width": 2 } });
     map.addLayer({ id: "next-n", type: "symbol", source: "next", layout: { visibility: "none", "text-field": ["get", "n"], "text-font": ["Noto Sans Bold"], "text-size": 11, "text-allow-overlap": true }, paint: { "text-color": pal.ink } });
@@ -364,56 +455,123 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
   }, [ready, ds, pal]);
 
+  /* ── how the points are drawn in each mode ───────────────────────── */
+  const pointStyle = useCallback(() => {
+    const L = lightsOf(pal);
+    const ring = ["case", ["==", ["get", "st"], 2], L.ring, pal.bg] as ExpressionSpecification;
+    switch (mode) {
+      case "abc": return {
+        color: ["match", ["get", "st"], 1, L.abc, 2, pal.bg, L.unknown] as ExpressionSpecification,
+        halo: ["match", ["get", "st"], 1, L.abc, "rgba(0,0,0,0)"] as ExpressionSpecification,
+        stroke: ring, strokeW: ["case", ["==", ["get", "st"], 2], 1.2, 0] as ExpressionSpecification, filter: null,
+      };
+      case "arv": return {
+        color: ["match", ["get", "va"], 1, L.arv, 3, L.due, 2, pal.bg, L.unknown] as ExpressionSpecification,
+        halo: ["match", ["get", "va"], 1, L.arv, 3, L.due, "rgba(0,0,0,0)"] as ExpressionSpecification,
+        stroke: ["case", ["==", ["get", "va"], 2], L.ring, pal.bg] as ExpressionSpecification, strokeW: ["case", ["==", ["get", "va"], 2], 1.2, 0] as ExpressionSpecification, filter: null,
+      };
+      case "medical": return { color: L.help, halo: L.help, stroke: pal.bg, strokeW: 0, filter: ["==", ["get", "k"], 1] as ExpressionSpecification };
+      case "density": return { color: L.unknown, halo: "rgba(0,0,0,0)", stroke: pal.bg, strokeW: 0, filter: null };
+      default: return {
+        color: ["match", ["get", "k"], 1, L.help, 2, L.res, L.core] as ExpressionSpecification,
+        halo: ["match", ["get", "k"], 1, L.help, L.halo] as ExpressionSpecification,
+        stroke: pal.bg, strokeW: ["interpolate", ["linear"], ["zoom"], 13, 0, 15, 1] as ExpressionSpecification, filter: null,
+      };
+    }
+  }, [mode, pal]);
+
   /* ── repaint the ground ──────────────────────────────────────────── */
   useEffect(() => {
     const map = mapRef.current; if (!map || !layersDone.current) return;
     restyle(map, pal);
+    const L = lightsOf(pal);
     const set = (id: string, p: string, v: unknown) => { try { (map.setPaintProperty as (i: string, pr: string, val: unknown) => void).call(map, id, p, v); } catch { /* ok */ } };
-    set("cells-hatch", "fill-pattern", ground === "night" ? "hatch-night" : "hatch-paper");
+    const hatch = ground === "night" ? "hatch-night" : "hatch-paper";
+    set("cells-hatch", "fill-pattern", hatch); set("fog-hatch", "fill-pattern", hatch);
+    set("fog", "fill-color", L.fog); set("fog-edge", "line-color", pal.ink);
     set("frontier-line", "line-color", pal.dim);
-    set("pts", "circle-stroke-color", pal.bg);
-    set("pts", "circle-color", ["match", ["get", "k"], 1, pal.att[3], 2, pal.seq[4], pal.ink]);
-    set("clusters", "circle-color", pal.seq[3]); set("clusters", "circle-stroke-color", pal.bg);
-    set("cases", "circle-color", pal.att[3]); set("cases", "circle-stroke-color", ["case", ["==", ["get", "crit"], 1], pal.bg, pal.ink]);
+    const bandExpr = ["match", ["get", "rank"], ...LEVELS.flatMap((_, i) => [i, L.band[Math.min(L.band.length - 1, i)]]), L.band[0]];
+    set("terrain-fill", "fill-color", bandExpr); set("terrain-line", "line-color", bandExpr);
+    set("terrain-label", "text-color", pal.ink); set("terrain-label", "text-halo-color", pal.bg);
+    set("heat", "heatmap-color", heatRamp(mode === "medical" ? L.flame : L.heat)); set("heat-care", "heatmap-color", heatRamp(L.sky));
+    set("care-pts", "circle-color", L.skyCore);
+    const ps = pointStyle();
+    set("pts", "circle-color", ps.color); set("pts", "circle-stroke-color", ps.stroke); set("pts", "circle-stroke-width", ps.strokeW);
+    set("pts-halo", "circle-color", ps.halo);
+    /* In Animals, the portraits take over at street level. */
+    /* At street level the points stay on beneath the portraits: every animal is still drawn. */
+    set("pts", "circle-opacity", 1);
+    set("pts-halo", "circle-opacity", 0.3);
+    try { map.setFilter("pts", ps.filter); map.setFilter("pts-halo", ps.filter); map.setFilter("heat", ps.filter); } catch { /* ok */ }
+    ["case-r365", "case-r180", "case-r90", "case-r30"].forEach((id) => set(id, "circle-stroke-color", L.ring));
+    set("case-pulse", "circle-color", pal.att[3]);
+    set("cases", "circle-color", ["case", ["==", ["get", "crit"], 1], pal.att[3], pal.ink]); set("cases", "circle-stroke-color", pal.bg);
     set("next", "circle-color", pal.bg); set("next-n", "text-color", pal.ink);
     set("feeding", "circle-color", pal.bg); set("feeding", "circle-stroke-color", pal.feed);
     set("sel", "line-color", pal.ink);
     set("inner", "fill-color", ["case", ["==", ["get", "k"], 1], pal.att[3], mode === "arv" ? pal.arv : pal.seq[3]]);
     set("cities", "circle-stroke-color", pal.bg); set("cities-l", "text-color", pal.ink); set("cities-l", "text-halo-color", pal.bg);
     try { localStorage.setItem("sp.map.ground", ground); } catch { /* storage blocked */ }
-  }, [ground, pal, baseReady, mode, layersReady]);
+  }, [ground, pal, baseReady, mode, layersReady, pointStyle]);
 
-  /* ── paint the cells for the mode, the time and the filters ──────── */
+  /* ── what is drawn, for the mode, the time and the filters ───────── */
+  const cellsOn = grid || mode === "coverage" || mode === "change";
   useEffect(() => {
     const map = mapRef.current; if (!map || !layersDone.current || !ds) return;
     const seen = new Set<number>();
     for (const s of stats) {
-      const p = cellPaint(s);
+      const p = cellsOn ? cellPaint(s) : { c: T, o: 0 } as ReturnType<typeof cellPaint>;
       map.setFeatureState({ source: "cells", id: s.cell }, { c: p.c, o: p.o, line: p.line ?? null, hatch: p.hatch ?? 0, h: p.h ?? 0 });
       seen.add(s.cell);
     }
     for (let i = 0; i < ds.cells.length; i++) if (!seen.has(i)) map.setFeatureState({ source: "cells", id: i }, { c: T, o: 0, line: null, hatch: 0, h: 0 });
     const vis = (id: string, on: boolean) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "visible" : "none"); };
-    vis("frontier-line", mode === "coverage");
+    const pointsOn = mode === "animals" || mode === "abc" || mode === "arv" || mode === "medical" || mode === "density";
+    vis("pts", pointsOn); vis("pts-halo", pointsOn && mode !== "density");
+    vis("heat", mode === "animals" || mode === "medical");
+    vis("heat-care", mode === "activity"); vis("care-pts", mode === "activity");
+    vis("terrain-fill", mode === "density"); vis("terrain-line", mode === "density"); vis("terrain-label", mode === "density");
+    vis("fog", mode === "coverage"); vis("fog-hatch", mode === "coverage"); vis("fog-edge", mode === "coverage");
+    vis("frontier-line", false);
     vis("next", mode === "coverage"); vis("next-n", mode === "coverage");
-    const dots = mode === "animals";
-    vis("clusters", dots); vis("clusters-n", dots); vis("pts", dots);
-    vis("cases", mode === "cases" || mode === "medical");
-    vis("feeding", dots);
-    vis("cells-3d", relief && mode !== "animals" && mode !== "abc" && mode !== "arv" && mode !== "coverage");
+    const rings = mode === "cases";
+    ["case-r365", "case-r180", "case-r90", "case-r30", "case-pulse", "cases"].forEach((id) => vis(id, rings));
+    vis("inner", cellsOn); vis("cells-hatch", cellsOn);
+    vis("feeding", mode === "animals");
     (map.getSource("pts") as GeoJSONSource | undefined)?.setData(animalPts);
+    (map.getSource("care") as GeoJSONSource | undefined)?.setData(carePts);
+    (map.getSource("terrain") as GeoJSONSource | undefined)?.setData(terrain);
+    (map.getSource("fog") as GeoJSONSource | undefined)?.setData(fog);
     (map.getSource("cases") as GeoJSONSource | undefined)?.setData(casePts);
     (map.getSource("inner") as GeoJSONSource | undefined)?.setData(inner);
     (map.getSource("feeding") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feeding.map((z) => ({ type: "Feature", properties: { id: z.id, name: z.name }, geometry: { type: "Point", coordinates: [z.lng, z.lat] } })) });
     (map.getSource("next") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: ds.next.map((n, i) => ({ type: "Feature", properties: { n: String(i + 1), k: n.cell }, geometry: { type: "Point", coordinates: n.center } })) });
-    try { map.setPaintProperty("inner", "fill-color", ["case", ["==", ["get", "k"], 1], pal.att[3], mode === "arv" ? pal.arv : pal.seq[3]]); } catch { /* ok */ }
-  }, [stats, cellPaint, mode, relief, animalPts, casePts, inner, ds, pal, layersReady, feeding]);
+  }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding]);
 
-  /* ── relief: the cells rise by what they hold ────────────────────── */
+  /* ── a critical open case breathes ───────────────────────────────── */
+  useEffect(() => {
+    const map = mapRef.current; if (!map || !layersReady || mode !== "cases") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0; const t0 = performance.now();
+    const tick = (now: number) => {
+      const ph = ((now - t0) % 2200) / 2200;
+      try {
+        map.setPaintProperty("case-pulse", "circle-radius", ["interpolate", ["linear"], ["zoom"], 9, 4 + ph * 8, 15, 9 + ph * 18]);
+        map.setPaintProperty("case-pulse", "circle-opacity", 0.45 * (1 - ph));
+      } catch { /* ok */ }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [mode, layersReady]);
+
+  /* ── zoom, for the street-level portraits ────────────────────────── */
   useEffect(() => {
     const map = mapRef.current; if (!map || !ready) return;
-    map.easeTo({ pitch: relief ? 52 : 0, bearing: relief ? -12 : 0, duration: 700 });
-  }, [relief, ready]);
+    const on = () => setZoom(map.getZoom());
+    on(); map.on("zoomend", on);
+    return () => { map.off("zoomend", on); };
+  }, [ready]);
 
   /* ── selection: outline and camera ───────────────────────────────── */
   const selCells = useMemo(() => {
@@ -522,19 +680,14 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
   useEffect(() => {
     const map = mapRef.current; if (!map || !ready || !ds) return;
     const onClick = (e: MapMouseEvent) => {
-      const layers = ["cities", "feeding", "clusters", "pts", "cases", "next", "cells", "frontier-fill"].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, "visibility") !== "none");
+      const layers = ["cities", "feeding", "pts", "care-pts", "cases", "next", "cells", "frontier-fill"].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, "visibility") !== "none");
       const hits = map.queryRenderedFeatures(e.point, { layers });
       const h = hits[0];
       if (!h) return;
       const id = h.layer.id;
       if (id === "cities") { choose({ t: "city", city: Number(h.properties?.i) }); return; }
       if (id === "feeding") { router.push(`/feeding/${h.properties?.id}`); return; }
-      if (id === "clusters") {
-        const src = map.getSource("pts") as GeoJSONSource;
-        src.getClusterExpansionZoom(Number(h.properties?.cluster_id)).then((z) => map.easeTo({ center: (h.geometry as GeoJSON.Point).coordinates as [number, number], zoom: z + 0.4 })).catch(() => {});
-        return;
-      }
-      if (id === "pts" || id === "cases") { choose({ t: "cell", cell: Number(h.properties?.c) }); return; }
+      if (id === "pts" || id === "cases" || id === "care-pts") { choose({ t: "cell", cell: Number(h.properties?.c) }); return; }
       if (id === "next") {
         const key = String(h.properties?.k);
         const ci = ds.cells.indexOf(key);
@@ -619,16 +772,16 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     if (mode === "coverage") return (
       <ul className="sm-key">
         {(["strong", "partial", "weak", "insufficient"] as const).map((k) => <li key={k}><i className={`sm-sw is-cov-${k}`} />{COVERAGE_TEXT[k].label}</li>)}
-        <li><i className="sm-sw is-frontier" />Not mapped</li>
+        <li><i className="sm-sw is-fog" />Fog — nothing recorded here yet</li>
         <li><i className="sm-sw is-next" />Map next</li>
       </ul>
     );
     if (mode === "abc" || mode === "arv") return (
       <ul className="sm-key">
-        <li><i className={`sm-sw ${mode === "arv" ? "is-arv" : "is-abc"}`} />{mode === "abc" ? "Sterilised, on record" : "Vaccinated, on record"} — drawn at its share</li>
-        <li><i className="sm-sw is-hatch" />Not recorded — unknown, not zero</li>
-        {mode === "arv" && <li><i className="sm-sw is-due" />Booster due</li>}
-        {scope === "public" && <li><i className={`sm-sw is-small ${mode === "arv" ? "is-arv" : "is-abc"}`} />Small mark — one or two animals, too few for a share</li>}
+        <li><i className={`sm-dot ${mode === "arv" ? "is-arv" : "is-abc"}`} />{mode === "abc" ? "Sterilised, on record" : "Vaccinated, on record"}</li>
+        {mode === "arv" && <li><i className="sm-dot is-due" />Booster due</li>}
+        <li><i className="sm-dot is-ring" />{mode === "abc" ? "Recorded as not sterilised" : "Recorded as not vaccinated"}</li>
+        <li><i className="sm-dot is-unk" />Not recorded — unknown, not zero</li>
       </ul>
     );
     if (mode === "change") return (
@@ -639,11 +792,21 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     );
     if (mode === "animals") return (
       <ul className="sm-key">
-        <li><i className="sm-dot is-ink" />Animal on record</li><li><i className="sm-dot is-help" />Injured or needs help</li><li><i className="sm-dot is-res" />Reported by a resident</li>
+        <li><i className="sm-dot is-ink" />One animal on record</li><li><i className="sm-dot is-help" />Injured or needs help</li><li><i className="sm-dot is-res" />Reported by a resident</li>
         {feeding.length > 0 && <li><i className="sm-dot is-feed" />Feeding point</li>}
+        <li className="sm-key-note">Zoom into a street to meet them by name.</li>
       </ul>
     );
-    const ramp = mode === "medical" || mode === "cases" ? pal.att : pal.seq;
+    if (mode === "medical") return <ul className="sm-key"><li><i className="sm-dot is-help" />Injured or needing help, on record</li><li className="sm-key-note">The glow is where they gather.</li></ul>;
+    if (mode === "activity") return <ul className="sm-key"><li><i className="sm-dot is-sky" />One care record in the last twelve months</li><li className="sm-key-note">Brighter is more recent.</li></ul>;
+    if (mode === "density") return (
+      <div className="sm-ramp is-terrain">
+        <span>{LEVELS[0]}</span>
+        <i style={{ background: `linear-gradient(90deg, ${lightsOf(pal).band.join(",")})` }} />
+        <span>{LEVELS[LEVELS.length - 1]}+ animals / km²</span>
+        <em>Each line is a contour, like height on a survey map.</em>
+      </div>
+    );
     if (mode === "cases" && lensCounts && !lensCounts.some((x) => x > 0)) return (
       <p className="sm-empty">
         {lens === "repeat"
@@ -651,12 +814,18 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
           : `No case matches this question${filters.condition >= 0 ? " for this condition" : ""}, as of ${monthLabel(m)}.`}
       </p>
     );
+    if (mode === "cases") return (
+      <ul className="sm-key">
+        <li><i className="sm-dot is-help" />Critical</li><li><i className="sm-dot is-ink" />Other</li>
+        <li><i className="sm-rings" />A ring for each month, quarter, half-year and year it has waited</li>
+      </ul>
+    );
+    const ramp = pal.seq;
     return (
       <div className="sm-ramp">
         <span>{br[0] ?? 1}</span>
         <i style={{ background: `linear-gradient(90deg, ${ramp.join(",")})` }} />
-        <span>{(br[br.length - 1] ?? 1)}+ {mode === "cases" ? "cases" : mode === "activity" ? "records" : "animals"}</span>
-        {mode === "cases" && <em><i className="sm-dot is-help" /> critical <i className="sm-dot is-ring" /> other · wider = older</em>}
+        <span>{(br[br.length - 1] ?? 1)}+ animals</span>
       </div>
     );
   })();
@@ -700,7 +869,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
 
       <div className="sm-tools">
         <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label="Filter the animals shown"><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
-        <button type="button" onClick={() => setRelief((v) => !v)} aria-pressed={relief} className={relief ? "is-on" : ""} aria-label="Relief: raise each cell by what it holds"><Mountain size={16} /></button>
+        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={16} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the paper ground, for daylight" : "Switch to the night ground"}><Layers size={16} /></button>
         <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label="Zoom in"><Plus size={16} /></button>
         <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label="Zoom out"><Minus size={16} /></button>
@@ -745,6 +914,9 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
       {ds && series.length > 1 && (
         <Timeline series={series} m0={m0} m={m} onChange={(x) => { setPlaying(false); setMonth(x); }} playing={playing} onPlay={play} night={ground === "night"} />
       )}
+
+      <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals"} />
+      {mode === "animals" && zoom >= 12.5 && zoom < 15 && <p className="sm-zoomhint">Zoom in to a street to see the animals by name</p>}
 
       <button type="button" className="sm-report" onClick={reportHere}><Plus size={16} /> Report here</button>
 

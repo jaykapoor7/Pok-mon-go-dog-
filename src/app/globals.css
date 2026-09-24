@@ -19,13 +19,8 @@
   /* On the dark console the electric blue needs a light halo to stay visible
      against near-black. Every dark-ground section belongs in this list. */
   .spa :focus-visible,
-  .sp-hero :focus-visible,
-  .sp-network :focus-visible,
   .sp-footer :focus-visible,
-  .sp-chip :focus-visible,
-  .sp-record :focus-visible,
-  .chs :focus-visible,
-  .sp-for :focus-visible {
+  .chs :focus-visible {
     outline-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(143, 183, 255, 0.35);
   }
@@ -95,9 +90,6 @@
 }
 
 @layer components {
-  .glass {
-    @apply bg-white/75 backdrop-blur-2xl border border-black/[0.06];
-  }
 
   /* These primitives now follow the one control geometry defined in
      tokens.css: a capsule, a fixed height, one press response. The note
@@ -135,11 +127,6 @@
   .card {
     @apply rounded bg-white border border-black/[0.10];
   }
-
-  .dark .glass {
-    background-color: rgba(31, 35, 44, 0.72); /* ink-surface */
-    border-color: rgba(255, 255, 255, 0.07);
-  }
   .dark .card {
     background-color: #1f232c; /* --ink-surface */
     border-color: rgba(255, 255, 255, 0.06);
@@ -162,55 +149,13 @@
     text-transform: uppercase;
     color: #3b7de6; /* paw-500 */
   }
-  .display-xl {
-    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    line-height: 1.05;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .display-lg {
-    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    line-height: 1.08;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .display-md {
-    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(1.5rem, 3vw, 2.25rem);
-    line-height: 1.15;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-  }
-  .display-sm {
-    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(1.25rem, 2vw, 1.75rem);
-    line-height: 1.2;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  .btn-primary-lg { height: 3rem; padding: 0.75rem 1.75rem; font-size: 1rem; }
   .btn-secondary {
     @apply btn bg-transparent text-bark-900 border-[1.5px] border-bark-200
            hover:bg-bark-50 hover:border-bark-300;
     padding: 0.625rem 1.25rem; height: 2.5rem;
   }
-  .btn-primary-dark {
-    @apply btn text-bark-900;
-    background: #fbfdff; padding: 0.625rem 1.25rem; height: 2.5rem;
-  }
-  .btn-primary-dark:hover { background: #eef1f6; }
-  .btn-secondary-dark {
-    @apply btn;
-    background: transparent; color: rgba(255,255,255,0.72);
-    border: 1.5px solid rgba(255,255,255,0.18);
-    padding: 0.625rem 1.25rem; height: 2.5rem;
-  }
-  .btn-secondary-dark:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.3); }
   .container-page { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
   .section { padding: 5rem 0; }
-  .section-sm { padding: 3rem 0; }
   .hero-ground { background: #0f1626; color: #fff; }
 
   .skeleton {
@@ -235,12 +180,6 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
-  }
-  .text-balance {
-    text-wrap: balance;
-  }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
@@ -301,7 +240,6 @@
      the blanket `!important` above was beating it regardless of
      specificity. Reduced motion means gentler, not absent. */
   .imp-spin,
-  .demo-spin,
   .fb-spin,
   .animate-spin,
   [data-keep-motion] {
@@ -497,7 +435,6 @@ a.sp-btn,
 a.sp-header-cta,
 a.spa-cta,
 a.rs-card,
-a.qa-card,
 .community-animal-row a,
 .spa-phone-links a,
 .spa-side a {
@@ -527,7 +464,6 @@ a.spa-cta:active,
 
 /* A card is larger, so the same ratio reads as a bigger movement. */
 a.rs-card:active,
-a.qa-card:active,
 .community-animal-row a:active {
   transform: scale(0.988);
   transition-duration: 0.09s;
@@ -544,9 +480,7 @@ a.qa-card:active,
 @media (prefers-reduced-motion: no-preference) {
   .tlink svg,
   .field-text-link svg,
-  .product-section-heading > a svg,
-  .mi-close a svg,
-  .wt-link svg {
+  .mi-close a svg {
     transition: transform 0.18s var(--sp-ease);
   }
   /* Gated on pointer as well as on motion preference. Those are two
@@ -555,9 +489,7 @@ a.qa-card:active,
   @media (hover: hover) and (pointer: fine) {
     .tlink:hover svg,
     .field-text-link:hover svg,
-    .product-section-heading > a:hover svg,
-    .mi-close a:hover svg,
-    .wt-link:hover svg {
+    .mi-close a:hover svg {
       transform: translate(2px, -2px);
     }
   }
@@ -617,11 +549,8 @@ a.qa-card:active,
    carry no class of their own — they are styled through their parent —
    so they slipped past both rules above at 14–18px tall. */
 @media (pointer: coarse) {
-  .product-section-heading > a,
   .community-local-empty a,
   .community-next-step > a,
-  .sp-map-empty-state a,
-  .wt-link,
   .tlink,
   .field-text-link {
     display: inline-flex;
@@ -659,7 +588,7 @@ a.qa-card:active,
    with one face across the product a synthesised italic is exactly the
    decorated look the face was dropped to avoid. The emphasis is weight and
    colour, set per component. */
-h1 em, h2 em, h3 em, .product-hero-wall h1 em { font-style: normal; }
+h1 em, h2 em, h3 em { font-style: normal; }
 
 /* ── The last of the coarse-pointer floor ────────────────────────────
    Found by walking every route at 390px and listing every control under
