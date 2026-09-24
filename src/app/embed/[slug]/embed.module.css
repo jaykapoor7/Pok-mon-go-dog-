@@ -1,9 +1,10 @@
 .embed {
-  box-sizing: border-box;
+  display: grid;
   min-height: 100svh;
   width: 100%;
+  place-items: center;
   overflow: hidden;
-  background: #fffdf9;
+  background: #f4eee5;
   color: #0b1e3d;
   font-family: var(--font-sans), Arial, sans-serif;
 }
@@ -11,18 +12,19 @@
 .embed *, .embed *::before, .embed *::after { box-sizing: border-box; }
 
 .card {
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  min-height: 100svh;
-  padding: clamp(16px, 5vw, 26px);
+  display: flex;
+  width: min(100%, 400px);
+  aspect-ratio: 1 / 1;
+  flex-direction: column;
+  padding: clamp(18px, 5.5vw, 25px);
   border: 1px solid #e3d9ca;
   background: #fffdf9;
 }
 
 .identity { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .logo, .logoFallback {
-  width: clamp(40px, 13vw, 54px);
-  height: clamp(40px, 13vw, 54px);
+  width: clamp(44px, 13vw, 52px);
+  height: clamp(44px, 13vw, 52px);
   flex: 0 0 auto;
   border: 1px solid #e3d9ca;
   background: #fff;
@@ -33,52 +35,47 @@
   place-items: center;
   background: #edf3fc;
   color: #1b46b0;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
 }
 .identityCopy { min-width: 0; }
-.name {
-  margin: 0;
-  font-size: clamp(13px, 3.9vw, 17px);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.12;
-  overflow-wrap: anywhere;
-}
-.place { margin: 4px 0 0; color: #5d6b7c; font-size: clamp(11px, 3.1vw, 13px); line-height: 1.25; }
+.live { display: flex; align-items: center; gap: 5px; margin: 0 0 3px; color: #58708f; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.live span { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: #2457ce; }
+.name { margin: 0; font-size: clamp(14px, 3.9vw, 17px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.1; overflow-wrap: anywhere; }
+.place { margin: 4px 0 0; color: #5d6b7c; font-size: clamp(11px, 3vw, 13px); line-height: 1.2; }
 
-.primary { margin-top: clamp(18px, 6vw, 30px); }
-.primaryNumber { display: block; font-size: clamp(34px, 12vw, 52px); font-weight: 600; letter-spacing: -0.07em; line-height: .88; font-variant-numeric: tabular-nums; }
+.primary { margin-top: clamp(17px, 5vw, 26px); }
+.primaryNumber { display: block; font-size: clamp(38px, 12.5vw, 54px); font-weight: 600; letter-spacing: -0.075em; line-height: .88; font-variant-numeric: tabular-nums; }
 .primaryLabel { display: block; margin-top: 8px; color: #42526b; font-size: clamp(12px, 3.3vw, 14px); line-height: 1.25; }
 
-.lower { align-self: end; }
-.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: clamp(18px, 5vw, 28px); border-top: 1px solid #e3d9ca; border-bottom: 1px solid #e3d9ca; }
-.metric { min-width: 0; padding: 11px 8px 12px 0; }
-.metric + .metric { border-left: 1px solid #e3d9ca; padding-left: 9px; }
-.metricValue { display: block; font-size: clamp(17px, 5.8vw, 24px); font-weight: 600; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; }
-.metricLabel { display: block; margin-top: 5px; color: #5d6b7c; font-size: clamp(9px, 2.7vw, 11px); line-height: 1.25; overflow-wrap: anywhere; }
+.lower { margin-top: clamp(16px, 4.5vw, 22px); }
+.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #e3d9ca; border-left: 1px solid #e3d9ca; }
+.metric { min-width: 0; min-height: 50px; border-right: 1px solid #e3d9ca; border-bottom: 1px solid #e3d9ca; padding: 8px 9px; }
+.metricValue { display: block; font-size: clamp(18px, 5.6vw, 24px); font-weight: 600; letter-spacing: -0.055em; line-height: 1; font-variant-numeric: tabular-nums; }
+.metricLabel { display: block; margin-top: 4px; color: #5d6b7c; font-size: clamp(9px, 2.65vw, 11px); line-height: 1.2; overflow-wrap: anywhere; }
+.metricsNote { margin: 7px 0 0; color: #718096; font-size: 10px; line-height: 1.2; }
 
-.cta { display: flex; align-items: center; justify-content: space-between; min-height: 42px; margin-top: clamp(14px, 4vw, 20px); border: 0; color: #1b46b0; font-size: clamp(12px, 3.5vw, 14px); font-weight: 700; text-decoration: none; }
+.cta { display: flex; align-items: center; justify-content: space-between; min-height: 35px; margin-top: 8px; color: #1b46b0; font-size: clamp(12px, 3.4vw, 14px); font-weight: 700; text-decoration: none; }
 .cta:hover { color: #0b1e3d; text-decoration: underline; text-underline-offset: 3px; }
 .cta:focus-visible { outline: 3px solid rgba(36, 87, 206, .45); outline-offset: 3px; }
-.attribution { margin: 6px 0 0; color: #718096; font-size: 10px; line-height: 1.3; }
+.attribution { margin: 2px 0 0; color: #718096; font-size: 10px; line-height: 1.2; }
 
-@media (max-height: 340px) {
-  .card { padding-top: 13px; padding-bottom: 13px; }
-  .primary { margin-top: 14px; }
-  .metrics { margin-top: 13px; }
-  .metric { padding-top: 8px; padding-bottom: 8px; }
-  .cta { min-height: 34px; margin-top: 9px; }
-}
-
-/* A 300 × 300 placement is common in sidebar modules. Tighten the rhythm,
-   not the information, so the CTA and attribution remain inside the square. */
 @media (max-width: 340px) {
   .card { padding: 13px; }
-  .primary { margin-top: 14px; }
-  .metrics { margin-top: 13px; }
-  .metric { padding-top: 8px; padding-bottom: 9px; }
-  .cta { min-height: 34px; margin-top: 9px; }
+  .logo, .logoFallback { width: 42px; height: 42px; font-size: 14px; }
+  .live { margin-bottom: 2px; font-size: 9px; }
+  .name { font-size: 13px; }
+  .place { font-size: 11px; }
+  .primary { margin-top: 12px; }
+  .primaryNumber { font-size: 38px; }
+  .primaryLabel { margin-top: 6px; font-size: 12px; }
+  .lower { margin-top: 10px; }
+  .metric { min-height: 44px; padding: 7px 8px; }
+  .metricValue { font-size: 18px; }
+  .metricLabel { margin-top: 3px; font-size: 9px; }
+  .metricsNote { margin-top: 5px; font-size: 9px; }
+  .cta { min-height: 30px; margin-top: 5px; font-size: 12px; }
+  .attribution { font-size: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) { .cta { transition: none; } }
