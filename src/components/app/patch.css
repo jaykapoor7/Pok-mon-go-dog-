@@ -91,3 +91,8 @@
   .cp-pick select { max-width: 100%; }
   .cp-head-acts > * { flex: 1 1 auto; }
 }
+.cp-plate figcaption i.is-light { width: 8px; height: 8px; border-radius: 50%; background: #dbe7ff; box-shadow: 0 0 6px 1px rgba(79, 127, 224, 0.8); }
+.cp-plate figcaption i.is-flame { width: 8px; height: 8px; border-radius: 50%; background: #ff8a6e; box-shadow: 0 0 6px 1px rgba(240, 91, 64, 0.7); }
+.cp-plate figcaption i.is-ring { width: 12px; height: 12px; border-radius: 50%; border: 1.2px dashed rgba(239, 231, 218, 0.7); background: none; }
+.cp-plate figcaption i.is-light, .cp-plate figcaption i.is-flame, .cp-plate figcaption i.is-ring { clip-path: none; }
+.cp-plate .lm { border-radius: 14px; }

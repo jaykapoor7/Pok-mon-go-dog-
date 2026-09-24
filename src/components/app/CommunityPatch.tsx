@@ -17,12 +17,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { HexPlate, type PlateCell } from "@/components/system/HexPlate";
+import { LightsMap, type Light } from "@/components/system/LightsMap";
+import { pointInCell, ringOf } from "@/components/spatial/data";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { useFollows } from "@/lib/follows";
 import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, S, S_STRIDE, type SpatialDataset } from "@/lib/spatial/types";
 import { dayLabel } from "@/lib/spatial/engine";
 import type { PublicCaseStory } from "@/lib/community-case-stories";
+import { dogLabel } from "@/lib/utils";
 import "./patch.css";
 
 type Patch = { lng: number; lat: number; label: string; mine: boolean };
@@ -44,7 +46,7 @@ const ago = (iso: string | null) => {
   const d = Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000));
   return d < 1 ? "today" : d === 1 ? "yesterday" : d < 31 ? `${d} days ago` : d < 365 ? `${Math.round(d / 30)} months ago` : `${(d / 365).toFixed(1)} years ago`;
 };
-const nameOf = (a: PAnimal) => a.name?.trim() || `Dog near ${a.zone || "here"}`;
+const nameOf = (a: PAnimal) => dogLabel({ name: a.name, zone: a.zone || "here" });
 const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const n = r.length / 2 - 1; for (let i = 0; i < n; i++) { x += r[i * 2]; y += r[i * 2 + 1]; } return [x / n, y / n]; };
 
 /** A sample patch in the city with the deepest record: centred on the cell
@@ -175,24 +177,21 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
   const nearStories = stories.filter((s) => patchIds.has(s.dog_id));
   const shownStories = (nearStories.length ? nearStories : stories).slice(0, 4);
 
-  /* ── the plate ─────────────────────────────────────────────────────── */
-  const plate = useMemo(() => {
-    if (!ds || !cells || !patch || !stats) return null;
-    const max = Math.max(1, ...[...stats.perCell.values()].map((v) => v.n));
-    const ramp = ["#1b3f80", "#2a5bb8", "#4f7fe0", "#93b1f0"];
-    const out: PlateCell[] = cells.inside.map((c) => {
-      const v = stats.perCell.get(c);
-      return { key: ds.cells[c], ring: ds.rings[c], fill: v ? ramp[Math.min(3, Math.floor(Math.sqrt(v.n / max) * 4))] : "rgba(239,231,218,0.05)", title: `${ds.cellLocality[c] >= 0 ? ds.localities[ds.cellLocality[c]] : "Cell"}: ${v?.n ?? 0} recorded` };
-    });
-    for (const f of cells.edge) out.push({ key: f.cell, ring: f.ring, fill: "transparent", dashed: true, stroke: "rgba(239,231,218,0.35)", title: "Not mapped yet" });
-    const d = RADIUS_KM / 111.32, k = Math.cos((patch.lat * Math.PI) / 180);
-    const box: [number, number, number, number] = [patch.lng - d / k, patch.lat - d, patch.lng + d / k, patch.lat + d];
-    const marks = [
-      ...cells.inside.filter((c) => (stats.perCell.get(c)?.help ?? 0) > 0).map((c) => ({ lng: ds.centers[c * 2], lat: ds.centers[c * 2 + 1], r: 7, color: "var(--sp-flame)", ring: true })),
-      ...(patch.mine ? [{ lng: patch.lng, lat: patch.lat, r: 4.5, color: "#fffdf9" }] : []),
-    ];
-    return { cells: out, box, marks };
-  }, [ds, cells, patch, stats]);
+  /* ── the plate: the patch's animals as lights on its streets ─────── */
+  const lights = useMemo((): Light[] | null => {
+    if (!ds || !cells) return null;
+    const inside = new Set(cells.inside);
+    const out: Light[] = [];
+    const rings = new Map<number, [number, number][]>();
+    for (let i = 0; i < ds.animals.length / A_STRIDE; i++) {
+      const o = i * A_STRIDE, c = ds.animals[o + A.cell];
+      if (!inside.has(c)) continue;
+      let r = rings.get(c); if (!r) { r = ringOf(ds, c); rings.set(c, r); }
+      const [lng, lat] = pointInCell(r, i + 1);
+      out.push({ lng, lat, help: !!(ds.animals[o + A.flags] & (AF.help | AF.injured)) });
+    }
+    return out;
+  }, [ds, cells]);
 
   if (loading || !ds || !patch || !stats || !cells) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
 
@@ -222,11 +221,11 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
 
       <section className="cp-work" aria-label="Your patch">
         <figure className="cp-plate">
-          {plate && <HexPlate width={440} height={440} box={plate.box} cells={plate.cells} marks={plate.marks} night scaleBarKm={1} label={`The cells of your patch around ${patch.label}`} />}
+          {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}
           <figcaption>
-            <span><i className="is-rec" /> animals recorded</span>
-            <span><i className="is-help" /> someone needs help</span>
-            <span><i className="is-edge" /> not mapped yet</span>
+            <span><i className="is-light" /> one animal on record</span>
+            <span><i className="is-flame" /> needs help</span>
+            <span><i className="is-ring" /> your {RADIUS_KM} km</span>
             <Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`}>Open on the map <ArrowUpRight size={12} /></Link>
           </figcaption>
         </figure>

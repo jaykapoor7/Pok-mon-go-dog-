@@ -220,7 +220,7 @@
 /* ── the place, as a portrait ──────────────────────────────────────── */
 .lr-portrait.is-place { display: block; }
 .lr-placemap { position: relative; margin: 0; width: 100%; height: 100%; min-height: 360px; background: var(--sp-night, #07142b); }
-.lr-placemap-canvas { position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease; }
+.lr-placemap > .lr-placemap-canvas, .lr-placemap > .lr-placemap-canvas.maplibregl-map { position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease; }
 .lr-placemap.is-ready .lr-placemap-canvas { opacity: 1; }
 .lr-placemap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(7, 20, 43, 0.55) 100%), linear-gradient(to top, rgba(7, 20, 43, 0.92), transparent 42%); }
 .lr-placemap figcaption { position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 2; display: grid; gap: 4px; color: #efe7da; }

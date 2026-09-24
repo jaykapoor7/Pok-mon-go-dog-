@@ -122,3 +122,9 @@
 
 .sys-mono { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 .sys-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ── LightsMap ─────────────────────────────────────────────────────── */
+.lm { position: relative; width: 100%; aspect-ratio: 1; border-radius: 22px; overflow: hidden; background: #07142b; }
+.lm > .lm-canvas, .lm > .lm-canvas.maplibregl-map { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s ease; }
+.lm.is-ready .lm-canvas { opacity: 1; }
+.lm-credit { position: absolute; right: 10px; bottom: 6px; margin: 0; font-size: 10px; color: rgba(239, 231, 218, 0.5); z-index: 2; }

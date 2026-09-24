@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { HexPlate, type Box, type PlateCell } from "@/components/system/HexPlate";
+import type { Box } from "@/components/system/HexPlate";
+import { LightsMap, type Light } from "@/components/system/LightsMap";
 
 /* ════════════════════════════════════════════════════════════════════
    Street → locality → city.
@@ -15,12 +16,6 @@ import { HexPlate, type Box, type PlateCell } from "@/components/system/HexPlate
 
 type Cell = { key: string; ring: number[]; animals: number; open: number };
 
-const RAMP = ["var(--sp-seq-1)", "var(--sp-seq-2)", "var(--sp-seq-3)", "var(--sp-seq-4)", "var(--sp-seq-5)"];
-function rampFor(cells: Cell[]) {
-  const v = cells.map((c) => c.animals).filter((x) => x > 0).sort((a, b) => a - b);
-  const q = [0.3, 0.55, 0.78, 0.92].map((f) => v[Math.floor(f * (v.length - 1))] ?? 1);
-  return (n: number) => (n <= 0 ? "transparent" : RAMP[q.findIndex((b) => n <= b) === -1 ? 4 : q.findIndex((b) => n <= b)]);
-}
 const boxOf = (cells: Cell[], pad = 0.002): Box => {
   let w = 180, s = 90, e = -180, n = -90;
   for (const c of cells) for (let i = 0; i < c.ring.length; i += 2) { w = Math.min(w, c.ring[i]); e = Math.max(e, c.ring[i]); s = Math.min(s, c.ring[i + 1]); n = Math.max(n, c.ring[i + 1]); }
@@ -59,25 +54,9 @@ export function ScaleTriptych({ city, ladder }: {
   };
 }) {
   const { street, locality } = ladder;
-  const own = new Set(locality.own);
-  const fillCity = rampFor(ladder.city.cells);
-  const fillLocal = rampFor(locality.cells);
-
-  const streetCells: PlateCell[] = street.cells.map((c) => ({
-    key: c.key, ring: c.ring,
-    fill: c.animals ? "var(--sp-seq-0)" : "transparent",
-    stroke: c.key === street.cell ? "var(--sp-flame-deep)" : undefined,
-    dashed: c.animals === 0,
-  }));
-  const localCells: PlateCell[] = locality.cells.map((c) => ({
-    key: c.key, ring: c.ring, fill: c.animals ? fillLocal(c.animals) : "transparent",
-    stroke: own.has(c.key) ? "var(--sp-ink)" : undefined, dashed: c.animals === 0,
-    opacity: own.has(c.key) ? 1 : 0.5,
-  }));
-  const cityCells: PlateCell[] = ladder.city.cells.map((c) => ({
-    key: c.key, ring: c.ring, fill: c.animals ? fillCity(c.animals) : "var(--sp-seq-0)",
-    stroke: c.key === street.cell ? "var(--sp-flame-deep)" : own.has(c.key) ? "var(--sp-ink)" : undefined,
-  }));
+  const ringOf = (c: Cell): [number, number][] => { const r: [number, number][] = []; for (let i = 0; i < c.ring.length; i += 2) r.push([c.ring[i], c.ring[i + 1]]); return r; };
+  const lightsOf = (cells: Cell[], cap: number, focus?: string): Light[] => cells.flatMap((c, ci) => (c.animals ? dotsIn(ringOf(c), Math.min(c.animals, cap), 11 + ci * 97).map(([lng, lat]) => ({ lng, lat, help: c.key === focus })) : []));
+  const focusCell = street.cells.find((c) => c.key === street.cell);
 
   // One dot per animal, inside its own cell, for every recorded cell of the patch.
   const dots = street.cells.flatMap((c, ci) => {
@@ -93,31 +72,29 @@ export function ScaleTriptych({ city, ladder }: {
     <div className="ld-scales">
       <figure className="ld-scale">
         <div className="ld-scale-plate">
-          <HexPlate cells={streetCells} box={boxOf(street.cells)} width={320} height={320} label={`One cell in ${locality.name}, with ${street.animals} animals recorded`} scaleBarKm={0.5}>
-            {(p) => dots.map(({ d: [x, y], focus }, i) => { const [px, py] = p(x, y); return <circle key={i} cx={px} cy={py} r={2.1} className={`ld-scale-dot ${focus ? "is-focus" : ""}`} />; })}
-          </HexPlate>
+          <LightsMap center={street.center} box={boxOf(street.cells, 0)} outline={focusCell ? ringOf(focusCell) : undefined} lights={dots.map(({ d: [lng, lat], focus }) => ({ lng, lat, help: focus }))} dot={2.2} credit={false} label={`One cell in ${locality.name}, with ${street.animals} animals recorded`} />
         </div>
         <figcaption>
           <span className="sys-eyebrow">Street · one cell, 0.74 km²</span>
           <b className="ld-scale-n">{street.animals.toLocaleString("en-IN")}</b>
-          <span>animals recorded in one cell of {locality.name}, outlined, and its six neighbours. Each dot is one record, placed inside its cell rather than at an address the register does not hold.</span>
+          <span>animals recorded in one cell of {locality.name}, outlined in flame, and its neighbours. Each light is one record, placed inside its cell rather than at an address the register does not hold.</span>
           <Link href={q("cell", street.cell)} className="sys-link">See this cell <ArrowUpRight size={14} /></Link>
         </figcaption>
       </figure>
       <figure className="ld-scale">
         <div className="ld-scale-plate">
-          <HexPlate cells={localCells} box={boxOf(locality.cells)} width={320} height={320} label={`Around ${locality.name}: ${locality.animals} animals in ${locality.recordedCells} of ${locality.cellCount} cells`} scaleBarKm={1} />
+          <LightsMap center={street.center} box={boxOf(locality.cells, 0)} lights={lightsOf(locality.cells, 80, street.cell)} dot={1.6} credit={false} label={`Around ${locality.name}: ${locality.animals} animals in ${locality.recordedCells} of ${locality.cellCount} cells`} />
         </div>
         <figcaption>
           <span className="sys-eyebrow">Neighbourhood · around {locality.name}</span>
           <b className="ld-scale-n">{locality.animals.toLocaleString("en-IN")}</b>
-          <span>animals in {locality.recordedCells} of the {locality.cellCount} cells within about three kilometres. The dashed cells have nothing recorded yet — which is not the same as no dogs.</span>
+          <span>animals in {locality.recordedCells} of the {locality.cellCount} cells within about three kilometres. The dark streets have nothing recorded yet — which is not the same as no dogs.</span>
           <Link href={q("q", locality.name)} className="sys-link">Open {locality.name} <ArrowUpRight size={14} /></Link>
         </figcaption>
       </figure>
       <figure className="ld-scale">
         <div className="ld-scale-plate">
-          <HexPlate cells={cityCells} box={ladder.city.box} width={320} height={320} label={`${city}: ${ladder.city.animals} animals across ${ladder.city.cellCount} cells`} scaleBarKm={5} />
+          <LightsMap center={street.center} box={ladder.city.box} lights={lightsOf(ladder.city.cells, 60)} dot={1.1} label={`${city}: ${ladder.city.animals} animals across ${ladder.city.cellCount} cells`} />
         </div>
         <figcaption>
           <span className="sys-eyebrow">City · {city}, the sample</span>
