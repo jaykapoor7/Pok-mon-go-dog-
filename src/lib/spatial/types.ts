@@ -50,8 +50,13 @@ export const AF = {
 /* Case tuple. */
 export const C = {
   cell: 0, animal: 1, day: 2, cond: 3, status: 4, closure: 5, intake: 6,
-  firstAction: 7, closedDay: 8, reliable: 9, severity: 10, fuDone: 11, fuMissed: 12, fuUp: 13, org: 14, source: 15,
+  firstAction: 7, closedDay: 8, resolvedSrc: 9, severity: 10, fuDone: 11, fuMissed: 12, fuUp: 13, org: 14, source: 15,
 } as const;
+/** Where a case's closing date came from (C.resolvedSrc). Only RECORDED
+    dates are a measurement; WORKBOOK dates were derived from an imported
+    sheet and are reported separately, with that caveat; ASSUMED means the
+    import had no date and used the day the case opened — never averaged. */
+export const RES = { assumed: 0, recorded: 1, workbook: 2 } as const;
 export const C_STRIDE = 16;
 
 /* Care tuple (medical events). */

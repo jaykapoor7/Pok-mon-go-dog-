@@ -15,6 +15,7 @@ import {
   monthEndDay, monthLabel, monthOfDay, monthStartDay, NO_FILTERS, openOn, rankOf,
 } from "../src/lib/spatial/engine";
 import { animalKnowledge, casesIn, closureReasons, firstAction, monthly, openAging, resolution, statusTotals } from "../src/lib/spatial/measures";
+import { completeness, courses, fates, ledger, season } from "../src/lib/spatial/report";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, STATUS_META } from "../src/lib/register/taxonomy";
 import { C, C_STRIDE, dayOf, H3_RES } from "../src/lib/spatial/types";
 
@@ -58,6 +59,7 @@ const cases: CaseRow[] = [
   kase(c0, strong[9].id, "2026-09-01T08:00:00Z", { condition_class: "Road accident", status_class: "open", severity: "critical" }),
   kase(c0, strong[0].id, "2026-06-01T08:00:00Z", { resolved_at: "2026-06-10T08:00:00Z", resolved_at_source: "recorded", first_action_days: 0 }),
   kase(c0, strong[1].id, "2026-05-01T08:00:00Z", { resolved_at: "2026-05-01T08:00:00Z", resolved_at_source: "import_assumed", first_action_days: 5 }),
+  kase(c0, strong[3].id, "2026-03-01T08:00:00Z", { resolved_at: "2026-03-15T08:00:00Z", resolved_at_source: "import_derived" }),
   kase(c0, strong[2].id, "2026-04-01T08:00:00Z", { status_class: "no_action", closure_reason: "could_not_locate" }),
   /* An organisation's old paper register: before the old 2024 epoch. */
   kase(c1, partial[0].id, "2019-05-01T08:00:00Z", { resolved_at: "2019-05-20T08:00:00Z", resolved_at_source: "recorded" }),
@@ -126,7 +128,7 @@ assert.equal(filtered.get(at(c3))!.coverage, "weak");
 
 /* ── open work ─────────────────────────────────────────────────────────── */
 const s0 = stats.get(at(c0))!;
-assert.equal(s0.cases, 4);
+assert.equal(s0.cases, 5);
 assert.equal(s0.open, 1);
 assert.equal(s0.critical, 1);
 assert.equal(s0.noAction, 1);
@@ -146,6 +148,8 @@ const res = resolution(ds, all);
 assert.equal(res.excluded, 1, "an assumed import date is left out of time-to-resolution");
 assert.equal(res.known, 2, "two closures carry a recorded date; a no-action request is not a resolution");
 assert.ok([9, 19].includes(res.median!));
+assert.equal(res.workbook.n, 1, "a date the import took from its workbook is measured apart");
+assert.equal(res.workbook.median, 14);
 const fa = firstAction(ds, all);
 assert.equal(fa.known, 2);
 assert.equal(fa.unknown, cases.length - 2);
@@ -184,6 +188,30 @@ assert.equal(rankOf(10, br), br.length);
 /* ── the edge of the record ────────────────────────────────────────────── */
 assert.ok(ds.frontier.length > 0, "a city with seven recorded cells has an edge");
 for (const f of ds.frontier) assert.ok(!ds.cells.includes(f.cell), "the edge is outside the record");
+
+/* ── the report ────────────────────────────────────────────────────────── */
+const wall = ledger(ds, all, 0, today);
+assert.equal(wall.months.reduce((a, m) => a + m.total, 0), all.length, "every request is one square on the wall");
+assert.equal(wall.months[0].total, 1, "the 2019 request is folded into the first month, not dropped");
+const f = fates(ds, all);
+assert.equal(f.closed + f.no_action + f.in_progress + f.open + f.other_ngo + f.not_attended + f.unknown, all.length);
+const comp = new Map(completeness(ds, ix, all, null, today).map((r) => [r.key, r]));
+assert.equal(comp.get("closed")!.known, 2, "two closures carry a recorded date");
+assert.equal(comp.get("closed")!.partial, 1, "one closure carries a workbook date");
+assert.equal(comp.get("ster")!.known, 6);
+assert.equal(comp.get("why")!.known, 1, "the no-action request says why");
+const tvt = courses(ds, ix, null, 0, today);
+assert.equal(tvt.animals, 0);
+/* A season is a month busy in every year that has it, not once. */
+const seasonDs = { ...ds, cases: [] as number[] };
+const mk = (iso: string) => [0, -1, dayOf(iso), 0, 0, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, 0];
+for (const [y, months] of [[2024, [1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 1]], [2025, [9, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1]]] as const)
+  months.forEach((k, m) => { for (let q = 0; q < k; q++) seasonDs.cases.push(...mk(`${y}-${String(m + 1).padStart(2, "0")}-10`)); });
+const sIdx = Array.from({ length: seasonDs.cases.length / C_STRIDE }, (_, i) => i);
+const se = season(seasonDs, sIdx, dayOf("2026-01-15"));
+assert.deepEqual(se.peaks, [9, 10], "October and November are busy in both years; a single busy January is not a season");
+assert.equal(se.surge?.year, 2025, "the one-off January is reported as a surge");
+assert.equal(se.surge?.month, 0);
 
 /* ── taxonomy ──────────────────────────────────────────────────────────── */
 for (const c of CONDITIONS) assert.ok(DEFAULT_TRIAGE[c], `${c} has a default triage`);

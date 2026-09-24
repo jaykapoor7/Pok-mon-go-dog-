@@ -23,12 +23,12 @@ import {
   CARE_KINDS, CLOSURE_REASONS, CONDITIONS, INTAKES, SEVERITIES, STATUSES,
 } from "@/lib/register/taxonomy";
 import {
-  A, A_STRIDE, AF, C, C_STRIDE, H3_RES, K_STRIDE, S_STRIDE, SF, dayOf,
+  A, A_STRIDE, AF, C, C_STRIDE, H3_RES, K_STRIDE, RES, S_STRIDE, SF, dayOf,
   type CityInfo, type FrontierCell, type NextCell, type SpatialDataset,
 } from "./types";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 4;
+export const DATASET_VERSION = 5;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -322,7 +322,7 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
       c.intake_channel ? dictIndex(INTAKES, c.intake_channel) : -1,
       typeof c.first_action_days === "number" ? c.first_action_days : -1,
       closed,
-      c.resolved_at_source === "recorded" ? 1 : 0,
+      c.resolved_at_source === "recorded" ? RES.recorded : c.resolved_at_source === "import_derived" ? RES.workbook : RES.assumed,
       Math.max(0, dictIndex(SEVERITIES, c.severity)),
       c.followups_done ?? 0, c.followups_missed ?? 0, c.followups_upcoming ?? 0,
       orgOf(c.ngo_id),

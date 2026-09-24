@@ -7,7 +7,7 @@
    screen can hatch what nobody wrote down instead of quietly dropping it.
    ════════════════════════════════════════════════════════════════════ */
 
-import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, type SpatialDataset } from "./types";
+import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, RES, type SpatialDataset } from "./types";
 import { monthOfDay, openOn, robustStart, type Index } from "./engine";
 import { CONDITIONS, STATUSES, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 
@@ -111,22 +111,28 @@ export function firstAction(ds: SpatialDataset, idx: number[]) {
   return { bins, known: values.length, unknown: bins[5], median: q(0.5), p75: q(0.75), p90: q(0.9) };
 }
 
-/** Time to resolution, from recorded resolution dates only. Imported dates
-    that had to be assumed are left out and counted, never averaged in.
-    Only cases closed after field work count: a request closed without
-    action, or handed to another organisation, was not resolved here. */
+/** Time to resolution. Only cases closed after field work count: a request
+    closed without action, or handed to another organisation, was not
+    resolved here. Recorded dates are the measurement. Dates an import took
+    from its workbook are measured separately and labelled as such. Dates
+    an import had to assume are counted as excluded, never averaged in. */
 export function resolution(ds: SpatialDataset, idx: number[]) {
-  const values: number[] = [];
+  const recorded: number[] = [], workbook: number[] = [];
   let excluded = 0;
   const CLOSED = STATUSES.indexOf("closed");
   for (const i of idx) {
     const o = i * C_STRIDE, closed = ds.cases[o + C.closedDay];
     if (closed < 0 || ds.cases[o + C.status] !== CLOSED) continue;
-    if (ds.cases[o + C.reliable] !== 1) { excluded++; continue; }
-    values.push(closed - ds.cases[o + C.day]);
+    const src = ds.cases[o + C.resolvedSrc], d = closed - ds.cases[o + C.day];
+    if (src === RES.recorded) recorded.push(d);
+    else if (src === RES.workbook) workbook.push(d);
+    else excluded++;
   }
-  values.sort((a, b) => a - b);
-  return { known: values.length, excluded, median: values.length ? values[Math.floor(values.length / 2)] : null };
+  const q = (v: number[], f: number) => { if (!v.length) return null; v.sort((a, b) => a - b); return v[Math.min(v.length - 1, Math.floor(f * v.length))]; };
+  return {
+    known: recorded.length, excluded, median: q(recorded, 0.5),
+    workbook: { n: workbook.length, median: q(workbook, 0.5), p75: q(workbook, 0.75), p90: q(workbook, 0.9) },
+  };
 }
 
 export function followups(ds: SpatialDataset, idx: number[]) {

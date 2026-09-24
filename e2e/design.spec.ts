@@ -180,7 +180,7 @@ for (const route of ["/app", "/map", "/partner", "/partner/map", "/partner/anima
   });
 }
 
-for (const route of ["/", "/app", "/map", "/partner", "/partner/animals", "/partner/medical", "/partner/incoming", "/partner/team", "/partner/reports"]) {
+for (const route of ["/", "/app", "/map", "/insights", "/partner", "/partner/animals", "/partner/medical", "/partner/incoming", "/partner/team", "/partner/reports"]) {
   test(`${route} fits its viewport and opens without client errors`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", e => errors.push(e.message));

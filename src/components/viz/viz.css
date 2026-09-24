@@ -1,0 +1,87 @@
+/* ════════════════════════════════════════════════════════════════════
+   Charts (components/viz). Hand-drawn SVG and CSS grids in the register's
+   own encodings: blue is recorded, flame is attention, hatch is unknown.
+   No chart framework, so every mark takes its colour from tokens.css.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vz-grid { stroke: var(--sp-rule); stroke-width: 1; shape-rendering: crispEdges; }
+.vz-axis { font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; fill: var(--sp-muted); }
+
+/* ── the ledger wall ─────────────────────────────────────────────── */
+.vz-wall { position: relative; width: 100%; }
+.vz-wall svg { display: block; overflow: visible; }
+.vz-wall rect { transition: opacity var(--sp-fast) var(--sp-ease-io); }
+.vz-wall-year { font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; fill: var(--sp-muted); }
+.vz-wall-peak { stroke: var(--sp-flame); stroke-width: 2.5; }
+.vz-wall-col { fill: rgba(11, 30, 61, 0.05); pointer-events: none; }
+.vz-tip {
+  position: absolute; z-index: 2; width: 210px; padding: 10px 12px; pointer-events: none;
+  background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: 10px; box-shadow: var(--sp-lift-sm);
+  display: grid; gap: 4px; font-size: 12px; color: var(--sp-body);
+}
+.vz-tip > b { font-size: 13px; color: var(--sp-ink); }
+.vz-tip ul { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.vz-tip li { display: grid; grid-template-columns: 10px 1fr auto; gap: 7px; align-items: center; }
+.vz-tip li i { width: 9px; height: 9px; border-radius: 2px; }
+.vz-tip li b { color: var(--sp-ink); font-weight: 500; }
+.vz-tip .is-hatch, .vz-table .is-hatch { background: var(--sp-hatch); }
+
+.vz-table { margin-top: 10px; font-size: 12px; color: var(--sp-body); }
+.vz-table summary { cursor: pointer; color: var(--sp-blue); font-weight: 600; width: max-content; }
+.vz-table-scroll { overflow-x: auto; margin-top: 8px; max-height: 320px; }
+.vz-table table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.vz-table th, .vz-table td { padding: 4px 10px 4px 0; text-align: right; border-bottom: 1px solid var(--sp-line); white-space: nowrap; }
+.vz-table th:first-child, .vz-table td:first-child { text-align: left; }
+
+/* ── the period brush ────────────────────────────────────────────── */
+.vz-brush { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 16px; align-items: end; }
+.vz-brush-presets { display: flex; flex-wrap: wrap; gap: 4px; grid-column: 1 / -1; }
+.vz-brush-presets button {
+  height: 30px; padding: 0 11px; border-radius: 8px; border: 1px solid var(--sp-line); background: transparent;
+  font: inherit; font-size: 12px; font-weight: 600; color: var(--sp-body); cursor: pointer;
+}
+.vz-brush-presets button.is-on { background: var(--sp-ink); border-color: var(--sp-ink); color: var(--sp-bone); }
+.vz-brush-track { grid-column: 1 / -1; min-width: 0; }
+.vz-brush-track svg { display: block; cursor: ew-resize; touch-action: none; }
+.vz-brush-track rect { fill: var(--sp-seq-1); }
+.vz-brush-track rect.is-on { fill: var(--sp-seq-4); }
+.vz-brush-sel { fill: rgba(36, 87, 206, 0.08) !important; stroke: var(--sp-blue); stroke-width: 1; pointer-events: none; }
+.vz-brush-year { font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; fill: var(--sp-muted); }
+.vz-brush-selects { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--sp-muted); }
+.vz-brush-selects select { height: 30px; border-radius: 8px; border: 1px solid var(--sp-line); background: var(--sp-paper); color: var(--sp-ink); font: inherit; font-size: 12px; padding: 0 6px; }
+
+/* ── the response curve ──────────────────────────────────────────── */
+.vz-resp svg { display: block; overflow: visible; }
+.vz-resp-fill { fill: rgba(36, 87, 206, 0.08); }
+.vz-resp-line { fill: none; stroke: var(--sp-blue); stroke-width: 2; stroke-linejoin: round; }
+.vz-resp-dot { fill: var(--sp-paper); stroke: var(--sp-blue); stroke-width: 2; }
+.vz-resp-lab { font-size: 11.5px; font-weight: 600; fill: var(--sp-ink); }
+.vz-unk { stroke: var(--sp-hatch-line); stroke-width: 1; }
+
+/* ── the care calendar ───────────────────────────────────────────── */
+.vz-cal { display: grid; gap: 3px; }
+.vz-cal-row { display: grid; grid-template-columns: minmax(110px, 170px) minmax(0, 1fr) 48px; gap: 12px; align-items: center; font-size: 12.5px; color: var(--sp-body); }
+.vz-cal-row > b { text-align: right; color: var(--sp-ink); font-weight: 500; font-size: 12px; }
+.vz-cal-cells { display: grid; gap: 2px; }
+.vz-cal-cells i { display: block; height: 16px; border-radius: 2px; background: var(--sp-seq-0); }
+.vz-cal-cells i.is-on { background: var(--sp-blue); }
+.vz-cal-row.is-head span { font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; color: var(--sp-muted); white-space: nowrap; overflow: visible; }
+
+/* ── places × years ──────────────────────────────────────────────── */
+.vz-years { width: 100%; border-collapse: collapse; font-size: 13px; }
+.vz-years th, .vz-years td { padding: 7px 8px; border-bottom: 1px solid var(--sp-line); text-align: center; vertical-align: middle; }
+.vz-years thead th { font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; font-weight: 500; color: var(--sp-muted); letter-spacing: 0.06em; }
+.vz-years th[scope="row"], .vz-years thead th:first-child { text-align: left; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--sp-ink); letter-spacing: 0; }
+.vz-years th[scope="row"] button { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.vz-years th[scope="row"] button:hover { color: var(--sp-blue); }
+.vz-years td i { display: inline-block; border-radius: 50%; background: var(--sp-blue); vertical-align: middle; }
+.vz-years td em { font-style: normal; color: var(--sp-line); }
+.vz-years td:last-child { text-align: right; color: var(--sp-ink); }
+
+/* ── courses of treatment ────────────────────────────────────────── */
+.vz-course { display: flex; flex-wrap: wrap; gap: 8px 14px; align-content: start; }
+.vz-course-row { display: inline-flex; gap: 3px; }
+.vz-course-row i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--sp-rule); }
+.vz-course-row i.is-on { background: var(--sp-flame); box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) { .vz-wall rect { transition: none; } }

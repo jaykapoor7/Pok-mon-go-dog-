@@ -28,15 +28,27 @@ for (const spec of routes) {
     } catch (e) { errors.push("goto: " + e.message.split("\n")[0]); }
     await page.waitForTimeout(Number(process.env.WAIT ?? 1500));
     /* Walk the page once so lazy images and in-view effects load, then return to the top. */
-    await page.evaluate(async () => {
+    await page.evaluate(async (sel) => {
+      const el = sel ? document.querySelector(sel) : null;
       const step = innerHeight * 0.8;
-      for (let y = 0; y < document.documentElement.scrollHeight; y += step) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 120)); }
-      scrollTo(0, 0);
-    });
+      const H = el ? el.scrollHeight : document.documentElement.scrollHeight;
+      for (let y = 0; y < H; y += step) { if (el) el.scrollTop = y; else scrollTo(0, y); await new Promise((r) => setTimeout(r, 120)); }
+      if (el) el.scrollTop = 0; else scrollTo(0, 0);
+    }, process.env.SCROLLER || "");
     await page.waitForTimeout(800);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     const name = `${route.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "") || "home"}-${width}`;
-    if (process.env.TILES) {
+    if (process.env.TILES && process.env.SCROLLER) {
+      /* Tiles down a page that scrolls inside an element (the console's main),
+         not the document: scroll that element a viewport at a time. */
+      const H = await page.evaluate((sel) => document.querySelector(sel)?.scrollHeight ?? 0, process.env.SCROLLER);
+      const vh = await page.evaluate((sel) => document.querySelector(sel)?.clientHeight ?? innerHeight, process.env.SCROLLER);
+      for (let y = 0, i = 0; y < H && i < Number(process.env.TILES); y += vh - 60, i++) {
+        await page.evaluate(([sel, top]) => { const el = document.querySelector(sel); if (el) el.scrollTop = top; }, [process.env.SCROLLER, y]);
+        await page.waitForTimeout(500);
+        await page.screenshot({ path: `${outDir}/${name}-t${i}.png` });
+      }
+    } else if (process.env.TILES) {
       /* Full-resolution tiles down the page, for reviewing detail. */
       const H = await page.evaluate(() => document.documentElement.scrollHeight);
       const th = width < 700 ? 844 : 900;

@@ -24,7 +24,7 @@ export function projector(box: Box, width: number, height: number, pad = 8) {
   };
 }
 
-export type PlateCell = { key: string; ring: number[]; fill: string; stroke?: string; opacity?: number; dashed?: boolean; hatch?: boolean; title?: string };
+export type PlateCell = { key: string; ring: number[]; fill: string; stroke?: string; opacity?: number; dashed?: boolean; hatch?: boolean; title?: string; selected?: boolean };
 
 const pathOf = (ring: number[], p: (x: number, y: number) => [number, number]) => {
   let d = "";
@@ -36,12 +36,14 @@ const pathOf = (ring: number[], p: (x: number, y: number) => [number, number]) =
 };
 
 export function HexPlate({
-  cells, box, width, height, pad = 8, hatchId, marks, label, className = "", scaleBarKm, night = false, children,
+  cells, box, width, height, pad = 8, hatchId, marks, label, className = "", scaleBarKm, night = false, children, onCell,
 }: {
   cells: PlateCell[]; box: Box; width: number; height: number; pad?: number; hatchId?: string;
   marks?: { lng: number; lat: number; r?: number; color?: string; ring?: boolean }[];
   label: string; className?: string; scaleBarKm?: number; night?: boolean;
   children?: (p: (lng: number, lat: number) => [number, number]) => React.ReactNode;
+  /** A cell was chosen. The plate is a pointer shortcut; screens keep a keyboard route to the same choice. */
+  onCell?: (key: string) => void;
 }) {
   const { p, km } = projector(box, width, height, pad);
   const bar = scaleBarKm ? km(scaleBarKm) : 0;
@@ -51,12 +53,16 @@ export function HexPlate({
         <path
           key={c.key}
           d={pathOf(c.ring, p)}
-          style={{ fill: c.hatch && hatchId ? `url(#${hatchId})` : c.fill, stroke: c.stroke ?? (night ? "rgba(7,20,43,0.9)" : "rgba(11,30,61,0.16)"), opacity: c.opacity ?? 1 }}
+          style={{ fill: c.hatch && hatchId ? `url(#${hatchId})` : c.fill, stroke: c.stroke ?? (night ? "rgba(7,20,43,0.9)" : "rgba(11,30,61,0.16)"), opacity: c.opacity ?? 1, cursor: onCell ? "pointer" : undefined }}
           strokeWidth={c.dashed ? 0.9 : 0.7}
           strokeDasharray={c.dashed ? "2.5 2.5" : undefined}
+          onClick={onCell ? () => onCell(c.key) : undefined}
         >
           {c.title && <title>{c.title}</title>}
         </path>
+      ))}
+      {cells.filter((c) => c.selected).map((c) => (
+        <path key={`sel-${c.key}`} d={pathOf(c.ring, p)} className="sys-plate-sel" style={{ fill: "none", stroke: night ? "var(--sp-night-text)" : "var(--sp-ink)", pointerEvents: "none" }} strokeWidth="1.8" />
       ))}
       {marks?.map((m, i) => {
         const [x, y] = p(m.lng, m.lat);

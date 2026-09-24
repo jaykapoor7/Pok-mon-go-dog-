@@ -113,7 +113,7 @@ export const kase = (ds: SpatialDataset, i: number) => {
     condition: (CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded") as Condition,
     status, closure: ds.cases[o + C.closure], intake: ds.cases[o + C.intake],
     firstAction: ds.cases[o + C.firstAction], closedDay: ds.cases[o + C.closedDay],
-    reliable: ds.cases[o + C.reliable] === 1, severity: ds.cases[o + C.severity],
+    resolvedSrc: ds.cases[o + C.resolvedSrc], severity: ds.cases[o + C.severity],
     fuDone: ds.cases[o + C.fuDone], fuMissed: ds.cases[o + C.fuMissed], fuUp: ds.cases[o + C.fuUp],
     org: ds.cases[o + C.org], resident: ds.cases[o + C.source] === 1,
   };

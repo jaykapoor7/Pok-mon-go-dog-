@@ -24,6 +24,7 @@ import {
   Repeat2,
   ScanSearch,
   Search,
+  ChartColumn,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
@@ -38,6 +39,7 @@ import "./app.css";
 const COMMUNITY_NAV = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/insights", label: "Insights", Icon: ChartColumn },
   { href: "/stories", label: "Stories", Icon: BookOpen },
   { href: "/orgs", label: "Organisations", Icon: Building2 },
 ];
@@ -53,7 +55,9 @@ const NGO_NAV = [
   { href: "/partner/team", label: "Team", Icon: Building2 },
 ];
 
-const PHONE_COMMUNITY = COMMUNITY_NAV;
+/* The phone bar has four places around Report; Insights is reached from the
+   map ("Explain this area") and the desktop rail. */
+const PHONE_COMMUNITY = COMMUNITY_NAV.filter((x) => x.href !== "/insights");
 const PHONE_NGO = NGO_NAV.slice(0, 4);
 const InShell = createContext(false);
 
