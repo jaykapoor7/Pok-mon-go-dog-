@@ -23,6 +23,7 @@ import { ReportingFor } from "@/components/report/ReportingFor";
 import { PhotoStudio } from "@/components/report/PhotoStudio";
 import { readVolunteer, type VolunteerSession } from "@/lib/volunteer";
 import { track } from "@/lib/analytics";
+import "./report.css";
 
 const MOODS = Object.keys(MOOD_META) as MoodTag[];
 const STEPS = ["Photo", "Location", "Details", "Confirm"] as const;
@@ -59,13 +60,15 @@ export default function ReportPage() {
   const [nickname, setNickname] = useState("");
   const [moods, setMoods] = useState<MoodTag[]>([]);
   const [notes, setNotes] = useState("");
+  /* The first reason a rescue fails is that nobody can find the animal
+     again (163 of the requests on the register). A landmark people would
+     know is what a pin alone does not carry. */
+  const [landmark, setLandmark] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [c1, setC1] = useState(false);
-  const [c2, setC2] = useState(false);
-  const [c3, setC3] = useState(false);
   /* An animal the reporter recognises. Sent as a claim; review decides. */
   const [claimedDogId, setClaimedDogId] = useState<string | null>(null);
   /* The two numbers an ABC and rabies programme is measured on. Unknown is
@@ -132,12 +135,13 @@ export default function ReportPage() {
   }
   const [meta, setMeta] = useState<PhotoMeta | null>(null);
   const [readingMeta, setReadingMeta] = useState(false);
+  const [triaged, setTriaged] = useState(false);
 
   function toggleMood(m: MoodTag) {
     setMoods((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
   }
 
-  const consentDone = c1 && c2 && c3;
+  const consentDone = c1;
   /* A photo is welcome, not required. Somebody standing in front of an
      animal they cannot photograph -- a phone with no storage, a dog that
      will not let them close, a person who simply will not hold up a camera
@@ -178,7 +182,7 @@ export default function ReportPage() {
       await reportSighting({
         file, fallbackPhotoUrl: photo ?? undefined,
         lat: coords.lat, lng: coords.lng, zone: zone ?? nearestCity(coords.lat, coords.lng),
-        nickname: nickname.trim(), moods, notes: notes.trim(),
+        nickname: nickname.trim(), moods, notes: [landmark.trim() ? `Landmark: ${landmark.trim()}` : "", notes.trim()].filter(Boolean).join("\n"),
         reporterName: volunteer?.name || user?.name || "",
         reporterEmail: email.trim() || undefined, token,
         claimedDogId,
@@ -201,8 +205,8 @@ export default function ReportPage() {
 
   function resetForm() {
     setStep(0); setStatus("idle"); setPhoto(null); setFile(null); setCoords(null); setZone(null);
-    setNickname(""); setMoods([]); setNotes(""); setEmail(user?.email ?? ""); setToken(null);
-    setC1(false); setC2(false); setC3(false); setError(null); setClaimedDogId(null);
+    setNickname(""); setMoods([]); setNotes(""); setLandmark(""); setEmail(user?.email ?? ""); setToken(null);
+    setC1(false); setError(null); setClaimedDogId(null);
     setSterilisation("unknown"); setVaccination("unknown");
   }
 
@@ -276,6 +280,21 @@ export default function ReportPage() {
           {/* ── Step 0: photo ── */}
           {step === 0 && (
             <div>
+              <div className="rp-triage" role="group" aria-label="How is the animal?">
+                <p className="rp-q">How is it?</p>
+                <div className="rp-triage-opts">
+                  {([["injured", "Hurt or sick", "Someone should come"], ["hungry", "Hungry or thin", "Food, and a check"], ["puppies", "Puppies", "A litter, or a mother"], ["", "Just seen, it's fine", "Adds to the record"]] as const).map(([tag, label, note]) => {
+                    const on = tag ? moods.includes(tag as MoodTag) : moods.every((m) => !["injured", "hungry", "puppies"].includes(m)) && triaged;
+                    return (
+                      <button key={label} type="button" aria-pressed={on} className={`rp-opt ${on ? "is-on" : ""} ${tag === "injured" ? "is-hot" : ""}`}
+                        onClick={() => { setTriaged(true); setMoods((prev) => tag ? (prev.includes(tag as MoodTag) ? prev.filter((x) => x !== tag) : [...prev, tag as MoodTag]) : prev.filter((x) => !["injured", "hungry", "puppies"].includes(x))); }}>
+                        <b>{label}</b><small>{note}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                {moods.includes("injured") && <p className="rp-urgent">It goes to the organisations nearby as needing help. If it is bleeding or cannot move, also call your local animal ambulance now.</p>}
+              </div>
               <ReportingFor volunteer={volunteer} onChange={setVolunteer} />
               <StepTitle icon={<Camera className="h-4 w-4" />} title="Add a photo" hint="A clear photo helps NGOs identify and find the animal." />
               <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
@@ -347,6 +366,11 @@ export default function ReportPage() {
             <div>
               <StepTitle icon={<MapPin className="h-4 w-4" />} title="Where is it?" hint="Search, use your current location, or drag the pin to be precise." />
               <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); }} />
+              <label className="rp-landmark">
+                <span>A landmark people would know <em>(helps most)</em></span>
+                <input value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="Behind the tea stall opposite the temple gate" />
+                <small>The most common reason a rescue fails is that nobody can find the animal again.</small>
+              </label>
             </div>
           )}
 
@@ -404,9 +428,9 @@ export default function ReportPage() {
           {step === 3 && (
             <div className="space-y-4">
               <StepTitle icon={<Check className="h-4 w-4" />} title="Confirm and submit" hint="A quick check before it goes to review." />
-              <Consent checked={c1} onChange={setC1}>I have permission to upload this image.</Consent>
-              <Consent checked={c2} onChange={setC2}>No private or sensitive information is visible in the photo.</Consent>
-              <Consent checked={c3} onChange={setC3}>I understand content may be reviewed before publishing.</Consent>
+              <Consent checked={c1} onChange={setC1}>
+                I took this photo or may share it; it shows nobody&rsquo;s face, home or number plate; and I understand it is reviewed before it is published.
+              </Consent>
               {HAS_TURNSTILE && (
                 <div className="flex flex-col items-center gap-1 pt-1">
                   <Turnstile onVerify={handleVerify} />
@@ -449,7 +473,7 @@ export default function ReportPage() {
         </p>
       )}
       {step === 1 && !coords && <p className="mt-2 text-center text-xs text-bark-400">Set a location to continue.</p>}
-      {step === 3 && !consentDone && <p className="mt-2 text-center text-xs text-bark-400">Please confirm all three to submit.</p>}
+      {step === 3 && !consentDone && <p className="mt-2 text-center text-xs text-bark-400">Please confirm to submit.</p>}
 
       {/* ── Success overlay ── */}
       <AnimatePresence>
