@@ -54,7 +54,9 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        // The public website widget is intentionally the sole externally
+        // frameable surface. Every other route keeps clickjacking defence.
+        source: "/:path((?!embed(?:/|$)).*)",
         headers: [
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
@@ -64,6 +66,18 @@ const nextConfig = {
             key: "Permissions-Policy",
             value: "camera=(self), geolocation=(self), microphone=()",
           },
+        ],
+      },
+      {
+        source: "/embed/:path*",
+        headers: [
+          // No X-Frame-Options is emitted for this route. XFO has no valid
+          // multi-origin allowlist, while this CSP explicitly permits an NGO
+          // to put its own public records widget on its website.
+          { key: "Content-Security-Policy", value: "frame-ancestors *" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=()" },
         ],
       },
     ];

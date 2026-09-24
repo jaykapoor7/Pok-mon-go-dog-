@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import {
   DM_Sans,
@@ -15,19 +14,9 @@ import "./design-system.css";
 import "./product.css";
 import "./system.css";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Chrome } from "@/components/nav/Chrome";
-import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
+import { themeBootScript } from "@/components/theme/ThemeProvider";
 import { StructuredData } from "@/components/seo/StructuredData";
-import { AuthProvider } from "@/components/auth/AuthProvider";
-import { Haptics } from "@/components/ux/Haptics";
-import { InstallPrompt } from "@/components/ux/InstallPrompt";
-import { Toaster } from "@/components/ui/sonner";
-import { StorageNotice } from "@/components/site/StorageNotice";
-import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
-import { ServiceWorker } from "@/components/site/ServiceWorker";
-import { MotionRoot } from "@/components/motion/MotionRoot";
-import { RouteViews } from "@/components/analytics/RouteViews";
-import { RoleSwitchFallback } from "@/components/app/RoleSwitchFallback";
+import { RouteEnvironment } from "@/components/embed/RouteEnvironment";
 
 import { SITE_URL } from "@/lib/site-url";
 // Interface: DM Sans, restrained, precise, engineered.
@@ -203,52 +192,7 @@ export default function RootLayout({
         <StructuredData siteUrl={siteUrl} />
       </head>
       <body className="min-h-dvh font-sans">
-        <ThemeProvider>
-          {/* Wraps everything so any component can read the chosen language,
-              and sits outside AuthProvider because the language control is
-              usable signed out. */}
-          <LocaleProvider>
-          {/* Outside AuthProvider so it covers every framer-motion
-              component in the tree, including the auth modal itself. */}
-          <MotionRoot>
-            <AuthProvider>
-              <Haptics />
-              <RoleSwitchFallback />
-              {/* The boundary is not decoration. Several screens call
-                  useSearchParams() — the map, the partner animal list,
-                  the new-case form — and a client component that reads
-                  it bails out of prerendering. Next requires that bail
-                  to happen inside a Suspense boundary, and without one
-                  it fails the build while prerendering /_not-found,
-                  which inherits this layout.
-
-                  It showed up as an INTERMITTENT failure: the same
-                  commit built green twice and red twice, depending on
-                  how the client chunks happened to be split. An
-                  intermittent build failure is worse than a reliable
-                  one — it passes locally and fails on a deploy nobody
-                  is watching. The boundary makes it deterministic.
-
-                  Fallback is null: these are whole page bodies, and a
-                  skeleton the size of a page flashing before the real
-                  one is worse than nothing appearing for the same
-                  handful of milliseconds. */}
-              <Suspense fallback={null}>
-                <Chrome>{children}</Chrome>
-              </Suspense>
-              {/* usePathname needs a Suspense boundary for the static
-                  routes to keep prerendering. */}
-              <Suspense fallback={null}>
-                <RouteViews />
-              </Suspense>
-              <InstallPrompt />
-              <StorageNotice />
-              <ServiceWorker />
-              <Toaster />
-            </AuthProvider>
-          </MotionRoot>
-          </LocaleProvider>
-        </ThemeProvider>
+        <RouteEnvironment>{children}</RouteEnvironment>
       </body>
     </html>
   );
