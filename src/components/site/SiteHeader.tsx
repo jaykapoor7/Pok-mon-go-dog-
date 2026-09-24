@@ -16,9 +16,8 @@ import "./header.css";
    what to do and who it is for follow, and the pages about StrayPaw sit
    behind one "About". The bar is glass over whatever it sits on — night
    over the landing plate, paper over a page — so the plate is never cut
-   off by a white slab. On a phone it is two rows: the wordmark and the
-   way into the app, then the four places people actually go, always in
-   reach without opening a menu.
+   off by a white slab. On a phone it is one row: the wordmark, the way
+   into the app and the menu, which holds everything else.
 
    tKey names an entry in the nav dictionary. An item without one keeps its
    English label while translation is partial.
@@ -54,14 +53,6 @@ const LINKS: NavItem[] = [
       { label: "Evidence", href: "/evidence", note: "What the research says, and how we use it" },
     ],
   },
-];
-/* The phone's second row: where people actually go. */
-const QUICK = [
-  { label: "Map", href: "/map" },
-  { label: "Insights", href: "/insights" },
-  { label: "Report", href: "/report" },
-  { label: "For NGOs", href: "/for-ngos" },
-  { label: "Organisations", href: "/orgs" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
@@ -131,13 +122,12 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
               </Link>
             ),
           )}
+          {/* On a phone the bar has no room for it, so it lives in the menu. */}
+          <Link href="/join" className="sp-nav-code" onClick={closeAll}>I have a code</Link>
         </nav>
 
         <div className="sp-header-actions">
-          <Link href="/join" className="sp-header-code">
-            <span className="sp-header-code-long">I have a code</span>
-            <span className="sp-header-code-short">Code</span>
-          </Link>
+          <Link href="/join" className="sp-header-code">I have a code</Link>
           <Link href="/app?choose=1" className="sp-header-cta">
             Open app <ArrowUpRight size={15} />
           </Link>
@@ -147,12 +137,6 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
           </button>
         </div>
       </div>
-
-      <nav className="sp-quick" aria-label="Quick links">
-        {QUICK.map((q) => (
-          <Link key={q.href} href={q.href} className={here(q.href) ? "is-here" : ""} aria-current={here(q.href) ? "page" : undefined}>{q.label}</Link>
-        ))}
-      </nav>
     </header>
   );
 }

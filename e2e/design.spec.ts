@@ -107,12 +107,17 @@ test("mobile public navigation exposes the core destinations without overflow", 
   test.skip(testInfo.project.name !== "mobile", "phone navigation only");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
+  /* One row on a phone: the wordmark, the way into the app and the menu. */
+  await expect(page.locator(".sp-header .sp-header-cta")).toBeVisible();
+  await expect(page.locator(".sp-header .sp-header-code")).toBeHidden();
+  await expect(page.locator(".sp-quick")).toHaveCount(0);
   const toggle = page.getByRole("button", { name: "Toggle navigation" });
   await expect(toggle).toBeVisible();
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   const nav = page.locator(".sp-nav");
   await expect(nav.getByRole("link", { name: "Map", exact: true })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "I have a code" })).toHaveAttribute("href", "/join");
   await expect(nav.getByRole("link", { name: "For NGOs" })).toHaveAttribute("href", "/for-ngos");
   const involved = nav.getByRole("button", { name: "Get involved" });
   await involved.click();

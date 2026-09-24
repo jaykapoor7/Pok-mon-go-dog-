@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════
    The site header. Glass over its ground: night over the landing plate,
-   paper over a page. One bar on a desktop; two rows on a phone, the
-   second holding the places people actually go.
+   paper over a page. One bar everywhere; on a phone the links fold into
+   the menu.
    ════════════════════════════════════════════════════════════════════ */
 
 html .sp-header {
@@ -67,7 +67,7 @@ html .sp-header .sp-header-code {
   background: none; color: var(--hd-ink); font-size: 13.5px; font-weight: 600; text-decoration: none;
 }
 html .sp-header .sp-header-code:hover { background: var(--hd-hover); }
-html .sp-header .sp-header-code-short { display: none; }
+html .sp-header .sp-nav > a.sp-nav-code { display: none; }
 html .sp-header .sp-header-cta {
   display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 999px; border: 0;
   background: var(--sp-flame); color: #1a0d08; font-size: 13.5px; font-weight: 700; text-decoration: none;
@@ -81,9 +81,6 @@ html .sp-header .sp-menu-btn {
   display: none; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid var(--hd-rule);
   background: none; color: var(--hd-ink); cursor: pointer;
 }
-
-/* the phone's second row */
-html .sp-header .sp-quick { display: none; }
 
 @media (max-width: 1080px) {
   html .sp-header .sp-nav > a, html .sp-header .sp-nav-trigger { padding: 0 9px; font-size: 13.5px; }
@@ -105,23 +102,17 @@ html .sp-header .sp-quick { display: none; }
   html .sp-header .sp-nav-group .sp-nav-trigger { width: 100%; }
   html .sp-header .sp-nav-panel { position: static; min-width: 0; box-shadow: none; border: 0; padding: 0 0 6px 10px; background: none; display: none; opacity: 1; visibility: visible; transform: none; }
   html .sp-header .sp-nav-group.on .sp-nav-panel { display: grid; }
-  html .sp-header .sp-header-code-long { display: none; }
-  html .sp-header .sp-header-code-short { display: inline; }
-  html .sp-header .sp-header-code { height: 38px; padding: 0 12px; font-size: 13px; }
-  html .sp-header .sp-header-cta { height: 38px; padding: 0 13px; font-size: 13px; }
+  html .sp-header .sp-header-code { display: none; }
+  html .sp-header .sp-nav > a.sp-nav-code { display: flex; margin-top: 6px; border-top: 1px solid var(--sp-line); border-radius: 0 0 12px 12px; }
+  html .sp-header .sp-header-cta { height: 40px; padding: 0 14px; font-size: 13.5px; }
   html .sp-header .lang { display: none; }
-  html .sp-header .sp-quick {
-    display: flex; gap: 4px; padding: 0 10px 8px; overflow-x: auto; scrollbar-width: none;
-  }
-  html .sp-header .sp-quick::-webkit-scrollbar { display: none; }
-  html .sp-header .sp-quick a {
-    flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px;
-    font-size: 13px; font-weight: 600; color: var(--hd-dim); text-decoration: none; background: var(--hd-hover);
-  }
-  html .sp-header .sp-quick a.is-here { background: var(--hd-ink); color: var(--sp-ink); }
-  html .sp-header.is-paper .sp-quick a.is-here { color: var(--sp-bone); }
 }
-@media (max-width: 380px) {
+/* The way into the app sits beside the menu button, which a coarse pointer
+   lifts to the touch floor; the link has to be lifted with it. */
+@media (max-width: 900px) and (pointer: coarse) {
+  html .sp-header .sp-header-cta { height: var(--ctl-h); }
+}
+@media (max-width: 349px) {
   html .sp-header .sp-wordmark span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
