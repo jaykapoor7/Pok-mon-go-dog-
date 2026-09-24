@@ -39,6 +39,10 @@ const nextConfig = {
       { source: "/cases/new", has: [{ type: "query", key: "dog", value: "(?<dog>.+)" }], destination: "/partner/cases/new?dogId=:dog", permanent: true },
       { source: "/cases/new", destination: "/partner/cases/new", permanent: true },
       { source: "/cases/:id", destination: "/partner/cases/:id", permanent: true },
+      /* The feed listed imported historical records one by one as
+         "reported anonymously"; what changed near you lives on the
+         community home now. */
+      { source: "/feed", destination: "/app", permanent: false },
     ];
   },
 

@@ -432,7 +432,6 @@ a.btn-ghost,
 a.product-primary,
 a.field-button,
 a.sp-btn,
-a.sp-header-cta,
 a.spa-cta,
 a.rs-card,
 .community-animal-row a,
@@ -452,7 +451,6 @@ a.btn-ghost:active,
 a.product-primary:active,
 a.field-button:active,
 a.sp-btn:active,
-a.sp-header-cta:active,
 a.spa-cta:active,
 .spa-phone-links a:active,
 .spa-side a:active {
@@ -609,8 +607,6 @@ h1 em, h2 em, h3 em { font-style: normal; }
     min-height: var(--ctl-h);
   }
 
-  .sp-header-code,
-  .sp-header-cta,
   .community-relocate,
   .feeder-quiet-link,
   .report-back button,

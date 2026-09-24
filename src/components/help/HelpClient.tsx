@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { HeartHandshake, MapPin, HandHelping, Utensils, ArrowRight } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { HelpMap } from "@/components/help/HelpMap";
+import "./help.css";
 import { HelperForm, type HelperTarget } from "@/components/help/HelperForm";
-import { markerStateFor, MARKER_META } from "@/lib/marker-state";
 import { needsFor, latestNote, placeLabel } from "@/lib/help-needs";
 import { distanceMeters, dogLabel } from "@/lib/utils";
 import type { Dog } from "@/lib/types";
@@ -44,129 +45,60 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
     setFormOpen(true);
   }
 
+  const ask = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((p) => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {}, { timeout: 8000 });
+  };
+  const km = (dog: Dog) => (coords ? distanceMeters(coords, dog) / 1000 : null);
+  const daysSince = (iso: string | null | undefined) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000)) : null);
+
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-32 pt-20 sm:px-6">
-      {/* hero */}
-      <div className="card overflow-hidden">
-        <div className="bg-paw-600 p-6 text-white sm:p-7">
-          <p className="text-[11.5px] font-semibold uppercase tracking-widest text-white/70">Lend a hand</p>
-          <h1 className="mt-1.5 font-display text-2xl tracking-tight sm:text-3xl">
-            Animals near you need help
-          </h1>
-          <p className="mt-1.5 text-sm text-white/85">
-            {needy.length > 0
-              ? `${needy.length} ${needy.length === 1 ? "animal" : "animals"} flagged as needing care${coords ? " near you" : ""}. Even a small hand counts.`
-              : "Offer to volunteer or register your rescue, and we'll connect you when an animal nearby needs help."}
+    <main className="hp">
+      <header className="hp-head">
+        <div>
+          <p className="sys-eyebrow">Help</p>
+          <h1>{needy.length ? <>{needy.length} animals need someone{coords ? " near you" : ""}.</> : "Nobody is flagged as needing help right now."}</h1>
+          <p className="hp-lede">
+            Each was flagged by a resident or a field team: injured, hungry, or in trouble. Pick one you can reach — feeding it, getting it to a vet, or just
+            checking on it and saying what you saw all count. {coords ? "Nearest first." : null}
           </p>
-          <div className="mt-4 flex flex-wrap gap-2.5">
-            <button
-              onClick={helpGeneral}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-paw-700 shadow-warm transition-transform active:scale-95"
-            >
-              <HandHelping className="h-4 w-4" /> Register to volunteer
-            </button>
-            <Link
-              href="/for-ngos"
-              className="inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/15 active:scale-95"
-            >
-              <HeartHandshake className="h-4 w-4" /> Are you an NGO?
-            </Link>
+          <div className="hp-acts">
+            {!coords && <button type="button" className="sys-btn" onClick={ask}><MapPin size={16} /> Show the nearest first</button>}
+            <button type="button" className="sys-btn is-quiet" onClick={helpGeneral}><HandHelping size={16} /> Be on call as a volunteer</button>
+            <Link href="/feeding" className="hp-link"><Utensils size={15} /> Feeding points <ArrowRight size={14} /></Link>
+            <Link href="/for-ngos" className="hp-link"><HeartHandshake size={15} /> For organisations <ArrowRight size={14} /></Link>
           </div>
         </div>
-      </div>
+        {needy.length > 0 && <HelpMap points={needy.map((d) => ({ id: d.id, lng: d.lng, lat: d.lat }))} me={coords} />}
+      </header>
 
-      {/* feeding zones cross-link */}
-      <Link
-        href="/feeding"
-        className="card card-interactive mt-4 flex items-center gap-3 p-4"
-      >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-          <Utensils className="h-5 w-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold">Feeding zones</p>
-          <p className="text-xs text-bark-500">
-            Sign up to feed an existing spot, or mark one fed today.
-          </p>
-        </div>
-        <ArrowRight className="h-4 w-4 shrink-0 text-bark-400" />
-      </Link>
-
-      {/* needy feed */}
-      <div className="mt-6 space-y-3">
-        {needy.length === 0 ? (
-          <div className="card p-8 text-center text-sm text-bark-500">
-            No animals are flagged as needing help right now. Thank you for
-            caring, register to volunteer to be on call for when one is.
-          </div>
-        ) : (
-          needy.map((dog) => {
-            const meta = MARKER_META[markerStateFor(dog)];
-            const needs = needsFor(dog);
+      {needy.length > 0 && (
+        <ol className="hp-list">
+          {needy.map((dog) => {
+            const needs = needsFor(dog).filter((n) => !/not checked/i.test(n.label));
             const note = latestNote(dog);
+            const d = km(dog);
+            const flagged = daysSince(dog.last_seen);
             return (
-              <div key={dog.id} className="card flex items-center gap-3 p-3">
-                <Link href={`/dog/${dog.id}`} className="shrink-0">
-                  <DogPhoto
-                    src={dog.cover_photo}
-                    alt="Street dog needing help"
-                    seed={dog.id}
-                    className="h-20 w-20 rounded"
-                  />
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <Link href={`/dog/${dog.id}`} className="font-semibold hover:text-paw-600">
-                    {dogLabel(dog)}
-                  </Link>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-bark-500">
-                    <MapPin className="h-3.5 w-3.5" /> {placeLabel(dog.zone)}
-                  </p>
-                  {/* Say what is needed, not only that something is. A reader
-                      deciding whether they are the right person to help cannot
-                      act on "Needs Help" alone. Every line below is read from
-                      the record; the last human note outranks any label. */}
-                  {note && <p className="mt-1 text-xs leading-5 text-bark-600">{note}</p>}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <span
-                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold text-white"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      {meta.label}
-                    </span>
-                    {needs.map((n) => (
-                      <span
-                        key={n.label}
-                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11.5px] font-medium ${
-                          n.urgent
-                            ? "border-red-300 bg-red-50 text-red-700"
-                            : "border-bark-200 bg-bark-50 text-bark-600"
-                        }`}
-                      >
-                        {n.label}
-                      </span>
-                    ))}
-                  </div>
+              <li key={dog.id} className="hp-row">
+                <Link href={`/dog/${dog.id}`} className="hp-ph"><DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} tone="urgent" className="h-full w-full" /></Link>
+                <div className="hp-what">
+                  <Link href={`/dog/${dog.id}`} className="hp-name">{dogLabel(dog)}</Link>
+                  <p className="hp-where"><MapPin size={12} /> {placeLabel(dog.zone)}{d != null ? <b> · {d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`} away</b> : null}{flagged != null ? <> · last seen {flagged === 0 ? "today" : `${flagged} days ago`}</> : null}</p>
+                  {note && <p className="hp-note">{note}</p>}
+                  {needs.length > 0 && <p className="hp-needs">{needs.map((n) => <span key={n.label} className={n.urgent ? "is-urgent" : ""}>{n.label}</span>)}</p>}
                 </div>
-                <button
-                  onClick={() => helpDog(dog)}
-                  className="shrink-0 self-stretch rounded bg-paw-500 px-4 text-sm font-semibold text-white transition-transform active:scale-95"
-                >
-                  I can help
-                </button>
-              </div>
+                <div className="hp-do">
+                  <button type="button" className="hp-help" onClick={() => helpDog(dog)}>I can help</button>
+                  <a className="hp-dir" href={`https://www.google.com/maps/dir/?api=1&destination=${dog.lat},${dog.lng}`} target="_blank" rel="noopener noreferrer">Directions to the area</a>
+                </div>
+              </li>
             );
-          })
-        )}
-      </div>
-
-      <p className="mt-6 text-center text-xs text-bark-400">
-        Looking for the photo feed?{" "}
-        <Link href="/feed" className="font-semibold text-paw-600">
-          Browse all sightings
-        </Link>
-      </p>
+          })}
+        </ol>
+      )}
 
       <HelperForm open={formOpen} target={target} onClose={() => setFormOpen(false)} />
-    </div>
+    </main>
   );
 }

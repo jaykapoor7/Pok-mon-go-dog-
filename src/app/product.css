@@ -13,10 +13,6 @@ html .spa,html .spa-scope{--ink:var(--sp-ink);--paper:var(--sp-ground);--electri
    320px the header refused to shrink below its contents and stood 4px wider
    than the page. min-width:0 lets it shrink; its children already handle
    truncation and the burger keeps the nav reachable. */
-html .sp .sp-header{background:#fff;border-bottom:1px solid var(--sp-line);box-shadow:none;min-width:0;max-width:100%}
-html .sp .sp-wordmark{color:var(--sp-ink);letter-spacing:-.055em}
-html .sp .sp-header-cta{background:var(--sp-blue);color:#fff}
-html .sp .sp-nav.open{background:#fff}
 html .spa.spa .spa-top{background:white;color:var(--sp-ink);border-bottom:1px solid var(--sp-line);height:72px;padding:0 26px}
 html .spa.spa .spa-brand{color:var(--sp-ink);font-size:24px;letter-spacing:-.055em}
 html .spa.spa .spa-search{max-width:460px}

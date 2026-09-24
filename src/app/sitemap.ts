@@ -18,7 +18,7 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
   { path: "/insights", priority: 0.6, freq: "weekly" },
   { path: "/research", priority: 0.5, freq: "monthly" },
 
-  { path: "/feed", priority: 0.6, freq: "daily" },
+
   { path: "/news", priority: 0.6, freq: "daily" },
   { path: "/orgs", priority: 0.7, freq: "weekly" },
   { path: "/help", priority: 0.7, freq: "monthly" },

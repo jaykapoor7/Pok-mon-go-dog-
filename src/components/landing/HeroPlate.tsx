@@ -3,11 +3,11 @@
 /* ════════════════════════════════════════════════════════════════════
    The hero plate: the sample city, filling in.
 
-   Every field record in the sample city lands where and when it was made.
-   The H3 cell it falls in deepens from the night ground towards blue as
-   records accumulate, and a new case flares in flame for a moment. The
-   streets underneath are OpenStreetMap, repainted to the night ground;
-   the cells are the same ones the live map draws.
+   Every field record in the sample city lands where and when it was made,
+   as a point of light inside its cell; where records gather the city
+   glows, and a new case flares in flame for a moment. The streets
+   underneath are OpenStreetMap, repainted to the night ground — the same
+   lights the live map draws.
 
    It plays once, on arrival, and can be replayed. Under reduced motion it
    simply shows the city as it stands today. Nothing is drawn that the
@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "maplibre-gl";
 import { PLATE, groundStyle, underlay } from "@/components/map/basemap";
 import { EPOCH_MS } from "@/lib/spatial/types";
+import { pointInCell } from "@/components/spatial/data";
 
 const DURATION = 15000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -78,44 +79,42 @@ export function HeroPlate({ city, box, rings, events }: Props) {
         el.current?.querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
         fit();
         m.on("resize", fit);
-        const features = rings.map((r, i) => {
-          const ring: [number, number][] = [];
-          for (let k = 0; k < r.length; k += 2) ring.push([r[k], r[k + 1]]);
-          return { type: "Feature" as const, id: i, properties: {}, geometry: { type: "Polygon" as const, coordinates: [ring] } };
-        });
-        m.addSource("cells", { type: "geojson", data: { type: "FeatureCollection", features } });
+        const ringPts = rings.map((r) => { const ring: [number, number][] = []; for (let k = 0; k < r.length; k += 2) ring.push([r[k], r[k + 1]]); return ring; });
+        const lights = Array.from({ length: n }, (_, i) => ({
+          type: "Feature" as const, properties: { d: events[i * 3 + 1], k: events[i * 3 + 2] },
+          geometry: { type: "Point" as const, coordinates: pointInCell(ringPts[events[i * 3]], i + 7) },
+        }));
+        m.addSource("lights", { type: "geojson", data: { type: "FeatureCollection", features: lights } });
         m.addSource("new", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-        const v = ["coalesce", ["feature-state", "n"], 0] as ExpressionSpecification;
-        m.addLayer({
-          id: "cells", type: "fill", source: "cells", paint: {
-            "fill-color": ["interpolate", ["linear"], v, 0, "#07142b", 1, "#16305e", 4, "#23479a", 10, "#2f63d6", 24, "#6f93e6", 60, "#b7caf2"] as ExpressionSpecification,
-            "fill-opacity": ["case", [">", v, 0], 0.9, 0] as ExpressionSpecification,
-          },
-        });
-        m.addLayer({ id: "cells-edge", type: "line", source: "cells", paint: { "line-color": "#07142b", "line-width": 1, "line-opacity": ["case", [">", v, 0], 0.95, 0] as ExpressionSpecification } });
+        const shown = (cursor: number) => ["<=", ["get", "d"], cursor] as ExpressionSpecification;
+        m.addLayer({ id: "glow", type: "heatmap", source: "lights", filter: shown(-1), paint: {
+          "heatmap-weight": 0.35, "heatmap-intensity": 0.16, "heatmap-radius": 16, "heatmap-opacity": 0.65,
+          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(19,43,85,0)", 0.15, "rgba(27,63,128,0.35)", 0.35, "rgba(42,91,184,0.55)", 0.6, "rgba(79,127,224,0.65)", 0.85, "rgba(147,177,240,0.7)", 1, "rgba(219,231,255,0.8)"] as ExpressionSpecification,
+        } });
+        m.addLayer({ id: "halo", type: "circle", source: "lights", filter: shown(-1), paint: { "circle-radius": 4.5, "circle-blur": 1, "circle-color": "#4f7fe0", "circle-opacity": 0.22 } });
+        m.addLayer({ id: "lights", type: "circle", source: "lights", filter: shown(-1), paint: { "circle-radius": 1.3, "circle-color": ["case", ["==", ["get", "k"], 0], "#c9d8ff", "#eef3ff"] as ExpressionSpecification, "circle-opacity": 0.85 } });
         m.addLayer({
           id: "new", type: "circle", source: "new", paint: {
-            "circle-radius": ["interpolate", ["linear"], ["get", "a"], 0, 7, 1, 2] as ExpressionSpecification,
+            "circle-radius": ["interpolate", ["linear"], ["get", "a"], 0, 9, 1, 2] as ExpressionSpecification,
             "circle-color": "#f05b40",
             "circle-opacity": ["interpolate", ["linear"], ["get", "a"], 0, 0.95, 1, 0] as ExpressionSpecification,
           },
         });
+        const reveal = (cursor: number) => ["glow", "halo", "lights"].forEach((id) => { try { m.setFilter(id, shown(cursor)); } catch { /* ok */ } });
 
         const counts = new Float32Array(rings.length);
-        const centre = (c: number) => { const r = rings[c]; let x = 0, y = 0; const k = r.length / 2 - 1; for (let i = 0; i < k; i++) { x += r[i * 2]; y += r[i * 2 + 1]; } return [x / k, y / k] as [number, number]; };
         let idx = 0, start = 0, lastPaint = 0;
         const tally = { records: 0, cases: 0, care: 0, cells: 0 };
         const touched = new Set<number>();
-        const recent: { c: number; d: number }[] = [];
+        const recent: { c: number; d: number; p: [number, number] }[] = [];
         const first = n ? events[1] : 0;
         const step = (cursor: number) => {
           while (idx < n && events[idx * 3 + 1] <= cursor) {
             const c = events[idx * 3], k = events[idx * 3 + 2];
             counts[c]++;
-            m.setFeatureState({ source: "cells", id: c }, { n: counts[c] });
             if (!touched.has(c)) { touched.add(c); tally.cells++; }
             tally.records++;
-            if (k === 0) { tally.cases++; recent.push({ c, d: events[idx * 3 + 1] }); } else tally.care++;
+            if (k === 0) { tally.cases++; recent.push({ c, d: events[idx * 3 + 1], p: lights[idx].geometry.coordinates }); } else tally.care++;
             idx++;
           }
         };
@@ -124,8 +123,9 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           recent.length = 0; recent.push(...live);
           (m.getSource("new") as GeoJSONSource | undefined)?.setData({
             type: "FeatureCollection",
-            features: live.map((r) => ({ type: "Feature", properties: { a: (cursor - r.d) / 40 }, geometry: { type: "Point", coordinates: centre(r.c) } })),
+            features: live.map((r) => ({ type: "Feature", properties: { a: (cursor - r.d) / 40 }, geometry: { type: "Point", coordinates: r.p } })),
           });
+          reveal(cursor);
         };
         const frame = (now: number) => {
           if (!start) start = now;
@@ -141,7 +141,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           cancelAnimationFrame(raf);
           idx = 0; start = 0; lastPaint = 0; counts.fill(0); touched.clear(); recent.length = 0;
           Object.assign(tally, { records: 0, cases: 0, care: 0, cells: 0 });
-          for (let i = 0; i < rings.length; i++) m.setFeatureState({ source: "cells", id: i }, { n: 0 });
+          reveal(-1);
           if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
             step(lastDay); flush(lastDay + 100); setT({ day: lastDay, ...tally }); setPlaying(false); return;
           }
@@ -155,7 +155,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           if (entries.some((x) => x.isIntersecting)) { run.current(); io?.disconnect(); }
         }, { threshold: 0.25 });
         io.observe(m.getContainer());
-        underlay(m, PLATE, "cells").catch(() => {});
+        underlay(m, PLATE, "glow").catch(() => {});
       });
     });
     return () => { dead = true; cancelAnimationFrame(raf); io?.disconnect(); map?.remove(); };
@@ -175,9 +175,9 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           <div><dt>Field records</dt><dd className="sys-mono">{t.records.toLocaleString("en-IN")}</dd></div>
           <div><dt><i className="ld-dot is-case" aria-hidden />Cases opened</dt><dd className="sys-mono">{t.cases.toLocaleString("en-IN")}</dd></div>
           <div><dt><i className="ld-dot is-care" aria-hidden />Care recorded</dt><dd className="sys-mono">{t.care.toLocaleString("en-IN")}</dd></div>
-          <div><dt><i className="ld-hexi" aria-hidden />Cells with work</dt><dd className="sys-mono">{t.cells.toLocaleString("en-IN")}</dd></div>
+          <div><dt><i className="ld-dot is-light" aria-hidden />Places with work</dt><dd className="sys-mono">{t.cells.toLocaleString("en-IN")}</dd></div>
         </dl>
-        <div className="ld-ramp" aria-hidden><span>1</span><i /><span>60+ records in a cell</span></div>
+        <p className="ld-ramp-note">Each point is one field record; the glow is where they gather.</p>
         <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
           {playing ? "Filling in…" : `Replay ${events.length ? yearOf(events[1]) : ""} → today`}
         </button>

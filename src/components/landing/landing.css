@@ -263,3 +263,5 @@
   .ld-meter dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ld-hero-actions { gap: var(--sp-3) var(--sp-5); }
 }
+.ld-dot.is-light { background: #dbe7ff; box-shadow: 0 0 6px 1px rgba(79, 127, 224, 0.8); }
+.ld-ramp-note { margin: 0; font-size: 11.5px; color: rgba(239, 231, 218, 0.62); }

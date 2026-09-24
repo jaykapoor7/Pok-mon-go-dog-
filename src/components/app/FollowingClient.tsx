@@ -1,5 +1,7 @@
 "use client";
 
+import { EditSightingSheet } from "@/components/sighting/EditSightingSheet";
+import { DeleteSightingButton } from "@/components/sighting/DeleteSightingButton";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,6 +19,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
   const { ids } = useFollows();
   const { user } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
   /* Null until the browser answers, and it may never: location is a
      permission, not a fact. Everything below works without it. */
   const [here, setHere] = useState<{ lat: number; lng: number } | null>(null);
@@ -61,13 +64,21 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
     <div className="my-report-list">
       {reports.slice(0, 8).map((report) => {
         const href = report.dog_id ? `/dog/${report.dog_id}` : `/map?lat=${report.lat}&lng=${report.lng}`;
-        return <Link key={report.id} href={href} className="my-report-row">
-          <span className={report.status === "live" ? "my-report-status live" : "my-report-status"}>{report.status === "live" ? "On the map" : "In review"}</span>
-          <span className="my-report-copy"><b>{report.nickname || "Street animal sighting"}</b><small>{report.zone || "Location saved"} · {timeAgo(report.created_at)}</small></span>
-          <ArrowUpRight size={15} />
-        </Link>;
+        return <div key={report.id} className="my-report-item">
+          <Link href={href} className="my-report-row">
+            <span className={report.status === "live" ? "my-report-status live" : "my-report-status"}>{report.status === "live" ? "On the map" : "In review"}</span>
+            <span className="my-report-copy"><b>{report.nickname || "Street animal sighting"}</b><small>{report.zone || "Location saved"} · {timeAgo(report.created_at)}</small></span>
+            <ArrowUpRight size={15} />
+          </Link>
+          <span className="my-report-acts">
+            <button type="button" onClick={() => setEditing(report)}>Edit</button>
+            <DeleteSightingButton sightingId={report.id} ownerUserId={report.user_id ?? user?.id} variant="text" onDeleted={() => setReports((r) => r.filter((x) => x.id !== report.id))} />
+          </span>
+        </div>;
       })}
     </div>
+    {editing && <EditSightingSheet open sightingId={editing.id} initial={{ nickname: editing.nickname ?? null, mood_tags: editing.mood_tags ?? [], notes: editing.notes ?? null }}
+      onClose={() => setEditing(null)} onSaved={(v) => { setReports((r) => r.map((x) => (x.id === editing.id ? { ...x, ...v } : x))); setEditing(null); }} />}
   </section> : null;
 
   if (ids.length === 0) {

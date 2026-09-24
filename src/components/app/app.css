@@ -18,11 +18,11 @@
  * class and gets the same ground to stand on. */
 .spa,
 .spa-scope {
-  --ink: #0b1020;
-  --slate: #10182b;
-  --steel: #17243b;
-  --paper: #f4f5f7;
-  --bone: #dce2e8;
+  --ink: #0b1e3d;
+  --slate: #0e2240;
+  --steel: #163056;
+  --paper: #fffdf9;
+  --bone: #e3d9ca;
   --electric: #8fb7ff;
   /* Softened from #ff6a4f so display headings clear 3:1 on the light
      console ground; near-identical in feel, readable rather than glowing. */
@@ -34,10 +34,10 @@
      surfaces they drop to ~1.9:1, so text-sized use needs these darker
      counterparts. Reserve the bright originals for dark backgrounds,
      borders, icons and fills. */
-  --electric-ink: #476fb7;
+  --electric-ink: #2457ce;
   /* Kept in step with site.css: #cc371c measured 3.7:1 against the console
      ground, under the 4.5:1 small text needs. */
-  --vermilion-ink: #b02a10;
+  --vermilion-ink: #a8300f;
 
   /* The shadcn tokens, pinned light.
    *
@@ -3606,3 +3606,7 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
 }
 
 
+.my-report-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; border-bottom: 1px solid var(--bone); }
+.my-report-item .my-report-row { border-bottom: 0; }
+.my-report-acts { display: inline-flex; gap: 6px; align-items: center; }
+.my-report-acts button { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--sp-blue); background: none; border: 0; cursor: pointer; padding: 6px; }

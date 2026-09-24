@@ -1,27 +1,14 @@
 /* Shared product identity. Deliberately scoped so partner forms and public
    navigation use the same palette without changing their behaviour. */
 html .sp {
- --ink:#122d55; --slate:#163966; --steel:#234777; --paper:#ffffff;
- --bone:#edf3fc; --electric:#b6d0ff; --electric-ink:#2457ce;
- --vermilion:#f47d45; --vermilion-ink:#b14d24; --cyan:#66c5d5;
- --line:#dce4ee; --line-dark:#3d5b80;
+ --ink:#0b1e3d; --slate:#163966; --steel:#234777; --paper:#fffdf9;
+ --bone:#eae0d2; --electric:#b6d0ff; --electric-ink:#2457ce;
+ --vermilion:#f05b40; --vermilion-ink:#a8300f; --cyan:#66c5d5;
+ --line:#e3d9ca; --line-dark:#3d5b80;
  --primary:222 68% 47%; --primary-foreground:0 0% 100%;
  --foreground:216 65% 20%; --background:0 0% 100%;
  --muted-foreground:215 17% 43%; --ring:222 68% 47%;
 }
-html .sp .sp-header { height:80px;background:#ffffff;color:#122d55;border-bottom:1px solid #dfe3d7;backdrop-filter:none;padding:0 4vw;gap:22px; }
-html .sp .sp-wordmark { color:#122d55;font-size:23px;gap:10px;letter-spacing:-.05em; }
-html .sp .sp-nav { gap:10px;margin-left:auto;margin-right:auto;align-items:center; }
-html .sp .sp-nav>a,html .sp .sp-nav-trigger { color:#50617b;font-size:12px;white-space:nowrap; }
-html .sp .sp-nav>a:hover,html .sp .sp-nav-trigger:hover { color:#b14d24; }
-html .sp .sp-nav-panel { background:#ffffff;border-color:#dce4ee;box-shadow:0 14px 34px #122d5514;border-radius:6px; }
-html .sp .sp-nav .sp-nav-item b,html .sp .sp-nav .sp-nav-lead b { color:#122d55; }
-html .sp .sp-nav .sp-nav-item span,html .sp .sp-nav .sp-nav-lead span { color:#5c6d81; }
-html .sp .sp-nav .sp-nav-item:hover,html .sp .sp-nav .sp-nav-lead:hover { background:#edf3fc; }
-html .sp .sp-header-code { border:0;background:var(--ctl-tint);color:#1f4bb8;font-size:var(--ctl-fs-sm);padding:var(--ctl-pad-sm);min-height:var(--ctl-h);border-radius:var(--ctl-r); }
-html .sp .sp-header-cta { background:#2457ce;color:#ffffff;border-radius:var(--ctl-r);min-height:var(--ctl-h);padding:var(--ctl-pad); }
-html .sp .sp-menu-btn { color:#2457ce; }
-html .sp .sp-header-actions { margin-left:0;gap:20px; }
 html .sp .sp-display { font-family:var(--font-sans),sans-serif;font-weight:600;letter-spacing:-.055em;line-height:1.1; }
 html .sp.mk .mk-hero { background:#edf3fc;color:#122d55;padding-top:155px; }
 html .sp.mk .mk-hero::before { display:none; }
@@ -73,17 +60,6 @@ html .spa .pgm-block h2 { font-family:var(--font-sans),sans-serif;font-weight:60
 html .spa .med-ledger-filters button { min-height:38px; }
 html .spa .med-ledger-list a { width:40px;height:40px; }
 html .sp :focus-visible,html .spa :focus-visible {outline-offset:3px;box-shadow:none; }
-@media(max-width:1180px) {
- html .sp .sp-header { height:68px;padding:0 4vw; }
- html .sp .sp-nav { display:none;position:absolute;top:68px;left:0;right:0;max-height:calc(100dvh - 68px);overflow-y:auto;padding:18px 5vw;background:#ffffff;border-bottom:1px solid #dce3d3;flex-direction:column;align-items:stretch;gap:5px; }
- html .sp .sp-nav.open { display:flex; }
- html .sp .sp-nav>a,html .sp .sp-nav-trigger { min-height:44px;padding:12px 8px;font-size:14px;width:100%;justify-content:space-between;border-color:#dce3d3; }
- html .sp .sp-nav-group { width:100%; }
- html .sp .sp-nav-panel { position:static;width:100%;display:none;opacity:1;visibility:visible;transform:none;box-shadow:none;border:0;background:#edf1e4;padding:8px;border-radius:4px; }
- html .sp .sp-nav-group.on .sp-nav-panel { display:block; }
- html .sp .sp-menu-btn { display:flex;margin:0; }
- html .sp .sp-header-actions { margin-left:auto; }
-}
 @media(max-width:900px) {
  html .spa .spa-body { grid-template-columns:minmax(0,1fr); }
 }
@@ -98,9 +74,6 @@ html .sp :focus-visible,html .spa :focus-visible {outline-offset:3px;box-shadow:
  html .spa .spa-top .spa-tour { display:none; }
  html .spa .spa-atlas-hero { min-height:390px; }
  html .spa .spa-kpi { padding:16px; }
- html .sp .sp-wordmark { font-size:21px; }
- html .sp .sp-header-actions { gap:14px; }
- html .sp .sp-header-code { font-size:11px; }
  html .sp.mk .mk-hero { padding-top:116px;grid-template-columns:1fr;gap:40px; }
 }
 /* THE WORDMARK STAYS ON A PHONE.
@@ -121,27 +94,9 @@ html .sp :focus-visible,html .spa :focus-visible {outline-offset:3px;box-shadow:
    Written at this specificity on purpose. `html .sp .sp-wordmark span`
    is 0-2-2 and beat the plain `.sp-wordmark span` rule in site.css, so
    an earlier attempt at this fix in that file never applied at all. */
-@media(max-width:430px){
-  html .sp .sp-wordmark span{display:inline;font-size:17px;letter-spacing:-.045em}
-  html .sp .sp-wordmark{gap:7px;font-size:17px}
-  html .sp .sp-wordmark svg{width:26px;height:26px}
-  html .sp .sp-header{gap:8px;padding-left:12px;padding-right:10px}
-  html .sp .sp-header-actions{gap:6px}
-  html .sp .sp-header-code{padding:10px 8px;font-size:12px}
-  html .sp .sp-header-cta{padding:10px 11px;font-size:12px}
-}
 
 /* 320px — the narrowest phone still in use. Everything above fits from
    360 up; at 320 the menu button was ending 17px past the right edge,
    which is the exact failure that got the wordmark deleted in the first
    place. The room comes out of type and padding rather than out of the
    brand: nothing is removed, five things are just tighter. */
-@media(max-width:340px){
-  html .sp .sp-wordmark span{font-size:15px}
-  html .sp .sp-wordmark{gap:6px;font-size:15px}
-  html .sp .sp-wordmark svg{width:23px;height:23px}
-  html .sp .sp-header{gap:6px;padding-left:8px;padding-right:6px}
-  html .sp .sp-header-actions{gap:4px}
-  html .sp .sp-header-code{padding:10px 6px;font-size:11.5px}
-  html .sp .sp-header-cta{padding:10px 9px;font-size:11.5px}
-}

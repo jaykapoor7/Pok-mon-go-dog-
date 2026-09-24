@@ -44,7 +44,7 @@ export default async function HomePage() {
   return (
     <div className="sp field-site product-site ld">
       <PageView name="landing_view" />
-      <SiteHeader />
+      <SiteHeader tone="night" />
       <main>
         <section className="ld-hero" aria-labelledby="hero-title">
           <div className="ld-stage">

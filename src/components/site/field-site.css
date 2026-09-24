@@ -498,7 +498,6 @@
   --gutter: clamp(20px, 5vw, 56px);
 }
 
-.product-site .sp-header,
 .product-site .role-help,
 .product-site .field-footer {
   max-width: none;
@@ -508,9 +507,6 @@
 
 /* The header is set by the design system at a different gutter, and that
    rule is `html .sp .sp-header`, so it needs the same specificity back. */
-html .sp.product-site .sp-header {
-  padding-inline: max(var(--gutter), calc((100% - var(--page-max)) / 2));
-}
 
 @media (max-width: 860px) {
   .product-site, .sp.field-site { --gutter: 20px; }

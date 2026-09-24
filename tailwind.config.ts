@@ -59,32 +59,35 @@ const config: Config = {
         },
         /* ── StrayPaw: Signal / Street / System ────────────────────────
            Infrastructure and intelligence, not charity software. */
-        ink: '#0b1020',        // midnight, primary dark ground
-        slate: '#10182b',      // console surface
-        steel: '#17243b',      // raised panel
-        line: '#30496e',       // structural border on dark
-        paper: '#f4f5f7',      // light ground
-        bone: '#dce2e8',       // light secondary surface
-        electric: '#8fb7ff',   // primary accent, signal blue
-        vermilion: '#ff6a4f',  // urgency / gap / attention
+        /* Remapped onto the StrayPaw tokens (src/app/tokens.css) so every
+           page still written in these names wears the same palette as the
+           redesigned ones: navy ink, warm paper and bone, one blue, one flame. */
+        ink: '#0b1e3d',        // --sp-ink
+        slate: '#0e2240',      // console surface, navy
+        steel: '#163056',      // raised panel on navy
+        line: '#2c4a78',       // structural border on dark
+        paper: '#fffdf9',      // --sp-paper
+        bone: '#eae0d2',       // --sp-shell
+        electric: '#8fb7ff',   // --sp-sky, the blue on dark grounds
+        vermilion: '#f05b40',  // --sp-flame
         cyan: '#66c5d5',       // field / in-progress
         violet: '#a68cff',     // study / research
 
         /* legacy tokens, remapped onto the new palette so every page that
            still references them picks up the redesign without edits */
-        night: '#10182b',
+        night: '#07142b',
         saffron: '#8fb7ff',
-        mint: '#66c5d5',
-        danger: '#ff6a4f',
+        mint: '#7fc9d6',
+        danger: '#f05b40',
         /* paw = the electric family. 300 is the accent itself; 500/600 run
            dark enough to carry white text (btn-primary is bg-paw-500). */
         paw: {
-          50: '#f0f5ff', 100: '#dfeaff', 200: '#c4d8ff', 300: '#8fb7ff',
-          400: '#5f8ff5', 500: '#3a6fe0', 600: '#2b56b8', 700: '#244696',
-          800: '#223f78', 900: '#1e3560',
+          50: '#eef3fd', 100: '#dde7fb', 200: '#c8d4f0', 300: '#93aee9',
+          400: '#5b82dc', 500: '#2457ce', 600: '#1b46b0', 700: '#16398f',
+          800: '#132f73', 900: '#0f2659',
         },
         bark: {
-          50: '#f6f8fb', 100: '#eef1f6', 200: '#e1e6ef', 300: '#c6cddb',
+          50: '#fbf8f3', 100: '#f4eee5', 200: '#e3d9ca', 300: '#cfc3b1',
           /* 400 is the app's muted-text step (~270 usages). At its old
              #97a0b2 it scored 2.63:1 on white, unreadable. Darkened once to
              clear 4.5:1 on white, bark-50 and bark-100 — but the marketing
@@ -94,12 +97,12 @@ const config: Config = {
              actually used on. 500 moves with it so the ramp stays ordered.
              Dark mode gets the original light value back via a .dark
              override in globals.css. */
-          400: '#5f6774', 500: '#5b6473', 600: '#4d5564', 700: '#39404e',
-          800: '#1b2436', 900: '#0f1626', 950: '#0a0f1a',
+          400: '#5d6b7c', 500: '#4c5a6e', 600: '#42526b', 700: '#2c3d57',
+          800: '#152a4a', 900: '#0b1e3d', 950: '#071630',
         },
-        cream: '#eaf1fb',
-        paper2: '#fbfdff',
-        'ink-surface': '#1b2436',
+        cream: '#f4eee5',
+        paper2: '#fffdf9',
+        'ink-surface': '#152a4a',
         status: {
           seen: '#9a9c88', hungry: '#d9a441', injured: '#b0432a',
           /* sterilised is also the share control's label colour, where it

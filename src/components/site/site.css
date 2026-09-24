@@ -4,11 +4,11 @@
    ════════════════════════════════════════════════════════════════════ */
 
 .sp {
-  --ink: #0b1020;
-  --slate: #10182b;
-  --steel: #17243b;
-  --paper: #f4f5f7;
-  --bone: #dce2e8;
+  --ink: #0b1e3d;
+  --slate: #0e2240;
+  --steel: #163056;
+  --paper: #fffdf9;
+  --bone: #e3d9ca;
   --electric: #8fb7ff;
   /* Softened from #ff6a4f so large display type clears 3:1 on the paper
      ground; visually near-identical, but readable rather than glowing. */
@@ -17,14 +17,14 @@
   --violet: #a68cff;
   /* Text-sized accents on light grounds. The bright brand tones sit at
      ~1.9–2.6:1 there, so anything small and readable uses these instead. */
-  --electric-ink: #476fb7;
+  --electric-ink: #2457ce;
   /* Measured against the bone ground (#dce2e8), the darkest surface this
      accent sits on: #cc371c reached only 3.9:1, under the 4.5:1 small text
      needs. This clears it on bone and on paper. */
-  --vermilion-ink: #b02a10;
-  --line: rgba(11, 16, 32, 0.14);
+  --vermilion-ink: #a8300f;
+  --line: rgba(11, 30, 61, 0.14);
   --line-dark: #293753;
-  --muted: #63665e;
+  --muted: #5d6b7c;
 
   /* ── motion: three eases, four durations, and that is the whole
      vocabulary ─────────────────────────────────────────────────────
@@ -140,103 +140,10 @@
 .sp-link:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 3px; }
 
 /* ── header ─────────────────────────────────────────────────────── */
-
-.sp-header {
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4vw;
-  border-bottom: 1px solid rgba(244, 245, 247, 0.12);
-  background: rgba(11, 16, 32, 0.82);
-  backdrop-filter: blur(16px);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 40;
-}
-.sp-wordmark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  font-size: 20px;
-  color: var(--paper);
-  text-decoration: none;
-  flex-shrink: 0;
-}
-.sp-nav {
-  display: flex;
-  gap: 19px;
-  font-size: 13px;
-  margin-left: 6%;
-}
 /* Padding makes the target the size of the item, not the size of the word. */
-.sp-nav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 36px;
-  padding: 6px 5px;
-  border-radius: 3px;
-  color: rgba(244, 245, 247, 0.68);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-.sp-nav a:hover { color: var(--electric); }
-.sp-nav a:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
-.sp-header-actions { display: flex; align-items: center; gap: 14px; margin-left: auto; }
-.sp-header-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: var(--ctl-h);
-  background: var(--electric);
-  color: var(--ink);
-  border-radius: var(--ctl-r);
-  padding: var(--ctl-pad);
-  font-size: var(--ctl-fs-sm);
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background 0.2s ease, transform 0.12s ease;
-}
-.sp-header-cta:hover { background: #b8d1ff; }
-.sp-header-cta:active { transform: var(--ctl-press); }
-.sp-header-cta:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
-.sp-header-code {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--ctl-h);
-  padding: var(--ctl-pad);
-  border: 0;
-  background: rgba(255, 255, 255, 0.13);
-  border-radius: var(--ctl-r);
-  /* Explicit, not inherited. On this dark header, inheriting the body's
-     ink painted dark text on a dark ground. */
-  color: var(--paper);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-.sp-header-code:hover {
-  border-color: var(--electric);
-  background: rgba(143, 183, 255, 0.12);
-}
-.sp-header-code:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
 /* Narrow phones keep both actions, with the tighter of the two shortened
    rather than dropped: somebody arriving from an invitation email needs
    this one more than the app button. */
-@media (max-width: 560px) {
-  .sp-header-actions { gap: 8px; }
-  .sp-header-code { padding: 10px 11px; font-size: 12.5px; }
-  .sp-header-cta { padding: 10px 12px; font-size: 12.5px; }
-}
 /* Below about 430px the wordmark, two buttons and the menu control add up
    to more than the bar: the actions have margin-left:auto and the wordmark
    does not shrink, so "StrayPaw" ran under "I have a code" and the menu
@@ -249,33 +156,7 @@
      the one thing a header has to do. The room comes from the two
      things beside it instead: the wordmark sets tighter, and the code
      link keeps only its short label. */
-  .sp-wordmark { gap: 7px; }
-  .sp-wordmark span {
-    display: inline;
-    font-size: 17px;
-    letter-spacing: -.045em;
-  }
-  .sp-wordmark svg { width: 26px; height: 26px; }
-  .sp-header { gap: 8px; padding-left: 14px; padding-right: 12px; }
-  .sp-header-code { padding-left: 9px; padding-right: 9px; font-size: 12.5px; }
-  .sp-header-cta { padding-left: 11px; padding-right: 11px; font-size: 12.5px; }
 }
-.sp-menu-btn {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  margin-right: -8px;
-  background: transparent;
-  border: 0;
-  border-radius: var(--ctl-r);
-  color: var(--paper);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.sp-menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
-.sp-menu-btn:focus-visible { outline: 2px solid var(--electric); outline-offset: -2px; }
 
 /* ── hero ───────────────────────────────────────────────────────── */
 
@@ -912,36 +793,13 @@
 /* ── responsive ─────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
-  .sp-nav { gap: 16px; margin-left: 0; }
   /* new sections */
   .chs-sticky { grid-template-columns: 1fr; align-content: center; padding-top: 80px; gap: 3vw; }
   .chs-copy { min-height: auto; }
 }
 
 @media (max-width: 800px) {
-  .sp-header { height: 64px; padding: 0 5vw; }
-  .sp-nav {
-    display: none;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 64px;
-    padding: 22px 5vw;
-    background: var(--ink);
-    border-bottom: 1px solid rgba(244, 245, 247, 0.12);
-    flex-direction: column;
-  }
-  .sp-nav.open { display: flex; gap: 2px; }
   /* Full-width rows in the mobile sheet, thumb-sized, not word-sized. */
-  .sp-nav a {
-    min-height: 46px;
-    padding: 10px 8px;
-    font-size: 15px;
-    border-bottom: 1px solid rgba(244, 245, 247, 0.08);
-  }
-  .sp-nav a:last-child { border-bottom: 0; }
-  .sp-menu-btn { display: flex; }
-  .sp-header-cta { min-height: 42px; }
   .sp-footer {
     padding-left: 6vw;
     padding-right: 6vw;
@@ -1033,49 +891,8 @@
 .mk-stats > * > .mk-stat { flex: 1; }
 
 /* ── nav dropdown ───────────────────────────────────────────────── */
-
-.sp-nav-group { position: relative; }
-.sp-nav-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 36px;
-  padding: 6px 5px;
-  background: transparent;
-  border: 0;
-  border-radius: 3px;
-  color: rgba(244, 245, 247, 0.68);
-  font-family: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.sp-nav-group.on .sp-nav-trigger { color: var(--electric); }
 /* Touch fires a synthetic hover that then sticks, leaving a trigger looking
    open after its menu closed. Only a real pointer gets the hover colour. */
-@media (hover: hover) and (pointer: fine) {
-  .sp-nav-trigger:hover { color: var(--electric); }
-}
-.sp-nav-trigger:focus-visible { outline: 2px solid var(--electric); outline-offset: 2px; }
-.sp-nav-trigger svg { transition: transform 0.2s ease; }
-.sp-nav-group.on .sp-nav-trigger svg { transform: rotate(180deg); }
-
-.sp-nav-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: -12px;
-  width: 300px;
-  padding: 6px;
-  background: var(--slate);
-  border: 1px solid #2b3b57;
-  border-radius: 5px;
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-6px);
-  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
-}
-.sp-nav-group.on .sp-nav-panel { opacity: 1; visibility: visible; transform: none; }
 /* A hover bridge, so the pointer can cross the gap without the panel closing.
 
    Gated to hovering pointers, because on a touchscreen there is no gap to
@@ -1084,91 +901,12 @@
    measured at 390px the group ended at 183px and "For NGOs" began at 188px,
    so a tap at 187px hit the group instead of the link. A hover affordance
    must not eat touch targets. */
-@media (hover: hover) and (pointer: fine) {
-  .sp-nav-group::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    height: 12px;
-  }
-}
 
 /* `.sp-nav a` is inline-flex for its touch target, which laid the title and
    note side by side inside each panel row. Panel links stack instead. */
-.sp-nav .sp-nav-item,
-.sp-nav .sp-nav-lead {
-  display: block;
-  min-height: 0;
-  padding: 10px 11px;
-  border-radius: 3px;
-  text-decoration: none;
-  color: var(--paper);
-  transition: background 0.14s ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .sp-nav .sp-nav-item:hover,
-  .sp-nav .sp-nav-lead:hover { background: rgba(143, 183, 255, 0.12); }
-}
-.sp-nav-item:focus-visible,
-.sp-nav-lead:focus-visible { outline: 2px solid var(--electric); outline-offset: -2px; }
-.sp-nav-lead {
-  margin-bottom: 4px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #2b3b57;
-  border-radius: 3px 3px 0 0;
-}
-.sp-nav .sp-nav-item b,
-.sp-nav .sp-nav-lead b {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-.sp-nav .sp-nav-item span,
-.sp-nav .sp-nav-lead span {
-  display: block;
-  margin-top: 2px;
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: #97a3b8;
-}
-.sp-nav .sp-nav-lead b { color: var(--electric); }
-
-@media (prefers-reduced-motion: reduce) {
-  .sp-nav-panel { transition: none; }
-  .sp-nav-trigger svg { transition: none; }
-}
 
 /* On mobile the nav is a stacked sheet, so the panel sits inline rather than
    floating, a hover-opened overlay has nothing to hover on a touchscreen. */
-@media (max-width: 650px) {
-  .sp-nav-group { width: 100%; }
-  .sp-nav-trigger {
-    width: 100%;
-    justify-content: space-between;
-    min-height: 46px;
-    padding: 10px 8px;
-    font-size: 15px;
-    border-bottom: 1px solid rgba(244, 245, 247, 0.08);
-  }
-  .sp-nav-panel {
-    position: static;
-    width: 100%;
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    padding: 0 0 0 10px;
-    display: none;
-  }
-  .sp-nav-group.on .sp-nav-panel { display: block; }
-  .sp-nav-lead { display: none; }
-  .sp-nav-item { min-height: 44px; }
-}
 
 /* ── tap targets on small screens ───────────────────────────────── */
 
@@ -1186,76 +924,23 @@
   }
   .sp-footer-bottom a { padding: 0 2px; }
   /* The wordmark is the way home; it should not be a 30px sliver. */
-  .sp-wordmark { min-height: 44px; }
 }
 
 /* One link, two labels: the long one everywhere there is room, the short
    one on phones too narrow to hold the whole header. */
-.sp-header-code-short { display: none; }
-@media (max-width: 430px) {
-  .sp-header-code-long { display: none; }
-  .sp-header-code-short { display: inline; }
-}
 
 /* Launch header: these are two distinct doors, not generic SaaS pills. */
 /* Opaque. At 94% the hero's headline showed straight through the bar
    as the page scrolled under it, which on the dark hero read as two
    overlapping pieces of text. A header is a surface, not a veil. */
-html .sp .sp-header { background: var(--sp-paper); border-bottom-color: rgba(11, 30, 61, .13); }
-html .sp .sp-header-actions { gap: 8px; }
-html .sp .sp-header-code,
-html .sp .sp-header-cta {
-  min-height: 40px;
-  border-radius: 4px;
-  font-size: 12.5px;
-  letter-spacing: -.01em;
-  transition: transform .16s ease, background .16s ease, border-color .16s ease;
-}
-html .sp .sp-header-code {
-  padding: 0 13px;
-  background: transparent;
-  border: 1px solid rgba(11, 30, 61, .18);
-  color: var(--sp-ink);
-}
-html .sp .sp-header-code:hover { background: #f1e9de; border-color: rgba(11, 30, 61, .34); }
-html .sp .sp-header-cta { padding: 0 15px 0 16px; background: var(--sp-ink); color: #fff; }
-html .sp .sp-header-cta:hover { background: var(--sp-blue-deep); }
-html .sp .sp-header-code:active,
-html .sp .sp-header-cta:active { transform: translateY(1px); }
 
 /* Header access is one paired decision. Give both doors the same measured
    box so their labels sit on the same optical centre instead of inheriting
    unrelated padding from the old navigation controls. */
-html .sp .sp-header-actions {
-  display: grid;
-  grid-template-columns: 132px 108px auto;
-  align-items: stretch;
-  gap: 7px;
-}
-html .sp .sp-header-code,
-html .sp .sp-header-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  min-height: 42px;
-  height: 42px;
-  padding: 0 12px;
-  line-height: 1;
-  text-align: center;
-  white-space: nowrap;
-}
-html .sp .sp-header-code { border-radius: 2px; }
-html .sp .sp-header-cta { border-radius: 2px; }
-html .sp .sp-header-cta svg { flex: 0 0 auto; }
 @media (max-width: 560px) {
-  html .sp .sp-header-actions { grid-template-columns: auto auto auto; gap: 5px; }
   /* 38px was under the 44px touch floor, and this rule out-ranked every
      attempt to raise it from elsewhere. The two header actions are the
      first thing a phone visitor reaches for. */
-  html .sp .sp-header-code,
-  html .sp .sp-header-cta { min-height: var(--ctl-h); padding-left: 10px; padding-right: 10px; }
-  html .sp .sp-header-cta svg { display: none; }
 }
 
 /* 320px is a real phone (an iPhone SE in landscape split view, an old
@@ -1263,24 +948,11 @@ html .sp .sp-header-cta svg { flex: 0 0 auto; }
    menu control simply do not fit at that width with any padding worth
    having. The arrow leaves the primary action, which still reads "Open
    app", and everything tightens one more notch. Nothing is hidden. */
-@media (max-width: 360px) {
-  .sp-header { gap: 5px; padding-left: 10px; padding-right: 8px; }
-  .sp-header-actions { gap: 5px; }
-  .sp-wordmark span { font-size: 15.5px; }
-  .sp-wordmark svg { width: 23px; height: 23px; }
-  .sp-header-code { padding-left: 7px; padding-right: 7px; font-size: 11.5px; }
-  .sp-header-cta { padding-left: 9px; padding-right: 9px; font-size: 11.5px; }
-  .sp-header-cta svg { display: none; }
-}
 
 /* The 44px floor, for the two header actions. They were 42: a min-height
    of 38 plus padding, and the global floor could not out-rank a rule in
    this file. Two pixels, on the one control a phone visitor reaches for
    first. */
-@media (pointer: coarse) {
-  .sp-header-code,
-  .sp-header-cta { min-height: var(--ctl-h); }
-}
 
 /* ── language switcher ────────────────────────────────────────────
    Sits in the header beside the menu button. The trigger carries the

@@ -1,41 +1,133 @@
 import Link from "next/link";
-import { ArrowUpRight,MapPin } from "lucide-react";
+import { ArrowUpRight, MapPin } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { getPublishedCaseStories,getPublicCareTimeline,type PublicCaseStory } from "@/lib/community-case-stories";
+import { getPublishedCaseStories, getPublicCareTimeline, type PublicCaseStory } from "@/lib/community-case-stories";
 import { rescueCategory } from "@/lib/rescue-taxonomy";
-import { formatDate } from "@/lib/utils";
+import { dogLabel } from "@/lib/utils";
+import "./stories.css";
 
-export const dynamic="force-dynamic";
-export const metadata={title:"Animal stories, StrayPaw"};
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Rescue stories, StrayPaw", description: "Rescues with a recorded issue, care and outcome, each drawn from the day it was reported to the day it ended." };
 
-type Story={dogId:string;latest:PublicCaseStory;cases:PublicCaseStory[];careCount:number;active:boolean;outcome:string|null};
-function buildStories(cases:PublicCaseStory[],care:Awaited<ReturnType<typeof getPublicCareTimeline>>){
- const byDog=new Map<string,PublicCaseStory[]>();for(const row of cases){if(!row.dog_id)continue;byDog.set(row.dog_id,[...(byDog.get(row.dog_id)??[]),row])}
- const careByDog=new Map<string,number>();for(const row of care)if(row.dog_id)careByDog.set(row.dog_id,(careByDog.get(row.dog_id)??0)+1);
- return [...byDog.entries()].map(([dogId,rows]):Story=>{const ordered=[...rows].sort((a,b)=>+new Date(b.occurred_at)-+new Date(a.occurred_at)),active=false,outcome=ordered.find(row=>row.outcome)?.outcome??null;return{dogId,latest:ordered[0],cases:ordered,careCount:careByDog.get(dogId)??0,active,outcome}}).sort((a,b)=>Number(b.active)-Number(a.active)||+new Date(b.latest.occurred_at)-+new Date(a.latest.occurred_at));
+/* ════════════════════════════════════════════════════════════════════
+   Stories: rescues that finished, told by their own record.
+
+   A story is only published when the record holds an issue, care, an
+   outcome and a date, so each one can be drawn rather than described:
+   the day it was reported, every care event after, the day it ended.
+   The figure at the top lines them all up on the day they began, so the
+   reader sees at once how long a rescue takes and how much care it needs.
+   ════════════════════════════════════════════════════════════════════ */
+
+const DAY = 86_400_000;
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const day = (iso: string) => { const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+const span = (d: number) => (d >= 60 ? `${Math.round(d / 30)} months` : d === 1 ? "1 day" : `${d} days`);
+
+type Journey = { dogId: string; latest: PublicCaseStory; start: number; care: number[]; end: number | null; name: string; category: string };
+
+function journeys(cases: PublicCaseStory[], care: Awaited<ReturnType<typeof getPublicCareTimeline>>): Journey[] {
+  const byDog = new Map<string, PublicCaseStory[]>();
+  for (const c of cases) if (c.dog_id) byDog.set(c.dog_id, [...(byDog.get(c.dog_id) ?? []), c]);
+  const careBy = new Map<string, number[]>();
+  for (const e of care) if (e.dog_id) careBy.set(e.dog_id, [...(careBy.get(e.dog_id) ?? []), Date.parse(e.occurred_at)]);
+  return [...byDog.entries()].map(([dogId, rows]) => {
+    const ordered = [...rows].sort((a, b) => +new Date(b.occurred_at) - +new Date(a.occurred_at));
+    const latest = ordered[0];
+    const start = Date.parse(latest.occurred_at);
+    const end = latest.resolved_at && Date.parse(latest.resolved_at) > start + DAY / 2 ? Date.parse(latest.resolved_at) : null;
+    const careDays = (careBy.get(dogId) ?? []).filter((t) => t >= start - DAY && (!end || t <= end + 30 * DAY)).sort((a, b) => a - b);
+    return {
+      dogId, latest, start, care: careDays, end,
+      name: dogLabel({ name: latest.animal_name, zone: latest.zone }),
+      category: rescueCategory({ subtype: latest.category, title: latest.title, detail: latest.outcome }),
+    };
+  }).sort((a, b) => b.start - a.start);
 }
-export default async function StoriesPage(){
- const [cases,care]=await Promise.all([getPublishedCaseStories(),getPublicCareTimeline()]),stories=buildStories(cases,care).slice(0,24);
- return <AppShell><main className="min-h-screen bg-[#f4f1e9] text-[#0b1e3d]"><div className="mx-auto max-w-7xl px-4 pb-16 pt-7 sm:px-6 lg:px-8">
-  <header className="flex flex-col gap-6 border-b border-[#0b1e3d]/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
-   <div><p className="text-[11px] font-bold uppercase tracking-[.16em] text-[#2457ce]">Animal stories</p><h1 className="mt-2 max-w-3xl text-[clamp(2.5rem,6vw,4.8rem)] font-semibold leading-[.91] tracking-[-.065em]">Recent completed rescues.</h1><p className="mt-4 max-w-2xl text-sm leading-6 opacity-55">Each story includes the issue, care, outcome and date.</p></div>
-   <Link href="/report" className="inline-flex h-11 items-center gap-2 self-start rounded-full bg-[#f05b40] px-5 text-sm font-semibold text-white sm:self-auto">Report an animal <ArrowUpRight size={14}/></Link>
-  </header>
 
-  <div className="border-b border-[#0b1e3d]/10 py-5 text-sm text-[#0b1e3d]/60">{stories.length} recent cases</div>
+export default async function StoriesPage() {
+  const [cases, care] = await Promise.all([getPublishedCaseStories(), getPublicCareTimeline()]);
+  const all = journeys(cases, care).slice(0, 24);
+  const withEnd = all.filter((j) => j.end);
+  const lengths = withEnd.map((j) => Math.round((j.end! - j.start) / DAY)).sort((a, b) => a - b);
+  const median = lengths.length ? lengths[Math.floor(lengths.length / 2)] : null;
+  const careTotal = all.reduce((s, j) => s + j.care.length, 0);
 
-  <StorySection title="Recent cases" lede="Completed cases with a recorded issue, care, outcome and date." stories={stories} empty="No completed rescue stories are published yet."/>
- </div></main></AppShell>;
+  return (
+    <AppShell>
+      <main className="st">
+        <header className="st-head">
+          <p className="sys-eyebrow">Stories</p>
+          <h1>Rescues, from the day they were reported to the day they&nbsp;ended.</h1>
+          <p className="st-lede">
+            <b>{all.length}</b> recent rescues with an issue, care and an outcome on the record — <b>{careTotal}</b> care events between them
+            {median != null ? <>, and half were over within <b>{span(median)}</b></> : null}. Each one below is drawn from its own record.
+          </p>
+          <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
+        </header>
+
+        {all.length > 0 && <Journeys rows={all} />}
+
+        {all.length ? (
+          <ol className="st-grid">
+            {all.map((j) => <Story key={j.dogId} j={j} />)}
+          </ol>
+        ) : <p className="st-empty">No finished rescue has been published yet.</p>}
+      </main>
+    </AppShell>
+  );
 }
-function StorySection({title,lede,stories,empty}:{title:string;lede:string;stories:Story[];empty:string}){
- return <section className="mt-10"><div className="grid gap-2 border-b border-[#0b1e3d]/10 pb-4 sm:grid-cols-[220px_1fr_auto] sm:items-end"><h2 className="text-2xl font-semibold tracking-[-.035em]">{title}</h2><p className="text-sm opacity-45">{lede}</p><span className="text-xs tabular-nums opacity-35">{stories.length}</span></div>{stories.length?<div>{stories.map((story,i)=><StoryRow key={story.dogId} story={story} index={i}/>)}</div>:<p className="py-9 text-sm opacity-45">{empty}</p>}</section>
+
+/** Every rescue on one clock, aligned on the day it began. */
+function Journeys({ rows }: { rows: Journey[] }) {
+  const maxDays = Math.max(30, ...rows.map((j) => Math.round(((j.end ?? Math.max(j.start, ...j.care)) - j.start) / DAY)));
+  const X = (d: number) => (Math.log1p(Math.max(0, d)) / Math.log1p(maxDays)) * 100;
+  const ticks = [0, 1, 7, 30, 90, 180, 365].filter((d) => d <= maxDays);
+  return (
+    <figure className="st-fig">
+      <figcaption>Every rescue here, lined up on the day it was reported. <span><i className="is-start" /> reported <i className="is-care" /> care <i className="is-end" /> ended</span></figcaption>
+      <div className="st-lanes">
+        <div className="st-axis" aria-hidden>{ticks.map((d) => <span key={d} style={{ left: `${X(d)}%` }}>{d === 0 ? "day 0" : d < 30 ? `${d} d` : d < 365 ? `${Math.round(d / 30)} mo` : "1 year"}</span>)}</div>
+        {rows.map((j) => {
+          const endD = j.end ? (j.end - j.start) / DAY : null;
+          return (
+            <Link key={j.dogId} href={`/dog/${j.dogId}`} className="st-lane" title={`${j.name} · ${j.category}`}>
+              <span className="st-lane-n">{j.name}</span>
+              <span className="st-lane-track">
+                {endD != null && <i className="st-lane-line" style={{ width: `${X(endD)}%` }} />}
+                <i className="st-dot is-start" style={{ left: 0 }} />
+                {j.care.map((t, k) => <i key={k} className="st-dot is-care" style={{ left: `${X((t - j.start) / DAY)}%` }} />)}
+                {endD != null && <i className="st-dot is-end" style={{ left: `${X(endD)}%` }} />}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </figure>
+  );
 }
-function StoryRow({story,index}:{story:Story;index:number}){
- const row=story.latest,name=row.animal_name||row.animal_code||"Animal record",category=rescueCategory({subtype:row.category,title:row.title,detail:row.outcome}),status="Completed";
- return <Link href={`/dog/${story.dogId}`} className="group grid gap-5 border-b border-[#0b1e3d]/10 py-6 md:grid-cols-[minmax(220px,34%)_1fr_auto] md:items-center">
-  <DogPhoto src={row.cover_photo} alt={name} seed={story.dogId} tone={story.active?"active":"resolved"} className="aspect-[16/9] w-full rounded-xl object-cover"/>
-  <div className="min-w-0"><div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[.1em]"><span className={story.active?"text-[#f05b40]":"text-[#46755a]"}>{status}</span><span className="opacity-20">·</span><span className="opacity-45">{category}</span></div><h3 className="mt-2 text-2xl font-semibold tracking-[-.035em]">{name}</h3><p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-6 opacity-55">{row.title||"Rescue record"}</p><div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-xs opacity-40"><span className="inline-flex items-center gap-1"><MapPin size={11}/>{row.zone||row.ngo_name||"Location recorded"}</span><span>{story.cases.length} rescue record{story.cases.length===1?"":"s"}</span><span>{story.careCount} care event{story.careCount===1?"":"s"}</span><span>{formatDate(row.resolved_at||row.occurred_at)}</span></div>{story.outcome&&<p className="mt-2 line-clamp-1 text-xs opacity-45">Outcome: {story.outcome}</p>}</div>
-  <div className="hidden items-center gap-3 md:flex"><span className="text-[10px] tabular-nums opacity-20">0{index+1}</span><ArrowUpRight size={17} className="opacity-20 transition group-hover:opacity-70"/></div>
- </Link>
+
+function Story({ j }: { j: Journey }) {
+  const row = j.latest;
+  const len = j.end ? Math.round((j.end - j.start) / DAY) : null;
+  const outcome = row.outcome?.trim().replace(/\.$/, "") ?? "";
+  const said = outcome.split(/\s+/).length > 3;
+  const cat = /^unknown|not recorded/i.test(j.category) ? null : j.category;
+  return (
+    <li>
+      <Link href={`/dog/${j.dogId}`} className={`st-card ${row.cover_photo ? "" : "is-plain"}`}>
+        <DogPhoto src={row.cover_photo} alt={j.name} seed={j.dogId} tone="resolved" className="st-photo" />
+        <div className="st-body">
+          <p className="st-meta">{cat && <span className="st-cat">{cat}</span>}{row.zone && <span><MapPin size={11} /> {row.zone}</span>}</p>
+          <h2>{j.name}</h2>
+          {outcome && (said ? <p className="st-outcome">&ldquo;{outcome}.&rdquo;</p> : <p className="st-result">Outcome: <b>{outcome.toLowerCase()}</b></p>)}
+          <p className="st-facts">
+            Reported {day(row.occurred_at)} · {j.care.length} care event{j.care.length === 1 ? "" : "s"}{len != null ? <> · ended after {span(len)}</> : null}
+          </p>
+        </div>
+        <ArrowUpRight size={16} className="st-go" />
+      </Link>
+    </li>
+  );
 }
