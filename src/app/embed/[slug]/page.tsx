@@ -28,8 +28,8 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
   const extraMetrics = [
     impact.sterilised > 0 && { value: impact.sterilised, label: "Sterilised" },
     impact.vaccinated > 0 && { value: impact.vaccinated, label: "Vaccinated" },
+    impact.caseRecords > 0 && { value: impact.caseRecords, label: "Case records" },
     impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
-    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Closed after field work" },
   ].filter(Boolean) as { value: number; label: string }[];
   const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
@@ -50,7 +50,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
 
         <div className={styles.primary}>
           <strong className={styles.primaryNumber}>{formatter.format(impact.animalsRecorded)}</strong>
-          <span className={styles.primaryLabel}>Animals on record</span>
+          <span className={styles.primaryLabel}>Animal records</span>
         </div>
 
         <div className={styles.lower}>

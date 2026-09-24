@@ -8,6 +8,7 @@ export type OrgImpact = {
   animalsRecorded: number;
   sterilised: number;
   vaccinated: number;
+  caseRecords: number;
   activeCases: number;
   resolvedCases: number;
 };
@@ -82,8 +83,8 @@ function mapPublicAnimal(row: any): Dog {
  * Public-only impact read. It runs server-side with the existing service-role
  * client and returns only counts. The browser never receives a service key,
  * raw case row, exact coordinate, or operational note. If a deployment is
- * missing that server credential, the safe profile view still supplies the
- * three animal counts; case metrics remain absent rather than guessed.
+ * missing that server credential, the existing public-safe projections are
+ * used instead, so the same aggregate semantics survive without exposing raw rows.
  */
 async function readPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
   const admin = getSupabaseAdmin();
@@ -92,26 +93,29 @@ async function readPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
     animalsRecorded: 0,
     sterilised: 0,
     vaccinated: 0,
+    caseRecords: 0,
     activeCases: 0,
     resolvedCases: 0,
   };
   if (admin) {
-    const [animals, sterilised, vaccinated, activeCases, resolvedCases] = await Promise.all([
+    const [animals, sterilised, vaccinated, caseRecords, activeCases, resolvedCases] = await Promise.all([
       admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
       admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
         .or("sterilisation_status.eq.sterilised,and(sterilisation_status.is.null,sterilised.eq.true)"),
       admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
         .or("vaccination_status.eq.vaccinated,and(vaccination_status.is.null,vaccinated.eq.true)"),
+      admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
       /* status_class is the case's actual state; the workflow status of an
          imported case can disagree with it. */
       admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).in("status_class", ["open", "in_progress"]),
       admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status_class", "closed"),
     ]);
-    if (![animals, sterilised, vaccinated, activeCases, resolvedCases].some((result) => result.error)) {
+    if (![animals, sterilised, vaccinated, caseRecords, activeCases, resolvedCases].some((result) => result.error)) {
       return {
         animalsRecorded: animals.count ?? 0,
         sterilised: sterilised.count ?? 0,
         vaccinated: vaccinated.count ?? 0,
+        caseRecords: caseRecords.count ?? 0,
         activeCases: activeCases.count ?? 0,
         resolvedCases: resolvedCases.count ?? 0,
       };
@@ -119,23 +123,28 @@ async function readPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
   }
 
   if (!supa) return empty;
-  const { data: profiles } = await supa
-    .from("public_animal_profiles")
-    .select("id, sterilised, vaccinated, sterilisation_status, vaccination_status")
-    .eq("ngo_id", ngoId)
-    .limit(5000);
-  const rows = profiles ?? [];
+  const [animals, sterilised, vaccinated, caseRecords, activeCases, resolvedCases] = await Promise.all([
+    supa.from("public_animal_profiles").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
+    supa.from("public_animal_profiles").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
+      .or("sterilisation_status.eq.sterilised,and(sterilisation_status.is.null,sterilised.eq.true)"),
+    supa.from("public_animal_profiles").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
+      .or("vaccination_status.eq.vaccinated,and(vaccination_status.is.null,vaccinated.eq.true)"),
+    supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
+    supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).in("status_class", ["open", "in_progress"]),
+    supa.from("public_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status_class", "closed"),
+  ]);
   return {
-    animalsRecorded: rows.length,
-    sterilised: rows.filter((row: any) => row.sterilisation_status === "sterilised" || (row.sterilisation_status == null && row.sterilised)).length,
-    vaccinated: rows.filter((row: any) => row.vaccination_status === "vaccinated" || (row.vaccination_status == null && row.vaccinated)).length,
-    activeCases: 0,
-    resolvedCases: 0,
+    animalsRecorded: animals.count ?? 0,
+    sterilised: sterilised.count ?? 0,
+    vaccinated: vaccinated.count ?? 0,
+    caseRecords: caseRecords.count ?? 0,
+    activeCases: activeCases.count ?? 0,
+    resolvedCases: resolvedCases.count ?? 0,
   };
 }
 
 /** Cache the narrow aggregate briefly so an NGO homepage stays responsive
- * without turning every visitor into five database count queries. */
+ * without turning every visitor into repeated database count queries. */
 export function getPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
   return unstable_cache(
     () => readPublicOrgImpact(ngoId),
