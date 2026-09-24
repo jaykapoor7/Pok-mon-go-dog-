@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { ExportStudio } from "@/components/partner/ExportStudio";
@@ -13,7 +13,11 @@ import { Report } from "./Report";
 export function OrgReport() {
   const { user, ready } = useAuth();
   const { member, ready: accessReady } = usePartnerAccess();
-  if (!ready || (user && !accessReady)) return null;
+  /* The first client render must match the server's, whatever the session
+     has settled to by the time this part of the page hydrates. */
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted || !ready || (user && !accessReady)) return <div className="an-wait" aria-busy="true" />;
   const org = Boolean(user && member);
   /* Signed out, the partner layout already asks for a sign-in; a signed-in
      person who is not yet a member is told why they see the public register. */

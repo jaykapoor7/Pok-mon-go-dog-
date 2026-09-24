@@ -6,6 +6,7 @@ import {
   createContext,
   useContext,
   type ReactNode,
+  startTransition,
 } from "react";
 import { Loader2, ShieldCheck, LogIn, HeartHandshake, Check } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -120,17 +121,20 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
      should not refetch membership. */
   const userId = user?.id;
 
+  /* Membership settles after the first paint. As a transition, React
+     finishes hydrating the view beneath first, so nothing below renders a
+     state the server never sent. */
   useEffect(() => {
     if (!ready) return;
     if (!userId) {
-      setMember(false);
+      startTransition(() => setMember(false));
       return;
     }
     let alive = true;
     isNgoMember()
       .then((ok) => {
         if (!alive) return;
-        setMember(ok);
+        startTransition(() => setMember(ok));
         if (!ok) getMyPartnerRequestStatus().then((s) => alive && setReqStatus(s)).catch(() => {});
       })
       .catch(() => alive && setMember(false));

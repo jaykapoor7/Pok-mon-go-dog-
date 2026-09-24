@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  /* Metadata goes in the <head> of the first response for every visitor,
+     as it would for a crawler, instead of streaming in behind the page.
+     The streamed form adds a Suspense boundary after every page body, and
+     the one hydration mismatch traced on /partner/reports landed on it. */
+  htmlLimitedBots: /.*/,
   // This checkout lives beneath a shared Codex workspace that also has a
   // lockfile. Explicitly anchoring file tracing here prevents Next from
   // treating the parent workspace as the application root during builds.

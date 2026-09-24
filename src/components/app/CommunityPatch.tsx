@@ -67,7 +67,7 @@ function samplePatch(ds: SpatialDataset): Patch {
 }
 
 export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
-  const { ds, ix, loading } = useSpatialDataset("public");
+  const { ds, ix, loading, error } = useSpatialDataset("public");
   const { ids: follows } = useFollows();
   const [patch, setPatch] = useState<Patch | null>(null);
   const [locating, setLocating] = useState(false);
@@ -193,6 +193,24 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
     return out;
   }, [ds, cells]);
 
+  /* The register could not be read: the patch cannot be drawn, but the two
+     things a person came to do here still work. */
+  if (!loading && !ds && error) return (
+    <main className="cp">
+      <header className="cp-head">
+        <div className="cp-head-id">
+          <p className="sys-eyebrow">Your patch{patch ? ` · ${patch.label}` : ""}</p>
+          <h1>The register could not be read just now.</h1>
+          <p className="cp-sample">Your patch is drawn here once it can be. Reporting an animal does not wait for it.</p>
+        </div>
+        <div className="cp-head-acts">
+          <Link href={patch ? `/report?lat=${patch.lat}&lng=${patch.lng}` : "/report"} className="sys-btn is-flame"><Plus size={16} /> Report an animal</Link>
+          <button type="button" className="sys-btn is-quiet" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
+        </div>
+        {note && <p className="cp-note">{note}</p>}
+      </header>
+    </main>
+  );
   if (loading || !ds || !patch || !stats || !cells) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
 
   return (

@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  startTransition,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyRound, X, Loader2, LogIn } from "lucide-react";
@@ -61,7 +62,11 @@ function nameFromEmail(email: string | undefined | null): string {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supa = getSupabase();
   const [user, setUser] = useState<AppUser | null>(null);
-  const [ready, setReady] = useState(false);
+  /* With no backend there is nothing to wait for, so say so from the first
+     render on both sides. Flipping it in an effect raced any part of the page
+     that hydrates later, which then rendered its signed-out state from a
+     context the server never saw. */
+  const [ready, setReady] = useState(!supa && !isRecordingDemo);
   const [open, setOpen] = useState(false);
   const pendingRef = useRef<null | (() => void)>(null);
 
@@ -80,8 +85,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let alive = true;
     supa.auth.getSession().then(({ data }) => {
       if (!alive) return;
-      applySession(data.session?.user ?? null);
-      setReady(true);
+      /* A transition, so any part of the page still hydrating finishes
+         against the signed-out render the server sent before it changes. */
+      startTransition(() => {
+        applySession(data.session?.user ?? null);
+        setReady(true);
+      });
     });
 
     const { data: sub } = supa.auth.onAuthStateChange((event, session) => {

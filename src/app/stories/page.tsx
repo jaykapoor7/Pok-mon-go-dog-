@@ -60,10 +60,10 @@ export default async function StoriesPage() {
         <header className="st-head">
           <p className="sys-eyebrow">Stories</p>
           <h1>Rescues, from the day they were reported to the day they&nbsp;ended.</h1>
-          <p className="st-lede">
+          {all.length > 0 && <p className="st-lede">
             <b>{all.length}</b> recent rescues with an issue, care and an outcome on the record — <b>{careTotal}</b> care events between them
             {median != null ? <>, and half were over within <b>{span(median)}</b></> : null}. Each one below is drawn from its own record.
-          </p>
+          </p>}
           <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
         </header>
 

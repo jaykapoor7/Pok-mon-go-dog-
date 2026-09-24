@@ -261,8 +261,8 @@ export function Report({ scope, initial = null, national = null, tail = null, no
           <ScaleLadder rungs={rungs} />
         </div>
         <h1>
-          <span>{head ? <>{guard && isSparse(head.requests) ? "Few" : head.requests.toLocaleString("en-IN")} request{head.requests === 1 ? "" : "s"} for help.</> : <>&nbsp;</>}</span>
-          <em>{!head ? <>&nbsp;</>
+          <span>{head ? <>{guard && isSparse(head.requests) ? "Few" : head.requests.toLocaleString("en-IN")} request{head.requests === 1 ? "" : "s"} for help.</> : error ? "The register could not be read." : <>&nbsp;</>}</span>
+          <em>{!head ? (error ? "Nothing below is drawn until it can. Try again in a minute." : <>&nbsp;</>)
             : head.requests >= FEW_HEAD ? <>{head.closedPct}% closed after field work{head.noAction ? <>, {fewOr(head.noAction, guard)} without it</> : null}.</>
             : head.requests === 0 ? "None in this place and period."
             : guard ? "Too few to read as a pattern; what is recorded is below."

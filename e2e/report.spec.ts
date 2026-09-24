@@ -104,7 +104,6 @@ test.describe("public routes", () => {
     "/",
     "/report",
     "/app",
-    "/feed",
     "/map",
     "/stories",
     "/orgs",
