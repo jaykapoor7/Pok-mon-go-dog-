@@ -25,7 +25,7 @@ export function StructuredData({ siteUrl }: { siteUrl: string }) {
       logo: `${base}/icon.png`,
       email: "jaykapoor7@outlook.com",
       description:
-        "StrayPaw gives every street animal in India a permanent identity and a shared record. Residents, field teams and municipalities write to the same map, so coverage can be counted instead of estimated.",
+        "StrayPaw is one shared record connecting sightings, field work and outcomes for India's street animals. Residents, field teams and municipalities write to the same record, so coverage can be counted instead of estimated.",
       areaServed: { "@type": "Country", name: "India" },
       sameAs: ["https://x.com/jaybuildsvx"],
       knowsAbout: [
@@ -41,7 +41,7 @@ export function StructuredData({ siteUrl }: { siteUrl: string }) {
       url: base,
       name: "StrayPaw",
       description:
-        "A shared record for India's street animals: every sighting becomes an observation, and observations accumulate into a record of one animal over time.",
+        "One shared record connecting sightings, field work and outcomes for India's street animals.",
       inLanguage: "en-IN",
       publisher: { "@id": `${base}/${ORG_ID}` },
       /* The organisation directory is a real search endpoint that accepts a

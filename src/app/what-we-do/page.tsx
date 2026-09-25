@@ -7,7 +7,7 @@ export const dynamic = "force-static";
 export const metadata = {
   title: "What we do, StrayPaw",
   description:
-    "How StrayPaw works: report street animals, track rescues, run transparent campaigns, and map feeding zones.",
+    "How StrayPaw works: one shared record connecting sightings, field work and outcomes for street animals.",
 };
 
 type Step = { title: string; body: string };

@@ -7,7 +7,7 @@ import "./mission.css";
 export const metadata = {
   title: "Our mission, StrayPaw",
   description:
-    "One shared record for every street animal, kept by the people already doing the work, street by street.",
+    "One shared record connecting sightings, field work and outcomes, kept by the people already doing the work, street by street.",
 };
 
 /* What StrayPaw is for, and the rules the software holds to. Why it has to

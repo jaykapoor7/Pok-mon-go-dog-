@@ -68,7 +68,7 @@ export default async function DogProfilePage({ params }: { params: Promise<{ id:
     isPartOf: {
       "@type": "Dataset",
       name: "The StrayPaw register",
-      description: "A shared, public record of India's street animals.",
+      description: "One shared record connecting sightings, field work and outcomes for India's street animals.",
     },
   };
 

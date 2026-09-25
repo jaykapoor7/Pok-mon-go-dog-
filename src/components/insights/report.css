@@ -57,10 +57,11 @@
 .an-rail-plate { margin: 0; display: grid; gap: 8px; color: var(--sp-muted); }
 .an-rail-plate figcaption { font-size: 11.5px; line-height: 1.45; }
 .an-toc ol { margin: 0; padding: 0; list-style: none; display: grid; border-top: 1px solid var(--sp-rule); }
-.an-toc a { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--sp-line); color: var(--sp-body); text-decoration: none; font-size: 13.5px; font-weight: 500; }
-.an-toc a span { font-size: 10.5px; color: var(--sp-muted); }
-.an-toc a:hover, .an-toc a.is-on { color: var(--sp-ink); }
-.an-toc a.is-on { font-weight: 700; box-shadow: inset 3px 0 0 var(--sp-flame); padding-left: 10px; }
+.an-toc button { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--sp-line); font: inherit; text-align: left; cursor: pointer; }
+.an-toc a, .an-toc button { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--sp-line); color: var(--sp-body); text-decoration: none; font-size: 13.5px; font-weight: 500; }
+.an-toc a span, .an-toc button span { font-size: 10.5px; color: var(--sp-muted); }
+.an-toc a:hover, .an-toc a.is-on, .an-toc button:hover, .an-toc button.is-on { color: var(--sp-ink); }
+.an-toc a.is-on, .an-toc button.is-on { font-weight: 700; box-shadow: inset 3px 0 0 var(--sp-flame); padding-left: 10px; }
 
 .an-main { min-width: 0; }
 .an-state { padding: 60px 0; color: var(--sp-muted); font-size: 14px; }
@@ -182,7 +183,8 @@
     display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 8px 0 4px; margin-bottom: 4px;
   }
   .an-toc-phone::-webkit-scrollbar { display: none; }
-  .an-toc-phone a { flex: none; height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; border: 1px solid var(--sp-line); font-size: 12.5px; font-weight: 600; color: var(--sp-body); text-decoration: none; }
+  .an-toc-phone button.is-on { background: var(--sp-ink); color: var(--sp-paper); border-color: var(--sp-ink); }
+  .an-toc-phone a, .an-toc-phone button { font-family: inherit; background: var(--sp-paper); cursor: pointer; flex: none; height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; border: 1px solid var(--sp-line); font-size: 12.5px; font-weight: 600; color: var(--sp-body); text-decoration: none; }
 }
 @media (max-width: 760px) {
   .an-mast { padding-bottom: 18px; }
@@ -242,3 +244,8 @@
 .an-mini button { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--sp-ink); cursor: pointer; text-align: left; }
 .an-mini button:hover { color: var(--sp-blue); }
 .an-mini b { font-weight: 500; font-size: 11.5px; color: var(--sp-flame-deep); }
+
+/* One chapter at a time: the step to the next question. */
+.an-next { margin-top: var(--sp-6); display: inline-flex; align-items: center; gap: 8px; height: var(--ctl-h); padding: var(--ctl-pad); border-radius: var(--ctl-r); border: 0; background: var(--ctl-tint); color: var(--sp-blue); font: inherit; font-size: var(--ctl-fs); font-weight: var(--ctl-fw); cursor: pointer; transition: background var(--sp-fast) var(--sp-ease-io); }
+.an-next:hover { background: var(--ctl-tint-hover); }
+.an-next:active { transform: var(--ctl-press); }

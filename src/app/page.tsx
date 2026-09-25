@@ -17,7 +17,7 @@ import "@/components/landing/landing.css";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "StrayPaw, every street animal on the record",
-  description: "A shared map and operational record for India's street animals. One sighting becomes coordinated action and better local evidence.",
+  description: "One shared record connecting sightings, field work and outcomes for India's street animals.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -53,6 +53,7 @@ export default async function HomePage() {
               Every stray animal in India.
               <em>Seen, tracked, cared&nbsp;for.</em>
             </h1>
+            <p className="ld-hero-sub">One shared record connecting sightings, field work and outcomes.</p>
             <div className="ld-hero-actions">
               <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
               <Link href="/map" className="sys-link is-night">Open the live map <ArrowUpRight size={15} /></Link>
@@ -139,7 +140,7 @@ export default async function HomePage() {
           <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
         </section>
       </main>
-      <footer className="field-footer"><Link href="/" className="field-footer-brand">StrayPaw<span>One sighting. A shared record.</span></Link><nav aria-label="Footer"><Link href="/mission">Mission</Link><Link href="/for-ngos">For NGOs</Link><Link href="/evidence">Evidence</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav><span>Built with care, in India.<br />© {new Date().getFullYear()} StrayPaw</span></footer>
+      <footer className="field-footer"><Link href="/" className="field-footer-brand">StrayPaw<span>One shared record, from sighting to outcome.</span></Link><nav aria-label="Footer"><Link href="/mission">Mission</Link><Link href="/for-ngos">For NGOs</Link><Link href="/evidence">Evidence</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav><span>Built with care, in India.<br />© {new Date().getFullYear()} StrayPaw</span></footer>
     </div>
   );
 }

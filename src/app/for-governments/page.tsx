@@ -49,22 +49,11 @@ export default function ForGovernmentsPage() {
         />
       </Band>
 
-      <Band tone="paper" title="Published, sourced," accent="and honest about the gap.">
+      <Band tone="paper" title="Built against" accent="real field records.">
         <p className="mk-body">
-          These are national figures, not StrayPaw&apos;s. They are printed here with their
-          sources because a municipal programme is usually asked to justify itself against
-          them, and because the distance between the first two is the reason ward-level
-          record keeping matters at all.
-        </p>
-      </Band>
-
-      <Band tone="bone" title="Built against" accent="real field records.">
-        <p className="mk-body">
-          StrayPaw&apos;s operational register was built with The Pawsome People Project in
-          Coimbatore, Tamil Nadu, whose rescue, treatment, sterilisation and follow-up
-          records were migrated into the animal registry with their source identifiers
-          preserved. That migration is what the import, deduplication and follow-up
-          tooling was designed against, rather than a specimen dataset.
+          The register was built with The Pawsome People Project in Coimbatore, Tamil
+          Nadu. Their rescue, treatment, sterilisation and follow-up records were moved
+          into it with their own source identifiers kept.
         </p>
         <PartnerProof heading="Organisations on the record" />
       </Band>

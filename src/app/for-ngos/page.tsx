@@ -5,7 +5,7 @@ import { PartnerProof } from "@/components/marketing/PartnerProof";
 export const metadata = {
   title: "For NGOs, better tools, same fieldwork",
   description:
-    "Case management, an animal registry, medical tracking and a durable record of the work your team already does. Free for verified organisations.",
+    "One shared record connecting sightings, field work and outcomes: cases, an animal registry and care history for the work your team already does. Free for verified organisations.",
 };
 
 export default function ForNgosPage() {

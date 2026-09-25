@@ -33,7 +33,7 @@ const since = (iso: string | null) => {
 };
 const SOURCE: Record<LivingEvent["source"], string> = { field: "field record", resident: "resident", import: "imported register" };
 
-export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "org"; org?: ReactNode }) {
+export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "public" | "org"; org?: ReactNode; trail?: ReactNode }) {
   const reportHref = `/report?dog=${r.id}${r.place ? `&lat=${r.place.center[1]}&lng=${r.place.center[0]}` : ""}`;
   const mapHref = r.place ? `${scope === "org" ? "/partner/map" : "/map"}?mode=animals&cell=${r.place.cell}` : `/map?focus=animal:${r.id}`;
   const status = r.known.health === "needs_help" ? { t: "Needs help", c: "is-hot" }
@@ -57,6 +57,7 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
   const placeLine = joinPlace(r.locality, r.city);
   return (
     <article className="lr" aria-labelledby="lr-name">
+      {trail}
       {/* ── who, and where ─────────────────────────────────────────── */}
       <header className="lr-mast">
         <div className={`lr-portrait ${r.photo ? "" : "is-place"}`}>

@@ -17,7 +17,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarRange, ChevronDown, Map as MapIcon, RotateCcw } from "lucide-react";
+import { ArrowRight, CalendarRange, ChevronDown, Map as MapIcon, RotateCcw } from "lucide-react";
 import { ScaleLadder, type Rung } from "@/components/system/ScaleLadder";
 import { HexPlate } from "@/components/system/HexPlate";
 import { PeriodBrush } from "@/components/viz/PeriodBrush";
@@ -213,18 +213,23 @@ export function Report({ scope, initial = null, tail = null, notice = null, user
     });
   }, [ds, place.city, cityCells, cityIdx, cells, scope]);
 
-  /* ── which chapter is on screen ────────────────────────────────────── */
+  /* ── one chapter at a time ─────────────────────────────────────────── */
+  /* Each chapter answers one question, so the page shows one: the contents
+     choose it, and a link at the foot steps to the next. #when and the like
+     still open that chapter directly. */
   const [active, setActive] = useState("happens");
   useEffect(() => {
-    if (!ds) return;
-    const els = CHAPTERS.map((c) => document.getElementById(c.id)).filter(Boolean) as HTMLElement[];
-    const io = new IntersectionObserver((es) => {
-      const v = es.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-      if (v) setActive(v.target.id);
-    }, { rootMargin: "-12% 0px -70% 0px" });
-    els.forEach((e) => io.observe(e));
-    return () => io.disconnect();
-  }, [ds, idx]);
+    const read = () => { const h = window.location.hash.slice(1); if (CHAPTERS.some((c) => c.id === h)) setActive(h); };
+    read(); window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
+  const pick = (id: string) => {
+    setActive(id);
+    try { history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${id}`); } catch { /* ok */ }
+    document.querySelector(".an-body")?.scrollIntoView({ block: "start", behavior: "smooth" });
+  };
+  const at = CHAPTERS.findIndex((c) => c.id === active);
+  const nextCh = CHAPTERS[at + 1];
 
   /* ── the headline ──────────────────────────────────────────────────── */
   const head = useMemo(() => {
@@ -320,7 +325,7 @@ export function Report({ scope, initial = null, tail = null, notice = null, user
       </div>
 
       <nav className="an-toc-phone" aria-label="Chapters">
-        {CHAPTERS.map((c) => <a key={c.id} href={`#${c.id}`}>{c.label}</a>)}
+        {CHAPTERS.map((c) => <button key={c.id} type="button" aria-pressed={active === c.id} className={active === c.id ? "is-on" : ""} onClick={() => pick(c.id)}>{c.label}</button>)}
       </nav>
 
       <div className="an-body">
@@ -335,7 +340,7 @@ export function Report({ scope, initial = null, tail = null, notice = null, user
           <nav className="an-toc" aria-label="Chapters">
             <ol>
               {CHAPTERS.map((c, i) => (
-                <li key={c.id}><a href={`#${c.id}`} className={active === c.id ? "is-on" : ""}><span className="sys-mono">{String(i + 1).padStart(2, "0")}</span>{c.label}</a></li>
+                <li key={c.id}><button type="button" aria-pressed={active === c.id} className={active === c.id ? "is-on" : ""} onClick={() => pick(c.id)}><span className="sys-mono">{String(i + 1).padStart(2, "0")}</span>{c.label}</button></li>
               ))}
             </ol>
           </nav>
@@ -346,12 +351,13 @@ export function Report({ scope, initial = null, tail = null, notice = null, user
           {error && <p className="an-state" role="status">{error}</p>}
           {ctx && (
             <>
-              <Happens c={ctx} />
-              <When c={ctx} />
-              <Response c={ctx} />
-              <Where c={ctx} />
-              <Intervention c={ctx} />
-              <Evidence c={ctx} />
+              {active === "happens" && <Happens c={ctx} />}
+              {active === "when" && <When c={ctx} />}
+              {active === "response" && <Response c={ctx} />}
+              {active === "where" && <Where c={ctx} />}
+              {active === "intervention" && <Intervention c={ctx} />}
+              {active === "evidence" && <Evidence c={ctx} />}
+              {nextCh && <button type="button" className="an-next" onClick={() => pick(nextCh.id)}>Next: {nextCh.label} <ArrowRight size={15} /></button>}
             </>
           )}
           {tail}

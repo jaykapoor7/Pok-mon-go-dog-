@@ -12,6 +12,7 @@
    is the only place anything is changed.
    ════════════════════════════════════════════════════════════════════ */
 
+import { WorkTrail, type TrailStep } from "@/components/partner/WorkTrail";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Camera, Check, ExternalLink, Loader2, LogIn, MapPin, Send } from "lucide-react";
@@ -104,8 +105,18 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
     ? <>Reported {day(reg.occurred_at)}{intake ? <> through {intake.toLowerCase().replace(/^the /, "the ")}</> : null}. Open for <b className={stale ? "is-hot" : ""}>{span(age)}</b>{quiet > 30 ? <>; nothing recorded for <b className="is-hot">{span(quiet)}</b></> : <>; last touched {quiet === 0 ? "today" : `${span(quiet)} ago`}</>}.</>
     : <>Reported {day(reg.occurred_at)}{intake ? <> through {intake.toLowerCase()}</> : null}. {cls === "closed" ? "Closed" : STATUS_META[cls]?.label ?? "Closed"}{closedClamped && !assumed ? <> {day(closedClamped)}{closedDays ? <>, after <b>{span(closedDays)}</b></> : null}</> : assumed ? <> — the import could not say when</> : null}.</>;
 
+  const dogHref = c.dog_id ? `/partner/animals/${c.dog_id}` : null;
+  const cared = Boolean(reg.first_action_at) || file.updates.length > 0;
+  const done: TrailStep[] = ["dashboard", ...(dogHref ? ["animal" as const] : []), ...(cared ? ["care" as const] : []), ...(!open ? ["outcome" as const] : [])];
+  const trailNext = !dogHref ? { label: "Link the animal", href: "/partner/animals" }
+    : open && !cared ? { label: "Record care on the animal", href: `${dogHref}#org-care` }
+    : open ? { label: "Decide the outcome", href: "#cf-next" }
+    : null;
+
   return (
     <main className="cf">
+      <WorkTrail at="case" done={done} next={trailNext}
+        links={{ dashboard: "/partner", animal: dogHref ?? "/partner/animals", care: dogHref ? `${dogHref}#org-care` : undefined, outcome: "#cf-next" }} />
       <header className="cf-mast">
         <div className="cf-id">
           <p className="cf-kicker">

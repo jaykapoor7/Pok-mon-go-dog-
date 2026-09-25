@@ -107,7 +107,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "./" },
   title: "StrayPaw, every street animal on the record",
   description:
-    "A permanent identity and a shared record for India's street animals, so NGOs, municipalities and funders work from the same data instead of three different notebooks.",
+    "One shared record connecting sightings, field work and outcomes for India's street animals, so residents, NGOs, municipalities and funders work from the same data.",
   keywords: [
     "street animals",
     "India",
@@ -123,7 +123,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "StrayPaw, every street animal on the record",
     description:
-      "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
+      "One shared record connecting sightings, field work and outcomes for India's street animals. One animal, one history, across every organisation that meets it.",
     type: "website",
     siteName: "StrayPaw",
     url: siteUrl,
@@ -141,7 +141,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "StrayPaw, every street animal on the record",
     description:
-      "A permanent identity and a shared record for India's street animals. One animal, one history, across every organisation that meets it.",
+      "One shared record connecting sightings, field work and outcomes for India's street animals. One animal, one history, across every organisation that meets it.",
     /* A real file rather than a generated route. The generated one drew a
        hand-built heart-and-dog shape that was never the logo, and Next
        emitted twitter:image:alt and :type from it without twitter:image

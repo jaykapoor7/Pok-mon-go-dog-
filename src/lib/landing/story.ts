@@ -155,6 +155,22 @@ function buildStory(ds: SpatialDataset) {
     }),
     cells: cellList.map((c) => ({ key: ds.cells[c], ring: ds.rings[c], open: openBy.get(c) ?? 0 })),
     box: coreBox(ds, cellList, 0.02, 0.98, 0.01),
+    /* The city's most recent real events, oldest first, for the mockup to
+       replay: a request coming in, a field team's first action, a closure
+       after field work. Each keeps its own date. */
+    feed: (() => {
+      const CLOSED = ds.dict.status.indexOf("closed");
+      const ev: { kind: "report" | "action" | "closed"; day: number; condition: string; locality: string; cell: string; critical: boolean }[] = [];
+      for (const i of cityCases) {
+        const li = ds.cellLocality[at(i, C.cell)];
+        const base = { condition: CONDITIONS[at(i, C.cond)] ?? "Not recorded", locality: li >= 0 ? ds.localities[li] : "", cell: ds.cells[at(i, C.cell)], critical: isCritical(i) };
+        const d = at(i, C.day), fa = at(i, C.firstAction), cd = at(i, C.closedDay);
+        if (d >= 0 && d <= ds.today) ev.push({ kind: "report", day: d, ...base });
+        if (fa >= 0 && fa <= ds.today && fa > d) ev.push({ kind: "action", day: fa, ...base });
+        if (cd >= 0 && cd <= ds.today && at(i, C.status) === CLOSED) ev.push({ kind: "closed", day: cd, ...base });
+      }
+      return ev.sort((a, b) => a.day - b.day).slice(-14).map((e) => ({ ...e, date: new Date(Date.UTC(2000, 0, 1) + e.day * 86_400_000).toISOString().slice(0, 10) }));
+    })(),
   };
 
   /* what is known, and what is not */

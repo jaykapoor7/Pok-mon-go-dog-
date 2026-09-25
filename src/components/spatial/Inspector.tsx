@@ -92,10 +92,12 @@ const since = (iso: string | null) => {
   return d < 1 ? "today" : d < 31 ? `${d}d ago` : d < 365 ? `${Math.round(d / 30)}mo ago` : `${(d / 365).toFixed(1)}y ago`;
 };
 
-export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand }: {
+export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand, onMode }: {
   ds: SpatialDataset; ix: Index; sel: Sel; t: number; scope: Scope; next: NextCell[];
   onSelect: (s: Sel) => void; onClose: () => void; onPickNext: (n: NextCell) => void;
   compact: boolean; onExpand: () => void;
+  /** Switch the map itself to another mode, keeping the place. */
+  onMode?: (m: "cases" | "abc") => void;
 }) {
   const cells = useMemo(() => {
     if (sel.t === "india") return null;
@@ -151,6 +153,18 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
     return base;
   })();
 
+  /* ── what matters here, and what to do next ─────────────────────── */
+  const center: [number, number] | null = (() => {
+    if (sel.t === "cell") return [ds.centers[sel.cell * 2], ds.centers[sel.cell * 2 + 1]];
+    if (sel.t === "city") return [ds.cities[sel.city].lng, ds.cities[sel.city].lat];
+    if (sel.t === "locality" && cells?.size) { const c = cells.values().next().value as number; return [ds.centers[c * 2], ds.centers[c * 2 + 1]]; }
+    return null;
+  })();
+  const localityName = sel.t === "locality" ? ds.localities[sel.locality] : sel.t === "cell" && ds.cellLocality[sel.cell] >= 0 ? ds.localities[ds.cellLocality[sel.cell]] : "";
+  const missingHref = scope === "org"
+    ? `/partner/animals?ster=unknown${localityName ? `&zone=${encodeURIComponent(localityName)}` : ""}`
+    : center ? `/report?lat=${center[1]}&lng=${center[0]}` : "/report";
+
   /* ── titles ─────────────────────────────────────────────────────── */
   const title = sel.t === "india" ? "India"
     : sel.t === "city" ? ds.cities[sel.city].name
@@ -189,6 +203,26 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
           <em>Details</em>
         </button>
       )}
+
+      {sel.t !== "india" && sel.t !== "empty" && (() => {
+        const unknownPct = know.total ? Math.round((know.ster.unknown / know.total) * 100) : 0;
+        const matter = critical > 0 ? { hot: true, text: <><b>{n(critical)}</b> critical {critical === 1 ? "case is" : "cases are"} open{openNow > critical ? <>, {n(openNow)} in all</> : null}.</> }
+          : openNow > 0 ? { hot: true, text: <><b>{n(openNow)}</b> {openNow === 1 ? "case is" : "cases are"} open here.</> }
+          : know.total >= FEW && unknownPct >= 50 ? { hot: false, text: <><b>{unknownPct}%</b> of the animals here have no sterilisation on record.</> }
+          : know.total ? { hot: false, text: <>Nothing is open. {n(know.total)} animals on record.</> }
+          : { hot: false, text: <>Nothing is recorded here yet.</> };
+        return (
+          <div className="sm-insp-todo">
+            <p className={matter.hot ? "is-hot" : ""}>{matter.text}</p>
+            <div className="sm-insp-go">
+              {onMode && <button type="button" onClick={() => onMode("cases")}>View cases</button>}
+              {scope === "org" && <Link href="/partner/surveys">Start survey</Link>}
+              {onMode && <button type="button" onClick={() => onMode("abc")}>Review ABC / ARV</button>}
+              <Link href={missingHref} className="is-primary">Record missing data</Link>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="sm-insp-body">
         {sel.t === "india" && (

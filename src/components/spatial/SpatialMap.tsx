@@ -950,6 +950,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
             if (ci >= 0) choose({ t: "cell", cell: ci }); else choose({ t: "empty", key: n.cell, city: n.city, center: n.center });
           }}
           compact={sheet === "peek"} onExpand={() => setSheet("open")}
+          onMode={(x) => { setMode(x); setMoreOpen(false); }}
         />
       )}
 

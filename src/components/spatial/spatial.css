@@ -371,3 +371,23 @@
 .sm-card-ph.is-mono i { display: grid; place-items: center; width: 56px; height: 56px; color: #efe7da; }
 .sm-card-ph.is-mono i svg { width: 56px; height: 56px; }
 .sm-card-tags .is-unk { background: none; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, 0.2); color: #5d6b7c; }
+
+/* ── a tapped place: what matters, and what to do next ───────────── */
+.sm-insp-todo { display: grid; gap: 10px; padding: 12px 18px 14px; border-top: 1px solid var(--sm-line); }
+.sm-insp-todo p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--sm-dim); }
+.sm-insp-todo p b { color: var(--sm-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sm-insp-todo p.is-hot b { color: var(--sp-flame); }
+.sm.is-paper .sm-insp-todo p.is-hot b { color: var(--sp-flame-deep); }
+.sm-insp-go { display: flex; flex-wrap: wrap; gap: 6px; }
+.sm-insp-go a, .sm-insp-go button {
+  display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: var(--ctl-r); cursor: pointer;
+  font: inherit; font-size: 12.5px; font-weight: 600; text-decoration: none; white-space: nowrap;
+  border: 1px solid var(--sm-line); background: var(--sm-chip); color: var(--sm-text);
+  transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io);
+}
+.sm-insp-go a:hover, .sm-insp-go button:hover { background: var(--sm-chip-on); color: var(--sm-chip-on-text); }
+.sm-insp-go a:active, .sm-insp-go button:active { transform: var(--ctl-press); }
+.sm-insp-go .is-primary { background: var(--sp-flame); border-color: transparent; color: #1a0d08; }
+@media (pointer: coarse) { .sm-insp-go a, .sm-insp-go button { height: 40px; } }
+.sm-insp .sm-insp-todo p b { display: inline; font-size: inherit; line-height: inherit; }
+.sm-insp .sm-insp-go > a, .sm-insp .sm-insp-go > button { width: auto; flex: none; justify-content: center; }
