@@ -85,19 +85,6 @@
 .ld-flow-phone { display: none; }
 
 /* ── Street → locality → city ─────────────────────────────────────── */
-.ld-scales { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-7); }
-.ld-scale { margin: 0; display: grid; gap: var(--sp-4); align-content: start; }
-.ld-scale-plate { aspect-ratio: 1; display: grid; color: var(--sp-muted); }
-.ld-scale-plate .lm { aspect-ratio: auto; height: 100%; border-radius: 18px; }
-.ld-scale-plate .sys-plate { width: 100%; height: 100%; }
-.ld-scale-dot { fill: var(--sp-ink); opacity: 0.55; }
-.ld-scale-dot.is-focus { fill: var(--sp-flame-deep); opacity: 0.9; }
-.ld-scale figcaption { display: grid; gap: var(--sp-2); font-size: 14px; line-height: 1.55; color: var(--sp-body); }
-.ld-scale-n { font-family: var(--font-serif-stack); font-weight: 400; font-size: clamp(38px, 4.4vw, 52px); line-height: 1; letter-spacing: -0.02em; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
-.ld-scale-go { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: var(--sp-1) var(--sp-3); color: var(--sp-ink); text-decoration: none; }
-.ld-scale-go > span { grid-column: 1 / -1; display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--sp-body); }
-.ld-scale-go svg { color: var(--sp-blue); flex: none; }
-@media (hover: hover) and (pointer: fine) { .ld-scale-go:hover > span { color: var(--sp-blue); } }
 
 /* ── Every request, a square ──────────────────────────────────────── */
 
@@ -186,8 +173,6 @@
   .ld-who { grid-template-columns: 1fr; gap: var(--sp-6); }
 }
 @media (max-width: 860px) {
-  .ld-scales { grid-template-columns: 1fr; }
-  .ld-scale { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; gap: var(--sp-5); }
 }
 @media (max-width: 760px) {
   .ld-stage { min-height: 0; padding: 0; }
@@ -221,8 +206,6 @@
   .ld-flow-why { margin: 0; padding-top: var(--sp-4); border-top: 1px solid var(--sp-rule); font-size: 14px; line-height: 1.55; color: var(--sp-body); }
   .ld-flow-why b { color: var(--sp-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
   .ld-flow-why b.is-lost { color: var(--sp-ember); }
-  .ld-scale { grid-template-columns: 1fr; }
-  .ld-scale-plate { max-width: 360px; }
 }
 @media (max-width: 420px) {
   .ld-hero-actions { gap: var(--sp-3) var(--sp-5); }
@@ -238,7 +221,6 @@
    hero      the city stays put; the page slides up over it like a curtain
              (wide screens; on a phone the hero scrolls as it always did)
    the route drawn left to right as it comes into view
-   distances three plates zoom in from far away, one after another
    unknown   the question holds still on the left while the evidence passes
    photos    the strip fans in, alternate cards tilting into line
    desk      the dashboard lifts from a tilted desk to face the reader
@@ -262,10 +244,6 @@
 
     .ld .ld-flow-svg { animation: ld-draw linear both; animation-timeline: view(); animation-range: entry 15% cover 50%; }
 
-    .ld .ld-scale { animation: ld-zoom-in linear both; animation-timeline: view(); }
-    .ld .ld-scale:nth-child(1) { animation-range: entry 10% cover 35%; }
-    .ld .ld-scale:nth-child(2) { animation-range: entry 25% cover 45%; }
-    .ld .ld-scale:nth-child(3) { animation-range: entry 40% cover 55%; }
 
     .ld .ld-unknown-row { animation: ld-slide-left linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
 
@@ -288,7 +266,6 @@
 @keyframes ld-recede { to { transform: scale(1.08); opacity: 0.35; } }
 @keyframes ld-fade-out { to { opacity: 0; } }
 @keyframes ld-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes ld-zoom-in { from { transform: scale(0.82) translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-slide-left { from { transform: translateX(64px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-fan-a { from { transform: translateY(48px) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-fan-b { from { transform: translateY(72px) rotate(4deg); opacity: 0; } to { transform: none; opacity: 1; } }

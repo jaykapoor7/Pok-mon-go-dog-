@@ -5,7 +5,6 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { TrustStrip } from "@/components/site/TrustStrip";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { RequestFlow } from "@/components/landing/RequestFlow";
-import { ScaleTriptych } from "@/components/landing/ScaleTriptych";
 import { TheUnknown } from "@/components/landing/TheUnknown";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
 import { DeskMock } from "@/components/landing/DeskMock";
@@ -25,9 +24,8 @@ export const metadata = {
 
    Not a headline and a screenshot. The page is the record itself, read
    aloud: a sample city filling in with every field record it holds, the
-   route every request for help actually took, one street and one locality
-   and one city drawn in the same cells, every request as a square, and —
-   at its real size — how much of all this nobody has written down yet.
+   route every request for help actually took, and — at its real size —
+   how much of all this nobody has written down yet.
 
    Every figure and shape is computed on the server from the live register
    (lib/landing/story.ts). The sample city is labelled as the sample on
@@ -70,16 +68,6 @@ export default async function HomePage() {
               </header>
               <RequestFlow requests={story.flow.requests} status={story.flow.status} reasons={story.flow.reasons} noActionTotal={story.flow.noActionTotal} />
             </section>
-
-            {story.ladder && (
-              <section className="ld-sec ld-sec-shell" aria-labelledby="ld-scale-title">
-                <header className="sys-head">
-                  <h2 id="ld-scale-title">One place, <em>three distances.</em></h2>
-                  <p>Recorded animals, not population.</p>
-                </header>
-                <ScaleTriptych city={story.hero.city} ladder={story.ladder} />
-              </section>
-            )}
 
             <section className="ld-sec ld-sec-night" aria-labelledby="ld-unknown-title">
               <div className="ld-unknown">

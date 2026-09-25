@@ -11,11 +11,10 @@
    and says that StrayPaw is not that city.
    ════════════════════════════════════════════════════════════════════ */
 
-import { cellToBoundary, gridDisk } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
 import { unstable_cache } from "next/cache";
 import { getPublicDataset, SPATIAL_TAG } from "@/lib/spatial/server";
-import { buildIndex, cellStats, NO_FILTERS, openNow, robustStart } from "@/lib/spatial/engine";
+import { buildIndex, openNow, robustStart } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, closureReasons, conditionOutcome, firstAction, statusTotals } from "@/lib/spatial/measures";
 import { A_STRIDE, C, C_STRIDE, K, K_STRIDE, countOf, type SpatialDataset } from "@/lib/spatial/types";
 import { CONDITIONS, DEFAULT_TRIAGE, type Condition, type StatusClass } from "@/lib/register/taxonomy";
@@ -93,45 +92,6 @@ function buildStory(ds: SpatialDataset) {
 
   /* every request, a square */
 
-  /* the scale ladder: one well-recorded cell → its neighbourhood → the city.
-     The cell is chosen for the richness of what surrounds it, not for the
-     single tallest pile: an imported locality centroid can hold a hundred
-     records at one point, which says more about geocoding than about a
-     street. */
-  const stats = cellStats(ds, ix, ds.today, NO_FILTERS, city);
-  const statOf = new Map(stats.map((s) => [s.cell, s]));
-  const byKey = new Map(ds.cells.map((k, i) => [k, i]));
-  const recordedNear = (key: string, k: number) => gridDisk(key, k).reduce((a, n) => a + ((statOf.get(byKey.get(n) ?? -1)?.animals ?? 0) > 0 ? 1 : 0), 0);
-  const pick = [...stats]
-    .filter((s) => s.animals >= 4 && s.animals <= 60)
-    .map((s) => ({ s, score: recordedNear(ds.cells[s.cell], 2) * Math.log2(1 + s.animals) }))
-    .sort((a, b) => b.score - a.score)[0]?.s ?? [...stats].sort((a, b) => b.animals - a.animals)[0];
-  const patch = (center: string, k: number) => gridDisk(center, k).map((key) => {
-    const i = byKey.get(key);
-    const st = i === undefined ? undefined : statOf.get(i);
-    return {
-      key,
-      ring: i === undefined ? cellToBoundary(key, true).flatMap(([x, y]) => [Math.round(x * 1e4) / 1e4, Math.round(y * 1e4) / 1e4]) : ds.rings[i],
-      animals: st?.animals ?? 0,
-      open: st?.open ?? 0,
-    };
-  });
-  const locIndex = pick ? ds.cellLocality[pick.cell] : -1;
-  const locCells = stats.filter((s) => locIndex >= 0 && ds.cellLocality[s.cell] === locIndex);
-  const cityPlate = cellList.map((c) => ({ key: ds.cells[c], ring: ds.rings[c], animals: statOf.get(c)?.animals ?? 0, open: statOf.get(c)?.open ?? 0 }));
-  const neighbourhood = pick ? patch(ds.cells[pick.cell], 4) : [];
-  const ladder = pick ? {
-    street: { cell: ds.cells[pick.cell], center: [ds.centers[pick.cell * 2], ds.centers[pick.cell * 2 + 1]] as [number, number], animals: pick.animals, open: pick.open, cells: patch(ds.cells[pick.cell], 1) },
-    locality: {
-      name: locIndex >= 0 ? ds.localities[locIndex] : "",
-      animals: neighbourhood.reduce((a, c) => a + c.animals, 0),
-      recordedCells: neighbourhood.filter((c) => c.animals > 0).length,
-      cellCount: neighbourhood.length,
-      cells: neighbourhood,
-      own: locCells.map((s) => ds.cells[s.cell]),
-    },
-    city: { name: sample?.name ?? "", animals: sample?.animals ?? 0, cellCount: cellList.length, cells: cityPlate, box: coreBox(ds, cellList, 0.02, 0.98, 0.01) },
-  } : null;
 
   /* the field desk: the dashboard an organisation working in the sample city
      opens to, drawn from the same public record. The queue follows the
@@ -192,7 +152,6 @@ function buildStory(ds: SpatialDataset) {
     },
     hero,
     flow,
-    ladder,
     desk,
     knowledge,
     today: ds.today,
