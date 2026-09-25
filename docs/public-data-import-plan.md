@@ -17,7 +17,7 @@ This document is the persistent source of truth for the India public-data atlas 
 | Batch | Sources / cities | Type | Status | Records staged | Records published | Commit |
 |---|---|---|---|---:|---:|---|
 | 1 | Ranchi — Mission Rabies / Ranchi Municipal Corporation | Individual vaccination observations + ward coverage | **COMPLETE** | 7,671 | 6,462 profiles + 18 ward rows | `231c8e1` |
-| 2 | Jamshedpur — Humane World / HSI CNVR | Individual clinical records + street-survey aggregates | **COMPLETE — BLOCKED / METADATA-ONLY** | 0 production staging rows | 0 profiles + 0 atlas rows | cleanup checkpoint pending |
+| 2 | Jamshedpur — Humane World / HSI CNVR | Individual clinical records + street-survey aggregates | **COMPLETE — BLOCKED / METADATA-ONLY** | 0 production staging rows | 0 profiles + 0 atlas rows | `62379eb` |
 | 3 | West Bengal — IISER Kolkata Mendeley/Dryad datasets | Individual/research + group/census aggregates | **PARTIAL (do not duplicate)** | 445 source-identifier summaries from 6,047 observations | 180 aggregate rows | Pending repository checkpoint |
 | 4 | Wikimedia Commons + iNaturalist + GBIF | Photographed GPS observations | **IN PROGRESS** | 318 Commons + 242 iNaturalist in latest batches | 7 profiles currently live; 11 additional Commons profiles normalized but not yet published | — |
 | 5 | Mumbai + Bengaluru | Ward/zone census | **PARTIAL (do not duplicate)** | 10 normalized rows | 1 Mumbai city row + 9 Bengaluru city/zone rows | Pending repository checkpoint |
