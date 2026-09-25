@@ -128,7 +128,8 @@ export interface NGO {
   founded_year?: number | null;
   registration_no?: string | null;
   verified_at?: string | null;
-  config?: { modules?: string[]; animal_noun?: string } | null;
+  partner_status?: string | null;
+  config?: { modules?: string[]; animal_noun?: string; directory_kind?: "partner" | "data_source" } | null;
 }
 
 export interface DogMatch {
@@ -168,6 +169,7 @@ export interface Dog {
   last_fed_at: string | null;
   community_notes: string[];
   species?: string;
+  sex?: string | null;
   ngo_id?: string | null;
   ngo_name?: string | null;
   provenance?: string | null;

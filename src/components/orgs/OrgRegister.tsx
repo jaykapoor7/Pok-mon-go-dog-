@@ -15,10 +15,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Search, X } from "lucide-react";
-import type { OrgEntry } from "@/lib/platform/orgs";
+import Link from "next/link";
+import type { ContributorOrg } from "@/lib/contributor-types";
 import "./orgs.css";
 
-type Org = OrgEntry & { stateName: string };
+type Org = ContributorOrg;
 
 /** India as tiles: [code, col, row]. A cartogram — neighbours stay neighbours, sizes do not. */
 const TILES: [string, number, number][] = [
@@ -71,7 +72,7 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
     return inState.filter((o) => {
       if (city && o.city !== city) return false;
       if (work && !(work === "other" ? o.focus.some((f) => !WORK_IDS.has(f)) : o.focus.includes(work))) return false;
-      if (needle && !`${o.name} ${o.city} ${o.stateName} ${o.summary} ${o.focus.join(" ")}`.toLowerCase().includes(needle)) return false;
+      if (needle && !`${o.name} ${o.city} ${o.state} ${o.summary} ${o.focus.join(" ")}`.toLowerCase().includes(needle)) return false;
       return true;
     });
   }, [inState, city, work, q]);
@@ -83,7 +84,7 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
     <div className="og">
       <div className="og-top">
         <figure className="og-map">
-          <figcaption className="og-cap">Where they are <span>choose a state</span></figcaption>
+          <figcaption className="og-cap">Where the records come from <span>choose a state</span></figcaption>
           <div className="og-tiles" style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${ROWS}, auto)` }} role="group" aria-label="States and union territories">
             {TILES.map(([code, c, r]) => {
               const n = counts.get(code) ?? 0;
@@ -105,7 +106,7 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
         </figure>
 
         <figure className="og-work">
-          <figcaption className="og-cap">What they do <span>one square, one organisation</span></figcaption>
+          <figcaption className="og-cap">What they document <span>one square, one organisation</span></figcaption>
           <div className="og-cols">
             {[...WORK, { id: "other", label: "Other work", short: "Other" }].map((w) => {
               const n = workCount(w.id);
@@ -125,7 +126,7 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
       <div className="og-tools">
         <label className="og-search">
           <Search size={15} aria-hidden />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, city or kind of work" aria-label="Search organisations" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search partners and data sources" aria-label="Search organisations" />
           {q && <button type="button" onClick={() => setQ("")} aria-label="Clear the search"><X size={14} /></button>}
         </label>
         {state && cities.length > 1 && (
@@ -151,21 +152,21 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
           </div>
           <ol className="og-list">
             {(filtered || all ? results : results.slice(0, 12)).map((o) => {
-              const Row = o.url ? "a" : "div";
               return (
                 <li key={o.id}>
-                  <Row className="og-row" {...(o.url ? { href: o.url, target: "_blank", rel: "noopener noreferrer" } : {})}>
+                  <Link className="og-row" href={o.url}>
                     <Glyph code={o.stateCode} />
                     <span className="og-who">
                       <b>{o.name}</b>
-                      <small>{o.city}, {o.stateName}{o.founded ? ` · since ${o.founded}` : ""}</small>
+                      <small>{o.directoryKind === "partner" ? "Partner organisation" : "Data source organisation"} · {[o.city, o.state].filter(Boolean).join(", ")}{o.founded ? ` · since ${o.founded}` : ""}</small>
                       <span className="og-sum">{o.summary}</span>
+                      <small>{o.animalCount.toLocaleString("en-IN")} animal records{o.areaRecordCount ? ` · ${o.areaRecordCount.toLocaleString("en-IN")} area records` : ""}{o.sourceCount ? ` · ${o.sourceCount} source${o.sourceCount === 1 ? "" : "s"}` : ""}</small>
                     </span>
                     <span className="og-ticks" aria-label={`Does: ${o.focus.join(", ")}`}>
                       {WORK.map((w) => <i key={w.id} className={o.focus.includes(w.id) ? "is-yes" : ""} title={`${w.label}: ${o.focus.includes(w.id) ? "yes" : "not listed"}`}><span className="og-tick-l">{w.short}</span></i>)}
                     </span>
-                    <span className="og-go">{o.url ? <ArrowUpRight size={16} aria-label="Opens the organisation's own site" /> : <small>no site listed</small>}</span>
-                  </Row>
+                    <span className="og-go"><ArrowUpRight size={16} aria-label="Open the organisation's StrayPaw page" /></span>
+                  </Link>
                 </li>
               );
             })}
@@ -174,7 +175,7 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
             <button type="button" className="og-all" onClick={() => setAll(true)}>Show all {results.length}</button>
           )}
         </>
-      ) : <p className="og-empty">No listed organisation fits that. The register covers {listedStates} of India&rsquo;s 36 states and union territories; try widening it.</p>}
+      ) : <p className="og-empty">No partner or attributed source fits that filter. The register currently covers {listedStates} states; try widening it.</p>}
     </div>
   );
 }

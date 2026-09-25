@@ -1,0 +1,17 @@
+{
+  "source": "inaturalist-india-domestic-dog-observations",
+  "generated_at": "2026-09-25T21:14:19.252Z",
+  "counts": {
+    "discovered": 242,
+    "staged": 242,
+    "imported": 6,
+    "skipped": 236,
+    "duplicates": 0,
+    "with_photos": 6,
+    "with_coordinates": 242,
+    "with_abc_status": 0,
+    "with_vaccination_status": 0,
+    "with_health_data": 0
+  },
+  "publication_rule": "Domestic dog does not imply stray. Uncertain observations must remain staged and iNaturalist-origin GBIF duplicates must be excluded."
+}

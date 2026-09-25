@@ -2,8 +2,7 @@ import { MarketingPage, Band, Steps } from "@/components/marketing/MarketingPage
 import { ResolveFigure, LoopFigure } from "@/components/marketing/figures";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { ORGS, statesWithOrgs } from "@/lib/platform/orgs";
-import { STATE_BY_CODE } from "@/lib/platform/geography";
+import { getContributorOrganisations } from "@/lib/contributors";
 import { UNIT_COSTS, inr } from "@/lib/platform/network";
 
 export const metadata = {
@@ -11,8 +10,6 @@ export const metadata = {
   description:
     "Whether you have thirty seconds, a free weekend, an organisation or a budget: the specific thing that helps, and where it goes.",
 };
-
-const stateName = (code: string) => STATE_BY_CODE.get(code)?.name ?? code;
 
 /* Ordered by effort, smallest first. Someone who can only do the first thing
    should not have to read past it. */
@@ -47,8 +44,10 @@ const WAYS = [
   },
 ];
 
-export default function HowToHelpPage() {
-  const states = statesWithOrgs(stateName);
+export default async function HowToHelpPage() {
+  const contributors = await getContributorOrganisations();
+  const partners = contributors.filter((org) => org.directoryKind === "partner");
+  const states = new Set(partners.map((org) => org.stateCode).filter((code) => code !== "IN-UN"));
 
   return (
     <MarketingPage
@@ -58,7 +57,7 @@ export default function HowToHelpPage() {
       figure={<ResolveFigure />}
       next={[
         { label: "Report an animal", href: "/report", note: "The fastest way to contribute something real." },
-        { label: "Find a volunteering route", href: "/get-involved", note: `${ORGS.length} organisations across ${states.length} states and union territories.` },
+        { label: "Find a volunteering route", href: "/get-involved", note: `${partners.length} verified partner ${partners.length === 1 ? "organisation" : "organisations"} across ${states.size} states and union territories.` },
         { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
       ]}
     >

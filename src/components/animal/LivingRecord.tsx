@@ -81,7 +81,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
           </p>
           <p className="lr-status">
             <span className={`lr-pill ${status.c}`}>{status.t}</span>
-            <span className="lr-keeper">{r.keeper} · {r.source === "resident" ? "first reported by a resident" : "recorded in the field"}</span>
+            <span className="lr-keeper">{r.keeper}{r.source === "resident" ? " · community sighting" : ""}</span>
           </p>
           <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
         </div>

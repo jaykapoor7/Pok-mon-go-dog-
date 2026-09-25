@@ -1,0 +1,16 @@
+{
+  "source": "india-20th-livestock-census-stray-dogs-2019",
+  "generated_at": "2026-09-25T21:35:31.463Z",
+  "workbook_sha256": "0c3b0de401b2c15ba0579730c6e00ade2646875ebc527831b7e3942794376961",
+  "counts": {
+    "discovered": 708,
+    "staged": 708,
+    "imported": 743,
+    "skipped": 2,
+    "duplicates": 0
+  },
+  "district_rows": 708,
+  "state_rows": 35,
+  "population_total": 15304345,
+  "publication_rule": "The official national, state and 710 district stray-dog totals are aggregate statistics only and are never expanded into dog profiles."
+}

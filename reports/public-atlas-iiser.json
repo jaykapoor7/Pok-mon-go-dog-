@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-09-25T21:35:31.181Z",
+  "territory": {
+    "census_rows": 94,
+    "group_season_rows": 86,
+    "aggregate_rows": 180
+  },
+  "resting": {
+    "observations": 6047,
+    "source_identifiers": 445,
+    "groups": 66,
+    "published_profiles": 0,
+    "blocker": "No source coordinates"
+  }
+}

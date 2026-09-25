@@ -1,10 +1,10 @@
 import { CITIES } from "@/lib/delhi";
-import { STATES, STATE_BY_CODE, STATE_CENTROIDS } from "@/lib/platform/geography";
-import { ORGS } from "@/lib/platform/orgs";
-import { CITY_COORDS, coordsForCity } from "@/lib/platform/city-coords";
+import { STATES, STATE_CENTROIDS } from "@/lib/platform/geography";
+import { CITY_COORDS } from "@/lib/platform/city-coords";
 import { searchPlaces, type PlaceHit } from "@/lib/wards";
 import { searchAnimalIdentity } from "@/lib/animal-identity";
 import { placeLine } from "@/lib/utils";
+import { getSupabase } from "@/lib/supabase";
 
 export type SearchKind = "place" | "ward" | "state" | "org" | "page" | "animal";
 export type SearchHit = { kind: SearchKind; label: string; detail: string; href: string };
@@ -47,16 +47,6 @@ export function search(query: string, limit = 8): SearchHit[] {
     consider({ kind: "place", label: name, detail: "Jump the map here", href: `/map?lat=${at.lat}&lng=${at.lng}` }, name, 1);
   }
 
-  for (const o of ORGS) {
-    const stateName = STATE_BY_CODE.get(o.stateCode)?.name ?? "";
-    const at = coordsForCity(o.city);
-    consider({
-      kind: "org", label: o.name,
-      detail: at ? `Open the map on ${[o.city, stateName].filter(Boolean).join(", ")}` : [o.city, stateName].filter(Boolean).join(", ") || "Organisation",
-      href: at ? `/map?lat=${at.lat}&lng=${at.lng}&org=${encodeURIComponent(o.name)}` : `/orgs?q=${encodeURIComponent(o.name)}`,
-    }, `${o.name} ${o.city} ${stateName}`, 4);
-  }
-
   for (const p of PAGES) consider({ kind: "page", label: p.label, detail: p.detail, href: p.href }, `${p.label} ${p.terms}`, 6);
   return scored.sort((a,b)=>a.score-b.score || a.hit.label.length-b.hit.label.length).slice(0,limit).map(s=>s.hit);
 }
@@ -64,9 +54,14 @@ export function search(query: string, limit = 8): SearchHit[] {
 export const KIND_LABEL: Record<SearchKind,string> = { place:"Place", ward:"Area", state:"State", org:"Organisation", page:"Go to", animal:"Animal" };
 
 export async function searchAreas(query: string, limit = 4): Promise<SearchHit[]> {
-  const [places, animals] = await Promise.all([searchPlaces(query, limit), searchAnimalIdentity(query, limit)]);
+  const supa = getSupabase();
+  const orgPromise = supa
+    ? supa.from("public_contributor_organisations").select("name,slug,city,state,directory_kind").ilike("name", `%${query}%`).limit(limit)
+    : Promise.resolve({ data: [] as never[] });
+  const [places, animals, orgResult] = await Promise.all([searchPlaces(query, limit), searchAnimalIdentity(query, limit), orgPromise]);
   const animalHits: SearchHit[] = animals.map((animal) => ({ kind:"animal", label:animal.straypaw_id, detail:[animal.name || animal.species || "Animal", animal.zone].filter(Boolean).join(" · "), href:`/dog/${animal.id}` }));
-  return [...animalHits, ...places.map(toHit)].slice(0,limit);
+  const orgHits: SearchHit[] = (orgResult.data ?? []).map((org: any) => ({ kind: "org", label: org.name, detail: [org.directory_kind === "partner" ? "Partner" : "Data source", org.city, org.state].filter(Boolean).join(" · "), href: `/org/${org.slug}` }));
+  return [...animalHits, ...orgHits, ...places.map(toHit)].slice(0,limit);
 }
 
 function toHit(p: PlaceHit): SearchHit {

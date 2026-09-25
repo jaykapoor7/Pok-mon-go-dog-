@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { SitePage } from "@/components/site/SitePage";
-import { ORGS, orgsForFocus, statesWithOrgs } from "@/lib/platform/orgs";
-import { STATE_BY_CODE } from "@/lib/platform/geography";
+import { getContributorOrganisations } from "@/lib/contributors";
 import {
   VolunteerClient,
   type VolRoute,
@@ -14,8 +12,6 @@ export const metadata = {
   description:
     "Real ways to help, routed to named organisations across India that do that specific work.",
 };
-
-const stateName = (code: string) => STATE_BY_CODE.get(code)?.name ?? code;
 
 /**
  * Each route maps a thing a person can actually do to the focus tag that
@@ -73,8 +69,12 @@ const ROUTES: {
   },
 ];
 
-export default function GetInvolvedPage() {
-  const states = statesWithOrgs(stateName);
+export default async function GetInvolvedPage() {
+  const contributors = await getContributorOrganisations();
+  const partners = contributors.filter((org) => org.directoryKind === "partner");
+  const states = [...new Map(partners.map((org) => [org.stateCode, { code: org.stateCode, name: org.state }])).values()]
+    .filter((state) => state.code !== "IN-UN")
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   /* Resolved on the server so the client filter works over plain data. */
   const routes: VolRoute[] = ROUTES.map((r) => ({
@@ -82,11 +82,11 @@ export default function GetInvolvedPage() {
     title: r.title,
     body: r.body,
     commitment: r.commitment,
-    orgs: orgsForFocus(r.focus).map((o) => ({
+    orgs: partners.filter((org) => org.focus.some((focus) => focus.toLowerCase().includes(r.focus.toLowerCase()))).map((o) => ({
       id: o.id,
       name: o.name,
       city: o.city,
-      state: stateName(o.stateCode),
+      state: o.state,
       stateCode: o.stateCode,
       url: o.url,
     })),
@@ -99,7 +99,7 @@ export default function GetInvolvedPage() {
       lede={
         <>
           Every route below lists organisations that do that specific work, with
-          a link to reach them directly. {ORGS.length} organisations across{" "}
+          a link to reach them directly. {partners.length} verified partner {partners.length === 1 ? "organisation" : "organisations"} across{" "}
           {states.length} states and union territories. StrayPaw does not place
           volunteers. You
           contact the organisation, they decide.
@@ -115,9 +115,7 @@ export default function GetInvolvedPage() {
 
       <aside className="spa-note">
         <div>
-          <b>If nothing here is near you.</b> The directory is not exhaustive. It lists organisations we could verify from published sources. Absence
-          from it means we have not listed them, not that nothing exists where
-          you are.{" "}
+          <b>If nothing here is near you.</b> This page only lists organisations that actively partner with StrayPaw. Data publishers are credited on the contributor page, but are not presented as volunteering contacts.{" "}
           <Link href="/orgs" className="tlink">
             Browse the full directory
           </Link>{" "}

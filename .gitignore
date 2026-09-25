@@ -42,6 +42,10 @@ next-env.d.ts
 # maplibre-gl version. Vercel regenerates them during its own build.
 /public/maplibre/
 
+# Downloaded public-source workbooks are reproducible from the source registry
+# and can be large.  Reports and importers are committed; raw downloads are not.
+/.cache/public-atlas/
+
 # Output from the /founder: skills in .claude/skills/founder/. They write a
 # founder/ directory at the repository root and read each other's files from
 # it, so it accumulates whatever the skills are told about StrayPaw's stage,

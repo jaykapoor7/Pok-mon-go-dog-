@@ -40,8 +40,8 @@ function mapDog(row: any): Dog {
     lat: coarse(row.lat),
     lng: coarse(row.lng),
     status: (row.status ?? "seen") as DogStatus,
-    cover_photo: row.cover_photo ?? "",
-    photos: row.cover_photo ? [row.cover_photo] : [],
+    cover_photo: row.cover_photo ?? row.external_image_url ?? "",
+    photos: row.cover_photo || row.external_image_url ? [row.cover_photo ?? row.external_image_url] : [],
     size: (row.size ?? "medium") as DogSize,
     color: row.color ?? "Brown",
     is_friendly: row.is_friendly ?? true,
@@ -63,6 +63,7 @@ function mapDog(row: any): Dog {
     last_fed_at: row.last_fed_at ?? null,
     community_notes: [],
     species: row.species ?? "dog",
+    sex: row.sex ?? null,
     ngo_id: row.ngo_id ?? null,
     ngo_name: row.ngo_name ?? null,
     provenance: row.provenance ?? null,
@@ -488,6 +489,7 @@ export function mapOrg(n: any): NGO {
     founded_year: n.founded_year ?? null,
     registration_no: n.registration_no ?? null,
     verified_at: n.verified_at ?? null,
+    partner_status: n.partner_status ?? null,
     config: n.config ?? {},
   };
 }

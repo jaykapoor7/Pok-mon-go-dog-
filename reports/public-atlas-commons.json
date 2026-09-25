@@ -1,0 +1,17 @@
+{
+  "source": "wikimedia-commons-india-community-dogs",
+  "generated_at": "2026-09-25T21:14:11.092Z",
+  "counts": {
+    "discovered": 318,
+    "staged": 318,
+    "imported": 12,
+    "skipped": 306,
+    "duplicates": 0,
+    "with_photos": 12,
+    "with_coordinates": 34,
+    "with_abc_status": 0,
+    "with_vaccination_status": 0,
+    "with_health_data": 0
+  },
+  "publication_rule": "Every file must pass subject, locality, creator and image-license validation; obvious pets and duplicate events are excluded."
+}

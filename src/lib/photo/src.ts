@@ -41,5 +41,17 @@ export function sized(src: string | null | undefined, width: number, quality = 7
   /* Already small, already local, or not something the optimizer takes. */
   if (url.startsWith("data:") || url.startsWith("blob:")) return url;
   if (!/^https?:\/\//i.test(url)) return url;
+  /* Next rejects an optimizer request for a host that is not in its static
+     allow-list. Public-source photographs have record-level hosts, so they
+     load directly in the browser and retain DogPhoto's broken-image fallback;
+     only the small set of storage hosts we control/explicitly configured are
+     sent through the server-side optimizer. */
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    const optimizable = host === "images.unsplash.com" || host === "plus.unsplash.com" || host.endsWith(".supabase.co");
+    if (!optimizable) return url;
+  } catch {
+    return "";
+  }
   return `/_next/image?url=${encodeURIComponent(url)}&w=${snap(width * 2)}&q=${quality}`;
 }

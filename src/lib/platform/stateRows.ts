@@ -1,6 +1,6 @@
 import { DATASETS } from "./datasets";
 import { STATES } from "./geography";
-import { ORGS } from "./orgs";
+import type { ContributorOrg } from "@/lib/contributor-types";
 import type { StateRow } from "@/components/app/StateExplorer";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -25,7 +25,7 @@ function pointsFor(metric: string, year?: number) {
   return found;
 }
 
-export function buildStateRows(): StateRow[] {
+export function buildStateRows(contributors: ContributorOrg[] = []): StateRow[] {
   const population = pointsFor("dog_population");
   const coverage = pointsFor("abc_coverage");
   /* Bites and suspected rabies deaths are published for every state and
@@ -42,7 +42,7 @@ export function buildStateRows(): StateRow[] {
     const b24 = bites24.get(state.code);
     const b22 = bites22.get(state.code);
     const d24 = deaths24.get(state.code);
-    const orgs = ORGS.filter((org) => org.stateCode === state.code);
+    const orgs = contributors.filter((org) => org.stateCode === state.code);
     const cityGroups = [
       ...new Map(orgs.map((org) => [org.city, orgs.filter((item) => item.city === org.city)])),
     ]

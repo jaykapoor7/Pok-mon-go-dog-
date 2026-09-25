@@ -7,6 +7,7 @@ import { ShareBand } from "@/components/system/ShareBand";
 import { buildStateRows } from "@/lib/platform/stateRows";
 import { BARRIER_META, UNKNOWNS } from "@/lib/platform/network";
 import { RESEARCH } from "@/lib/platform/research";
+import { getContributorOrganisations } from "@/lib/contributors";
 import "./evidence.css";
 
 export const metadata: Metadata = {
@@ -24,8 +25,10 @@ export const metadata: Metadata = {
    city total. Every figure is cited; where none exists, it says so.
    ════════════════════════════════════════════════════════════════════ */
 
-export default function EvidencePage() {
-  const rows: StateRow[] = buildStateRows();
+export const dynamic = "force-dynamic";
+
+export default async function EvidencePage() {
+  const rows: StateRow[] = buildStateRows(await getContributorOrganisations());
   const total = rows.length;
   const withPop = rows.filter((r) => r.population !== null).length;
   const withAbc = rows.filter((r) => r.abcCoverage !== null).length;

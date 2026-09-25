@@ -153,10 +153,9 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
   return {
     id: dog.id, label: dogLabel(dog), straypawId: identity?.straypaw_id ?? null,
     sourceCode: identity?.source_code || (first((r) => r.animalCode) as string | null) || dog.code || null,
-    species: dog.species || "dog", sex: known(first((r) => r.sex) as string | null), colour: known((first((r) => r.colour) as string | null) || dog.color || null),
+    species: dog.species || "dog", sex: known(dog.sex ?? (first((r) => r.sex) as string | null)), colour: known((first((r) => r.colour) as string | null) || dog.color || null),
     locality: (first((r) => r.locality) as string | null) || dog.zone || null, city: sp?.city ?? dog.city ?? null, state: sp?.state ?? null,
-    // General pages keep the organisation unnamed; its own profile names it.
-    keeper: dog.ngo_id ? "A partner organisation's record" : "The community's record",
+    keeper: dog.ngo_name ? `Reported by ${dog.ngo_name}` : dog.ngo_id ? "Reported by a partner organisation" : "Reported by the community",
     source: sp?.source === "resident" || dog.provenance === "community_report" ? "resident" : "field",
     firstSeen: sp?.first_seen ?? dog.first_seen ?? null, lastSeen: dog.last_seen ?? null,
     photo: photos[0] ?? null, photos,

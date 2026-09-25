@@ -44,10 +44,11 @@ import { Inspector, type Sel } from "./Inspector";
 import { Timeline } from "./Timeline";
 import "./spatial.css";
 
-type ModeDef = { id: Mode | "change"; label: string; q: string };
+type ModeDef = { id: Mode | "change" | "census"; label: string; q: string };
 const MODES: ModeDef[] = [
   { id: "animals", label: "Animals", q: "Every recorded animal, as a point of light" },
   { id: "density", label: "Density", q: "Where recorded animals gather, drawn as terrain" },
+  { id: "census", label: "Census", q: "Published city, zone and ward estimates — never synthetic animal points" },
   { id: "coverage", label: "Coverage", q: "How well each place is mapped — the fog is where nothing is recorded" },
   { id: "abc", label: "ABC", q: "Sterilisation, animal by animal — and where it is unknown" },
   { id: "arv", label: "ARV", q: "Vaccination, animal by animal, and where a booster is due" },
@@ -56,7 +57,7 @@ const MODES: ModeDef[] = [
   { id: "activity", label: "Field work", q: "Where field teams worked in the twelve months before this date" },
   { id: "change", label: "Change", q: "Where work began, grew, slowed or stopped this year" },
 ];
-type AnyMode = Mode | "change";
+type AnyMode = Mode | "change" | "census";
 /* Four modes answer most visits; the rest sit behind "More" so the bar
    stays one short row. */
 const PRIMARY_MODES: AnyMode[] = ["animals", "cases", "coverage", "density"];
@@ -74,6 +75,14 @@ const LENSES: { id: CaseLens; label: string; q: string; unit: string }[] = [
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] as GeoJSON.Feature[] };
 const T = "rgba(0,0,0,0)";
+
+type AtlasArea = {
+  id: string; area_name: string; area_level: string; city: string | null; state: string;
+  centroid_lat: number; centroid_lng: number; census_year: number | null;
+  estimated_population: number | null; observed_individuals: number | null;
+  sterilisation_percent: number | null; vaccination_percent: number | null;
+  reporting_org_name: string | null; reporting_org_slug: string | null; source_url: string;
+};
 
 function hatchImage(color: string) {
   const s = 8, c = document.createElement("canvas");
@@ -134,6 +143,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   const [layersReady, setLayersReady] = useState(false);
   const [phone, setPhone] = useState(false);
   const [feeding, setFeeding] = useState<{ id: string; name: string; lat: number; lng: number }[]>([]);
+  const [atlas, setAtlas] = useState<AtlasArea[]>([]);
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
   const layersDone = useRef(false);
@@ -144,6 +154,18 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     f(); mq.addEventListener("change", f);
     return () => mq.removeEventListener("change", f);
   }, []);
+
+  /* Aggregate census facts are fetched only when asked for. They remain a
+     separate source, so no population estimate can masquerade as a dog. */
+  useEffect(() => {
+    if (mode !== "census" || atlas.length) return;
+    let live = true;
+    getSupabase()?.from("public_atlas_area_metrics")
+      .select("id,area_name,area_level,city,state,centroid_lat,centroid_lng,census_year,estimated_population,observed_individuals,sterilisation_percent,vaccination_percent,reporting_org_name,reporting_org_slug,source_url")
+      .not("centroid_lat", "is", null).not("centroid_lng", "is", null).limit(2500)
+      .then(({ data }) => { if (live && data) setAtlas(data as AtlasArea[]); });
+    return () => { live = false; };
+  }, [mode, atlas.length]);
 
   /* Feeding points are few and already public; they ride along in Animals. */
   useEffect(() => {
@@ -232,6 +254,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       case "cases": return lensCounts ? lensCounts[s.cell] : s.open;
       case "activity": return s.recentField;
       case "change": return s.recentField;
+      case "census": return 0;
     }
   }, [mode, lensCounts]);
   const br = useMemo(() => breaks(stats.map(value), 5), [stats, value]);
@@ -279,6 +302,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
         if (k === "down") return { c: ground === "night" ? "rgba(239,231,218,0.28)" : "rgba(11,30,61,0.18)", o: 1, h: 120 };
         return { c: ground === "night" ? "rgba(240,91,64,0.18)" : "rgba(240,91,64,0.14)", o: 1, line: att[3], h: 40 };
       }
+      case "census": return { c: T, o: 0 };
     }
   }, [mode, br, pal, ground, value, changeOf, scope]);
 
@@ -364,6 +388,22 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     return { type: "FeatureCollection" as const, features: feats };
   }, [ds, stats, mode, scope]);
 
+  const censusGeo = useMemo(() => ({
+    type: "FeatureCollection" as const,
+    features: atlas.map((row) => {
+      const population = Number(row.estimated_population ?? row.observed_individuals ?? 0);
+      return {
+        type: "Feature" as const,
+        properties: {
+          id: row.id, name: row.area_name, level: row.area_level, city: row.city, state: row.state,
+          year: row.census_year, n: population, abc: row.sterilisation_percent,
+          arv: row.vaccination_percent, reporter: row.reporting_org_name, slug: row.reporting_org_slug,
+        },
+        geometry: { type: "Point" as const, coordinates: [row.centroid_lng, row.centroid_lat] },
+      };
+    }),
+  }), [atlas]);
+
   /* ── the map, built once ─────────────────────────────────────────── */
   useEffect(() => {
     let map: MLMap | null = null, dead = false;
@@ -403,7 +443,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     const cellFeatures = ds.cells.map((_, i) => ({ type: "Feature" as const, id: i, properties: { i }, geometry: { type: "Polygon" as const, coordinates: [ringOf(ds, i)] } }));
     map.addSource("cells", { type: "geojson", data: { type: "FeatureCollection", features: cellFeatures } });
     map.addSource("frontier", { type: "geojson", data: { type: "FeatureCollection", features: ds.frontier.map((f, i) => ({ type: "Feature", id: i, properties: { k: f.cell, near: f.near, city: f.city }, geometry: { type: "Polygon", coordinates: [flatRing(f.ring)] } })) } });
-    ["inner", "cases", "sel", "next", "feeding"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
+    ["inner", "cases", "sel", "next", "feeding", "atlas"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
     ["pts", "care", "terrain", "fog"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
     map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: ds.cities.map((c, i) => ({ type: "Feature", properties: { i, n: c.animals, name: c.name }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) } });
 
@@ -469,6 +509,14 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     map.addLayer({ id: "feeding", type: "circle", source: "feeding", layout: { visibility: "none" }, paint: {
       "circle-radius": Z(10, 4, 15, 7.5), "circle-color": pal.bg, "circle-stroke-color": pal.feed, "circle-stroke-width": 2.4,
     } });
+    map.addLayer({ id: "atlas", type: "circle", source: "atlas", layout: { visibility: "none" }, paint: {
+      "circle-radius": ["interpolate", ["linear"], ["sqrt", ["max", 1, ["get", "n"]]], 1, 5, 800, 24] as ExpressionSpecification,
+      "circle-color": L.skyCore, "circle-opacity": 0.72, "circle-stroke-color": pal.bg, "circle-stroke-width": 1.5,
+    } });
+    map.addLayer({ id: "atlas-label", type: "symbol", source: "atlas", minzoom: 7.5, layout: {
+      visibility: "none", "text-field": ["concat", ["get", "name"], "\n", ["to-string", ["get", "n"]]],
+      "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-offset": [0, 1.7], "text-anchor": "top",
+    }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.4 } });
     map.addLayer({ id: "next", type: "circle", source: "next", layout: { visibility: "none" }, paint: { "circle-radius": 11, "circle-color": pal.bg, "circle-stroke-color": pal.att[3], "circle-stroke-width": 2 } });
     map.addLayer({ id: "next-n", type: "symbol", source: "next", layout: { visibility: "none", "text-field": ["get", "n"], "text-font": ["Noto Sans Bold"], "text-size": 11, "text-allow-overlap": true }, paint: { "text-color": pal.ink } });
     map.addLayer({ id: "sel", type: "line", source: "sel", paint: { "line-color": pal.ink, "line-width": 2.2 } });
@@ -535,6 +583,8 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     set("cases", "circle-color", ["case", ["==", ["get", "u"], 1], T, ["==", ["get", "crit"], 1], pal.att[3], pal.ink]); set("cases", "circle-stroke-color", ["case", ["==", ["get", "u"], 1], pal.ink, pal.bg]);
     set("next", "circle-color", pal.bg); set("next-n", "text-color", pal.ink);
     set("feeding", "circle-color", pal.bg); set("feeding", "circle-stroke-color", pal.feed);
+    set("atlas", "circle-color", L.skyCore); set("atlas", "circle-stroke-color", pal.bg);
+    set("atlas-label", "text-color", pal.ink); set("atlas-label", "text-halo-color", pal.bg);
     set("sel", "line-color", pal.ink);
     set("inner", "text-color", pal.ink); set("inner", "text-halo-color", pal.bg);
     set("cities", "circle-stroke-color", pal.bg); set("cities-l", "text-color", pal.ink); set("cities-l", "text-halo-color", pal.bg);
@@ -565,6 +615,8 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     ["case-r365", "case-r180", "case-r90", "case-r30", "case-pulse", "cases"].forEach((id) => vis(id, rings));
     vis("inner", cellsOn); vis("cells-hatch", cellsOn);
     vis("feeding", mode === "animals");
+    vis("atlas", mode === "census"); vis("atlas-label", mode === "census");
+    vis("cities", mode !== "census"); vis("cities-l", mode !== "census");
     (map.getSource("pts") as GeoJSONSource | undefined)?.setData(animalPts);
     (map.getSource("care") as GeoJSONSource | undefined)?.setData(carePts);
     (map.getSource("terrain") as GeoJSONSource | undefined)?.setData(terrain);
@@ -573,7 +625,8 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     (map.getSource("inner") as GeoJSONSource | undefined)?.setData(inner);
     (map.getSource("feeding") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feeding.map((z) => ({ type: "Feature", properties: { id: z.id, name: z.name }, geometry: { type: "Point", coordinates: [z.lng, z.lat] } })) });
     (map.getSource("next") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: ds.next.map((n, i) => ({ type: "Feature", properties: { n: String(i + 1), k: n.cell }, geometry: { type: "Point", coordinates: n.center } })) });
-  }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding]);
+    (map.getSource("atlas") as GeoJSONSource | undefined)?.setData(censusGeo);
+  }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding, censusGeo]);
 
   /* ── a critical open case breathes ───────────────────────────────── */
   useEffect(() => {
@@ -734,12 +787,17 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   useEffect(() => {
     const map = mapRef.current; if (!map || !ready || !ds) return;
     const onClick = (e: MapMouseEvent) => {
-      const layers = ["cities", "feeding", "pts", "care-pts", "cases", "next", "cells", "frontier-fill"].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, "visibility") !== "none");
+      const layers = ["cities", "atlas", "feeding", "pts", "care-pts", "cases", "next", "cells", "frontier-fill"].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, "visibility") !== "none");
       const hits = map.queryRenderedFeatures(e.point, { layers });
       const h = hits[0];
       if (!h) return;
       const id = h.layer.id;
       if (id === "cities") { choose({ t: "city", city: Number(h.properties?.i) }); return; }
+      if (id === "atlas") {
+        const slug = String(h.properties?.slug ?? "");
+        if (slug) router.push(`/org/${slug}`);
+        return;
+      }
       if (id === "feeding") { router.push(`/feeding/${h.properties?.id}`); return; }
       if (id === "pts" || id === "cases" || id === "care-pts") { choose({ t: "cell", cell: Number(h.properties?.c) }); return; }
       if (id === "next") {
@@ -761,6 +819,17 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     };
     const onMove = (e: MapMouseEvent) => {
       if (phone) return;
+      if (mode === "census") {
+        const atlasHit = map.queryRenderedFeatures(e.point, { layers: ["atlas"].filter((l) => map.getLayer(l)) })[0];
+        if (atlasHit) {
+          const p = atlasHit.properties ?? {};
+          const count = Number(p.n ?? 0).toLocaleString("en-IN");
+          const extras = [p.year ? String(p.year) : null, p.abc != null ? `${Number(p.abc).toFixed(1)}% sterilised` : null].filter(Boolean).join(" · ");
+          setHover({ x: e.point.x, y: e.point.y, text: `${p.name} · ${count} ${p.level === "ward" ? "observed" : "estimated"}${extras ? ` · ${extras}` : ""}` });
+          map.getCanvas().style.cursor = p.slug ? "pointer" : "default";
+          return;
+        }
+      }
       const hits = map.queryRenderedFeatures(e.point, { layers: ["cells"].filter((l) => map.getLayer(l)) });
       const ci = hits[0] ? Number(hits[0].id) : -1;
       const s = ci >= 0 ? statOf.get(ci) : undefined;
@@ -839,6 +908,12 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
         <i style={{ background: `linear-gradient(90deg, ${lightsOf(pal).band.join(",")})` }} />
         <span>{LEVELS[LEVELS.length - 1]}+ animals / km²</span>
       </div>
+    );
+    if (mode === "census") return (
+      <ul className="sm-key">
+        <li><i className="sm-dot is-sky" />Published aggregate estimate or observed count</li>
+        <li>Circle area follows the reported count. These are area facts, not synthetic dog profiles.</li>
+      </ul>
     );
     if (mode === "cases" && lensCounts && !lensCounts.some((x) => x > 0)) return (
       <p className="sm-empty">

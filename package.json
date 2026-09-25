@@ -17,6 +17,8 @@
     "db:security:matrix": "node scripts/db-rls-matrix.mjs",
     "db:bundle": "node scripts/build-bundle.mjs",
     "import:pawesome": "node scripts/stage-pawesome-import.mjs",
+    "import:atlas": "node scripts/import-public-atlas.mjs",
+    "import:jamshedpur": "node scripts/stage-jamshedpur.mjs --report",
     "audit:contrast": "node scripts/contrast-audit.mjs",
     "check:fixtures": "node scripts/no-fixtures.mjs",
     "test:master-import": "node --import tsx scripts/test-master-import.ts",

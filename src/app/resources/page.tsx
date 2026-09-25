@@ -3,8 +3,9 @@ import { PlatformShell } from "@/components/platform/PlatformNav";
 import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
 import { ResourcesDirectory } from "@/components/platform/ResourcesDirectory";
 import { Phone } from "lucide-react";
+import { getContributorOrganisations } from "@/lib/contributors";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Resources - StrayPaw",
   description:
@@ -53,7 +54,8 @@ const POST_BITE_STEPS = [
   "Do not apply turmeric, chilli, or any home remedy to the wound.",
 ];
 
-export default function ResourcesPage() {
+export default async function ResourcesPage() {
+  const organisations = await getContributorOrganisations();
   return (
     <PlatformShell>
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -124,7 +126,7 @@ export default function ResourcesPage() {
           </ol>
         </section>
 
-        <ResourcesDirectory />
+        <ResourcesDirectory organisations={organisations} />
 
       </div>
     </PlatformShell>

@@ -1,0 +1,146 @@
+{
+  "source": "hsi-jamshedpur-cnvr-2013-2017",
+  "importer_version": "jamshedpur-hsi-v1",
+  "generated_at": "2026-09-25T22:21:09.652Z",
+  "source_repository": "https://github.com/lauren-smith-r/HSI_DPM",
+  "paper_url": "https://doi.org/10.1371/journal.pone.0317636",
+  "source_repository_commit": "bbeb64269235680e4823a415318ecf3a860e0014",
+  "source_files": {
+    "clinical": {
+      "path": "data/clinical.csv",
+      "sha256": "6881f308a34d0d97b8c69144367e1ad4f9b2ac63db703d76347dcf22ddeabae2"
+    },
+    "clinical_derived": {
+      "path": "data/clinical_data.csv",
+      "sha256": "8a9555d682e7bfe2b62b11527af3d0cf35ea56eb3045e060895e3f737b38503f"
+    },
+    "street_totals": {
+      "path": "data/total_count 2.csv",
+      "sha256": "8450b9b12ca12ab3d09008846303acc6c5b5cc6335ad54607c5e1d2950fb6091"
+    },
+    "street_dogs": {
+      "path": "data/dog_types.csv",
+      "sha256": "5e687c80ac39427bb843ca3195c6994bf80278779164c3d7e5a9d81a8184a8de"
+    },
+    "street_body_condition": {
+      "path": "data/bcs.csv",
+      "sha256": "0bf91301bd8685f9ff64d6ac49f69783c376f94a9338d24aee62b4622f16201a"
+    },
+    "street_skin_conditions": {
+      "path": "data/skin_conditions.csv",
+      "sha256": "07bb6a340fd38ff4909a5a2a604f0e4bfc14080ba60ea22d89af9bbe5fd0bb7c"
+    }
+  },
+  "license": {
+    "article": "CC BY 4.0",
+    "repository": "No LICENSE or explicit raw-data licence found at the pinned commit",
+    "decision": "staging_only"
+  },
+  "clinical": {
+    "discovered": 20915,
+    "staged": 20915,
+    "published_profiles": 0,
+    "unique_ids": 20915,
+    "duplicate_ids": 0,
+    "observation_date_range": {
+      "from": "2013-07-04",
+      "to": "2016-12-13"
+    },
+    "release_date_range": {
+      "from": "2013-07-04",
+      "to": "2016-12-15"
+    },
+    "valid_observation_dates": 20913,
+    "valid_release_dates": 20879,
+    "rows_without_animal_coordinates": 20915,
+    "female_rows": 10459,
+    "male_rows": 10218,
+    "sex_unknown_rows": 238,
+    "adult_rows": 13087,
+    "juvenile_rows": 2186,
+    "puppy_rows": 5404,
+    "age_unknown_rows": 238,
+    "owned_rows": 2954,
+    "free_roaming_or_unowned_rows": 17961,
+    "pregnant_rows": 1121,
+    "health_rows": 1132,
+    "distemper_rows": 7,
+    "mange_rows": 565,
+    "suspected_rabies_rows": 22,
+    "venereal_cancer_rows": 561,
+    "sex_age_values": {
+      "M": 6667,
+      "F": 6420,
+      "Fpup": 2827,
+      "Mpup": 2577,
+      "Fy": 1212,
+      "My": 974,
+      "<missing>": 238
+    },
+    "capture_methods": {
+      "hand": 13060,
+      "net": 7446,
+      "owner": 305,
+      "<missing>": 84,
+      "trap": 9,
+      "Trap": 6,
+      "hand010": 1,
+      "nn": 1,
+      "9.9": 1,
+      "Hand": 1,
+      "net+": 1
+    },
+    "derived_alignment_mismatches": 0,
+    "unavailable_per_record_fields": [
+      "animal coordinates",
+      "weight",
+      "in-season status",
+      "sterilisation outcome",
+      "vaccination outcome",
+      "ivermectin treatment",
+      "wounds",
+      "images"
+    ],
+    "protocol_note": "The paper describes neutering, rabies vaccination and treatment as the clinic protocol, but the released row-level table does not expose those outcome fields, so StrayPaw does not infer them per dog."
+  },
+  "street_surveys": {
+    "discovered": 164,
+    "staged": 164,
+    "published_aggregates": 0,
+    "unique_route_surveys": 164,
+    "routes": 10,
+    "observation_date_range": {
+      "from": "2014-05-06",
+      "to": "2018-12-25"
+    },
+    "with_route_reference_coordinates": 164,
+    "zero_count_surveys": 4,
+    "individual_observation_rows": 24123,
+    "individual_observation_rows_without_stable_ids": 24123,
+    "observed_dogs_sum": 24123,
+    "female_observations": 8794,
+    "male_observations": 9506,
+    "juvenile_observations": 1368,
+    "sterilised_and_vaccinated_observations": 9118,
+    "lactating_female_observations": 737,
+    "visible_skin_condition_observations": 203,
+    "surveys_with_detail_rows": 160,
+    "zero_surveys_without_detail_rows": 4,
+    "survey_count_alignment_mismatches": 0
+  },
+  "totals": {
+    "records_discovered": 21079,
+    "records_staged": 21079,
+    "profiles_published": 0,
+    "aggregate_rows_published": 0,
+    "skipped_from_publication": 21079,
+    "duplicates": 0,
+    "individual_records_with_coordinates": 0,
+    "aggregate_records_with_coordinates": 164
+  },
+  "blockers": [
+    "The GitHub repository has no explicit raw-data licence even though the CC BY article points to it in the data-availability statement.",
+    "Clinical rows have no animal-level coordinates; route reference points cannot be assigned to individual dogs.",
+    "Street observations have no stable dog IDs and may only be represented as route-survey aggregates."
+  ]
+}

@@ -40,6 +40,17 @@ export type PublicProgramme = {
   vaccinatedRecorded: number;
 };
 
+export type PublicOrgSource = {
+  id: string;
+  name: string;
+  dataset: string;
+  url: string;
+  license: string | null;
+  recordCount: number;
+  publishedRecordCount: number;
+  publishedAt: string | null;
+};
+
 function number(value: unknown): number {
   const parsed = typeof value === "number" ? value : Number(value ?? 0);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -73,6 +84,7 @@ function mapPublicAnimal(row: any): Dog {
     last_fed_at: row.last_fed_at ?? null,
     community_notes: [],
     species: row.species ?? "dog",
+    sex: row.sex ?? null,
     ngo_id: row.ngo_id ?? null,
     ngo_name: row.ngo_name ?? null,
     provenance: row.provenance ?? null,
@@ -187,16 +199,36 @@ export function getPublicOrgMapCells(ngoId: string): Promise<PublicOrgMapCell[]>
   )();
 }
 
-export async function getPublicOrgAnimals(ngoId: string, limit = 18): Promise<Dog[]> {
+export async function getPublicOrgAnimals(ngoId: string, limit = 18, offset = 0): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data } = await supa
     .from("public_animal_profiles")
-    .select("id, name, species, zone, status, cover_photo, size, color, is_friendly, needs_help, sterilised, vaccinated, sterilisation_status, vaccination_status, ear_notch, trust_score, sightings_count, feed_count, first_seen, last_seen, last_fed_at, created_at, ngo_id, ngo_name, provenance, code")
+    .select("id, name, species, sex, zone, status, cover_photo, size, color, is_friendly, needs_help, sterilised, vaccinated, sterilisation_status, vaccination_status, ear_notch, trust_score, sightings_count, feed_count, first_seen, last_seen, last_fed_at, created_at, ngo_id, ngo_name, provenance, code")
     .eq("ngo_id", ngoId)
     .order("last_seen", { ascending: false })
-    .limit(limit);
+    .range(offset, offset + limit - 1);
   return (data ?? []).map(mapPublicAnimal);
+}
+
+export async function getPublicOrgSources(ngoId: string): Promise<PublicOrgSource[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data } = await supa
+    .from("data_sources")
+    .select("id,source_name,source_dataset,source_url,source_license,record_count,published_record_count,published_at")
+    .eq("reporting_org_id", ngoId)
+    .order("published_at", { ascending: false, nullsFirst: false });
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    name: row.source_name,
+    dataset: row.source_dataset,
+    url: row.source_url,
+    license: row.source_license ?? null,
+    recordCount: number(row.record_count),
+    publishedRecordCount: number(row.published_record_count),
+    publishedAt: row.published_at ?? null,
+  }));
 }
 
 export async function getPublicOrgActivity(ngoId: string, limit = 8): Promise<PublicOrgActivity[]> {

@@ -9,6 +9,7 @@ import {
   getPublicOrgBySlug,
   getPublicOrgImpact,
   getPublicOrgProgrammes,
+  getPublicOrgSources,
 } from "@/lib/org-public";
 import styles from "./org-profile.module.css";
 
@@ -46,16 +47,20 @@ function metricList(impact: Awaited<ReturnType<typeof getPublicOrgImpact>>) {
   ].filter(Boolean) as { value: number; label: string }[];
 }
 
-export default async function OrgProfilePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function OrgProfilePage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> }) {
   const { slug } = await params;
+  const query = await searchParams;
+  const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+  const pageSize = 48;
   const org = await getPublicOrgBySlug(slug);
   if (!org?.slug) notFound();
 
-  const [impact, animals, activity, programmes] = await Promise.all([
+  const [impact, animals, activity, programmes, sources] = await Promise.all([
     getPublicOrgImpact(org.id),
-    getPublicOrgAnimals(org.id, 18),
+    getPublicOrgAnimals(org.id, pageSize, (page - 1) * pageSize),
     getPublicOrgActivity(org.id, 10),
     getPublicOrgProgrammes(org.slug, 6),
+    getPublicOrgSources(org.id),
   ]);
   const metrics = metricList(impact);
   const location = [org.city, org.state].filter(Boolean).join(", ") || org.area;
@@ -79,7 +84,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
                 <img className={styles.logo} src={org.logo_url} alt={org.name + " logo"} />
               ) : <span className={styles.logoFallback} aria-hidden="true">{initials || "NGO"}</span>}
               <div>
-                <p className={styles.eyebrow}>Public organisation record</p>
+                <p className={styles.eyebrow}>{org.partner_status === "operational_partner" ? "Partner organisation" : "Data source organisation"}</p>
                 <div className={styles.titleRow}>
                   <h1 className={styles.title}>{org.name}</h1>
                   {org.verified && <VerifiedBadge verified size="sm" />}
@@ -130,6 +135,27 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
                 const status = animal.sterilisation_status === "sterilised" ? "Documented as sterilised" : animal.vaccination_status === "vaccinated" ? "Documented as vaccinated" : date(animal.last_seen) ? ("Last documented " + date(animal.last_seen)) : "Public record";
                 return <Link className={styles.animal} href={"/dog/" + animal.id} key={animal.id}><DogPhoto className={styles.animalImage} src={animal.cover_photo} seed={animal.id} alt={animal.name ?? "Animal record"} /><div className={styles.animalCopy}><p className={styles.animalName}>{animal.name ?? "Animal record"}</p><p className={styles.animalMeta}>{status}</p></div></Link>;
               })}
+            </div>
+            {impact.animalsRecorded > pageSize && (
+              <div className={styles.recordList} aria-label="Animal record pages">
+                <div className={styles.record}>
+                  <div className={styles.recordMain}><p className={styles.recordTitle}>Page {page} of {Math.ceil(impact.animalsRecorded / pageSize)}</p><p className={styles.recordMeta}>All {formatter.format(impact.animalsRecorded)} attributed animals are available in pages of {pageSize}.</p></div>
+                  {page > 1 && <Link className={styles.recordLink} href={`/org/${org.slug}?page=${page - 1}`}>Previous</Link>}
+                  {page * pageSize < impact.animalsRecorded && <Link className={styles.recordLink} href={`/org/${org.slug}?page=${page + 1}`}>Next</Link>}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {sources.length > 0 && (
+          <section className={styles.section} aria-labelledby="sources-heading">
+            <div className={styles.sectionLead}>
+              <h2 className={styles.sectionTitle} id="sources-heading">Published data sources</h2>
+              <p className={styles.sectionText}>The datasets that make this organisation appear on StrayPaw. Counts reflect published records after validation, not the size claimed by the source.</p>
+            </div>
+            <div className={styles.recordList}>
+              {sources.map((source) => <div className={styles.record} key={source.id}><div className={styles.recordMain}><p className={styles.recordTitle}>{source.dataset}</p><p className={styles.recordMeta}>{formatter.format(source.publishedRecordCount)} published animal records{source.license ? ` · ${source.license}` : ""}</p></div><a className={styles.recordLink} href={source.url} target="_blank" rel="noopener noreferrer">Source</a></div>)}
             </div>
           </section>
         )}

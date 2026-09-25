@@ -1,0 +1,28 @@
+{
+  "source": "mission-rabies-ranchi-2014-2015",
+  "importer_version": "ranchi-v1",
+  "generated_at": "2026-09-25T21:35:30.377Z",
+  "workbook_sha256": "917e2583b45134d7192659c5bb1a196d64bb77efeb804181885562e5bb9b34b5",
+  "sheets": {
+    "vaccination_rows": 7671,
+    "survey_observations_aggregate_only": 7552
+  },
+  "profile_rule": "One profile only for a source DogId marked Free Roaming with valid original GPS. Owner Present and missing/invalid GPS records stay staged. Survey rows are aggregate coverage only.",
+  "counts": {
+    "discovered": 7671,
+    "staged": 7671,
+    "imported": 6462,
+    "skipped": 1209,
+    "duplicates": 0,
+    "with_photos": 0,
+    "with_coordinates": 7141,
+    "with_abc_status": 7670,
+    "with_vaccination_status": 7671,
+    "with_health_data": 7671
+  },
+  "aggregate_wards": 18,
+  "exclusions": {
+    "owner_present": 697,
+    "invalid_or_missing_gps": 530
+  }
+}

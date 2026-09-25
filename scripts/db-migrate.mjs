@@ -24,6 +24,7 @@ const SETS = {
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   personal: ["personal-access-codes.sql"],
   delhi: ["seed-delhi-photographs.sql"],
+  atlas: ["public-atlas.sql"],
 };
 
 function districts() {
