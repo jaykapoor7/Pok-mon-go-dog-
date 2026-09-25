@@ -37,11 +37,12 @@ function date(value: string | null | undefined) {
 
 function metricList(impact: Awaited<ReturnType<typeof getPublicOrgImpact>>) {
   return [
-    impact.animalsRecorded > 0 && { value: impact.animalsRecorded, label: "Animals on record" },
+    impact.animalsRecorded > 0 && { value: impact.animalsRecorded, label: "Animal records" },
     impact.sterilised > 0 && { value: impact.sterilised, label: "Documented as sterilised" },
     impact.vaccinated > 0 && { value: impact.vaccinated, label: "Documented as vaccinated" },
+    impact.caseRecords > 0 && { value: impact.caseRecords, label: "Case records" },
     impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
-    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Resolved cases" },
+    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Closed after field work" },
   ].filter(Boolean) as { value: number; label: string }[];
 }
 
@@ -121,7 +122,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
         {animals.length > 0 && (
           <section className={styles.section} aria-labelledby="animals-heading">
             <div className={styles.sectionLead}>
-              <h2 className={styles.sectionTitle} id="animals-heading">Animals on record</h2>
+              <h2 className={styles.sectionTitle} id="animals-heading">Animal records</h2>
               <p className={styles.sectionText}>Public animal profiles attributed to {org.name}. Location details are intentionally not shown here.</p>
             </div>
             <div className={styles.animalGrid}>
