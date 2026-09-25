@@ -6,7 +6,11 @@
       "slug": "mission-rabies-ranchi-2014-2015",
       "source_type": "research_dataset",
       "organization": "Mission Rabies",
-      "partners": ["Ranchi Municipal Corporation", "University of Edinburgh", "Worldwide Veterinary Service"],
+      "partners": [
+        "Ranchi Municipal Corporation",
+        "University of Edinburgh",
+        "Worldwide Veterinary Service"
+      ],
       "dataset": "Mass canine vaccination campaign against rabies in Ranchi, India",
       "url": "https://doi.org/10.1186/s12879-015-1320-2",
       "download_url": "https://media.springernature.com/original/springer-static/esm/art%3A10.1186%2Fs12879-015-1320-2/MediaObjects/12879_2015_1320_MOESM1_ESM.xlsx",
@@ -27,10 +31,11 @@
       "repository_commit": "bbeb64269235680e4823a415318ecf3a860e0014",
       "license": null,
       "license_status": "pending",
-      "import_status": "staged_only",
+      "import_status": "blocked",
       "importer_version": "jamshedpur-hsi-v1",
-      "restrictions": "The accompanying PLOS article is CC BY 4.0 and points to GitHub for all data/code, but the repository containing the raw data has no explicit data license. Do not publish until reuse is confirmed.",
-      "publication_rule": "Stage 20,915 stable-ID clinical rows and 164 route-survey aggregates. Publish neither while the raw-data licence is unresolved. Never assign route coordinates to individual dogs."
+      "restrictions": "The accompanying PLOS article is CC BY 4.0 and points to GitHub for all data/code, but the raw GitHub repository has no explicit data license. Clinical rows also lack animal-level coordinates and street observations lack stable dog IDs. Do not publish or retain raw source rows in production until reuse and profile eligibility are resolved.",
+      "publication_rule": "Audit and normalize locally only. Publish nothing while blocked. Do not write source rows to production import_rows/import_batches. If reuse and profile eligibility are later resolved, publish only qualifying records directly through the validated importer.",
+      "notes": "20,915 clinical dog records and 164 route-survey aggregates were audited. Production staging was removed after review because zero records are currently publishable."
     },
     {
       "slug": "iiser-kolkata-dog-territory-groups",
@@ -130,7 +135,11 @@
       "slug": "bbmp-street-dog-survey-2023",
       "source_type": "municipal_dataset",
       "organization": "Bruhat Bengaluru Mahanagara Palike",
-      "partners": ["ICAR-NIVEDI", "Worldwide Veterinary Service", "Mission Rabies"],
+      "partners": [
+        "ICAR-NIVEDI",
+        "Worldwide Veterinary Service",
+        "Mission Rabies"
+      ],
       "dataset": "BBMP Street Dogs Survey Results 2023",
       "url": "https://data.opencity.in/dataset/bbmp-street-dogs-survey-results-2023",
       "download_url": "https://data.opencity.in/dataset/04eb9f7a-5880-4e35-afce-1547eb330ceb/resource/251396d3-ab9f-4c97-bd58-bf4967c5b93c/download/press-note-english.pdf",
@@ -170,7 +179,10 @@
       "slug": "gcc-chennai-street-dog-programme-2023-2024",
       "source_type": "municipal_dataset",
       "organization": "Greater Chennai Corporation",
-      "partners": ["Tamil Nadu Animal Welfare Board", "Worldwide Veterinary Service"],
+      "partners": [
+        "Tamil Nadu Animal Welfare Board",
+        "Worldwide Veterinary Service"
+      ],
       "dataset": "Chennai street-dog survey and ABC programme disclosures",
       "url": "https://chennaicorporation.gov.in/gcc/veterinary/about/",
       "license": "Official public disclosure",
