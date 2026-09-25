@@ -187,11 +187,20 @@ export default function RootLayout({
       className={`${sans.variable} ${mono.variable} ${serif.variable} ${devanagari.variable} ${tamil.variable} ${telugu.variable} ${kannada.variable}`}
       suppressHydrationWarning
     >
-      <head>
+      {/* <head> is left with no children of our own. React (19.2) saves its
+         hydration cursor on entering <head> and restores it on leaving; if
+         <head> suspends while hydrating (its children still arriving in the
+         streamed payload) and is replayed, the replay overwrites the saved
+         cursor, <body> then hydrates against <head>'s first child, and the
+         whole page is thrown away and rendered again on the client: the
+         intermittent error and the briefly doubled header. Next still puts
+         metadata, fonts and styles in <head>; these two scripts sit at the
+         top of <body>, where the theme script still runs before anything is
+         painted and search engines read JSON-LD just the same. */}
+      <head />
+      <body className="min-h-dvh font-sans">
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <StructuredData siteUrl={siteUrl} />
-      </head>
-      <body className="min-h-dvh font-sans">
         <RouteEnvironment>{children}</RouteEnvironment>
       </body>
     </html>

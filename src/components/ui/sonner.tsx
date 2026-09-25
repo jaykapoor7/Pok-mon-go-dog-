@@ -1,12 +1,20 @@
 "use client"
 
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme/ThemeProvider"
 import { Toaster as Sonner } from "sonner"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  /* sonner's own "system" mode reads window.matchMedia inside a useState
+     initializer during render, not an effect: server always sees no window
+     and picks "light", so a client whose OS prefers dark diverges on the
+     very first hydration pass and throws a hydration-mismatch error. Our
+     ThemeProvider already resolves the real theme safely (boot script sets
+     the class before paint, the provider syncs from it in an effect), so
+     passing its concrete value here means sonner's vulnerable "system"
+     branch is never reached. */
+  const { theme } = useTheme()
 
   return (
     <Sonner

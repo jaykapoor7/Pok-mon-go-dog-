@@ -106,9 +106,16 @@ test("public map filters and modes remain operable", async ({ page }) => {
 test("mobile public navigation exposes the core destinations without overflow", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "phone navigation only");
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  /* One row on a phone: the wordmark, the way into the app and the menu. */
-  await expect(page.locator(".sp-header .sp-header-cta").first()).toBeVisible();
+  const errors: string[] = [];
+  page.on("pageerror", e => errors.push(e.message));
+  await page.goto("/", { waitUntil: "load" });
+  /* One row on a phone: the wordmark, the way into the app and the menu.
+     Exactly one of each: a hydration failure used to throw the page away
+     and render it again, which briefly left two headers in the document. */
+  await expect(page.locator("header.sp-header")).toHaveCount(1);
+  await expect(page.locator(".sp-header-cta")).toHaveCount(1);
+  await expect(page.locator(".sp-header .sp-header-cta")).toBeVisible();
+  expect(errors).toEqual([]);
   await expect(page.locator(".sp-quick")).toHaveCount(0);
   const toggle = page.getByRole("button", { name: "Toggle navigation" });
   await expect(toggle).toBeVisible();
@@ -127,6 +134,25 @@ test("mobile public navigation exposes the core destinations without overflow", 
   await expect(about).toHaveAttribute("aria-expanded", "true");
   await expect(nav.getByRole("menuitem", { name: /Mission/ })).toHaveAttribute("href", "/mission");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+});
+
+/* The hydration failure this guards was intermittent (about one cold load in
+   seven, in production builds only), so one load proves little. Eight fresh
+   contexts, first visit and returning visitor alternating, each must hydrate
+   cleanly with exactly one header. */
+test("cold loads hydrate cleanly with exactly one header", async ({ browser }, testInfo) => {
+  for (let i = 0; i < 8; i++) {
+    const context = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    if (i % 2) await context.addInitScript(() => { localStorage.setItem("straypaw.role", "resident"); localStorage.setItem("straypaw.notice.storage.v1", "1"); });
+    const page = await context.newPage();
+    const errors: string[] = [];
+    page.on("pageerror", e => errors.push(e.message));
+    await page.goto("/", { waitUntil: "load" });
+    await page.waitForTimeout(400);
+    await expect(page.locator("header.sp-header")).toHaveCount(1);
+    expect(errors, `load ${i + 1}`).toEqual([]);
+    await context.close();
+  }
 });
 
 /* The dashboard's own map answers "where is it", the second question the

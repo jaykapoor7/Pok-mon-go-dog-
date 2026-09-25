@@ -24,26 +24,31 @@ export function RouteEnvironment({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   if (pathname.startsWith("/embed/")) return <>{children}</>;
 
+  /* The providers sit inside the boundary, not above it. The page streams
+     in behind this boundary and is revealed a moment after it arrives; a
+     context above a boundary that changes before then (auth becoming
+     ready, say) makes React discard the streamed page and render a second
+     copy on the client. Inside, nothing can change until it has hydrated. */
   return (
-    <ThemeProvider>
-      <LocaleProvider>
-        <MotionRoot>
-          <AuthProvider>
-            <Haptics />
-            <RoleSwitchFallback />
-            <Suspense fallback={null}>
+    <Suspense fallback={null}>
+      <ThemeProvider>
+        <LocaleProvider>
+          <MotionRoot>
+            <AuthProvider>
+              <Haptics />
+              <RoleSwitchFallback />
               <Chrome>{children}</Chrome>
-            </Suspense>
-            <Suspense fallback={null}>
-              <RouteViews />
-            </Suspense>
-            <InstallPrompt />
-            <StorageNotice />
-            <ServiceWorker />
-            <Toaster />
-          </AuthProvider>
-        </MotionRoot>
-      </LocaleProvider>
-    </ThemeProvider>
+              <Suspense fallback={null}>
+                <RouteViews />
+              </Suspense>
+              <InstallPrompt />
+              <StorageNotice />
+              <ServiceWorker />
+              <Toaster />
+            </AuthProvider>
+          </MotionRoot>
+        </LocaleProvider>
+      </ThemeProvider>
+    </Suspense>
   );
 }
