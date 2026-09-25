@@ -20,7 +20,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import pg from "pg";
 import * as XLSX from "xlsx";
 
 const projectRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -274,7 +273,7 @@ const report = {
   license: {
     article: "CC BY 4.0",
     repository: "No LICENSE or explicit raw-data licence found at the pinned commit",
-    decision: "staging_only",
+    decision: "blocked_metadata_only",
   },
   clinical: {
     discovered: clinical.length,
