@@ -6,6 +6,7 @@ import {
   getPublicOrgMapCells,
   type PublicOrgMapCell,
 } from "@/lib/org-public";
+import { selectDominantPublicMapCluster } from "@/lib/public-map-footprint";
 import { SITE_URL } from "@/lib/site-url";
 import styles from "./embed.module.css";
 
@@ -38,12 +39,13 @@ function weightedQuantile(cells: PublicOrgMapCell[], axis: "lat" | "lng", q: num
 }
 
 function MiniFootprint({ cells, place }: { cells: PublicOrgMapCell[]; place: string }) {
-  if (cells.length < 2) return null;
+  const cluster = selectDominantPublicMapCluster(cells);
+  if (cluster.length < 3) return null;
 
-  let west = weightedQuantile(cells, "lng", 0.02);
-  let east = weightedQuantile(cells, "lng", 0.98);
-  let south = weightedQuantile(cells, "lat", 0.02);
-  let north = weightedQuantile(cells, "lat", 0.98);
+  let west = weightedQuantile(cluster, "lng", 0.02);
+  let east = weightedQuantile(cluster, "lng", 0.98);
+  let south = weightedQuantile(cluster, "lat", 0.02);
+  let north = weightedQuantile(cluster, "lat", 0.98);
 
   if (east - west < 0.02) { west -= 0.01; east += 0.01; }
   if (north - south < 0.02) { south -= 0.01; north += 0.01; }
@@ -55,7 +57,7 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgMapCell[]; place: str
   south -= yPad;
   north += yPad;
 
-  const visible = cells.filter((cell) =>
+  const visible = cluster.filter((cell) =>
     cell.lng >= west && cell.lng <= east && cell.lat >= south && cell.lat <= north
   );
   if (!visible.length) return null;
