@@ -113,18 +113,19 @@
 /* ── Who reads the record, and what the field desk looks like ─────── */
 .ld-who { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: var(--sp-8); align-items: center; }
 .ld-who-text { display: grid; gap: var(--sp-6); }
-.ld-who-ladder { margin: 0; padding: 0; list-style: none; display: grid; }
-.ld-who-ladder > li { display: grid; gap: var(--sp-1); padding: var(--sp-3) 0; border-top: 1px solid var(--sp-rule); }
-.ld-who-ladder > li:first-child { border-top: 2px solid var(--sp-ink); }
-@media (min-width: 1101px) {
-  /* Beside the desk, each level is one line: its name, then who reads it. */
-  .ld-who-ladder > li { grid-template-columns: 130px minmax(0, 1fr); align-items: center; padding: var(--sp-1) 0; }
-}
-.ld-who-ladder > li > div { display: flex; flex-wrap: wrap; column-gap: var(--sp-5); }
-.ld-who-ladder a { display: inline-flex; align-items: center; gap: 6px; min-height: var(--ctl-h); text-decoration: none; color: var(--sp-ink); }
-.ld-who-ladder a b { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-.ld-who-ladder a svg { color: var(--sp-blue); transition: transform var(--sp-fast) var(--sp-ease); }
-@media (hover: hover) and (pointer: fine) { .ld-who-ladder a:hover svg { transform: translate(2px, -2px); } .ld-who-ladder a:hover b { color: var(--sp-blue); } }
+/* A ledger, not a link cloud: one row per reader, what they do with the
+   record under the name, and the level written once at the head of its
+   group. A heavier rule opens each level. */
+.ld-roles { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--sp-rule); }
+.ld-roles > li { display: grid; grid-template-columns: 64px minmax(0, 1fr); column-gap: var(--sp-4); border-top: 1px solid var(--sp-line); }
+.ld-roles > li.is-first { border-top: 1px solid var(--sp-ink); }
+.ld-roles-level { padding-top: 17px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.ld-roles a { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: var(--ctl-h); padding: var(--sp-3) 0; text-decoration: none; color: var(--sp-ink); }
+.ld-roles a > span { display: grid; gap: 2px; min-width: 0; }
+.ld-roles b { font-size: 16px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; }
+.ld-roles small { font-size: 13.5px; line-height: 1.4; color: var(--sp-muted); }
+.ld-roles a svg { flex: none; color: var(--sp-blue); transition: transform var(--sp-fast) var(--sp-ease); }
+@media (hover: hover) and (pointer: fine) { .ld-roles a:hover svg { transform: translate(2px, -2px); } .ld-roles a:hover b { color: var(--sp-blue); } }
 
 /* The one lifted object in the section: the workspace, in miniature. */
 .ld-desk { margin: 0; background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: var(--sp-radius-lg); box-shadow: 0 24px 60px rgba(11, 30, 61, 0.14); overflow: hidden; color: var(--sp-ink); }
@@ -173,8 +174,7 @@
   .ld-desk-geo { display: none; }
   .ld-desk-main { padding: var(--sp-4); }
   .ld-who-text { gap: var(--sp-5); }
-  .ld-who-ladder > li > div { column-gap: var(--sp-3); }
-  .ld-who-ladder a b { font-size: 15.5px; }
+  .ld-roles > li { grid-template-columns: 52px minmax(0, 1fr); column-gap: var(--sp-3); }
   .ld-plate { position: relative; inset: auto; height: 58svh; min-height: 340px; max-height: 540px; opacity: 1; }
   .ld-meter { position: relative; right: auto; bottom: auto; justify-content: space-between; background: var(--sp-night); padding: var(--sp-3) var(--sp-gutter); }
   .ld-stage { display: flex; flex-direction: column; }

@@ -33,6 +33,24 @@ export const metadata = {
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
+/* Who reads the record, from one street up to a whole city, and what each
+   of them does with it. */
+const ROLES = [
+  { level: "Street", rows: [
+    { who: "Neighbours", does: "Report an animal and follow what happens to it.", href: "/report" },
+    { who: "Feeders", does: "Keep a patch: the animals you feed and their care.", href: "/feeder" },
+    { who: "Educators", does: "Teach from what is actually recorded.", href: "/education" },
+  ] },
+  { level: "Field", rows: [
+    { who: "Rescue organisations", does: "Run cases, drives and care from one queue.", href: "/for-ngos" },
+  ] },
+  { level: "City", rows: [
+    { who: "Municipalities", does: "See which wards are covered, and which are not.", href: "/for-governments" },
+    { who: "Funders", does: "Fund an outcome and check it against the record.", href: "/for-funders" },
+    { who: "Researchers", does: "Work from published data and stated methods.", href: "/research-standards" },
+  ] },
+];
+
 export default async function HomePage() {
   const [story, photos] = await Promise.all([getLandingStory(), getPhotoRegister(24)]);
   const t = story?.totals;
@@ -80,31 +98,17 @@ export default async function HomePage() {
               <header className="sys-head">
                 <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
               </header>
-              <ol className="ld-who-ladder">
-                <li>
-                  <span className="sys-eyebrow">On the street</span>
-                  <div>
-                    <Link href="/report"><b>Neighbours</b><ArrowUpRight size={16} /></Link>
-                    <Link href="/feeder"><b>Feeders</b><ArrowUpRight size={16} /></Link>
-                    <Link href="/education"><b>Educators</b><ArrowUpRight size={16} /></Link>
-                  </div>
-                </li>
-                <li>
-                  <span className="sys-eyebrow">In the field</span>
-                  <div>
-                    <Link href="/for-ngos"><b>Rescue organisations</b><ArrowUpRight size={16} /></Link>
-                    <Link href="/partner-apply"><b>Field teams</b><ArrowUpRight size={16} /></Link>
-                  </div>
-                </li>
-                <li>
-                  <span className="sys-eyebrow">Across a city</span>
-                  <div>
-                    <Link href="/for-governments"><b>Municipalities</b><ArrowUpRight size={16} /></Link>
-                    <Link href="/for-funders"><b>Funders</b><ArrowUpRight size={16} /></Link>
-                    <Link href="/research-standards"><b>Researchers</b><ArrowUpRight size={16} /></Link>
-                  </div>
-                </li>
-              </ol>
+              <ul className="ld-roles">
+                {ROLES.map((g) => g.rows.map((r, i) => (
+                  <li key={r.href} className={i === 0 ? "is-first" : undefined}>
+                    <span className="ld-roles-level" aria-hidden={i > 0}>{i === 0 ? g.level : ""}</span>
+                    <Link href={r.href}>
+                      <span><b>{r.who}</b><small>{r.does}</small></span>
+                      <ArrowUpRight size={16} aria-hidden />
+                    </Link>
+                  </li>
+                )))}
+              </ul>
             </div>
             {story?.desk && story.desk.live + story.desk.older > 0 && <DeskMock city={story.hero.city} desk={story.desk} />}
           </div>
