@@ -21,6 +21,12 @@ export type PublicOrgActivity = {
   area: string | null;
 };
 
+export type PublicOrgMapCell = {
+  lat: number;
+  lng: number;
+  records: number;
+};
+
 export type PublicProgramme = {
   id: string;
   name: string;
@@ -150,6 +156,34 @@ export function getPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
     () => readPublicOrgImpact(ngoId),
     ["public-org-impact", ngoId],
     { revalidate: 60 }
+  )();
+}
+
+
+async function readPublicOrgMapCells(ngoId: string): Promise<PublicOrgMapCell[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa
+    .from("public_org_map_cells")
+    .select("lat, lng, records")
+    .eq("ngo_id", ngoId)
+    .order("records", { ascending: false })
+    .limit(500);
+  if (error) return [];
+  return (data ?? [])
+    .map((row: any) => ({
+      lat: number(row.lat),
+      lng: number(row.lng),
+      records: Math.max(0, Math.round(number(row.records))),
+    }))
+    .filter((row) => Number.isFinite(row.lat) && Number.isFinite(row.lng) && row.records > 0);
+}
+
+export function getPublicOrgMapCells(ngoId: string): Promise<PublicOrgMapCell[]> {
+  return unstable_cache(
+    () => readPublicOrgMapCells(ngoId),
+    ["public-org-map-cells", ngoId],
+    { revalidate: 300 }
   )();
 }
 
