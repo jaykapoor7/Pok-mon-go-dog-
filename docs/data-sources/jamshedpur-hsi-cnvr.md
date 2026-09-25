@@ -12,7 +12,7 @@
 - The PLOS article is CC BY 4.0.
 - The linked GitHub repository has no `LICENSE`, `COPYING`, README licence statement, release licence, or file-level raw-data licence at the pinned commit.
 - GitHub publication alone does not establish permission to republish the raw tables.
-- Decision: **stage only**. Do not publish profiles, route aggregates, or source-derived coordinates until the repository owner or data owner confirms reuse terms.
+- Decision: **blocked / metadata-only**. Do not publish profiles or route aggregates, and do not retain raw Jamshedpur source rows in production Supabase while reuse is unresolved.
 
 ## Individual clinical table
 
@@ -26,7 +26,7 @@
 - `mange` is present only in `data/clinical_data.csv`; the staging adapter verifies row-for-row alignment across six shared flags and intake date before joining it.
 - No animal-level GPS, locality, photograph, weight, wound field, in-season status, individual sterilisation/vaccination outcome, ivermectin administration, or other treatment result is exposed in the released row-level files.
 - The paper describes neutering, rabies vaccination, and treatment as the clinic protocol, but those outcomes are not present per record in the repository. They are not inferred onto profiles.
-- All 20,915 rows remain private staging records. Zero profiles are published because the source license is unresolved and the native StrayPaw profile model requires real animal coordinates.
+- All 20,915 rows are audited locally only. Zero are retained in production staging and zero profiles are published because the raw-data license is unresolved and the native StrayPaw profile model requires real animal coordinates.
 
 ## Street survey table
 
@@ -34,11 +34,19 @@
 - 164 unique route-survey aggregate rows across 10 routes, dated 2014-05-06 through 2018-12-25.
 - All 164 have a route reference point; it is not an animal location. Four surveys recorded zero dogs.
 - The 160 non-empty surveys align exactly to 24,123 rows in each of `dog_types.csv`, `bcs.csv`, and `skin_conditions.csv`; these files have no stable dog IDs and cannot create profiles.
-- Staged route aggregates retain observed count, sex, adult/juvenile, sterilised/ever-vaccinated, lactating, visible skin-condition, and body-condition counts.
+- The local audit retains observed count, sex, adult/juvenile, sterilised/ever-vaccinated, lactating, visible skin-condition, and body-condition counts.
 - Across all survey observations: 9,506 male, 8,794 female, 1,368 juvenile, 9,118 sterilised/ever-vaccinated, 737 lactating female, and 203 visible skin-condition observations.
 - These are aggregate observations, never dog profiles.
-- All 164 route aggregates remain private staging records while reuse rights are unresolved; zero public atlas rows are published.
+- All 164 route aggregates remain local audit outputs only while reuse rights are unresolved; zero production staging rows and zero public atlas rows are retained.
 
 ## Publication condition
 
 If raw-data reuse is confirmed, clinical profiles still require either real animal-level coordinates or a product change that truthfully supports no-point profiles. Route surveys may become aggregate atlas rows with explicit route-reference precision; they must never be expanded into synthetic dogs.
+
+
+## Production cleanup
+
+- On 2026-09-25, the 21,079 Jamshedpur `import_rows` and 2 Jamshedpur `import_batches` were removed because none were publishable.
+- The source registry retains only compact discovery counts, licensing status, and blockers.
+- `VACUUM FULL` on `public.import_rows` reduced the project database from 151,309,459 bytes (~144 MB) to 96,709,779 bytes (~92 MB).
+- Future blocked/unpublishable sources must be normalized and validated locally; production Supabase is not a raw-data warehouse.
