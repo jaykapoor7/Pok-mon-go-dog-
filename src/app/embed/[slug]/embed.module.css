@@ -12,26 +12,46 @@
 .embed *, .embed *::before, .embed *::after { box-sizing: border-box; }
 
 .card {
+  position: relative;
   display: flex;
   width: min(100%, 400px);
   height: min(100vw, 400px);
   aspect-ratio: 1 / 1;
   min-height: 0;
   flex-direction: column;
-  padding: clamp(16px, 5vw, 20px);
-  border: 1px solid #e3d9ca;
+  overflow: hidden;
+  padding: clamp(17px, 5vw, 21px);
+  border: 1px solid #ded4c5;
+  border-radius: 18px;
   background: #fffdf9;
 }
 
-.identity { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #2457ce;
+  content: "";
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
 .logo, .logoFallback {
-  width: clamp(44px, 13vw, 52px);
-  height: clamp(44px, 13vw, 52px);
+  width: clamp(48px, 14vw, 56px);
+  height: clamp(48px, 14vw, 56px);
   flex: 0 0 auto;
-  border: 1px solid #e3d9ca;
+  border: 1px solid #ded4c5;
+  border-radius: 12px;
   background: #fff;
   object-fit: cover;
+  object-position: center;
 }
+
 .logoFallback {
   display: grid;
   place-items: center;
@@ -40,44 +60,179 @@
   font-size: 16px;
   font-weight: 700;
 }
+
 .identityCopy { min-width: 0; }
-.live { display: flex; align-items: center; gap: 5px; margin: 0 0 3px; color: #58708f; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
-.live span { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: #2457ce; }
-.name { margin: 0; font-size: clamp(14px, 3.9vw, 17px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.1; overflow-wrap: anywhere; }
-.place { margin: 4px 0 0; color: #5d6b7c; font-size: clamp(11px, 3vw, 13px); line-height: 1.2; }
 
-.primary { margin-top: clamp(14px, 4vw, 18px); }
-.primaryNumber { display: block; font-size: clamp(38px, 12.5vw, 54px); font-weight: 600; letter-spacing: -0.075em; line-height: .88; font-variant-numeric: tabular-nums; }
-.primaryLabel { display: block; margin-top: 8px; color: #42526b; font-size: clamp(12px, 3.3vw, 14px); line-height: 1.25; }
+.live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  color: #48617f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
 
-.lower { margin-top: clamp(10px, 3vw, 14px); }
-.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #e3d9ca; border-left: 1px solid #e3d9ca; }
-.metric { min-width: 0; min-height: 44px; border-right: 1px solid #e3d9ca; border-bottom: 1px solid #e3d9ca; padding: 7px 9px; }
-.metricValue { display: block; font-size: clamp(18px, 5.6vw, 24px); font-weight: 600; letter-spacing: -0.055em; line-height: 1; font-variant-numeric: tabular-nums; }
-.metricLabel { display: block; margin-top: 4px; color: #5d6b7c; font-size: clamp(9px, 2.65vw, 11px); line-height: 1.2; overflow-wrap: anywhere; }
-.metricsNote { margin: 7px 0 0; color: #718096; font-size: 10px; line-height: 1.2; }
+.live span {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #2457ce;
+}
 
-.cta { display: flex; align-items: center; justify-content: space-between; min-height: 30px; margin-top: 5px; color: #1b46b0; font-size: clamp(12px, 3.4vw, 14px); font-weight: 700; text-decoration: none; }
-.cta:hover { color: #0b1e3d; text-decoration: underline; text-underline-offset: 3px; }
-.cta:focus-visible { outline: 3px solid rgba(36, 87, 206, .45); outline-offset: 3px; }
-.attribution { margin: 1px 0 0; color: #718096; font-size: 10px; line-height: 1.15; }
+.name {
+  margin: 0;
+  font-size: clamp(15px, 4vw, 18px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.place {
+  margin: 4px 0 0;
+  color: #687485;
+  font-size: clamp(10px, 2.9vw, 12px);
+  line-height: 1.2;
+}
+
+.primary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: clamp(15px, 4vw, 19px);
+  padding: clamp(12px, 3.5vw, 15px) 0;
+  border-top: 1px solid #e7ded2;
+  border-bottom: 1px solid #e7ded2;
+}
+
+.primaryNumber {
+  display: block;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(44px, 14vw, 62px);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: .82;
+  font-variant-numeric: tabular-nums;
+}
+
+.primaryLabel {
+  max-width: 88px;
+  padding-bottom: 2px;
+  color: #4e5e73;
+  font-size: clamp(10px, 2.8vw, 12px);
+  font-weight: 700;
+  letter-spacing: .055em;
+  line-height: 1.15;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.lower {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  margin-top: clamp(8px, 2.6vw, 11px);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metric {
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 11px 8px 0;
+}
+
+.metric:nth-child(odd) {
+  border-right: 1px solid #e7ded2;
+}
+
+.metric:nth-child(even) {
+  padding-right: 0;
+  padding-left: 12px;
+}
+
+.metric:nth-child(n + 3) {
+  border-top: 1px solid #e7ded2;
+}
+
+.metricValue {
+  display: block;
+  font-size: clamp(18px, 5.6vw, 24px);
+  font-weight: 650;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricLabel {
+  display: block;
+  margin-top: 4px;
+  color: #667386;
+  font-size: clamp(9px, 2.5vw, 10.5px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  margin-top: auto;
+  padding: 0 10px 0 12px;
+  border: 1px solid #153f9f;
+  border-radius: 8px;
+  background: #0b1e3d;
+  color: #fff;
+  font-size: clamp(11px, 3.1vw, 13px);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cta:hover {
+  background: #15345f;
+}
+
+.cta:focus-visible {
+  outline: 3px solid rgba(36, 87, 206, .42);
+  outline-offset: 2px;
+}
+
+.attribution {
+  margin: 6px 0 0;
+  color: #7b8491;
+  font-size: 9px;
+  line-height: 1.1;
+  text-align: center;
+  letter-spacing: .015em;
+}
 
 @media (max-width: 340px) {
-  .card { padding: 13px; }
-  .logo, .logoFallback { width: 42px; height: 42px; font-size: 14px; }
-  .live { margin-bottom: 2px; font-size: 9px; }
+  .card { padding: 14px; border-radius: 14px; }
+  .logo, .logoFallback { width: 43px; height: 43px; border-radius: 10px; font-size: 14px; }
+  .identity { gap: 10px; }
+  .live { margin-bottom: 2px; font-size: 8px; }
   .name { font-size: 13px; }
-  .place { font-size: 11px; }
-  .primary { margin-top: 12px; }
-  .primaryNumber { font-size: 38px; }
-  .primaryLabel { margin-top: 6px; font-size: 12px; }
-  .lower { margin-top: 10px; }
-  .metric { min-height: 44px; padding: 7px 8px; }
+  .place { margin-top: 3px; font-size: 10px; }
+  .primary { margin-top: 11px; padding: 10px 0; }
+  .primaryNumber { font-size: 40px; }
+  .primaryLabel { max-width: 76px; font-size: 9px; }
+  .lower { margin-top: 7px; }
+  .metric { min-height: 43px; padding: 7px 9px 7px 0; }
+  .metric:nth-child(even) { padding-left: 10px; }
   .metricValue { font-size: 18px; }
-  .metricLabel { margin-top: 3px; font-size: 9px; }
-  .metricsNote { margin-top: 5px; font-size: 9px; }
-  .cta { min-height: 30px; margin-top: 5px; font-size: 12px; }
-  .attribution { font-size: 9px; }
+  .metricLabel { margin-top: 3px; font-size: 8.5px; }
+  .cta { min-height: 31px; padding-inline: 10px; font-size: 11px; }
+  .attribution { margin-top: 5px; font-size: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) { .cta { transition: none; } }
