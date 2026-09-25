@@ -153,7 +153,6 @@ function buildStory(ds: SpatialDataset) {
     hero,
     flow,
     desk,
-    knowledge,
     today: ds.today,
     built: ds.built,
   };

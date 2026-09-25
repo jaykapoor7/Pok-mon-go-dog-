@@ -89,15 +89,6 @@
 /* ── Every request, a square ──────────────────────────────────────── */
 
 /* ── The unknown ──────────────────────────────────────────────────── */
-.ld-unknown { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr); gap: var(--sp-8); align-items: start; }
-.ld-unknown-rows { display: grid; gap: var(--sp-6); }
-.ld-unknown-row { display: grid; gap: var(--sp-3); }
-.ld-unknown-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; }
-.ld-unknown-head b { font-size: 15px; font-weight: 600; color: var(--sp-night-text); }
-.ld-unknown-head span { font-size: 13px; color: var(--sp-night-dim); }
-.ld-unknown-pct { font-family: var(--font-serif-stack); font-style: normal; font-size: 34px; line-height: 1; color: var(--sp-night-text); margin-right: 4px; letter-spacing: -0.02em; }
-.ld-unknown-ask { margin: var(--sp-3) 0 0; display: grid; gap: var(--sp-3); font-size: 14px; line-height: 1.6; color: var(--sp-night-dim); max-width: 52ch; }
-.ld-unknown-ask .sys-link { justify-self: start; }
 
 /* ── Photographs ──────────────────────────────────────────────────── */
 .ld-photos { display: grid; gap: var(--sp-4); }
@@ -169,7 +160,6 @@
 
 /* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .ld-unknown { grid-template-columns: 1fr; gap: var(--sp-6); }
   .ld-who { grid-template-columns: 1fr; gap: var(--sp-6); }
 }
 @media (max-width: 860px) {
@@ -221,7 +211,6 @@
    hero      the city stays put; the page slides up over it like a curtain
              (wide screens; on a phone the hero scrolls as it always did)
    the route drawn left to right as it comes into view
-   unknown   the question holds still on the left while the evidence passes
    photos    the strip fans in, alternate cards tilting into line
    desk      the dashboard lifts from a tilted desk to face the reader
    close     the last line grows into place
@@ -245,7 +234,6 @@
     .ld .ld-flow-svg { animation: ld-draw linear both; animation-timeline: view(); animation-range: entry 15% cover 50%; }
 
 
-    .ld .ld-unknown-row { animation: ld-slide-left linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
 
     .ld .ld-photos { view-timeline: --ld-photos block; }
     .ld .ld-photos-track li { animation: ld-fan-a linear both; animation-timeline: --ld-photos; animation-range: entry 0% cover 45%; }
@@ -256,17 +244,12 @@
     .ld .ld-close h2 { animation: ld-grow linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; }
   }
 
-  /* Wide screens only: the heading pins while the rows go past it. */
-  @media (min-width: 900px) {
-    .ld .ld-unknown > .sys-head { position: sticky; top: 18vh; }
-  }
 }
 
 @keyframes ld-lift { to { transform: translateY(-18vh); opacity: 0; } }
 @keyframes ld-recede { to { transform: scale(1.08); opacity: 0.35; } }
 @keyframes ld-fade-out { to { opacity: 0; } }
 @keyframes ld-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes ld-slide-left { from { transform: translateX(64px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-fan-a { from { transform: translateY(48px) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-fan-b { from { transform: translateY(72px) rotate(4deg); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-tilt-up { from { transform: perspective(1400px) rotateX(24deg) scale(0.9); opacity: 0.4; } to { transform: none; opacity: 1; } }

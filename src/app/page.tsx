@@ -5,7 +5,6 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { TrustStrip } from "@/components/site/TrustStrip";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { RequestFlow } from "@/components/landing/RequestFlow";
-import { TheUnknown } from "@/components/landing/TheUnknown";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
 import { DeskMock } from "@/components/landing/DeskMock";
 import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
@@ -24,8 +23,8 @@ export const metadata = {
 
    Not a headline and a screenshot. The page is the record itself, read
    aloud: a sample city filling in with every field record it holds, the
-   route every request for help actually took, and — at its real size —
-   how much of all this nobody has written down yet.
+   route every request for help actually took, and the animals
+   photographed onto it. What is still unknown is told on /evidence.
 
    Every figure and shape is computed on the server from the live register
    (lib/landing/story.ts). The sample city is labelled as the sample on
@@ -62,21 +61,11 @@ export default async function HomePage() {
 
         {story && (
           <>
-            <section className="ld-sec ld-sec-bone" aria-labelledby="ld-line-title">
+            <section className="ld-sec ld-sec-shell" aria-labelledby="ld-line-title">
               <header className="sys-head">
                 <h2 id="ld-line-title">Where {fmt(story.flow.requests)} requests for help <em>went.</em></h2>
               </header>
               <RequestFlow requests={story.flow.requests} status={story.flow.status} reasons={story.flow.reasons} noActionTotal={story.flow.noActionTotal} />
-            </section>
-
-            <section className="ld-sec ld-sec-night" aria-labelledby="ld-unknown-title">
-              <div className="ld-unknown">
-                <header className="sys-head is-night">
-                  <h2 id="ld-unknown-title">Most of what matters <em>is not written down yet.</em></h2>
-                  <p>The hatched part is not zero. It is unknown.</p>
-                </header>
-                <TheUnknown total={story.knowledge.total} ster={story.knowledge.ster} vacc={story.knowledge.vacc} photo={{ yes: story.knowledge.photo.yes, unknown: story.knowledge.photo.unknown }} />
-              </div>
             </section>
           </>
         )}
