@@ -3,9 +3,9 @@ import { ArrowRight, Check } from "lucide-react";
 import "./worktrail.css";
 
 /* Where this screen sits in an organisation's work, and the one step that
-   comes next: Dashboard → Case → Animal → Care → Outcome. Every step that
-   has somewhere to go links there; the current one is marked; the steps
-   already done are ticked. */
+   comes next: Dashboard → Case → Animal → Care → Outcome. A quiet line, not
+   a wizard: it reads like a breadcrumb, ticks what is done, and offers the
+   next step as a plain link. */
 
 export type TrailStep = "dashboard" | "case" | "animal" | "care" | "outcome";
 
@@ -31,7 +31,7 @@ export function WorkTrail({ at, done = [], links, next }: {
           );
         })}
       </ol>
-      {next && <Link href={next.href} className="wt-next">{next.label} <ArrowRight size={14} /></Link>}
+      {next && <Link href={next.href} className="wt-next">Next: {next.label} <ArrowRight size={13} aria-hidden /></Link>}
     </nav>
   );
 }

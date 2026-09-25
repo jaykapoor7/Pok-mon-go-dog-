@@ -1,14 +1,14 @@
-.wt { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 0 12px; border-bottom: 1px solid var(--sp-line); margin-bottom: 14px; }
-.wt ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12.5px; }
-.wt li { display: inline-flex; align-items: center; gap: 4px; color: var(--sp-muted); }
-.wt li + li::before { content: ""; width: 14px; height: 1px; background: var(--sp-line); margin-right: 4px; }
-.wt li a, .wt li span { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: var(--ctl-r); color: inherit; text-decoration: none; font-weight: 600; }
-.wt li a:hover { color: var(--sp-blue); background: var(--ctl-tint); }
-.wt li.is-done { color: var(--sp-ink); }
+/* A breadcrumb that knows the order of the work. Deliberately quiet. */
+.wt { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin: 0 0 10px; font-size: 12px; }
+.wt ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px; color: var(--sp-muted); }
+.wt li { display: inline-flex; align-items: baseline; }
+.wt li + li::before { content: "›"; margin: 0 6px; color: var(--sp-line); }
+.wt li a, .wt li span { display: inline-flex; align-items: baseline; gap: 3px; color: inherit; text-decoration: none; }
+.wt li svg { align-self: center; }
+.wt li a:hover { color: var(--sp-blue); }
+.wt li.is-done { color: var(--sp-body); }
 .wt li.is-done svg { color: var(--sp-blue); }
-.wt li.is-here span { background: var(--sp-ink); color: var(--sp-paper); }
-.wt-next { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--ctl-r); background: var(--sp-blue); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; transition: background var(--sp-fast) var(--sp-ease-io); }
-.wt-next:hover { background: var(--sp-blue-deep); }
-.wt-next:active { transform: var(--ctl-press); }
-@media (pointer: coarse) { .wt-next { height: var(--ctl-h); } }
-@media (max-width: 560px) { .wt { gap: 8px; } .wt li + li::before { width: 6px; } .wt li a, .wt li span { padding: 4px 6px; } .wt-next { width: 100%; justify-content: center; } }
+.wt li.is-here span { color: var(--sp-ink); font-weight: 600; }
+.wt-next { display: inline-flex; align-items: center; gap: 4px; color: var(--sp-blue); font-weight: 600; text-decoration: none; }
+.wt-next svg { transition: transform var(--sp-fast) var(--sp-ease); }
+.wt-next:hover svg { transform: translateX(2px); }

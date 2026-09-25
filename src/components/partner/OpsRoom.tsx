@@ -35,7 +35,6 @@ import { TasksSection } from "@/components/partner/TasksSection";
 import { HexPlate, type PlateCell } from "@/components/system/HexPlate";
 import { HatchDef } from "@/components/system/Hatch";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
-import { WorkTrail } from "@/components/partner/WorkTrail";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isStale, openCases, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase } from "@/lib/ops";
@@ -200,12 +199,6 @@ export function OpsRoom() {
           <Link href="/partner/records" className="sys-btn is-quiet"><Search size={14} />Find a record</Link>
         </div>
       </header>
-
-      {isMember && !blank && shown.length > 0 && (() => {
-        const q = shown[0];
-        const href = q.c ? `/partner/cases/${q.c.id}` : q.f?.dog_id ? `/partner/animals/${q.f.dog_id}` : "/partner/records?view=overdue";
-        return <WorkTrail at="dashboard" links={{ case: href }} next={{ label: q.kind === "followup" ? "Open the overdue follow-up" : "Open the first case in the queue", href }} />;
-      })()}
 
       {(blank || signedOut) && (
         <section className="ops-setup">

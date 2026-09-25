@@ -213,23 +213,50 @@ export function Report({ scope, initial = null, tail = null, notice = null, user
     });
   }, [ds, place.city, cityCells, cityIdx, cells, scope]);
 
-  /* ── one chapter at a time ─────────────────────────────────────────── */
-  /* Each chapter answers one question, so the page shows one: the contents
-     choose it, and a link at the foot steps to the next. #when and the like
-     still open that chapter directly. */
+  /* ── chapters: one at a time on a phone, all of them on a wide screen ── */
+  /* On a phone each chapter is its own screen: the chips choose it and a
+     Next button steps on. On a wide screen the page stays one scroll to
+     scan, and the contents rail marks the chapter in view and jumps to any
+     of them. #when and the like open that chapter either way. */
   const [active, setActive] = useState("happens");
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 901px)");
+    const on = () => setWide(mq.matches);
+    on(); mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
   useEffect(() => {
     const read = () => { const h = window.location.hash.slice(1); if (CHAPTERS.some((c) => c.id === h)) setActive(h); };
     read(); window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
   }, []);
+  /* Wide: follow the reader down the page. */
+  useEffect(() => {
+    if (!wide || !ds) return;
+    const els = CHAPTERS.map((c) => document.getElementById(c.id)).filter(Boolean) as HTMLElement[];
+    const io = new IntersectionObserver((es) => {
+      const v = es.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (v) setActive(v.target.id);
+    }, { rootMargin: "-12% 0px -70% 0px" });
+    els.forEach((e) => io.observe(e));
+    return () => io.disconnect();
+  }, [wide, ds, idx]);
+  /* Phone: keep the chosen chip in view in its scrolling row. */
+  useEffect(() => {
+    if (wide) return;
+    document.querySelector(`.an-toc-phone [data-ch="${active}"]`)?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  }, [active, wide]);
   const pick = (id: string) => {
     setActive(id);
     try { history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${id}`); } catch { /* ok */ }
-    document.querySelector(".an-body")?.scrollIntoView({ block: "start", behavior: "smooth" });
+    if (wide) { document.getElementById(id)?.scrollIntoView({ block: "start" }); return; }
+    const body = document.querySelector(".an-body");
+    if (body && body.getBoundingClientRect().top < 0) body.scrollIntoView({ block: "start" });
   };
   const at = CHAPTERS.findIndex((c) => c.id === active);
   const nextCh = CHAPTERS[at + 1];
+  const show = (id: string) => wide || active === id;
 
   /* ── the headline ──────────────────────────────────────────────────── */
   const head = useMemo(() => {
@@ -325,7 +352,7 @@ export function Report({ scope, initial = null, tail = null, notice = null, user
       </div>
 
       <nav className="an-toc-phone" aria-label="Chapters">
-        {CHAPTERS.map((c) => <button key={c.id} type="button" aria-pressed={active === c.id} className={active === c.id ? "is-on" : ""} onClick={() => pick(c.id)}>{c.label}</button>)}
+        {CHAPTERS.map((c, i) => <button key={c.id} type="button" data-ch={c.id} aria-pressed={active === c.id} className={active === c.id ? "is-on" : ""} onClick={() => pick(c.id)}><span className="sys-mono">{i + 1}</span>{c.label}</button>)}
       </nav>
 
       <div className="an-body">
@@ -351,13 +378,13 @@ export function Report({ scope, initial = null, tail = null, notice = null, user
           {error && <p className="an-state" role="status">{error}</p>}
           {ctx && (
             <>
-              {active === "happens" && <Happens c={ctx} />}
-              {active === "when" && <When c={ctx} />}
-              {active === "response" && <Response c={ctx} />}
-              {active === "where" && <Where c={ctx} />}
-              {active === "intervention" && <Intervention c={ctx} />}
-              {active === "evidence" && <Evidence c={ctx} />}
-              {nextCh && <button type="button" className="an-next" onClick={() => pick(nextCh.id)}>Next: {nextCh.label} <ArrowRight size={15} /></button>}
+              {show("happens") && <Happens c={ctx} />}
+              {show("when") && <When c={ctx} />}
+              {show("response") && <Response c={ctx} />}
+              {show("where") && <Where c={ctx} />}
+              {show("intervention") && <Intervention c={ctx} />}
+              {show("evidence") && <Evidence c={ctx} />}
+              {!wide && nextCh && <button type="button" className="an-next" onClick={() => pick(nextCh.id)}>Next: {nextCh.label} <span className="sys-mono">{at + 2} of {CHAPTERS.length}</span> <ArrowRight size={15} aria-hidden /></button>}
             </>
           )}
           {tail}
