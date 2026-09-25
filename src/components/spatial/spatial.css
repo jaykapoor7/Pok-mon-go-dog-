@@ -148,6 +148,11 @@
 .sm-filter-row select { height: 34px; border-radius: 8px; border: 1px solid var(--sm-line); background: transparent; color: var(--sm-text); font: inherit; font-size: 12.5px; padding: 0 8px; }
 .sm-filter-row select option { color: var(--sp-ink); }
 .sm-filter-acts { display: flex; justify-content: flex-end; gap: 8px; }
+/* The clock and the key live in the filter panel, not over the map. */
+.sm-filter .sm-time { position: static; width: auto; padding: 0 0 10px; background: none; border: 0; border-bottom: 1px solid var(--sm-line); border-radius: 0; }
+.sm-filter-key { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--sm-line); font-size: 12px; color: var(--sm-dim); }
+.sm-filter-key .sm-key { margin: 0; }
+.sm-top .sm-lens { padding: 4px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: 12px; }
 
 .sm-hover {
   position: absolute; z-index: 5; pointer-events: none; max-width: 280px; padding: 6px 10px; border-radius: 8px;
@@ -280,14 +285,14 @@
   .sm-modes::-webkit-scrollbar { display: none; }
   .sm-modes button { flex: none; height: 36px; }
   .sm-q { max-width: calc(100vw - 64px); padding: 8px 10px; gap: 6px; }
-  .sm-note { display: none; }
   .sm-lens { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .sm-lens button { flex: none; height: 32px; }
   .sm-notice { max-width: calc(100vw - 64px); padding: 8px 10px; font-size: 12px; }
   .sm-tools { top: 8px; right: 8px; }
   .sm-tools button { width: 44px; height: 44px; }
   .sm-tools button:nth-child(n + 4) { display: none; }
-  .sm-filter { top: 8px; right: 60px; left: 8px; width: auto; max-height: calc(100% - 140px); overflow: auto; }
+  .sm-filter { top: 8px; right: 60px; left: 8px; width: auto; max-height: calc(100% - 24px); overflow: auto; }
+  .sm-filter .sm-time { left: auto; right: auto; bottom: auto; width: auto; }
   .sm-time { left: 8px; right: 8px; width: auto; bottom: 112px; grid-template-columns: 44px 1fr; padding: 6px 10px 4px 6px; }
   .sm-time-play { width: 44px; height: 44px; }
   .sm-report { right: 8px; bottom: 186px; }

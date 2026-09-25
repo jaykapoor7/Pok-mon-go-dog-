@@ -61,7 +61,7 @@
 /* The inset: graticule, cities, one photograph pinned to its city. */
 
 /* ── Sections ─────────────────────────────────────────────────────── */
-.ld-sec { padding: var(--sp-section) var(--sp-gutter); display: grid; gap: var(--sp-8); }
+.ld-sec { padding: var(--sp-section) var(--sp-gutter); display: grid; gap: var(--sp-8); overflow-x: clip; }
 .ld-sec-bone { background: var(--sp-bone); }
 .ld-sec-shell { background: var(--sp-shell); }
 .ld-sec-night { background: var(--sp-night); color: var(--sp-night-text); }
@@ -219,3 +219,63 @@
 @media (max-width: 420px) {
   .ld-hero-actions { gap: var(--sp-3) var(--sp-5); }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   The landing scrolls differently from the rest of the site, and each
+   section moves in its own way — driven by scroll position alone (no
+   script, nothing on a timer), and only where the reader has not asked
+   for reduced motion and the browser can do it. Everywhere else the page
+   is the same page, still.
+
+   hero      the city stays put; the page slides up over it like a curtain
+   the route drawn left to right as it comes into view
+   distances three plates zoom in from far away, one after another
+   unknown   the question holds still on the left while the evidence passes
+   photos    the strip fans in, alternate cards tilting into line
+   desk      the dashboard lifts from a tilted desk to face the reader
+   close     the last line grows into place
+   ════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference) {
+  /* The curtain works without scroll timelines too. */
+  .ld .ld-hero { position: sticky; top: 0; z-index: 0; }
+  .ld main > :not(.ld-hero) { position: relative; z-index: 1; }
+
+  @supports (animation-timeline: view()) {
+    .ld .ld-hero-copy { animation: ld-lift linear both; animation-timeline: scroll(root block); animation-range: 0 70vh; }
+    .ld .ld-plate.is-ready { animation: ld-recede linear both; animation-timeline: scroll(root block); animation-range: 0 90vh; }
+    .ld .ld-meter { animation: ld-fade-out linear both; animation-timeline: scroll(root block); animation-range: 0 40vh; }
+
+    .ld .ld-flow-svg { animation: ld-draw linear both; animation-timeline: view(); animation-range: entry 15% cover 50%; }
+
+    .ld .ld-scale { animation: ld-zoom-in linear both; animation-timeline: view(); }
+    .ld .ld-scale:nth-child(1) { animation-range: entry 10% cover 35%; }
+    .ld .ld-scale:nth-child(2) { animation-range: entry 25% cover 45%; }
+    .ld .ld-scale:nth-child(3) { animation-range: entry 40% cover 55%; }
+
+    .ld .ld-unknown-row { animation: ld-slide-left linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+
+    .ld .ld-photos { view-timeline: --ld-photos block; }
+    .ld .ld-photos-track li { animation: ld-fan-a linear both; animation-timeline: --ld-photos; animation-range: entry 0% cover 45%; }
+    .ld .ld-photos-track li:nth-child(even) { animation-name: ld-fan-b; }
+
+    .ld .ld-desk { transform-origin: 50% 100%; animation: ld-tilt-up linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+
+    .ld .ld-close h2 { animation: ld-grow linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; }
+  }
+
+  /* Wide screens only: the heading pins while the rows go past it. */
+  @media (min-width: 900px) {
+    .ld .ld-unknown > .sys-head { position: sticky; top: 18vh; }
+  }
+}
+
+@keyframes ld-lift { to { transform: translateY(-18vh); opacity: 0; } }
+@keyframes ld-recede { to { transform: scale(1.08); opacity: 0.35; } }
+@keyframes ld-fade-out { to { opacity: 0; } }
+@keyframes ld-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes ld-zoom-in { from { transform: scale(0.82) translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ld-slide-left { from { transform: translateX(64px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ld-fan-a { from { transform: translateY(48px) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ld-fan-b { from { transform: translateY(72px) rotate(4deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ld-tilt-up { from { transform: perspective(1400px) rotateX(24deg) scale(0.9); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@keyframes ld-grow { from { transform: scale(0.86); opacity: 0.2; } to { transform: none; opacity: 1; } }

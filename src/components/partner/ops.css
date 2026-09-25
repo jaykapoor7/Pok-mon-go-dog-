@@ -102,3 +102,13 @@
   .ops-decide li, .ops-decide li + li { padding: 14px 0; border-left: 0; border-top: 1px solid var(--sp-rule); }
   .ops-list a { grid-template-columns: 12px minmax(0, 1fr) 96px; }
 }
+
+/* where it is: streets or cells */
+.ops-view { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--sp-line); border-radius: var(--ctl-r); background: var(--sp-paper); }
+.ops-view button { height: 26px; padding: 0 12px; border: 0; border-radius: var(--ctl-r); background: transparent; font: 600 12px var(--font-sans), system-ui, sans-serif; letter-spacing: 0; text-transform: none; color: var(--sp-muted); cursor: pointer; transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io); }
+.ops-view button[aria-pressed="true"] { background: var(--sp-ink); color: var(--sp-paper); }
+.ops-street { width: 100%; height: 360px; border-radius: var(--sp-radius); overflow: hidden; border: 1px solid var(--sp-line); }
+.ops-map-key i.is-dot { clip-path: none; border-radius: 50%; background: var(--sp-flame-deep); }
+.ops-map-key i.is-ring { clip-path: none; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--sp-ink); opacity: 0.6; }
+.ops-map-key a { color: var(--sp-blue); font-weight: 600; text-decoration: none; }
+@media (max-width: 760px) { .ops-street { height: 300px; } }
