@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HexPlate, type Box, type PlateCell } from "@/components/system/HexPlate";
 import { StrayPawMark } from "@/components/site/SiteHeader";
+import { useCount } from "./useCount";
 
 /* The organisation's dashboard, in miniature: the same headline, the same
    queue with its waiting bars, the same map of where the open work is. It is
@@ -31,21 +32,6 @@ const RAMP = ["var(--sp-att-1)", "var(--sp-att-2)", "var(--sp-att-3)", "var(--sp
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const shortDate = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`; };
 const KIND = { report: { t: "New request", c: "is-new" }, action: { t: "Field team on site", c: "is-act" }, closed: { t: "Closed after field work", c: "is-done" } } as const;
-
-/** Counts up to n once, when first shown; shows n straight away without motion. */
-function useCount(n: number, run: boolean) {
-  const [v, setV] = useState(n);
-  const done = useRef(false);
-  useEffect(() => {
-    if (!run || done.current) return;
-    done.current = true;
-    let raf = 0; const t0 = performance.now(), D = 900;
-    const step = (t: number) => { const p = Math.min(1, (t - t0) / D); setV(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) raf = requestAnimationFrame(step); };
-    setV(0); raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [n, run]);
-  return v;
-}
 
 export function DeskMock({ city, desk }: { city: string; desk: Desk }) {
   const el = useRef<HTMLElement>(null);

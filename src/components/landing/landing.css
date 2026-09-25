@@ -87,8 +87,9 @@
 .ld-trip span { font-size: 14px; line-height: 1.45; color: var(--sp-body); }
 
 /* The live count under the headline, and the replay's running tally. */
-.ld-hero-tally { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-2); font-size: 12.5px; letter-spacing: 0.02em; color: var(--sp-night-dim); }
-.ld-hero-tally b { font-weight: 500; color: var(--sp-night-text); font-variant-numeric: tabular-nums; }
+.ld-hero-tally { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-2); font-size: 14px; color: var(--sp-night-dim); }
+.ld-hero-tally i { align-self: center; }
+.ld-hero-tally b { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; color: var(--sp-night-text); font-variant-numeric: tabular-nums; }
 .ld-hero-tally i { width: 8px; height: 8px; border-radius: 50%; background: var(--sp-flame); margin-right: 2px; }
 .ld-meter-count { margin: 0; font-size: 12px; color: var(--sp-night-dim); }
 .ld-meter-count b { font-weight: 500; color: var(--sp-night-text); font-variant-numeric: tabular-nums; }
@@ -210,10 +211,11 @@
 
    hero      the city stays put; the page slides up over it like a curtain
              (wide screens; on a phone the hero scrolls as it always did)
-   the route drawn left to right as it comes into view
-   photos    the strip fans in, alternate cards tilting into line
+   request   the headline rises from a mask; the route draws stop by stop
+   photos    the strip slides in sideways while the cards fan into line
+   roles     the headline wipes in; each row is written in after the last
    desk      the dashboard lifts from a tilted desk to face the reader
-   close     the last line grows into place
+   close     the last line grows into place and the button rises after it
    ════════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: no-preference) {
   /* The curtain works without scroll timelines too. Wide screens only: on
@@ -224,6 +226,10 @@
     .ld main > :not(.ld-hero) { position: relative; z-index: 1; }
   }
 
+  /* The tally counts up from zero once the page is live; it fades in so the
+     server's figure never flashes before the count starts. */
+  .ld .ld-hero-tally { animation: ld-in var(--sp-slow) var(--sp-ease) 0.3s both; }
+
   @supports (animation-timeline: view()) {
     @media (min-width: 761px) {
       .ld .ld-hero-copy { animation: ld-lift linear both; animation-timeline: scroll(root block); animation-range: 0 70vh; }
@@ -231,20 +237,34 @@
       .ld .ld-meter { animation: ld-fade-out linear both; animation-timeline: scroll(root block); animation-range: 0 40vh; }
     }
 
-    /* The route draws as it comes into view, and each stop arrives on it. */
+    /* One request: the headline rises out of a mask, then the route draws
+       itself stop by stop, across on a wide screen and down on a phone. */
+    .ld .ld-trip-sec .sys-head { animation: ld-mask-up linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
     .ld .ld-trip { view-timeline: --ld-trip block; }
     .ld .ld-trip li { animation: ld-stop linear both; animation-timeline: --ld-trip; animation-range: entry calc(var(--i) * 12%) cover calc(12% + var(--i) * 5%); }
+    .ld .ld-trip li:not(:last-child)::after { transform-origin: 0 50%; animation: ld-segment linear both; animation-timeline: --ld-trip; animation-range: entry calc(8% + var(--i) * 12%) cover calc(18% + var(--i) * 5%); }
+    .ld .ld-trip-dot { animation: ld-pop linear both; animation-timeline: --ld-trip; animation-range: entry calc(var(--i) * 12%) cover calc(10% + var(--i) * 5%); }
+
+    @media (max-width: 760px) { .ld .ld-trip li:not(:last-child)::after { transform-origin: 50% 0; animation-name: ld-segment-down; } }
 
     .ld .ld-hero-tally i { animation: ld-pulse 2.4s var(--sp-ease-io) infinite; }
 
-
-
+    /* Photographs: the strip slides in from the side while the cards fan
+       into line. */
     .ld .ld-photos { view-timeline: --ld-photos block; }
+    .ld .ld-photos-track { animation: ld-slide-in linear both; animation-timeline: --ld-photos; animation-range: entry 0% cover 40%; }
     .ld .ld-photos-track li { animation: ld-fan-a linear both; animation-timeline: --ld-photos; animation-range: entry 0% cover 45%; }
     .ld .ld-photos-track li:nth-child(even) { animation-name: ld-fan-b; }
 
+    /* Who reads the record: the headline wipes in from the left, then each
+       row is written in after the one above it. The desk lifts beside it. */
+    .ld .ld-who-text .sys-head { animation: ld-wipe linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+    .ld .ld-roles { view-timeline: --ld-roles block; }
+    .ld .ld-roles > li { animation: ld-wipe linear both; animation-timeline: --ld-roles; animation-range: entry calc(var(--i) * 7%) cover calc(10% + var(--i) * 4%); }
     .ld .ld-desk { transform-origin: 50% 100%; animation: ld-tilt-up linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
 
+    /* The close: the line grows into place and the button rises after it. */
+    .ld .ld-close .sys-btn { animation: ld-stop linear both; animation-timeline: view(); animation-range: entry 20% cover 35%; }
     .ld .ld-close h2 { animation: ld-grow linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; }
   }
 
@@ -253,6 +273,13 @@
 @keyframes ld-lift { to { transform: translateY(-18vh); opacity: 0; } }
 @keyframes ld-recede { to { transform: scale(1.08); opacity: 0.35; } }
 @keyframes ld-fade-out { to { opacity: 0; } }
+@keyframes ld-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ld-mask-up { from { clip-path: inset(-0.3em -0.3em 100% -0.3em); transform: translateY(28px); } to { clip-path: inset(-0.3em -0.3em -0.3em -0.3em); transform: none; } }
+@keyframes ld-wipe { from { clip-path: inset(-0.3em 100% -0.3em -0.3em); } to { clip-path: inset(-0.3em -0.3em -0.3em -0.3em); } }
+@keyframes ld-segment { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes ld-segment-down { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes ld-pop { from { transform: scale(0.3); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ld-slide-in { from { transform: translateX(14%); } to { transform: none; } }
 @keyframes ld-stop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes ld-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 @keyframes ld-fan-a { from { transform: translateY(48px) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }

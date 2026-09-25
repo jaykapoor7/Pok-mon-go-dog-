@@ -5,6 +5,7 @@ import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { Journey } from "@/components/landing/Journey";
+import { HeroTally } from "@/components/landing/HeroTally";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
 import { DeskMock } from "@/components/landing/DeskMock";
 import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
@@ -75,11 +76,7 @@ export default async function HomePage() {
               <em>Seen, tracked, cared&nbsp;for.</em>
             </h1>
             <p className="ld-hero-sub">One shared record connecting sightings, field work and outcomes.</p>
-            {story && (
-              <p className="ld-hero-tally sys-mono">
-                <i aria-hidden /><b>{fmt(story.totals.animals)}</b> animals tracked · <b>{fmt(story.totals.cases)}</b> cases · <b>{story.totals.cities}</b> cities
-              </p>
-            )}
+            {story && <HeroTally animals={story.totals.animals} cases={story.totals.cases} cities={story.totals.cities} />}
             <div className="ld-hero-actions">
               <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
               <Link href="/map" className="sys-link is-night">Open the live map <ArrowUpRight size={15} /></Link>
@@ -89,7 +86,7 @@ export default async function HomePage() {
         </section>
 
         {story?.journey && (
-          <section className="ld-sec ld-sec-shell" aria-labelledby="ld-trip-title">
+          <section className="ld-sec ld-sec-shell ld-trip-sec" aria-labelledby="ld-trip-title">
             <header className="sys-head">
               <h2 id="ld-trip-title">One request, <em>followed to the end.</em></h2>
               <p>
@@ -112,8 +109,8 @@ export default async function HomePage() {
                 <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
               </header>
               <ul className="ld-roles">
-                {ROLES.map((g) => g.rows.map((r, i) => (
-                  <li key={r.href} className={i === 0 ? "is-first" : undefined}>
+                {ROLES.flatMap((g, gi) => g.rows.map((r, i) => (
+                  <li key={r.href} className={i === 0 ? "is-first" : undefined} style={{ ["--i" as string]: ROLES.slice(0, gi).reduce((n, x) => n + x.rows.length, 0) + i }}>
                     <span className="ld-roles-level" aria-hidden={i > 0}>{i === 0 ? g.level : ""}</span>
                     <Link href={r.href}>
                       <span><b>{r.who}</b><small>{r.does}</small></span>
