@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { HeroPlate } from "@/components/landing/HeroPlate";
-import { RequestFlow } from "@/components/landing/RequestFlow";
+import { Journey } from "@/components/landing/Journey";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
 import { DeskMock } from "@/components/landing/DeskMock";
 import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
@@ -75,6 +75,11 @@ export default async function HomePage() {
               <em>Seen, tracked, cared&nbsp;for.</em>
             </h1>
             <p className="ld-hero-sub">One shared record connecting sightings, field work and outcomes.</p>
+            {story && (
+              <p className="ld-hero-tally sys-mono">
+                <i aria-hidden /><b>{fmt(story.totals.animals)}</b> animals tracked · <b>{fmt(story.totals.cases)}</b> cases · <b>{story.totals.cities}</b> cities
+              </p>
+            )}
             <div className="ld-hero-actions">
               <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
               <Link href="/map" className="sys-link is-night">Open the live map <ArrowUpRight size={15} /></Link>
@@ -83,15 +88,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {story && (
-          <>
-            <section className="ld-sec ld-sec-shell" aria-labelledby="ld-line-title">
-              <header className="sys-head">
-                <h2 id="ld-line-title">Where {fmt(story.flow.requests)} requests for help <em>went.</em></h2>
-              </header>
-              <RequestFlow requests={story.flow.requests} status={story.flow.status} reasons={story.flow.reasons} noActionTotal={story.flow.noActionTotal} />
-            </section>
-          </>
+        {story?.journey && (
+          <section className="ld-sec ld-sec-shell" aria-labelledby="ld-trip-title">
+            <header className="sys-head">
+              <h2 id="ld-trip-title">One request, <em>followed to the end.</em></h2>
+              <p>
+                A real case from {story.hero.city}, as the record holds it.
+                {story.record.medianFirstAction !== null && <> Across its {fmt(story.record.requests)} requests, half had a field team on them {story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.</>}
+              </p>
+            </header>
+            <Journey j={story.journey} city={story.hero.city} />
+          </section>
         )}
 
         <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed animals">

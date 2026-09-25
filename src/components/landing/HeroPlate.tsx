@@ -190,6 +190,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           <span>Sample city · {city}</span>
           <b className="sys-mono">{monthOf(t.day)}</b>
         </p>
+        <p className="ld-meter-count sys-mono"><b>{t.cases.toLocaleString("en-IN")}</b> cases · <b>{t.care.toLocaleString("en-IN")}</b> care</p>
         <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
           {playing ? "Filling in…" : "Replay"}
         </button>

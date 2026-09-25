@@ -73,20 +73,25 @@
 .ld-sec-tight { padding-top: var(--sp-8); padding-bottom: var(--sp-8); }
 .ld-sec .sys-head h2 { font-size: clamp(32px, 4.6vw, 58px); letter-spacing: -0.008em; line-height: 1.02; }
 
-/* ── The flow ─────────────────────────────────────────────────────── */
-.ld-flow { display: grid; gap: var(--sp-6); }
-.ld-flow-svg { width: 100%; height: auto; display: block; max-width: 1180px; overflow: visible; }
-.ld-flow-line { fill: none; stroke-linecap: butt; stroke-linejoin: round; }
-.ld-flow-station { fill: var(--sp-bone); stroke: var(--sp-ink); stroke-width: 3; }
-.ld-flow-stop { fill: var(--sp-bone); stroke-width: 2.5; }
-.ld-flow-terminal { stroke: var(--sp-ink); stroke-width: 3; fill: none; }
-.ld-flow-num { font-family: var(--font-mono), monospace; font-size: 15px; font-weight: 500; fill: var(--sp-ink); font-variant-numeric: tabular-nums; }
-.ld-flow-num.is-big { font-family: var(--font-serif-stack); font-size: 30px; font-weight: 400; letter-spacing: -0.02em; }
-.ld-flow-label { font-size: 13px; fill: var(--sp-body); }
-.ld-flow-label.is-strong { font-weight: 600; fill: var(--sp-ink); }
-.ld-flow-reason-text { font-size: 13px; fill: var(--sp-body); }
-.ld-flow-reason.is-lost .ld-flow-reason-text, .ld-flow-reason.is-lost .ld-flow-num { fill: var(--sp-ember); font-weight: 600; }
-.ld-flow-phone { display: none; }
+/* ── One request, followed to the end ─────────────────────────────
+   A route line with a stop for each step the record holds; the last stop,
+   the outcome, is the one filled in. Across on wide screens, down on a
+   phone. */
+.ld-trip { position: relative; margin: 0; padding: 0; list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--sp-5); max-width: 1180px; }
+.ld-trip li:not(:last-child)::after { content: ""; position: absolute; left: 7px; right: calc(-1 * var(--sp-5)); top: 6px; height: 2px; background: var(--sp-ink); }
+.ld-trip li { position: relative; display: grid; gap: var(--sp-1); align-content: start; padding-top: var(--sp-6); }
+.ld-trip-dot { position: absolute; z-index: 1; top: 0; left: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--sp-shell); border: 2px solid var(--sp-ink); box-sizing: border-box; }
+.ld-trip li.is-end .ld-trip-dot { background: var(--sp-blue); border-color: var(--sp-blue); }
+.ld-trip time { font-size: 12px; letter-spacing: 0.02em; color: var(--sp-muted); font-variant-numeric: tabular-nums; }
+.ld-trip b { font-size: 19px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.25; color: var(--sp-ink); }
+.ld-trip span { font-size: 14px; line-height: 1.45; color: var(--sp-body); }
+
+/* The live count under the headline, and the replay's running tally. */
+.ld-hero-tally { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-2); font-size: 12.5px; letter-spacing: 0.02em; color: var(--sp-night-dim); }
+.ld-hero-tally b { font-weight: 500; color: var(--sp-night-text); font-variant-numeric: tabular-nums; }
+.ld-hero-tally i { width: 8px; height: 8px; border-radius: 50%; background: var(--sp-flame); margin-right: 2px; }
+.ld-meter-count { margin: 0; font-size: 12px; color: var(--sp-night-dim); }
+.ld-meter-count b { font-weight: 500; color: var(--sp-night-text); font-variant-numeric: tabular-nums; }
 
 /* ── Street → locality → city ─────────────────────────────────────── */
 
@@ -185,21 +190,12 @@
   .ld-hero-copy { order: 1; }
   .ld-plate { order: 2; }
   .ld-meter { order: 3; }
-  .ld-flow-svg { display: none; }
-  .ld-sec { gap: var(--sp-6); }
-  .ld-flow-phone { display: grid; gap: var(--sp-5); }
-  .ld-flow-bar { display: flex; gap: 2px; height: 22px; border-radius: 6px; overflow: hidden; }
-  .ld-flow-bar i { display: block; min-width: 3px; }
-  .ld-flow-bar i.is-hatch { background: var(--sp-hatch); }
-  .ld-flow-key { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4) var(--sp-4); }
-  .ld-flow-key li { display: grid; grid-template-columns: 10px 1fr; gap: 2px 8px; align-items: baseline; }
-  .ld-flow-key i { width: 10px; height: 10px; border-radius: 2px; align-self: center; }
-  .ld-flow-key b { font-family: var(--font-serif-stack); font-size: 28px; font-weight: 400; line-height: 1; letter-spacing: -0.02em; color: var(--sp-ink); font-variant-numeric: tabular-nums lining-nums; }
-  .ld-flow-key span { grid-column: 2; font-size: 13px; line-height: 1.35; color: var(--sp-body); }
-  .ld-flow-key small { font-size: 12px; color: var(--sp-muted); }
-  .ld-flow-why { margin: 0; padding-top: var(--sp-4); border-top: 1px solid var(--sp-rule); font-size: 14px; line-height: 1.55; color: var(--sp-body); }
-  .ld-flow-why b { color: var(--sp-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .ld-flow-why b.is-lost { color: var(--sp-ember); }
+  .ld-trip { grid-auto-flow: row; gap: var(--sp-5); }
+  .ld-trip li:not(:last-child)::after { left: 6px; right: auto; top: 8px; bottom: calc(-1 * var(--sp-5) - 2px); width: 2px; height: auto; }
+  .ld-trip li { padding: 0 0 0 var(--sp-6); }
+  .ld-trip-dot { top: 2px; }
+  .ld-trip b { font-size: 17px; }
+  .ld-meter-count { display: none; }
 }
 @media (max-width: 420px) {
   .ld-hero-actions { gap: var(--sp-3) var(--sp-5); }
@@ -235,7 +231,11 @@
       .ld .ld-meter { animation: ld-fade-out linear both; animation-timeline: scroll(root block); animation-range: 0 40vh; }
     }
 
-    .ld .ld-flow-svg { animation: ld-draw linear both; animation-timeline: view(); animation-range: entry 15% cover 50%; }
+    /* The route draws as it comes into view, and each stop arrives on it. */
+    .ld .ld-trip { view-timeline: --ld-trip block; }
+    .ld .ld-trip li { animation: ld-stop linear both; animation-timeline: --ld-trip; animation-range: entry calc(var(--i) * 12%) cover calc(12% + var(--i) * 5%); }
+
+    .ld .ld-hero-tally i { animation: ld-pulse 2.4s var(--sp-ease-io) infinite; }
 
 
 
@@ -253,7 +253,8 @@
 @keyframes ld-lift { to { transform: translateY(-18vh); opacity: 0; } }
 @keyframes ld-recede { to { transform: scale(1.08); opacity: 0.35; } }
 @keyframes ld-fade-out { to { opacity: 0; } }
-@keyframes ld-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes ld-stop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ld-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 @keyframes ld-fan-a { from { transform: translateY(48px) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-fan-b { from { transform: translateY(72px) rotate(4deg); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ld-tilt-up { from { transform: perspective(1400px) rotateX(24deg) scale(0.9); opacity: 0.4; } to { transform: none; opacity: 1; } }

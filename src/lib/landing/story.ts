@@ -6,18 +6,19 @@
    the compact result — a sample city's cells and events, a handful of
    counts — never the register itself.
 
-   The sample city is whichever city holds the most records. Today that
-   is Coimbatore, from one partner's rescue register; the page says so,
-   and says that StrayPaw is not that city.
+   The sample city is whichever city holds the most field work (cases),
+   not the most animals: a bulk import of animals with no cases and no
+   dates would otherwise take the hero and leave it nothing to replay.
+   Today that is Coimbatore, from one partner's rescue register.
    ════════════════════════════════════════════════════════════════════ */
 
 import { getSupabase } from "@/lib/supabase";
 import { unstable_cache } from "next/cache";
 import { getPublicDataset, SPATIAL_TAG } from "@/lib/spatial/server";
 import { buildIndex, openNow, robustStart } from "@/lib/spatial/engine";
-import { animalKnowledge, casesIn, closureReasons, conditionOutcome, firstAction, statusTotals } from "@/lib/spatial/measures";
-import { A_STRIDE, C, C_STRIDE, K, K_STRIDE, countOf, type SpatialDataset } from "@/lib/spatial/types";
-import { CONDITIONS, DEFAULT_TRIAGE, type Condition, type StatusClass } from "@/lib/register/taxonomy";
+import { animalKnowledge, casesIn, firstAction, statusTotals } from "@/lib/spatial/measures";
+import { A_STRIDE, C, C_STRIDE, K, K_STRIDE, RES, countOf, type SpatialDataset } from "@/lib/spatial/types";
+import { CONDITIONS, DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 
 export type LandingStory = Awaited<ReturnType<typeof buildStory>>;
 
@@ -32,10 +33,10 @@ function coreBox(ds: SpatialDataset, cells: number[], lo: number, hi: number, pa
 
 function buildStory(ds: SpatialDataset) {
   const ix = buildIndex(ds);
-  const city = 0; // busiest first
+  // The city with the most cases; animals only break a tie.
+  let city = 0;
+  ds.cities.forEach((c, i) => { const b = ds.cities[city]; if (c.cases > b.cases || (c.cases === b.cases && c.animals > b.animals)) city = i; });
   const sample = ds.cities[city];
-  const all = { cells: null, from: 0, to: ds.today };
-  const allCases = casesIn(ds, all);
   const cityCells = new Set<number>();
   ds.cellCity.forEach((c, i) => { if (c === city) cityCells.add(i); });
   const cityCases = casesIn(ds, { cells: cityCells, from: 0, to: ds.today });
@@ -79,19 +80,45 @@ function buildStory(ds: SpatialDataset) {
     futureDated,
   };
 
-  /* the flow: where the requests went */
-  const status = statusTotals(ds, allCases);
-  const reasons = closureReasons(ds, allCases);
-  const flow = {
-    requests: allCases.length,
-    status: status as Record<StatusClass, number>,
-    reasons: reasons.parts,
-    noActionTotal: reasons.total,
-    firstAction: firstAction(ds, allCases),
-  };
-
-  /* every request, a square */
-
+  /* One request, followed through the record: the most recent case in the
+     sample city that has every step written down (a known condition, a
+     first action, a closing date that was not assumed), with the care
+     given to that animal in between. */
+  const CLOSED_I = ds.dict.status.indexOf("closed");
+  const vague = new Set(["Other", "Not recorded"]);
+  const careBy = new Map<number, { day: number; kind: string }[]>();
+  for (let i = 0; i < ix.nCare; i++) {
+    const o = i * K_STRIDE, a = ds.care[o + K.animal];
+    if (a < 0) continue;
+    (careBy.get(a) ?? careBy.set(a, []).get(a)!).push({ day: ds.care[o + K.day], kind: ds.dict.care[ds.care[o + K.kind]] ?? "other" });
+  }
+  let pick = -1, pickCare: { day: number; kind: string }[] = [];
+  for (const i of cityCases) {
+    const o = i * C_STRIDE, d = ds.cases[o + C.day], fa = ds.cases[o + C.firstAction], cd = ds.cases[o + C.closedDay];
+    if (ds.cases[o + C.status] !== CLOSED_I || ds.cases[o + C.resolvedSrc] === RES.assumed) continue;
+    if (d < 0 || fa < 0 || cd < 0 || cd > ds.today || cd - d < 2 || cd - d > 60 || d + fa > cd) continue;
+    if (vague.has(CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded")) continue;
+    const care = (careBy.get(ds.cases[o + C.animal]) ?? []).filter((k) => k.day >= d + fa && k.day <= cd);
+    // Prefer a case with care on record; among those, the most recent.
+    const better = pick < 0 || (care.length > 0 && pickCare.length === 0) || ((care.length > 0) === (pickCare.length > 0) && cd > ds.cases[pick * C_STRIDE + C.closedDay]);
+    if (better) { pick = i; pickCare = care; }
+  }
+  const iso = (day: number) => new Date(Date.UTC(2000, 0, 1) + day * 86_400_000).toISOString().slice(0, 10);
+  const journey = pick < 0 ? null : (() => {
+    const o = pick * C_STRIDE, d = ds.cases[o + C.day], fa = ds.cases[o + C.firstAction], cd = ds.cases[o + C.closedDay];
+    const li = ds.cellLocality[ds.cases[o + C.cell]];
+    const kinds = [...new Set(pickCare.map((k) => k.kind))];
+    return {
+      condition: CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded",
+      locality: li >= 0 ? ds.localities[li] : sample?.name ?? "",
+      reported: iso(d), acted: iso(d + fa), actedAfter: fa, closed: iso(cd), days: cd - d,
+      closure: ds.dict.closure[ds.cases[o + C.closure]] ?? "unspecified",
+      care: { count: pickCare.length, kinds, first: pickCare.length ? iso(Math.min(...pickCare.map((k) => k.day))) : null },
+    };
+  })();
+  const status = statusTotals(ds, cityCases);
+  const fa = firstAction(ds, cityCases);
+  const record = { requests: cityCases.length, closedAfterWork: (status as Record<string, number>).closed ?? 0, medianFirstAction: fa.median };
 
   /* the field desk: the dashboard an organisation working in the sample city
      opens to, drawn from the same public record. The queue follows the
@@ -126,7 +153,7 @@ function buildStory(ds: SpatialDataset) {
         const base = { condition: CONDITIONS[at(i, C.cond)] ?? "Not recorded", locality: li >= 0 ? ds.localities[li] : "", cell: ds.cells[at(i, C.cell)], critical: isCritical(i) };
         const d = at(i, C.day), fa = at(i, C.firstAction), cd = at(i, C.closedDay);
         if (d >= 0 && d <= ds.today) ev.push({ kind: "report", day: d, ...base });
-        if (fa >= 0 && fa <= ds.today && fa > d) ev.push({ kind: "action", day: fa, ...base });
+        if (d >= 0 && fa > 0 && d + fa <= ds.today) ev.push({ kind: "action", day: d + fa, ...base });
         if (cd >= 0 && cd <= ds.today && at(i, C.status) === CLOSED) ev.push({ kind: "closed", day: cd, ...base });
       }
       return ev.sort((a, b) => a.day - b.day).slice(-14).map((e) => ({ ...e, date: new Date(Date.UTC(2000, 0, 1) + e.day * 86_400_000).toISOString().slice(0, 10) }));
@@ -151,7 +178,8 @@ function buildStory(ds: SpatialDataset) {
       cityCases: cityCases.length,
     },
     hero,
-    flow,
+    journey,
+    record,
     desk,
     today: ds.today,
     built: ds.built,
@@ -165,7 +193,7 @@ export const getLandingStory = unstable_cache(async () => {
   const ds = await getPublicDataset(null);
   if (!ds || !ds.cities.length) return null;
   return buildStory(ds);
-}, ["landing-story-v3"], { revalidate: 600, tags: [SPATIAL_TAG] });
+}, ["landing-story-v4"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /** Resident photographs on the record, newest first, for the register strip. */
 export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v2"], { revalidate: 300, tags: [SPATIAL_TAG] });
