@@ -19,13 +19,18 @@
 .ld-plate .maplibregl-ctrl-attrib a, .ld-plate .maplibregl-ctrl-attrib-inner { color: var(--sp-night-faint) !important; font-size: 10px; }
 .ld-plate .maplibregl-ctrl-attrib-button { filter: invert(1); opacity: 0.4; }
 
+/* Headlines use the display cuts loaded on this page (see page.tsx). Those
+   are fitted tighter by design, so the tracking is close to zero. */
+.ld-hero h1, .ld-sec .sys-head h2, .ld-close h2 { font-family: var(--font-sans-display), var(--font-sans), sans-serif; font-optical-sizing: auto; }
+.ld-hero h1 em, .ld-sec .sys-head h2 em, .ld-close h2 em { font-family: var(--font-serif-display), var(--font-serif-stack); }
+
 .ld-hero-copy { position: relative; z-index: 2; max-width: 620px; padding: clamp(48px, 11vh, 132px) 0 var(--sp-7); display: grid; gap: var(--sp-5); pointer-events: none; }
 .ld-hero-copy > * { pointer-events: auto; }
 .ld-hero h1 {
   margin: 0;
   font-size: clamp(42px, 6.8vw, 96px);
-  line-height: 0.96;
-  letter-spacing: -0.048em;
+  line-height: 0.98;
+  letter-spacing: -0.012em;
   font-weight: 600;
   color: var(--sp-night-text);
   text-wrap: balance;
@@ -33,7 +38,6 @@
 .ld-hero h1 em {
   display: block;
   margin-top: 0.08em;
-  font-family: var(--font-serif-stack);
   font-style: italic;
   font-weight: 400;
   letter-spacing: -0.02em;
@@ -67,7 +71,7 @@
 .ld-sec-shell { background: var(--sp-shell); }
 .ld-sec-night { background: var(--sp-night); color: var(--sp-night-text); }
 .ld-sec-tight { padding-top: var(--sp-8); padding-bottom: var(--sp-8); }
-.ld-sec .sys-head h2 { font-size: clamp(32px, 4.6vw, 58px); letter-spacing: -0.042em; line-height: 1.0; }
+.ld-sec .sys-head h2 { font-size: clamp(32px, 4.6vw, 58px); letter-spacing: -0.008em; line-height: 1.02; }
 
 /* ── The flow ─────────────────────────────────────────────────────── */
 .ld-flow { display: grid; gap: var(--sp-6); }
@@ -156,8 +160,8 @@
 
 /* ── The close ────────────────────────────────────────────────────── */
 .ld-close { background: var(--sp-night); color: var(--sp-night-text); padding: var(--sp-section) var(--sp-gutter); display: grid; justify-items: start; gap: var(--sp-5); }
-.ld-close h2 { margin: 0; font-size: clamp(36px, 5.6vw, 72px); line-height: 1; letter-spacing: -0.045em; font-weight: 600; }
-.ld-close h2 em { display: block; font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; color: var(--sp-sky); letter-spacing: -0.02em; }
+.ld-close h2 { margin: 0; font-size: clamp(36px, 5.6vw, 72px); line-height: 1.02; letter-spacing: -0.012em; font-weight: 600; }
+.ld-close h2 em { display: block; font-style: italic; font-weight: 400; color: var(--sp-sky); letter-spacing: -0.02em; }
 
 /* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 1100px) {

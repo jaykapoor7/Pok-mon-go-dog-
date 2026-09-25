@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DM_Sans, Newsreader } from "next/font/google";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -32,6 +33,13 @@ export const metadata = {
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
+/* The landing's headlines only, in each face's variable cut with its
+   optical-size axis: at 40 to 96px the browser draws DM Sans and Newsreader
+   from their display masters, finer and more tightly fitted than the text
+   cuts the rest of the site uses. Loaded here so no other page pays for it. */
+const displaySans = DM_Sans({ subsets: ["latin"], axes: ["opsz"], variable: "--font-sans-display", display: "swap" });
+const displaySerif = Newsreader({ subsets: ["latin"], style: ["italic"], axes: ["opsz"], variable: "--font-serif-display", display: "swap" });
+
 /* Who reads the record, from one street up to a whole city, and what each
    of them does with it. */
 const ROLES = [
@@ -54,7 +62,7 @@ export default async function HomePage() {
   const [story, photos] = await Promise.all([getLandingStory(), getPhotoRegister(24)]);
 
   return (
-    <div className="sp field-site product-site ld">
+    <div className={`sp field-site product-site ld ${displaySans.variable} ${displaySerif.variable}`}>
       <PageView name="landing_view" />
       <SiteHeader tone="night" />
       <main>
