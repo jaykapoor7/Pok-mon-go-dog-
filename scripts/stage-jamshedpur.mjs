@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 /*
- * Repeatable, staging-only adapter for the HSI/Humane World Jamshedpur data.
+ * Repeatable local audit adapter for the HSI/Humane World Jamshedpur data.
  *
  * The clinical table contains stable individual dog IDs. The street files
  * contain observations without stable dog IDs, so they are reduced to real
- * route-survey aggregates. Neither dataset is published because the GitHub
- * repository has no explicit raw-data licence; clinical rows also have no
- * animal-level coordinates.
+ * route-survey aggregates for analysis. Neither dataset is publishable today:
+ * the GitHub repository has no explicit raw-data licence, clinical rows have
+ * no animal-level coordinates, and street observations have no stable dog IDs.
+ *
+ * This script deliberately never writes blocked/unpublishable source rows to
+ * production Supabase. It produces only local reports/JSON for audit purposes.
  *
  *   HSI_DPM_DIR=.cache/public-atlas/HSI_DPM node scripts/stage-jamshedpur.mjs --report
  *   HSI_DPM_DIR=.cache/public-atlas/HSI_DPM node scripts/stage-jamshedpur.mjs --emit-json clinical 0 500
  *   HSI_DPM_DIR=.cache/public-atlas/HSI_DPM node scripts/stage-jamshedpur.mjs --emit-json street 0 500
- *   HSI_DPM_DIR=.cache/public-atlas/HSI_DPM DATABASE_URL=... node scripts/stage-jamshedpur.mjs --stage
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -276,7 +278,7 @@ const report = {
   },
   clinical: {
     discovered: clinical.length,
-    staged: clinical.length,
+    staged: 0,
     published_profiles: 0,
     unique_ids: uniqueClinicalIds.size,
     duplicate_ids: clinical.length - uniqueClinicalIds.size,
@@ -308,7 +310,7 @@ const report = {
   },
   street_surveys: {
     discovered: street.length,
-    staged: street.length,
+    staged: 0,
     published_aggregates: 0,
     unique_route_surveys: uniqueStreetIds.size,
     routes: new Set(street.map((row) => row.normalized.route_id).filter(Boolean)).size,
@@ -330,7 +332,7 @@ const report = {
   },
   totals: {
     records_discovered: clinical.length + street.length,
-    records_staged: clinical.length + street.length,
+    records_staged: 0,
     profiles_published: 0,
     aggregate_rows_published: 0,
     skipped_from_publication: clinical.length + street.length,
@@ -361,65 +363,7 @@ if (emitAt >= 0) {
 }
 
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-if (!process.argv.includes("--stage")) process.exit(0);
-
-function env(name) {
-  if (process.env[name]) return process.env[name];
-  const file = path.join(projectRoot, ".env.local");
-  if (!fs.existsSync(file)) return null;
-  const line = fs.readFileSync(file, "utf8").split("\n").find((value) => value.trim().startsWith(`${name}=`));
-  return line ? line.slice(line.indexOf("=") + 1).trim().replace(/^["']|["']$/g, "") : null;
+if (process.argv.includes("--stage")) {
+  throw new Error("Production staging is disabled for blocked/unpublishable Jamshedpur source data. Run --report only; publishable data must be validated locally before any Supabase write.");
 }
-const connectionString = env("SUPABASE_POOLER_URL") ?? env("DATABASE_URL");
-if (!connectionString) throw new Error("DATABASE_URL or SUPABASE_POOLER_URL is required for --stage.");
-const db = new pg.Client({ connectionString, ssl: /localhost|127\.0\.0\.1/.test(connectionString) ? false : { rejectUnauthorized: false } });
-const chunks = (rows, size = 250) => Array.from({ length: Math.ceil(rows.length / size) }, (_, index) => rows.slice(index * size, (index + 1) * size));
-const clinicalHash = sha(`${sourceFileReport.clinical.sha256}:${sourceFileReport.clinical_derived.sha256}`);
-const streetHash = sha([sourceFileReport.street_totals.sha256, sourceFileReport.street_dogs.sha256, sourceFileReport.street_body_condition.sha256, sourceFileReport.street_skin_conditions.sha256].join(":"));
-
-await db.connect();
-try {
-  await db.query("begin");
-  const organization = (await db.query(`insert into public.ngos (name,slug,area,city,state,mission,about,website,verified,verified_at,partner_status,areas_of_work,config)
-    values ('Humane World for Animals','humane-world-for-animals','Jamshedpur, Jharkhand','Jamshedpur','Jharkhand','Improving animal welfare through humane, evidence-led programmes.','Public Jamshedpur research records are attributed to Humane World for Animals, formerly Humane Society International.','https://www.humaneworld.org',true,now(),'data_source',array['Animal birth control','Anti-rabies vaccination','Research'],jsonb_build_object('directory_kind','data_source'))
-    on conflict (slug) do update set name=excluded.name,area=excluded.area,city=excluded.city,state=excluded.state,website=excluded.website,config=public.ngos.config || excluded.config
-    returning id`)).rows[0];
-  const dataSource = (await db.query(`insert into public.data_sources (slug,source_type,source_name,source_dataset,organization_name,reporting_org_id,source_url,source_license,source_license_url,license_status,publication_status,attribution_requirements,restrictions,importer_version,geographic_precision,record_count,published_record_count,metadata,validated_at,published_at)
-    values ($1,$2,'Humane World for Animals',$3,'Humane World for Animals',$4,$5,null,null,'pending','staged','Credit Humane World for Animals (formerly Humane Society International), the study authors, and the source repository.',$6,$7,'Clinical animals have no GPS; survey coordinates are route reference points, not animal locations.',$8,0,$9::jsonb,null,null)
-    on conflict (slug) do update set reporting_org_id=excluded.reporting_org_id,source_name=excluded.source_name,source_dataset=excluded.source_dataset,organization_name=excluded.organization_name,source_url=excluded.source_url,source_license=null,source_license_url=null,license_status='pending',publication_status='staged',restrictions=excluded.restrictions,importer_version=excluded.importer_version,geographic_precision=excluded.geographic_precision,record_count=excluded.record_count,published_record_count=0,metadata=excluded.metadata,updated_at=now(),validated_at=null,published_at=null
-    returning id`, [source.slug, source.source_type, source.dataset, organization.id, source.url, source.restrictions, source.importer_version, report.totals.records_staged, JSON.stringify({ paper_url: source.paper_url, repository_commit: repoCommit, source_files: sourceFileReport, clinical: report.clinical, street_surveys: report.street_surveys, blockers: report.blockers })])).rows[0];
-
-  const upsertBatch = async ({ sheetName, filename, hash, rows, subrecord }) => {
-    let batch = (await db.query(`select id from public.import_batches where data_source_id=$1 and sheet_name=$2 and status <> 'rolled_back' order by created_at desc limit 1`, [dataSource.id, sheetName])).rows[0];
-    const mapping = JSON.stringify({ source_repository_commit: repoCommit, source_files: sourceFileReport, publication_rule: source.publication_rule });
-    if (!batch) {
-      batch = (await db.query(`insert into public.import_batches (ngo_id,data_source_id,source_filename,source_kind,sheet_name,mapping,status,rows_total,rows_imported,rows_needing_review,workbook_hash,preview)
-        values ($1,$2,$3,'csv',$4,$5::jsonb,'reviewing',$6,0,$6,$7,$8::jsonb) returning id`, [organization.id, dataSource.id, filename, sheetName, mapping, rows.length, hash, JSON.stringify(report)])).rows[0];
-    } else {
-      await db.query(`update public.import_batches set ngo_id=$2,source_filename=$3,mapping=$4::jsonb,status='reviewing',rows_total=$5,rows_imported=0,rows_needing_review=$5,workbook_hash=$6,preview=$7::jsonb,completed_at=null where id=$1`, [batch.id, organization.id, filename, mapping, rows.length, hash, JSON.stringify(report)]);
-    }
-    for (const group of chunks(rows)) {
-      await db.query(`insert into public.import_rows (batch_id,source_row_number,raw_row,normalized,decision,classification,row_fingerprint,source_subrecord)
-        select $1,x.source_row_number,x.raw_row,x.normalized,x.decision,x.classification,x.row_fingerprint,x.source_subrecord
-        from jsonb_to_recordset($2::jsonb) as x(source_row_number int,raw_row jsonb,normalized jsonb,decision text,classification text,row_fingerprint text,source_subrecord text)
-        on conflict do nothing`, [batch.id, JSON.stringify(group)]);
-      await db.query(`update public.import_rows r
-        set raw_row=x.raw_row,normalized=x.normalized,decision=x.decision,classification=x.classification,row_fingerprint=x.row_fingerprint,source_subrecord=x.source_subrecord,error=null
-        from jsonb_to_recordset($2::jsonb) as x(source_row_number int,raw_row jsonb,normalized jsonb,decision text,classification text,row_fingerprint text,source_subrecord text)
-        where r.batch_id=$1 and r.source_row_number=x.source_row_number and coalesce(r.source_subrecord,'')=coalesce(x.source_subrecord,'')`, [batch.id, JSON.stringify(group)]);
-    }
-    const stagedCount = Number((await db.query(`select count(*)::int as count from public.import_rows where batch_id=$1 and source_subrecord=$2`, [batch.id, subrecord])).rows[0].count);
-    if (stagedCount !== rows.length) throw new Error(`${sheetName} staging count mismatch: expected ${rows.length}, found ${stagedCount}.`);
-    return batch.id;
-  };
-
-  await upsertBatch({ sheetName: "clinical", filename: "clinical.csv + clinical_data.csv", hash: clinicalHash, rows: clinical, subrecord: "clinical" });
-  await upsertBatch({ sheetName: "street_surveys", filename: "total_count 2.csv + derived street tables", hash: streetHash, rows: street, subrecord: "street_survey" });
-  await db.query("commit");
-  process.stdout.write(`Staged ${clinical.length} clinical rows and ${street.length} route-survey aggregates; published 0 profiles and 0 map rows.\n`);
-} catch (error) {
-  await db.query("rollback");
-  throw error;
-} finally {
-  await db.end();
-}
+process.exit(0);
