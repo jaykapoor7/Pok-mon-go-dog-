@@ -2,7 +2,7 @@
 
 - Last completed batch: Batch 2 — Jamshedpur, completed as staging-only/publication-blocked. Ranchi remains complete and was not rerun.
 - Current batch: none. Stop after Jamshedpur.
-- Last implementation commit SHA: `7757cfcc7955285b2c348d8f0fc44d733a506d20` (`4bd571e` is the atlas-foundation/Ranchi checkpoint).
+- Last implementation commit SHA: `231c8e1928397994c2bad66d9614b91ca2459113`.
 - Migrations applied: `20260925101031 public_atlas_provenance_and_area_metrics`; `20260925101524 public_atlas_profile_fields`.
 - Production totals: 8,832 dogs; 963 atlas rows; 34,146 import rows; database 151,309,459 bytes; Storage 248,591,499 bytes across 62 objects.
 - Imported/published: Ranchi 6,462 profiles + 18 wards; Bengaluru 9 aggregates; Mumbai 1; Chennai 11; IISER 180; national 744; iNaturalist 6 profiles; Commons 1 profile currently live.
