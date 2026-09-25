@@ -215,7 +215,7 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
         q: "Where do the figures on the public pages come from?",
         a: (
           <>
-            Published sources, cited on <Link href="/sources">Sources</Link>.
+            Published sources, cited on <Link href="/evidence">Evidence</Link>.
             Where a number does not exist, the page says so rather than
             estimating one.
           </>
@@ -251,15 +251,14 @@ export default function FaqPage() {
       {SECTIONS.map((s) => (
         <section key={s.title}>
           <h2>{s.title}</h2>
-          <p className="faq-note">{s.note}</p>
-          <dl>
+          <div className="faq-list">
             {s.items.map((i) => (
-              <div key={i.q}>
-                <dt>{i.q}</dt>
-                <dd>{i.a}</dd>
-              </div>
+              <details key={i.q}>
+                <summary>{i.q}</summary>
+                <div className="faq-a">{i.a}</div>
+              </details>
             ))}
-          </dl>
+          </div>
         </section>
       ))}
     </div>

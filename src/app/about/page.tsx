@@ -24,17 +24,16 @@ export default async function AboutPage() {
 
   return (
     <MarketingPage
-      kicker="ABOUT"
       title="Who keeps"
       accent="the record."
-      lede="StrayPaw is a shared record of India's street animals. It is built with the field teams who do the work, and it is accountable to the residents who report what they see. This page says who runs it and what kind of organisation it is; the numbers are on the transparency page."
+      lede="StrayPaw is a shared record of India's street animals. It is built with the field teams who do the work, and it is accountable to the residents who report what they see. This page says who runs it and what kind of organisation it is."
       next={[
-        { label: "The register, counted", href: "/transparency", note: "Every figure counted from the live record." },
+        { label: "The register, counted", href: "/insights", note: "Every figure counted from the live record." },
         { label: "Why this exists", href: "/mission", note: "The argument, not the org chart." },
         { label: "Work with us", href: "/contact?subject=About%20StrayPaw", note: "Partnerships, press and procurement." },
       ]}
     >
-      <Band tone="paper" kicker="THE ORGANISATION" title="What StrayPaw" accent="legally is.">
+      <Band tone="paper" title="What StrayPaw" accent="legally is.">
         <p className="mk-body">
           Procurement officers check this before they read anything else, and
           donors check it before they give. It is stated here in one place
@@ -53,7 +52,7 @@ export default async function AboutPage() {
         </div>
       </Band>
 
-      <Band tone="bone" kicker="THE PEOPLE" title="Names and faces," accent="not a mission statement.">
+      <Band tone="bone" title="Names and faces," accent="not a mission statement.">
         <p className="mk-body">
           A register asks people to trust it with what they see on their street.
           That is easier when the people keeping it are named.
@@ -97,7 +96,7 @@ export default async function AboutPage() {
         </div>
       </Band>
 
-      <Band tone="paper" kicker="WHO WE BUILD WITH" title="The teams" accent="doing the work.">
+      <Band tone="paper" title="The teams" accent="doing the work.">
         {partners.length ? (
           <>
             <p className="mk-body">
@@ -127,7 +126,7 @@ export default async function AboutPage() {
         )}
       </Band>
 
-      <Band tone="bone" kicker="HOW WE HANDLE DATA" title="The short version" accent="of the long policy.">
+      <Band tone="bone" title="The short version" accent="of the long policy.">
         <p className="mk-body">
           The animal is public; the person is not. Reporter names and email
           addresses are never published, locations are shown at locality

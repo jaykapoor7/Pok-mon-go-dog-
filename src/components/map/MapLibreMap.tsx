@@ -1015,7 +1015,7 @@ export function MapLibreMap({
             <Marker key={st.code} longitude={st.lng} latitude={st.lat} anchor="center">
               <button
                 type="button"
-                onClick={() => router.push(`/gaps?state=${st.code}`)}
+                onClick={() => router.push("/evidence")}
                 title={`${st.name}, ${meta.label}. ${meta.note}`}
                 aria-label={`${st.name}: ${meta.label}`}
                 style={{

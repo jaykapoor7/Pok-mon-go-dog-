@@ -31,7 +31,7 @@ export type VolRoute = {
 };
 
 /* Enough to see the shape of a route without burying the next one. */
-const FIRST_SHOWN = 4;
+const FIRST_SHOWN = 2;
 
 export function VolunteerClient({
   routes,

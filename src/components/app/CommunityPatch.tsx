@@ -261,7 +261,7 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
                 : "Follow an animal from its record and it stays here, wherever you set your patch."}</p>
             ) : (
               <ol className="cp-list">
-                {list.slice(0, 8).map((a) => (
+                {list.slice(0, 5).map((a) => (
                   <li key={a.id}><Link href={`/dog/${a.id}`}>
                     <DogPhoto src={a.cover_photo} alt="" seed={a.id} tone={a.needs_help ? "urgent" : "neutral"} className="cp-thumb" />
                     <span className="cp-who"><b>{nameOf(a)}</b><small>{[a.straypaw_id, a.zone && !nameOf(a).toLowerCase().includes(a.zone.toLowerCase()) ? a.zone : null].filter(Boolean).join(" · ") || "On the record"}</small></span>
@@ -270,19 +270,20 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
                 ))}
               </ol>
             )}
-          {list.length > 8 && <Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`} className="cp-more">{list.length - 8} more on the map <ArrowUpRight size={13} /></Link>}
+          {list.length > 5 && <Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`} className="cp-more">{list.length - 5} more on the map <ArrowUpRight size={13} /></Link>}
         </div>
       </section>
 
-      <section className="cp-changed" aria-label="What changed">
-        <p className="cp-eyebrow">{stats.quiet ? "Nothing new since you last looked · the last thirty days" : lastSeenVisit ? `Since you last looked · ${dayLabel(stats.since)}` : "In the last thirty days"}</p>
+      {/* What changed is for someone coming back, and only when something did. */}
+      {lastSeenVisit && !stats.quiet && <section className="cp-changed" aria-label="What changed">
+        <p className="cp-eyebrow">Since you last looked · {dayLabel(stats.since)}</p>
         <ol>
           <li><b>{stats.newSightings}</b><span>sightings sent in</span></li>
           <li><b>{stats.newAnimals}</b><span>animals newly recorded</span></li>
           <li><b>{stats.newRequests}</b><span>requests for help</span></li>
           <li><b>{stats.newCare}</b><span>care events recorded</span></li>
         </ol>
-      </section>
+      </section>}
 
       <section className="cp-help" aria-label="Where help is needed">
         <p className="cp-eyebrow">Where you can help</p>

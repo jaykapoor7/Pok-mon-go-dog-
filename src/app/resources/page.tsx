@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
 import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
 import { ResourcesDirectory } from "@/components/platform/ResourcesDirectory";
-import { Phone, ArrowRight } from "lucide-react";
+import { Phone } from "lucide-react";
 
 export const dynamic = "force-static";
 export const metadata = {
@@ -126,37 +126,6 @@ export default function ResourcesPage() {
 
         <ResourcesDirectory />
 
-        {/* ── Data & research ── */}
-        <section id="data" className="mt-12 scroll-mt-40">
-          <h2 className="font-display text-xl text-bark-900">
-            Data and research
-          </h2>
-          <p className="mt-2 text-sm text-bark-600">
-            StrayPaw surfaces real, sourced data on street-dog populations,
-            sterilisation coverage, rabies, and welfare infrastructure across
-            India.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              href="/explore"
-              className="inline-flex items-center gap-1 rounded-full bg-paw-50 px-4 py-2 text-sm font-semibold text-paw-700 hover:bg-paw-100"
-            >
-              Explore data by state <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link
-              href="/sources"
-              className="inline-flex items-center gap-1 rounded-full bg-bark-50 px-4 py-2 text-sm font-semibold text-bark-700 hover:bg-bark-100"
-            >
-              Research sources <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link
-              href="/insights"
-              className="inline-flex items-center gap-1 rounded-full bg-bark-50 px-4 py-2 text-sm font-semibold text-bark-700 hover:bg-bark-100"
-            >
-              Key findings <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </section>
       </div>
     </PlatformShell>
   );

@@ -481,6 +481,9 @@
   flex-wrap: wrap;
 }
 .sp-footer-bottom a { color: inherit; text-decoration: none; }
+/* The one-line legal strip that closes a page: no band of empty navy above it. */
+.sp-footer.mk-foot { padding-top: 28px; }
+.mk-foot .sp-footer-bottom { margin-top: 0; border-top: 0; padding-top: 0; }
 .sp-footer-bottom a:hover { color: var(--electric); }
 
 /* ── system loop ───────────────────────────────────────────────── */

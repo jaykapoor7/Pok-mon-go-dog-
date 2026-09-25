@@ -49,6 +49,7 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
   const [work, setWork] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [all, setAll] = useState(false);
 
   /* The console search links here with a name, a state or a city already chosen. */
   useEffect(() => {
@@ -149,9 +150,8 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
             <span />
           </div>
           <ol className="og-list">
-            {results.map((o) => {
+            {(filtered || all ? results : results.slice(0, 12)).map((o) => {
               const Row = o.url ? "a" : "div";
-              const other = o.focus.filter((f) => !WORK_IDS.has(f));
               return (
                 <li key={o.id}>
                   <Row className="og-row" {...(o.url ? { href: o.url, target: "_blank", rel: "noopener noreferrer" } : {})}>
@@ -160,7 +160,6 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
                       <b>{o.name}</b>
                       <small>{o.city}, {o.stateName}{o.founded ? ` · since ${o.founded}` : ""}</small>
                       <span className="og-sum">{o.summary}</span>
-                      <span className="og-src">{other.length ? <>{other.join(" · ")} · </> : null}Source: {o.source}</span>
                     </span>
                     <span className="og-ticks" aria-label={`Does: ${o.focus.join(", ")}`}>
                       {WORK.map((w) => <i key={w.id} className={o.focus.includes(w.id) ? "is-yes" : ""} title={`${w.label}: ${o.focus.includes(w.id) ? "yes" : "not listed"}`}><span className="og-tick-l">{w.short}</span></i>)}
@@ -171,6 +170,9 @@ export function OrgRegister({ orgs, stateNames }: { orgs: Org[]; stateNames: Rec
               );
             })}
           </ol>
+          {!filtered && !all && results.length > 12 && (
+            <button type="button" className="og-all" onClick={() => setAll(true)}>Show all {results.length}</button>
+          )}
         </>
       ) : <p className="og-empty">No listed organisation fits that. The register covers {listedStates} of India&rsquo;s 36 states and union territories; try widening it.</p>}
     </div>

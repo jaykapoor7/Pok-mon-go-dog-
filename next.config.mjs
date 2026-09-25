@@ -33,7 +33,13 @@ const nextConfig = {
      is now /sources; the old path keeps working. */
   async redirects() {
     return [
-      { source: "/research", destination: "/sources", permanent: true },
+      { source: "/research", destination: "/evidence", permanent: false },
+      /* Published data and research live in one place, /evidence, which says
+         why the record has to exist. The pages that each held a piece of it
+         send their visitors there; the register's own counts are /insights. */
+      ...["/why-straypaw", "/the-data", "/gaps", "/needs", "/explore", "/wards", "/data", "/sources", "/take-action", "/what-would-it-take", "/news"]
+        .map((source) => ({ source, destination: "/evidence", permanent: false })),
+      { source: "/transparency", destination: "/insights", permanent: false },
       /* Two pages answered "the animals I care about" and only one of them
          was reachable: nothing on the site linked to /account, and Following
          is the entry in the console's nav. A permanent redirect rather than

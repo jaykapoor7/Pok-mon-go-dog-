@@ -49,7 +49,7 @@ const LINKS: NavItem[] = [
     children: [
       { label: "Mission", href: "/mission", note: "Why a shared record, and why now", tKey: "mission" },
       { label: "Organisations", href: "/orgs", note: "Who is doing this work, by state" },
-      { label: "Evidence", href: "/evidence", note: "What the research says" },
+      { label: "Evidence", href: "/evidence", note: "Why this exists: the data does not" },
       { label: "Education", href: "/education", note: "Before an animal becomes a case" },
     ],
   },

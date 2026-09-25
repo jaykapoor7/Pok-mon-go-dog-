@@ -1,9 +1,4 @@
-import {
-  MarketingPage,
-  Band,
-  Steps,
-  Stat,
-} from "@/components/marketing/MarketingPage";
+import { MarketingPage, Band, Steps } from "@/components/marketing/MarketingPage";
 import { ResolveFigure, LoopFigure } from "@/components/marketing/figures";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -57,7 +52,6 @@ export default function HowToHelpPage() {
 
   return (
     <MarketingPage
-      kicker="HOW YOU CAN HELP"
       title="Four ways in."
       accent="Start with any."
       lede="Most people want to help and stop at not knowing what would actually make a difference. These are the four things that do, ordered by how much they ask of you."
@@ -65,10 +59,10 @@ export default function HowToHelpPage() {
       next={[
         { label: "Report an animal", href: "/report", note: "The fastest way to contribute something real." },
         { label: "Find a volunteering route", href: "/get-involved", note: `${ORGS.length} organisations across ${states.length} states and union territories.` },
-        { label: "See what is missing", href: "/the-data", note: "Where the gaps are, and who holds the numbers." },
+        { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
       ]}
     >
-      <Band tone="paper" kicker="PICK ONE" title="What actually" accent="moves the needle.">
+      <Band tone="paper" title="What actually" accent="moves the needle.">
         <div className="mk-list">
           {WAYS.map((w) => (
             <div key={w.href} className="mk-row">
@@ -85,7 +79,6 @@ export default function HowToHelpPage() {
 
       <Band
         tone="ink"
-        kicker="WHY A SIGHTING COUNTS"
         title="One report is not"
         accent="a drop in the ocean."
       >
@@ -97,41 +90,16 @@ export default function HowToHelpPage() {
               fraction, and without a count of what is there the numerator means
               nothing. Every sighting makes the bottom of that fraction real.
             </p>
-            <p className="mk-body">
-              A sterilisation programme cannot be judged without knowing how
-              many animals were in the area to begin with. That is why most
-              programmes in India cannot prove what they achieved, and why the
-              least glamorous contribution, noticing an animal and logging it,
-              is the one the rest depends on.
-            </p>
           </div>
           <figure>
             <LoopFigure />
           </figure>
         </div>
 
-        <div className="mk-stats">
-          <Stat
-            value={String(ORGS.length)}
-            label="Organisations you can reach directly"
-            source="StrayPaw directory, each verified against a public presence"
-          />
-          <Stat
-            value={String(states.length)}
-            label="States and union territories with a listed organisation"
-            source="Filterable by the kind of work you want to do"
-          />
-          <Stat
-            value={inr(UNIT_COSTS.sterilisation.value)}
-            label="Cost of one sterilisation"
-            source={`${UNIT_COSTS.sterilisation.source} (${UNIT_COSTS.sterilisation.year})`}
-          />
-        </div>
       </Band>
 
       <Band
         tone="bone"
-        kicker="WHAT NOT TO DO"
         title="Two things that feel"
         accent="helpful and are not."
       >

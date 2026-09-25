@@ -38,7 +38,7 @@ export function MarketingPage({
   children,
   next,
 }: {
-  kicker: string;
+  kicker?: string;
   title: string;
   /** The second line, set in the accent colour. */
   accent: string;
@@ -60,7 +60,7 @@ export function MarketingPage({
         <section className="mk-hero">
           <div className="mk-hero-copy">
             <Reveal>
-              <div className="sp-kicker light">{kicker}</div>
+              {kicker && <div className="sp-kicker light">{kicker}</div>}
             </Reveal>
             <Reveal delay={60}>
               <h1 className="sp-display mk-h1">
@@ -83,7 +83,6 @@ export function MarketingPage({
         {children}
 
         <section className="mk-next">
-          <div className="sp-kicker light">WHERE TO GO NEXT</div>
           <div className="mk-next-grid">
             {next.map((n) => (
               <Link key={n.href} href={n.href} className="mk-next-card">

@@ -52,12 +52,10 @@ const CHAPTERS = [
   { id: "evidence", label: "What is not known" },
 ];
 
-export function Report({ scope, initial = null, national = null, tail = null, notice = null, userKey = null }: {
+export function Report({ scope, initial = null, tail = null, notice = null, userKey = null }: {
   scope: Scope;
   /** Server-computed headline for the default view, shown before the register arrives. */
   initial?: Headline | null;
-  /** India, from the published national sources: public only. */
-  national?: ReactNode;
   /** After the chapters: an organisation's exports. */
   tail?: ReactNode;
   notice?: ReactNode;
@@ -322,7 +320,7 @@ export function Report({ scope, initial = null, national = null, tail = null, no
       </div>
 
       <nav className="an-toc-phone" aria-label="Chapters">
-        {[...CHAPTERS, ...(national ? [{ id: "india", label: "India" }] : [])].map((c) => <a key={c.id} href={`#${c.id}`}>{c.label}</a>)}
+        {CHAPTERS.map((c) => <a key={c.id} href={`#${c.id}`}>{c.label}</a>)}
       </nav>
 
       <div className="an-body">
@@ -336,7 +334,7 @@ export function Report({ scope, initial = null, national = null, tail = null, no
           )}
           <nav className="an-toc" aria-label="Chapters">
             <ol>
-              {[...CHAPTERS, ...(national ? [{ id: "india", label: "India" }] : [])].map((c, i) => (
+              {CHAPTERS.map((c, i) => (
                 <li key={c.id}><a href={`#${c.id}`} className={active === c.id ? "is-on" : ""}><span className="sys-mono">{String(i + 1).padStart(2, "0")}</span>{c.label}</a></li>
               ))}
             </ol>
@@ -356,7 +354,6 @@ export function Report({ scope, initial = null, national = null, tail = null, no
               <Evidence c={ctx} />
             </>
           )}
-          {national}
           {tail}
         </div>
       </div>

@@ -59,11 +59,10 @@ export default async function StoriesPage() {
     <AppShell>
       <main className="st">
         <header className="st-head">
-          <p className="sys-eyebrow">Stories</p>
           <h1>Rescues, from the day they were reported to the day they&nbsp;ended.</h1>
           {all.length > 0 && <p className="st-lede">
             <b>{all.length}</b> recent rescues with an issue, care and an outcome on the record — <b>{careTotal}</b> care events between them
-            {median != null ? <>, and half were over within <b>{span(median)}</b></> : null}. Each one below is drawn from its own record.
+            {median != null ? <>, and half were over within <b>{span(median)}</b></> : null}.
           </p>}
           <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
         </header>
@@ -72,7 +71,9 @@ export default async function StoriesPage() {
 
         {all.length ? (
           <ol className="st-grid">
-            {all.map((j) => <Story key={j.dogId} j={j} />)}
+            {/* Every rescue is a lane in the figure above, each one a link; six
+                are told in full here. */}
+            {all.slice(0, 6).map((j) => <Story key={j.dogId} j={j} />)}
           </ol>
         ) : <p className="st-empty">No finished rescue has been published yet.</p>}
       </main>

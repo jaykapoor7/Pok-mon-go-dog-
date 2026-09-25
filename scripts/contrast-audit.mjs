@@ -35,10 +35,10 @@ import { chromium } from "@playwright/test";
 const BASE = process.env.BASE ?? "http://127.0.0.1:3000";
 const ROUTES = process.env.ROUTES
   ? process.env.ROUTES.split(",")
-  : ["/", "/map", "/wards", "/report", "/adopt", "/orgs", "/gaps", "/evidence",
-     "/mission", "/why-straypaw", "/sources", "/take-action", "/get-involved",
-     "/what-would-it-take", "/studies", "/interventions", "/outcomes", "/needs",
-     "/following", "/learn", "/join", "/partner/resources", "/the-data", "/the-network"];
+  : ["/", "/map", "/report", "/adopt", "/orgs", "/evidence",
+     "/mission", "/get-involved",
+     "/studies", "/interventions", "/outcomes",
+     "/following", "/learn", "/join", "/partner/resources", "/the-network"];
 
 const AUDIT = () => {
   const px = (v) => parseFloat(v) || 0;

@@ -76,6 +76,12 @@ export function Chapter({ n, id, q, answer, children, map }: { n: number; id: st
   );
 }
 
+/* The breakdowns behind a chapter's main graphic, folded until asked for:
+   each chapter shows its answer and one picture, and the rest is a tap away. */
+function More({ children }: { children: ReactNode }) {
+  return <details className="an-more"><summary>More detail</summary><div className="an-more-body">{children}</div></details>;
+}
+
 function Empty({ children }: { children: ReactNode }) {
   return <p className="an-empty">{children}</p>;
 }
@@ -117,6 +123,7 @@ export function Happens({ c }: { c: Ctx }) {
         </figure>
       )}
 
+      <More>
       <div className="an-split">
         <div>
           <h3 className="an-h3">Why requests closed without action</h3>
@@ -147,6 +154,7 @@ export function Happens({ c }: { c: Ctx }) {
           {conds.some((r) => r.condition === "Not recorded") && <p className="an-note">{n(conds.find((r) => r.condition === "Not recorded")!.total)} requests have no condition recorded.</p>}
         </div>
       </div>
+      </More>
     </Chapter>
   );
 }
@@ -227,6 +235,7 @@ export function Response({ c }: { c: Ctx }) {
         </div>
       </div>
 
+      <More>
       <div className="an-trio">
         <div>
           <h3 className="an-h3">Follow-ups</h3>
@@ -278,6 +287,7 @@ export function Response({ c }: { c: Ctx }) {
           ) : <Empty>Nothing open.</Empty>}
         </div>
       </div>
+      </More>
     </Chapter>
   );
 }
@@ -323,6 +333,7 @@ export function Where({ c }: { c: Ctx }) {
           );
         })}
       </div>
+      <More>
       <div className="an-plates is-two">
         <figure>
           <svg width="0" height="0" aria-hidden><defs><HatchDef id="an-few" /></defs></svg>
@@ -346,6 +357,7 @@ export function Where({ c }: { c: Ctx }) {
         <YearDots rows={places.map((p) => ({ key: String(p.locality), name: p.name, years: p.years, total: p.total, noAction: p.noAction }))} years={years} few={n}
           onPick={(k) => c.setLocality(Number(k))} label="Requests per place per year" />
       ) : <Empty>No named places in this selection.</Empty>}
+      </More>
     </Chapter>
   );
 }
@@ -387,6 +399,7 @@ export function Intervention({ c }: { c: Ctx }) {
           </div>
         </div>
       )}
+      <More>
       {rows.length > 0 && (
         <>
           <h3 className="an-h3">Care recorded, month by month</h3>
@@ -406,6 +419,7 @@ export function Intervention({ c }: { c: Ctx }) {
           <CourseRows counts={[...tvt.dist.entries()].flatMap(([k, v]) => Array(v).fill(k)).slice(0, 40)} label={`${tvt.animals} TVT courses, sessions on record against four expected`} />
         </div>
       )}
+      </More>
     </Chapter>
   );
 }
@@ -443,6 +457,7 @@ export function Evidence({ c }: { c: Ctx }) {
         ))}
       </ol>
       <p className="an-note an-key"><i className="is-rec" /> recorded <i className="is-wb" /> taken from an import workbook <i className="is-unk" /> not recorded</p>
+      <More>
       {next.length > 0 && (
         <div className="an-next">
           <h3 className="an-h3">Record next</h3>
@@ -454,6 +469,7 @@ export function Evidence({ c }: { c: Ctx }) {
         {orgShare && orgShare.top >= 0.9 && <li>Almost all of these requests come from one organisation&rsquo;s register. Where other places look quiet, it is because nobody has recorded there yet.</li>}
         <li>These are recorded requests and recorded animals, never a population estimate.</li>
       </ul>
+      </More>
     </Chapter>
   );
 }

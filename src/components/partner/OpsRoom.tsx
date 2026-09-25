@@ -204,15 +204,6 @@ export function OpsRoom() {
         </div>
       </header>
 
-      {isMember && !blank && (
-        <div className="ops-strip">
-          <Link href="/partner/records?view=overdue"><b className={s.overdue.length ? "is-hot" : ""}>{num(s.overdue.length)}</b><span>follow-ups overdue</span></Link>
-          <Link href="/partner/records?view=rescue"><b>{num(s.liveWork.length)}</b><span>cases live</span></Link>
-          <Link href="/partner/records?view=overdue"><b>{num(s.week.length)}</b><span>due within 7 days</span></Link>
-          <Link href="/partner/animals"><b>{num(reg?.animals ?? 0)}</b><span>animals on record</span></Link>
-        </div>
-      )}
-
       {(blank || signedOut) && (
         <section className="ops-setup">
           <div>
@@ -366,7 +357,7 @@ export function OpsRoom() {
             <p className="ops-eyebrow"><span>What changed</span><Link href="/partner/records">Record <ArrowUpRight size={12} /></Link></p>
             {changes.length ? (
               <ol className="ops-changes">
-                {changes.map((c) => (
+                {changes.slice(0, 4).map((c) => (
                   <li key={c.id}><Link href={`/partner/cases/${c.id}`}>
                     <span><b>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Case"}</b>
                       <small>{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label}{c.closure_reason ? ` · ${CLOSURE_SHORT[c.closure_reason] ?? c.closure_reason}` : ""}{c.zone ? ` · ${c.zone}` : ""}</small></span>
@@ -379,10 +370,6 @@ export function OpsRoom() {
         </section>
       )}
 
-      <footer className="ops-foot">
-        {isMember && !blank && reg && <p><b>{num(reg.idx.length)}</b> requests on record <span>·</span> <b>{num(s.all.length)}</b> open on paper <span>·</span> <b>{num(s.stale.length)}</b> awaiting review</p>}
-        <p className="ops-foot-links"><Link href="/partner/map">Map</Link><Link href="/partner/reports">Reports</Link><Link href="/partner/review">Case review</Link><Link href="/partner/animals">Records</Link></p>
-      </footer>
     </main>
   );
 }

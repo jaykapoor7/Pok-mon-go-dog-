@@ -1,11 +1,6 @@
-import {
-  MarketingPage,
-  Band,
-  Steps,
-  Stat,
-} from "@/components/marketing/MarketingPage";
+import { MarketingPage, Band, Steps } from "@/components/marketing/MarketingPage";
 import { LoopFigure, ResolveFigure } from "@/components/marketing/figures";
-import { UNKNOWNS, barrierCounts } from "@/lib/platform/network";
+import { barrierCounts } from "@/lib/platform/network";
 
 export const metadata = {
   title: "Research standards, how StrayPaw runs a study",
@@ -84,20 +79,18 @@ export default function ResearchStandardsPage() {
 
   return (
     <MarketingPage
-      kicker="RESEARCH STANDARDS"
       title="A defined protocol."
       accent="Published either way."
       lede="Funders avoid this field because most work in it cannot say what would prove it wrong. Every StrayPaw study is falsifiable, measured against established methods, and published either way."
       figure={<LoopFigure />}
       next={[
         { label: "For funders", href: "/for-funders", note: "How a programme gets scoped, costed and verified." },
-        { label: "What is unknown", href: "/the-data", note: "The open questions, and who holds each answer." },
+        { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
         { label: "Discuss a study", href: "/contact?subject=Research%20collaboration", note: "For investigators, funders and institutions." },
       ]}
     >
       <Band
         tone="paper"
-        kicker="THE PROTOCOL"
         title="Seven stages, in"
         accent="this order."
       >
@@ -112,7 +105,6 @@ export default function ResearchStandardsPage() {
 
       <Band
         tone="ink"
-        kicker="METHODS"
         title="Established methods,"
         accent="not invented ones."
       >
@@ -123,12 +115,6 @@ export default function ResearchStandardsPage() {
               deliberate. Free-roaming dog population estimation has a
               literature; a reviewer should be able to check our approach
               against it rather than take our word for anything.
-            </p>
-            <p className="mk-body">
-              Where we do claim something new, that community-reported data can
-              approximate a formal count at a fraction of the cost. It is
-              stated as a hypothesis to be validated against the reference
-              method, not as a property of the product.
             </p>
           </div>
           <figure>
@@ -148,49 +134,7 @@ export default function ResearchStandardsPage() {
       </Band>
 
       <Band
-        tone="bone"
-        kicker="INDICATORS"
-        title="Measured against a"
-        accent="recognised framework."
-      >
-        <p className="mk-body">
-          Outcomes are reported against the indicator guidance published by the{" "}
-          <strong>International Companion Animal Management coalition
-          (ICAM)</strong>, whose monitoring-and-evaluation framework is the
-          reference standard for humane dog population management. Using an
-          external framework matters: it means the measure of success was not
-          chosen by the people being measured.
-        </p>
-        <p className="mk-body">
-          ICAM names the impact areas a programme is expected to move:
-          population size, welfare, rabies, bites, shelter intake and public
-          attitudes. Every study says which of them it is powered to detect a
-          change in, and which it is not.
-        </p>
-        <Steps
-          items={[
-            {
-              n: "◦",
-              title: "Declared in advance",
-              body: "Which indicators the study measures, and the size of change it can detect, are fixed before fieldwork.",
-            },
-            {
-              n: "◦",
-              title: "Externally defined",
-              body: "Indicator definitions come from ICAM's published guidance rather than from us.",
-            },
-            {
-              n: "◦",
-              title: "Scoped honestly",
-              body: "A study underpowered for an outcome says so, rather than reporting a movement it cannot attribute.",
-            },
-          ]}
-        />
-      </Band>
-
-      <Band
         tone="ink"
-        kicker="GOVERNANCE"
         title="Who approves it,"
         accent="and who checks it."
       >
@@ -222,7 +166,6 @@ export default function ResearchStandardsPage() {
 
       <Band
         tone="paper"
-        kicker="PUBLICATION"
         title="Null results,"
         accent="published the same way."
       >
@@ -234,23 +177,6 @@ export default function ResearchStandardsPage() {
               repeats it. Publishing a null result is the cheapest thing that
               breaks that cycle.
             </p>
-            <p className="mk-body">
-              A study protocol is registered before fieldwork starts, so the
-              analysis plan is on record whichever way the result goes. What
-              the study could not show is reported alongside what it did.
-            </p>
-          </div>
-          <div className="mk-stats" style={{ marginTop: 0 }}>
-            <Stat
-              value={String(counts.total)}
-              label="Open questions in the evidence register"
-              source="Each with a named holder and a stated route to resolution"
-            />
-            <Stat
-              value={String(counts.withheld)}
-              label="Answerable by disclosure, not new fieldwork"
-              source="The cheapest research in this field is asking for what already exists"
-            />
           </div>
         </div>
 

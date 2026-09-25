@@ -1,86 +1,107 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, MapPin, ShieldCheck } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { SitePage } from "@/components/site/SitePage";
 import { StateExplorer, type StateRow } from "@/components/app/StateExplorer";
-import { EvidenceTabs } from "@/components/app/EvidenceTabs";
+import { ShareBand } from "@/components/system/ShareBand";
 import { buildStateRows } from "@/lib/platform/stateRows";
-import { getFeaturedStories } from "@/lib/stories";
-import { getPublicProgrammes } from "@/lib/public-programmes";
-import { getOperationalPartners } from "@/lib/partners";
+import { BARRIER_META, UNKNOWNS } from "@/lib/platform/network";
+import { RESEARCH } from "@/lib/platform/research";
+import "./evidence.css";
 
 export const metadata: Metadata = {
-  title: "The evidence, StrayPaw",
-  description: "India's street-animal evidence, state by state: published population, coverage and the organisations doing the work.",
+  title: "Why StrayPaw exists, StrayPaw",
+  description: "India publishes a street-dog population for most states and almost nothing else. The published evidence, state by state, and what is missing.",
 };
 
-export default async function EvidencePage() {
-  const rows: StateRow[] = buildStateRows();
-  const [stories, programmes, partners] = await Promise.all([
-    getFeaturedStories(6),
-    getPublicProgrammes(6),
-    getOperationalPartners(),
-  ]);
+/* ════════════════════════════════════════════════════════════════════
+   The one place on the site for published data and research.
 
-  const bitesTotal = rows.reduce((total, row) => total + (row.bites2024 ?? 0), 0);
-  const deathsTotal = rows.reduce((total, row) => total + (row.deaths2024 ?? 0), 0);
-  const withCoverage = rows.filter((row) => row.abcCoverage !== null).length;
+   Every other page describes the product and the record it keeps. This
+   page says why that record has to exist: the public evidence stops at a
+   population estimate, and the numbers a programme is judged by have not
+   been collected, have not been released, or were released as a single
+   city total. Every figure is cited; where none exists, it says so.
+   ════════════════════════════════════════════════════════════════════ */
+
+export default function EvidencePage() {
+  const rows: StateRow[] = buildStateRows();
+  const total = rows.length;
+  const withPop = rows.filter((r) => r.population !== null).length;
+  const withAbc = rows.filter((r) => r.abcCoverage !== null).length;
+  const bites = rows.reduce((a, r) => a + (r.bites2024 ?? 0), 0);
+  const deaths = rows.reduce((a, r) => a + (r.deaths2024 ?? 0), 0);
+  const kinds = (["never-measured", "held-not-published", "published-unusable"] as const).map((k) => ({
+    k, meta: BARRIER_META[k], items: UNKNOWNS.filter((u) => u.barrier === k),
+  })).filter((x) => x.items.length);
 
   return (
     <SitePage
-      kicker="Public evidence"
-      title={<>What is known,<br /><em>state by state.</em></>}
-      lede={`What the government publishes for each of India's 28 states and 8 union territories: dog bites, suspected rabies deaths, the last population census, and sterilisation coverage where it exists. Where nobody has published a figure, the row says so.`}
-      actions={<Link href="/map" className="product-primary">See the live map <ArrowUpRight size={16} /></Link>}
+      kicker="Evidence"
+      title={<>Why this exists: <em>the data doesn&rsquo;t.</em></>}
+      lede="India publishes a street-dog population for most states and almost nothing else. The numbers a programme is judged by are missing, and a missing number looks the same as a zero."
+      actions={<Link href="/map" className="product-primary">See what the record holds <ArrowUpRight size={16} /></Link>}
     >
-      <div className="ev evidence-surface">
-        <EvidenceTabs />
-        <section className="evidence-metrics" aria-label="Evidence at a glance">
-          <div><span>Dog bites reported, 2024</span><b>{(bitesTotal / 100_000).toFixed(1)} L</b><small>reported by every state and union territory through health surveillance</small></div>
-          <div><span>Suspected rabies deaths, 2024</span><b>{deathsTotal}</b><small>what surveillance caught; modelling puts the real toll near 19,000</small></div>
-          <div><span>Sterilisation coverage published</span><b>{withCoverage}/{rows.length}</b><small>the rest have released no figure at all</small></div>
-        </section>
-        <StateExplorer rows={rows} />
-
-        <section className="evidence-field-record" id="straypaw-record" aria-labelledby="field-record-title">
-          <div className="evidence-field-record-head">
-            <span className="sx-kicker spa-mono">StrayPaw field record</span>
-            <h2 id="field-record-title">What our partners have <em>documented.</em></h2>
-            <p>Animal-linked care, completed programmes and outcomes shared by field partners live here. Private operational records, exact sensitive locations and reporter contacts stay private.</p>
+      <div className="ev">
+        <section className="ev-pair" aria-label="What is published">
+          <div>
+            <ShareBand height={14} total={total} legend={false} parts={[
+              { key: "y", n: withPop, color: "var(--sp-blue)", label: "Population published" },
+              { key: "u", n: total - withPop, hatch: true, label: "Not published" },
+            ]} />
+            <p><b className="sys-mono">{withPop}/{total}</b> states and union territories publish a dog population.</p>
           </div>
-
-          <div className="evidence-work-grid">
-            <section className="evidence-work-section" aria-labelledby="care-stories-title">
-              <div className="evidence-work-heading"><span>Care stories</span><Link href="/care">Care register <ArrowUpRight size={13} /></Link></div>
-              <h3 id="care-stories-title">Care, rescue and recovery in sequence.</h3>
-              {stories.length ? <div className="evidence-story-list">{stories.map((story) => <article key={story.id} className="evidence-story-card"><h4>{story.title}</h4><p>{story.public_summary}</p>{story.location_label && <span><MapPin size={13} /> {story.location_label}</span>}{story.stages.length > 0 && <ol>{story.stages.slice(0, 4).map((stage, index) => <li key={`${stage.label}-${index}`}>{stage.date ? `${stage.date} · ` : ""}{stage.label}</li>)}</ol>}</article>)}</div> : <p className="evidence-empty">Care stories from partner teams will appear here.</p>}
-            </section>
-
-            <section className="evidence-work-section" aria-labelledby="drives-title">
-              <div className="evidence-work-heading"><span>Programmes</span><Link href="/programmes">Programme register <ArrowUpRight size={13} /></Link></div>
-              <h3 id="drives-title">Programme totals with a named team and source record.</h3>
-              {programmes.length ? <div className="evidence-programme-list">{programmes.map((programme) => { const total = programme.kind === "sterilisation" ? programme.sterilised_recorded : programme.kind === "vaccination" ? programme.vaccinated_recorded : programme.animals_recorded; const label = programme.kind === "sterilisation" ? "dogs sterilised" : programme.kind === "vaccination" ? "animals vaccinated" : "animals helped"; return <article key={programme.id} className="evidence-programme-card"><p>{programme.ngo_name}</p><h4>{programme.name}</h4>{programme.public_summary && <span>{programme.public_summary}</span>}<small>{total.toLocaleString()} {label}</small></article>; })}</div> : <p className="evidence-empty">Published programmes from partner teams will appear here.</p>}
-            </section>
-
-            <section className="evidence-work-section evidence-partners" aria-labelledby="partners-title">
-              <div className="evidence-work-heading"><span>NGOs & partners</span><Link href="/partners">Full directory <ArrowUpRight size={13} /></Link></div>
-              <h3 id="partners-title">The organisations responsible for the work.</h3>
-              <div className="evidence-partner-list">{partners.slice(0, 6).map((partner) => <article key={partner.id}><span><ShieldCheck size={13} /> {partner.partnerStatus === "operational_partner" ? "Operational partner" : "Pilot partner"}</span><h4>{partner.name}</h4><p>{[partner.city, partner.state].filter(Boolean).join(", ")}</p></article>)}</div>
-            </section>
+          <div>
+            <ShareBand height={14} total={total} legend={false} parts={[
+              { key: "y", n: withAbc, color: "var(--sp-flame)", label: "Sterilisation coverage published" },
+              { key: "u", n: total - withAbc, hatch: true, label: "Not published" },
+            ]} />
+            <p><b className="sys-mono">{withAbc}/{total}</b> publish sterilisation coverage, the number that says whether a programme works.</p>
           </div>
         </section>
 
-        <footer className="evidence-next">
-          <div><b>Want to inspect where the work is concentrated?</b><span>The live map now turns mapped records into density, urgency, ARV-gap and ABC-gap views.</span></div>
-          <Link href="/map" className="product-primary">Explore the map <ArrowUpRight size={16} /></Link>
-        </footer>
-        <nav className="evidence-context-links" aria-label="Related evidence tools">
-          <Link href="/map">Map intelligence</Link>
-          <Link href="/data">The published dataset</Link>
-          <Link href="/sources">Every source we cite</Link>
-          <Link href="/rescues">Rescue records</Link>
-          <Link href="/outcomes">Outcomes</Link>
-        </nav>
+        <section className="ev-figs" aria-label="The public health picture, 2024">
+          <div><b>{(bites / 100_000).toFixed(1)} lakh</b><span>dog bites reported in 2024</span></div>
+          <div><b>{deaths}</b><span>suspected rabies deaths caught by surveillance; modelling puts the real toll near 19,000</span></div>
+        </section>
+
+        <section className="ev-sec" aria-labelledby="ev-states">
+          <h2 id="ev-states">What each state <em>publishes.</em></h2>
+          <StateExplorer rows={rows} />
+        </section>
+
+        <section className="ev-sec" aria-labelledby="ev-missing">
+          <h2 id="ev-missing">Three kinds <em>of missing.</em></h2>
+          <div className="ev-kinds">
+            {kinds.map(({ k, meta, items }) => (
+              <div key={k}>
+                <p className="ev-kind">{meta.label}</p>
+                <ul>{items.map((u) => <li key={u.id}>{u.question}</li>)}</ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="ev-why" aria-labelledby="ev-memory">
+          <h2 id="ev-memory">A dog is treated, released, and <em>becomes anonymous again.</em></h2>
+          <p>
+            The ear notch says a surgery happened. It cannot say when, by whom, or whether the vaccination is still in
+            date. The next team starts from nothing. StrayPaw is the record that outlives the rescue, so the numbers
+            this page is missing can finally be counted, street by street.
+          </p>
+        </section>
+
+        <details className="ev-sources">
+          <summary>Sources <span className="sys-mono">{RESEARCH.length}</span></summary>
+          <ol>
+            {RESEARCH.map((r) => (
+              <li key={r.id}>
+                {r.url ? <a href={r.url} target="_blank" rel="noopener noreferrer"><b>{r.title}</b></a> : <b>{r.title}</b>}
+                <span>{r.org}{r.year ? `, ${r.year}` : ""}</span>
+              </li>
+            ))}
+          </ol>
+        </details>
       </div>
     </SitePage>
   );

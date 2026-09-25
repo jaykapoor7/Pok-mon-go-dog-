@@ -108,7 +108,7 @@ test("mobile public navigation exposes the core destinations without overflow", 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   /* One row on a phone: the wordmark, the way into the app and the menu. */
-  await expect(page.locator(".sp-header .sp-header-cta")).toBeVisible();
+  await expect(page.locator(".sp-header .sp-header-cta").first()).toBeVisible();
   await expect(page.locator(".sp-quick")).toHaveCount(0);
   const toggle = page.getByRole("button", { name: "Toggle navigation" });
   await expect(toggle).toBeVisible();

@@ -18,7 +18,7 @@ const STATUS_LABEL: Record<string, string> = {
    one, and reads as deliberate until then. */
 export async function PartnerProof({
   heading = "Who is already on the record",
-  awaitingQuote = true,
+  awaitingQuote = false,
 }: {
   heading?: string;
   awaitingQuote?: boolean;

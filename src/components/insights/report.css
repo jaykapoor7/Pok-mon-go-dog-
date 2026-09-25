@@ -77,6 +77,12 @@
 .an-ch-answer em { font-style: italic; }
 .an-h3 { margin: 0 0 12px; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-muted); }
 .an-note { margin: 10px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--sp-muted); max-width: 64ch; }
+.an-more { border-top: 1px solid var(--sp-line); }
+.an-more > summary { display: inline-flex; align-items: center; gap: 6px; min-height: var(--ctl-h); cursor: pointer; list-style: none; font-size: 13.5px; font-weight: 600; color: var(--sp-blue); }
+.an-more > summary::-webkit-details-marker { display: none; }
+.an-more > summary::after { content: "+"; font-family: var(--font-mono); font-weight: 400; }
+.an-more[open] > summary::after { content: "−"; }
+.an-more-body { display: grid; gap: 22px; padding: 6px 0 4px; }
 .an-empty { margin: 0; padding: 18px 0; font-size: 13.5px; color: var(--sp-muted); }
 .an-onmap { justify-self: start; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--sp-blue); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px; }
 .an-fig { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }

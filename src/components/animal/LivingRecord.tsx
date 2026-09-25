@@ -18,7 +18,6 @@ import { ArrowUpRight } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { PlaceMap } from "./PlaceMap";
 import type { Living, LivingEvent } from "@/lib/animal/living";
-import { fewOr } from "@/lib/spatial/engine";
 import { CareLanes } from "./CareLanes";
 import { RecordActions } from "./RecordActions";
 import { CommunityPanel } from "./CommunityPanel";
@@ -106,9 +105,8 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
       {/* ── what has happened ──────────────────────────────────────── */}
       <section className="lr-sec">
         <header className="lr-sec-head">
-          <p className="lr-sec-n sys-mono">01</p>
           <h2>What has happened to it</h2>
-          <p>{r.events.length ? `${r.cases.length} request${r.cases.length === 1 ? "" : "s"} for help, ${r.events.filter((e) => e.lane === "care").length} care event${r.events.filter((e) => e.lane === "care").length === 1 ? "" : "s"} and ${r.events.filter((e) => e.lane === "sight").length} sighting${r.events.filter((e) => e.lane === "sight").length === 1 ? "" : "s"}, on one clock.` : "Nothing has been recorded against this animal yet."}</p>
+          {!r.events.length && <p>Nothing has been recorded against this animal yet.</p>}
         </header>
         {r.events.length > 0 && <CareLanes events={r.events} from={r.firstSeen} label={`The record of ${r.label} over time`} />}
       </section>
@@ -117,7 +115,6 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
       {unresolved.length > 0 && (
         <section className="lr-sec">
           <header className="lr-sec-head">
-            <p className="lr-sec-n sys-mono">02</p>
             <h2>What is unfinished</h2>
           </header>
           <ol className="lr-todo">
@@ -133,9 +130,7 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
       {/* ── the chronology ─────────────────────────────────────────── */}
       <section className="lr-sec">
         <header className="lr-sec-head">
-          <p className="lr-sec-n sys-mono">{unresolved.length ? "03" : "02"}</p>
           <h2>The chronology</h2>
-          <p>Every entry, newest first, with where it came from.</p>
         </header>
         {chronology.length ? (
           <ol className="lr-chrono">
@@ -153,32 +148,10 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
       {/* ── what neighbours have added ─────────────────────────────── */}
       <section className="lr-sec">
         <header className="lr-sec-head">
-          <p className="lr-sec-n sys-mono">{unresolved.length ? "04" : "03"}</p>
           <h2>From the neighbourhood</h2>
-          <p>Seen it, fed it, worried about it? Add it to the record.</p>
         </header>
         <CommunityPanel id={r.id} label={r.label} needsHelp={r.known.health === "needs_help"} comments={r.comments} />
       </section>
-
-      {/* ── where it lives ─────────────────────────────────────────── */}
-      {r.place && (
-        <section className="lr-sec lr-place">
-          <header className="lr-sec-head">
-            <p className="lr-sec-n sys-mono">{unresolved.length ? "05" : "04"}</p>
-            <h2>Where it lives</h2>
-            <p>
-              Its cell holds <b>{fewOr(r.place.here, scope === "public")}</b> recorded animal{r.place.here === 1 ? "" : "s"}. The brighter areas around it hold more; the dashed ones are where nobody has recorded an animal yet — which is not the same as none being there.
-            </p>
-            <p className="lr-place-links">
-              <Link href={mapHref}>Open this cell on the map <ArrowUpRight size={13} /></Link>
-              <Link href={`${scope === "org" ? "/partner/reports" : "/insights"}?cell=${r.place.cell}`}>Explain this place <ArrowUpRight size={13} /></Link>
-            </p>
-          </header>
-          <div className="lr-plate is-map">
-            <PlaceMap variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={0} />
-          </div>
-        </section>
-      )}
 
       <footer className="lr-foot">
         <p>
@@ -186,7 +159,7 @@ export function LivingRecord({ r, scope, org }: { r: Living; scope: "public" | "
           {r.sourceCode && <>source ID <span className="sys-mono">{r.sourceCode}</span> · </>}
           {r.keeper}
         </p>
-        <p>Recorded animals, not population. Positions are shown to their cell, never finer. Notes from an organisation&rsquo;s own register stay with the organisation.</p>
+        <p>Recorded animals, not population. Positions are shown to their cell, never finer.</p>
       </footer>
     </article>
   );

@@ -13,7 +13,6 @@ export const metadata = {
 export default function DataGovernancePage() {
   return (
     <MarketingPage
-      kicker="DATA GOVERNANCE"
       title="What we hold,"
       accent="and what we don't."
       lede="StrayPaw is a public record of animals, not of people. This page says plainly what is collected, what is never published, how long it is kept and how to have something taken down. It is written against the Digital Personal Data Protection Act, 2023."
@@ -23,7 +22,7 @@ export default function DataGovernancePage() {
         { label: "Talk to us", href: "/contact?subject=Data%20governance%20question", note: "For procurement and compliance questions." },
       ]}
     >
-      <Band tone="paper" kicker="WHAT IS PUBLIC" title="The animal is public." accent="The person is not.">
+      <Band tone="paper" title="The animal is public." accent="The person is not.">
         <Steps
           items={[
             { n: "01", title: "Published", body: "The animal's record: photographs of the animal, an approximate locality, the case history, care given and the outcome. This is the point of the register." },
@@ -34,7 +33,7 @@ export default function DataGovernancePage() {
         />
       </Band>
 
-      <Band tone="bone" kicker="PHOTOGRAPHS" title="A street photograph" accent="can contain a person.">
+      <Band tone="bone" title="A street photograph" accent="can contain a person.">
         <p className="mk-body">
           A sighting photograph is taken in public and can include people who
           never chose to be on a public map. The report flow offers redaction
@@ -43,13 +42,9 @@ export default function DataGovernancePage() {
           is told in plain words that the photograph becomes part of a public
           record.
         </p>
-        <p className="mk-body">
-          A photograph is not required to file a report. If taking one would
-          intrude on somebody, the sighting can be filed without it.
-        </p>
       </Band>
 
-      <Band tone="paper" kicker="RETENTION AND REMOVAL" title="A record is kept." accent="A person can leave.">
+      <Band tone="paper" title="A record is kept." accent="A person can leave.">
         <Steps
           items={[
             { n: "01", title: "Animal records persist", body: "The register's value is continuity: an animal's history has to outlast the people who recorded it, and corrections are appended rather than overwritten so the history stays auditable." },

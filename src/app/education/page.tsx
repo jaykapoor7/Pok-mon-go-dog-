@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { SitePage } from "@/components/site/SitePage";
-import { RESEARCH } from "@/lib/platform/research";
 import { EDUCATION_PARTNERS } from "@/lib/platform/education";
 
 export const dynamic = "force-static";
@@ -31,10 +30,10 @@ const PATH = [
   {
     n: "01",
     title: "Understand what is actually going on",
-    body: "Coexistence, Animal Birth Control, rabies, and what the law requires of a municipality. Written against named public documents, so it can be cited in a classroom rather than asserted.",
+    body: "Coexistence, Animal Birth Control, what to do after a bite, and what the law requires of a municipality.",
     href: "/learn",
     cta: "Read the material",
-    meta: `${RESEARCH.length} sourced references`,
+    meta: "Four short lessons",
   },
   {
     n: "02",

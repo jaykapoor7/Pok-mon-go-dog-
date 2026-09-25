@@ -1,11 +1,5 @@
-import {
-  MarketingPage,
-  Band,
-  Steps,
-  Stat,
-} from "@/components/marketing/MarketingPage";
+import { MarketingPage, Band, Steps } from "@/components/marketing/MarketingPage";
 import { FundingFigure } from "@/components/marketing/figures";
-import { UNIT_COSTS, COVERAGE_TARGET, inr } from "@/lib/platform/network";
 
 export const metadata = {
   title: "For funders, fund an outcome, not a hope",
@@ -14,25 +8,21 @@ export const metadata = {
 };
 
 export default function ForFundersPage() {
-  const ster = UNIT_COSTS.sterilisation;
-  const vacc = UNIT_COSTS.vaccination;
 
   return (
     <MarketingPage
-      kicker="FOR FUNDERS AND CSR TEAMS"
       title="Fund an outcome,"
       accent="not a hope."
       lede="Most animal-welfare giving buys activity: a number of surgeries, a number of camps. What it rarely buys is the ability to say afterwards whether the population actually changed. That is a measurement problem, and it is fixable."
       figure={<FundingFigure />}
       next={[
-        { label: "Scope and cost a programme", href: "/what-would-it-take", note: "Pick a state and an objective; get real numbers." },
+        { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
         { label: "How we run a study", href: "/research-standards", note: "Protocol, methods, indicators and what we publish." },
         { label: "Start a conversation", href: "/contact?subject=Fund%20a%20programme", note: "Tell us the geography and the objective." },
       ]}
     >
       <Band
         tone="paper"
-        kicker="THE PROBLEM WITH MOST GIVING"
         title="Activity is easy to buy."
         accent="Change is not."
       >
@@ -43,35 +33,11 @@ export default function ForFundersPage() {
           population effect. Both outcomes are reported the same way, as a
           count of surgeries.
         </p>
-        <p className="mk-body">
-          The distinction requires knowing the denominator, how many animals
-          are in the area, and being able to check coverage afterwards. Neither
-          is available for most of India today, which is why so much sincere
-          funding cannot demonstrate what it achieved.
-        </p>
 
-        <div className="mk-stats">
-          <Stat
-            value={inr(ster.value)}
-            label={`Per sterilisation, ${ster.unit}`}
-            source={`${ster.source} (${ster.year})`}
-          />
-          <Stat
-            value={inr(vacc.value)}
-            label={`Per vaccination, ${vacc.unit}`}
-            source={`${vacc.source} (${vacc.year})`}
-          />
-          <Stat
-            value={`${Math.round(COVERAGE_TARGET.value * 100)}%`}
-            label="Coverage threshold for population effect"
-            source={COVERAGE_TARGET.source}
-          />
-        </div>
       </Band>
 
       <Band
         tone="ink"
-        kicker="HOW A STRAYPAW PROGRAMME RUNS"
         title="A question, a partner,"
         accent="and a finish line."
       >
@@ -103,7 +69,6 @@ export default function ForFundersPage() {
 
       <Band
         tone="bone"
-        kicker="WHAT YOU GET THAT YOU CANNOT GET TODAY"
         title="A number you could defend"
         accent="to an auditor."
       >

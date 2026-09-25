@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Report, type Headline } from "@/components/insights/Report";
-import { National } from "@/components/insights/National";
 import { getPublicDataset } from "@/lib/spatial/server";
 import { casesIn } from "@/lib/spatial/measures";
 import { fates } from "@/lib/spatial/report";
@@ -37,7 +36,7 @@ export default async function InsightsPage() {
   return (
     <AppShell>
       <Suspense fallback={null}>
-        <Report scope="public" initial={initial} national={<National />} />
+        <Report scope="public" initial={initial} />
       </Suspense>
     </AppShell>
   );

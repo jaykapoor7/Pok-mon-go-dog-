@@ -13,13 +13,10 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
 
   { path: "/evidence", priority: 0.8, freq: "weekly" },
   { path: "/programmes", priority: 0.8, freq: "weekly" },
-  { path: "/gaps", priority: 0.5, freq: "monthly" },
-  { path: "/needs", priority: 0.6, freq: "weekly" },
   { path: "/insights", priority: 0.6, freq: "weekly" },
   { path: "/research", priority: 0.5, freq: "monthly" },
 
 
-  { path: "/news", priority: 0.6, freq: "daily" },
   { path: "/orgs", priority: 0.7, freq: "weekly" },
   { path: "/help", priority: 0.7, freq: "monthly" },
   { path: "/resources", priority: 0.7, freq: "monthly" },

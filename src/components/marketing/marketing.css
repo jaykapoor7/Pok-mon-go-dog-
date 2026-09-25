@@ -212,7 +212,7 @@
 
 /* ── next steps ─────────────────────────────────────────────────── */
 
-.mk-next { background: var(--steel); color: var(--paper); padding: 7vw 8vw; }
+.mk-next { background: var(--steel); color: var(--paper); padding: 5vw 8vw; }
 .mk-next-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -242,7 +242,6 @@
 .mk-next-card span { grid-column: 1 / -1; font-size: 13px; line-height: 1.6; color: #b1baca; }
 .mk-next-card svg { color: var(--electric); }
 
-.mk-foot { padding-top: 40px; }
 
 /* ── responsive ─────────────────────────────────────────────────── */
 

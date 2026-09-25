@@ -27,7 +27,6 @@ const ENTRIES: { month: string; items: string[] }[] = [
 export default function ChangelogPage() {
   return (
     <MarketingPage
-      kicker="CHANGELOG"
       title="What shipped,"
       accent="month by month."
       lede="A running record of what changed on StrayPaw. Written for the people who use it, not for the people who built it."
@@ -51,7 +50,7 @@ export default function ChangelogPage() {
           </ul>
         </Band>
       ))}
-      <Band tone="paper" kicker="BEFORE THIS" title="Earlier work" accent="is in the record.">
+      <Band tone="paper" title="Earlier work" accent="is in the record.">
         <p className="mk-body">
           This log starts in September 2026. Work before that built the register
           itself: the animal identity model, the partner console, the evidence

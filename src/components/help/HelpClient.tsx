@@ -15,6 +15,9 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [target, setTarget] = useState<HelperTarget | null>(null);
+  /* The nearest dozen first. Every animal on one page ran to fourteen
+     thousand pixels, and nobody reads past the first screens of a list. */
+  const [shown, setShown] = useState(12);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
@@ -74,7 +77,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
 
       {needy.length > 0 && (
         <ol className="hp-list">
-          {needy.map((dog) => {
+          {needy.slice(0, shown).map((dog) => {
             const needs = needsFor(dog).filter((n) => !/not checked/i.test(n.label));
             const note = latestNote(dog);
             const d = km(dog);
@@ -96,6 +99,11 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
             );
           })}
         </ol>
+      )}
+      {needy.length > shown && (
+        <button type="button" className="hp-more" onClick={() => setShown((n) => n + 12)}>
+          Show {Math.min(12, needy.length - shown)} more <span>· {needy.length - shown} not shown</span>
+        </button>
       )}
 
       <HelperForm open={formOpen} target={target} onClose={() => setFormOpen(false)} />

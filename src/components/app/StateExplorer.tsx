@@ -45,6 +45,10 @@ export function StateExplorer({ rows }: { rows: StateRow[] }) {
     rows.find((r) => r.abcCoverage !== null) ?? rows[0]
   );
   const [phone, setPhone] = useState(false);
+  /* On a phone a row opens in place, only when tapped, and the list starts
+     at the ten largest; a detail open by default doubled the page. */
+  const [openCode, setOpenCode] = useState<string | null>(null);
+  const [all, setAll] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 860px)");
@@ -117,15 +121,15 @@ export function StateExplorer({ rows }: { rows: StateRow[] }) {
 
       <div className="se-body" data-layout={phone ? "stack" : "split"}>
         <ol className="se-list">
-          {sorted.map((r) => {
+          {(phone && !all ? sorted.slice(0, 10) : sorted).map((r) => {
             const v = valueOf(r);
             const pct = v ? (v / max) * 100 : 0;
-            const open = phone && selected.code === r.code;
+            const open = phone && openCode === r.code;
             return (
               <li key={r.code} className={open ? "open" : undefined}>
                 <button
                   className={selected.code === r.code ? "on" : ""}
-                  onClick={() => setSelected(r)}
+                  onClick={() => { setSelected(r); if (phone) setOpenCode((c) => (c === r.code ? null : r.code)); }}
                   aria-pressed={selected.code === r.code}
                   aria-expanded={phone ? open : undefined}
                 >
@@ -144,6 +148,9 @@ export function StateExplorer({ rows }: { rows: StateRow[] }) {
             );
           })}
         </ol>
+        {phone && !all && sorted.length > 10 && (
+          <button type="button" className="se-all" onClick={() => setAll(true)}>Show all {sorted.length}</button>
+        )}
 
         {!phone && (
           <aside className="se-detail">

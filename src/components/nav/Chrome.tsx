@@ -36,16 +36,13 @@ const OWN_CHROME = new Set<string>([
   "/moderate",
   "/admin",
   // Explainer pages behind the header nav, they render SiteHeader themselves.
-  "/why-straypaw",
   "/the-network",
   "/for-funders",
   "/for-ngos",
   "/for-governments",
-  "/transparency",
   "/about",
   "/changelog",
   "/data-governance",
-  "/the-data",
   "/how-to-help",
   "/research-standards",
   // Everything reachable from the site header is a page, not a screen of
@@ -56,7 +53,6 @@ const OWN_CHROME = new Set<string>([
   "/evidence",
   "/education",
   "/get-involved",
-  "/take-action",
 ]);
 
 /**
@@ -69,14 +65,9 @@ const SELF_SHELLED = new Set<string>([
   "/map",
   "/studies",
   "/outcomes",
-  "/gaps",
-  "/needs",
   "/interventions",
-  "/what-would-it-take",
   "/following",
-  "/explore",
   "/insights",
-  "/sources",
   "/resources",
   "/learn",
 ]);

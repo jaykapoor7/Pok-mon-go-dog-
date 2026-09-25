@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app/AppShell";
 
 const LINKS = [
-  { label: "Explore", href: "/explore" },
   { label: "Resources", href: "/resources" },
   { label: "Learn", href: "/learn" },
   { label: "Mission", href: "/mission" },
