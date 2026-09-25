@@ -12,8 +12,9 @@ import { CLOSURE_META, type ClosureReason, type StatusClass } from "@/lib/regist
    in the progress notes, and the largest named one is drawn in flame:
    the animal could not be found.
 
-   On a phone the same numbers are an indented tree of proportional bars,
-   because a wide diagram shrunk to 390px is a picture of a diagram.
+   On a phone the same numbers are one proportional bar with a four-line
+   key and a sentence for the reasons, because a wide diagram shrunk to
+   390px is a picture of a diagram, and a list of nine bars is a table.
    ════════════════════════════════════════════════════════════════════ */
 
 type Branch = { key: string; n: number; label: string; tone: string; hatch?: boolean; big?: boolean };
@@ -126,25 +127,36 @@ export function RequestFlow({ requests, status, reasons, noActionTotal }: {
       </svg>
 
       {/* phone: the same numbers as a tree of proportional bars */}
-      <ol className="ld-flow-tree" aria-hidden>
-        <li className="is-root"><b className="sys-mono">{fmt(requests)}</b><span>requests for help</span></li>
-        {branches.map((b) => (
-          <li key={b.key} className={`is-${b.key}`}>
-            <i style={{ width: `${Math.max(1.5, (b.n / requests) * 100)}%`, background: b.hatch ? "var(--sp-hatch)" : b.tone }} />
-            <b className="sys-mono">{fmt(b.n)}</b><span>{b.label}</span>
-            {b.key === "none" && (
-              <ol>
-                {subs.map((s) => (
-                  <li key={s.key} className={s.key === "could_not_locate" ? "is-lost" : ""}>
-                    <i style={{ width: `${Math.max(1.5, (s.n / Math.max(1, noActionTotal)) * 100)}%`, background: s.hatch ? "var(--sp-hatch)" : s.tone }} />
-                    <b className="sys-mono">{fmt(s.n)}</b><span>{s.label}</span>
-                  </li>
-                ))}
-              </ol>
+      {(() => {
+        /* On a phone: one bar, four outcomes, one sentence for the reasons. */
+        const order = ["closed", "none", "open", "other", "unknown"];
+        const seg = [...branches].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+        const named = subs.filter((x) => !x.hatch).sort((a, b) => b.n - a.n);
+        const top = named[0];
+        const unrecorded = subs.find((x) => x.hatch)?.n ?? 0;
+        return (
+          <div className="ld-flow-phone" aria-hidden>
+            <div className="ld-flow-bar">
+              {seg.map((b) => <i key={b.key} className={b.hatch ? "is-hatch" : ""} style={{ flexGrow: b.n, background: b.hatch ? undefined : b.tone }} />)}
+            </div>
+            <ul className="ld-flow-key">
+              {seg.filter((b) => !b.hatch).map((b) => (
+                <li key={b.key}>
+                  <i style={{ background: b.tone }} />
+                  <b>{fmt(b.n)}</b>
+                  <span>{b.label}<small> · {share(b.n)}</small></span>
+                </li>
+              ))}
+            </ul>
+            {none && top && (
+              <p className="ld-flow-why">
+                Of the {fmt(noActionTotal)} closed without field action, <b className="is-lost">{fmt(top.n)}</b> were because the {top.label.toLowerCase().replace(/^animal /, "animal ")}
+                {unrecorded ? <>; <b>{fmt(unrecorded)}</b> have no reason written down.</> : "."}
+              </p>
             )}
-          </li>
-        ))}
-      </ol>
+          </div>
+        );
+      })()}
 
     </div>
   );
