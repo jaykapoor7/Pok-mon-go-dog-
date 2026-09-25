@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { TrustStrip } from "@/components/site/TrustStrip";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { RequestFlow } from "@/components/landing/RequestFlow";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
@@ -53,7 +52,6 @@ const ROLES = [
 
 export default async function HomePage() {
   const [story, photos] = await Promise.all([getLandingStory(), getPhotoRegister(24)]);
-  const t = story?.totals;
 
   return (
     <div className="sp field-site product-site ld">
@@ -113,8 +111,6 @@ export default async function HomePage() {
             {story?.desk && story.desk.live + story.desk.older > 0 && <DeskMock city={story.hero.city} desk={story.desk} />}
           </div>
         </section>
-
-        <TrustStrip total={t?.animals ?? 0} />
 
         <section className="ld-close">
           <h2>Know an animal <em>on your street?</em></h2>
