@@ -34,11 +34,11 @@
   "license": {
     "article": "CC BY 4.0",
     "repository": "No LICENSE or explicit raw-data licence found at the pinned commit",
-    "decision": "staging_only"
+    "decision": "blocked_metadata_only"
   },
   "clinical": {
     "discovered": 20915,
-    "staged": 20915,
+    "staged": 0,
     "published_profiles": 0,
     "unique_ids": 20915,
     "duplicate_ids": 0,
@@ -105,7 +105,7 @@
   },
   "street_surveys": {
     "discovered": 164,
-    "staged": 164,
+    "staged": 0,
     "published_aggregates": 0,
     "unique_route_surveys": 164,
     "routes": 10,
@@ -130,7 +130,7 @@
   },
   "totals": {
     "records_discovered": 21079,
-    "records_staged": 21079,
+    "records_staged": 0,
     "profiles_published": 0,
     "aggregate_rows_published": 0,
     "skipped_from_publication": 21079,
@@ -142,5 +142,15 @@
     "The GitHub repository has no explicit raw-data licence even though the CC BY article points to it in the data-availability statement.",
     "Clinical rows have no animal-level coordinates; route reference points cannot be assigned to individual dogs.",
     "Street observations have no stable dog IDs and may only be represented as route-survey aggregates."
-  ]
+  ],
+  "production_cleanup": {
+    "performed_on": "2026-09-25",
+    "deleted_import_rows": 21079,
+    "deleted_import_batches": 2,
+    "remaining_jamshedpur_import_rows": 0,
+    "remaining_jamshedpur_import_batches": 0,
+    "database_size_before_bytes": 151309459,
+    "database_size_after_vacuum_bytes": 96709779,
+    "policy": "Blocked/unpublishable source data is audited locally and not retained in production staging."
+  }
 }
