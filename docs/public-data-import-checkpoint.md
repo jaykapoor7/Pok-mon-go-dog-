@@ -2,7 +2,7 @@
 
 - Last completed batch: Batch 2 — Jamshedpur, completed as blocked/metadata-only. Ranchi remains complete and was not rerun.
 - Current batch: none. Stop after Jamshedpur.
-- Last implementation commit SHA: `ab86930346a036b7503a546157fe89ecc2c2c279` (Jamshedpur cleanup + publish-only production import policy).
+- Last implementation commit SHA: `62379eb9b09f72722d7a8dd3ac2ae5105952da9f` (Jamshedpur cleanup + audit-only importer); plan checkpoint commit `eb3b92f437f27710cefaba14987a6e2d42cc5242`.
 - Migrations applied: `20260925101031 public_atlas_provenance_and_area_metrics`; `20260925101524 public_atlas_profile_fields`.
 - Production totals: 8,832 dogs; 963 atlas rows; 13,067 import rows; database 96,709,779 bytes after Jamshedpur cleanup/VACUUM FULL; Storage remains 248,591,499 bytes across 62 objects.
 - Imported/published: Ranchi 6,462 profiles + 18 wards; Bengaluru 9 aggregates; Mumbai 1; Chennai 11; IISER 180; national 744; iNaturalist 6 profiles; Commons 1 profile currently live.
