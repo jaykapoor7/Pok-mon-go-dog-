@@ -168,14 +168,33 @@ export const getLandingStory = unstable_cache(async () => {
 }, ["landing-story-v3"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /** Resident photographs on the record, newest first, for the register strip. */
-export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v1"], { revalidate: 300, tags: [SPATIAL_TAG] });
+export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v2"], { revalidate: 300, tags: [SPATIAL_TAG] });
+
+/* Case conditions that do not mean a wound on camera: routine ABC and ARV,
+   and abandonment. Anything else on a case, an "injured" status or a
+   needs-help flag puts the photograph after the calm ones. */
+const CALM_CONDITIONS = new Set(["Sterilisation (ABC)", "Vaccination (ARV)", "Abandonment"]);
+
+type PhotoRecord = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; last_seen: string | null };
 
 async function readPhotoRegister(limit = 24) {
   const supa = getSupabase();
   if (!supa) return { rows: [], total: 0 };
+  /* A wider pool than the strip shows, so the strip can lead with animals
+     photographed without a visible injury and still be full. */
   const [{ data }, { count }] = await Promise.all([
-    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,last_seen").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(limit),
+    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,last_seen,status,needs_help").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(limit * 4),
     supa.from("public_spatial_animals").select("id", { count: "exact", head: true }).not("cover_photo", "is", null).neq("cover_photo", ""),
   ]);
-  return { rows: (data ?? []) as { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; last_seen: string | null }[], total: count ?? 0 };
+  const pool = (data ?? []) as (PhotoRecord & { status: string | null; needs_help: boolean | null })[];
+  const hurt = new Set(pool.filter((r) => r.status === "injured" || r.needs_help).map((r) => r.id));
+  if (pool.length) {
+    const { data: cases } = await supa.from("public_case_facts").select("dog_id,condition_class").in("dog_id", pool.map((r) => r.id));
+    for (const c of (cases ?? []) as { dog_id: string | null; condition_class: string | null }[]) {
+      if (c.dog_id && c.condition_class && !CALM_CONDITIONS.has(c.condition_class)) hurt.add(c.dog_id);
+    }
+  }
+  const ordered = [...pool.filter((r) => !hurt.has(r.id)), ...pool.filter((r) => hurt.has(r.id))].slice(0, limit);
+  const rows: PhotoRecord[] = ordered.map(({ id, name, straypaw_id, cover_photo, zone, city, last_seen }) => ({ id, name, straypaw_id, cover_photo, zone, city, last_seen }));
+  return { rows, total: count ?? 0 };
 }
