@@ -626,7 +626,11 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
     else map.flyTo({ center: s.center, zoom: Math.max(map.getZoom(), 13.8), duration: d, padding: padding() });
   }, [ds, padding, selCells]);
 
-  const choose = useCallback((s: Sel) => { setSel(s); setSheet(s.t === "cell" || s.t === "empty" ? "open" : "peek"); }, []);
+  /* The inspector opens collapsed — place name and three figures — for
+     every kind of selection except an empty cell, whose "nothing recorded
+     here, report one" card has no collapsed form worth hiding behind a
+     tap. A person who wants the full breakdown of a cell taps Details. */
+  const choose = useCallback((s: Sel) => { setSel(s); setSheet(s.t === "empty" ? "open" : "peek"); }, []);
   /* The mode chips scroll sideways on a phone: fade the edge that has more
      behind it, and keep the chosen mode in view. */
   const modesRef = useRef<HTMLDivElement>(null);
@@ -709,7 +713,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
       setSel({ t: "city", city: 0 }); camera({ t: "city", city: 0 }, true);
       return;
     }
-    setSel(s); setSheet(s.t === "cell" || s.t === "empty" ? "open" : "peek");
+    setSel(s); setSheet(s.t === "empty" ? "open" : "peek");
     camera(s, true);
   }, [ds, ready, layersReady, params, camera, choose, mNow, m0]);
 

@@ -7,17 +7,21 @@
    1. Where things stand, in one sentence, and the one action that starts
       work.
    2. The queue beside where the queue is. The queue holds LIVE work only:
-      overdue follow-ups, then critical conditions, then the rest, newest
+      overdue follow-ups, then critical conditions, then the rest, oldest
       first. Cases open for months with nothing recorded are not live
       work; they would bury the queue, so they are counted separately and
       sent to review, where a person decides what happened. The plate
       beside the queue draws open work by cell; stale-only cells are
       hatched. Choose a cell to narrow the queue to it.
-   3. What needs a decision: the review, the missing reasons, missed
-      follow-ups, impossible dates.
-   4. The season ahead, when a busy month is coming.
-   5. The programme: what is recorded about sterilisation and
-      vaccination, where to look next, what changed.
+   3. What needs a decision: stale cases and reasonless closures, one
+      line, one way in (case review already holds both tabs).
+   4. What changed: the last few closed cases.
+
+   Everything else this room used to repeat — sterilisation/vaccination
+   share, where coverage is thin, missed-follow-up totals, the season's
+   busy months, impossible dates — already has its own page (Analysis,
+   Map, Data quality) and is one click away from the sidebar. Showing it
+   twice was not a second feature, it was the same fact told again.
 
    Every figure is read live from the organisation's own records.
    ════════════════════════════════════════════════════════════════════ */
@@ -30,13 +34,10 @@ import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { HexPlate, type PlateCell } from "@/components/system/HexPlate";
 import { HatchDef } from "@/components/system/Hatch";
-import { ShareBand } from "@/components/system/ShareBand";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isStale, openCases, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase } from "@/lib/ops";
-import { MONTHS } from "@/lib/spatial/engine";
-import { animalKnowledge, casesIn } from "@/lib/spatial/measures";
-import { futureDated, season } from "@/lib/spatial/report";
+import { casesIn } from "@/lib/spatial/measures";
 import { C, C_STRIDE } from "@/lib/spatial/types";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { NGO } from "@/lib/types";
@@ -104,22 +105,20 @@ export function OpsRoom() {
     return { all, stale, liveWork, overdue, week, crit };
   }, [open, due]);
 
+  /* Sterilisation/vaccination share, coverage gaps, missed-follow-up
+     totals and the season's busy months live on Analysis, Map and Data
+     quality now, not here — reasonless closures are the one number this
+     room still needs, to fold into the single "needs a decision" line. */
   const reg = useMemo(() => {
     if (!ds || !ix || !isMember) return null;
     const idx = casesIn(ds, { cells: null, from: 0, to: ds.today });
     const NO = ds.dict.status.indexOf("no_action"), NA = ds.dict.status.indexOf("not_attended"), UNSPEC = ds.dict.closure.indexOf("unspecified");
-    let reasonless = 0, missed = 0;
+    let reasonless = 0;
     for (const i of idx) {
       const o = i * C_STRIDE, st = ds.cases[o + C.status], r = ds.cases[o + C.closure];
       if ((st === NO || st === NA) && (r < 0 || r === UNSPEC)) reasonless++;
-      missed += ds.cases[o + C.fuMissed];
     }
-    return {
-      idx, reasonless, missed, future: futureDated(ds),
-      season: season(ds, idx, ds.today),
-      know: animalKnowledge(ds, ix, null, ds.today),
-      animals: ix.nAnimals,
-    };
+    return { reasonless, animals: ix.nAnimals };
   }, [ds, ix, isMember]);
 
   /* ── the queue: live work, what goes wrong first at the top ────────── */
@@ -174,15 +173,6 @@ export function OpsRoom() {
 
   const blank = isMember && s.all.length === 0 && (reg?.animals ?? 0) === 0;
   const signedOut = !isMember;
-  const next = ds && isMember ? ds.next.slice(0, 3) : [];
-  const upcomingPeak = (() => {
-    if (!reg || !reg.season.peaks.length) return null;
-    const m = new Date().getMonth();
-    const soon = reg.season.peaks.find((k) => ((k - m + 12) % 12) <= 2);
-    if (soon === undefined) return null;
-    const last = reg.season.years[reg.season.years.length - (reg.season.years[reg.season.years.length - 1]?.months[soon] == null ? 2 : 1)];
-    return { month: soon, inMonths: (soon - m + 12) % 12, last };
-  })();
 
   return (
     <main className="pr ops">
@@ -277,82 +267,25 @@ export function OpsRoom() {
         <div className="pr-tasks ops-tasks"><TasksSection compact /></div>
       </section>
 
-      {isMember && !blank && reg && (
+      {isMember && !blank && reg && (s.stale.length > 0 || reg.reasonless > 0) && (
         <section className="ops-decide" aria-label="Needs a decision">
           <p className="ops-eyebrow"><span>Needs a decision</span></p>
           <ol>
             <li>
-              <b className={s.stale.length ? "is-hot" : ""}>{num(s.stale.length)}</b>
-              <p>cases open for more than ninety days with nothing recorded in thirty. Most are finished work nobody closed.</p>
-              <Link href="/partner/review" className="sys-btn is-sm">Review them</Link>
+              <b className={s.stale.length ? "is-hot" : ""}>{num(s.stale.length || reg.reasonless)}</b>
+              <p>
+                {s.stale.length > 0
+                  ? <>cases open for months with nothing recorded{reg.reasonless > 0 ? <>, and <strong className="ops-decide-n">{num(reg.reasonless)}</strong> closed without a reason written down</> : ""}.</>
+                  : <>requests closed without a reason written down.</>}
+              </p>
+              <Link href="/partner/review" className="sys-btn is-sm">Review</Link>
             </li>
-            <li>
-              <b>{num(reg.reasonless)}</b>
-              <p>requests closed without field action and no reason written down.</p>
-              <Link href="/partner/review?tab=reasons" className="sys-btn is-sm is-quiet">Record the reasons</Link>
-            </li>
-            <li>
-              <b>{num(reg.missed)}</b>
-              <p>follow-ups were missed across the record.</p>
-              <Link href="/partner/reports#response" className="sys-btn is-sm is-quiet">See where</Link>
-            </li>
-            {reg.future > 0 && (
-              <li>
-                <b>{num(reg.future)}</b>
-                <p>records are dated in the future — typing errors that keep them off every chart.</p>
-                <Link href="/partner/quality" className="sys-btn is-sm is-quiet">Fix the dates</Link>
-              </li>
-            )}
           </ol>
         </section>
       )}
 
-      {upcomingPeak && reg && (
-        <section className="ops-season" aria-label="The season ahead">
-          <div>
-            <p className="ops-eyebrow"><span>The season ahead</span></p>
-            <p className="ops-season-text">
-              {upcomingPeak.inMonths === 0 ? <>This is your busy season.</> : <><b>{MONTHS[upcomingPeak.month]}</b> is {upcomingPeak.inMonths === 1 ? "next month" : `${upcomingPeak.inMonths} months away`}.</>}{" "}
-              {reg.season.peaks.map((k) => MONTHS[k]).join(" and ")} {reg.season.peaks.length > 1 ? "are" : "is"} busier than the rest of the year in every year on record.
-            </p>
-          </div>
-          {upcomingPeak.last && (
-            <div className="ops-season-bars" role="img" aria-label={`Requests by month in ${upcomingPeak.last.year}`}>
-              {upcomingPeak.last.months.map((v, k) => {
-                const max = Math.max(1, ...upcomingPeak.last!.months.map((x) => x ?? 0));
-                return <span key={k} className={reg.season.peaks.includes(k) ? "is-peak" : ""}><i style={{ height: `${v ? Math.max(4, (v / max) * 100) : 0}%` }} /><small>{MONTHS[k][0]}</small></span>;
-              })}
-              <em>{upcomingPeak.last.year}</em>
-            </div>
-          )}
-        </section>
-      )}
-
-      {isMember && !blank && reg && (
-        <section className="ops-flow" aria-label="Programme and recent changes">
-          <div>
-            <p className="ops-eyebrow"><span>What is recorded</span><Link href="/partner/reports#intervention">Analyse <ArrowUpRight size={12} /></Link></p>
-            <p className="ops-kpi"><b>{num(reg.know.ster.yes)}</b> sterilised · <b>{num(reg.know.vacc.yes)}</b> vaccinated <span>of {num(reg.know.total)} animals</span></p>
-            <ShareBand height={8} legend={false} total={reg.know.total} parts={[
-              { key: "y", n: reg.know.ster.yes, color: "var(--sp-blue)", label: "Sterilised" },
-              { key: "n", n: reg.know.ster.no, color: "var(--sp-muted)", label: "Not sterilised" },
-              { key: "u", n: reg.know.ster.unknown, hatch: true, label: "Not recorded" },
-            ]} />
-            <p className="ops-note">Hatched: nobody has recorded either way — {Math.round((reg.know.ster.unknown / Math.max(1, reg.know.total)) * 100)}% of your animals.</p>
-          </div>
-          <div>
-            <p className="ops-eyebrow"><span>Where to look next</span><Link href="/partner/map?mode=coverage">Coverage <ArrowUpRight size={12} /></Link></p>
-            {next.length ? (
-              <ol className="ops-next">
-                {next.map((n, i) => (
-                  <li key={n.cell}><Link href={`/partner/map?mode=coverage&cell=${n.cell}`}>
-                    <i className="sys-mono">{i + 1}</i>
-                    <span><b>{n.locality || "Unnamed cell"}</b><small>{n.reasons[0]}</small></span>
-                  </Link></li>
-                ))}
-              </ol>
-            ) : <p className="ops-empty">No thinly recorded place stands next to a busy one.</p>}
-          </div>
+      {isMember && !blank && (
+        <section className="ops-flow ops-flow-single" aria-label="Recent changes">
           <div>
             <p className="ops-eyebrow"><span>What changed</span><Link href="/partner/records">Record <ArrowUpRight size={12} /></Link></p>
             {changes.length ? (

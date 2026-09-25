@@ -285,39 +285,42 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
         </ol>
       </section>}
 
-      <section className="cp-help" aria-label="Where help is needed">
-        <p className="cp-eyebrow">Where you can help</p>
-        <ol>
-          {stats.sterUnknown > 0 && (
-            <li>
-              <b>{stats.sterUnknown.toLocaleString("en-IN")}</b>
-              <p>animals here have no sterilisation on record. A notched ear is the sign — if you see one, a sighting with a photo settles it.</p>
-              <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Report a sighting</Link>
-            </li>
-          )}
-          {cells.edge.length > 0 && (
-            <li>
-              <b>{cells.edge.length}</b>
-              <p>cells at the edge of your patch have no animal recorded at all — which is not the same as none living there.</p>
-              <Link href={`/map?mode=coverage&lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">See the edge</Link>
-            </li>
-          )}
-          {stats.boosterDue > 0 && (
-            <li>
-              <b>{stats.boosterDue}</b>
-              <p>vaccinated animals here were last vaccinated more than a year ago and are due a booster.</p>
-              <Link href={`/map?mode=arv&lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Where they are</Link>
-            </li>
-          )}
-          {cells.nextHere[0] && (
-            <li>
-              <b className="cp-next-n">1</b>
-              <p><b className="cp-inline">{cells.nextHere[0].locality || "A nearby cell"}</b> is worth a look: {cells.nextHere[0].reasons.slice(0, 2).join(", ")}.</p>
-              <Link href={`/map?mode=coverage&cell=${cells.nextHere[0].cell}`} className="sys-btn is-sm is-quiet">Map next</Link>
-            </li>
-          )}
-        </ol>
-      </section>
+      {/* One ask, the most useful thing to do here right now — not a menu
+          of four. Each used to link into a map mode that already makes
+          the same case on the map itself; this keeps only the one local
+          fact a map mode can't say as directly. */}
+      {(stats.sterUnknown > 0 || cells.edge.length > 0 || stats.boosterDue > 0 || cells.nextHere[0]) && (
+        <section className="cp-help" aria-label="Where help is needed">
+          <p className="cp-eyebrow">Where you can help</p>
+          <ol>
+            {stats.sterUnknown > 0 ? (
+              <li>
+                <b>{stats.sterUnknown.toLocaleString("en-IN")}</b>
+                <p>animals here have no sterilisation on record. A notched ear is the sign — if you see one, a sighting with a photo settles it.</p>
+                <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Report a sighting</Link>
+              </li>
+            ) : cells.edge.length > 0 ? (
+              <li>
+                <b>{cells.edge.length}</b>
+                <p>cells at the edge of your patch have no animal recorded at all — which is not the same as none living there.</p>
+                <Link href={`/map?mode=coverage&lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">See the edge</Link>
+              </li>
+            ) : stats.boosterDue > 0 ? (
+              <li>
+                <b>{stats.boosterDue}</b>
+                <p>vaccinated animals here were last vaccinated more than a year ago and are due a booster.</p>
+                <Link href={`/map?mode=arv&lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Where they are</Link>
+              </li>
+            ) : cells.nextHere[0] ? (
+              <li>
+                <b className="cp-next-n">1</b>
+                <p><b className="cp-inline">{cells.nextHere[0].locality || "A nearby cell"}</b> is worth a look: {cells.nextHere[0].reasons.slice(0, 2).join(", ")}.</p>
+                <Link href={`/map?mode=coverage&cell=${cells.nextHere[0].cell}`} className="sys-btn is-sm is-quiet">Map next</Link>
+              </li>
+            ) : null}
+          </ol>
+        </section>
+      )}
 
       {shownStories.length > 0 && (
         <section className="cp-done" aria-label="Recently completed">

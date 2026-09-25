@@ -74,31 +74,17 @@
 .ops-decide b.is-hot { color: var(--sp-flame-deep); }
 .ops-decide p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--sp-body); }
 .ops-decide .sys-btn { justify-self: start; }
+.ops-decide-n { font-weight: 700; color: var(--sp-ink); }
 
-/* the season */
-.ops-season { display: grid; gap: 18px; align-items: end; padding: 22px 0; border-bottom: 1px solid var(--sp-rule); }
-@media (min-width: 900px) { .ops-season { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; } }
-.ops-season-text { margin: 0; font-family: var(--font-serif-stack); font-size: clamp(18px, 1.8vw, 22px); line-height: 1.4; }
-.ops-season-text b { font-weight: 500; color: var(--sp-flame-deep); }
-.ops-season-bars { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; height: 90px; align-items: end; }
-.ops-season-bars span { display: grid; grid-template-rows: 1fr auto; height: 100%; align-items: end; gap: 3px; }
-.ops-season-bars i { display: block; width: 100%; background: var(--sp-seq-2); border-radius: 2px 2px 0 0; }
-.ops-season-bars span.is-peak i { background: var(--sp-flame); }
-.ops-season-bars small { font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; color: var(--sp-muted); text-align: center; }
-.ops-season-bars em { position: absolute; top: 0; right: 0; font-style: normal; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; color: var(--sp-muted); }
-
-/* the programme */
-.ops-flow { display: grid; gap: 28px; padding: 22px 0 26px; border-bottom: 1px solid var(--sp-rule); }
-@media (min-width: 1000px) { .ops-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; } }
-.ops-kpi { margin: 0 0 10px; font-size: 13px; color: var(--sp-body); }
-.ops-kpi b { font-family: var(--font-serif-stack); font-weight: 400; font-size: 26px; color: var(--sp-ink); }
-.ops-kpi span { color: var(--sp-muted); }
-.ops-note { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: var(--sp-muted); }
-.ops-next, .ops-changes { margin: 0; padding: 0; list-style: none; display: grid; border-top: 1px solid var(--sp-rule); }
-.ops-next a { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--sp-line); color: var(--sp-ink); text-decoration: none; }
-.ops-next i { font-style: normal; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--sp-flame); display: grid; place-items: center; font-size: 11px; }
-.ops-next b, .ops-changes b { display: block; font-size: 13.5px; font-weight: 600; }
-.ops-next small, .ops-changes small { display: block; font-size: 11.5px; color: var(--sp-muted); line-height: 1.4; }
+/* recent changes: the one column this room keeps below the fold. The
+   sterilisation/vaccination share, coverage gaps and season chart that
+   used to fill the other two columns each already live on Analysis or
+   Map, so the section is one column now, not a grid waiting to be filled. */
+.ops-flow { padding: 22px 0 26px; border-bottom: 1px solid var(--sp-rule); }
+.ops-flow-single { max-width: 480px; }
+.ops-changes { margin: 0; padding: 0; list-style: none; display: grid; border-top: 1px solid var(--sp-rule); }
+.ops-changes b { display: block; font-size: 13.5px; font-weight: 600; }
+.ops-changes small { display: block; font-size: 11.5px; color: var(--sp-muted); line-height: 1.4; }
 .ops-changes a { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--sp-line); color: var(--sp-ink); text-decoration: none; }
 .ops-changes em { font-style: normal; font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; color: var(--sp-muted); white-space: nowrap; }
 
