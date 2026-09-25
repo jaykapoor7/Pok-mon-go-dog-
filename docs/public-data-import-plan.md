@@ -6,9 +6,9 @@ This document is the persistent source of truth for the India public-data atlas 
 
 - Git baseline before the replayed public-atlas work: `2c2f14c8aa36486ef496e43d43fb0adaad0d7095` on `main`.
 - Supabase project: `toujthlzjmhmoyykmayx`.
-- Current database size at checkpoint: 151,309,459 bytes.
+- Current database size at checkpoint: 96,709,779 bytes after removing non-publishable Jamshedpur staging rows and vacuuming `import_rows`.
 - Current Supabase Storage: approximately 248,591,499 bytes; public-source photos remain externally hosted.
-- Current totals: 8,832 dog rows, 963 aggregate atlas rows, 34,146 staged import rows.
+- Current totals: 8,832 dog rows, 963 aggregate atlas rows, 13,067 remaining import rows. Jamshedpur contributes zero staging rows.
 - Ranchi is complete in production and must not be rerun.
 - Migrations applied: `public_atlas_provenance_and_area_metrics` and `public_atlas_profile_fields`.
 
@@ -17,7 +17,7 @@ This document is the persistent source of truth for the India public-data atlas 
 | Batch | Sources / cities | Type | Status | Records staged | Records published | Commit |
 |---|---|---|---|---:|---:|---|
 | 1 | Ranchi — Mission Rabies / Ranchi Municipal Corporation | Individual vaccination observations + ward coverage | **COMPLETE** | 7,671 | 6,462 profiles + 18 ward rows | `231c8e1` |
-| 2 | Jamshedpur — Humane World / HSI CNVR | Individual clinical records + street-survey aggregates | **COMPLETE — STAGED / PUBLICATION BLOCKED** | 21,079 (20,915 clinical + 164 route surveys) | 0 profiles + 0 atlas rows | `231c8e1` |
+| 2 | Jamshedpur — Humane World / HSI CNVR | Individual clinical records + street-survey aggregates | **COMPLETE — BLOCKED / METADATA-ONLY** | 0 production staging rows | 0 profiles + 0 atlas rows | cleanup checkpoint pending |
 | 3 | West Bengal — IISER Kolkata Mendeley/Dryad datasets | Individual/research + group/census aggregates | **PARTIAL (do not duplicate)** | 445 source-identifier summaries from 6,047 observations | 180 aggregate rows | Pending repository checkpoint |
 | 4 | Wikimedia Commons + iNaturalist + GBIF | Photographed GPS observations | **IN PROGRESS** | 318 Commons + 242 iNaturalist in latest batches | 7 profiles currently live; 11 additional Commons profiles normalized but not yet published | — |
 | 5 | Mumbai + Bengaluru | Ward/zone census | **PARTIAL (do not duplicate)** | 10 normalized rows | 1 Mumbai city row + 9 Bengaluru city/zone rows | Pending repository checkpoint |
@@ -40,9 +40,9 @@ For every batch:
 4. Download or API-fetch into ignored cache paths; never commit giant raw datasets.
 5. Normalize through a repeatable importer and register provenance.
 6. Deduplicate by source, record ID, original observation ID, photo ID, date and coordinates.
-7. Stage through `import_batches` / `import_rows`.
-8. Validate counts, dates, GPS, profile eligibility and aggregate semantics.
-9. Publish only qualifying individual observations and legitimate aggregate facts.
+7. Validate locally first. **Do not write source rows to production Supabase unless they are actually being published.**
+8. Validate counts, dates, GPS, profile eligibility, licensing and aggregate semantics from local/cache artifacts.
+9. Publish qualifying individual observations and legitimate aggregate facts directly into the appropriate production tables. If a source is blocked or unusable, retain only compact metadata/counts in the repo/source registry and write zero `import_rows`/`import_batches`.
 10. Test profile, Reported by, map/coverage, filters, external images, mobile and RLS.
 11. Record database/storage impact and production counts here.
 12. Commit the completed batch and record its SHA in this ledger.
@@ -50,7 +50,7 @@ For every batch:
 ## Existing architecture to reuse
 
 - Source registry: `data-sources/registry.json` and production `data_sources`.
-- Staging: `import_batches` and `import_rows`.
+- `import_batches` / `import_rows` are not a raw-data warehouse. Public-source batches should be validated locally; blocked/unpublishable sources must leave zero production staging rows.
 - Individual profiles: `dogs` plus `public_animal_profiles`; source uniqueness is `(data_source_id, source_record_id)`.
 - Public attribution: existing `ngos` row and `ngo_id`; profile UI renders `Reported by <organisation>`.
 - Aggregate facts: `atlas_area_metrics` and security-invoker `public_atlas_area_metrics`.
@@ -85,11 +85,20 @@ For every batch:
 - The released row-level data does not expose weight, wounds, individual sterilisation/vaccination outcomes, ivermectin/treatment outcomes, images, or animal locations. Cohort protocol statements were not converted into per-dog statuses.
 - Street layer: 24,123 unidentifiable observations reduced to 164 unique route-survey aggregates across 10 routes; all 164 have route reference coordinates and none is an animal location.
 - Street aggregates preserve sex, age, sterilised/ever-vaccinated, lactation, visible skin-condition, and body-condition counts. Zero street observations were converted into profiles.
-- Production: 21,079 rows staged in two idempotent batches; 0 dogs and 0 atlas rows published; 0 duplicate source IDs/fingerprints.
+- Production cleanup: all 21,079 Jamshedpur staging rows and both Jamshedpur import batches were removed after review because none were publishable. The source registry retains discovery counts and blockers only. Database size fell from 151,309,459 bytes to 96,709,779 bytes after `VACUUM FULL public.import_rows`; 0 dogs and 0 atlas rows are published.
 
 ## Known blockers and publication decisions
 
-- Jamshedpur is complete as a staging-only batch: stable dog IDs and health fields exist, but there is no animal-level GPS and the raw repository has no explicit data licence. Keep all 21,079 records private until reuse and location eligibility are resolved.
+- Jamshedpur is complete as a blocked/metadata-only batch: stable dog IDs and health fields exist, but there is no animal-level GPS and the raw repository has no explicit data licence. Keep the raw/normalized dataset outside production; only compact source metadata/counts remain until reuse and location eligibility are resolved.
 - IISER resting-site data has stable source identifiers, sex, life stage and dates but no source GPS. The 445 identifier summaries remain staged; no fake coordinates or profiles.
 - Movebank Masinagudi/Moyar tracking remains staged-only until the dataset's own access/reuse terms are verified. If publishable, create one profile per tracked animal, never one per fix.
 - GBIF must exclude iNaturalist-origin occurrences already reviewed through the iNaturalist API.
+
+
+## Production write policy
+
+- Research/download/normalize in ignored local cache or other non-production working files first.
+- A public-source record is written to Supabase only when it is eligible for publication into a real StrayPaw table.
+- Blocked, rejected, ambiguous, or unusable source rows are never stored in production `import_rows` or `import_batches`.
+- Keep only compact source metadata, counts, licensing status, blockers, and reproducible importer/report code for skipped sources.
+- Aggregate census rows are written only when they are legitimate published map/atlas facts; they are never expanded into synthetic dog profiles.
