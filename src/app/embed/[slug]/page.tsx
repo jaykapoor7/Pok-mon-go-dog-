@@ -64,7 +64,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
               ))}
             </div>
           )}
-          {extraMetrics.length > 0 && <p className={styles.metricsNote}>Documented through StrayPaw</p>}
+          
           <a className={styles.cta} href={`${SITE_URL}/org/${org.slug}`} target="_blank" rel="noopener noreferrer">
             <span>View live records</span><ArrowUpRight aria-hidden="true" size={17} strokeWidth={2} />
           </a>
