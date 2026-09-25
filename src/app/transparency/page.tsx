@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { countDogs, getAllDogs } from "@/lib/data";
-import { getPublishedCaseStories, getPublicCareTimeline } from "@/lib/community-case-stories";
+import { getPublishedCaseStoriesCached as getPublishedCaseStories, getPublicCareTimelineCached as getPublicCareTimeline } from "@/lib/community-case-stories-cached";
 
 export const metadata = {
   title: "Transparency, StrayPaw",

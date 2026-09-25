@@ -19,7 +19,7 @@ import { ShareBand } from "@/components/system/ShareBand";
 import { MiniBars } from "@/components/system/Spark";
 import { getSupabase } from "@/lib/supabase";
 import { COVERAGE_TEXT, COVERAGE_ORDER, cellStats, fewOr, FEW, fmt, isSparse, monthLabel, monthOfDay, NO_FILTERS, type CellStat, type Index } from "@/lib/spatial/engine";
-import { animalKnowledge, casesIn, conditionOutcome, monthly, statusTotals } from "@/lib/spatial/measures";
+import { animalKnowledge, casesIn, monthly } from "@/lib/spatial/measures";
 import type { NextCell, SpatialDataset } from "@/lib/spatial/types";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { Scope } from "./data";
@@ -116,8 +116,6 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
 
   const scopeQ = useMemo(() => ({ cells, from: 0, to: t }), [cells, t]);
   const caseIdx = useMemo(() => (sel.t === "empty" ? [] : casesIn(ds, scopeQ)), [ds, scopeQ, sel.t]);
-  const status = useMemo(() => statusTotals(ds, caseIdx), [ds, caseIdx]);
-  const conds = useMemo(() => conditionOutcome(ds, caseIdx).filter((r) => r.condition !== "Not recorded").slice(0, 4), [ds, caseIdx]);
   const series = useMemo(() => monthly(ds, caseIdx, 0, t), [ds, caseIdx, t]);
   const know = useMemo(() => animalKnowledge(ds, ix, cells, t), [ds, ix, cells, t]);
   const openNow = stats.reduce((a, s) => a + s.open, 0);
@@ -130,10 +128,10 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
   const cityIdx = sel.t === "city" || sel.t === "locality" ? sel.city : sel.t === "cell" ? ds.cellCity[sel.cell] : sel.t === "empty" ? sel.city : -1;
   const frontierInCity = cityIdx >= 0 ? ds.frontier.filter((f) => f.city === cityIdx).length : ds.frontier.length;
   const nextHere = useMemo(() => {
-    if (sel.t === "india") return next.slice(0, 5);
+    if (sel.t === "india") return next.slice(0, 3);
     if (sel.t === "cell") return next.filter((n) => n.cell === ds.cells[sel.cell]);
     if (sel.t === "empty") return next.filter((n) => n.cell === sel.key);
-    return next.filter((n) => n.city === cityIdx && (sel.t !== "locality" || n.locality === ds.localities[sel.locality])).slice(0, 5);
+    return next.filter((n) => n.city === cityIdx && (sel.t !== "locality" || n.locality === ds.localities[sel.locality])).slice(0, 3);
   }, [sel, next, ds, cityIdx]);
 
   const cellKey = sel.t === "cell" ? ds.cells[sel.cell] : null;
@@ -273,18 +271,6 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
               <section className="sm-insp-sec">
                 <h3>Requests for help, by month</h3>
                 <MiniBars values={series.total} w={300} h={34} label={`Requests per month from ${monthLabel(series.m0)}`} />
-                <p className="sm-insp-line">
-                  <span>Closed without field action</span>
-                  <b className="sys-mono">{n(status.no_action + status.not_attended)}</b>
-                  <em>{caseIdx.length >= 10 ? `${Math.round(((status.no_action + status.not_attended) / caseIdx.length) * 100)}%` : ""}</em>
-                </p>
-                {conds.length > 0 && (
-                  <ul className="sm-insp-conds">
-                    {conds.map((c) => (
-                      <li key={c.condition}><span>{c.condition}</span><b className="sys-mono">{n(c.total)}</b></li>
-                    ))}
-                  </ul>
-                )}
               </section>
             )}
 
@@ -377,7 +363,6 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
             {sel.t === "cell" && (() => { const c = sel.cell; return <Link href={`/report?lat=${ds.centers[c * 2 + 1]}&lng=${ds.centers[c * 2]}`} className="sys-btn is-sm">Report here</Link>; })()}
           </div>
         )}
-        <p className="sm-insp-foot">Recorded animals, not population. Positions are shown to their cell, never finer.</p>
       </div>
     </aside>
   );

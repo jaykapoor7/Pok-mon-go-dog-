@@ -8,6 +8,7 @@ import { RequestFlow } from "@/components/landing/RequestFlow";
 import { ScaleTriptych } from "@/components/landing/ScaleTriptych";
 import { TheUnknown } from "@/components/landing/TheUnknown";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
+import { DeskMock } from "@/components/landing/DeskMock";
 import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
@@ -97,28 +98,37 @@ export default async function HomePage() {
 
         <section className="ld-sec ld-sec-shell" aria-labelledby="ld-who-title">
           <div className="ld-who">
-            <header className="sys-head">
-              <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
-            </header>
-            <ol className="ld-who-ladder">
-              <li>
-                <span className="sys-eyebrow">On the street</span>
-                <Link href="/report"><b>Neighbours</b><ArrowUpRight size={18} /></Link>
-                <Link href="/feeder"><b>Feeders</b><ArrowUpRight size={18} /></Link>
-                <Link href="/education"><b>Educators</b><ArrowUpRight size={18} /></Link>
-              </li>
-              <li>
-                <span className="sys-eyebrow">In the field</span>
-                <Link href="/for-ngos"><b>Rescue organisations</b><ArrowUpRight size={18} /></Link>
-                <Link href="/partner-apply"><b>Field teams</b><ArrowUpRight size={18} /></Link>
-              </li>
-              <li>
-                <span className="sys-eyebrow">Across a city</span>
-                <Link href="/for-governments"><b>Municipal bodies</b><ArrowUpRight size={18} /></Link>
-                <Link href="/for-funders"><b>Funders</b><ArrowUpRight size={18} /></Link>
-                <Link href="/research-standards"><b>Researchers</b><ArrowUpRight size={18} /></Link>
-              </li>
-            </ol>
+            <div className="ld-who-text">
+              <header className="sys-head">
+                <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
+              </header>
+              <ol className="ld-who-ladder">
+                <li>
+                  <span className="sys-eyebrow">On the street</span>
+                  <div>
+                    <Link href="/report"><b>Neighbours</b><ArrowUpRight size={16} /></Link>
+                    <Link href="/feeder"><b>Feeders</b><ArrowUpRight size={16} /></Link>
+                    <Link href="/education"><b>Educators</b><ArrowUpRight size={16} /></Link>
+                  </div>
+                </li>
+                <li>
+                  <span className="sys-eyebrow">In the field</span>
+                  <div>
+                    <Link href="/for-ngos"><b>Rescue organisations</b><ArrowUpRight size={16} /></Link>
+                    <Link href="/partner-apply"><b>Field teams</b><ArrowUpRight size={16} /></Link>
+                  </div>
+                </li>
+                <li>
+                  <span className="sys-eyebrow">Across a city</span>
+                  <div>
+                    <Link href="/for-governments"><b>Municipalities</b><ArrowUpRight size={16} /></Link>
+                    <Link href="/for-funders"><b>Funders</b><ArrowUpRight size={16} /></Link>
+                    <Link href="/research-standards"><b>Researchers</b><ArrowUpRight size={16} /></Link>
+                  </div>
+                </li>
+              </ol>
+            </div>
+            {story?.desk && story.desk.live + story.desk.older > 0 && <DeskMock city={story.hero.city} desk={story.desk} />}
           </div>
         </section>
 

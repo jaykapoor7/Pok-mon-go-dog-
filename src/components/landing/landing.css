@@ -131,18 +131,48 @@
 .ld-photos-track .sys-mono { font-size: 11px; color: var(--sp-blue); letter-spacing: 0.02em; }
 .ld-photos-track small { font-size: 12px; color: var(--sp-muted); }
 
-/* ── Who reads the record ─────────────────────────────────────────── */
-.ld-who { display: grid; gap: var(--sp-7); }
-.ld-who-ladder { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); counter-reset: rung; }
-.ld-who-ladder > li { display: grid; gap: 0; align-content: start; border-top: 2px solid var(--sp-ink); padding-top: var(--sp-3); }
-.ld-who-ladder > li > .sys-eyebrow { margin-bottom: var(--sp-3); }
-.ld-who-ladder a {
-  display: grid; grid-template-columns: 1fr 20px; align-items: center; gap: 12px; min-height: var(--ctl-h); padding: var(--sp-3) 0; border-bottom: 1px solid var(--sp-rule);
-  text-decoration: none; color: var(--sp-ink);
+/* ── Who reads the record, and what the field desk looks like ─────── */
+.ld-who { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: var(--sp-8); align-items: center; }
+.ld-who-text { display: grid; gap: var(--sp-6); }
+.ld-who-ladder { margin: 0; padding: 0; list-style: none; display: grid; }
+.ld-who-ladder > li { display: grid; gap: var(--sp-1); padding: var(--sp-3) 0; border-top: 1px solid var(--sp-rule); }
+.ld-who-ladder > li:first-child { border-top: 2px solid var(--sp-ink); }
+@media (min-width: 1101px) {
+  /* Beside the desk, each level is one line: its name, then who reads it. */
+  .ld-who-ladder > li { grid-template-columns: 130px minmax(0, 1fr); align-items: center; padding: var(--sp-1) 0; }
 }
+.ld-who-ladder > li > div { display: flex; flex-wrap: wrap; column-gap: var(--sp-5); }
+.ld-who-ladder a { display: inline-flex; align-items: center; gap: 6px; min-height: var(--ctl-h); text-decoration: none; color: var(--sp-ink); }
 .ld-who-ladder a b { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-.ld-who-ladder a svg { grid-column: 2; align-self: center; color: var(--sp-blue); transition: transform var(--sp-fast) var(--sp-ease); }
+.ld-who-ladder a svg { color: var(--sp-blue); transition: transform var(--sp-fast) var(--sp-ease); }
 @media (hover: hover) and (pointer: fine) { .ld-who-ladder a:hover svg { transform: translate(2px, -2px); } .ld-who-ladder a:hover b { color: var(--sp-blue); } }
+
+/* The one lifted object in the section: the workspace, in miniature. */
+.ld-desk { margin: 0; background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: var(--sp-radius-lg); box-shadow: 0 24px 60px rgba(11, 30, 61, 0.14); overflow: hidden; color: var(--sp-ink); }
+.ld-desk-bar { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--sp-line); background: var(--sp-bone); }
+.ld-desk-bar b { font-size: 12.5px; font-weight: 600; }
+.ld-desk-bar span { margin-left: auto; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); }
+.ld-desk-body { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.ld-desk-main { padding: var(--sp-5) var(--sp-5) var(--sp-4); display: grid; gap: var(--sp-3); align-content: start; }
+.ld-desk-h { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.1; }
+.ld-desk-lede { margin: 0; font-family: var(--font-serif-stack); font-size: 15px; line-height: 1.35; color: var(--sp-ink); }
+.ld-desk-lede b { font-weight: 500; color: var(--sp-blue); font-variant-numeric: tabular-nums; }
+.ld-desk-lede b.is-hot { color: var(--sp-flame-deep); }
+.ld-desk-queue { margin: var(--sp-1) 0 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-rule); }
+.ld-desk-queue li { display: grid; grid-template-columns: 8px minmax(0, 1fr) minmax(64px, 96px); gap: var(--sp-3); align-items: center; padding: 9px 0; border-bottom: 1px solid var(--sp-line); }
+.ld-desk-mark { width: 8px; height: 8px; border-radius: 50%; background: var(--sp-seq-3); }
+.ld-desk-mark.is-crit { background: var(--sp-flame); }
+.ld-desk-mark.is-due { background: var(--sp-ink); }
+.ld-desk-what { display: grid; gap: 1px; min-width: 0; }
+.ld-desk-what b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ld-desk-what small { font-size: 11px; color: var(--sp-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ld-desk-age { display: grid; gap: 4px; justify-items: end; }
+.ld-desk-age i { display: block; height: 4px; min-width: 3px; border-radius: 2px; background: var(--sp-seq-3); }
+.ld-desk-age i.is-long { background: var(--sp-flame); }
+.ld-desk-age small { font-size: 10.5px; color: var(--sp-muted); white-space: nowrap; }
+.ld-desk-geo { padding: var(--sp-5) var(--sp-4) var(--sp-4); border-left: 1px solid var(--sp-line); display: grid; gap: var(--sp-2); align-content: start; }
+.ld-desk-eyebrow { margin: 0; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.ld-desk-geo .sys-plate { width: 100%; height: auto; display: block; }
 
 /* ── The close ────────────────────────────────────────────────────── */
 .ld-close { background: var(--sp-night); color: var(--sp-night-text); padding: var(--sp-section) var(--sp-gutter); display: grid; justify-items: start; gap: var(--sp-5); }
@@ -152,16 +182,24 @@
 /* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .ld-unknown { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .ld-who { grid-template-columns: 1fr; gap: var(--sp-6); }
 }
 @media (max-width: 860px) {
-  .ld-scales, .ld-who-ladder { grid-template-columns: 1fr; }
+  .ld-scales { grid-template-columns: 1fr; }
   .ld-scale { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; gap: var(--sp-5); }
 }
 @media (max-width: 760px) {
   .ld-stage { min-height: 0; padding: 0; }
-  /* The site header is two rows on a phone; the copy starts below it. */
-  .ld-hero-copy { padding: calc(var(--sp-7) + 28px) var(--sp-gutter) var(--sp-5); max-width: none; }
-  .ld-plate { position: relative; inset: auto; height: 62svh; min-height: 360px; max-height: 560px; opacity: 1; }
+  .ld-hero-copy { padding: var(--sp-7) var(--sp-gutter) var(--sp-5); max-width: none; }
+  /* On a phone the desk shows its queue; the city is drawn in cells a few
+     sections up. */
+  .ld-desk-body { grid-template-columns: 1fr; }
+  .ld-desk-geo { display: none; }
+  .ld-desk-main { padding: var(--sp-4); }
+  .ld-who-text { gap: var(--sp-5); }
+  .ld-who-ladder > li > div { column-gap: var(--sp-3); }
+  .ld-who-ladder a b { font-size: 15.5px; }
+  .ld-plate { position: relative; inset: auto; height: 58svh; min-height: 340px; max-height: 540px; opacity: 1; }
   .ld-meter { position: relative; right: auto; bottom: auto; justify-content: space-between; background: var(--sp-night); padding: var(--sp-3) var(--sp-gutter); }
   .ld-stage { display: flex; flex-direction: column; }
   .ld-hero-copy { order: 1; }

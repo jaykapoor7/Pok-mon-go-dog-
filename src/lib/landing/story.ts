@@ -13,11 +13,12 @@
 
 import { cellToBoundary, gridDisk } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
-import { getPublicDataset } from "@/lib/spatial/server";
-import { buildIndex, cellStats, NO_FILTERS, robustStart } from "@/lib/spatial/engine";
+import { unstable_cache } from "next/cache";
+import { getPublicDataset, SPATIAL_TAG } from "@/lib/spatial/server";
+import { buildIndex, cellStats, NO_FILTERS, openNow, robustStart } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, closureReasons, conditionOutcome, firstAction, statusTotals } from "@/lib/spatial/measures";
 import { A_STRIDE, C, C_STRIDE, K, K_STRIDE, countOf, type SpatialDataset } from "@/lib/spatial/types";
-import type { StatusClass } from "@/lib/register/taxonomy";
+import { CONDITIONS, DEFAULT_TRIAGE, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 
 export type LandingStory = Awaited<ReturnType<typeof buildStory>>;
 
@@ -132,6 +133,30 @@ function buildStory(ds: SpatialDataset) {
     city: { name: sample?.name ?? "", animals: sample?.animals ?? 0, cellCount: cellList.length, cells: cityPlate, box: coreBox(ds, cellList, 0.02, 0.98, 0.01) },
   } : null;
 
+  /* the field desk: the dashboard an organisation working in the sample city
+     opens to, drawn from the same public record. The queue follows the
+     workspace's rule: missed follow-ups, then critical, then the rest, the
+     oldest first in each. Live work is what opened in the last 90 days;
+     older open cases are the ones that need a decision. */
+  const at = (i: number, k: number) => ds.cases[i * C_STRIDE + k];
+  const isCritical = (i: number) => DEFAULT_TRIAGE[(CONDITIONS[at(i, C.cond)] ?? "Not recorded") as Condition] === "Critical";
+  const openCity = cityCases.filter((i) => openNow(ds, i) && at(i, C.day) >= 0 && at(i, C.day) <= ds.today);
+  const live = openCity.filter((i) => ds.today - at(i, C.day) <= 90);
+  const rank = (i: number) => (at(i, C.fuMissed) > 0 ? 0 : isCritical(i) ? 1 : 2);
+  const openBy = new Map<number, number>();
+  for (const i of live) openBy.set(at(i, C.cell), (openBy.get(at(i, C.cell)) ?? 0) + 1);
+  const desk = {
+    live: live.length,
+    critical: live.filter(isCritical).length,
+    older: openCity.length - live.length,
+    queue: [...live].sort((a, b) => rank(a) - rank(b) || at(a, C.day) - at(b, C.day)).slice(0, 3).map((i) => {
+      const li = ds.cellLocality[at(i, C.cell)];
+      return { condition: CONDITIONS[at(i, C.cond)] ?? "Not recorded", locality: li >= 0 ? ds.localities[li] : "", days: ds.today - at(i, C.day), critical: isCritical(i), overdue: at(i, C.fuMissed) > 0 };
+    }),
+    cells: cellList.map((c) => ({ key: ds.cells[c], ring: ds.rings[c], open: openBy.get(c) ?? 0 })),
+    box: coreBox(ds, cellList, 0.02, 0.98, 0.01),
+  };
+
   /* what is known, and what is not */
   const knowledge = animalKnowledge(ds, ix, null, ds.today);
 
@@ -152,20 +177,26 @@ function buildStory(ds: SpatialDataset) {
     hero,
     flow,
     ladder,
+    desk,
     knowledge,
     today: ds.today,
     built: ds.built,
   };
 }
 
-export async function getLandingStory() {
+/* The story is computed from the cached dataset, and the photo strip is two
+   reads; both were redone on every visit to the landing. They share the
+   dataset's tag, so an edit that refreshes the map refreshes these too. */
+export const getLandingStory = unstable_cache(async () => {
   const ds = await getPublicDataset(null);
   if (!ds || !ds.cities.length) return null;
   return buildStory(ds);
-}
+}, ["landing-story-v3"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /** Resident photographs on the record, newest first, for the register strip. */
-export async function getPhotoRegister(limit = 24) {
+export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v1"], { revalidate: 300, tags: [SPATIAL_TAG] });
+
+async function readPhotoRegister(limit = 24) {
   const supa = getSupabase();
   if (!supa) return { rows: [], total: 0 };
   const [{ data }, { count }] = await Promise.all([

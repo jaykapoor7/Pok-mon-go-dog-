@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/app/AppShell";
 import { CommunityPatch } from "@/components/app/CommunityPatch";
-import { getPublishedCaseStories } from "@/lib/community-case-stories";
+import { getPublishedCaseStoriesCached as getPublishedCaseStories } from "@/lib/community-case-stories-cached";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Your patch, StrayPaw" };

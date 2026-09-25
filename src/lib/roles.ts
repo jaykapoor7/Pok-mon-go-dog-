@@ -1,15 +1,15 @@
 /* ════════════════════════════════════════════════════════════════════
    Who is using StrayPaw.
 
-   The product currently has two entry modes: community and organisation.
-   Older feeder / educator / funder experiments remain described below so
-   their route work is not destroyed, but they are intentionally not valid
-   stored roles until those workflows earn their way back into the product.
+   Four spaces: community, feeder, educator and organisation. A feeder's
+   home is their route book (/feeder), an educator's the lessons (/learn).
+   The funder experiment stays described below but is not a valid stored
+   role; funders read the public evidence layer.
    ════════════════════════════════════════════════════════════════════ */
 
 export type Role = "individual" | "feeder" | "educator" | "ngo" | "funder";
 
-export const ROLES: Role[] = ["individual", "ngo"];
+export const ROLES: Role[] = ["individual", "feeder", "educator", "ngo"];
 
 export const ROLE_META: Record<
   Role,
@@ -26,34 +26,34 @@ export const ROLE_META: Record<
   individual: {
     label: "I want to report or follow street animals",
     short: "Community",
-    blurb: "Report an animal, follow what happens to it, and use the shared map without joining an organisation.",
+    blurb: "Report an animal, follow what happens to it, and use the shared map.",
     home: "/app",
     priority: ["/app", "/map", "/report", "/following"],
     apply: null,
     applyLabel: null,
   },
   feeder: {
-    label: "I care for dogs in my area",
+    label: "I feed or care for animals on my street",
     short: "Feeder",
-    blurb: "Experimental role currently folded into Community.",
-    home: "/app",
-    priority: ["/app", "/map", "/report", "/following"],
+    blurb: "Keep your route, its feeding spots and the animals on it together.",
+    home: "/feeder",
+    priority: ["/feeder", "/feeding", "/map", "/following"],
     apply: null,
     applyLabel: null,
   },
   educator: {
-    label: "I teach",
+    label: "I teach people about street animals",
     short: "Educator",
-    blurb: "Experimental role currently folded into Community.",
-    home: "/app",
-    priority: ["/app", "/map", "/report"],
+    blurb: "Lessons and real local records for a class or a community session.",
+    home: "/learn",
+    priority: ["/learn", "/map", "/insights", "/stories"],
     apply: null,
     applyLabel: null,
   },
   ngo: {
     label: "I work at an organisation",
     short: "Organisation",
-    blurb: "Run field work, keep animal records together, and turn operational data into evidence.",
+    blurb: "Run field work and keep your animal records in a verified workspace.",
     home: "/partner",
     priority: ["/partner", "/partner/cases", "/partner/records", "/partner/drives"],
     apply: "/partner-apply",

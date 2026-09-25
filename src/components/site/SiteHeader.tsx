@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { ROLE_META, readStoredRole } from "@/lib/roles";
 import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 import "./header.css";
 
@@ -13,8 +14,8 @@ import "./header.css";
    The site header.
 
    The map and the figures are what StrayPaw is, so they lead the bar;
-   what to do and who it is for follow, and the pages about StrayPaw sit
-   behind one "About". The bar is glass over whatever it sits on — night
+   what to do and who it is for sit behind "Get involved", and the pages
+   about StrayPaw behind "About". One way into the app. The bar is glass over whatever it sits on — night
    over the landing plate, paper over a page — so the plate is never cut
    off by a white slab. On a phone it is one row: the wordmark, the way
    into the app and the menu, which holds everything else.
@@ -35,22 +36,21 @@ const LINKS: NavItem[] = [
     href: "/how-to-help",
     children: [
       { label: "Report an animal", href: "/report", note: "A photo and a place is enough" },
-      { label: "Volunteer with an organisation", href: "/get-involved", note: "Routed to a named group near you" },
-      { label: "What an area needs", href: "/take-action", note: "Pick a place, see what its data says" },
+      { label: "For NGOs", href: "/for-ngos", note: "Run field work on one shared record", tKey: "forNgos" },
+      { label: "Volunteer", href: "/get-involved", note: "With an organisation near you" },
       { label: "For funders", href: "/for-funders", note: "Scope and cost a programme" },
       { label: "For municipal bodies", href: "/for-governments", note: "Ward coverage you can audit", tKey: "forGovernments" },
+      { label: "I have a code", href: "/join", note: "Join the team that invited you" },
     ],
   },
-  { label: "For NGOs", href: "/for-ngos", tKey: "forNgos" },
   {
     label: "About",
     href: "/mission",
     children: [
       { label: "Mission", href: "/mission", note: "Why a shared record, and why now", tKey: "mission" },
-      { label: "Organisations", href: "/orgs", note: "Who is already doing this, by state" },
-      { label: "Partners", href: "/partners", note: "The organisations working on StrayPaw" },
+      { label: "Organisations", href: "/orgs", note: "Who is doing this work, by state" },
+      { label: "Evidence", href: "/evidence", note: "What the research says" },
       { label: "Education", href: "/education", note: "Before an animal becomes a case" },
-      { label: "Evidence", href: "/evidence", note: "What the research says, and how we use it" },
     ],
   },
 ];
@@ -62,7 +62,15 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  /* Someone who has picked a space before goes straight back to it; the
+     picker is for the first visit, and is one "Switch space" away after. */
+  const [appHref, setAppHref] = useState("/app?choose=1");
   const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const role = readStoredRole();
+    if (role) setAppHref(ROLE_META[role].home);
+  }, []);
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -122,16 +130,13 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
               </Link>
             ),
           )}
-          {/* On a phone the bar has no room for it, so it lives in the menu. */}
-          <Link href="/join" className="sp-nav-code" onClick={closeAll}>I have a code</Link>
         </nav>
 
         <div className="sp-header-actions">
-          <Link href="/join" className="sp-header-code">I have a code</Link>
-          <Link href="/app?choose=1" className="sp-header-cta">
+          <LanguageSwitcher />
+          <Link href={appHref} prefetch className="sp-header-cta">
             Open app <ArrowUpRight size={15} />
           </Link>
-          <LanguageSwitcher />
           <button className="sp-menu-btn" onClick={() => setOpen(!open)} aria-label="Toggle navigation" aria-expanded={open}>
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>

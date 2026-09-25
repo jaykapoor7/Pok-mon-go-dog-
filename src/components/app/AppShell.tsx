@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   ArrowUpRight,
   BookOpen,
+  Bookmark,
   Building2,
   Database,
   LayoutGrid,
@@ -25,6 +26,8 @@ import {
   ScanSearch,
   Search,
   ChartColumn,
+  GraduationCap,
+  Utensils,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
@@ -32,6 +35,7 @@ import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
 import { groupFor } from "@/components/partner/PartnerTabs";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
+import { readStoredRole, type Role } from "@/lib/roles";
 import "./app.css";
 
 /* Community is intentionally small: report, see the map, and understand the
@@ -55,17 +59,54 @@ const NGO_NAV = [
   { href: "/partner/team", label: "Team", Icon: Building2 },
 ];
 
-/* The phone bar has four places around Report; Insights is reached from the
-   map ("Explain this area") and the desktop rail. */
-const PHONE_COMMUNITY = COMMUNITY_NAV.filter((x) => x.href !== "/insights");
-const PHONE_NGO = NGO_NAV.slice(0, 4);
+/* A feeder's space is their route; an educator's is the lessons. Both
+   share the public map and record with the community. */
+const FEEDER_NAV = [
+  { href: "/feeder", label: "My patch", Icon: LayoutGrid },
+  { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/feeding", label: "Feeding spots", Icon: Utensils },
+  { href: "/following", label: "Saved", Icon: Bookmark },
+  { href: "/stories", label: "Stories", Icon: BookOpen },
+];
+
+const EDUCATOR_NAV = [
+  { href: "/learn", label: "Lessons", Icon: GraduationCap },
+  { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/insights", label: "Insights", Icon: ChartColumn },
+  { href: "/stories", label: "Stories", Icon: BookOpen },
+  { href: "/orgs", label: "Organisations", Icon: Building2 },
+];
+
+type Space = "community" | "feeder" | "educator" | "ngo";
+const SPACES: Record<Space, { label: string; home: string; nav: typeof COMMUNITY_NAV; phone: typeof COMMUNITY_NAV }> = {
+  /* The phone bar has four places around Report; the fifth rail item is
+     reached from the map and the desktop rail. */
+  community: { label: "Community", home: "/app", nav: COMMUNITY_NAV, phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights") },
+  feeder: { label: "Feeder", home: "/feeder", nav: FEEDER_NAV, phone: FEEDER_NAV.slice(0, 4) },
+  educator: { label: "Educator", home: "/learn", nav: EDUCATOR_NAV, phone: EDUCATOR_NAV.filter((x) => x.href !== "/orgs") },
+  ngo: { label: "NGO operations", home: "/partner", nav: NGO_NAV, phone: NGO_NAV.slice(0, 4) },
+};
+
+/* A space's own routes decide it outright: /partner is the organisation,
+   /app the community, /feeder and /feeding the feeder, /learn the
+   educator. Shared routes (the map, insights, stories) keep the feeder or
+   educator space that was picked, and otherwise read as community, so the
+   organisation's navigation never leaks onto public pages. */
+function spaceFor(path: string, stored: Role | null): Space {
+  if (path.startsWith("/partner")) return "ngo";
+  if (path === "/app") return "community";
+  if (path === "/feeder" || path.startsWith("/feeding")) return "feeder";
+  if (path === "/learn") return "educator";
+  return stored === "feeder" || stored === "educator" ? stored : "community";
+}
 const InShell = createContext(false);
 
 export function AppShell({ children, flush = false }: { children: ReactNode; flush?: boolean }) {
   const nested = useContext(InShell);
   const pathname = usePathname();
   const router = useRouter();
-  const [isNgo, setIsNgo] = useState(pathname.startsWith("/partner"));
+  const [space, setSpace] = useState<Space>(() => spaceFor(pathname, null));
+  const isNgo = space === "ngo";
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [cursor, setCursor] = useState(0);
@@ -78,7 +119,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
      dashboards stopped being separate. The stored role still decides where
      the picker sends you; it does not decide what you see once you arrive. */
   useEffect(() => {
-    setIsNgo(pathname.startsWith("/partner"));
+    setSpace(spaceFor(pathname, readStoredRole()));
   }, [pathname]);
 
   function go(hit: SearchHit) {
@@ -128,8 +169,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   }
 
   const isReporting = pathname.startsWith("/report");
-  const primaryNav = isNgo ? NGO_NAV : COMMUNITY_NAV;
-  const phoneNav = isNgo ? PHONE_NGO : PHONE_COMMUNITY;
+  const { nav: primaryNav, phone: phoneNav, home, label: spaceLabel } = SPACES[space];
   const destinations = new Set(primaryNav.map((n) => n.href));
   const showBack = !destinations.has(pathname) && !pathname.startsWith("/report") && pathname !== "/";
 
@@ -155,7 +195,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
 
   function goBack() {
     if (typeof window !== "undefined" && window.history.length > 1) return router.back();
-    router.push(isNgo ? "/partner" : "/app");
+    router.push(home);
   }
 
   if (nested) return <>{children}</>;
@@ -166,7 +206,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
       <a href="#spa-main" className="skip-link">Skip to content</a>
 
       <div className="spa-top">
-        <Link href="/app" className="spa-brand"><StrayPawMark size={34}/><span>StrayPaw</span></Link>
+        <Link href={home} className="spa-brand"><StrayPawMark size={34}/><span>StrayPaw</span></Link>
         <form className="spa-search" onSubmit={handleSearch} role="search">
           <Search size={13}/>
           <input ref={searchRef} type="search" placeholder="Search StrayPaw ID, place or organisation" aria-label="Search the network" value={query} onChange={(e) => onQueryChange(e.target.value)} onKeyDown={onSearchKey} onBlur={() => window.setTimeout(() => setHits([]), 120)} role="combobox" aria-expanded={hits.length > 0} aria-controls="spa-search-results" enterKeyHint="search" autoComplete="off" autoCorrect="off" spellCheck={false}/>
@@ -177,7 +217,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
 
       <div className="spa-body">
         <nav id="spa-side-nav" className="spa-side" aria-label="Main navigation">
-          <p className="spa-nav-context">{isNgo ? "NGO operations" : "Community"}</p>
+          <p className="spa-nav-context">{spaceLabel}</p>
           <div className="spa-primary-nav">{primaryNav.map(({ href, label, Icon }) => <Link key={label} href={href} prefetch aria-current={isActive(href) ? "page" : undefined} className={isActive(href) ? "active" : ""}><Icon size={17}/>{label}</Link>)}</div>
 
           {isNgo && <div className="spa-quick-list" aria-label="Quick actions">

@@ -62,12 +62,6 @@ html .sp-header .sp-nav-item span, html .sp-header .sp-nav-lead span { font-size
 html .sp-header .sp-nav-lead { border-bottom: 1px solid var(--sp-line); border-radius: 10px 10px 4px 4px; margin-bottom: 4px; }
 
 html .sp-header .sp-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
-html .sp-header .sp-header-code {
-  display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hd-rule);
-  background: none; color: var(--hd-ink); font-size: 13.5px; font-weight: 600; text-decoration: none;
-}
-html .sp-header .sp-header-code:hover { background: var(--hd-hover); }
-html .sp-header .sp-nav > a.sp-nav-code { display: none; }
 html .sp-header .sp-header-cta {
   display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 999px; border: 0;
   background: var(--sp-flame); color: #1a0d08; font-size: 13.5px; font-weight: 700; text-decoration: none;
@@ -102,8 +96,6 @@ html .sp-header .sp-menu-btn {
   html .sp-header .sp-nav-group .sp-nav-trigger { width: 100%; }
   html .sp-header .sp-nav-panel { position: static; min-width: 0; box-shadow: none; border: 0; padding: 0 0 6px 10px; background: none; display: none; opacity: 1; visibility: visible; transform: none; }
   html .sp-header .sp-nav-group.on .sp-nav-panel { display: grid; }
-  html .sp-header .sp-header-code { display: none; }
-  html .sp-header .sp-nav > a.sp-nav-code { display: flex; margin-top: 6px; border-top: 1px solid var(--sp-line); border-radius: 0 0 12px 12px; }
   html .sp-header .sp-header-cta { height: 40px; padding: 0 14px; font-size: 13.5px; }
   html .sp-header .lang { display: none; }
 }

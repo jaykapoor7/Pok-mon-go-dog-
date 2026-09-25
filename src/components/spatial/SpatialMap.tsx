@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
-import { Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal } from "lucide-react";
 import { ScaleLadder, type Rung } from "@/components/system/ScaleLadder";
 import { NIGHT, PAPER, groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
@@ -58,6 +58,9 @@ const MODES: ModeDef[] = [
   { id: "change", label: "Change", q: "Where work began, grew, slowed or stopped this year" },
 ];
 type AnyMode = Mode | "change";
+/* Four modes answer most visits; the rest sit behind "More" so the bar
+   stays one short row. */
+const PRIMARY_MODES: AnyMode[] = ["animals", "cases", "coverage", "density"];
 
 /* Cases mode asks one of the field map's working questions. */
 type CaseLens = "open" | "critical" | "followup" | "noaction" | "repeat" | "resolved";
@@ -121,6 +124,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
   const [sel, setSel] = useState<Sel | null>(null);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   /* The hex grid is an analysis overlay: on by default only where a mode is about cells. */
   const [grid, setGrid] = useState(params.get("grid") === "1");
   const [zoom, setZoom] = useState(4);
@@ -842,17 +846,15 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
       <ul className="sm-key">
         <li><i className="sm-dot is-ink" />One animal on record</li><li><i className="sm-dot is-help" />Injured or needs help</li><li><i className="sm-dot is-res" />Reported by a resident</li>
         {feeding.length > 0 && <li><i className="sm-dot is-feed" />Feeding point</li>}
-        <li className="sm-key-note">Zoom into a street to meet them by name.</li>
       </ul>
     );
-    if (mode === "medical") return <ul className="sm-key"><li><i className="sm-dot is-help" />Injured or needing help, on record</li><li className="sm-key-note">The glow is where they gather.</li></ul>;
-    if (mode === "activity") return <ul className="sm-key"><li><i className="sm-dot is-sky" />One care record in the last twelve months</li><li className="sm-key-note">Brighter is more recent.</li></ul>;
+    if (mode === "medical") return <ul className="sm-key"><li><i className="sm-dot is-help" />Injured or needing help, on record</li></ul>;
+    if (mode === "activity") return <ul className="sm-key"><li><i className="sm-dot is-sky" />Field-team work in the twelve months before this date</li></ul>;
     if (mode === "density") return (
       <div className="sm-ramp is-terrain">
         <span>{LEVELS[0]}</span>
         <i style={{ background: `linear-gradient(90deg, ${lightsOf(pal).band.join(",")})` }} />
         <span>{LEVELS[LEVELS.length - 1]}+ animals / km²</span>
-        <em>Each line is a contour, like height on a survey map.</em>
       </div>
     );
     if (mode === "cases" && lensCounts && !lensCounts.some((x) => x > 0)) return (
@@ -868,9 +870,9 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
           ? <li><i className="sm-dot is-ink" />Resolved on a known day</li>
           : <><li><i className="sm-dot is-help" />Critical</li><li><i className="sm-dot is-ink" />Other</li></>}
         {undatedShown > 0 && <li><i className="sm-dot is-undated" />{lens === "resolved"
-          ? `Resolved, date unknown (${undatedShown.toLocaleString("en-IN")}) — the source never recorded when`
-          : `Closed on an unknown day (${undatedShown.toLocaleString("en-IN")}) — may still have been open then; not counted as open`}</li>}
-        {lens !== "resolved" && <li><i className="sm-rings" />A ring for each month, quarter, half-year and year it has waited</li>}
+          ? `Resolved, date unknown (${undatedShown.toLocaleString("en-IN")})`
+          : `Closed, day unknown (${undatedShown.toLocaleString("en-IN")}) · not counted as open`}</li>}
+        {lens !== "resolved" && <li><i className="sm-rings" />Rings: how long it has waited</li>}
       </ul>
     );
     const ramp = pal.seq;
@@ -904,12 +906,21 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
         {notice && <div className="sm-notice">{notice}</div>}
         <ScaleLadder rungs={rungs} night={ground === "night"} />
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
-          {MODES.map((x) => (
-            <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => setMode(x.id)}>{x.label}</button>
+          {MODES.filter((x) => PRIMARY_MODES.includes(x.id)).map((x) => (
+            <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>{x.label}</button>
           ))}
+          <button type="button" className={`sm-modes-more ${PRIMARY_MODES.includes(mode) ? "" : "is-on"}`} aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
+            {PRIMARY_MODES.includes(mode) ? "More" : def.label}<ChevronDown size={14} aria-hidden />
+          </button>
         </div>
+        {moreOpen && (
+          <div className="sm-modes sm-modes-menu" role="group" aria-label="More map modes">
+            {MODES.filter((x) => !PRIMARY_MODES.includes(x.id)).map((x) => (
+              <button key={x.id} type="button" aria-pressed={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>{x.label}</button>
+            ))}
+          </div>
+        )}
         <div className="sm-q">
-          <p>{mode === "cases" ? LENSES.find((l) => l.id === lens)!.q : def.q}</p>
           {mode === "cases" && (
             <div className="sm-lens" role="group" aria-label="Which cases">
               {LENSES.map((l) => <button key={l.id} type="button" aria-pressed={lens === l.id} className={lens === l.id ? "is-on" : ""} onClick={() => setLens(l.id)}>{l.label}</button>)}
@@ -960,7 +971,7 @@ export function SpatialMap({ scope = "public", userKey = null, notice = null }: 
             const ci = ds.cells.indexOf(n.cell);
             if (ci >= 0) choose({ t: "cell", cell: ci }); else choose({ t: "empty", key: n.cell, city: n.city, center: n.center });
           }}
-          compact={phone && sheet === "peek"} onExpand={() => setSheet("open")}
+          compact={sheet === "peek"} onExpand={() => setSheet("open")}
         />
       )}
 

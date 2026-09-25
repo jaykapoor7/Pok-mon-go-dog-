@@ -109,7 +109,6 @@ test("mobile public navigation exposes the core destinations without overflow", 
   await page.goto("/");
   /* One row on a phone: the wordmark, the way into the app and the menu. */
   await expect(page.locator(".sp-header .sp-header-cta")).toBeVisible();
-  await expect(page.locator(".sp-header .sp-header-code")).toBeHidden();
   await expect(page.locator(".sp-quick")).toHaveCount(0);
   const toggle = page.getByRole("button", { name: "Toggle navigation" });
   await expect(toggle).toBeVisible();
@@ -117,12 +116,12 @@ test("mobile public navigation exposes the core destinations without overflow", 
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   const nav = page.locator(".sp-nav");
   await expect(nav.getByRole("link", { name: "Map", exact: true })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "I have a code" })).toHaveAttribute("href", "/join");
-  await expect(nav.getByRole("link", { name: "For NGOs" })).toHaveAttribute("href", "/for-ngos");
   const involved = nav.getByRole("button", { name: "Get involved" });
   await involved.click();
   await expect(involved).toHaveAttribute("aria-expanded", "true");
   await expect(nav.getByRole("menuitem", { name: /Report an animal/i })).toHaveAttribute("href", "/report");
+  await expect(nav.getByRole("menuitem", { name: /For NGOs/ })).toHaveAttribute("href", "/for-ngos");
+  await expect(nav.getByRole("menuitem", { name: /I have a code/ })).toHaveAttribute("href", "/join");
   const about = nav.getByRole("button", { name: "About" });
   await about.click();
   await expect(about).toHaveAttribute("aria-expanded", "true");

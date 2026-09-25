@@ -20,7 +20,7 @@ import { PLATE, groundStyle, underlay } from "@/components/map/basemap";
 import { EPOCH_MS } from "@/lib/spatial/types";
 import { pointInCell } from "@/components/spatial/data";
 
-const DURATION = 15000;
+const DURATION = 9000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthOf = (day: number) => { const d = new Date(EPOCH_MS + day * 86_400_000); return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 
@@ -53,6 +53,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
     let raf = 0;
     let dead = false;
     let io: IntersectionObserver | null = null;
+    let stopAll = () => {};
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
@@ -99,7 +100,13 @@ export function HeroPlate({ city, box, rings, events }: Props) {
             "circle-opacity": ["interpolate", ["linear"], ["get", "a"], 0, 0.95, 1, 0] as ExpressionSpecification,
           },
         });
-        const reveal = (cursor: number) => ["glow", "halo", "lights"].forEach((id) => { try { m.setFilter(id, shown(cursor)); } catch { /* ok */ } });
+        /* The glow is a heatmap, the costliest layer to refilter, so while the
+           city fills in it follows the points at a slower beat. */
+        let flushes = 0;
+        const reveal = (cursor: number, all = false) => {
+          const ids = all || ++flushes % 3 === 0 ? ["glow", "halo", "lights"] : ["halo", "lights"];
+          ids.forEach((id) => { try { m.setFilter(id, shown(cursor)); } catch { /* ok */ } });
+        };
 
         const counts = new Float32Array(rings.length);
         let idx = 0, start = 0, lastPaint = 0;
@@ -117,14 +124,14 @@ export function HeroPlate({ city, box, rings, events }: Props) {
             idx++;
           }
         };
-        const flush = (cursor: number) => {
+        const flush = (cursor: number, final = false) => {
           const live = recent.filter((r) => cursor - r.d < 40);
           recent.length = 0; recent.push(...live);
           (m.getSource("new") as GeoJSONSource | undefined)?.setData({
             type: "FeatureCollection",
             features: live.map((r) => ({ type: "Feature", properties: { a: (cursor - r.d) / 40 }, geometry: { type: "Point", coordinates: r.p } })),
           });
-          reveal(cursor);
+          reveal(cursor, final);
         };
         const frame = (now: number) => {
           if (!start) start = now;
@@ -132,19 +139,32 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
           const cursor = first + (lastDay - first) * e;
           step(cursor);
-          if (now - lastPaint > 70 || p === 1) { flush(cursor); lastPaint = now; setT({ day: cursor, ...tally }); }
+          if (now - lastPaint > 140 || p === 1) { flush(cursor); lastPaint = now; setT({ day: cursor, ...tally }); }
           if (p < 1) raf = requestAnimationFrame(frame);
-          else { flush(cursor + 100); setPlaying(false); }
+          else finish();
         };
+        /* Drawing the fill-in keeps the main thread busy. The moment someone
+           reaches for anything (a link, a button, a key) the city is shown
+           finished, so their click is not queued behind the animation. */
+        const interrupt = () => { if (idx < n || recent.length) { cancelAnimationFrame(raf); step(lastDay); setT({ day: lastDay, ...tally }); finish(); } };
+        const listen = (on: boolean) => {
+          for (const type of ["pointerdown", "keydown"] as const) {
+            if (on) window.addEventListener(type, interrupt, true);
+            else window.removeEventListener(type, interrupt, true);
+          }
+        };
+        const finish = () => { listen(false); flush(lastDay + 100, true); setPlaying(false); };
+        stopAll = () => { listen(false); cancelAnimationFrame(raf); };
         run.current = () => {
           cancelAnimationFrame(raf);
           idx = 0; start = 0; lastPaint = 0; counts.fill(0); touched.clear(); recent.length = 0;
           Object.assign(tally, { records: 0, cases: 0, care: 0, cells: 0 });
-          reveal(-1);
+          reveal(-1, true);
           if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            step(lastDay); flush(lastDay + 100); setT({ day: lastDay, ...tally }); setPlaying(false); return;
+            step(lastDay); flush(lastDay + 100, true); setT({ day: lastDay, ...tally }); setPlaying(false); return;
           }
           setPlaying(true);
+          listen(true);
           raf = requestAnimationFrame(frame);
         };
         setReady(true);
@@ -157,7 +177,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
         underlay(m, PLATE, "glow").catch(() => {});
       });
     });
-    return () => { dead = true; cancelAnimationFrame(raf); io?.disconnect(); map?.remove(); };
+    return () => { dead = true; stopAll(); cancelAnimationFrame(raf); io?.disconnect(); map?.remove(); };
     // The plate is built once per page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

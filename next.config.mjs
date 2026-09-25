@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  /* Most pages are rendered per request, and with no client cache every
+     Back and every return to a page waited on the server again. Thirty
+     seconds is long enough for back-and-forth between screens and short
+     enough that nothing a person just changed looks stale for long. */
+  experimental: { staleTimes: { dynamic: 30, static: 180 } },
   /* Metadata goes in the <head> of the first response for every visitor,
      as it would for a crawler, instead of streaming in behind the page.
      The streamed form adds a Suspense boundary after every page body, and

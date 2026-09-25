@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, Building2, KeyRound, MapPin, Radio, Users } from "lucide-react";
+import { ArrowRight, BookOpen, Building2, GraduationCap, KeyRound, MapPin, Radio, Users, Utensils } from "lucide-react";
 import { ROLE_META, readStoredRole, storeRole, type Role } from "@/lib/roles";
 import {
   Dialog,
@@ -31,12 +31,14 @@ export function openTour() {
   window.dispatchEvent(new CustomEvent(TOUR_EVENT));
 }
 
-type EntryRole = "individual" | "ngo";
+type EntryRole = "individual" | "feeder" | "educator" | "ngo";
 type Card = { Icon: typeof MapPin; title: string; body: string };
 
-const ENTRY_ROLES: EntryRole[] = ["individual", "ngo"];
+const ENTRY_ROLES: EntryRole[] = ["individual", "feeder", "educator", "ngo"];
 const ROLE_ICON: Record<EntryRole, typeof Users> = {
   individual: Users,
+  feeder: Utensils,
+  educator: GraduationCap,
   ngo: Building2,
 };
 
@@ -51,6 +53,30 @@ const TOURS: Record<EntryRole, Card[]> = {
       Icon: MapPin,
       title: "The record becomes useful on the map",
       body: "The map connects animals, urgency, care status and local patterns so a sighting can become part of a longer history instead of another isolated message.",
+    },
+  ],
+  feeder: [
+    {
+      Icon: Utensils,
+      title: "Your route, on the record",
+      body: "Add the spots you feed at. Each one keeps the animals you see there and when you last went.",
+    },
+    {
+      Icon: Radio,
+      title: "Notice something, add it",
+      body: "An injury, a new dog, a dog gone missing: one sighting reaches the organisations working nearby.",
+    },
+  ],
+  educator: [
+    {
+      Icon: BookOpen,
+      title: "Lessons built on real records",
+      body: "Short, sourced material on living alongside street animals, for a class or a community session.",
+    },
+    {
+      Icon: MapPin,
+      title: "Show your own streets",
+      body: "Open the map and the figures for the place you teach in, so the lesson is about somewhere people know.",
     },
   ],
   ngo: [
@@ -82,7 +108,20 @@ export function Welcome() {
       setRole(null);
       setStep(0);
     }
+    /* The flag asks for the picker once. Left in the address, every Back to
+       this page asked again, and the picker reopened over the page. */
+    if (requestedChoice) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("choose");
+      window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    }
   }, [onReportFlow, pathname]);
+
+  /* Whichever space is picked, its home is already on the way. */
+  useEffect(() => {
+    if (step !== 0) return;
+    for (const r of ENTRY_ROLES) router.prefetch(ROLE_META[r].home);
+  }, [step, router]);
 
   useEffect(() => {
     mountedTours += 1;
@@ -126,9 +165,14 @@ export function Welcome() {
     setStep(-1);
   }
 
+  /* The cards explain a space the first time. Someone switching back to a
+     space they already know goes straight there. */
   function pick(next: EntryRole) {
     setRole(next);
     storeRole(next as Role);
+    let seen = false;
+    try { seen = window.localStorage.getItem(TOUR_KEY) === "1"; } catch {}
+    if (seen) return finish(ROLE_META[next].home);
     setStep(1);
   }
 
@@ -144,7 +188,7 @@ export function Welcome() {
             <DialogHeader className="space-y-0 text-left">
               <span className="spa-mono wc-kicker">Welcome to StrayPaw</span>
               <DialogTitle className="wc-title font-normal">How will you use StrayPaw?</DialogTitle>
-              <DialogDescription className="wc-lede">There are two spaces: the open community record and the verified organisation workspace.</DialogDescription>
+              <DialogDescription className="wc-lede">Pick a space. You can switch at any time.</DialogDescription>
             </DialogHeader>
             <div className="wc-roles">
               {ENTRY_ROLES.map((entry) => {
