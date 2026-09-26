@@ -1,0 +1,98 @@
+/* ════════════════════════════════════════════════════════════════════
+   The company pages (For NGOs, About): the landing's language, not a
+   template. A night hero with something real in it, then ruled sections
+   on the warm ground: numbered rows, a line of steps, plain terms. No
+   cards, one flame per view.
+   ════════════════════════════════════════════════════════════════════ */
+.co { background: var(--sp-bone); color: var(--sp-ink); }
+.co-hero { background: var(--sp-night); color: var(--sp-night-text); padding: calc(var(--sp-8) + 20px) var(--sp-gutter) var(--sp-8); }
+.co-hero-in { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: var(--sp-8); align-items: center; }
+.co-hero.is-solo .co-hero-in { grid-template-columns: minmax(0, 1fr); max-width: 1000px; }
+.co-hero-copy { display: grid; gap: var(--sp-4); align-content: start; }
+.co-kicker { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-night-dim); }
+.co-hero h1 { margin: 0; font-size: clamp(38px, 5.2vw, 72px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
+.co-hero h1 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.015em; color: var(--sp-sky); }
+.co-lede { margin: 0; max-width: 54ch; font-size: clamp(16px, 1.5vw, 18.5px); line-height: 1.55; color: var(--sp-night-dim); }
+.co-acts { margin: var(--sp-2) 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); }
+.co-link { display: inline-flex; align-items: center; gap: 4px; font-size: 14.5px; font-weight: 600; color: var(--sp-sky); text-decoration: none; }
+.co-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.co-hero .ld-desk { box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45); }
+
+.co-figs { margin: var(--sp-3) 0 0; display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-7); }
+.co-figs div { display: flex; flex-direction: column-reverse; gap: 4px; }
+.co-figs dd { margin: 0; font-size: clamp(36px, 4.4vw, 60px); font-weight: 700; line-height: 0.95; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+.co-figs div.is-hot dd { color: var(--sp-flame); }
+.co-figs dt { font-size: 13px; color: var(--sp-night-dim); }
+.co-sec .co-figs dt { color: var(--sp-muted); }
+.co-sec .co-figs dd { color: var(--sp-ink); }
+.co-sec .co-figs div.is-hot dd { color: var(--sp-flame-deep); }
+
+.co-sec { padding: var(--sp-section) var(--sp-gutter); }
+.co-sec.is-shell { background: var(--sp-shell); }
+.co-sec-in { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: var(--sp-8); align-items: start; }
+.co-sec-head { display: grid; gap: var(--sp-3); position: sticky; top: 96px; }
+.co-sec h2 { margin: 0; font-size: clamp(28px, 3.2vw, 42px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 600; text-wrap: balance; }
+.co-sec h2 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; color: var(--sp-blue); }
+.co-sec-head p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--sp-body); max-width: 40ch; }
+
+/* numbered rows: what a thing does, one line each */
+.co-rows { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.co-rows li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--sp-2) var(--sp-4); align-items: baseline; padding: var(--sp-5) 0; border-bottom: 1px solid var(--sp-line); }
+.co-rows .co-n { font-family: var(--font-mono); font-size: 12px; color: var(--sp-muted); }
+.co-rows b { display: block; font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
+.co-rows p { margin: 4px 0 0; font-size: 15px; line-height: 1.55; color: var(--sp-body); max-width: 56ch; }
+.co-rows .co-proof { justify-self: end; text-align: right; font-size: 12.5px; color: var(--sp-muted); white-space: nowrap; }
+.co-rows .co-proof strong { display: block; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
+
+/* steps on one line */
+.co-steps { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-5); }
+.co-steps li { position: relative; display: grid; gap: var(--sp-2); padding-top: var(--sp-6); }
+.co-steps li::before { content: ""; position: absolute; top: 5px; left: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--sp-ink); background: var(--sp-shell); box-sizing: border-box; }
+.co-steps li:last-child::before { background: var(--sp-blue); border-color: var(--sp-blue); }
+.co-steps li:not(:last-child)::after { content: ""; position: absolute; top: 10px; left: 16px; right: calc(-1 * var(--sp-5) + 4px); height: 2px; background: var(--sp-ink); }
+.co-steps b { font-size: 18px; font-weight: 600; letter-spacing: -0.012em; }
+.co-steps p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); }
+
+/* plain terms: short statements in a ruled two-column list */
+.co-terms { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--sp-ink); }
+.co-terms li { padding: var(--sp-5) var(--sp-5) var(--sp-5) 0; border-bottom: 1px solid var(--sp-line); }
+.co-terms li:nth-child(even) { padding-left: var(--sp-5); border-left: 1px solid var(--sp-line); }
+.co-terms b { display: block; font-size: 16.5px; font-weight: 600; margin-bottom: 4px; }
+.co-terms p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); }
+
+/* organisations, compact */
+.co-orgs { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.co-orgs li a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--sp-4); align-items: center; padding: var(--sp-3) 0; border-bottom: 1px solid var(--sp-line); color: var(--sp-ink); text-decoration: none; }
+.co-orgs b { font-size: 15.5px; font-weight: 600; }
+.co-orgs small { display: block; font-size: 12.5px; color: var(--sp-muted); }
+.co-orgs .co-orgs-n { font-family: var(--font-mono); font-size: 12px; color: var(--sp-muted); white-space: nowrap; }
+@media (hover: hover) and (pointer: fine) { .co-orgs li a:hover b { color: var(--sp-blue); } }
+.co-more { margin: var(--sp-4) 0 0; }
+.co-more a { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+
+.co-close { background: var(--sp-night); color: var(--sp-night-text); padding: var(--sp-8) var(--sp-gutter); }
+.co-close-in { max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-5); }
+.co-close h2 { margin: 0; font-size: clamp(28px, 3.4vw, 46px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 600; }
+.co-close h2 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; color: var(--sp-sky); }
+.co-close p { margin: var(--sp-2) 0 0; font-size: 15.5px; color: var(--sp-night-dim); max-width: 52ch; }
+
+@media (max-width: 960px) {
+  .co-hero-in, .co-sec-in { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+  .co-sec-head { position: static; }
+}
+@media (max-width: 640px) {
+  .co-hero { padding-top: calc(var(--sp-7) + 10px); }
+  .co-rows li { grid-template-columns: 32px minmax(0, 1fr); }
+  .co-rows .co-proof { grid-column: 2; justify-self: start; text-align: left; }
+  .co-steps { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+  .co-steps li { padding: 0 0 0 var(--sp-6); }
+  .co-steps li::before { top: 4px; }
+  .co-steps li:not(:last-child)::after { top: 18px; left: 5px; right: auto; bottom: calc(-1 * var(--sp-5)); width: 2px; height: auto; }
+  .co-terms { grid-template-columns: minmax(0, 1fr); }
+  .co-terms li, .co-terms li:nth-child(even) { padding: var(--sp-4) 0; border-left: 0; }
+}
+@media (pointer: coarse) { .co-link, .co-more a { min-height: var(--ctl-h); } }
+/* The site footer takes its ground from the old page scaffold's variables;
+   on these pages it is given the footer's own ground directly. */
+.co .sp-footer { background: var(--sp-deep); color: var(--sp-night-text); }
+.co .sp-footer-bottom { color: var(--sp-night-dim); }
