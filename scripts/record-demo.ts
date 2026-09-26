@@ -68,7 +68,18 @@ async function finish(ctx: BrowserContext, file: string) {
 }
 
 async function dismiss(page: Page) {
-  await click(page, /got it|dismiss|skip for now|close/i);
+  // Recording should never get stuck behind an onboarding/dialog overlay.
+  // Escape first, then force-click the visible dismissal control if it remains.
+  await page.keyboard.press("Escape").catch(() => {});
+  await page.waitForTimeout(180);
+  const el = page
+    .getByRole("link", { name: /got it|dismiss|skip for now|close/i })
+    .or(page.getByRole("button", { name: /got it|dismiss|skip for now|close/i }))
+    .first();
+  if (await el.isVisible().catch(() => false)) {
+    await el.click({ force: true }).catch(() => {});
+    await page.waitForTimeout(220);
+  }
 }
 
 async function desktop(file: string, flow: (page: Page) => Promise<void>) {
