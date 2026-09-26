@@ -126,8 +126,8 @@ async function main() {
 
   await desktop("05_ngo_dashboard", async (page) => {
     await page.goto(`${demoUrl}/partner`, { waitUntil: "networkidle" });
-    await dismiss(page); await pause(page, 2200); await still(page, "11_ngo_dashboard");
-    await click(page, /view all|open case queue|cases/i); await pause(page, 1500); await still(page, "12_ngo_cases");
+    await pause(page, 1200); await dismiss(page); await pause(page, 900); await still(page, "11_ngo_dashboard");
+    await click(page, /view all|open case queue|cases/i); await dismiss(page); await pause(page, 1300); await still(page, "12_ngo_cases");
     await click(page, /^map$/i); await pause(page, 1800); await click(page, /^urgent$/i); await pause(page, 1400);
   });
 
