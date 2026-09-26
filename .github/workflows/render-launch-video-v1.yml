@@ -1,0 +1,44 @@
+name: Render StrayPaw launch video v1
+
+on:
+  push:
+    branches: [launch-video-v1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PUBLIC_BASE_URL: https://www.straypaw.org
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Ensure FFmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+      - name: Capture clean StrayPaw product footage
+        run: npm run demo:record
+      - name: Render launch film
+        run: npx tsx scripts/render-launch-video.ts
+      - name: Upload launch film
+        uses: actions/upload-artifact@v4
+        with:
+          name: straypaw-launch-video-v1
+          path: |
+            launch-video/straypaw-launch-v1.mp4
+            launch-video/frames/*.png
+          if-no-files-found: error
+          retention-days: 14
