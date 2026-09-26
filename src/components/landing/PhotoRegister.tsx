@@ -27,7 +27,7 @@ export type PhotoRow = { id: string; name: string | null; straypaw_id: string | 
 const label = (r: PhotoRow) => (r.name && r.name.trim()) || `A dog near ${cleanPlace(r.zone) || r.city || "the reported spot"}`;
 const HOLD_MS = 4600;
 
-export function PhotoRegister({ rows, total }: { rows: PhotoRow[]; total: number }) {
+export function PhotoRegister({ rows }: { rows: PhotoRow[] }) {
   const placed = useMemo(() => rows.filter((r) => r.pt).slice(0, 16), [rows]);
   const [at, setAt] = useState(0);
   const [live, setLive] = useState(false);
@@ -108,7 +108,7 @@ export function PhotoRegister({ rows, total }: { rows: PhotoRow[]; total: number
     <div className="ld-tour" ref={wrap}>
       <div className="ld-tour-head">
         <h2 className="ld-tour-title">Photographed <em>onto the record.</em></h2>
-        <p className="sys-mono">{total.toLocaleString("en-IN")} animals with a photograph · each where it was recorded</p>
+        <p className="sys-mono">Real photographs · each held at the precision of its recorded place</p>
       </div>
       <div className="ld-tour-stage">
         <div ref={mapEl} className="ld-tour-map" role="img" aria-label="Photographed animals on the city's night streets, each at its cell" />

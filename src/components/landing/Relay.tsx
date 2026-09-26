@@ -30,7 +30,7 @@ type Desk = {
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const waited = (d: number) => (d < 14 ? `${d} day${d === 1 ? "" : "s"}` : d < 60 ? `${Math.round(d / 7)} weeks` : `${Math.round(d / 30)} months`);
-const STEPS = ["Report", "Field Workspace", "Public map"];
+const STEPS = ["Resident", "NGO", "Municipality"];
 const HOLD = [2200, 1700, 2600, 3600]; // how long each moment is held, in ms
 
 export function Relay({ city, desk, report }: { city: string; desk: Desk; report: Report | null }) {
@@ -73,28 +73,32 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
   const sent = step >= 1;
 
   return (
-    <figure ref={el} className={`rl is-s${step}`} aria-label={`One real request from ${city}, ${report.condition} in ${report.locality} on ${day(report.date)}, record ${report.straypawId}: reported, in the Field Workspace queue, on the public map.`}>
+    <figure ref={el} className={`rl is-s${step}`} aria-label={`One real request from ${city}, ${report.condition} in ${report.locality} on ${day(report.date)}, record ${report.straypawId}: reported by a resident, worked by an NGO and visible to the municipality.`}>
       <ol className="rl-steps" aria-hidden="true">
         {STEPS.map((s, i) => <li key={s} className={i === screen ? "is-on" : i < screen ? "is-past" : ""}><i />{s}</li>)}
       </ol>
 
       <div className="rl-stage" aria-hidden="true">
+        <svg className="rl-wire" viewBox="0 0 1200 420" preserveAspectRatio="none">
+          <path d="M150 210 C280 210 292 92 430 92 H760 C902 92 905 258 1050 258" />
+          <path className="is-echo" d="M150 226 C280 226 302 110 438 110 H752 C890 110 918 274 1050 274" />
+        </svg>
         {/* 1 — the resident's phone */}
         <div className={`rl-screen rl-phone ${screen === 0 ? "is-on" : ""}`}>
           <span className="rl-notch" />
-          <p className="rl-app"><StrayPawMark size={16} /> Report an animal</p>
-          <span className="rl-photo"><span>Photo</span></span>
+          <p className="rl-app"><StrayPawMark size={16} /> Resident report</p>
+          <span className="rl-photo"><span>Photo attached</span><i /><i /><i /></span>
           <p className="rl-field"><small>What you see</small><b className={report.critical ? "is-hot" : ""}>{report.condition}</b></p>
           <p className="rl-field"><small>Where</small><b><MapPin size={12} /> {report.locality}</b></p>
           <span className={`rl-send ${sent ? "is-sent" : ""}`}>{sent ? <><Check size={13} /> Sent</> : "Send"}</span>
           <p className={`rl-id ${sent ? "is-in" : ""}`}><small>Record</small><b>{report.straypawId}</b></p>
         </div>
 
-        <span className={`rl-link ${step === 1 ? "is-go" : step > 1 ? "is-done" : ""}`}><i /></span>
+        <span className={`rl-link ${step === 1 ? "is-go" : step > 1 ? "is-done" : ""}`}><b>{report.straypawId}</b><i /></span>
 
         {/* 2 — the field team's queue */}
         <div className={`rl-screen rl-desk ${screen === 1 ? "is-on" : ""}`}>
-          <p className="rl-bar"><StrayPawMark size={16} /> <b>Field Workspace</b><span>{city}</span></p>
+          <p className="rl-bar"><StrayPawMark size={16} /> <b>NGO · Field Workspace</b><span>{city}</span></p>
           <p className="rl-desk-h">What needs attention</p>
           <ul className="rl-queue">
             <li className={`rl-new ${step >= 2 ? "is-in" : ""}`}>
@@ -112,11 +116,11 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           </ul>
         </div>
 
-        <span className={`rl-link ${step === 3 ? "is-go" : ""}`}><i /></span>
+        <span className={`rl-link ${step === 3 ? "is-go" : ""}`}><b>{report.straypawId}</b><i /></span>
 
         {/* 3 — the public map */}
         <div className={`rl-screen rl-map ${screen === 2 ? "is-on" : ""}`}>
-          <p className="rl-bar"><b>Public map</b><span>{city}</span></p>
+          <p className="rl-bar"><b>Municipality · coverage view</b><span>{city}</span></p>
           <HexPlate width={240} height={200} box={desk.box} cells={cells} label={`Open requests by cell in ${city}`}
             marks={mark && step >= 3 ? [{ ...mark, r: 9, ring: true }, { ...mark, r: 3.2 }] : []} />
           <p className="rl-map-cap"><i /><span className="rl-id-inline">{report.straypawId}</span> · {report.locality}</p>
@@ -125,7 +129,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
 
       <figcaption className="rl-cap">
         <span className="sys-mono">A real request · {day(report.date)}</span>
-        <span>The same record, <a href={`/dog/${report.animalId}`}>{report.straypawId}</a>, on the resident&apos;s phone, in the Field Workspace and on the public map.</span>
+        <span>The same record, <a href={`/dog/${report.animalId}`}>{report.straypawId}</a>, reported by a resident, worked by an NGO and available in municipal coverage.</span>
       </figcaption>
     </figure>
   );

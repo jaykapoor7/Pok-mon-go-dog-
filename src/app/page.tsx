@@ -53,7 +53,7 @@ const displaySerif = Newsreader({ subsets: ["latin"], style: ["italic"], axes: [
 const LEVELS = [
   { level: "street", scale: "Resident", who: "Residents and feeders", does: "Report an animal, follow what happens to it, keep the patch you feed.", action: "Report an animal", href: "/report" },
   { level: "field", scale: "NGO", who: "Rescue organisations", does: "Run cases, drives and care from one queue, on records you control.", action: "For NGOs", href: "/for-ngos" },
-  { level: "city", scale: "Municipality", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "Read a municipality", href: "/insights" },
+  { level: "city", scale: "Municipality", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "View municipal coverage", href: "/for-governments" },
 ] as const;
 
 export default async function HomePage() {
@@ -87,7 +87,7 @@ export default async function HomePage() {
             <>
               <header className="sys-head">
                 <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
-                <p>A real request in {story.hero.city}: sent from a phone, worked in the Field Workspace, drawn on the public map. One record the whole way.</p>
+                <p>A real request in {story.hero.city}: reported by a resident, worked by an NGO, visible to a municipality. One record the whole way.</p>
               </header>
               <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
             </>
@@ -123,12 +123,18 @@ export default async function HomePage() {
         )}
 
         <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed onto the record">
-          <PhotoRegister rows={photos.rows} total={photos.total} />
+          <PhotoRegister rows={photos.rows} />
         </section>
 
         <section className="ld-close">
-          <h2>Know a dog? <em>Report it.</em></h2>
-          <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
+          <div className="ld-close-copy">
+            <p className="sys-mono">The record starts on a street</p>
+            <h2>Know a dog? <em>Report it.</em></h2>
+          </div>
+          <div className="ld-close-action">
+            <p><b>A photo. A place. What you can see.</b><span>No account needed. Leave anything uncertain unknown.</span></p>
+            <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
+          </div>
         </section>
       </main>
       <footer className="ld-foot">
