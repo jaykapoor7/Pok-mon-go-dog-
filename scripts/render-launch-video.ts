@@ -97,7 +97,7 @@ const scenes = [
   { path: resolve(frames, "02-record.png"), seconds: 1.70, zoom: 1.012 },
   { path: resolve(footage, "03_map.png"), seconds: 3.10, zoom: 1.05 },
   { path: resolve(frames, "04-place.png"), seconds: 1.55, zoom: 1.012 },
-  { path: resolve(footage, "11_ngo_dashboard.png"), seconds: 3.25, zoom: 1.04 },
+  { path: resolve(footage, "12_ngo_cases.png"), seconds: 3.25, zoom: 1.04 },
   { path: resolve(frames, "06-connected.png"), seconds: 1.55, zoom: 1.012 },
   { path: resolve(footage, "10_community_dashboard.png"), seconds: 3.15, zoom: 1.045 },
   { path: resolve(frames, "08-city.png"), seconds: 1.55, zoom: 1.012 },
