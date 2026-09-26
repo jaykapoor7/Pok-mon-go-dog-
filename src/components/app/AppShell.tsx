@@ -33,6 +33,7 @@ import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
+import { FeatureGround } from "./FeatureGround";
 import { groupFor } from "@/components/partner/PartnerTabs";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import { readStoredRole, type Role } from "@/lib/roles";
@@ -170,11 +171,8 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   }
 
   const isReporting = pathname.startsWith("/report");
-  /* Each space stands on its own ground (grounds.css): the NGO workspace on
-     its field rounds, the community on rings around recorded places,
-     insights on the record's flow lines, educators on the record's strata
-     over time, feeders on the survey sheet. */
-  const ground = pathname.startsWith("/insights") ? "flow" : space === "ngo" ? "routes" : space === "community" ? "ripples" : space === "educator" ? "strata" : "survey";
+  /* Every screen stands on a live ground of its own (FeatureGround): the
+     scene follows the feature, not the role. */
   const { nav: primaryNav, phone: phoneNav, home, label: spaceLabel } = SPACES[space];
   const destinations = new Set(primaryNav.map((n) => n.href));
   const showBack = !destinations.has(pathname) && !pathname.startsWith("/report") && pathname !== "/";
@@ -207,7 +205,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   if (nested) return <>{children}</>;
 
   return <InShell.Provider value={true}>
-    <div className={`spa${isReporting ? " spa-reporting" : ""}`} data-ground={ground}>
+    <div className={`spa${isReporting ? " spa-reporting" : ""}`}>
       <Welcome />
       <a href="#spa-main" className="skip-link">Skip to content</a>
 
@@ -243,6 +241,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
         </nav>
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
+          {!flush && <FeatureGround />}
           {showBack && <div className="spa-back"><button type="button" onClick={goBack}><ArrowLeft size={15}/>Back</button></div>}
           {children}
         </main>

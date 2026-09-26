@@ -49,7 +49,7 @@ const ramp = (pal, t) => pal[Math.min(pal.length - 1, Math.floor(t * pal.length)
 /* Every animal's cell and written place, from the public view. */
 const rows = [];
 for (let from = 0; ; from += 1000) {
-  const r = await fetch(`${URL_}/rest/v1/public_spatial_animals?select=h3_r8,city,zone,first_seen&h3_r8=not.is.null`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${from}-${from + 999}` } });
+  const r = await fetch(`${URL_}/rest/v1/public_spatial_animals?select=h3_r8,city,zone,first_seen,straypaw_id&h3_r8=not.is.null`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${from}-${from + 999}` } });
   const page = await r.json();
   if (!Array.isArray(page)) throw new Error(JSON.stringify(page));
   rows.push(...page);
@@ -58,7 +58,8 @@ for (let from = 0; ; from += 1000) {
 const cities = new Map();
 for (const r of rows) {
   if (!r.city) continue;
-  const c = cities.get(r.city) ?? cities.set(r.city, { name: r.city, points: [], cells: new Map(), zones: new Map(), months: new Map() }).get(r.city);
+  const c = cities.get(r.city) ?? cities.set(r.city, { name: r.city, points: [], cells: new Map(), zones: new Map(), months: new Map(), ids: [] }).get(r.city);
+  if (r.straypaw_id && c.ids.length < 400) c.ids.push(r.straypaw_id);
   const m = String(r.first_seen ?? "").slice(0, 7);
   if (/^20\d\d-\d\d$/.test(m) && m <= new Date().toISOString().slice(0, 7)) c.months.set(m, (c.months.get(m) ?? 0) + 1);
   c.points.push(cellToLatLng(r.h3_r8));
@@ -303,3 +304,21 @@ for (const [file, make] of Object.entries(grounds)) {
   fs.writeFileSync(path.join(out, file), make());
   console.error(`${file}: ${(fs.statSync(path.join(out, file)).size / 1024).toFixed(0)} KB`);
 }
+
+/* The live grounds (components/app/FeatureGround.tsx) draw from this: each
+   city's recorded cells as points in a 16:10 frame with their counts, a
+   sample of public StrayPaw IDs, and each city's month-by-month record.
+   Nothing finer than a cell, no names, no rows. */
+const live = {
+  built: new Date().toISOString().slice(0, 10),
+  cities: [B, A].map((c) => {
+    const fr = frame(c, 1600, 1000, 0.8);
+    const pts = cellsIn(c, fr).slice(0, 420).map(([h, n]) => { const [x, y] = fr.p(...cellToLatLng(h)); return [Math.round((x / fr.W) * 1000) / 1000, Math.round((y / fr.H) * 1000) / 1000, n]; });
+    const zones = [...c.zones].map(([name, v]) => ({ name, n: v.n, lat: v.lat / v.n, lng: v.lng / v.n })).filter((z) => fr.inside(z.lat, z.lng)).sort((a, b) => b.n - a.n).slice(0, 8)
+      .map((z) => { const [x, y] = fr.p(z.lat, z.lng); return { name: z.name, x: Math.round((x / fr.W) * 1000) / 1000, y: Math.round((y / fr.H) * 1000) / 1000 }; });
+    return { name: c.name, pts, zones, ids: c.ids.filter((_, i) => i % 5 === 0).slice(0, 60) };
+  }),
+  series: ranked.filter((c) => c.months.size > 3).slice(0, 6).map((c) => ({ name: c.name, months: [...c.months].sort((a, b) => a[0].localeCompare(b[0])) })),
+};
+fs.writeFileSync(path.join(out, "points.json"), JSON.stringify(live));
+console.error(`points.json: ${(fs.statSync(path.join(out, "points.json")).size / 1024).toFixed(0)} KB`);

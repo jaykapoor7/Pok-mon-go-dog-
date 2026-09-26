@@ -17,9 +17,9 @@
              night lights behind the close
    pages     survey and cells; the NGO page on the workspace's field, the
              Municipalities page on coverage; night heroes on the lights
-   app       no hexagons: residents on rings round recorded places, NGO teams
-             on field rounds, insights on flow lines, educators on strata
-             over time, feeders on the survey sheet
+   app       a live canvas per feature, drawn from the record: reports
+             rippling to teams, field rounds, wind over the record, the
+             register scrolling, a feeder's round, and more
    ════════════════════════════════════════════════════════════════════ */
 :root {
   --gd-cells: url("/grounds/cells.svg");
@@ -91,30 +91,41 @@ html .mk-band.mk-paper { --gd: var(--gd-survey); }
 html .mk-band.mk-bone { --gd: var(--gd-cells); --gd-at: 30% 50%; }
 html .mk-band.mk-ink, html .mk .mk-hero { --gd: var(--gd-night); --gd-at: 40% 50%; }
 
-/* ── The app, by space ───────────────────────────────────────────────
-   The ground is laid inside the screen's own area, never under the side
-   rail or the top bar. Maps (.flush) draw their own. */
+/* ── The app ─────────────────────────────────────────────────────────
+   A live canvas per feature (components/app/FeatureGround.tsx), laid
+   inside the screen's own area, never under the side rail or the top bar.
+   Every screen opens with its title on the left and air on the right: the
+   scene blooms from that top-right corner and is gone before the content
+   begins. Maps (.flush) draw their own. */
 html:root body .spa.spa .spa-main:not(.flush) { position: relative; isolation: isolate; }
-html:root body .spa.spa .spa-main:not(.flush)::before {
-  content: "";
+html:root body .spa.spa .spa-main:not(.flush)::before { display: none; }
+.fg { position: absolute; top: 0; left: 0; right: 0; height: min(360px, 44vh); z-index: -1; pointer-events: none; }
+.fg-canvas {
   display: block;
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: var(--gd-ripples);
-  background-size: cover;
-  background-position: 70% 30%;
-  background-repeat: no-repeat;
-  -webkit-mask-image: var(--gd-mask-corner);
-  mask-image: var(--gd-mask-corner);
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  animation: fg-in 1.4s ease-out 0.2s forwards;
+  -webkit-mask-image: radial-gradient(ellipse 62% 100% at 100% 0%, #000 0%, #000 40%, transparent 86%);
+  mask-image: radial-gradient(ellipse 62% 100% at 100% 0%, #000 0%, #000 40%, transparent 86%);
 }
-html:root body .spa.spa[data-ground="routes"] .spa-main:not(.flush)::before { background-image: var(--gd-routes); }
-html:root body .spa.spa[data-ground="flow"] .spa-main:not(.flush)::before { background-image: var(--gd-flow); }
-html:root body .spa.spa[data-ground="strata"] .spa-main:not(.flush)::before { background-image: var(--gd-strata); background-position: 50% 50%; }
-html:root body .spa.spa[data-ground="survey"] .spa-main:not(.flush)::before { background-image: var(--gd-survey); }
+@keyframes fg-in { to { opacity: 1; } }
+/* Callouts that were tinted glass over a plain page stand solid on the
+   ground, so nothing moves behind their words. */
+html:root body .spa-main .partner-gate { background-color: #ebe9e8; }
+@media (max-width: 760px) {
+  .fg { height: 170px; }
+  .fg-canvas {
+    animation-name: fg-in-soft;
+    -webkit-mask-image: radial-gradient(ellipse 46% 76% at 100% 0%, #000 0%, #000 16%, transparent 70%);
+    mask-image: radial-gradient(ellipse 46% 76% at 100% 0%, #000 0%, #000 16%, transparent 70%);
+  }
+}
+@keyframes fg-in-soft { to { opacity: 0.6; } }
+@media (prefers-reduced-motion: reduce) { .fg-canvas { animation: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) and (max-width: 760px) { .fg-canvas { opacity: 0.6; } }
 
 @media print {
-  html .spa.spa .spa-main::before, html .co .co-sec::before, html .ld .ld-sec-bone::before,
+  html .spa.spa .spa-main::before, html .fg, html .co .co-sec::before, html .ld .ld-sec-bone::before,
   html .ld .ld-sec-shell::before, html .sx.spa.spa .sx-main::before, html .mk-band::before { display: none; }
 }
