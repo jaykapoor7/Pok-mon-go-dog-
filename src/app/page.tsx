@@ -9,7 +9,7 @@ import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
-import { DeskMock } from "@/components/landing/DeskMock";
+import { Relay } from "@/components/landing/Relay";
 import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
@@ -114,7 +114,7 @@ export default async function HomePage() {
                 ))}
               </ul>
             </div>
-            {story?.desk && story.desk.live + story.desk.older > 0 && <DeskMock city={story.hero.city} desk={story.desk} />}
+            {story?.desk && story.desk.live + story.desk.older > 0 && <Relay city={story.hero.city} desk={story.desk} />}
           </div>
         </section>
 
