@@ -1368,9 +1368,9 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
    column whole put the map 1,144px down the page — below the queue and the
    whole tasks block. Named areas let the desktop keep queue-over-tasks
    beside the map while the phone reads queue, map, tasks. */
-.pr-work { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.12fr); grid-template-rows:auto 1fr; grid-template-areas:"queue geo" "tasks geo"; border-bottom:1px solid var(--sp-rule); }
+.pr-work { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.12fr); grid-template-areas:"queue geo" "tasks tasks"; border-bottom:1px solid var(--sp-rule); }
 .pr-queue { grid-area:queue; display:flex; min-width:0; flex-direction:column; padding:20px 24px 0 0; border-right:1px solid var(--sp-rule); }
-.pr-tasks { grid-area:tasks; min-width:0; padding:0 24px 24px 0; border-right:1px solid var(--sp-rule); }
+.pr-tasks { grid-area:tasks; min-width:0; padding:0 0 24px; border-top:1px solid var(--sp-rule); }
 .pr-geo { grid-area:geo; display:flex; min-width:0; flex-direction:column; padding:20px 0 24px 24px; }
 
 .pr-map { position:relative; min-width:0; height:clamp(320px,42vh,430px); overflow:hidden; margin-top:12px; background:#e5eaf0; }
@@ -1396,7 +1396,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 @media (max-width:1000px) {
   .pr-work { grid-template-columns:1fr; grid-template-rows:none; grid-template-areas:"queue" "geo" "tasks"; }
   .pr-queue { padding:18px 0 22px; border-right:0; }
-  .pr-tasks { padding:0 0 22px; border-right:0; border-top:1px solid var(--sp-rule); }
+  .pr-tasks { padding:0 0 22px; }
   .pr-geo { padding:0 0 22px; border-top:1px solid var(--sp-rule); }
 }
 @media (max-width:640px) {

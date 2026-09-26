@@ -87,7 +87,11 @@ export default async function StoriesPage() {
   const median = lengths.length ? lengths[Math.floor(lengths.length / 2)] : null;
   const cities = new Map<string, number>();
   for (const s of base) { const c = places.get(s.id)?.city; if (c) cities.set(c, (cities.get(c) ?? 0) + 1); }
-  const city = [...cities.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  /* Name a city only when every published story belongs to that one city.
+     Previously the most common city was printed as if it described the
+     whole atlas, which made every rescue appear to be in Coimbatore. */
+  const city = cities.size === 1 ? [...cities.keys()][0] : null;
+  const cityCount = cities.size;
 
   return (
     <AppShell>
@@ -96,7 +100,7 @@ export default async function StoriesPage() {
           <h1>Rescues, <em>followed to the&nbsp;end.</em></h1>
           {stories.length > 0 && (
             <p className="st-lede">
-              <b>{stories.length}</b> recent rescues{city ? <> in {city}</> : null}, each with an issue, care and an outcome on the record
+              <b>{stories.length}</b> recent rescues{city ? <> in {city}</> : cityCount > 1 ? <> across <b>{cityCount}</b> cities</> : null}, each with an issue, care and an outcome on the record
               {median != null ? <>. Half were over within <b>{span(median)}</b></> : null}.
             </p>
           )}

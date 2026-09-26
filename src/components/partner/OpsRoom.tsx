@@ -29,11 +29,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Plus, Search, X } from "lucide-react";
+import { cellToBoundary, cellToLatLng, isValidCell } from "h3-js";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { TasksSection } from "@/components/partner/TasksSection";
-import { HexPlate, type PlateCell } from "@/components/system/HexPlate";
-import { HatchDef } from "@/components/system/Hatch";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { getMyOrg } from "@/lib/actions";
@@ -74,11 +73,6 @@ export function OpsRoom() {
   const [cell, setCell] = useState<string | null>(null);
   const [hot, setHot] = useState<string | null>(null);
   const [queueRows, setQueueRows] = useState(8);
-  const [cityPick, setCityPick] = useState<number | null>(null);
-  /* Streets or cells: the same open work, drawn two ways. The choice is remembered. */
-  const [geoView, setGeoView] = useState<"map" | "cells">("map");
-  useEffect(() => { try { const v = localStorage.getItem("sp.ops.geo"); if (v === "map" || v === "cells") setGeoView(v); } catch { /* storage blocked */ } }, []);
-  const pickView = (v: "map" | "cells") => { setGeoView(v); try { localStorage.setItem("sp.ops.geo", v); } catch { /* storage blocked */ } };
 
   useEffect(() => { setToday(new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })); }, []);
   useEffect(() => {
@@ -139,40 +133,31 @@ export function OpsRoom() {
   }, [s]);
   const shown = cell ? queue.filter((q) => q.cell === cell) : queue;
 
-  /* ── the plate: where the open work is ─────────────────────────────── */
-  /* An organisation can work in more than one city: the plate opens on the
-     city holding most of its open work, and every city with work can be
-     chosen. */
-  const cityWork = useMemo(() => {
-    if (!ds || !isMember) return [] as { city: number; n: number }[];
-    const cellIdx = new Map(ds.cells.map((k, i) => [k, i]));
-    const n = new Array(ds.cities.length).fill(0);
-    for (const c of [...s.liveWork, ...s.stale]) { const i = c.h3_r8 ? cellIdx.get(c.h3_r8) : undefined; if (i !== undefined) n[ds.cellCity[i]]++; }
-    return n.map((v, city) => ({ city, n: v })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n);
-  }, [ds, isMember, s]);
-  const plate = useMemo(() => {
-    if (!ds || !isMember || !ds.cities.length) return null;
-    const city = cityPick ?? cityWork[0]?.city ?? 0;
+  /* The dashboard map comes from the same open-case rows as the queue.
+     It no longer waits for the separate analytics dataset, which could
+     legitimately lag the queue and leave this panel blank. */
+  const workMap = useMemo(() => {
+    if (!isMember) return null;
     const liveBy = new Map<string, number>(), staleBy = new Map<string, number>();
-    for (const c of s.liveWork) if (c.h3_r8) liveBy.set(c.h3_r8, (liveBy.get(c.h3_r8) ?? 0) + 1);
-    for (const c of s.stale) if (c.h3_r8) staleBy.set(c.h3_r8, (staleBy.get(c.h3_r8) ?? 0) + 1);
-    const max = Math.max(1, ...liveBy.values());
-    const ramp = ["var(--sp-att-1)", "var(--sp-att-2)", "var(--sp-att-3)", "var(--sp-att-4)"];
-    const cells: PlateCell[] = [], spots: OpenSpot[] = [];
-    for (let i = 0; i < ds.cells.length; i++) {
-      if (ds.cellCity[i] !== city) continue;
-      const key = ds.cells[i], v = liveBy.get(key) ?? 0, st = staleBy.get(key) ?? 0;
-      if (v || st) spots.push({ key, lng: ds.centers[i * 2], lat: ds.centers[i * 2 + 1], live: v, stale: st });
-      cells.push({
-        key, ring: ds.rings[i],
-        fill: v ? ramp[Math.min(3, Math.floor(Math.sqrt(v / max) * 4))] : "var(--sp-seq-0)",
-        hatch: !v && st > 0,
-        selected: key === cell || key === hot,
-        title: `${ds.cellLocality[i] >= 0 ? ds.localities[ds.cellLocality[i]] : "Cell"}: ${v} live${st ? `, ${st} stale` : ""}`,
-      });
-    }
-    return { cells, spots, box: ds.cities[city].box, name: ds.cities[city].name, city };
-  }, [ds, isMember, s, cell, hot, cityPick, cityWork]);
+    for (const c of s.liveWork) if (c.h3_r8 && isValidCell(c.h3_r8)) liveBy.set(c.h3_r8, (liveBy.get(c.h3_r8) ?? 0) + 1);
+    for (const c of s.stale) if (c.h3_r8 && isValidCell(c.h3_r8)) staleBy.set(c.h3_r8, (staleBy.get(c.h3_r8) ?? 0) + 1);
+    const keys = [...new Set([...liveBy.keys(), ...staleBy.keys()])];
+    if (!keys.length) return null;
+    const spots: OpenSpot[] = keys.map((key) => {
+      const [lat, lng] = cellToLatLng(key);
+      return { key, lat, lng, live: liveBy.get(key) ?? 0, stale: staleBy.get(key) ?? 0 };
+    });
+    const boundary = keys.flatMap((key) => cellToBoundary(key));
+    const lats = boundary.map(([lat]) => lat), lngs = boundary.map(([, lng]) => lng);
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+    const pad = Math.max(0.012, Math.max(maxLat - minLat, maxLng - minLng) * 0.08);
+    const cities = [...new Set(s.all.map((c) => c.city).filter((name): name is string => Boolean(name)))];
+    return {
+      spots,
+      box: [minLng - pad, minLat - pad, maxLng + pad, maxLat + pad] as [number, number, number, number],
+      name: cities.length === 1 ? cities[0] : "all open work",
+    };
+  }, [isMember, s]);
 
   const loading = open === null || !ready || !accessReady;
   if (loading) return <main className="pr ops"><p className="ops-state">Reading the organisation&rsquo;s record…</p></main>;
@@ -248,38 +233,15 @@ export function OpsRoom() {
 
         <div className="pr-geo ops-geo">
           <p className="ops-eyebrow">
-            <span>Where it is{plate && cityWork.length <= 1 ? ` · ${plate.name}` : ""}</span>
-            {plate && ds && cityWork.length > 1 && (
-              <label className="ops-city"><span className="sys-sr">City</span>
-                <select value={plate.city} onChange={(e) => { setCityPick(Number(e.target.value)); setCell(null); }}>
-                  {cityWork.map((c) => <option key={c.city} value={c.city}>{ds.cities[c.city].name} · {num(c.n)} open</option>)}
-                </select>
-              </label>
-            )}
-            {plate && (
-              <span className="ops-view" role="group" aria-label="Draw the open work as">
-                <button type="button" aria-pressed={geoView === "map"} onClick={() => pickView("map")}>Map</button>
-                <button type="button" aria-pressed={geoView === "cells"} onClick={() => pickView("cells")}>Cells</button>
-              </span>
-            )}
+            <span>Where it is{workMap ? ` · ${workMap.name}` : ""}</span>
+            <Link href="/partner/map?mode=cases">Open field map <ArrowUpRight size={12} /></Link>
           </p>
           <div className="pr-map ops-map">
-            {plate ? (
+            {workMap ? (
               <>
-                {geoView === "map" ? (
-                  <>
-                    <OpsStreetMap spots={plate.spots} box={plate.box} selected={cell ?? hot}
-                      label={`Open work on the streets of ${plate.name}`} onSpot={(k) => setCell((x) => (x === k ? null : k))} />
-                    <p className="ops-map-key"><i className="is-dot" /> open cases, summed where cells are close <i className="is-ring" /> only stale <span>· tap to zoom in or narrow the queue · <a href="/partner/map?mode=cases">field map</a></span></p>
-                  </>
-                ) : (
-                  <>
-                    <svg width="0" height="0" aria-hidden className="ops-defs"><defs><HatchDef id="ops-stale" /></defs></svg>
-                    <HexPlate width={440} height={360} box={plate.box} cells={plate.cells} hatchId="ops-stale" scaleBarKm={2}
-                      label={`Open work by cell in ${plate.name}`} onCell={(k) => setCell((x) => (x === k ? null : k))} />
-                    <p className="ops-map-key"><i className="is-live" /> live open work <i className="is-stale" /> only stale cases <span>· choose a cell to narrow the queue · <a href="/partner/map?mode=cases">field map</a></span></p>
-                  </>
-                )}
+                <OpsStreetMap spots={workMap.spots} box={workMap.box} selected={cell ?? hot}
+                  label={`Open work on the streets of ${workMap.name}`} onSpot={(k) => setCell((x) => (x === k ? null : k))} />
+                <p className="ops-map-key"><i className="is-dot" /> live cases <i className="is-ring" /> only older cases <span>· tap a point to narrow the queue</span></p>
               </>
             ) : <p className="ops-map-empty">{signedOut ? "Sign in with your organisation's code to see where your open work is." : "Open work appears here by cell once a case carries a location."}</p>}
           </div>

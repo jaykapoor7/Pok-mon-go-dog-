@@ -15,7 +15,7 @@ import { getSupabase } from "./supabase";
 export type OpenCase = {
   id: string; case_code: string | null; title: string | null; condition_class: string | null; status_class: string | null;
   occurred_at: string | null; last_activity_at: string | null; severity: string | null; assignee_name: string | null;
-  animal_name: string | null; dog_id: string | null; zone: string | null; h3_r8: string | null;
+  animal_name: string | null; dog_id: string | null; zone: string | null; city: string | null; h3_r8: string | null;
   next_due: string | null; followups_missed: number | null;
 };
 export type DueFollowup = { id: string; case_id: string | null; dog_id: string | null; due_at: string; status: string | null; kind: string | null };
@@ -25,7 +25,7 @@ export async function openCases(): Promise<OpenCase[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.from("org_case_facts")
-    .select("id,case_code,title,condition_class,status_class,occurred_at,last_activity_at,severity,assignee_name,animal_name,dog_id,zone,h3_r8,next_due,followups_missed")
+    .select("id,case_code,title,condition_class,status_class,occurred_at,last_activity_at,severity,assignee_name,animal_name,dog_id,zone,city,h3_r8,next_due,followups_missed")
     .in("status_class", ["open", "in_progress"]).order("occurred_at", { ascending: false }).limit(800);
   if (error) throw new Error(error.message);
   return (data ?? []) as OpenCase[];

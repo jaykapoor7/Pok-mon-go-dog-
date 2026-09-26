@@ -34,7 +34,6 @@
 .ops-setup-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .ops-eyebrow { margin: 0 0 10px; display: flex; justify-content: space-between; gap: 12px; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-muted); }
-.ops-city select { font: 500 12px var(--font-sans), system-ui, sans-serif; letter-spacing: 0; text-transform: none; color: var(--sp-ink); background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: 999px; padding: 4px 10px; max-width: 220px; }
 .ops-eyebrow a { font-family: var(--font-sans), system-ui, sans-serif; letter-spacing: 0; text-transform: none; font-size: 12.5px; font-weight: 600; color: var(--sp-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 3px; }
 .ops-empty { margin: 0; padding: 14px 0; font-size: 13.5px; color: var(--sp-muted); line-height: 1.5; }
 .ops-chip { justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; margin-bottom: 8px; border-radius: 999px; border: 1px solid var(--sp-ink); background: var(--sp-paper); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
@@ -103,10 +102,6 @@
   .ops-list a { grid-template-columns: 12px minmax(0, 1fr) 96px; }
 }
 
-/* where it is: streets or cells */
-.ops-view { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--sp-line); border-radius: var(--ctl-r); background: var(--sp-paper); }
-.ops-view button { height: 26px; padding: 0 12px; border: 0; border-radius: var(--ctl-r); background: transparent; font: 600 12px var(--font-sans), system-ui, sans-serif; letter-spacing: 0; text-transform: none; color: var(--sp-muted); cursor: pointer; transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io); }
-.ops-view button[aria-pressed="true"] { background: var(--sp-ink); color: var(--sp-paper); }
 .ops-street { width: 100%; height: 360px; border-radius: var(--sp-radius); overflow: hidden; border: 1px solid var(--sp-line); }
 .ops-map-key i.is-dot { clip-path: none; border-radius: 50%; background: var(--sp-flame-deep); }
 .ops-map-key i.is-ring { clip-path: none; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--sp-ink); opacity: 0.6; }
