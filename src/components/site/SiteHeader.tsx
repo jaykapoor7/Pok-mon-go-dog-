@@ -13,12 +13,14 @@ import "./header.css";
 /* ════════════════════════════════════════════════════════════════════
    The site header.
 
-   Five places, no menus, the way a company's site is laid out: who it is
-   for, who it works with, who it is, how to reach it. The product itself
-   (map, figures, stories) is inside the app and in the footer's index. Beside them, quietly, the way in for someone holding
-   an invitation, and one way into the app. The bar is glass over whatever
-   it sits on — night over the landing plate, paper over a page. On a phone
-   it is one row: the wordmark, the code, the app and the menu.
+   Five places, no menus: what the record holds and where (Explore), who
+   keeps it (About), what it teaches (Education), and the two teams that
+   work from it (NGOs, Cities). Report and the map are not here; both are
+   the first two things on the landing. Beside them, quietly, the language,
+   the way in for someone holding an invitation, and the one strong action:
+   into the app. The bar is glass over whatever it sits on — night over the
+   landing plate, paper over a page. On a phone it is one row: the
+   wordmark, the code, the app and the menu.
 
    tKey names an entry in the nav dictionary. An item without one keeps its
    English label while translation is partial.
@@ -28,11 +30,11 @@ type NavKey = keyof Dictionary["nav"];
 type NavItem = { label: string; href: string; tKey?: NavKey };
 
 const LINKS: NavItem[] = [
-  { label: "For NGOs", href: "/for-ngos", tKey: "forNgos" },
-  { label: "For cities", href: "/for-governments" },
-  { label: "Partner NGOs", href: "/orgs" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: "Explore", href: "/explore" },
+  { label: "About", href: "/about", tKey: "about" },
+  { label: "Education", href: "/education" },
+  { label: "NGOs", href: "/for-ngos" },
+  { label: "Cities", href: "/for-governments" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {

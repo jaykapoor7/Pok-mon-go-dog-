@@ -1,0 +1,74 @@
+/* ════════════════════════════════════════════════════════════════════
+   For cities. A real city's coverage as the hero: recorded cells in ink
+   weight on the night ground (brighter is better mapped), the unmapped
+   edge dashed. Then the coverage ledger with the same swatches, the
+   roll-up as four plates at growing scale, and ruled figures.
+   ════════════════════════════════════════════════════════════════════ */
+.gv-hero { background: var(--sp-night); color: var(--sp-night-text); padding: calc(var(--sp-8) + 20px) var(--sp-gutter) var(--sp-8); overflow: hidden; }
+.gv-hero-in { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: var(--sp-8); align-items: center; }
+.gv-hero-copy { display: grid; gap: var(--sp-4); align-content: start; }
+.gv-hero h1 { margin: 0; font-size: clamp(40px, 5.4vw, 76px); line-height: 1.0; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
+.gv-hero h1 em { display: block; font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.015em; color: var(--sp-sky); }
+.gv-plate { margin: 0; display: grid; gap: var(--sp-3); }
+.gv-plate .sys-plate { width: 100%; height: auto; display: block; }
+.gv-plate figcaption { display: grid; gap: 3px; font-size: 13px; color: var(--sp-night-dim); }
+.gv-plate figcaption .sys-mono { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* The coverage ledger, with the plate's own swatches. */
+.gv-cov { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.gv-cov li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: var(--sp-4); align-items: center; padding: var(--sp-4) 0; border-bottom: 1px solid var(--sp-line); }
+.gv-sw { width: 20px; height: 20px; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: var(--sp-ink); }
+.gv-sw.is-strong { opacity: 0.95; } .gv-sw.is-partial { opacity: 0.62; } .gv-sw.is-weak { opacity: 0.36; } .gv-sw.is-insufficient { opacity: 0.18; }
+.gv-sw.is-unmapped { background: none; clip-path: none; border: 1.5px dashed var(--sp-muted); border-radius: 4px; box-sizing: border-box; }
+.gv-cov span { display: grid; gap: 2px; min-width: 0; }
+.gv-cov b { font-size: 16.5px; font-weight: 600; }
+.gv-cov span small { font-size: 13.5px; color: var(--sp-body); }
+.gv-cov strong { text-align: right; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gv-cov strong small { display: block; font-size: 11.5px; font-weight: 400; color: var(--sp-muted); }
+
+/* The roll-up: four rungs, each drawn at its own scale. */
+.gv-roll-in { max-width: 1240px; margin: 0 auto; display: grid; gap: var(--sp-7); }
+.gv-roll-head { position: static; max-width: 760px; }
+.gv-roll { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--sp-ink); }
+.gv-roll > li { position: relative; display: grid; grid-template-rows: 120px auto auto 1fr; gap: var(--sp-2); padding: var(--sp-6) var(--sp-5); }
+.gv-roll > li:first-child { padding-left: 0; }
+.gv-roll > li + li { border-left: 1px solid var(--sp-line); }
+.gv-roll > li + li::before { content: "→"; position: absolute; top: calc(var(--sp-6) + 50px); left: -9px; width: 18px; text-align: center; background: var(--sp-shell); color: var(--sp-muted); font-size: 14px; }
+.gv-roll .sys-plate { width: 120px; height: 120px; }
+.gv-roll small { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.gv-roll b { font-size: 18px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.25; }
+.gv-roll p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--sp-body); }
+.gv-ward { width: 120px; height: 120px; display: grid; place-items: center; }
+.gv-ward i { width: 96px; height: 84px; border: 1.5px dashed var(--sp-ink); border-radius: 28% 42% 34% 46% / 40% 30% 44% 36%; background: var(--sp-hatch); opacity: 0.55; }
+
+.gv-q-go { justify-self: end; font-size: 13.5px; font-weight: 600; color: var(--sp-blue); text-decoration: none; white-space: nowrap; }
+.gv-q-go:hover { text-decoration: underline; text-underline-offset: 3px; }
+.gv-figs { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--sp-ink); }
+.gv-figs div { display: flex; flex-direction: column-reverse; gap: 4px; padding: var(--sp-5) var(--sp-5) var(--sp-5) 0; border-bottom: 1px solid var(--sp-line); }
+.gv-figs div:nth-child(even) { padding-left: var(--sp-5); border-left: 1px solid var(--sp-line); }
+.gv-figs dd { margin: 0; font-family: var(--font-serif-stack); font-size: clamp(34px, 3.6vw, 48px); line-height: 1; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
+.gv-figs dt { font-size: 13.5px; color: var(--sp-body); }
+.gv-already { margin: var(--sp-6) 0 0; grid-column: 2; font-size: 14px; line-height: 1.55; color: var(--sp-body); }
+
+@media (max-width: 960px) {
+  .gv-hero-in { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+  .gv-roll { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gv-roll > li:nth-child(3) { border-left: 0; padding-left: 0; }
+  .gv-roll > li:nth-child(3)::before { display: none; }
+  .gv-roll > li:nth-child(n + 3) { border-top: 1px solid var(--sp-line); }
+  .gv-already { grid-column: 1; }
+}
+@media (max-width: 640px) {
+  .gv-hero { padding-top: calc(var(--sp-7) + 10px); }
+  .gv-roll { grid-template-columns: minmax(0, 1fr); }
+  .gv-roll > li, .gv-roll > li:nth-child(3) { padding: var(--sp-5) 0; border-left: 0; grid-template-columns: 96px minmax(0, 1fr); grid-template-rows: none; column-gap: var(--sp-4); }
+  .gv-roll > li > :first-child { grid-row: 1 / span 3; }
+  .gv-roll > li + li { border-top: 1px solid var(--sp-line); }
+  .gv-roll > li + li::before { display: none; }
+  .gv-roll .sys-plate, .gv-ward { width: 96px; height: 96px; }
+  .gv-ward i { width: 76px; height: 66px; }
+  .gv-figs { grid-template-columns: minmax(0, 1fr); }
+  .gv-figs div, .gv-figs div:nth-child(even) { padding: var(--sp-4) 0; border-left: 0; }
+  .co-rows .gv-q-go { grid-column: 2; justify-self: start; }
+}
+@media (pointer: coarse) { .gv-q-go { min-height: var(--ctl-h); display: inline-flex; align-items: center; } }

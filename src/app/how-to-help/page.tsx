@@ -35,7 +35,7 @@ const WAYS = [
     tag: "IF YOU RUN AN ORGANISATION",
     title: "Bring your records onto the map",
     body: "Cases, animal registry, medical logs and reporting, free for verified organisations, and your data stays yours. Paper registers and WhatsApp threads can be imported as they are.",
-    cta: "See the workspace",
+    cta: "See the Field Workspace",
     href: "/for-ngos",
   },
   {

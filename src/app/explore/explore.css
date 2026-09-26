@@ -1,0 +1,63 @@
+/* ════════════════════════════════════════════════════════════════════
+   Explore. India at night behind the question, the landing hero's
+   composition: the map full-bleed, the words over its left edge on the
+   night ground. Then the cities as a ruled ledger with a sequential-blue
+   bar (recorded, never population), and the four ways in as columns
+   between rules, not cards.
+   ════════════════════════════════════════════════════════════════════ */
+.ex-hero { position: relative; background: var(--sp-night); color: var(--sp-night-text); min-height: min(86svh, 820px); display: grid; align-items: center; overflow: hidden; }
+.ex-map { position: absolute; inset: 0 0 0 28%; }
+.ex-map > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ex-hero::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 62vw); pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 60%, rgba(7, 20, 43, 0) 100%); }
+.ex-hero-copy { position: relative; z-index: 1; display: grid; gap: var(--sp-4); max-width: 620px; padding: var(--sp-8) var(--sp-gutter); }
+.ex-hero h1 { margin: 0; font-size: clamp(40px, 5.6vw, 80px); line-height: 1.0; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
+.ex-hero h1 em { display: block; font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.015em; color: var(--sp-sky); }
+
+/* The cities, deepest record first. */
+.ex-cities { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.ex-cities a { display: grid; grid-template-columns: minmax(120px, 0.9fr) minmax(0, 1.4fr) minmax(96px, auto); gap: var(--sp-4); align-items: center; padding: var(--sp-3) 0; border-bottom: 1px solid var(--sp-line); color: var(--sp-ink); text-decoration: none; }
+.ex-city { display: grid; min-width: 0; }
+.ex-city b { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.ex-city small { font-size: 12px; color: var(--sp-muted); }
+.ex-bar { position: relative; height: 10px; border-radius: 2px; background: var(--sp-hatch); }
+.ex-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--sp-seq-4); }
+.ex-n { justify-self: end; text-align: right; font-size: 12px; color: var(--sp-muted); white-space: nowrap; }
+.ex-n strong { display: block; font-size: 18px; font-weight: 700; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
+.ex-rest { margin: var(--sp-4) 0 0; font-size: 13.5px; color: var(--sp-body); }
+@media (hover: hover) and (pointer: fine) { .ex-cities a:hover b { color: var(--sp-blue); } .ex-cities a:hover .ex-bar i { background: var(--sp-blue); } }
+
+/* Four ways in: columns between rules. */
+.ex-ways-in { max-width: 1240px; margin: 0 auto; display: grid; gap: var(--sp-7); }
+.ex-ways-head { position: static; }
+.ex-ways { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--sp-ink); }
+.ex-ways li + li { border-left: 1px solid var(--sp-line); }
+.ex-ways a { height: 100%; box-sizing: border-box; display: grid; grid-template-rows: auto auto auto 1fr auto; gap: var(--sp-2); padding: var(--sp-6) var(--sp-5); color: var(--sp-ink); text-decoration: none; }
+.ex-ways li:first-child a { padding-left: 0; }
+.ex-ways small { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.ex-ways strong { font-family: var(--font-serif-stack); font-size: clamp(34px, 3.6vw, 48px); font-weight: 400; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ex-ways-l { font-size: 13px; color: var(--sp-muted); }
+.ex-ways p { margin: var(--sp-2) 0 0; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); }
+.ex-go { display: inline-flex; align-items: center; gap: 6px; justify-self: start; height: var(--ctl-h-sm); padding: var(--ctl-pad-sm); border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); font-size: var(--ctl-fs-sm); font-weight: var(--ctl-fw); }
+.ex-ways a:active .ex-go { transform: var(--ctl-press); }
+@media (hover: hover) and (pointer: fine) { .ex-ways a:hover .ex-go { background: var(--ctl-tint-hover); } }
+
+@media (max-width: 960px) {
+  .ex-ways { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ex-ways li:nth-child(3) { border-left: 0; }
+  .ex-ways li:nth-child(3) a { padding-left: 0; }
+  .ex-ways li:nth-child(n + 3) { border-top: 1px solid var(--sp-line); }
+}
+@media (max-width: 760px) {
+  .ex-hero { display: flex; flex-direction: column; min-height: 0; }
+  .ex-hero::after { display: none; }
+  .ex-hero-copy { padding: var(--sp-7) var(--sp-gutter) var(--sp-5); }
+  .ex-map { position: relative; inset: auto; order: 2; height: 52svh; min-height: 320px; }
+}
+@media (max-width: 560px) {
+  .ex-ways { grid-template-columns: minmax(0, 1fr); }
+  .ex-ways li + li { border-left: 0; border-top: 1px solid var(--sp-line); }
+  .ex-ways a, .ex-ways li:nth-child(3) a { padding: var(--sp-5) 0; }
+  .ex-cities a { grid-template-columns: minmax(0, 1fr) auto; }
+  .ex-bar { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (pointer: coarse) { .ex-go { min-height: var(--ctl-h); } }

@@ -94,9 +94,7 @@
 
 /* ── Photographs ──────────────────────────────────────────────────── */
 
-/* ── Who reads the record, and what the field desk looks like ─────── */
-.ld-who { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: var(--sp-8); align-items: center; }
-.ld-who-text { display: grid; gap: var(--sp-6); }
+/* ── Who reads the record ─────────────────────────────────────────── */
 /* Three levels, each drawn at its own scale: a cell, a locality, a city.
    One reader group and one thing to do at each; the whole row is the
    link, and its action reads as the button. */
@@ -123,7 +121,18 @@
 .sg .sg-route { fill: none; stroke: var(--sp-ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .sg .sg-node { fill: var(--sp-paper); stroke: var(--sp-ink); stroke-width: 1.4; }
 
-/* The one lifted object in the section: the workspace, in miniature. */
+/* The levels read left to right on a wide screen, street to city, each
+   column one reader and one action; on a phone they stack as a ledger. */
+.ld-scale { display: grid; gap: var(--sp-7); }
+@media (min-width: 900px) {
+  .ld-scale .ld-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ld-scale .ld-levels > li + li { border-top: 0; border-left: 1px solid var(--sp-line); }
+  .ld-scale .ld-levels a { height: 100%; box-sizing: border-box; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; align-items: start; row-gap: var(--sp-5); padding: var(--sp-6) var(--sp-6) var(--sp-6) 0; }
+  .ld-scale .ld-levels > li + li a { padding-left: var(--sp-6); }
+  .ld-scale .ld-levels .sg { width: 88px; height: 88px; }
+  .ld-scale .ld-lv-text b { font-size: 21px; }
+  .ld-scale .ld-lv-go { justify-self: start; }
+}
 
 /* ── The close ────────────────────────────────────────────────────── */
 .ld-close { background: var(--sp-night); color: var(--sp-night-text); padding: var(--sp-section) var(--sp-gutter); display: grid; justify-items: start; gap: var(--sp-5); }
@@ -132,7 +141,6 @@
 
 /* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .ld-who { grid-template-columns: 1fr; gap: var(--sp-6); }
 }
 @media (max-width: 860px) {
 }
@@ -141,7 +149,6 @@
   .ld-hero-copy { padding: var(--sp-7) var(--sp-gutter) var(--sp-5); max-width: none; }
   /* On a phone the desk shows its queue; the city is drawn in cells a few
      sections up. */
-  .ld-who-text { gap: var(--sp-5); }
   .ld-hero-tally { gap: var(--sp-3) var(--sp-5); }
   .ld-levels a { grid-template-columns: 52px minmax(0, 1fr); column-gap: var(--sp-4); row-gap: var(--sp-3); padding: var(--sp-4) 0; }
   .ld-levels .sg { width: 52px; height: 52px; }
@@ -198,10 +205,9 @@
 
     /* Who reads the record: the headline wipes in from the left, then each
        level is written in after the one above it. The desk lifts beside it. */
-    .ld .ld-who-text .sys-head { animation: ld-wipe linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+    .ld .ld-scale .sys-head { animation: ld-wipe linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
     .ld .ld-levels { view-timeline: --ld-levels block; }
     .ld .ld-levels > li { animation: ld-wipe linear both; animation-timeline: --ld-levels; animation-range: entry calc(var(--i) * 10%) cover calc(12% + var(--i) * 6%); }
-    .ld .ld-desk { transform-origin: 50% 100%; animation: ld-tilt-up linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
 
     /* The close: the line grows into place and the button rises after it. */
     .ld .ld-close .sys-btn { animation: ld-stop linear both; animation-timeline: view(); animation-range: entry 20% cover 35%; }
@@ -416,6 +422,14 @@
 .rl-link.is-done { background: var(--sp-ink); }
 .rl-cap { display: grid; gap: 4px; font-size: 13.5px; line-height: 1.5; color: var(--sp-body); max-width: 60ch; }
 .rl-cap .sys-mono { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); }
+.rl-cap a { color: var(--sp-ink); font-family: var(--font-mono); font-size: 0.92em; text-decoration: underline; text-decoration-color: var(--sp-flame); text-underline-offset: 3px; }
+/* The record's id: one value, in the mono face, on every screen it reaches. */
+.rl-id { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); padding-top: 6px; border-top: 1px dashed var(--sp-line); opacity: 0.35; transition: opacity var(--sp-base) var(--sp-ease-io); }
+.rl-id.is-in { opacity: 1; }
+.rl-id small { font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sp-muted); }
+.rl-id b, .rl-id-inline { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
+.rl-queue small .rl-id-inline { display: inline; }
+.rl-new .rl-id-inline, .rl-map-cap .rl-id-inline { color: var(--sp-flame-deep); }
 @keyframes rl-carry { from { left: -5px; } to { left: calc(100% - 5px); } }
 @keyframes rl-arrive { from { opacity: 0; transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .rl-screen, .rl-link i, .rl-new.is-in { transition: none; animation: none; } }
@@ -430,9 +444,6 @@
   .rl-photo { aspect-ratio: 16 / 7; }
 }
 
-/* The field desk's own section: the heading, then the console at full width. */
-.ld-desk-sec { display: grid; gap: var(--sp-6); }
-.ld-desk-sec .ld-desk { width: 100%; max-width: 1120px; justify-self: center; }
 
 /* The dive's street map, and the request's own light on it. */
 .ld-dive-map { position: absolute; inset: 0; }

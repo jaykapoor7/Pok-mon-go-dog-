@@ -9,7 +9,6 @@ import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
-import { DeskMock } from "@/components/landing/DeskMock";
 import { Relay } from "@/components/landing/Relay";
 import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
 import "@/components/site/site.css";
@@ -26,9 +25,12 @@ export const metadata = {
    The landing page: the register, at three scales.
 
    Not a headline and a screenshot. The page is the record itself, read
-   aloud: a sample city filling in with every field record it holds, the
-   route every request for help actually took, and the animals
-   photographed onto it. What is still unknown is told on /evidence.
+   aloud: a sample city filling in with every field record it holds; who
+   reads it, from one street to one city; one real report passing from a
+   phone to the Field Workspace to the public map under one ID; the
+   animals photographed onto it; and one request followed to its close.
+   The Field Workspace itself is shown on /for-ngos. What is still
+   unknown is told on /evidence.
 
    Every figure and shape is computed on the server from the live register
    (lib/landing/story.ts). The sample city is labelled as the sample on
@@ -79,6 +81,44 @@ export default async function HomePage() {
           </div>
         </section>
 
+        <section className="ld-sec ld-sec-bone" aria-labelledby="ld-who-title">
+          <div className="ld-scale">
+            <header className="sys-head">
+              <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
+              <p>The same animal, the same case, the same care, read from one street up to a whole city.</p>
+            </header>
+            <ol className="ld-levels">
+              {LEVELS.map((l, i) => (
+                <li key={l.level} style={{ ["--i" as string]: i }}>
+                  <Link href={l.href}>
+                    <ScaleGlyph level={l.level} />
+                    <span className="ld-lv-text">
+                      <small>{l.scale}</small>
+                      <b>{l.who}</b>
+                      <span>{l.does}</span>
+                    </span>
+                    <span className="ld-lv-go">{l.action} <ArrowUpRight size={15} aria-hidden /></span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {story?.relay && story.desk.live + story.desk.older > 0 && (
+          <section className="ld-sec ld-sec-shell" aria-labelledby="ld-relay-title">
+            <header className="sys-head">
+              <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
+              <p>A real request in {story.hero.city}: sent from a phone, worked in the Field Workspace, drawn on the public map. One record the whole way.</p>
+            </header>
+            <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
+          </section>
+        )}
+
+        <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed onto the record">
+          <PhotoRegister rows={photos.rows} total={photos.total} />
+        </section>
+
         {story?.journey && (
           <CaseDive
             j={story.journey}
@@ -89,46 +129,6 @@ export default async function HomePage() {
             note={story.record.medianFirstAction !== null ? `Across ${story.hero.city}'s ${fmt(story.record.requests)} requests, half had a field team on them ${story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
           />
         )}
-
-        {story?.desk && story.desk.live + story.desk.older > 0 && (
-          <section className="ld-sec ld-sec-shell ld-desk-sec" aria-labelledby="ld-desk-title">
-            <header className="sys-head">
-              <h2 id="ld-desk-title">The field desk, <em>live from the&nbsp;record.</em></h2>
-              <p>What a field team in {story.hero.city} opens to: its open work, oldest and most urgent first, and the city&apos;s latest events replayed on their own dates.</p>
-            </header>
-            <DeskMock city={story.hero.city} desk={story.desk} />
-          </section>
-        )}
-
-        <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed animals">
-          <PhotoRegister rows={photos.rows} total={photos.total} />
-        </section>
-
-        <section className="ld-sec ld-sec-shell" aria-labelledby="ld-who-title">
-          <div className="ld-who">
-            <div className="ld-who-text">
-              <header className="sys-head">
-                <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
-              </header>
-              <ul className="ld-levels">
-                {LEVELS.map((l, i) => (
-                  <li key={l.level} style={{ ["--i" as string]: i }}>
-                    <Link href={l.href}>
-                      <ScaleGlyph level={l.level} />
-                      <span className="ld-lv-text">
-                        <small>{l.scale}</small>
-                        <b>{l.who}</b>
-                        <span>{l.does}</span>
-                      </span>
-                      <span className="ld-lv-go">{l.action} <ArrowUpRight size={15} aria-hidden /></span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {story?.desk && story.desk.live + story.desk.older > 0 && <Relay city={story.hero.city} desk={story.desk} />}
-          </div>
-        </section>
 
         <section className="ld-close">
           <h2>Know an animal <em>on your street?</em></h2>

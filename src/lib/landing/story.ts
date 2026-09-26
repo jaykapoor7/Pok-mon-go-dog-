@@ -198,8 +198,33 @@ function buildStory(ds: SpatialDataset) {
 export const getLandingStory = unstable_cache(async () => {
   const ds = await getPublicDataset(null);
   if (!ds || !ds.cities.length) return null;
-  return buildStory(ds);
-}, ["landing-story-v6"], { revalidate: 600, tags: [SPATIAL_TAG] });
+  const story = buildStory(ds);
+  return { ...story, relay: await resolveRelay(story.desk.feed) };
+}, ["landing-story-v7"], { revalidate: 600, tags: [SPATIAL_TAG] });
+
+/* One report, three screens, carries the record's own identifier across
+   all three. The dataset holds no ids by design, so the most recent real
+   requests in the feed are looked up again by their cell, day and
+   condition; the first whose animal has a StrayPaw ID is the one shown.
+   No match, no relay: the landing never prints an id it cannot back. */
+type FeedEvent = LandingStory["desk"]["feed"][number];
+async function resolveRelay(feed: FeedEvent[]) {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const reports = [...feed].reverse().filter((e) => e.kind === "report").slice(0, 6);
+  for (const e of reports) {
+    const next = new Date(Date.parse(`${e.date}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+    const { data: facts } = await supa.from("public_case_facts").select("dog_id")
+      .eq("h3_r8", e.cell).eq("condition_class", e.condition).gte("occurred_at", e.date).lt("occurred_at", next)
+      .not("dog_id", "is", null).limit(1);
+    const dogId = (facts?.[0] as { dog_id: string } | undefined)?.dog_id;
+    if (!dogId) continue;
+    const { data: animal } = await supa.from("public_spatial_animals").select("id,straypaw_id").eq("id", dogId).maybeSingle();
+    const a = animal as { id: string; straypaw_id: string | null } | null;
+    if (a?.straypaw_id) return { ...e, animalId: a.id, straypawId: a.straypaw_id };
+  }
+  return null;
+}
 
 /** Resident photographs on the record, newest first, for the register strip. */
 export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v3"], { revalidate: 300, tags: [SPATIAL_TAG] });

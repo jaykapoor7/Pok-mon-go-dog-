@@ -6,7 +6,6 @@
      --sp-*     the marketing site        (src/app/product.css)
      --pl-*     the landing page          (field-site.css, second block)
      --field-*  the same landing page     (field-site.css, first block)
-     --mi-*     the mission page          (mission.css)
 
    Four namespaces, three stylesheets, one product. They were not four
    different palettes — they were four slightly-wrong copies of the same

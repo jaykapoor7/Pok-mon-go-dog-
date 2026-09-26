@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
    and the card wall is the shape this product deliberately avoids. The pitch
    page won because it is what the homepage footer and the console showcase
    already point at. The route survives so existing links and search results
-   still land somewhere sensible, the same way /about defers to /mission. */
+   still land somewhere sensible, the same way /mission now lands on /about. */
 export default function PartnershipsPage() {
   redirect("/for-ngos");
 }

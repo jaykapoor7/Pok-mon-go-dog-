@@ -10,7 +10,7 @@ import { AppShell } from "@/components/app/AppShell";
 const LINKS = [
   { label: "Resources", href: "/resources" },
   { label: "Learn", href: "/learn" },
-  { label: "Mission", href: "/mission" },
+  { label: "About", href: "/about" },
 ];
 
 /** Unified top nav for all platform pages. Matches the landing page header. */

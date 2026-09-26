@@ -11,6 +11,8 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
   { path: "/report", priority: 0.8, freq: "monthly" },
   { path: "/stories", priority: 0.9, freq: "daily" },
 
+  { path: "/explore", priority: 0.9, freq: "daily" },
+  { path: "/education", priority: 0.8, freq: "monthly" },
   { path: "/evidence", priority: 0.8, freq: "weekly" },
   { path: "/programmes", priority: 0.8, freq: "weekly" },
   { path: "/insights", priority: 0.6, freq: "weekly" },
@@ -26,9 +28,9 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
   { path: "/for-ngos", priority: 0.8, freq: "monthly" },
   { path: "/partner-apply", priority: 0.8, freq: "monthly" },
   { path: "/partnerships", priority: 0.6, freq: "monthly" },
-  { path: "/what-we-do", priority: 0.6, freq: "monthly" },
 
-  { path: "/about", priority: 0.5, freq: "monthly" },
+  { path: "/about", priority: 0.7, freq: "monthly" },
+  { path: "/for-governments", priority: 0.7, freq: "monthly" },
   { path: "/contact", priority: 0.5, freq: "monthly" },
   { path: "/privacy", priority: 0.3, freq: "yearly" },
   { path: "/terms", priority: 0.3, freq: "yearly" },

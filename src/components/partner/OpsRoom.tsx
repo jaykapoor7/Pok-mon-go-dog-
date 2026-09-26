@@ -205,7 +205,7 @@ export function OpsRoom() {
           <div>
             <h2>{signedOut ? "Sign in to open your organisation’s record." : "Start with the records you already keep."}</h2>
             <p>{signedOut
-              ? "The workspace is open for anyone to look around; the records themselves load only for members of the organisation that keeps them."
+              ? "The Field Workspace is open for anyone to look around; the records themselves load only for members of the organisation that keeps them."
               : "Import an existing workbook, open your first rescue case, or add an animal directly. StrayPaw keeps your own source IDs and builds a permanent animal identity underneath them."}</p>
           </div>
           <div className="ops-setup-actions">

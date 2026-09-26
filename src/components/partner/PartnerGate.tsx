@@ -162,7 +162,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
           <AlertTitle>{user ? "Your organisation access is not active yet." : "Sign in to load your team’s records."}</AlertTitle>
           <AlertDescription>
             <p className="leading-relaxed">
-              You can explore the workspace now. Private records are available only to members of your organisation.
+              You can explore the Field Workspace now. Private records are available only to members of your organisation.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {!user ? (

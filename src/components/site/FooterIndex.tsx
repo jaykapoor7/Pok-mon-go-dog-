@@ -10,6 +10,7 @@ import "./footer-index.css";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   { title: "The record", links: [
+    { label: "Explore", href: "/explore" },
     { label: "Map", href: "/map" },
     { label: "Insights", href: "/insights" },
     { label: "Stories", href: "/stories" },
@@ -17,15 +18,14 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   ] },
   { title: "Who it's for", links: [
     { label: "NGOs", href: "/for-ngos" },
-    { label: "Municipal bodies", href: "/for-governments" },
+    { label: "Cities", href: "/for-governments" },
     { label: "Funders", href: "/for-funders" },
     { label: "Volunteers", href: "/get-involved" },
-    { label: "Educators", href: "/education" },
+    { label: "Schools and educators", href: "/education" },
     { label: "Researchers", href: "/research-standards" },
   ] },
   { title: "StrayPaw", links: [
     { label: "About", href: "/about" },
-    { label: "Mission", href: "/mission" },
     { label: "Partner NGOs", href: "/orgs" },
     { label: "Evidence", href: "/evidence" },
     { label: "Contact", href: "/contact" },

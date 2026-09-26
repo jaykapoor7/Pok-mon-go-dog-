@@ -5,8 +5,9 @@
 
    The most recent real request in the sample city, passed along the
    record: a resident sends it from a phone; it arrives at the top of the
-   field team's queue; it lights its cell on the public map. A flame dot
-   carries it from screen to screen. The screens are drawn, the request is
+   Field Workspace queue; it lights its cell on the public map. Its
+   StrayPaw ID is on all three screens, because it is the same record on
+   all three. The screens are drawn, the request is
    the record's own (its condition, its locality, its date), and the rest
    of the queue and the map are the city's real open work. It plays while
    on screen and rests on the last screen under reduced motion. On a phone
@@ -18,23 +19,21 @@ import { Check, MapPin } from "lucide-react";
 import { HexPlate, type Box, type PlateCell } from "@/components/system/HexPlate";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 
-type FeedItem = { kind: "report" | "action" | "closed"; date: string; condition: string; locality: string; cell: string; critical: boolean };
+type Report = { date: string; condition: string; locality: string; cell: string; critical: boolean; straypawId: string; animalId: string };
 type Desk = {
   live: number; critical: number; older: number;
   queue: { condition: string; locality: string; days: number; critical: boolean; overdue: boolean }[];
   cells: { key: string; ring: number[]; open: number }[];
   box: Box;
-  feed?: FeedItem[];
 };
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const waited = (d: number) => (d < 14 ? `${d} day${d === 1 ? "" : "s"}` : d < 60 ? `${Math.round(d / 7)} weeks` : `${Math.round(d / 30)} months`);
-const STEPS = ["The resident", "The field team", "Everyone"];
+const STEPS = ["Report", "Field Workspace", "Public map"];
 const HOLD = [2200, 1700, 2600, 3600]; // how long each moment is held, in ms
 
-export function Relay({ city, desk }: { city: string; desk: Desk }) {
-  const report = useMemo(() => [...(desk.feed ?? [])].reverse().find((e) => e.kind === "report") ?? null, [desk.feed]);
+export function Relay({ city, desk, report }: { city: string; desk: Desk; report: Report | null }) {
   const el = useRef<HTMLElement>(null);
   const [step, setStep] = useState(3);
   const [live, setLive] = useState(false);
@@ -74,7 +73,7 @@ export function Relay({ city, desk }: { city: string; desk: Desk }) {
   const sent = step >= 1;
 
   return (
-    <figure ref={el} className={`rl is-s${step}`} aria-label={`One real request from ${city}, ${report.condition} in ${report.locality} on ${day(report.date)}: sent by a resident, in the field team's queue, on the public map.`}>
+    <figure ref={el} className={`rl is-s${step}`} aria-label={`One real request from ${city}, ${report.condition} in ${report.locality} on ${day(report.date)}, record ${report.straypawId}: reported, in the Field Workspace queue, on the public map.`}>
       <ol className="rl-steps" aria-hidden="true">
         {STEPS.map((s, i) => <li key={s} className={i === screen ? "is-on" : i < screen ? "is-past" : ""}><i />{s}</li>)}
       </ol>
@@ -88,18 +87,19 @@ export function Relay({ city, desk }: { city: string; desk: Desk }) {
           <p className="rl-field"><small>What you see</small><b className={report.critical ? "is-hot" : ""}>{report.condition}</b></p>
           <p className="rl-field"><small>Where</small><b><MapPin size={12} /> {report.locality}</b></p>
           <span className={`rl-send ${sent ? "is-sent" : ""}`}>{sent ? <><Check size={13} /> Sent</> : "Send"}</span>
+          <p className={`rl-id ${sent ? "is-in" : ""}`}><small>Record</small><b>{report.straypawId}</b></p>
         </div>
 
         <span className={`rl-link ${step === 1 ? "is-go" : step > 1 ? "is-done" : ""}`}><i /></span>
 
         {/* 2 — the field team's queue */}
         <div className={`rl-screen rl-desk ${screen === 1 ? "is-on" : ""}`}>
-          <p className="rl-bar"><StrayPawMark size={16} /> <b>Field workspace</b><span>{city}</span></p>
+          <p className="rl-bar"><StrayPawMark size={16} /> <b>Field Workspace</b><span>{city}</span></p>
           <p className="rl-desk-h">What needs attention</p>
           <ul className="rl-queue">
             <li className={`rl-new ${step >= 2 ? "is-in" : ""}`}>
               <i className="is-hot" />
-              <span><b>{report.condition}</b><small>{report.locality} · {day(report.date)}</small></span>
+              <span><b>{report.condition}</b><small><span className="rl-id-inline">{report.straypawId}</span> · {report.locality}</small></span>
               <em>New</em>
             </li>
             {desk.queue.slice(0, 3).map((q, i) => (
@@ -119,13 +119,13 @@ export function Relay({ city, desk }: { city: string; desk: Desk }) {
           <p className="rl-bar"><b>Public map</b><span>{city}</span></p>
           <HexPlate width={240} height={200} box={desk.box} cells={cells} label={`Open requests by cell in ${city}`}
             marks={mark && step >= 3 ? [{ ...mark, r: 9, ring: true }, { ...mark, r: 3.2 }] : []} />
-          <p className="rl-map-cap"><i />{report.locality} · {(desk.live + desk.older).toLocaleString("en-IN")} open in {city}</p>
+          <p className="rl-map-cap"><i /><span className="rl-id-inline">{report.straypawId}</span> · {report.locality}</p>
         </div>
       </div>
 
       <figcaption className="rl-cap">
         <span className="sys-mono">A real request · {day(report.date)}</span>
-        One report, three screens: the resident who saw it, the field team who works it, and everyone who reads the map.
+        <span>The same record, <a href={`/dog/${report.animalId}`}>{report.straypawId}</a>, on the resident&apos;s phone, in the Field Workspace and on the public map.</span>
       </figcaption>
     </figure>
   );

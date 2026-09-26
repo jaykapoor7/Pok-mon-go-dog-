@@ -8,6 +8,7 @@ import { OrgMark } from "@/components/orgs/OrgMark";
 import { getLandingStory } from "@/lib/landing/story";
 import { getOperationalPartners, getPartnerDirectory } from "@/lib/partners";
 import { getPublicOrgImpact } from "@/lib/org-public";
+import { getKindHour } from "@/lib/kind-hour";
 import "@/components/site/site.css";
 import "@/components/landing/landing.css";
 import "@/components/orgs/partners.css";
@@ -16,24 +17,27 @@ import "@/components/company/company.css";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "For NGOs, StrayPaw",
-  description: "Cases, animals, care and reports for your field team on one record. Free for verified animal-welfare organisations; your records stay yours.",
+  description: "The Field Workspace: cases, animals, care, reports and imports for your field team on one record. Free for verified animal-welfare organisations; your records stay yours.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   For NGOs. What the workspace does, shown as the workspace itself (the
-   field desk, replaying real events from the sample city), then what it
-   holds, how to join, who is already on it with their own figures, and
-   the terms in plain words. Every figure is live.
+   For NGOs. The Field Workspace, shown as itself (replaying real events
+   from the sample city), then what it holds, how the records a team
+   already keeps become one animal record (with a real imported line as
+   the example), who is on it with their own figures, how to join, and the
+   terms in plain words. Every figure is live.
    ════════════════════════════════════════════════════════════════════ */
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export default async function ForNgosPage() {
-  const [story, partners, dir] = await Promise.all([
+  const [story, partners, dir, kh] = await Promise.all([
     getLandingStory().catch(() => null),
     getOperationalPartners().catch(() => []),
     getPartnerDirectory().catch(() => []),
+    getKindHour().catch(() => null),
   ]);
+  const ex = kh?.example ?? null;
   const lead = partners[0] ?? null;
   const impact = lead ? await getPublicOrgImpact(lead.id).catch(() => null) : null;
   const ngos = dir.filter((o) => o.kind === "Field partner" || o.kind === "Partner NGO");
@@ -41,9 +45,9 @@ export default async function ForNgosPage() {
   const rows = [
     { t: "Cases", d: "Community reports and your own intakes become one queue: assigned, followed up, closed with an outcome.", proof: impact?.caseRecords ? { n: impact.caseRecords, l: "requests worked" } : null },
     { t: "Animals", d: "Every animal keeps one StrayPaw ID, with its photographs, place, cases and care attached to it.", proof: impact?.animalsRecorded ? { n: impact.animalsRecorded, l: "animals on record" } : null },
-    { t: "Care and drives", d: "Treatment, vaccination and sterilisation drives recorded as they happen, and searchable later.", proof: impact?.sterilised ? { n: impact.sterilised, l: "sterilised, on record" } : null },
+    { t: "Care and programmes", d: "Treatment, vaccination and sterilisation, and the drives and programmes they belong to, recorded as they happen.", proof: impact?.sterilised ? { n: impact.sterilised, l: "sterilised, on record" } : null },
     { t: "Reports", d: "Map patterns, evidence workbooks and government-ready reports, from the records your team already keeps.", proof: impact?.resolvedCases ? { n: impact.resolvedCases, l: "closed after field work" } : null },
-    { t: "Your spreadsheets", d: "Bring the registers you already use. Each sheet is mapped and checked before anything is added.", proof: null },
+    { t: "Imports", d: "Bring the registers you already use. Each sheet is mapped and checked before anything is added.", proof: kh?.source ? { n: kh.source.lines, l: "register lines imported for The Kind Hour Foundation" } : null },
   ];
 
   return (
@@ -53,9 +57,9 @@ export default async function ForNgosPage() {
         <section className={`co-hero ${story?.desk ? "" : "is-solo"}`}>
           <div className="co-hero-in">
             <div className="co-hero-copy">
-              <p className="co-kicker">For NGOs</p>
+              <p className="co-kicker">Field Workspace · for NGOs</p>
               <h1>Run your field work on one record. <em>Keep it&nbsp;yours.</em></h1>
-              <p className="co-lede">Cases, animals, care and reports in one workspace, so the next person on your team knows what was done, and a funder can see it months later.</p>
+              <p className="co-lede">Cases, animals, care, reports and imports in the Field Workspace, so the next person on your team knows what was done, and a funder can see it months later.</p>
               <p className="co-acts">
                 <Link href="/partner-apply" className="sys-btn is-flame">Apply to partner <ArrowUpRight size={15} /></Link>
                 <Link href="/join" className="co-link">I have a code <ArrowUpRight size={14} /></Link>
@@ -68,7 +72,7 @@ export default async function ForNgosPage() {
         <section className="co-sec" aria-labelledby="co-what">
           <div className="co-sec-in">
             <header className="co-sec-head">
-              <h2 id="co-what">What the workspace <em>holds.</em></h2>
+              <h2 id="co-what">What the Field Workspace <em>holds.</em></h2>
               <p>The parts of field work nobody funds and everybody needs, kept in one place.{lead ? ` Figures are ${lead.name}'s record today.` : ""}</p>
             </header>
             <ol className="co-rows">
@@ -83,17 +87,52 @@ export default async function ForNgosPage() {
           </div>
         </section>
 
-        <section className="co-sec is-shell" aria-labelledby="co-how">
+        <section className="co-sec is-shell" aria-labelledby="co-merge">
           <div className="co-sec-in">
             <header className="co-sec-head">
-              <h2 id="co-how">Joining takes <em>three steps.</em></h2>
-              <p>Free for verified animal-welfare organisations.</p>
+              <h2 id="co-merge">WhatsApp, spreadsheets, paper. <em>One animal record.</em></h2>
+              <p>Field work is already written down, in three places at once. Each source is mapped onto the same animal, with the line it came from kept beside it. Names and numbers of the people who called stay out.</p>
             </header>
-            <ol className="co-steps">
-              <li><b>Apply</b><p>Tell us who you are and the area you cover.</p></li>
-              <li><b>Get your code</b><p>Once verified, your team lead gets an access code and adds the rest of the team.</p></li>
-              <li><b>Bring your records</b><p>Upload the spreadsheets and registers you already keep; they are mapped before anything is added.</p></li>
-            </ol>
+            <div className="co-merge">
+              <ol className="co-merge-in" aria-label="Where field records are kept today">
+                <li className="co-slip is-chat">
+                  <small>A WhatsApp message</small>
+                  <span className="co-slip-photo" aria-hidden />
+                  <span className="co-slip-f"><i>What is wrong</i><i>Where</i><i>When</i></span>
+                </li>
+                <li className="co-slip is-sheet">
+                  <small>A spreadsheet row{ex ? " · Kind Hour register, line KH-RR-001" : ""}</small>
+                  {ex ? (
+                    <table>
+                      <thead><tr><th>Date</th><th>Address</th><th>Dog</th><th>Name</th><th>OPD</th><th>Caretaker</th></tr></thead>
+                      <tbody><tr><td>25/1/2024</td><td>rajendra</td><td>white and brown</td><td>chachi</td><td>yes</td><td className="is-held">withheld</td></tr></tbody>
+                    </table>
+                  ) : <span className="co-slip-f"><i>Date</i><i>Locality</i><i>Animal</i><i>Status</i></span>}
+                </li>
+                <li className="co-slip is-paper">
+                  <small>A paper or vet record</small>
+                  <span className="co-slip-f"><i>Procedure</i><i>Date</i><i>Vet</i><i>Follow-up</i></span>
+                </li>
+              </ol>
+              <div className="co-merge-out">
+                <p className="co-merge-k sys-mono">One animal record</p>
+                {ex ? (
+                  <Link href={`/dog/${ex.id}`} className="co-record">
+                    <span className="co-record-id">{ex.straypawId}</span>
+                    <b>{ex.name}</b>
+                    <span>{[ex.zone, ex.city].filter(Boolean).join(" · ")}</span>
+                    <dl>
+                      <div><dt>Case</dt><dd>{ex.cases}</dd></div>
+                      <div><dt>Care</dt><dd>{ex.care}</dd></div>
+                      <div><dt>Recorded by</dt><dd>The Kind Hour Foundation</dd></div>
+                    </dl>
+                    <em>Imported history, not a live report <ArrowUpRight size={13} /></em>
+                  </Link>
+                ) : (
+                  <p className="co-record is-empty">Every source line lands on one StrayPaw ID: the animal&apos;s place, cases, care and outcome, with where each fact came from.</p>
+                )}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -101,7 +140,7 @@ export default async function ForNgosPage() {
           <section className="co-sec" aria-labelledby="co-who">
             <div className="co-sec-in">
               <header className="co-sec-head">
-                <h2 id="co-who">Already <em>on the record.</em></h2>
+                <h2 id="co-who">Partner NGOs, <em>on the record.</em></h2>
                 {lead && impact && impact.animalsRecorded > 0 && (
                   <CountFigures figures={[
                     { value: impact.animalsRecorded, label: `animals on ${lead.name}'s record` },
@@ -127,13 +166,27 @@ export default async function ForNgosPage() {
           </section>
         )}
 
-        <section className="co-sec is-shell" aria-labelledby="co-terms">
+        <section className="co-sec is-shell" aria-labelledby="co-how">
+          <div className="co-sec-in">
+            <header className="co-sec-head">
+              <h2 id="co-how">Joining takes <em>three steps.</em></h2>
+              <p>Free for verified animal-welfare organisations.</p>
+            </header>
+            <ol className="co-steps">
+              <li><b>Apply</b><p>Tell us who you are and the area you cover.</p></li>
+              <li><b>Get your code</b><p>Once verified, your team lead gets an access code and adds the rest of the team.</p></li>
+              <li><b>Bring your records</b><p>Upload the spreadsheets and registers you already keep; they are mapped before anything is added.</p></li>
+            </ol>
+          </div>
+        </section>
+
+        <section className="co-sec" aria-labelledby="co-terms">
           <div className="co-sec-in">
             <header className="co-sec-head">
               <h2 id="co-terms">The terms, <em>plainly.</em></h2>
             </header>
             <ul className="co-terms">
-              <li><b>Free</b><p>Verified animal-welfare organisations use the workspace at no cost.</p></li>
+              <li><b>Free</b><p>Verified animal-welfare organisations use the Field Workspace at no cost.</p></li>
               <li><b>Private to your team</b><p>Your workspace is visible only to your verified members.</p></li>
               <li><b>You decide what is public</b><p>The public sees only what your organisation chooses to publish.</p></li>
               <li><b>Reporters stay private</b><p>The names and contacts of people who report are never published.</p></li>

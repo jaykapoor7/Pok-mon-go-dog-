@@ -16,7 +16,7 @@ export default function TheNetworkPage() {
       lede="A sighting on its own is an anecdote. The network is what turns scattered observations into a single animal with a history, one that survives the rescue, the handover, and the change of organisation."
       figure={<ResolveFigure />}
       next={[
-        { label: "For NGOs", href: "/for-ngos", note: "The workspace your team would actually run on." },
+        { label: "For NGOs", href: "/for-ngos", note: "The Field Workspace your team would run on." },
         { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
         { label: "Open the map", href: "/map", note: "See the live record layer." },
       ]}

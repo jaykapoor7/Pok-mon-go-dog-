@@ -1,0 +1,93 @@
+/* ════════════════════════════════════════════════════════════════════
+   Education. The hero is a plate of type: the ten beliefs from Kind
+   Hour's Rethinking Indies, each struck through in flame, one after
+   another, with the deck's Hindi under it. Then the lessons as an
+   editorial column (a large serif numeral, the lesson's question, its
+   points between rules), the route to a street, the decks as a register,
+   and the partners. No cards, one flame per view.
+   ════════════════════════════════════════════════════════════════════ */
+.edu-hero { background: var(--sp-night); color: var(--sp-night-text); padding: calc(var(--sp-8) + 20px) var(--sp-gutter) var(--sp-8); overflow: hidden; }
+.edu-hero-in { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-8); align-items: center; }
+.edu-hero-copy { display: grid; gap: var(--sp-4); align-content: start; }
+.edu-hero h1 { margin: 0; font-size: clamp(40px, 5.6vw, 80px); line-height: 1.0; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
+.edu-hero h1 em { display: block; font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.015em; color: var(--sp-sky); }
+
+.edu-myths { margin: 0; display: grid; gap: var(--sp-4); }
+.edu-myths ol { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-night-line); }
+.edu-myths li { display: grid; gap: 2px; padding: 9px 0; border-bottom: 1px solid var(--sp-night-line); }
+.edu-myths s { position: relative; justify-self: start; text-decoration: none; font-family: var(--font-serif-stack); font-size: clamp(17px, 1.6vw, 21px); line-height: 1.25; color: var(--sp-night-text); }
+.edu-myths s::after { content: ""; position: absolute; left: -2px; right: -2px; top: 55%; height: 2px; background: var(--sp-flame); transform-origin: left; }
+.edu-myths li span { font-size: 12.5px; line-height: 1.4; color: var(--sp-night-faint); }
+.edu-myths figcaption { display: grid; gap: 4px; font-size: 13px; line-height: 1.5; color: var(--sp-night-dim); max-width: 52ch; }
+.edu-myths figcaption .sys-mono { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-night-dim); }
+@media (prefers-reduced-motion: no-preference) {
+  .edu-myths s::after { transform: scaleX(0); animation: edu-strike var(--sp-slow) var(--sp-ease) both; animation-delay: calc(0.6s + var(--i) * 0.32s); }
+  .edu-myths s { animation: edu-dim var(--sp-slow) var(--sp-ease-io) both; animation-delay: calc(0.75s + var(--i) * 0.32s); }
+}
+@keyframes edu-strike { to { transform: scaleX(1); } }
+@keyframes edu-dim { to { color: var(--sp-night-dim); } }
+
+/* The lessons: an editorial column. */
+.edu-lessons-in { max-width: 1240px; margin: 0 auto; display: grid; gap: var(--sp-7); }
+.edu-lessons-head { display: grid; gap: var(--sp-3); max-width: 720px; }
+.edu-lessons-head p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--sp-body); }
+.edu-lessons { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.edu-lessons > li { display: grid; grid-template-columns: 96px minmax(0, 0.9fr) minmax(0, 1.3fr); gap: var(--sp-5); padding: var(--sp-6) 0; border-bottom: 1px solid var(--sp-line); align-items: start; }
+.edu-n { font-family: var(--font-serif-stack); font-size: 56px; line-height: 0.9; color: var(--sp-seq-4); font-variant-numeric: tabular-nums; }
+.edu-l-head { display: grid; gap: var(--sp-2); }
+.edu-l-head h3 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+.edu-l-head p { margin: 0; font-size: 15px; color: var(--sp-body); }
+.edu-l-head small { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sp-muted); }
+.edu-lessons ul { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-3); }
+.edu-lessons ul li { position: relative; padding-left: var(--sp-5); font-size: 15.5px; line-height: 1.55; color: var(--sp-ink); }
+.edu-lessons ul li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 10px; height: 1.5px; background: var(--sp-ink); }
+.edu-bite { margin: 0; padding: var(--sp-4) 0 0; font-size: 14px; line-height: 1.55; color: var(--sp-body); max-width: 80ch; }
+.edu-bite a { color: var(--sp-blue); font-weight: 600; }
+
+/* From the lesson to the street: three stops on one line. */
+.edu-route { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-5); }
+.edu-route li { position: relative; display: grid; gap: var(--sp-2); align-content: start; padding-top: var(--sp-6); }
+.edu-route li::before { content: ""; position: absolute; top: 5px; left: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--sp-ink); background: var(--sp-shell); box-sizing: border-box; }
+.edu-route li:last-child::before { background: var(--sp-flame); border-color: var(--sp-flame); }
+.edu-route li:not(:last-child)::after { content: ""; position: absolute; top: 10px; left: 16px; right: calc(-1 * var(--sp-5) + 4px); height: 2px; background: var(--sp-ink); }
+.edu-route b { font-size: 18px; font-weight: 600; }
+.edu-route p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); }
+.edu-route a { justify-self: start; font-size: 14px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+.edu-route a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.edu-kh-map { margin: var(--sp-7) 0 0; padding-top: var(--sp-4); border-top: 1px solid var(--sp-line); display: grid; gap: 4px; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); }
+.edu-kh-map .sys-mono { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); }
+.edu-kh-map a { display: inline-flex; align-items: center; gap: 3px; color: var(--sp-blue); font-weight: 600; text-decoration: none; }
+
+/* The decks and the partners: registers. */
+.edu-decks, .edu-partners { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.edu-decks > li, .edu-partners > li { display: grid; gap: var(--sp-3); padding: var(--sp-5) 0; border-bottom: 1px solid var(--sp-line); }
+.edu-decks > li { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: var(--sp-5); }
+.edu-d-head, .edu-p-head { display: grid; gap: 3px; align-content: start; }
+.edu-d-head b, .edu-p-head b { font-size: 18px; font-weight: 600; letter-spacing: -0.012em; }
+.edu-d-head .sys-mono, .edu-p-head .sys-mono { font-size: 11px; color: var(--sp-muted); }
+.edu-d-head small { font-size: 13px; color: var(--sp-body); }
+.edu-decks ul, .edu-partners ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.edu-decks ul li, .edu-partners ul li { position: relative; padding-left: var(--sp-4); font-size: 14px; line-height: 1.5; color: var(--sp-body); }
+.edu-decks ul li::before, .edu-partners ul li::before { content: ""; position: absolute; left: 0; top: 0.7em; width: 6px; height: 1.5px; background: var(--sp-muted); }
+.edu-partners > li > p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); max-width: 70ch; }
+.edu-p-links { display: flex; flex-wrap: wrap; gap: var(--sp-5); }
+.edu-p-links a { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+
+@media (max-width: 960px) {
+  .edu-hero-in { grid-template-columns: minmax(0, 1fr); gap: var(--sp-7); }
+  .edu-lessons > li { grid-template-columns: 64px minmax(0, 1fr); }
+  .edu-lessons > li > ul { grid-column: 2; }
+  .edu-n { font-size: 44px; }
+}
+@media (max-width: 640px) {
+  .edu-hero { padding-top: calc(var(--sp-7) + 10px); }
+  .edu-lessons > li { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  .edu-lessons > li > ul { grid-column: 1; }
+  .edu-n { font-size: 36px; }
+  .edu-route { grid-template-columns: minmax(0, 1fr); }
+  .edu-route li { padding: 0 0 0 var(--sp-6); }
+  .edu-route li::before { top: 4px; }
+  .edu-route li:not(:last-child)::after { top: 18px; left: 5px; right: auto; bottom: calc(-1 * var(--sp-5)); width: 2px; height: auto; }
+  .edu-decks > li { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+}
+@media (pointer: coarse) { .edu-route a, .edu-p-links a, .edu-kh-map a { min-height: var(--ctl-h); display: inline-flex; align-items: center; } }

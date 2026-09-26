@@ -70,6 +70,44 @@
 .co-more { margin: var(--sp-4) 0 0; }
 .co-more a { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
 
+/* Many sources, one record: three slips on the left, joined by a bracket
+   to the one record they become. Slips are drawn as forms, labels only,
+   except the one real line the example is built from. */
+.co-merge { display: grid; grid-template-columns: minmax(0, 1.25fr) 36px minmax(0, 0.85fr); align-items: center; }
+.co-merge-in { grid-column: 1; margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-3); }
+.co-merge::before { content: ""; grid-column: 2; grid-row: 1; justify-self: center; width: 18px; height: 70%; border: 1.5px solid var(--sp-ink); border-left: 0; border-radius: 0 var(--sp-radius) var(--sp-radius) 0; }
+.co-merge-out { grid-column: 3; grid-row: 1; display: grid; gap: var(--sp-2); }
+.co-slip { display: grid; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: var(--sp-radius); min-width: 0; }
+.co-slip small { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); }
+.co-slip.is-chat { border-radius: var(--sp-radius-lg) var(--sp-radius-lg) var(--sp-radius-lg) 4px; max-width: 78%; }
+.co-slip-photo { height: 36px; border-radius: var(--sp-radius-sm); background: var(--sp-hatch), var(--sp-bone); }
+.co-slip-f { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.co-slip-f i { font-style: normal; font-size: 12px; color: var(--sp-body); padding: 2px 0; border-bottom: 1px dashed var(--sp-line); min-width: 64px; }
+.co-slip.is-paper { background: var(--sp-bone); border-style: dashed; }
+.co-slip.is-sheet { overflow-x: auto; }
+.co-slip table { border-collapse: collapse; font-family: var(--font-mono); font-size: 11.5px; width: 100%; }
+.co-slip th { text-align: left; font-weight: 500; color: var(--sp-muted); padding: 3px 8px 3px 0; border-bottom: 1px solid var(--sp-line); white-space: nowrap; }
+.co-slip td { padding: 4px 8px 2px 0; color: var(--sp-ink); white-space: nowrap; }
+.co-slip td.is-held { color: var(--sp-muted); background: var(--sp-hatch); padding-left: 4px; }
+.co-merge-k { margin: 0; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); }
+.co-record { display: grid; gap: 4px; padding: var(--sp-5); background: var(--sp-paper); border: 1px solid var(--sp-ink); border-radius: var(--sp-radius); box-shadow: 0 22px 44px rgba(11, 30, 61, 0.12); color: var(--sp-ink); text-decoration: none; }
+.co-record-id { font-family: var(--font-mono); font-size: 13px; color: var(--sp-flame-deep); letter-spacing: 0.02em; }
+.co-record b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+.co-record > span:not(.co-record-id) { font-size: 13.5px; color: var(--sp-body); }
+.co-record dl { margin: var(--sp-3) 0 0; display: grid; gap: 4px; border-top: 1px solid var(--sp-line); padding-top: var(--sp-3); }
+.co-record dl div { display: flex; justify-content: space-between; gap: var(--sp-3); font-size: 13px; }
+.co-record dt { color: var(--sp-muted); }
+.co-record dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.co-record em { margin-top: var(--sp-3); display: inline-flex; align-items: center; gap: 4px; font-style: normal; font-size: 12.5px; font-weight: 600; color: var(--sp-blue); }
+.co-record.is-empty { font-size: 14.5px; line-height: 1.55; color: var(--sp-body); box-shadow: none; }
+@media (hover: hover) and (pointer: fine) { a.co-record:hover b { color: var(--sp-blue); } }
+@media (max-width: 640px) {
+  .co-merge { grid-template-columns: minmax(0, 1fr); row-gap: var(--sp-3); }
+  .co-merge::before { grid-row: 2; grid-column: 1; width: 2px; height: 28px; border: 0; background: var(--sp-ink); border-radius: 0; }
+  .co-merge-out { grid-column: 1; grid-row: 3; }
+  .co-slip.is-chat { max-width: 100%; }
+}
+
 .co-close { background: var(--sp-night); color: var(--sp-night-text); padding: var(--sp-8) var(--sp-gutter); }
 .co-close-in { max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-5); }
 .co-close h2 { margin: 0; font-size: clamp(28px, 3.4vw, 46px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 600; }
@@ -96,3 +134,4 @@
    on these pages it is given the footer's own ground directly. */
 .co .sp-footer { background: var(--sp-deep); color: var(--sp-night-text); }
 .co .sp-footer-bottom { color: var(--sp-night-dim); }
+.co-orgs-more { margin-top: var(--sp-5); }

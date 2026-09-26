@@ -37,9 +37,13 @@ const nextConfig = {
       /* Published data and research live in one place, /evidence, which says
          why the record has to exist. The pages that each held a piece of it
          send their visitors there; the register's own counts are /insights. */
-      ...["/why-straypaw", "/the-data", "/gaps", "/needs", "/explore", "/wards", "/data", "/sources", "/take-action", "/what-would-it-take", "/news"]
+      ...["/why-straypaw", "/the-data", "/gaps", "/needs", "/wards", "/data", "/sources", "/take-action", "/what-would-it-take", "/news"]
         .map((source) => ({ source, destination: "/evidence", permanent: false })),
       { source: "/transparency", destination: "/insights", permanent: false },
+      /* About is the one page for what StrayPaw is and how it is run; the
+         mission, the origin story and the how-it-works page it replaced
+         send their visitors there. */
+      ...["/mission", "/journey", "/what-we-do"].map((source) => ({ source, destination: "/about", permanent: true })),
       /* Two pages answered "the animals I care about" and only one of them
          was reachable: nothing on the site linked to /account, and Following
          is the entry in the console's nav. A permanent redirect rather than

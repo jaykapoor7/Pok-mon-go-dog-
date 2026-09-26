@@ -13,7 +13,6 @@ const OWN_CHROME = new Set<string>([
   // client console around an empty redirect boundary caused a hydration
   // warning on phones before the redirect completed.
   "/adopt",
-  "/mission",
   "/privacy",
   "/terms",
   "/safety",
@@ -22,8 +21,6 @@ const OWN_CHROME = new Set<string>([
   "/cookies",
   "/contact",
   "/partner-apply",
-  "/what-we-do",
-  "/journey",
   "/partnerships",
   "/reset-password",
   // Someone arriving with a code needs the code box, not the console
@@ -50,6 +47,7 @@ const OWN_CHROME = new Set<string>([
   // site. These render SiteHeader and the site footer themselves, through
   // SitePage.
   "/evidence",
+  "/explore",
   "/education",
   "/get-involved",
 ]);

@@ -115,10 +115,10 @@ export function DeskMock({ city, desk }: { city: string; desk: Desk }) {
   const c = ev ? centre.get(ev.cell) : null;
 
   return (
-    <figure ref={el} className={`ld-desk ${seen ? "is-seen" : ""} ${calm ? "is-calm" : ""}`} aria-label={`The organisation dashboard, drawn from ${city}'s public record`}>
+    <figure ref={el} className={`ld-desk ${seen ? "is-seen" : ""} ${calm ? "is-calm" : ""}`} aria-label={`The Field Workspace, drawn from ${city}'s public record`}>
       <div className="ld-desk-bar" aria-hidden>
         <StrayPawMark size={18} />
-        <b>Field workspace</b>
+        <b>Field Workspace</b>
         <span className="ld-desk-city sys-mono">Sample city · {city}</span>
         {ev && <span className="ld-desk-clock sys-mono"><i />{longDate(ev.date)}</span>}
       </div>
