@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -94,18 +95,7 @@ export function MarketingPage({
           </div>
         </section>
 
-        <footer className="sp-footer mk-foot">
-          <div className="sp-footer-bottom sp-mono">
-            <span>STRAYPAW © 2026</span>
-            <span style={{ display: "flex", gap: 18 }}>
-              <Link href="/mission">MISSION</Link>
-              <Link href="/privacy">PRIVACY</Link>
-              <Link href="/terms">TERMS</Link>
-              <Link href="/contact">CONTACT</Link>
-            </span>
-            <span>BUILT IN INDIA / FOR EVERYWHERE</span>
-          </div>
-        </footer>
+        <SiteFooter />
       </main>
     </div>
   );

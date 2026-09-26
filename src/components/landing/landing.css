@@ -123,19 +123,31 @@
 /* ── Who reads the record, and what the field desk looks like ─────── */
 .ld-who { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: var(--sp-8); align-items: center; }
 .ld-who-text { display: grid; gap: var(--sp-6); }
-/* A ledger, not a link cloud: one row per reader, what they do with the
-   record under the name, and the level written once at the head of its
-   group. A heavier rule opens each level. */
-.ld-roles { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--sp-rule); }
-.ld-roles > li { display: grid; grid-template-columns: 64px minmax(0, 1fr); column-gap: var(--sp-4); border-top: 1px solid var(--sp-line); }
-.ld-roles > li.is-first { border-top: 1px solid var(--sp-ink); }
-.ld-roles-level { padding-top: 17px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
-.ld-roles a { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: var(--ctl-h); padding: var(--sp-3) 0; text-decoration: none; color: var(--sp-ink); }
-.ld-roles a > span { display: grid; gap: 2px; min-width: 0; }
-.ld-roles b { font-size: 16px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; }
-.ld-roles small { font-size: 13.5px; line-height: 1.4; color: var(--sp-muted); }
-.ld-roles a svg { flex: none; color: var(--sp-blue); transition: transform var(--sp-fast) var(--sp-ease); }
-@media (hover: hover) and (pointer: fine) { .ld-roles a:hover svg { transform: translate(2px, -2px); } .ld-roles a:hover b { color: var(--sp-blue); } }
+/* Three levels, each drawn at its own scale: a cell, a locality, a city.
+   One reader group and one thing to do at each; the whole row is the
+   link, and its action reads as the button. */
+.ld-levels { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); border-bottom: 1px solid var(--sp-rule); }
+.ld-levels > li + li { border-top: 1px solid var(--sp-line); }
+.ld-levels a { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; column-gap: var(--sp-5); padding: var(--sp-5) 0; color: var(--sp-ink); text-decoration: none; }
+.ld-lv-text { display: grid; gap: 3px; min-width: 0; }
+.ld-lv-text small { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.ld-lv-text b { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; transition: color var(--sp-fast) var(--sp-ease-io); }
+.ld-lv-text > span { font-size: 14px; line-height: 1.45; color: var(--sp-body); }
+.ld-lv-go { display: inline-flex; align-items: center; gap: 6px; height: var(--ctl-h-sm); padding: var(--ctl-pad-sm); border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); font-size: var(--ctl-fs-sm); font-weight: var(--ctl-fw); white-space: nowrap; transition: background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io); }
+.ld-levels a:active .ld-lv-go { transform: var(--ctl-press); }
+@media (hover: hover) and (pointer: fine) { .ld-levels a:hover .ld-lv-go { background: var(--ctl-tint-hover); } .ld-levels a:hover b { color: var(--sp-blue); } }
+/* The glyphs: the map's sequential blue for what is recorded, flame for the
+   one new report, a dashed edge where nothing is mapped yet. */
+.sg { display: block; width: 64px; height: 64px; overflow: visible; }
+.sg polygon { stroke: var(--sp-shell); stroke-width: 1.2; }
+.sg .sg-1 { fill: var(--sp-seq-1); } .sg .sg-2 { fill: var(--sp-seq-2); } .sg .sg-3 { fill: var(--sp-seq-3); }
+.sg .sg-4 { fill: var(--sp-seq-4); } .sg .sg-5 { fill: var(--sp-seq-5); }
+.sg .sg-dash { fill: none; stroke: var(--sp-muted); stroke-width: 0.9; stroke-dasharray: 2 2; }
+.sg .sg-dot { fill: var(--sp-ink); }
+.sg .sg-flame { fill: var(--sp-flame); }
+.sg .sg-ring { fill: none; stroke: var(--sp-flame); stroke-width: 1.2; opacity: 0.45; }
+.sg .sg-route { fill: none; stroke: var(--sp-ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sg .sg-node { fill: var(--sp-paper); stroke: var(--sp-ink); stroke-width: 1.4; }
 
 /* The one lifted object in the section: the workspace, in miniature. */
 .ld-desk { margin: 0; background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: var(--sp-radius-lg); box-shadow: 0 24px 60px rgba(11, 30, 61, 0.14); overflow: hidden; color: var(--sp-ink); }
@@ -185,7 +197,9 @@
   .ld-desk-main { padding: var(--sp-4); }
   .ld-who-text { gap: var(--sp-5); }
   .ld-hero-tally { gap: var(--sp-3) var(--sp-5); }
-  .ld-roles > li { grid-template-columns: 52px minmax(0, 1fr); column-gap: var(--sp-3); }
+  .ld-levels a { grid-template-columns: 52px minmax(0, 1fr); column-gap: var(--sp-4); row-gap: var(--sp-3); padding: var(--sp-4) 0; }
+  .ld-levels .sg { width: 52px; height: 52px; }
+  .ld-lv-go { grid-column: 2; justify-self: start; }
   .ld-plate { position: relative; inset: auto; height: 58svh; min-height: 340px; max-height: 540px; opacity: 1; }
   .ld-meter { position: relative; right: auto; bottom: auto; justify-content: space-between; background: var(--sp-night); padding: var(--sp-3) var(--sp-gutter); }
   .ld-stage { display: flex; flex-direction: column; }
@@ -256,10 +270,10 @@
     .ld .ld-photos-track li:nth-child(even) { animation-name: ld-fan-b; }
 
     /* Who reads the record: the headline wipes in from the left, then each
-       row is written in after the one above it. The desk lifts beside it. */
+       level is written in after the one above it. The desk lifts beside it. */
     .ld .ld-who-text .sys-head { animation: ld-wipe linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
-    .ld .ld-roles { view-timeline: --ld-roles block; }
-    .ld .ld-roles > li { animation: ld-wipe linear both; animation-timeline: --ld-roles; animation-range: entry calc(var(--i) * 7%) cover calc(10% + var(--i) * 4%); }
+    .ld .ld-levels { view-timeline: --ld-levels block; }
+    .ld .ld-levels > li { animation: ld-wipe linear both; animation-timeline: --ld-levels; animation-range: entry calc(var(--i) * 10%) cover calc(12% + var(--i) * 6%); }
     .ld .ld-desk { transform-origin: 50% 100%; animation: ld-tilt-up linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
 
     /* The close: the line grows into place and the button rises after it. */
@@ -307,3 +321,11 @@
 @keyframes ld-ev-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes ld-ping { 0% { box-shadow: 0 0 0 0 rgba(240, 91, 64, 0.55); } 100% { box-shadow: 0 0 0 8px rgba(240, 91, 64, 0); } }
 @keyframes ld-cell-pulse { 0%, 100% { stroke-width: 1.8; stroke-opacity: 1; } 50% { stroke-width: 4; stroke-opacity: 0.5; } }
+
+/* ── Footer: the brand, then the site index, then the line that closes it ── */
+.ld-foot { background: var(--sp-deep); color: var(--sp-night-text); padding: var(--sp-8) var(--sp-gutter) var(--sp-5); }
+.ld-foot-top { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(0, 3fr); gap: var(--sp-7); max-width: 1440px; margin: 0 auto; }
+.ld-foot-brand { align-self: start; font-size: 26px; font-weight: 700; letter-spacing: -0.04em; color: var(--sp-night-text); text-decoration: none; }
+.ld-foot-brand span { display: block; max-width: 26ch; margin-top: var(--sp-2); font-size: 13px; font-weight: 400; letter-spacing: 0; line-height: 1.5; color: var(--sp-night-dim); }
+.ld-foot-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-3); max-width: 1440px; margin: var(--sp-7) auto 0; padding-top: var(--sp-4); border-top: 1px solid var(--sp-night-line); font-size: 12px; color: var(--sp-night-dim); }
+@media (max-width: 900px) { .ld-foot-top { grid-template-columns: 1fr; gap: var(--sp-6); } }

@@ -1,26 +1,16 @@
-import Link from "next/link";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
+import { FooterIndex } from "./FooterIndex";
 
-/* The legal strip that closes every page outside the console.
-   It was written out by hand in MarketingPage and again would have been
-   written out by hand in the standalone pages, which is how two footers
-   drift apart. One component, one set of links. */
+/* What closes every page outside the console: the site index, then the
+   legal strip. One component, one set of links, so two footers cannot
+   drift apart; the landing footer renders the same index. */
 export function SiteFooter({ className = "" }: { className?: string }) {
   return (
     <footer className={`sp-footer mk-foot ${className}`.trim()}>
+      <FooterIndex />
       <div className="sp-footer-bottom sp-mono">
         <span>STRAYPAW © 2026</span>
-        <span className="sp-footer-links">
-          <Link href="/mission">MISSION</Link>
-          <Link href="/about">ABOUT</Link>
-          <Link href="/evidence">EVIDENCE</Link>
-          <Link href="/changelog">CHANGELOG</Link>
-          <Link href="/data-governance">DATA POLICY</Link>
-          <Link href="/privacy">PRIVACY</Link>
-          <Link href="/terms">TERMS</Link>
-          <Link href="/contact">CONTACT</Link>
-          <FeedbackButton label="FEEDBACK" />
-        </span>
+        <span className="sp-footer-links"><FeedbackButton label="FEEDBACK" /></span>
         <span>BUILT IN INDIA / FOR EVERYWHERE</span>
       </div>
     </footer>

@@ -3,6 +3,8 @@ import { DM_Sans, Newsreader } from "next/font/google";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { FooterIndex } from "@/components/site/FooterIndex";
+import { ScaleGlyph } from "@/components/landing/ScaleGlyph";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { Journey } from "@/components/landing/Journey";
 import { HeroTally } from "@/components/landing/HeroTally";
@@ -41,23 +43,14 @@ const fmt = (n: number) => n.toLocaleString("en-IN");
 const displaySans = DM_Sans({ subsets: ["latin"], axes: ["opsz"], variable: "--font-sans-display", display: "swap" });
 const displaySerif = Newsreader({ subsets: ["latin"], style: ["italic"], axes: ["opsz"], variable: "--font-serif-display", display: "swap" });
 
-/* Who reads the record, from one street up to a whole city, and what each
-   of them does with it. */
-const ROLES = [
-  { level: "Street", rows: [
-    { who: "Neighbours", does: "Report an animal and follow what happens to it.", href: "/report" },
-    { who: "Feeders", does: "Keep a patch: the animals you feed and their care.", href: "/feeder" },
-    { who: "Educators", does: "Teach from what is actually recorded.", href: "/education" },
-  ] },
-  { level: "Field", rows: [
-    { who: "Rescue organisations", does: "Run cases, drives and care from one queue.", href: "/for-ngos" },
-  ] },
-  { level: "City", rows: [
-    { who: "Municipalities", does: "See which wards are covered, and which are not.", href: "/for-governments" },
-    { who: "Funders", does: "Fund an outcome and check it against the record.", href: "/for-funders" },
-    { who: "Researchers", does: "Work from published data and stated methods.", href: "/research-standards" },
-  ] },
-];
+/* Who reads the record, from one street up to a whole city: three levels,
+   one reader group and one thing to do at each. Everyone else it serves is
+   in the footer's index. */
+const LEVELS = [
+  { level: "street", scale: "One street", who: "Residents and feeders", does: "Report an animal, follow what happens to it, keep the patch you feed.", action: "Report an animal", href: "/report" },
+  { level: "field", scale: "One locality", who: "Rescue organisations", does: "Run cases, drives and care from one queue, on records you control.", action: "For NGOs", href: "/for-ngos" },
+  { level: "city", scale: "One city", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "Read a city", href: "/insights" },
+] as const;
 
 export default async function HomePage() {
   const [story, photos] = await Promise.all([getLandingStory(), getPhotoRegister(24)]);
@@ -108,16 +101,20 @@ export default async function HomePage() {
               <header className="sys-head">
                 <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
               </header>
-              <ul className="ld-roles">
-                {ROLES.flatMap((g, gi) => g.rows.map((r, i) => (
-                  <li key={r.href} className={i === 0 ? "is-first" : undefined} style={{ ["--i" as string]: ROLES.slice(0, gi).reduce((n, x) => n + x.rows.length, 0) + i }}>
-                    <span className="ld-roles-level" aria-hidden={i > 0}>{i === 0 ? g.level : ""}</span>
-                    <Link href={r.href}>
-                      <span><b>{r.who}</b><small>{r.does}</small></span>
-                      <ArrowUpRight size={16} aria-hidden />
+              <ul className="ld-levels">
+                {LEVELS.map((l, i) => (
+                  <li key={l.level} style={{ ["--i" as string]: i }}>
+                    <Link href={l.href}>
+                      <ScaleGlyph level={l.level} />
+                      <span className="ld-lv-text">
+                        <small>{l.scale}</small>
+                        <b>{l.who}</b>
+                        <span>{l.does}</span>
+                      </span>
+                      <span className="ld-lv-go">{l.action} <ArrowUpRight size={15} aria-hidden /></span>
                     </Link>
                   </li>
-                )))}
+                ))}
               </ul>
             </div>
             {story?.desk && story.desk.live + story.desk.older > 0 && <DeskMock city={story.hero.city} desk={story.desk} />}
@@ -129,7 +126,13 @@ export default async function HomePage() {
           <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
         </section>
       </main>
-      <footer className="field-footer"><Link href="/" className="field-footer-brand">StrayPaw<span>One shared record, from sighting to outcome.</span></Link><nav aria-label="Footer"><Link href="/mission">Mission</Link><Link href="/for-ngos">For NGOs</Link><Link href="/evidence">Evidence</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link></nav><span>Built with care, in India.<br />© {new Date().getFullYear()} StrayPaw</span></footer>
+      <footer className="ld-foot">
+        <div className="ld-foot-top">
+          <Link href="/" className="ld-foot-brand">StrayPaw<span>One shared record, from sighting to outcome.</span></Link>
+          <FooterIndex />
+        </div>
+        <p className="ld-foot-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>Built with care, in India.</span></p>
+      </footer>
     </div>
   );
 }
