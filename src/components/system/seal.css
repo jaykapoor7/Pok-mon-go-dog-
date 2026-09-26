@@ -1,0 +1,10 @@
+/* The seal of an animal with no photograph: cells on a hatched night ground. */
+.as { position: relative; display: grid; place-items: center; align-content: center; gap: var(--sp-2); width: 100%; height: 100%; background: var(--sp-ink); overflow: hidden; container-type: inline-size; }
+.as::before { content: ""; position: absolute; inset: 0; background-image: var(--sp-hatch-night); opacity: 0.32; }
+.as-mark { position: relative; display: block; width: 46%; max-width: 132px; aspect-ratio: 1; }
+.as-cap { position: relative; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-night-dim); }
+@container (max-width: 150px) { .as-cap { display: none; } }
+.as-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.as-svg .as-on { fill: var(--sp-night-text); stroke: var(--sp-ink); stroke-width: 2; }
+.as-svg .as-off { fill: var(--sp-ink); stroke: var(--sp-night-faint); stroke-width: 1.6; }
+.as-svg .as-l { font-family: var(--font-serif-stack); font-style: italic; font-size: 20px; fill: var(--sp-night-text); }

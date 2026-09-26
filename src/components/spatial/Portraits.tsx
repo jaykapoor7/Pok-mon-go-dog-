@@ -4,8 +4,8 @@
    Street level: the animals by name.
 
    Past zoom 15 the points of light give way to the animals themselves —
-   a round portrait where there is a photograph, a monogram where there is
-   not, ringed flame when the animal needs help and blue when it is
+   a round portrait where there is a photograph, the animal's seal where
+   there is not, ringed flame when the animal needs help and blue when it is
    sterilised on record. They are read a few cells at a time from the
    public view and placed inside their cell (the register does not publish
    a street address), and tapping one opens its card.
@@ -17,6 +17,7 @@ import type { Map as MLMap, Marker } from "maplibre-gl";
 import { ArrowUpRight, X } from "lucide-react";
 import type { SpatialDataset } from "@/lib/spatial/types";
 import { ringOf, pointInCell } from "./data";
+import { AnimalSeal, sealMarkup } from "@/components/system/AnimalSeal";
 
 type Animal = {
   id: string; name: string | null; code: string | null; straypaw_id: string | null; cover_photo: string | null;
@@ -31,8 +32,6 @@ export const nameOf = (a: { name: string | null }) => {
   const n = a.name?.trim();
   return n && !/^(unknown|unnamed|dog|cat|animal|puppy)\b/i.test(n) && !n.includes(" · ") ? n : null;
 };
-/* A plain line drawing, for an animal with neither photograph nor name. */
-export const DOG_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.25 16.25h1.5L12 17z"/><path d="M16 14v.5"/><path d="M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444a11.702 11.702 0 0 0-.493-3.309"/><path d="M8 14v.5"/><path d="M8.5 8.5c-.384 1.05-1.083 2.028-2.344 2.5-1.931.722-3.576-.297-3.656-1-.113-.994 1.177-6.53 4-7 1.923-.321 3.651.845 3.651 2.235A7.497 7.497 0 0 1 14 5.277c0-1.39 1.844-2.598 3.767-2.277 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5"/></svg>';
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = (iso: string | null) => { if (!iso) return null; const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
 const yes = (v: string | null) => !!v && /^(yes|done|sterilised|sterilized|vaccinated|complete|recorded)/i.test(v);
@@ -124,7 +123,7 @@ export function Portraits({ map, ds, on }: { map: MLMap | null; ds: SpatialDatas
     <div className="sm-card" role="dialog" aria-label={name ?? "An animal"}>
       <button type="button" className="sm-card-x" onClick={() => setOpen(null)} aria-label="Close"><X size={15} /></button>
       <div className={`sm-card-ph ${open.cover_photo ? "" : "is-mono"}`}>
-        {open.cover_photo ? <img src={open.cover_photo} alt="" /> : name ? <span>{name.slice(0, 1).toUpperCase()}</span> : <i dangerouslySetInnerHTML={{ __html: DOG_SVG }} />}
+        {open.cover_photo ? <img src={open.cover_photo} alt="" /> : <AnimalSeal seed={open.id} name={name} />}
       </div>
       <div className="sm-card-b">
         <p className="sm-card-code">{open.straypaw_id ?? open.code ?? "On the register"}</p>
@@ -144,8 +143,6 @@ export function Portraits({ map, ds, on }: { map: MLMap | null; ds: SpatialDatas
 function mono(a: Animal) {
   const s = document.createElement("span");
   s.className = "sm-pin-mono";
-  const n = nameOf(a);
-  if (n) s.textContent = n.slice(0, 1).toUpperCase();
-  else { s.classList.add("is-glyph"); s.innerHTML = DOG_SVG; }
+  s.innerHTML = sealMarkup(a.id, nameOf(a));
   return s;
 }

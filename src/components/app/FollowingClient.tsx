@@ -5,7 +5,8 @@ import { DeleteSightingButton } from "@/components/sighting/DeleteSightingButton
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, MapPin, PawPrint } from "lucide-react";
+import { ArrowUpRight, MapPin } from "lucide-react";
+import { AnimalSeal } from "@/components/system/AnimalSeal";
 import { useFollows } from "@/lib/follows";
 import { Constellation } from "@/components/site/vectors";
 import type { Dog } from "@/lib/types";
@@ -152,7 +153,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
                       />
                     ) : (
                       <span className="fl-noimg" aria-hidden="true">
-                        <PawPrint size={20} strokeWidth={1.4} />
+                        <AnimalSeal seed={d.id} name={d.name} />
                       </span>
                     )}
                     {d.needs_help && <i className="fl-badge">Needs help</i>}

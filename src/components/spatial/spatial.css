@@ -345,8 +345,9 @@
 .sm-pin img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
 .sm-pin.is-help { box-shadow: 0 0 0 3px #f05b40, 0 0 0 7px rgba(240, 91, 64, 0.25), 0 6px 16px rgba(0, 0, 0, 0.45); }
 .sm-pin.is-ster { box-shadow: 0 0 0 3px #6f9bff, 0 6px 16px rgba(0, 0, 0, 0.45); }
-.sm-pin.is-mono { background: radial-gradient(circle at 50% 38%, #1b3f80, #0b1e3d 70%); }
-.sm-pin-mono { display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-serif-stack); font-size: 19px; color: #efe7da; }
+.sm-pin.is-mono { background: var(--sp-ink); }
+.sm-pin-mono { display: grid; place-items: center; width: 100%; height: 100%; }
+.sm-pin-mono .as-svg { width: 78%; height: 78%; }
 .sm-pin-name {
   position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis;
   padding: 2px 7px; border-radius: 999px; background: rgba(7, 20, 43, 0.82); color: #efe7da; font: 600 10.5px/1.4 var(--font-sans, system-ui);
@@ -365,8 +366,7 @@
 .sm-card-x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(11, 30, 61, 0.06); color: #0b1e3d; cursor: pointer; }
 .sm-card-ph { width: 96px; height: 96px; border-radius: 14px; overflow: hidden; background: #0b1e3d; }
 .sm-card-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.sm-card-ph.is-mono { display: grid; place-items: center; background: radial-gradient(circle at 50% 38%, #1b3f80, #0b1e3d 70%); }
-.sm-card-ph.is-mono span { font-family: var(--font-serif-stack); font-size: 40px; color: #efe7da; }
+.sm-card-ph.is-mono { display: grid; }
 .sm-card-b { display: grid; align-content: start; gap: 4px; min-width: 0; padding-right: 24px; }
 .sm-card-code { margin: 0; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; color: #5d6b7c; }
 .sm-card-n { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -378,9 +378,6 @@
 .sm-card-seen { margin: 2px 0 0; font-size: 12px; color: #5d6b7c; }
 .sm-card-go { margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: #2457ce; text-decoration: none; }
 @media (max-width: 760px) { .sm-card { bottom: 170px; left: 12px; } .sm-zoomhint { bottom: 190px; } }
-.sm-pin-mono.is-glyph svg { width: 22px; height: 22px; color: #efe7da; }
-.sm-card-ph.is-mono i { display: grid; place-items: center; width: 56px; height: 56px; color: #efe7da; }
-.sm-card-ph.is-mono i svg { width: 56px; height: 56px; }
 .sm-card-tags .is-unk { background: none; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, 0.2); color: #5d6b7c; }
 
 /* ── a tapped place: what matters, and what to do next ───────────── */

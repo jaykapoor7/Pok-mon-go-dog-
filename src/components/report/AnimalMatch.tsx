@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Loader2, PawPrint } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { AnimalSeal } from "@/components/system/AnimalSeal";
 import { nearbyAnimals, type AnimalCandidate } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -112,7 +113,7 @@ export function AnimalMatch({
                     unoptimized
                   />
                 ) : (
-                  <PawPrint className="absolute inset-0 m-auto h-4 w-4 text-bark-300" />
+                  <span className="absolute inset-0"><AnimalSeal seed={a.id} name={a.name} /></span>
                 )}
               </span>
               <span className="min-w-0 flex-1">
