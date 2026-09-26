@@ -28,7 +28,6 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     { label: "Mission", href: "/mission" },
     { label: "Partner NGOs", href: "/orgs" },
     { label: "Evidence", href: "/evidence" },
-    { label: "Changelog", href: "/changelog" },
     { label: "Contact", href: "/contact" },
   ] },
   { title: "Policies", links: [

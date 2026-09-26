@@ -205,7 +205,7 @@
     .ld .ld-who-text .sys-head { animation: ld-wipe linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
     .ld .ld-levels { view-timeline: --ld-levels block; }
     .ld .ld-levels > li { animation: ld-wipe linear both; animation-timeline: --ld-levels; animation-range: entry calc(var(--i) * 10%) cover calc(12% + var(--i) * 6%); }
-    .ld .rl-stage { transform-origin: 50% 100%; animation: ld-tilt-up linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+    .ld .ld-desk { transform-origin: 50% 100%; animation: ld-tilt-up linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
 
     /* The close: the line grows into place and the button rises after it. */
     .ld .ld-close .sys-btn { animation: ld-stop linear both; animation-timeline: view(); animation-range: entry 20% cover 35%; }
@@ -326,6 +326,89 @@
 @keyframes ld-drift-a { from { transform: translateX(0); } to { transform: translateX(-9%); } }
 @keyframes ld-drift-b { from { transform: translateX(-9%); } to { transform: translateX(0); } }
 
+
+/* ── The field desk: the dashboard in miniature, on the hero's night ground ──
+   The queue on the left, the city's cells on the right lighting with each
+   replayed event, and the replay's own dates along the foot. */
+.ld-desk { margin: 0; display: grid; background: var(--sp-night); color: var(--sp-night-text); border: 1px solid var(--sp-night-line); border-radius: var(--sp-radius-lg); box-shadow: 0 30px 70px rgba(7, 20, 43, 0.35); overflow: hidden; }
+.ld-desk-bar { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--sp-night-line); }
+.ld-desk-bar b { font-size: 12.5px; font-weight: 600; }
+.ld-desk-city { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-night-dim); }
+.ld-desk-clock { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--sp-night-line); border-radius: var(--ctl-r); font-size: 10.5px; color: var(--sp-night-text); font-variant-numeric: tabular-nums; }
+.ld-desk-clock i { width: 6px; height: 6px; border-radius: 50%; background: var(--sp-flame); }
+.ld-desk-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+.ld-desk-main { padding: var(--sp-5) var(--sp-5) var(--sp-4); display: grid; gap: var(--sp-3); align-content: start; min-width: 0; }
+.ld-desk-h { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.1; }
+.ld-desk-lede { margin: 0; font-family: var(--font-serif-stack); font-size: 15.5px; line-height: 1.35; color: var(--sp-night-dim); }
+.ld-desk-lede b { font-weight: 500; color: var(--sp-sky); font-variant-numeric: tabular-nums; }
+.ld-desk-lede b.is-hot { color: var(--sp-flame); }
+.ld-desk-inbox { min-height: 50px; }
+.ld-desk-ev { margin: 0; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: 9px var(--sp-3); border-radius: var(--ctl-r-row); background: rgba(239, 231, 218, 0.06); box-shadow: inset 2px 0 0 var(--ev); --ev: var(--sp-sky); }
+.ld-desk-ev.is-new { --ev: var(--sp-flame); background: rgba(240, 91, 64, 0.12); }
+.ld-desk-ev.is-done { --ev: var(--sp-night-text); }
+.ld-desk-ev > i { width: 8px; height: 8px; border-radius: 50%; background: var(--ev); }
+.ld-desk-ev span { display: grid; gap: 1px; min-width: 0; }
+.ld-desk-ev b { font-size: 12.5px; font-weight: 600; }
+.ld-desk-ev small { font-size: 11px; color: var(--sp-night-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ld-desk-ev time { font-size: 10.5px; color: var(--sp-night-dim); }
+.ld-desk-queue { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-night-line); }
+.ld-desk-queue li { display: grid; grid-template-columns: 8px minmax(0, 1fr) minmax(64px, 96px); gap: var(--sp-3); align-items: center; padding: 9px 0; border-bottom: 1px solid var(--sp-night-line); }
+.ld-desk-mark { width: 8px; height: 8px; border-radius: 50%; background: var(--sp-nseq-4); }
+.ld-desk-mark.is-crit { background: var(--sp-flame); }
+.ld-desk-mark.is-due { background: var(--sp-night-text); }
+.ld-desk-what { display: grid; gap: 1px; min-width: 0; }
+.ld-desk-what b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ld-desk-what small { font-size: 11px; color: var(--sp-night-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ld-desk-age { display: grid; gap: 4px; justify-items: end; }
+.ld-desk-age i { display: block; height: 4px; min-width: 3px; border-radius: 2px; background: var(--sp-nseq-4); }
+.ld-desk-age i.is-long { background: var(--sp-flame); }
+.ld-desk-age small { font-size: 10.5px; color: var(--sp-night-dim); white-space: nowrap; }
+.ld-desk-geo { padding: var(--sp-4) var(--sp-4) var(--sp-3); border-left: 1px solid var(--sp-night-line); display: grid; gap: var(--sp-2); align-content: start; }
+.ld-desk-eyebrow { margin: 0; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-night-dim); }
+.ld-desk-geo .sys-plate { width: 100%; height: auto; display: block; }
+.ld-desk-geo .sys-plate path { transition: fill var(--sp-slow) var(--sp-ease), opacity var(--sp-scene) var(--sp-ease); }
+.ld-desk-ping { --ev: var(--sp-sky); }
+.ld-desk-ping.is-new { --ev: var(--sp-flame); }
+.ld-desk-ping.is-done { --ev: var(--sp-night-text); }
+.ld-desk-ring { fill: none; stroke: var(--ev); stroke-width: 1.4; transform-box: fill-box; transform-origin: center; opacity: 0; }
+.ld-desk-dot { fill: var(--ev); }
+.ld-desk-legend { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); font-size: 10.5px; color: var(--sp-night-dim); }
+.ld-desk-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.ld-desk-legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--sp-sky); }
+.ld-desk-legend i.is-new { background: var(--sp-flame); }
+.ld-desk-legend i.is-done { background: var(--sp-night-text); }
+.ld-desk-strip { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--sp-night-line); }
+.ld-desk-strip > span.sys-mono { font-size: 10px; color: var(--sp-night-dim); }
+.ld-desk-track { position: relative; height: 16px; }
+.ld-desk-track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--sp-night-line); }
+.ld-desk-track i { position: absolute; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--sp-night-faint); transition: transform var(--sp-base) var(--sp-ease), background var(--sp-base) var(--sp-ease-io); }
+.ld-desk-track i.is-past.is-new, .ld-desk-track i.is-now.is-new { background: var(--sp-flame); }
+.ld-desk-track i.is-past.is-act, .ld-desk-track i.is-now.is-act { background: var(--sp-sky); }
+.ld-desk-track i.is-past.is-done, .ld-desk-track i.is-now.is-done { background: var(--sp-night-text); }
+.ld-desk-track i.is-now { transform: scale(1.9); }
+.ld-desk-replay { padding: 0 var(--sp-4) var(--sp-3); font-size: 10.5px; color: var(--sp-night-dim); }
+@media (prefers-reduced-motion: no-preference) {
+  .ld-desk:not(.is-calm) .ld-desk-ev { animation: ld-ev-in var(--sp-slow) var(--sp-ease) both; }
+  .ld-desk:not(.is-calm) .ld-desk-ring { animation: ld-desk-ring 1.8s var(--sp-ease) both; }
+  .ld-desk:not(.is-calm) .ld-desk-ring.is-late { animation-delay: 0.45s; }
+  .ld-desk:not(.is-calm) .ld-desk-clock i { animation: ld-desk-blink 1.6s var(--sp-ease-io) infinite; }
+  .ld-desk:not(.is-calm) .ld-desk-queue li { opacity: 0; transform: translateY(8px); transition: opacity var(--sp-slow) var(--sp-ease), transform var(--sp-slow) var(--sp-ease); transition-delay: calc(var(--i, 0) * 90ms + 150ms); }
+  .ld-desk.is-seen:not(.is-calm) .ld-desk-queue li { opacity: 1; transform: none; }
+  .ld-desk:not(.is-calm) .ld-desk-age i { transform-origin: right; transform: scaleX(0); transition: transform var(--sp-scene) var(--sp-ease); transition-delay: calc(var(--i, 0) * 90ms + 300ms); }
+  .ld-desk.is-seen:not(.is-calm) .ld-desk-age i { transform: none; }
+}
+.ld-desk.is-calm .ld-desk-ring { opacity: 0.8; transform: scale(1.8); }
+@keyframes ld-ev-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes ld-desk-ring { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(4.2); } }
+@keyframes ld-desk-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@media (max-width: 960px) {
+  .ld-desk-body { grid-template-columns: 1fr; }
+  .ld-desk-geo { border-left: 0; border-top: 1px solid var(--sp-night-line); }
+  .ld-desk-main { padding: var(--sp-4); }
+  .ld-desk-city { display: none; }
+  .ld-desk-clock { margin-left: auto; }
+}
+
 /* ── One report, three screens ──────────────────────────────────────
    Three drawn screens joined by lines; a flame dot carries the report
    along them. The screen holding the report is lifted; the others rest. */
@@ -388,3 +471,7 @@
   .rl-phone.is-on { min-height: 0; }
   .rl-photo { aspect-ratio: 16 / 7; }
 }
+
+/* The field desk's own section: the heading, then the console at full width. */
+.ld-desk-sec { display: grid; gap: var(--sp-6); }
+.ld-desk-sec .ld-desk { width: 100%; max-width: 1120px; justify-self: center; }

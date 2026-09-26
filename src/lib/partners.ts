@@ -94,7 +94,7 @@ export async function getListedOrganisations(): Promise<{ members: OrgListing[];
    data platform whose records StrayPaw draws on never reads as a partner
    NGO. There is no type column; partner status decides partners, and a
    name decides the rest. */
-export type OrgKind = "Field partner" | "NGO" | "Public body" | "Research" | "Open data";
+export type OrgKind = "Field partner" | "Partner NGO" | "NGO" | "Public body" | "Research" | "Open data";
 
 export function orgKind(name: string, status: string | null | undefined): OrgKind {
   if (status === "operational_partner" || status === "pilot_partner") return "Field partner";
@@ -114,7 +114,12 @@ export async function getPartnerDirectory(): Promise<DirectoryOrg[]> {
     if (seen.has(p.id)) continue; seen.add(p.id);
     out.push({ id: p.id, name: p.name, slug: p.slug, city: p.city, state: p.state, mission: p.mission, website: null, logoUrl: p.logoUrl, kind: "Field partner" });
   }
-  for (const o of [...listed.members, ...listed.sources]) {
+  // Organisations given dashboard access (an invite code or email invite) are partner NGOs.
+  for (const o of listed.members) {
+    if (seen.has(o.id)) continue; seen.add(o.id);
+    out.push({ ...o, kind: "Partner NGO" });
+  }
+  for (const o of listed.sources) {
     if (seen.has(o.id)) continue; seen.add(o.id);
     out.push({ ...o, kind: orgKind(o.name, null) });
   }

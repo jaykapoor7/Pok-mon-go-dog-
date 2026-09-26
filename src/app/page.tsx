@@ -9,6 +9,7 @@ import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
+import { DeskMock } from "@/components/landing/DeskMock";
 import { Relay } from "@/components/landing/Relay";
 import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
 import "@/components/site/site.css";
@@ -86,6 +87,16 @@ export default async function HomePage() {
             rings={story.hero.rings}
             note={story.record.medianFirstAction !== null ? `Across ${story.hero.city}'s ${fmt(story.record.requests)} requests, half had a field team on them ${story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
           />
+        )}
+
+        {story?.desk && story.desk.live + story.desk.older > 0 && (
+          <section className="ld-sec ld-sec-shell ld-desk-sec" aria-labelledby="ld-desk-title">
+            <header className="sys-head">
+              <h2 id="ld-desk-title">The field desk, <em>live from the&nbsp;record.</em></h2>
+              <p>What a field team in {story.hero.city} opens to: its open work, oldest and most urgent first, and the city&apos;s latest events replayed on their own dates.</p>
+            </header>
+            <DeskMock city={story.hero.city} desk={story.desk} />
+          </section>
         )}
 
         <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed animals">

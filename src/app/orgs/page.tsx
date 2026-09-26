@@ -31,7 +31,9 @@ async function withCount(o: DirectoryOrg) {
 export default async function OrgsPage() {
   const [dir, campaigns] = await Promise.all([getPartnerDirectory(), getPublicProgrammes(60).catch(() => [])]);
   const rows = await Promise.all(dir.map(withCount));
-  rows.sort((a, b) => Number(b.o.kind === "Field partner") - Number(a.o.kind === "Field partner") || b.animals + b.cases - (a.animals + a.cases) || a.o.name.localeCompare(b.o.name));
+  // Partners first (field partners, then the other partner NGOs), then the bodies whose data the record draws on.
+  const rank = (k: string) => (k === "Field partner" ? 0 : k === "Partner NGO" ? 1 : 2);
+  rows.sort((a, b) => rank(a.o.kind) - rank(b.o.kind) || b.animals + b.cases - (a.animals + a.cases) || a.o.name.localeCompare(b.o.name));
   const logos = Object.fromEntries(dir.map((o) => [o.slug, o.logoUrl]));
 
   return (
@@ -51,7 +53,7 @@ export default async function OrgsPage() {
                   <b>{o.name}</b>
                   <small>{[o.city, o.state].filter(Boolean).join(", ") || "India"}</small>
                 </span>
-                <span className={`pp-tag ${o.kind === "Field partner" ? "is-partner" : ""}`}>{o.kind}</span>
+                <span className={`pp-tag ${o.kind === "Field partner" || o.kind === "Partner NGO" ? "is-partner" : ""}`}>{o.kind}</span>
                 <span className="pp-dir-n sys-mono">
                   {animals ? `${fmt(animals)} animal${animals === 1 ? "" : "s"}` : cases ? `${fmt(cases)} request${cases === 1 ? "" : "s"}` : null}
                 </span>

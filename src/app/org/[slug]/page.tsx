@@ -8,7 +8,7 @@ import { CampaignStrip } from "@/components/orgs/CampaignStrip";
 import { FootprintMap } from "@/components/orgs/FootprintMap";
 import { PartnerFigures } from "@/components/orgs/PartnerFigures";
 import { givenName } from "@/components/system/AnimalSeal";
-import { getOperationalPartners, orgKind } from "@/lib/partners";
+import { getListedOrganisations, getOperationalPartners, orgKind } from "@/lib/partners";
 import { getPublicOrgAnimals, getPublicOrgBySlug, getPublicOrgImpact, getPublicOrgMapCells } from "@/lib/org-public";
 import { getPublicProgrammes } from "@/lib/public-programmes";
 import "@/components/orgs/partners.css";
@@ -43,16 +43,17 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
   if (!org?.slug) notFound();
   const extra = org as typeof org & { partner_status?: string | null; partnered_at?: string | null };
 
-  const [impact, animals, cells, allCampaigns, partners] = await Promise.all([
+  const [impact, animals, cells, allCampaigns, partners, listed] = await Promise.all([
     getPublicOrgImpact(org.id).catch(() => null),
     getPublicOrgAnimals(org.id, 16).catch(() => []),
     getPublicOrgMapCells(org.id).catch(() => []),
     getPublicProgrammes(250).catch(() => []),
     getOperationalPartners().catch(() => []),
+    getListedOrganisations().catch(() => ({ members: [], sources: [] })),
   ]);
   const partner = partners.find((p) => p.id === org.id);
   const campaigns = allCampaigns.filter((c) => c.ngo_slug === org.slug);
-  const kind = partner ? "Field partner" : orgKind(org.name, extra.partner_status);
+  const kind = partner ? "Field partner" : listed.members.some((m) => m.id === org.id) ? "Partner NGO" : orgKind(org.name, extra.partner_status);
   const since = partner ? month(partner.partneredAt ?? extra.partnered_at) : null;
   const place = [org.city, org.state].filter(Boolean).join(", ") || org.area;
   const figures = impact ? [
