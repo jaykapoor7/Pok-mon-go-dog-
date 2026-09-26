@@ -1,0 +1,7 @@
+.info-prose { font-size: 15px; line-height: 1.72; color: var(--sp-body); }
+.info-prose > * { margin: 0; }
+.info-prose > * + * { margin-top: var(--sp-4); }
+.info-prose h2 { margin-top: var(--sp-7); padding-top: var(--sp-4); border-top: 1px solid var(--sp-line); color: var(--sp-ink); font-size: 22px; line-height: 1.2; letter-spacing: -.02em; font-weight: 620; }
+.info-prose a { color: var(--sp-blue); font-weight: 600; text-underline-offset: 3px; }
+.info-prose ul, .info-prose ol { padding-left: 22px; }
+.info-prose li + li { margin-top: 8px; }

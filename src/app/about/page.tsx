@@ -2,10 +2,6 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { CountFigures } from "@/components/company/CountFigures";
-import { OrgMark } from "@/components/orgs/OrgMark";
-import { getLandingStory } from "@/lib/landing/story";
-import { getPartnerDirectory } from "@/lib/partners";
 import { getSupabase } from "@/lib/supabase";
 import "@/components/site/site.css";
 import "@/components/orgs/partners.css";
@@ -52,14 +48,7 @@ async function getSources() {
 }
 
 export default async function AboutPage() {
-  const [story, dir, sources] = await Promise.all([
-    getLandingStory().catch(() => null),
-    getPartnerDirectory().catch(() => []),
-    getSources().catch(() => []),
-  ]);
-  const ngos = dir.filter((o) => o.kind === "Field partner" || o.kind === "Partner NGO");
-  const contributors = dir.filter((o) => o.kind !== "Field partner" && o.kind !== "Partner NGO");
-  const t = story?.totals;
+  const sources = await getSources().catch(() => []);
 
   return (
     <div className="co">
@@ -71,13 +60,6 @@ export default async function AboutPage() {
               <p className="co-kicker">About StrayPaw</p>
               <h1>One shared record of India&apos;s street animals. <em>Kept by the people who see them.</em></h1>
               <p className="co-lede">Residents report what they see. Field teams work the cases. What was done stays attached to the animal, so the next person, the next team and the next funder can see it.</p>
-              {t && (
-                <CountFigures figures={[
-                  { value: t.animals, label: "animals on the record" },
-                  { value: t.cases, label: "requests for help" },
-                  { value: t.cities, label: "cities" },
-                ]} />
-              )}
             </div>
           </div>
         </section>
@@ -134,46 +116,6 @@ export default async function AboutPage() {
             </div>
           </div>
         </section>
-
-        {(ngos.length > 0 || contributors.length > 0) && (
-          <section className="co-sec is-shell" aria-labelledby="ab-who">
-            <div className="co-sec-in">
-              <header className="co-sec-head">
-                <h2 id="ab-who">Partners and <em>contributors.</em></h2>
-                <p>Partner NGOs keep their field records here. Data contributors are organisations whose published records were imported, with credit.</p>
-              </header>
-              <div>
-                {ngos.length > 0 && (
-                  <ul className="co-orgs">
-                    {ngos.map((o) => (
-                      <li key={o.id}>
-                        <Link href={`/org/${o.slug}`}>
-                          <OrgMark name={o.name} logoUrl={o.logoUrl} size={40} />
-                          <span><b>{o.name}</b><small>{[o.city, o.state].filter(Boolean).join(", ")}</small></span>
-                          <span className="co-orgs-n">Partner NGO</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {contributors.length > 0 && (
-                  <ul className="co-orgs co-orgs-more">
-                    {contributors.slice(0, 10).map((o) => (
-                      <li key={o.id}>
-                        <Link href={`/org/${o.slug}`}>
-                          <OrgMark name={o.name} logoUrl={o.logoUrl} size={32} />
-                          <span><b>{o.name}</b><small>{[o.city, o.state].filter(Boolean).join(", ")}</small></span>
-                          <span className="co-orgs-n">{o.kind}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <p className="co-more"><Link href="/orgs">All partner NGOs and data contributors <ArrowUpRight size={14} /></Link></p>
-              </div>
-            </div>
-          </section>
-        )}
 
         <section className="co-sec" aria-labelledby="ab-priv">
           <div className="co-sec-in">

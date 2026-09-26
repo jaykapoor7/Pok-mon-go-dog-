@@ -1,4 +1,5 @@
-import { BackLink } from "@/components/app/BackLink";
+import { MarketingShell } from "@/components/marketing/MarketingShell";
+import "./info.css";
 
 
 export function InfoPage({
@@ -11,25 +12,17 @@ export function InfoPage({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-2xl">
-      {/* These are documents somebody is sent to from a footer or a
-          form. Before this they carried no link in the body at all:
-          you arrived and the browser was the only way out. */}
-      <BackLink fallback="/" />
-      <h1 className="font-display text-3xl">{title}</h1>
-      {updated && (
-        <p className="mt-1 text-xs text-bark-400">Last updated {updated}</p>
-      )}
-      <div className="prose-straypaw mt-6 space-y-4 text-[15px] leading-relaxed text-bark-700 dark:text-bark-200">
+    <MarketingShell eyebrow="StrayPaw policy" title={title} intro={updated ? `Last updated ${updated}` : undefined}>
+      <div className="info-prose">
         {children}
       </div>
-    </div>
+    </MarketingShell>
   );
 }
 
 export function H2({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-lg text-bark-900 dark:text-bark-50">
+    <h2>
       {children}
     </h2>
   );

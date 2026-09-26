@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import "@/components/site/site.css";
+import { SiteFooter } from "@/components/site/SiteFooter";
 import { BackLink } from "@/components/app/BackLink";
+import "@/components/site/site.css";
+import "./shell.css";
 
-/** Public pages share the same navigation as the landing page. */
+/** A shared editorial shell for the quieter public pages and policies. */
 export function MarketingShell({
   eyebrow,
   title,
@@ -19,34 +19,27 @@ export function MarketingShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="sp relative min-h-dvh bg-paper text-bark-900 dark:bg-ink dark:text-bark-50">
+    <div className="sp ms">
       <SiteHeader />
-      {/* The header carries the site nav, but nothing on these pages
-          said "back" — and somebody who arrived from a link in the
-          product rather than from the nav has no idea the nav is
-          even the way out. */}
-      <div className="relative z-10 mx-auto w-full max-w-5xl px-5 pt-24 sm:px-8">
-        <BackLink fallback="/" />
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-paw-50/70 dark:bg-paw-900/15"
-      />
-      <main className={`relative mx-auto px-5 pb-24 pt-28 sm:pt-32 ${wide ? "max-w-5xl" : "max-w-3xl"}`}>
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600">
-          <ArrowLeft className="h-4 w-4" /> Home
-        </Link>
-        {eyebrow && (
-          <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-paw-600">{eyebrow}</p>
-        )}
-        <h1 className="mt-2 font-display text-4xl leading-[1.05] tracking-tightest sm:text-5xl">
-          {title}
-        </h1>
-        {intro && (
-          <p className="mt-4 text-lg leading-relaxed text-bark-600 dark:text-bark-300">{intro}</p>
-        )}
-        <div className="mt-8">{children}</div>
+      <main className={wide ? "ms-main is-wide" : "ms-main"}>
+        <header className="ms-head">
+          <div className="ms-copy">
+            <BackLink fallback="/" />
+            {eyebrow && <p className="ms-kicker">{eyebrow}</p>}
+            <h1>{title}</h1>
+            {intro && <p className="ms-intro">{intro}</p>}
+          </div>
+          <div className="ms-geometry" aria-hidden>
+            <span className="is-a" />
+            <span className="is-b" />
+            <span className="is-c" />
+            <i />
+            <b>record · place · source</b>
+          </div>
+        </header>
+        <div className="ms-body">{children}</div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

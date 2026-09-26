@@ -1,0 +1,122 @@
+.ms {
+  min-height: 100svh;
+  background: var(--sp-bone);
+  color: var(--sp-ink);
+}
+
+.ms-main {
+  width: min(calc(100% - 2 * var(--sp-gutter)), 820px);
+  margin: 0 auto;
+  padding: var(--sp-6) 0 var(--sp-section);
+}
+
+.ms-main.is-wide {
+  width: min(calc(100% - 2 * var(--sp-gutter)), 1120px);
+}
+
+.ms-head {
+  min-height: 350px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--sp-7);
+  align-items: center;
+  padding-bottom: var(--sp-7);
+  border-bottom: 1px solid var(--sp-ink);
+}
+
+.ms-copy {
+  display: grid;
+  justify-items: start;
+}
+
+.ms-copy > a:first-child { margin-bottom: var(--sp-7); }
+.ms-kicker {
+  margin: 0 0 var(--sp-3);
+  font: 600 10.5px var(--font-mono), ui-monospace, monospace;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--sp-blue);
+}
+
+.ms h1 {
+  margin: 0;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: .98;
+  letter-spacing: -.048em;
+  font-weight: 620;
+  text-wrap: balance;
+}
+
+.ms-intro {
+  max-width: 680px;
+  margin: var(--sp-4) 0 0;
+  font-size: clamp(16px, 1.8vw, 19px);
+  line-height: 1.55;
+  color: var(--sp-body);
+}
+
+.ms-geometry {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  background-image:
+    linear-gradient(rgba(11, 30, 61, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 30, 61, .07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  border: 1px solid var(--sp-line);
+}
+
+.ms-geometry span {
+  position: absolute;
+  width: 58px;
+  height: 50px;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  background: var(--sp-seq-2);
+}
+
+.ms-geometry .is-a { left: 32px; top: 52px; }
+.ms-geometry .is-b { left: 88px; top: 84px; background: var(--sp-seq-4); }
+.ms-geometry .is-c { right: 38px; bottom: 58px; background: var(--sp-flame); }
+.ms-geometry i {
+  position: absolute;
+  left: 78px;
+  top: 102px;
+  width: 116px;
+  height: 88px;
+  border-right: 1.5px dashed var(--sp-ink);
+  border-bottom: 1.5px dashed var(--sp-ink);
+  transform: skew(22deg);
+}
+.ms-geometry b {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  font: 500 9px var(--font-mono), ui-monospace, monospace;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--sp-muted);
+}
+
+.ms-body { padding-top: var(--sp-7); }
+
+@media (max-width: 760px) {
+  .ms-main,
+  .ms-main.is-wide { width: min(calc(100% - 40px), 1120px); padding-top: var(--sp-4); }
+  .ms-head {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: var(--sp-4);
+    padding: var(--sp-4) 0 var(--sp-6);
+  }
+  .ms-copy > a:first-child { margin-bottom: var(--sp-6); }
+  .ms h1 { font-size: clamp(40px, 13vw, 58px); }
+  .ms-intro { font-size: 15px; }
+  .ms-geometry { width: 104px; height: 122px; background-size: 20px 20px; }
+  .ms-geometry span { width: 34px; height: 29px; }
+  .ms-geometry .is-a { left: 10px; top: 18px; }
+  .ms-geometry .is-b { left: 38px; top: 38px; }
+  .ms-geometry .is-c { right: 9px; bottom: 25px; }
+  .ms-geometry i { left: 31px; top: 45px; width: 46px; height: 36px; }
+  .ms-geometry b { display: none; }
+  .ms-body { padding-top: var(--sp-6); }
+}

@@ -96,6 +96,11 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
           )}
         </header>
 
+        <p className="op-context">
+          <span className="sys-mono">Public organisation record</span>
+          Identity and contact information come from the organisation listing. Figures, animals and coverage appear only where a published StrayPaw record supports them.
+        </p>
+
         {figures.length > 0 && (
           <section className="op-sec" aria-labelledby="op-fig-h">
             <h2 id="op-fig-h" className="op-h">On StrayPaw</h2>

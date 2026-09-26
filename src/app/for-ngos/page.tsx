@@ -3,11 +3,9 @@ import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { DeskMock } from "@/components/landing/DeskMock";
-import { CountFigures } from "@/components/company/CountFigures";
 import { OrgMark } from "@/components/orgs/OrgMark";
 import { getLandingStory } from "@/lib/landing/story";
-import { getOperationalPartners, getPartnerDirectory } from "@/lib/partners";
-import { getPublicOrgImpact } from "@/lib/org-public";
+import { getPartnerDirectory } from "@/lib/partners";
 import { getKindHour } from "@/lib/kind-hour";
 import "@/components/site/site.css";
 import "@/components/landing/landing.css";
@@ -28,26 +26,21 @@ export const metadata = {
    terms in plain words. Every figure is live.
    ════════════════════════════════════════════════════════════════════ */
 
-const fmt = (n: number) => n.toLocaleString("en-IN");
-
 export default async function ForNgosPage() {
-  const [story, partners, dir, kh] = await Promise.all([
+  const [story, dir, kh] = await Promise.all([
     getLandingStory().catch(() => null),
-    getOperationalPartners().catch(() => []),
     getPartnerDirectory().catch(() => []),
     getKindHour().catch(() => null),
   ]);
   const ex = kh?.example ?? null;
-  const lead = partners[0] ?? null;
-  const impact = lead ? await getPublicOrgImpact(lead.id).catch(() => null) : null;
   const ngos = dir.filter((o) => o.kind === "Field partner" || o.kind === "Partner NGO");
 
   const rows = [
-    { t: "Cases", d: "Community reports and your own intakes become one queue: assigned, followed up, closed with an outcome.", proof: impact?.caseRecords ? { n: impact.caseRecords, l: "requests worked" } : null },
-    { t: "Animals", d: "Every animal keeps one StrayPaw ID, with its photographs, place, cases and care attached to it.", proof: impact?.animalsRecorded ? { n: impact.animalsRecorded, l: "animals on record" } : null },
-    { t: "Care and programmes", d: "Treatment, vaccination and sterilisation, and the drives and programmes they belong to, recorded as they happen.", proof: impact?.sterilised ? { n: impact.sterilised, l: "sterilised, on record" } : null },
-    { t: "Reports", d: "Map patterns, evidence workbooks and government-ready reports, from the records your team already keeps.", proof: impact?.resolvedCases ? { n: impact.resolvedCases, l: "closed after field work" } : null },
-    { t: "Imports", d: "Bring the registers you already use. Each sheet is mapped and checked before anything is added.", proof: kh?.source ? { n: kh.source.lines, l: "register lines imported for The Kind Hour Foundation" } : null },
+    { t: "Cases", d: "Community reports and your own intakes become one queue: assigned, followed up, closed with an outcome." },
+    { t: "Animals", d: "Every animal keeps one StrayPaw ID, with its photographs, place, cases and care attached to it." },
+    { t: "Care and programmes", d: "Treatment, vaccination and sterilisation, and the drives and programmes they belong to, recorded as they happen." },
+    { t: "Reports", d: "Map patterns, evidence workbooks and government-ready reports, from the records your team already keeps." },
+    { t: "Imports", d: "Bring the registers you already use. Each sheet is mapped and checked before anything is added." },
   ];
 
   return (
@@ -73,14 +66,14 @@ export default async function ForNgosPage() {
           <div className="co-sec-in">
             <header className="co-sec-head">
               <h2 id="co-what">What the Field Workspace <em>holds.</em></h2>
-              <p>The parts of field work nobody funds and everybody needs, kept in one place.{lead ? ` Figures are ${lead.name}'s record today.` : ""}</p>
+              <p>The parts of field work nobody funds and everybody needs, kept in one place.</p>
             </header>
             <ol className="co-rows">
               {rows.map((r, i) => (
                 <li key={r.t}>
                   <span className="co-n">{String(i + 1).padStart(2, "0")}</span>
                   <span><b>{r.t}</b><p>{r.d}</p></span>
-                  {r.proof ? <span className="co-proof"><strong>{fmt(r.proof.n)}</strong>{r.proof.l}</span> : <span />}
+                  <span />
                 </li>
               ))}
             </ol>
@@ -141,12 +134,7 @@ export default async function ForNgosPage() {
             <div className="co-sec-in">
               <header className="co-sec-head">
                 <h2 id="co-who">Partner NGOs, <em>on the record.</em></h2>
-                {lead && impact && impact.animalsRecorded > 0 && (
-                  <CountFigures figures={[
-                    { value: impact.animalsRecorded, label: `animals on ${lead.name}'s record` },
-                    ...(impact.resolvedCases ? [{ value: impact.resolvedCases, label: "closed after field work" }] : []),
-                  ]} />
-                )}
+                <p>Organisations keep their own public identity and records. Open one to see its published coverage and work.</p>
               </header>
               <div>
                 <ul className="co-orgs">

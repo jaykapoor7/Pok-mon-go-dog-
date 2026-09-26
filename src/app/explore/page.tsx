@@ -3,10 +3,8 @@ import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { LightsMap } from "@/components/system/LightsMap";
-import { CountFigures } from "@/components/company/CountFigures";
 import { getPublicDataset } from "@/lib/spatial/server";
 import { A, A_STRIDE, C_STRIDE, countOf } from "@/lib/spatial/types";
-import { getSupabase } from "@/lib/supabase";
 import "@/components/site/site.css";
 import "@/components/company/company.css";
 import "./explore.css";
@@ -29,19 +27,8 @@ export const metadata = {
 const INDIA: [number, number, number, number] = [68.0, 6.5, 97.5, 35.8];
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
-async function counts() {
-  const supa = getSupabase();
-  if (!supa) return { stories: 0, sources: 0, sourceRecords: 0 };
-  const [{ count: stories }, { data: src }] = await Promise.all([
-    supa.from("public_case_stories").select("id", { count: "exact", head: true }),
-    supa.from("data_sources").select("published_record_count"),
-  ]);
-  const rows = (src ?? []) as { published_record_count: number | null }[];
-  return { stories: stories ?? 0, sources: rows.length, sourceRecords: rows.reduce((n, r) => n + (r.published_record_count ?? 0), 0) };
-}
-
 export default async function ExplorePage() {
-  const [ds, c] = await Promise.all([getPublicDataset(null).catch(() => null), counts().catch(() => ({ stories: 0, sources: 0, sourceRecords: 0 }))]);
+  const ds = await getPublicDataset(null).catch(() => null);
   const animals = ds ? countOf(ds.animals, A_STRIDE) : 0;
   const cases = ds ? countOf(ds.cases, C_STRIDE) : 0;
   /* One light per recorded cell, at its centre: the finest the public
@@ -55,10 +42,10 @@ export default async function ExplorePage() {
   const rest = cities.slice(10);
 
   const doors = [
-    { href: "/map", k: "Map", n: animals, l: "animals, each in its cell", d: "Every recorded animal on the streets it lives on, with its cases and care. Filter by what was done and when." },
-    { href: "/insights", k: "Insights", n: ds?.localities.length ?? 0, l: "localities with a brief", d: "One place at a time: what is recorded there, what was done, how fast, and what is still unknown." },
-    { href: "/stories", k: "Stories", n: c.stories, l: "rescues told by their record", d: "Rescues with an issue, care and an outcome, followed from the day they were reported to the day they ended." },
-    { href: "/evidence", k: "Evidence", n: c.sources, l: "published sources", d: "Where every imported record came from, its licence, and what the public evidence does and does not say." },
+    { href: "/map", k: "Map", d: "Every recorded animal on the streets it lives on, with its cases and care. Filter by what was done and when." },
+    { href: "/insights", k: "Insights", d: "One place at a time: what is recorded there, what was done, how fast, and what is still unknown." },
+    { href: "/stories", k: "Stories", d: "Rescues with an issue, care and an outcome, followed from the day it was reported to the day it ended." },
+    { href: "/evidence", k: "Evidence", d: "Where every imported record came from, its licence, and what the public evidence does and does not say." },
   ];
 
   return (
@@ -73,11 +60,6 @@ export default async function ExplorePage() {
             <p className="co-kicker">Explore the record</p>
             <h1 id="ex-title">What is recorded, <em>and&nbsp;where.</em></h1>
             <p className="co-lede">Each light is a place of about 0.7 km² with at least one street animal on the record. Recorded animals, not population: a dark place has not been recorded, not found empty.</p>
-            <CountFigures figures={[
-              { value: animals, label: "animals on the record" },
-              { value: perCell.size, label: "places lit" },
-              { value: cities.length, label: "cities" },
-            ]} />
             <p className="co-acts">
               <Link href="/map" className="sys-btn is-flame">Open the live map <ArrowUpRight size={15} /></Link>
               <Link href="/insights" className="co-link">Read one place <ArrowUpRight size={14} /></Link>
@@ -120,8 +102,6 @@ export default async function ExplorePage() {
                 <li key={d.href}>
                   <Link href={d.href}>
                     <small>{d.k}</small>
-                    <strong>{fmt(d.n)}</strong>
-                    <span className="ex-ways-l">{d.l}</span>
                     <p>{d.d}</p>
                     <span className="ex-go">Open {d.k.toLowerCase()} <ArrowUpRight size={14} aria-hidden /></span>
                   </Link>
