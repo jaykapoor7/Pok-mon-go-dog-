@@ -171,5 +171,12 @@ async function render() {
   await run("ffmpeg", args);
 }
 
-await makeCards();
-await render();
+async function main() {
+  await makeCards();
+  await render();
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
