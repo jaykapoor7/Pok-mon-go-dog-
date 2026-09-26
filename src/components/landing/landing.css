@@ -195,10 +195,6 @@
 
 
 
-    /* Photographs: the rows of the wall drift against each other. */
-    .ld .ld-hive-wall { view-timeline: --ld-hive block; }
-    .ld .ld-hive-row { animation: ld-drift-a linear both; animation-timeline: --ld-hive; animation-range: entry 0% exit 100%; }
-    .ld .ld-hive-row.is-odd { animation-name: ld-drift-b; }
 
     /* Who reads the record: the headline wipes in from the left, then each
        level is written in after the one above it. The desk lifts beside it. */
@@ -283,37 +279,10 @@
 .ld-dive.is-calm .ld-dive-stage { position: relative; height: auto; min-height: 100svh; }
 .ld-dive.is-calm .ld-dive-steps li { opacity: 1; }
 
-/* ── Photographed onto the record: a wall of the map's cells ─────── */
-.ld-hive { display: grid; gap: var(--sp-5); }
-.ld-hive-head { display: grid; gap: var(--sp-2); }
-.ld-hive-title { margin: 0; font-size: clamp(28px, 3.4vw, 44px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 600; }
-.ld-hive-title em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; color: var(--sp-blue); }
-.ld-hive-head p { margin: 0; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sp-muted); }
-.ld-hive-wall { --hw: clamp(120px, calc((100vw - 2 * var(--sp-gutter)) / 8.6), 184px); --hg: 6px; overflow: hidden; margin: 0 calc(-1 * var(--sp-gutter)); padding: var(--sp-2) 0; }
-.ld-hive-row { display: flex; gap: var(--hg); margin: 0; padding: 0 0 0 var(--sp-gutter); list-style: none; width: max-content; }
-.ld-hive-row + .ld-hive-row { margin-top: calc(var(--hw) * -0.2887 + var(--hg) * 0.866); }
-.ld-hive-row.is-odd { padding-left: calc(var(--sp-gutter) + (var(--hw) + var(--hg)) / 2); }
-.ld-hive-row li { flex: none; width: var(--hw); height: calc(var(--hw) * 1.1547); }
-.ld-hive-row a { position: relative; display: block; width: 100%; height: 100%; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--sp-shell); }
-.ld-hive-row img { object-fit: cover; transition: transform var(--sp-slow) var(--sp-ease), filter var(--sp-base) var(--sp-ease-io); }
 @media (hover: hover) and (pointer: fine) {
-  .ld-hive-wall:hover img { filter: saturate(0.55) brightness(0.92); }
-  .ld-hive-row a:hover img, .ld-hive-row a:focus-visible img { filter: none; transform: scale(1.06); }
 }
-.ld-hive-row a:focus-visible { outline: none; }
-.ld-hive-row a:focus-visible::after { content: ""; position: absolute; inset: 0; background: none; box-shadow: inset 0 0 0 4px var(--sp-blue); }
-.ld-hive-cap { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--sp-rule); min-height: 44px; }
-.ld-hive-cap b { font-size: 15px; font-weight: 600; }
-.ld-hive-cap span { font-size: 13px; color: var(--sp-muted); }
-.ld-hive-cap .sys-mono { font-size: 11.5px; color: var(--sp-blue); }
-.ld-hive-map { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
 @media (max-width: 760px) {
-  .ld-hive-wall { --hw: 96px; --hg: 4px; }
-  .ld-hive-map { margin-left: 0; width: 100%; }
 }
-@media (pointer: coarse) { .ld-hive-map { min-height: var(--ctl-h); } }
-@keyframes ld-drift-a { from { transform: translateX(0); } to { transform: translateX(-9%); } }
-@keyframes ld-drift-b { from { transform: translateX(-9%); } to { transform: translateX(0); } }
 
 
 /* ── The field desk: the dashboard in miniature, on the hero's night ground ──
@@ -485,4 +454,44 @@
    ground rises there so its words never cross a street label. */
 @media (min-width: 761px) {
   .ld-dive-stage::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 58vw); z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 55%, rgba(7, 20, 43, 0) 100%); }
+}
+
+/* ── Photographed onto the record: a night tour of the city's animals ──
+   The map on the hero's night ground, portraits at their cells, a large
+   print of the animal the camera is on, and a strip to choose any. */
+.ld-tour { display: grid; gap: var(--sp-5); }
+.ld-tour-head { display: grid; gap: var(--sp-2); }
+.ld-tour-title { margin: 0; font-size: clamp(28px, 3.4vw, 44px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 600; }
+.ld-tour-title em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; color: var(--sp-blue); }
+.ld-tour-head p { margin: 0; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sp-muted); }
+.ld-tour-stage { position: relative; height: min(640px, 76svh); border-radius: var(--sp-radius-lg); overflow: hidden; background: var(--sp-night); box-shadow: 0 30px 70px rgba(7, 20, 43, 0.3); }
+.ld-tour-map { position: absolute; inset: 0; }
+.ld-tour-map .maplibregl-ctrl-attrib, .ld-tour-map .maplibregl-ctrl-attrib a { color: var(--sp-night-faint) !important; background: transparent !important; font-size: 10px; }
+.ld-tour-map .maplibregl-ctrl-attrib-button { filter: invert(1); opacity: 0.4; }
+.ld-tour-pin { width: 34px; height: 34px; padding: 0; border: 2px solid var(--sp-night-text); border-radius: 50%; overflow: hidden; background: var(--sp-ink); cursor: pointer; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45); transition: width var(--sp-base) var(--sp-ease), height var(--sp-base) var(--sp-ease), border-color var(--sp-base) var(--sp-ease-io); }
+.ld-tour-pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ld-tour-pin.is-on { width: 58px; height: 58px; border-color: var(--sp-flame); z-index: 2; }
+.ld-tour-print { position: absolute; z-index: 2; left: var(--sp-5); top: var(--sp-5); bottom: var(--sp-5); width: min(360px, 34%); margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 24px 50px rgba(0, 0, 0, 0.4); }
+.ld-tour-photo { display: block; min-height: 0; border-radius: var(--sp-radius-sm); overflow: hidden; background: var(--sp-shell); animation: ld-tour-in var(--sp-slow) var(--sp-ease) both; }
+.ld-tour-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ld-tour-print figcaption { display: grid; gap: 3px; padding: 0 var(--sp-1) var(--sp-1); }
+.ld-tour-print b { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+.ld-tour-print span { font-size: 13px; color: var(--sp-muted); }
+.ld-tour-print .ld-tour-id { font-size: 11.5px; color: var(--sp-blue); }
+.ld-tour-go { margin-top: var(--sp-2); display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+.ld-tour-strip { margin: 0; padding: 2px 2px var(--sp-2); list-style: none; display: flex; gap: var(--sp-2); overflow-x: auto; scrollbar-width: none; }
+.ld-tour-strip::-webkit-scrollbar { display: none; }
+.ld-tour-strip button { flex: none; width: 56px; height: 56px; padding: 0; border: 0; border-radius: 50%; overflow: hidden; cursor: pointer; opacity: 0.55; box-shadow: 0 0 0 2px transparent; transition: opacity var(--sp-base) var(--sp-ease-io), box-shadow var(--sp-base) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io); }
+.ld-tour-strip button img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ld-tour-strip button.is-on { opacity: 1; box-shadow: 0 0 0 2px var(--sp-shell), 0 0 0 4px var(--sp-flame); }
+.ld-tour-strip button:active { transform: var(--ctl-press); }
+@media (hover: hover) and (pointer: fine) { .ld-tour-strip button:hover { opacity: 1; } }
+@keyframes ld-tour-in { from { opacity: 0; transform: scale(1.03); } }
+@media (prefers-reduced-motion: reduce) { .ld-tour-photo { animation: none; } .ld-tour-pin { transition: none; } }
+@media (max-width: 760px) {
+  .ld-tour-stage { height: auto; display: grid; }
+  .ld-tour-map { position: relative; height: 300px; }
+  .ld-tour-print { position: relative; inset: auto; width: auto; margin: 0; border-radius: 0; box-shadow: none; grid-template-rows: auto auto; grid-template-columns: 112px minmax(0, 1fr); align-items: center; }
+  .ld-tour-photo { height: 112px; }
+  .ld-tour-strip button { width: 48px; height: 48px; }
 }
