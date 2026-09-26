@@ -242,16 +242,6 @@
    plate is drawn night, like the hero it continues from. */
 .ld-dive { position: relative; height: 320svh; background: var(--sp-night); color: var(--sp-night-text); }
 .ld-dive-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-.ld-dive-plate { position: absolute; inset: 0; width: 100%; height: 100%; }
-.ld-dive-cell { fill: var(--sp-nseq-2); fill-opacity: 0.55; stroke: var(--sp-night); stroke-width: 0.7; vector-effect: non-scaling-stroke; }
-.ld-dive-target { stroke: var(--sp-night-text); stroke-width: 1.6; vector-effect: non-scaling-stroke; transition: fill var(--sp-slow) var(--sp-ease); }
-.ld-dive-target.is-r, .ld-dive-target.is-a { fill: var(--sp-flame); }
-.ld-dive-target.is-c { fill: var(--sp-sky); }
-.ld-dive-target.is-e { fill: var(--sp-night-text); }
-.ld-dive-ring { fill: none; stroke-width: 1.4; vector-effect: non-scaling-stroke; stroke: var(--sp-flame); opacity: 0.55; transform-box: fill-box; transform-origin: center; animation: ld-dive-pulse 2.4s var(--sp-ease-io) infinite; }
-.ld-dive-ring.is-c { stroke: var(--sp-sky); }
-.ld-dive-ring.is-e { stroke: var(--sp-night-text); animation: none; opacity: 0.4; }
-@keyframes ld-dive-pulse { 0% { transform: scale(0.9); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0; } }
 
 .ld-dive-panel { position: absolute; left: var(--sp-gutter); top: 50%; transform: translateY(-50%); width: min(440px, 40vw); display: grid; gap: var(--sp-4); }
 .ld-dive-kicker { margin: 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-night-dim); }
@@ -292,7 +282,6 @@
 .ld-dive.is-calm { height: auto; }
 .ld-dive.is-calm .ld-dive-stage { position: relative; height: auto; min-height: 100svh; }
 .ld-dive.is-calm .ld-dive-steps li { opacity: 1; }
-.ld-dive.is-calm .ld-dive-ring { animation: none; }
 
 /* ── Photographed onto the record: a wall of the map's cells ─────── */
 .ld-hive { display: grid; gap: var(--sp-5); }
@@ -475,3 +464,25 @@
 /* The field desk's own section: the heading, then the console at full width. */
 .ld-desk-sec { display: grid; gap: var(--sp-6); }
 .ld-desk-sec .ld-desk { width: 100%; max-width: 1120px; justify-self: center; }
+
+/* The dive's street map, and the request's own light on it. */
+.ld-dive-map { position: absolute; inset: 0; }
+.ld-dive-map .maplibregl-ctrl-attrib, .ld-dive-map .maplibregl-ctrl-attrib a { color: var(--sp-night-faint) !important; background: transparent !important; font-size: 10px; }
+.ld-dive-map .maplibregl-ctrl-attrib-button { filter: invert(1); opacity: 0.4; }
+.ld-dive-mark { --ev: var(--sp-flame); position: relative; width: 18px; height: 18px; pointer-events: none; }
+.ld-dive-mark.is-c { --ev: var(--sp-sky); }
+.ld-dive-mark.is-e { --ev: var(--sp-night-text); }
+.ld-dive-mark b { position: absolute; inset: 3px; border-radius: 50%; background: var(--ev); box-shadow: 0 0 0 2px var(--sp-night); transition: background var(--sp-slow) var(--sp-ease); }
+.ld-dive-mark i { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--ev); opacity: 0; }
+.ld-dive-mark.is-here i { animation: ld-dive-ping 2.4s var(--sp-ease) infinite; }
+.ld-dive-mark.is-here i + i { animation-delay: 1.2s; }
+.ld-dive-mark.is-e.is-here i { animation: none; opacity: 0.5; transform: scale(1.8); }
+@keyframes ld-dive-ping { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(4.5); } }
+.ld-dive.is-calm .ld-dive-mark i { animation: none; opacity: 0.5; transform: scale(1.8); }
+.ld-dive-panel { z-index: 2; }
+@media (min-width: 761px) { .ld-dive-panel { padding: var(--sp-5) var(--sp-5) var(--sp-5) 0; } }
+/* On a wide screen the panel sits over the map's left edge: the night
+   ground rises there so its words never cross a street label. */
+@media (min-width: 761px) {
+  .ld-dive-stage::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 58vw); z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 55%, rgba(7, 20, 43, 0) 100%); }
+}

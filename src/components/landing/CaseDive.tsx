@@ -1,22 +1,26 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   One request, followed to the end: a dive from the city into one cell.
+   One request, followed to the end: a dive from the city into one street.
 
-   The section holds still while it scrolls. First the city's cells, as the
-   hero drew them, close in on the one cell a real request came from. Then
-   the request is told by its own dates: a day counter runs from the report
-   to the close, and each step is written in on the day it happened, the
-   cell changing with it (reported, a team on site, care, closed).
+   The section holds still while it scrolls. It opens on the city as the
+   hero draws it, every record a point of light on the night streets; then
+   the camera flies down into the street a real request came from, and the
+   request is told by its own dates: a day counter runs from the report to
+   the close, each step is written in on its day, and the request's light
+   changes with it (flame when reported and while a team is on it, blue
+   with care, cream when closed).
 
-   Everything is the record's own: the condition, the locality, the days.
-   The cell is the finest place the public record gives. Under reduced
-   motion the section does not hold: it opens on the cell with every step
-   written in.
+   The condition, the locality, the days are the record's own, and the
+   light sits in the request's cell, the finest place the public record
+   gives. Under reduced motion the section does not hold: it opens on the
+   street with every step written in.
    ════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { projector, type Box } from "@/components/system/HexPlate";
+import type { Map as MLMap, Marker, ExpressionSpecification } from "maplibre-gl";
+import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { pointInCell } from "@/components/spatial/data";
 
 type Journey = {
   condition: string; locality: string; ring: number[];
@@ -30,10 +34,14 @@ const when = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate(
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const DAY = 86_400_000;
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
-const ease = (x: number) => 1 - Math.pow(1 - x, 3);
-const V = 1000; // the plate's square viewBox
+const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const Z_STREET = 15.6;
 
-export function CaseDive({ j, city, box, rings, note }: { j: Journey; city: string; box: Box; rings: number[][]; note?: string }) {
+export function CaseDive({ j, city, box, rings, events, note }: {
+  j: Journey; city: string; box: [number, number, number, number]; rings: number[][];
+  /** Flat [cellIndex, day, kind], as the hero plate takes them. */
+  events: number[]; note?: string;
+}) {
   const steps = useMemo(() => {
     const start = Date.parse(j.reported);
     const day = (iso: string) => Math.max(0, Math.round((Date.parse(iso) - start) / DAY));
@@ -44,91 +52,96 @@ export function CaseDive({ j, city, box, rings, note }: { j: Journey; city: stri
       { key: "e", day: j.days, at: j.closed, what: j.closure === "recovered" ? "Recovered, case closed" : "Closed after field work", detail: `${plural(j.days, "day")} from the first report` },
     ];
   }, [j]);
-
-  /* The plate: the city projected into a square, and the request's cell. */
-  const plate = useMemo(() => {
-    // The opening frame holds the whole city and the request's own cell, even one at the edge of it.
-    let [w0, s0, e0, n0] = box;
-    for (let i = 0; i < j.ring.length; i += 2) { w0 = Math.min(w0, j.ring[i]); e0 = Math.max(e0, j.ring[i]); s0 = Math.min(s0, j.ring[i + 1]); n0 = Math.max(n0, j.ring[i + 1]); }
-    const p = projector([w0, s0, e0, n0], V, V, 90).p;
-    const path = (ring: number[]) => { let d = ""; for (let i = 0; i < ring.length; i += 2) { const [x, y] = p(ring[i], ring[i + 1]); d += `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`; } return d + "Z"; };
-    const pts = (ring: number[]) => { const out: [number, number][] = []; for (let i = 0; i < ring.length; i += 2) out.push(p(ring[i], ring[i + 1])); return out; };
-    const cell = pts(j.ring);
-    const cx = cell.reduce((s, q) => s + q[0], 0) / cell.length, cy = cell.reduce((s, q) => s + q[1], 0) / cell.length;
-    const w = Math.max(...cell.map((q) => q[0])) - Math.min(...cell.map((q) => q[0]));
-    return { cells: rings.map(path), target: path(j.ring), c: [cx, cy] as [number, number], w: Math.max(4, w) };
-  }, [box, rings, j.ring]);
-
   const spans = useMemo(() => {
     const edge = [0];
     for (let k = 1; k < steps.length; k++) edge.push(edge[k - 1] + 1 + (3 * (steps[k].day - steps[k - 1].day)) / Math.max(1, j.days));
     return { edge, total: edge[edge.length - 1] };
   }, [steps, j.days]);
 
+  /* The request's light: the centre of its cell. */
+  const target = useMemo<[number, number]>(() => {
+    let x = 0, y = 0; const n = j.ring.length / 2;
+    for (let i = 0; i < j.ring.length; i += 2) { x += j.ring[i]; y += j.ring[i + 1]; }
+    return [x / n, y / n];
+  }, [j.ring]);
+
   const sec = useRef<HTMLElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
-  const cam = useRef<SVGGElement>(null);
+  const mapEl = useRef<HTMLDivElement>(null);
+  const markEl = useRef<HTMLDivElement>(null);
   const [calm, setCalm] = useState(false);
-  const [t, setT] = useState({ step: 0, day: 0, zoom: 0 });
+  const [t, setT] = useState({ step: 0, day: 0, arrived: false });
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reduce.matches) { setCalm(true); setT({ step: steps.length - 1, day: j.days, zoom: 1 }); }
-    const s = sec.current, st = stage.current, g = cam.current;
-    if (!s || !st || !g) return;
-    let raf = 0, last = "";
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { setCalm(true); setT({ step: steps.length - 1, day: j.days, arrived: true }); }
+    let map: MLMap | null = null, marker: Marker | null = null, dead = false, raf = 0;
+    let from: { center: [number, number]; zoom: number } | null = null;
+    const padOf = () => {
+      const w = mapEl.current?.clientWidth ?? 1000, h = mapEl.current?.clientHeight ?? 800;
+      return w < 760 ? { top: 20, bottom: Math.round(h * 0.46), left: 12, right: 12 } : { top: 40, bottom: 40, left: Math.min(560, w * 0.42), right: 40 };
+    };
+
     const frame = () => {
       raf = 0;
-      const calmNow = reduce.matches;
+      const s = sec.current; if (!s) return;
       const r = s.getBoundingClientRect(), vh = window.innerHeight;
-      const prog = calmNow ? 1 : clamp(-r.top / Math.max(1, r.height - vh));
-      const zoom = calmNow ? 1 : ease(clamp(prog / 0.32));
-      // The camera: from the whole city at the middle of the stage to the cell at the focus point.
-      const W = st.clientWidth, H = st.clientHeight, phone = W < 760;
-      const k = Math.max(W / V, H / V); // viewBox "slice"
-      const visW = W / k, visH = H / k;
-      const s0 = Math.min(1, (visW * 0.92) / V, ((phone ? visH * 0.52 : visH) * 0.94) / V);
-      // Close enough to read the cell among its neighbours, not so close it becomes a shape.
-      const s1 = Math.min(9, ((phone ? visW : visW * 0.46) * 0.16) / plate.w);
-      const sc = s0 * Math.pow(s1 / s0, zoom);
-      const x0 = (V - visW) / 2, y0 = (V - visH) / 2;
-      const A0: [number, number] = [x0 + visW * (phone ? 0.5 : 0.62), y0 + visH * (phone ? 0.27 : 0.5)];
-      const Lx = V / 2 + (plate.c[0] - V / 2) * zoom, Ly = V / 2 + (plate.c[1] - V / 2) * zoom;
-      const tx = A0[0] - sc * Lx, ty = A0[1] - sc * Ly;
-      const tr = `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${sc.toFixed(4)})`;
-      if (tr !== last) { g.setAttribute("transform", tr); last = tr; }
-      // The record: each stretch between two steps takes scroll in proportion to the days it spans,
-      // with a floor, so two steps on the same day still each get a moment.
-      const tl = calmNow ? 1 : clamp((prog - 0.36) / 0.56);
+      const prog = reduce ? 1 : clamp(-r.top / Math.max(1, r.height - vh));
+      const z = reduce ? 1 : ease(clamp(prog / 0.34));
+      if (map && from) {
+        const zoom = from.zoom + (Z_STREET - from.zoom) * z;
+        const center: [number, number] = [from.center[0] + (target[0] - from.center[0]) * z, from.center[1] + (target[1] - from.center[1]) * z];
+        map.jumpTo({ center, zoom, padding: padOf() });
+      }
+      const tl = reduce ? 1 : clamp((prog - 0.38) / 0.54);
       const pos = tl * spans.total;
       let i = 0;
       while (i < steps.length - 2 && pos > spans.edge[i + 1]) i++;
       const f = clamp((pos - spans.edge[i]) / Math.max(1e-6, spans.edge[i + 1] - spans.edge[i]));
       const day = tl >= 1 ? steps[steps.length - 1].day : Math.round(steps[i].day + (steps[i + 1].day - steps[i].day) * f);
       const step = tl >= 1 ? steps.length - 1 : f > 0.98 ? i + 1 : i;
-      setT((o) => (o.step === step && o.day === day && Math.abs(o.zoom - zoom) < 0.02 ? o : { step, day, zoom }));
+      const arrived = z > 0.92;
+      setT((o) => (o.step === step && o.day === day && o.arrived === arrived ? o : { step, day, arrived }));
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(frame); };
-    frame();
+
+    import("maplibre-gl").then((ml) => {
+      if (dead || !mapEl.current) return;
+      ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
+      map = new ml.Map({
+        container: mapEl.current, style: groundStyle(NIGHT), bounds: box, interactive: false, fadeDuration: 0,
+        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap" },
+      });
+      map.on("load", () => {
+        const m = map!;
+        m.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
+        const cam = m.cameraForBounds(box, { padding: padOf() });
+        const c = cam?.center ? (Array.isArray(cam.center) ? cam.center : [(cam.center as { lng: number }).lng, (cam.center as { lat: number }).lat]) : [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2];
+        from = { center: c as [number, number], zoom: cam?.zoom ?? 11 };
+        // Every record in the city, a point of light in its cell, as the hero draws them.
+        const ringPts = rings.map((rr) => { const ring: [number, number][] = []; for (let k = 0; k < rr.length; k += 2) ring.push([rr[k], rr[k + 1]]); return ring; });
+        const n = events.length / 3;
+        const lights = Array.from({ length: n }, (_, i) => ({ type: "Feature" as const, properties: {}, geometry: { type: "Point" as const, coordinates: pointInCell(ringPts[events[i * 3]], i + 7) } }));
+        m.addSource("lights", { type: "geojson", data: { type: "FeatureCollection", features: lights } });
+        const Z = (a: number, b: number) => ["interpolate", ["linear"], ["zoom"], 11, a, 16, b] as ExpressionSpecification;
+        m.addLayer({ id: "halo", type: "circle", source: "lights", paint: { "circle-radius": Z(4.5, 12), "circle-blur": 1, "circle-color": "#4f7fe0", "circle-opacity": 0.2 } });
+        m.addLayer({ id: "lights", type: "circle", source: "lights", paint: { "circle-radius": Z(1.3, 3.2), "circle-color": "#dbe6ff", "circle-opacity": 0.8 } });
+        underlay(m, NIGHT, "halo").catch(() => {});
+        if (markEl.current) marker = new ml.Marker({ element: markEl.current, anchor: "center" }).setLngLat(target).addTo(m);
+        frame();
+      });
+    });
     window.addEventListener("scroll", on, { passive: true });
     window.addEventListener("resize", on);
-    reduce.addEventListener("change", on);
-    return () => { window.removeEventListener("scroll", on); window.removeEventListener("resize", on); reduce.removeEventListener("change", on); cancelAnimationFrame(raf); };
-  }, [plate, steps, spans, j.days]);
+    return () => { dead = true; window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); marker?.remove(); map?.remove(); };
+  }, [box, rings, events, target, steps, spans, j.days]);
 
   const state = steps[t.step]?.key ?? "r";
-  const arrived = t.zoom > 0.9;
 
   return (
     <section ref={sec} className={`ld-dive ${calm ? "is-calm" : ""}`} aria-labelledby="ld-dive-title">
-      <div ref={stage} className="ld-dive-stage">
-        <svg className="ld-dive-plate" viewBox={`0 0 ${V} ${V}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g ref={cam}>
-            {plate.cells.map((d, i) => <path key={i} d={d} className="ld-dive-cell" />)}
-            <path d={plate.target} className={`ld-dive-target is-${state}`} />
-            {arrived && <circle cx={plate.c[0]} cy={plate.c[1]} r={plate.w * 0.95} className={`ld-dive-ring is-${state}`} />}
-          </g>
-        </svg>
+      <div className="ld-dive-stage">
+        <div ref={mapEl} className="ld-dive-map" role="img" aria-label={`${city} at night, closing in on ${j.locality}, where the request came from`} />
+        <div ref={markEl} className={`ld-dive-mark is-${state} ${t.arrived ? "is-here" : ""}`} aria-hidden="true"><i /><i /><b /></div>
 
         <div className="ld-dive-panel">
           <p className="ld-dive-kicker sys-mono">A real request · {j.locality}, {city}</p>

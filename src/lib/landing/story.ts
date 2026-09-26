@@ -80,7 +80,7 @@ function buildStory(ds: SpatialDataset) {
     futureDated,
   };
 
-  /* One request, followed through the record: the most recent case in the
+  /* One request, followed through the record: a quickly closed case in the
      sample city that has every step written down (a known condition, a
      first action, a closing date that was not assumed), with the care
      given to that animal in between. */
@@ -99,8 +99,11 @@ function buildStory(ds: SpatialDataset) {
     if (d < 0 || fa < 0 || cd < 0 || cd > ds.today || cd - d < 2 || cd - d > 60 || d + fa > cd) continue;
     if (vague.has(CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded")) continue;
     const care = (careBy.get(ds.cases[o + C.animal]) ?? []).filter((k) => k.day >= d + fa && k.day <= cd);
-    // Prefer a case with care on record; among those, the most recent.
-    const better = pick < 0 || (care.length > 0 && pickCare.length === 0) || ((care.length > 0) === (pickCare.length > 0) && cd > ds.cases[pick * C_STRIDE + C.closedDay]);
+    // Prefer a case with care on record; among those, the quickest to close
+    // (three days or more, so each step has its own day); then the most recent.
+    const len = cd - d, pLen = pick < 0 ? 0 : ds.cases[pick * C_STRIDE + C.closedDay] - ds.cases[pick * C_STRIDE + C.day];
+    const score = (hasCare: boolean, l: number) => (hasCare ? 0 : 1000) + (l < 3 ? 500 : 0) + l;
+    const better = pick < 0 || score(care.length > 0, len) < score(pickCare.length > 0, pLen) || (score(care.length > 0, len) === score(pickCare.length > 0, pLen) && cd > ds.cases[pick * C_STRIDE + C.closedDay]);
     if (better) { pick = i; pickCare = care; }
   }
   const iso = (day: number) => new Date(Date.UTC(2000, 0, 1) + day * 86_400_000).toISOString().slice(0, 10);
@@ -195,7 +198,7 @@ export const getLandingStory = unstable_cache(async () => {
   const ds = await getPublicDataset(null);
   if (!ds || !ds.cities.length) return null;
   return buildStory(ds);
-}, ["landing-story-v5"], { revalidate: 600, tags: [SPATIAL_TAG] });
+}, ["landing-story-v6"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /** Resident photographs on the record, newest first, for the register strip. */
 export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v2"], { revalidate: 300, tags: [SPATIAL_TAG] });

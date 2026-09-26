@@ -85,6 +85,7 @@ export default async function HomePage() {
             city={story.hero.city}
             box={story.hero.box}
             rings={story.hero.rings}
+            events={story.hero.events}
             note={story.record.medianFirstAction !== null ? `Across ${story.hero.city}'s ${fmt(story.record.requests)} requests, half had a field team on them ${story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
           />
         )}
