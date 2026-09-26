@@ -13,9 +13,9 @@ import "./header.css";
 /* ════════════════════════════════════════════════════════════════════
    The site header.
 
-   Five places, no menus: the map and the figures, the stories, the page
-   for organisations and who we are. Everything else is one scroll away in
-   the footer's index. Beside them, quietly, the way in for someone holding
+   Five places, no menus, the way a company's site is laid out: who it is
+   for, who it works with, who it is, how to reach it. The product itself
+   (map, figures, stories) is inside the app and in the footer's index. Beside them, quietly, the way in for someone holding
    an invitation, and one way into the app. The bar is glass over whatever
    it sits on — night over the landing plate, paper over a page. On a phone
    it is one row: the wordmark, the code, the app and the menu.
@@ -28,11 +28,11 @@ type NavKey = keyof Dictionary["nav"];
 type NavItem = { label: string; href: string; tKey?: NavKey };
 
 const LINKS: NavItem[] = [
-  { label: "Map", href: "/map" },
-  { label: "Insights", href: "/insights" },
-  { label: "Stories", href: "/stories" },
   { label: "For NGOs", href: "/for-ngos", tKey: "forNgos" },
+  { label: "For cities", href: "/for-governments" },
+  { label: "Partner NGOs", href: "/orgs" },
   { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {

@@ -112,6 +112,22 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
     return { inside, set: new Set(inside), edge, nextHere };
   }, [ds, patch]);
 
+  /* ── the city the patch is in: its whole record, not the patch's ───── */
+  const city = useMemo(() => {
+    if (!ds || !ix || !patch) return null;
+    const here: [number, number] = [patch.lng, patch.lat];
+    let ci = 0, best = Infinity;
+    ds.cities.forEach((c, i) => { const d = km(here, [c.lng, c.lat]); if (d < best) { best = d; ci = i; } });
+    let animalsN = 0, help = 0;
+    for (let i = 0; i < ds.animals.length / A_STRIDE; i++) {
+      const o = i * A_STRIDE;
+      if (ds.cellCity[ds.animals[o + A.cell]] !== ci) continue;
+      animalsN++;
+      if (ds.animals[o + A.flags] & (AF.help | AF.injured)) help++;
+    }
+    return { name: ds.cities[ci]?.name ?? "", animalsN, help };
+  }, [ds, ix, patch]);
+
   /* ── what the register holds there ─────────────────────────────────── */
   const stats = useMemo(() => {
     if (!ds || !ix || !cells) return null;
@@ -230,18 +246,18 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
       </header>
     </main>
   );
-  if (loading || !ds || !patch || !stats || !cells) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
+  if (loading || !ds || !patch || !stats || !cells || !city) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
 
   return (
     <main className="cp">
       <header className="cp-head">
         <div className="cp-head-id">
-          <p className="sys-eyebrow">Your patch · {RADIUS_KM} km around {patch.mine ? (patch.label === "Around you" ? "you" : patch.label) : patch.label}</p>
-          <h1>
-            {stats.animalsN ? <><b>{stats.animalsN.toLocaleString("en-IN")}</b> animals are on the record here{stats.help ? <>; <b className="is-hot">{stats.help}</b> need help</> : null}.</>
-              : <>Nobody has recorded an animal here yet.</>}
-          </h1>
-          {!patch.mine && <p className="cp-sample">This is a sample patch, from the city with the deepest record. Set your own to see your street.</p>}
+          <h1>{city.name}{!patch.mine && <small>Sample city</small>}</h1>
+          <dl className="cp-figs">
+            <div><dt>animals on the record</dt><dd>{city.animalsN.toLocaleString("en-IN")}</dd></div>
+            <div className="is-hot"><dt>need help now</dt><dd>{city.help.toLocaleString("en-IN")}</dd></div>
+          </dl>
+          {!patch.mine && <p className="cp-sample">Set your place to see your own city and street.</p>}
         </div>
         <div className="cp-head-acts">
           <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-flame"><Plus size={16} /> Report an animal</Link>
@@ -251,7 +267,8 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
         {note && <p className="cp-note">{note}</p>}
       </header>
 
-      <section className="cp-work" aria-label="Your patch">
+      <p className="cp-near"><MapPin size={13} aria-hidden /> Near {patch.mine ? (patch.label === "Around you" ? "you" : patch.label) : patch.label} · {RADIUS_KM} km</p>
+      <section className="cp-work" aria-label="Near you">
         <figure className="cp-plate">
           {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}
           <figcaption>

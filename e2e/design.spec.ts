@@ -129,11 +129,12 @@ test("mobile public navigation exposes the core destinations without overflow", 
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   /* Five places and no menus: the rest of the site is in the footer's index. */
   const nav = page.locator(".sp-nav");
-  await expect(nav.getByRole("link", { name: "Map", exact: true })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Insights", exact: true })).toHaveAttribute("href", "/insights");
-  await expect(nav.getByRole("link", { name: "Stories", exact: true })).toHaveAttribute("href", "/stories");
+  await expect(nav.getByRole("link", { name: /For NGOs/ })).toBeVisible();
   await expect(nav.getByRole("link", { name: /For NGOs/ })).toHaveAttribute("href", "/for-ngos");
+  await expect(nav.getByRole("link", { name: "For cities", exact: true })).toHaveAttribute("href", "/for-governments");
+  await expect(nav.getByRole("link", { name: "Partner NGOs", exact: true })).toHaveAttribute("href", "/orgs");
   await expect(nav.getByRole("link", { name: "About", exact: true })).toHaveAttribute("href", "/about");
+  await expect(nav.getByRole("link", { name: "Contact", exact: true })).toHaveAttribute("href", "/contact");
   await expect(nav.getByRole("button")).toHaveCount(0);
   /* The invitation code stays in the bar itself, not behind the menu. */
   await expect(page.locator(".sp-header-actions").getByRole("link", { name: "I have a code" })).toHaveAttribute("href", "/join");
@@ -141,6 +142,7 @@ test("mobile public navigation exposes the core destinations without overflow", 
   /* What left the header is one scroll away: the footer indexes it. */
   const index = page.getByRole("navigation", { name: "Site index" });
   await expect(index.getByRole("link", { name: "Report an animal" })).toHaveAttribute("href", "/report");
+  await expect(index.getByRole("link", { name: "Map", exact: true })).toHaveAttribute("href", "/map");
   await expect(index.getByRole("link", { name: "Mission" })).toHaveAttribute("href", "/mission");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 });

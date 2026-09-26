@@ -11,7 +11,7 @@
 
      what needs attention now · how fast teams get there · what happens to a
      request · what people call about · when it is busiest · where in the
-     city · how much ABC and ARV is recorded · what is missing
+     city · how much ABC and ARV is recorded
 
    A question the place's record cannot answer yet is not drawn empty; it is
    named once, at the end. On the public record a locality never prints a
@@ -30,7 +30,7 @@ import { PlaceSearch, type PlaceOption } from "@/components/app/PlaceSearch";
 import { useSpatialDataset, type Scope } from "@/components/spatial/data";
 import { fewOr, openOn } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, closureReasons, conditionOutcome, firstAction, FIRST_ACTION_BINS, localityTable, monthly, openAging, AGE_BINS } from "@/lib/spatial/measures";
-import { completeness, FATE_META, FATES, fates, season } from "@/lib/spatial/report";
+import { FATE_META, FATES, fates, season } from "@/lib/spatial/report";
 import { C, C_STRIDE, type SpatialDataset } from "@/lib/spatial/types";
 import { CONDITIONS, DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 import "./brief.css";
@@ -183,7 +183,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       else out.push({
         id: "now", q: "What needs attention now?",
         a: aging.open ? <><b>{n(aging.open)}</b> request{aging.open === 1 ? " is" : "s are"} open{critical ? <>, <b className="is-hot">{an(critical)}</b> critical</> : null}.</> : <>Nothing is open {where}.</>,
-        detail: aging.open ? <>The longest has waited {days(oldest)}{aging.bins[3] ? <>; {n(aging.bins[3])} {aging.bins[3] === 1 ? "has" : "have"} waited over 90 days and need a decision</> : null}.</> : "Every request on the record here has been dealt with.",
+        detail: aging.open ? <>Longest wait: {days(oldest)}{aging.bins[3] ? <>. {n(aging.bins[3])} over 90 days</> : null}.</> : "Every request on the record here has been dealt with.",
         evidence: aging.open ? <Bars rows={AGE_BINS.map((l, k) => ({ label: l, n: aging.bins[k], hot: k === 3 }))} fmt={n} /> : undefined,
         action: aging.open ? { href: mapHref("cases"), label: "See them on the map" } : undefined,
       });
@@ -199,7 +199,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
         out.push({
           id: "speed", q: "How fast do field teams get there?",
           a: <>Half the time, <b>{fa.median === 0 ? "the same day" : `within ${days(fa.median)}`}</b>.</>,
-          detail: <>{pct(within3, fa.known)}% within three days, of the {n(fa.known)} requests with a recorded first action{city?.median != null ? <>. Across {cityName}: {city.median === 0 ? "the same day" : `within ${days(city.median)}`}</> : null}.</>,
+          detail: <>{pct(within3, fa.known)}% within three days{isLocality && city?.median != null ? <>. {cityName}: {city.median === 0 ? "the same day" : `within ${days(city.median)}`}</> : null}.</>,
           evidence: <Bars rows={FIRST_ACTION_BINS.map((l, k) => ({ label: l, n: fa.bins[k], hatch: k === 5, hot: k === 4 }))} fmt={n} />,
         });
       }
@@ -216,7 +216,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
         out.push({
           id: "fate", q: "What happens to a request here?",
           a: <><b>{pct(by.closed, total)}%</b> closed after field work.</>,
-          detail: noAct ? <>{an(noAct).replace(/^a/, "A")} closed without it{named ? <>, most often because {REASON[named.reason] ?? named.reason.replace(/_/g, " ")} ({n(named.n)})</> : null}{reasons.unspecified ? <>; {n(reasons.unspecified)} with no reason written down</> : null}.</> : "None closed without field work.",
+          detail: noAct ? <>{an(noAct).replace(/^a/, "A")} closed without it{named ? <>, mostly {REASON[named.reason] ?? named.reason.replace(/_/g, " ")}</> : null}.</> : undefined,
           evidence: <ShareBand height={12} total={total} parts={FATES.map((f) => ({ key: f, n: by[f], color: FATE_META[f].color, hatch: FATE_META[f].hatch, label: FATE_META[f].short }))} />,
           action: noAct ? { href: mapHref("cases", { lens: "noaction" }), label: "Where they closed without action" } : undefined,
         });
@@ -266,7 +266,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
         out.push({
           id: "where", q: `Where in ${cityName} is the work?`,
           a: top.open ? <><b>{top.name}</b> has the most open requests ({n(top.open)}).</> : <><b>{[...rows].sort((a, b) => b.cases - a.cases)[0].name}</b> asks for the most help.</>,
-          detail: <>Across {rows.length} localities with requests. Choose one to read it on its own.</>,
+          detail: <>Across {rows.length} localities. Choose one to read it alone.</>,
           evidence: (
             <ol className="ib-rank">
               {byOpen.slice(0, 6).map((r) => (
@@ -291,7 +291,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       else out.push({
         id: "abc", q: "How many animals here are sterilised and vaccinated?",
         a: <><b>{pct(k.ster.yes, k.total)}%</b> recorded as sterilised, <b>{pct(k.vacc.yes, k.total)}%</b> as vaccinated.</>,
-        detail: <>Of {n(k.total)} animals on the record. {pct(k.ster.unknown, k.total)}% have no sterilisation status at all, which is unknown, not no{k.due ? <>; {n(k.due)} {k.due === 1 ? "is" : "are"} due a booster</> : null}.</>,
+        detail: <>Of {n(k.total)} animals. {pct(k.ster.unknown, k.total)}% have no status recorded{k.due ? <>; {n(k.due)} due a booster</> : null}.</>,
         evidence: (
           <div className="ib-bands">
             <p>ABC</p><ShareBand height={10} legend={false} total={k.total} parts={[{ key: "y", n: k.ster.yes, color: "var(--sp-blue)", label: "Sterilised" }, { key: "n", n: k.ster.no, color: "var(--sp-ink)", label: "Not sterilised" }, { key: "u", n: k.ster.unknown, hatch: true, label: "Not recorded" }]} />
@@ -302,23 +302,11 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       });
     }
 
-    /* 8. What is missing from the record. */
-    {
-      const gaps = completeness(ds, ix, idx, scopeSets.here, today).filter((g) => g.total >= 3 && g.known < g.total).sort((a, b) => a.known / a.total - b.known / b.total).slice(0, 3);
-      if (gaps.length) out.push({
-        id: "gaps", q: "What is missing from the record here?",
-        a: <><b>{gaps[0].label}</b>, missing for {100 - pct(gaps[0].known, gaps[0].total)}% of {gaps[0].of}.</>,
-        detail: <>Recording {gaps[0].next} is what would sharpen every answer above.</>,
-        evidence: <Bars rows={gaps.map((g) => ({ label: g.label, n: g.total - g.known, of: g.total, hatch: true }))} fmt={n} missing />,
-        action: scope === "org" ? { href: "/partner/animals?ster=unknown", label: "Record missing data" } : { href: "/report", label: "Report a sighting" },
-      });
-    }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ds, ix, place, scopeSets, idx, allIdx, cityIdx, isLocality, guard, fromDay, today]);
 
   const shown = answers.filter((x): x is Extract<Answer, { a: ReactNode }> => "a" in x);
-  const missing = answers.filter((x): x is Extract<Answer, { missing: string }> => "missing" in x);
   const animalsHere = useMemo(() => (ds && ix && scopeSets ? animalKnowledge(ds, ix, scopeSets.here, today).total : 0), [ds, ix, scopeSets, today]);
   const openNowHere = useMemo(() => (ds ? allIdx.filter((i) => openOn(ds, i, today)).length : 0), [ds, allIdx, today]);
   const periodLabel = PERIODS.find((p) => p.id === period)!.label.toLowerCase();
@@ -372,13 +360,9 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
             {x.evidence && <div className="ib-q-ev">{x.evidence}</div>}
           </section>
         ))}
-        {missing.length > 0 && shown.length > 0 && (
-          <p className="ib-missing">Not enough is recorded {isLocality ? `in ${placeName}` : `in ${cityName}`} {period !== "all" ? `in the ${periodLabel} ` : ""}to say {listOf(missing.map((m) => m.missing))} yet.</p>
-        )}
         {ds && shown.length === 0 && !loading && (
           <p className="ib-state">Nothing is recorded {isLocality ? `in ${placeName}` : `in ${cityName}`} {period !== "all" ? `in the ${periodLabel} ` : ""}yet. Choose another place or period.</p>
         )}
-        <p className="ib-foot">Recorded requests and recorded animals, never a population estimate.{guard ? " In a locality, one or two reads as “few”." : ""}</p>
         {tail}
       </div>
     </div>

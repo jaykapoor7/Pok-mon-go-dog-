@@ -10,13 +10,19 @@
 .cp-state { padding: 60px 0; }
 .cp-quiet { margin: 0; padding: 16px 0; }
 
-.cp-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 4px 0 22px; }
+.cp-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 0 0 22px; }
 .cp-head .sys-eyebrow { overflow-wrap: anywhere; }
 @media (min-width: 1000px) { .cp-head { grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px 32px; } }
 .cp-head-id { display: grid; gap: 10px; max-width: 760px; min-width: 0; }
-.cp-head h1 { margin: 0; font-family: var(--font-serif-stack); font-weight: 400; font-size: clamp(26px, 3.3vw, 40px); line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
-.cp-head h1 b { font-weight: 500; color: var(--sp-blue); }
-.cp-head h1 b.is-hot { color: var(--sp-flame-deep); }
+/* The city, then its two figures, set like the landing's tally: large, bold, a small label under each. */
+.cp-head h1 { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; font-size: clamp(30px, 3.6vw, 44px); font-weight: 600; line-height: 1.05; letter-spacing: -0.03em; }
+.cp-head h1 small { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.cp-figs { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 12px 44px; }
+.cp-figs div { display: flex; flex-direction: column-reverse; gap: 2px; }
+.cp-figs dd { margin: 0; font-size: clamp(40px, 5vw, 64px); font-weight: 700; line-height: 0.95; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; color: var(--sp-ink); }
+.cp-figs div.is-hot dd { color: var(--sp-flame-deep); }
+.cp-figs dt { font-size: 13px; font-weight: 500; color: var(--sp-muted); }
+.cp-near { margin: 0 0 10px; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--sp-muted); }
 .cp-sample { margin: 0; font-size: 13px; color: var(--sp-muted); }
 .cp-head-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .cp-note { margin: 0; font-size: 13px; color: var(--sp-flame-deep); grid-column: 1 / -1; }
