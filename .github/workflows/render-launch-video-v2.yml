@@ -1,0 +1,69 @@
+name: Render StrayPaw launch video v2
+
+on:
+  workflow_dispatch:
+    inputs:
+      public_base_url:
+        description: Live StrayPaw URL
+        required: true
+        default: https://www.straypaw.org
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PUBLIC_BASE_URL: ${{ inputs.public_base_url }}
+
+    steps:
+      - name: Check out isolated V2 branch
+        uses: actions/checkout@v4
+        with:
+          ref: launch-video-v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Ensure FFmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+
+      - name: Capture composed product hero shots
+        run: npx tsx scripts/capture-launch-video-v2.ts
+
+      - name: Render stable V2 film
+        run: npx tsx scripts/render-launch-video-v2.ts
+
+      - name: Verify output
+        run: |
+          test -s launch-video-v2/straypaw-launch-v2.mp4
+          test -s launch-video-v2/contact-sheet.png
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 launch-video-v2/straypaw-launch-v2.mp4
+
+      - name: Upload V2 film and review stills
+        uses: actions/upload-artifact@v4
+        with:
+          name: straypaw-launch-video-v2
+          path: |
+            launch-video-v2/straypaw-launch-v2.mp4
+            launch-video-v2/contact-sheet.png
+            launch-video-v2/capture-manifest.json
+            launch-video-v2/stills/*.png
+          if-no-files-found: error
+          retention-days: 14
