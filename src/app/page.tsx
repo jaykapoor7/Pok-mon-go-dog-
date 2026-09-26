@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { FooterIndex } from "@/components/site/FooterIndex";
 import { ScaleGlyph } from "@/components/landing/ScaleGlyph";
 import { HeroPlate } from "@/components/landing/HeroPlate";
-import { Journey } from "@/components/landing/Journey";
+import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
 import { PhotoRegister } from "@/components/landing/PhotoRegister";
 import { DeskMock } from "@/components/landing/DeskMock";
@@ -79,16 +79,13 @@ export default async function HomePage() {
         </section>
 
         {story?.journey && (
-          <section className="ld-sec ld-sec-shell ld-trip-sec" aria-labelledby="ld-trip-title">
-            <header className="sys-head">
-              <h2 id="ld-trip-title">One request, <em>followed to the end.</em></h2>
-              <p>
-                A real case from {story.hero.city}, as the record holds it.
-                {story.record.medianFirstAction !== null && <> Across its {fmt(story.record.requests)} requests, half had a field team on them {story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.</>}
-              </p>
-            </header>
-            <Journey j={story.journey} city={story.hero.city} />
-          </section>
+          <CaseDive
+            j={story.journey}
+            city={story.hero.city}
+            box={story.hero.box}
+            rings={story.hero.rings}
+            note={story.record.medianFirstAction !== null ? `Across ${story.hero.city}'s ${fmt(story.record.requests)} requests, half had a field team on them ${story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
+          />
         )}
 
         <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed animals">

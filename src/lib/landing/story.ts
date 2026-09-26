@@ -111,6 +111,8 @@ function buildStory(ds: SpatialDataset) {
     return {
       condition: CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded",
       locality: li >= 0 ? ds.localities[li] : sample?.name ?? "",
+      /* The request's own cell, the finest place the public record gives it. */
+      ring: ds.rings[ds.cases[o + C.cell]],
       reported: iso(d), acted: iso(d + fa), actedAfter: fa, closed: iso(cd), days: cd - d,
       closure: ds.dict.closure[ds.cases[o + C.closure]] ?? "unspecified",
       care: { count: pickCare.length, kinds, first: pickCare.length ? iso(Math.min(...pickCare.map((k) => k.day))) : null },
@@ -193,7 +195,7 @@ export const getLandingStory = unstable_cache(async () => {
   const ds = await getPublicDataset(null);
   if (!ds || !ds.cities.length) return null;
   return buildStory(ds);
-}, ["landing-story-v4"], { revalidate: 600, tags: [SPATIAL_TAG] });
+}, ["landing-story-v5"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /** Resident photographs on the record, newest first, for the register strip. */
 export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v2"], { revalidate: 300, tags: [SPATIAL_TAG] });
