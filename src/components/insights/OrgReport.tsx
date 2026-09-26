@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { ExportStudio } from "@/components/partner/ExportStudio";
-import { Report } from "./Report";
+import { PlaceBrief } from "./PlaceBrief";
 
 /* An organisation's own records, explained: the same report as /insights,
    read from the organisation's register under its own access, with exact
@@ -17,7 +17,7 @@ export function OrgReport() {
      has settled to by the time this part of the page hydrates. */
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted || !ready || (user && !accessReady)) return <div className="an-wait" aria-busy="true" />;
+  if (!mounted || !ready || (user && !accessReady)) return <div className="ib-wait" aria-busy="true" />;
   const org = Boolean(user && member);
   /* Signed out, the partner layout already asks for a sign-in; a signed-in
      person who is not yet a member is told why they see the public register. */
@@ -26,18 +26,15 @@ export function OrgReport() {
     : null;
   return (
     <Suspense fallback={null}>
-      <Report
+      <PlaceBrief
         key={org ? "org" : "public"}
         scope={org ? "org" : "public"}
         userKey={user?.id ?? null}
         notice={notice}
         tail={org ? (
-          <section className="an-ch" id="export" aria-labelledby="export-q">
-            <header className="an-ch-head">
-              <p className="an-ch-n sys-mono">—</p>
-              <h2 id="export-q">Take the record out</h2>
-              <p className="an-ch-answer">Everything above, as files a funder, a municipality or a vet can open.</p>
-            </header>
+          <section className="ib-tail" id="export" aria-labelledby="export-q">
+            <h2 id="export-q">Take the record out</h2>
+            <p>Everything above, as files a funder, a municipality or a vet can open.</p>
             <ExportStudio />
           </section>
         ) : null}

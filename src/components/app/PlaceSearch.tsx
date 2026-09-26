@@ -9,6 +9,7 @@
 
 import { useId, useMemo, useRef, useState } from "react";
 import { MapPin, Search } from "lucide-react";
+import "./place-search.css";
 
 export type PlaceOption = { key: string; name: string; city: string };
 

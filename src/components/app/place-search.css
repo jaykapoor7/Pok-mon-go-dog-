@@ -1,0 +1,19 @@
+/* Find a place: type to search, the list opens on what is typed. */
+.ps { position: relative; min-width: 240px; }
+.ps-field { display: flex; align-items: center; gap: var(--sp-2); height: var(--ctl-h); padding: 0 var(--sp-4); border-radius: var(--ctl-r); border: 1px solid var(--sp-line); background: var(--sp-paper); color: var(--sp-muted); }
+.ps-field:focus-within { border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+/* The field carries the focus ring; the input inside it does not draw a second. */
+.ps .ps-field input:focus-visible { outline: none; box-shadow: none; }
+.ps-field input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: none; color: var(--sp-ink); font: inherit; font-size: 14px; font-weight: 500; }
+.ps-list { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; right: 0; min-width: 280px; max-height: 360px; overflow: auto; margin: 0; padding: var(--sp-1); list-style: none; background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: var(--sp-radius); box-shadow: 0 18px 40px rgba(11, 30, 61, 0.16); }
+.ps-list li { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ctl-h); padding: 0 var(--sp-3); border-radius: var(--ctl-r-row); color: var(--sp-muted); cursor: pointer; }
+.ps-list li span { display: grid; gap: 1px; min-width: 0; }
+.ps-list li b { font-size: 14px; font-weight: 600; color: var(--sp-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-list li small { font-size: 12px; color: var(--sp-muted); }
+.ps-list li.is-on { background: var(--ctl-tint); }
+.ps-list li.is-on b { color: var(--sp-blue); }
+.ps-list li.ps-none, .ps-list li.ps-more { cursor: default; font-size: 12.5px; }
+@media (max-width: 760px) {
+  .ps { min-width: 0; width: 100%; }
+  .ps-list { min-width: 0; }
+}
