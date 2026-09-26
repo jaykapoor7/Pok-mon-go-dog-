@@ -1,20 +1,25 @@
 /* ════════════════════════════════════════════════════════════════════
    The grounds.
 
-   No screen sits on a bare colour, and no two kinds of screen share a
-   ground. Each is a real city's record drawn in the map's own language by
-   scripts/build-grounds.mjs, with one slow motion inside the SVG that
-   means something (and stops under reduced motion):
+   No screen sits on a bare colour, no two kinds of screen share a ground,
+   and no ground ever sits behind a line of text. Each is a real city's
+   record drawn in the map's own colours by scripts/build-grounds.mjs (blue
+   deepening where the record is deep, flame where something is happening,
+   sky and cream at night), with one slow motion inside it that stops under
+   reduced motion.
 
-     cells     the recorded honeycomb; cells light as reports arrive
-     survey    contours, locality names, coordinate ticks; a line is traced
-     coverage  ink-weight cells, the unmapped edge dashed and breathing
-     console   contours and busy cells; flame rings pulse like open work
-     night     the city's lights on the night ground, twinkling
+   The ground is its own layer (::before), under the content, and masked so
+   it blooms from the edges and corners and falls away to nothing across
+   the reading column. That is what lets the drawings be bold and still
+   leave every word on clean paper.
 
-   Where each is used follows who is reading: residents stand on cells,
-   NGO teams on the console, municipalities on coverage, readers of pages
-   and lessons on the survey sheet, and every night section on the lights.
+   landing   cells behind the report relay, survey behind the photographs,
+             night lights behind the close
+   pages     survey and cells; the NGO page on the workspace's field, the
+             Municipalities page on coverage; night heroes on the lights
+   app       no hexagons: residents on rings round recorded places, NGO teams
+             on field rounds, insights on flow lines, educators on strata
+             over time, feeders on the survey sheet
    ════════════════════════════════════════════════════════════════════ */
 :root {
   --gd-cells: url("/grounds/cells.svg");
@@ -22,57 +27,94 @@
   --gd-coverage: url("/grounds/coverage.svg");
   --gd-console: url("/grounds/console.svg");
   --gd-night: url("/grounds/night.svg");
-  --gd-size: max(1500px, 115%) auto;
+  --gd-ripples: url("/grounds/ripples.svg");
+  --gd-routes: url("/grounds/routes.svg");
+  --gd-flow: url("/grounds/flow.svg");
+  --gd-strata: url("/grounds/strata.svg");
+  /* Where a ground may show: a bloom at the top right and a smaller one at
+     the bottom left. The reading column in between stays clean. */
+  --gd-mask: radial-gradient(ellipse 58% 78% at 100% 0%, #000 0%, #000 34%, transparent 78%),
+             radial-gradient(ellipse 40% 60% at 0% 100%, #000 0%, #000 28%, transparent 76%);
+  --gd-mask-right: radial-gradient(ellipse 62% 100% at 100% 50%, #000 0%, #000 38%, transparent 80%);
+  /* One corner only, for screens whose reading reaches the other edges. */
+  --gd-mask-corner: radial-gradient(ellipse 52% 62% at 100% 0%, #000 0%, #000 30%, transparent 76%);
+  --gd-mask-foot: radial-gradient(ellipse 46% 70% at 100% 100%, #000 0%, #000 26%, transparent 76%);
 }
-.gd, html .ld .ld-sec-bone, html .ld .ld-sec-shell, html .ld .ld-close,
+
+/* The layer itself. */
+html .ld .ld-sec-shell, html .ld .ld-sec-bone, html .ld .ld-close,
 html .co .co-sec, html .co .co-hero, html .co .co-close, html .edu-hero,
-html .sx.spa.spa, html .mk-band, html .mk .mk-hero {
-  background-size: var(--gd-size);
+html .sx.spa.spa .sx-main, html .mk-band, html .mk .mk-hero {
+  position: relative;
+  isolation: isolate;
+}
+html .ld .ld-sec-shell::before, html .ld .ld-sec-bone::before, html .ld .ld-close::before,
+html .co .co-sec::before, html .co .co-hero::before, html .co .co-close::before, html .edu-hero::before,
+html .sx.spa.spa .sx-main::before, html .mk-band::before, html .mk .mk-hero::before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--gd, none);
+  background-size: cover;
+  background-position: var(--gd-at, 70% 30%);
   background-repeat: no-repeat;
+  -webkit-mask-image: var(--gd-mask);
+  mask-image: var(--gd-mask);
 }
 
 /* ── The landing ─────────────────────────────────────────────────── */
-/* One report, three screens, and its readers: the honeycomb it lands on. */
-html .ld .ld-sec-shell { background-image: var(--gd-cells); background-position: 72% 40%; }
-/* The photographs: the survey sheet they were placed on. */
-html .ld .ld-sec-bone { background-image: var(--gd-survey); background-position: 30% 50%; }
-html .ld .ld-close { background-image: var(--gd-night); background-position: 60% 50%; }
+html .ld .ld-sec-shell { --gd: var(--gd-cells); --gd-at: 75% 20%; }
+/* The roles under the relay read on their own solid ground. */
+html .ld .ld-sec-shell .ld-scale { position: relative; background: var(--sp-shell); box-shadow: 0 0 0 var(--sp-6) var(--sp-shell); }
+html .ld .ld-sec-bone { --gd: var(--gd-survey); --gd-at: 30% 50%; }
+html .ld .ld-close { --gd: var(--gd-night); --gd-at: 60% 50%; }
+html .ld .ld-close::before { -webkit-mask-image: var(--gd-mask-right); mask-image: var(--gd-mask-right); }
 
 /* ── The public pages ────────────────────────────────────────────── */
-html .co .co-sec { background-image: var(--gd-survey); background-position: 20% 30%; }
-html .co .co-sec:nth-of-type(odd) { background-position: 80% 60%; }
-html .co .co-sec.is-shell { background-image: var(--gd-cells); background-position: 65% 40%; }
-/* The NGO page stands on the workspace's own field; municipalities on coverage. */
-html .co.ngo .co-sec.is-shell { background-image: var(--gd-console); }
-html .co.gv .co-sec { background-image: var(--gd-coverage); }
-html .co.gv .co-sec.is-shell { background-image: var(--gd-survey); }
-html .co .co-hero, html .co .co-close, html .edu-hero { background-image: var(--gd-night); background-position: 70% 40%; }
-html .co .co-close { background-position: 25% 60%; }
+html .co .co-sec { --gd: var(--gd-survey); --gd-at: 80% 30%; }
+html .co .co-sec::before { -webkit-mask-image: var(--gd-mask-foot); mask-image: var(--gd-mask-foot); }
+html .co .co-sec:nth-of-type(odd) { --gd-at: 20% 60%; }
+html .co .co-sec.is-shell { --gd: var(--gd-cells); --gd-at: 70% 40%; }
+html .co.ngo .co-sec.is-shell { --gd: var(--gd-console); }
+html .co.gv .co-sec { --gd: var(--gd-coverage); }
+html .co.gv .co-sec.is-shell { --gd: var(--gd-survey); }
+html .co .co-hero, html .co .co-close, html .edu-hero { --gd: var(--gd-night); --gd-at: 70% 40%; }
+html .co .co-close { --gd-at: 30% 60%; }
+html .co .co-close::before { -webkit-mask-image: var(--gd-mask-right); mask-image: var(--gd-mask-right); }
 
 /* Pages drawn through SitePage and the marketing scaffold. */
-html .sx.spa.spa { background-color: var(--sp-bone); background-image: var(--gd-survey); background-position: 50% 0; }
-html .mk-band.mk-paper { background-image: var(--gd-survey); background-position: 70% 30%; }
-html .mk-band.mk-bone { background-image: var(--gd-cells); background-position: 30% 50%; }
-html .mk-band.mk-ink, html .mk .mk-hero { background-image: var(--gd-night); background-position: 40% 50%; }
+html .sx.spa.spa .sx-main { --gd: var(--gd-survey); --gd-at: 60% 20%; }
+html .mk-band.mk-paper { --gd: var(--gd-survey); }
+html .mk-band.mk-bone { --gd: var(--gd-cells); --gd-at: 30% 50%; }
+html .mk-band.mk-ink, html .mk .mk-hero { --gd: var(--gd-night); --gd-at: 40% 50%; }
 
 /* ── The app, by space ───────────────────────────────────────────────
-   The ground stays put while the screen scrolls over it, like a map
-   under tracing paper. Maps (.flush) draw their own ground. */
-html .spa.spa .spa-main:not(.flush) {
-  background-image: var(--gd-cells);
-  background-size: var(--gd-size);
-  background-position: 60% 0;
+   The ground is laid inside the screen's own area, never under the side
+   rail or the top bar. Maps (.flush) draw their own. */
+html:root body .spa.spa .spa-main:not(.flush) { position: relative; isolation: isolate; }
+html:root body .spa.spa .spa-main:not(.flush)::before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--gd-ripples);
+  background-size: cover;
+  background-position: 70% 30%;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  -webkit-mask-image: var(--gd-mask-corner);
+  mask-image: var(--gd-mask-corner);
 }
-html .spa.spa[data-ground="console"] .spa-main:not(.flush) { background-image: var(--gd-console); }
-html .spa.spa[data-ground="coverage"] .spa-main:not(.flush) { background-image: var(--gd-coverage); }
-html .spa.spa[data-ground="survey"] .spa-main:not(.flush) { background-image: var(--gd-survey); }
-/* Phones scroll the page, not a pane, and ignore fixed grounds anyway:
-   there the field is laid once at the top and scrolls with the screen. */
-@media (max-width: 900px) {
-  html .spa.spa .spa-main:not(.flush) { background-attachment: scroll; background-size: max(1100px, 180%) auto; background-position: 55% 0; }
-}
+html:root body .spa.spa[data-ground="routes"] .spa-main:not(.flush)::before { background-image: var(--gd-routes); }
+html:root body .spa.spa[data-ground="flow"] .spa-main:not(.flush)::before { background-image: var(--gd-flow); }
+html:root body .spa.spa[data-ground="strata"] .spa-main:not(.flush)::before { background-image: var(--gd-strata); background-position: 50% 50%; }
+html:root body .spa.spa[data-ground="survey"] .spa-main:not(.flush)::before { background-image: var(--gd-survey); }
+
 @media print {
-  html .spa.spa .spa-main, html .co .co-sec, html .ld .ld-sec-bone, html .ld .ld-sec-shell, html .sx.spa.spa, html .mk-band { background-image: none; }
+  html .spa.spa .spa-main::before, html .co .co-sec::before, html .ld .ld-sec-bone::before,
+  html .ld .ld-sec-shell::before, html .sx.spa.spa .sx-main::before, html .mk-band::before { display: none; }
 }

@@ -16,10 +16,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, MapPin } from "lucide-react";
-import { HexPlate, type Box, type PlateCell } from "@/components/system/HexPlate";
+import type { Box } from "@/components/system/HexPlate";
+import { LightsMap } from "@/components/system/LightsMap";
+import { sized } from "@/lib/photo/src";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 
-type Report = { date: string; condition: string; locality: string; cell: string; critical: boolean; straypawId: string; animalId: string };
+type Report = { date: string; condition: string; locality: string; cell: string; critical: boolean; straypawId: string; animalId: string; photo?: string | null };
 type Desk = {
   live: number; critical: number; older: number;
   queue: { condition: string; locality: string; days: number; critical: boolean; overdue: boolean }[];
@@ -52,21 +54,18 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
     return () => window.clearTimeout(t);
   }, [live, step]);
 
-  const cells: PlateCell[] = useMemo(() => desk.cells.map((c) => ({
-    key: c.key, ring: c.ring,
-    fill: report && c.key === report.cell && step >= 3 ? "var(--sp-flame)" : c.open ? "var(--sp-seq-2)" : "var(--sp-seq-1)",
-    opacity: report && c.key === report.cell ? 1 : 0.8,
-    selected: !!report && c.key === report.cell && step >= 3,
-  })), [desk.cells, report, step]);
-
-  /* The report's own cell, found on the plate, ringed in flame once it arrives. */
-  const mark = useMemo(() => {
-    const c = report ? desk.cells.find((x) => x.key === report.cell) : null;
-    if (!c) return null;
-    let lng = 0, lat = 0; const n = c.ring.length / 2;
-    for (let i = 0; i < c.ring.length; i += 2) { lng += c.ring[i]; lat += c.ring[i + 1]; }
-    return { lng: lng / n, lat: lat / n };
-  }, [desk.cells, report]);
+  /* The municipality's screen is the live map's own night ground: the city's
+     open requests as lights, and the report's cell outlined in flame, never
+     finer than the cell. */
+  const centre = (ring: number[]) => { let lng = 0, lat = 0; const n = ring.length / 2; for (let i = 0; i < ring.length; i += 2) { lng += ring[i]; lat += ring[i + 1]; } return { lng: lng / n, lat: lat / n }; };
+  const lights = useMemo(() => desk.cells.map((c) => ({ ...centre(c.ring), help: c.open > 0 })), [desk.cells]);
+  const own = useMemo(() => (report ? desk.cells.find((x) => x.key === report.cell) ?? null : null), [desk.cells, report]);
+  const outline = useMemo(() => {
+    if (!own) return undefined;
+    const pts: [number, number][] = [];
+    for (let i = 0; i < own.ring.length; i += 2) pts.push([own.ring[i], own.ring[i + 1]]);
+    return pts;
+  }, [own]);
 
   if (!report) return null;
   const screen = step <= 1 ? 0 : step === 2 ? 1 : 2; // which screen holds the report now
@@ -87,7 +86,14 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
         <div className={`rl-screen rl-phone ${screen === 0 ? "is-on" : ""}`}>
           <span className="rl-notch" />
           <p className="rl-app"><StrayPawMark size={16} /> Resident report</p>
-          <span className="rl-photo"><span>Photo attached</span><i /><i /><i /></span>
+          {/* The report's own photograph when the record has one; otherwise an
+              example photograph (Pinky, from the Bengaluru record), labelled
+              as the example it is. */}
+          <span className="rl-photo has-img">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={report.photo ? sized(report.photo, 480) : "/pinky-bengaluru.jpg"} alt="" loading="lazy" />
+            {!report.photo && <em className="rl-photo-tag">Example photo</em>}
+          </span>
           <p className="rl-field"><small>What you see</small><b className={report.critical ? "is-hot" : ""}>{report.condition}</b></p>
           <p className="rl-field"><small>Where</small><b><MapPin size={12} /> {report.locality}</b></p>
           <span className={`rl-send ${sent ? "is-sent" : ""}`}>{sent ? <><Check size={13} /> Sent</> : "Send"}</span>
@@ -121,8 +127,9 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
         {/* 3 — the public map */}
         <div className={`rl-screen rl-map ${screen === 2 ? "is-on" : ""}`}>
           <p className="rl-bar"><b>Municipality · coverage view</b><span>{city}</span></p>
-          <HexPlate width={240} height={200} box={desk.box} cells={cells} label={`Open requests by cell in ${city}`}
-            marks={mark && step >= 3 ? [{ ...mark, r: 9, ring: true }, { ...mark, r: 3.2 }] : []} />
+          <div className="rl-lights">
+            {own && <LightsMap center={[centre(own.ring).lng, centre(own.ring).lat]} zoom={13.2} lights={lights} outline={step >= 3 ? outline : undefined} credit={false} dot={2.4} label={`${city} at night: open requests as lights, and the report's own area outlined`} />}
+          </div>
           <p className="rl-map-cap"><i /><span className="rl-id-inline">{report.straypawId}</span> · {report.locality}</p>
         </div>
       </div>

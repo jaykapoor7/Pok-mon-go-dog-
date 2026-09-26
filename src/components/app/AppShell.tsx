@@ -171,9 +171,10 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
 
   const isReporting = pathname.startsWith("/report");
   /* Each space stands on its own ground (grounds.css): the NGO workspace on
-     its field of open work, the community on the recorded honeycomb,
-     insights on coverage, educators and feeders on the survey sheet. */
-  const ground = pathname.startsWith("/insights") ? "coverage" : space === "ngo" ? "console" : space === "community" ? "cells" : "survey";
+     its field rounds, the community on rings around recorded places,
+     insights on the record's flow lines, educators on the record's strata
+     over time, feeders on the survey sheet. */
+  const ground = pathname.startsWith("/insights") ? "flow" : space === "ngo" ? "routes" : space === "community" ? "ripples" : space === "educator" ? "strata" : "survey";
   const { nav: primaryNav, phone: phoneNav, home, label: spaceLabel } = SPACES[space];
   const destinations = new Set(primaryNav.map((n) => n.href));
   const showBack = !destinations.has(pathname) && !pathname.startsWith("/report") && pathname !== "/";

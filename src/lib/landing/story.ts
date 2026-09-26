@@ -200,7 +200,7 @@ export const getLandingStory = unstable_cache(async () => {
   if (!ds || !ds.cities.length) return null;
   const story = buildStory(ds);
   return { ...story, relay: await resolveRelay(story.desk.feed, story.desk.cells.map((c) => c.key), story.hero.city) };
-}, ["landing-story-v8"], { revalidate: 600, tags: [SPATIAL_TAG] });
+}, ["landing-story-v10"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /* One report, three screens, carries the record's own identifier across
    all three. The dataset holds no ids by design, so the most recent real
@@ -214,9 +214,17 @@ async function resolveRelay(feed: FeedEvent[], cityCells: string[], city: string
   if (!supa) return null;
   const animalFor = async (dogId: string) => {
     const table = admin ? "dogs" : "public_spatial_animals";
-    const { data } = await supa.from(table).select("id,straypaw_id").eq("id", dogId).maybeSingle();
-    return data as { id: string; straypaw_id: string | null } | null;
+    const { data } = await supa.from(table).select("id,straypaw_id,cover_photo").eq("id", dogId).maybeSingle();
+    return data as { id: string; straypaw_id: string | null; cover_photo: string | null } | null;
   };
+  /* The phone shows the report's own photograph, so a report whose animal
+     was photographed is preferred, and among those one without a wound on
+     camera (as the photo section above does). A report with no photograph
+     is still shown, with the photo slot marked as such. */
+  type Found = { kind: "report"; date: string; condition: string; locality: string; cell: string; critical: boolean; animalId: string; straypawId: string; photo: string | null };
+  const found: Found[] = [];
+  const graphic = /maggot|wound|injur|accident|fracture|tumou?r|prolapse|abuse/i;
+  const best = () => found.find((f) => f.photo && !graphic.test(f.condition)) ?? found.find((f) => f.photo) ?? found[0] ?? null;
   const reports = [...feed].reverse().filter((e) => e.kind === "report").slice(0, 6);
   for (const e of reports) {
     const next = new Date(Date.parse(`${e.date}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
@@ -226,7 +234,32 @@ async function resolveRelay(feed: FeedEvent[], cityCells: string[], city: string
     const dogId = (facts?.[0] as { dog_id: string } | undefined)?.dog_id;
     if (!dogId) continue;
     const a = await animalFor(dogId);
-    if (a?.straypaw_id) return { ...e, animalId: a.id, straypawId: a.straypaw_id };
+    if (a?.straypaw_id) found.push({ ...e, kind: "report", animalId: a.id, straypawId: a.straypaw_id, photo: a.cover_photo?.trim() || null });
+  }
+  if (best()?.photo) return best();
+
+  /* Few animals carry a photograph, so look from the other side too: the
+     city's photographed animals first, then the latest real request on one
+     of them, calm conditions preferred. */
+  if (cityCells.length) {
+    const { data: pics } = await supa.from("public_spatial_animals").select("id,straypaw_id,cover_photo,h3_r8")
+      .in("h3_r8", cityCells.slice(0, 300)).not("cover_photo", "is", null).neq("cover_photo", "").not("straypaw_id", "is", null).limit(200);
+    const byId = new Map(((pics ?? []) as { id: string; straypaw_id: string; cover_photo: string; h3_r8: string }[]).map((r) => [r.id, r]));
+    if (byId.size) {
+      const { data: facts } = await supa.from("public_case_facts").select("dog_id,h3_r8,condition_class,occurred_at,zone")
+        .in("dog_id", [...byId.keys()]).order("occurred_at", { ascending: false }).limit(80);
+      const rows = ((facts ?? []) as { dog_id: string; h3_r8: string | null; condition_class: string | null; occurred_at: string; zone: string | null }[]);
+      const pick = rows.find((r) => !graphic.test(r.condition_class ?? "")) ?? rows[0];
+      const a = pick ? byId.get(pick.dog_id) : undefined;
+      if (pick && a) {
+        const condition = pick.condition_class || "Other";
+        return {
+          kind: "report" as const, date: pick.occurred_at.slice(0, 10), condition, locality: pick.zone || city,
+          cell: pick.h3_r8 || a.h3_r8, critical: DEFAULT_TRIAGE[condition as Condition] === "Critical",
+          animalId: a.id, straypawId: a.straypaw_id, photo: a.cover_photo.trim(),
+        };
+      }
+    }
   }
 
   /* The latest visual replay is deliberately short, but a corrected import
@@ -240,13 +273,13 @@ async function resolveRelay(feed: FeedEvent[], cityCells: string[], city: string
       .not("dog_id", "is", null)
       .in("h3_r8", cityCells.slice(0, 300))
       .order("occurred_at", { ascending: false })
-      .limit(20);
+      .limit(60);
     for (const row of (data ?? []) as { dog_id: string | null; h3_r8: string | null; condition_class: string | null; occurred_at: string; zone: string | null }[]) {
       if (!row.dog_id || !row.h3_r8) continue;
       const a = await animalFor(row.dog_id);
       if (!a?.straypaw_id) continue;
       const condition = row.condition_class || "Other";
-      return {
+      found.push({
         kind: "report" as const,
         date: row.occurred_at.slice(0, 10),
         condition,
@@ -255,10 +288,12 @@ async function resolveRelay(feed: FeedEvent[], cityCells: string[], city: string
         critical: DEFAULT_TRIAGE[condition as Condition] === "Critical",
         animalId: a.id,
         straypawId: a.straypaw_id,
-      };
+        photo: a.cover_photo?.trim() || null,
+      });
+      if (best()?.photo && !graphic.test(condition)) break;
     }
   }
-  return null;
+  return best();
 }
 
 /** Resident photographs on the record, newest first, for the register strip. */

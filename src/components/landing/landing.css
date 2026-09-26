@@ -544,3 +544,11 @@
   .ld-tour-photo { height: 112px; }
   .ld-tour-strip button { width: 48px; height: 48px; }
 }
+
+/* The report's own photograph on the resident's phone, and the
+   municipality's screen as the live map's night ground. */
+.rl-photo.has-img { position: relative; overflow: hidden; background: var(--sp-night); padding: 0; }
+.rl-photo.has-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.rl-lights { position: relative; }
+.rl-lights .lm { aspect-ratio: 4 / 3; border-radius: var(--sp-radius); box-shadow: 0 14px 30px rgba(7, 20, 43, 0.28); }
+.rl-photo .rl-photo-tag { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 2px 6px; border-radius: var(--ctl-r); background: rgba(7, 20, 43, 0.72); color: var(--sp-night-text); font-family: var(--font-mono); font-size: 9px; font-style: normal; letter-spacing: 0.04em; }
