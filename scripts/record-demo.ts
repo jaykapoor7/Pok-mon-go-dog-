@@ -98,8 +98,8 @@ async function main() {
   await desktop("01_full_walkthrough", async (page) => {
     await page.goto(publicUrl, { waitUntil: "networkidle" });
     await dismiss(page); await pause(page, 1800); await still(page, "01_landing");
-    await click(page, /open app/i); await page.mouse.wheel(0, 700); await pause(page, 1400); await still(page, "02_community");
-    await click(page, /^map$/i); await pause(page, 1800); await still(page, "03_map");
+    await click(page, /open app/i); await dismiss(page); await page.mouse.wheel(0, 700); await pause(page, 1400); await still(page, "02_community");
+    await click(page, /^map$/i); await dismiss(page); await pause(page, 1800); await still(page, "03_map");
     await click(page, /recent activity/i); await pause(page, 1500); await still(page, "04_feed");
     await click(page, /pinky|dog near/i); await pause(page, 1600); await still(page, "05_dog_profile");
     await click(page, /report/i); await pause(page, 1500);
@@ -126,7 +126,7 @@ async function main() {
 
   await desktop("05_ngo_dashboard", async (page) => {
     await page.goto(`${demoUrl}/partner`, { waitUntil: "networkidle" });
-    await pause(page, 2200); await still(page, "11_ngo_dashboard");
+    await dismiss(page); await pause(page, 2200); await still(page, "11_ngo_dashboard");
     await click(page, /view all|open case queue|cases/i); await pause(page, 1500); await still(page, "12_ngo_cases");
     await click(page, /^map$/i); await pause(page, 1800); await click(page, /^urgent$/i); await pause(page, 1400);
   });
