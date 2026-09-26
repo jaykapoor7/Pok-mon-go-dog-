@@ -46,8 +46,11 @@ export function Timeline({ series, m0, m, onChange, playing, onPlay, night }: {
     if (e.key === "End") { e.preventDefault(); onChange(m0 + n - 1); }
   };
   const idx = m - m0;
-  const years: { i: number; y: number }[] = [];
-  for (let i = 0; i < n; i++) if ((m0 + i) % 12 === 0) years.push({ i, y: yearOfMonth(m0 + i) });
+  const all: { i: number; y: number }[] = [];
+  for (let i = 0; i < n; i++) if ((m0 + i) % 12 === 0) all.push({ i, y: yearOfMonth(m0 + i) });
+  // At most five year marks, so a long record never runs them together.
+  const step = Math.max(1, Math.ceil(all.length / 5));
+  const years = all.filter((_, k) => (all.length - 1 - k) % step === 0);
 
   return (
     <div className={`sm-time ${night ? "is-night" : ""}`}>
@@ -79,7 +82,7 @@ export function Timeline({ series, m0, m, onChange, playing, onPlay, night }: {
           <line x1={(idx + 0.5) * bw} x2={(idx + 0.5) * bw} y1={0} y2={H} className="sm-time-hand" />
         </svg>
         <div className="sm-time-years" aria-hidden>
-          {years.map((y) => <span key={y.y} style={{ left: `${(y.i / n) * 100}%` }}>{y.y}</span>)}
+          {years.map((y) => <span key={y.y} className={y.i / n > 0.85 ? "is-end" : undefined} style={{ left: y.i / n > 0.85 ? "auto" : `${(y.i / n) * 100}%`, right: y.i / n > 0.85 ? 0 : undefined }}>{y.y}</span>)}
         </div>
       </div>
     </div>

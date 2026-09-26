@@ -83,17 +83,23 @@ test("public map filters and modes remain operable", async ({ page }) => {
      it is acknowledged, as a person would. */
   const ok = page.getByRole("button", { name: "Got it" });
   await ok.click({ timeout: 5000 }).catch(() => {});
-  const open = page.getByRole("button", { name: "Filter the animals shown" });
+  const open = page.getByRole("button", { name: /^Filters/ });
   await expect(open).toBeVisible();
   await open.click();
-  const filters = page.getByRole("dialog", { name: "Filter the map" });
-  const help = filters.getByRole("group", { name: "Health" }).getByRole("button", { name: "Needs help" });
-  await help.click();
-  await expect(help).toHaveAttribute("aria-pressed", "true");
+  const filters = page.getByRole("dialog", { name: "Filters" });
+  const residents = filters.getByRole("group", { name: "Recorded by" }).getByRole("button", { name: "Residents" });
+  await residents.click();
+  await expect(residents).toHaveAttribute("aria-pressed", "true");
   await expect(open).toContainText("1");
-  await filters.getByRole("button", { name: "Clear" }).click();
-  await expect(help).toHaveAttribute("aria-pressed", "false");
-  await filters.getByRole("button", { name: "Done" }).click();
+  await filters.getByRole("button", { name: "Reset" }).click();
+  await expect(residents).toHaveAttribute("aria-pressed", "false");
+
+  /* Only the filters that change a mode are offered in it: coverage is read
+     from every record, so it has none. */
+  await page.getByRole("tab", { name: "Coverage" }).click();
+  await expect(filters.getByRole("group", { name: "Recorded by" })).toHaveCount(0);
+  await expect(filters.getByText("only the date changes it")).toBeVisible();
+  await filters.getByRole("button", { name: "Close filters" }).click();
   await expect(filters).toHaveCount(0);
 
   const density = page.getByRole("tab", { name: "Density" });

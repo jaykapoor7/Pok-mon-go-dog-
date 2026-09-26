@@ -11,6 +11,7 @@
 
 .sm {
   --sm-panel: rgba(7, 20, 43, 0.94);
+  --sm-solid: var(--sp-night);
   --sm-line: var(--sp-night-line);
   --sm-text: var(--sp-night-text);
   --sm-dim: var(--sp-night-dim);
@@ -28,6 +29,7 @@
 }
 .sm.is-paper {
   --sm-panel: rgba(255, 253, 249, 0.97);
+  --sm-solid: var(--sp-paper);
   --sm-line: var(--sp-line);
   --sm-text: var(--sp-ink);
   --sm-dim: var(--sp-body);
@@ -73,13 +75,6 @@
 }
 .sm-note { margin: 0; font-size: 11px; color: var(--sm-faint); }
 .sm-empty { margin: 0; font-size: 12px; line-height: 1.5; color: var(--sm-dim); max-width: 420px; }
-.sm-lens { display: flex; flex-wrap: wrap; gap: 4px; }
-.sm-lens button {
-  height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--sm-line); background: transparent; cursor: pointer;
-  font: inherit; font-size: 11.5px; font-weight: 600; color: var(--sm-dim);
-}
-.sm-lens button:hover { color: var(--sm-text); }
-.sm-lens button.is-on { background: var(--sp-flame); border-color: var(--sp-flame); color: #1a0d08; }
 .sm-notice {
   max-width: 460px; padding: 10px 14px; border-radius: 12px; font-size: 12.5px; line-height: 1.45;
   background: var(--sm-chip-on); color: var(--sm-chip-on-text);
@@ -135,24 +130,39 @@
 .sm-tools button:hover { background: var(--sm-chip-on); color: var(--sm-chip-on-text); }
 .sm-tools button.is-on { background: var(--sm-chip-on); color: var(--sm-chip-on-text); }
 .sm-tools button b { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--sp-flame); color: #1a0d08; font-size: 10px; display: grid; place-items: center; }
+/* The filter panel: only the filters that change the current mode, each on
+   one segmented row, with the clock above them and the key below. Opaque, so
+   the map never reads through it. */
 .sm-filter {
-  position: absolute; z-index: 4; top: 14px; right: calc(var(--sm-insp-w) + 82px); width: 340px;
-  padding: 14px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: 14px;
+  position: absolute; z-index: 4; top: 14px; right: calc(var(--sm-insp-w) + 82px); width: 320px; max-height: calc(100% - 28px); overflow: auto;
+  padding: 10px 14px 14px; background: var(--sm-solid); border: 1px solid var(--sm-line); border-radius: 14px;
   display: grid; gap: 12px; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
 }
-.sm-filter-row { display: grid; gap: 6px; font-size: 11.5px; color: var(--sm-dim); }
-.sm-filter-row > span { font-family: var(--font-mono), monospace; letter-spacing: 0.08em; text-transform: uppercase; font-size: 10.5px; }
-.sm-filter-row > div { display: flex; flex-wrap: wrap; gap: 4px; }
-.sm-filter-row button { height: 30px; padding: 0 10px; border-radius: 8px; border: 0; background: var(--sm-chip); color: var(--sm-text); font: inherit; font-size: 12px; cursor: pointer; }
-.sm-filter-row button.is-on { background: var(--sm-chip-on); color: var(--sm-chip-on-text); }
-.sm-filter-row select { height: 34px; border-radius: 8px; border: 1px solid var(--sm-line); background: transparent; color: var(--sm-text); font: inherit; font-size: 12.5px; padding: 0 8px; }
+.sm-filter-head { display: flex; align-items: center; gap: 8px; }
+.sm-filter-head b { font-size: 13px; font-weight: 600; color: var(--sm-text); margin-right: auto; }
+.sm-filter-reset { height: 32px; padding: 0 10px; border: 0; border-radius: var(--ctl-r); background: none; color: var(--sp-sky); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.sm.is-paper .sm-filter-reset { color: var(--sp-blue); }
+.sm-filter-x { width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--sm-chip); color: var(--sm-text); cursor: pointer; }
+.sm-filter-row { display: grid; gap: 5px; font-size: 11.5px; color: var(--sm-dim); min-width: 0; }
+.sm-filter-row > span { font-family: var(--font-mono), monospace; letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; }
+.sm-filter-row select { width: 100%; height: 34px; border-radius: var(--ctl-r-row); border: 1px solid var(--sm-line); background: var(--sm-chip); color: var(--sm-text); font: inherit; font-size: 12.5px; padding: 0 8px; }
 .sm-filter-row select option { color: var(--sp-ink); }
-.sm-filter-acts { display: flex; justify-content: flex-end; gap: 8px; }
+.sm-filter-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* One control, its options side by side: a select row, not a cloud of chips. */
+.sm-seg { display: flex; padding: 3px; gap: 2px; border-radius: var(--ctl-r-row); background: var(--sm-chip); }
+.sm-seg button { flex: 1 1 auto; height: 30px; min-width: 0; padding: 0 6px; border: 0; border-radius: 7px; background: none; color: var(--sm-dim); font: inherit; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io); }
+.sm-seg button:hover { color: var(--sm-text); }
+.sm-seg button.is-on { background: var(--sm-chip-on); color: var(--sm-chip-on-text); }
 /* The clock and the key live in the filter panel, not over the map. */
 .sm-filter .sm-time { position: static; width: auto; padding: 0 0 10px; background: none; border: 0; border-bottom: 1px solid var(--sm-line); border-radius: 0; }
-.sm-filter-key { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--sm-line); font-size: 12px; color: var(--sm-dim); }
+.sm-filter-key { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--sm-line); font-size: 12px; color: var(--sm-dim); }
 .sm-filter-key .sm-key { margin: 0; }
-.sm-top .sm-lens { padding: 4px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: 12px; }
+.sm-insp-filtered { margin: 4px 0 0; font-size: 11.5px; font-weight: 500; color: var(--sp-sky); }
+.sm.is-paper .sm-insp-filtered { color: var(--sp-blue); }
+.sm-hint {
+  position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 3; margin: 0; max-width: calc(100% - 32px);
+  padding: 8px 14px; border-radius: var(--ctl-r); background: var(--sm-solid); border: 1px solid var(--sm-line); color: var(--sm-text); font-size: 12.5px; font-weight: 500; text-align: center;
+}
 
 .sm-hover {
   position: absolute; z-index: 5; pointer-events: none; max-width: 280px; padding: 6px 10px; border-radius: 8px;
@@ -177,6 +187,7 @@
 .sm-time-hand { stroke: var(--sp-flame); stroke-width: 2; }
 .sm-time-years { position: relative; height: 12px; }
 .sm-time-years span { position: absolute; top: 0; font-family: var(--font-mono), monospace; font-size: 9.5px; color: var(--sm-faint); transform: translateX(2px); }
+.sm-time-years span.is-end { transform: none; }
 
 .sm-report {
   position: absolute; z-index: 3; right: calc(var(--sm-insp-w) + 30px); bottom: 18px;
@@ -285,13 +296,13 @@
   .sm-modes::-webkit-scrollbar { display: none; }
   .sm-modes button { flex: none; height: 36px; }
   .sm-q { max-width: calc(100vw - 64px); padding: 8px 10px; gap: 6px; }
-  .sm-lens { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .sm-lens button { flex: none; height: 32px; }
-  .sm-notice { max-width: calc(100vw - 64px); padding: 8px 10px; font-size: 12px; }
+    .sm-notice { max-width: calc(100vw - 64px); padding: 8px 10px; font-size: 12px; }
   .sm-tools { top: 8px; right: 8px; }
   .sm-tools button { width: 44px; height: 44px; }
   .sm-tools button:nth-child(n + 4) { display: none; }
-  .sm-filter { top: 8px; right: 60px; left: 8px; width: auto; max-height: calc(100% - 24px); overflow: auto; }
+  /* Below the mode chips, so a mode can be switched with the panel open. */
+  .sm-filter { top: 62px; right: 60px; left: 8px; width: auto; max-height: calc(100% - 176px); }
+  .sm-hint { bottom: 120px; }
   .sm-filter .sm-time { left: auto; right: auto; bottom: auto; width: auto; }
   .sm-time { left: 8px; right: 8px; width: auto; bottom: 112px; grid-template-columns: 44px 1fr; padding: 6px 10px 4px 6px; }
   .sm-time-play { width: 44px; height: 44px; }

@@ -18,9 +18,9 @@ import { ArrowUpRight, X } from "lucide-react";
 import { ShareBand } from "@/components/system/ShareBand";
 import { MiniBars } from "@/components/system/Spark";
 import { getSupabase } from "@/lib/supabase";
-import { COVERAGE_TEXT, COVERAGE_ORDER, cellStats, fewOr, FEW, fmt, isSparse, monthLabel, monthOfDay, NO_FILTERS, type CellStat, type Index } from "@/lib/spatial/engine";
+import { COVERAGE_TEXT, COVERAGE_ORDER, cellStats, fewOr, FEW, fmt, isSparse, monthLabel, monthOfDay, NO_FILTERS, type CellStat, type Filters, type Index } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, monthly } from "@/lib/spatial/measures";
-import type { NextCell, SpatialDataset } from "@/lib/spatial/types";
+import { C, C_STRIDE, type NextCell, type SpatialDataset } from "@/lib/spatial/types";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { Scope } from "./data";
 
@@ -92,8 +92,10 @@ const since = (iso: string | null) => {
   return d < 1 ? "today" : d < 31 ? `${d}d ago` : d < 365 ? `${Math.round(d / 30)}mo ago` : `${(d / 365).toFixed(1)}y ago`;
 };
 
-export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand, onMode }: {
+export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand, onMode, filters = NO_FILTERS, note = "" }: {
   ds: SpatialDataset; ix: Index; sel: Sel; t: number; scope: Scope; next: NextCell[];
+  /** The map's filters, so the card counts what the map draws; `note` says which are on. */
+  filters?: Filters; note?: string;
   onSelect: (s: Sel) => void; onClose: () => void; onPickNext: (n: NextCell) => void;
   compact: boolean; onExpand: () => void;
   /** Switch the map itself to another mode, keeping the place. */
@@ -112,15 +114,27 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
 
   const stats = useMemo(() => {
     if (sel.t === "empty") return [] as CellStat[];
-    const all = cellStats(ds, ix, t, NO_FILTERS, sel.t === "india" ? -1 : sel.t === "cell" ? ds.cellCity[sel.cell] : sel.city);
+    const all = cellStats(ds, ix, t, filters, sel.t === "india" ? -1 : sel.t === "cell" ? ds.cellCity[sel.cell] : sel.city);
     return cells ? all.filter((s) => cells.has(s.cell)) : all;
-  }, [ds, ix, t, sel, cells]);
+  }, [ds, ix, t, sel, cells, filters]);
 
   const scopeQ = useMemo(() => ({ cells, from: 0, to: t }), [cells, t]);
-  const caseIdx = useMemo(() => (sel.t === "empty" ? [] : casesIn(ds, scopeQ)), [ds, scopeQ, sel.t]);
+  const caseIdx = useMemo(() => {
+    if (sel.t === "empty") return [] as number[];
+    const { source, condition } = filters;
+    return casesIn(ds, scopeQ).filter((i) => {
+      const o = i * C_STRIDE;
+      if (condition >= 0 && ds.cases[o + C.cond] !== condition) return false;
+      if (source !== "all" && (ds.cases[o + C.source] === 1) !== (source === "resident")) return false;
+      return true;
+    });
+  }, [ds, scopeQ, sel.t, filters]);
   const series = useMemo(() => monthly(ds, caseIdx, 0, t), [ds, caseIdx, t]);
   const know = useMemo(() => animalKnowledge(ds, ix, cells, t), [ds, ix, cells, t]);
   const openNow = stats.reduce((a, s) => a + s.open, 0);
+  /* With a filter on, the headline count is the animals the map is drawing;
+     the ABC and ARV shares below stay about every animal here. */
+  const animalsShown = note ? stats.reduce((a, s) => a + s.animals, 0) : know.total;
   const critical = stats.reduce((a, s) => a + s.critical, 0);
   const cov = useMemo(() => {
     const m = Object.fromEntries(COVERAGE_ORDER.map((k) => [k, 0])) as Record<string, number>;
@@ -181,7 +195,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
   /* A small place on the public map shows one or two records as "few". */
   const guard = scope === "public" && (sel.t === "cell" || sel.t === "locality");
   const n = (x: number) => fewOr(x, guard);
-  const anyFew = guard && [know.total, openNow, caseIdx.length].some(isSparse);
+  const anyFew = guard && [animalsShown, openNow, caseIdx.length].some(isSparse);
   const tooFewToShare = guard && know.total < FEW;
 
   return (
@@ -191,13 +205,14 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
           <p className="sys-eyebrow">{kicker}</p>
           <h2>{title}</h2>
           {sel.t === "cell" && <p className="sm-insp-code sys-mono">{ds.cells[sel.cell]}</p>}
+          {note && <p className="sm-insp-filtered">Filtered · {note}</p>}
         </div>
         {sel.t !== "india" && <button type="button" className="sm-insp-x" onClick={onClose} aria-label="Step back out"><X size={17} /></button>}
       </header>
 
       {compact && sel.t !== "empty" && (
         <button type="button" className="sm-insp-peek" onClick={onExpand}>
-          <span><b className="sys-mono">{n(know.total)}</b> animals</span>
+          <span><b className="sys-mono">{n(animalsShown)}</b> animals</span>
           <span><b className="sys-mono">{n(openNow)}</b> open</span>
           <span><b className="sys-mono">{n(caseIdx.length)}</b> cases</span>
           <em>Details</em>
@@ -209,7 +224,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
         const matter = critical > 0 ? { hot: true, text: <><b>{n(critical)}</b> critical {critical === 1 ? "case is" : "cases are"} open{openNow > critical ? <>, {n(openNow)} in all</> : null}.</> }
           : openNow > 0 ? { hot: true, text: <><b>{n(openNow)}</b> {openNow === 1 ? "case is" : "cases are"} open here.</> }
           : know.total >= FEW && unknownPct >= 50 ? { hot: false, text: <><b>{unknownPct}%</b> of the animals here have no sterilisation on record.</> }
-          : know.total ? { hot: false, text: <>Nothing is open. {n(know.total)} animals on record.</> }
+          : animalsShown ? { hot: false, text: <>Nothing is open. {n(animalsShown)} animals on record.</> }
           : { hot: false, text: <>Nothing is recorded here yet.</> };
         return (
           <div className="sm-insp-todo">
@@ -252,7 +267,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
         {sel.t !== "india" && sel.t !== "empty" && (
           <>
             <div className="sm-insp-figs">
-              <div><b className={isSparse(know.total) && guard ? "is-few" : ""}>{n(know.total)}</b><span>animals recorded</span></div>
+              <div><b className={isSparse(animalsShown) && guard ? "is-few" : ""}>{n(animalsShown)}</b><span>animals recorded</span></div>
               <div><b className={`${openNow ? "is-hot" : ""} ${isSparse(openNow) && guard ? "is-few" : ""}`}>{n(openNow)}</b><span>cases open{critical ? ` · ${n(critical)} critical` : ""}</span></div>
               <div><b className={isSparse(caseIdx.length) && guard ? "is-few" : ""}>{n(caseIdx.length)}</b><span>cases, all time</span></div>
             </div>

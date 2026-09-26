@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
-import { ChevronDown, Crosshair, Hexagon, Layers, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Crosshair, Hexagon, Layers, SlidersHorizontal, X } from "lucide-react";
 import { NIGHT, PAPER, groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
   animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf, caseStateOn, resolvedOn, resolutionUndated,
@@ -71,6 +71,18 @@ const LENSES: { id: CaseLens; label: string; q: string; unit: string }[] = [
   { id: "repeat", label: "Repeat animals", q: "Where the same animal keeps coming back", unit: "for animals seen before" },
   { id: "resolved", label: "Resolved", q: "Where cases were resolved", unit: "resolved" },
 ];
+
+/* The filters that change what each mode draws, and no others. Sterilisation,
+   vaccination and health are not filters: ABC, ARV and Medical are the modes
+   that answer them. Coverage, field work and change are read from every
+   record, so nothing narrows them but the date. */
+type FilterKey = "source" | "seen" | "condition";
+const FILTERS_FOR: Record<AnyMode, FilterKey[]> = {
+  animals: ["source", "seen"], density: ["source", "seen"], abc: ["source", "seen"], arv: ["source", "seen"], medical: ["source", "seen"],
+  cases: ["source", "condition"], coverage: [], activity: [], change: [],
+};
+const SOURCE_OPTS: [string, string][] = [["all", "Everyone"], ["field", "Field teams"], ["resident", "Residents"]];
+const SEEN_OPTS: [string, string][] = [["any", "Any time"], ["90", "90 days"], ["365", "1 year"]];
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] as GeoJSON.Feature[] };
 const T = "rgba(0,0,0,0)";
@@ -181,8 +193,25 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     setPlaying(true);
   };
 
+  /* Only the filters that apply to this mode reach the drawing; the rest
+     are kept for when the reader switches back. */
+  const eff = useMemo<Filters>(() => {
+    const on = FILTERS_FOR[mode];
+    return {
+      ...NO_FILTERS,
+      source: on.includes("source") ? filters.source : "all",
+      seen: on.includes("seen") ? filters.seen : "any",
+      condition: on.includes("condition") ? filters.condition : -1,
+    };
+  }, [filters, mode]);
+  const filterNote = [
+    eff.source === "field" ? "field-team records" : eff.source === "resident" ? "residents' reports" : "",
+    eff.seen !== "any" ? `seen in the last ${eff.seen === "90" ? "90 days" : "year"}` : "",
+    eff.condition >= 0 ? CONDITIONS[eff.condition] : "",
+  ].filter(Boolean).join(" · ");
+
   /* ── what each cell holds, now and a year earlier ─────────────────── */
-  const stats = useMemo(() => (ds && ix ? cellStats(ds, ix, t, filters) : []), [ds, ix, t, filters]);
+  const stats = useMemo(() => (ds && ix ? cellStats(ds, ix, t, eff) : []), [ds, ix, t, eff]);
   const prev = useMemo(() => (ds && ix && mode === "change" ? cellStats(ds, ix, t - 365, NO_FILTERS) : []), [ds, ix, t, mode]);
   const statOf = useMemo(() => new Map(stats.map((s) => [s.cell, s])), [stats]);
 
@@ -194,9 +223,9 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     if (!ds || !ix) return 0;
     const o = i * C_STRIDE, day = ds.cases[o + C.day];
     if (day < 0 || day > t) return 0;
-    if (filters.condition >= 0 && ds.cases[o + C.cond] !== filters.condition) return 0;
-    if (filters.source === "field" && ds.cases[o + C.source] === 1) return 0;
-    if (filters.source === "resident" && ds.cases[o + C.source] !== 1) return 0;
+    if (eff.condition >= 0 && ds.cases[o + C.cond] !== eff.condition) return 0;
+    if (eff.source === "field" && ds.cases[o + C.source] === 1) return 0;
+    if (eff.source === "resident" && ds.cases[o + C.source] !== 1) return 0;
     const st = STATUSES[ds.cases[o + C.status]];
     const state = caseStateOn(ds, i, t);
     const critical = DEFAULT_TRIAGE[(CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded") as Condition] === "Critical";
@@ -208,7 +237,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       case "repeat": { const a = ds.cases[o + C.animal]; return a >= 0 && ix.casesByAnimal[a].length > 1 ? 1 : 0; }
       case "resolved": return st === "no_action" || st === "not_attended" || st === "other_ngo" || !resolvedOn(ds, i, t) ? 0 : resolutionUndated(ds, i) ? 2 : 1;
     }
-  }, [ds, ix, t, lens, filters.condition, filters.source]);
+  }, [ds, ix, t, lens, eff.condition, eff.source]);
   const caseMatch = useCallback((i: number) => caseKind(i) > 0, [caseKind]);
   /* Counted: matches, and resolved cases even when their day is unknown;
      an undated case on the open question is shown, not counted. */
@@ -288,7 +317,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     const feats: GeoJSON.Feature[] = [];
     const rings = new Map<number, [number, number][]>();
     for (let i = 0; i < ix.nAnimals; i++) {
-      if (!animalVisible(ds, i, t, filters)) continue;
+      if (!animalVisible(ds, i, t, eff)) continue;
       const o = i * A_STRIDE, c = ds.animals[o + A.cell], f = ds.animals[o + A.flags];
       let r = rings.get(c); if (!r) { r = ringOf(ds, c); rings.set(c, r); }
       const k = f & (AF.help | AF.injured) ? 1 : f & AF.resident ? 2 : 0;
@@ -299,7 +328,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       feats.push({ type: "Feature", properties: { k, st, va, c }, geometry: { type: "Point", coordinates: pointInCell(r, i + 1) } });
     }
     return { type: "FeatureCollection" as const, features: feats };
-  }, [ds, ix, t, filters]);
+  }, [ds, ix, t, eff]);
 
   const casePts = useMemo(() => {
     if (!ds || !ix || (mode !== "cases" && mode !== "medical")) return EMPTY;
@@ -309,14 +338,15 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       const kind = mode === "cases" ? caseKind(i) : openOn(ds, i, t) ? 1 : 0;
       if (!kind) continue;
       const o = i * C_STRIDE, c = ds.cases[o + C.cell];
-      if (filters.condition >= 0 && ds.cases[o + C.cond] !== filters.condition) continue;
+      // Medical draws open cases beside its animals; "Recorded by" narrows both.
+      if (mode === "medical" && eff.source !== "all" && (ds.cases[o + C.source] === 1) !== (eff.source === "resident")) continue;
       let r = rings.get(c); if (!r) { r = ringOf(ds, c); rings.set(c, r); }
       const cond = (CONDITIONS[ds.cases[o + C.cond]] ?? "Not recorded") as Condition;
       /* An undated case carries no waiting rings: how long it waited is not known. */
       feats.push({ type: "Feature", properties: { age: kind === 2 ? -1 : t - ds.cases[o + C.day], crit: kind === 1 && DEFAULT_TRIAGE[cond] === "Critical" ? 1 : 0, u: kind === 2 ? 1 : 0, c }, geometry: { type: "Point", coordinates: pointInCell(r, i * 7 + 3) } });
     }
     return { type: "FeatureCollection" as const, features: feats };
-  }, [ds, ix, t, mode, filters.condition, caseKind]);
+  }, [ds, ix, t, mode, eff.source, caseKind]);
 
   /* Field work: every care event of the last twelve months, as a spark inside its cell. */
   const carePts = useMemo(() => {
@@ -628,7 +658,11 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
      every kind of selection except an empty cell, whose "nothing recorded
      here, report one" card has no collapsed form worth hiding behind a
      tap. A person who wants the full breakdown of a cell taps Details. */
-  const choose = useCallback((s: Sel) => { setSel(s); setSheet(s.t === "empty" ? "open" : "peek"); }, []);
+  const choose = useCallback((s: Sel) => {
+    setSel(s); setSheet(s.t === "empty" ? "open" : "peek");
+    // On a phone the panel and the place card share the screen: a place wins.
+    if (window.matchMedia("(max-width: 760px)").matches) setFilterOpen(false);
+  }, []);
   /* The mode chips scroll sideways on a phone: fade the edge that has more
      behind it, and keep the chosen mode in view. */
   const modesRef = useRef<HTMLDivElement>(null);
@@ -795,7 +829,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     else if (sel.t === "city") choose({ t: "india" });
   }, [ds, sel, choose]);
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !filterOpen) stepOut(); };
+    const k = (e: KeyboardEvent) => { if (e.key !== "Escape") return; if (filterOpen) setFilterOpen(false); else stepOut(); };
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, [stepOut, filterOpen]);
@@ -844,7 +878,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       <p className="sm-empty">
         {lens === "repeat"
           ? "No animal has a second case yet. Each imported case created its own animal record, so a return visit is not linked — linking it on the case is what makes it appear here."
-          : `No case matches this question${filters.condition >= 0 ? " for this condition" : ""}, as of ${monthLabel(m)}.`}
+          : `No case matches this question${eff.condition >= 0 ? " for this condition" : ""}, as of ${monthLabel(m)}.`}
       </p>
     );
     if (mode === "cases") return (
@@ -868,7 +902,9 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     );
   })();
 
-  const nFilters = (Object.keys(NO_FILTERS) as (keyof Filters)[]).filter((k) => filters[k] !== NO_FILTERS[k]).length;
+  const nFilters = (Object.keys(NO_FILTERS) as (keyof Filters)[]).filter((k) => eff[k] !== NO_FILTERS[k]).length + (mode === "cases" && lens !== "open" ? 1 : 0);
+  const applies = FILTERS_FOR[mode];
+  const lensDef = LENSES.find((l) => l.id === lens)!;
   const locate = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition((p) => {
@@ -884,7 +920,9 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       <div className="sm-top">
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.filter((x) => PRIMARY_MODES.includes(x.id)).map((x) => (
-            <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>{x.label}</button>
+            <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>
+              {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases · ${lensDef.label}` : x.label}
+            </button>
           ))}
           <button type="button" className={`sm-modes-more ${PRIMARY_MODES.includes(mode) ? "" : "is-on"}`} aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
             {PRIMARY_MODES.includes(mode) ? "More" : def.label}<ChevronDown size={14} aria-hidden />
@@ -897,51 +935,59 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
             ))}
           </div>
         )}
-        {mode === "cases" && (
-          <div className="sm-lens" role="group" aria-label="Which cases">
-            {LENSES.map((l) => <button key={l.id} type="button" aria-pressed={lens === l.id} className={lens === l.id ? "is-on" : ""} onClick={() => setLens(l.id)}>{l.label}</button>)}
-          </div>
-        )}
       </div>
 
       <div className="sm-tools">
-        <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label="Filter the animals shown"><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
+        <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label={nFilters ? `Filters, ${nFilters} on` : "Filters"}><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
         <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={16} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the paper ground, for daylight" : "Switch to the night ground"}><Layers size={16} /></button>
         <button type="button" onClick={locate} aria-label="Go to where I am"><Crosshair size={16} /></button>
       </div>
 
       {filterOpen && (
-        <div className="sm-filter" role="dialog" aria-label="Filter the map">
+        <div className="sm-filter" role="dialog" aria-label="Filters">
+          <div className="sm-filter-head">
+            <b>Filters</b>
+            {nFilters > 0 && <button type="button" className="sm-filter-reset" onClick={() => { setFilters(NO_FILTERS); setLens("open"); }}>Reset</button>}
+            <button type="button" className="sm-filter-x" onClick={() => setFilterOpen(false)} aria-label="Close filters"><X size={16} /></button>
+          </div>
           {ds && series.length > 1 && (
             <Timeline series={series} m0={m0} m={m} onChange={(x) => { setPlaying(false); setMonth(x); }} playing={playing} onPlay={play} night={ground === "night"} />
           )}
-          <FilterRow label="Recorded by" value={filters.source} options={[["all", "Everyone"], ["field", "Field teams"], ["resident", "Residents"]]} onChange={(v) => setFilters({ ...filters, source: v as Filters["source"] })} />
-          <FilterRow label="Health" value={filters.health} options={[["any", "Any"], ["help", "Needs help"], ["injured", "Injured"]]} onChange={(v) => setFilters({ ...filters, health: v as Filters["health"] })} />
-          <FilterRow label="Sterilisation" value={filters.ster} options={[["any", "Any"], ["yes", "Recorded"], ["unknown", "Not recorded"]]} onChange={(v) => setFilters({ ...filters, ster: v as Filters["ster"] })} />
-          <FilterRow label="Vaccination" value={filters.vacc} options={[["any", "Any"], ["yes", "Recorded"], ["unknown", "Not recorded"], ["due", "Booster due"]]} onChange={(v) => setFilters({ ...filters, vacc: v as Filters["vacc"] })} />
-          <FilterRow label="Last seen" value={filters.seen} options={[["any", "Any time"], ["90", "90 days"], ["365", "A year"]]} onChange={(v) => setFilters({ ...filters, seen: v as Filters["seen"] })} />
-          <label className="sm-filter-row">
-            <span>Condition (cases)</span>
-            <select value={filters.condition} onChange={(e) => setFilters({ ...filters, condition: Number(e.target.value) })}>
-              <option value={-1}>Every condition</option>
-              {CONDITIONS.map((c, i) => <option key={c} value={i}>{c}</option>)}
-            </select>
-          </label>
+          {mode === "cases" && (
+            <div className="sm-filter-pair">
+              <label className="sm-filter-row">
+                <span>Show</span>
+                <select value={lens} onChange={(e) => setLens(e.target.value as CaseLens)}>
+                  {LENSES.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+                </select>
+              </label>
+              <label className="sm-filter-row">
+                <span>Condition</span>
+                <select value={filters.condition} onChange={(e) => setFilters({ ...filters, condition: Number(e.target.value) })}>
+                  <option value={-1}>Any</option>
+                  {CONDITIONS.map((c, i) => <option key={c} value={i}>{c}</option>)}
+                </select>
+              </label>
+            </div>
+          )}
+          {applies.includes("source") && <FilterRow label="Recorded by" value={filters.source} options={SOURCE_OPTS} onChange={(v) => setFilters({ ...filters, source: v as Filters["source"] })} />}
+          {applies.includes("seen") && <FilterRow label="Seen" value={filters.seen} options={SEEN_OPTS} onChange={(v) => setFilters({ ...filters, seen: v as Filters["seen"] })} />}
+          {!applies.length && <p className="sm-note">{def.label} is read from every record; only the date changes it.</p>}
           <div className="sm-filter-key">
             {legend}
             <p className="sm-note">Recorded animals, not population.</p>
           </div>
-          <div className="sm-filter-acts">
-            <button type="button" className="sys-btn is-quiet is-sm" onClick={() => setFilters(NO_FILTERS)}>Clear</button>
-            <button type="button" className="sys-btn is-sm" onClick={() => setFilterOpen(false)}>Done</button>
-          </div>
         </div>
+      )}
+
+      {mode === "cases" && lensCounts && !lensCounts.some((x) => x > 0) && !filterOpen && (
+        <p className="sm-hint" role="status">No {lensDef.label.toLowerCase()} cases{eff.condition >= 0 ? ` for ${CONDITIONS[eff.condition]}` : ""} as of {monthLabel(m)}</p>
       )}
 
       {hover && <div className="sm-hover" style={{ left: hover.x + 14, top: hover.y + 14 }}>{hover.text}</div>}
 
-      {ds && ix && sel && sheet !== "hidden" && (
+      {ds && ix && sel && sheet !== "hidden" && !(phone && filterOpen) && (
         <Inspector
           ds={ds} ix={ix} sel={sel} t={t} scope={scope} next={ds.next}
           onSelect={choose} onClose={() => (sel.t === "city" || sel.t === "india" ? setSheet("hidden") : stepOut())}
@@ -951,6 +997,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
           }}
           compact={sheet === "peek"} onExpand={() => setSheet("open")}
           onMode={(x) => { setMode(x); setMoreOpen(false); }}
+          filters={eff} note={filterNote}
         />
       )}
 
@@ -966,7 +1013,7 @@ function FilterRow({ label, value, options, onChange }: { label: string; value: 
   return (
     <div className="sm-filter-row" role="group" aria-label={label}>
       <span>{label}</span>
-      <div>{options.map(([v, l]) => <button key={v} type="button" aria-pressed={value === v} className={value === v ? "is-on" : ""} onClick={() => onChange(v)}>{l}</button>)}</div>
+      <div className="sm-seg">{options.map(([v, l]) => <button key={v} type="button" aria-pressed={value === v} className={value === v ? "is-on" : ""} onClick={() => onChange(v)}>{l}</button>)}</div>
     </div>
   );
 }
