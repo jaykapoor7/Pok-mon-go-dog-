@@ -70,13 +70,13 @@ const TOURS: Record<EntryRole, Card[]> = {
   educator: [
     {
       Icon: BookOpen,
-      title: "Lessons built on real records",
-      body: "Short, sourced material on living alongside street animals, for a class or a community session.",
+      title: "Original material, ready to facilitate",
+      body: "Open The Kind Hour Foundation's source PDFs with audience guidance, context and clear sensitive-content notes.",
     },
     {
       Icon: MapPin,
       title: "Show your own streets",
-      body: "Open the map and the figures for the place you teach in, so the lesson is about somewhere people know.",
+      body: "Open the map and published evidence for the place you teach in, so learners can ask what is known and what remains unknown.",
     },
   ],
   ngo: [

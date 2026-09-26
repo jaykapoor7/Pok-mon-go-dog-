@@ -61,63 +61,79 @@ export const EDUCATION_PARTNERS: EducationPartner[] = [
   },
 ];
 
-/* ════════════════════════════════════════════════════════════════
-   The Kind Hour Foundation's teaching material.
-
-   Five session decks Kind Hour shared with StrayPaw. What follows is
-   taken from them and nothing else: the lessons are the decks' own
-   points, in their own order and words where the words were given, and
-   the Hindi is the decks' Hindi. A deck that carried no text on a slide
-   (a story told aloud, a video) is described, not reconstructed. The
-   decks themselves stay with Kind Hour; a school asks them for a session.
-   ════════════════════════════════════════════════════════════════ */
-
-export type KindHourDeck = {
-  id: string; title: string; audience: string; slides: number; languages: string; covers: string[];
+/* Original materials shared by The Kind Hour Foundation. We link to the
+   source PDFs; StrayPaw does not rewrite them into invented lesson plans.
+   Audience and facilitation notes are our editorial framing, not claims
+   from the decks. */
+export type KindHourMaterial = {
+  id: string;
+  title: string;
+  audience: string;
+  slides: number;
+  languages: string;
+  driveUrl: string;
+  purpose: string;
+  facilitatorNote: string;
+  themes: string[];
 };
 
-export const KIND_HOUR_DECKS: KindHourDeck[] = [
-  { id: "learn-about-nature", title: "Learn about nature", audience: "Young children", slides: 33, languages: "English, with Hindi on the closing slide",
-    covers: ["Whom we love and care about: family, teachers, friends, birds, the dog in your locality", "We feel love and pain equally; we just speak a different language", "Wild animals, birds, water animals, grassland animals, and dogs and cats as the only domestic animals", "A do's and don'ts activity with cue cards"] },
-  { id: "coexisting-with-the-planet", title: "Coexisting with the planet", audience: "Primary and middle school", slides: 100, languages: "English",
-    covers: ["Types of animals and where they belong, and why zoos exist (ex-situ conservation)", "Pets as younger siblings for life; fostering and adoption", "Pain, hunger, thirst, cold and heat: what animals feel like us", "What to do for them, a 'responsible kid' checklist, and what the law says"] },
-  { id: "rethinking-indies", title: "Rethinking Indies", audience: "Schools and communities", slides: 36, languages: "English and Hindi, every slide",
-    covers: ["What street dogs are: Indian breeds that evolved with us, and were abandoned when foreign breeds came home", "Busting stigma: ten beliefs about street dogs", "What street dogs do for us", "What you can do, and a story"] },
-  { id: "hello", title: "Hello!", audience: "Older students and adults; its opening is sensitive", slides: 42, languages: "English, with an Urdu poem",
-    covers: ["An empathy session: noticing what you feel before putting it into words", "How intuition differs from what society teaches us to feel, depending on who the victim is", "Film clips and a reading of Faiz Ahmad Faiz's poem about street dogs, open to interpretation", "Why do we need to care?"] },
-  { id: "gully-gang-goa", title: "Gully Gang", audience: "Colleges and clubs", slides: 67, languages: "English",
-    covers: ["Representation of animals on streets and in public space", "The Gully Gang public-art intervention, with the Animal Law Centre, NALSAR Hyderabad", "Advertising and fundraising as art for a cause: document, regulate, mobilise, repeat", "A Goa version, closing with the Environment Protection Club, GCA"] },
+export const KIND_HOUR_MATERIALS: KindHourMaterial[] = [
+  {
+    id: "rethinking-indies",
+    title: "Rethinking Indies",
+    audience: "Schools and community groups",
+    slides: 36,
+    languages: "English + Hindi",
+    driveUrl: "https://drive.google.com/file/d/1r_3_GbprjQHCJBuzdSyJJo_hHZ3Ka2iO/view",
+    purpose: "A bilingual starting point for discussing Indian street dogs, stigma and practical care.",
+    facilitatorNote: "Use the myths as discussion prompts. Separate the deck's perspective from locally verified facts and current guidance.",
+    themes: ["Street-dog stigma", "Community roles", "Everyday care"],
+  },
+  {
+    id: "learn-about-nature",
+    title: "Learn about nature",
+    audience: "Young children",
+    slides: 33,
+    languages: "English; Hindi closing slide",
+    driveUrl: "https://drive.google.com/file/d/1zmFhVf1k4ecoiubc5Am4z6NwUE7hWhsw/view",
+    purpose: "A gentle introduction to animals, habitats, feelings and how children can respond with care.",
+    facilitatorNote: "Best used as a guided conversation with the visual prompts, not as a factual taxonomy lesson.",
+    themes: ["Habitats", "Shared feelings", "Kind choices"],
+  },
+  {
+    id: "coexisting-with-the-planet",
+    title: "Coexisting with the planet",
+    audience: "Primary and middle school",
+    slides: 100,
+    languages: "English",
+    driveUrl: "https://drive.google.com/file/d/1Koh4ONNxerEuOC4CRAngn4SjVJkooSYC/view",
+    purpose: "A broad classroom deck on animals, habitats, companionship, fostering, adoption and citizenship.",
+    facilitatorNote: "Long-form material. Select a chapter for one session, and verify legal or policy claims against current official guidance before teaching them.",
+    themes: ["Coexistence", "Fostering and adoption", "Responsible citizenship"],
+  },
+  {
+    id: "gully-gang-goa",
+    title: "Gully Gang Goa",
+    audience: "Colleges, clubs and creative programmes",
+    slides: 67,
+    languages: "English",
+    driveUrl: "https://drive.google.com/file/d/1Qx7R2NAYSFKt39KOCQkMA4l_PWJz0R4a/view",
+    purpose: "A case study in using public art, documentation and campaigning to change how urban animals are represented.",
+    facilitatorNote: "Useful for project-based learning. Ask learners to document their place before designing an intervention.",
+    themes: ["Public art", "Representation", "Campaign design"],
+  },
+  {
+    id: "hello",
+    title: "Hello!",
+    audience: "Older students and adults",
+    slides: 42,
+    languages: "English; Urdu poem",
+    driveUrl: "https://drive.google.com/file/d/1KP-rb-dpKjHeNfM4Tnsu3Cef5dbYG3fb/view",
+    purpose: "A facilitator-led reflection on empathy, intuition and how social framing changes whose suffering people notice.",
+    facilitatorNote: "Sensitive material: it opens with sexual-violence content. Review the full deck first, use an age-appropriate content note, and provide a way to opt out.",
+    themes: ["Empathy", "Perspective", "Facilitated reflection"],
+  },
 ];
 
-/** Rethinking Indies, "Busting stigma": the ten beliefs, as the deck states them. */
-export const KIND_HOUR_MYTHS: { en: string; hi: string }[] = [
-  { en: "They are aggressive in nature", hi: "ये स्वभाव से आक्रामक होते हैं" },
-  { en: "They are dirty, unhygienic and create nuisance", hi: "ये गंदे और अस्वच्छ होते हैं और हमारे आस-पास अव्यवस्था फैलाते हैं" },
-  { en: "They increase in number when we feed them", hi: "भूखे कुत्तों को भोजन देने से उनकी आबादी बढ़ती है" },
-  { en: "They have rabies", hi: "यह कुत्ते रेबीज़ फैलाते हैं" },
-  { en: "They chase people for no reason", hi: "ये बिना किसी कारण लोगों के पीछे भागते हैं" },
-  { en: "It is illegal to feed or take care of street dogs", hi: "इन्हें खाना खिलाना या इनकी देखभाल करना गैरकानूनी है" },
-  { en: "All street dogs are low quality breeds", hi: "सड़क पर रहने वाले कुत्ते कमतर नस्ल के होते हैं" },
-  { en: "Only foreign breed dogs are lovable", hi: "विदेशी नस्ल के कुत्ते ही योग्य, सुंदर और पालने लायक होते हैं" },
-  { en: "Street dogs are useless and can't be trained", hi: "गली के कुत्ते बेकार हैं और उन्हें ट्रेन नहीं किया जा सकता" },
-  { en: "Removing them will fix everything", hi: "गली से कुत्तों को हटा दो, सब ठीक हो जाएगा" },
-];
-
-export type KindHourLesson = { n: string; title: string; from: string; points: string[]; hi?: string };
-
-/** The core lessons, each drawn from one deck. */
-export const KIND_HOUR_LESSONS: KindHourLesson[] = [
-  { n: "01", title: "Who street dogs are", from: "Rethinking Indies", hi: "आवारा कुत्ते क्या होते हैं?",
-    points: ["Breeds that have evolved with Indians through wars, famines and natural disasters.", "Indian breeds that have been abandoned on streets because we got foreign breeds at home."] },
-  { n: "02", title: "What they do for a street", from: "Rethinking Indies", hi: "यह कुत्ते आखिर हमारे लिए किस काम के हैं?",
-    points: ["They scavenge on our waste, and keep the city clean.", "Nature's pest and rodent control.", "They offer companionship to the lonely, and teach empathy.", "They protect the streets from invaders, and the residents too."] },
-  { n: "03", title: "What you can do", from: "Rethinking Indies and Coexisting with the planet", hi: "अब सवाल है, हम इनके लिए क्या कर सकते हैं?",
-    points: ["Feed them. Place water, and give them shelter. Provide warm beds in winter.", "Don't shoo them away. Treat them with kindness.", "Get them sterilised; deworm and vaccinate them.", "Don't buy them: foster or adopt."] },
-  { n: "04", title: "Fostering and adoption", from: "Coexisting with the planet",
-    points: ["Fostering makes you the temporary guardian of an animal in distress. Community animals need fostering more than adoption: to recover from illness or surgery, or while too young for adoption.", "Adoption makes you the permanent legal guardian of an animal. It is a permanent decision."] },
-  { n: "05", title: "What the law says", from: "Coexisting with the planet",
-    points: ["It is our fundamental duty as citizens of India to protect and take care of all living creatures, including plants and animals.", "Stray dogs cannot be relocated. Abandoning a pet is a punishable offence.", "Teasing, feeding or disturbing animals in a zoo is punishable.", "Owning monkeys, parakeets, snakes, peacocks or turtles is illegal and punishable."] },
-  { n: "06", title: "Feel first", from: "Hello!",
-    points: ["What you feel when you hear a story is your intuition; what changes when the victim changes is how society shapes you.", "Don't reach for words first. Just feel. Look them in the eye."] },
-];
-
+/** Kept as an alias for any existing imports while the UI moves to materials. */
+export const KIND_HOUR_DECKS = KIND_HOUR_MATERIALS;

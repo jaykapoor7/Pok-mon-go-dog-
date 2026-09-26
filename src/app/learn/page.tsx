@@ -1,71 +1,142 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpenCheck,
+  ChartColumn,
+  ExternalLink,
+  FileText,
+  MapPinned,
+  ShieldCheck,
+} from "lucide-react";
 import { PlatformShell } from "@/components/platform/PlatformNav";
+import { KIND_HOUR_MATERIALS } from "@/lib/platform/education";
 import "./learn.css";
 
 export const dynamic = "force-static";
 export const metadata = {
-  title: "Lessons, StrayPaw",
-  description: "Four short lessons on living alongside street dogs: coexistence, Animal Birth Control, what to do after a bite, and what the law says.",
+  title: "Lesson studio, StrayPaw",
+  description: "Original Kind Hour classroom materials, facilitator notes and local StrayPaw records for educators.",
 };
 
-/* The educator's home: four lessons short enough to read aloud in a class.
-   No statistics here; the published numbers, and why so few exist, are on
-   /evidence. Each lesson ends on something a person can do on their own
-   street. */
-const LESSONS = [
+const QUICK_GUIDES = [
   {
     id: "coexist",
-    title: "Living alongside street dogs",
-    body: "Most street dogs are community dogs: they live on the same few streets for years and are fed by the people there. A sterilised, vaccinated dog holds its territory and keeps unvaccinated newcomers out.",
-    doThis: "If a dog growls or shows teeth, stand still, look away and give it room. Never corner, chase or hit a dog.",
+    title: "A calm street-dog encounter",
+    body: "Stand still, turn slightly away and give the dog room. Do not corner, chase or hit an animal that is signalling discomfort.",
   },
   {
-    id: "abc",
-    title: "What Animal Birth Control is",
-    body: "Dogs are caught, sterilised, vaccinated against rabies and returned to the same street. It is the only method the law allows. Moving or killing dogs does not work: new, unvaccinated dogs fill the space.",
-    doThis: "A notched ear means a dog has been sterilised. Report one you see, so the record knows it was reached.",
+    id: "bite",
+    title: "After a bite or scratch",
+    body: "Wash the wound with soap and running water for fifteen minutes, then seek medical care and anti-rabies vaccination the same day.",
   },
   {
-    id: "rabies",
-    title: "After a bite or a scratch",
-    body: "Rabies is almost always fatal once symptoms appear, and completely preventable before they do.",
-    doThis: "Wash the wound with soap and running water for fifteen minutes, then go to a hospital for anti-rabies vaccination the same day.",
-  },
-  {
-    id: "law",
-    title: "What the law says",
-    body: "The Prevention of Cruelty to Animals Act, 1960 makes it an offence to beat, torture or kill a street dog. The Animal Birth Control Rules, 2023 require every municipal body to sterilise and vaccinate community dogs. Feeding at reasonable times and places is legal.",
-    doThis: "If you see cruelty, report it to your local police station and an animal-welfare organisation near you.",
+    id: "observe",
+    title: "Observe without guessing",
+    body: "Record only what you can see: place, time, photo and visible condition. Leave breed, history and outcome unknown when the evidence is not there.",
   },
 ];
 
 export default function LearnPage() {
   return (
     <PlatformShell>
-      <div className="lsn">
-        <header className="lsn-head">
-          <h1>Four lessons, <em>one street at a time.</em></h1>
-          <p>Short enough to read aloud in a class or a residents&rsquo; meeting.</p>
+      <div className="studio">
+        <header className="studio-hero">
+          <div>
+            <p className="studio-kicker">Educator workspace</p>
+            <h1>Lesson materials, <em>with the source still attached.</em></h1>
+            <p>
+              Open The Kind Hour Foundation&rsquo;s original PDFs, see how each one is best facilitated,
+              then bring the conversation back to a real place on StrayPaw.
+            </p>
+          </div>
+          <div className="studio-route" aria-label="A three-part lesson route">
+            <span><b>01</b> Choose a source</span>
+            <span><b>02</b> Frame the room</span>
+            <span><b>03</b> Open the local record</span>
+          </div>
         </header>
 
-        <ol className="lsn-list">
-          {LESSONS.map((l, i) => (
-            <li key={l.id} id={l.id}>
-              <span className="lsn-n sys-mono">{String(i + 1).padStart(2, "0")}</span>
-              <div>
-                <h2>{l.title}</h2>
-                <p>{l.body}</p>
-                <p className="lsn-do"><b>On your street</b>{l.doThis}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <section className="studio-materials" aria-labelledby="materials-title">
+          <header className="studio-section-head">
+            <div>
+              <p className="studio-kicker">The Kind Hour Foundation · original PDFs</p>
+              <h2 id="materials-title">Lesson materials</h2>
+            </div>
+            <p>
+              These are partner materials, not StrayPaw-authored lessons. Audience and facilitator
+              notes below are editorial guidance so the files are used with care.
+            </p>
+          </header>
 
-        <nav className="lsn-next" aria-label="Take the lesson further">
-          <Link href="/map">Show the class their own streets <ArrowUpRight size={15} /></Link>
-          <Link href="/evidence">The numbers, and why so few exist <ArrowUpRight size={15} /></Link>
-        </nav>
+          <ol className="material-list">
+            {KIND_HOUR_MATERIALS.map((material, index) => (
+              <li key={material.id} id={material.id}>
+                <div className="material-index" aria-hidden>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <FileText size={20} />
+                </div>
+                <div className="material-main">
+                  <div className="material-title">
+                    <div>
+                      <h3>{material.title}</h3>
+                      <p>{material.purpose}</p>
+                    </div>
+                    <a href={material.driveUrl} target="_blank" rel="noopener noreferrer">
+                      Open original PDF <ExternalLink size={14} />
+                    </a>
+                  </div>
+                  <div className="material-meta">
+                    <span>{material.audience}</span>
+                    <span>{material.slides} slides</span>
+                    <span>{material.languages}</span>
+                  </div>
+                  <ul className="material-themes" aria-label="Themes">
+                    {material.themes.map((theme) => <li key={theme}>{theme}</li>)}
+                  </ul>
+                  <p className={material.id === "hello" ? "material-note is-sensitive" : "material-note"}>
+                    <ShieldCheck size={16} aria-hidden />
+                    <span><b>Facilitator note</b>{material.facilitatorNote}</span>
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="studio-bridge" aria-labelledby="bridge-title">
+          <div className="studio-bridge-copy">
+            <p className="studio-kicker">Turn material into a local lesson</p>
+            <h2 id="bridge-title">The PDF opens the question. <em>The record makes it local.</em></h2>
+            <p>
+              Use the map and published evidence as a second source. Learners can compare a deck&rsquo;s
+              ideas with what is actually known, unknown and being worked on near them.
+            </p>
+          </div>
+          <nav className="studio-tools" aria-label="Educator tools">
+            <Link href="/map"><MapPinned size={20} /><span><b>Open a locality</b>Map records and gaps</span><ArrowUpRight size={15} /></Link>
+            <Link href="/insights"><ChartColumn size={20} /><span><b>Read the evidence</b>Patterns with provenance</span><ArrowUpRight size={15} /></Link>
+            <Link href="/stories"><BookOpenCheck size={20} /><span><b>Follow a full story</b>From sighting to care</span><ArrowUpRight size={15} /></Link>
+          </nav>
+        </section>
+
+        <section className="studio-guides" aria-labelledby="guides-title">
+          <header className="studio-section-head">
+            <div>
+              <p className="studio-kicker">StrayPaw quick guides</p>
+              <h2 id="guides-title">Three things worth leaving the room with</h2>
+            </div>
+            <p>Short operational guidance, kept separate from the partner PDFs.</p>
+          </header>
+          <ol>
+            {QUICK_GUIDES.map((guide, index) => (
+              <li key={guide.id}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{guide.title}</h3>
+                <p>{guide.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
     </PlatformShell>
   );

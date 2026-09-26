@@ -43,6 +43,7 @@ import "./app.css";
 const COMMUNITY_NAV = [
   { href: "/app", label: "Home", Icon: LayoutGrid },
   { href: "/map", label: "Map", Icon: MapPin },
+  { href: "/following", label: "Saved dogs", Icon: Bookmark },
   { href: "/insights", label: "Insights", Icon: ChartColumn },
   { href: "/stories", label: "Stories", Icon: BookOpen },
   { href: "/orgs", label: "Partner NGOs", Icon: Building2 },
@@ -70,7 +71,7 @@ const FEEDER_NAV = [
 ];
 
 const EDUCATOR_NAV = [
-  { href: "/learn", label: "Lessons", Icon: GraduationCap },
+  { href: "/learn", label: "Lesson studio", Icon: GraduationCap },
   { href: "/map", label: "Map", Icon: MapPin },
   { href: "/insights", label: "Insights", Icon: ChartColumn },
   { href: "/stories", label: "Stories", Icon: BookOpen },
@@ -81,7 +82,7 @@ type Space = "community" | "feeder" | "educator" | "ngo";
 const SPACES: Record<Space, { label: string; home: string; nav: typeof COMMUNITY_NAV; phone: typeof COMMUNITY_NAV }> = {
   /* The phone bar has four places around Report; the fifth rail item is
      reached from the map and the desktop rail. */
-  community: { label: "Community", home: "/app", nav: COMMUNITY_NAV, phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights") },
+  community: { label: "Community", home: "/app", nav: COMMUNITY_NAV, phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights" && x.href !== "/orgs") },
   feeder: { label: "Feeder", home: "/feeder", nav: FEEDER_NAV, phone: FEEDER_NAV.slice(0, 4) },
   educator: { label: "Educator", home: "/learn", nav: EDUCATOR_NAV, phone: EDUCATOR_NAV.filter((x) => x.href !== "/orgs") },
   ngo: { label: "NGO operations", home: "/partner", nav: NGO_NAV, phone: NGO_NAV.slice(0, 4) },

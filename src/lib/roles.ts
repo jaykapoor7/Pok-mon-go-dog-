@@ -42,9 +42,9 @@ export const ROLE_META: Record<
     applyLabel: null,
   },
   educator: {
-    label: "I teach people about street animals",
+    label: "I teach about animals and coexistence",
     short: "Educator",
-    blurb: "Lessons and real local records for a class or a community session.",
+    blurb: "Original partner materials, facilitator notes and real local records for a class or community session.",
     home: "/learn",
     priority: ["/learn", "/map", "/insights", "/stories"],
     apply: null,
