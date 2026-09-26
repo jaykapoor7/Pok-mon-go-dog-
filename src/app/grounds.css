@@ -1,0 +1,78 @@
+/* ════════════════════════════════════════════════════════════════════
+   The grounds.
+
+   No screen sits on a bare colour, and no two kinds of screen share a
+   ground. Each is a real city's record drawn in the map's own language by
+   scripts/build-grounds.mjs, with one slow motion inside the SVG that
+   means something (and stops under reduced motion):
+
+     cells     the recorded honeycomb; cells light as reports arrive
+     survey    contours, locality names, coordinate ticks; a line is traced
+     coverage  ink-weight cells, the unmapped edge dashed and breathing
+     console   contours and busy cells; flame rings pulse like open work
+     night     the city's lights on the night ground, twinkling
+
+   Where each is used follows who is reading: residents stand on cells,
+   NGO teams on the console, municipalities on coverage, readers of pages
+   and lessons on the survey sheet, and every night section on the lights.
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --gd-cells: url("/grounds/cells.svg");
+  --gd-survey: url("/grounds/survey.svg");
+  --gd-coverage: url("/grounds/coverage.svg");
+  --gd-console: url("/grounds/console.svg");
+  --gd-night: url("/grounds/night.svg");
+  --gd-size: max(1500px, 115%) auto;
+}
+.gd, html .ld .ld-sec-bone, html .ld .ld-sec-shell, html .ld .ld-close,
+html .co .co-sec, html .co .co-hero, html .co .co-close, html .edu-hero,
+html .sx.spa.spa, html .mk-band, html .mk .mk-hero {
+  background-size: var(--gd-size);
+  background-repeat: no-repeat;
+}
+
+/* ── The landing ─────────────────────────────────────────────────── */
+/* One report, three screens, and its readers: the honeycomb it lands on. */
+html .ld .ld-sec-shell { background-image: var(--gd-cells); background-position: 72% 40%; }
+/* The photographs: the survey sheet they were placed on. */
+html .ld .ld-sec-bone { background-image: var(--gd-survey); background-position: 30% 50%; }
+html .ld .ld-close { background-image: var(--gd-night); background-position: 60% 50%; }
+
+/* ── The public pages ────────────────────────────────────────────── */
+html .co .co-sec { background-image: var(--gd-survey); background-position: 20% 30%; }
+html .co .co-sec:nth-of-type(odd) { background-position: 80% 60%; }
+html .co .co-sec.is-shell { background-image: var(--gd-cells); background-position: 65% 40%; }
+/* The NGO page stands on the workspace's own field; municipalities on coverage. */
+html .co.ngo .co-sec.is-shell { background-image: var(--gd-console); }
+html .co.gv .co-sec { background-image: var(--gd-coverage); }
+html .co.gv .co-sec.is-shell { background-image: var(--gd-survey); }
+html .co .co-hero, html .co .co-close, html .edu-hero { background-image: var(--gd-night); background-position: 70% 40%; }
+html .co .co-close { background-position: 25% 60%; }
+
+/* Pages drawn through SitePage and the marketing scaffold. */
+html .sx.spa.spa { background-color: var(--sp-bone); background-image: var(--gd-survey); background-position: 50% 0; }
+html .mk-band.mk-paper { background-image: var(--gd-survey); background-position: 70% 30%; }
+html .mk-band.mk-bone { background-image: var(--gd-cells); background-position: 30% 50%; }
+html .mk-band.mk-ink, html .mk .mk-hero { background-image: var(--gd-night); background-position: 40% 50%; }
+
+/* ── The app, by space ───────────────────────────────────────────────
+   The ground stays put while the screen scrolls over it, like a map
+   under tracing paper. Maps (.flush) draw their own ground. */
+html .spa.spa .spa-main:not(.flush) {
+  background-image: var(--gd-cells);
+  background-size: var(--gd-size);
+  background-position: 60% 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+html .spa.spa[data-ground="console"] .spa-main:not(.flush) { background-image: var(--gd-console); }
+html .spa.spa[data-ground="coverage"] .spa-main:not(.flush) { background-image: var(--gd-coverage); }
+html .spa.spa[data-ground="survey"] .spa-main:not(.flush) { background-image: var(--gd-survey); }
+/* Phones scroll the page, not a pane, and ignore fixed grounds anyway:
+   there the field is laid once at the top and scrolls with the screen. */
+@media (max-width: 900px) {
+  html .spa.spa .spa-main:not(.flush) { background-attachment: scroll; background-size: max(1100px, 180%) auto; background-position: 55% 0; }
+}
+@media print {
+  html .spa.spa .spa-main, html .co .co-sec, html .ld .ld-sec-bone, html .ld .ld-sec-shell, html .sx.spa.spa, html .mk-band { background-image: none; }
+}

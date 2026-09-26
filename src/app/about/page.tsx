@@ -51,7 +51,7 @@ export default async function AboutPage() {
   const sources = await getSources().catch(() => []);
 
   return (
-    <div className="co">
+    <div className="co ab">
       <SiteHeader tone="night" />
       <main>
         <section className="co-hero is-solo">

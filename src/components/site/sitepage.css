@@ -13,11 +13,8 @@
   height: auto;
   min-height: 100dvh;
   overflow: visible;
-  /* A cool, light ground — the same family as the console so the product
-     still feels like one thing, lifted at the top so the fixed dark
-     header has something to sit against rather than a flat slab. */
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f2f7fd 190px, #eaf1fa 560px);
+  /* The warm ground; its contour field is laid in grounds.css. */
+  background: var(--sp-bone);
   color: var(--ink);
 }
 

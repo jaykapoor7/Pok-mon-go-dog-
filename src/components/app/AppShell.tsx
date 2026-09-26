@@ -170,6 +170,10 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   }
 
   const isReporting = pathname.startsWith("/report");
+  /* Each space stands on its own ground (grounds.css): the NGO workspace on
+     its field of open work, the community on the recorded honeycomb,
+     insights on coverage, educators and feeders on the survey sheet. */
+  const ground = pathname.startsWith("/insights") ? "coverage" : space === "ngo" ? "console" : space === "community" ? "cells" : "survey";
   const { nav: primaryNav, phone: phoneNav, home, label: spaceLabel } = SPACES[space];
   const destinations = new Set(primaryNav.map((n) => n.href));
   const showBack = !destinations.has(pathname) && !pathname.startsWith("/report") && pathname !== "/";
@@ -202,7 +206,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   if (nested) return <>{children}</>;
 
   return <InShell.Provider value={true}>
-    <div className={`spa${isReporting ? " spa-reporting" : ""}`}>
+    <div className={`spa${isReporting ? " spa-reporting" : ""}`} data-ground={ground}>
       <Welcome />
       <a href="#spa-main" className="skip-link">Skip to content</a>
 

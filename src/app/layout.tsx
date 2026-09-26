@@ -13,6 +13,7 @@ import "./globals.css";
 import "./design-system.css";
 import "./product.css";
 import "./system.css";
+import "./grounds.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { themeBootScript } from "@/components/theme/ThemeProvider";
 import { StructuredData } from "@/components/seo/StructuredData";

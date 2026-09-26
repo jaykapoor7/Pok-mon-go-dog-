@@ -44,7 +44,7 @@ export default async function ForNgosPage() {
   ];
 
   return (
-    <div className="co">
+    <div className="co ngo">
       <SiteHeader tone="night" />
       <main>
         <section className={`co-hero ${story?.desk ? "" : "is-solo"}`}>
