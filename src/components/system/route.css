@@ -1,0 +1,39 @@
+/* A record as a route: a rail with a stop for each thing it holds. The rail
+   is drawn in two halves per stop, so the stretch leading to a stop nobody
+   has reached yet can be dashed on its own. */
+.rt {
+  --rt-ink: var(--sp-ink); --rt-line: var(--sp-ink); --rt-bg: var(--sp-bone); --rt-dim: var(--sp-muted); --rt-body: var(--sp-body); --rt-end: var(--sp-blue);
+  margin: 0; padding: 0; list-style: none;
+}
+.rt.is-night { --rt-ink: var(--sp-night-text); --rt-line: rgba(239, 231, 218, 0.45); --rt-bg: var(--sp-night); --rt-dim: var(--sp-night-dim); --rt-body: var(--sp-night-dim); --rt-end: var(--sp-sky); }
+.rt-stop { position: relative; display: grid; gap: 2px; justify-items: start; padding: 0 0 var(--sp-5) 32px; }
+.rt-stop:last-child { padding-bottom: 0; }
+.rt-stop::before, .rt-stop::after { content: ""; position: absolute; left: 7px; width: 2px; background: var(--rt-line); }
+.rt-stop::before { top: 0; height: 13px; }
+.rt-stop::after { top: 13px; bottom: 0; }
+.rt-stop:first-child::before, .rt-stop:last-child::after { display: none; }
+.rt-stop.is-missing::before, .rt-stop:has(+ .is-missing)::after { width: 0; background: none; border-left: 2px dashed var(--rt-dim); }
+
+.rt-mark { position: absolute; z-index: 1; left: 0; top: 5px; width: 16px; height: 16px; box-sizing: border-box; border-radius: 50%; background: var(--rt-bg); border: 2px solid var(--rt-ink); }
+.rt-stop.is-step .rt-mark { left: 3px; top: 8px; width: 10px; height: 10px; border: 0; background: var(--rt-ink); }
+.rt-stop.is-open .rt-mark { border-color: var(--sp-flame); background: var(--sp-flame); box-shadow: 0 0 0 4px rgba(240, 91, 64, 0.2); }
+.rt-stop.is-end .rt-mark { border-color: var(--rt-end); background: var(--rt-end); }
+.rt-stop.is-missing .rt-mark { border: 2px dashed var(--rt-dim); }
+
+.rt-when { font-size: 12px; line-height: 26px; letter-spacing: 0.02em; color: var(--rt-dim); font-variant-numeric: tabular-nums; }
+.rt-when em { font-style: normal; color: var(--rt-end); }
+.rt-label { font-size: 16px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--rt-ink); }
+.rt-stop.is-missing .rt-label { font-weight: 500; color: var(--rt-dim); }
+.rt-detail { font-size: 14px; line-height: 1.45; color: var(--rt-body); }
+.rt-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 13px; font-weight: 600; color: var(--rt-end); text-decoration: none; }
+.rt-cta:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .rt-stop { animation: rt-in linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+  }
+}
+@keyframes rt-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (pointer: coarse) {
+  .rt-cta { min-height: var(--ctl-h); }
+}

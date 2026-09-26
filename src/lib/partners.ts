@@ -10,6 +10,8 @@ export type Partner = {
   areas: string[];
   logoUrl: string | null;
   partnerStatus: string;
+  /** When the partnership began, if recorded. */
+  partneredAt?: string | null;
 };
 
 /* A confirmed founding partner is shown while a deployment is waiting for its
@@ -24,6 +26,7 @@ const FOUNDING_PARTNERS: Partner[] = [{
   areas: ["Rescue", "Treatment", "ABC", "Follow-up"],
   logoUrl: null,
   partnerStatus: "operational_partner",
+  partneredAt: null,
 }];
 
 export async function getOperationalPartners(): Promise<Partner[]> {
@@ -31,7 +34,7 @@ export async function getOperationalPartners(): Promise<Partner[]> {
   if (!supa) return FOUNDING_PARTNERS;
   const { data, error } = await supa
     .from("ngos")
-    .select("id,name,slug,city,state,mission,areas_of_work,logo_url,partner_status")
+    .select("id,name,slug,city,state,mission,areas_of_work,logo_url,partner_status,partnered_at")
     .in("partner_status", ["operational_partner", "pilot_partner"])
     .order("partnered_at", { ascending: true });
   if (error || !data?.length) return FOUNDING_PARTNERS;
@@ -40,5 +43,6 @@ export async function getOperationalPartners(): Promise<Partner[]> {
     state: row.state ?? null, mission: row.mission ?? null,
     areas: row.areas_of_work ?? [], logoUrl: row.logo_url ?? null,
     partnerStatus: row.partner_status,
+    partneredAt: row.partnered_at ?? null,
   }));
 }

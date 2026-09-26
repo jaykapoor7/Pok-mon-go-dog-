@@ -1,24 +1,24 @@
 /* ════════════════════════════════════════════════════════════════════
    The living record: one animal, as the register knows it.
 
-   Read top to bottom it answers, in order: who is this and where, what is
-   known about it (and what is not — hatched, never guessed), what has
-   happened to it (the care lanes), what is still unfinished, the full
-   chronology with where each entry came from, what the neighbours have
-   added, and where it lives among the cells around it.
+   It opens on the streets the animal is recorded among, with its name set
+   on them. Beside that sits its record tag: the ID, the dates, and a row
+   of tick boxes for what is known, hatched where nothing is recorded,
+   never guessed. Then the record itself, as a route: every report, every
+   piece of care, every closure in order, with the time between them on the
+   line, and the route carrying on dashed to what nobody has recorded yet.
+   The full chronology, with where each entry came from, sits under it.
 
    The same record serves the public profile and the organisation's view;
    the organisation's tools and notes arrive as their own island, read
    under the member's session.
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowUpRight } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { Route, type RouteStop } from "@/components/system/Route";
 import { PlaceMap } from "./PlaceMap";
 import type { Living, LivingEvent } from "@/lib/animal/living";
-import { CareLanes } from "./CareLanes";
 import { RecordActions } from "./RecordActions";
 import { CommunityPanel } from "./CommunityPanel";
 import "./living.css";
@@ -31,7 +31,101 @@ const since = (iso: string | null) => {
   const d = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 86_400_000));
   return d < 1 ? "today" : d === 1 ? "yesterday" : d < 45 ? `${d} days ago` : d < 540 ? `${Math.round(d / 30)} months ago` : `${(d / 365).toFixed(1)} years ago`;
 };
+const cap = (t: string) => t.replace(/^./, (c) => c.toUpperCase());
 const SOURCE: Record<LivingEvent["source"], string> = { field: "field record", resident: "resident", import: "imported register" };
+
+/* The route shows the shape of the record; past this many stops the middle
+   folds into one, and the chronology below holds every entry. */
+const MAX_STOPS = 9;
+
+function routeOf(r: Living, scope: "public" | "org", reportHref: string): RouteStop[] {
+  /* Each stop carries the moment it sorts at: its own date, or, for a closure
+     whose day was not recorded, just after the report it closes. */
+  const timed: { t: number; s: RouteStop }[] = [];
+  /* Within one day: the report first, then what was seen and done, then the close. */
+  const dayOf = (iso: string) => Math.floor(Date.parse(iso) / 86_400_000);
+  const push = (s: RouteStop, at: string | null = s.at, rank = 2) => timed.push({ t: at ? dayOf(at) * 10 + rank : 0, s });
+  let sights: LivingEvent[] = [];
+  const flushSights = () => {
+    if (!sights.length) return;
+    const first = sights[0], last = sights[sights.length - 1];
+    push({
+      key: `s-${first.id}`, at: first.date, kind: "step",
+      label: sights.length === 1 ? cap(first.title) : `Seen ${sights.length} times by residents`,
+      detail: sights.length > 1 ? `${day(first.date)} to ${day(last.date)}` : undefined,
+    }, first.date, 1);
+    sights = [];
+  };
+  for (const e of r.events) {
+    if (e.lane === "sight") { sights.push(e); continue; }
+    flushSights();
+    if (e.lane === "case") {
+      const [what, outcome] = e.title.split(" — ");
+      const [status, why] = (outcome ?? "").split(": ");
+      const cond = what === "A request for help" ? null : what;
+      if (e.tone === "open") {
+        push({
+          key: e.id, at: e.date, kind: "open", label: "Open request",
+          detail: `${cond ?? "Condition not recorded"} · open since ${day(e.date)}`,
+          ...(scope === "org" && e.href ? { href: e.href, cta: "Open the case" } : {}),
+        }, e.date, 0);
+        continue;
+      }
+      push({ key: `${e.id}-r`, at: e.date, kind: "step", label: "Reported", detail: cond ?? "A request for help" }, e.date, 0);
+      const closedAt = e.end && e.end > e.date ? e.end : null;
+      push({ key: `${e.id}-c`, at: closedAt, kind: "step", label: cap(status || "Closed"), detail: why ? cap(why) : closedAt ? undefined : "The day it closed was not recorded" }, closedAt ?? e.date, 4);
+      continue;
+    }
+    if (e.lane === "follow") {
+      if (e.tone === "due") continue; // a follow-up still to come is drawn with the gaps, below
+      push({ key: e.id, at: e.date, kind: e.tone === "miss" ? "open" : "step", label: e.title }, e.date, 3);
+      continue;
+    }
+    push({ key: e.id, at: e.date, kind: "step", label: e.title, detail: e.note ?? undefined });
+  }
+  flushSights();
+  const sorted = timed.map((x, i) => ({ ...x, i })).sort((a, b) => a.t - b.t || a.i - b.i);
+  /* The same entry made more than once on one day (three requests for one
+     wound) is one stop that says how many. */
+  const items: RouteStop[] = [];
+  for (let k = 0; k < sorted.length; k++) {
+    let n = 1;
+    while (k + n < sorted.length && sorted[k + n].t === sorted[k].t && sorted[k + n].s.label === sorted[k].s.label && sorted[k + n].s.detail === sorted[k].s.detail) n++;
+    const st = sorted[k].s;
+    items.push(n > 1 ? { ...st, detail: <>{st.detail}{st.detail ? " · " : ""}{n} on the record</> } : st);
+    k += n - 1;
+  }
+
+  if (items.length) items[0] = { ...items[0], kind: items[0].kind === "open" ? "open" : "start" };
+  const lastI = items.length - 1;
+  if (lastI > 0 && items[lastI].kind === "step" && !r.open.cases && r.known.health === "none" && /^(closed|handed|recovered)/i.test(items[lastI].label)) {
+    items[lastI] = { ...items[lastI], kind: "end" };
+  }
+
+  let shown = items;
+  if (items.length > MAX_STOPS) {
+    const head = items.slice(0, 2), tail = items.slice(items.length - (MAX_STOPS - 3));
+    const hidden = items.length - head.length - tail.length;
+    const mid = items[2 + Math.floor(hidden / 2)];
+    shown = [...head, { key: "fold", at: mid.at, kind: "step", label: `${hidden} more entries`, detail: "Every entry is in the chronology below" }, ...tail];
+  }
+
+  /* What nobody has recorded yet: the route carries on, dashed. */
+  const gaps: RouteStop[] = [];
+  if (r.known.health === "needs_help") gaps.push({ key: "help", at: null, kind: "open", label: "Flagged as needing help", detail: "Somebody asked for help for this animal.", href: reportHref, cta: "Add what you see" });
+  if (r.open.followupsDue) gaps.push({ key: "due", at: null, kind: "missing", label: `${r.open.followupsDue} follow-up${r.open.followupsDue === 1 ? "" : "s"} due`, ...(scope === "org" ? { href: "#org-care", cta: "Record it" } : {}) });
+  if (r.known.boosterDue) gaps.push({ key: "boost", at: null, kind: "missing", label: "Booster vaccination", detail: `The last vaccination was ${since(r.known.vaccAt)}; a booster is due.` });
+  if (r.known.ster === "unknown") gaps.push({
+    key: "ster", at: null, kind: "missing", label: "Sterilisation",
+    detail: scope === "public" ? "Nobody has recorded whether it is sterilised. A notched ear is the sign." : "Nobody has recorded whether it is sterilised.",
+    href: scope === "org" ? "#org-care" : reportHref, cta: scope === "org" ? "Record sterilisation" : "Report a sighting",
+  });
+  if (r.known.vacc === "unknown") gaps.push({
+    key: "vacc", at: null, kind: "missing", label: "Vaccination", detail: "No anti-rabies vaccination on the record.",
+    ...(scope === "org" ? { href: "#org-care", cta: "Record vaccination" } : {}),
+  });
+  return [...shown, ...gaps];
+}
 
 export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "public" | "org"; org?: ReactNode; trail?: ReactNode }) {
   const reportHref = `/report?dog=${r.id}${r.place ? `&lat=${r.place.center[1]}&lng=${r.place.center[0]}` : ""}`;
@@ -41,138 +135,113 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
     : { t: "No open request", c: "" };
   const rows = r.events.map((e) => ({ date: e.date, kind: e.lane, title: e.title, source: SOURCE[e.source] }));
   const chronology = [...r.events].reverse();
-  const unresolved: { k: string; t: ReactNode; href?: string; cta?: string }[] = [];
-  if (r.known.health === "needs_help") unresolved.push({ k: "help", t: <>Somebody flagged this animal as <b>needing help</b>.</>, href: reportHref, cta: "Add what you see" });
-  for (const c of r.cases.filter((x) => x.statusClass === "open" || x.statusClass === "in_progress")) {
-    unresolved.push({ k: `c${c.id}`, t: <><b>{c.condition === "Not recorded" ? "A request" : c.condition}</b>, open since {day(c.opened)} — {since(c.opened)}.</>, href: scope === "org" ? `/partner/cases/${c.id}` : undefined, cta: scope === "org" ? "Open the case" : undefined });
-  }
-  if (r.open.followupsMissed) unresolved.push({ k: "miss", t: <><b>{r.open.followupsMissed}</b> follow-up{r.open.followupsMissed === 1 ? " was" : "s were"} missed.</> });
-  if (r.open.followupsDue) unresolved.push({ k: "due", t: <><b>{r.open.followupsDue}</b> follow-up{r.open.followupsDue === 1 ? " is" : "s are"} due.</> });
-  if (r.known.boosterDue) unresolved.push({ k: "boost", t: <>The last vaccination was <b>{since(r.known.vaccAt)}</b> — a booster is due.</> });
-  if (r.known.ster === "unknown") unresolved.push({
-    k: "ster", t: <>Nobody has recorded whether it is <b>sterilised</b>. {scope === "public" ? "A notched ear is the sign — note it if you see one." : ""}</>,
-    href: scope === "org" ? "#org-care" : reportHref, cta: scope === "org" ? "Record sterilisation" : "Report a sighting",
-  });
-
+  const stops = routeOf(r, scope, reportHref);
   const placeLine = joinPlace(r.locality, r.city);
+  const sex = /^(m|male)$/i.test(r.sex ?? "") ? "Male" : /^(f|female)$/i.test(r.sex ?? "") ? "Female" : null;
+  const what = [sex, r.colour ? cap(r.colour.toLowerCase()) : null, r.species === "dog" ? "street dog" : r.species].filter(Boolean).join(" · ");
+
   return (
     <article className="lr" aria-labelledby="lr-name">
       {trail}
-      {/* ── who, and where ─────────────────────────────────────────── */}
-      <header className="lr-mast">
-        <div className={`lr-portrait ${r.photo ? "" : "is-place"}`}>
-          {r.photo ? (
-            <DogPhoto src={r.photo} alt={r.label} seed={r.id} tone={r.known.health === "needs_help" ? "urgent" : "neutral"} className="lr-photo" />
-          ) : r.place ? (
-            <PlaceMap center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
-          ) : <DogPhoto src={null} alt={r.label} seed={r.id} className="lr-photo" />}
-          {r.photos.length > 1 && <span className="lr-count sys-mono">{r.photos.length} photographs</span>}
-        </div>
 
-        <div className="lr-id">
-          <p className="lr-kicker">
-            <span className="sys-eyebrow">StrayPaw record</span>
-            {r.straypawId && <span className="lr-code sys-mono">{r.straypawId}</span>}
-          </p>
+      {/* ── where, with its name set on it ────────────────────────── */}
+      <header className={`lr-hero ${r.place ? "" : "is-noplace"}`}>
+        {r.place ? (
+          <PlaceMap variant="banner" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
+        ) : null}
+        {!r.place && <p className="lr-hero-noplace sys-mono">Its place is not on the record yet</p>}
+        <div className="lr-hero-words">
+          {placeLine && <p className="lr-hero-k sys-mono">{placeLine}</p>}
           <h1 id="lr-name" className={r.label.length > 30 ? "is-long" : ""}>{r.label}</h1>
-          <p className="lr-line">
-            A {[/^(m|male)$/i.test(r.sex ?? "") ? "male" : /^(f|female)$/i.test(r.sex ?? "") ? "female" : null, r.colour?.toLowerCase()].filter(Boolean).join(", ")}{r.sex || r.colour ? " " : ""}street {r.species === "dog" ? "dog" : r.species}{placeLine ? <> in <b>{placeLine}</b></> : null}.
-            {" "}On the register since <b>{day(r.firstSeen)}</b>{r.lastSeen ? <>; last seen <b>{since(r.lastSeen)}</b></> : null}.
+          <p className="lr-hero-line">
+            On the register since <b>{day(r.firstSeen)}</b>{r.lastSeen ? <>; last seen <b>{since(r.lastSeen)}</b></> : null}.
+            {r.place && r.place.here >= 3 ? <> One of <b>{r.place.here}</b> animals recorded in its area, which is drawn, never a spot.</> : <> Its area is drawn, never a spot.</>}
           </p>
-          <p className="lr-status">
-            <span className={`lr-pill ${status.c}`}>{status.t}</span>
-            <span className="lr-keeper">{r.keeper} · {r.source === "resident" ? "first reported by a resident" : "recorded in the field"}</span>
-          </p>
-          <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
         </div>
       </header>
 
-      {/* ── what is known ──────────────────────────────────────────── */}
-      <section className="lr-known" aria-label="What is known">
-        <Known title="Sterilisation" state={r.known.ster} yes="Sterilised" no="Not sterilised" when={r.known.sterAt ? `recorded ${day(r.known.sterAt)}` : r.known.ster === "yes" ? "on the record" : null} />
-        <Known title="Vaccination" state={r.known.vacc} yes="Vaccinated" no="Not vaccinated" when={r.known.vaccAt ? `${day(r.known.vaccAt)}${r.known.boosterDue ? " · booster due" : ""}` : r.known.vacc === "yes" ? "on the record" : null} warn={r.known.boosterDue} />
-        <div className={`lr-fact ${r.known.health !== "none" ? "is-hot" : ""}`}>
-          <p className="lr-fact-t">Health</p>
-          <p className="lr-fact-v">{r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "No health concern recorded"}</p>
-          <p className="lr-fact-w">{r.known.health === "none" ? "which is not the same as healthy" : "flagged on the record"}</p>
+      <div className="lr-body">
+        {/* ── the record tag: the one lifted object on the page ──────── */}
+        <aside className="lr-tag" aria-label="The record at a glance">
+          <div className={`lr-tag-photo ${r.photo ? "" : "is-none"}`}>
+            {r.photo
+              ? <DogPhoto src={r.photo} alt={r.label} seed={r.id} tone={r.known.health === "needs_help" ? "urgent" : "neutral"} className="lr-photo" />
+              : <span>No photograph yet</span>}
+            {r.photos.length > 1 && <span className="lr-count sys-mono">{r.photos.length} photographs</span>}
+          </div>
+          <div className="lr-tag-body">
+            <p className="lr-tag-top">
+              <span className="lr-tag-id sys-mono">{r.straypawId ?? "ID pending"}</span>
+              <span className={`lr-pill ${status.c}`}>{status.t}</span>
+            </p>
+            {what && <p className="lr-tag-what">{what}</p>}
+            <dl className="lr-tag-rows">
+              <div><dt>On the register</dt><dd className="sys-mono">{day(r.firstSeen)}</dd></div>
+              <div><dt>Last seen</dt><dd className="sys-mono">{r.lastSeen ? day(r.lastSeen) : "not recorded"}</dd></div>
+              <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
+            </dl>
+            <ul className="lr-checks" aria-label="What is known">
+              <Check state={r.known.ster} label="Sterilised" note={r.known.ster === "unknown" ? "not recorded" : r.known.sterAt ? day(r.known.sterAt) : r.known.ster === "no" ? "recorded as not" : "on the record"} />
+              <Check state={r.known.vacc} label="Vaccinated" note={r.known.vacc === "unknown" ? "not recorded" : r.known.boosterDue ? "booster due" : r.known.vaccAt ? day(r.known.vaccAt) : r.known.vacc === "no" ? "recorded as not" : "on the record"} warn={r.known.boosterDue} />
+              <Check state={r.known.earNotch ? "yes" : "unknown"} label="Ear notched" note={r.known.earNotch ? "seen" : "not noted"} />
+              <Check state={r.known.health === "none" ? "unknown" : "flag"} label={r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "Health"} note={r.known.health === "none" ? "no concern recorded" : "flagged"} />
+            </ul>
+            <p className="lr-tag-note">Hatched: not recorded, which is not the same as no.</p>
+          </div>
+        </aside>
+
+        <div className="lr-main">
+          <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
+
+          {/* ── the record, as a route ───────────────────────────────── */}
+          <section className="lr-sec" aria-labelledby="lr-route-h">
+            <header className="lr-sec-head">
+              <h2 id="lr-route-h">Its record</h2>
+              <p>{stops.some((s) => s.kind === "missing") ? "From the first entry to today. Dashed: what nobody has recorded yet." : "From the first entry to today."}</p>
+            </header>
+            {stops.length ? <Route stops={stops} label={`The record of ${r.label}, in order`} /> : <p className="lr-quiet">Nothing has been recorded against this animal yet.</p>}
+          </section>
+
+          {org}
+
+          {chronology.length > 0 && (
+            <details className="lr-more">
+              <summary>Every entry, with where it came from ({chronology.length})</summary>
+              <ol className="lr-chrono">{chronology.map((e) => <Chrono key={e.id} e={e} />)}</ol>
+            </details>
+          )}
+
+          {/* ── what neighbours have added ─────────────────────────────── */}
+          <section className="lr-sec">
+            <header className="lr-sec-head">
+              <h2>Seen it? Add to its record</h2>
+            </header>
+            <CommunityPanel id={r.id} label={r.label} needsHelp={r.known.health === "needs_help"} comments={r.comments} />
+          </section>
+
+          <footer className="lr-foot">
+            <p>
+              {r.straypawId && <><span className="sys-mono">{r.straypawId}</span> · </>}
+              {r.sourceCode && <>source ID <span className="sys-mono">{r.sourceCode}</span> · </>}
+              {r.keeper}
+            </p>
+            <p>Recorded animals, not population. Positions are shown to their cell, never finer.</p>
+          </footer>
         </div>
-        <div className="lr-fact">
-          <p className="lr-fact-t">Last seen</p>
-          <p className="lr-fact-v">{since(r.lastSeen) ?? "Not recorded"}</p>
-          <p className="lr-fact-w">{r.lastSeen ? day(r.lastSeen) : "no sighting yet"}{r.known.earNotch ? " · ear notched" : ""}</p>
-        </div>
-      </section>
-
-      {/* ── what has happened ──────────────────────────────────────── */}
-      <section className="lr-sec">
-        <header className="lr-sec-head">
-          <h2>What has happened to it</h2>
-          {!r.events.length && <p>Nothing has been recorded against this animal yet.</p>}
-        </header>
-        {r.events.length > 0 && <CareLanes events={r.events} from={r.firstSeen} label={`The record of ${r.label} over time`} />}
-      </section>
-
-      {/* ── what is unfinished ─────────────────────────────────────── */}
-      {unresolved.length > 0 && (
-        <section className="lr-sec">
-          <header className="lr-sec-head">
-            <h2>What is unfinished</h2>
-          </header>
-          <ol className="lr-todo">
-            {unresolved.map((u) => (
-              <li key={u.k}><p>{u.t}</p>{u.href && u.cta && <Link href={u.href} className="lr-todo-cta">{u.cta} <ArrowUpRight size={13} /></Link>}</li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      {org}
-
-      {/* ── the chronology ─────────────────────────────────────────── */}
-      <section className="lr-sec">
-        <header className="lr-sec-head">
-          <h2>The chronology</h2>
-        </header>
-        {chronology.length ? (
-          <ol className="lr-chrono">
-            {chronology.slice(0, 12).map((e) => <Chrono key={e.id} e={e} />)}
-          </ol>
-        ) : <p className="lr-quiet">The chronology starts with the first report, case or care event.</p>}
-        {chronology.length > 12 && (
-          <details className="lr-more">
-            <summary>Show all {chronology.length} entries</summary>
-            <ol className="lr-chrono">{chronology.slice(12).map((e) => <Chrono key={e.id} e={e} />)}</ol>
-          </details>
-        )}
-      </section>
-
-      {/* ── what neighbours have added ─────────────────────────────── */}
-      <section className="lr-sec">
-        <header className="lr-sec-head">
-          <h2>From the neighbourhood</h2>
-        </header>
-        <CommunityPanel id={r.id} label={r.label} needsHelp={r.known.health === "needs_help"} comments={r.comments} />
-      </section>
-
-      <footer className="lr-foot">
-        <p>
-          {r.straypawId && <><span className="sys-mono">{r.straypawId}</span> · </>}
-          {r.sourceCode && <>source ID <span className="sys-mono">{r.sourceCode}</span> · </>}
-          {r.keeper}
-        </p>
-        <p>Recorded animals, not population. Positions are shown to their cell, never finer.</p>
-      </footer>
+      </div>
     </article>
   );
 }
 
-function Known({ title, state, yes, no, when, warn = false }: { title: string; state: "yes" | "no" | "unknown"; yes: string; no: string; when: string | null; warn?: boolean }) {
+/* A tick box on a survey form: ticked, crossed, flagged, or hatched when
+   nothing is recorded. */
+function Check({ state, label, note, warn = false }: { state: "yes" | "no" | "unknown" | "flag"; label: string; note: string; warn?: boolean }) {
   return (
-    <div className={`lr-fact is-${state} ${warn ? "is-warn" : ""}`}>
-      <p className="lr-fact-t"><i className={`lr-mark is-${state}`} aria-hidden />{title}</p>
-      <p className="lr-fact-v">{state === "yes" ? yes : state === "no" ? no : "Not recorded"}</p>
-      <p className="lr-fact-w">{state === "unknown" ? "unknown, not “no”" : when ?? ""}</p>
-    </div>
+    <li className={`lr-check is-${state} ${warn ? "is-warn" : ""}`}>
+      <i aria-hidden />
+      <b>{label}</b>
+      <span>{note}</span>
+    </li>
   );
 }
 
