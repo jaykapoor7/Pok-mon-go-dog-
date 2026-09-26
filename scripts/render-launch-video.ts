@@ -160,7 +160,8 @@ async function render() {
   args.push(
     "-filter_complex", filters.join(";"),
     "-map", `[${prev}]`, "-map", "[aout]",
-    "-c:v", "libx264", "-preset", "slow", "-crf", "17",
+    "-t", visualDuration.toFixed(3),
+    "-c:v", "libx264", "-preset", "medium", "-crf", "17",
     "-pix_fmt", "yuv420p", "-r", String(fps),
     "-c:a", "aac", "-b:a", "160k",
     "-movflags", "+faststart",
