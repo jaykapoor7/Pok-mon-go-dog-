@@ -3,10 +3,8 @@ import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { FootprintMap } from "@/components/orgs/FootprintMap";
 import { PartnerFigures } from "@/components/orgs/PartnerFigures";
-import { getOperationalPartners, type Partner } from "@/lib/partners";
+import { getListedOrganisations, getOperationalPartners, type OrgListing, type Partner } from "@/lib/partners";
 import { getPublicOrgImpact, getPublicOrgMapCells } from "@/lib/org-public";
-import { ORGS } from "@/lib/platform/orgs";
-import { STATE_BY_CODE } from "@/lib/platform/geography";
 import "@/components/orgs/partners.css";
 
 export const dynamic = "force-dynamic";
@@ -20,13 +18,14 @@ export const metadata = {
 
    Each partner is drawn from its own public record: where it works, as
    points of light on its city's streets, and what its record holds, counted
-   live. The wider list of organisations working in India stays at the foot
-   of the page, folded, and says plainly that listing is not partnership.
+   live. Then every other organisation set up on StrayPaw, and every
+   organisation whose published data is on the record, each with what its
+   record holds today.
    ════════════════════════════════════════════════════════════════════ */
 
 const MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const month = (iso: string | null | undefined) => { if (!iso) return null; const d = new Date(iso); return Number.isNaN(+d) ? null : `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
-const stateName = (code: string) => STATE_BY_CODE.get(code)?.name ?? code;
+const fmt = (n: number) => n.toLocaleString("en-IN");
 
 async function plate(p: Partner) {
   const [impact, cells] = await Promise.all([
@@ -43,10 +42,19 @@ async function plate(p: Partner) {
   return { p, figures, cells, places: cells.length };
 }
 
+async function withCount(o: OrgListing) {
+  const impact = await getPublicOrgImpact(o.id).catch(() => null);
+  return { o, animals: impact?.animalsRecorded ?? 0, cases: impact?.caseRecords ?? 0 };
+}
+
 export default async function OrgsPage() {
-  const partners = await getOperationalPartners();
-  const plates = await Promise.all(partners.map(plate));
-  const others = ORGS.filter((o) => !partners.some((p) => p.name.toLowerCase() === o.name.toLowerCase()));
+  const [partners, listed] = await Promise.all([getOperationalPartners(), getListedOrganisations()]);
+  const [plates, members, sources] = await Promise.all([
+    Promise.all(partners.map(plate)),
+    Promise.all(listed.members.map(withCount)),
+    Promise.all(listed.sources.map(withCount)),
+  ]);
+  sources.sort((a, b) => b.animals - a.animals || a.o.name.localeCompare(b.o.name));
 
   return (
     <AppShell>
@@ -102,26 +110,48 @@ export default async function OrgsPage() {
           </div>
         </section>
 
-        {others.length > 0 && (
-          <details className="pp-dir">
-            <summary>
-              <b>{others.length} other organisations working across India</b>
-              <span>From published information. Being listed here is not a partnership with StrayPaw.</span>
-            </summary>
+        {members.length > 0 && (
+          <section className="pp-list" aria-labelledby="pp-members-h">
+            <header>
+              <h2 id="pp-members-h">On StrayPaw</h2>
+              <p>Organisations set up to keep their records here.</p>
+            </header>
             <ol>
-              {others.map((o) => (
+              {members.map(({ o, animals, cases }) => (
                 <li key={o.id}>
-                  <span className="pp-dir-what">
-                    {o.url
-                      ? <a href={o.url} target="_blank" rel="noopener noreferrer">{o.name} <ArrowUpRight size={12} aria-hidden /></a>
-                      : <b>{o.name}</b>}
-                    <small>{o.city}, {stateName(o.stateCode)}</small>
+                  <span className="pp-list-who">
+                    <Link href={`/org/${o.slug}`}>{o.name}</Link>
+                    <small>{[o.city, o.state].filter(Boolean).join(", ")}</small>
                   </span>
-                  <span className="pp-dir-focus">{o.focus.join(" · ")}</span>
+                  {o.mission && <span className="pp-list-what">{o.mission}</span>}
+                  <span className="pp-list-n sys-mono">{animals ? `${fmt(animals)} animal${animals === 1 ? "" : "s"}` : cases ? `${fmt(cases)} request${cases === 1 ? "" : "s"}` : "Setting up"}</span>
                 </li>
               ))}
             </ol>
-          </details>
+          </section>
+        )}
+
+        {sources.length > 0 && (
+          <section className="pp-list" aria-labelledby="pp-sources-h">
+            <header>
+              <h2 id="pp-sources-h">Data we draw on</h2>
+              <p>Organisations whose published data is on the record, credited on every animal it describes.</p>
+            </header>
+            <ol>
+              {sources.map(({ o, animals }) => (
+                <li key={o.id}>
+                  <span className="pp-list-who">
+                    {o.website
+                      ? <a href={o.website} target="_blank" rel="noopener noreferrer">{o.name} <ArrowUpRight size={12} aria-hidden /></a>
+                      : <b>{o.name}</b>}
+                    <small>{[o.city, o.state].filter(Boolean).join(", ") || "India"}</small>
+                  </span>
+                  {o.mission && <span className="pp-list-what">{o.mission}</span>}
+                  <span className="pp-list-n sys-mono">{animals ? `${fmt(animals)} record${animals === 1 ? "" : "s"}` : "—"}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
         )}
       </div>
     </AppShell>

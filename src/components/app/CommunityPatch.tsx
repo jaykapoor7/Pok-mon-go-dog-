@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { LightsMap, type Light } from "@/components/system/LightsMap";
+import { PlaceSearch, type PlaceOption } from "./PlaceSearch";
 import { pointInCell, ringOf } from "@/components/spatial/data";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { useFollows } from "@/lib/follows";
@@ -53,7 +54,11 @@ const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const 
     with the most recorded cells within reach, so it shows a street's worth
     of record rather than one imported locality's pile of animals. */
 function samplePatch(ds: SpatialDataset): Patch {
-  const own = ds.cells.map((_, i) => i).filter((i) => ds.cellCity[i] === 0);
+  // The city with the most field work, as on the landing: an import of
+  // animals with no cases should not become everyone's sample street.
+  let city = 0;
+  ds.cities.forEach((c, i) => { const b = ds.cities[city]; if (c.cases > b.cases || (c.cases === b.cases && c.animals > b.animals)) city = i; });
+  const own = ds.cells.map((_, i) => i).filter((i) => ds.cellCity[i] === city);
   let best = own[0] ?? 0, bn = -1;
   for (const a of own) {
     const pa: [number, number] = [ds.centers[a * 2], ds.centers[a * 2 + 1]];
@@ -63,7 +68,7 @@ function samplePatch(ds: SpatialDataset): Patch {
   }
   const c = best;
   const loc = ds.cellLocality[c];
-  return { lng: ds.centers[c * 2], lat: ds.centers[c * 2 + 1], label: `${loc >= 0 ? ds.localities[loc] : "The centre"}, ${ds.cities[0]?.name ?? ""}`, mine: false };
+  return { lng: ds.centers[c * 2], lat: ds.centers[c * 2 + 1], label: `${loc >= 0 ? ds.localities[loc] : "The centre"}, ${ds.cities[city]?.name ?? ""}`, mine: false };
 }
 
 export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
@@ -169,6 +174,20 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
     for (let c = 0; c < ds.cells.length; c++) { const l = ds.cellLocality[c]; if (l >= 0 && !seen.has(l)) seen.set(l, c); }
     return [...seen.entries()].map(([l, c]) => ({ i: l, name: ds.localities[l], city: ds.cities[ds.cellCity[c]]?.name ?? "", c })).sort((a, b) => a.city.localeCompare(b.city) || a.name.localeCompare(b.name));
   }, [ds]);
+  /* Everything that can be typed: every locality on the record, and every city (at its centre). */
+  const placeOptions = useMemo<PlaceOption[]>(() => {
+    if (!ds) return [];
+    return [
+      ...ds.cities.map((c, i) => ({ key: `c${i}`, name: c.name, city: c.state ?? "" })),
+      ...localities.map((l) => ({ key: `l${l.i}`, name: l.name, city: l.city })),
+    ];
+  }, [ds, localities]);
+  const pickPlace = (o: PlaceOption) => {
+    if (!ds) return;
+    if (o.key.startsWith("c")) { const c = ds.cities[Number(o.key.slice(1))]; if (c) choose({ lng: c.lng, lat: c.lat, label: c.name, mine: true }); return; }
+    const l = localities.find((x) => `l${x.i}` === o.key);
+    if (l) choose({ lng: ds.centers[l.c * 2], lat: ds.centers[l.c * 2 + 1], label: `${l.name}, ${l.city}`, mine: true });
+  };
 
   const attention = (animals ?? []).filter((a) => a.needs_help || a.status === "injured");
   const recent = [...(animals ?? [])].sort((a, b) => (b.last_seen ?? "").localeCompare(a.last_seen ?? "")).slice(0, 12);
@@ -227,12 +246,7 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
         <div className="cp-head-acts">
           <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-flame"><Plus size={16} /> Report an animal</Link>
           <button type="button" className="sys-btn is-quiet" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
-          <label className="cp-pick"><span className="sys-sr">Choose a place</span>
-            <select value="" onChange={(e) => { const l = localities.find((x) => String(x.i) === e.target.value); if (l) choose({ lng: ds.centers[l.c * 2], lat: ds.centers[l.c * 2 + 1], label: `${l.name}, ${l.city}`, mine: true }); }}>
-              <option value="">Choose a place…</option>
-              {localities.map((l) => <option key={l.i} value={l.i}>{l.name}{l.city ? ` — ${l.city}` : ""}</option>)}
-            </select>
-          </label>
+          <PlaceSearch options={placeOptions} onPick={pickPlace} label="Choose a place" />
         </div>
         {note && <p className="cp-note">{note}</p>}
       </header>

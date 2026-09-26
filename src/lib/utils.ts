@@ -85,7 +85,7 @@ export function dogLabel(dog: { name?: string | null; zone?: string | null }): s
      reporter did capitalise is left exactly as they wrote it, so
      "McDonald" or "Kaali B" survive untouched. */
   if (name) return name === name.toLowerCase() ? capitaliseWords(name) : name;
-  const zone = dog.zone?.trim();
+  const zone = cleanPlace(dog.zone);
   return zone ? `Dog near ${zone}` : "Street dog";
 }
 
@@ -112,13 +112,28 @@ export function displayReporter(name: string | null | undefined): string | null 
   return trimmed.length > 0 ? trimmed : null;
 }
 
+/** A locality as people should read it. Ward numbers are written once and
+    after the name: "Ward Ward 28" (an import that prefixed a value that
+    already said Ward) becomes "Ward 28", and "Gandhipuram, Ward 12" or
+    "Ward 12 Gandhipuram" becomes "Gandhipuram (Ward 12)". A ward with no
+    recorded name stays "Ward 28": a name is never guessed. */
+export function cleanPlace(raw: string | null | undefined): string {
+  let s = String(raw ?? "").replace(/\s+/g, " ").trim();
+  if (!s) return "";
+  s = s.replace(/\b(?:ward|wd)\.?\s+(?:(?:ward|wd)\.?\s+)+/gi, "Ward ");
+  const m = /^(.*?)[\s,\-–·(]*\b(?:ward|wd)\.?\s*(?:no\.?\s*)?(\d+[a-z]?)\b[\s,\-–·)]*(.*)$/i.exec(s);
+  if (!m) return s;
+  const name = [m[1], m[3]].map((x) => x.replace(/^[\s,\-–·]+|[\s,\-–·]+$/g, "")).filter(Boolean).join(" ");
+  return name ? `${name} (Ward ${m[2].toUpperCase()})` : `Ward ${m[2].toUpperCase()}`;
+}
+
 /** A place written from parts that may already contain each other —
     "Saket, Delhi" and "Delhi" — without saying any part twice. */
 export function placeLine(...parts: (string | null | undefined)[]): string {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const part of parts) {
-    for (const bit of String(part ?? "").split(",")) {
+    for (const bit of cleanPlace(part).split(/,(?![^(]*\))/)) {
       const b = bit.trim();
       const k = b.toLowerCase();
       if (!b || seen.has(k)) continue;

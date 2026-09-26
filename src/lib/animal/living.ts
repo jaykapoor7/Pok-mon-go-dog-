@@ -18,7 +18,7 @@ import { A, A_STRIDE } from "@/lib/spatial/types";
 import type { DogProfile } from "@/lib/types";
 import type { ProfileOperationalRecord } from "@/lib/animal-profile-record";
 import type { PublicAnimalIdentity } from "@/lib/animal-identity";
-import { dogLabel } from "@/lib/utils";
+import { cleanPlace, dogLabel } from "@/lib/utils";
 
 export type Lane = "case" | "care" | "follow" | "sight";
 export type Tone = "done" | "open" | "none" | "care" | "ster" | "vacc" | "miss" | "due" | "sight";
@@ -154,7 +154,7 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
     id: dog.id, label: dogLabel(dog), straypawId: identity?.straypaw_id ?? null,
     sourceCode: identity?.source_code || (first((r) => r.animalCode) as string | null) || dog.code || null,
     species: dog.species || "dog", sex: known(first((r) => r.sex) as string | null), colour: known((first((r) => r.colour) as string | null) || dog.color || null),
-    locality: (first((r) => r.locality) as string | null) || dog.zone || null, city: sp?.city ?? dog.city ?? null, state: sp?.state ?? null,
+    locality: cleanPlace((first((r) => r.locality) as string | null) || dog.zone) || null, city: sp?.city ?? dog.city ?? null, state: sp?.state ?? null,
     // General pages keep the organisation unnamed; its own profile names it.
     keeper: dog.ngo_id ? "A partner organisation's record" : "The community's record",
     source: sp?.source === "resident" || dog.provenance === "community_report" ? "resident" : "field",

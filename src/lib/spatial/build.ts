@@ -16,6 +16,7 @@
    published (0.01°) position, which is never finer than the truth.
    ════════════════════════════════════════════════════════════════════ */
 
+import { cleanPlace } from "@/lib/utils";
 import { cellToBoundary, cellToLatLng, cellsToMultiPolygon, gridDisk, latLngToCell } from "h3-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CITIES } from "@/lib/geo/cities";
@@ -29,7 +30,7 @@ import {
 import { coverageOf } from "./engine";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 9;
+export const DATASET_VERSION = 10;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -248,7 +249,7 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
   const localities: string[] = [];
   const locIdx = new Map<string, number>();
   const cellLocality = cells.map((_, i) => {
-    const z = top(cellZoneVotes.get(i));
+    const z = cleanPlace(top(cellZoneVotes.get(i)));
     if (!z) return -1;
     const key = z.toLowerCase();
     let li = locIdx.get(key);

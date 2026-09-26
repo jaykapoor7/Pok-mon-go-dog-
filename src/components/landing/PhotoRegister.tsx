@@ -13,11 +13,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { placeLine } from "@/lib/utils";
+import { cleanPlace, placeLine } from "@/lib/utils";
 
 export type PhotoRow = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; last_seen: string | null };
 
-const label = (r: PhotoRow) => (r.name && r.name.trim()) || `Dog near ${r.zone || r.city || "the reported spot"}`;
+const label = (r: PhotoRow) => (r.name && r.name.trim()) || `Dog near ${cleanPlace(r.zone) || r.city || "the reported spot"}`;
 
 export function PhotoRegister({ rows, total }: { rows: PhotoRow[]; total: number }) {
   const rail = useRef<HTMLUListElement>(null);
