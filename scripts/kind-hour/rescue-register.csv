@@ -1,0 +1,146 @@
+line,page,page_row,kh_record_id,date,date_as_recorded,discharge_date,discharge_as_recorded,address_as_recorded,description_as_recorded,dog_name,species,sex,colour,life_stage,condition_as_recorded,opd,admission,medical_expense_recorded,payment_marked_done,media_label,animal_key,place_key,disposition,note
+1,1,3,KH-RR-001,2024-01-25,25/1/2024,,,rajendra,white and brown,Chachi,dog,,White and brown,,,yes,,yes,,P1,A01,rajendra,profile,
+2,1,4,KH-RR-002,2024-01-27,27/1/2024,,,rajendra,white and brown,Chachi,dog,,White and brown,,,,,yes,,,A01,rajendra,profile,
+3,1,5,KH-RR-003,2024-01-27,27/1/2024,,,pili colony,brown dog,,dog,,Brown,,,,,,,,A02,pili-colony,profile,
+4,1,6,KH-RR-004,2024-01-28,28/1/2024,,,pili colony,brown dog,,dog,,Brown,,,,,,,P2,A02,pili-colony,profile,
+5,1,7,KH-RR-005,2024-01-28,28/1/2024,,,white dog dainik,jwhite dog,,dog,,White,,,,,,,P3,A03,dainik,profile,
+6,1,8,KH-RR-006,2024-01-29,29/1/2024,,,pili colony,brown dog,,dog,,Brown,,,,,,,,A02,pili-colony,profile,
+7,1,9,KH-RR-007,2024-01-30,30/1/2024,,,pili colony,brown dog,,dog,,Brown,,,,,,,,A02,pili-colony,profile,
+8,1,10,KH-RR-008,2024-03-02,2/3/2024,,,aishbagh,white brown,,dog,,White and brown,,,,yes,,,P4,A04,aishbagh,profile,
+9,1,11,KH-RR-009,2024-03-16,16/3/2024,,,vrinda wan colon,brown femel,,dog,female,Brown,,,,yes,,,,A05,vrindavan-colony,profile,
+10,1,12,KH-RR-010,2024-04-08,8/4/2024,,,charbagh,black dog,,dog,,Black,,,,,yes,,,A06,charbagh,profile,
+11,1,13,KH-RR-011,2024-04-09,9/4/2024,,,shikandra bad,brown dog,,dog,,Brown,,,,,,,B01,A07,shikandra-bad,profile,
+12,1,14,KH-RR-012,2024-04-13,13/4/2024,,,gomti nagar,brown dog,,dog,,Brown,,,,,,yes,,A08,gomti-nagar,profile,
+13,1,15,KH-RR-013,2024-04-16,16/4/2024,,,gomti nagar,brown dog,,dog,,Brown,,,,,,yes,,A08,gomti-nagar,profile,
+14,1,16,KH-RR-014,2024-04-18,18/4/2024,,,Gomti Nagar,brown dog,,dog,,Brown,,,,,,yes,,A08,gomti-nagar,profile,
+15,1,17,KH-RR-015,2024-04-16,16/4/2024,,,gol market,white brown,,dog,,White and brown,,,,,,yes,,A09,gol-market,profile,
+16,1,18,KH-RR-016,2024-04-27,27/4/2024,,,shikandra bad,black dog,,dog,,Black,,,,,,,,A10,shikandra-bad,profile,
+17,1,19,KH-RR-017,2024-04-27,27/4/2024,,,gol market,black dog,,dog,,Black,,,,,,,,A11,gol-market,profile,
+18,1,20,KH-RR-018,2024-05-01,1/5/2024,,,gol market,black dog,,dog,,Black,,,,,,,,A11,gol-market,profile,OPD and Admission cells repeat the description and caretaker; not read as flags
+19,1,21,KH-RR-019,2024-05-02,2/5/2024,,,gol market,black dog,,dog,,Black,,,,,,,P5,A11,gol-market,profile,
+20,1,22,KH-RR-020,2024-05-12,12/5/2024,,,lamartsh,white dog,,dog,,White,,,,,,yes,,A12,la-martiniere,profile,
+21,1,23,KH-RR-021,2024-05-16,16/5/2024,,,vishesh khand,brown dog,,dog,,Brown,,,,,,yes,,A13,vishesh-khand,profile,
+22,1,24,KH-RR-022,2024-05-17,17/5/2024,,,vishesh khand,brown dog,,dog,,Brown,,,,,,,,A13,vishesh-khand,profile,
+23,1,25,KH-RR-023,2024-05-18,18/5/2024,,,vishesh khand,brown dog,,dog,,Brown,,,,,,,,A13,vishesh-khand,profile,
+24,1,26,KH-RR-024,2024-05-29,29/5/2024,,,aishbagh,eagle,,bird,,,,,,,,,,A14,aishbagh,profile,
+25,1,27,KH-RR-025,2024-06-02,2/6/2024,,,omax hights,kabutar,,bird,,,,,,,,yes,,A15,omaxe-heights,profile,
+26,1,28,KH-RR-026,2024-06-28,28/6/2024,,,metro city,brown dog,,dog,,Brown,,,,,,,,A16,metro-city,profile,
+27,1,29,KH-RR-027,2024-06-29,29/6/2024,,,metro city,brown dog,,dog,,Brown,,,,,,,,A16,metro-city,profile,
+28,1,30,KH-RR-028,2024-06-30,30/6/2024,,,metro city,brown dog,,dog,,Brown,,,,,,,,A16,metro-city,profile,
+29,1,31,KH-RR-029,2024-06-26,26/6/2024,,,Dainik jagaran,brown dog,,dog,,Brown,,,,,,,,A17,dainik-jagran,profile,
+30,1,32,KH-RR-030,2024-06-27,27/6/2024,,,Dainik jagaran,brown dog,,dog,,Brown,,,,,,,,A17,dainik-jagran,profile,
+31,1,33,KH-RR-031,2024-06-28,28/6/2024,,,Dainik jagaran,brown dog,,dog,,Brown,,,,,,,,A17,dainik-jagran,profile,
+32,1,34,KH-RR-032,2024-07-04,4/7/2024,,,metro city,brown dog,,dog,,Brown,,,,,,,,A16,metro-city,profile,
+33,1,35,KH-RR-033,2024-07-13,13/7/2024,,,metro city,brown dog,,dog,,Brown,,,,,,,,A16,metro-city,profile,
+34,1,36,KH-RR-034,2024-07-14,14/7/2024,,,metro city,brown dog,,dog,,Brown,,,,,,,,A16,metro-city,profile,
+35,1,37,KH-RR-035,2024-07-23,23/7/2024,,,metro city,brown dog,,dog,,Brown,,,,,,,,A16,metro-city,profile,
+36,1,38,KH-RR-036,2024-07-23,23/7/2024,,,la mats,brown puppy,,dog,,Brown,puppy,,,,,,,A18,la-martiniere,profile,
+37,1,39,KH-RR-037,2024-07-23,23/7/2024,,,la mats,brown puppy,,dog,,Brown,puppy,,,,,,,A18,la-martiniere,duplicate,"Exact duplicate of the previous line (same date, place, animal and caretaker)"
+38,1,40,KH-RR-038,2024-09-24,24/9/2024,,,,Black cat,,,,,,,,,,,,,,withheld,No place recorded on this line
+39,1,41,KH-RR-039,2024-10-11,11/10/2024,,,Charbagh,Black puppy,,dog,,Black,puppy,,,,,,,A19,charbagh,profile,
+40,1,42,KH-RR-040,2024-11-19,19/11/2024,,,Indra nagar,Brown puppy,,dog,,Brown,puppy,,,,,,,A20,indira-nagar,profile,
+41,1,43,KH-RR-041,2025-02-17,17/2/2025,,,Gomti nagar,Whith dog,,dog,,White,,,,,,,,A21,gomti-nagar,profile,
+42,1,44,KH-RR-042,2025-02-21,21/2/2025,,,Ashiyana,Cd dog,,dog,,,,CD,,,,,,A22,ashiyana,profile,
+43,1,45,KH-RR-043,2025-02-22,22/2/2025,,,Hazratganj,Brown female do,,dog,female,Brown,,,,,,,,A23,hazratganj,profile,
+44,1,46,KH-RR-044,2025-02-22,22/2/2025,,,Ashiyana,Cd dog,,dog,,,,CD,,,,,,A22,ashiyana,profile,
+45,1,47,KH-RR-045,2025-03-07,7/3/2025,,,Lalbag,Black whith dog,,dog,,Black and white,,,,,,,,A24,lalbagh,profile,
+46,1,48,KH-RR-046,2025-03-19,19/3/2025,,,Sadar Bazar,Brown dog,,dog,,Brown,,,,,,,,A25,sadar-bazar,profile,
+47,1,49,KH-RR-047,2025-03-20,20/3/2025,,,Rajendra Nagar,Black puppy,,dog,,Black,puppy,,,,,,,A26,rajendra-nagar,profile,
+48,1,50,KH-RR-048,2025-03-28,28/3/2025,,,Sadar bazar,brown dog,,dog,,Brown,,,,,,,,A25,sadar-bazar,profile,
+49,1,51,KH-RR-049,2025-04-03,3/4/2025,,,,White & Brown,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+50,1,52,KH-RR-050,2025-04-08,8/4/2025,,,,Tumor Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+51,1,53,KH-RR-051,2025-04-08,8/4/2025,,,,Tyson-C.D,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+52,1,54,KH-RR-052,2025-04-21,21/4/2025,,,,White & Black,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+53,1,55,KH-RR-053,2025-04-21,21/4/2025,,,,Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+54,1,56,KH-RR-054,2025-04-23,23/4/2025,,,,Brownie,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+55,1,57,KH-RR-055,2025-04-25,25/4/2025,,,,Juli,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+56,1,58,KH-RR-056,2025-04-25,25/4/2025,,,,Tumor,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+57,1,59,KH-RR-057,2025-04-25,25/4/2025,,,,Brownie,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+58,1,60,KH-RR-058,2025-04-29,29/4/2025,,,,Pigeon,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+59,1,61,KH-RR-059,2025-05-08,8/5/2025,,,,White & Brown,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+60,2,1,KH-RR-060,2025-05-11,11/5/2025,,,,Rainbow Black Puppy,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+61,2,2,KH-RR-061,2025-05-12,12/5/2025,,,,Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+62,2,3,KH-RR-062,2025-05-13,13/5/2025,,,,Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+63,2,4,KH-RR-063,2025-05-14,14/5/2025,,,,Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+64,2,5,KH-RR-064,2025-05-17,17/5/2025,,,,Kali,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+65,2,6,KH-RR-065,2025-06-02,2/6/2025,,,,Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+66,2,7,KH-RR-066,2025-06-24,24/6/2025,,,,Brown Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+67,2,8,KH-RR-067,2025-07-13,13/7/2025,,,,July,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+68,2,9,KH-RR-068,2025-07-18,18/7/2025,,,,Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+69,2,10,KH-RR-069,2025-07-25,25/7/2025,,,,Tumar Dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+70,2,11,KH-RR-070,2025-08-23,23/8/2025,,,,July,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+71,2,12,KH-RR-071,2025-08-24,24/8/2025,,,,July,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+72,2,13,KH-RR-072,2025-08-25,25/8/2025,,,,July,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+73,2,14,KH-RR-073,2025-08-26,26/8/2025,,,,July,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+74,2,15,KH-RR-074,2025-10-29,29/10/25,,,,puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+75,2,16,KH-RR-075,2025-10-30,30/10/25,,,,puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+76,2,17,KH-RR-076,2025-10-31,31/10/25,,,,puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+77,2,18,KH-RR-077,2025-12-07,7/12/25,,,,White & Brown,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+78,2,19,KH-RR-078,2025-12-08,8/12/25,,,,dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+79,2,20,KH-RR-079,2025-12-18,18/12/25,,,,Barauni,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+80,2,21,KH-RR-080,2025-11-15,15/11/25,,,,danger,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+81,2,22,KH-RR-081,2025-11-05,5/11/25,,,,pups,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+82,2,23,KH-RR-082,2025-12-07,7/12/25,,,,titu,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+83,2,24,KH-RR-083,2025-12-08,8/12/25,,,,dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+84,2,25,KH-RR-084,2025-12-18,18/12/25,,,,Barauni,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+85,2,26,KH-RR-085,2026-02-01,1/2/26,,,,Leg dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+86,2,27,KH-RR-086,2026-02-02,2/2/26,,,,Leg dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+87,2,28,KH-RR-087,2026-02-03,3/2/26,,,,Leg dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+88,2,29,KH-RR-088,2026-02-04,4/2/26,,,,leg dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+89,2,30,KH-RR-089,2026-02-05,5/2/26,,,,white dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+90,2,31,KH-RR-090,2026-02-06,6/2/26,,,,white dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+91,2,32,KH-RR-091,2026-02-07,7/2/26,,,,white dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+92,2,33,KH-RR-092,2026-03-16,16/3/26,,,,Brown,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+93,2,34,KH-RR-093,2026-03-29,29/3/26,,,,Brown puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+94,2,35,KH-RR-094,2026-04-01,1/4/26,,,,puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+95,2,36,KH-RR-095,2026-04-02,2/4/26,,,,Brown dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+96,2,37,KH-RR-096,2026-04-04,4/4/26,,,,pilot dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+97,2,38,KH-RR-097,2026-04-08,8/4/26,,,,Brown puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+98,2,39,KH-RR-098,2026-04-09,9/4/26,,,,Bone fracture,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+99,2,40,KH-RR-099,2026-04-10,10/4/26,,,,Brown puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+100,2,41,KH-RR-100,2026-04-14,14/4/26,,,,Stray puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+101,2,42,KH-RR-101,2026-04-14,14//4/26,,,,Brown puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+102,2,43,KH-RR-102,2026-04-15,15/4/26,,,,Black White puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+103,2,44,KH-RR-103,2026-04-16,16/4/26,,,,leg puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+104,2,45,KH-RR-104,2026-04-17,17/4/26,,,,leg puppy,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+105,2,46,KH-RR-105,2026-04-18,18/4/26,,,,kallu puppy,,,,,,,,,,yes,,,,withheld,No place recorded on this line
+106,2,47,KH-RR-106,2026-04-19,19/4/26,,,,,,,,,,,,,,yes,,,,withheld,No place recorded on this line
+107,2,48,KH-RR-107,2026-04-20,20/4/26,,,,Leg dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+108,2,49,KH-RR-108,2026-04-20,20/4/26,,,,kalu ji,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+109,2,50,KH-RR-109,2026-04-21,21/4/26,,,,kalu ji,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+110,2,51,KH-RR-110,2026-04-22,22/4/26,,,,kalu ji,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+111,2,52,KH-RR-111,2026-05-04,4/5/26,,,,leg fracture,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+112,2,53,KH-RR-112,2026-05-09,9/5/26,,,,brown tumar,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+113,2,54,KH-RR-113,2026-05-18,18/5/26,,,,light brown. c. D,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+114,2,55,KH-RR-114,2026-06-03,3/6/26,,,,leg injury,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+115,2,56,KH-RR-115,2026-06-13,13/6/26,,,,paralyse romu,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+116,2,57,KH-RR-116,2026-06-13,13/6/26,,,,White puppy CD,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+117,2,58,KH-RR-117,2026-06-12,12/6/26,,,,munni,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+118,2,59,KH-RR-118,2026-06-18,18/6/26,,,,[name withheld] oral,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+119,2,60,KH-RR-119,2026-06-19,19/6/26,,,,raju,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+120,2,61,KH-RR-120,2026-06-23,23/6/26,,,,tumor case,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+121,2,62,KH-RR-121,2026-06-24,24/6/26,,,,khujali,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+122,2,63,KH-RR-122,2026-06-27,27/6/26,,,,Hope,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+123,3,1,KH-RR-123,2026-06-27,27/6/26,,,,Rani,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+124,3,2,KH-RR-124,2026-06-29,29/6/26,,,,Ramu,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+125,3,3,KH-RR-125,2026-06-30,30/6/26,,,,Black dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+126,3,4,KH-RR-126,2026-06-24,24/6/26,,,,Kalu paralyse,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+127,3,5,KH-RR-127,2026-07-01,1/7/26,,,,brown tumor dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+128,3,6,KH-RR-128,2026-07-09,9/7/26,,,,leg muscle hear dog,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+129,3,7,KH-RR-129,2026-07-09,9/7/26,,,,fixolig,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+130,3,8,KH-RR-130,2026-07-18,18/7/26,,,,light brown tumor,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+131,3,9,KH-RR-131,2026-07-20,20/7/26,,,,pilot,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+132,3,10,KH-RR-132,2026-07-08,8/7/26,2026-07-19,19/7/26,,pilot,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+133,3,11,KH-RR-133,2026-07-07,7/7/26,2026-07-19,19/7/26,,brown anal,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+134,3,12,KH-RR-134,2026-07-07,7/7/26,2026-07-22,22/7/26,,black dog paralyse,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+135,3,13,KH-RR-135,2026-06-30,30/6/26,2026-07-07,7/7/26,,kallu leg wouhd,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+136,3,14,KH-RR-136,2026-06-25,25/6/26,2026-07-04,4/7/26,,ahal Palo pase,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+137,3,15,KH-RR-137,2026-06-18,18/6/26,2026-07-06,6/7/26,,yaka,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+138,3,16,KH-RR-138,2026-06-10,10/6/26,2026-07-07,7/7/26,,black fracture,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+139,3,17,KH-RR-139,2026-08-23,23/8/26,,,,paralyze dog,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+140,3,18,KH-RR-140,2026-08-31,31/8/26,,,,White and Brown,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+141,3,19,KH-RR-141,2026-08-19,19/8/26,2026-08-23,23/8/26,,Black Dog paralyse,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+142,3,20,KH-RR-142,2026-08-15,15/8/26,,30/826,,brown dog maggots,,,,,,,,,yes,yes,,,,withheld,No place recorded on this line
+143,3,21,KH-RR-143,2026-08-03,3/8/26,2026-08-12,12/8/26,,brown dog CD,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+144,3,22,KH-RR-144,2026-08-01,1/8/26,2026-08-03,3/8/26,,Kali dog CD,,,,,,,,,yes,,,,,withheld,No place recorded on this line
+145,3,23,KH-RR-145,2026-08-01,1/8/26,,29/826,,Simar vaginal tumor,,,,,,,,,yes,,,,,withheld,No place recorded on this line

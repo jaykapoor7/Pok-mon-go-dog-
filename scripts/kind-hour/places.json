@@ -1,0 +1,27 @@
+{
+  "_about": "Where each place named in Kind Hour's rescue register is drawn. A locality is used only when OpenStreetMap holds the locality itself (a place node or a named area); a register spelling that cannot be resolved that way is drawn at the Lucknow city centroid and labelled city-level. Coordinates are OpenStreetMap data (ODbL 1.0), looked up through Nominatim and Photon in September 2026.",
+  "city": { "name": "Lucknow", "state": "Uttar Pradesh", "lat": 26.8381, "lng": 80.9346, "osm": "node/245753718" },
+  "places": {
+    "gomti-nagar":   { "zone": "Gomti Nagar",   "as_recorded": ["gomti nagar", "Gomti Nagar", "Gomti nagar"], "precision": "locality", "lat": 26.85287, "lng": 80.99885, "osm": "node/2217106695", "osm_kind": "place=suburb" },
+    "charbagh":      { "zone": "Charbagh",      "as_recorded": ["charbagh", "Charbagh"], "precision": "locality", "lat": 26.83350, "lng": 80.92641, "osm": "node/1828372074", "osm_kind": "place=suburb" },
+    "hazratganj":    { "zone": "Hazratganj",    "as_recorded": ["Hazratganj"], "precision": "locality", "lat": 26.85480, "lng": 80.94475, "osm": "node/9914269803", "osm_kind": "place=suburb" },
+    "indira-nagar":  { "zone": "Indira Nagar",  "as_recorded": ["Indra nagar"], "precision": "locality", "lat": 26.88232, "lng": 80.99003, "osm": "node/2217106696", "osm_kind": "place=suburb" },
+    "vishesh-khand": { "zone": "Vishesh Khand, Gomti Nagar", "as_recorded": ["vishesh khand"], "precision": "locality", "lat": 26.86534, "lng": 81.01561, "osm": "way/211545911", "osm_kind": "landuse=residential" },
+    "omaxe-heights": { "zone": "Omaxe Heights, Gomti Nagar", "as_recorded": ["omax hights"], "precision": "locality", "lat": 26.86658, "lng": 81.00986, "osm": "way/211515013", "osm_kind": "landuse=residential" },
+    "metro-city":    { "zone": "Metro City",    "as_recorded": ["metro city"], "precision": "locality", "lat": 26.86523, "lng": 80.96061, "osm": "way/211333882", "osm_kind": "landuse=residential" },
+    "gol-market":    { "zone": "Gol Market, Mahanagar", "as_recorded": ["gol market"], "precision": "locality", "lat": 26.87432, "lng": 80.95823, "osm": "way/211742454", "osm_kind": "landuse=commercial (Gole Market)" },
+    "la-martiniere": { "zone": "La Martiniere", "as_recorded": ["lamartsh", "la mats"], "precision": "locality", "lat": 26.84113, "lng": 80.95769, "osm": "way/154080415", "osm_kind": "leisure=park (La Martiniere College grounds); register spelling read as La Martiniere" },
+    "aishbagh":      { "zone": "Aishbagh",      "as_recorded": ["aishbagh"], "precision": "locality", "lat": 26.83736, "lng": 80.90980, "osm": "node/7605969608", "osm_kind": "railway=station named for the locality; OSM holds no Aishbagh place node" },
+
+    "rajendra":        { "zone": "Rajendra (as recorded)",         "as_recorded": ["rajendra"], "precision": "city" },
+    "rajendra-nagar":  { "zone": "Rajendra Nagar (as recorded)",   "as_recorded": ["Rajendra Nagar"], "precision": "city" },
+    "pili-colony":     { "zone": "Pili Colony (as recorded)",      "as_recorded": ["pili colony"], "precision": "city" },
+    "dainik":          { "zone": "Dainik (as recorded)",           "as_recorded": ["white dog dainik"], "precision": "city" },
+    "dainik-jagran":   { "zone": "Dainik Jagran (as recorded)",    "as_recorded": ["Dainik jagaran"], "precision": "city" },
+    "vrindavan-colony":{ "zone": "Vrindavan Colony (as recorded)", "as_recorded": ["vrinda wan colon"], "precision": "city" },
+    "shikandra-bad":   { "zone": "Shikandra Bad (as recorded)",    "as_recorded": ["shikandra bad"], "precision": "city" },
+    "ashiyana":        { "zone": "Ashiyana (as recorded)",         "as_recorded": ["Ashiyana"], "precision": "city" },
+    "lalbagh":         { "zone": "Lalbagh (as recorded)",          "as_recorded": ["Lalbag"], "precision": "city" },
+    "sadar-bazar":     { "zone": "Sadar Bazar (as recorded)",      "as_recorded": ["Sadar Bazar", "Sadar bazar"], "precision": "city" }
+  }
+}
