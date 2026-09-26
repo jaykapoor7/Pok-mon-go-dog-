@@ -154,7 +154,7 @@ async function captureCases(page: Page, demoUrl: string) {
 async function captureCoverage(page: Page, demoUrl: string) {
   await page.goto(demoUrl + "/partner/map", { waitUntil: "domcontentloaded" });
   await settle(page, 3000);
-  const map = page.locator(".sm-host, .maplibregl-map, .mapboxgl-map, [class*='map']").filter({ visible: true }).first();
+  const map = page.locator(".sm-host, .maplibregl-map, .mapboxgl-map, [class*='map']").first();
   await viewportShot(page, "06-coverage", map);
 }
 
