@@ -14,15 +14,15 @@ import "./cities.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "For cities, StrayPaw",
-  description: "Coverage a city team can audit: which localities and wards are recorded and which are not, animal to locality to ward to city, with ABC, ARV, census and programme records, and existing municipal and NGO data imported with its source.",
+  title: "For municipalities, StrayPaw",
+  description: "Coverage a municipality can audit: which localities and wards are recorded and which are not, animal to locality to ward to city, with ABC, ARV, census and programme records, and existing municipal and NGO data imported with its source.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   For cities. Product first: the coverage of a real city, drawn the way
+   For municipalities. Product first: the coverage of a real city, drawn the way
    the map draws it (ink weight for how well a place is recorded, a
    dashed edge where nothing is), then how one animal rolls up to a city,
-   the questions a city team can answer from that, the programme records
+   the questions a municipality can answer from that, the programme records
    it holds, how existing data comes in, and where every figure comes
    from. Nothing here is promised that the record cannot do today; ward
    boundaries are named only where a city's are loaded.
@@ -99,7 +99,7 @@ export default async function ForGovernmentsPage() {
         <section className="gv-hero" aria-labelledby="gv-title">
           <div className="gv-hero-in">
             <div className="gv-hero-copy">
-              <p className="co-kicker">For cities</p>
+              <p className="co-kicker">For municipalities</p>
               <h1 id="gv-title">See what is covered. <em>And what is&nbsp;not.</em></h1>
               <p className="co-lede">The Animal Birth Control Rules, 2023 place sterilisation and vaccination on the local body. The hard part is proving, a year later, which localities were reached. StrayPaw draws it from the record, and draws the gaps as gaps.</p>
               <p className="co-acts">
@@ -168,7 +168,7 @@ export default async function ForGovernmentsPage() {
         <section className="co-sec" aria-labelledby="gv-q">
           <div className="co-sec-in">
             <header className="co-sec-head">
-              <h2 id="gv-q">Questions a city team <em>can answer.</em></h2>
+              <h2 id="gv-q">Questions a municipality <em>can answer.</em></h2>
               <p>Each one is answered from the record, on a page anyone can open.</p>
             </header>
             <ol className="co-rows">

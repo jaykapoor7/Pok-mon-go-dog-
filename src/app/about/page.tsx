@@ -91,7 +91,7 @@ export default async function AboutPage() {
             <ol className="co-rows">
               <li><span className="co-n">01</span><span><b>Help reaches the animal, not the chat</b><p>A report in a WhatsApp group is gone in a day. A report on the record is still there when the next team looks, with what was already done.</p></span><span /></li>
               <li><span className="co-n">02</span><span><b>One animal, one history</b><p>Rescue, care and sterilisation logged by different people land on one StrayPaw ID, instead of three spreadsheets that never meet.</p></span><span /></li>
-              <li><span className="co-n">03</span><span><b>A city can see what is covered</b><p>Wards with records and wards nobody has visited are drawn differently, so an unvisited ward is never mistaken for a quiet one.</p></span><span /></li>
+              <li><span className="co-n">03</span><span><b>A municipality can see what is covered</b><p>Wards with records and wards nobody has visited are drawn differently, so an unvisited ward is never mistaken for a quiet one.</p></span><span /></li>
             </ol>
           </div>
         </section>

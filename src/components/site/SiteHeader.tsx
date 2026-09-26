@@ -15,7 +15,7 @@ import "./header.css";
 
    Five places, no menus: what the record holds and where (Explore), who
    keeps it (About), what it teaches (Education), and the two teams that
-   work from it (NGOs, Cities). Report and the map are not here; both are
+   work from it (NGOs, Municipalities). Report and the map are not here; both are
    the first two things on the landing. Beside them, quietly, the language,
    the way in for someone holding an invitation, and the one strong action:
    into the app. The bar is glass over whatever it sits on — night over the
@@ -34,7 +34,7 @@ const LINKS: NavItem[] = [
   { label: "About", href: "/about", tKey: "about" },
   { label: "Education", href: "/education" },
   { label: "NGOs", href: "/for-ngos" },
-  { label: "Cities", href: "/for-governments" },
+  { label: "Municipalities", href: "/for-governments" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {

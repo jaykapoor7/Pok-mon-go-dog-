@@ -18,7 +18,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   ] },
   { title: "Who it's for", links: [
     { label: "NGOs", href: "/for-ngos" },
-    { label: "Cities", href: "/for-governments" },
+    { label: "Municipalities", href: "/for-governments" },
     { label: "Funders", href: "/for-funders" },
     { label: "Volunteers", href: "/get-involved" },
     { label: "Schools and educators", href: "/education" },

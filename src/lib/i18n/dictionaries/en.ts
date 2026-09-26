@@ -20,7 +20,7 @@ export const en = {
     evidence: "Evidence",
     mission: "Mission",
     forNgos: "For NGOs",
-    forGovernments: "For municipal bodies",
+    forGovernments: "For municipalities",
     about: "About",
     help: "Help",
     resources: "Resources",

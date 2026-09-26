@@ -25,10 +25,11 @@ export const metadata = {
    The landing page: the register, at three scales.
 
    Not a headline and a screenshot. The page is the record itself, read
-   aloud: a sample city filling in with every field record it holds; who
-   reads it, from one street to one city; one real report passing from a
-   phone to the Field Workspace to the public map under one ID; the
-   animals photographed onto it; and one request followed to its close.
+   aloud: a sample city filling in with every field record it holds; one
+   real report passing from a phone to the Field Workspace to the public
+   map under one ID, with the three who read it (resident, NGO,
+   municipality); one request followed to its close; and the animals
+   photographed onto it.
    The Field Workspace itself is shown on /for-ngos. What is still
    unknown is told on /evidence.
 
@@ -46,13 +47,13 @@ const fmt = (n: number) => n.toLocaleString("en-IN");
 const displaySans = DM_Sans({ subsets: ["latin"], axes: ["opsz"], variable: "--font-sans-display", display: "swap" });
 const displaySerif = Newsreader({ subsets: ["latin"], style: ["italic"], axes: ["opsz"], variable: "--font-serif-display", display: "swap" });
 
-/* Who reads the record, from one street up to a whole city: three levels,
-   one reader group and one thing to do at each. Everyone else it serves is
-   in the footer's index. */
+/* Who reads the record: resident, NGO, municipality. One reader group and
+   one thing to do at each, under the three screens. Everyone else it
+   serves is in the footer's index. */
 const LEVELS = [
-  { level: "street", scale: "One street", who: "Residents and feeders", does: "Report an animal, follow what happens to it, keep the patch you feed.", action: "Report an animal", href: "/report" },
-  { level: "field", scale: "One locality", who: "Rescue organisations", does: "Run cases, drives and care from one queue, on records you control.", action: "For NGOs", href: "/for-ngos" },
-  { level: "city", scale: "One city", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "Read a city", href: "/insights" },
+  { level: "street", scale: "Resident", who: "Residents and feeders", does: "Report an animal, follow what happens to it, keep the patch you feed.", action: "Report an animal", href: "/report" },
+  { level: "field", scale: "NGO", who: "Rescue organisations", does: "Run cases, drives and care from one queue, on records you control.", action: "For NGOs", href: "/for-ngos" },
+  { level: "city", scale: "Municipality", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "Read a municipality", href: "/insights" },
 ] as const;
 
 export default async function HomePage() {
@@ -81,12 +82,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="ld-sec ld-sec-bone" aria-labelledby="ld-who-title">
+        <section className="ld-sec ld-sec-shell" aria-labelledby={story?.relay ? "ld-relay-title" : undefined} aria-label={story?.relay ? undefined : "Who reads the record"}>
+          {story?.relay && story.desk.live + story.desk.older > 0 && (
+            <>
+              <header className="sys-head">
+                <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
+                <p>A real request in {story.hero.city}: sent from a phone, worked in the Field Workspace, drawn on the public map. One record the whole way.</p>
+              </header>
+              <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
+            </>
+          )}
           <div className="ld-scale">
-            <header className="sys-head">
-              <h2 id="ld-who-title">One record, <em>read at every level.</em></h2>
-              <p>The same animal, the same case, the same care, read from one street up to a whole city.</p>
-            </header>
             <ol className="ld-levels">
               {LEVELS.map((l, i) => (
                 <li key={l.level} style={{ ["--i" as string]: i }}>
@@ -105,20 +111,6 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {story?.relay && story.desk.live + story.desk.older > 0 && (
-          <section className="ld-sec ld-sec-shell" aria-labelledby="ld-relay-title">
-            <header className="sys-head">
-              <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
-              <p>A real request in {story.hero.city}: sent from a phone, worked in the Field Workspace, drawn on the public map. One record the whole way.</p>
-            </header>
-            <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
-          </section>
-        )}
-
-        <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed onto the record">
-          <PhotoRegister rows={photos.rows} total={photos.total} />
-        </section>
-
         {story?.journey && (
           <CaseDive
             j={story.journey}
@@ -130,8 +122,12 @@ export default async function HomePage() {
           />
         )}
 
+        <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed onto the record">
+          <PhotoRegister rows={photos.rows} total={photos.total} />
+        </section>
+
         <section className="ld-close">
-          <h2>Know an animal <em>on your street?</em></h2>
+          <h2>Know a dog? <em>Report it.</em></h2>
           <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
         </section>
       </main>
