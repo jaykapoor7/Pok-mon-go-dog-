@@ -12,7 +12,7 @@
    Today that is Coimbatore, from one partner's rescue register.
    ════════════════════════════════════════════════════════════════════ */
 
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, getSupabaseAdmin } from "@/lib/supabase";
 import { unstable_cache } from "next/cache";
 import { cellToLatLng, isValidCell } from "h3-js";
 import { getPublicDataset, SPATIAL_TAG } from "@/lib/spatial/server";
@@ -199,8 +199,8 @@ export const getLandingStory = unstable_cache(async () => {
   const ds = await getPublicDataset(null);
   if (!ds || !ds.cities.length) return null;
   const story = buildStory(ds);
-  return { ...story, relay: await resolveRelay(story.desk.feed) };
-}, ["landing-story-v7"], { revalidate: 600, tags: [SPATIAL_TAG] });
+  return { ...story, relay: await resolveRelay(story.desk.feed, story.desk.cells.map((c) => c.key), story.hero.city) };
+}, ["landing-story-v8"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /* One report, three screens, carries the record's own identifier across
    all three. The dataset holds no ids by design, so the most recent real
@@ -208,9 +208,15 @@ export const getLandingStory = unstable_cache(async () => {
    condition; the first whose animal has a StrayPaw ID is the one shown.
    No match, no relay: the landing never prints an id it cannot back. */
 type FeedEvent = LandingStory["desk"]["feed"][number];
-async function resolveRelay(feed: FeedEvent[]) {
-  const supa = getSupabase();
+async function resolveRelay(feed: FeedEvent[], cityCells: string[], city: string) {
+  const admin = getSupabaseAdmin();
+  const supa = admin ?? getSupabase();
   if (!supa) return null;
+  const animalFor = async (dogId: string) => {
+    const table = admin ? "dogs" : "public_spatial_animals";
+    const { data } = await supa.from(table).select("id,straypaw_id").eq("id", dogId).maybeSingle();
+    return data as { id: string; straypaw_id: string | null } | null;
+  };
   const reports = [...feed].reverse().filter((e) => e.kind === "report").slice(0, 6);
   for (const e of reports) {
     const next = new Date(Date.parse(`${e.date}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
@@ -219,9 +225,38 @@ async function resolveRelay(feed: FeedEvent[]) {
       .not("dog_id", "is", null).limit(1);
     const dogId = (facts?.[0] as { dog_id: string } | undefined)?.dog_id;
     if (!dogId) continue;
-    const { data: animal } = await supa.from("public_spatial_animals").select("id,straypaw_id").eq("id", dogId).maybeSingle();
-    const a = animal as { id: string; straypaw_id: string | null } | null;
+    const a = await animalFor(dogId);
     if (a?.straypaw_id) return { ...e, animalId: a.id, straypawId: a.straypaw_id };
+  }
+
+  /* The latest visual replay is deliberately short, but a corrected import
+     may have only an older encounter linked to a defensible animal identity.
+     Look across the sample city's real cells before giving up, so the system
+     diagram does not disappear merely because recent encounters are rightly
+     provisional. */
+  if (cityCells.length) {
+    const { data } = await supa.from("public_case_facts")
+      .select("dog_id,h3_r8,condition_class,occurred_at,zone")
+      .not("dog_id", "is", null)
+      .in("h3_r8", cityCells.slice(0, 300))
+      .order("occurred_at", { ascending: false })
+      .limit(20);
+    for (const row of (data ?? []) as { dog_id: string | null; h3_r8: string | null; condition_class: string | null; occurred_at: string; zone: string | null }[]) {
+      if (!row.dog_id || !row.h3_r8) continue;
+      const a = await animalFor(row.dog_id);
+      if (!a?.straypaw_id) continue;
+      const condition = row.condition_class || "Other";
+      return {
+        kind: "report" as const,
+        date: row.occurred_at.slice(0, 10),
+        condition,
+        locality: row.zone || city,
+        cell: row.h3_r8,
+        critical: DEFAULT_TRIAGE[condition as Condition] === "Critical",
+        animalId: a.id,
+        straypawId: a.straypaw_id,
+      };
+    }
   }
   return null;
 }

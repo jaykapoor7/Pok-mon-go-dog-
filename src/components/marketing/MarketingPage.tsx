@@ -95,8 +95,8 @@ export function MarketingPage({
           </div>
         </section>
 
-        <SiteFooter />
       </main>
+      <SiteFooter />
     </div>
   );
 }

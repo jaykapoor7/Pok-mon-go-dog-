@@ -19,7 +19,7 @@ export default function TermsPage() {
       <p>
         You keep ownership of what you upload. By posting, you grant StrayPaw a
         licence to display it within the app so the community can find and help
-        the dog. We may remove content that breaches these terms or our
+        the animal. We may remove content that breaches these terms or our
         Community Guidelines.
       </p>
       <H2>No warranty</H2>

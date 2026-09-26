@@ -1,7 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { getSupabase, getSupabaseAdmin } from "@/lib/supabase";
-import { getOrgBySlug } from "@/lib/data";
+import { getOrgBySlug, mapOrg } from "@/lib/data";
 import type { Dog, NGO } from "@/lib/types";
 
 export type OrgImpact = {
@@ -241,8 +241,15 @@ export async function getPublicOrgProgrammes(slug: string, limit = 6): Promise<P
 }
 
 export async function getPublicOrgBySlug(slug: string): Promise<NGO | null> {
-  // This mapping deliberately uses the existing organization identity rather
-  // than introducing an embed-only profile or duplicate organization table.
+  /* Organisation profiles are public records rendered on the server. Directory
+     entries do not all have anonymous access to the operational ngos table,
+     so use the server credential when it exists, returning only the mapped
+     public identity fields to the page. */
+  const admin = getSupabaseAdmin();
+  if (admin) {
+    const { data } = await admin.from("ngos").select("*").eq("slug", slug).eq("demo_mode", false).maybeSingle();
+    if (data) return mapOrg(data);
+  }
   return getOrgBySlug(slug);
 }
 

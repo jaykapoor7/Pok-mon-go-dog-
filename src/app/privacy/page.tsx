@@ -32,8 +32,10 @@ export default function PrivacyPage() {
       <H2>Location</H2>
       <p>
         Location is only read when you tap &ldquo;use my current location&rdquo;
-        while reporting. Reported coordinates are shown publicly on the map, so
-        please avoid pinning private residences.
+        while reporting. It is used to place the report in a spatial cell and
+        match it to nearby work. The public record shows an approximate cell or
+        locality rather than a precise, machine-readable pin for a living animal.
+        Please still avoid using a private residence as the report landmark.
       </p>
       <H2>Your choices</H2>
       <p>
