@@ -36,7 +36,7 @@ import {
 } from "@/lib/spatial/engine";
 import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, type NextCell, type SpatialDataset } from "@/lib/spatial/types";
 import { densityContours, LEVELS } from "@/lib/spatial/contours";
-import { Portraits } from "./Portraits";
+import { Portraits, type DotPick } from "./Portraits";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, type Condition } from "@/lib/register/taxonomy";
 import { getSupabase } from "@/lib/supabase";
 import { useSpatialDataset, ringOf, flatRing, pointInCell, boxOfRings, INDIA_BOX, type Scope } from "./data";
@@ -133,6 +133,8 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   const [month, setMonth] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [sel, setSel] = useState<Sel | null>(null);
+  /* A tapped animal dot opens that animal's card; the map does not move. */
+  const [dotPick, setDotPick] = useState<DotPick | null>(null);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -768,6 +770,19 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   useEffect(() => {
     const map = mapRef.current; if (!map || !ready || !ds) return;
     const onClick = (e: MapMouseEvent) => {
+      /* An animal's dot is small; give a finger a few pixels around it. */
+      if (mode === "animals" && map.getLayer("pts") && map.getLayoutProperty("pts", "visibility") !== "none") {
+        const pad = phone ? 12 : 7;
+        const dots = map.queryRenderedFeatures([[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]], { layers: ["pts"] });
+        if (dots.length) {
+          const near = dots.reduce((b, f) => { const q = map.project((f.geometry as GeoJSON.Point).coordinates as [number, number]); const d = (q.x - e.point.x) ** 2 + (q.y - e.point.y) ** 2; return d < b.d ? { f, d } : b; }, { f: dots[0], d: Infinity }).f;
+          const pr = near.properties ?? {};
+          setDotPick({ cell: ds.cells[Number(pr.c)], help: Number(pr.k) === 1, ster: Number(pr.st), vacc: Number(pr.va), at: Date.now() });
+          // On a phone the card and the place panel share the screen: the animal wins.
+          if (phone) { setSheet("hidden"); setFilterOpen(false); }
+          return;
+        }
+      }
       const layers = ["cities", "feeding", "pts", "care-pts", "cases", "next", "cells", "frontier-fill"].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, "visibility") !== "none");
       const hits = map.queryRenderedFeatures(e.point, { layers });
       const h = hits[0];
@@ -795,10 +810,11 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     };
     const onMove = (e: MapMouseEvent) => {
       if (phone) return;
+      const onDot = mode === "animals" && !!map.getLayer("pts") && map.getLayoutProperty("pts", "visibility") !== "none" && map.queryRenderedFeatures([[e.point.x - 7, e.point.y - 7], [e.point.x + 7, e.point.y + 7]], { layers: ["pts"] }).length > 0;
       const hits = map.queryRenderedFeatures(e.point, { layers: ["cells"].filter((l) => map.getLayer(l)) });
       const ci = hits[0] ? Number(hits[0].id) : -1;
       const s = ci >= 0 ? statOf.get(ci) : undefined;
-      if (!s || (!s.observed && !s.events) || (mode === "cases" && !value(s))) { setHover(null); map.getCanvas().style.cursor = ""; return; }
+      if (!s || (!s.observed && !s.events) || (mode === "cases" && !value(s))) { setHover(null); map.getCanvas().style.cursor = onDot ? "pointer" : ""; return; }
       map.getCanvas().style.cursor = "pointer";
       const loc = ds.cellLocality[ci] >= 0 ? ds.localities[ds.cellLocality[ci]] : "Unnamed cell";
       /* One cell on the public map never shows a count of one or two. */
@@ -1001,7 +1017,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
         />
       )}
 
-      <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals"} />
+      <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals"} pick={dotPick} />
 
       {loading && <div className="sm-state" role="status"><span>Reading the register…</span></div>}
       {error && <div className="sm-state" role="status"><span>{error}</span></div>}

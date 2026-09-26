@@ -14,7 +14,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, Marker } from "maplibre-gl";
-import { ArrowUpRight, X } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { SpatialDataset } from "@/lib/spatial/types";
 import { ringOf, pointInCell } from "./data";
 import { AnimalSeal, sealMarkup } from "@/components/system/AnimalSeal";
@@ -36,10 +36,15 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 const day = (iso: string | null) => { if (!iso) return null; const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
 const yes = (v: string | null) => !!v && /^(yes|done|sterilised|sterilized|vaccinated|complete|recorded)/i.test(v);
 
-export function Portraits({ map, ds, on }: { map: MLMap | null; ds: SpatialDataset | null; on: boolean }) {
+/** A dot tapped on the map: its cell and what the dot itself says about the animal. */
+export type DotPick = { cell: string; help: boolean; ster: number; vacc: number; at: number };
+
+export function Portraits({ map, ds, on, pick }: { map: MLMap | null; ds: SpatialDataset | null; on: boolean; pick?: DotPick | null }) {
   const cache = useRef(new Map<string, Animal[]>());
   const markers = useRef(new Map<string, Marker>());
-  const [open, setOpen] = useState<Animal | null>(null);
+  /* The card shows one animal of those recorded in a cell, and steps through the rest. */
+  const [card, setCard] = useState<{ list: Animal[]; i: number } | null>(null);
+  const openOne = (a: Animal) => { const list = (a.h3_r8 && cache.current.get(a.h3_r8)) || [a]; const i = Math.max(0, list.findIndex((x) => x.id === a.id)); setCard({ list: list.length ? list : [a], i }); };
 
   useEffect(() => {
     if (!map || !ds) return;
@@ -103,7 +108,7 @@ export function Portraits({ map, ds, on }: { map: MLMap | null; ds: SpatialDatas
         const label = document.createElement("span");
         label.className = "sm-pin-name"; label.textContent = nameOf(a) ?? a.straypaw_id ?? "";
         el.appendChild(label);
-        el.addEventListener("click", (e) => { e.stopPropagation(); setOpen(a); });
+        el.addEventListener("click", (e) => { e.stopPropagation(); openOne(a); });
         const m = new ml!.Marker({ element: el, anchor: "center" }).setLngLat(c.ll).addTo(map);
         markers.current.set(a.id, m);
       }
@@ -114,14 +119,53 @@ export function Portraits({ map, ds, on }: { map: MLMap | null; ds: SpatialDatas
     return () => { dead = true; map.off("moveend", draw); clear(); };
   }, [map, ds, on]);
 
-  useEffect(() => { if (!on) setOpen(null); }, [on]);
+  useEffect(() => { if (!on) setCard(null); }, [on]);
 
-  if (!open) return null;
+  /* A tapped dot: read its cell's public records (once, cached) and open on
+     the animal that best matches what the dot says: needs help, then its
+     sterilisation and vaccination as recorded. The dot is placed inside its
+     cell, never at an address, so the card says "recorded in this cell". */
+  useEffect(() => {
+    if (!pick) return;
+    let dead = false;
+    (async () => {
+      let list = cache.current.get(pick.cell);
+      if (!list) {
+        try {
+          const r = await fetch(`/api/spatial/patch?cells=${pick.cell}`);
+          const j = r.ok ? await r.json() : { animals: [] };
+          list = ((j.animals ?? []) as Animal[]).filter((a) => a.h3_r8 === pick.cell);
+          cache.current.set(pick.cell, list);
+        } catch { list = []; }
+      }
+      if (dead || !list.length) return;
+      const score = (a: Animal) => {
+        const help = !!a.needs_help || a.status === "injured";
+        return (help === pick.help ? 4 : 0) + (yes(a.sterilisation_status) === (pick.ster === 1) ? 2 : 0) + (yes(a.vaccination_status) === (pick.vacc === 1 || pick.vacc === 3) ? 1 : 0);
+      };
+      let best = 0;
+      list.forEach((a, k) => { if (score(a) > score(list![best])) best = k; });
+      setCard({ list, i: best });
+    })();
+    return () => { dead = true; };
+  }, [pick]);
+
+  useEffect(() => {
+    if (!card) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setCard(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [card]);
+
+  if (!card) return null;
+  const open = card.list[card.i];
+  const many = card.list.length > 1;
+  const step = (d: number) => setCard((c) => (c ? { ...c, i: (c.i + d + c.list.length) % c.list.length } : c));
   const name = nameOf(open);
   const help = !!open.needs_help || open.status === "injured";
   return (
-    <div className="sm-card" role="dialog" aria-label={name ?? "An animal"}>
-      <button type="button" className="sm-card-x" onClick={() => setOpen(null)} aria-label="Close"><X size={15} /></button>
+    <div className="sm-card" key={open.id} role="dialog" aria-label={name ?? "An animal"}>
+      <button type="button" className="sm-card-x" onClick={() => setCard(null)} aria-label="Close"><X size={15} /></button>
       <div className={`sm-card-ph ${open.cover_photo ? "" : "is-mono"}`}>
         {open.cover_photo ? <img src={open.cover_photo} alt="" /> : <AnimalSeal seed={open.id} name={name} />}
       </div>
@@ -135,6 +179,13 @@ export function Portraits({ map, ds, on }: { map: MLMap | null; ds: SpatialDatas
         </p>
         <p className="sm-card-seen">{[open.zone, open.last_seen ? `last seen ${day(open.last_seen)}` : null].filter(Boolean).join(" · ")}</p>
         <Link href={`/dog/${open.id}`} className="sm-card-go">Open the record <ArrowUpRight size={14} /></Link>
+        {many && (
+          <p className="sm-card-many">
+            <button type="button" onClick={() => step(-1)} aria-label="Previous animal in this cell"><ChevronLeft size={15} /></button>
+            <span>{card.i + 1} of {card.list.length} recorded in this cell</span>
+            <button type="button" onClick={() => step(1)} aria-label="Next animal in this cell"><ChevronRight size={15} /></button>
+          </p>
+        )}
       </div>
     </div>
   );
