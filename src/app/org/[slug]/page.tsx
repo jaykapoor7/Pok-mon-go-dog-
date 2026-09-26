@@ -1,176 +1,145 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Globe, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowUpRight, Globe, Mail, Phone } from "lucide-react";
+import { AppShell } from "@/components/app/AppShell";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { VerifiedBadge } from "@/components/org/VerifiedBadge";
-import {
-  getPublicOrgActivity,
-  getPublicOrgAnimals,
-  getPublicOrgBySlug,
-  getPublicOrgImpact,
-  getPublicOrgProgrammes,
-} from "@/lib/org-public";
-import styles from "./org-profile.module.css";
+import { OrgMark } from "@/components/orgs/OrgMark";
+import { CampaignStrip } from "@/components/orgs/CampaignStrip";
+import { FootprintMap } from "@/components/orgs/FootprintMap";
+import { PartnerFigures } from "@/components/orgs/PartnerFigures";
+import { givenName } from "@/components/system/AnimalSeal";
+import { getOperationalPartners, orgKind } from "@/lib/partners";
+import { getPublicOrgAnimals, getPublicOrgBySlug, getPublicOrgImpact, getPublicOrgMapCells } from "@/lib/org-public";
+import { getPublicProgrammes } from "@/lib/public-programmes";
+import "@/components/orgs/partners.css";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const org = await getPublicOrgBySlug(slug);
-  if (!org) return { title: "Organization not found, StrayPaw" };
+  if (!org) return { title: "Organisation not found, StrayPaw" };
   return {
-    title: org.name + ", public records",
-    description: org.mission?.slice(0, 150) ?? ("Public animal welfare records documented by " + org.name + "."),
-    ...(org.cover_photo ? { openGraph: { images: [org.cover_photo] } } : {}),
+    title: `${org.name}, StrayPaw`,
+    description: org.mission?.slice(0, 150) ?? `What ${org.name}'s public record on StrayPaw holds.`,
+    ...(org.logo_url ? { openGraph: { images: [org.logo_url] } } : {}),
   };
 }
 
-const formatter = new Intl.NumberFormat("en-IN");
-const dateFormatter = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" });
+/* ════════════════════════════════════════════════════════════════════
+   One organisation, from its own public record. Who it is, beside where
+   its record reaches on the city's streets; what the record holds,
+   counted up; its campaigns on their time axis; and the animals it keeps,
+   in a strip. Only what the record holds is drawn: an organisation whose
+   data is not yet on it shows who it is and nothing invented.
+   ════════════════════════════════════════════════════════════════════ */
 
-function date(value: string | null | undefined) {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.valueOf()) ? null : dateFormatter.format(parsed);
-}
-
-function metricList(impact: Awaited<ReturnType<typeof getPublicOrgImpact>>) {
-  return [
-    impact.animalsRecorded > 0 && { value: impact.animalsRecorded, label: "Animal records" },
-    impact.sterilised > 0 && { value: impact.sterilised, label: "Documented as sterilised" },
-    impact.vaccinated > 0 && { value: impact.vaccinated, label: "Documented as vaccinated" },
-    impact.caseRecords > 0 && { value: impact.caseRecords, label: "Case records" },
-    impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
-    impact.resolvedCases > 0 && { value: impact.resolvedCases, label: "Closed after field work" },
-  ].filter(Boolean) as { value: number; label: string }[];
-}
+const MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const month = (iso: string | null | undefined) => { if (!iso) return null; const d = new Date(iso); return Number.isNaN(+d) ? null : `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 
 export default async function OrgProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const org = await getPublicOrgBySlug(slug);
   if (!org?.slug) notFound();
+  const extra = org as typeof org & { partner_status?: string | null; partnered_at?: string | null };
 
-  const [impact, animals, activity, programmes] = await Promise.all([
-    getPublicOrgImpact(org.id),
-    getPublicOrgAnimals(org.id, 18),
-    getPublicOrgActivity(org.id, 10),
-    getPublicOrgProgrammes(org.slug, 6),
+  const [impact, animals, cells, allCampaigns, partners] = await Promise.all([
+    getPublicOrgImpact(org.id).catch(() => null),
+    getPublicOrgAnimals(org.id, 16).catch(() => []),
+    getPublicOrgMapCells(org.id).catch(() => []),
+    getPublicProgrammes(250).catch(() => []),
+    getOperationalPartners().catch(() => []),
   ]);
-  const metrics = metricList(impact);
-  const location = [org.city, org.state].filter(Boolean).join(", ") || org.area;
-  const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
-  const caseRecords = activity.filter((item) => item.kind === "case");
-  const recentActivity = activity.slice(caseRecords.length ? Math.min(caseRecords.length, 3) : 0, 8);
+  const partner = partners.find((p) => p.id === org.id);
+  const campaigns = allCampaigns.filter((c) => c.ngo_slug === org.slug);
+  const kind = partner ? "Field partner" : orgKind(org.name, extra.partner_status);
+  const since = partner ? month(partner.partneredAt ?? extra.partnered_at) : null;
+  const place = [org.city, org.state].filter(Boolean).join(", ") || org.area;
+  const figures = impact ? [
+    { value: impact.animalsRecorded, label: "animals on the record" },
+    { value: impact.caseRecords, label: "requests worked" },
+    { value: impact.resolvedCases, label: "closed after field work" },
+    { value: impact.sterilised, label: "sterilised, on record" },
+    { value: impact.vaccinated, label: "vaccinated, on record" },
+  ].filter((f) => f.value > 0) : [];
+  const links = [
+    org.website && { href: org.website, label: org.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""), Icon: Globe, ext: true },
+    org.contact_email && { href: `mailto:${org.contact_email}`, label: org.contact_email, Icon: Mail, ext: false },
+    org.contact_phone && { href: `tel:${org.contact_phone}`, label: org.contact_phone, Icon: Phone, ext: false },
+  ].filter(Boolean) as { href: string; label: string; Icon: typeof Globe; ext: boolean }[];
 
   return (
-    <main className={styles.page}>
-      <header className={styles.topbar}>
-        <Link className={styles.brand} href="/">StrayPaw</Link>
-        <Link className={styles.back} href="/orgs">All organisations</Link>
-      </header>
-
-      <section className={styles.hero}>
-        <div className={styles.heroInner}>
-          <div>
-            <div className={styles.identity}>
-              {org.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className={styles.logo} src={org.logo_url} alt={org.name + " logo"} />
-              ) : <span className={styles.logoFallback} aria-hidden="true">{initials || "NGO"}</span>}
-              <div>
-                <p className={styles.eyebrow}>Public organisation record</p>
-                <div className={styles.titleRow}>
-                  <h1 className={styles.title}>{org.name}</h1>
-                  {org.verified && <VerifiedBadge verified size="sm" />}
-                </div>
-                {location && <p className={styles.location}><MapPin aria-hidden="true" size={16} />{location}</p>}
-              </div>
-            </div>
-            {org.mission && <p className={styles.mission}>{org.mission}</p>}
-            {org.areas_of_work && org.areas_of_work.length > 0 && (
-              <div className={styles.workTags} aria-label="Areas of work">
-                {org.areas_of_work.map((area) => <span className={styles.workTag} key={area}>{area}</span>)}
-              </div>
+    <AppShell>
+      <article className="op">
+        <header className={`op-head ${cells.length ? "has-map" : ""}`}>
+          <div className="op-id">
+            <OrgMark name={org.name} logoUrl={org.logo_url} size={88} />
+            <p className="op-kind sys-mono">{kind}{since ? <> · since {since}</> : null}</p>
+            <h1>{org.name}</h1>
+            {place && <p className="op-place">{place}</p>}
+            {org.mission && <p className="op-mission">{org.mission}</p>}
+            {org.areas_of_work && org.areas_of_work.length > 0 && <p className="op-areas">{org.areas_of_work.join(" · ")}</p>}
+            {links.length > 0 && (
+              <p className="op-links">
+                {links.map(({ href, label, Icon, ext }) => (
+                  <a key={href} href={href} {...(ext ? { target: "_blank", rel: "noopener noreferrer nofollow" } : {})}><Icon size={14} aria-hidden /> {label}</a>
+                ))}
+              </p>
             )}
           </div>
-
-          {(org.website || org.contact_email || org.contact_phone) && (
-            <aside className={styles.contact} aria-label="Public contact information">
-              <p className={styles.contactTitle}>Public contact</p>
-              {org.website && <a href={org.website} target="_blank" rel="noopener noreferrer nofollow"><Globe aria-hidden="true" size={16} />{org.website.replace(/^https?:\/\//, "")}</a>}
-              {org.contact_email && <a href={"mailto:" + org.contact_email}><Mail aria-hidden="true" size={16} />{org.contact_email}</a>}
-              {org.contact_phone && <a href={"tel:" + org.contact_phone}><Phone aria-hidden="true" size={16} />{org.contact_phone}</a>}
-            </aside>
+          {cells.length > 0 && (
+            <figure className="op-geo">
+              <FootprintMap cells={cells} label={`Where ${org.name}'s public record reaches: ${cells.length} places${org.city ? ` in ${org.city}` : ""}`} />
+              <figcaption className="sys-mono">{cells.length.toLocaleString("en-IN")} places on its record{org.city ? ` · ${org.city}` : ""}</figcaption>
+            </figure>
           )}
-        </div>
-      </section>
+        </header>
 
-      <div className={styles.main}>
-        {metrics.length > 0 && (
-          <section className={styles.section} aria-labelledby="impact-heading">
-            <div className={styles.sectionLead}>
-              <h2 className={styles.sectionTitle} id="impact-heading">Live impact summary</h2>
-              <p className={styles.sectionText}>Counts update from records maintained through StrayPaw. They document what this organisation has recorded, not claims about work performed by StrayPaw.</p>
-            </div>
-            <div className={styles.metrics}>
-              {metrics.map((metric) => <div className={styles.metric} key={metric.label}><strong className={styles.metricValue}>{formatter.format(metric.value)}</strong><span className={styles.metricLabel}>{metric.label}</span></div>)}
-            </div>
+        {figures.length > 0 && (
+          <section className="op-sec" aria-labelledby="op-fig-h">
+            <h2 id="op-fig-h" className="op-h">On StrayPaw</h2>
+            <PartnerFigures figures={figures} />
+          </section>
+        )}
+
+        {campaigns.length > 0 && (
+          <section className="op-sec" aria-labelledby="op-camp-h">
+            <h2 id="op-camp-h" className="op-h">Campaigns</h2>
+            <CampaignStrip campaigns={campaigns} showOrg={false} />
           </section>
         )}
 
         {animals.length > 0 && (
-          <section className={styles.section} aria-labelledby="animals-heading">
-            <div className={styles.sectionLead}>
-              <h2 className={styles.sectionTitle} id="animals-heading">Animal records</h2>
-              <p className={styles.sectionText}>Public animal profiles attributed to {org.name}. Location details are intentionally not shown here.</p>
-            </div>
-            <div className={styles.animalGrid}>
-              {animals.map((animal) => {
-                const status = animal.sterilisation_status === "sterilised" ? "Documented as sterilised" : animal.vaccination_status === "vaccinated" ? "Documented as vaccinated" : date(animal.last_seen) ? ("Last documented " + date(animal.last_seen)) : "Public record";
-                return <Link className={styles.animal} href={"/dog/" + animal.id} key={animal.id}><DogPhoto className={styles.animalImage} src={animal.cover_photo} seed={animal.id} alt={animal.name ?? "Animal record"} /><div className={styles.animalCopy}><p className={styles.animalName}>{animal.name ?? "Animal record"}</p><p className={styles.animalMeta}>{status}</p></div></Link>;
-              })}
-            </div>
+          <section className="op-sec" aria-labelledby="op-an-h">
+            <h2 id="op-an-h" className="op-h">On their record</h2>
+            <ul className="op-animals">
+              {animals.map((a) => (
+                <li key={a.id}>
+                  <Link href={`/dog/${a.id}`}>
+                    <DogPhoto src={a.cover_photo} seed={a.id} alt={givenName(a.name) ?? "An animal"} className="op-animal-ph" width={320} />
+                    <b>{givenName(a.name) ?? "No name yet"}</b>
+                    <small>{a.sterilisation_status === "sterilised" ? "Sterilised" : a.vaccination_status === "vaccinated" ? "Vaccinated" : month(a.last_seen) ? `Seen ${month(a.last_seen)}` : "On the record"}</small>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
-        {caseRecords.length > 0 && (
-          <section className={styles.section} aria-labelledby="work-heading">
-            <div className={styles.sectionLead}>
-              <h2 className={styles.sectionTitle} id="work-heading">Their work / case records</h2>
-              <p className={styles.sectionText}>Only public-safe field records are shown. Private case descriptions, staff details and sensitive locations remain in the organisation workspace.</p>
-            </div>
-            <div className={styles.recordList}>
-              {caseRecords.slice(0, 5).map((record) => <div className={styles.record} key={record.id}><div className={styles.recordMain}><p className={styles.recordTitle}>Field case documented</p><p className={styles.recordMeta}>{[record.area, date(record.occurredAt)].filter(Boolean).join(" · ")}</p></div>{record.animalId && <Link className={styles.recordLink} href={"/dog/" + record.animalId}>View animal record</Link>}</div>)}
-            </div>
+        {org.about && (
+          <section className="op-sec" aria-labelledby="op-about-h">
+            <h2 id="op-about-h" className="op-h">About</h2>
+            <p className="op-about">{org.about}</p>
           </section>
         )}
 
-        {recentActivity.length > 0 && (
-          <section className={styles.section} aria-labelledby="activity-heading">
-            <div className={styles.sectionLead}>
-              <h2 className={styles.sectionTitle} id="activity-heading">Recent documented activity</h2>
-              <p className={styles.sectionText}>A concise public timeline of work that has been deliberately published through StrayPaw&apos;s safe field activity record.</p>
-            </div>
-            <div className={styles.recordList}>
-              {recentActivity.map((record) => <div className={styles.record} key={record.id}><div className={styles.recordMain}><p className={styles.recordTitle}>{record.kind === "care" ? "Animal care recorded" : "Field case documented"}</p><p className={styles.recordMeta}>{[record.area, date(record.occurredAt)].filter(Boolean).join(" · ")}</p></div>{record.animalId && <Link className={styles.recordLink} href={"/dog/" + record.animalId}>View record</Link>}</div>)}
-            </div>
-          </section>
+        {(org.city || figures.length > 0) && (
+          <p className="op-acts">
+            {org.city && <Link href={`/map?mode=animals&city=${encodeURIComponent(org.city)}`} className="sys-btn">See it on the map <ArrowUpRight size={15} /></Link>}
+            {org.city && <Link href={`/insights?city=${encodeURIComponent(org.city)}`} className="pp-link">Read {org.city} <ArrowUpRight size={14} /></Link>}
+          </p>
         )}
-
-        {programmes.length > 0 && (
-          <section className={styles.section} aria-labelledby="programmes-heading">
-            <div className={styles.sectionLead}>
-              <h2 className={styles.sectionTitle} id="programmes-heading">Programmes / campaigns</h2>
-              <p className={styles.sectionText}>Public programme summaries published by {org.name}.</p>
-            </div>
-            <div className={styles.programmes}>{programmes.map((programme) => <article className={styles.programme} key={programme.id}><p className={styles.programmeKind}>{programme.kind}</p><h3 className={styles.programmeTitle}>{programme.name}</h3>{programme.summary && <p className={styles.programmeText}>{programme.summary}</p>}<p className={styles.programmeMeta}>{[programme.area, date(programme.startsOn), date(programme.endsOn)].filter(Boolean).join(" · ")}</p></article>)}</div>
-          </section>
-        )}
-
-        {org.about && <section className={styles.section} aria-labelledby="about-heading"><div className={styles.sectionLead}><h2 className={styles.sectionTitle} id="about-heading">About {org.name}</h2><p className={styles.about}>{org.about}</p></div></section>}
-        <footer className={styles.footer}>Data infrastructure by StrayPaw</footer>
-      </div>
-    </main>
+      </article>
+    </AppShell>
   );
 }

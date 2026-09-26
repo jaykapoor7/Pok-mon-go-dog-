@@ -45,7 +45,7 @@ const COMMUNITY_NAV = [
   { href: "/map", label: "Map", Icon: MapPin },
   { href: "/insights", label: "Insights", Icon: ChartColumn },
   { href: "/stories", label: "Stories", Icon: BookOpen },
-  { href: "/orgs", label: "Organisations", Icon: Building2 },
+  { href: "/orgs", label: "Partner NGOs", Icon: Building2 },
 ];
 
 /* NGO navigation is about decisions, records, geography and reporting. The
@@ -74,7 +74,7 @@ const EDUCATOR_NAV = [
   { href: "/map", label: "Map", Icon: MapPin },
   { href: "/insights", label: "Insights", Icon: ChartColumn },
   { href: "/stories", label: "Stories", Icon: BookOpen },
-  { href: "/orgs", label: "Organisations", Icon: Building2 },
+  { href: "/orgs", label: "Partner NGOs", Icon: Building2 },
 ];
 
 type Space = "community" | "feeder" | "educator" | "ngo";

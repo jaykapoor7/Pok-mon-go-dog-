@@ -16,7 +16,7 @@ export const en = {
     map: "Map",
     report: "Report",
     stories: "Stories",
-    organisations: "Organisations",
+    organisations: "Partner NGOs",
     evidence: "Evidence",
     mission: "Mission",
     forNgos: "For NGOs",

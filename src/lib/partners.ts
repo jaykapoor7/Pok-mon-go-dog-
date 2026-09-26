@@ -88,3 +88,35 @@ export async function getListedOrganisations(): Promise<{ members: OrgListing[];
     sources: rows.filter((r) => r.partner_status === "data_source").map(toListing),
   };
 }
+
+/* ── The directory: every organisation on the record, in one list ──────
+   A quiet tag says what each one is, so a municipal corporation or an open
+   data platform whose records StrayPaw draws on never reads as a partner
+   NGO. There is no type column; partner status decides partners, and a
+   name decides the rest. */
+export type OrgKind = "Field partner" | "NGO" | "Public body" | "Research" | "Open data";
+
+export function orgKind(name: string, status: string | null | undefined): OrgKind {
+  if (status === "operational_partner" || status === "pilot_partner") return "Field partner";
+  if (/municipal|corporation|mahanagara palike|nagar nigam|department of|ministry|government/i.test(name)) return "Public body";
+  if (/\biiser\b|institute|university|college|research/i.test(name)) return "Research";
+  if (/inaturalist|wikimedia|openstreetmap|\bgbif\b/i.test(name)) return "Open data";
+  return "NGO";
+}
+
+export type DirectoryOrg = OrgListing & { kind: OrgKind };
+
+export async function getPartnerDirectory(): Promise<DirectoryOrg[]> {
+  const [partners, listed] = await Promise.all([getOperationalPartners(), getListedOrganisations()]);
+  const seen = new Set<string>();
+  const out: DirectoryOrg[] = [];
+  for (const p of partners) {
+    if (seen.has(p.id)) continue; seen.add(p.id);
+    out.push({ id: p.id, name: p.name, slug: p.slug, city: p.city, state: p.state, mission: p.mission, website: null, logoUrl: p.logoUrl, kind: "Field partner" });
+  }
+  for (const o of [...listed.members, ...listed.sources]) {
+    if (seen.has(o.id)) continue; seen.add(o.id);
+    out.push({ ...o, kind: orgKind(o.name, null) });
+  }
+  return out;
+}
