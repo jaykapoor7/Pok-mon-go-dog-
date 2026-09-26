@@ -149,7 +149,7 @@ async function render() {
   args.push(
     "-f", "lavfi", "-t", visualDuration.toFixed(3), "-i",
     "sine=frequency=110:sample_rate=48000,volume=0.018",
-    "-f", "lavfi", "-t", visualDturation.toFixed(3), "-i",
+    "-f", "lavfi", "-t", visualDuration.toFixed(3), "-i",
     "sine=frequency=220:sample_rate=48000,volume=0.008"
    );
 
