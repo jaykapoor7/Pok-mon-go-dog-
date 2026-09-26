@@ -80,6 +80,12 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
   const facts = ((factsRes.data ?? []) as CaseFact[]).sort((a, b) => (a.occurred_at ?? "").localeCompare(b.occurred_at ?? ""));
   const care = ((careRes.data ?? []) as { id: string; kind: string; event_date: string | null }[]).filter((c) => c.event_date);
   const sp = spatialRes.data as { h3_r8: string | null; city: string | null; state: string | null; source: string | null; first_seen: string | null } | null;
+  /* A public profile must name the reporting organisation. The profile view
+     normally supplies ngo_name; this lookup covers older public rows that
+     retain only the organisation id. */
+  const reporterName = dog.ngo_name ?? (supa && dog.ngo_id
+    ? ((await supa.from("public_contributor_organisations").select("name").eq("id", dog.ngo_id).maybeSingle()).data?.name ?? null)
+    : null);
   const first = <T,>(pick: (r: ProfileOperationalRecord["imported"][number]) => T | null | undefined) => {
     for (const r of operational.imported) { const v = pick(r); if (v !== null && v !== undefined && String(v).trim()) return v; }
     return null;
@@ -155,8 +161,7 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
     sourceCode: identity?.source_code || (first((r) => r.animalCode) as string | null) || dog.code || null,
     species: dog.species || "dog", sex: known(first((r) => r.sex) as string | null), colour: known((first((r) => r.colour) as string | null) || dog.color || null),
     locality: cleanPlace((first((r) => r.locality) as string | null) || dog.zone) || null, city: sp?.city ?? dog.city ?? null, state: sp?.state ?? null,
-    // General pages keep the organisation unnamed; its own profile names it.
-    keeper: dog.ngo_id ? "A partner organisation's record" : "The community's record",
+    keeper: reporterName ? `Reported by ${reporterName}` : dog.ngo_id ? "Reporting organisation not published" : "Reported by the community",
     source: sp?.source === "resident" || dog.provenance === "community_report" ? "resident" : "field",
     firstSeen: sp?.first_seen ?? dog.first_seen ?? null, lastSeen: dog.last_seen ?? null,
     photo: photos[0] ?? null, photos,
