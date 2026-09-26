@@ -55,7 +55,7 @@ async function settle(page: Page, ms = 1800) {
 }
 
 async function center(loc: Locator) {
-  await loc.evaluate((el) => el.scrollIntoView({ block: "center", inline: "center", behavior: "instant" as ScrollBehavior })).catch(() => {});
+  await loc.evaluate((el) => el.scrollIntoView({ block: "center", inline: "center", behavior: "auto" })).catch(() => {});
 }
 
 async function viewportShot(page: Page, name: string, focus?: Locator) {
@@ -67,7 +67,7 @@ async function viewportShot(page: Page, name: string, focus?: Locator) {
   await page.screenshot({
     path: join(STILLS, name + ".png"),
     animations: "disabled",
-    clip: { x: 64, y: 36, width: 1792, height: 1008 },
+    fullPage: false,
   });
 }
 
@@ -159,7 +159,8 @@ async function captureCoverage(page: Page, demoUrl: string) {
 }
 
 async function makeEndCard(browser: Awaited<ReturnType<typeof chromium.launch>>) {
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
   let icon = "";
   try {
     const b = await readFile(resolve(ROOT, "public", "icon.png"));
@@ -175,7 +176,7 @@ async function makeEndCard(browser: Awaited<ReturnType<typeof chromium.launch>>)
     "</style></head><body><main class='f'><div class='rule'></div><div class='k'>STRAYPAW</div><div class='h'>Every stray animal.<br><b>Seen. Tracked. Cared for.</b></div>" +
     "<div class='brand'>" + (icon ? "<img src='" + icon + "' alt=''>" : "") + "<span>StrayPaw</span></div></main></body></html>");
   await page.screenshot({ path: join(STILLS, "07-end.png") });
-  await page.close();
+  await ctx.close();
 }
 
 async function makeContactSheet(browser: Awaited<ReturnType<typeof chromium.launch>>) {
@@ -185,14 +186,15 @@ async function makeContactSheet(browser: Awaited<ReturnType<typeof chromium.laun
     const b = await readFile(join(STILLS, name + ".png"));
     cards.push("<figure><img src='data:image/png;base64," + b.toString("base64") + "'><figcaption>" + name + "</figcaption></figure>");
   }
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
   await page.setContent("<!doctype html><html><head><style>" +
     "*{box-sizing:border-box}body{margin:0;background:#0b1e3d;color:#f3ede4;font-family:Arial,sans-serif;padding:34px}" +
     ".g{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}figure{margin:0}img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;display:block;background:#07142b}" +
     "figcaption{font-size:17px;margin-top:8px;opacity:.8}" +
     "</style></head><body><div class='g'>" + cards.join("") + "</div></body></html>");
   await page.screenshot({ path: join(OUT, "contact-sheet.png"), fullPage: true });
-  await page.close();
+  await ctx.close();
 }
 
 async function main() {
