@@ -60,7 +60,9 @@ test("community choice stays account-free and lands in the community record", as
      tree even when it looks dismissed. Asserting its absence states the
      requirement directly instead of inferring it. */
   await expect(page.locator('[role="dialog"]')).toHaveCount(0);
-  await expect(page.locator(".cp-head").getByRole("heading", { level: 1 })).toBeVisible();
+  /* With no place shared yet, the home asks for one instead of showing a
+     sample city. */
+  await expect(page.getByRole("heading", { level: 1, name: "Where do you walk?" })).toBeVisible();
   /* Reporting has to be reachable, not phrased a particular way. On a phone
      the header's copy of this action is gone and the tab bar's permanent
      centre slot carries it, so asserting the long label tested the desktop
@@ -71,7 +73,7 @@ test("community choice stays account-free and lands in the community record", as
 test("community home keeps location and reporting within immediate reach", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("straypaw.role", "individual"));
   await page.goto("/app");
-  const head = page.locator(".cp-head");
+  const head = page.locator(".pg");
   await expect(head.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(head.getByRole("button", { name: "Use my location" })).toBeVisible();
   await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();

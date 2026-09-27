@@ -135,3 +135,12 @@
 .co .sp-footer { background: var(--sp-deep); color: var(--sp-night-text); }
 .co .sp-footer-bottom { color: var(--sp-night-dim); }
 .co-orgs-more { margin-top: var(--sp-5); }
+
+/* On a phone the spreadsheet row reads as its cells, one per line with
+   the column beside it, instead of a table cut off at the edge. */
+@media (max-width: 560px) {
+  .co-slip.is-sheet table, .co-slip.is-sheet tbody, .co-slip.is-sheet tr { display: block; }
+  .co-slip.is-sheet thead { display: none; }
+  .co-slip.is-sheet td { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: var(--sp-2); padding: 4px 0; border-bottom: 1px dashed var(--sp-line); white-space: normal; }
+  .co-slip.is-sheet td::before { content: attr(data-k); color: var(--sp-muted); }
+}

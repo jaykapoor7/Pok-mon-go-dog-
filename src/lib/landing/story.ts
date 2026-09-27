@@ -295,9 +295,6 @@ async function resolveRelay(feed: FeedEvent[], cityCells: string[], city: string
   return best();
 }
 
-/** Resident photographs on the record, newest first, for the register strip. */
-export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v4"], { revalidate: 300, tags: [SPATIAL_TAG] });
-
 /* Case conditions that do not mean a wound on camera: routine ABC and ARV,
    and abandonment. Anything else on a case, an "injured" status or a
    needs-help flag puts the photograph after the calm ones. */
@@ -309,25 +306,77 @@ type PhotoRecord = {
   sterilisation_status: string | null; vaccination_status: string | null;
 };
 
-async function readPhotoRegister(limit = 24) {
+
+/* ════════════════════════════════════════════════════════════════════
+   The whole register, one mark per animal, for the landing's portrait
+   section: every public animal grouped by city, each mark carrying what
+   is known about it (sterilisation examined or not, needing help), and
+   the photographed animals placed among them with their files.
+
+   Marks are a compact string, one character per animal, so nine thousand
+   animals cost a few kilobytes and no ids or places leave the server:
+     a  not examined      b  sterilised      c  recorded not sterilised
+   upper case when the animal needs help. Photographs point at their mark.
+   ════════════════════════════════════════════════════════════════════ */
+export type RegisterPortrait = Awaited<ReturnType<typeof readRegisterPortrait>>;
+export const getRegisterPortrait = unstable_cache(() => readRegisterPortrait(), ["register-portrait-v1"], { revalidate: 300, tags: [SPATIAL_TAG] });
+
+async function readRegisterPortrait() {
   const supa = getSupabase();
-  if (!supa) return { rows: [], total: 0 };
-  /* A wider pool than the strip shows, so the strip can lead with animals
-     photographed without a visible injury and still be full. */
-  const [{ data }, { count }] = await Promise.all([
-    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,source,sterilisation_status,vaccination_status,status,needs_help").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(limit * 4),
-    supa.from("public_spatial_animals").select("id", { count: "exact", head: true }).not("cover_photo", "is", null).neq("cover_photo", ""),
-  ]);
-  const pool = (data ?? []) as (PhotoRecord & { status: string | null; needs_help: boolean | null })[];
-  const hurt = new Set(pool.filter((r) => r.status === "injured" || r.needs_help).map((r) => r.id));
-  if (pool.length) {
-    const { data: cases } = await supa.from("public_case_facts").select("dog_id,condition_class").in("dog_id", pool.map((r) => r.id));
-    for (const c of (cases ?? []) as { dog_id: string | null; condition_class: string | null }[]) {
-      if (c.dog_id && c.condition_class && !CALM_CONDITIONS.has(c.condition_class)) hurt.add(c.dog_id);
-    }
+  const empty = { cities: [] as { name: string; n: number; help: number; examined: number; photos: number }[], marks: "", photos: [] as PortraitPhoto[], total: 0 };
+  if (!supa) return empty;
+  type Row = { id: string; city: string | null; sterilisation_status: string | null; needs_help: boolean | null; status: string | null; cover_photo: string | null };
+  const rows: Row[] = [];
+  for (let from = 0; from < 40_000; from += 1000) {
+    const { data, error } = await supa.from("public_spatial_animals").select("id,city,sterilisation_status,needs_help,status,cover_photo").order("id").range(from, from + 999);
+    if (error || !data?.length) break;
+    rows.push(...(data as Row[]));
+    if (data.length < 1000) break;
   }
-  const ordered = [...pool.filter((r) => !hurt.has(r.id)), ...pool.filter((r) => hurt.has(r.id))].slice(0, limit);
-  const rows = ordered.map(({ id, name, straypaw_id, cover_photo, zone, city, first_seen, last_seen, sightings_count, source, sterilisation_status, vaccination_status }) =>
-    ({ id, name, straypaw_id, cover_photo, zone, city, first_seen, last_seen, sightings_count, source, sterilisation_status, vaccination_status }));
-  return { rows, total: count ?? 0 };
+  if (!rows.length) return empty;
+  const ster = (s: string | null) => { const v = (s ?? "").toLowerCase(); return ["sterilised", "sterilized", "yes", "true"].includes(v) ? "b" : ["not_sterilised", "not_sterilized", "no", "false", "intact"].includes(v) ? "c" : "a"; };
+  const byCity = new Map<string, Row[]>();
+  for (const r of rows) { const c = r.city?.trim() || "Place not recorded"; (byCity.get(c) ?? byCity.set(c, []).get(c)!).push(r); }
+  const order = [...byCity.entries()].sort((a, b) => b[1].length - a[1].length);
+  let marks = "";
+  const at = new Map<string, number>();
+  const cities = order.map(([name, list]) => {
+    /* Within a city: the ones needing help settle at the foot of the
+       tower, then examined, then not examined, so the column reads as a
+       stacked share and not as noise. Photographed animals keep a mark
+       like everyone else. */
+    const rank = (r: Row) => (r.needs_help || r.status === "injured" ? 0 : ster(r.sterilisation_status) !== "a" ? 1 : 2);
+    list.sort((x, y) => rank(x) - rank(y));
+    let help = 0, examined = 0, photos = 0;
+    for (const r of list) {
+      const hurt = !!(r.needs_help || r.status === "injured"), s = ster(r.sterilisation_status);
+      if (hurt) help++; if (s !== "a") examined++; if (r.cover_photo) photos++;
+      at.set(r.id, marks.length);
+      marks += hurt ? s.toUpperCase() : s;
+    }
+    return { name, n: list.length, help, examined, photos };
+  });
+  /* The photographed animals, with what the record says of each. */
+  const photoIds = rows.filter((r) => r.cover_photo && r.cover_photo.trim()).map((r) => r.id);
+  const [{ data: prof }, { data: cases }] = await Promise.all([
+    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,source,sterilisation_status,vaccination_status,status,needs_help").in("id", photoIds),
+    supa.from("public_case_facts").select("dog_id,condition_class,status_class").in("dog_id", photoIds),
+  ]);
+  const caseBy = new Map<string, { condition: string | null; status: string | null }[]>();
+  for (const c of (cases ?? []) as { dog_id: string; condition_class: string | null; status_class: string | null }[]) (caseBy.get(c.dog_id) ?? caseBy.set(c.dog_id, []).get(c.dog_id)!).push({ condition: c.condition_class, status: c.status_class });
+  const photos: PortraitPhoto[] = ((prof ?? []) as (PhotoRecord & { status: string | null; needs_help: boolean | null })[]).map((p) => {
+    const cs = caseBy.get(p.id) ?? [];
+    const conditions = [...new Set(cs.map((c) => c.condition).filter((c): c is string => !!c && !/^(Other|Not recorded)$/.test(c)))];
+    const calm = !(p.needs_help || p.status === "injured") && conditions.every((c) => CALM_CONDITIONS.has(c));
+    return {
+      i: at.get(p.id) ?? -1, id: p.id, name: p.name, straypaw_id: p.straypaw_id, cover_photo: p.cover_photo, zone: p.zone, city: p.city,
+      first_seen: p.first_seen, last_seen: p.last_seen, sightings_count: p.sightings_count, source: p.source,
+      sterilisation_status: p.sterilisation_status, vaccination_status: p.vaccination_status,
+      help: !!(p.needs_help || p.status === "injured"), requests: cs.length, conditions, calm,
+    };
+  }).filter((p) => p.i >= 0)
+    /* The tour leads with animals photographed without a visible injury. */
+    .sort((a, b) => Number(b.calm) - Number(a.calm) || (b.last_seen ?? "").localeCompare(a.last_seen ?? ""));
+  return { cities, marks, photos, total: rows.length };
 }
+export type PortraitPhoto = PhotoRecord & { i: number; help: boolean; requests: number; conditions: string[]; calm: boolean };

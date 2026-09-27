@@ -41,6 +41,17 @@
   --gd-mask-foot: radial-gradient(ellipse 46% 70% at 100% 100%, #000 0%, #000 26%, transparent 76%);
 }
 
+/* On a phone the reading column is the whole width, so a ground keeps to
+   a small corner, where a heading's line ends before it reaches. */
+@media (max-width: 760px) {
+  :root {
+    --gd-mask: radial-gradient(170px 120px at 100% 0%, #000 0%, #000 25%, transparent 100%);
+    --gd-mask-right: radial-gradient(170px 140px at 100% 100%, #000 0%, #000 25%, transparent 100%);
+    --gd-mask-corner: radial-gradient(160px 110px at 100% 0%, #000 0%, #000 25%, transparent 100%);
+    --gd-mask-foot: radial-gradient(160px 110px at 100% 100%, #000 0%, #000 25%, transparent 100%);
+  }
+}
+
 /* The layer itself. */
 html .ld .ld-sec-shell, html .ld .ld-sec-bone, html .ld .ld-close,
 html .co .co-sec, html .co .co-hero, html .co .co-close, html .edu-hero,
@@ -129,3 +140,7 @@ html:root body .spa-main .partner-gate { background-color: #ebe9e8; }
   html .spa.spa .spa-main::before, html .fg, html .co .co-sec::before, html .ld .ld-sec-bone::before,
   html .ld .ld-sec-shell::before, html .sx.spa.spa .sx-main::before, html .mk-band::before { display: none; }
 }
+
+/* On a page's own ground the way back is a plain row, not a paper band
+   laid over the drawing. */
+html body :not(.spa-main) > .backbar { position: static; background: none; }

@@ -140,7 +140,7 @@ export function CaseDive({ j, city, box, rings, events, note }: {
       let dog: Pt = home;
       if (hasCare && !reduce) {
         if (back > 0) dog = at(2, back);
-        else if (stay > 0 || toCare >= 1) dog = [care[0] - 16, care[1] + 10];
+        else if (stay > 0 || toCare >= 1) dog = care;
         else if (toCare > 0) dog = at(1, toCare);
       }
       /* Where the team is: coming in, then with the animal, then at care;
@@ -151,8 +151,20 @@ export function CaseDive({ j, city, box, rings, events, note }: {
       const parked: Pt = [care[0] - 6, care[1] - 58];
       if (reduce && hasCare) team = parked;
       if (!reduce && pA >= 1) team = hasCare ? (toCare >= 1 ? parked : toCare > 0 ? at(1, toCare) : home) : at(0, 1 - leave);
-      careEl.current?.classList.toggle("is-flip", care[0] + 320 > W);
-      homeEl.current?.classList.toggle("is-flip", home[0] + 280 > W);
+      /* Each label goes where there is room for it: to the right of its
+         point, else to the left, else under it, and never off the screen. */
+      const fit = (label: HTMLElement | null | undefined, at: Pt, gapX: number, gapY: number, below: number) => {
+        if (!label) return;
+        const w = label.offsetWidth, h = label.offsetHeight, edge = 10;
+        let x: number, y = -h / 2 + gapY;
+        if (at[0] + gapX + w <= W - edge) x = gapX;
+        else if (at[0] - gapX - w >= edge) x = -gapX - w;
+        else { x = Math.max(edge - at[0], Math.min(W - edge - w - at[0], -w / 2)); y = below; }
+        label.style.left = `${x}px`; label.style.top = `${y}px`;
+      };
+      fit(careEl.current?.querySelector<HTMLElement>(".ld-dive-care-tag"), care, 42, 0, 40);
+      fit(homeEl.current?.querySelector<HTMLElement>("span"), home, 16, 0, 18);
+      fit(teamEl.current?.querySelector<HTMLElement>("span"), team, 14, -20, 14);
       const place = (el: HTMLElement | null, q: Pt) => { if (el) el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0)`; };
       place(markEl.current, dog);
       place(teamEl.current, team);

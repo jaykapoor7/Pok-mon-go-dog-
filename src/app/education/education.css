@@ -188,7 +188,8 @@
 @media (max-width: 640px) {
   .edu-hero { padding-top: calc(var(--sp-7) + 22px); }
   .edu-principles { grid-template-columns: minmax(0, 1fr); }
-  .edu-principles li { min-height: 190px; border-right: 0; }
+  .edu-principles li { min-height: 0; border-right: 0; padding: var(--sp-4) 0; }
+  .edu-principles h3 { margin: var(--sp-2) 0 var(--sp-1); }
   .edu-material-preview > li { grid-template-columns: 34px minmax(0, 1fr); align-items: start; }
   .edu-sensitive { grid-column: 2; justify-self: start; }
   .edu-library-action { align-items: flex-start; flex-direction: column; }

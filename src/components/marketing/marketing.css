@@ -321,3 +321,9 @@
 }
 .proof-status { background: rgba(36, 87, 206, 0.1); color: var(--sp-blue, #2457ce); }
 .proof-area { border: 1px solid var(--sp-line, #e3d9ca); color: var(--sp-muted, #5d6b7c); }
+
+/* The way back sits on the hero's own ground, directly under the sticky
+   header. The room these pages kept for the old fixed header is gone. */
+html body .sp.mk .mk-back { background: #edf3fc; padding: var(--sp-4) var(--sp-gutter) 0; }
+html body .sp.mk .mk-back .backbar { position: static; margin: 0; padding: 0; background: none; }
+html body .sp.mk .mk-hero { padding-top: var(--sp-6); }

@@ -54,7 +54,7 @@ export default async function ExplorePage() {
       <main>
         <section className="ex-hero" aria-labelledby="ex-title">
           <div className="ex-map" aria-hidden={lights.length === 0}>
-            {lights.length > 0 && <LightsMap center={[82.8, 22.6]} box={INDIA} lights={lights} dot={1.6} label={`${fmt(perCell.size)} places across India with a street animal on the record`} />}
+            {lights.length > 0 && <LightsMap center={[82.8, 22.6]} box={INDIA} lights={lights} dot={2.2} glow={2} label={`${fmt(perCell.size)} places across India with a street animal on the record`} />}
           </div>
           <div className="ex-hero-copy">
             <p className="co-kicker">Explore the record</p>

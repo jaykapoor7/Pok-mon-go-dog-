@@ -37,7 +37,7 @@
 .sa-index button.is-on .sa-i-n { color: var(--sp-flame-deep); font-weight: 600; }
 .sa-i-n { font-size: 12px; color: var(--sp-muted); text-align: right; font-variant-numeric: tabular-nums; }
 .sa-i-what { display: grid; gap: 1px; min-width: 0; }
-.sa-i-what b { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sa-i-what b { font-size: 14.5px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 .sa-i-what small { font-size: 12px; color: var(--sp-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sa-i-care, .sa-i-len { font-size: 12px; color: var(--sp-body); font-variant-numeric: tabular-nums; }
 .sa-i-len { text-align: right; color: var(--sp-ink); }

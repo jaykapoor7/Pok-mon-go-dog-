@@ -49,7 +49,7 @@
   .ex-hero { display: flex; flex-direction: column; min-height: 0; }
   .ex-hero::after { display: none; }
   .ex-hero-copy { padding: var(--sp-7) var(--sp-gutter) var(--sp-5); }
-  .ex-map { position: relative; inset: auto; order: 2; height: 52svh; min-height: 320px; }
+  .ex-map { position: relative; inset: auto; order: 2; align-self: stretch; width: 100%; height: 52svh; min-height: 320px; }
 }
 @media (max-width: 560px) {
   .ex-ways { grid-template-columns: minmax(0, 1fr); }

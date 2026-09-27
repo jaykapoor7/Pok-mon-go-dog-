@@ -54,7 +54,7 @@ export function MarketingPage({
       {/* Six explainer pages sit behind this. The header has the site
           nav, but nobody arriving from a product link knows that is
           the way out, and nothing on the page said "back". */}
-      <div className="relative z-10 mx-auto w-full max-w-5xl px-5 pt-24 sm:px-8">
+      <div className="mk-back">
         <BackLink fallback="/" />
       </div>
       <main>

@@ -8,9 +8,9 @@ import { ScaleGlyph } from "@/components/landing/ScaleGlyph";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
-import { PhotoRegister } from "@/components/landing/PhotoRegister";
+import { RegisterPortrait } from "@/components/landing/RegisterPortrait";
 import { Relay } from "@/components/landing/Relay";
-import { getLandingStory, getPhotoRegister } from "@/lib/landing/story";
+import { getLandingStory, getRegisterPortrait } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
@@ -57,7 +57,7 @@ const LEVELS = [
 ] as const;
 
 export default async function HomePage() {
-  const [story, photos] = await Promise.all([getLandingStory(), getPhotoRegister(24)]);
+  const [story, portrait] = await Promise.all([getLandingStory(), getRegisterPortrait()]);
 
   return (
     <div className={`sp field-site product-site ld ${displaySans.variable} ${displaySerif.variable}`}>
@@ -122,9 +122,7 @@ export default async function HomePage() {
           />
         )}
 
-        <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed onto the record">
-          <PhotoRegister rows={photos.rows} total={photos.total} />
-        </section>
+        <RegisterPortrait data={portrait} />
 
         <section className="ld-close">
           <div className="ld-close-copy">

@@ -19,9 +19,8 @@
 }
 
 .sx .sx-main {
-  /* Clears the fixed header, which the design system sets to 80px on
-     desktop and 68px below 1180px. */
-  padding: calc(80px + 54px) 5vw 84px;
+  /* The header is sticky and in the flow, so the page only needs its own air. */
+  padding: 54px 5vw 84px;
   margin: 0 auto;
   width: 100%;
   overflow: visible;
@@ -95,11 +94,11 @@
 .sp-footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
 
 @media (max-width: 1180px) {
-  .sx .sx-main { padding: calc(68px + 40px) 5vw 70px; }
+  .sx .sx-main { padding: 40px 5vw 70px; }
 }
 
 @media (max-width: 800px) {
-  .sx .sx-main { padding: calc(68px + 30px) 5vw 62px; }
+  .sx .sx-main { padding: 24px 5vw 62px; }
   .sx-intro { margin-bottom: 26px; }
   .sx-intro.no-rule::after { display: none; }
 .sx-intro::after { margin-top: 24px; }

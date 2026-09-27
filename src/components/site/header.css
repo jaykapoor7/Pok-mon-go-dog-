@@ -84,6 +84,8 @@ html .sp-header .sp-menu-btn {
   html .sp-header .sp-nav.open { display: flex; }
   html .sp-header .sp-nav > a { height: 48px; justify-content: space-between; padding: 0 12px; border-radius: 12px; color: var(--sp-ink); font-size: 15px; }
   html .sp-header .sp-nav > a:hover { background: rgba(11, 30, 61, 0.05); color: var(--sp-ink); }
+  /* The menu is paper whatever the bar's tone: the current page reads in ink. */
+  html .sp-header .sp-nav > a.is-here { color: var(--sp-ink); background: rgba(11, 30, 61, 0.05); }
   html .sp-header .sp-nav > a.is-here::after { left: 12px; right: auto; width: 18px; bottom: 6px; }
   html .sp-header .sp-header-cta { height: 40px; padding: 0 14px; font-size: 13.5px; }
   html .sp-header .lang { display: none; }
@@ -102,4 +104,12 @@ html .sp-header .sp-menu-btn {
 }
 @media (prefers-reduced-motion: reduce) {
   html .sp-header, html .sp-header * { transition: none !important; }
+}
+/* The narrowest phones: the bar has to hold the mark, the code key, the
+   way into the app and the menu in 360px with the touch floor on each. */
+@media (max-width: 400px) {
+  html .sp-header-bar { gap: 8px; padding: 0 12px; }
+  html .sp-header .sp-wordmark { gap: 7px; font-size: 17px; }
+  html .sp-header .sp-header-actions { gap: 6px; }
+  html .sp-header .sp-header-cta { padding: 0 12px; font-size: 13px; }
 }

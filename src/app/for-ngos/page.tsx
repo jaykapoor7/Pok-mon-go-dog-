@@ -98,7 +98,7 @@ export default async function ForNgosPage() {
                   {ex ? (
                     <table>
                       <thead><tr><th>Date</th><th>Address</th><th>Dog</th><th>Name</th><th>OPD</th><th>Caretaker</th></tr></thead>
-                      <tbody><tr><td>25/1/2024</td><td>rajendra</td><td>white and brown</td><td>chachi</td><td>yes</td><td className="is-held">withheld</td></tr></tbody>
+                      <tbody><tr><td data-k="Date">25/1/2024</td><td data-k="Address">rajendra</td><td data-k="Dog">white and brown</td><td data-k="Name">chachi</td><td data-k="OPD">yes</td><td data-k="Caretaker" className="is-held">withheld</td></tr></tbody>
                     </table>
                   ) : <span className="co-slip-f"><i>Date</i><i>Locality</i><i>Animal</i><i>Status</i></span>}
                 </li>

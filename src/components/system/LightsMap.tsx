@@ -14,13 +14,15 @@ import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
 
 export type Light = { lng: number; lat: number; help?: boolean };
 
-export function LightsMap({ center, radiusKm, lights, label, zoom, credit = true, outline, box, dot = 2 }: {
+export function LightsMap({ center, radiusKm, lights, label, zoom, credit = true, outline, box, dot = 2, glow = 1 }: {
   center: [number, number]; radiusKm?: number; lights: Light[]; label: string; zoom?: number; credit?: boolean;
   /** A place drawn in flame: the cell or area the caption is about. */
   outline?: [number, number][];
   /** Fit to this box instead of the ring or zoom: [west, south, east, north]. */
   box?: [number, number, number, number];
   dot?: number;
+  /** How far each light's glow reaches: more at a whole-country scale. */
+  glow?: number;
 }) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
@@ -59,10 +61,10 @@ export function LightsMap({ center, radiusKm, lights, label, zoom, credit = true
         map.addLayer({ id: "outline", type: "line", source: "outline", paint: { "line-color": "#f7a08c", "line-width": 1.6 } });
         map.addLayer({ id: "ring", type: "line", source: "ring", paint: { "line-color": "#efe7da", "line-width": 1.2, "line-opacity": 0.55, "line-dasharray": [3, 3] } });
         map.addLayer({ id: "glow", type: "heatmap", source: "lights", paint: {
-          "heatmap-weight": 0.4, "heatmap-intensity": 0.25, "heatmap-radius": 18, "heatmap-opacity": 0.7,
+          "heatmap-weight": 0.4, "heatmap-intensity": 0.25 * glow, "heatmap-radius": 18 * glow, "heatmap-opacity": 0.7,
           "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(19,43,85,0)", 0.2, "rgba(27,63,128,0.35)", 0.5, "rgba(79,127,224,0.55)", 1, "rgba(219,231,255,0.75)"],
         } });
-        map.addLayer({ id: "halo", type: "circle", source: "lights", paint: { "circle-radius": 6, "circle-blur": 1, "circle-color": ["case", ["==", ["get", "h"], 1], "#f05b40", "#4f7fe0"], "circle-opacity": 0.35 } });
+        map.addLayer({ id: "halo", type: "circle", source: "lights", paint: { "circle-radius": 6 * Math.sqrt(glow), "circle-blur": 1, "circle-color": ["case", ["==", ["get", "h"], 1], "#f05b40", "#4f7fe0"], "circle-opacity": 0.35 } });
         map.addLayer({ id: "dots", type: "circle", source: "lights", paint: { "circle-radius": ["case", ["==", ["get", "h"], 1], dot + 1.4, dot], "circle-color": ["case", ["==", ["get", "h"], 1], "#ff8a6e", "#dbe7ff"] } });
         if (radiusKm) map.addLayer({ id: "centre", type: "circle", source: "centre", paint: { "circle-radius": 6, "circle-color": "#8fb7ff", "circle-stroke-color": "#efe7da", "circle-stroke-width": 2 } });
         await underlay(map, NIGHT, "ring").catch(() => false);
