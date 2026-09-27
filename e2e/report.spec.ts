@@ -21,11 +21,15 @@ function collectPageErrors(page: Page) {
 }
 
 
+/** The place question only resolves on the client (it asks the phone), so
+ * any of its answers showing proves hydration has completed and the file
+ * input's onChange is attached. */
+async function hydrated(page: Page) {
+  await expect(page.locator(".rq-q").nth(1)).toContainText(/Finding where you are|Location is off|From your phone|outside India/);
+}
+
 async function addPhoto(page: Page) {
-  /* The file input is present in SSR HTML before React has attached onChange.
-     Waiting for this client-only auth-ready note proves hydration has completed,
-     so setting the file cannot disappear into an unhydrated input. */
-  await expect(page.locator(".report-signin-note")).toBeVisible();
+  await hydrated(page);
   await page.getByLabel("Choose a photo of the animal").setInputFiles({
     name: "dog.jpg",
     mimeType: "image/jpeg",
@@ -34,59 +38,72 @@ async function addPhoto(page: Page) {
   const usePhoto = page.getByRole("button", { name: "Use this photo" });
   await expect(usePhoto).toBeEnabled();
   await usePhoto.click();
-  await expect(page.getByRole("button", { name: /next|continue/i }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /retake/i })).toBeVisible();
 }
+
+/* A phone standing in Bengaluru, with location allowed. */
+const IN_INDIA = { geolocation: { latitude: 12.9716, longitude: 77.5946 }, permissions: ["geolocation"] };
 
 test.describe("reporting", () => {
   test("opens straight into the flow, with no interstitial", async ({ page }) => {
     const errors = collectPageErrors(page);
     await page.goto("/report");
-
-    /* The role picker used to open over this page. Someone who tapped
-       "report an animal" is standing in front of one; anything between them
-       and the first field costs the observation. */
     await expect(page.getByText("Which of these is you?")).toHaveCount(0);
-    await expect(
-      page.getByRole("heading", { name: "Add a photo" })
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Report a dog" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Add a photo/ })).toBeVisible();
     expect(errors).toEqual([]);
   });
 
-  /* A photo used to be required to leave the first step. It is not any more:
-     somebody standing in front of an animal they cannot photograph still has
-     a sighting worth recording, and the location is the part the register
-     cannot do without. This asserts the current contract -- the step can be
-     passed either way -- and the location gate below still proves the flow
-     holds where it genuinely must. */
-  test("can pass the photo step with a photo or by skipping it", async ({ page }) => {
-    await page.goto("/report");
-    const next = page.getByRole("button", { name: /next|continue/i }).first();
-
-    await expect(next).toBeEnabled();
-    await expect(page.getByRole("button", { name: /skip for now/i })).toBeVisible();
-
-    await addPhoto(page);
-    await expect(next).toBeEnabled();
-  });
-
-  test("skipping the photo still reaches the location step", async ({ page }) => {
-    await page.goto("/report");
-    await page.getByRole("button", { name: /skip for now/i }).click();
-    await expect(page.getByText(/where is it/i)).toBeVisible();
-  });
-
-  test("will not advance past location until a point is set", async ({ page }) => {
+  /* A photo is asked for first, but "I can't take one" is a real answer:
+     somebody who cannot photograph an animal still has a sighting worth
+     recording. Either way the question folds and the next one is lit. */
+  test("the photo question takes a photo or an honest no", async ({ page }) => {
     await page.goto("/report");
     await addPhoto(page);
-    const next = page.getByRole("button", { name: /next|continue/i }).first();
-    await expect(next).toBeEnabled();
-    await next.click();
+    await expect(page.locator(".rq-q").first()).toHaveClass(/is-done/);
 
-    await expect(page.getByText(/where is it/i)).toBeVisible();
-    /* No coordinates yet, from EXIF or otherwise, so the flow holds here
-       rather than filing an observation with no place. A record without a
-       location is not an observation of anywhere. */
-    await expect(next).toBeDisabled();
+    await page.goto("/report");
+    await hydrated(page);
+    await page.getByRole("button", { name: /can't take one/i }).click();
+    await expect(page.getByText("No photo")).toBeVisible();
+    await expect(page.locator(".rq-q").first()).toHaveClass(/is-done/);
+  });
+
+  test.describe("with the phone's location", () => {
+    test.use(IN_INDIA);
+
+    test("fills in where from the phone, without a map", async ({ page }) => {
+      await page.goto("/report");
+      await expect(page.getByText("From your phone")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Change" })).toBeVisible();
+    });
+
+    /* The flow holds until everything a field team needs is answered:
+       where, how it is, its ear, and the consent. Nothing else blocks it. */
+    test("send waits for the four answers and the consent", async ({ page }) => {
+      await page.goto("/report");
+      await expect(page.getByText("From your phone")).toBeVisible();
+      const send = page.getByRole("button", { name: /send report/i });
+      await expect(send).toBeDisabled();
+      await page.getByRole("button", { name: /can't take one/i }).click();
+      await page.getByRole("radio", { name: /hurt or sick/i }).click();
+      await expect(page.getByText(/call your local animal ambulance/i)).toBeVisible();
+      await expect(send).toBeDisabled();
+      await page.getByRole("radio", { name: /can't see/i }).click();
+      await expect(send).toBeDisabled();
+      await page.getByLabel(/no faces, homes or number plates/i).check();
+      if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) await expect(send).toBeEnabled();
+    });
+  });
+
+  test.describe("outside India", () => {
+    test.use({ geolocation: { latitude: 51.5072, longitude: -0.1276 }, permissions: ["geolocation"] });
+
+    test("says so and asks for the place on the map", async ({ page }) => {
+      await page.goto("/report");
+      await expect(page.getByText(/outside India/i)).toBeVisible();
+      await expect(page.getByRole("button", { name: /send report/i })).toBeDisabled();
+    });
   });
 
   test("never scrolls sideways on a phone", async ({ page }, testInfo) => {
@@ -96,6 +113,32 @@ test.describe("reporting", () => {
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
     );
     expect(bleeds).toBe(false);
+  });
+});
+
+/** The first visit to the app opens the role picker; close it. */
+async function openApp(page: Page) {
+  await page.goto("/app");
+  const skip = page.getByRole("dialog").getByRole("button", { name: "Skip for now" });
+  await skip.waitFor({ state: "visible", timeout: 5000 }).then(() => skip.click()).catch(() => { /* no picker this time */ });
+}
+
+test.describe("near you", () => {
+  /* No place, no sample city: the home asks where you walk and shows no
+     other city's record in the meantime. */
+  test("the app home asks for a place before showing any record", async ({ page }) => {
+    await openApp(page);
+    await expect(page.getByRole("heading", { name: "Where do you walk?" })).toBeVisible();
+    await expect(page.getByText(/Coimbatore/)).toHaveCount(0);
+  });
+
+  test.describe("outside India", () => {
+    test.use({ geolocation: { latitude: 51.5072, longitude: -0.1276 }, permissions: ["geolocation"] });
+    test("says so when the phone is abroad", async ({ page }) => {
+      await openApp(page);
+      await page.getByRole("button", { name: "Use my location" }).click();
+      await expect(page.getByRole("heading", { name: "You are outside India." })).toBeVisible();
+    });
   });
 });
 

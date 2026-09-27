@@ -27,6 +27,8 @@ import { HexPlate } from "@/components/system/HexPlate";
 import { ShareBand } from "@/components/system/ShareBand";
 import { MiniBars } from "@/components/system/Spark";
 import { PlaceSearch, type PlaceOption } from "@/components/app/PlaceSearch";
+import { PlaceGate, type GateState } from "@/components/app/PlaceGate";
+import { reachOf, usePlace } from "@/lib/place";
 import { useSpatialDataset, type Scope } from "@/components/spatial/data";
 import { fewOr, openOn } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, closureReasons, conditionOutcome, firstAction, FIRST_ACTION_BINS, localityTable, monthly, openAging, AGE_BINS } from "@/lib/spatial/measures";
@@ -65,11 +67,15 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
   const { ds, ix, loading, error } = useSpatialDataset(scope, userKey);
   const [place, setPlace] = useState<Place | null>(null);
   const [period, setPeriod] = useState<Period>("all");
+  const mine = usePlace();
+  const [gate, setGate] = useState<GateState | null>(null);
 
-  /* ── the place: from the link, else the city with the deepest record ── */
+  /* ── the place: from the link; else, in public, the person's own city
+     (never another city's record while theirs is unknown); an
+     organisation reads the city its own records are deepest in ── */
   useEffect(() => {
-    if (!ds || place) return;
-    let city = busiest(ds), locality = -1;
+    if (!ds || place || !mine.ready) return;
+    let city = -1, locality = -1;
     const cell = params.get("cell"), name = params.get("city"), q = params.get("q");
     const ci = cell ? ds.cells.indexOf(cell) : -1;
     if (ci >= 0) { city = ds.cellCity[ci]; locality = ds.cellLocality[ci]; }
@@ -80,8 +86,20 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
     }
     const p = params.get("p");
     if (p === "12m" || p === "90d") setPeriod(p);
+    if (city < 0 && scope === "org") city = busiest(ds);
+    if (city < 0 && mine.place) {
+      const r = reachOf(ds, mine.place.lng, mine.place.lat);
+      if (r.reached) city = r.city;
+      else { setGate("unreached"); return; }
+    }
+    if (city < 0) { setGate((g) => g ?? "ask"); return; }
+    setGate(null);
     setPlace({ city, locality });
-  }, [ds, place, params]);
+  }, [ds, place, params, mine.ready, mine.place, scope]);
+  const locateMe = async () => {
+    const r = await mine.locate();
+    if (!r.ok) setGate(r.why === "abroad" ? "abroad" : "denied");
+  };
 
   useEffect(() => {
     if (!ds || !place) return;
@@ -139,6 +157,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
     return [...ds.cities.map((c, i) => ({ key: `c${i}`, name: c.name, city: c.state ?? "" })), ...locs];
   }, [ds]);
   const pickPlace = (o: PlaceOption) => {
+    setGate(null);
     if (o.key.startsWith("c")) setPlace({ city: Number(o.key.slice(1)), locality: -1 });
     else { const [c, l] = o.key.slice(1).split(":").map(Number); setPlace({ city: c, locality: l }); }
   };
@@ -310,6 +329,14 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
   const animalsHere = useMemo(() => (ds && ix && scopeSets ? animalKnowledge(ds, ix, scopeSets.here, today).total : 0), [ds, ix, scopeSets, today]);
   const openNowHere = useMemo(() => (ds ? allIdx.filter((i) => openOn(ds, i, today)).length : 0), [ds, allIdx, today]);
   const periodLabel = PERIODS.find((p) => p.id === period)!.label.toLowerCase();
+
+  if (gate && !place) return (
+    <div className="ib">
+      <PlaceGate state={gate} where={mine.place?.label === "Around you" ? "around you" : mine.place?.label} locating={mine.locating} onLocate={locateMe}
+        options={options} onPick={pickPlace} what="this page"
+        ask={{ title: "Which place do you want to read?", body: "Share your location, or type a city or a locality. This reads its record: requests for help, how quickly field teams reached them, and what is known about the animals there." }} reportHref={mine.place ? `/report?lat=${mine.place.lat}&lng=${mine.place.lng}` : "/report"} />
+    </div>
+  );
 
   return (
     <div className={`ib ${scope === "org" ? "is-org" : ""}`}>

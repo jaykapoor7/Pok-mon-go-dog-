@@ -1,0 +1,11 @@
+/* The gate a "near you" screen stands behind until it has a place. */
+.pg { display: grid; min-height: min(560px, 70svh); align-content: center; }
+.pg-in { display: grid; gap: var(--sp-3); max-width: 560px; }
+.pg-kicker { margin: 0; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-blue); }
+.pg h1 { margin: 0; font-size: clamp(30px, 5vw, 46px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 600; color: var(--sp-ink); text-wrap: balance; }
+.pg-body { margin: 0; max-width: var(--sp-measure); font-size: 15.5px; line-height: 1.55; color: var(--sp-body); }
+.pg-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-top: var(--sp-3); }
+.pg-acts > :last-child { flex: 1 1 240px; min-width: 0; }
+.pg-foot { margin: var(--sp-2) 0 0; font-size: 13.5px; color: var(--sp-muted); }
+.pg-foot a { color: var(--sp-blue); font-weight: 600; }
+@media (max-width: 760px) { .pg { min-height: 0; padding-top: var(--sp-5); } .pg-acts > * { flex: 1 1 100%; } }

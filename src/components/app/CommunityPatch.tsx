@@ -19,10 +19,12 @@ import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { LightsMap, type Light } from "@/components/system/LightsMap";
 import { PlaceSearch, type PlaceOption } from "./PlaceSearch";
+import { PlaceGate, type GateState } from "./PlaceGate";
+import { reachOf, usePlace } from "@/lib/place";
 import { pointInCell, ringOf } from "@/components/spatial/data";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { useFollows } from "@/lib/follows";
-import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, S, S_STRIDE, type SpatialDataset } from "@/lib/spatial/types";
+import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, S, S_STRIDE } from "@/lib/spatial/types";
 import { dayLabel } from "@/lib/spatial/engine";
 import type { PublicCaseStory } from "@/lib/community-case-stories";
 import { dogLabel } from "@/lib/utils";
@@ -35,7 +37,7 @@ type PAnimal = {
   first_seen: string | null; last_seen: string | null; zone: string | null; h3_r8: string | null; source: string | null;
 };
 
-const KEY = "sp.patch.v1", SEEN_KEY = "sp.patch.seen.v1";
+const SEEN_KEY = "sp.patch.seen.v1";
 const RADIUS_KM = 2.5;
 const km = (a: [number, number], b: [number, number]) => {
   const r = (v: number) => (v * Math.PI) / 180, dLat = r(b[1] - a[1]), dLng = r(b[0] - a[0]);
@@ -50,56 +52,31 @@ const ago = (iso: string | null) => {
 const nameOf = (a: PAnimal) => dogLabel({ name: a.name, zone: a.zone || "here" });
 const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const n = r.length / 2 - 1; for (let i = 0; i < n; i++) { x += r[i * 2]; y += r[i * 2 + 1]; } return [x / n, y / n]; };
 
-/** A sample patch in the city with the deepest record: centred on the cell
-    with the most recorded cells within reach, so it shows a street's worth
-    of record rather than one imported locality's pile of animals. */
-function samplePatch(ds: SpatialDataset): Patch {
-  // The city with the most field work, as on the landing: an import of
-  // animals with no cases should not become everyone's sample street.
-  let city = 0;
-  ds.cities.forEach((c, i) => { const b = ds.cities[city]; if (c.cases > b.cases || (c.cases === b.cases && c.animals > b.animals)) city = i; });
-  const own = ds.cells.map((_, i) => i).filter((i) => ds.cellCity[i] === city);
-  let best = own[0] ?? 0, bn = -1;
-  for (const a of own) {
-    const pa: [number, number] = [ds.centers[a * 2], ds.centers[a * 2 + 1]];
-    let n = 0;
-    for (const b of own) if (km(pa, [ds.centers[b * 2], ds.centers[b * 2 + 1]]) <= RADIUS_KM) n++;
-    if (n > bn) { bn = n; best = a; }
-  }
-  const c = best;
-  const loc = ds.cellLocality[c];
-  return { lng: ds.centers[c * 2], lat: ds.centers[c * 2 + 1], label: `${loc >= 0 ? ds.localities[loc] : "The centre"}, ${ds.cities[city]?.name ?? ""}`, mine: false };
-}
-
 export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
   const { ds, ix, loading, error } = useSpatialDataset("public");
   const { ids: follows } = useFollows();
-  const [patch, setPatch] = useState<Patch | null>(null);
-  const [locating, setLocating] = useState(false);
+  const { place, ready: placeReady, locating, choose: savePlace, locate: findMe } = usePlace();
+  const patch = useMemo<Patch | null>(() => (place ? { ...place, mine: true } : null), [place]);
+  const [gateWhy, setGateWhy] = useState<"denied" | "abroad" | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [animals, setAnimals] = useState<PAnimal[] | null>(null);
   const [followed, setFollowed] = useState<PAnimal[]>([]);
   const [tab, setTab] = useState<"attention" | "recent" | "following">("attention");
   const [lastSeenVisit, setLastSeenVisit] = useState<number | null>(null);
 
-  /* the patch: remembered, or the sample until you set one */
-  useEffect(() => {
-    if (!ds) return;
-    try { const p = JSON.parse(localStorage.getItem(KEY) || "null"); if (p && Number.isFinite(p.lng) && Number.isFinite(p.lat)) { setPatch({ ...p, mine: true }); return; } } catch { /* storage blocked */ }
-    setPatch(samplePatch(ds));
-  }, [ds]);
   useEffect(() => {
     try { const v = Number(localStorage.getItem(SEEN_KEY)); if (v) setLastSeenVisit(v); localStorage.setItem(SEEN_KEY, String(Date.now())); } catch { /* storage blocked */ }
   }, []);
-  const choose = (p: Patch) => { setPatch(p); try { localStorage.setItem(KEY, JSON.stringify({ lng: p.lng, lat: p.lat, label: p.label })); } catch { /* storage blocked */ } };
-  const locate = () => {
-    if (!navigator.geolocation) { setNote("Location is not available in this browser. Choose a place instead."); return; }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(({ coords }) => {
-      setLocating(false); setNote(null);
-      choose({ lng: coords.longitude, lat: coords.latitude, label: "Around you", mine: true });
-    }, () => { setLocating(false); setNote("We could not get your location. Choose a place instead."); }, { timeout: 10000, maximumAge: 300000 });
+  const choose = (p: Patch) => { setGateWhy(null); savePlace({ lng: p.lng, lat: p.lat, label: p.label }); };
+  const locate = async () => {
+    const r = await findMe();
+    if (r.ok) { setGateWhy(null); setNote(null); return; }
+    if (patch) setNote(r.why === "abroad" ? "Your phone places you outside India. Your patch stays where it was." : "We could not get your location. Choose a place instead.");
+    else setGateWhy(r.why === "abroad" ? "abroad" : "denied");
   };
+
+  /* ── has the record reached the patch? ───────────────────────────── */
+  const reach = useMemo(() => (ds && patch ? reachOf(ds, patch.lng, patch.lat) : null), [ds, patch]);
 
   /* ── the cells of the patch ────────────────────────────────────────── */
   const cells = useMemo(() => {
@@ -115,9 +92,8 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
   /* ── the city the patch is in: its whole record, not the patch's ───── */
   const city = useMemo(() => {
     if (!ds || !ix || !patch) return null;
-    const here: [number, number] = [patch.lng, patch.lat];
-    let ci = 0, best = Infinity;
-    ds.cities.forEach((c, i) => { const d = km(here, [c.lng, c.lat]); if (d < best) { best = d; ci = i; } });
+    if (!reach?.reached) return null;
+    const ci = reach.city;
     let animalsN = 0, help = 0;
     for (let i = 0; i < ds.animals.length / A_STRIDE; i++) {
       const o = i * A_STRIDE;
@@ -126,7 +102,7 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
       if (ds.animals[o + A.flags] & (AF.help | AF.injured)) help++;
     }
     return { name: ds.cities[ci]?.name ?? "", animalsN, help };
-  }, [ds, ix, patch]);
+  }, [ds, ix, patch, reach]);
 
   /* ── what the register holds there ─────────────────────────────────── */
   const stats = useMemo(() => {
@@ -210,7 +186,7 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
   const list = tab === "attention" ? attention : tab === "recent" ? recent : followed;
   const patchIds = new Set((animals ?? []).map((a) => a.id));
   const nearStories = stories.filter((s) => patchIds.has(s.dog_id));
-  const shownStories = (nearStories.length ? nearStories : stories).slice(0, 4);
+  const shownStories = nearStories.slice(0, 4);
 
   /* ── the plate: the patch's animals as lights on its streets ─────── */
   const lights = useMemo((): Light[] | null => {
@@ -246,18 +222,26 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
       </header>
     </main>
   );
-  if (loading || !ds || !patch || !stats || !cells || !city) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
+  /* No place yet, outside India, or beyond the record's reach: say so,
+     and show nothing about anywhere else. */
+  const gate: GateState | null = !placeReady ? null : !patch ? (gateWhy ?? "ask") : reach && !reach.reached ? "unreached" : null;
+  if (gate) return (
+    <main className="cp">
+      <PlaceGate state={gate} where={patch?.label === "Around you" ? "around you" : patch?.label} locating={locating} onLocate={locate}
+        options={placeOptions} onPick={pickPlace} reportHref={patch ? `/report?lat=${patch.lat}&lng=${patch.lng}` : "/report"} />
+    </main>
+  );
+  if (!placeReady || loading || !ds || !patch || !stats || !cells || !city) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
 
   return (
     <main className="cp">
       <header className="cp-head">
         <div className="cp-head-id">
-          <h1>{city.name}{!patch.mine && <small>Sample city</small>}</h1>
+          <h1>{city.name}</h1>
           <dl className="cp-figs">
             <div><dt>animals on the record</dt><dd>{city.animalsN.toLocaleString("en-IN")}</dd></div>
             <div className="is-hot"><dt>need help now</dt><dd>{city.help.toLocaleString("en-IN")}</dd></div>
           </dl>
-          {!patch.mine && <p className="cp-sample">Set your place to see your own city and street.</p>}
         </div>
         <div className="cp-head-acts">
           <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-flame"><Plus size={16} /> Report an animal</Link>
@@ -267,7 +251,7 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
         {note && <p className="cp-note">{note}</p>}
       </header>
 
-      <p className="cp-near"><MapPin size={13} aria-hidden /> Near {patch.mine ? (patch.label === "Around you" ? "you" : patch.label) : patch.label} · {RADIUS_KM} km</p>
+      <p className="cp-near"><MapPin size={13} aria-hidden /> Near {patch.label === "Around you" ? "you" : patch.label} · {RADIUS_KM} km</p>
       <section className="cp-work" aria-label="Near you">
         <figure className="cp-plate">
           {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}

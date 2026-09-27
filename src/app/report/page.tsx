@@ -1,523 +1,328 @@
 "use client";
 
+/* ════════════════════════════════════════════════════════════════════
+   Report a dog: one screen, answered in about ten seconds.
+
+   Somebody reporting is standing in front of an animal. The screen asks
+   only what a field team cannot work without, one question at a time,
+   each lit in turn and folded to a single line once answered:
+
+     1  a photograph (or, as a real answer, "no photo")
+     2  where: taken from the phone or the photograph without asking, and
+        shown so it can be corrected; a landmark if they know one
+     3  how it is: hurt, thin, puppies, or fine
+     4  its ear: notched, not notched, or can't see (the only sign of
+        sterilisation a passer-by can read; "can't see" is recorded as
+        not examined, never as no)
+
+   Everything else a person may want to add (a name, notes, an email, a
+   match to an animal already on the record, reporting for an
+   organisation) waits under "More, if you like" and never blocks
+   sending. Vaccination is not asked: nobody can see it on a street, and a
+   guess would become a coverage figure.
+   ════════════════════════════════════════════════════════════════════ */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Camera, Loader2, Check, PawPrint, ArrowRight, ArrowLeft, Clock, LogIn, MapPin, Tag,
-} from "lucide-react";
-import { pawBurst } from "@/lib/celebrate";
-import { MOOD_META, type MoodTag } from "@/lib/types";
-import { nearestCity } from "@/lib/delhi";
-import { readPhotoMeta, looksIndian, type PhotoMeta } from "@/lib/exif";
-import { reverseGeocode } from "@/lib/delhi";
+import { ArrowLeft, ArrowRight, Camera, Check, ChevronDown, Clock, Crosshair, Loader2, MapPin, PawPrint } from "lucide-react";
+import type { MoodTag } from "@/lib/types";
+import { nearestCity, reverseGeocode } from "@/lib/delhi";
+import { readPhotoMeta, looksIndian } from "@/lib/exif";
 import { reportSighting } from "@/lib/actions";
 import { LocationPicker } from "@/components/report/LocationPicker";
 import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { cn } from "@/lib/utils";
 import { AnimalMatch } from "@/components/report/AnimalMatch";
-import { ProgrammeStatus, type SterilisationStatus, type VaccinationStatus } from "@/components/report/ProgrammeStatus";
+import type { SterilisationStatus } from "@/components/report/ProgrammeStatus";
 import { ReportingFor } from "@/components/report/ReportingFor";
 import { PhotoStudio } from "@/components/report/PhotoStudio";
 import { readVolunteer, type VolunteerSession } from "@/lib/volunteer";
 import { track } from "@/lib/analytics";
 import "./report.css";
 
-const MOODS = Object.keys(MOOD_META) as MoodTag[];
-const STEPS = ["Photo", "Location", "Details", "Confirm"] as const;
-
 type Status = "idle" | "submitting" | "done";
+type Condition = "injured" | "hungry" | "puppies" | "fine";
+
+const CONDITIONS: { v: Condition; label: string; note: string }[] = [
+  { v: "injured", label: "Hurt or sick", note: "Someone should come" },
+  { v: "hungry", label: "Thin or hungry", note: "Food, and a check" },
+  { v: "puppies", label: "Puppies", note: "A litter, or a mother" },
+  { v: "fine", label: "Seems fine", note: "Adds to the record" },
+];
+const EARS: { v: SterilisationStatus; label: string; note: string }[] = [
+  { v: "sterilised", label: "Notched", note: "A V-cut on one ear" },
+  { v: "not_sterilised", label: "Not notched", note: "Both ears whole" },
+  { v: "unknown", label: "Can't see", note: "Recorded as not examined" },
+];
 
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
-  const fileRef = useRef<HTMLInputElement>(null);
-
   const router = useRouter();
-  const [step, setStep] = useState(0); // 0..3
-  /* Auth resolves on the client only, and the sign-in note below depends on
-     it. Rendering that note during the first client pass produced a
-     hydration mismatch on /report -- the server had no element there and the
-     client had one -- which React reports as error #418 and which the
-     browser suite catches intermittently, depending on whether the auth
-     update lands before hydration commits. This flag can only turn true in
-     an effect, which runs after the commit, so the first client render is
-     identical to the server's by construction. */
+  const fileRef = useRef<HTMLInputElement>(null);
+  /* Auth resolves on the client only; anything that depends on it waits
+     for this, so the first client render matches the server's. */
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
+
   const [photo, setPhoto] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  /* What came off the camera, while it is being framed. Never uploaded. */
-  const [raw, setRaw] = useState<File | null>(null);
-  /* Seeded from ?lat&lng when somebody pressed "Report an animal here" on
-     the map: they had already found the place, and asking them to find it
-     again is the step most reports are lost at. A photograph's own EXIF
-     still overrides this later, because the camera was standing closer to
-     the animal than the map was. */
+  const [raw, setRaw] = useState<File | null>(null); // off the camera, while it is framed; never uploaded
+  const [noPhoto, setNoPhoto] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [zone, setZone] = useState<string | null>(null);
-  const [nickname, setNickname] = useState("");
-  const [moods, setMoods] = useState<MoodTag[]>([]);
-  const [notes, setNotes] = useState("");
-  /* The first reason a rescue fails is that nobody can find the animal
-     again (163 of the requests on the register). A landmark people would
-     know is what a pin alone does not carry. */
+  const [where, setWhere] = useState<"finding" | "found" | "photo" | "denied" | "abroad" | "idle">("idle");
+  const [editPlace, setEditPlace] = useState(false);
   const [landmark, setLandmark] = useState("");
+  const [condition, setCondition] = useState<Condition | null>(null);
+  const [ear, setEar] = useState<SterilisationStatus | null>(null);
+  const [more, setMore] = useState(false);
+  const [nickname, setNickname] = useState("");
+  const [notes, setNotes] = useState("");
   const [email, setEmail] = useState("");
+  const [claimedDogId, setClaimedDogId] = useState<string | null>(null);
+  const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
+  const [consent, setConsent] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [c1, setC1] = useState(false);
-  /* An animal the reporter recognises. Sent as a claim; review decides. */
-  const [claimedDogId, setClaimedDogId] = useState<string | null>(null);
-  /* The two numbers an ABC and rabies programme is measured on. Unknown is
-     the honest default, not a gap to be filled in later. */
-  const [sterilisation, setSterilisation] = useState<SterilisationStatus>("unknown");
-  const [vaccination, setVaccination] = useState<VaccinationStatus>("unknown");
-  /* Set once per device by someone reporting for an organisation. */
-  const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
+
+  const setPlace = useCallback(async (lat: number, lng: number, how: "found" | "photo") => {
+    setCoords({ lat, lng }); setWhere(how);
+    setZone(await reverseGeocode(lat, lng).catch(() => null));
+  }, []);
+
+  /* Where: from the link (someone pressed "report here" on the map or a
+     profile), else from the phone, straight away. They are standing at
+     the place; asking them to find it on a map is where reports are lost. */
+  const locate = useCallback(() => {
+    if (!navigator.geolocation) { setWhere("denied"); setEditPlace(true); return; }
+    setWhere("finding");
+    navigator.geolocation.getCurrentPosition(({ coords: c }) => {
+      if (!looksIndian(c.latitude, c.longitude)) { setWhere("abroad"); setEditPlace(true); return; }
+      setPlace(c.latitude, c.longitude, "found");
+    }, () => { setWhere("denied"); setEditPlace(true); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  }, [setPlace]);
 
   useEffect(() => {
     setVolunteer(readVolunteer());
-  }, []);
-
-  /* URL-derived coordinates are browser state. Reading them in the useState
-     initializer made the first client render differ from SSR on map-to-report
-     links. Seed them after hydration instead. EXIF can still refine them later. */
-  useEffect(() => {
+    track("report_started", {}, { once: true });
     const q = new URLSearchParams(window.location.search);
-    const lat = Number(q.get("lat"));
-    const lng = Number(q.get("lng"));
-    if (looksIndian(lat, lng)) setCoords({ lat, lng });
-    /* From an animal's profile: this sighting is of that animal. */
+    const lat = Number(q.get("lat")), lng = Number(q.get("lng"));
     const dog = q.get("dog");
     if (dog && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dog)) setClaimedDogId(dog);
-  }, []);
-
-  /* Opens the funnel. Everything else is measured against this number. */
-  useEffect(() => {
-    track("report_started", {}, { once: true });
-  }, []);
-
-  const handleVerify = useCallback((t: string | null) => setToken(t), []);
+    if (looksIndian(lat, lng)) setPlace(lat, lng, "found");
+    else locate();
+  }, [locate, setPlace]);
   useEffect(() => { if (user?.email) setEmail((cur) => cur || user.email!); }, [user?.email]);
+  const handleVerify = useCallback((t: string | null) => setToken(t), []);
 
   async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
     if (!picked) return;
-    /* Straight into the editor. The photo is not the report's photo until
-       it has been framed and anybody in it has been blurred, so nothing is
-       set here except what the editor is working on. */
-    setRaw(picked);
-    setPhoto(null);
-    setFile(null);
-    /* So picking the same file twice still opens the editor. */
+    setRaw(picked); setPhoto(null); setFile(null); setNoPhoto(false);
     e.target.value = "";
-
-    /* The camera usually recorded where and when already. Reading it saves
-       dragging a pin to a place the phone knew, and the result is shown so
-       it can be corrected rather than silently trusted. Read from what came
-       off the camera: the edited file is a fresh canvas export and carries
-       no EXIF at all, which is the point of exporting it. */
-    setReadingMeta(true);
-    setMeta(null);
+    /* The camera usually recorded where it stood, which is closer to the
+       animal than the phone's fix a minute later. */
     try {
       const m = await readPhotoMeta(picked);
-      setMeta(m);
-      if (m.lat != null && m.lng != null && looksIndian(m.lat, m.lng)) {
-        setCoords({ lat: m.lat, lng: m.lng });
-        setZone(await reverseGeocode(m.lat, m.lng));
-      }
-    } finally {
-      setReadingMeta(false);
-    }
-  }
-  const [meta, setMeta] = useState<PhotoMeta | null>(null);
-  const [readingMeta, setReadingMeta] = useState(false);
-  const [triaged, setTriaged] = useState(false);
-
-  function toggleMood(m: MoodTag) {
-    setMoods((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+      if (m.lat != null && m.lng != null && looksIndian(m.lat, m.lng)) setPlace(m.lat, m.lng, "photo");
+    } catch { /* no metadata */ }
   }
 
-  const consentDone = c1;
-  /* A photo is welcome, not required. Somebody standing in front of an
-     animal they cannot photograph -- a phone with no storage, a dog that
-     will not let them close, a person who simply will not hold up a camera
-     in that street -- still has a sighting worth recording. The location is
-     the part the register cannot do without. */
-  const canAdvance = step === 1 ? !!coords : true;
-  const canSubmit = !!coords && consentDone && status === "idle" && (!HAS_TURNSTILE || !!token);
+  /* The questions, in order. The first unanswered one is lit. */
+  const answered = { photo: !!photo || noPhoto, place: !!coords, how: !!condition, ear: !!ear };
+  const order = ["photo", "place", "how", "ear"] as const;
+  const now = order.find((k) => !answered[k]) ?? "send";
+  const done = order.filter((k) => answered[k]).length;
+  const canSubmit = answered.place && answered.how && answered.ear && consent && status === "idle" && (!HAS_TURNSTILE || !!token);
 
-  function next() {
-    if (!canAdvance) return;
-    /* Recorded on leaving a step rather than entering the next one, so the
-       last event in a session is the step the person actually gave up on. */
-    if (step === 0) track("report_photo_added");
-    else if (step === 1) track("report_location_set");
-    else if (step === 2) track("report_details_filled");
-    setStep((s) => Math.min(STEPS.length - 1, s + 1));
-  }
-  function back() { setStep((s) => Math.max(0, s - 1)); }
-
-  /* One control, two jobs, which is how every phone already behaves: at
-     step one there is nothing to go back to inside the form, so back
-     means leave. History first, so it returns to whatever pushed you
-     here — the map, a dog's record, the console home — and /app only
-     when there is no history, which is what happens when somebody opens
-     a shared link cold. */
-  function leaveReport() {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
-    }
-    router.push("/app");
-  }
+  /* Bring the next question up as each is answered. */
+  const refs = useRef<Record<string, HTMLElement | null>>({});
+  const prev = useRef(now);
+  useEffect(() => {
+    if (prev.current === now) return;
+    prev.current = now;
+    const el = refs.current[now];
+    if (el && !raw) el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+  }, [now, raw]);
 
   async function submit() {
-    if (!canSubmit || !coords) return;
+    if (!canSubmit || !coords || !condition || !ear) return;
     setStatus("submitting"); setError(null);
+    const moods: MoodTag[] = condition === "fine" ? [] : [condition];
     try {
       await reportSighting({
         file, fallbackPhotoUrl: photo ?? undefined,
         lat: coords.lat, lng: coords.lng, zone: zone ?? nearestCity(coords.lat, coords.lng),
-        nickname: nickname.trim(), moods, notes: [landmark.trim() ? `Landmark: ${landmark.trim()}` : "", notes.trim()].filter(Boolean).join("\n"),
+        nickname: nickname.trim(), moods,
+        notes: [landmark.trim() ? `Landmark: ${landmark.trim()}` : "", notes.trim()].filter(Boolean).join("\n"),
         reporterName: volunteer?.name || user?.name || "",
         reporterEmail: email.trim() || undefined, token,
         claimedDogId,
-        sterilisationStatus: sterilisation,
-        vaccinationStatus: vaccination,
+        sterilisationStatus: ear,
+        vaccinationStatus: "unknown",
         inviteCode: volunteer?.code ?? null,
         volunteerName: volunteer?.name ?? null,
       });
-      track("report_submitted", { claimed_repeat: Boolean(claimedDogId) });
+      track("report_submitted", { claimed_repeat: Boolean(claimedDogId), photo: Boolean(file), condition });
       setStatus("done");
     } catch (e) {
       console.error(e);
-      track("report_failed", {
-        reason: e instanceof Error ? e.message.slice(0, 120) : "unknown",
-      });
+      track("report_failed", { reason: e instanceof Error ? e.message.slice(0, 120) : "unknown" });
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setStatus("idle");
     }
   }
 
-  function resetForm() {
-    setStep(0); setStatus("idle"); setPhoto(null); setFile(null); setCoords(null); setZone(null);
-    setNickname(""); setMoods([]); setNotes(""); setLandmark(""); setEmail(user?.email ?? ""); setToken(null);
-    setC1(false); setError(null); setClaimedDogId(null);
-    setSterilisation("unknown"); setVaccination("unknown");
+  function reset() {
+    setStatus("idle"); setPhoto(null); setFile(null); setRaw(null); setNoPhoto(false);
+    setCondition(null); setEar(null); setLandmark(""); setNickname(""); setNotes(""); setClaimedDogId(null);
+    setConsent(false); setToken(null); setError(null); setMore(false);
+    window.scrollTo({ top: 0 });
+  }
+  function leave() {
+    if (window.history.length > 1) router.back(); else router.push("/app");
   }
 
-  const field = "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10 dark:bg-bark-900";
+  const q = (k: (typeof order)[number]) => `rq-q ${answered[k] ? "is-done" : ""} ${now === k ? "is-now" : ""}`;
+  const placeLine = zone || (coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : "");
 
   return (
-    <div className="report-workspace">
-      {/* The way out.
-
-          /report hides the side nav, the search and the top-right
-          controls to keep the flow clear, which also meant it had no
-          exit at all: once you were in, the only way back was the
-          browser's own button — and on a phone that is a gesture not
-          everybody knows, on a laptop it is a control nobody looks for
-          inside an app. A screen you can be pushed into needs a door.
-
-          It is above the form rather than floating over it, so it keeps
-          its own line and cannot land on top of what you are reading.
-          It sits outside .report-form on purpose: the sticky action bar
-          at the bottom owns Next and Submit, and mixing "leave" into
-          that pair is how people cancel a form they meant to finish. */}
+    <div className="rq-wrap">
       <div className="report-back">
-        <button type="button" onClick={step > 0 ? back : leaveReport}>
-          <ArrowLeft size={15} />
-          {step > 0 ? `Back to ${STEPS[step - 1]}` : "Back"}
-        </button>
+        <button type="button" onClick={leave}><ArrowLeft size={15} /> Back</button>
       </div>
 
-      <aside className="report-aside">
-        <span className="product-kicker">Add to the shared record</span>
-        <h1>Report a sighting</h1>
-        <p>A photo and a place are enough to begin. Add only what you know.</p>
-        <ol className="report-step-list" aria-label="Reporting progress">
-          {STEPS.map((label, index) => <li key={label} aria-current={step === index ? "step" : undefined}><span>{index < step ? "✓" : String(index + 1).padStart(2, "0")}</span>{label}</li>)}
-        </ol>
-      </aside>
-      <div className="report-form">
-      <header className="mb-4">
+      <div className="rq report-form">
+        <header className="rq-head">
+          <h1>Report a dog</h1>
+          <p>Four quick answers. Anything you are not sure of has its own button.</p>
+          <ol className="rq-dots" aria-label={`${done} of 4 answered`}>
+            {order.map((k) => <li key={k} className={answered[k] ? "is-done" : now === k ? "is-now" : ""} />)}
+          </ol>
+          {volunteer && <p className="rq-for">Reporting for <b>{volunteer.orgName ?? "your organisation"}</b> as {volunteer.name}</p>}
+        </header>
 
-        <p className="mt-1 text-sm text-bark-500">
-          {isAuthed ? <>Signed in as <span className="font-semibold text-bark-700 dark:text-bark-200">{user?.name}</span></> : "Reporting as a guest"}
-        </p>
-      </header>
+        {/* 1 · the photograph */}
+        <section ref={(el) => { refs.current.photo = el; }} className={q("photo")} aria-labelledby="rq-photo">
+          <h2 id="rq-photo"><span className="rq-n">1</span>Add a photo</h2>
+          <input ref={fileRef} type="file" accept="image/*" capture="environment" className="rq-file" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
+          {raw ? (
+            <PhotoStudio file={raw} onCancel={() => { setRaw(null); fileRef.current?.click(); }} onDone={(edited, url) => { setFile(edited); setPhoto(url); setRaw(null); }} />
+          ) : photo ? (
+            <div className="rq-photo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo} alt="The animal you photographed" />
+              <button type="button" className="rq-link" onClick={() => fileRef.current?.click()}><Camera size={14} /> Retake</button>
+            </div>
+          ) : noPhoto ? (
+            <p className="rq-sum">No photo <button type="button" className="rq-link" onClick={() => { setNoPhoto(false); fileRef.current?.click(); }}>Add one</button></p>
+          ) : (
+            <div className="rq-shoot">
+              <button type="button" className="rq-camera" onClick={() => fileRef.current?.click()}>
+                <Camera size={30} aria-hidden />
+                <b>Take a photo</b>
+                <small>Helps a field team recognise it</small>
+              </button>
+              <button type="button" className="rq-skip" onClick={() => setNoPhoto(true)}>I can&apos;t take one</button>
+            </div>
+          )}
+        </section>
 
-      {/* progress */}
-      <div className="mb-6">
-        <div className="mb-2 flex items-center justify-between text-[12px] font-medium">
-          <span className="text-paw-600 dark:text-paw-300">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
-          <span className="text-bark-400">{Math.round(((step + 1) / STEPS.length) * 100)}%</span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-bark-100 dark:bg-bark-800">
-          <div className="h-full rounded-full bg-paw-500 transition-all duration-300" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
-        </div>
-      </div>
+        {/* 2 · where */}
+        <section ref={(el) => { refs.current.place = el; }} className={q("place")} aria-labelledby="rq-place">
+          <h2 id="rq-place"><span className="rq-n">2</span>Where is it?</h2>
+          {coords && !editPlace ? (
+            <p className="rq-sum"><MapPin size={15} aria-hidden /><span><b>{placeLine}</b><small>{where === "photo" ? "From your photo" : "From your phone"}</small></span><button type="button" className="rq-link" onClick={() => setEditPlace(true)}>Change</button></p>
+          ) : where === "finding" ? (
+            <p className="rq-sum"><Loader2 size={15} className="rq-spin" aria-hidden /> Finding where you are…</p>
+          ) : (
+            <>
+              {where === "abroad" && <p className="rq-warn">Your phone places you outside India. StrayPaw records India&apos;s street animals: set where the animal is on the map.</p>}
+              {where === "denied" && <p className="rq-warn">Location is off. Allow it, or set the place on the map.</p>}
+              {where !== "found" && where !== "photo" && <button type="button" className="rq-chip" onClick={locate}><Crosshair size={15} /> Use where I am</button>}
+              <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); setWhere("found"); }} />
+              {coords && <button type="button" className="rq-chip is-go" onClick={() => setEditPlace(false)}><Check size={15} /> This is the place</button>}
+            </>
+          )}
+          {coords && (
+            <label className="rq-landmark">
+              <span>A landmark <em>helps most</em></span>
+              <input value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="Behind the tea stall, opposite the temple gate" />
+            </label>
+          )}
+        </section>
 
-      {hydrated && ready && !isAuthed && step === 0 && (
-        <div className="report-signin-note">
-          <p>No account needed. Sign in if you want to edit this report from another device.</p>
-          <button onClick={openSignIn}>Sign in</button>
-        </div>
-      )}
+        {/* 3 · how it is */}
+        <section ref={(el) => { refs.current.how = el; }} className={q("how")} aria-labelledby="rq-how">
+          <h2 id="rq-how"><span className="rq-n">3</span>How is it?</h2>
+          <div className="rq-opts" role="radiogroup" aria-labelledby="rq-how">
+            {CONDITIONS.map((o) => (
+              <button key={o.v} type="button" role="radio" aria-checked={condition === o.v} className={`rq-opt ${condition === o.v ? "is-on" : ""} ${o.v === "injured" ? "is-hot" : ""}`} onClick={() => setCondition(o.v)}>
+                <b>{o.label}</b><small>{o.note}</small>
+              </button>
+            ))}
+          </div>
+          {condition === "injured" && <p className="rq-urgent">It goes to the organisations nearby as needing help. If it is bleeding or cannot move, also call your local animal ambulance now.</p>}
+        </section>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -16 }}
-          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-        >
-          {/* ── Step 0: photo ── */}
-          {step === 0 && (
-            <div>
-              <div className="rp-triage" role="group" aria-label="How is the animal?">
-                <p className="rp-q">How is it?</p>
-                <div className="rp-triage-opts">
-                  {([["injured", "Hurt or sick", "Someone should come"], ["hungry", "Hungry or thin", "Food, and a check"], ["puppies", "Puppies", "A litter, or a mother"], ["", "Just seen, it's fine", "Adds to the record"]] as const).map(([tag, label, note]) => {
-                    const on = tag ? moods.includes(tag as MoodTag) : moods.every((m) => !["injured", "hungry", "puppies"].includes(m)) && triaged;
-                    return (
-                      <button key={label} type="button" aria-pressed={on} className={`rp-opt ${on ? "is-on" : ""} ${tag === "injured" ? "is-hot" : ""}`}
-                        onClick={() => { setTriaged(true); setMoods((prev) => tag ? (prev.includes(tag as MoodTag) ? prev.filter((x) => x !== tag) : [...prev, tag as MoodTag]) : prev.filter((x) => !["injured", "hungry", "puppies"].includes(x))); }}>
-                        <b>{label}</b><small>{note}</small>
-                      </button>
-                    );
-                  })}
-                </div>
-                {moods.includes("injured") && <p className="rp-urgent">It goes to the organisations nearby as needing help. If it is bleeding or cannot move, also call your local animal ambulance now.</p>}
-              </div>
+        {/* 4 · the ear */}
+        <section ref={(el) => { refs.current.ear = el; }} className={q("ear")} aria-labelledby="rq-ear">
+          <h2 id="rq-ear"><span className="rq-n">4</span>Is an ear notched?</h2>
+          <div className="rq-opts is-three" role="radiogroup" aria-labelledby="rq-ear">
+            {EARS.map((o) => (
+              <button key={o.v} type="button" role="radio" aria-checked={ear === o.v} className={`rq-opt ${ear === o.v ? "is-on" : ""}`} onClick={() => setEar(o.v)}>
+                <b>{o.label}</b><small>{o.note}</small>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* More, never required */}
+        <section className="rq-more">
+          <button type="button" className="rq-more-btn" aria-expanded={more} onClick={() => setMore((m) => !m)}>More, if you like <ChevronDown size={16} aria-hidden /></button>
+          {more && (
+            <div className="rq-more-body">
+              {coords && <AnimalMatch lat={coords.lat} lng={coords.lng} value={claimedDogId} onChange={(id) => { setClaimedDogId(id); if (id) track("existing_animal_selected"); }} />}
+              <label className="rq-field"><span>A name people call it</span><input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Bruno, Laali, Brownie" /></label>
+              <label className="rq-field"><span>Anything else</span><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Limps on the back left leg, very friendly" /></label>
+              <label className="rq-field"><span>Email me when it is on the map</span><input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" /></label>
               <ReportingFor volunteer={volunteer} onChange={setVolunteer} />
-              <StepTitle icon={<Camera className="h-4 w-4" />} title="Add a photo" hint="A clear photo helps NGOs identify and find the animal." />
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
-              {raw ? (
-                <PhotoStudio
-                  file={raw}
-                  onCancel={() => {
-                    setRaw(null);
-                    fileRef.current?.click();
-                  }}
-                  onDone={(edited, url) => {
-                    setFile(edited);
-                    setPhoto(url);
-                    setRaw(null);
-                  }}
-                />
-              ) : photo ? (
-                <button onClick={() => fileRef.current?.click()} className="relative block aspect-[4/3] w-full overflow-hidden rounded bg-bark-100 dark:bg-bark-800">
-                  <img src={photo} alt="Selected animal" className="relative h-full w-full object-cover" />
-                  <span className="absolute bottom-3 right-3 chip bg-black/60 text-white"><Camera className="h-3.5 w-3.5" /> Change</span>
-                </button>
-              ) : (
-                <button onClick={() => fileRef.current?.click()} className="report-upload flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-paw-600">
-                  <Camera className="h-10 w-10" />
-                  <span className="font-semibold">Take or upload a photo</span>
-                  <span className="text-xs text-bark-400">Opens your camera or gallery</span>
-                </button>
-              )}
-
-              {(readingMeta || meta) && (
-                <div className="mt-3 rounded border border-black/[0.08] bg-bark-50 px-3.5 py-3 dark:border-white/10 dark:bg-bark-800">
-                  {readingMeta ? (
-                    <p className="flex items-center gap-2 text-[13px] font-medium text-bark-600 dark:text-bark-300">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Reading what the camera recorded…
-                    </p>
-                  ) : (
-                    <>
-                      <p className="text-[11.5px] font-semibold uppercase tracking-wider text-bark-400">
-                        From the photo
-                      </p>
-                      <ul className="mt-1.5 space-y-1 text-[13px] text-bark-600 dark:text-bark-300">
-                        <li className="flex items-center gap-2">
-                          <MapPin className="h-3.5 w-3.5 shrink-0 text-paw-500" />
-                          {meta?.lat != null && meta?.lng != null
-                            ? looksIndian(meta.lat, meta.lng)
-                              ? "Location found, the map is set to it. Check it on the next step."
-                              : "Location found, but it is outside India. Set it manually."
-                            : "No location in this photo, you will set it on the next step."}
-                        </li>
-                        {meta?.takenAt && (
-                          <li className="flex items-center gap-2">
-                            <Clock className="h-3.5 w-3.5 shrink-0 text-paw-500" />
-                            Taken {meta.takenAt.toLocaleString("en-IN", {
-                              day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
-                            })}
-                          </li>
-                        )}
-                      </ul>
-                    </>
-                  )}
-                </div>
-              )}
+              {hydrated && ready && !isAuthed && <p className="rq-signin">No account needed. <button type="button" className="rq-link" onClick={openSignIn}>Sign in</button> to edit this report later.</p>}
             </div>
           )}
+        </section>
 
-          {/* ── Step 1: location ── */}
-          {step === 1 && (
-            <div>
-              <StepTitle icon={<MapPin className="h-4 w-4" />} title="Where is it?" hint="Search, use your current location, or drag the pin to be precise." />
-              <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); }} />
-              <label className="rp-landmark">
-                <span>A landmark people would know <em>(helps most)</em></span>
-                <input value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="Behind the tea stall opposite the temple gate" />
-                <small>The most common reason a rescue fails is that nobody can find the animal again.</small>
-              </label>
-            </div>
-          )}
-
-          {/* ── Step 2: details ── */}
-          {step === 2 && (
-            <div className="space-y-5">
-              <StepTitle icon={<Tag className="h-4 w-4" />} title="A few details" hint="Skip anything you are unsure of. Not sure is a real answer." />
-              <ProgrammeStatus
-                sterilisation={sterilisation}
-                vaccination={vaccination}
-                onSterilisation={setSterilisation}
-                onVaccination={setVaccination}
-              />
-              <div>
-                <label className="mb-2 block text-sm font-semibold">Nickname</label>
-                <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="e.g. Bruno, Laali, Brownie" className={field} />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-semibold">Tags</label>
-                <div className="flex flex-wrap gap-2">
-                  {MOODS.map((m) => {
-                    const active = moods.includes(m);
-                    return (
-                      <button key={m} onClick={() => toggleMood(m)} className={cn("chip border transition-all", active ? "border-paw-300 bg-paw-500 text-white" : "border-bark-200 bg-white text-bark-600 hover:border-paw-300 dark:bg-bark-900")}>
-                        <Tag className="h-3.5 w-3.5" aria-hidden /> {MOOD_META[m].label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              {coords && (
-                <AnimalMatch
-                  lat={coords.lat}
-                  lng={coords.lng}
-                  value={claimedDogId}
-                  onChange={(id) => {
-                    setClaimedDogId(id);
-                    if (id) track("existing_animal_selected");
-                  }}
-                />
-              )}
-              <div>
-                <label className="mb-2 block text-sm font-semibold">Notes</label>
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Seen near the chai stall, limps slightly, very friendly." className={`${field} resize-none`} />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-semibold">Email me when it&apos;s live</label>
-                <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className={field} />
-                <p className="mt-1.5 text-xs text-bark-400">We&apos;ll email you once it&apos;s approved and on the map. Only about your reports, no spam.</p>
-              </div>
-            </div>
-          )}
-
-          {/* ── Step 3: confirm ── */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <StepTitle icon={<Check className="h-4 w-4" />} title="Confirm and submit" hint="A quick check before it goes to review." />
-              <Consent checked={c1} onChange={setC1}>
-                I took this photo or may share it; it shows nobody&rsquo;s face, home or number plate; and I understand it is reviewed before it is published.
-              </Consent>
-              {HAS_TURNSTILE && (
-                <div className="flex flex-col items-center gap-1 pt-1">
-                  <Turnstile onVerify={handleVerify} />
-                  <p className="text-[11.5px] text-bark-400">A quick check to keep out spam, by Cloudflare Turnstile.</p>
-                </div>
-              )}
-              {error && <p className="rounded bg-status-injured/10 px-4 py-3 text-center text-sm font-medium text-status-injured">{error}</p>}
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Footer nav, hidden while the photo editor is open.
-
-          It is sticky to the bottom of the viewport, so on a phone it sat
-          on top of the editor's own controls and swallowed taps meant for
-          them. It also has nothing to offer there: Next cannot advance
-          until a photo has been accepted, and accepting one is a button
-          the editor already has. */}
-      <div className={`report-actions mt-7 gap-3${raw ? " hidden" : " flex"}`}>
-        {step > 0 && (
-          <button onClick={back} className="btn-ghost px-5 py-3.5"><ArrowLeft className="h-5 w-5" /> Back</button>
-        )}
-        {step < STEPS.length - 1 ? (
-          <button onClick={next} disabled={!canAdvance} className="btn-primary flex-1 py-3.5 text-base">
-            Next <ArrowRight className="h-5 w-5" />
+        {/* Send */}
+        <div ref={(el) => { refs.current.send = el; }} className={`rq-send ${raw ? "is-hidden" : ""} ${now === "send" ? "is-now" : ""}`}>
+          <label className="rq-consent">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+            <span>My photo shows no faces, homes or number plates, and I may share it.</span>
+          </label>
+          {HAS_TURNSTILE && now === "send" && <Turnstile onVerify={handleVerify} />}
+          {error && <p className="rq-error">{error}</p>}
+          <button type="button" className="rq-go" onClick={submit} disabled={!canSubmit}>
+            {status === "submitting" ? <><Loader2 size={18} className="rq-spin" /> Sending</> : <><PawPrint size={18} /> Send report</>}
           </button>
-        ) : (
-          <button onClick={submit} disabled={!canSubmit} className="btn-primary flex-1 py-3.5 text-base">
-            {status === "submitting" ? <><Loader2 className="h-5 w-5 animate-spin" /> Submitting</> : <><PawPrint className="h-5 w-5" /> Submit sighting</>}
-          </button>
-        )}
+          {now !== "send" && <p className="rq-left">{4 - done === 1 ? "One answer left" : `${4 - done} answers left`}</p>}
+        </div>
       </div>
-      {step === 0 && !photo && !raw && (
-        <p className="mt-2 text-center text-xs text-bark-400">
-          A photo helps a field team recognise the animal.{" "}
-          <button type="button" onClick={next} className="font-semibold text-paw-600 underline underline-offset-2">
-            Skip for now
-          </button>
-        </p>
-      )}
-      {step === 1 && !coords && <p className="mt-2 text-center text-xs text-bark-400">Set a location to continue.</p>}
-      {step === 3 && !consentDone && <p className="mt-2 text-center text-xs text-bark-400">Please confirm to submit.</p>}
 
-      {/* ── Success overlay ── */}
       <AnimatePresence>
         {status === "done" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] flex items-center justify-center bg-bark-950/70 p-6">
-            <motion.div initial={{ scale: 0.85, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-sm rounded-[2rem] bg-white p-8 text-center shadow-warm dark:bg-bark-900">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.1 }} className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">
-                <Clock className="h-9 w-9" />
-              </motion.div>
-              <h2 className="font-display text-2xl">Your sighting is saved</h2>
-              <p className="mt-2 text-sm text-bark-500">It is now waiting for a quick review before it appears on the public map. Keep an eye on your saved animals for the next update.</p>
-              <div className="mt-6 space-y-2">
-                <Link href="/following" className="btn-primary w-full py-3">See saved animals <ArrowRight className="h-4 w-4" /></Link>
-                <Link href="/orgs" className="btn-ghost w-full py-3">Find an organisation near you</Link>
-                <button onClick={resetForm} className="btn-ghost w-full py-3">Report another animal</button>
-              </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="rq-done-wrap">
+            <motion.div initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} className="rq-done" role="dialog" aria-labelledby="rq-done-t">
+              <span className="rq-done-ic"><Clock size={30} /></span>
+              <h2 id="rq-done-t">Sent. Thank you.</h2>
+              <p>It is checked quickly, then it appears on the map{condition === "injured" ? " and goes to the organisations nearby as needing help" : ""}.</p>
+              <Link href="/following" className="rq-go">See your reports <ArrowRight size={16} /></Link>
+              <button type="button" className="rq-link" onClick={reset}>Report another</button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-      </div>
     </div>
-  );
-}
-
-function StepTitle({ icon, title, hint }: { icon: React.ReactNode; title: string; hint: string }) {
-  return (
-    <div className="mb-4">
-      <h2 className="flex items-center gap-2 font-display text-lg tracking-tight">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-paw-100 text-paw-600 dark:bg-bark-800 dark:text-paw-300">{icon}</span>
-        {title}
-      </h2>
-      <p className="mt-1.5 text-sm text-bark-500">{hint}</p>
-    </div>
-  );
-}
-
-function Consent({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
-  return (
-    <button onClick={() => onChange(!checked)} className={cn("flex w-full items-start gap-3 rounded border p-4 text-left text-sm transition-colors", checked ? "border-paw-300 bg-paw-50 dark:border-paw-500/40 dark:bg-bark-800" : "border-bark-200 bg-white dark:bg-bark-900")}>
-      <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors", checked ? "border-paw-500 bg-paw-500 text-white" : "border-bark-300")}>
-        {checked && <Check className="h-3.5 w-3.5" />}
-      </span>
-      <span className="text-bark-700 dark:text-bark-200">{children}</span>
-    </button>
   );
 }

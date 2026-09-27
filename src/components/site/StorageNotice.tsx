@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 /* ════════════════════════════════════════════════════════════════════
    The storage notice.
@@ -35,6 +36,9 @@ const OPT_OUT_KEY = "straypaw.analytics.optout";
 
 export function StorageNotice() {
   const [show, setShow] = useState(false);
+  /* Not over a report being written: on a phone it would sit on the send
+     bar. It shows on the next page instead. */
+  const reporting = (usePathname() ?? "").startsWith("/report");
 
   useEffect(() => {
     /* Every storage read is wrapped: it throws in private mode and under
@@ -57,7 +61,7 @@ export function StorageNotice() {
     setShow(false);
   };
 
-  if (!show) return null;
+  if (!show || reporting) return null;
 
   return (
     <aside className="snotice" role="region" aria-label="How this site stores data">
