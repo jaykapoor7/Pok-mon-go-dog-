@@ -21,11 +21,10 @@ function collectPageErrors(page: Page) {
 }
 
 
-/** The place question only resolves on the client (it asks the phone), so
- * any of its answers showing proves hydration has completed and the file
- * input's onChange is attached. */
+/** The flow marks itself ready once hydrated, so the file input's
+ * onChange is attached before a file is set. */
 async function hydrated(page: Page) {
-  await expect(page.locator(".rq-q").nth(1)).toContainText(/Finding where you are|Location is off|From your phone|outside India/);
+  await expect(page.locator(".rq-wrap[data-ready]")).toHaveCount(1);
 }
 
 async function addPhoto(page: Page) {
@@ -38,7 +37,6 @@ async function addPhoto(page: Page) {
   const usePhoto = page.getByRole("button", { name: "Use this photo" });
   await expect(usePhoto).toBeEnabled();
   await usePhoto.click();
-  await expect(page.getByRole("button", { name: /retake/i })).toBeVisible();
 }
 
 /* A phone standing in Bengaluru, with location allowed. */
@@ -49,50 +47,54 @@ test.describe("reporting", () => {
     const errors = collectPageErrors(page);
     await page.goto("/report");
     await expect(page.getByText("Which of these is you?")).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Report a dog" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Add a photo/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Add a photo" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /take a photo/i })).toBeVisible();
     expect(errors).toEqual([]);
   });
 
-  /* A photo is asked for first, but "I can't take one" is a real answer:
-     somebody who cannot photograph an animal still has a sighting worth
-     recording. Either way the question folds and the next one is lit. */
-  test("the photo question takes a photo or an honest no", async ({ page }) => {
+  /* One question per screen: a photo, or the honest "I can't take one",
+     moves straight on to where. */
+  test("the photo screen moves on with a photo or an honest no", async ({ page }) => {
     await page.goto("/report");
     await addPhoto(page);
-    await expect(page.locator(".rq-q").first()).toHaveClass(/is-done/);
+    await expect(page.getByRole("heading", { name: "Where is it?" })).toBeVisible();
 
     await page.goto("/report");
     await hydrated(page);
     await page.getByRole("button", { name: /can't take one/i }).click();
-    await expect(page.getByText("No photo")).toBeVisible();
-    await expect(page.locator(".rq-q").first()).toHaveClass(/is-done/);
+    await expect(page.getByRole("heading", { name: "Where is it?" })).toBeVisible();
   });
 
   test.describe("with the phone's location", () => {
     test.use(IN_INDIA);
 
-    test("fills in where from the phone, without a map", async ({ page }) => {
+    test("where is already filled in from the phone", async ({ page }) => {
       await page.goto("/report");
+      await hydrated(page);
+      await page.getByRole("button", { name: /can't take one/i }).click();
       await expect(page.getByText("From your phone")).toBeVisible();
-      await expect(page.getByRole("button", { name: "Change" })).toBeVisible();
+      await expect(page.getByRole("button", { name: /that's right/i })).toBeVisible();
     });
 
-    /* The flow holds until everything a field team needs is answered:
-       where, how it is, its ear, and the consent. Nothing else blocks it. */
-    test("send waits for the four answers and the consent", async ({ page }) => {
+    /* Each answer is one tap and moves on; send waits only for the
+       consent on the last screen. */
+    test("one tap per screen, then check and send", async ({ page }) => {
       await page.goto("/report");
-      await expect(page.getByText("From your phone")).toBeVisible();
-      const send = page.getByRole("button", { name: /send report/i });
-      await expect(send).toBeDisabled();
+      await hydrated(page);
       await page.getByRole("button", { name: /can't take one/i }).click();
+      await page.getByRole("button", { name: /that's right/i }).click();
       await page.getByRole("radio", { name: /hurt or sick/i }).click();
-      await expect(page.getByText(/call your local animal ambulance/i)).toBeVisible();
-      await expect(send).toBeDisabled();
       await page.getByRole("radio", { name: /can't see/i }).click();
+      await expect(page.getByRole("heading", { name: "Check and send" })).toBeVisible();
+      await expect(page.getByText(/call your local animal ambulance/i)).toBeVisible();
+      const send = page.getByRole("button", { name: /send report/i });
       await expect(send).toBeDisabled();
       await page.getByLabel(/no faces, homes or number plates/i).check();
       if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) await expect(send).toBeEnabled();
+      /* Any answer can be changed from the summary and comes straight back. */
+      await page.getByRole("button", { name: /how it is/i }).click();
+      await page.getByRole("radio", { name: /seems fine/i }).click();
+      await expect(page.getByRole("heading", { name: "Check and send" })).toBeVisible();
     });
   });
 
@@ -101,8 +103,10 @@ test.describe("reporting", () => {
 
     test("says so and asks for the place on the map", async ({ page }) => {
       await page.goto("/report");
+      await hydrated(page);
+      await page.getByRole("button", { name: /can't take one/i }).click();
       await expect(page.getByText(/outside India/i)).toBeVisible();
-      await expect(page.getByRole("button", { name: /send report/i })).toBeDisabled();
+      await expect(page.getByRole("button", { name: /this is the place/i })).toBeDisabled();
     });
   });
 

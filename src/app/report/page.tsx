@@ -1,25 +1,24 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   Report a dog: one screen, answered in about ten seconds.
+   Report a dog: one question on the screen at a time, one tap each.
 
-   Somebody reporting is standing in front of an animal. The screen asks
-   only what a field team cannot work without, one question at a time,
-   each lit in turn and folded to a single line once answered:
+   Somebody reporting is standing in front of an animal, often with one
+   hand free. Each screen asks one thing and moves on by itself the moment
+   it is answered:
 
-     1  a photograph (or, as a real answer, "no photo")
-     2  where: taken from the phone or the photograph without asking, and
-        shown so it can be corrected; a landmark if they know one
-     3  how it is: hurt, thin, puppies, or fine
-     4  its ear: notched, not notched, or can't see (the only sign of
-        sterilisation a passer-by can read; "can't see" is recorded as
-        not examined, never as no)
+     1  Photo      take one, or "I can't take one" (a real answer)
+     2  Where      found from the phone or the photo while step 1 is
+                   answered; one tap to confirm, or change it on the map
+     3  How is it  hurt, thin, puppies, fine
+     4  Ear        notched, not notched, can't see ("can't see" is kept as
+                   not examined, never as no)
+     5  Send       the four answers on one card, each tappable to change,
+                   the consent, and Send
 
-   Everything else a person may want to add (a name, notes, an email, a
-   match to an animal already on the record, reporting for an
-   organisation) waits under "More, if you like" and never blocks
-   sending. Vaccination is not asked: nobody can see it on a street, and a
-   guess would become a coverage figure.
+   A name, notes, an email, a match to a known animal and reporting for an
+   organisation are one optional link on the last screen, closed until
+   opened. Vaccination is not asked: nobody can see it on a street.
    ════════════════════════════════════════════════════════════════════ */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -44,6 +43,7 @@ import "./report.css";
 
 type Status = "idle" | "submitting" | "done";
 type Condition = "injured" | "hungry" | "puppies" | "fine";
+type Step = 0 | 1 | 2 | 3 | 4;
 
 const CONDITIONS: { v: Condition; label: string; note: string }[] = [
   { v: "injured", label: "Hurt or sick", note: "Someone should come" },
@@ -54,18 +54,19 @@ const CONDITIONS: { v: Condition; label: string; note: string }[] = [
 const EARS: { v: SterilisationStatus; label: string; note: string }[] = [
   { v: "sterilised", label: "Notched", note: "A V-cut on one ear" },
   { v: "not_sterilised", label: "Not notched", note: "Both ears whole" },
-  { v: "unknown", label: "Can't see", note: "Recorded as not examined" },
+  { v: "unknown", label: "Can't see", note: "Kept as not examined" },
 ];
+const TITLES = ["Add a photo", "Where is it?", "How is it?", "Is an ear notched?", "Check and send"];
 
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
-  /* Auth resolves on the client only; anything that depends on it waits
-     for this, so the first client render matches the server's. */
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
+  const [step, setStep] = useState<Step>(0);
+  const [dir, setDir] = useState(1);
   const [photo, setPhoto] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [raw, setRaw] = useState<File | null>(null); // off the camera, while it is framed; never uploaded
@@ -87,15 +88,29 @@ export default function ReportPage() {
   const [token, setToken] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
+  /* Coming back to change one answer returns straight to the last screen. */
+  const [reviewing, setReviewing] = useState(false);
+
+  const go = useCallback((to: Step) => {
+    setStep((cur) => { setDir(to >= cur ? 1 : -1); return to; });
+    window.scrollTo({ top: 0 });
+  }, []);
+  const answered = useCallback((from: Step) => {
+    /* The funnel's existing steps: the photo, the place, and the details
+       (both taps count as details, recorded once the ear is answered). */
+    if (from === 0) track("report_photo_added");
+    else if (from === 1) track("report_location_set");
+    else if (from === 3) track("report_details_filled");
+    go(reviewing ? 4 : ((from + 1) as Step));
+  }, [go, reviewing]);
 
   const setPlace = useCallback(async (lat: number, lng: number, how: "found" | "photo") => {
     setCoords({ lat, lng }); setWhere(how);
     setZone(await reverseGeocode(lat, lng).catch(() => null));
   }, []);
 
-  /* Where: from the link (someone pressed "report here" on the map or a
-     profile), else from the phone, straight away. They are standing at
-     the place; asking them to find it on a map is where reports are lost. */
+  /* Where is found while the photo is being taken: from the link (someone
+     pressed "report here" on the map or a profile), else from the phone. */
   const locate = useCallback(() => {
     if (!navigator.geolocation) { setWhere("denied"); setEditPlace(true); return; }
     setWhere("finding");
@@ -121,32 +136,18 @@ export default function ReportPage() {
   async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];
     if (!picked) return;
-    setRaw(picked); setPhoto(null); setFile(null); setNoPhoto(false);
+    setRaw(picked); setNoPhoto(false);
     e.target.value = "";
-    /* The camera usually recorded where it stood, which is closer to the
-       animal than the phone's fix a minute later. */
+    /* The camera recorded where it stood, closer to the animal than the
+       phone's fix a minute later. */
     try {
       const m = await readPhotoMeta(picked);
       if (m.lat != null && m.lng != null && looksIndian(m.lat, m.lng)) setPlace(m.lat, m.lng, "photo");
     } catch { /* no metadata */ }
   }
 
-  /* The questions, in order. The first unanswered one is lit. */
-  const answered = { photo: !!photo || noPhoto, place: !!coords, how: !!condition, ear: !!ear };
-  const order = ["photo", "place", "how", "ear"] as const;
-  const now = order.find((k) => !answered[k]) ?? "send";
-  const done = order.filter((k) => answered[k]).length;
-  const canSubmit = answered.place && answered.how && answered.ear && consent && status === "idle" && (!HAS_TURNSTILE || !!token);
-
-  /* Bring the next question up as each is answered. */
-  const refs = useRef<Record<string, HTMLElement | null>>({});
-  const prev = useRef(now);
-  useEffect(() => {
-    if (prev.current === now) return;
-    prev.current = now;
-    const el = refs.current[now];
-    if (el && !raw) el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
-  }, [now, raw]);
+  const ready4 = !!coords && !!condition && !!ear;
+  const canSubmit = ready4 && consent && status === "idle" && (!HAS_TURNSTILE || !!token);
 
   async function submit() {
     if (!canSubmit || !coords || !condition || !ear) return;
@@ -179,135 +180,181 @@ export default function ReportPage() {
   function reset() {
     setStatus("idle"); setPhoto(null); setFile(null); setRaw(null); setNoPhoto(false);
     setCondition(null); setEar(null); setLandmark(""); setNickname(""); setNotes(""); setClaimedDogId(null);
-    setConsent(false); setToken(null); setError(null); setMore(false);
-    window.scrollTo({ top: 0 });
+    setConsent(false); setToken(null); setError(null); setMore(false); setReviewing(false); setEditPlace(false);
+    go(0);
   }
-  function leave() {
-    if (window.history.length > 1) router.back(); else router.push("/app");
+  function back() {
+    if (raw) { setRaw(null); return; }
+    if (step === 0) { if (window.history.length > 1) router.back(); else router.push("/app"); return; }
+    go((step - 1) as Step);
   }
+  const edit = (to: Step) => { setReviewing(true); if (to === 1) setEditPlace(true); go(to); };
 
-  const q = (k: (typeof order)[number]) => `rq-q ${answered[k] ? "is-done" : ""} ${now === k ? "is-now" : ""}`;
   const placeLine = zone || (coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : "");
+  const condLabel = CONDITIONS.find((c) => c.v === condition)?.label;
+  const earLabel = EARS.find((e) => e.v === ear)?.label;
 
   return (
-    <div className="rq-wrap">
-      <div className="report-back">
-        <button type="button" onClick={leave}><ArrowLeft size={15} /> Back</button>
-      </div>
+    <div className="rq-wrap" data-ready={hydrated ? "1" : undefined}>
+      <header className="rq-top">
+        <button type="button" className="rq-back" onClick={back} aria-label={step === 0 && !raw ? "Leave the report" : "Back"}><ArrowLeft size={18} /></button>
+        <ol className="rq-dots" aria-label={`Step ${step + 1} of 5`}>
+          {TITLES.map((t, i) => <li key={t} className={i < step ? "is-done" : i === step ? "is-now" : ""} />)}
+        </ol>
+        <span className="rq-count sys-mono">{step + 1}/5</span>
+      </header>
+      {volunteer && step === 0 && <p className="rq-for">Reporting for <b>{volunteer.orgName}</b> as {volunteer.name}</p>}
 
       <div className="rq report-form">
-        <header className="rq-head">
-          <h1>Report a dog</h1>
-          <p>Four quick answers. Anything you are not sure of has its own button.</p>
-          <ol className="rq-dots" aria-label={`${done} of 4 answered`}>
-            {order.map((k) => <li key={k} className={answered[k] ? "is-done" : now === k ? "is-now" : ""} />)}
-          </ol>
-          {volunteer && <p className="rq-for">Reporting for <b>{volunteer.orgName ?? "your organisation"}</b> as {volunteer.name}</p>}
-        </header>
+        <AnimatePresence mode="wait" initial={false} custom={dir}>
+          <motion.section
+            key={step}
+            className="rq-screen"
+            aria-labelledby="rq-title"
+            custom={dir}
+            initial={{ opacity: 0, x: 28 * dir }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -28 * dir }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <h1 id="rq-title">{TITLES[step]}</h1>
 
-        {/* 1 · the photograph */}
-        <section ref={(el) => { refs.current.photo = el; }} className={q("photo")} aria-labelledby="rq-photo">
-          <h2 id="rq-photo"><span className="rq-n">1</span>Add a photo</h2>
-          <input ref={fileRef} type="file" accept="image/*" capture="environment" className="rq-file" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
-          {raw ? (
-            <PhotoStudio file={raw} onCancel={() => { setRaw(null); fileRef.current?.click(); }} onDone={(edited, url) => { setFile(edited); setPhoto(url); setRaw(null); }} />
-          ) : photo ? (
-            <div className="rq-photo">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo} alt="The animal you photographed" />
-              <button type="button" className="rq-link" onClick={() => fileRef.current?.click()}><Camera size={14} /> Retake</button>
-            </div>
-          ) : noPhoto ? (
-            <p className="rq-sum">No photo <button type="button" className="rq-link" onClick={() => { setNoPhoto(false); fileRef.current?.click(); }}>Add one</button></p>
-          ) : (
-            <div className="rq-shoot">
-              <button type="button" className="rq-camera" onClick={() => fileRef.current?.click()}>
-                <Camera size={30} aria-hidden />
-                <b>Take a photo</b>
-                <small>Helps a field team recognise it</small>
-              </button>
-              <button type="button" className="rq-skip" onClick={() => setNoPhoto(true)}>I can&apos;t take one</button>
-            </div>
-          )}
-        </section>
+            {/* 1 · the photograph */}
+            {step === 0 && (
+              <>
+                <input ref={fileRef} type="file" accept="image/*" capture="environment" className="rq-file" aria-label="Choose a photo of the animal" onChange={onPickPhoto} />
+                {raw ? (
+                  <PhotoStudio file={raw} onCancel={() => { setRaw(null); fileRef.current?.click(); }} onDone={(edited, url) => { setFile(edited); setPhoto(url); setRaw(null); answered(0); }} />
+                ) : (
+                  <>
+                    <p className="rq-lede">A clear photo helps a field team find the right animal.</p>
+                    <button type="button" className="rq-camera" onClick={() => fileRef.current?.click()}>
+                      {photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={photo} alt="Your photo of the animal" />
+                      ) : <Camera size={34} aria-hidden />}
+                      <b>{photo ? "Retake" : "Take a photo"}</b>
+                    </button>
+                    {photo ? (
+                      <button type="button" className="rq-next" onClick={() => answered(0)}>Use this photo <ArrowRight size={17} /></button>
+                    ) : (
+                      <button type="button" className="rq-skip" onClick={() => { setNoPhoto(true); answered(0); }}>I can&apos;t take one</button>
+                    )}
+                  </>
+                )}
+              </>
+            )}
 
-        {/* 2 · where */}
-        <section ref={(el) => { refs.current.place = el; }} className={q("place")} aria-labelledby="rq-place">
-          <h2 id="rq-place"><span className="rq-n">2</span>Where is it?</h2>
-          {coords && !editPlace ? (
-            <p className="rq-sum"><MapPin size={15} aria-hidden /><span><b>{placeLine}</b><small>{where === "photo" ? "From your photo" : "From your phone"}</small></span><button type="button" className="rq-link" onClick={() => setEditPlace(true)}>Change</button></p>
-          ) : where === "finding" ? (
-            <p className="rq-sum"><Loader2 size={15} className="rq-spin" aria-hidden /> Finding where you are…</p>
-          ) : (
-            <>
-              {where === "abroad" && <p className="rq-warn">Your phone places you outside India. StrayPaw records India&apos;s street animals: set where the animal is on the map.</p>}
-              {where === "denied" && <p className="rq-warn">Location is off. Allow it, or set the place on the map.</p>}
-              {where !== "found" && where !== "photo" && <button type="button" className="rq-chip" onClick={locate}><Crosshair size={15} /> Use where I am</button>}
-              <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); setWhere("found"); }} />
-              {coords && <button type="button" className="rq-chip is-go" onClick={() => setEditPlace(false)}><Check size={15} /> This is the place</button>}
-            </>
-          )}
-          {coords && (
-            <label className="rq-landmark">
-              <span>A landmark <em>helps most</em></span>
-              <input value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="Behind the tea stall, opposite the temple gate" />
-            </label>
-          )}
-        </section>
+            {/* 2 · where */}
+            {step === 1 && (
+              <>
+                {coords && !editPlace ? (
+                  <>
+                    <div className="rq-place">
+                      <MapPin size={22} aria-hidden />
+                      <span><b>{placeLine}</b><small>{where === "photo" ? "From your photo" : "From your phone"}</small></span>
+                    </div>
+                    <label className="rq-landmark">
+                      <span>A landmark people would know <em>optional</em></span>
+                      <input value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="Behind the tea stall, opposite the temple" />
+                    </label>
+                    <button type="button" className="rq-next" onClick={() => answered(1)}><Check size={17} /> That&apos;s right</button>
+                    <button type="button" className="rq-skip" onClick={() => setEditPlace(true)}>Change</button>
+                  </>
+                ) : where === "finding" ? (
+                  <p className="rq-lede"><Loader2 size={16} className="rq-spin" aria-hidden /> Finding where you are…</p>
+                ) : (
+                  <>
+                    {where === "abroad" && <p className="rq-warn">Your phone places you outside India. StrayPaw records India&apos;s street animals: set where the animal is on the map.</p>}
+                    {where === "denied" && <p className="rq-warn">Location is off. Allow it, or set the place on the map.</p>}
+                    {where !== "found" && where !== "photo" && <button type="button" className="rq-chip" onClick={locate}><Crosshair size={15} /> Use where I am</button>}
+                    <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); setWhere("found"); }} />
+                    <button type="button" className="rq-next" disabled={!coords} onClick={() => { setEditPlace(false); answered(1); }}><Check size={17} /> This is the place</button>
+                  </>
+                )}
+              </>
+            )}
 
-        {/* 3 · how it is */}
-        <section ref={(el) => { refs.current.how = el; }} className={q("how")} aria-labelledby="rq-how">
-          <h2 id="rq-how"><span className="rq-n">3</span>How is it?</h2>
-          <div className="rq-opts" role="radiogroup" aria-labelledby="rq-how">
-            {CONDITIONS.map((o) => (
-              <button key={o.v} type="button" role="radio" aria-checked={condition === o.v} className={`rq-opt ${condition === o.v ? "is-on" : ""} ${o.v === "injured" ? "is-hot" : ""}`} onClick={() => setCondition(o.v)}>
-                <b>{o.label}</b><small>{o.note}</small>
-              </button>
-            ))}
-          </div>
-          {condition === "injured" && <p className="rq-urgent">It goes to the organisations nearby as needing help. If it is bleeding or cannot move, also call your local animal ambulance now.</p>}
-        </section>
+            {/* 3 · how it is */}
+            {step === 2 && (
+              <div className="rq-opts" role="radiogroup" aria-labelledby="rq-title">
+                {CONDITIONS.map((o) => (
+                  <button key={o.v} type="button" role="radio" aria-checked={condition === o.v} className={`rq-opt ${condition === o.v ? "is-on" : ""} ${o.v === "injured" ? "is-hot" : ""}`}
+                    onClick={() => { setCondition(o.v); answered(2); }}>
+                    <b>{o.label}</b><small>{o.note}</small>
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {/* 4 · the ear */}
-        <section ref={(el) => { refs.current.ear = el; }} className={q("ear")} aria-labelledby="rq-ear">
-          <h2 id="rq-ear"><span className="rq-n">4</span>Is an ear notched?</h2>
-          <div className="rq-opts is-three" role="radiogroup" aria-labelledby="rq-ear">
-            {EARS.map((o) => (
-              <button key={o.v} type="button" role="radio" aria-checked={ear === o.v} className={`rq-opt ${ear === o.v ? "is-on" : ""}`} onClick={() => setEar(o.v)}>
-                <b>{o.label}</b><small>{o.note}</small>
-              </button>
-            ))}
-          </div>
-        </section>
+            {/* 4 · the ear */}
+            {step === 3 && (
+              <>
+                <p className="rq-lede">A small V cut from the tip of one ear means it has been sterilised.</p>
+                <div className="rq-opts" role="radiogroup" aria-labelledby="rq-title">
+                  {EARS.map((o) => (
+                    <button key={o.v} type="button" role="radio" aria-checked={ear === o.v} className={`rq-opt ${ear === o.v ? "is-on" : ""}`} onClick={() => { setEar(o.v); answered(3); }}>
+                      <b>{o.label}</b><small>{o.note}</small>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
-        {/* More, never required */}
-        <section className="rq-more">
-          <button type="button" className="rq-more-btn" aria-expanded={more} onClick={() => setMore((m) => !m)}>More, if you like <ChevronDown size={16} aria-hidden /></button>
-          {more && (
-            <div className="rq-more-body">
-              {coords && <AnimalMatch lat={coords.lat} lng={coords.lng} value={claimedDogId} onChange={(id) => { setClaimedDogId(id); if (id) track("existing_animal_selected"); }} />}
-              <label className="rq-field"><span>A name people call it</span><input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Bruno, Laali, Brownie" /></label>
-              <label className="rq-field"><span>Anything else</span><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Limps on the back left leg, very friendly" /></label>
-              <label className="rq-field"><span>Email me when it is on the map</span><input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" /></label>
-              <ReportingFor volunteer={volunteer} onChange={setVolunteer} />
-              {hydrated && ready && !isAuthed && <p className="rq-signin">No account needed. <button type="button" className="rq-link" onClick={openSignIn}>Sign in</button> to edit this report later.</p>}
-            </div>
-          )}
-        </section>
+            {/* 5 · check and send */}
+            {step === 4 && (
+              <>
+                <ul className="rq-sum" aria-label="Your report">
+                  <li><button type="button" onClick={() => edit(0)}>
+                    {photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={photo} alt="" />
+                    ) : <span className="rq-sum-ic"><Camera size={16} /></span>}
+                    <span><small>Photo</small><b>{photo ? "Added" : noPhoto ? "No photo" : "Not added"}</b></span><em>Change</em>
+                  </button></li>
+                  <li><button type="button" onClick={() => edit(1)}>
+                    <span className="rq-sum-ic"><MapPin size={16} /></span>
+                    <span><small>Where</small><b>{placeLine || "Not set"}{landmark ? ` · ${landmark}` : ""}</b></span><em>Change</em>
+                  </button></li>
+                  <li><button type="button" onClick={() => edit(2)} className={condition === "injured" ? "is-hot" : ""}>
+                    <span className="rq-sum-ic"><PawPrint size={16} /></span>
+                    <span><small>How it is</small><b>{condLabel ?? "Not answered"}</b></span><em>Change</em>
+                  </button></li>
+                  <li><button type="button" onClick={() => edit(3)}>
+                    <span className="rq-sum-ic"><Check size={16} /></span>
+                    <span><small>Ear</small><b>{earLabel ?? "Not answered"}</b></span><em>Change</em>
+                  </button></li>
+                </ul>
+                {condition === "injured" && <p className="rq-urgent">It goes to the organisations nearby as needing help. If it is bleeding or cannot move, also call your local animal ambulance now.</p>}
 
-        {/* Send */}
-        <div ref={(el) => { refs.current.send = el; }} className={`rq-send ${raw ? "is-hidden" : ""} ${now === "send" ? "is-now" : ""}`}>
-          <label className="rq-consent">
-            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-            <span>My photo shows no faces, homes or number plates, and I may share it.</span>
-          </label>
-          {HAS_TURNSTILE && now === "send" && <Turnstile onVerify={handleVerify} />}
-          {error && <p className="rq-error">{error}</p>}
-          <button type="button" className="rq-go" onClick={submit} disabled={!canSubmit}>
-            {status === "submitting" ? <><Loader2 size={18} className="rq-spin" /> Sending</> : <><PawPrint size={18} /> Send report</>}
-          </button>
-          {now !== "send" && <p className="rq-left">{4 - done === 1 ? "One answer left" : `${4 - done} answers left`}</p>}
-        </div>
+                <div className="rq-more">
+                  <button type="button" className="rq-more-btn" aria-expanded={more} onClick={() => setMore((m) => !m)}>Add a name or note <span>optional</span> <ChevronDown size={16} aria-hidden /></button>
+                  {more && (
+                    <div className="rq-more-body">
+                      {coords && <AnimalMatch lat={coords.lat} lng={coords.lng} value={claimedDogId} onChange={(id) => { setClaimedDogId(id); if (id) track("existing_animal_selected"); }} />}
+                      <label className="rq-field"><span>A name people call it</span><input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Bruno, Laali, Brownie" /></label>
+                      <label className="rq-field"><span>Anything else</span><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Limps on the back left leg, very friendly" /></label>
+                      <label className="rq-field"><span>Email me when it is on the map</span><input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" /></label>
+                      <ReportingFor volunteer={volunteer} onChange={setVolunteer} />
+                      {hydrated && ready && !isAuthed && <p className="rq-signin">No account needed. <button type="button" className="rq-link" onClick={openSignIn}>Sign in</button> to edit this report later.</p>}
+                    </div>
+                  )}
+                </div>
+
+                <label className="rq-consent">
+                  <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                  <span>My photo shows no faces, homes or number plates, and I may share it.</span>
+                </label>
+                {HAS_TURNSTILE && <Turnstile onVerify={handleVerify} />}
+                {error && <p className="rq-error">{error}</p>}
+                <button type="button" className="rq-go" onClick={submit} disabled={!canSubmit}>
+                  {status === "submitting" ? <><Loader2 size={18} className="rq-spin" /> Sending</> : <><PawPrint size={18} /> Send report</>}
+                </button>
+                {!ready4 && <p className="rq-left">Answer the questions above to send.</p>}
+              </>
+            )}
+          </motion.section>
+        </AnimatePresence>
       </div>
 
       <AnimatePresence>
