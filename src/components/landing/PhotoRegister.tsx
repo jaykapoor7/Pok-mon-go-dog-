@@ -1,140 +1,147 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   Photographed onto the record: a night tour of the city's photographed
-   animals.
+   Photographed onto the record: the register, in portraits.
 
-   Each photograph a resident took sits on the hero's night streets as a
-   small portrait, at the centre of the animal's cell (the finest place the
-   public record gives, never an address). While the section is on screen
-   the camera glides from one animal to the next and the large print beside
-   the map shows who it is, where, and its StrayPaw ID; the strip beneath
-   jumps to any of them. Under reduced motion the camera does not glide: it
-   moves only when a portrait is chosen. It does not exist below four
-   photographs placed on the map.
+   The landing already shows the city twice on a map, so this section is
+   about the animals themselves. Each photographed animal is a record card
+   on a small deck: the resident's photograph in a viewfinder, its
+   StrayPaw ID stamped onto it as the card lands, and beside it the file
+   as the register keeps it (where, since when, how often seen, who
+   reported it) with sterilisation and vaccination drawn in their real
+   state, hatched where nobody has examined the animal yet.
+
+   The deck deals itself while it is on screen: a thin rule under the card
+   runs down and the next card comes to the top. Hovering holds it. Under
+   the deck every photographed animal runs past in two slow rows, in the
+   record's blue until chosen. Under reduced motion nothing deals or runs:
+   the deck moves only when asked and the rows are a still contact sheet.
+   It does not exist below four photographs.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Map as MLMap, Marker } from "maplibre-gl";
-import { ArrowUpRight } from "lucide-react";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
-import { cleanPlace, placeLine } from "@/lib/utils";
+import { cleanPlace } from "@/lib/utils";
 
-export type PhotoRow = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; last_seen: string | null; pt?: [number, number] | null };
+export type PhotoRow = {
+  id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null;
+  first_seen: string | null; last_seen: string | null; sightings_count: number | null; source: string | null;
+  sterilisation_status: string | null; vaccination_status: string | null;
+};
 
-const label = (r: PhotoRow) => (r.name && r.name.trim()) || `A dog near ${cleanPlace(r.zone) || r.city || "the reported spot"}`;
-const HOLD_MS = 4600;
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const date = (iso: string | null) => { if (!iso) return null; const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+const place = (r: PhotoRow) => cleanPlace(r.zone) || null;
+const label = (r: PhotoRow) => (r.name && r.name.trim()) || `A dog near ${place(r) || r.city || "the reported spot"}`;
+const pad = (n: number) => String(n).padStart(2, "0");
 
-export function PhotoRegister({ rows }: { rows: PhotoRow[] }) {
-  const placed = useMemo(() => rows.filter((r) => r.pt).slice(0, 16), [rows]);
+/* The three states a check can be in. Nobody having looked is its own
+   state, drawn hatched, never counted as "no". */
+type Check = "yes" | "no" | "unknown";
+const checkOf = (v: string | null): Check => {
+  const s = (v ?? "").toLowerCase();
+  if (["yes", "true", "done", "sterilised", "sterilized", "vaccinated", "confirmed"].includes(s)) return "yes";
+  if (["no", "false", "not_sterilised", "not_vaccinated", "intact", "none"].includes(s)) return "no";
+  return "unknown";
+};
+const CHECK_TEXT: Record<Check, string> = { yes: "Recorded", no: "Recorded as not done", unknown: "Not examined" };
+const SOURCE_TEXT: Record<string, string> = { resident: "A resident, from a phone", ngo: "A field team", import: "An imported register" };
+
+export function PhotoRegister({ rows, total }: { rows: PhotoRow[]; total?: number }) {
+  const deck = useMemo(() => rows.slice(0, 24), [rows]);
+  const n = deck.length;
   const [at, setAt] = useState(0);
   const [live, setLive] = useState(false);
   const [calm, setCalm] = useState(false);
-  const held = useRef(0); // when someone chose a portrait, the tour waits
   const wrap = useRef<HTMLDivElement>(null);
-  const mapEl = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MLMap | null>(null);
-  const markers = useRef<Marker[]>([]);
 
   useEffect(() => {
     setCalm(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     const node = wrap.current; if (!node) return;
-    const io = new IntersectionObserver(([e]) => setLive(e.isIntersecting), { threshold: 0.35 });
+    const io = new IntersectionObserver(([e]) => setLive(e.isIntersecting), { threshold: 0.3 });
     io.observe(node);
     return () => io.disconnect();
   }, []);
 
-  /* The map, once: every portrait as a marker on the night streets. */
-  useEffect(() => {
-    if (placed.length < 4) return;
-    let map: MLMap | null = null, dead = false;
-    import("maplibre-gl").then((ml) => {
-      if (dead || !mapEl.current) return;
-      ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
-      map = new ml.Map({
-        container: mapEl.current, style: groundStyle(NIGHT), center: placed[0].pt!, zoom: 14.6, interactive: false, fadeDuration: 0,
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap" },
-      });
-      mapRef.current = map;
-      map.on("load", () => {
-        const m = map!;
-        m.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
-        underlay(m, NIGHT).catch(() => {});
-        markers.current = placed.map((r, i) => {
-          const el = document.createElement("button");
-          el.type = "button";
-          el.className = "ld-tour-pin";
-          el.setAttribute("aria-label", `${label(r)}, on the map`);
-          const img = document.createElement("img");
-          img.src = sized(r.cover_photo, 96); img.alt = ""; img.loading = "lazy";
-          el.appendChild(img);
-          el.addEventListener("click", () => { held.current = Date.now(); setAt(i); });
-          return new ml.Marker({ element: el, anchor: "center" }).setLngLat(r.pt!).addTo(m);
-        });
-        markers.current[0]?.getElement().classList.add("is-on");
-      });
-    });
-    return () => { dead = true; markers.current.forEach((mk) => mk.remove()); markers.current = []; map?.remove(); mapRef.current = null; };
-  }, [placed]);
-
-  /* The camera follows the chosen animal: a glide, or a cut under reduced motion. */
-  useEffect(() => {
-    const m = mapRef.current, r = placed[at];
-    markers.current.forEach((mk, i) => mk.getElement().classList.toggle("is-on", i === at));
-    if (!m || !r?.pt) return;
-    const wide = (mapEl.current?.clientWidth ?? 0) > 760;
-    const padding = wide ? { top: 40, bottom: 40, left: Math.min(460, (mapEl.current?.clientWidth ?? 0) * 0.38), right: 40 } : { top: 20, bottom: 20, left: 20, right: 20 };
-    if (calm) m.jumpTo({ center: r.pt, zoom: 15, padding });
-    else m.flyTo({ center: r.pt, zoom: 15, padding, speed: 0.7, curve: 1.3, essential: false });
-  }, [at, placed, calm]);
-
-  /* The tour: one animal every few seconds while on screen. */
-  useEffect(() => {
-    if (calm || !live || placed.length < 2) return;
-    const id = window.setInterval(() => {
-      if (Date.now() - held.current < 12_000) return;
-      setAt((i) => (i + 1) % placed.length);
-    }, HOLD_MS);
-    return () => window.clearInterval(id);
-  }, [calm, live, placed.length]);
-
-  if (placed.length < 4) return null;
-  const r = placed[at];
-  const pick = (i: number) => { held.current = Date.now(); setAt(i); };
+  if (n < 4) return null;
+  const go = (i: number) => setAt(((i % n) + n) % n);
+  /* The cards in play: the one that just left, the top card, and the two
+     under it. Keyed by animal, so each card slides between places. */
+  const hand = [-1, 0, 1, 2].map((k) => ({ k, r: deck[(at + k + n) % n] }));
+  const rowA = deck.filter((_, i) => i % 2 === 0), rowB = deck.filter((_, i) => i % 2 === 1);
 
   return (
-    <div className="ld-tour" ref={wrap}>
-      <div className="ld-tour-head">
-        <h2 className="ld-tour-title">Photographed <em>onto the record.</em></h2>
-        <p className="sys-mono">Real photographs · each held at the precision of its recorded place</p>
+    <div className={`pr ${live ? "is-live" : ""} ${calm ? "is-calm" : ""}`} ref={wrap}>
+      <div className="pr-head">
+        <h2 className="pr-title">Photographed <em>onto the&nbsp;record.</em></h2>
+        <p className="sys-mono">{total && total > n ? `${total.toLocaleString("en-IN")} photographed by residents` : "Photographed by residents"} · each with its own ID</p>
       </div>
-      <div className="ld-tour-stage">
-        <div ref={mapEl} className="ld-tour-map" role="img" aria-label="Photographed animals on the city's night streets, each at its cell" />
-        <figure className="ld-tour-print" aria-live="polite">
-          <Link href={`/dog/${r.id}`} className="ld-tour-photo" key={r.id}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={sized(r.cover_photo, 640)} alt={`${label(r)}, photographed on the street`} />
-          </Link>
-          <figcaption>
-            <b>{label(r)}</b>
-            {(r.zone || r.city) && <span>{placeLine(r.zone, r.city)}</span>}
-            <span className="ld-tour-id sys-mono">{r.straypaw_id ?? "ID pending"}</span>
-            <Link href={`/dog/${r.id}`} className="ld-tour-go">Open the record <ArrowUpRight size={14} /></Link>
-          </figcaption>
-        </figure>
+
+      <div className="pr-stage">
+        <div className="pr-deck" aria-live="polite">
+          {hand.map(({ k, r }) => {
+            const ster = checkOf(r.sterilisation_status), vac = checkOf(r.vaccination_status);
+            const idx = (at + k + n) % n;
+            return (
+              <article key={r.id} className={`pr-card is-${k < 0 ? "gone" : `p${k}`}`} aria-hidden={k !== 0} inert={k !== 0 ? true : undefined}>
+                <Link href={`/dog/${r.id}`} className="pr-photo" tabIndex={k === 0 ? 0 : -1} aria-label={`${label(r)}: open the record`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={sized(r.cover_photo, 720)} alt={k === 0 ? `${label(r)}, photographed on the street` : ""} loading={k <= 1 ? "eager" : "lazy"} />
+                  <span className="pr-crop" aria-hidden><i /><i /><i /><i /></span>
+                  <span className="pr-stamp sys-mono">{r.straypaw_id ?? "ID pending"}</span>
+                </Link>
+                <div className="pr-file">
+                  <p className="pr-no sys-mono">Record {pad(idx + 1)} <span>/ {pad(n)}</span></p>
+                  <h3>{label(r)}</h3>
+                  <dl className="pr-rows">
+                    <div><dt>Place</dt><dd>{[place(r), r.city].filter(Boolean).join(", ") || "Not recorded"}</dd></div>
+                    <div><dt>On the record since</dt><dd className="sys-mono">{date(r.first_seen) ?? "Not recorded"}</dd></div>
+                    <div><dt>Last seen</dt><dd className="sys-mono">{date(r.last_seen) ?? "Not recorded"}</dd></div>
+                    <div><dt>Sightings</dt><dd className="sys-mono">{r.sightings_count ?? 1}</dd></div>
+                    <div><dt>Reported by</dt><dd>{SOURCE_TEXT[r.source ?? ""] ?? "Recorded on StrayPaw"}</dd></div>
+                  </dl>
+                  <ul className="pr-checks" aria-label="Health checks on the record">
+                    <li className={`is-${ster}`}><i aria-hidden /><b>Sterilised</b><span>{CHECK_TEXT[ster]}</span></li>
+                    <li className={`is-${vac}`}><i aria-hidden /><b>Vaccinated</b><span>{CHECK_TEXT[vac]}</span></li>
+                  </ul>
+                  <Link href={`/dog/${r.id}`} className="pr-go" tabIndex={k === 0 ? 0 : -1}>Open the record <ArrowUpRight size={14} aria-hidden /></Link>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        <div className="pr-ctl">
+          <button type="button" className="pr-btn" onClick={() => go(at - 1)} aria-label="Previous animal"><ArrowLeft size={17} /></button>
+          <span className="pr-run" aria-hidden>
+            {!calm && <i key={at} onAnimationEnd={() => go(at + 1)} />}
+          </span>
+          <button type="button" className="pr-btn" onClick={() => go(at + 1)} aria-label="Next animal"><ArrowRight size={17} /></button>
+        </div>
       </div>
-      <ol className="ld-tour-strip" aria-label="Photographed animals">
-        {placed.map((p, i) => (
-          <li key={p.id}>
-            <button type="button" onClick={() => pick(i)} aria-pressed={i === at} aria-label={label(p)} className={i === at ? "is-on" : ""}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={sized(p.cover_photo, 128)} alt="" loading="lazy" />
-            </button>
-          </li>
+
+      <div className="pr-sheet" aria-label="Every photographed animal">
+        {[rowA, rowB].map((row, ri) => (
+          <div key={ri} className={`pr-row ${ri ? "is-back" : ""}`}>
+            <ol>
+              {[...row, ...row].map((p, i) => {
+                const di = deck.indexOf(p);
+                const dup = i >= row.length;
+                return (
+                  <li key={`${p.id}-${i}`} aria-hidden={dup || undefined}>
+                    <button type="button" onClick={() => go(di)} tabIndex={dup ? -1 : 0} aria-pressed={di === at} aria-label={label(p)} className={di === at ? "is-on" : ""}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={sized(p.cover_photo, 160)} alt="" loading="lazy" />
+                      <span className="sys-mono">{p.straypaw_id?.slice(-6) ?? ""}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         ))}
-      </ol>
+      </div>
     </div>
   );
 }

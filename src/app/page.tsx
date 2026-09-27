@@ -123,7 +123,7 @@ export default async function HomePage() {
         )}
 
         <section className="ld-sec ld-sec-bone ld-sec-tight" aria-label="Photographed onto the record">
-          <PhotoRegister rows={photos.rows} />
+          <PhotoRegister rows={photos.rows} total={photos.total} />
         </section>
 
         <section className="ld-close">

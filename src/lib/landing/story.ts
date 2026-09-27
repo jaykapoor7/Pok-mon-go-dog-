@@ -14,7 +14,6 @@
 
 import { getSupabase, getSupabaseAdmin } from "@/lib/supabase";
 import { unstable_cache } from "next/cache";
-import { cellToLatLng, isValidCell } from "h3-js";
 import { getPublicDataset, SPATIAL_TAG } from "@/lib/spatial/server";
 import { buildIndex, openNow, robustStart } from "@/lib/spatial/engine";
 import { animalKnowledge, casesIn, firstAction, statusTotals } from "@/lib/spatial/measures";
@@ -297,16 +296,18 @@ async function resolveRelay(feed: FeedEvent[], cityCells: string[], city: string
 }
 
 /** Resident photographs on the record, newest first, for the register strip. */
-export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v3"], { revalidate: 300, tags: [SPATIAL_TAG] });
+export const getPhotoRegister = unstable_cache(readPhotoRegister, ["photo-register-v4"], { revalidate: 300, tags: [SPATIAL_TAG] });
 
 /* Case conditions that do not mean a wound on camera: routine ABC and ARV,
    and abandonment. Anything else on a case, an "injured" status or a
    needs-help flag puts the photograph after the calm ones. */
 const CALM_CONDITIONS = new Set(["Sterilisation (ABC)", "Vaccination (ARV)", "Abandonment"]);
 
-type PhotoRecord = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; last_seen: string | null; h3_r8?: string | null };
-/** Where a photographed animal is drawn: the centre of its cell, never finer. */
-const cellPoint = (h: string | null | undefined): [number, number] | null => { if (!h || !isValidCell(h)) return null; const [lat, lng] = cellToLatLng(h); return [Math.round(lng * 1e5) / 1e5, Math.round(lat * 1e5) / 1e5]; };
+type PhotoRecord = {
+  id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null;
+  first_seen: string | null; last_seen: string | null; sightings_count: number | null; source: string | null;
+  sterilisation_status: string | null; vaccination_status: string | null;
+};
 
 async function readPhotoRegister(limit = 24) {
   const supa = getSupabase();
@@ -314,7 +315,7 @@ async function readPhotoRegister(limit = 24) {
   /* A wider pool than the strip shows, so the strip can lead with animals
      photographed without a visible injury and still be full. */
   const [{ data }, { count }] = await Promise.all([
-    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,last_seen,status,needs_help,h3_r8").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(limit * 4),
+    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,source,sterilisation_status,vaccination_status,status,needs_help").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(limit * 4),
     supa.from("public_spatial_animals").select("id", { count: "exact", head: true }).not("cover_photo", "is", null).neq("cover_photo", ""),
   ]);
   const pool = (data ?? []) as (PhotoRecord & { status: string | null; needs_help: boolean | null })[];
@@ -326,6 +327,7 @@ async function readPhotoRegister(limit = 24) {
     }
   }
   const ordered = [...pool.filter((r) => !hurt.has(r.id)), ...pool.filter((r) => hurt.has(r.id))].slice(0, limit);
-  const rows = ordered.map(({ id, name, straypaw_id, cover_photo, zone, city, last_seen, h3_r8 }) => ({ id, name, straypaw_id, cover_photo, zone, city, last_seen, pt: cellPoint(h3_r8) }));
+  const rows = ordered.map(({ id, name, straypaw_id, cover_photo, zone, city, first_seen, last_seen, sightings_count, source, sterilisation_status, vaccination_status }) =>
+    ({ id, name, straypaw_id, cover_photo, zone, city, first_seen, last_seen, sightings_count, source, sterilisation_status, vaccination_status }));
   return { rows, total: count ?? 0 };
 }
