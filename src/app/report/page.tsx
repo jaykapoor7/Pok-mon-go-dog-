@@ -25,7 +25,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Camera, Check, ChevronDown, Clock, Crosshair, Loader2, MapPin, PawPrint } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, ChevronDown, Clock, Crosshair, HeartHandshake, Loader2, MapPin, PawPrint } from "lucide-react";
 import type { MoodTag } from "@/lib/types";
 import { nearestCity, reverseGeocode } from "@/lib/delhi";
 import { readPhotoMeta, looksIndian } from "@/lib/exif";
@@ -56,7 +56,7 @@ const EARS: { v: SterilisationStatus; label: string; note: string }[] = [
   { v: "not_sterilised", label: "Not notched", note: "Both ears whole" },
   { v: "unknown", label: "Can't see", note: "Kept as not examined" },
 ];
-const TITLES = ["Add a photo", "Where is it?", "How is it?", "Is an ear notched?", "Check and send"];
+const TITLES = ["Start a care report", "Where is the dog?", "How is it?", "Is an ear notched?", "Ready to share"];
 
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
@@ -203,6 +203,10 @@ export default function ReportPage() {
         </ol>
         <span className="rq-count sys-mono">{step + 1}/5</span>
       </header>
+      {!volunteer && <div className="rq-purpose">
+        <span><HeartHandshake size={15} aria-hidden /> A shared care trail starts here</span>
+        <small>About a minute · no account needed</small>
+      </div>}
       {volunteer && step === 0 && <p className="rq-for">Reporting for <b>{volunteer.orgName}</b> as {volunteer.name}</p>}
 
       <div className="rq report-form">
@@ -227,7 +231,8 @@ export default function ReportPage() {
                   <PhotoStudio file={raw} onCancel={() => { setRaw(null); fileRef.current?.click(); }} onDone={(edited, url) => { setFile(edited); setPhoto(url); setRaw(null); answered(0); }} />
                 ) : (
                   <>
-                    <p className="rq-lede">A clear photo helps a field team find the right animal.</p>
+                    <p className="rq-kicker">You noticed them. We can carry it forward.</p>
+                    <p className="rq-lede">A clear photo helps a care team recognise the right animal. A report without one still matters.</p>
                     <button type="button" className="rq-camera" onClick={() => fileRef.current?.click()}>
                       {photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -325,16 +330,28 @@ export default function ReportPage() {
                     <span><small>Ear</small><b>{earLabel ?? "Not answered"}</b></span><em>Change</em>
                   </button></li>
                 </ul>
-                {condition === "injured" && <p className="rq-urgent">It goes to the organisations nearby as needing help. If it is bleeding or cannot move, also call your local animal ambulance now.</p>}
+                <section className="rq-handoff" aria-label="What happens after you send">
+                  <div><HeartHandshake size={18} aria-hidden /><b>What happens next</b></div>
+                  <ol>
+                    <li><i>01</i><span>Your report waits for a quick review before it is public.</span></li>
+                    <li><i>02</i><span>Once accepted, it becomes a shared animal record on the map.</span></li>
+                    <li><i>03</i><span>Care teams working nearby can take it into their field work.</span></li>
+                  </ol>
+                </section>
+                {condition === "injured" && <p className="rq-urgent">Marked for urgent review. If the dog is bleeding or cannot move, also call your local animal ambulance now.</p>}
+
+                <label className="rq-update">
+                  <span><b>Get the link when this report is live</b><small>Optional. We only email you about this report.</small></span>
+                  <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" />
+                </label>
 
                 <div className="rq-more">
-                  <button type="button" className="rq-more-btn" aria-expanded={more} onClick={() => setMore((m) => !m)}>Add a name or note <span>optional</span> <ChevronDown size={16} aria-hidden /></button>
+                  <button type="button" className="rq-more-btn" aria-expanded={more} onClick={() => setMore((m) => !m)}>Add a name or useful detail <span>optional</span> <ChevronDown size={16} aria-hidden /></button>
                   {more && (
                     <div className="rq-more-body">
                       {coords && <AnimalMatch lat={coords.lat} lng={coords.lng} value={claimedDogId} onChange={(id) => { setClaimedDogId(id); if (id) track("existing_animal_selected"); }} />}
                       <label className="rq-field"><span>A name people call it</span><input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Bruno, Laali, Brownie" /></label>
                       <label className="rq-field"><span>Anything else</span><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Limps on the back left leg, very friendly" /></label>
-                      <label className="rq-field"><span>Email me when it is on the map</span><input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" /></label>
                       <ReportingFor volunteer={volunteer} onChange={setVolunteer} />
                       {hydrated && ready && !isAuthed && <p className="rq-signin">No account needed. <button type="button" className="rq-link" onClick={openSignIn}>Sign in</button> to edit this report later.</p>}
                     </div>
@@ -362,9 +379,10 @@ export default function ReportPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="rq-done-wrap">
             <motion.div initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} className="rq-done" role="dialog" aria-labelledby="rq-done-t">
               <span className="rq-done-ic"><Clock size={30} /></span>
-              <h2 id="rq-done-t">Sent. Thank you.</h2>
-              <p>It is checked quickly, then it appears on the map{condition === "injured" ? " and goes to the organisations nearby as needing help" : ""}.</p>
-              <Link href="/following" className="rq-go">See your reports <ArrowRight size={16} /></Link>
+              <h2 id="rq-done-t">Your report is in the care trail.</h2>
+              <p>{condition === "injured" ? "It is marked for urgent review. " : ""}This device keeps your link while it is reviewed, then you can see it on the shared map.</p>
+              <p className="rq-done-steps">Sent <span>→</span> Reviewed <span>→</span> Shared record</p>
+              <Link href="/following" className="rq-go">Follow this report <ArrowRight size={16} /></Link>
               <button type="button" className="rq-link" onClick={reset}>Report another</button>
             </motion.div>
           </motion.div>

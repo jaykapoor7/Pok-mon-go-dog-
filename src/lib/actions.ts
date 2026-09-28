@@ -19,6 +19,7 @@ import {
   rememberOwner,
   getOwnerToken,
   forgetOwner,
+  ownedSightings,
 } from "./ownership";
 import { isRecordingDemo, recordingDemoOrg } from "./recording-demo";
 
@@ -50,6 +51,16 @@ export interface ReportResult {
   dogId: string | null;
   sightingId: string | null;
   trust: number;
+}
+
+export interface DeviceSighting {
+  id: string;
+  dog_id: string | null;
+  nickname: string | null;
+  zone: string | null;
+  mood_tags: string[];
+  status: string;
+  created_at: string;
 }
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8 MB
@@ -154,6 +165,20 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
   const result = (await res.json()) as ReportResult;
   if (result.sightingId) rememberOwner(result.sightingId, ownerToken);
   return result;
+}
+
+/** Read reports this browser owns, even when the reporter chose not to sign in. */
+export async function getDeviceSightings(): Promise<DeviceSighting[]> {
+  const sightings = ownedSightings().slice(0, 20);
+  if (!sightings.length) return [];
+  const res = await fetch("/api/sighting/status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sightings }),
+  });
+  if (!res.ok) return [];
+  const body = await res.json().catch(() => null) as { sightings?: DeviceSighting[] } | null;
+  return Array.isArray(body?.sightings) ? body.sightings : [];
 }
 
 /**

@@ -57,6 +57,7 @@ export type Incoming = {
   lng: number | null;
   nickname: string | null;
   notes: string | null;
+  mood_tags: string[] | null;
   sterilisation_status: string | null;
   vaccination_status: string | null;
   reported_by: string;

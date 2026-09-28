@@ -45,6 +45,17 @@ export function getOwnerToken(sightingId: string): string | null {
   return read()[sightingId] ?? null;
 }
 
+/**
+ * The report timeline is available without an account. The browser sends
+ * each secret only to our own status endpoint, which checks its hash before
+ * returning a row. No token, no row.
+ */
+export function ownedSightings(): { sightingId: string; ownerToken: string }[] {
+  return Object.entries(read())
+    .filter(([sightingId, ownerToken]) => Boolean(sightingId && ownerToken))
+    .map(([sightingId, ownerToken]) => ({ sightingId, ownerToken }));
+}
+
 export function ownsSighting(sightingId: string): boolean {
   return !!read()[sightingId];
 }

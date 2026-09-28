@@ -13,10 +13,14 @@ html .rq-wrap { max-width: 520px; margin: 0 auto; display: grid; gap: var(--sp-4
 .rq-dots li.is-done { background: var(--sp-blue); }
 .rq-count { font-size: 12px; color: var(--sp-muted); font-variant-numeric: tabular-nums; }
 .rq-for { margin: 0; font-size: 13px; color: var(--sp-body); }
+.rq-purpose { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: 10px 12px; border-radius: var(--sp-radius-sm); background: var(--ctl-tint); color: var(--sp-blue); }
+.rq-purpose span { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 650; }
+.rq-purpose small { color: var(--sp-body); font-size: 11.5px; white-space: nowrap; }
 
 html .rq-wrap .report-form.rq { padding: var(--sp-6) var(--sp-5); background: var(--sp-paper); border: 1px solid var(--sp-line); border-radius: var(--sp-radius-lg); overflow: hidden; }
 .rq-screen { display: grid; gap: var(--sp-4); }
 .rq-screen h1 { margin: 0; font-size: clamp(28px, 7vw, 36px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 600; color: var(--sp-ink); }
+.rq-kicker { margin: 0 -2px calc(var(--sp-3) * -1); font: 600 11px/1.2 var(--font-mono), ui-monospace, monospace; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-blue); }
 .rq-lede { margin: 0; display: flex; align-items: center; gap: var(--sp-2); font-size: 15px; line-height: 1.45; color: var(--sp-body); }
 
 /* Photo. The tile and the answer rows are buttons, and the touch floor on
@@ -77,6 +81,13 @@ html .rq-wrap button.rq-opt { min-height: 68px; }
 .rq-sum button.is-hot b { color: var(--sp-ember); }
 .rq-sum em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--sp-blue); }
 
+.rq-handoff { display: grid; gap: var(--sp-3); padding: var(--sp-4); border: 1px solid var(--sp-line); border-radius: var(--sp-radius); background: linear-gradient(135deg, rgba(36, 87, 206, 0.07), rgba(36, 87, 206, 0.015)); }
+.rq-handoff > div { display: flex; align-items: center; gap: 8px; color: var(--sp-blue); }
+.rq-handoff > div b { font-size: 14px; color: var(--sp-ink); }
+.rq-handoff ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.rq-handoff li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; font-size: 13px; line-height: 1.42; color: var(--sp-body); }
+.rq-handoff li i { font: 600 10px/1.8 var(--font-mono), ui-monospace, monospace; color: var(--sp-blue); }
+
 .rq-more-btn { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: var(--ctl-h); padding: 0; border: 0; background: none; font: inherit; font-size: 14.5px; font-weight: 600; color: var(--sp-body); cursor: pointer; }
 .rq-more-btn span { font-weight: 500; color: var(--sp-muted); }
 .rq-more-btn svg { margin-left: auto; transition: transform var(--sp-base) var(--sp-ease-io); }
@@ -87,6 +98,10 @@ html .rq-wrap button.rq-opt { min-height: 68px; }
 .rq-wrap input:not([type="checkbox"]):not([type="file"]), .rq-wrap textarea { width: 100%; box-sizing: border-box; min-height: var(--ctl-h); padding: 10px var(--sp-3); border-radius: var(--sp-radius-sm); border: 1px solid var(--sp-line); background: var(--sp-paper); font: inherit; font-size: 16px; color: var(--sp-ink); }
 .rq-wrap textarea { resize: vertical; }
 .rq-wrap input:focus-visible, .rq-wrap textarea:focus-visible { outline: 2px solid var(--sp-blue); outline-offset: 1px; }
+.rq-update { display: grid; gap: 9px; padding: var(--sp-4); border-radius: var(--sp-radius); background: var(--sp-bone); cursor: text; }
+.rq-update span { display: grid; gap: 2px; }
+.rq-update b { font-size: 14px; color: var(--sp-ink); }
+.rq-update small { font-size: 12.5px; color: var(--sp-muted); }
 .rq-signin { margin: 0; font-size: 13px; color: var(--sp-muted); }
 .rq-consent { display: flex; align-items: flex-start; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--sp-radius-sm); background: var(--sp-bone); font-size: 13.5px; line-height: 1.4; color: var(--sp-body); cursor: pointer; }
 .rq-consent input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--sp-blue); }
@@ -99,10 +114,13 @@ html .rq-wrap button.rq-opt { min-height: 68px; }
 .rq-done-ic { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--ctl-tint); color: var(--sp-blue); }
 .rq-done h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--sp-ink); }
 .rq-done p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--sp-body); }
+.rq-done .rq-done-steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font: 600 11px/1.35 var(--font-mono), ui-monospace, monospace; letter-spacing: 0.05em; text-transform: uppercase; color: var(--sp-blue); }
+.rq-done-steps span { color: var(--sp-muted); }
 
 @media (max-width: 760px) {
   html .rq-wrap { gap: var(--sp-3); }
   html .rq-wrap .report-form.rq { padding: var(--sp-3) 0 var(--sp-5); border: 0; border-radius: 0; background: transparent; overflow: visible; }
   html .rq-wrap button.rq-camera { min-height: max(260px, 42vh); }
+  .rq-purpose { align-items: flex-start; flex-direction: column; gap: 3px; }
 }
 @media (prefers-reduced-motion: reduce) { .rq-spin { animation: none; } }

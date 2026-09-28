@@ -13,13 +13,14 @@ import type { Dog } from "@/lib/types";
 import { formatPlace } from "@/lib/delhi";
 import { dogLabel, timeAgo } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { getMySightings } from "@/lib/actions";
+import { getDeviceSightings, getMySightings, type DeviceSighting } from "@/lib/actions";
 import { getDogsByIds } from "@/lib/data";
 
 export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
   const { ids } = useFollows();
   const { user } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
+  const [deviceReports, setDeviceReports] = useState<DeviceSighting[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   /* Null until the browser answers, and it may never: location is a
      permission, not a fact. Everything below works without it. */
@@ -45,6 +46,14 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
     return () => { live = false; };
   }, [user?.id]);
 
+  /* Guests still have a way back: the device holds the report secret and the
+     server returns a timeline only when that secret matches its stored hash. */
+  useEffect(() => {
+    let live = true;
+    getDeviceSightings().then((rows) => { if (live) setDeviceReports(rows); });
+    return () => { live = false; };
+  }, []);
+
   // Follows are kept on-device, so the followed animals are read by id from
   // here — never by sending the whole register to the page.
   const [followedRows, setFollowedRows] = useState<Dog[]>([]);
@@ -60,15 +69,19 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
      be stored in does not answer that. */
   const followed = [...followedRows]
     .sort((a, b) => +new Date(b.last_seen ?? 0) - +new Date(a.last_seen ?? 0));
-  const reportHistory = user && reports.length > 0 ? <section className="my-report-history">
-    <div className="spa-panel-head"><b>Reports you filed</b><span>{reports.length} on your account</span></div>
+  const timeline = [...reports, ...deviceReports.filter((d) => !reports.some((r) => r.id === d.id))]
+    .sort((a, b) => +new Date(b.created_at ?? 0) - +new Date(a.created_at ?? 0));
+  const reportHistory = timeline.length > 0 ? <section className="my-report-history">
+    <div className="spa-panel-head"><b>Your report trail</b><span>{timeline.length} report{timeline.length === 1 ? "" : "s"} from this device{user && reports.length ? " and your account" : ""}</span></div>
     <div className="my-report-list">
-      {reports.slice(0, 8).map((report) => {
-        const href = report.dog_id ? `/dog/${report.dog_id}` : `/map?lat=${report.lat}&lng=${report.lng}`;
+      {timeline.slice(0, 8).map((report) => {
+        const href = report.dog_id ? `/dog/${report.dog_id}` : report.lat && report.lng ? `/map?lat=${report.lat}&lng=${report.lng}` : "/following";
+        const careRequest = Array.isArray(report.mood_tags) && report.mood_tags.some((tag: string) => ["injured", "hungry", "puppies"].includes(tag));
+        const state = report.status === "live" ? "Shared on the map" : report.status === "pending" ? "Awaiting review" : "Status updated";
         return <div key={report.id} className="my-report-item">
           <Link href={href} className="my-report-row">
-            <span className={report.status === "live" ? "my-report-status live" : "my-report-status"}>{report.status === "live" ? "On the map" : "In review"}</span>
-            <span className="my-report-copy"><b>{report.nickname || "Street animal sighting"}</b><small>{report.zone || "Location saved"} · {timeAgo(report.created_at)}</small></span>
+            <span className={report.status === "live" ? "my-report-status live" : careRequest ? "my-report-status urgent" : "my-report-status"}>{state}</span>
+            <span className="my-report-copy"><b>{report.nickname || "Street animal sighting"}</b><small>{report.zone || "Location saved"} · {timeAgo(report.created_at)}{careRequest ? " · Care requested" : ""}</small></span>
             <ArrowUpRight size={15} />
           </Link>
           <span className="my-report-acts">

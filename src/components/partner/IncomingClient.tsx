@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Inbox, Loader2, MapPin } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
+import { HeartPulse, Inbox, Loader2, MapPin } from "lucide-react";
 import {
   fileToCampaign,
   orgCampaigns,
@@ -38,6 +38,12 @@ const VACC_LABEL: Record<string, string> = {
   not_vaccinated: "Not vaccinated",
   unknown: "Vaccination unknown",
 };
+function careNeed(tags: string[] | null) {
+  if (tags?.includes("injured")) return "Hurt or sick";
+  if (tags?.includes("hungry")) return "Thin or hungry";
+  if (tags?.includes("puppies")) return "Puppies nearby";
+  return null;
+}
 
 export function IncomingClient() {
   const [source, setSource] = useState<"ours" | "community">("ours");
@@ -92,9 +98,9 @@ export function IncomingClient() {
         source === "community"
       );
       setNote(
-        `${r.filed} filed. ${r.registered} ${
-          r.registered === 1 ? "animal is" : "animals are"
-        } now on your register and counting towards this drive.`
+        source === "community"
+          ? `${r.filed} community ${r.filed === 1 ? "report is" : "reports are"} now in your team's work for ${drive?.name ?? "this drive"}. ${r.registered} ${r.registered === 1 ? "animal is" : "animals are"} now on your register.`
+          : `${r.filed} filed. ${r.registered} ${r.registered === 1 ? "animal is" : "animals are"} now on your register and counting towards this drive.`
       );
       await load();
     } catch (e) {
@@ -105,6 +111,9 @@ export function IncomingClient() {
   }
 
   const drive = drives.find((d) => d.id === driveId);
+  const careRows = source === "community" ? (rows ?? []).filter((r) => Boolean(careNeed(r.mood_tags))) : [];
+  const observationRows = source === "community" ? (rows ?? []).filter((r) => !careNeed(r.mood_tags)) : (rows ?? []);
+  const orderedRows = source === "community" ? [...careRows, ...observationRows] : observationRows;
 
   return (
     <>
@@ -130,8 +139,16 @@ export function IncomingClient() {
       <p className="inc-lede">
         {source === "ours"
           ? "Filed by somebody using one of your codes. Choose which drive each belongs to and they join your register."
-          : "Reported by the public, owned by nobody. Claiming one takes it on as your organisation's work."}
+          : "Reports from people on the street. Take one on only when your team can own the next step; filing it starts a traceable record in the right drive."}
       </p>
+
+      {source === "community" && rows !== null && (
+        <section className="inc-intake" aria-label="Community report overview">
+          <div><HeartPulse size={18} aria-hidden /><span>Needs a first look</span></div>
+          <b>{careRows.length}</b>
+          <p>{careRows.length === 1 ? "One report carries a care signal." : `${careRows.length} reports carry care signals.`} Claiming makes the next step your team&apos;s responsibility.</p>
+        </section>
+      )}
 
       {drives.length === 0 ? (
         <div className="spa-empty">
@@ -161,8 +178,8 @@ export function IncomingClient() {
             disabled={busy || picked.size === 0 || !driveId}
           >
             {busy ? <Loader2 size={14} className="imp-spin" /> : null}
-            {source === "community" ? "Claim and file" : "File"} {picked.size}
-            {picked.size === 1 ? " observation" : " observations"}
+            {source === "community" ? "Take on and file" : "File"} {picked.size}
+            {picked.size === 1 ? " report" : " reports"}
             {drive ? ` into ${drive.name}` : ""}
           </button>
         </div>
@@ -192,44 +209,53 @@ export function IncomingClient() {
             {picked.size === rows.length ? "Clear selection" : `Select all ${rows.length}`}
           </button>
           <ul className="inc-list">
-            {rows.map((r) => {
+            {orderedRows.map((r, index) => {
               const on = picked.has(r.id);
+              const need = careNeed(r.mood_tags);
+              const groupStart = source === "community" && (
+                (index === 0 && careRows.length > 0) ||
+                (index === careRows.length && observationRows.length > 0)
+              );
               return (
-                <li key={r.id} className={on ? "on" : ""}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={on}
-                      onChange={() => toggle(r.id)}
-                    />
-                    {r.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={r.photo_url} alt="" loading="lazy" />
-                    ) : (
-                      <span className="inc-nophoto" aria-hidden />
-                    )}
-                    <span className="inc-body">
-                      <b>{r.nickname || "Unnamed"}</b>
-                      <span className="inc-meta">
-                        {r.zone && (
-                          <>
-                            <MapPin size={12} /> {r.zone} ·{" "}
-                          </>
-                        )}
-                        {r.reported_by} · {timeAgo(r.created_at)}
+                <Fragment key={r.id}>
+                  {groupStart && <li className="inc-group">{index === 0 ? "Care requests" : "Other community reports"}</li>}
+                  <li className={`${on ? "on" : ""}${need ? " is-care" : ""}`}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() => toggle(r.id)}
+                      />
+                      {r.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={r.photo_url} alt="" loading="lazy" />
+                      ) : (
+                        <span className="inc-nophoto" aria-hidden />
+                      )}
+                      <span className="inc-body">
+                        <b>{r.nickname || "Unnamed"}</b>
+                        <span className="inc-meta">
+                          {r.zone && (
+                            <>
+                              <MapPin size={12} /> {r.zone} ·{" "}
+                            </>
+                          )}
+                          {r.reported_by} · {timeAgo(r.created_at)}
+                        </span>
+                        {need && <span className="inc-care"><HeartPulse size={12} /> {need}</span>}
+                        <span className="inc-tags">
+                          <i className={r.sterilisation_status ?? "unknown"}>
+                            {STER_LABEL[r.sterilisation_status ?? "unknown"]}
+                          </i>
+                          <i className={r.vaccination_status ?? "unknown"}>
+                            {VACC_LABEL[r.vaccination_status ?? "unknown"]}
+                          </i>
+                        </span>
+                        {r.notes && <span className="inc-notes">{r.notes}</span>}
                       </span>
-                      <span className="inc-tags">
-                        <i className={r.sterilisation_status ?? "unknown"}>
-                          {STER_LABEL[r.sterilisation_status ?? "unknown"]}
-                        </i>
-                        <i className={r.vaccination_status ?? "unknown"}>
-                          {VACC_LABEL[r.vaccination_status ?? "unknown"]}
-                        </i>
-                      </span>
-                      {r.notes && <span className="inc-notes">{r.notes}</span>}
-                    </span>
-                  </label>
-                </li>
+                    </label>
+                  </li>
+                </Fragment>
               );
             })}
           </ul>

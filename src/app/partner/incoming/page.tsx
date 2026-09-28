@@ -8,8 +8,8 @@ export default function PartnerIncomingPage() {
   return (
     <ConsolePage
       kicker="Field work / queue"
-      title="Incoming"
-      lede="Nothing counts towards your programme until you file it. What your volunteers send in waits here for you to say which drive it belongs to; community sightings wait to be claimed."
+      title="Reports waiting for a response"
+      lede="A resident's report starts here. See care signals first, decide what your team can own, then file the report into the field work that follows."
     >
       <IncomingClient />
     </ConsolePage>

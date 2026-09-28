@@ -25,7 +25,7 @@ export default async function FollowingPage() {
         </div>
       </div>
 
-      <p className="spa-lede follow-lede">A place to return to the animals you care about and the reports you have made. Saved animals stay on this device; signed-in reports show their latest review status.</p>
+      <p className="spa-lede follow-lede">A place to return to the animals you care about and the reports you have made. This device keeps your report trail, whether or not you chose to sign in.</p>
 
       <FollowingClient suggestions={suggestions} />
     </AppShell>
