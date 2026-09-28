@@ -1,0 +1,22 @@
+/* Feeding places read as a route register, with a photograph and the last
+   recorded visit visible without opening each place. */
+.feed-record { display: grid; grid-template-columns: 38px 112px minmax(0, 1fr) minmax(170px, .55fr) 20px; align-items: center; gap: clamp(14px, 2vw, 28px); min-width: 0; padding: var(--sp-4) var(--sp-2); border-bottom: 1px solid var(--sp-rule); color: var(--sp-ink); text-decoration: none; transition: background var(--sp-fast) var(--sp-ease-io); }
+.feed-record:hover { background: rgba(255,253,249,.65); }
+.feed-record:focus-visible { outline: 2px solid var(--sp-blue); outline-offset: -2px; }
+.feed-record-index { align-self: start; margin-top: 5px; color: var(--sp-ember); font: 11px var(--font-mono), ui-monospace, monospace; letter-spacing: .1em; }
+.feed-record-photo { width: 112px; height: 80px; overflow: hidden; border-radius: var(--sp-radius-sm); object-fit: cover; }
+.feed-record-copy { min-width: 0; display: grid; gap: var(--sp-2); }
+.feed-record-copy p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(17px, 1.7vw, 22px); font-weight: 600; letter-spacing: -.025em; }
+.feed-record-place, .feed-record-status { color: var(--sp-body); font-size: 12px; }
+.feed-record-place span, .feed-record-status span { display: flex; align-items: center; gap: 6px; }
+.feed-record-status { display: grid; gap: 8px; }
+.feed-record-status svg { color: var(--sp-blue); flex: none; }
+.feed-record-arrow { color: var(--sp-blue); transition: transform var(--sp-fast) var(--sp-ease); }
+.feed-record:hover .feed-record-arrow { transform: translate(3px,-3px); }
+@media (max-width: 760px) {
+  .feed-record { grid-template-columns: 20px 76px minmax(0, 1fr) 16px; gap: 10px; padding: var(--sp-3) 0; }
+  .feed-record-photo { width: 76px; height: 76px; }
+  .feed-record-copy p { white-space: normal; font-size: 17px; line-height: 1.2; }
+  .feed-record-status { grid-column: 3; grid-row: 2; gap: 4px; }
+  .feed-record-arrow { grid-column: 4; grid-row: 1; }
+}

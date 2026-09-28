@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/app/AppShell";
 import { FollowingClient } from "@/components/app/FollowingClient";
 import { getSuggestedDogs } from "@/lib/data";
+import "./following.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -15,7 +16,7 @@ export default async function FollowingPage() {
 
   return (
     <AppShell>
-      <div className="spa-head">
+      <div className="spa-head follow-head">
         <div>
           <span className="spa-mono">Your follow-up</span>
           <h1>
@@ -24,10 +25,7 @@ export default async function FollowingPage() {
         </div>
       </div>
 
-      <p className="spa-lede">
-        Saved animals stay on this device. When you sign in, reports you filed
-        appear here too, with their latest review status.
-      </p>
+      <p className="spa-lede follow-lede">A place to return to the animals you care about and the reports you have made. Saved animals stay on this device; signed-in reports show their latest review status.</p>
 
       <FollowingClient suggestions={suggestions} />
     </AppShell>

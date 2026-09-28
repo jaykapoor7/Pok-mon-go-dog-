@@ -343,41 +343,44 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       {notice && <div className="ib-notice">{notice}</div>}
 
       {/* ── the place ──────────────────────────────────────────────── */}
-      <header className="ib-head">
+      <header className={`ib-head${!ds ? " is-unavailable" : ""}`}>
         <div className="ib-head-words">
           <p className="ib-kicker sys-mono">{scope === "org" ? "Your records" : "Insights"} · {periodLabel}</p>
-          <h1>{placeName || <>&nbsp;</>}</h1>
+          <h1>{placeName || (scope === "org" ? "Your field evidence" : "Evidence, place by place.")}</h1>
           {isLocality && <p className="ib-city">{cityName}</p>}
-          <dl className="ib-figs">
-            <div><dt>requests for help</dt><dd>{ds ? n(idx.length) : "—"}</dd></div>
-            <div><dt>open now</dt><dd>{ds ? n(openNowHere) : "—"}</dd></div>
-            <div><dt>animals on record</dt><dd>{ds ? n(animalsHere) : "—"}</dd></div>
-          </dl>
+          {ds && <><dl className="ib-figs">
+            <div><dt>requests for help</dt><dd>{n(idx.length)}</dd></div>
+            <div><dt>open now</dt><dd>{n(openNowHere)}</dd></div>
+            <div><dt>animals on record</dt><dd>{n(animalsHere)}</dd></div>
+          </dl><p className="ib-scope-note">Requests follow the selected period. Open work and animals show the current record.</p></>}
         </div>
-        <div className="ib-plate">
-          {plate && ds && place && (
+        {plate && ds && place && <div className="ib-plate">
             <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Requests by cell in ${cityName}`}
               onCell={(key) => { const i = ds.cells.indexOf(key); if (i >= 0 && ds.cellLocality[i] >= 0) setPlace({ city: place.city, locality: ds.cellLocality[i] }); }} />
-          )}
           <p className="ib-plate-note">Brighter cells ask for more help. Choose one to read its locality.</p>
-        </div>
+        </div>}
       </header>
 
-      <div className="ib-bar">
+      {ds && <div className="ib-bar">
         <PlaceSearch options={options} onPick={pickPlace} label="Choose a place" />
         {isLocality && ds && place && <button type="button" className="ib-up" onClick={() => setPlace({ city: place.city, locality: -1 })}>All of {cityName}</button>}
         <div className="ib-period" role="group" aria-label="Period">
           {PERIODS.map((p) => <button key={p.id} type="button" aria-pressed={period === p.id} className={period === p.id ? "is-on" : ""} onClick={() => setPeriod(p.id)}>{p.label}</button>)}
         </div>
         <Link href={mapHref("density")} className="ib-map"><MapIcon size={15} aria-hidden /> Open on the map</Link>
-      </div>
+      </div>}
 
       {/* ── the answers ────────────────────────────────────────────── */}
       <div className="ib-body">
+        {shown.length > 0 && <div className="ib-chapter"><div><span>THE FIELD BRIEF / {String(shown.length).padStart(2, "0")} FINDINGS</span><h2>What the record says <em>here.</em></h2></div><p>Read the answer first. The chart or breakdown beside it shows the evidence behind it.</p></div>}
         {loading && <p className="ib-state" role="status">Reading the register…</p>}
-        {error && <p className="ib-state" role="status">{error}</p>}
+        {error && <div className="ib-unavailable" role="status">
+          <div><span>THE RECORD IS TEMPORARILY UNAVAILABLE</span><h2>Keep exploring while it reconnects.</h2><p>{error}</p></div>
+          <nav aria-label="Other ways to explore"><Link href="/stories">Read completed rescues <ArrowUpRight size={15} /></Link><Link href="/orgs">Meet the organisations <ArrowUpRight size={15} /></Link></nav>
+        </div>}
         {shown.map((x, k) => (
-          <section key={x.id} className="ib-q" aria-labelledby={`ib-${x.id}`} style={{ ["--i" as string]: k }}>
+          <section key={x.id} className={`ib-q${k === 0 ? " is-lead" : ""}`} aria-labelledby={`ib-${x.id}`} style={{ ["--i" as string]: k }}>
+            <span className="ib-q-index" aria-hidden>{String(k + 1).padStart(2, "0")}</span>
             <div className="ib-q-words">
               <h2 id={`ib-${x.id}`}>{x.q}</h2>
               <p className="ib-a">{x.a}</p>

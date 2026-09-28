@@ -106,7 +106,10 @@ export default async function StoriesPage() {
           )}
           <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
         </header>
-        {stories.length ? <StoryAtlas stories={stories} /> : <p className="st-empty">No finished rescue has been published yet.</p>}
+        {stories.length ? <StoryAtlas stories={stories} /> : <section className="st-empty" aria-label="How stories enter the atlas">
+          <div><span className="st-empty-index">THE ATLAS / A RECORD WITH AN ENDING</span><h2>Every rescue starts somewhere.</h2><p>No finished rescue has been published yet. A story appears here when its record includes the issue, care given, a date and an outcome.</p></div>
+          <ol><li><b>01</b><span>Reported</span></li><li><b>02</b><span>Care recorded</span></li><li><b>03</b><span>Outcome known</span></li></ol>
+        </section>}
       </main>
     </AppShell>
   );

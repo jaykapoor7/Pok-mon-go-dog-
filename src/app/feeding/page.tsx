@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Plus, Utensils } from "lucide-react";
+import { ArrowUpRight, Plus } from "lucide-react";
 import { getFeedingZones } from "@/lib/feeding-zones";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { FeedingZoneCard } from "@/components/feeding/FeedingZoneCard";
 
 export const metadata = {
@@ -16,36 +15,27 @@ export default async function FeedingZonesPage() {
   const zones = await getFeedingZones();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 sm:px-6">
-
-      <header className="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl tracking-tightest">Feeding zones</h1>
-          <p className="mt-1 text-sm text-bark-500">
-            Regular feeding spots the community keeps going, see who&apos;s covering
-            each one, sign up for a day, or mark one fed today.
-          </p>
+    <main className="feed-index">
+      <header className="feed-index-head">
+        <div className="feed-index-copy">
+          <p className="feed-kicker">The community route book</p>
+          <h1>Feeding spots, <em>kept in view.</em></h1>
+          <p>Find a regular spot, see when it was last fed, and help keep its route covered.</p>
         </div>
+        <Link href="/feeding/new" className="sys-btn is-flame"><Plus size={16} /> Add a feeding spot</Link>
       </header>
 
-      <Link href="/feeding/new" className="btn-primary mb-6 w-full py-3">
-        <Plus className="h-4 w-4" /> Add a feeding zone
-      </Link>
-
-      {zones.length === 0 ? (
-        <EmptyState
-          icon={<Utensils className="h-7 w-7" />}
-          title="No feeding zones yet"
-          description="Add an existing spot the community feeds, a colony, a corner, a market backside."
-          action={{ href: "/feeding/new", label: "Add the first one", icon: <Plus className="h-4 w-4" /> }}
-        />
-      ) : (
-        <div className="space-y-3">
-          {zones.map((z) => (
-            <FeedingZoneCard key={z.id} zone={z} />
-          ))}
-        </div>
-      )}
-    </div>
+      <section className="feed-index-list" aria-labelledby="feed-index-list-title">
+        <div className="feed-index-list-head"><h2 id="feed-index-list-title">On the public record</h2><span>{zones.length} {zones.length === 1 ? "spot" : "spots"} shown</span></div>
+        {zones.length === 0 ? (
+          <div className="feed-index-empty">
+            <span>01 / Make a place visible</span>
+            <h3>No feeding spots are recorded yet.</h3>
+            <p>Add a place the community already feeds. Its page can show who is covering it and when someone last checked in.</p>
+            <Link href="/feeding/new">Add the first spot <ArrowUpRight size={16} /></Link>
+          </div>
+        ) : <div className="feed-index-grid">{zones.map((z, index) => <FeedingZoneCard key={z.id} zone={z} index={index} />)}</div>}
+      </section>
+    </main>
   );
 }

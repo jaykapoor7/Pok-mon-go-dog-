@@ -2,8 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Camera, Loader2, Check, ArrowLeft, LogIn, Utensils } from "lucide-react";
+import { Camera, Loader2, Check, LogIn, Utensils } from "lucide-react";
 import { nearestCity } from "@/lib/delhi";
 import { uploadPhoto } from "@/lib/actions";
 import { createFeedingZone } from "@/lib/feeding-actions";
@@ -61,15 +60,9 @@ export default function NewFeedingZonePage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 sm:px-6">
-      <Link
-        href="/feeding"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"
-      >
-        <ArrowLeft className="h-4 w-4" /> Feeding zones
-      </Link>
-
+    <main className="feed-form">
       <header className="mb-5">
+        <p className="feed-kicker">Community route book / new place</p>
         <h1 className="font-display text-2xl sm:text-3xl">Add a feeding zone</h1>
         <p className="text-sm text-bark-500">
           Mark an existing spot the community feeds, so others can find it and cover it.
@@ -162,6 +155,6 @@ export default function NewFeedingZonePage() {
           <p className="text-center text-xs text-bark-400">Pick a location to continue.</p>
         )}
       </div>
-    </div>
+    </main>
   );
 }

@@ -29,7 +29,12 @@ export function FeederWorkspace() {
   return (
     <div className="fd">
       <header className="fd-head">
-        <h1>Your patch, <em>on the record.</em></h1>
+        <div className="fd-head-copy">
+          <p className="fd-kicker">Feeder workspace / your route</p>
+          <h1>Your patch, <em>on the record.</em></h1>
+          <p className="fd-intro">Keep the places you feed and the animals you meet connected to the same local record.</p>
+          {user && !loading && <p className="fd-count"><b>{zones.length}</b> feeding {zones.length === 1 ? "spot" : "spots"} on your route</p>}
+        </div>
         <div className="fd-acts">
           <Link href="/report" className="sys-btn"><Radio size={16} /> Add a sighting</Link>
           <Link href="/feeding/new" className="sys-btn is-quiet"><Plus size={16} /> Add a feeding spot</Link>
@@ -49,12 +54,14 @@ export function FeederWorkspace() {
           <Link href="/feeding">All spots <ArrowUpRight size={15} /></Link>
         </div>
         {loading ? <p className="fd-quiet">Reading your route…</p> : zones.length > 0 ? (
-          <div className="fd-list">{zones.map((zone) => <FeedingZoneCard key={zone.id} zone={zone} />)}</div>
+          <div className="fd-list">{zones.map((zone, index) => <FeedingZoneCard key={zone.id} zone={zone} index={index} />)}</div>
         ) : (
-          <p className="fd-empty">
+          <div className="fd-empty">
+            <span>01 / Start your route</span>
             <b>No spots on your route yet.</b>
-            Add the place you already feed at. Each spot keeps the animals you see there.
-          </p>
+            <p>Add the place you already feed at. Each spot keeps the animals you see there.</p>
+            <Link href="/feeding/new">Add a feeding spot <ArrowUpRight size={15} /></Link>
+          </div>
         )}
       </section>
     </div>

@@ -405,3 +405,22 @@
 @media (pointer: coarse) { .sm-insp-go a, .sm-insp-go button { height: 40px; } }
 .sm-insp .sm-insp-todo p b { display: inline; font-size: inherit; line-height: inherit; }
 .sm-insp .sm-insp-go > a, .sm-insp .sm-insp-go > button { width: auto; flex: none; justify-content: center; }
+
+/* The map explains its current layer on the map itself. The full key is
+   available in place, while the rest of the canvas stays for geography. */
+.sm-q { width: min(460px, 100%); gap: 7px; padding: 18px 20px; }
+.sm-q-kicker { margin: 0; color: var(--sp-sky); font-family: var(--font-mono), ui-monospace, monospace; font-size: 9.5px; letter-spacing: .11em; text-transform: uppercase; }
+.sm.is-paper .sm-q-kicker { color: var(--sp-ember); }
+.sm-q h2 { margin: 0; color: var(--sm-text); font-size: clamp(17px, 1.7vw, 22px); line-height: 1.16; letter-spacing: -.02em; font-weight: 600; text-wrap: balance; }
+.sm-q-details { padding-top: 8px; border-top: 1px solid var(--sm-line); }
+.sm-q-details summary { width: max-content; max-width: 100%; color: var(--sp-sky); font-size: 11.5px; font-weight: 600; cursor: pointer; list-style-position: inside; }
+.sm.is-paper .sm-q-details summary { color: var(--sp-blue); }
+.sm-q-details > div { display: grid; gap: 9px; padding-top: 12px; max-height: min(32vh, 230px); overflow-y: auto; }
+.sm-q-details .sm-key { display: grid; gap: 8px; }
+.sm-q-details .sm-key li { align-items: flex-start; }
+@media (max-width: 760px) {
+  .sm-q { padding: 10px 12px; }
+  .sm-q h2 { font-size: 15px; }
+  .sm-q-kicker { font-size: 9px; }
+  .sm-q-details > div { max-height: 26vh; }
+}

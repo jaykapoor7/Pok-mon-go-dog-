@@ -208,7 +208,7 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
      things a person came to do here still work. */
   if (!loading && !ds && error) return (
     <main className="cp">
-      <header className="cp-head">
+      <header className="cp-head is-error">
         <div className="cp-head-id">
           <p className="sys-eyebrow">Your patch{patch ? ` · ${patch.label}` : ""}</p>
           <h1>The register could not be read just now.</h1>
@@ -235,21 +235,26 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
 
   return (
     <main className="cp">
-      <header className="cp-head">
+      <header className="cp-head is-loaded">
         <div className="cp-head-id">
-          <h1>{city.name}</h1>
-          <dl className="cp-figs">
-            <div><dt>animals on the record</dt><dd>{city.animalsN.toLocaleString("en-IN")}</dd></div>
-            <div className="is-hot"><dt>need help now</dt><dd>{city.help.toLocaleString("en-IN")}</dd></div>
-          </dl>
+          <p className="cp-head-kicker">Your patch / the living record</p>
+          <h1>{city.name}{!patch.mine && <small>Sample city</small>}</h1>
+          <p className="cp-head-deck">Citywide figures from recorded animals. The street-level picture begins with your patch below.</p>
         </div>
+        <dl className="cp-figs">
+          <div><dt>animals on the record</dt><dd>{city.animalsN.toLocaleString("en-IN")}</dd></div>
+          <div className="is-hot"><dt>flagged for help</dt><dd>{city.help.toLocaleString("en-IN")}</dd></div>
+        </dl>
+      </header>
+      <div className="cp-location-bar">
+        <p>{patch.mine ? "Your chosen place" : "Showing a sample place"}<span>{patch.label}</span></p>
         <div className="cp-head-acts">
           <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-flame"><Plus size={16} /> Report an animal</Link>
           <button type="button" className="sys-btn is-quiet" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
           <PlaceSearch options={placeOptions} onPick={pickPlace} label="Choose a place" />
         </div>
         {note && <p className="cp-note">{note}</p>}
-      </header>
+      </div>
 
       <p className="cp-near"><MapPin size={13} aria-hidden /> Near {patch.label === "Around you" ? "you" : patch.label} · {RADIUS_KM} km</p>
       <section className="cp-work" aria-label="Near you">

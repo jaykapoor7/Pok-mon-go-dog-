@@ -100,3 +100,95 @@
 .cp-plate figcaption i.is-ring { width: 12px; height: 12px; border-radius: 50%; border: 1.2px dashed rgba(239, 231, 218, 0.7); background: none; }
 .cp-plate figcaption i.is-light, .cp-plate figcaption i.is-flame, .cp-plate figcaption i.is-ring { clip-path: none; }
 .cp-plate .lm { border-radius: 14px; }
+
+/* The city total is the opening plate; the patch map and its list are the
+   closer, street-level reading. Keep their scopes visually separate. */
+.cp-head.is-loaded {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 310px);
+  align-items: center;
+  gap: var(--sp-6);
+  overflow: hidden;
+  min-height: 310px;
+  padding: clamp(28px, 4vw, 52px);
+  border-radius: var(--sp-radius-lg);
+  background: var(--sp-night);
+  color: var(--sp-night-text);
+  isolation: isolate;
+}
+.cp-head.is-loaded::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 42%;
+  opacity: .42;
+  background-image: linear-gradient(rgba(143,183,255,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(143,183,255,.09) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(90deg, transparent, #000);
+}
+.cp-head.is-loaded .cp-head-id { position: relative; z-index: 1; max-width: 820px; gap: var(--sp-3); }
+.cp-head-lens { position: relative; z-index: 1; display: grid; justify-items: center; gap: var(--sp-3); align-self: stretch; align-content: center; padding: var(--sp-4) 0 var(--sp-4) var(--sp-6); border-left: 1px solid rgba(255,255,255,.18); }
+.cp-lens-top { justify-self: start; color: var(--sp-sky); font: 10px var(--font-mono), ui-monospace, monospace; letter-spacing: .13em; }
+.cp-lens-orbit { position: relative; width: min(21vw, 190px); aspect-ratio: 1; display: grid; place-items: center; border: 1px solid rgba(143,183,255,.4); border-radius: 50%; background: radial-gradient(circle, rgba(143,183,255,.19) 0 3px, transparent 4px), radial-gradient(circle, rgba(143,183,255,.1), transparent 66%); }
+.cp-lens-orbit::before, .cp-lens-orbit::after { content: ""; position: absolute; border: 1px dashed rgba(143,183,255,.33); border-radius: 50%; }
+.cp-lens-orbit::before { inset: 18%; }
+.cp-lens-orbit::after { inset: 37%; border-style: solid; }
+.cp-lens-orbit > span { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 3px; color: var(--sp-night-text); font: 600 clamp(34px, 4vw, 52px)/1 var(--font-sans), system-ui, sans-serif; }
+.cp-lens-orbit small { color: var(--sp-sky); font: 10px var(--font-mono), ui-monospace, monospace; letter-spacing: .08em; }
+.cp-head-lens p { justify-self: stretch; display: grid; gap: 3px; margin: 0; color: var(--sp-night-dim); font-size: 12px; }
+.cp-head-lens p b { color: var(--sp-night-text); font-size: 15px; font-weight: 600; }
+.cp-head-kicker { margin: 0; color: var(--sp-sky); font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.cp-head.is-loaded h1 { color: var(--sp-night-text); font-size: clamp(42px, 5vw, 68px); }
+.cp-head.is-loaded h1 small { color: var(--sp-night-dim); }
+.cp-head-deck { max-width: 43ch; margin: 0; color: var(--sp-night-dim); font-size: clamp(15px, 1.4vw, 18px); line-height: 1.45; }
+.cp-head.is-loaded .cp-figs { gap: var(--sp-5) var(--sp-8); margin: var(--sp-4) 0 0; }
+.cp-head.is-loaded .cp-figs dd { color: var(--sp-night-text); font-size: clamp(42px, 4.5vw, 60px); }
+.cp-head.is-loaded .cp-figs .is-hot dd { color: var(--sp-flame); }
+.cp-head.is-loaded .cp-figs dt { color: var(--sp-night-dim); }
+/* The community screen leads with the patch map. City totals are a slim
+   reference band, rather than another hero competing with the map. */
+.cp-head.is-loaded { grid-template-columns: minmax(0, 1fr) auto; min-height: 0; align-items: end; gap: var(--sp-6); padding: var(--sp-3) 0 var(--sp-5); border-radius: 0; border-top: 1px solid var(--sp-ink); border-bottom: 1px solid var(--sp-rule); background: transparent; color: var(--sp-ink); }
+.cp-head.is-loaded::after { display: none; }
+.cp-head.is-loaded .cp-head-id { gap: var(--sp-2); }
+.cp-head.is-loaded .cp-head-kicker { color: var(--sp-ember); }
+.cp-head.is-loaded h1 { color: var(--sp-ink); font-size: clamp(34px, 3.8vw, 50px); }
+.cp-head.is-loaded h1 small { color: var(--sp-muted); }
+.cp-head.is-loaded .cp-head-deck { max-width: 55ch; color: var(--sp-body); font-size: 13px; }
+.cp-head.is-loaded .cp-figs { margin: 0; gap: var(--sp-6); }
+.cp-head.is-loaded .cp-figs dd { color: var(--sp-ink); font-size: clamp(32px, 3.4vw, 46px); }
+.cp-head.is-loaded .cp-figs .is-hot dd { color: var(--sp-flame-deep); }
+.cp-head.is-loaded .cp-figs dt { color: var(--sp-muted); font-size: 11px; }
+.cp-head.is-error { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; min-height: 280px; box-sizing: border-box; gap: var(--sp-6); padding: clamp(28px, 4vw, 52px); border-radius: var(--sp-radius-lg); background: var(--sp-night); color: var(--sp-night-text); }
+.cp-head.is-error .sys-eyebrow { color: var(--sp-sky); }
+.cp-head.is-error h1 { color: var(--sp-night-text); font-size: clamp(34px, 4vw, 55px); }
+.cp-head.is-error .cp-sample { max-width: 50ch; color: var(--sp-night-dim); font-size: 16px; line-height: 1.5; }
+.cp-head.is-error .sys-btn.is-quiet { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: var(--sp-night-text); }
+.cp-location-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--sp-4); padding: var(--sp-4) 0; border-bottom: 1px solid var(--sp-rule); }
+.cp-location-bar > p:first-child { display: grid; gap: 2px; margin: 0; color: var(--sp-muted); font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }
+.cp-location-bar > p:first-child span { color: var(--sp-ink); font-family: var(--font-sans), system-ui, sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.cp-location-bar .cp-note { flex-basis: 100%; }
+.cp-near { margin: var(--sp-3) 0 0; }
+.cp-work { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: var(--sp-5); padding-top: var(--sp-3); border-top: 0; }
+.cp-register { min-width: 0; padding: var(--sp-5); border-radius: var(--sp-radius-lg); background: var(--sp-paper); border: 1px solid var(--sp-panel-line); }
+.cp-register .cp-tabs { margin: calc(-1 * var(--sp-2)) calc(-1 * var(--sp-2)) var(--sp-2); }
+.cp-list a { min-height: 69px; }
+.cp-plate { padding: var(--sp-4); border-radius: var(--sp-radius-lg); }
+.cp-plate .lm { min-height: 360px; }
+@media (max-width: 960px) {
+  .cp-head.is-error { grid-template-columns: 1fr; min-height: 0; }
+  .cp-head.is-loaded { grid-template-columns: 1fr; }
+  .cp-head.is-loaded .cp-figs { justify-content: flex-start; }
+  .cp-head-lens { grid-template-columns: auto 1fr; justify-items: start; align-items: center; gap: var(--sp-3); padding: var(--sp-4) 0 0; border-left: 0; border-top: 1px solid rgba(255,255,255,.18); }
+  .cp-lens-top { grid-column: 1 / -1; }
+  .cp-lens-orbit { width: 76px; }
+  .cp-lens-orbit > span { font-size: 26px; }
+  .cp-work { grid-template-columns: 1fr; }
+  .cp-plate .lm { min-height: 280px; }
+}
+@media (max-width: 760px) {
+  .cp-head.is-loaded { min-height: 0; padding: var(--sp-6) var(--sp-5); }
+  .cp-location-bar { align-items: stretch; }
+  .cp-location-bar .cp-head-acts { width: 100%; }
+  .cp-register { padding: var(--sp-4); }
+}

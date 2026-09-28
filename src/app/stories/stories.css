@@ -6,4 +6,11 @@
 .st-head h1 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.01em; color: var(--sp-blue); }
 .st-lede { margin: 0; font-size: clamp(16px, 1.6vw, 18px); line-height: 1.5; color: var(--sp-body); max-width: 60ch; }
 .st-lede b { font-weight: 600; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
-.st-empty { color: var(--sp-muted); }
+.st-empty { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(230px, .8fr); gap: var(--sp-7); align-items: end; padding: var(--sp-6) 0; border-top: 1px solid var(--sp-ink); border-bottom: 1px solid var(--sp-rule); color: var(--sp-ink); }
+.st-empty-index { color: var(--sp-ember); font: 10px var(--font-mono), ui-monospace, monospace; letter-spacing: .12em; }
+.st-empty h2 { margin: var(--sp-4) 0 var(--sp-3); max-width: 15ch; font-size: clamp(28px, 3.3vw, 43px); line-height: 1.05; letter-spacing: -.03em; }
+.st-empty p { margin: 0; max-width: 46ch; color: var(--sp-body); font-size: 15px; line-height: 1.55; }
+.st-empty ol { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-rule); }
+.st-empty li { display: flex; gap: var(--sp-5); padding: 13px 0; border-bottom: 1px solid var(--sp-rule); color: var(--sp-body); font-size: 13px; }
+.st-empty li b { color: var(--sp-ember); font: 11px var(--font-mono), ui-monospace, monospace; }
+@media (max-width: 700px) { .st-empty { grid-template-columns: 1fr; gap: var(--sp-6); } }

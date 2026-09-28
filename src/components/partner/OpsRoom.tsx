@@ -171,11 +171,11 @@ export function OpsRoom() {
         <div>
           <p className="ops-org">{org?.name ?? "Your organisation"}{today ? <> <span>·</span> {today}</> : null}</p>
           <h1>What needs attention</h1>
+          {signedOut && <p className="ops-status">A working view of the field, ready for your organisation&rsquo;s records.</p>}
+          {blank && <p className="ops-status">Your first case starts the live work here.</p>}
           {isMember && !blank && (
             <p className="ops-status">
-              <b>{num(s.liveWork.length)}</b> cases are live{s.crit.length ? <>, <b className="is-hot">{num(s.crit.length)}</b> of them critical</> : null}.
-              {s.overdue.length ? <> <b className="is-hot">{num(s.overdue.length)}</b> follow-up{s.overdue.length === 1 ? " is" : "s are"} overdue.</> : null}
-              {s.stale.length ? <> <b>{num(s.stale.length)}</b> older cases have had nothing recorded in months and need a decision.</> : null}
+              The work that needs a response, the follow-ups that have slipped, and the cases waiting for a decision.
             </p>
           )}
         </div>
@@ -184,6 +184,14 @@ export function OpsRoom() {
           <Link href="/partner/records" className="sys-btn is-quiet"><Search size={14} />Find a record</Link>
         </div>
       </header>
+
+      <p className="ops-reading">FIELD WORKSPACE <span>·</span> Live cases, overdue follow-ups and your organisation&rsquo;s own records</p>
+
+      {isMember && !blank && <nav className="ops-pulse" aria-label="Current workload">
+        <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(s.liveWork.length)}</b><small>{s.crit.length ? `${num(s.crit.length)} critical cases` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
+        <Link href="/partner/records?view=overdue" className={s.overdue.length ? "is-hot" : ""}><span>02 / FOLLOW-UPS</span><b>{num(s.overdue.length)}</b><small>past their due date</small><ArrowUpRight size={17} aria-hidden /></Link>
+        <Link href="/partner/review"><span>03 / TO REVIEW</span><b>{num(s.stale.length)}</b><small>older open cases</small><ArrowUpRight size={17} aria-hidden /></Link>
+      </nav>}
 
       {(blank || signedOut) && (
         <section className="ops-setup">

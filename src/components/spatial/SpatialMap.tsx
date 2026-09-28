@@ -951,6 +951,14 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
             ))}
           </div>
         )}
+        <div className="sm-q" aria-live="polite">
+          <p className="sm-q-kicker">Reading the record / {def.label}</p>
+          <h2>{mode === "cases" ? lensDef.q : def.q}</h2>
+          <details className="sm-q-details">
+            <summary>How to read this view</summary>
+            <div>{legend}<p className="sm-note">Recorded animals and work, not a population estimate.</p></div>
+          </details>
+        </div>
       </div>
 
       <div className="sm-tools">

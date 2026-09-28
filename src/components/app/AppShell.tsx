@@ -33,11 +33,11 @@ import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
-import { FeatureGround } from "./FeatureGround";
 import { groupFor } from "@/components/partner/PartnerTabs";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import { readStoredRole, type Role } from "@/lib/roles";
 import "./app.css";
+import "./editorial.css";
 
 /* Community is intentionally small: report, see the map, and understand the
    complete animal stories produced by community + NGO records. */
@@ -171,8 +171,6 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   }
 
   const isReporting = pathname.startsWith("/report");
-  /* Every screen stands on a live ground of its own (FeatureGround): the
-     scene follows the feature, not the role. */
   const { nav: primaryNav, phone: phoneNav, home, label: spaceLabel } = SPACES[space];
   const destinations = new Set(primaryNav.map((n) => n.href));
   const showBack = !destinations.has(pathname) && !pathname.startsWith("/report") && pathname !== "/";
@@ -196,6 +194,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
       .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
   })();
   const isActive = (href: string) => href === currentHref;
+  const pageLabel = primaryNav.find((item) => item.href === currentHref)?.label ?? "Record";
 
   function goBack() {
     if (typeof window !== "undefined" && window.history.length > 1) return router.back();
@@ -205,12 +204,12 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   if (nested) return <>{children}</>;
 
   return <InShell.Provider value={true}>
-    <div className={`spa${isReporting ? " spa-reporting" : ""}`}>
+    <div className={`spa spa-editorial${isReporting ? " spa-reporting" : ""}`}>
       <Welcome />
       <a href="#spa-main" className="skip-link">Skip to content</a>
 
       <div className="spa-top">
-        <Link href={home} className="spa-brand"><StrayPawMark size={34}/><span>StrayPaw</span></Link>
+        <Link href={home} className="spa-brand"><StrayPawMark size={34}/><span className="spa-brand-copy"><strong>StrayPaw</strong><small>The shared record</small></span></Link>
         <form className="spa-search" onSubmit={handleSearch} role="search">
           <Search size={13}/>
           <input ref={searchRef} type="search" placeholder="Search StrayPaw ID, place or organisation" aria-label="Search the network" value={query} onChange={(e) => onQueryChange(e.target.value)} onKeyDown={onSearchKey} onBlur={() => window.setTimeout(() => setHits([]), 120)} role="combobox" aria-expanded={hits.length > 0} aria-controls="spa-search-results" enterKeyHint="search" autoComplete="off" autoCorrect="off" spellCheck={false}/>
@@ -241,7 +240,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
         </nav>
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
-          {!flush && <FeatureGround />}
+          {!flush && <div className="spa-page-context"><span>{spaceLabel} / {pageLabel}</span></div>}
           {showBack && <div className="spa-back"><button type="button" onClick={goBack}><ArrowLeft size={15}/>Back</button></div>}
           {children}
         </main>

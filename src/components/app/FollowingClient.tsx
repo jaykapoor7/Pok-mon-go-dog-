@@ -115,17 +115,14 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
     return (
       <>
         {reportHistory}
-        <div className="spa-empty">
-          <Constellation size={132} />
-          <h2>No animals followed yet</h2>
-          <p>
-            Follow an animal and it lands here, so you can check on it without
-            hunting through the map. Follows are stored on this device, no
-            account needed.
-          </p>
-          <Link href="/map" className="spa-cta">
-            Open the map <ArrowUpRight size={14} />
-          </Link>
+        <div className="spa-empty follow-empty">
+          <div className="follow-empty-copy">
+            <span className="follow-eyebrow">01 / YOUR ANIMALS</span>
+            <h2>No animals followed yet.</h2>
+            <p>Find an animal on the map and save its record. Its sightings and care will be here when you come back. Follows stay on this device and need no account.</p>
+            <Link href="/map" className="spa-cta">Explore the map <ArrowUpRight size={14} /></Link>
+          </div>
+          <div className="follow-empty-art" aria-hidden="true"><Constellation size={180} /><span>One shared record.<br />Your way back to it.</span></div>
         </div>
 
         {suggestions.length > 0 && (
@@ -179,7 +176,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
 
   if (followed.length === 0) {
     return (
-      <div className="spa-empty">
+      <div className="spa-empty follow-empty follow-empty-error">
         <Constellation size={132} />
         <h2>Followed records aren&apos;t loading</h2>
         <p>

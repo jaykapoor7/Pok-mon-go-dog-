@@ -40,6 +40,7 @@ export default async function OrgsPage() {
     <AppShell>
       <div className="pp">
         <header className="pp-head">
+          <p className="pp-kicker">THE SHARED NETWORK <span>·</span> {fmt(rows.length)} {rows.length === 1 ? "organisation" : "organisations"} on the directory</p>
           <h1>Partner NGOs</h1>
           <p>The organisations working on the shared record, and the public bodies and projects whose published data it draws on. Every figure is their own record, live.</p>
         </header>
