@@ -32,6 +32,7 @@ export type ProfileOperationalRecord = {
     eventDate: string;
     notes: string | null;
     performedBy: string | null;
+    sourceMarker: string | null;
   }>;
   followUps: Array<{
     id: string;
@@ -188,6 +189,7 @@ export async function getProfileOperationalRecord(dogId: string): Promise<Profil
       eventDate: row.event_date,
       notes: row.notes ?? null,
       performedBy: row.performed_by ?? null,
+      sourceMarker: row.source_metadata?.event_kind ?? null,
     })),
     followUps: (followRes.data ?? []).map((row: any) => ({
       id: row.id,
