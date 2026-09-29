@@ -35,7 +35,7 @@ export type Living = {
   locality: string | null; city: string | null; state: string | null;
   keeper: string; source: "field" | "resident";
   firstSeen: string | null; lastSeen: string | null;
-  photo: string | null; photos: string[];
+  photo: string | null; photos: string[]; photoAttribution: string | null; photoSourceUrl: string | null;
   known: { ster: Known; sterAt: string | null; vacc: Known; vaccAt: string | null; boosterDue: boolean; health: "needs_help" | "injured" | "none"; earNotch: boolean };
   cases: { id: string; condition: string; statusClass: string; opened: string | null; closed: string | null; closure: string | null; firstActionDays: number | null }[];
   events: LivingEvent[];
@@ -177,6 +177,7 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
     source: sp?.source === "resident" || dog.provenance === "community_report" ? "resident" : "field",
     firstSeen: sp?.first_seen ?? dog.first_seen ?? null, lastSeen: dog.last_seen ?? null,
     photo: photos[0] ?? null, photos,
+    photoAttribution: dog.photo_attribution ?? null, photoSourceUrl: dog.photo_source_url ?? null,
     known: { ster, sterAt, vacc, vaccAt, boosterDue, health, earNotch: !!dog.ear_notch && dog.ear_notch !== "unknown" },
     cases: facts.map((f) => ({
       id: f.id, condition: f.condition_class ?? "Not recorded", statusClass: f.status_class ?? "unknown", opened: f.occurred_at,

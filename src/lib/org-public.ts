@@ -54,8 +54,8 @@ function mapPublicAnimal(row: any): Dog {
     lat: typeof row.lat === "number" ? row.lat : 0,
     lng: typeof row.lng === "number" ? row.lng : 0,
     status: row.status ?? "seen",
-    cover_photo: row.cover_photo ?? "",
-    photos: row.cover_photo ? [row.cover_photo] : [],
+    cover_photo: row.cover_photo || row.external_image_url || "",
+    photos: [row.cover_photo, row.external_image_url].filter((photo): photo is string => Boolean(photo)),
     size: row.size ?? "medium",
     color: row.color ?? "",
     is_friendly: Boolean(row.is_friendly),
@@ -82,6 +82,8 @@ function mapPublicAnimal(row: any): Dog {
     intake_notes: null,
     owner_name: null,
     owner_contact: null,
+    photo_attribution: row.photo_attribution ?? null,
+    photo_source_url: row.photo_source_url ?? null,
   };
 }
 
@@ -192,7 +194,7 @@ export async function getPublicOrgAnimals(ngoId: string, limit = 18): Promise<Do
   if (!supa) return [];
   const { data } = await supa
     .from("public_animal_profiles")
-    .select("id, name, species, zone, status, cover_photo, size, color, is_friendly, needs_help, sterilised, vaccinated, sterilisation_status, vaccination_status, ear_notch, trust_score, sightings_count, feed_count, first_seen, last_seen, last_fed_at, created_at, ngo_id, ngo_name, provenance, code")
+    .select("id, name, species, zone, status, cover_photo, external_image_url, photo_attribution, photo_source_url, size, color, is_friendly, needs_help, sterilised, vaccinated, sterilisation_status, vaccination_status, ear_notch, trust_score, sightings_count, feed_count, first_seen, last_seen, last_fed_at, created_at, ngo_id, ngo_name, provenance, code")
     .eq("ngo_id", ngoId)
     .order("last_seen", { ascending: false })
     .limit(limit);

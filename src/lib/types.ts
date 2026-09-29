@@ -177,6 +177,9 @@ export interface Dog {
   intake_notes?: string | null;
   owner_name?: string | null;
   owner_contact?: string | null;
+  /** Credit and canonical page for a licensed external profile photo. */
+  photo_attribution?: string | null;
+  photo_source_url?: string | null;
 }
 
 export const MEDICAL_KINDS: { id: string; label: string }[] = [

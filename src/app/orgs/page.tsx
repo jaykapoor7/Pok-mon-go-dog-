@@ -10,12 +10,12 @@ import "@/components/orgs/partners.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Partner NGOs, StrayPaw",
-  description: "The organisations working on StrayPaw's shared record, the bodies whose published data it draws on, and their campaigns.",
+  title: "Organisations on the record, StrayPaw",
+  description: "StrayPaw's partner NGOs and record contributors, and their campaigns.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   Partner NGOs: every organisation on the record, one quiet row each, and
+   Organisations on the record: every organisation has one quiet row, and
    their campaigns on one time axis. A row carries the organisation's mark,
    where it is, a small tag saying what it is, and what its record holds
    today when it holds anything. Each opens the organisation's profile.
@@ -31,7 +31,7 @@ async function withCount(o: DirectoryOrg) {
 export default async function OrgsPage() {
   const [dir, campaigns] = await Promise.all([getPartnerDirectory(), getPublicProgrammes(60).catch(() => [])]);
   const rows = await Promise.all(dir.map(withCount));
-  // Partners first (field partners, then the other partner NGOs), then the bodies whose data the record draws on.
+  // Partners first (field partners, then the other partner NGOs), then record contributors.
   const rank = (k: string) => (k === "Field partner" ? 0 : k === "Partner NGO" ? 1 : 2);
   rows.sort((a, b) => rank(a.o.kind) - rank(b.o.kind) || b.animals + b.cases - (a.animals + a.cases) || a.o.name.localeCompare(b.o.name));
   const logos = Object.fromEntries(dir.map((o) => [o.slug, o.logoUrl]));
@@ -41,8 +41,8 @@ export default async function OrgsPage() {
       <div className="pp">
         <header className="pp-head">
           <p className="pp-kicker">THE SHARED NETWORK <span>·</span> {fmt(rows.length)} {rows.length === 1 ? "organisation" : "organisations"} on the directory</p>
-          <h1>Partner NGOs</h1>
-          <p>The organisations working on the shared record, and the public bodies and projects whose published data it draws on. Every figure is their own record, live.</p>
+          <h1>Organisations on the record</h1>
+          <p>Partner NGOs and record contributors helping keep the shared record useful. Every figure is their own record, live.</p>
         </header>
 
         <ol className="pp-dir" aria-label="Organisations">

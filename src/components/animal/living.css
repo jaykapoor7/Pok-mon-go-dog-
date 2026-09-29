@@ -38,6 +38,8 @@
 .lr-tag-photo.is-none span { padding: 4px 10px; border-radius: var(--ctl-r); background: var(--sp-paper); font-size: 12px; font-weight: 600; color: var(--sp-muted); }
 .lr-photo, .lr-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .lr-count { position: absolute; left: 12px; bottom: 12px; padding: 5px 9px; border-radius: 8px; background: rgba(7, 20, 43, 0.72); color: var(--sp-night-text); font-size: 11px; }
+.lr-photo-credit { margin: 8px var(--sp-4) 0; font-size: 10.5px; line-height: 1.4; color: var(--sp-muted); }
+.lr-photo-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .lr-tag-body { display: grid; gap: var(--sp-3); padding: var(--sp-4) var(--sp-5) var(--sp-5); }
 .lr-tag-top { margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2); }
 .lr-tag-id { font-size: 17px; font-weight: 500; letter-spacing: 0.04em; color: var(--sp-ink); }

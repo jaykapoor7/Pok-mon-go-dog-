@@ -169,6 +169,13 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
               : <span>No photograph yet</span>}
             {r.photos.length > 1 && <span className="lr-count sys-mono">{r.photos.length} photographs</span>}
           </div>
+          {r.photoAttribution && (
+            <p className="lr-photo-credit">
+              {r.photoSourceUrl
+                ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a>
+                : r.photoAttribution}
+            </p>
+          )}
           <div className="lr-tag-body">
             <p className="lr-tag-top">
               <span className="lr-tag-id sys-mono">{r.straypawId ?? "ID pending"}</span>

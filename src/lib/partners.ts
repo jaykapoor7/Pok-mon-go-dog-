@@ -92,16 +92,13 @@ export async function getListedOrganisations(): Promise<{ members: OrgListing[];
 /* ── The directory: every organisation on the record, in one list ──────
    A quiet tag says what each one is, so a municipal corporation or an open
    data platform whose records StrayPaw draws on never reads as a partner
-   NGO. There is no type column; partner status decides partners, and a
-   name decides the rest. */
-export type OrgKind = "Field partner" | "Partner NGO" | "NGO" | "Public body" | "Research" | "Open data";
+   NGO. Source organisations are plainly credited as contributors rather
+   than being described by their import mechanism. */
+export type OrgKind = "Field partner" | "Partner NGO" | "NGO" | "Record contributor";
 
-export function orgKind(name: string, status: string | null | undefined): OrgKind {
+export function orgKind(_name: string, status: string | null | undefined): OrgKind {
   if (status === "operational_partner" || status === "pilot_partner") return "Field partner";
-  if (/municipal|corporation|mahanagara palike|nagar nigam|department of|ministry|government/i.test(name)) return "Public body";
-  if (/\biiser\b|institute|university|college|research/i.test(name)) return "Research";
-  if (/inaturalist|wikimedia|openstreetmap|\bgbif\b/i.test(name)) return "Open data";
-  return "NGO";
+  return status === "data_source" ? "Record contributor" : "NGO";
 }
 
 export type DirectoryOrg = OrgListing & { kind: OrgKind };
@@ -121,7 +118,7 @@ export async function getPartnerDirectory(): Promise<DirectoryOrg[]> {
   }
   for (const o of listed.sources) {
     if (seen.has(o.id)) continue; seen.add(o.id);
-    out.push({ ...o, kind: orgKind(o.name, null) });
+    out.push({ ...o, kind: orgKind(o.name, "data_source") });
   }
   return out;
 }

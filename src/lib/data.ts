@@ -40,8 +40,8 @@ function mapDog(row: any): Dog {
     lat: coarse(row.lat),
     lng: coarse(row.lng),
     status: (row.status ?? "seen") as DogStatus,
-    cover_photo: row.cover_photo ?? "",
-    photos: row.cover_photo ? [row.cover_photo] : [],
+    cover_photo: row.cover_photo || row.external_image_url || "",
+    photos: [row.cover_photo, row.external_image_url].filter((photo): photo is string => Boolean(photo)),
     size: (row.size ?? "medium") as DogSize,
     color: row.color ?? "Brown",
     is_friendly: row.is_friendly ?? true,
@@ -72,6 +72,8 @@ function mapDog(row: any): Dog {
     intake_notes: row.intake_notes ?? null,
     owner_name: row.owner_name ?? null,
     owner_contact: row.owner_contact ?? null,
+    photo_attribution: row.photo_attribution ?? null,
+    photo_source_url: row.photo_source_url ?? null,
   };
 }
 
