@@ -14,13 +14,12 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Animal stories, StrayPaw", description: "Public animal records from reports and NGO field registers, showing care, discharge and outcomes only where they were actually recorded." };
 
 /* ════════════════════════════════════════════════════════════════════
-   Stories: rescues that finished, told by their own record.
+   Stories: public animal histories, told by their own records.
 
-   A story is only published when the record holds an issue, care, an
-   outcome and a date. The page is an atlas of them: every rescue is a
-   numbered place on the city's streets, and the one chosen is told as a
-   route from the day it was reported to the day it ended. The numbered
-   index below is the same set, for reading down.
+   Completed rescues still require issue + care + outcome. Historical
+   organisation registers can also appear when they establish an encounter;
+   those rows are explicitly labelled and never receive an invented ending.
+   Care and discharge are added only when their source record contains them.
    ════════════════════════════════════════════════════════════════════ */
 
 const DAY = 86_400_000;
@@ -47,10 +46,11 @@ function build(cases: PublicCaseStory[], care: Awaited<ReturnType<typeof getPubl
   return [...byDog.entries()].map(([dogId, rows]) => {
     const latest = [...rows].sort((a, b) => +new Date(b.occurred_at) - +new Date(a.occurred_at))[0];
     const start = Date.parse(latest.occurred_at);
-    const endMs = latest.resolved_at && Date.parse(latest.resolved_at) > start + DAY / 2 && Date.parse(latest.resolved_at) <= now ? Date.parse(latest.resolved_at) : null;
+    const historical = latest.ngo_name === "The Kind Hour Foundation";
+    const recordedEnd = historical ? latest.source_discharge_at : latest.resolved_at;
+    const endMs = recordedEnd && Date.parse(recordedEnd) > start + DAY / 2 && Date.parse(recordedEnd) <= now ? Date.parse(recordedEnd) : null;
     const careRows = (careBy.get(dogId) ?? []).filter((c) => c.at >= start - DAY && (!endMs || c.at <= endMs + 30 * DAY)).sort((a, b) => a.at - b.at);
     const cat = rescueCategory({ subtype: latest.category, title: latest.title, detail: latest.outcome });
-    const historical = latest.ngo_name === "The Kind Hour Foundation";
     return {
       id: dogId,
       historical,
