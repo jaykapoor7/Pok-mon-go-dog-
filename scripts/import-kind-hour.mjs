@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /*
- * The Kind Hour Foundation rescue register importer, version 2.
+ * The Kind Hour Foundation rescue register importer, version 3.
  *
  * The source is an encounter-and-expense ledger, not an animal registry.
  * Each legitimate, distinct ledger line therefore becomes one historical
  * encounter. Only Chachi is linked across lines because the source explicitly
- * repeats that animal name. Every other identity remains unresolved: those
- * encounters have no dog_id and do not inflate the unique-animal total.
+ * repeats that animal name. Every other encounter gets a provisional profile
+ * so it can participate in Stories and care history, but no cross-row identity
+ * merge is inferred and those profiles remain explicitly provisional.
  *
  * Caretaker/contact details are not transcribed. Financial cells are retained
  * verbatim as restricted provenance, never interpreted as treatment or outcome.
@@ -26,7 +27,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = path.join(root, "scripts", "kind-hour");
 const ORG_SLUG = "the-kind-hour-foundation";
 const SOURCE_SLUG = "kind-hour-rescue-register-2024-2026";
-const IMPORTER = "kind-hour-register-v2";
+const IMPORTER = "kind-hour-register-v3";
 const SOURCE_SHA256 = "601d207f26466dc83f2d9b3113b471e2dd3e80e78037ccf3ba4c2fd8631434d6";
 const SOURCE_FILE_ID = "1dXXZFtooM2yRZVGaK9Ouai-k2OsD6SS8";
 const SHEET = "Rescue (Kind Hour register)";
@@ -147,6 +148,7 @@ const audit = {
   source_only_rows_needing_review: sourceOnlyRows.length,
   canonical_animal_profiles: 1,
   canonical_profile_name: "Chachi",
+  provisional_animal_profiles: encounterRows.filter((row) => !row.canonical).length,
   provisional_or_unmatched_rows: reviewRows.length,
   encounters_at_city_level: cityLevelRows.length,
   encounters_at_named_locality: encounterRows.length - cityLevelRows.length,
@@ -182,7 +184,7 @@ const sourceMeta = {
   register_span: { from: rows[0].date, to: rows.at(-1).date },
   audit,
   interpretation: "One legitimate distinct line is one encounter. The register does not prove one unique animal per line.",
-  identity_policy: "Only Chachi is canonical because that exact Dog Name is repeated on two source lines. All other encounter dog_id values are null.",
+  identity_policy: "Only Chachi is canonical because that exact Dog Name is repeated on two source lines. Every other legitimate encounter gets one provisional profile so its history is visible without claiming a cross-row identity match.",
   location_policy: "A blank address is represented at Lucknow city level. Named localities are approximate; unresolved names also use the Lucknow centroid. No street address or GPS is inferred.",
   financial_policy: "Source financial cells are retained verbatim in restricted provenance. Values are not summed or interpreted. 'done' is payment context only.",
   duplicate_policy: "KH-RR-037 duplicates KH-RR-036; KH-RR-084 duplicates KH-RR-079. Duplicate rows remain auditable import rows and do not become encounters.",
@@ -209,7 +211,7 @@ const lit = (value) => `'${String(value).replace(/'/g, "''")}'`;
 const stableId = (valueSql) => `md5(${lit(`straypaw:${SOURCE_SLUG}:`)} || ${valueSql})::uuid`;
 const ORG = `(select id from ngos where slug = ${lit(ORG_SLUG)})`;
 const SRC = stableId("'source'");
-const BATCH = stableId("'batch:v2'");
+const BATCH = stableId("'batch:v3'");
 const CHACHI = stableId("'animal:chachi'");
 const noon = (column) => `(${column} || 'T00:00:00Z')::timestamptz`;
 const json = JSON.stringify(payload);
@@ -260,6 +262,25 @@ update kh_rows set ref = jsonb_build_object(
 create temp table kh_old_batches on commit drop as
 select id from import_batches
 where data_source_id = ${SRC} or (ngo_id = ${ORG} and source_filename = 'Rescue - Yearly .pdf');
+
+-- Preserve the public animal UUIDs across a re-import so existing profile URLs
+-- keep working. New provisional IDs are deterministic when no prior row exists.
+create temp table kh_existing_animals on commit drop as
+select source_record_id, id
+from dogs
+where (data_source_id = ${SRC} or import_batch_id in (select id from kh_old_batches))
+  and source_record_id is not null;
+
+create temp table kh_animal_ids on commit drop as
+select r.id as source_record_id,
+  case when r.canonical then
+    coalesce((select e.id from kh_existing_animals e where e.source_record_id = 'KH-RR-001' limit 1), ${CHACHI})
+  else
+    coalesce((select e.id from kh_existing_animals e where e.source_record_id = r.id limit 1), ${stableId("'animal:' || r.id")})
+  end as dog_id
+from kh_rows r
+where r.encounter;
+
 create temp table kh_old_dogs on commit drop as
 select id from dogs
 where data_source_id = ${SRC} or import_batch_id in (select id from kh_old_batches);
@@ -328,7 +349,7 @@ values (
     unit: "encounter row",
     date: "Date of rescue/admission",
     locality: "Address (blank = Lucknow city-level)",
-    identity: "Dog Name only; Chachi is the sole canonical animal",
+    identity: "Chachi is canonical; every other encounter is one provisional profile with no cross-row merge",
     redacted: ["Owner/Caretaker", "contact details", "media links"],
   }))}::jsonb,
   'imported', ${audit.source_rows}, ${audit.encounter_records},
@@ -344,7 +365,7 @@ insert into dogs (
   data_source_id, source_record_id, importer_version, source_metadata,
   identity_state
 )
-select ${CHACHI}, ${ORG}, 'Chachi', 'dog', null,
+select (select dog_id from kh_animal_ids where source_record_id = 'KH-RR-001'), ${ORG}, 'Chachi', 'dog', null,
   coalesce(max(col) filter (where canonical), 'White and brown'),
   max(zone) filter (where "canonicalFirst"),
   max(lat) filter (where "canonicalFirst"),
@@ -366,61 +387,97 @@ select ${CHACHI}, ${ORG}, 'Chachi', 'dog', null,
   'confirmed'
 from kh_rows;
 
+insert into dogs (
+  id, ngo_id, name, species, sex, color, zone, lat, lng, h3_r8,
+  location_precision, geographic_precision, status, needs_help,
+  sterilisation_status, vaccination_status, first_seen, last_seen,
+  original_observed_at, observed_date_precision, provenance, import_batch_id,
+  data_source_id, source_record_id, importer_version, source_metadata,
+  identity_state
+)
+select ai.dog_id, ${ORG},
+  case r.sp
+    when 'dog' then 'Unidentified dog · ' || r.id
+    when 'cat' then 'Unidentified cat · ' || r.id
+    when 'bird' then 'Unidentified bird · ' || r.id
+    else 'Unidentified animal · ' || r.id
+  end,
+  r.sp, r.sex, coalesce(r.col, 'Unknown'), r.zone, r.lat, r.lng, r.h3,
+  r.precision, r.geo, 'seen', false, 'unknown', 'unknown',
+  ${noon("r.d")}, ${noon("r.d")}, ${noon("r.d")}, 'day',
+  'imported_historical_record', ${BATCH}, ${SRC}, r.id, ${lit(IMPORTER)},
+  jsonb_build_object(
+    'source_sheet', ${lit(SHEET)},
+    'source_row', r.n,
+    'kh_record_id', r.id,
+    'identity_basis', 'One provisional animal profile was created for this distinct Kind Hour rescue record. No cross-row merge was inferred.',
+    'import_batch_id', ${BATCH}
+  ),
+  'provisional'
+from kh_rows r
+join kh_animal_ids ai on ai.source_record_id = r.id
+where r.encounter and not r.canonical;
+
 insert into cases (
   id, dog_id, ngo_id, title, zone, lat, lng, h3_r8, species, category,
   status, condition_text, provenance, verification_state, source_event_at,
   imported_at, import_batch_id, source_metadata, location_precision
 )
-select ${stableId("'case:' || id")},
-  case when canonical then ${CHACHI} end,
+select ${stableId("'case:' || r.id")},
+  ai.dog_id,
   ${ORG},
-  'Kind Hour encounter · ' || id,
-  zone, lat, lng, h3, case when sp = 'unknown' then 'other' else sp end, 'rescue', null,
-  cond, 'imported_historical_record', 'verified', ${noon("d")}, now(),
+  'Kind Hour encounter · ' || r.id,
+  r.zone, r.lat, r.lng, r.h3, case when r.sp = 'unknown' then 'other' else r.sp end, 'rescue', null,
+  r.cond, 'imported_historical_record', 'verified', ${noon("r.d")}, now(),
   ${BATCH},
-  ref || jsonb_build_object(
-    'source_description', "desc",
-    'source_species_evidence', sp,
-    'source_name', sname,
-    'source_discharge_date', ddr,
-    'source_financial_cells', ledger,
-    'payment_context', case when done then 'done' end,
-    'location_explanation', geo,
-    'identity_state', case when canonical then 'confirmed' else 'unresolved' end
+  r.ref || jsonb_build_object(
+    'source_description', r."desc",
+    'source_species_evidence', r.sp,
+    'source_name', r.sname,
+    'source_discharge_date', r.ddr,
+    'source_financial_cells', r.ledger,
+    'payment_context', case when r.done then 'done' end,
+    'location_explanation', r.geo,
+    'identity_state', case when r.canonical then 'confirmed' else 'provisional' end
   ),
-  precision
-from kh_rows
-where encounter;
+  r.precision
+from kh_rows r
+join kh_animal_ids ai on ai.source_record_id = r.id
+where r.encounter;
 
 insert into animal_timeline_events (
   id, ngo_id, dog_id, case_id, event_type, title, details, occurred_at,
   provenance, source_ref, visibility
 )
-select ${stableId("'timeline:' || id")}, ${ORG}, ${CHACHI},
-  ${stableId("'case:' || id")}, 'import:encounter',
-  case when adm then 'Admission recorded by Kind Hour'
-       when opd then 'OPD encounter recorded by Kind Hour'
+select ${stableId("'timeline:' || r.id")}, ${ORG}, ai.dog_id,
+  ${stableId("'case:' || r.id")}, 'import:encounter',
+  case when r.adm then 'Admission recorded by Kind Hour'
+       when r.opd then 'OPD encounter recorded by Kind Hour'
        else 'Encounter recorded by Kind Hour' end,
-  case when med then 'A medical expense is recorded; no treatment or outcome is inferred.' end,
-  ${noon("d")}, 'imported_historical_record', ref, 'partner'
-from kh_rows where canonical;
+  case when r.med then 'A medical expense is recorded; no treatment or outcome is inferred.' end,
+  ${noon("r.d")}, 'imported_historical_record', r.ref, 'partner'
+from kh_rows r
+join kh_animal_ids ai on ai.source_record_id = r.id
+where r.encounter;
 
 insert into medical_events (
   id, dog_id, case_id, kind, event_date, notes, performed_by,
   import_batch_id, source_metadata
 )
-select ${stableId("'medical:' || id")},
-  case when canonical then ${CHACHI} end,
-  ${stableId("'case:' || id")}, 'treatment', d::date,
+select ${stableId("'medical:' || r.id")},
+  ai.dog_id,
+  ${stableId("'case:' || r.id")}, 'treatment', r.d::date,
   'A medical expense is marked in the source ledger. The treatment and outcome are not itemised or inferred'
-    || case when ledger is not null then '; financial cells as recorded: ' || ledger else '' end || '.',
+    || case when r.ledger is not null then '; financial cells as recorded: ' || r.ledger else '' end || '.',
   'The Kind Hour Foundation', ${BATCH},
-  ref || jsonb_build_object(
+  r.ref || jsonb_build_object(
     'event_kind', 'medical_expense_recorded',
-    'source_financial_cells', ledger,
-    'payment_context', case when done then 'done' end
+    'source_financial_cells', r.ledger,
+    'payment_context', case when r.done then 'done' end
   )
-from kh_rows where encounter and med;
+from kh_rows r
+join kh_animal_ids ai on ai.source_record_id = r.id
+where r.encounter and r.med;
 
 insert into import_rows (
   id, batch_id, source_row_number, raw_row, normalized, decision,
@@ -434,16 +491,17 @@ select ${stableId("'row:' || id")}, ${BATCH}, n, raw, norm,
     when canonical then 'merge'
     else 'review'
   end,
-  case when canonical then ${CHACHI} end,
-  case when encounter then ${stableId("'case:' || id")} end,
+  case when r.encounter then ai.dog_id end,
+  case when r.encounter then ${stableId("'case:' || r.id")} end,
   case
-    when duplicate then 'Exact duplicate of ' || "duplicateOf" || '; retained for source audit only.'
-    when "sourceOnly" then 'No confident animal identity or description in the source; retained for review only.'
-    when not canonical then 'Encounter published without a canonical animal identity.'
+    when r.duplicate then 'Exact duplicate of ' || r."duplicateOf" || '; retained for source audit only.'
+    when r."sourceOnly" then 'No confident animal identity or description in the source; retained for review only.'
+    when not r.canonical then 'Provisional animal profile created; no cross-row identity merge was inferred.'
   end,
-  case when encounter then 'rescue' else 'review' end,
-  norm ->> 'fingerprint'
-from kh_rows;
+  case when r.encounter then 'rescue' else 'review' end,
+  r.norm ->> 'fingerprint'
+from kh_rows r
+left join kh_animal_ids ai on ai.source_record_id = r.id;
 
 commit;
 `;
@@ -465,10 +523,10 @@ if (process.argv.includes("--audit")) {
   });
   await client.connect();
   try { await client.query(sql); } finally { await client.end(); }
-  console.error(`Imported Kind Hour register: ${audit.encounter_records} encounters, 1 canonical animal.`);
+  console.error(`Imported Kind Hour register: ${audit.encounter_records} encounters, 1 canonical animal and ${audit.provisional_animal_profiles} provisional profiles.`);
 } else {
   process.stdout.write(sql);
   if (!process.argv.includes("--sql-only")) {
-    console.error(`Kind Hour v2 dry run: ${audit.encounter_records} encounters; 1 canonical animal; ${audit.exact_duplicates} duplicates; ${audit.source_only_rows_needing_review} source-only review row.`);
+    console.error(`Kind Hour v3 dry run: ${audit.encounter_records} encounters; 1 canonical animal + ${audit.provisional_animal_profiles} provisional profiles; ${audit.exact_duplicates} duplicates; ${audit.source_only_rows_needing_review} source-only review row.`);
   }
 }
