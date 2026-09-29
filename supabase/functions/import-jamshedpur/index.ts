@@ -1,3 +1,6 @@
+// @ts-nocheck
+// This standalone Deno edge function lives inside the Next.js repository;
+// the app's TypeScript program does not include Deno's runtime globals.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 /**
