@@ -32,6 +32,7 @@ export type ProfileOperationalRecord = {
     eventDate: string;
     notes: string | null;
     performedBy: string | null;
+    sourceMarker: string | null;
   }>;
   followUps: Array<{
     id: string;
@@ -120,6 +121,7 @@ function recordFrom(meta: any, provenance: string, fallbackId: string): Standard
  */
 function canonicalizeImportRow(row: any, caseCategoryBySource: Map<string, string>, medicalKindsBySource: Map<string, Set<string>>) {
   const normalized = { ...(row.normalized ?? {}) } as NormalizedSource;
+  if (!normalized.classification && row.classification) normalized.classification = row.classification;
   if (normalized.classification !== "vaccination") return normalized;
 
   const key = sourceKey(row.batch_id, normalized.fingerprint);
@@ -188,6 +190,7 @@ export async function getProfileOperationalRecord(dogId: string): Promise<Profil
       eventDate: row.event_date,
       notes: row.notes ?? null,
       performedBy: row.performed_by ?? null,
+      sourceMarker: row.source_metadata?.event_kind ?? null,
     })),
     followUps: (followRes.data ?? []).map((row: any) => ({
       id: row.id,

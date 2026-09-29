@@ -20,7 +20,7 @@ import { Route, type RouteStop } from "@/components/system/Route";
 import "./stories.css";
 
 export type Story = {
-  id: string; n: number; name: string; zone: string | null; cat: string | null;
+  id: string; n: number; historical: boolean; name: string; zone: string | null; cat: string | null;
   reported: string; end: string | null; outcome: string;
   care: { at: string; what: string }[];
   keeper: string | null; photo: string | null;
@@ -46,8 +46,24 @@ function spread(stories: Story[]) {
 }
 
 function stopsOf(s: Story): RouteStop[] {
-  const out: RouteStop[] = [{ key: "r", at: s.reported, label: "Reported", detail: [s.cat, s.zone].filter(Boolean).join(" · ") || undefined, kind: "start" }];
-  s.care.forEach((c, i) => out.push({ key: `c${i}`, at: c.at, label: "Care recorded", detail: c.what.replace(/^./, (x) => x.toUpperCase()), kind: "step" }));
+  const out: RouteStop[] = [{
+    key: "r",
+    at: s.reported,
+    label: s.historical ? "Encounter recorded" : "Reported",
+    detail: [s.cat, s.zone].filter(Boolean).join(" · ") || undefined,
+    kind: "start",
+  }];
+  s.care.forEach((c, i) => out.push({
+    key: `c${i}`,
+    at: c.at,
+    label: s.historical && c.what === "medical expense recorded" ? "Medical expense recorded" : "Care recorded",
+    detail: c.what.replace(/^./, (x) => x.toUpperCase()),
+    kind: "step",
+  }));
+  if (s.historical) {
+    if (s.end) out.push({ key: "e", at: s.end, label: "Discharge recorded", detail: s.outcome ? `Outcome: ${s.outcome.toLowerCase()}` : undefined, kind: "end" });
+    return out;
+  }
   if (s.end) out.push({ key: "e", at: s.end, label: "Rescue ended", detail: s.outcome && s.outcome.split(/\s+/).length <= 3 ? `Outcome: ${s.outcome.toLowerCase()}` : undefined, kind: "end" });
   else out.push({ key: "e", at: null, label: "Closed", detail: s.outcome ? `Outcome: ${s.outcome.toLowerCase()}` : "The day it ended was not recorded", kind: "end" });
   return out;
@@ -130,10 +146,11 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
           if (!en.isIntersecting) return;
           io.disconnect();
           let k = -1;
+          const step = Math.max(1, Math.ceil(stories.length / 36));
           timer = window.setInterval(() => {
-            k++; setUpTo(k);
+            k = Math.min(stories.length - 1, k + step); setUpTo(k);
             if (k >= stories.length - 1) { window.clearInterval(timer); setUpTo(null); }
-          }, 90);
+          }, 60);
         }, { threshold: 0.4 });
         io.observe(m.getContainer());
       });
@@ -160,10 +177,10 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
   return (
     <>
       <div className="sa" ref={atlasRef}>
-        <div className="sa-map" ref={el} role="img" aria-label={`The ${stories.length} rescues on the map, numbered as in the index below`} />
+        <div className="sa-map" ref={el} role="img" aria-label={`The ${stories.length} animal records on the map, numbered as in the index below`} />
         <article className="sa-file" aria-live="polite" aria-labelledby="sa-name">
           <header className="sa-file-head">
-            <p className="sa-no sys-mono">№ {String(s.n).padStart(2, "0")}{s.cat ? <> · {s.cat}</> : null}</p>
+            <p className="sa-no sys-mono">№ {String(s.n).padStart(2, "0")}{s.historical ? <> · HISTORICAL</> : s.cat ? <> · {s.cat}</> : null}</p>
             <div className="sa-step">
               <button type="button" onClick={() => go(sel - 1)} aria-label="Previous rescue"><ChevronLeft size={16} /></button>
               <button type="button" onClick={() => go(sel + 1)} aria-label="Next rescue"><ChevronRight size={16} /></button>
@@ -171,8 +188,17 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
           </header>
           <h2 id="sa-name">{s.name}</h2>
           <p className="sa-sum">
-            {d ? <>Over in <b>{d === 1 ? "a day" : `${d} days`}</b>, with </> : <>With </>}
-            <b>{s.care.length}</b> care {s.care.length === 1 ? "entry" : "entries"} between the report and the end.
+            {s.historical ? (
+              <>
+                Historical Kind Hour encounter. <b>{s.care.length}</b> medical {s.care.length === 1 ? "record" : "records"} attached
+                {d ? <>, with a discharge recorded after <b>{d === 1 ? "1 day" : `${d} days`}</b></> : <>. No discharge or outcome is claimed unless the source records it</>}.
+              </>
+            ) : (
+              <>
+                {d ? <>Over in <b>{d === 1 ? "a day" : `${d} days`}</b>, with </> : <>With </>}
+                <b>{s.care.length}</b> care {s.care.length === 1 ? "entry" : "entries"} between the report and the end.
+              </>
+            )}
           </p>
           {s.photo && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -188,7 +214,7 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
       </div>
 
       <section className="sa-index" aria-labelledby="sa-index-title">
-        <h2 id="sa-index-title" className="sa-index-h">Every rescue here</h2>
+        <h2 id="sa-index-title" className="sa-index-h">Every record here</h2>
         <ol>
           {stories.map((st, i) => {
             const dd = span(st);
@@ -197,7 +223,7 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
                 <button type="button" className={i === sel ? "is-on" : ""} aria-current={i === sel ? "true" : undefined} onClick={() => go(i, true)}>
                   <span className="sa-i-n sys-mono">{String(st.n).padStart(2, "0")}</span>
                   <span className="sa-i-what"><b>{st.name}</b><small>{[st.cat, st.zone].filter(Boolean).join(" · ")}</small></span>
-                  <span className="sa-i-care sys-mono">{st.care.length} care</span>
+                  <span className="sa-i-care sys-mono">{st.care.length} {st.historical ? "medical" : "care"}</span>
                   <span className="sa-i-len sys-mono">{dd ? spanText(dd) : "—"}</span>
                 </button>
               </li>

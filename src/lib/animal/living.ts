@@ -114,10 +114,22 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
       source: f.source === "resident" ? "resident" : "field",
     });
   }
-  for (const c of care) events.push({
-    id: `care-${c.id}`, lane: "care", date: c.event_date!, tone: c.kind === "sterilisation" ? "ster" : c.kind === "vaccination" ? "vacc" : "care",
-    title: CARE_TITLE[c.kind] ?? c.kind.replace(/_/g, " "), source: "field",
-  });
+  const careSourceById = new Map(operational.medical.map((m) => [m.id, m.sourceMarker]));
+  for (const c of care) {
+    const sourceMarker = careSourceById.get(c.id);
+    events.push({
+      id: `care-${c.id}`, lane: "care", date: c.event_date!, tone: c.kind === "sterilisation" ? "ster" : c.kind === "vaccination" ? "vacc" : "care",
+      title: sourceMarker === "medical_expense_recorded" ? "Medical expense recorded" : CARE_TITLE[c.kind] ?? c.kind.replace(/_/g, " "),
+      source: sourceMarker ? "import" : "field",
+    });
+  }
+  for (const r of operational.imported) {
+    if (!r.releaseDate || !Number.isFinite(Date.parse(r.releaseDate))) continue;
+    events.push({
+      id: `import-release-${r.id}`, lane: "case", date: r.releaseDate, tone: "done",
+      title: "Discharge recorded in source register", source: "import",
+    });
+  }
   let followupsDue = 0, followupsMissed = 0;
   for (const f of operational.followUps) {
     const st = String(f.status ?? "").toLowerCase();

@@ -1,4 +1,4 @@
-import { getSupabase } from "./supabase";
+import { getSupabase, getSupabaseAdmin } from "./supabase";
 import { isClosedStatus } from "./rescue-taxonomy";
 
 export type PublicCaseStory = {
@@ -17,6 +17,7 @@ export type PublicCaseStory = {
   animal_code: string | null;
   species: string | null;
   cover_photo: string | null;
+  source_discharge_at: string | null;
 };
 
 export type PublicTimelineEvent = {
@@ -43,7 +44,29 @@ export async function getPublicCaseStories(): Promise<PublicCaseStory[]> {
     rows.push(...((data ?? []) as PublicCaseStory[]));
     if (!data || data.length < 500) break;
   }
-  return rows;
+  const kindHour = rows.filter((row) => row.ngo_name === "The Kind Hour Foundation");
+  if (!kindHour.length) return rows;
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return rows;
+  const dischargeByCase = new Map<string, string>();
+  for (let from = 0; from < kindHour.length; from += 100) {
+    const ids = kindHour.slice(from, from + 100).map((row) => row.id);
+    const { data } = await admin
+      .from("import_rows")
+      .select("imported_case_id,normalized")
+      .in("imported_case_id", ids);
+    for (const row of data ?? []) {
+      const release = row.normalized?.release_date;
+      if (row.imported_case_id && typeof release === "string" && Number.isFinite(Date.parse(release))) {
+        dischargeByCase.set(row.imported_case_id, release);
+      }
+    }
+  }
+  return rows.map((row) => ({
+    ...row,
+    source_discharge_at: dischargeByCase.get(row.id) ?? null,
+  }));
 }
 
 function mapTimelineRow(row: any): PublicTimelineEvent {
@@ -94,27 +117,29 @@ export async function getPublicCareTimeline(): Promise<PublicTimelineEvent[]> {
 }
 
 /**
- * Public stories are outcome records, not a mirror of the entire case table.
- * A story needs a linked animal, an issue, an outcome, a date, and at least
- * one care event. Imported rows with partial or contradictory status data stay
- * in the operational register until the field record is complete.
+ * Most public stories are completed outcome records: linked animal, issue,
+ * outcome, date and care. Kind Hour is intentionally different. Its supplied
+ * rescue ledger is a historical encounter register, and production keeps its
+ * unresolved identities as provisional animal records. Those records belong
+ * in Stories too, but must never be made to look "completed" just to satisfy
+ * the normal story filter.
  *
- * The status check is not optional: both public surfaces label every published
- * story "Completed" outright, so a case whose outcome field holds an interim
- * note while the case is still open would be publicly announced as finished.
- * Filtering on the closed status here is what makes that label true.
+ * The presentation layer labels Kind Hour rows as historical and only renders
+ * care/discharge/outcome facts that are actually on the source record.
  */
 export async function getPublishedCaseStories(): Promise<PublicCaseStory[]> {
   const [cases, care] = await Promise.all([getPublicCaseStories(), getPublicCareTimeline()]);
   const animalsWithCare = new Set(care.map((event) => event.dog_id).filter((id): id is string => Boolean(id)));
-  return cases.filter((story) =>
-    Boolean(
-      story.dog_id &&
-      story.title?.trim() &&
+  return cases.filter((story) => {
+    const hasIdentity = Boolean(story.dog_id && story.title?.trim() && story.occurred_at);
+    if (!hasIdentity) return false;
+
+    if (story.ngo_name === "The Kind Hour Foundation") return true;
+
+    return Boolean(
       story.outcome?.trim() &&
-      story.occurred_at &&
       isClosedStatus(story.status) &&
       animalsWithCare.has(story.dog_id),
-    ),
-  );
+    );
+  });
 }
