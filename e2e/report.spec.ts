@@ -47,7 +47,7 @@ test.describe("reporting", () => {
     const errors = collectPageErrors(page);
     await page.goto("/report");
     await expect(page.getByText("Which of these is you?")).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Add a photo" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Start a care report" })).toBeVisible();
     await expect(page.getByRole("button", { name: /take a photo/i })).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -57,12 +57,12 @@ test.describe("reporting", () => {
   test("the photo screen moves on with a photo or an honest no", async ({ page }) => {
     await page.goto("/report");
     await addPhoto(page);
-    await expect(page.getByRole("heading", { name: "Where is it?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Where is the dog?" })).toBeVisible();
 
     await page.goto("/report");
     await hydrated(page);
     await page.getByRole("button", { name: /can't take one/i }).click();
-    await expect(page.getByRole("heading", { name: "Where is it?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Where is the dog?" })).toBeVisible();
   });
 
   test.describe("with the phone's location", () => {
@@ -85,7 +85,7 @@ test.describe("reporting", () => {
       await page.getByRole("button", { name: /that's right/i }).click();
       await page.getByRole("radio", { name: /hurt or sick/i }).click();
       await page.getByRole("radio", { name: /can't see/i }).click();
-      await expect(page.getByRole("heading", { name: "Check and send" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Ready to share" })).toBeVisible();
       await expect(page.getByText(/call your local animal ambulance/i)).toBeVisible();
       const send = page.getByRole("button", { name: /send report/i });
       await expect(send).toBeDisabled();
@@ -94,7 +94,7 @@ test.describe("reporting", () => {
       /* Any answer can be changed from the summary and comes straight back. */
       await page.getByRole("button", { name: /how it is/i }).click();
       await page.getByRole("radio", { name: /seems fine/i }).click();
-      await expect(page.getByRole("heading", { name: "Check and send" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Ready to share" })).toBeVisible();
     });
   });
 
