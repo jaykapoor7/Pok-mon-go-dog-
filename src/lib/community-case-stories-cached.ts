@@ -9,7 +9,7 @@ import { getPublicCareTimeline, getPublishedCaseStories } from "./community-case
    they refresh every five minutes. */
 export const getPublishedCaseStoriesCached = unstable_cache(
   () => getPublishedCaseStories(),
-  ["published-case-stories-v1"],
+  ["published-case-stories-v2"],
   { revalidate: 300, tags: [SPATIAL_TAG] },
 );
 
