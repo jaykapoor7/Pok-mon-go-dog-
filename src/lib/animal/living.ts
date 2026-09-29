@@ -123,6 +123,13 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
       source: sourceMarker ? "import" : "field",
     });
   }
+  for (const r of operational.imported) {
+    if (!r.releaseDate || !Number.isFinite(Date.parse(r.releaseDate))) continue;
+    events.push({
+      id: `import-release-${r.id}`, lane: "case", date: r.releaseDate, tone: "done",
+      title: "Discharge recorded in source register", source: "import",
+    });
+  }
   let followupsDue = 0, followupsMissed = 0;
   for (const f of operational.followUps) {
     const st = String(f.status ?? "").toLowerCase();
