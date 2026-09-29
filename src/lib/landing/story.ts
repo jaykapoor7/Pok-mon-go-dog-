@@ -308,53 +308,73 @@ type PhotoRecord = {
 
 
 /* ════════════════════════════════════════════════════════════════════
-   Profiles, for the landing: the resident-photographed animals, each with
-   what its record holds (sightings, requests for help, care, and the two
-   checks), and the register's totals said plainly. Nothing finer than a
-   locality leaves the server; no person.
+   The animal register, for the landing: the marks that make up the field
+   (every resident photograph, and a sample of real StrayPaw IDs for the
+   animals not yet photographed), and the one animal that comes forward,
+   with what its public record holds. The total is not read here: the page
+   passes in the same count the hero shows, so one visit never shows two.
+   Photographed animals only come forward when neither their record nor a
+   request says they were hurt, so the large photograph is never a wound.
    ════════════════════════════════════════════════════════════════════ */
-export type ProfileWall = Awaited<ReturnType<typeof readProfileWall>>;
-export type WallProfile = PhotoRecord & {
-  help: boolean; calm: boolean;
-  requests: { condition: string | null; at: string; closed: boolean }[];
-  care: { kind: string; at: string }[];
-};
-export const getProfileWall = unstable_cache(() => readProfileWall(), ["profile-wall-v1"], { revalidate: 300, tags: [SPATIAL_TAG] });
+export type AnimalRegister = Awaited<ReturnType<typeof readAnimalRegister>>;
+export const getAnimalRegister = unstable_cache(() => readAnimalRegister(), ["animal-register-v1"], { revalidate: 300, tags: [SPATIAL_TAG] });
 
-async function readProfileWall() {
+async function readAnimalRegister() {
   const supa = getSupabase();
-  const empty = { total: 0, help: 0, unexamined: 0, photos: [] as WallProfile[] };
+  const empty = { photos: [] as { id: string; cover_photo: string }[], ids: [] as string[], focus: null as null | RegisterFocus };
   if (!supa) return empty;
-  const count = () => supa.from("public_spatial_animals").select("id", { count: "exact", head: true });
-  const [t, h, u, { data: prof }] = await Promise.all([
-    count(),
-    count().or("needs_help.eq.true,status.eq.injured"),
-    count().or("sterilisation_status.is.null,sterilisation_status.eq.unknown"),
-    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,source,sterilisation_status,vaccination_status,status,needs_help")
-      .not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(120),
+  const [{ data: prof }, { data: idRows }] = await Promise.all([
+    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,sterilisation_status,vaccination_status,status,needs_help,ngo_id")
+      .not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(200),
+    supa.from("public_spatial_animals").select("straypaw_id").is("cover_photo", null).like("straypaw_id", "SP-%").order("first_seen", { ascending: false }).limit(500),
   ]);
-  const rows = ((prof ?? []) as (PhotoRecord & { status: string | null; needs_help: boolean | null })[]).filter((r) => r.cover_photo?.trim());
+  type Row = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; first_seen: string | null; last_seen: string | null; sightings_count: number | null; sterilisation_status: string | null; vaccination_status: string | null; status: string | null; needs_help: boolean | null; ngo_id: string | null };
+  const rows = ((prof ?? []) as Row[]).filter((r) => r.cover_photo?.trim());
+  if (!rows.length) return empty;
   const ids = rows.map((r) => r.id);
-  const [{ data: cases }, { data: care }] = ids.length ? await Promise.all([
+  const [{ data: cases }, { data: care }] = await Promise.all([
     supa.from("public_case_facts").select("dog_id,condition_class,status_class,occurred_at").in("dog_id", ids),
     supa.from("public_care_facts").select("dog_id,kind,event_date").in("dog_id", ids),
-  ]) : [{ data: [] }, { data: [] }];
+  ]);
   const now = Date.now();
-  const caseBy = new Map<string, WallProfile["requests"]>();
+  const caseBy = new Map<string, { condition: string | null; at: string; closed: boolean }[]>();
   for (const c of (cases ?? []) as { dog_id: string; condition_class: string | null; status_class: string | null; occurred_at: string }[]) {
     if (!c.occurred_at || Date.parse(c.occurred_at) > now) continue;
     (caseBy.get(c.dog_id) ?? caseBy.set(c.dog_id, []).get(c.dog_id)!).push({ condition: c.condition_class && !/^(Other|Not recorded)$/.test(c.condition_class) ? c.condition_class : null, at: c.occurred_at, closed: c.status_class === "closed" });
   }
-  const careBy = new Map<string, WallProfile["care"]>();
+  const careBy = new Map<string, { kind: string; at: string }[]>();
   for (const k of (care ?? []) as { dog_id: string; kind: string; event_date: string }[]) {
     if (!k.event_date || Date.parse(k.event_date) > now) continue; // a future date is an entry error, not care
     (careBy.get(k.dog_id) ?? careBy.set(k.dog_id, []).get(k.dog_id)!).push({ kind: k.kind, at: k.event_date });
   }
-  const photos: WallProfile[] = rows.map(({ status, needs_help, ...p }) => {
-    const requests = (caseBy.get(p.id) ?? []).sort((a, b) => a.at.localeCompare(b.at));
-    const help = !!(needs_help || status === "injured");
-    return { ...p, help, requests, care: (careBy.get(p.id) ?? []).sort((a, b) => a.at.localeCompare(b.at)),
-      calm: !help && requests.every((r) => !r.condition || CALM_CONDITIONS.has(r.condition)) };
-  }).sort((a, b) => Number(b.calm) - Number(a.calm) || (b.last_seen ?? "").localeCompare(a.last_seen ?? ""));
-  return { total: t.count ?? 0, help: h.count ?? 0, unexamined: u.count ?? 0, photos };
+  const calm = (r: Row) => !(r.needs_help || r.status === "injured") && (caseBy.get(r.id) ?? []).every((c) => !c.condition || CALM_CONDITIONS.has(c.condition));
+  const score = (r: Row) => (careBy.get(r.id)?.length ?? 0) * 4 + (caseBy.get(r.id)?.length ?? 0) * 3 + (r.ngo_id ? 2 : 0) + (r.sightings_count ?? 1);
+  const pick = rows.filter(calm).sort((a, b) => score(b) - score(a) || (b.last_seen ?? "").localeCompare(a.last_seen ?? ""))[0];
+  let focus: RegisterFocus | null = null;
+  if (pick) {
+    let org: string | null = null;
+    if (pick.ngo_id) {
+      const { data: o } = await supa.from("public_contributor_organisations").select("name").eq("id", pick.ngo_id).maybeSingle();
+      org = (o as { name?: string } | null)?.name ?? null;
+    }
+    focus = {
+      id: pick.id, name: pick.name, straypaw_id: pick.straypaw_id, cover_photo: pick.cover_photo, zone: pick.zone, city: pick.city,
+      first_seen: pick.first_seen, last_seen: pick.last_seen, sightings: pick.sightings_count ?? 1,
+      sterilisation: pick.sterilisation_status, vaccination: pick.vaccination_status, org,
+      requests: (caseBy.get(pick.id) ?? []).sort((a, b) => a.at.localeCompare(b.at)),
+      care: (careBy.get(pick.id) ?? []).sort((a, b) => a.at.localeCompare(b.at)),
+    };
+  }
+  return {
+    photos: rows.map((r) => ({ id: r.id, cover_photo: r.cover_photo })),
+    /* StrayPaw's own IDs only: some imports carry their source's line
+       number in that field, which is not a StrayPaw ID. */
+    ids: ((idRows ?? []) as { straypaw_id: string }[]).map((r) => r.straypaw_id).filter((id) => /^SP-[A-Z]-[A-Z0-9]{4,}$/.test(id)),
+    focus,
+  };
 }
+export type RegisterFocus = {
+  id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null;
+  first_seen: string | null; last_seen: string | null; sightings: number; sterilisation: string | null; vaccination: string | null; org: string | null;
+  requests: { condition: string | null; at: string; closed: boolean }[]; care: { kind: string; at: string }[];
+};

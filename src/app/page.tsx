@@ -8,9 +8,9 @@ import { ScaleGlyph } from "@/components/landing/ScaleGlyph";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
-import { ProfileWall } from "@/components/landing/ProfileWall";
+import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import { Relay } from "@/components/landing/Relay";
-import { getLandingStory, getProfileWall } from "@/lib/landing/story";
+import { getLandingStory, getAnimalRegister } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
@@ -57,7 +57,7 @@ const LEVELS = [
 ] as const;
 
 export default async function HomePage() {
-  const [story, profiles] = await Promise.all([getLandingStory(), getProfileWall()]);
+  const [story, register] = await Promise.all([getLandingStory(), getAnimalRegister()]);
 
   return (
     <div className={`sp field-site product-site ld ${displaySans.variable} ${displaySerif.variable}`}>
@@ -122,7 +122,8 @@ export default async function HomePage() {
           />
         )}
 
-        <ProfileWall data={profiles} />
+        {/* The register shows the same live count as the hero: one source. */}
+        {story && <AnimalRegister data={register} total={story.totals.animals} />}
 
         <section className="ld-close">
           <div className="ld-close-copy">

@@ -55,13 +55,13 @@
 /* The layer itself. */
 html .ld .ld-sec-shell, html .ld .ld-sec-bone, html .ld .ld-close,
 html .co .co-sec, html .co .co-hero, html .co .co-close, html .edu-hero,
-html .sx.spa.spa .sx-main, html .mk-band, html .mk .mk-hero, html .ld .pw {
+html .sx.spa.spa .sx-main, html .mk-band, html .mk .mk-hero {
   position: relative;
   isolation: isolate;
 }
 html .ld .ld-sec-shell::before, html .ld .ld-sec-bone::before, html .ld .ld-close::before,
 html .co .co-sec::before, html .co .co-hero::before, html .co .co-close::before, html .edu-hero::before,
-html .sx.spa.spa .sx-main::before, html .mk-band::before, html .mk .mk-hero::before, html .ld .pw::before {
+html .sx.spa.spa .sx-main::before, html .mk-band::before, html .mk .mk-hero::before {
   content: "";
   display: block;
   position: absolute;
@@ -83,8 +83,6 @@ html .ld .ld-sec-shell .ld-scale { position: relative; background: var(--sp-shel
 html .ld .ld-sec-bone { --gd: var(--gd-survey); --gd-at: 30% 50%; }
 html .ld .ld-close { --gd: var(--gd-night); --gd-at: 60% 50%; }
 html .ld .ld-close::before { -webkit-mask-image: var(--gd-mask-right); mask-image: var(--gd-mask-right); }
-html .ld .pw { --gd: var(--gd-survey); --gd-at: 80% 10%; }
-html .ld .pw::before { -webkit-mask-image: var(--gd-mask-corner); mask-image: var(--gd-mask-corner); }
 
 /* ── The public pages ────────────────────────────────────────────── */
 html .co .co-sec { --gd: var(--gd-survey); --gd-at: 80% 30%; }

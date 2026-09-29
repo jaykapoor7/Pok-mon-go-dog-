@@ -554,83 +554,70 @@
   .ld-dive-stage::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 58vw); z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 55%, rgba(7, 20, 43, 0) 100%); }
 }
 
-/* ── Profiles: a wall of real photographs, and one profile as the record
-   keeps it, every line filled from the record or drawn as not yet. ── */
-.pw { position: relative; background: var(--sp-bone); color: var(--sp-ink); padding: var(--sp-section) var(--sp-gutter); }
-.pw-in { max-width: 1320px; margin: 0 auto; display: grid; gap: var(--sp-7); }
-.pw-head { display: grid; gap: var(--sp-3); max-width: 760px; }
-.pw-kicker { margin: 0; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-blue); }
-.pw h2 { margin: 0; font-size: clamp(30px, 4vw, 52px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
-.pw h2 em { display: block; font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; color: var(--sp-blue); }
-.pw-lede { margin: 0; max-width: var(--sp-measure); font-size: 16px; line-height: 1.55; color: var(--sp-body); }
+/* ── The animal register ──────────────────────────────────────────────
+   The live total over a field of one mark per animal; one comes forward,
+   its identity and record are drawn out beside it, and it goes back.
+   AnimalRegister sets the timeline as custom properties on the stage. */
+.ar { position: relative; height: 460svh; background: var(--sp-bone); color: var(--sp-ink); }
+.ar-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; --head: 1; --id: 0; --h0: 0; --h1: 0; --h2: 0; --h3: 0; --h4: 0; --end: 0; --big: 0; --hint: 1; }
+.ar-field { position: absolute; inset: 0; display: block; }
 
-.pw-stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 440px); gap: var(--sp-6); align-items: start; }
+.ar-head { position: absolute; z-index: 2; left: var(--sp-gutter); top: calc(68px + var(--sp-6)); max-width: 760px; display: grid; gap: var(--sp-3); opacity: var(--head); transform: translateY(calc((1 - var(--head)) * -16px)); pointer-events: none; }
+.ar-kicker { margin: 0; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-blue); }
+.ar-head h2 { margin: 0; font-size: clamp(38px, 6vw, 88px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600; text-wrap: balance; }
+.ar-n { font-variant-numeric: tabular-nums; }
+.ar-sub { margin: 0; max-width: 46ch; font-size: 16px; line-height: 1.5; color: var(--sp-body); }
 
-/* The wall: every tile a real animal, in its own colours. */
-.pw-wall { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
-.pw-wall li { opacity: 0; transform: translateY(10px) scale(0.96); }
-.pw.is-seen .pw-wall li { animation: pw-tile 0.6s var(--sp-ease) both; animation-delay: calc(var(--i) * 18ms); }
-@keyframes pw-tile { to { opacity: 1; transform: none; } }
-.pw-wall button { position: relative; display: block; width: 100%; aspect-ratio: 1; padding: 0; border: 0; border-radius: var(--ctl-r-row); overflow: hidden; background: var(--sp-shell); cursor: pointer; transition: transform var(--sp-base) var(--sp-ease), box-shadow var(--sp-base) var(--sp-ease-io), filter var(--sp-base) var(--sp-ease-io); }
-html .pw .pw-wall button { min-height: 0; }
-.pw-wall img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.8s var(--sp-ease); }
-.pw-wall button.is-help::after { content: ""; position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--sp-flame); box-shadow: 0 0 0 2px var(--sp-paper); }
-.pw-wall button.is-on { z-index: 1; transform: scale(1.06); box-shadow: 0 0 0 3px var(--sp-bone), 0 0 0 5px var(--sp-flame), 0 14px 30px rgba(11, 30, 61, 0.28); }
-.pw-wall button.is-on img { transform: scale(1.08); }
-.pw-wall button:active { transform: var(--ctl-press); }
-@media (hover: hover) and (pointer: fine) { .pw-wall button:hover:not(.is-on) { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(11, 30, 61, 0.2); } }
+/* The animal, as a real image over the field. */
+.ar-big { position: absolute; z-index: 3; left: 0; top: 0; width: 20px; height: 20px; border-radius: calc(4px + var(--big) * 12px); overflow: visible; will-change: transform, width, height; }
+.ar-big img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; border: calc(1px + var(--big) * 5px) solid var(--sp-paper); box-sizing: border-box; box-shadow: 0 calc(var(--big) * 34px) calc(var(--big) * 70px) rgba(11, 30, 61, calc(var(--big) * 0.3)); }
+.ar-hint { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--sp-flame); opacity: var(--hint); animation: ar-hint 1.8s var(--sp-ease) infinite; pointer-events: none; }
+@keyframes ar-hint { from { transform: scale(0.8); } to { transform: scale(1.5); opacity: 0; } }
 
-/* The profile. */
-.pw-card { position: sticky; top: 88px; display: grid; gap: var(--sp-4); padding: var(--sp-3); border-radius: var(--sp-radius-lg); background: var(--sp-paper); box-shadow: 0 1px 0 var(--sp-line), 0 30px 60px rgba(11, 30, 61, 0.16); }
-.pw-photo { position: relative; display: block; aspect-ratio: 4 / 3; border-radius: var(--sp-radius); overflow: hidden; background: var(--sp-ink); animation: pw-photo var(--sp-slow) var(--sp-ease) both; }
-.pw-photo img { width: 100%; height: 100%; object-fit: cover; display: block; animation: pw-drift 7s var(--sp-ease-io) both; }
-@keyframes pw-photo { from { opacity: 0; transform: scale(0.97); } }
-@keyframes pw-drift { from { transform: scale(1.1); } to { transform: scale(1.02); } }
-.pw-stamp { position: absolute; left: 14px; bottom: 14px; padding: 5px 10px; border: 2px solid var(--sp-flame); border-radius: var(--sp-radius-sm); font-size: 12.5px; font-weight: 600; letter-spacing: 0.07em; color: var(--sp-flame); background: rgba(7, 22, 48, 0.78); transform: rotate(-4deg); animation: pw-stamp 0.5s var(--sp-ease) 0.4s both; }
-@keyframes pw-stamp { 0% { opacity: 0; transform: rotate(-12deg) scale(1.9); } 70% { opacity: 1; transform: rotate(-3deg) scale(0.96); } 100% { opacity: 1; transform: rotate(-4deg); } }
-.pw-file { display: grid; gap: var(--sp-2); padding: 0 var(--sp-2) var(--sp-2); }
-.pw-id { margin: 0; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); }
-.pw-file h3 { margin: 0; font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; font-weight: 600; text-wrap: balance; }
-.pw-lines { margin: var(--sp-2) 0 0; padding: 0; list-style: none; display: grid; border-top: 1px solid var(--sp-ink); }
-.pw-lines li { display: grid; grid-template-columns: 16px 8.2em minmax(0, 1fr); gap: var(--sp-3); align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--sp-line); animation: pw-line 0.45s var(--sp-ease) both; animation-delay: calc(0.15s + var(--i) * 60ms); }
-@keyframes pw-line { from { opacity: 0; transform: translateX(-6px); } }
-.pw-lines i { width: 12px; height: 12px; border-radius: 3px; transform: translateY(1px); }
-.pw-lines .is-known i { background: var(--sp-blue); }
-.pw-lines .is-open i { background: var(--sp-hatch); box-shadow: inset 0 0 0 1px var(--sp-hatch-line); }
-.pw-what { font-size: 12.5px; color: var(--sp-muted); }
-.pw-val { font-size: 14px; line-height: 1.4; color: var(--sp-ink); overflow-wrap: anywhere; }
-.pw-lines .is-open .pw-val { color: var(--sp-muted); }
-.pw-grow { margin: var(--sp-1) 0 0; font-size: 12px; color: var(--sp-muted); }
-.pw-go { justify-self: start; display: inline-flex; align-items: center; gap: 4px; margin-top: var(--sp-1); font-size: 14px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+/* Its identity, beside it. */
+.ar-id { position: absolute; z-index: 3; left: calc(var(--bx) + 48px); top: var(--by); display: grid; gap: 4px; opacity: var(--id); transform: translateX(calc((1 - var(--id)) * 18px)); pointer-events: none; }
+.ar-sp { margin: 0; font-size: clamp(28px, 3.4vw, 46px); font-weight: 500; letter-spacing: 0.02em; color: var(--sp-ink); }
+.ar-where { margin: 0; font-size: 18px; font-weight: 600; color: var(--sp-ink); }
+.ar-seen { margin: 0; font-size: 15px; color: var(--sp-body); }
 
-/* The register's totals, in words. */
-.pw-figs { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-5); padding-top: var(--sp-5); border-top: 1px solid var(--sp-ink); }
-.pw-figs div { display: grid; align-content: start; gap: 6px; }
-.pw-figs dd { order: -1; }
-.pw-figs dd { margin: 0; font-family: var(--font-serif-stack); font-size: clamp(34px, 3.6vw, 52px); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--sp-ink); }
-.pw-figs .is-hot dd { color: var(--sp-flame-deep); }
-.pw-figs .is-open dd { color: var(--sp-muted); }
-.pw-figs dt { font-size: 13.5px; line-height: 1.35; color: var(--sp-body); max-width: 22ch; }
-.pw-foot { margin: 0; font-size: 11px; letter-spacing: 0.05em; color: var(--sp-muted); }
+/* Its record: faint lines out from the photograph to each thing it holds. */
+.ar-hist { position: absolute; z-index: 3; left: var(--bx); top: calc(var(--by) + 132px); width: min(620px, calc(100% - var(--bx) - var(--sp-gutter))); margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.ar-hist li { display: grid; grid-template-columns: 48px 10em minmax(0, 1fr); align-items: baseline; column-gap: var(--sp-3); padding: 9px 0; opacity: var(--o); transform: translateX(calc((1 - var(--o)) * 12px)); }
+.ar-line { width: 48px; height: 12px; overflow: visible; align-self: center; }
+.ar-line line { stroke: var(--sp-ink); stroke-width: 1; stroke-dasharray: 1 1; stroke-dashoffset: calc(1 - var(--o)); opacity: 0.35; }
+.ar-what { font-size: 12.5px; letter-spacing: 0.02em; color: var(--sp-muted); }
+.ar-val { font-size: 15px; line-height: 1.4; color: var(--sp-ink); overflow-wrap: anywhere; }
+.ar-hist .is-open .ar-val { color: var(--sp-muted); }
+.ar-hist .is-open .ar-what::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 2px; background: var(--sp-hatch); box-shadow: inset 0 0 0 1px var(--sp-hatch-line); vertical-align: -1px; }
+.ar-hist .is-known .ar-what::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 2px; background: var(--sp-blue); vertical-align: -1px; }
+.ar-hist .ar-open { display: block; padding-left: calc(48px + var(--sp-3)); }
+.ar-hist .ar-open a { display: inline-flex; align-items: center; gap: 4px; font-size: 14.5px; font-weight: 600; color: var(--sp-blue); text-decoration: none; pointer-events: auto; }
+.ar-hist li:not(.ar-open) { pointer-events: none; }
 
-@media (max-width: 1000px) {
-  .pw-stage { grid-template-columns: minmax(0, 1fr); }
-  .pw-card { position: relative; top: auto; }
-  .pw-wall { grid-auto-flow: column; grid-template-rows: repeat(2, 84px); grid-template-columns: none; grid-auto-columns: 84px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 2px; margin: 0 calc(var(--sp-gutter) * -1); padding-inline: var(--sp-gutter); scrollbar-width: none; }
-  .pw-wall::-webkit-scrollbar { display: none; }
-  .pw-wall li { scroll-snap-align: start; }
-  .pw-wall button { aspect-ratio: auto; height: 84px; }
-  .pw-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ar-end { position: absolute; z-index: 2; left: var(--sp-gutter); bottom: var(--sp-7); margin: 0; max-width: 38ch; padding: var(--sp-3) var(--sp-4); border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 10px 30px rgba(11, 30, 61, 0.12); font-size: 16px; line-height: 1.45; opacity: var(--end); transform: translateY(calc((1 - var(--end)) * 10px)); pointer-events: none; }
+.ar-end b { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  .ar { height: 440svh; }
+  .ar-head { top: calc(58px + var(--sp-5)); right: var(--sp-gutter); }
+  .ar-head h2 { font-size: clamp(34px, 10vw, 48px); }
+  .ar-sub { font-size: 14.5px; }
+  .ar-id { left: var(--sp-gutter); right: var(--sp-gutter); top: calc(var(--bb) + 14px); text-align: center; justify-items: center; transform: translateY(calc((1 - var(--id)) * 10px)); }
+  .ar-sp { font-size: 26px; }
+  .ar-where { font-size: 15.5px; }
+  .ar-seen { font-size: 13.5px; }
+  .ar-hist { left: var(--sp-gutter); right: var(--sp-gutter); width: auto; top: calc(var(--bb) + 104px); gap: 0; }
+  .ar-hist li { grid-template-columns: 7.6em minmax(0, 1fr); column-gap: var(--sp-2); padding: 6px 0; border-top: 1px solid rgba(11, 30, 61, 0.08); }
+  .ar-line { display: none; }
+  .ar-what { font-size: 11.5px; }
+  .ar-val { font-size: 13px; }
+  .ar-hist .ar-open { padding-left: 0; border: 0; }
+  .ar-end { right: var(--sp-gutter); bottom: var(--sp-5); font-size: 14.5px; }
 }
-@media (max-width: 420px) {
-  .pw-lines li { grid-template-columns: 14px minmax(0, 1fr); row-gap: 0; }
-  .pw-lines .pw-val { grid-column: 2; }
-  .pw-file h3 { font-size: 20px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pw-wall li, .pw.is-seen .pw-wall li { opacity: 1; transform: none; animation: none; }
-  .pw-photo, .pw-photo img, .pw-stamp, .pw-lines li { animation: none; }
-}
+.ar.is-calm { height: auto; }
+.ar.is-calm .ar-stage { position: relative; height: 100svh; min-height: 760px; }
+.ar.is-calm .ar-head { opacity: 0.18; }
+@media (prefers-reduced-motion: reduce) { .ar-hint { animation: none; display: none; } }
 
 /* The report's own photograph on the resident's phone, and the
    municipality's screen as the live map's night ground. */
