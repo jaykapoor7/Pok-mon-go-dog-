@@ -121,6 +121,7 @@ function recordFrom(meta: any, provenance: string, fallbackId: string): Standard
  */
 function canonicalizeImportRow(row: any, caseCategoryBySource: Map<string, string>, medicalKindsBySource: Map<string, Set<string>>) {
   const normalized = { ...(row.normalized ?? {}) } as NormalizedSource;
+  if (!normalized.classification && row.classification) normalized.classification = row.classification;
   if (normalized.classification !== "vaccination") return normalized;
 
   const key = sourceKey(row.batch_id, normalized.fingerprint);
