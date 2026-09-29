@@ -1,4 +1,4 @@
-import { getSupabase } from "./supabase";
+import { getSupabase, getSupabaseAdmin } from "./supabase";
 import { isClosedStatus } from "./rescue-taxonomy";
 
 export type PublicCaseStory = {
@@ -17,6 +17,7 @@ export type PublicCaseStory = {
   animal_code: string | null;
   species: string | null;
   cover_photo: string | null;
+  source_discharge_at: string | null;
 };
 
 export type PublicTimelineEvent = {
@@ -43,7 +44,29 @@ export async function getPublicCaseStories(): Promise<PublicCaseStory[]> {
     rows.push(...((data ?? []) as PublicCaseStory[]));
     if (!data || data.length < 500) break;
   }
-  return rows;
+  const kindHour = rows.filter((row) => row.ngo_name === "The Kind Hour Foundation");
+  if (!kindHour.length) return rows;
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return rows;
+  const dischargeByCase = new Map<string, string>();
+  for (let from = 0; from < kindHour.length; from += 100) {
+    const ids = kindHour.slice(from, from + 100).map((row) => row.id);
+    const { data } = await admin
+      .from("import_rows")
+      .select("imported_case_id,normalized")
+      .in("imported_case_id", ids);
+    for (const row of data ?? []) {
+      const release = row.normalized?.release_date;
+      if (row.imported_case_id && typeof release === "string" && Number.isFinite(Date.parse(release))) {
+        dischargeByCase.set(row.imported_case_id, release);
+      }
+    }
+  }
+  return rows.map((row) => ({
+    ...row,
+    source_discharge_at: dischargeByCase.get(row.id) ?? null,
+  }));
 }
 
 function mapTimelineRow(row: any): PublicTimelineEvent {
