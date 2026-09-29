@@ -8,9 +8,9 @@ import { ScaleGlyph } from "@/components/landing/ScaleGlyph";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
-import { RegisterPortrait } from "@/components/landing/RegisterPortrait";
+import { ProfileWall } from "@/components/landing/ProfileWall";
 import { Relay } from "@/components/landing/Relay";
-import { getLandingStory, getRegisterPortrait } from "@/lib/landing/story";
+import { getLandingStory, getProfileWall } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
@@ -57,7 +57,7 @@ const LEVELS = [
 ] as const;
 
 export default async function HomePage() {
-  const [story, portrait] = await Promise.all([getLandingStory(), getRegisterPortrait()]);
+  const [story, profiles] = await Promise.all([getLandingStory(), getProfileWall()]);
 
   return (
     <div className={`sp field-site product-site ld ${displaySans.variable} ${displaySerif.variable}`}>
@@ -122,7 +122,7 @@ export default async function HomePage() {
           />
         )}
 
-        <RegisterPortrait data={portrait} />
+        <ProfileWall data={profiles} />
 
         <section className="ld-close">
           <div className="ld-close-copy">
