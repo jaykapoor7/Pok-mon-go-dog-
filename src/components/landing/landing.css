@@ -559,7 +559,7 @@
    its identity and record are drawn out beside it, and it goes back.
    AnimalRegister sets the timeline as custom properties on the stage. */
 .ar { position: relative; height: 460svh; background: var(--sp-bone); color: var(--sp-ink); }
-.ar-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; --head: 1; --id: 0; --h0: 0; --h1: 0; --h2: 0; --h3: 0; --h4: 0; --end: 0; --big: 0; --hint: 1; }
+.ar-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; --head: 1; --info: 0; --h0: 0; --h1: 0; --h2: 0; --h3: 0; --h4: 0; --end: 0; --big: 0; --hint: 1; }
 .ar-field { position: absolute; inset: 0; display: block; }
 
 .ar-head { position: absolute; z-index: 2; left: var(--sp-gutter); top: calc(68px + var(--sp-6)); max-width: 760px; display: grid; gap: var(--sp-3); opacity: var(--head); transform: translateY(calc((1 - var(--head)) * -16px)); pointer-events: none; }
@@ -568,20 +568,19 @@
 .ar-n { font-variant-numeric: tabular-nums; }
 .ar-sub { margin: 0; max-width: 46ch; font-size: 16px; line-height: 1.5; color: var(--sp-body); }
 
-/* The animal, as a real image over the field. */
-.ar-big { position: absolute; z-index: 3; left: 0; top: 0; width: 20px; height: 20px; border-radius: calc(4px + var(--big) * 12px); overflow: visible; will-change: transform, width, height; }
-.ar-big img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; border: calc(1px + var(--big) * 5px) solid var(--sp-paper); box-sizing: border-box; box-shadow: 0 calc(var(--big) * 34px) calc(var(--big) * 70px) rgba(11, 30, 61, calc(var(--big) * 0.3)); }
-.ar-hint { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--sp-flame); opacity: var(--hint); animation: ar-hint 1.8s var(--sp-ease) infinite; pointer-events: none; }
-@keyframes ar-hint { from { transform: scale(0.8); } to { transform: scale(1.5); opacity: 0; } }
+/* The visited animal's own photograph, sharp, laid over its tile. */
+.ar-big { position: absolute; z-index: 3; left: 0; top: 0; width: 20px; height: 20px; object-fit: cover; opacity: 0; border: 1px solid var(--sp-paper); border-radius: 10px; box-sizing: border-box; box-shadow: 0 30px 70px rgba(11, 30, 61, 0.28); pointer-events: none; will-change: transform, width, height, opacity; }
 
 /* Its identity, beside it. */
-.ar-id { position: absolute; z-index: 3; left: calc(var(--bx) + 48px); top: var(--by); display: grid; gap: 4px; opacity: var(--id); transform: translateX(calc((1 - var(--id)) * 18px)); pointer-events: none; }
+.ar-panel { position: absolute; z-index: 3; left: var(--bx); top: var(--by); width: min(640px, calc(100% - var(--bx) - var(--sp-gutter))); display: grid; gap: var(--sp-4); pointer-events: none; }
+.ar-id { display: grid; gap: 4px; padding-left: 48px; opacity: var(--info); transform: translateX(calc((1 - var(--info)) * 18px)); }
+.ar-count { margin: 0 0 var(--sp-1); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-blue); }
 .ar-sp { margin: 0; font-size: clamp(28px, 3.4vw, 46px); font-weight: 500; letter-spacing: 0.02em; color: var(--sp-ink); }
-.ar-where { margin: 0; font-size: 18px; font-weight: 600; color: var(--sp-ink); }
+.ar-where { margin: 0; font-size: 18px; font-weight: 600; color: var(--sp-ink); overflow-wrap: anywhere; }
 .ar-seen { margin: 0; font-size: 15px; color: var(--sp-body); }
 
 /* Its record: faint lines out from the photograph to each thing it holds. */
-.ar-hist { position: absolute; z-index: 3; left: var(--bx); top: calc(var(--by) + 132px); width: min(620px, calc(100% - var(--bx) - var(--sp-gutter))); margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.ar-hist { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
 .ar-hist li { display: grid; grid-template-columns: 48px 10em minmax(0, 1fr); align-items: baseline; column-gap: var(--sp-3); padding: 9px 0; opacity: var(--o); transform: translateX(calc((1 - var(--o)) * 12px)); }
 .ar-line { width: 48px; height: 12px; overflow: visible; align-self: center; }
 .ar-line line { stroke: var(--sp-ink); stroke-width: 1; stroke-dasharray: 1 1; stroke-dashoffset: calc(1 - var(--o)); opacity: 0.35; }
@@ -602,11 +601,13 @@
   .ar-head { top: calc(58px + var(--sp-5)); right: var(--sp-gutter); }
   .ar-head h2 { font-size: clamp(34px, 10vw, 48px); }
   .ar-sub { font-size: 14.5px; }
-  .ar-id { left: var(--sp-gutter); right: var(--sp-gutter); top: calc(var(--bb) + 14px); text-align: center; justify-items: center; transform: translateY(calc((1 - var(--id)) * 10px)); }
+  .ar-panel { left: var(--sp-gutter); right: var(--sp-gutter); width: auto; top: calc(var(--bb) + 14px); gap: var(--sp-3); }
+  .ar-id { padding-left: 0; text-align: center; justify-items: center; transform: translateY(calc((1 - var(--info)) * 10px)); }
+  .ar-count { font-size: 10px; }
   .ar-sp { font-size: 26px; }
   .ar-where { font-size: 15.5px; }
   .ar-seen { font-size: 13.5px; }
-  .ar-hist { left: var(--sp-gutter); right: var(--sp-gutter); width: auto; top: calc(var(--bb) + 104px); gap: 0; }
+  .ar-hist { gap: 0; }
   .ar-hist li { grid-template-columns: 7.6em minmax(0, 1fr); column-gap: var(--sp-2); padding: 6px 0; border-top: 1px solid rgba(11, 30, 61, 0.08); }
   .ar-line { display: none; }
   .ar-what { font-size: 11.5px; }
@@ -617,7 +618,6 @@
 .ar.is-calm { height: auto; }
 .ar.is-calm .ar-stage { position: relative; height: 100svh; min-height: 760px; }
 .ar.is-calm .ar-head { opacity: 0.18; }
-@media (prefers-reduced-motion: reduce) { .ar-hint { animation: none; display: none; } }
 
 /* The report's own photograph on the resident's phone, and the
    municipality's screen as the live map's night ground. */

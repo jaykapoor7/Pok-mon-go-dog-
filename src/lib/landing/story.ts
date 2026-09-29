@@ -317,19 +317,22 @@ type PhotoRecord = {
    request says they were hurt, so the large photograph is never a wound.
    ════════════════════════════════════════════════════════════════════ */
 export type AnimalRegister = Awaited<ReturnType<typeof readAnimalRegister>>;
-export const getAnimalRegister = unstable_cache(() => readAnimalRegister(), ["animal-register-v1"], { revalidate: 300, tags: [SPATIAL_TAG] });
+export const getAnimalRegister = unstable_cache(() => readAnimalRegister(), ["animal-register-v2"], { revalidate: 300, tags: [SPATIAL_TAG] });
 
 async function readAnimalRegister() {
   const supa = getSupabase();
-  const empty = { photos: [] as { id: string; cover_photo: string }[], ids: [] as string[], focus: null as null | RegisterFocus };
+  const empty = { photos: [] as { id: string; cover_photo: string; straypaw_id: string | null }[], ids: [] as string[], tour: [] as RegisterFocus[] };
   if (!supa) return empty;
   const [{ data: prof }, { data: idRows }] = await Promise.all([
     supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,sterilisation_status,vaccination_status,status,needs_help,ngo_id")
-      .not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(200),
+      .eq("source", "resident").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(200),
     supa.from("public_spatial_animals").select("straypaw_id").is("cover_photo", null).like("straypaw_id", "SP-%").order("first_seen", { ascending: false }).limit(500),
   ]);
   type Row = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string; zone: string | null; city: string | null; first_seen: string | null; last_seen: string | null; sightings_count: number | null; sterilisation_status: string | null; vaccination_status: string | null; status: string | null; needs_help: boolean | null; ngo_id: string | null };
-  const rows = ((prof ?? []) as Row[]).filter((r) => r.cover_photo?.trim());
+  /* A place is shown only when it reads as a locality: a street address
+     (a house number, a pin code, a long line) is withheld, never shown. */
+  const locality = (z: string | null) => (z && z.length <= 40 && !/\d/.test(z) ? z : null);
+  const rows = ((prof ?? []) as Row[]).filter((r) => r.cover_photo?.trim()).map((r) => ({ ...r, zone: locality(r.zone) }));
   if (!rows.length) return empty;
   const ids = rows.map((r) => r.id);
   const [{ data: cases }, { data: care }] = await Promise.all([
@@ -349,28 +352,31 @@ async function readAnimalRegister() {
   }
   const calm = (r: Row) => !(r.needs_help || r.status === "injured") && (caseBy.get(r.id) ?? []).every((c) => !c.condition || CALM_CONDITIONS.has(c.condition));
   const score = (r: Row) => (careBy.get(r.id)?.length ?? 0) * 4 + (caseBy.get(r.id)?.length ?? 0) * 3 + (r.ngo_id ? 2 : 0) + (r.sightings_count ?? 1);
-  const pick = rows.filter(calm).sort((a, b) => score(b) - score(a) || (b.last_seen ?? "").localeCompare(a.last_seen ?? ""))[0];
-  let focus: RegisterFocus | null = null;
-  if (pick) {
-    let org: string | null = null;
-    if (pick.ngo_id) {
-      const { data: o } = await supa.from("public_contributor_organisations").select("name").eq("id", pick.ngo_id).maybeSingle();
-      org = (o as { name?: string } | null)?.name ?? null;
-    }
-    focus = {
-      id: pick.id, name: pick.name, straypaw_id: pick.straypaw_id, cover_photo: pick.cover_photo, zone: pick.zone, city: pick.city,
-      first_seen: pick.first_seen, last_seen: pick.last_seen, sightings: pick.sightings_count ?? 1,
-      sterilisation: pick.sterilisation_status, vaccination: pick.vaccination_status, org,
-      requests: (caseBy.get(pick.id) ?? []).sort((a, b) => a.at.localeCompare(b.at)),
-      care: (careBy.get(pick.id) ?? []).sort((a, b) => a.at.localeCompare(b.at)),
-    };
+  /* The animals the tour visits: the calm ones with the most history,
+     one per locality so the tour moves across the register. */
+  const seenPlace = new Set<string>();
+  const picks = rows.filter(calm).sort((a, b) => score(b) - score(a) || (b.last_seen ?? "").localeCompare(a.last_seen ?? ""))
+    .filter((r) => { const k = (r.zone ?? r.id).toLowerCase(); if (seenPlace.has(k)) return false; seenPlace.add(k); return true; })
+    .slice(0, 6);
+  const orgIds = [...new Set(picks.map((r) => r.ngo_id).filter((x): x is string => !!x))];
+  const orgName = new Map<string, string>();
+  if (orgIds.length) {
+    const { data: os } = await supa.from("public_contributor_organisations").select("id,name").in("id", orgIds);
+    for (const o of (os ?? []) as { id: string; name: string }[]) orgName.set(o.id, o.name);
   }
+  const tour: RegisterFocus[] = picks.map((pick) => ({
+    id: pick.id, name: pick.name, straypaw_id: pick.straypaw_id, cover_photo: pick.cover_photo, zone: pick.zone, city: pick.city,
+    first_seen: pick.first_seen, last_seen: pick.last_seen, sightings: pick.sightings_count ?? 1,
+    sterilisation: pick.sterilisation_status, vaccination: pick.vaccination_status, org: pick.ngo_id ? orgName.get(pick.ngo_id) ?? null : null,
+    requests: (caseBy.get(pick.id) ?? []).sort((a, b) => a.at.localeCompare(b.at)),
+    care: (careBy.get(pick.id) ?? []).sort((a, b) => a.at.localeCompare(b.at)),
+  }));
   return {
-    photos: rows.map((r) => ({ id: r.id, cover_photo: r.cover_photo })),
+    photos: rows.map((r) => ({ id: r.id, cover_photo: r.cover_photo, straypaw_id: r.straypaw_id })),
     /* StrayPaw's own IDs only: some imports carry their source's line
        number in that field, which is not a StrayPaw ID. */
     ids: ((idRows ?? []) as { straypaw_id: string }[]).map((r) => r.straypaw_id).filter((id) => /^SP-[A-Z]-[A-Z0-9]{4,}$/.test(id)),
-    focus,
+    tour,
   };
 }
 export type RegisterFocus = {
