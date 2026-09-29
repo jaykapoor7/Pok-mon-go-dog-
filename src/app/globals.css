@@ -59,6 +59,23 @@
   }
 
   /* ── Dark theme, deep navy-slate ── */
+
+
+/* Phone-width media guard: partner images and embeds cannot create an off-screen column. */
+@media (max-width: 900px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  img,
+  picture,
+  video,
+  iframe {
+    max-width: 100%;
+  }
+}
   .dark body {
     @apply text-bark-100;
     background-color: #0f1626; /* --ink */
