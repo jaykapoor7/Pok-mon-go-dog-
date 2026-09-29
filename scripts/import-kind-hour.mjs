@@ -130,6 +130,8 @@ const rows = sourceLines.map((line) => {
 });
 
 const encounterRows = rows.filter((row) => row.encounter);
+const dogEncounterRows = encounterRows.filter((row) => row.species === "dog");
+const nonDogOrUnknownRows = encounterRows.filter((row) => row.species !== "dog");
 const reviewRows = rows.filter((row) => !row.canonical && !row.duplicate);
 const sourceOnlyRows = rows.filter((row) => row.sourceOnly);
 const duplicateRows = rows.filter((row) => row.duplicate);
@@ -145,10 +147,12 @@ const audit = {
   exact_duplicates: duplicateRows.length,
   distinct_rows: rows.length - duplicateRows.length,
   encounter_records: encounterRows.length,
+  published_dog_encounters: dogEncounterRows.length,
+  excluded_non_dog_or_unknown_encounters: nonDogOrUnknownRows.length,
   source_only_rows_needing_review: sourceOnlyRows.length,
   canonical_animal_profiles: 1,
   canonical_profile_name: "Chachi",
-  provisional_animal_profiles: encounterRows.filter((row) => !row.canonical).length,
+  provisional_animal_profiles: dogEncounterRows.filter((row) => !row.canonical).length,
   provisional_or_unmatched_rows: reviewRows.length,
   encounters_at_city_level: cityLevelRows.length,
   encounters_at_named_locality: encounterRows.length - cityLevelRows.length,
@@ -184,13 +188,14 @@ const sourceMeta = {
   register_span: { from: rows[0].date, to: rows.at(-1).date },
   audit,
   interpretation: "One legitimate distinct line is one encounter. The register does not prove one unique animal per line.",
-  identity_policy: "Only Chachi is canonical because that exact Dog Name is repeated on two source lines. Every other legitimate encounter gets one provisional profile so its history is visible without claiming a cross-row identity match.",
+  identity_policy: "Only source rows established as dogs are published as animal profiles. Chachi is canonical because that exact Dog Name repeats; every other dog encounter gets one provisional profile with no cross-row identity merge.",
   location_policy: "A blank address is represented at Lucknow city level. Named localities are approximate; unresolved names also use the Lucknow centroid. No street address or GPS is inferred.",
   financial_policy: "Source financial cells are retained verbatim in restricted provenance. Values are not summed or interpreted. 'done' is payment context only.",
   duplicate_policy: "KH-RR-037 duplicates KH-RR-036; KH-RR-084 duplicates KH-RR-079. Duplicate rows remain auditable import rows and do not become encounters.",
   no_animal_evidence: "KH-RR-106 (19/4/26) is retained for review but is not published as an animal encounter because the source has no confident animal identity or description.",
   redacted_fields: ["owner/caretaker name", "phone/contact details", "media links"],
   not_inferred: ["unique animal identity", "treatment type", "outcome", "sterilisation", "vaccination", "exact location", "species where not explicit"],
+  publication_policy: "StrayPaw publishes dog records only. Cat, bird and species-unknown rows remain in the import audit and are not exposed as animal profiles, cases or care events.",
 };
 
 const payloadRows = rows.map((row) => ({
@@ -279,7 +284,7 @@ select r.id as source_record_id,
     coalesce((select e.id from kh_existing_animals e where e.source_record_id = r.id limit 1), ${stableId("'animal:' || r.id")})
   end as dog_id
 from kh_rows r
-where r.encounter;
+where r.encounter and r.sp = 'dog';
 
 create temp table kh_old_dogs on commit drop as
 select id from dogs
@@ -320,7 +325,7 @@ select ${SRC}, ${lit(SOURCE_SLUG)}, 'organisation_register',
   'Caretaker/contact details and media links are redacted. Financial context is restricted provenance. No exact locations.',
   ${lit(IMPORTER)},
   'named locality when supported; otherwise Lucknow city centroid; no address or GPS inferred',
-  ${audit.source_rows}, ${audit.encounter_records}, j -> 'meta', now(), now()
+  ${audit.source_rows}, ${audit.published_dog_encounters}, j -> 'meta', now(), now()
 from kh_payload
 on conflict (slug) do update set
   source_name = excluded.source_name,
@@ -349,11 +354,11 @@ values (
     unit: "encounter row",
     date: "Date of rescue/admission",
     locality: "Address (blank = Lucknow city-level)",
-    identity: "Chachi is canonical; every other encounter is one provisional profile with no cross-row merge",
+    identity: "Dog-only publication. Chachi is canonical; each other dog encounter is one provisional profile with no cross-row merge",
     redacted: ["Owner/Caretaker", "contact details", "media links"],
   }))}::jsonb,
-  'imported', ${audit.source_rows}, ${audit.encounter_records},
-  ${audit.provisional_or_unmatched_rows}, ${lit(SOURCE_SHA256)}, ${SRC}, now(),
+  'imported', ${audit.source_rows}, ${audit.published_dog_encounters},
+  ${audit.excluded_non_dog_or_unknown_encounters + audit.source_only_rows_needing_review}, ${lit(SOURCE_SHA256)}, ${SRC}, now(),
   ${lit(JSON.stringify(audit))}::jsonb
 );
 
@@ -416,7 +421,7 @@ select ai.dog_id, ${ORG},
   'provisional'
 from kh_rows r
 join kh_animal_ids ai on ai.source_record_id = r.id
-where r.encounter and not r.canonical;
+where r.encounter and r.sp = 'dog' and not r.canonical;
 
 insert into cases (
   id, dog_id, ngo_id, title, zone, lat, lng, h3_r8, species, category,
@@ -443,7 +448,7 @@ select ${stableId("'case:' || r.id")},
   r.precision
 from kh_rows r
 join kh_animal_ids ai on ai.source_record_id = r.id
-where r.encounter;
+where r.encounter and r.sp = 'dog';
 
 insert into animal_timeline_events (
   id, ngo_id, dog_id, case_id, event_type, title, details, occurred_at,
@@ -477,7 +482,7 @@ select ${stableId("'medical:' || r.id")},
   )
 from kh_rows r
 join kh_animal_ids ai on ai.source_record_id = r.id
-where r.encounter and r.med;
+where r.encounter and r.sp = 'dog' and r.med;
 
 insert into import_rows (
   id, batch_id, source_row_number, raw_row, normalized, decision,
@@ -487,18 +492,21 @@ select ${stableId("'row:' || id")}, ${BATCH}, n, raw, norm,
   case
     when duplicate then 'skip'
     when "sourceOnly" then 'review'
+    when encounter and sp <> 'dog' then 'review'
     when "canonicalFirst" then 'new'
     when canonical then 'merge'
+    when encounter and sp = 'dog' then 'new'
     else 'review'
   end,
-  case when r.encounter then ai.dog_id end,
-  case when r.encounter then ${stableId("'case:' || r.id")} end,
+  case when r.encounter and r.sp = 'dog' then ai.dog_id end,
+  case when r.encounter and r.sp = 'dog' then ${stableId("'case:' || r.id")} end,
   case
     when r.duplicate then 'Exact duplicate of ' || r."duplicateOf" || '; retained for source audit only.'
     when r."sourceOnly" then 'No confident animal identity or description in the source; retained for review only.'
-    when not r.canonical then 'Provisional animal profile created; no cross-row identity merge was inferred.'
+    when r.encounter and r.sp <> 'dog' then 'Not published: the source does not establish this record as a dog.'
+    when not r.canonical then 'Provisional dog profile created; no cross-row identity merge was inferred.'
   end,
-  case when r.encounter then 'rescue' else 'review' end,
+  case when r.encounter and r.sp = 'dog' then 'rescue' else 'review' end,
   r.norm ->> 'fingerprint'
 from kh_rows r
 left join kh_animal_ids ai on ai.source_record_id = r.id;
@@ -523,10 +531,10 @@ if (process.argv.includes("--audit")) {
   });
   await client.connect();
   try { await client.query(sql); } finally { await client.end(); }
-  console.error(`Imported Kind Hour register: ${audit.encounter_records} encounters, 1 canonical animal and ${audit.provisional_animal_profiles} provisional profiles.`);
+  console.error(`Imported Kind Hour register: ${audit.published_dog_encounters} dog encounters, 1 canonical dog and ${audit.provisional_animal_profiles} provisional dog profiles; ${audit.excluded_non_dog_or_unknown_encounters} non-dog/unknown encounters kept audit-only.`);
 } else {
   process.stdout.write(sql);
   if (!process.argv.includes("--sql-only")) {
-    console.error(`Kind Hour v3 dry run: ${audit.encounter_records} encounters; 1 canonical animal + ${audit.provisional_animal_profiles} provisional profiles; ${audit.exact_duplicates} duplicates; ${audit.source_only_rows_needing_review} source-only review row.`);
+    console.error(`Kind Hour v3 dry run: ${audit.published_dog_encounters} dog encounters; 1 canonical dog + ${audit.provisional_animal_profiles} provisional dog profiles; ${audit.excluded_non_dog_or_unknown_encounters} non-dog/unknown audit-only; ${audit.exact_duplicates} duplicates; ${audit.source_only_rows_needing_review} source-only review row.`);
   }
 }
