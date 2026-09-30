@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./tokens.css";
+
+// Production must never materialise Supabase-backed route data during `next build`.
+// Public and NGO data is deliberately fetched through bounded request-time paths.
+export const dynamic = "force-dynamic";
 import "./globals.css";
 import "./design-system.css";
 import "./product.css";
