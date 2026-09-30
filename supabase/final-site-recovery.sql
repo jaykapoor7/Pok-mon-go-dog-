@@ -6,15 +6,11 @@ create index if not exists cases_public_story_order_idx
   where dog_id is not null and not coalesce(is_demo, false);
 
 create index if not exists cases_dog_event_idx
-  on public.cases (dog_id, source_event_at desc, created_at desc)
+  on public.cases (dog_id, (coalesce(source_event_at, created_at)) desc)
   where dog_id is not null;
 
 create index if not exists animal_followups_case_status_idx
   on public.animal_followups (case_id, status);
-
-create index if not exists medical_events_dog_event_idx
-  on public.medical_events (dog_id, event_date desc)
-  where dog_id is not null;
 
 create index if not exists sightings_dog_created_idx
   on public.sightings (dog_id, created_at desc)
