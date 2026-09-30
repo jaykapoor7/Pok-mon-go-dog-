@@ -16,13 +16,12 @@ type LandingRows = { animals: AnimalRow[]; cases: CaseRow[]; care: CareRow[]; si
 async function readLandingDataset(): Promise<{ ds: SpatialDataset; totalAnimals: number; totalCases: number; totalCities: number } | null> {
   const supa = getSupabase();
   if (!supa) return null;
-  const [{ data: cityData, error: cityError }, animalTotal, caseTotal] = await Promise.all([
-    supa.rpc("list_public_spatial_cities", { p_limit: LANDING_LIMITS.cities }),
-    supa.from("public_spatial_animals").select("id", { count: "exact", head: true }),
-    supa.from("public_case_facts").select("id", { count: "exact", head: true }),
-  ]);
-  if (cityError || animalTotal.error || caseTotal.error) throw cityError ?? animalTotal.error ?? caseTotal.error;
-  const candidates = ((cityData ?? []) as CityCandidate[]).filter((r) => r.city && r.cells > 1 && r.latest_seen);
+  const { data: cityData, error: cityError } = await supa.rpc("list_public_spatial_cities", { p_limit: LANDING_LIMITS.cities });
+  if (cityError) throw cityError;
+  const cityRows = (cityData ?? []) as CityCandidate[];
+  const totalAnimals = cityRows.reduce((sum, row) => sum + Number(row.animals || 0), 0);
+  const totalCases = cityRows.reduce((sum, row) => sum + Number(row.cases || 0), 0);
+  const candidates = cityRows.filter((r) => r.city && r.cells > 1 && r.latest_seen);
   // Fresh, multi-cell field work makes a far better replay than a large historic import.
   const city = candidates.sort((a, b) => (b.latest_seen ?? "").localeCompare(a.latest_seen ?? "") || b.open_cases - a.open_cases || b.cases - a.cases || b.animals - a.animals)[0]?.city;
   if (!city) return null;
@@ -43,8 +42,8 @@ async function readLandingDataset(): Promise<{ ds: SpatialDataset; totalAnimals:
   const rows: LandingRows = { animals, cases: (caseResult.data ?? []) as CaseRow[], care: (careResult.data ?? []) as CareRow[], sightings: (sightResult.data ?? []) as SightRow[], orgs: [] };
   /* The replay needs a multi-cell fresh city, but the hero counter is the
    * whole public city index. Do not present the sample filter as a total. */
-  const totalCities = ((cityData ?? []) as CityCandidate[]).filter((row) => row.city).length;
-  return { ds: assemble(rows, "public"), totalAnimals: animalTotal.count ?? animals.length, totalCases: caseTotal.count ?? rows.cases.length, totalCities };
+  const totalCities = cityRows.filter((row) => row.city).length;
+  return { ds: assemble(rows, "public"), totalAnimals: totalAnimals || animals.length, totalCases: totalCases || rows.cases.length, totalCities };
 }
 
 export type LandingStory = Awaited<ReturnType<typeof getCachedLandingStory>>;
@@ -121,12 +120,13 @@ export type AnimalRegister = { total: number; cards: RegisterFocus[] };
 export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister> => {
   const supa = getSupabase();
   if (!supa) return { total: 0, cards: [] };
-  const [{ count }, { data, error }] = await Promise.all([
-    supa.from("public_spatial_animals").select("id", { count: "exact", head: true }),
+  const [{ data: cityData, error: cityError }, { data, error }] = await Promise.all([
+    supa.rpc("list_public_spatial_cities", { p_limit: LANDING_LIMITS.cities }),
     supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,sterilisation_status,vaccination_status,status,needs_help,ngo_id")
       .eq("source", "resident").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(80),
   ]);
-  if (error) throw error;
+  if (cityError || error) throw cityError ?? error;
+  const total = ((cityData ?? []) as CityCandidate[]).reduce((sum, row) => sum + Number(row.animals || 0), 0);
   const rows = (data ?? []) as Array<any>;
   const picks = rows.filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured").slice(0, 8);
   const ids = picks.map((row) => row.id);
@@ -138,7 +138,7 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   for (const item of (cases ?? []) as any[]) (byCase.get(item.dog_id) ?? byCase.set(item.dog_id, []).get(item.dog_id)!).push({ condition: item.condition_class, at: item.occurred_at, closed: item.status_class === "closed" });
   const byCare = new Map<string, RegisterFocus["care"]>();
   for (const item of (care ?? []) as any[]) (byCare.get(item.dog_id) ?? byCare.set(item.dog_id, []).get(item.dog_id)!).push({ kind: item.kind, at: item.event_date });
-  return { total: count ?? 0, cards: picks.map((row) => ({
+  return { total, cards: picks.map((row) => ({
     id: row.id, name: row.name, straypaw_id: row.straypaw_id, cover_photo: row.cover_photo, zone: row.zone, city: row.city,
     first_seen: row.first_seen, last_seen: row.last_seen, sightings: row.sightings_count ?? 0,
     sterilisation: row.sterilisation_status, vaccination: row.vaccination_status, org: null,
