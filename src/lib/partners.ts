@@ -30,7 +30,7 @@ const FOUNDING_PARTNERS: Partner[] = [{
 }];
 
 export async function getOperationalPartners(): Promise<Partner[]> {
-  const supa = getSupabase();
+  const supa = getSupabaseAdmin() ?? getSupabase();
   if (!supa) return FOUNDING_PARTNERS;
   const { data, error } = await supa
     .from("ngos")
@@ -57,7 +57,7 @@ export type OrgListing = {
 };
 
 export async function getListedOrganisations(): Promise<{ members: OrgListing[]; sources: OrgListing[] }> {
-  const supa = getSupabase();
+  const supa = getSupabaseAdmin() ?? getSupabase();
   if (!supa) return { members: [], sources: [] };
   const { data, error } = await supa
     .from("ngos")
