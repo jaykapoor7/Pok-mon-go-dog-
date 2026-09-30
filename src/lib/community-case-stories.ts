@@ -30,23 +30,23 @@ export type PublicTimelineEvent = {
   zone?: string | null;
 };
 
-export type PublicCaseStoryPage = { rows: PublicCaseStory[]; next: { occurredAt: string; id: string } | null };
+export type PublicCaseStoryPage = { rows: PublicCaseStory[]; next: { occurredAt: string; id: string } | null; error?: string | null };
 export type PublishedCaseStoryPage = PublicCaseStoryPage;
 
 export async function getPublicCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null } = {}): Promise<PublicCaseStoryPage> {
   const supa = getSupabase();
-  if (!supa) return { rows: [], next: null };
+  if (!supa) return { rows: [], next: null, error: "The public record store is unavailable." };
   const limit = Math.max(1, Math.min(100, input.limit ?? 48));
   let query = supa.from("public_case_stories")
     .select("id,dog_id,ngo_id,ngo_name,category,status,title,zone,occurred_at,resolved_at,outcome,animal_name,animal_code,species,cover_photo")
     .order("occurred_at", { ascending: false }).order("id", { ascending: false }).limit(limit + 1);
   if (input.before) query = query.or(`occurred_at.lt.${input.before.occurredAt},and(occurred_at.eq.${input.before.occurredAt},id.lt.${input.before.id})`);
   const { data, error } = await query;
-  if (error) return { rows: [], next: null };
+  if (error) return { rows: [], next: null, error: error.message || "The public record could not be read." };
   const all = (data ?? []) as PublicCaseStory[];
   const rows = all.slice(0, limit);
   const tail = all.length > limit ? rows[rows.length - 1] : null;
-  return { rows, next: tail ? { occurredAt: tail.occurred_at, id: tail.id } : null };
+  return { rows, next: tail ? { occurredAt: tail.occurred_at, id: tail.id } : null, error: null };
 }
 
 export async function getPublicCaseStories(limit = 120): Promise<PublicCaseStory[]> {
@@ -139,7 +139,7 @@ export async function getPublishedCaseStoriesPage(input: { limit?: number; befor
   const cases = await enrichHistoricalCases(page.rows);
   const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
   const animalsWithCare = new Set(care.map((event) => event.dog_id).filter((id): id is string => Boolean(id)));
-  return { next: page.next, rows: cases.filter((story) => {
+  return { next: page.next, error: page.error ?? null, rows: cases.filter((story) => {
     const hasIdentity = Boolean(story.dog_id && story.title?.trim() && story.occurred_at);
     if (!hasIdentity) return false;
 
