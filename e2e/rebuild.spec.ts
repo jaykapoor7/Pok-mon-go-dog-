@@ -3,19 +3,25 @@ import { test, expect } from "@playwright/test";
 test("the landing first view is self-contained and names all three roles", async ({ page }) => {
   await page.goto("/");
   const hero = page.locator(".ld-hero");
-  const firstSystemSection = page.locator(".ld-hero + .ld-sec");
+  /* The hero is the whole first view; whatever section follows it (the animal
+     register when the register has data, otherwise the reader-roles section)
+     begins at or below the fold. Measure the hero's real next sibling rather
+     than a fixed class, so the check holds however the page is composed. */
   const geometry = await page.evaluate(() => {
-    const h = document.querySelector(".ld-hero")?.getBoundingClientRect();
-    const next = document.querySelector(".ld-hero + .ld-sec")?.getBoundingClientRect();
-    return h && next ? { heroTop: h.top, heroBottom: h.bottom, heroHeight: h.height, nextTop: next.top, viewport: innerHeight } : null;
+    const heroEl = document.querySelector(".ld-hero");
+    const h = heroEl?.getBoundingClientRect();
+    const next = heroEl?.nextElementSibling?.getBoundingClientRect();
+    return h && next ? { heroHeight: h.height, nextTop: next.top, viewport: innerHeight } : null;
   });
   expect(geometry).not.toBeNull();
   expect(geometry!.heroHeight).toBeGreaterThan(geometry!.viewport * .78);
   expect(geometry!.nextTop).toBeGreaterThanOrEqual(geometry!.viewport - 1);
   await expect(hero.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(firstSystemSection.getByText("Resident", { exact: true }).first()).toBeAttached();
-  await expect(firstSystemSection.getByText("NGO", { exact: true }).first()).toBeAttached();
-  await expect(firstSystemSection.getByText("Municipality", { exact: true }).first()).toBeAttached();
+  /* The three reader roles are named on the landing, in the roles section. */
+  const roles = page.locator(".ld-sec-shell");
+  await expect(roles.getByText("Resident", { exact: true }).first()).toBeAttached();
+  await expect(roles.getByText("NGO", { exact: true }).first()).toBeAttached();
+  await expect(roles.getByText("Municipality", { exact: true }).first()).toBeAttached();
   if (await page.locator("#ld-relay-title").count()) {
     const ids = await page.locator(".rl-id b, .rl-link b, .rl-id-inline").allTextContents();
     expect(new Set(ids.map((id) => id.trim()).filter(Boolean)).size).toBe(1);

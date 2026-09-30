@@ -60,9 +60,8 @@ test("community choice stays account-free and lands in the community record", as
      tree even when it looks dismissed. Asserting its absence states the
      requirement directly instead of inferring it. */
   await expect(page.locator('[role="dialog"]')).toHaveCount(0);
-  /* With no place shared yet, the home asks for one instead of showing a
-     sample city. */
-  await expect(page.getByRole("heading", { level: 1, name: "Where do you walk?" })).toBeVisible();
+  /* The community home is a fast shell that leads with what to do next. */
+  await expect(page.getByRole("heading", { level: 1, name: "See what matters near you." })).toBeVisible();
   /* Reporting has to be reachable, not phrased a particular way. On a phone
      the header's copy of this action is gone and the tab bar's permanent
      centre slot carries it, so asserting the long label tested the desktop
@@ -70,44 +69,32 @@ test("community choice stays account-free and lands in the community record", as
   await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();
 });
 
-test("community home keeps location and reporting within immediate reach", async ({ page }) => {
+test("community home keeps reporting and the city map within immediate reach", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("straypaw.role", "individual"));
   await page.goto("/app");
-  const head = page.locator(".pg");
-  await expect(head.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(head.getByRole("button", { name: "Use my location" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "See what matters near you." })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Open city map/i })).toHaveAttribute("href", "/map");
   await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();
 });
 
-test("public map filters and modes remain operable", async ({ page }) => {
+test("public map loads a city and its bounded cells", async ({ page }) => {
   await page.goto("/map");
   /* The one-time storage notice sits over the foot of a phone screen until
      it is acknowledged, as a person would. */
   const ok = page.getByRole("button", { name: "Got it" });
   await ok.click({ timeout: 5000 }).catch(() => {});
-  const open = page.getByRole("button", { name: /^Filters/ });
-  await expect(open).toBeVisible();
-  await open.click();
-  const filters = page.getByRole("dialog", { name: "Filters" });
-  const residents = filters.getByRole("group", { name: "Recorded by" }).getByRole("button", { name: "Residents" });
-  await residents.click();
-  await expect(residents).toHaveAttribute("aria-pressed", "true");
-  await expect(open).toContainText("1");
-  await filters.getByRole("button", { name: "Reset" }).click();
-  await expect(residents).toHaveAttribute("aria-pressed", "false");
-
-  /* Only the filters that change a mode are offered in it: coverage is read
-     from every record, so it has none. */
-  await page.getByRole("tab", { name: "Coverage" }).click();
-  await expect(filters.getByRole("group", { name: "Recorded by" })).toHaveCount(0);
-  await expect(filters.getByText("only the date changes it")).toBeVisible();
-  await filters.getByRole("button", { name: "Close filters" }).click();
-  await expect(filters).toHaveCount(0);
-
-  const density = page.getByRole("tab", { name: "Density" });
-  await density.click();
-  await expect(density).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByText("Where recorded animals gather, drawn as terrain").first()).toBeVisible();
+  /* The bounded map reads pre-aggregated city rollups first: the city
+     selector becomes operable once the cities load, and the load never
+     errors. Location-specific browsing is the city/viewport, not a filter
+     panel over the whole register. */
+  const map = page.locator(".sm-bounded");
+  await expect(map).toBeVisible();
+  await expect(page.getByText(/the visible area loads at most 500 animals/i)).toBeVisible();
+  /* The city rollups load from a cold serverless function on the first hit,
+     so allow it real time to enable rather than asserting an instant read. */
+  const city = page.getByRole("combobox", { name: "City" });
+  await expect(city).toBeEnabled({ timeout: 25000 });
+  await expect(page.locator(".sm-err")).toHaveCount(0);
 });
 
 
@@ -235,7 +222,10 @@ for (const route of ["/", "/app", "/map", "/insights", "/partner", "/partner/ani
     const errors: string[] = [];
     page.on("pageerror", e => errors.push(e.message));
     await page.goto(route);
-    await expect(page.locator("h1").first()).toBeAttached();
+    /* The map is a full-bleed canvas labelled as a region rather than carrying
+       a page heading; every other route leads with an h1. */
+    if (route === "/map") await expect(page.locator(".sm-bounded")).toBeVisible();
+    else await expect(page.locator("h1").first()).toBeAttached();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     expect(errors).toEqual([]);
   });

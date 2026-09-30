@@ -127,22 +127,15 @@ async function openApp(page: Page) {
   await skip.waitFor({ state: "visible", timeout: 5000 }).then(() => skip.click()).catch(() => { /* no picker this time */ });
 }
 
-test.describe("near you", () => {
-  /* No place, no sample city: the home asks where you walk and shows no
-     other city's record in the meantime. */
-  test("the app home asks for a place before showing any record", async ({ page }) => {
+test.describe("the community home", () => {
+  /* The app home is a fast, self-contained shell that never waits on spatial
+     analytics: it leads with reporting and the bounded city map. Location-
+     specific browsing lives on the map itself, not this route. */
+  test("leads with reporting and the city map", async ({ page }) => {
     await openApp(page);
-    await expect(page.getByRole("heading", { name: "Where do you walk?" })).toBeVisible();
-    await expect(page.getByText(/Coimbatore/)).toHaveCount(0);
-  });
-
-  test.describe("outside India", () => {
-    test.use({ geolocation: { latitude: 51.5072, longitude: -0.1276 }, permissions: ["geolocation"] });
-    test("says so when the phone is abroad", async ({ page }) => {
-      await openApp(page);
-      await page.getByRole("button", { name: "Use my location" }).click();
-      await expect(page.getByRole("heading", { name: "You are outside India." })).toBeVisible();
-    });
+    await expect(page.getByRole("heading", { name: "See what matters near you." })).toBeVisible();
+    await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Open city map/i })).toHaveAttribute("href", "/map");
   });
 });
 
