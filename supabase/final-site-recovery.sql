@@ -178,14 +178,14 @@ begin
            then d.city else coalesce(c.city, d.city) end as city,
       case when c.provenance = 'imported_historical_record' and d.h3_r8 is not null
            then d.h3_r8 else coalesce(c.h3_r8, d.h3_r8) end as h3_r8,
-      c.status
+      c.status_class
     from public.cases c
     left join public.dogs d on d.id = c.dog_id
     where not coalesce(c.is_demo, false)
   ), case_cells as (
     select city, h3_r8,
            count(*)::integer as cases,
-           count(*) filter (where status in ('open', 'in_progress'))::integer as open_cases
+           count(*) filter (where status_class in ('open', 'in_progress'))::integer as open_cases
       from case_points
      where city = btrim(p_city) and h3_r8 is not null
      group by city, h3_r8
