@@ -20,6 +20,17 @@ create index if not exists cases_ngo_status_class_idx
   on public.cases (ngo_id, status_class)
   where ngo_id is not null and not coalesce(is_demo, false);
 
+create index if not exists dogs_public_help_recent_idx
+  on public.dogs (last_seen desc)
+  where needs_help;
+
+create index if not exists dogs_public_sightings_rank_idx
+  on public.dogs (sightings_count desc nulls last, id);
+
+create index if not exists dogs_public_photo_recent_idx
+  on public.dogs (last_seen desc)
+  where cover_photo is not null;
+
 create or replace function public.list_public_org_impacts()
 returns table (
   ngo_id uuid,
