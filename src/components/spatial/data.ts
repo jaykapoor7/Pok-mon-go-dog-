@@ -10,7 +10,7 @@ import type { SpatialDataset } from "@/lib/spatial/types";
 
 export type Scope = "public" | "org";
 
-type City = { city: string; state: string | null; animals: number; cases: number };
+type City = { city: string; state: string | null; animals: number; cases: number; cells: number; latest_seen: string | null };
 type State = { ds: SpatialDataset | null; error: string | null; loading: boolean; city: string | null; cities: City[] };
 
 const cache = new Map<string, Promise<{ ds: SpatialDataset; city: string; cities: City[] }>>();
@@ -47,7 +47,11 @@ async function load(scope: Scope, requestedCity?: string | null) {
   const scopeParam = scope === "org" ? "&scope=org" : "";
   const cityPayload = await readJson(`/api/spatial?kind=cities${scopeParam}`, headers);
   const cities = (cityPayload.cities ?? []) as City[];
-  const city = cities.find((item) => item.city === requestedCity)?.city ?? cities[0]?.city;
+  const requested = requestedCity === "New Delhi" ? "Delhi" : requestedCity === "Secunderabad" ? "Hyderabad" : requestedCity;
+  /* Start with a fresh multi-cell city, not the largest historical import
+   * collapsed to one centroid. Direct city links always win. */
+  const defaultCity = [...cities].filter((item) => item.cells > 1).sort((a, b) => (b.latest_seen ?? "").localeCompare(a.latest_seen ?? "") || b.animals - a.animals)[0]?.city ?? cities[0]?.city;
+  const city = cities.find((item) => item.city === requested)?.city ?? defaultCity;
   if (!city) throw new Error("No mapped city is available for this view yet.");
   const ds = await readJson(`/api/spatial?kind=dataset&city=${encodeURIComponent(city)}${scopeParam}`, headers) as SpatialDataset;
   return { ds, city, cities };
