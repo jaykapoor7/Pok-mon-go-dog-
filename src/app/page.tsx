@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -49,6 +50,13 @@ const LEVELS = [
   { level: "city", scale: "Municipality", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "View municipal coverage", href: "/for-governments" },
 ] as const;
 
+const EMPTY_REGISTER = { total: 0, cards: [] };
+
+async function LandingAnimalRegister() {
+  const register = await getAnimalRegister().catch(() => EMPTY_REGISTER);
+  return <AnimalRegister data={register} total={register.total} />;
+}
+
 export default async function HomePage() {
   /* The landing must be useful before any analytics work completes. Its
      curated register read is bounded; the former spatial narrative assembled
@@ -56,8 +64,6 @@ export default async function HomePage() {
   // The visual slots stay in place for the scoped replacement; `any` keeps
   // the existing optional presentation branch type-safe while it is empty.
   const story: any = null;
-  const register = await getAnimalRegister().catch(() => ({ total: 0, cards: [] }));
-
   return (
     <div className="sp field-site product-site ld">
       <PageView name="landing_view" />
@@ -84,7 +90,9 @@ export default async function HomePage() {
         {/* Right after the hero, the centre of the page: every animal has a
             card. It shows the hero's own count (one source); its own count
             is only a fallback for a visit where the story could not load. */}
-        <AnimalRegister data={register} total={story?.totals.animals ?? register.total} />
+        <Suspense fallback={<AnimalRegister data={EMPTY_REGISTER} total={0} />}>
+          <LandingAnimalRegister />
+        </Suspense>
 
         {story?.journey && (
           <CaseDive
