@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { OrgMark } from "@/components/orgs/OrgMark";
 import { CampaignStrip } from "@/components/orgs/CampaignStrip";
 import { getPartnerDirectory, type DirectoryOrg } from "@/lib/partners";
-import { getPublicOrgImpact } from "@/lib/org-public";
+import { getPublicOrgDirectoryImpacts } from "@/lib/org-public";
 import { getPublicProgrammes } from "@/lib/public-programmes";
 import "@/components/orgs/partners.css";
 
@@ -23,14 +23,16 @@ export const metadata = {
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
-async function withCount(o: DirectoryOrg) {
-  const impact = await getPublicOrgImpact(o.id).catch(() => null);
-  return { o, animals: impact?.animalsRecorded ?? 0, cases: impact?.caseRecords ?? 0 };
-}
-
 export default async function OrgsPage() {
-  const [dir, campaigns] = await Promise.all([getPartnerDirectory(), getPublicProgrammes(60).catch(() => [])]);
-  const rows = await Promise.all(dir.map(withCount));
+  const [dir, campaigns, impacts] = await Promise.all([
+    getPartnerDirectory(),
+    getPublicProgrammes(60).catch(() => []),
+    getPublicOrgDirectoryImpacts().catch(() => new Map()),
+  ]);
+  const rows = dir.map((o) => {
+    const impact = impacts.get(o.id);
+    return { o, animals: impact?.animalsRecorded ?? 0, cases: impact?.caseRecords ?? 0 };
+  });
   // Partners first (field partners, then the other partner NGOs), then record contributors.
   const rank = (k: string) => (k === "Field partner" ? 0 : k === "Partner NGO" ? 1 : 2);
   rows.sort((a, b) => rank(a.o.kind) - rank(b.o.kind) || b.animals + b.cases - (a.animals + a.cases) || a.o.name.localeCompare(b.o.name));
