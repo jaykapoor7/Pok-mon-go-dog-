@@ -250,12 +250,12 @@ create or replace function public.queue_spatial_from_case()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare v_city text;
 begin
-  select city into v_city from public.dogs where id = coalesce(new.dog_id, old.dog_id);
-  perform public.enqueue_spatial_refresh(coalesce(new.city, old.city, v_city), 'case_change');
+  select city into v_city from public.dogs where id = new.dog_id;
+  perform public.enqueue_spatial_refresh(coalesce(new.city, v_city), 'case_change');
   if tg_op = 'UPDATE' and old.city is distinct from new.city then
     perform public.enqueue_spatial_refresh(old.city, 'case_moved');
   end if;
-  return coalesce(new, old);
+  return new;
 end $$;
 drop trigger if exists queue_spatial_after_case_change on public.cases;
 create trigger queue_spatial_after_case_change after insert or update of status, city, h3_r8, dog_id, resolved_at on public.cases
@@ -264,11 +264,11 @@ for each row execute function public.queue_spatial_from_case();
 create or replace function public.queue_spatial_from_dog()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  perform public.enqueue_spatial_refresh(coalesce(new.city, old.city), 'animal_change');
+  perform public.enqueue_spatial_refresh(new.city, 'animal_change');
   if tg_op = 'UPDATE' and old.city is distinct from new.city then
     perform public.enqueue_spatial_refresh(old.city, 'animal_moved');
   end if;
-  return coalesce(new, old);
+  return new;
 end $$;
 drop trigger if exists queue_spatial_after_dog_change on public.dogs;
 create trigger queue_spatial_after_dog_change after insert or update of city, h3_r8, needs_help, sterilisation_status, vaccination_status on public.dogs
