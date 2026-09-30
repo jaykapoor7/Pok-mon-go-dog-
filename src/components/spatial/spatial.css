@@ -58,6 +58,10 @@
   display: grid; gap: 10px; pointer-events: none;
 }
 .sm-top > * { pointer-events: auto; justify-self: start; }
+.sm-city-select { height: 34px; display: inline-flex; align-items: center; gap: 8px; padding: 0 10px 0 12px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: 11px; color: var(--sm-text); }
+.sm-city-select span { font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--sm-faint); }
+.sm-city-select select { min-width: 116px; max-width: 210px; appearance: none; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.sm-city-select option { color: var(--sp-ink); }
 .sm-top .sys-ladder { padding: 6px 12px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: var(--ctl-r); }
 .sm-modes { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: 14px; }
 .sm-modes button {
