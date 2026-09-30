@@ -128,14 +128,13 @@ async function openApp(page: Page) {
 }
 
 test.describe("the community home", () => {
-  /* The app home is a fast, self-contained shell that never waits on spatial
-     analytics: it leads with reporting and the bounded city map. Location-
-     specific browsing lives on the map itself, not this route. */
-  test("leads with reporting and the city map", async ({ page }) => {
+  /* The community home asks for a place before it makes local claims, while
+     reporting remains available immediately. */
+  test("asks for a place and keeps reporting available", async ({ page }) => {
     await openApp(page);
-    await expect(page.getByRole("heading", { name: "See what matters near you." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Where do you walk?" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Use my location/i })).toBeVisible();
     await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /Open city map/i })).toHaveAttribute("href", "/map");
   });
 });
 
