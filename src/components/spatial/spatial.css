@@ -44,6 +44,7 @@
   background: #efe7da;
 }
 .sm-canvas { position: absolute; inset: 0; }
+.sm-fallback-map { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
 /* The console's legacy stylesheet colours every em; the map sets its own. */
 .sm em { color: inherit; }
 .sm .maplibregl-ctrl-attrib { background: transparent !important; }
