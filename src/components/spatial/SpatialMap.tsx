@@ -87,6 +87,50 @@ const SEEN_OPTS: [string, string][] = [["any", "Any time"], ["90", "90 days"], [
 const EMPTY = { type: "FeatureCollection" as const, features: [] as GeoJSON.Feature[] };
 const T = "rgba(0,0,0,0)";
 
+/** A real, bounded map when a browser cannot start WebGL2. It deliberately
+ * uses the same city dataset, cell colours and points as the MapLibre view:
+ * a GPU capability issue must not turn the public record into a blank page. */
+function LiveMapFallback({
+  ds, stats, paint, animals, cases, mode, pal,
+}: {
+  ds: SpatialDataset;
+  stats: CellStat[];
+  paint: (s: CellStat) => { c: string; o: number; line?: string };
+  animals: typeof EMPTY;
+  cases: typeof EMPTY;
+  mode: AnyMode;
+  pal: Palette;
+}) {
+  const [west, south, east, north] = ds.cities[0]?.box ?? INDIA_BOX;
+  const dx = Math.max(0.0001, east - west), dy = Math.max(0.0001, north - south);
+  const point = ([lng, lat]: number[]) => [36 + ((lng - west) / dx) * 928, 664 - ((lat - south) / dy) * 628] as const;
+  const path = (ring: [number, number][]) => ring.map((p, i) => {
+    const [x, y] = point(p);
+    return `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ") + " Z";
+  const cells = stats.map((s) => ({ s, p: paint(s) })).filter(({ p }) => p.o > 0 || p.line);
+  const animalPoints = (mode === "animals" || mode === "abc" || mode === "arv" || mode === "medical" || mode === "density")
+    ? animals.features.slice(0, 850) : [];
+  const casePoints = (mode === "cases" || mode === "medical") ? cases.features.slice(0, 600) : [];
+  return (
+    <svg className="sm-fallback-map" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+      <rect width="1000" height="700" fill={pal.bg} />
+      {cells.map(({ s, p }) => <path key={s.cell} d={path(ringOf(ds, s.cell))} fill={p.c} fillOpacity={p.o} stroke={p.line ?? "rgba(239,231,218,.16)"} strokeWidth=".75" />)}
+      {animalPoints.map((feature, i) => {
+        if (feature.geometry.type !== "Point") return null;
+        const [x, y] = point(feature.geometry.coordinates as number[]);
+        const kind = Number(feature.properties?.k ?? 0);
+        return <circle key={i} cx={x} cy={y} r={kind === 1 ? 2.8 : 2} fill={kind === 1 ? pal.att[3] : pal.ink} fillOpacity=".88" />;
+      })}
+      {casePoints.map((feature, i) => {
+        if (feature.geometry.type !== "Point") return null;
+        const [x, y] = point(feature.geometry.coordinates as number[]);
+        return <circle key={i} cx={x} cy={y} r="3" fill={Number(feature.properties?.crit ?? 0) ? pal.att[3] : pal.ink} stroke={pal.bg} strokeWidth="1" />;
+      })}
+    </svg>
+  );
+}
+
 function hatchImage(color: string) {
   const s = 8, c = document.createElement("canvas");
   c.width = s; c.height = s;
@@ -401,8 +445,11 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   useEffect(() => {
     let map: MLMap | null = null, dead = false;
     const canvas = document.createElement("canvas");
-    if (!canvas.getContext("webgl2") && !canvas.getContext("webgl")) {
-      setMapError("This browser cannot draw the interactive map. The city record and filters remain available on a WebGL-enabled browser.");
+    // MapLibre 6 requires WebGL2. Do not let a WebGL1-only or blocked GPU
+    // proceed into a half-started canvas: the live SVG fallback below keeps
+    // the city, modes and filters useful instead of leaving a blank map.
+    if (!canvas.getContext("webgl2")) {
+      setMapError("Interactive map unavailable in this browser. Showing the live city map instead.");
       return () => { dead = true; };
     }
     import("maplibre-gl").then((ml) => {
@@ -421,13 +468,20 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __spmap?: MLMap }).__spmap = map;
       map.touchZoomRotate.disableRotation();
+      map.on("error", (event) => {
+        const message = event.error instanceof Error ? event.error.message : "";
+        if (/webgl|worker|renderer|context/i.test(message)) {
+          setMapError("Interactive map unavailable in this browser. Showing the live city map instead.");
+        }
+      });
       map.on("load", () => {
         el.current?.querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
         map!.addImage("hatch-night", hatchImage("rgba(239,231,218,0.42)"));
         map!.addImage("hatch-paper", hatchImage("rgba(11,30,61,0.45)"));
+        setMapError(null);
         setReady(true);
       });
-    }).catch(() => { if (!dead) setMapError("The interactive map could not start. Please reload the city view."); });
+    }).catch(() => { if (!dead) setMapError("Interactive map unavailable in this browser. Showing the live city map instead."); });
     return () => { dead = true; map?.remove(); mapRef.current = null; layersDone.current = false; setLayersReady(false); };
     // Built once; the ground is repainted in place.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -942,6 +996,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   return (
     <div className={`sm ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`}>
       <div className="sm-canvas" ref={el} />
+      {mapError && ds && <LiveMapFallback ds={ds} stats={stats} paint={cellPaint} animals={animalPts} cases={casePts} mode={mode} pal={pal} />}
       <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} — {def.q}</h1>
 
       <div className="sm-top">
