@@ -277,7 +277,8 @@ export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
 export async function getDogById(id: string): Promise<Dog | null> {
   const supa = getSupabase();
   if (supa) {
-    const { data } = await supa.from("public_animal_profiles").select("*").eq("id", id).single();
+    const { data, error } = await supa.from("public_animal_profiles").select("*").eq("id", id).single();
+    if (error) throw error;
     return data ? mapDog(data) : null;
   }
   return null;
