@@ -212,10 +212,10 @@ function buildStory(ds: SpatialDataset) {
    dataset's tag, so an edit that refreshes the map refreshes these too. */
 export const getLandingStory = unstable_cache(async () => {
   const ds = await getPublicDataset(null);
-  if (!ds || !ds.cities.length) return null;
+  if (!ds || !ds.cities.length) throw new Error("Landing spatial dataset unavailable");
   const story = buildStory(ds);
   return { ...story, relay: await resolveRelay(story.desk.feed, story.desk.cells.map((c) => c.key), story.hero.city) };
-}, ["landing-story-v12"], { revalidate: 600, tags: [SPATIAL_TAG] });
+}, ["landing-story-v13"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /* One report, three screens, carries the record's own identifier across
    all three. The dataset holds no ids by design, so the most recent real
