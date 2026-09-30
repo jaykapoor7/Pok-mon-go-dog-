@@ -297,6 +297,10 @@ export interface Case {
   verified_at?: string | null;
   cost_estimate?: number | null;
   cost_spent?: number | null;
+  /** Private operational contact for the person who reported the case. */
+  informer_contact?: string | null;
+  /** Canonical clinic/hospital field kept on the case record. */
+  hospital?: string | null;
   species?: string;
   follow_up_at?: string | null;
   medical_notes?: string | null;

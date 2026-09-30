@@ -26,15 +26,10 @@ export const PAGE = 150;
 export async function openRegister(): Promise<RegisterRow[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const out: RegisterRow[] = [];
-  for (let from = 0; from < 5000; from += 1000) {
-    const { data, error } = await supa.from("org_case_facts").select(FIELDS)
-      .in("status_class", ["open", "in_progress"]).order("occurred_at", { ascending: true }).range(from, from + 999);
-    if (error) throw new Error(error.message);
-    out.push(...((data ?? []) as RegisterRow[]));
-    if (!data || data.length < 1000) break;
-  }
-  return out;
+  const { data, error } = await supa.from("org_case_facts").select(FIELDS)
+    .in("status_class", ["open", "in_progress"]).order("occurred_at", { ascending: true }).limit(300);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as RegisterRow[];
 }
 
 export type ClosedLens = "closed" | "reasonless";

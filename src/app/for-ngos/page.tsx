@@ -2,9 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { DeskMock } from "@/components/landing/DeskMock";
 import { OrgMark } from "@/components/orgs/OrgMark";
-import { getLandingStory } from "@/lib/landing/story";
 import { getPartnerDirectory } from "@/lib/partners";
 import { getKindHour } from "@/lib/kind-hour";
 import "@/components/site/site.css";
@@ -27,8 +25,7 @@ export const metadata = {
    ════════════════════════════════════════════════════════════════════ */
 
 export default async function ForNgosPage() {
-  const [story, dir, kh] = await Promise.all([
-    getLandingStory().catch(() => null),
+  const [dir, kh] = await Promise.all([
     getPartnerDirectory().catch(() => []),
     getKindHour().catch(() => null),
   ]);
@@ -47,7 +44,7 @@ export default async function ForNgosPage() {
     <div className="co ngo">
       <SiteHeader tone="night" />
       <main>
-        <section className={`co-hero ${story?.desk ? "" : "is-solo"}`}>
+        <section className="co-hero is-solo">
           <div className="co-hero-in">
             <div className="co-hero-copy">
               <p className="co-kicker">Field Workspace · for NGOs</p>
@@ -58,7 +55,6 @@ export default async function ForNgosPage() {
                 <Link href="/join" className="co-link">I have a code <ArrowUpRight size={14} /></Link>
               </p>
             </div>
-            {story?.desk && story.desk.live + story.desk.older > 0 && <DeskMock city={story.hero.city} desk={story.desk} />}
           </div>
         </section>
 

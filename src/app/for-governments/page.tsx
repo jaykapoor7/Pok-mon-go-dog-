@@ -3,9 +3,8 @@ import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { HexPlate, type PlateCell, type Box } from "@/components/system/HexPlate";
-import { getPublicDataset } from "@/lib/spatial/server";
-import { buildIndex, cellStats, COVERAGE_ORDER, COVERAGE_TEXT, type Coverage } from "@/lib/spatial/engine";
-import { A, A_STRIDE, K, K_STRIDE } from "@/lib/spatial/types";
+import { getPublicSpatialCities, getPublicSpatialCityCells, type SpatialCell } from "@/lib/spatial/server";
+import { cellToBoundary } from "h3-js";
 import { getWardCities } from "@/lib/wards";
 import { getSupabase } from "@/lib/supabase";
 import "@/components/site/site.css";
@@ -17,7 +16,6 @@ export const metadata = {
   title: "For municipalities, StrayPaw",
   description: "Coverage a municipality can audit: which localities and wards are recorded and which are not, animal to locality to ward to city, with ABC, ARV, census and programme records, and existing municipal and NGO data imported with its source.",
 };
-
 /* ════════════════════════════════════════════════════════════════════
    For municipalities. Product first: the coverage of a real city, drawn the way
    the map draws it (ink weight for how well a place is recorded, a
@@ -29,9 +27,10 @@ export const metadata = {
    ════════════════════════════════════════════════════════════════════ */
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
-/* Coverage is ink weight on the night ground, never a hue. */
-const INK: Record<Coverage, number> = { strong: 0.95, partial: 0.62, weak: 0.36, insufficient: 0.18, unmapped: 0 };
 const NIGHT_INK = "rgb(239, 231, 218)";
+const coverage = (cell: SpatialCell) => cell.animals >= 12 ? "strong" : cell.animals >= 5 ? "partial" : cell.animals >= 2 ? "weak" : "insufficient";
+const INK: Record<string, number> = { strong: 0.95, partial: 0.62, weak: 0.36, insufficient: 0.18 };
+const ring = (cell: SpatialCell) => cellToBoundary(cell.h3_r8, true).flatMap(([lng, lat]) => [Math.round(lng * 1e5) / 1e5, Math.round(lat * 1e5) / 1e5]);
 
 function boxOf(rings: number[][], pad = 0.004): Box {
   let w = 180, s = 90, e = -180, n = -90;
@@ -51,46 +50,31 @@ async function programmeCounts() {
 }
 
 export default async function ForGovernmentsPage() {
-  const [ds, wardCities, pc] = await Promise.all([
-    getPublicDataset(null).catch(() => null),
+  const [cities, wardCities, pc] = await Promise.all([
+    getPublicSpatialCities().catch(() => []),
     getWardCities().catch(() => []),
     programmeCounts().catch(() => ({ programmes: 0, areaFacts: 0, municipal: [] as string[] })),
   ]);
 
-  /* The city with the most field work, as the landing picks it. */
-  let ci = -1;
-  if (ds) ds.cities.forEach((c, i) => { if (ci < 0 || c.cases > ds.cities[ci].cases || (c.cases === ds.cities[ci].cases && c.animals > ds.cities[ci].animals)) ci = i; });
-  const city = ds && ci >= 0 ? ds.cities[ci] : null;
-  const ix = ds ? buildIndex(ds) : null;
-  const stats = ds && ix && ci >= 0 ? cellStats(ds, ix, ds.today, undefined, ci).filter((s) => s.animals > 0 || s.events > 0) : [];
-  const frontier = ds && ci >= 0 ? ds.frontier.filter((f) => f.city === ci) : [];
-  const byCov = new Map<Coverage, number>();
-  for (const s of stats) byCov.set(s.coverage, (byCov.get(s.coverage) ?? 0) + 1);
-  byCov.set("unmapped", frontier.length);
+  const city = cities[0] ?? null;
+  const cells = city ? await getPublicSpatialCityCells(city.city).catch(() => []) : [];
+  const byCov = new Map<string, number>();
+  for (const cell of cells) { const c = coverage(cell); byCov.set(c, (byCov.get(c) ?? 0) + 1); }
+  const plateCells: PlateCell[] = cells.map((cell) => ({ key: cell.h3_r8, ring: ring(cell), fill: NIGHT_INK, opacity: Math.max(0.12, INK[coverage(cell)]) }));
+  const plateBox = cells.length ? boxOf(cells.map(ring), 0.006) : null;
 
-  const plateCells: PlateCell[] = ds ? [
-    ...frontier.map((f) => ({ key: `f-${f.cell}`, ring: f.ring, fill: "transparent", stroke: "rgba(239,231,218,0.45)", dashed: true })),
-    ...stats.map((s) => ({ key: ds.cells[s.cell], ring: ds.rings[s.cell], fill: NIGHT_INK, opacity: Math.max(0.12, INK[s.coverage]) })),
-  ] : [];
-  const plateBox = ds && city ? boxOf(stats.map((s) => ds.rings[s.cell]), 0.006) : null;
-
-  /* Animal → locality → ward → city, from the same city's record. */
-  const locCount = new Map<number, number>();
-  if (ds) for (const s of stats) { const li = ds.cellLocality[s.cell]; if (li >= 0) locCount.set(li, (locCount.get(li) ?? 0) + s.animals); }
+  /* Animal → locality → ward → city, from bounded city-cell summaries. */
+  const locCount = new Map<string, number>();
+  for (const cell of cells) if (cell.zone) locCount.set(cell.zone, (locCount.get(cell.zone) ?? 0) + cell.animals);
   const topLoc = [...locCount.entries()].sort((a, b) => b[1] - a[1])[0];
-  const locCells = ds && topLoc ? stats.filter((s) => ds.cellLocality[s.cell] === topLoc[0]) : [];
-  const oneCell = locCells.sort((a, b) => b.animals - a.animals)[0];
-  const wards = city ? wardCities.find((w) => w.level === "ward" && w.city.toLowerCase() === city.name.toLowerCase())?.wards ?? 0 : 0;
+  const locCells = topLoc ? cells.filter((cell) => cell.zone === topLoc[0]) : [];
+  const oneCell = [...locCells].sort((a, b) => b.animals - a.animals)[0];
+  const wards = city ? wardCities.find((w) => w.level === "ward" && w.city.toLowerCase() === city.city.toLowerCase())?.wards ?? 0 : 0;
   const wardCityCount = wardCities.filter((w) => w.level === "ward").length;
-  const rung = (cells: typeof stats, hot?: number): PlateCell[] => ds ? cells.map((s) => ({ key: ds.cells[s.cell], ring: ds.rings[s.cell], fill: s.cell === hot ? "var(--sp-flame)" : "var(--sp-seq-3)" })) : [];
-
-  /* Programme records held for the whole register. */
-  let abc = 0, arv = 0;
-  if (ds) {
-    const ABC = ds.dict.care.indexOf("sterilisation"), ARV = ds.dict.care.indexOf("vaccination");
-    for (let i = 0; i < ds.care.length; i += K_STRIDE) { if (ds.care[i + K.kind] === ABC) abc++; if (ds.care[i + K.kind] === ARV) arv++; }
-  }
-  const animalsInCity = ds && ci >= 0 ? (() => { let n = 0; for (let i = 0; i < ds.animals.length; i += A_STRIDE) if (ds.animals[i + A.city] === ci) n++; return n; })() : 0;
+  const rung = (rows: SpatialCell[], hot?: string): PlateCell[] => rows.map((cell) => ({ key: cell.h3_r8, ring: ring(cell), fill: cell.h3_r8 === hot ? "var(--sp-flame)" : "var(--sp-seq-3)" }));
+  const abc = cells.reduce((sum, cell) => sum + cell.sterilised, 0);
+  const arv = cells.reduce((sum, cell) => sum + cell.vaccinated, 0);
+  const animalsInCity = city?.animals ?? 0;
 
   return (
     <div className="co gv">
@@ -104,13 +88,13 @@ export default async function ForGovernmentsPage() {
               <p className="co-lede">The Animal Birth Control Rules, 2023 place sterilisation and vaccination on the local body. The hard part is proving, a year later, which localities were reached. StrayPaw draws it from the record, and draws the gaps as gaps.</p>
               <p className="co-acts">
                 <Link href="/contact?subject=Request%20a%20municipal%20pilot" className="sys-btn is-flame">Request a small pilot <ArrowUpRight size={15} /></Link>
-                {city && <Link href={`/insights?city=${encodeURIComponent(city.name)}`} className="co-link">Read {city.name} <ArrowUpRight size={14} /></Link>}
+                {city && <Link href={`/insights?city=${encodeURIComponent(city.city)}`} className="co-link">Read {city.city} <ArrowUpRight size={14} /></Link>}
               </p>
             </div>
             {city && plateBox && plateCells.length > 0 && (
               <figure className="gv-plate">
-                <HexPlate night width={560} height={460} box={plateBox} cells={plateCells} label={`Coverage of ${city.name}: each recorded cell drawn by how well it is mapped, with the unmapped edge dashed`} scaleBarKm={2} />
-                <figcaption><span className="sys-mono">{city.name} · live</span>Each cell about 0.7 km². Brighter is better mapped; dashed is not mapped yet.</figcaption>
+                <HexPlate night width={560} height={460} box={plateBox} cells={plateCells} label={`Coverage of ${city.city}: each recorded cell drawn by how well it is mapped`} scaleBarKm={2} />
+                <figcaption><span className="sys-mono">{city.city} · live</span>Each cell about 0.7 km². Brighter is better mapped.</figcaption>
               </figure>
             )}
           </div>
@@ -121,14 +105,14 @@ export default async function ForGovernmentsPage() {
             <div className="co-sec-in">
               <header className="co-sec-head">
                 <h2 id="gv-cov">Coverage, <em>and the unmapped gaps.</em></h2>
-                <p>How well each place in {city.name} is recorded, by the same rules the map uses. A place not mapped is a place nobody has recorded, not a place without dogs.</p>
+                <p>How well each place in {city.city} is recorded, by the same rules the map uses. A place not mapped is a place nobody has recorded, not a place without dogs.</p>
               </header>
               <ol className="gv-cov">
-                {COVERAGE_ORDER.map((c) => (
+                {(["strong", "partial", "weak", "insufficient"] as const).map((c) => (
                   <li key={c}>
                     <i className={`gv-sw is-${c}`} aria-hidden />
-                    <span><b>{COVERAGE_TEXT[c].label}</b><small>{COVERAGE_TEXT[c].rule}</small></span>
-                    <strong>{fmt(byCov.get(c) ?? 0)}<small>{c === "unmapped" ? "cells at the edge" : "cells"}</small></strong>
+                    <span><b>{c === "strong" ? "Strong record" : c === "partial" ? "Partial record" : c === "weak" ? "Thin record" : "Small record"}</b><small>Based on the number of animals recorded in this cell.</small></span>
+                    <strong>{fmt(byCov.get(c) ?? 0)}<small>cells</small></strong>
                   </li>
                 ))}
               </ol>
@@ -136,7 +120,7 @@ export default async function ForGovernmentsPage() {
           </section>
         )}
 
-        {city && topLoc && oneCell && ds && (
+        {city && topLoc && oneCell && (
           <section className="co-sec is-shell" aria-labelledby="gv-roll">
             <div className="gv-roll-in">
               <header className="co-sec-head gv-roll-head">
@@ -144,21 +128,21 @@ export default async function ForGovernmentsPage() {
               </header>
               <ol className="gv-roll">
                 <li>
-                  <HexPlate width={120} height={120} box={boxOf([ds.rings[oneCell.cell]], 0.001)} cells={rung([oneCell], oneCell.cell)} label="One animal's cell" />
+                  <HexPlate width={120} height={120} box={boxOf([ring(oneCell)], 0.001)} cells={rung([oneCell], oneCell.h3_r8)} label="One animal's cell" />
                   <small>Animal</small><b>One StrayPaw ID</b><p>Its cases, care and outcome, placed in its cell, never at an address.</p>
                 </li>
                 <li>
-                  <HexPlate width={120} height={120} box={boxOf(locCells.map((s) => ds.rings[s.cell]), 0.002)} cells={rung(locCells, oneCell.cell)} label={`The locality ${ds.localities[topLoc[0]]}`} />
-                  <small>Locality</small><b>{ds.localities[topLoc[0]]}</b><p>{fmt(topLoc[1])} animals on record across {locCells.length} cell{locCells.length === 1 ? "" : "s"}.</p>
+                  <HexPlate width={120} height={120} box={boxOf(locCells.map(ring), 0.002)} cells={rung(locCells, oneCell.h3_r8)} label={`The locality ${topLoc[0]}`} />
+                  <small>Locality</small><b>{topLoc[0]}</b><p>{fmt(topLoc[1])} animals on record across {locCells.length} cell{locCells.length === 1 ? "" : "s"}.</p>
                 </li>
                 <li>
                   <span className="gv-ward" aria-hidden><i /></span>
                   <small>Ward</small><b>{wards > 0 ? `${fmt(wards)} wards loaded` : "Ward boundaries, where supplied"}</b>
-                  <p>{wards > 0 ? `Every locality in ${city.name} rolls into its municipal ward.` : `Localities roll into wards once a city's ward boundaries are loaded; ${wardCityCount} ${wardCityCount === 1 ? "city has" : "cities have"} them today.`}</p>
+                  <p>{wards > 0 ? `Every locality in ${city.city} rolls into its municipal ward.` : `Localities roll into wards once a city's ward boundaries are loaded; ${wardCityCount} ${wardCityCount === 1 ? "city has" : "cities have"} them today.`}</p>
                 </li>
                 <li>
-                  <HexPlate width={120} height={120} box={plateBox!} cells={rung(stats)} label={`The city of ${city.name}`} />
-                  <small>City</small><b>{city.name}</b><p>{fmt(animalsInCity)} animals and {fmt(city.cases)} requests, in one view a council can read.</p>
+                  <HexPlate width={120} height={120} box={plateBox!} cells={rung(cells)} label={`The city of ${city.city}`} />
+                  <small>City</small><b>{city.city}</b><p>{fmt(animalsInCity)} animals and {fmt(city.cases)} requests, in one view a council can read.</p>
                 </li>
               </ol>
             </div>

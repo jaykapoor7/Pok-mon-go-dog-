@@ -1,12 +1,5 @@
-/* After a case changes, the map, the analytics and the dashboard should
-   say so — not after the ten-minute cache, and not only after a reload.
-
-   A write that changes the register calls spatialChanged(). It asks the
-   server to rebuild the public dataset (a signed-in request; see
-   /api/spatial/refresh), then tells every open map, report and dashboard
-   in this browser to read its dataset again. */
-
-import { getSupabase } from "@/lib/supabase";
+/* After a case changes, the open workspace should update its local derived
+   views without turning one field write into a global public-data rebuild. */
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -18,19 +11,19 @@ export function onSpatialChange(fn: Listener): () => void {
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 
-/** Several writes in one action (a status and a follow-up) are one refresh. */
+/**
+ * Several writes in one action are one local refresh.
+ *
+ * This deliberately does not invalidate the shared public spatial cache.
+ * That cache is an aggregate of the whole register and invalidating it from
+ * a field user's case write made the next visitor rebuild tens of thousands
+ * of records. Imports and the scheduled aggregate refresh own that work.
+ */
 export function spatialChanged(): void {
   if (typeof window === "undefined") return;
   if (timer) clearTimeout(timer);
-  timer = setTimeout(async () => {
+  timer = setTimeout(() => {
     timer = null;
-    try {
-      const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
-      const token = data.session?.access_token;
-      if (token) await fetch("/api/spatial/refresh", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-    } catch {
-      /* The server copy catches up on its own; this browser still reloads. */
-    }
     listeners.forEach((fn) => fn());
   }, 250);
 }

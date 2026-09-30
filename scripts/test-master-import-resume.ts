@@ -32,7 +32,7 @@ const cases: any[] = [];
 const timelines: any[] = [];
 const medical: any[] = [];
 const followups: any[] = [];
-const batches: any[] = [{ id: "batch-resume", status: "staged" }];
+const batches: any[] = [{ id: "batch-resume", status: "staged", rows_imported: 0, rows_needing_review: 0, commit_cursor: null }];
 let nextDog = 1;
 let nextCase = 1;
 let nextTimeline = 1;
@@ -41,6 +41,7 @@ class Query {
   table: string;
   op = "select";
   payload: any;
+  take: number | null = null;
   filters: Array<(row: any) => boolean> = [];
   constructor(table: string) { this.table = table; }
   select() { return this; }
@@ -48,8 +49,10 @@ class Query {
   eq(key: string, value: any) { this.filters.push((row) => row[key] === value); return this; }
   neq(key: string, value: any) { this.filters.push((row) => row[key] !== value); return this; }
   order() { return this; }
+  limit(n: number) { this.take = n; return this; }
   update(payload: any) { this.op = "update"; this.payload = payload; return this; }
   insert(payload: any) { this.op = "insert"; this.payload = payload; return this; }
+  upsert(payload: any) { this.op = "upsert"; this.payload = payload; return this; }
   maybeSingle() {
     if (this.table === "import_location_cache") return Promise.resolve({ data: { lat: 11.0168, lng: 76.9558, precision: "approximate" }, error: null });
     const data = this.source().filter((row) => this.filters.every((fn) => fn(row)))[0] ?? null;
@@ -60,6 +63,12 @@ class Query {
     return Promise.resolve({ data, error: null });
   }
   single() {
+    if (this.op === "upsert") {
+      const target = this.source();
+      const existing = target.find((row) => row.import_source_key === this.payload.import_source_key);
+      if (existing) return Promise.resolve({ data: existing, error: null });
+      this.op = "insert";
+    }
     if (this.op !== "insert") return Promise.resolve({ data: null, error: null });
     if (this.table === "dogs") { const row = { id: `dog-${nextDog++}`, ...this.payload }; dogs.push(row); return Promise.resolve({ data: row, error: null }); }
     if (this.table === "cases") { const row = { id: `case-${nextCase++}`, ...this.payload }; cases.push(row); return Promise.resolve({ data: row, error: null }); }
@@ -76,7 +85,8 @@ class Query {
       const items = Array.isArray(this.payload) ? this.payload : [this.payload];
       target.push(...items);
     }
-    return Promise.resolve({ data: null, error: null }).then(resolve, reject);
+    const data = this.source().filter((row) => this.filters.every((fn) => fn(row))).slice(0, this.take ?? undefined);
+    return Promise.resolve({ data, error: null }).then(resolve, reject);
   }
   source() {
     if (this.table === "import_rows") return rows;
@@ -97,28 +107,41 @@ async function runChunk(supa: any) {
 
 async function main() {
   process.env.MAPBOX_ACCESS_TOKEN = "test-token";
-  const supa = { from: (table: string) => new Query(table) };
+  const supa = {
+    from: (table: string) => new Query(table),
+    rpc: (name: string, args: any) => {
+      if (name === "enqueue_spatial_refresh") return Promise.resolve({ data: true, error: null });
+      if (name !== "next_pending_import_rows") return Promise.resolve({ data: null, error: { message: "unknown rpc" } });
+      const data = rows.filter((row) => row.batch_id === args.p_batch_id && (!args.p_after_id || row.id > args.p_after_id) && !row.error && row.decision !== "skip" && (
+        (["rescue", "adoption", "foster"].includes(row.classification) && !row.imported_case_id) ||
+        (["treatment", "sterilisation", "vaccination", "follow_up"].includes(row.classification) && !row.imported_dog_id)
+      )).slice(0, args.p_limit);
+      return Promise.resolve({ data, error: null });
+    },
+  };
 
   const first = await runChunk(supa);
   assert.equal(first.processedRows, 100);
-  assert.equal(first.remainingRows, 105);
+  assert.equal(first.remainingRows, null);
   assert.equal(dogs.length, 100);
   assert.equal(cases.length, 100);
 
   const second = await runChunk(supa);
   assert.equal(second.processedRows, 200);
-  assert.equal(second.remainingRows, 5);
+  assert.equal(second.remainingRows, null);
   assert.equal(dogs.length, 200);
   assert.equal(cases.length, 200);
 
   const third = await runChunk(supa);
-  assert.equal(third.completed, true);
+  assert.equal(third.completed, false);
   assert.equal(third.processedRows, total);
-  assert.equal(third.remainingRows, 0);
+  assert.equal(third.remainingRows, null);
   assert.equal(dogs.length, total);
   assert.equal(cases.length, total);
   assert.equal(timelines.length, total);
 
+  const done = await runChunk(supa);
+  assert.equal(done.completed, true);
   const retry = await runChunk(supa);
   assert.equal(retry.completed, true);
   assert.equal(dogs.length, total, "retry must not duplicate profiles");

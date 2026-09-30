@@ -40,6 +40,10 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   const [species, setSpecies] = useState("dog");
   const [category, setCategory] = useState<CaseCategory>("injury");
   const [severity, setSeverity] = useState<CaseSeverity>("normal");
+  const [informerContact, setInformerContact] = useState("");
+  const [hospital, setHospital] = useState("");
+  const [costEstimate, setCostEstimate] = useState("");
+  const [costSpent, setCostSpent] = useState("");
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,8 +88,19 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
         if (newId && newId !== "demo-animal") linkedDogId = newId;
       }
 
+      const amount = (value: string, label: string) => {
+        if (!value.trim()) return null;
+        const parsed = Number(value.replace(/,/g, ""));
+        if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`${label} must be a valid non-negative amount.`);
+        return parsed;
+      };
       const id = await createCase(
-        { title: title.trim(), description: description.trim(), dogId: linkedDogId, zone: linkedZone, severity, category, species },
+        {
+          title: title.trim(), description: description.trim(), dogId: linkedDogId, zone: linkedZone, severity, category, species,
+          informerContact, hospital,
+          costEstimate: amount(costEstimate, "Estimated treatment cost"),
+          costSpent: amount(costSpent, "Amount spent"),
+        },
         { id: user.id, name: user.name }
       );
       if (id && id !== "demo-case") router.push(`/partner/cases/${id}`);
@@ -161,6 +176,22 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Case title, e.g. Hind-leg injury" className={INPUT} />
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's going on? Condition, symptoms, context." className={cn(INPUT, "min-h-[80px] resize-y")} />
         <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Area / locality" className={INPUT} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Informer / reporter contact
+            <input value={informerContact} onChange={(e) => setInformerContact(e.target.value)} placeholder="Phone, WhatsApp or email (private)" className={cn(INPUT, "mt-1.5")} />
+          </label>
+          <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Clinic / hospital
+            <input value={hospital} onChange={(e) => setHospital(e.target.value)} placeholder="Where treatment will happen" className={cn(INPUT, "mt-1.5")} />
+          </label>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Estimated treatment cost (₹)
+            <input value={costEstimate} inputMode="decimal" onChange={(e) => setCostEstimate(e.target.value)} placeholder="Optional" className={cn(INPUT, "mt-1.5")} />
+          </label>
+          <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Amount spent (₹)
+            <input value={costSpent} inputMode="decimal" onChange={(e) => setCostSpent(e.target.value)} placeholder="Optional" className={cn(INPUT, "mt-1.5")} />
+          </label>
+        </div>
         <div>
           <p className="mb-1.5 text-xs font-medium text-bark-500">Category</p>
           <div className="flex flex-wrap gap-1.5">

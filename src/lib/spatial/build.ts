@@ -63,26 +63,6 @@ const round4 = (v: number) => Math.round(v * 1e4) / 1e4;
 const located = (lat: number | null | undefined, lng: number | null | undefined) =>
   typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
 
-async function readAll<T>(load: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>, page = 1000): Promise<T[]> {
-  const out: T[] = [];
-  // Supabase applies a statement timeout to each REST request. Historical
-  // imports make a serial 1,000-row walk exceed the serverless budget even
-  // though each bounded page is valid, so fetch a small bounded window in
-  // parallel. This keeps the public map responsive without widening data.
-  const parallel = 8;
-  for (let from = 0; ; from += page * parallel) {
-    const batch = await Promise.all(Array.from({ length: parallel }, (_, i) => load(from + i * page, from + (i + 1) * page - 1)));
-    let last = false;
-    for (const { data, error } of batch) {
-      if (error) throw error;
-      const rows = (Array.isArray(data) ? data : []) as T[];
-      out.push(...rows);
-      if (rows.length < page) last = true;
-    }
-    if (last) return out;
-  }
-}
-
 /** Writes exact H3 cells for rows that do not have one yet. Service role only. */
 export async function healCells(admin: SupabaseClient | null) {
   if (!admin) return 0;
@@ -104,53 +84,9 @@ export async function healCells(admin: SupabaseClient | null) {
   return n;
 }
 
-export async function readPublicRows(supa: SupabaseClient, city?: string) {
-  // The query builder's type is deep; the city filter only needs its eq().
-  const scoped = (q: any) => (city ? q.eq("city", city) : q);
-  const [animals, cases, care, sightings, orgs] = await Promise.all([
-    readAll<AnimalRow>((f, t) => scoped(supa.from("public_spatial_animals_cache").select(
-      "id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id",
-    )).order("id").range(f, t)),
-    readAll<CaseRow>((f, t) => scoped(supa.from("public_case_facts").select(
-      "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at",
-    )).order("id").range(f, t)),
-    readAll<CareRow>((f, t) => scoped(supa.from("public_care_facts").select("dog_id,kind,event_date,h3_r8")).order("id").range(f, t)),
-    readAll<SightRow>((f, t) => scoped(supa.from("public_sighting_facts").select(
-      "dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo",
-    )).order("id").range(f, t)),
-    Promise.resolve([] as { id: string; name: string }[]),
-  ]);
-  return { animals, cases, care, sightings, orgs };
-}
-
-/** An organisation's own register, under the member's RLS. */
-export async function readOrgRows(supa: SupabaseClient) {
-  const [animals, cases, care] = await Promise.all([
-    readAll<AnimalRow & { provenance?: string | null }>((f, t) => supa.from("dogs").select(
-      "id,h3_r8,lat,lng,city,state,zone,location_precision,provenance,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id",
-    ).order("id").range(f, t)),
-    readAll<CaseRow & { provenance?: string | null; occurred_at: string | null }>((f, t) => supa.from("org_case_facts").select(
-      "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_at,resolved_at,resolved_at_source,provenance,followups_done,followups_missed,followups_upcoming,reviewed_at",
-    ).order("id").range(f, t)),
-    readAll<CareRow & { dog_id: string }>((f, t) => supa.from("medical_events").select("dog_id,kind,event_date").order("id").range(f, t)),
-  ]);
-  const casesOut: CaseRow[] = (cases as (CaseRow & { first_action_at?: string | null; provenance?: string | null })[]).map((c) => ({
-    ...c,
-    source: c.provenance === "imported_historical_record" ? "field" : "resident",
-    first_action_days: c.first_action_at && c.occurred_at
-      ? Math.max(0, Math.round((Date.parse(c.first_action_at) - Date.parse(c.occurred_at.slice(0, 10))) / 86_400_000))
-      : null,
-  }));
-  const animalsOut: AnimalRow[] = (animals as (AnimalRow & { provenance?: string | null })[]).map((a) => ({
-    ...a,
-    source: a.provenance === "community_report" ? "resident" : "field",
-  }));
-  return { animals: animalsOut, cases: casesOut, care: care.map((r) => ({ ...r, h3_r8: null })), sightings: [] as SightRow[], orgs: [] as { id: string; name: string }[] };
-}
-
 /* ── assembly ─────────────────────────────────────────────────────────── */
 
-type Rows = Awaited<ReturnType<typeof readPublicRows>>;
+type Rows = { animals: AnimalRow[]; cases: CaseRow[]; care: CareRow[]; sightings: SightRow[]; orgs: { id: string; name: string }[] };
 
 const tally = (m: Map<string, number>, k: string | null | undefined) => {
   const key = (k ?? "").trim();

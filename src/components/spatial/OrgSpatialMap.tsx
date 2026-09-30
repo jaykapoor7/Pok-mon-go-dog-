@@ -1,25 +1,16 @@
 "use client";
 
 import { Suspense } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { usePartnerAccess } from "@/components/partner/PartnerGate";
-import { SpatialMap } from "./SpatialMap";
+import { BoundedSpatialMap } from "./BoundedSpatialMap";
 
-/* The organisation's field map: the same instrument as the public map, read
-   from the organisation's own register under its own access.
-
-   The workspace is readable by anyone evaluating it, but its records are
-   not: until someone signs in as a member (the sidebar offers it), the map
-   shows the public register rather than an empty night. */
+/* The field-map shell now uses the same bounded city/viewport contract as
+   the public map. Operational queues remain on the NGO dashboard; no route
+   downloads an organisation-wide register merely to draw a map. */
 export function OrgSpatialMap() {
-  const { user, ready } = useAuth();
-  const { member, ready: accessReady } = usePartnerAccess();
-  if (!ready || (user && !accessReady)) return <div className="sm-host is-fill" />;
-  const org = Boolean(user && member);
   return (
     <div className="sm-host is-fill">
       <Suspense fallback={null}>
-        <SpatialMap key={org ? "org" : "public"} scope={org ? "org" : "public"} userKey={user?.id ?? null} />
+        <BoundedSpatialMap scope="org" />
       </Suspense>
     </div>
   );

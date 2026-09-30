@@ -4,9 +4,7 @@
    geometry the map derives from it. */
 
 import { useEffect, useMemo, useState } from "react";
-import { getSupabase } from "@/lib/supabase";
 import { buildIndex, type Index } from "@/lib/spatial/engine";
-import { onSpatialChange } from "@/lib/spatial/refresh";
 import type { SpatialDataset } from "@/lib/spatial/types";
 
 export type Scope = "public" | "org";
@@ -15,44 +13,29 @@ type State = { ds: SpatialDataset | null; error: string | null; loading: boolean
 
 const cache = new Map<string, Promise<SpatialDataset>>();
 
-async function load(scope: Scope, fresh = false): Promise<SpatialDataset> {
-  if (scope === "org") {
-    const supa = getSupabase();
-    const { data } = (await supa?.auth.getSession()) ?? { data: { session: null } };
-    const token = data.session?.access_token;
-    if (!token) throw new Error("Sign in with your organisation to see its register.");
-    const r = await fetch("/api/spatial?scope=org", { headers: { Authorization: `Bearer ${token}` } });
-    if (!r.ok) throw new Error((await r.json().catch(() => null))?.error ?? "Could not read your organisation's register.");
-    return r.json();
-  }
-  // After a change, step past the shared edge cache to the rebuilt copy.
-  const r = await fetch(fresh ? `/api/spatial?fresh=${Date.now()}` : "/api/spatial");
-  if (!r.ok) throw new Error("The register is unavailable right now.");
-  return r.json();
+async function load(scope: Scope): Promise<SpatialDataset> {
+  /* The legacy packed dataset represented every animal/case/care row. Keep
+     the hook's error boundary for older secondary panels, but never issue a
+     request that can materialise an organisation or public register. */
+  throw new Error(scope === "org"
+    ? "Organisation-wide map analytics are being rebuilt as bounded city and viewport reads. Your cases and dashboard remain available."
+    : "This legacy map panel has moved to the bounded city map. Open /map to choose a city.");
 }
 
 /** The dataset for a scope. `enabled: false` loads nothing — for a screen
     that only needs it once someone is signed in as a member. */
-/* Set once the register changes in this page: every later read goes past
-   the shared edge cache to the rebuilt copy. */
-let changedHere = false;
-
 export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled = true) {
   const [s, setS] = useState<State>({ ds: null, error: null, loading: enabled });
-  /* A case changed (lib/spatial/refresh): read the dataset again, keeping
-     the current one on screen until the new one arrives. */
-  const [rev, setRev] = useState(0);
-  useEffect(() => onSpatialChange(() => { cache.clear(); changedHere = true; setRev((r) => r + 1); }), []);
   useEffect(() => {
     if (!enabled) { setS({ ds: null, error: null, loading: false }); return; }
     let live = true;
     const key = `${scope}:${userKey ?? ""}`;
-    if (!cache.has(key)) cache.set(key, load(scope, changedHere));
+    if (!cache.has(key)) cache.set(key, load(scope));
     cache.get(key)!
       .then((ds) => { if (live) setS({ ds, error: null, loading: false }); })
       .catch((e: Error) => { cache.delete(key); if (live) setS((prev) => ({ ds: prev.ds, error: prev.ds ? null : e.message, loading: false })); });
     return () => { live = false; };
-  }, [scope, userKey, enabled, rev]);
+  }, [scope, userKey, enabled]);
   const ix: Index | null = useMemo(() => (s.ds ? buildIndex(s.ds) : null), [s.ds]);
   return { ...s, ix };
 }

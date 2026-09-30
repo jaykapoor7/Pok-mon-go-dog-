@@ -115,7 +115,7 @@ export function CaseDecision({ file, member, onChanged }: { file: CaseFile; memb
                   {busy === "start" ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />} Start working
                 </button>
               )}
-              <button type="button" className="cf-btn is-ink" disabled={!!busy} onClick={() => setMode("resolve")}><CheckCircle2 size={15} /> Resolve with proof</button>
+              <button type="button" className="cf-btn is-ink" disabled={!!busy} onClick={() => setMode("resolve")}><CheckCircle2 size={15} /> Treatment completed / case resolved</button>
             </div>
           )}
           {mine && mode === "resolve" && <Resolve busy={busy} onCancel={() => setMode(null)} onSubmit={async (v) => {
@@ -129,7 +129,7 @@ export function CaseDecision({ file, member, onChanged }: { file: CaseFile; memb
           {mode !== "resolve" && (mode === "close"
             ? <Close busy={busy} onCancel={() => setMode(null)} onClose={(kind, reason, note) => review(kind, reason, note,
                 kind === "closed_done" ? "Closed: the work was done." : kind === "other_ngo" ? "Closed: another organisation took it." : "Closed without field action. The reason is on the record.")} />
-            : !stale && <button type="button" className="cf-link" onClick={() => setMode("close")}>Close this case without the proof flow…</button>)}
+            : !stale && <button type="button" className="cf-link" onClick={() => setMode("close")}>Close after work completed, without field action, or because another organisation took it…</button>)}
         </>
       )}
 
@@ -211,8 +211,8 @@ function Close({ busy, onCancel, onClose }: { busy: string | null; onCancel: () 
   const [sure, setSure] = useState(false);
   const ready = kind && (kind !== "closed_no_action" || (reason && (reason !== "other" || note.trim())));
   const choices: { k: CloseKind; label: string; hint: string }[] = [
-    { k: "closed_done", label: "The work was done", hint: "Treated, rescued or otherwise finished in the field." },
-    { k: "closed_no_action", label: "It ended without field action", hint: "Say why — this is what the reasons chart is made of." },
+    { k: "closed_done", label: "Treatment completed / case resolved", hint: "Treated, rescued or otherwise finished in the field." },
+    { k: "closed_no_action", label: "Close without field action", hint: "Say why — this is what the reasons chart is made of." },
     { k: "other_ngo", label: "Another organisation took it", hint: "Handed on; their outcome is theirs to record." },
   ];
   return (

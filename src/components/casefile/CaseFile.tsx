@@ -20,7 +20,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { uploadPhoto } from "@/lib/actions";
-import { addCaseFollowup, addCaseNote, addCasePhoto, setCaseMedical, updateCaseFollowupStatus } from "@/lib/case-actions";
+import { addCaseFollowup, addCaseNote, addCasePhoto, setCaseIntake, setCaseMedical, updateCaseFollowupStatus } from "@/lib/case-actions";
 import { loadCaseFile, type CaseFile as File_, type Neighbour } from "@/lib/case-file";
 import { CLOSURE_META, INTAKE_META, STATUS_META, triageOf, type ClosureReason, type Intake, type StatusClass } from "@/lib/register/taxonomy";
 import { CaseClock, span, type ClockInput } from "./CaseClock";
@@ -254,18 +254,37 @@ function Photos({ file, reload }: { file: File_; reload: () => Promise<void> }) 
 
 function Medical({ file, reload }: { file: File_; reload: () => Promise<void> }) {
   const [notes, setNotes] = useState(file.c.medical_notes ?? "");
+  const [hospital, setHospital] = useState(file.reg.hospital ?? file.c.hospital ?? "");
+  const [informer, setInformer] = useState(file.c.informer_contact ?? "");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const dirty = notes.trim() !== (file.c.medical_notes ?? "").trim();
+  const dirty = notes.trim() !== (file.c.medical_notes ?? "").trim()
+    || hospital.trim() !== (file.reg.hospital ?? file.c.hospital ?? "").trim()
+    || informer.trim() !== (file.c.informer_contact ?? "").trim();
   return (
     <div className="cf-medical">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Clinic / hospital
+          <input value={hospital} onChange={(e) => { setHospital(e.target.value); setSaved(false); }} className="mt-1.5 w-full rounded-md border border-black/[.1] bg-transparent px-3 py-2 text-sm dark:border-white/[.12]" placeholder="Not recorded" />
+        </label>
+        <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Informer / reporter contact
+          <input value={informer} onChange={(e) => { setInformer(e.target.value); setSaved(false); }} className="mt-1.5 w-full rounded-md border border-black/[.1] bg-transparent px-3 py-2 text-sm dark:border-white/[.12]" placeholder="Private operational contact" />
+        </label>
+      </div>
       <textarea rows={4} value={notes} onChange={(e) => { setNotes(e.target.value); setSaved(false); }}
         placeholder="Condition, diagnosis, treatment given, medication, vaccination, deworming, sterilisation…" aria-label="Medical notes" />
       <div className="cf-row">
         <button type="button" className="cf-btn" disabled={busy || !dirty} onClick={async () => {
           setBusy(true); setErr(null);
-          try { const ok = await setCaseMedical(file.c.id, notes.trim()); if (!ok) throw new Error(); setSaved(true); await reload(); }
+          try {
+            const [medical, intake] = await Promise.all([
+              setCaseMedical(file.c.id, notes.trim()),
+              setCaseIntake(file.c.id, { hospital, informerContact: informer }),
+            ]);
+            if (!medical || !intake) throw new Error();
+            setSaved(true); await reload();
+          }
           catch { setErr("The notes were not saved. Please try again."); }
           finally { setBusy(false); }
         }}>{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} {saved && !dirty ? "Saved" : "Save medical notes"}</button>

@@ -1,28 +1,39 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getOrgDataset, getPublicDataset } from "@/lib/spatial/server";
+import { getOrgSpatialCities, getOrgSpatialCityCells, getOrgSpatialViewportAnimals, getPublicSpatialCities, getPublicSpatialCityCells, getPublicSpatialViewportAnimals, SPATIAL_LIMITS } from "@/lib/spatial/server";
 
-/* The spatial dataset for the map, analytics and dashboards.
+/* Public spatial contract: aggregates by default, individual animals only
+ * for an explicit close-zoom viewport. There is intentionally no endpoint
+ * that returns a platform- or organisation-wide SpatialDataset. */
 
-   ?scope=public (default) — the public register, cached and shared.
-   ?scope=org — the caller's organisation, read with their own token
-   (Authorization: Bearer …) so RLS decides what comes back. Never cached
-   across people. */
+const number = (value: string | null) => value === null ? Number.NaN : Number(value);
 
 export async function GET(req: NextRequest) {
-  const scope = req.nextUrl.searchParams.get("scope") ?? "public";
-  const city = req.nextUrl.searchParams.get("city");
-
-  if (scope === "org") {
-    const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ?? "";
-    if (!token) return NextResponse.json({ error: "Sign in to see your organisation's register." }, { status: 401 });
-    const ds = await getOrgDataset(token);
-    if (!ds) return NextResponse.json({ error: "Could not read your organisation's register." }, { status: 502 });
-    return NextResponse.json(ds, { headers: { "Cache-Control": "private, no-store" } });
+  const kind = req.nextUrl.searchParams.get("kind") ?? "cities";
+  const scope = req.nextUrl.searchParams.get("scope") === "org" ? "org" : "public";
+  const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ?? "";
+  if (scope === "org" && !token) return NextResponse.json({ error: "Sign in to view your organisation map." }, { status: 401 });
+  try {
+    if (kind === "cities") {
+      const cities = scope === "org" ? await getOrgSpatialCities(token) : await getPublicSpatialCities(Number(req.nextUrl.searchParams.get("limit")) || 80);
+      return NextResponse.json({ cities, limits: SPATIAL_LIMITS }, { headers: { "Cache-Control": scope === "org" ? "private, no-store" : "public, s-maxage=300, stale-while-revalidate=900" } });
+    }
+    const city = req.nextUrl.searchParams.get("city")?.trim() ?? "";
+    if (!city) return NextResponse.json({ error: "Choose a city before loading map data." }, { status: 400 });
+    if (kind === "cells") {
+      const cells = scope === "org" ? await getOrgSpatialCityCells(token, city) : await getPublicSpatialCityCells(city);
+      return NextResponse.json({ city, cells, limits: SPATIAL_LIMITS }, { headers: { "Cache-Control": scope === "org" ? "private, no-store" : "public, s-maxage=300, stale-while-revalidate=900" } });
+    }
+    if (kind === "animals") {
+      const input = {
+        city, west: number(req.nextUrl.searchParams.get("west")), south: number(req.nextUrl.searchParams.get("south")),
+        east: number(req.nextUrl.searchParams.get("east")), north: number(req.nextUrl.searchParams.get("north")),
+      };
+      const animals = scope === "org" ? await getOrgSpatialViewportAnimals(token, input) : await getPublicSpatialViewportAnimals(input);
+      return NextResponse.json({ city, animals, limit: SPATIAL_LIMITS.animals }, { headers: { "Cache-Control": scope === "org" ? "private, no-store" : "public, s-maxage=30, stale-while-revalidate=120" } });
+    }
+    return NextResponse.json({ error: "Unknown spatial query." }, { status: 400 });
+  } catch (error) {
+    console.error("spatial bounded query failed", error);
+    return NextResponse.json({ error: "The map data is temporarily unavailable. Retry in a moment." }, { status: 503 });
   }
-
-  const ds = await getPublicDataset(city && city.trim() ? city.trim() : null);
-  if (!ds) return NextResponse.json({ error: "The register is unavailable right now." }, { status: 503 });
-  return NextResponse.json(ds, {
-    headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600" },
-  });
 }

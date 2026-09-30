@@ -21,6 +21,7 @@ const SETS = {
   /* Place and facts for the map, analytics and dashboards. Needs the
      district boundaries loaded first; safe to run again. */
   register: ["register-intelligence.sql", "case-review.sql"],
+  recovery: ["production-recovery.sql"],
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   personal: ["personal-access-codes.sql"],
   delhi: ["seed-delhi-photographs.sql"],

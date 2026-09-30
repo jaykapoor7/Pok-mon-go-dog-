@@ -1,5 +1,4 @@
 import { unstable_cache } from "next/cache";
-import { SPATIAL_TAG } from "@/lib/spatial/server";
 import { getPublicCareTimeline, getPublishedCaseStories } from "./community-case-stories";
 
 /* The published stories take two to three seconds to assemble: every public
@@ -8,13 +7,13 @@ import { getPublicCareTimeline, getPublishedCaseStories } from "./community-case
    which already revalidates SPATIAL_TAG, so they share the tag; otherwise
    they refresh every five minutes. */
 export const getPublishedCaseStoriesCached = unstable_cache(
-  () => getPublishedCaseStories(),
-  ["published-case-stories-v2"],
-  { revalidate: 300, tags: [SPATIAL_TAG] },
+  () => getPublishedCaseStories(120),
+  ["published-case-stories-v3"],
+  { revalidate: 300 },
 );
 
 export const getPublicCareTimelineCached = unstable_cache(
-  () => getPublicCareTimeline(),
-  ["public-care-timeline-v1"],
-  { revalidate: 300, tags: [SPATIAL_TAG] },
+  () => getPublicCareTimeline(720),
+  ["public-care-timeline-v2"],
+  { revalidate: 300 },
 );

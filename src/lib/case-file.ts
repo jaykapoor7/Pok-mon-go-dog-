@@ -23,7 +23,7 @@ import type { Case, CaseUpdate } from "./types";
 const COLS = [
   "id,dog_id,title,description,zone,lat,lng,severity,category,tags,status,resolution,assignee_id,assignee_name,ngo_id",
   "created_by_id,created_by_name,created_at,updated_at,last_activity_at,due_at,resolved_at,before_url,after_url,outcome_note",
-  "proof_verified,verified_at,cost_estimate,cost_spent,species,follow_up_at,medical_notes,photos",
+  "proof_verified,verified_at,cost_estimate,cost_spent,informer_contact,species,follow_up_at,medical_notes,photos",
   "case_code,stage,condition_text,hospital,next_action,provenance,h3_r8,city,location_precision,condition_class,status_class",
   "closure_reason,intake_channel,first_action_at,resolved_at_source,status_reviewed_at,source_event_at",
 ].join(",");
@@ -54,8 +54,8 @@ export async function loadCaseFile(id: string): Promise<CaseFile | null> {
   if (!supa) return null;
   const [{ data: row, error }, { data: ups }, { data: fus }, { data: facts }] = await Promise.all([
     supa.from("cases").select(COLS).eq("id", id).maybeSingle(),
-    supa.from("case_updates").select("*").eq("case_id", id).order("created_at", { ascending: true }),
-    supa.from("animal_followups").select("id,due_at,status,kind,note,completed_at").eq("case_id", id).order("due_at", { ascending: true }),
+    supa.from("case_updates").select("id,case_id,actor_id,actor_name,type,from_status,to_status,note,created_at").eq("case_id", id).order("created_at", { ascending: false }).limit(200),
+    supa.from("animal_followups").select("id,due_at,status,kind,note,completed_at").eq("case_id", id).order("due_at", { ascending: false }).limit(100),
     supa.from("org_case_facts").select("occurred_at,animal_name,straypaw_id,cover_photo").eq("id", id).maybeSingle(),
   ]);
   if (error) throw new Error(error.message);
@@ -84,8 +84,8 @@ export async function loadCaseFile(id: string): Promise<CaseFile | null> {
   return {
     c, reg,
     animal: c.dog_id ? { name: f?.animal_name ?? null, straypaw_id: f?.straypaw_id ?? null, photo: f?.cover_photo ?? null } : null,
-    updates: (ups ?? []).map(mapUpdate),
-    followups: (fus ?? []) as CaseFollowupRow[],
+    updates: (ups ?? []).reverse().map(mapUpdate),
+    followups: (fus ?? []).reverse() as CaseFollowupRow[],
     neighbours: (near.data ?? []) as Neighbour[],
     sameAnimal: (same.data ?? []) as Neighbour[],
   };

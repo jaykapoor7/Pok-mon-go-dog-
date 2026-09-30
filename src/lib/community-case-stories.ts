@@ -30,43 +30,28 @@ export type PublicTimelineEvent = {
   zone?: string | null;
 };
 
-export async function getPublicCaseStories(): Promise<PublicCaseStory[]> {
-  const supa = getSupabase();
-  if (!supa) return [];
-  const rows: PublicCaseStory[] = [];
-  for (let from = 0; ; from += 500) {
-    const { data, error } = await supa
-      .from("public_case_stories")
-      .select("*")
-      .order("occurred_at", { ascending: false })
-      .range(from, from + 499);
-    if (error) return rows;
-    rows.push(...((data ?? []) as PublicCaseStory[]));
-    if (!data || data.length < 500) break;
-  }
-  const kindHour = rows.filter((row) => row.ngo_name === "The Kind Hour Foundation");
-  if (!kindHour.length) return rows;
+export type PublicCaseStoryPage = { rows: PublicCaseStory[]; next: { occurredAt: string; id: string } | null };
+export type PublishedCaseStoryPage = PublicCaseStoryPage;
 
-  const admin = getSupabaseAdmin();
-  if (!admin) return rows;
-  const dischargeByCase = new Map<string, string>();
-  for (let from = 0; from < kindHour.length; from += 100) {
-    const ids = kindHour.slice(from, from + 100).map((row) => row.id);
-    const { data } = await admin
-      .from("import_rows")
-      .select("imported_case_id,normalized")
-      .in("imported_case_id", ids);
-    for (const row of data ?? []) {
-      const release = row.normalized?.release_date;
-      if (row.imported_case_id && typeof release === "string" && Number.isFinite(Date.parse(release))) {
-        dischargeByCase.set(row.imported_case_id, release);
-      }
-    }
-  }
-  return rows.map((row) => ({
-    ...row,
-    source_discharge_at: dischargeByCase.get(row.id) ?? null,
-  }));
+export async function getPublicCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null } = {}): Promise<PublicCaseStoryPage> {
+  const supa = getSupabase();
+  if (!supa) return { rows: [], next: null };
+  const limit = Math.max(1, Math.min(100, input.limit ?? 48));
+  let query = supa.from("public_case_stories")
+    .select("id,dog_id,ngo_id,ngo_name,category,status,title,zone,occurred_at,resolved_at,outcome,animal_name,animal_code,species,cover_photo")
+    .order("occurred_at", { ascending: false }).order("id", { ascending: false }).limit(limit + 1);
+  if (input.before) query = query.or(`occurred_at.lt.${input.before.occurredAt},and(occurred_at.eq.${input.before.occurredAt},id.lt.${input.before.id})`);
+  const { data, error } = await query;
+  if (error) return { rows: [], next: null };
+  const all = (data ?? []) as PublicCaseStory[];
+  const rows = all.slice(0, limit);
+  const tail = all.length > limit ? rows[rows.length - 1] : null;
+  return { rows, next: tail ? { occurredAt: tail.occurred_at, id: tail.id } : null };
+}
+
+export async function getPublicCaseStories(limit = 120): Promise<PublicCaseStory[]> {
+  const page = await getPublicCaseStoriesPage({ limit: Math.min(100, limit) });
+  return enrichHistoricalCases(page.rows);
 }
 
 function mapTimelineRow(row: any): PublicTimelineEvent {
@@ -98,22 +83,34 @@ export async function getPublicTimeline(limit = 500): Promise<PublicTimelineEven
  * Complete public care ledger. Filtering in the database, then paging, avoids
  * silently losing older medical events once case volume grows.
  */
-export async function getPublicCareTimeline(): Promise<PublicTimelineEvent[]> {
+export async function getPublicCareTimeline(limit = 500): Promise<PublicTimelineEvent[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const rows: PublicTimelineEvent[] = [];
-  for (let from = 0; ; from += 500) {
-    const { data, error } = await supa
-      .from("public_field_activity")
-      .select("*")
-      .like("id", "medical:%")
-      .order("occurred_at", { ascending: false })
-      .range(from, from + 499);
-    if (error) return rows;
-    rows.push(...(data ?? []).map(mapTimelineRow));
-    if (!data || data.length < 500) break;
-  }
-  return rows;
+  const { data, error } = await supa
+    .from("public_field_activity")
+    .select("id,dog_id,ngo_id,ngo_name,title,occurred_at,zone")
+    .like("id", "medical:%")
+    .order("occurred_at", { ascending: false })
+    .limit(Math.min(800, Math.max(1, limit)));
+  if (error) return [];
+  return (data ?? []).map(mapTimelineRow);
+}
+
+/** Care is read only for the current story page. A public story must never
+ * cause the global timeline to be scanned just to establish its care. */
+export async function getPublicCareForDogs(dogIds: string[]): Promise<PublicTimelineEvent[]> {
+  const ids = [...new Set(dogIds.filter(Boolean))].slice(0, 100);
+  const supa = getSupabase();
+  if (!supa || !ids.length) return [];
+  const { data, error } = await supa
+    .from("public_field_activity")
+    .select("id,dog_id,ngo_id,ngo_name,title,occurred_at,zone")
+    .in("dog_id", ids)
+    .like("id", "medical:%")
+    .order("occurred_at", { ascending: false })
+    .limit(800);
+  if (error) return [];
+  return (data ?? []).map(mapTimelineRow);
 }
 
 /**
@@ -127,10 +124,12 @@ export async function getPublicCareTimeline(): Promise<PublicTimelineEvent[]> {
  * The presentation layer labels Kind Hour rows as historical and only renders
  * care/discharge/outcome facts that are actually on the source record.
  */
-export async function getPublishedCaseStories(): Promise<PublicCaseStory[]> {
-  const [cases, care] = await Promise.all([getPublicCaseStories(), getPublicCareTimeline()]);
+export async function getPublishedCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null } = {}): Promise<PublishedCaseStoryPage> {
+  const page = await getPublicCaseStoriesPage(input);
+  const cases = await enrichHistoricalCases(page.rows);
+  const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
   const animalsWithCare = new Set(care.map((event) => event.dog_id).filter((id): id is string => Boolean(id)));
-  return cases.filter((story) => {
+  return { next: page.next, rows: cases.filter((story) => {
     const hasIdentity = Boolean(story.dog_id && story.title?.trim() && story.occurred_at);
     if (!hasIdentity) return false;
 
@@ -141,5 +140,27 @@ export async function getPublishedCaseStories(): Promise<PublicCaseStory[]> {
       isClosedStatus(story.status) &&
       animalsWithCare.has(story.dog_id),
     );
-  });
+  }) };
+}
+
+async function enrichHistoricalCases(rows: PublicCaseStory[]): Promise<PublicCaseStory[]> {
+  const kindHour = rows.filter((row) => row.ngo_name === "The Kind Hour Foundation");
+  if (!kindHour.length) return rows;
+  const admin = getSupabaseAdmin();
+  if (!admin) return rows;
+  const dischargeByCase = new Map<string, string>();
+  for (let from = 0; from < kindHour.length; from += 100) {
+    const ids = kindHour.slice(from, from + 100).map((row) => row.id);
+    const { data } = await admin.from("import_rows").select("imported_case_id,normalized").in("imported_case_id", ids);
+    for (const row of data ?? []) {
+      const release = row.normalized?.release_date;
+      if (row.imported_case_id && typeof release === "string" && Number.isFinite(Date.parse(release))) dischargeByCase.set(row.imported_case_id, release);
+    }
+  }
+  return rows.map((row) => ({ ...row, source_discharge_at: dischargeByCase.get(row.id) ?? null }));
+}
+
+export async function getPublishedCaseStories(limit = 48): Promise<PublicCaseStory[]> {
+  const page = await getPublishedCaseStoriesPage({ limit: Math.min(100, limit) });
+  return page.rows;
 }

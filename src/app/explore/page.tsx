@@ -3,8 +3,8 @@ import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { LightsMap } from "@/components/system/LightsMap";
-import { getPublicDataset } from "@/lib/spatial/server";
-import { A, A_STRIDE, C_STRIDE, countOf } from "@/lib/spatial/types";
+import { getPublicSpatialCities } from "@/lib/spatial/server";
+import { CITIES } from "@/lib/geo/cities";
 import "@/components/site/site.css";
 import "@/components/company/company.css";
 import "./explore.css";
@@ -28,15 +28,15 @@ const INDIA: [number, number, number, number] = [68.0, 6.5, 97.5, 35.8];
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export default async function ExplorePage() {
-  const ds = await getPublicDataset(null).catch(() => null);
-  const animals = ds ? countOf(ds.animals, A_STRIDE) : 0;
-  const cases = ds ? countOf(ds.cases, C_STRIDE) : 0;
-  /* One light per recorded cell, at its centre: the finest the public
-     record places anything, and never a row. */
-  const perCell = new Map<number, number>();
-  if (ds) for (let i = 0; i < ds.animals.length; i += A_STRIDE) perCell.set(ds.animals[i + A.cell], (perCell.get(ds.animals[i + A.cell]) ?? 0) + 1);
-  const lights = ds ? [...perCell.keys()].map((cell) => ({ lng: ds.centers[cell * 2], lat: ds.centers[cell * 2 + 1] })) : [];
-  const cities = ds ? [...ds.cities].filter((x) => x.animals > 0).sort((a, b) => b.animals - a.animals) : [];
+  const cities = await getPublicSpatialCities().catch(() => []);
+  const animals = cities.reduce((sum, city) => sum + city.animals, 0);
+  const cases = cities.reduce((sum, city) => sum + city.cases, 0);
+  /* One light per city summary: this page is an atlas doorway, while /map
+     fetches the bounded cell geometry for the selected city. */
+  const lights = cities.flatMap((city) => {
+    const point = CITIES.find((item) => item.name.toLowerCase() === city.city.toLowerCase());
+    return point ? [{ lng: point.lng, lat: point.lat }] : [];
+  });
   const top = cities.slice(0, 10);
   const max = Math.max(1, ...top.map((x) => x.animals));
   const rest = cities.slice(10);
@@ -54,7 +54,7 @@ export default async function ExplorePage() {
       <main>
         <section className="ex-hero" aria-labelledby="ex-title">
           <div className="ex-map" aria-hidden={lights.length === 0}>
-            {lights.length > 0 && <LightsMap center={[82.8, 22.6]} box={INDIA} lights={lights} dot={2.2} glow={2} label={`${fmt(perCell.size)} places across India with a street animal on the record`} />}
+            {lights.length > 0 && <LightsMap center={[82.8, 22.6]} box={INDIA} lights={lights} dot={2.2} glow={2} label={`${fmt(cities.length)} recorded cities across India`} />}
           </div>
           <div className="ex-hero-copy">
             <p className="co-kicker">Explore the record</p>
@@ -77,16 +77,16 @@ export default async function ExplorePage() {
               <div>
                 <ol className="ex-cities">
                   {top.map((x) => (
-                    <li key={`${x.name}-${x.state}`}>
-                      <Link href={`/map?city=${encodeURIComponent(x.name)}`}>
-                        <span className="ex-city"><b>{x.name}</b><small>{x.state}</small></span>
+                    <li key={`${x.city}-${x.state}`}>
+                      <Link href={`/map?city=${encodeURIComponent(x.city)}`}>
+                        <span className="ex-city"><b>{x.city}</b><small>{x.state}</small></span>
                         <span className="ex-bar" aria-hidden><i style={{ width: `${Math.max(1.5, (x.animals / max) * 100)}%` }} /></span>
                         <span className="ex-n"><strong>{fmt(x.animals)}</strong>{x.cases > 0 ? `${fmt(x.cases)} requests` : "no requests yet"}</span>
                       </Link>
                     </li>
                   ))}
                 </ol>
-                {rest.length > 0 && <p className="ex-rest">And {rest.length} more: {rest.slice(0, 8).map((x) => x.name).join(", ")}{rest.length > 8 ? "…" : ""}</p>}
+                {rest.length > 0 && <p className="ex-rest">And {rest.length} more: {rest.slice(0, 8).map((x) => x.city).join(", ")}{rest.length > 8 ? "…" : ""}</p>}
               </div>
             </div>
           </section>

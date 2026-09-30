@@ -76,28 +76,25 @@ export async function updateAnimal(
   return data === true;
 }
 
-/** Animals owned by the caller's org (for the registry list). */
-export async function getMyAnimals(): Promise<AnimalRow[]> {
-  if (isRecordingDemo) return recordingDemoAnimals;
+/** A bounded, recent slice for controls that need to link an animal. The
+ * registry itself owns cursor pagination; no dashboard utility may silently
+ * pull an organisation's whole imported animal history into the browser. */
+export async function getMyAnimals(limit = 200): Promise<AnimalRow[]> {
+  if (isRecordingDemo) return recordingDemoAnimals.slice(0, limit);
   const supa = getSupabase();
   if (!supa) return [];
   const { data: ngoId } = await supa.rpc("my_ngo");
   if (!ngoId) return [];
+  const capped = Math.min(250, Math.max(1, Math.floor(limit)));
+  const { data: rows, error } = await supa
+    .from("dogs")
+    .select("id, straypaw_id, name, code, species, zone, status, cover_photo, assignee_name, last_seen, lat, lng")
+    .eq("ngo_id", ngoId)
+    .order("last_seen", { ascending: false })
+    .limit(capped);
+  if (error) return [];
 
-  const rows: any[] = [];
-  for (let from = 0; ; from += 500) {
-    const { data, error } = await supa
-      .from("dogs")
-      .select("id, straypaw_id, name, code, species, zone, status, cover_photo, assignee_name, last_seen, lat, lng")
-      .eq("ngo_id", ngoId)
-      .order("last_seen", { ascending: false })
-      .range(from, from + 499);
-    if (error) return [];
-    rows.push(...(data ?? []));
-    if (!data || data.length < 500) break;
-  }
-
-  return rows.map((r: any) => ({
+  return (rows ?? []).map((r: any) => ({
     id: r.id,
     straypaw_id: r.straypaw_id ?? null,
     name: r.name ?? null,
@@ -134,7 +131,8 @@ export async function getAnimalTimeline(dogId: string): Promise<AnimalTimelineEv
     .from("animal_timeline_events")
     .select("id,event_type,title,details,occurred_at,provenance")
     .eq("dog_id", dogId)
-    .order("occurred_at", { ascending: false });
+    .order("occurred_at", { ascending: false })
+    .limit(200);
   if (error) return [];
   return (data ?? []).map((row: any) => ({
     id: row.id,
@@ -159,7 +157,7 @@ export interface PartnerMedicalEvent extends MedicalEvent {
 export async function getMedicalEvents(dogId: string): Promise<MedicalEvent[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data } = await supa.from("medical_events").select("*").eq("dog_id", dogId).order("event_date", { ascending: false });
+  const { data } = await supa.from("medical_events").select("id,dog_id,case_id,kind,event_date,notes,performed_by,created_at").eq("dog_id", dogId).order("event_date", { ascending: false }).limit(200);
   return (data ?? []).map((r: any) => ({
     id: r.id, dog_id: r.dog_id ?? null, case_id: r.case_id ?? null, kind: r.kind,
     event_date: r.event_date, notes: r.notes ?? null, performed_by: r.performed_by ?? null, created_at: r.created_at,
@@ -167,26 +165,21 @@ export async function getMedicalEvents(dogId: string): Promise<MedicalEvent[]> {
 }
 
 /** A team-only care ledger, with each event kept beside its animal record. */
-export async function getPartnerMedicalEvents(): Promise<PartnerMedicalEvent[]> {
+export async function getPartnerMedicalEvents(limit = 200): Promise<PartnerMedicalEvent[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data: ngoId, error: orgError } = await supa.rpc("my_ngo");
   if (orgError || !ngoId) return [];
 
-  const rows: any[] = [];
-  for (let from = 0; ; from += 500) {
-    const { data, error } = await supa
-      .from("medical_events")
-      .select("id, dog_id, case_id, kind, event_date, notes, performed_by, created_at, dogs!inner(id, name, code, zone, cover_photo, ngo_id)")
-      .eq("dogs.ngo_id", ngoId)
-      .order("event_date", { ascending: false })
-      .range(from, from + 499);
-    if (error) return [];
-    rows.push(...(data ?? []));
-    if (!data || data.length < 500) break;
-  }
+  const { data: rows, error } = await supa
+    .from("medical_events")
+    .select("id, dog_id, case_id, kind, event_date, notes, performed_by, created_at, dogs!inner(id, name, code, zone, cover_photo, ngo_id)")
+    .eq("dogs.ngo_id", ngoId)
+    .order("event_date", { ascending: false })
+    .limit(Math.min(250, Math.max(1, Math.floor(limit))));
+  if (error) return [];
 
-  return rows.flatMap((r: any) => {
+  return (rows ?? []).flatMap((r: any) => {
     const animal = Array.isArray(r.dogs) ? r.dogs[0] : r.dogs;
     if (!animal) return [];
     return [{

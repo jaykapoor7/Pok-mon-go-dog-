@@ -3,8 +3,8 @@ import { ArrowUpRight } from "lucide-react";
 import { cellToLatLng } from "h3-js";
 import { AppShell } from "@/components/app/AppShell";
 import { StoryAtlas, type Story } from "@/components/stories/StoryAtlas";
-import type { PublicCaseStory } from "@/lib/community-case-stories";
-import { getPublishedCaseStoriesCached as getPublishedCaseStories, getPublicCareTimelineCached as getPublicCareTimeline } from "@/lib/community-case-stories-cached";
+import type { PublicCaseStory, PublicTimelineEvent } from "@/lib/community-case-stories";
+import { getPublishedCaseStoriesPage, getPublicCareForDogs } from "@/lib/community-case-stories";
 import { rescueCategory } from "@/lib/rescue-taxonomy";
 import { getSupabase } from "@/lib/supabase";
 import { dogLabel } from "@/lib/utils";
@@ -33,7 +33,7 @@ const careWhat = (t: string, ngo: string | null) => {
   return s === "diagnostic" ? "diagnostics" : s || "care";
 };
 
-function build(cases: PublicCaseStory[], care: Awaited<ReturnType<typeof getPublicCareTimeline>>): Omit<Story, "pt" | "n">[] {
+function build(cases: PublicCaseStory[], care: PublicTimelineEvent[]): Omit<Story, "pt" | "n">[] {
   const now = Date.now();
   const byDog = new Map<string, PublicCaseStory[]>();
   for (const c of cases) if (c.dog_id) byDog.set(c.dog_id, [...(byDog.get(c.dog_id) ?? []), c]);
@@ -80,8 +80,12 @@ async function placesOf(ids: string[]) {
   return out;
 }
 
-export default async function StoriesPage() {
-  const [cases, care] = await Promise.all([getPublishedCaseStories(), getPublicCareTimeline()]);
+export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ beforeAt?: string; beforeId?: string }> }) {
+  const params = await searchParams;
+  const before = params.beforeAt && params.beforeId ? { occurredAt: params.beforeAt, id: params.beforeId } : null;
+  const page = await getPublishedCaseStoriesPage({ limit: 48, before });
+  const cases = page.rows;
+  const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
   const base = build(cases, care);
   const places = await placesOf(base.map((s) => s.id));
   const stories: Story[] = base.map((s, i) => ({ ...s, n: i + 1, pt: places.get(s.id)?.pt ?? null }));
@@ -115,6 +119,7 @@ export default async function StoriesPage() {
           <div><span className="st-empty-index">THE ATLAS / PUBLIC FIELD RECORDS</span><h2>Every record starts somewhere.</h2><p>No public animal record is available yet. Stories show only what the source actually establishes: an encounter, care when documented, and a discharge or outcome when recorded.</p></div>
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
         </section>}
+        {page.next && <p className="st-more"><Link className="sys-btn is-quiet" href={`/stories?beforeAt=${encodeURIComponent(page.next.occurredAt)}&beforeId=${encodeURIComponent(page.next.id)}`}>Older stories <ArrowUpRight size={15} /></Link></p>}
       </main>
     </AppShell>
   );

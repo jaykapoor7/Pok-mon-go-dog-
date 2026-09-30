@@ -1,6 +1,5 @@
-import { Suspense } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { PlaceBrief } from "@/components/insights/PlaceBrief";
+import { BoundedSpatialMap } from "@/components/spatial/BoundedSpatialMap";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -9,14 +8,12 @@ export const metadata = {
     "A brief on one place: what needs attention now, how fast field teams get there, what happens to a request, what people call about, when it is busiest, and how much sterilisation and vaccination is recorded.",
 };
 
-/* The public brief. It is drawn in the browser from the same dataset the
-   map uses, so a place chosen on one opens on the other. */
+/* City-level insights use the same aggregate/viewport contract as the map;
+   this route deliberately has no whole-register analytical bootstrap. */
 export default function InsightsPage() {
   return (
     <AppShell>
-      <Suspense fallback={null}>
-        <PlaceBrief scope="public" />
-      </Suspense>
+      <main className="ib"><header className="ib-head"><div className="ib-head-words"><p className="ib-kicker sys-mono">Insights</p><h1>Evidence, city by city.</h1><p>Choose a city to inspect recorded animals, open cases, care and programme coverage. Map cells are aggregated; close zoom loads only the visible animals.</p></div></header><div className="sm-host is-fill"><BoundedSpatialMap /></div></main>
     </AppShell>
   );
 }

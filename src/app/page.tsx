@@ -10,7 +10,7 @@ import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import { Relay } from "@/components/landing/Relay";
-import { getLandingStory, getAnimalRegister } from "@/lib/landing/story";
+import { getAnimalRegister } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
@@ -57,10 +57,13 @@ const LEVELS = [
 ] as const;
 
 export default async function HomePage() {
-  const [story, register] = await Promise.all([
-    getLandingStory().catch(() => null),
-    getAnimalRegister().catch(() => ({ total: 0, cards: [] })),
-  ]);
+  /* The landing must be useful before any analytics work completes. Its
+     curated register read is bounded; the former spatial narrative assembled
+     the entire public animal/case/care ledger during an ordinary visit. */
+  // The visual slots stay in place for the scoped replacement; `any` keeps
+  // the existing optional presentation branch type-safe while it is empty.
+  const story: any = null;
+  const register = await getAnimalRegister().catch(() => ({ total: 0, cards: [] }));
 
   return (
     <div className={`sp field-site product-site ld ${displaySans.variable} ${displaySerif.variable}`}>

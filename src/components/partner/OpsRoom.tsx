@@ -34,11 +34,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
-import { useSpatialDataset } from "@/components/spatial/data";
 import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isStale, openCases, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase } from "@/lib/ops";
-import { casesIn } from "@/lib/spatial/measures";
-import { C, C_STRIDE } from "@/lib/spatial/types";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { NGO } from "@/lib/types";
 import "./ops.css";
@@ -64,7 +61,6 @@ export function OpsRoom() {
   const { user, ready } = useAuth();
   const { member, ready: accessReady } = usePartnerAccess();
   const isMember = Boolean(user && member);
-  const { ds, ix } = useSpatialDataset("org", user?.id ?? null, isMember);
   const [open, setOpen] = useState<OpenCase[] | null>(null);
   const [due, setDue] = useState<DueFollowup[]>([]);
   const [changes, setChanges] = useState<Change[]>([]);
@@ -104,21 +100,6 @@ export function OpsRoom() {
     return { all, stale, liveWork, overdue, week, crit };
   }, [open, due]);
 
-  /* Sterilisation/vaccination share, coverage gaps, missed-follow-up
-     totals and the season's busy months live on Analysis, Map and Data
-     quality now, not here — reasonless closures are the one number this
-     room still needs, to fold into the single "needs a decision" line. */
-  const reg = useMemo(() => {
-    if (!ds || !ix || !isMember) return null;
-    const idx = casesIn(ds, { cells: null, from: 0, to: ds.today });
-    const NO = ds.dict.status.indexOf("no_action"), NA = ds.dict.status.indexOf("not_attended"), UNSPEC = ds.dict.closure.indexOf("unspecified");
-    let reasonless = 0;
-    for (const i of idx) {
-      const o = i * C_STRIDE, st = ds.cases[o + C.status], r = ds.cases[o + C.closure];
-      if ((st === NO || st === NA) && (r < 0 || r === UNSPEC)) reasonless++;
-    }
-    return { reasonless, animals: ix.nAnimals };
-  }, [ds, ix, isMember]);
 
   /* ── the queue: live work, what goes wrong first at the top ────────── */
   const queue = useMemo(() => {
@@ -162,7 +143,7 @@ export function OpsRoom() {
   const loading = open === null || !ready || !accessReady;
   if (loading) return <main className="pr ops"><p className="ops-state">Reading the organisation&rsquo;s record…</p></main>;
 
-  const blank = isMember && s.all.length === 0 && (reg?.animals ?? 0) === 0;
+  const blank = isMember && s.all.length === 0;
   const signedOut = !isMember;
 
   return (
@@ -258,16 +239,14 @@ export function OpsRoom() {
         <div className="pr-tasks ops-tasks"><TasksSection compact /></div>
       </section>
 
-      {isMember && !blank && reg && (s.stale.length > 0 || reg.reasonless > 0) && (
+      {isMember && !blank && s.stale.length > 0 && (
         <section className="ops-decide" aria-label="Needs a decision">
           <p className="ops-eyebrow"><span>Needs a decision</span></p>
           <ol>
             <li>
-              <b className={s.stale.length ? "is-hot" : ""}>{num(s.stale.length || reg.reasonless)}</b>
+              <b className="is-hot">{num(s.stale.length)}</b>
               <p>
-                {s.stale.length > 0
-                  ? <>cases open for months with nothing recorded{reg.reasonless > 0 ? <>, and <strong className="ops-decide-n">{num(reg.reasonless)}</strong> closed without a reason written down</> : ""}.</>
-                  : <>requests closed without a reason written down.</>}
+                Cases open for months with nothing recorded.
               </p>
               <Link href="/partner/review" className="sys-btn is-sm">Review</Link>
             </li>

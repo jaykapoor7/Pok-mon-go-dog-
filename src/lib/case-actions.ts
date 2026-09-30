@@ -44,6 +44,10 @@ export interface CreateCaseInput {
   category: CaseCategory;
   tags?: string[];
   species?: string;
+  informerContact?: string | null;
+  hospital?: string | null;
+  costEstimate?: number | null;
+  costSpent?: number | null;
 }
 
 export async function createCase(
@@ -68,6 +72,10 @@ export async function createCase(
     p_actor_id: actor.id,
     p_actor_name: actor.name,
     p_species: input.species ?? "dog",
+    p_informer_contact: input.informerContact?.trim() || null,
+    p_hospital: input.hospital?.trim() || null,
+    p_cost_estimate: input.costEstimate ?? null,
+    p_cost_spent: input.costSpent ?? null,
   });
   if (error) throw new Error(error.message);
   spatialChanged();
@@ -81,6 +89,19 @@ export async function setCaseMedical(caseId: string, medicalNotes: string): Prom
   const { data, error } = await supa.rpc("set_case_medical", {
     p_case_id: caseId,
     p_medical_notes: medicalNotes,
+  });
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+/** Private operational intake fields. They are never selected by public views. */
+export async function setCaseIntake(caseId: string, patch: { informerContact?: string | null; hospital?: string | null }): Promise<boolean> {
+  const supa = getSupabase();
+  if (!supa) return true;
+  const { data, error } = await supa.rpc("set_case_intake", {
+    p_case_id: caseId,
+    p_informer_contact: patch.informerContact?.trim() || null,
+    p_hospital: patch.hospital?.trim() || null,
   });
   if (error) throw new Error(error.message);
   return data === true;

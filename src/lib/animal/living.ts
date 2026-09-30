@@ -13,8 +13,7 @@ import "server-only";
 
 import { cellToBoundary, cellToLatLng, gridDisk } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
-import { getPublicDataset } from "@/lib/spatial/server";
-import { A, A_STRIDE } from "@/lib/spatial/types";
+import { getPublicSpatialCellCounts } from "@/lib/spatial/server";
 import type { DogProfile } from "@/lib/types";
 import type { ProfileOperationalRecord } from "@/lib/animal-profile-record";
 import type { PublicAnimalIdentity } from "@/lib/animal-identity";
@@ -148,16 +147,9 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
   /* ── where it lives: its cell among its neighbours ──────────────── */
   let place: Living["place"] = null;
   if (sp?.h3_r8) {
-    const ds = await getPublicDataset(null).catch(() => null);
-    const counts = new Map<string, number>();
-    if (ds) {
-      const want = new Set(gridDisk(sp.h3_r8, 2));
-      for (let i = 0; i < ds.animals.length; i += A_STRIDE) {
-        const k = ds.cells[ds.animals[i + A.cell]];
-        if (want.has(k)) counts.set(k, (counts.get(k) ?? 0) + 1);
-      }
-    }
-    const cells = gridDisk(sp.h3_r8, 2).map((key) => ({
+    const want = gridDisk(sp.h3_r8, 2);
+    const counts = new Map((await getPublicSpatialCellCounts(want).catch(() => [])).map((cell) => [cell.h3_r8, cell.animals]));
+    const cells = want.map((key) => ({
       key, ring: cellToBoundary(key, true).flatMap(([x, y]) => [Math.round(x * 1e5) / 1e5, Math.round(y * 1e5) / 1e5]),
       n: counts.get(key) ?? 0, self: key === sp.h3_r8,
     }));

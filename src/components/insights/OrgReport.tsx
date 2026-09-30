@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { ExportStudio } from "@/components/partner/ExportStudio";
-import { PlaceBrief } from "./PlaceBrief";
+import { BoundedSpatialMap } from "@/components/spatial/BoundedSpatialMap";
 
 /* An organisation's own records, explained: the same report as /insights,
    read from the organisation's register under its own access, with exact
@@ -26,19 +26,21 @@ export function OrgReport() {
     : null;
   return (
     <Suspense fallback={null}>
-      <PlaceBrief
-        key={org ? "org" : "public"}
-        scope={org ? "org" : "public"}
-        userKey={user?.id ?? null}
-        notice={notice}
-        tail={org ? (
+      <main className="ib">
+        <header className="ib-head">
+          <p className="ib-kicker">PLACE INSIGHTS</p>
+          <h1>{org ? "Your organisation’s map" : "Public map insights"}</h1>
+          <p>{notice ?? "Choose a city to inspect bounded, pre-aggregated field activity. Close zoom loads only the animals in view."}</p>
+        </header>
+        <BoundedSpatialMap scope={org ? "org" : "public"} />
+        {org ? (
           <section className="ib-tail" id="export" aria-labelledby="export-q">
             <h2 id="export-q">Take the record out</h2>
             <p>Everything above, as files a funder, a municipality or a vet can open.</p>
             <ExportStudio />
           </section>
         ) : null}
-      />
+      </main>
     </Suspense>
   );
 }
