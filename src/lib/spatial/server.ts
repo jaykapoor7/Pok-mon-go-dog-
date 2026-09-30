@@ -29,6 +29,11 @@ const MAX_ANIMALS = 500;
  * platform register. These are hard payload limits for one selected city. */
 const DATASET_LIMITS = { animals: 1_200, cases: 1_500, care: 1_800, sightings: 1_800 } as const;
 const cleanCity = (city: string | null | undefined) => city?.replace(/\s+/g, " ").trim().slice(0, 120) ?? "";
+/* Imports arrive with administrative aliases. A map must not make a tiny
+ * "New Delhi" island beside Delhi, or split Hyderabad from Secunderabad. */
+const CITY_ALIAS: Record<string, string> = { "New Delhi": "Delhi", Secunderabad: "Hyderabad" };
+const canonicalCity = (city: string | null | undefined) => CITY_ALIAS[cleanCity(city)] ?? cleanCity(city);
+const cityVariants = (city: string) => [...new Set([city, ...Object.keys(CITY_ALIAS).filter((alias) => CITY_ALIAS[alias] === city)])];
 
 /* PostgREST rejects a giant UUID `in` URL before the query reaches Postgres.
  * Split only the relation lookup, then enforce the same aggregate cap after
@@ -48,7 +53,15 @@ export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]>
   if (!supa) return [];
   const { data, error } = await supa.rpc("list_public_spatial_cities", { p_limit: Math.max(1, Math.min(limit, MAX_CITIES)) });
   if (error) throw error;
-  return (data ?? []) as SpatialCity[];
+  const grouped = new Map<string, SpatialCity>();
+  for (const row of (data ?? []) as SpatialCity[]) {
+    const city = canonicalCity(row.city);
+    const prior = grouped.get(city);
+    if (!prior) { grouped.set(city, { ...row, city }); continue; }
+    prior.animals += row.animals; prior.cases += row.cases; prior.open_cases += row.open_cases; prior.cells += row.cells;
+    if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
+  }
+  return [...grouped.values()].sort((a, b) => b.animals - a.animals).slice(0, Math.max(1, Math.min(limit, MAX_CITIES)));
 }
 
 export async function getPublicSpatialCityCells(city: string, limit = MAX_CELLS): Promise<SpatialCell[]> {
@@ -100,24 +113,25 @@ export async function getPublicSpatialViewportAnimals(input: { city: string; wes
 export const SPATIAL_LIMITS = { cities: MAX_CITIES, cells: MAX_CELLS, animals: MAX_ANIMALS } as const;
 
 async function readPublicCityDataset(city: string): Promise<SpatialDataset | null> {
-  const safeCity = cleanCity(city);
+  const safeCity = canonicalCity(city);
   const supa = getSupabase();
   if (!supa || !safeCity) return null;
   const { data: animalData, error: animalError } = await supa.from("public_spatial_animals")
     .select("id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id")
-    .eq("city", safeCity).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals);
+    .in("city", cityVariants(safeCity)).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals);
   if (animalError) throw animalError;
-  const animals = (animalData ?? []) as AnimalRow[];
+  const animals = ((animalData ?? []) as AnimalRow[]).map((animal) => ({ ...animal, city: safeCity }));
   if (!animals.length) return null;
   const ids = animals.map((animal) => animal.id);
   const [caseResult, careResult, sightingResult] = await Promise.all([
     supa.from("public_case_facts").select("id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at")
-      .eq("city", safeCity).order("occurred_at", { ascending: false }).limit(DATASET_LIMITS.cases),
+      .in("city", cityVariants(safeCity)).order("occurred_at", { ascending: false }).limit(DATASET_LIMITS.cases),
     rowsForAnimals(supa, "public_care_facts", "dog_id,kind,event_date,h3_r8", ids, "event_date", DATASET_LIMITS.care),
     rowsForAnimals(supa, "public_sighting_facts", "dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo", ids, "created_at", DATASET_LIMITS.sightings),
   ]);
   if (caseResult.error || careResult.error || sightingResult.error) throw caseResult.error ?? careResult.error ?? sightingResult.error;
-  return assemble({ animals, cases: (caseResult.data ?? []) as CaseRow[], care: (careResult.data ?? []) as CareRow[], sightings: (sightingResult.data ?? []) as SightRow[], orgs: [] }, "public");
+  const cases = ((caseResult.data ?? []) as CaseRow[]).map((item) => ({ ...item, city: safeCity }));
+  return assemble({ animals, cases, care: (careResult.data ?? []) as CareRow[], sightings: (sightingResult.data ?? []) as SightRow[], orgs: [] }, "public");
 }
 
 /* The rich map is read by several entry points at once (map, insights and
