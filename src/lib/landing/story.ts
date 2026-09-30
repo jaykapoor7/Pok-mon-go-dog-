@@ -199,7 +199,7 @@ export const getLandingStory = unstable_cache(async () => {
   if (!ds || !ds.cities.length) return null;
   const story = buildStory(ds);
   return { ...story, relay: await resolveRelay(story.desk.feed, story.desk.cells.map((c) => c.key), story.hero.city) };
-}, ["landing-story-v10"], { revalidate: 600, tags: [SPATIAL_TAG] });
+}, ["landing-story-v11"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /* One report, three screens, carries the record's own identifier across
    all three. The dataset holds no ids by design, so the most recent real
