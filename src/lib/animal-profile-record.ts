@@ -144,11 +144,11 @@ export async function getProfileOperationalRecord(dogId: string): Promise<Profil
 
   const [dogRes, casesRes, medicalRes, followRes, timelineRes, importRowsRes] = await Promise.all([
     supa.from("dogs").select("id,source_metadata,provenance").eq("id", dogId).maybeSingle(),
-    supa.from("cases").select("id,category,source_metadata,created_at").eq("dog_id", dogId),
-    supa.from("medical_events").select("id,kind,event_date,notes,performed_by,source_metadata").eq("dog_id", dogId).order("event_date", { ascending: false }),
-    supa.from("animal_followups").select("id,due_at,completed_at,kind,status,note,source_metadata").eq("dog_id", dogId).order("due_at", { ascending: false }),
-    supa.from("animal_timeline_events").select("id,event_type,title,details,occurred_at,provenance,source_ref").eq("dog_id", dogId).order("occurred_at", { ascending: false }),
-    supa.from("import_rows").select("id,batch_id,normalized,decision,error").eq("imported_dog_id", dogId),
+    supa.from("cases").select("id,category,source_metadata,created_at").eq("dog_id", dogId).limit(100),
+    supa.from("medical_events").select("id,kind,event_date,notes,performed_by,source_metadata").eq("dog_id", dogId).order("event_date", { ascending: false }).limit(200),
+    supa.from("animal_followups").select("id,due_at,completed_at,kind,status,note,source_metadata").eq("dog_id", dogId).order("due_at", { ascending: false }).limit(100),
+    supa.from("animal_timeline_events").select("id,event_type,title,details,occurred_at,provenance,source_ref").eq("dog_id", dogId).order("occurred_at", { ascending: false }).limit(200),
+    supa.from("import_rows").select("id,batch_id,normalized,decision,error").eq("imported_dog_id", dogId).limit(200),
   ]);
 
   const caseCategoryBySource = new Map<string, string>();
