@@ -14,6 +14,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Crosshair, MapPin, Plus } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
@@ -52,7 +53,8 @@ const ago = (iso: string | null) => {
 const nameOf = (a: PAnimal) => dogLabel({ name: a.name, zone: a.zone || "here" });
 const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const n = r.length / 2 - 1; for (let i = 0; i < n; i++) { x += r[i * 2]; y += r[i * 2 + 1]; } return [x / n, y / n]; };
 
-export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
+export function CommunityPatch({ stories, availableCities = [] }: { stories: PublicCaseStory[]; availableCities?: { city: string; state: string | null }[] }) {
+  const router = useRouter();
   const { ds, ix, loading, error } = useSpatialDataset("public");
   const { ids: follows } = useFollows();
   const { place, ready: placeReady, locating, choose: savePlace, locate: findMe } = usePlace();
@@ -67,6 +69,20 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
   useEffect(() => {
     try { const v = Number(localStorage.getItem(SEEN_KEY)); if (v) setLastSeenVisit(v); localStorage.setItem(SEEN_KEY, String(Date.now())); } catch { /* storage blocked */ }
   }, []);
+
+  /* Switching city is a bounded dataset reload. Remember only that explicit
+     choice long enough to place the patch at the selected city's centre. */
+  useEffect(() => {
+    if (!ds || !placeReady) return;
+    try {
+      const pending = sessionStorage.getItem("sp.patch.pending-city");
+      if (!pending) return;
+      const selected = ds.cities.find((item) => item.name === pending);
+      if (!selected) return;
+      savePlace({ lng: selected.lng, lat: selected.lat, label: selected.name });
+      sessionStorage.removeItem("sp.patch.pending-city");
+    } catch { /* storage blocked; the city still opens and can be picked again */ }
+  }, [ds, placeReady, savePlace]);
   const choose = (p: Patch) => { setGateWhy(null); savePlace({ lng: p.lng, lat: p.lat, label: p.label }); };
   const locate = async () => {
     const r = await findMe();
@@ -168,13 +184,30 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
   }, [ds]);
   /* Everything that can be typed: every locality on the record, and every city (at its centre). */
   const placeOptions = useMemo<PlaceOption[]>(() => {
-    if (!ds) return [];
-    return [
-      ...ds.cities.map((c, i) => ({ key: `c${i}`, name: c.name, city: c.state ?? "" })),
-      ...localities.map((l) => ({ key: `l${l.i}`, name: l.name, city: l.city })),
+    const current = ds ? ds.cities.map((c, i) => ({ key: `c${i}`, name: c.name, city: c.state ?? "" })) : [];
+    const local = ds ? localities.map((l) => ({ key: `l${l.i}`, name: l.name, city: l.city })) : [];
+    const all = [
+      ...availableCities.map((item) => ({ key: `ac:${item.city}`, name: item.city, city: item.state ?? "" })),
+      ...current,
+      ...local,
     ];
-  }, [ds, localities]);
+    const seen = new Set<string>();
+    return all.filter((item) => {
+      const key = `${item.name.toLowerCase()}|${item.city.toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [ds, localities, availableCities]);
   const pickPlace = (o: PlaceOption) => {
+    if (o.key.startsWith("ac:")) {
+      const cityName = o.key.slice(3);
+      const current = ds?.cities.find((item) => item.name === cityName);
+      if (current) { choose({ lng: current.lng, lat: current.lat, label: current.name, mine: true }); return; }
+      try { sessionStorage.setItem("sp.patch.pending-city", cityName); } catch { /* optional */ }
+      router.push(`/app?city=${encodeURIComponent(cityName)}`);
+      return;
+    }
     if (!ds) return;
     if (o.key.startsWith("c")) { const c = ds.cities[Number(o.key.slice(1))]; if (c) choose({ lng: c.lng, lat: c.lat, label: c.name, mine: true }); return; }
     const l = localities.find((x) => `l${x.i}` === o.key);
