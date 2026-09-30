@@ -59,7 +59,7 @@ const LEVELS = [
 export default async function HomePage() {
   const [story, register] = await Promise.all([
     getLandingStory().catch(() => null),
-    getAnimalRegister(),
+    getAnimalRegister().catch(() => ({ total: 0, cards: [] })),
   ]);
 
   return (
@@ -84,6 +84,22 @@ export default async function HomePage() {
           </div>
           </div>
         </section>
+
+        {/* Right after the hero, the centre of the page: every animal has a
+            card. It shows the hero's own count (one source); its own count
+            is only a fallback for a visit where the story could not load. */}
+        <AnimalRegister data={register} total={story?.totals.animals ?? register.total} />
+
+        {story?.journey && (
+          <CaseDive
+            j={story.journey}
+            city={story.hero.city}
+            box={story.hero.box}
+            rings={story.hero.rings}
+            events={story.hero.events}
+            note={story.record.medianFirstAction !== null ? `Across ${story.hero.city}'s ${fmt(story.record.requests)} requests, half had a field team on them ${story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
+          />
+        )}
 
         <section className="ld-sec ld-sec-shell" aria-labelledby={story?.relay ? "ld-relay-title" : undefined} aria-label={story?.relay ? undefined : "Who reads the record"}>
           {story?.relay && (
@@ -113,20 +129,6 @@ export default async function HomePage() {
             </ol>
           </div>
         </section>
-
-        {story?.journey && (
-          <CaseDive
-            j={story.journey}
-            city={story.hero.city}
-            box={story.hero.box}
-            rings={story.hero.rings}
-            events={story.hero.events}
-            note={story.record.medianFirstAction !== null ? `Across ${story.hero.city}'s ${fmt(story.record.requests)} requests, half had a field team on them ${story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
-          />
-        )}
-
-        {/* The register shows the same live count as the hero: one source. */}
-        {story && <AnimalRegister data={register} total={story.totals.animals} />}
 
         <section className="ld-close">
           <div className="ld-close-copy">
