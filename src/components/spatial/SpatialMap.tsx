@@ -121,7 +121,7 @@ const heatRamp = (c: string[]) => ["interpolate", ["linear"], ["heatmap-density"
 export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope; userKey?: string | null }) {
   const params = useSearchParams();
   const router = useRouter();
-  const { ds, ix, error, loading } = useSpatialDataset(scope, userKey);
+  const { ds, ix, error, loading, city: datasetCity, cities: availableCities } = useSpatialDataset(scope, userKey);
 
   const [ground, setGround] = useState<"night" | "paper">("night");
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
@@ -146,6 +146,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   const [ready, setReady] = useState(false);
   const [baseReady, setBaseReady] = useState(false);
   const [layersReady, setLayersReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [phone, setPhone] = useState(false);
   const [feeding, setFeeding] = useState<{ id: string; name: string; lat: number; lng: number }[]>([]);
   const el = useRef<HTMLDivElement>(null);
@@ -399,6 +400,11 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   /* ── the map, built once ─────────────────────────────────────────── */
   useEffect(() => {
     let map: MLMap | null = null, dead = false;
+    const canvas = document.createElement("canvas");
+    if (!canvas.getContext("webgl2") && !canvas.getContext("webgl")) {
+      setMapError("This browser cannot draw the interactive map. The city record and filters remain available on a WebGL-enabled browser.");
+      return () => { dead = true; };
+    }
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
@@ -421,7 +427,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
         map!.addImage("hatch-paper", hatchImage("rgba(11,30,61,0.45)"));
         setReady(true);
       });
-    });
+    }).catch(() => { if (!dead) setMapError("The interactive map could not start. Please reload the city view."); });
     return () => { dead = true; map?.remove(); mapRef.current = null; layersDone.current = false; setLayersReady(false); };
     // Built once; the ground is repainted in place.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -927,6 +933,11 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       mapRef.current?.flyTo({ center: [p.coords.longitude, p.coords.latitude], zoom: 14, duration: 1200 });
     }, () => {}, { timeout: 8000 });
   };
+  const changeCity = (nextCity: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("city", nextCity);
+    window.location.assign(url.toString());
+  };
 
   return (
     <div className={`sm ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`}>
@@ -934,6 +945,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} — {def.q}</h1>
 
       <div className="sm-top">
+        {availableCities.length > 1 && <label className="sm-city-select"><span>City</span><select value={datasetCity ?? ""} onChange={(event) => changeCity(event.target.value)}>{availableCities.map((item) => <option key={item.city} value={item.city}>{item.city}{item.state ? `, ${item.state}` : ""}</option>)}</select><ChevronDown size={14} aria-hidden /></label>}
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.filter((x) => PRIMARY_MODES.includes(x.id)).map((x) => (
             <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>
@@ -1028,7 +1040,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals"} pick={dotPick} />
 
       {loading && <div className="sm-state" role="status"><span>Reading the register…</span></div>}
-      {error && <div className="sm-state" role="status"><span>{error}</span></div>}
+      {(error || mapError) && <div className="sm-state" role="status"><span>{error ?? mapError}</span></div>}
     </div>
   );
 }
