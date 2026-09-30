@@ -57,32 +57,58 @@ async function rowsForAnimals(supa: any, table: string, select: string, ids: str
   return { data, error: null as any };
 }
 
-export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
+const getCachedPublicSpatialCities = unstable_cache(async (): Promise<SpatialCity[]> => {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data, error } = await supa.rpc("list_public_spatial_cities", { p_limit: Math.max(1, Math.min(limit, MAX_CITIES)) });
+  const { data, error } = await supa.rpc("list_public_spatial_cities", { p_limit: MAX_CITIES });
   if (error) throw error;
   const grouped = new Map<string, SpatialCity>();
   for (const row of (data ?? []) as SpatialCity[]) {
     const city = canonicalCity(row.city);
     const prior = grouped.get(city);
     if (!prior) { grouped.set(city, { ...row, city }); continue; }
-    prior.animals += row.animals; prior.cases += row.cases; prior.open_cases += row.open_cases; prior.cells += row.cells;
+    prior.animals += Number(row.animals || 0);
+    prior.cases += Number(row.cases || 0);
+    prior.open_cases += Number(row.open_cases || 0);
+    prior.cells += Number(row.cells || 0);
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
-  return [...grouped.values()].sort((a, b) => b.animals - a.animals).slice(0, Math.max(1, Math.min(limit, MAX_CITIES)));
+  return [...grouped.values()].sort((a, b) => b.animals - a.animals);
+}, ["public-spatial-cities-v4"], { revalidate: 120 });
+
+export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
+  const rows = await getCachedPublicSpatialCities();
+  return rows.slice(0, Math.max(1, Math.min(limit, MAX_CITIES)));
 }
 
-export async function getPublicSpatialCityCells(city: string, limit = MAX_CELLS): Promise<SpatialCell[]> {
-  const safeCity = cleanCity(city);
+const getCachedPublicSpatialCityCells = unstable_cache(async (city: string): Promise<SpatialCell[]> => {
+  const safeCity = canonicalCity(city);
   if (!safeCity) return [];
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.from("spatial_city_cells")
     .select("city,state,zone,h3_r8,animals,needs_help,sterilised,vaccinated,open_cases,cases,care_events,latest_seen")
-    .eq("city", safeCity).order("animals", { ascending: false }).limit(Math.max(1, Math.min(limit, MAX_CELLS)));
+    .in("city", cityVariants(safeCity)).order("animals", { ascending: false }).limit(MAX_CELLS);
   if (error) throw error;
-  return (data ?? []) as SpatialCell[];
+  const grouped = new Map<string, SpatialCell>();
+  for (const row of (data ?? []) as SpatialCell[]) {
+    const prior = grouped.get(row.h3_r8);
+    if (!prior) { grouped.set(row.h3_r8, { ...row, city: safeCity }); continue; }
+    prior.animals += Number(row.animals || 0);
+    prior.needs_help += Number(row.needs_help || 0);
+    prior.sterilised += Number(row.sterilised || 0);
+    prior.vaccinated += Number(row.vaccinated || 0);
+    prior.open_cases += Number(row.open_cases || 0);
+    prior.cases += Number(row.cases || 0);
+    prior.care_events += Number(row.care_events || 0);
+    if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
+  }
+  return [...grouped.values()].sort((a, b) => b.animals - a.animals);
+}, ["public-spatial-city-cells-v4"], { revalidate: 120 });
+
+export async function getPublicSpatialCityCells(city: string, limit = MAX_CELLS): Promise<SpatialCell[]> {
+  const rows = await getCachedPublicSpatialCityCells(cleanCity(city));
+  return rows.slice(0, Math.max(1, Math.min(limit, MAX_CELLS)));
 }
 
 export async function getPublicSpatialCellCounts(cells: string[]): Promise<SpatialCell[]> {
@@ -105,14 +131,14 @@ export type SpatialAnimal = {
 };
 
 export async function getPublicSpatialViewportAnimals(input: { city: string; west: number; south: number; east: number; north: number; limit?: number }) {
-  const city = cleanCity(input.city);
+  const city = canonicalCity(input.city);
   const { west, south, east, north } = input;
   if (!city || ![west, south, east, north].every(Number.isFinite) || west >= east || south >= north || east - west > 3 || north - south > 3) return [] as SpatialAnimal[];
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.from("public_spatial_animals")
     .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen")
-    .eq("city", city).gte("lng", west).lte("lng", east).gte("lat", south).lte("lat", north)
+    .in("city", cityVariants(city)).gte("lng", west).lte("lng", east).gte("lat", south).lte("lat", north)
     .order("needs_help", { ascending: false }).order("last_seen", { ascending: false })
     .limit(Math.max(1, Math.min(input.limit ?? MAX_ANIMALS, MAX_ANIMALS)));
   if (error) throw error;
