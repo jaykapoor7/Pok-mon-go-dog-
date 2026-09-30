@@ -200,11 +200,15 @@ export async function revokeInviteCode(id: string): Promise<boolean> {
 export async function claimOrgMembership(): Promise<void> {
   const supa = getSupabase();
   if (!supa) return;
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 4_000);
   try {
-    await supa.rpc("claim_org_membership");
+    await supa.rpc("claim_org_membership").abortSignal(controller.signal);
   } catch {
-    /* Never block a sign-in on this. Someone with no invitation is the
-       ordinary case, and the call is safe to repeat later. */
+    /* Membership claiming is opportunistic. It must never leave a long
+       PostgREST request occupying the pool when the database is under load. */
+  } finally {
+    window.clearTimeout(timer);
   }
 }
 
