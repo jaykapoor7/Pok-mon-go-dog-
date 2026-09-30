@@ -1,7 +1,12 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/site-url";
+import { getSupabase } from "@/lib/supabase";
 const SITE = SITE_URL;
+
+// A sitemap must not turn deployment into a full-register export. The public
+// route is generated on demand from a small, indexed recent-record sample.
+export const dynamic = "force-dynamic";
 
 /** Public, indexable routes. Private partner/auth/detail surfaces stay out. */
 const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
@@ -46,13 +51,19 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
    and this is generated per request, so the register's most recently active
    records are listed rather than all of it. Split into indexed sitemaps if
    the register outgrows this. */
-const MAX_RECORDS = 5000;
+const MAX_RECORDS = 1000;
 
 async function recordEntries(now: Date): Promise<MetadataRoute.Sitemap> {
   try {
-    const { getAllDogs } = await import("@/lib/data");
-    const dogs = await getAllDogs();
-    return dogs.slice(0, MAX_RECORDS).map((dog) => ({
+    const supa = getSupabase();
+    if (!supa) return [];
+    const { data, error } = await supa
+      .from("public_animal_profiles")
+      .select("id,last_seen")
+      .order("last_seen", { ascending: false })
+      .limit(MAX_RECORDS);
+    if (error) return [];
+    return (data ?? []).map((dog) => ({
       url: `${SITE}/dog/${dog.id}`,
       lastModified: dog.last_seen ? new Date(dog.last_seen) : now,
       changeFrequency: "weekly" as const,
