@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { PageView } from "@/components/analytics/PageView";
 import { LivingRecord } from "@/components/animal/LivingRecord";
 import { buildLiving } from "@/lib/animal/living";
@@ -11,24 +12,19 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const profile = await getDogProfile(id);
-  if (!profile) return { title: "Animal not found, StrayPaw" };
-  const { dog } = profile;
-  const label = dogLabel(dog);
-  const title = `${label}, StrayPaw`;
-  const description = `${label}'s StrayPaw story: rescue, care, follow-ups and outcome in one longitudinal record.`;
-  const images = dog.cover_photo ? [dog.cover_photo] : undefined;
   return {
-    title,
-    description,
+    title: "Animal record, StrayPaw",
+    description: "A StrayPaw animal record: care, follow-ups and outcome in one longitudinal history.",
     alternates: { canonical: `/dog/${id}` },
-    openGraph: { title, description, images, type: "article", url: `/dog/${id}` },
-    twitter: { card: "summary_large_image", title, description, images },
+    openGraph: { title: "Animal record, StrayPaw", type: "article", url: `/dog/${id}` },
   };
 }
 
-export default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+function ProfileShell() {
+  return <main className="min-h-dvh bg-[#f3ede4] px-6 py-10 text-[#0b1e3d]"><a href="/app" className="font-mono text-xs uppercase tracking-[0.16em]">StrayPaw</a><h1 className="mt-10 font-serif text-4xl">Animal record</h1><p className="mt-3 max-w-lg">Loading this individual record and its bounded care history.</p></main>;
+}
+
+async function DogProfileContent({ id }: { id: string }) {
   const [profile, operational, identity] = await Promise.all([
     getDogProfile(id),
     getProfileOperationalRecord(id),
@@ -84,3 +80,4 @@ export default async function DogProfilePage({ params }: { params: Promise<{ id:
     </>
   );
 }
+\n\nexport default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {\n  const { id } = await params;\n  return <Suspense fallback={<ProfileShell />}><DogProfileContent id={id} /></Suspense>;\n}\n
