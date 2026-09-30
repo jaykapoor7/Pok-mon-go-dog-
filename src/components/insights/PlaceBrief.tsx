@@ -70,9 +70,9 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
   const mine = usePlace();
   const [gate, setGate] = useState<GateState | null>(null);
 
-  /* ── the place: from the link; else, in public, the person's own city
-     (never another city's record while theirs is unknown); an
-     organisation reads the city its own records are deepest in ── */
+  /* ── the place: links and saved places win. A public visitor outside the
+     record still gets a real, current sample city instead of a dead-end
+     "not reached" screen; they can choose their own place in the bar. ── */
   useEffect(() => {
     if (!ds || place || !mine.ready) return;
     let city = -1, locality = -1;
@@ -90,8 +90,9 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
     if (city < 0 && mine.place) {
       const r = reachOf(ds, mine.place.lng, mine.place.lat);
       if (r.reached) city = r.city;
-      else { setGate("unreached"); return; }
+      else if (scope === "org") { setGate("unreached"); return; }
     }
+    if (city < 0 && scope === "public") city = busiest(ds);
     if (city < 0) { setGate((g) => g ?? "ask"); return; }
     setGate(null);
     setPlace({ city, locality });
