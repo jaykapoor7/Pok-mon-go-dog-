@@ -41,7 +41,10 @@ async function readLandingDataset(): Promise<{ ds: SpatialDataset; totalAnimals:
   ]);
   if (caseResult.error || careResult.error || sightResult.error) throw caseResult.error ?? careResult.error ?? sightResult.error;
   const rows: LandingRows = { animals, cases: (caseResult.data ?? []) as CaseRow[], care: (careResult.data ?? []) as CareRow[], sightings: (sightResult.data ?? []) as SightRow[], orgs: [] };
-  return { ds: assemble(rows, "public"), totalAnimals: animalTotal.count ?? animals.length, totalCases: caseTotal.count ?? rows.cases.length, totalCities: candidates.length };
+  /* The replay needs a multi-cell fresh city, but the hero counter is the
+   * whole public city index. Do not present the sample filter as a total. */
+  const totalCities = ((cityData ?? []) as CityCandidate[]).filter((row) => row.city).length;
+  return { ds: assemble(rows, "public"), totalAnimals: animalTotal.count ?? animals.length, totalCases: caseTotal.count ?? rows.cases.length, totalCities };
 }
 
 export type LandingStory = Awaited<ReturnType<typeof getCachedLandingStory>>;
