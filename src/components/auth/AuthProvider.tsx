@@ -101,7 +101,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
          It moved out of the old password form when that form was removed,
          and was not put anywhere else — so an NGO member invited by email
          before their first sign-in silently never joined their organisation. */
-      if (event === "SIGNED_IN" && session?.user) void claimOrgMembership();
+      if (event === "SIGNED_IN" && session?.user) {
+        const claimKey = `sp.claim-org.${session.user.id}`;
+        let shouldClaim = true;
+        try {
+          const last = Number(sessionStorage.getItem(claimKey) ?? 0);
+          shouldClaim = !last || Date.now() - last > 10 * 60_000;
+          if (shouldClaim) sessionStorage.setItem(claimKey, String(Date.now()));
+        } catch { /* private mode/storage blocked: the RPC itself is still bounded */ }
+        if (shouldClaim) void claimOrgMembership();
+      }
       // A fresh sign-in fulfils any action that was waiting on auth.
       if (session?.user && pendingRef.current) {
         const action = pendingRef.current;
