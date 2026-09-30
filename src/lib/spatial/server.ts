@@ -7,6 +7,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import { getSupabase } from "@/lib/supabase";
 import { assemble, type AnimalRow, type CaseRow, type CareRow, type SightRow } from "./build";
 import type { SpatialDataset } from "./types";
@@ -119,8 +120,17 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
   return assemble({ animals, cases: (caseResult.data ?? []) as CaseRow[], care: (careResult.data ?? []) as CareRow[], sightings: (sightingResult.data ?? []) as SightRow[], orgs: [] }, "public");
 }
 
+/* The rich map is read by several entry points at once (map, insights and
+ * story links). Cache the already-bounded city assembly so a cold client
+ * never starts a fan-out of relation queries and lands on a transient 503. */
+const getCachedPublicSpatialCityDataset = unstable_cache(
+  async (city: string) => readPublicCityDataset(city),
+  ["public-spatial-city-dataset-v2"],
+  { revalidate: 300 },
+);
+
 export async function getPublicSpatialCityDataset(city: string) {
-  return readPublicCityDataset(city);
+  return getCachedPublicSpatialCityDataset(cleanCity(city));
 }
 
 function memberClient(accessToken: string) {
