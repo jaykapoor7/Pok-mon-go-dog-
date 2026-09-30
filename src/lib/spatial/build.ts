@@ -30,7 +30,7 @@ import {
 import { coverageOf } from "./engine";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 10;
+export const DATASET_VERSION = 11;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
