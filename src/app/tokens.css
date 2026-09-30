@@ -43,6 +43,19 @@
    ════════════════════════════════════════════════════════════════════ */
 
 :root {
+  /* System stacks are intentionally local: production builds and page loads
+     must not depend on a third-party font request. They preserve the existing
+     sans / editorial-serif / mono hierarchy and cover Indic scripts through
+     the platform's native Noto-capable fallbacks. */
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  --font-serif: Iowan Old Style, "Palatino Linotype", Palatino, Georgia, "Noto Serif", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-sans-display: var(--font-sans);
+  --font-serif-display: var(--font-serif);
+  --font-devanagari: "Noto Sans Devanagari", var(--font-sans);
+  --font-tamil: "Noto Sans Tamil", var(--font-sans);
+  --font-telugu: "Noto Sans Telugu", var(--font-sans);
+  --font-kannada: "Noto Sans Kannada", var(--font-sans);
   /* ── Ink ──────────────────────────────────────────────────────── */
   --sp-ink: #0b1e3d;         /* headings, and the dark ground        */
   --sp-deep: #071630;        /* one step darker: the footer          */

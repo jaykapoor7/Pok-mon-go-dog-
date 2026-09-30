@@ -1,13 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import {
-  DM_Sans,
-  DM_Mono,
-  Newsreader,
-  Noto_Sans_Devanagari,
-  Noto_Sans_Tamil,
-  Noto_Sans_Telugu,
-  Noto_Sans_Kannada,
-} from "next/font/google";
 import "./tokens.css";
 import "./globals.css";
 import "./design-system.css";
@@ -20,80 +11,6 @@ import { StructuredData } from "@/components/seo/StructuredData";
 import { RouteEnvironment } from "@/components/embed/RouteEnvironment";
 
 import { SITE_URL } from "@/lib/site-url";
-// Interface: DM Sans, restrained, precise, engineered.
-const sans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-/* THE EDITORIAL FACE. Newsreader carries two jobs and no others: the large
-   figure a section is about (2,188 requests; 96% unknown), and the one
-   emphasis line under a headline. It was drawn for reading at display sizes
-   on screens, which is what separates it from the decorative italic that
-   was removed below. One use per view; the interface stays DM Sans. */
-const serif = Newsreader({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-/* NO SECOND FACE. The display line used to be Instrument Serif in italic:
-   the hero's second line, "Start with your street.", the big counts. One
-   typeface carries the whole product now, and the emphasis that the serif
-   used to provide comes from weight and colour instead. --font-display
-   still exists, and still means "the display line", but it resolves to the
-   interface face (see tokens.css) so every rule that asked for it keeps
-   working. */
-
-// Data: DM Mono, record IDs, coordinates, telemetry.
-const mono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
-  display: "swap",
-});
-
-/* DM Sans covers Latin only, so Hindi, Tamil, Telugu and Kannada would fall
-   back to whatever the device happens to have and render inconsistently, or
-   as boxes. Noto is the family designed for exactly this: one set of metrics
-   across scripts. Each is subset to its own script so a reader downloads
-   only the one they are using, and each swaps rather than blocking a first
-   paint on a slow connection.
-
-   Two weights, not four. These faces carry interface chrome -- navigation,
-   controls, status words -- which needs a regular and a bold and nothing
-   in between. Four weights across four families meant sixteen font files
-   fetched at build time, which is a large, slow and failure-prone
-   dependency for a build to carry, and a heavier download for exactly the
-   low-bandwidth readers these languages are for. */
-const devanagari = Noto_Sans_Devanagari({
-  subsets: ["devanagari"],
-  weight: ["400", "600"],
-  variable: "--font-devanagari",
-  display: "swap",
-});
-const tamil = Noto_Sans_Tamil({
-  subsets: ["tamil"],
-  weight: ["400", "600"],
-  variable: "--font-tamil",
-  display: "swap",
-});
-const telugu = Noto_Sans_Telugu({
-  subsets: ["telugu"],
-  weight: ["400", "600"],
-  variable: "--font-telugu",
-  display: "swap",
-});
-const kannada = Noto_Sans_Kannada({
-  subsets: ["kannada"],
-  weight: ["400", "600"],
-  variable: "--font-kannada",
-  display: "swap",
-});
 
 // Canonical site URL. Prefer the explicit env var; otherwise the production
 // domain (NOT the per-deployment Vercel URL, which is auth-walled and makes
@@ -185,7 +102,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-locale="en"
-      className={`${sans.variable} ${mono.variable} ${serif.variable} ${devanagari.variable} ${tamil.variable} ${telugu.variable} ${kannada.variable}`}
+      className=""
       suppressHydrationWarning
     >
       {/* <head> is left with no children of our own. React (19.2) saves its
