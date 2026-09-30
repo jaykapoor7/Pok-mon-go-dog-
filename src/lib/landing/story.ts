@@ -33,9 +33,25 @@ function coreBox(ds: SpatialDataset, cells: number[], lo: number, hi: number, pa
 
 function buildStory(ds: SpatialDataset) {
   const ix = buildIndex(ds);
-  // The city with the most cases; animals only break a tie.
+  // The landing is an operational story, not a bulk-import leaderboard.
+  // Prefer the city with the most open work from the last 90 days; total
+  // cases and then animals only break a tie. This keeps a large historical
+  // import from replacing the live field-work narrative on the homepage.
+  const recentOpen = new Array(ds.cities.length).fill(0) as number[];
+  for (let i = 0; i < ix.nCases; i++) {
+    const o = i * C_STRIDE, cell = ds.cases[o + C.cell], day = ds.cases[o + C.day];
+    if (cell < 0 || day < 0 || day > ds.today || ds.today - day > 90 || !openNow(ds, i)) continue;
+    const ci = ds.cellCity[cell];
+    if (ci >= 0 && ci < recentOpen.length) recentOpen[ci]++;
+  }
   let city = 0;
-  ds.cities.forEach((c, i) => { const b = ds.cities[city]; if (c.cases > b.cases || (c.cases === b.cases && c.animals > b.animals)) city = i; });
+  ds.cities.forEach((c, i) => {
+    const b = ds.cities[city];
+    if (
+      recentOpen[i] > recentOpen[city] ||
+      (recentOpen[i] === recentOpen[city] && (c.cases > b.cases || (c.cases === b.cases && c.animals > b.animals)))
+    ) city = i;
+  });
   const sample = ds.cities[city];
   const cityCells = new Set<number>();
   ds.cellCity.forEach((c, i) => { if (c === city) cityCells.add(i); });
@@ -199,7 +215,7 @@ export const getLandingStory = unstable_cache(async () => {
   if (!ds || !ds.cities.length) return null;
   const story = buildStory(ds);
   return { ...story, relay: await resolveRelay(story.desk.feed, story.desk.cells.map((c) => c.key), story.hero.city) };
-}, ["landing-story-v11"], { revalidate: 600, tags: [SPATIAL_TAG] });
+}, ["landing-story-v12"], { revalidate: 600, tags: [SPATIAL_TAG] });
 
 /* One report, three screens, carries the record's own identifier across
    all three. The dataset holds no ids by design, so the most recent real
