@@ -14,7 +14,7 @@ import type { SpatialDataset } from "./types";
 export const SPATIAL_TAG = "spatial";
 
 async function buildPublic(city: string | null): Promise<SpatialDataset | null> {
-  const supa = getSupabase();
+  const supa = getSupabaseAdmin() ?? getSupabase();
   if (!supa) return null;
   try {
     await healCells(getSupabaseAdmin()).catch(() => 0);
