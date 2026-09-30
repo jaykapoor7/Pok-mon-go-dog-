@@ -4,38 +4,51 @@
    geometry the map derives from it. */
 
 import { useEffect, useMemo, useState } from "react";
+import { getSupabase } from "@/lib/supabase";
 import { buildIndex, type Index } from "@/lib/spatial/engine";
 import type { SpatialDataset } from "@/lib/spatial/types";
 
 export type Scope = "public" | "org";
 
-type State = { ds: SpatialDataset | null; error: string | null; loading: boolean };
+type City = { city: string; state: string | null; animals: number; cases: number };
+type State = { ds: SpatialDataset | null; error: string | null; loading: boolean; city: string | null; cities: City[] };
 
-const cache = new Map<string, Promise<SpatialDataset>>();
+const cache = new Map<string, Promise<{ ds: SpatialDataset; city: string; cities: City[] }>>();
 
-async function load(scope: Scope): Promise<SpatialDataset> {
-  /* The legacy packed dataset represented every animal/case/care row. Keep
-     the hook's error boundary for older secondary panels, but never issue a
-     request that can materialise an organisation or public register. */
-  throw new Error(scope === "org"
-    ? "Organisation-wide map analytics are being rebuilt as bounded city and viewport reads. Your cases and dashboard remain available."
-    : "This legacy map panel has moved to the bounded city map. Open /map to choose a city.");
+async function load(scope: Scope, requestedCity?: string | null) {
+  const headers: HeadersInit = {};
+  if (scope === "org") {
+    const supa = getSupabase();
+    const { data } = (await supa?.auth.getSession()) ?? { data: { session: null } };
+    if (!data.session?.access_token) throw new Error("Sign in with your organisation to see its register.");
+    headers.Authorization = `Bearer ${data.session.access_token}`;
+  }
+  const scopeParam = scope === "org" ? "&scope=org" : "";
+  const cityResponse = await fetch(`/api/spatial?kind=cities${scopeParam}`, { headers });
+  if (!cityResponse.ok) throw new Error("Could not load the cities on this map.");
+  const cities = ((await cityResponse.json()).cities ?? []) as City[];
+  const city = cities.find((item) => item.city === requestedCity)?.city ?? cities[0]?.city;
+  if (!city) throw new Error("No mapped city is available for this view yet.");
+  const response = await fetch(`/api/spatial?kind=dataset&city=${encodeURIComponent(city)}${scopeParam}`, { headers });
+  if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "Could not load this city's bounded register.");
+  return { ds: await response.json() as SpatialDataset, city, cities };
 }
 
 /** The dataset for a scope. `enabled: false` loads nothing — for a screen
     that only needs it once someone is signed in as a member. */
 export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled = true) {
-  const [s, setS] = useState<State>({ ds: null, error: null, loading: enabled });
+  const requestedCity = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("city");
+  const [s, setS] = useState<State>({ ds: null, error: null, loading: enabled, city: null, cities: [] });
   useEffect(() => {
-    if (!enabled) { setS({ ds: null, error: null, loading: false }); return; }
+    if (!enabled) { setS({ ds: null, error: null, loading: false, city: null, cities: [] }); return; }
     let live = true;
-    const key = `${scope}:${userKey ?? ""}`;
-    if (!cache.has(key)) cache.set(key, load(scope));
+    const key = `${scope}:${userKey ?? ""}:${requestedCity ?? ""}`;
+    if (!cache.has(key)) cache.set(key, load(scope, requestedCity));
     cache.get(key)!
-      .then((ds) => { if (live) setS({ ds, error: null, loading: false }); })
-      .catch((e: Error) => { cache.delete(key); if (live) setS((prev) => ({ ds: prev.ds, error: prev.ds ? null : e.message, loading: false })); });
+      .then((result) => { if (live) setS({ ...result, error: null, loading: false }); })
+      .catch((e: Error) => { cache.delete(key); if (live) setS((prev) => ({ ...prev, error: prev.ds ? null : e.message, loading: false })); });
     return () => { live = false; };
-  }, [scope, userKey, enabled]);
+  }, [scope, userKey, enabled, requestedCity]);
   const ix: Index | null = useMemo(() => (s.ds ? buildIndex(s.ds) : null), [s.ds]);
   return { ...s, ix };
 }
