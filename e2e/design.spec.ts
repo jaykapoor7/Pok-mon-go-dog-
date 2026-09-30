@@ -74,21 +74,17 @@ test("community home asks for a place without blocking reporting", async ({ page
   await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();
 });
 
-test("public map mounts with its city selector and bounded-read contract", async ({ page }) => {
+test("public map mounts the rich map shell and core controls", async ({ page }) => {
   await page.goto("/map");
-  /* The one-time storage notice sits over the foot of a phone screen until
-     it is acknowledged, as a person would. */
   const ok = page.getByRole("button", { name: "Got it" });
   await ok.click({ timeout: 5000 }).catch(() => {});
-  /* The bounded map is a city selector over pre-aggregated cells; it states
-     that close zoom loads at most 500 animals in view. Its options depend on
-     the register being reachable (empty when the suite runs without data), so
-     this asserts the map is wired up, not that a particular city loaded —
-     location-specific browsing is the city/viewport, never a whole-register
-     filter panel. */
-  await expect(page.locator(".sm-bounded")).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "City" })).toBeVisible();
-  await expect(page.getByText(/the visible area loads at most 500 animals/i)).toBeVisible();
+  /* CI intentionally runs without live Supabase data. Verify the restored
+     rich map itself mounts and exposes its stable controls; city options are
+     data-dependent and are covered against production after deployment. */
+  await expect(page.locator(".sm").first()).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Street animals on the StrayPaw register/i })).toBeAttached();
+  await expect(page.getByRole("button", { name: /Analysis grid/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Go to where I am/i })).toBeVisible();
 });
 
 
@@ -218,7 +214,7 @@ for (const route of ["/", "/app", "/map", "/insights", "/partner", "/partner/ani
     await page.goto(route);
     /* The map is a full-bleed canvas labelled as a region rather than carrying
        a page heading; every other route leads with an h1. */
-    if (route === "/map") await expect(page.locator(".sm-bounded")).toBeVisible();
+    if (route === "/map") await expect(page.locator(".sm").first()).toBeVisible();
     else await expect(page.locator("h1").first()).toBeAttached();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     expect(errors).toEqual([]);
