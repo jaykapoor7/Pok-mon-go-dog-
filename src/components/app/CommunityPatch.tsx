@@ -204,6 +204,15 @@ export function CommunityPatch({ stories }: { stories: PublicCaseStory[] }) {
     return out;
   }, [ds, cells]);
 
+  /* No place yet: ask for one first. The question needs nothing from the
+     register, so it is asked even while the register is loading or could
+     not be read. */
+  if (placeReady && !patch) return (
+    <main className="cp">
+      <PlaceGate state={gateWhy ?? "ask"} locating={locating} onLocate={locate} options={placeOptions} onPick={pickPlace} />
+    </main>
+  );
+
   /* The register could not be read: the patch cannot be drawn, but the two
      things a person came to do here still work. */
   if (!loading && !ds && error) return (
