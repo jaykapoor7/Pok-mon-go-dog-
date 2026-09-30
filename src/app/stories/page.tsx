@@ -113,7 +113,10 @@ async function StoriesData({ before }: { before: { occurredAt: string; id: strin
           )}
           <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
         </header>
-        {stories.length ? <StoryAtlas stories={stories} /> : <section className="st-empty" aria-label="How stories enter the atlas">
+        {stories.length ? <StoryAtlas stories={stories} /> : page.error ? <section className="st-empty" aria-label="Public records temporarily unavailable">
+          <div><span className="st-empty-index">THE ATLAS / PUBLIC FIELD RECORDS</span><h2>The record is reconnecting.</h2><p>Stories exist, but the public record could not be read just now. Try this page again shortly; do not treat this state as an empty register.</p></div>
+          <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
+        </section> : <section className="st-empty" aria-label="How stories enter the atlas">
           <div><span className="st-empty-index">THE ATLAS / PUBLIC FIELD RECORDS</span><h2>Every record starts somewhere.</h2><p>No public animal record is available yet. Stories show only what the source actually establishes: an encounter, care when documented, and a discharge or outcome when recorded.</p></div>
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
         </section>}
