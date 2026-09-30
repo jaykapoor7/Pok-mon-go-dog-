@@ -102,15 +102,25 @@ export async function getPublicCareForDogs(dogIds: string[]): Promise<PublicTime
   const ids = [...new Set(dogIds.filter(Boolean))].slice(0, 100);
   const supa = getSupabase();
   if (!supa || !ids.length) return [];
+  /* Stories only need the current page's care. Query the small care fact
+   * projection directly instead of the platform-wide public_field_activity
+   * union, which became a hotspot after the imports. */
   const { data, error } = await supa
-    .from("public_field_activity")
-    .select("id,dog_id,ngo_id,ngo_name,title,occurred_at,zone")
+    .from("public_care_facts")
+    .select("id,dog_id,kind,event_date")
     .in("dog_id", ids)
-    .like("id", "medical:%")
-    .order("occurred_at", { ascending: false })
+    .order("event_date", { ascending: false })
     .limit(800);
   if (error) return [];
-  return (data ?? []).map(mapTimelineRow);
+  return (data ?? []).filter((row: any) => row.event_date).map((row: any) => ({
+    id: `medical:${row.id}`,
+    dog_id: row.dog_id ?? null,
+    ngo_id: null,
+    ngo_name: null,
+    title: row.kind ?? "care",
+    occurred_at: row.event_date,
+    zone: null,
+  }));
 }
 
 /**
