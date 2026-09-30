@@ -42,10 +42,19 @@ async function rowsForAnimals(supa: any, table: string, select: string, ids: str
   const chunks = Array.from({ length: Math.ceil(ids.length / 100) }, (_, index) => ids.slice(index * 100, index * 100 + 100));
   if (!chunks.length) return { data: [] as any[], error: null as any };
   const perChunk = Math.max(1, Math.ceil(limit / chunks.length));
-  const results = await Promise.all(chunks.map((chunk) => supa.from(table).select(select).in("dog_id", chunk).order(order, { ascending: false }).limit(perChunk)));
-  const error = results.find((result: any) => result.error)?.error ?? null;
+  /* Nano/shared Postgres gets hurt more by a fan-out than by a few short
+   * bounded reads. Keep relation lookups at three concurrent queries max. */
+  const results: any[] = [];
+  for (let from = 0; from < chunks.length; from += 3) {
+    const batch = chunks.slice(from, from + 3);
+    results.push(...await Promise.all(batch.map((chunk) =>
+      supa.from(table).select(select).in("dog_id", chunk).order(order, { ascending: false }).limit(perChunk)
+    )));
+    const failed = results.find((result: any) => result.error);
+    if (failed) return { data: [] as any[], error: failed.error };
+  }
   const data = results.flatMap((result: any) => result.data ?? []).sort((a: any, b: any) => String(b[order] ?? "").localeCompare(String(a[order] ?? ""))).slice(0, limit);
-  return { data, error };
+  return { data, error: null as any };
 }
 
 export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
@@ -124,8 +133,7 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
   if (!animals.length) return null;
   const ids = animals.map((animal) => animal.id);
   const [caseResult, careResult, sightingResult] = await Promise.all([
-    supa.from("public_case_facts").select("id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at")
-      .in("city", cityVariants(safeCity)).order("occurred_at", { ascending: false }).limit(DATASET_LIMITS.cases),
+    rowsForAnimals(supa, "public_case_facts", "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at", ids, "occurred_at", DATASET_LIMITS.cases),
     rowsForAnimals(supa, "public_care_facts", "dog_id,kind,event_date,h3_r8", ids, "event_date", DATASET_LIMITS.care),
     rowsForAnimals(supa, "public_sighting_facts", "dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo", ids, "created_at", DATASET_LIMITS.sightings),
   ]);
@@ -197,8 +205,7 @@ export async function getOrgSpatialCityDataset(accessToken: string, city: string
   if (!animals.length) return null;
   const ids = animals.map((animal) => animal.id);
   const [caseResult, careResult] = await Promise.all([
-    supa.from("org_case_facts").select("id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_at,resolved_at,resolved_at_source,provenance,followups_done,followups_missed,followups_upcoming,reviewed_at")
-      .eq("city", safeCity).order("occurred_at", { ascending: false }).limit(DATASET_LIMITS.cases),
+    rowsForAnimals(supa, "org_case_facts", "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_at,resolved_at,resolved_at_source,provenance,followups_done,followups_missed,followups_upcoming,reviewed_at", ids, "occurred_at", DATASET_LIMITS.cases),
     rowsForAnimals(supa, "medical_events", "dog_id,kind,event_date", ids, "event_date", DATASET_LIMITS.care),
   ]);
   if (caseResult.error || careResult.error) throw caseResult.error ?? careResult.error;
