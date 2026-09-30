@@ -80,4 +80,9 @@ async function DogProfileContent({ id }: { id: string }) {
     </>
   );
 }
-\n\nexport default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {\n  const { id } = await params;\n  return <Suspense fallback={<ProfileShell />}><DogProfileContent id={id} /></Suspense>;\n}\n
+
+
+export default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <Suspense fallback={<ProfileShell />}><DogProfileContent id={id} /></Suspense>;
+}
