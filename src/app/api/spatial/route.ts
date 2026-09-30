@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getOrgSpatialCities, getOrgSpatialCityCells, getOrgSpatialViewportAnimals, getPublicSpatialCities, getPublicSpatialCityCells, getPublicSpatialViewportAnimals, SPATIAL_LIMITS } from "@/lib/spatial/server";
+import { getOrgSpatialCities, getOrgSpatialCityCells, getOrgSpatialCityDataset, getOrgSpatialViewportAnimals, getPublicSpatialCities, getPublicSpatialCityCells, getPublicSpatialCityDataset, getPublicSpatialViewportAnimals, SPATIAL_LIMITS } from "@/lib/spatial/server";
 
 /* Public spatial contract: aggregates by default, individual animals only
  * for an explicit close-zoom viewport. There is intentionally no endpoint
@@ -19,6 +19,11 @@ export async function GET(req: NextRequest) {
     }
     const city = req.nextUrl.searchParams.get("city")?.trim() ?? "";
     if (!city) return NextResponse.json({ error: "Choose a city before loading map data." }, { status: 400 });
+    if (kind === "dataset") {
+      const dataset = scope === "org" ? await getOrgSpatialCityDataset(token, city) : await getPublicSpatialCityDataset(city);
+      if (!dataset) return NextResponse.json({ error: "No bounded records are available for that city yet." }, { status: 404 });
+      return NextResponse.json(dataset, { headers: { "Cache-Control": scope === "org" ? "private, no-store" : "public, s-maxage=300, stale-while-revalidate=900" } });
+    }
     if (kind === "cells") {
       const cells = scope === "org" ? await getOrgSpatialCityCells(token, city) : await getPublicSpatialCityCells(city);
       return NextResponse.json({ city, cells, limits: SPATIAL_LIMITS }, { headers: { "Cache-Control": scope === "org" ? "private, no-store" : "public, s-maxage=300, stale-while-revalidate=900" } });
