@@ -83,7 +83,7 @@ export default async function HomePage() {
         </section>
 
         <section className="ld-sec ld-sec-shell" aria-labelledby={story?.relay ? "ld-relay-title" : undefined} aria-label={story?.relay ? undefined : "Who reads the record"}>
-          {story?.relay && story.desk.live + story.desk.older > 0 && (
+          {story?.relay && (
             <>
               <header className="sys-head">
                 <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
