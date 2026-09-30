@@ -4,5 +4,11 @@
     "deploymentEnabled": {
       "dev": false
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/admin/spatial/refresh",
+      "schedule": "*/10 * * * *"
+    }
+  ]
 }
