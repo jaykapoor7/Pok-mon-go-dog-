@@ -60,20 +60,17 @@ test("community choice stays account-free and lands in the community record", as
      tree even when it looks dismissed. Asserting its absence states the
      requirement directly instead of inferring it. */
   await expect(page.locator('[role="dialog"]')).toHaveCount(0);
-  /* The community home is a fast shell that leads with what to do next. */
-  await expect(page.getByRole("heading", { level: 1, name: "See what matters near you." })).toBeVisible();
-  /* Reporting has to be reachable, not phrased a particular way. On a phone
-     the header's copy of this action is gone and the tab bar's permanent
-     centre slot carries it, so asserting the long label tested the desktop
-     wording rather than the requirement. */
+  /* The restored community home asks for a place before it claims anything
+     is nearby; reporting remains available without location. */
+  await expect(page.getByRole("heading", { level: 1, name: "Where do you walk?" })).toBeVisible();
   await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();
 });
 
-test("community home keeps reporting and the city map within immediate reach", async ({ page }) => {
+test("community home asks for a place without blocking reporting", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("straypaw.role", "individual"));
   await page.goto("/app");
-  await expect(page.getByRole("heading", { level: 1, name: "See what matters near you." })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Open city map/i })).toHaveAttribute("href", "/map");
+  await expect(page.getByRole("heading", { level: 1, name: "Where do you walk?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Use my location/i })).toBeVisible();
   await expect(page.locator('a[href^="/report"]:visible').first()).toBeVisible();
 });
 
