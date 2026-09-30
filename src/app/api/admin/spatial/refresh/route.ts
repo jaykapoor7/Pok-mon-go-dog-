@@ -13,7 +13,7 @@ export const maxDuration = 60;
  *         imports and edits, authorised by CRON_SECRET. Without a matching
  *         secret the endpoint is closed, so it is never a public lever. */
 
-const BATCH = 15;
+const BATCH = 60;
 
 async function drain(): Promise<{ ok: boolean; status: number; body: Record<string, unknown> }> {
   const supa = getSupabaseAdmin();
