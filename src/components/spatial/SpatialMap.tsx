@@ -988,6 +988,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     }, () => {}, { timeout: 8000 });
   };
   const changeCity = (nextCity: string) => {
+    if (nextCity === "__india") { window.location.assign("/explore"); return; }
     const url = new URL(window.location.href);
     url.searchParams.set("city", nextCity);
     window.location.assign(url.toString());
@@ -1000,7 +1001,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} — {def.q}</h1>
 
       <div className="sm-top">
-        {availableCities.length > 1 && <label className="sm-city-select"><span>City</span><select value={datasetCity ?? ""} onChange={(event) => changeCity(event.target.value)}>{availableCities.map((item) => <option key={item.city} value={item.city}>{item.city}{item.state ? `, ${item.state}` : ""}</option>)}</select><ChevronDown size={14} aria-hidden /></label>}
+        {availableCities.length > 1 && <label className="sm-city-select"><span>City</span><select value={datasetCity ?? ""} onChange={(event) => changeCity(event.target.value)}>{scope === "public" && <option value="__india">India overview</option>}{availableCities.map((item) => <option key={item.city} value={item.city}>{item.city}{item.state ? `, ${item.state}` : ""}</option>)}</select><ChevronDown size={14} aria-hidden /></label>}
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.filter((x) => PRIMARY_MODES.includes(x.id)).map((x) => (
             <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>
