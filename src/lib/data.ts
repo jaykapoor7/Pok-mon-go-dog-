@@ -87,8 +87,7 @@ export async function getOrgAnimals(ngoId: string): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data } = await supa
-    .from("public_animal_profiles")
-    .select("*")
+    .from("public_animal_profiles").select(PUBLIC_DOG_SELECT)
     .eq("ngo_id", ngoId)
     .order("last_seen", { ascending: false })
     .limit(1000);
@@ -179,8 +178,7 @@ export async function getAllDogs(): Promise<Dog[]> {
   const supa = getSupabase();
   if (supa) {
     const data = await readPages<any>((from, to) => supa
-      .from("public_animal_profiles")
-      .select("*")
+      .from("public_animal_profiles").select(PUBLIC_DOG_SELECT)
       .order("last_seen", { ascending: false })
       .range(from, to));
     return data.map(mapDog).filter((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng) && (dog.lat !== 0 || dog.lng !== 0));
@@ -195,7 +193,7 @@ export async function getDogsByIds(ids: string[]): Promise<Dog[]> {
   const supa = getSupabase();
   const clean = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 100);
   if (!supa || !clean.length) return [];
-  const { data } = await supa.from("public_animal_profiles").select("*").in("id", clean);
+  const { data } = await supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).in("id", clean);
   return (data ?? []).map(mapDog);
 }
 
@@ -203,7 +201,7 @@ export async function getDogsByIds(ids: string[]): Promise<Dog[]> {
 export async function getNeedsHelpDogs(limit = 200): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data } = await supa.from("public_animal_profiles").select("*").eq("needs_help", true).order("last_seen", { ascending: false }).limit(limit);
+  const { data } = await supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).eq("needs_help", true).order("last_seen", { ascending: false }).limit(limit);
   return (data ?? []).map(mapDog).filter((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng) && (dog.lat !== 0 || dog.lng !== 0));
 }
 
@@ -212,8 +210,8 @@ export async function getSuggestedDogs(limit = 60): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const [help, seen] = await Promise.all([
-    supa.from("public_animal_profiles").select("*").eq("needs_help", true).order("last_seen", { ascending: false }).limit(limit),
-    supa.from("public_animal_profiles").select("*").order("sightings_count", { ascending: false }).limit(limit),
+    supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).eq("needs_help", true).order("last_seen", { ascending: false }).limit(limit),
+    supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).order("sightings_count", { ascending: false }).limit(limit),
   ]);
   const byId = new Map<string, Dog>();
   for (const row of [...(help.data ?? []), ...(seen.data ?? [])]) { const d = mapDog(row); if (!byId.has(d.id)) byId.set(d.id, d); }
@@ -225,7 +223,7 @@ export async function searchDogs(q: string, limit = 10): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const t = q.replace(/[,()%*\\]/g, " ").trim();
-  let query = supa.from("public_animal_profiles").select("*");
+  let query = supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT);
   if (t) query = query.or(`name.ilike.%${t}%,zone.ilike.%${t}%,code.ilike.%${t}%`);
   const { data } = await query.order("last_seen", { ascending: false }).limit(limit);
   return (data ?? []).map(mapDog);
@@ -266,8 +264,7 @@ export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data } = await supa
-    .from("public_animal_profiles")
-    .select("*")
+    .from("public_animal_profiles").select(PUBLIC_DOG_SELECT)
     .not("cover_photo", "is", null)
     .order("last_seen", { ascending: false })
     .limit(limit * 4);
@@ -282,7 +279,7 @@ export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
 export async function getDogById(id: string): Promise<Dog | null> {
   const supa = getSupabase();
   if (supa) {
-    const { data, error } = await supa.from("public_animal_profiles").select("*").eq("id", id).single();
+    const { data, error } = await supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).eq("id", id).single();
     if (error) throw error;
     return data ? mapDog(data) : null;
   }
