@@ -57,7 +57,10 @@ const LEVELS = [
 ] as const;
 
 export default async function HomePage() {
-  const [story, register] = await Promise.all([getLandingStory(), getAnimalRegister()]);
+  const [story, register] = await Promise.all([
+    getLandingStory().catch(() => null),
+    getAnimalRegister(),
+  ]);
 
   return (
     <div className={`sp field-site product-site ld ${displaySans.variable} ${displaySerif.variable}`}>
