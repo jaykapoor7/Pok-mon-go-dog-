@@ -29,6 +29,19 @@ const MAX_ANIMALS = 500;
 const DATASET_LIMITS = { animals: 1_200, cases: 1_500, care: 1_800, sightings: 1_800 } as const;
 const cleanCity = (city: string | null | undefined) => city?.replace(/\s+/g, " ").trim().slice(0, 120) ?? "";
 
+/* PostgREST rejects a giant UUID `in` URL before the query reaches Postgres.
+ * Split only the relation lookup, then enforce the same aggregate cap after
+ * merging: bounded rows, bounded request URLs. */
+async function rowsForAnimals(supa: any, table: string, select: string, ids: string[], order: string, limit: number) {
+  const chunks = Array.from({ length: Math.ceil(ids.length / 100) }, (_, index) => ids.slice(index * 100, index * 100 + 100));
+  if (!chunks.length) return { data: [] as any[], error: null as any };
+  const perChunk = Math.max(1, Math.ceil(limit / chunks.length));
+  const results = await Promise.all(chunks.map((chunk) => supa.from(table).select(select).in("dog_id", chunk).order(order, { ascending: false }).limit(perChunk)));
+  const error = results.find((result: any) => result.error)?.error ?? null;
+  const data = results.flatMap((result: any) => result.data ?? []).sort((a: any, b: any) => String(b[order] ?? "").localeCompare(String(a[order] ?? ""))).slice(0, limit);
+  return { data, error };
+}
+
 export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
   const supa = getSupabase();
   if (!supa) return [];
@@ -99,8 +112,8 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
   const [caseResult, careResult, sightingResult] = await Promise.all([
     supa.from("public_case_facts").select("id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at")
       .eq("city", safeCity).order("occurred_at", { ascending: false }).limit(DATASET_LIMITS.cases),
-    supa.from("public_care_facts").select("dog_id,kind,event_date,h3_r8").in("dog_id", ids).order("event_date", { ascending: false }).limit(DATASET_LIMITS.care),
-    supa.from("public_sighting_facts").select("dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo").in("dog_id", ids).order("created_at", { ascending: false }).limit(DATASET_LIMITS.sightings),
+    rowsForAnimals(supa, "public_care_facts", "dog_id,kind,event_date,h3_r8", ids, "event_date", DATASET_LIMITS.care),
+    rowsForAnimals(supa, "public_sighting_facts", "dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo", ids, "created_at", DATASET_LIMITS.sightings),
   ]);
   if (caseResult.error || careResult.error || sightingResult.error) throw caseResult.error ?? careResult.error ?? sightingResult.error;
   return assemble({ animals, cases: (caseResult.data ?? []) as CaseRow[], care: (careResult.data ?? []) as CareRow[], sightings: (sightingResult.data ?? []) as SightRow[], orgs: [] }, "public");
@@ -162,7 +175,7 @@ export async function getOrgSpatialCityDataset(accessToken: string, city: string
   const [caseResult, careResult] = await Promise.all([
     supa.from("org_case_facts").select("id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_at,resolved_at,resolved_at_source,provenance,followups_done,followups_missed,followups_upcoming,reviewed_at")
       .eq("city", safeCity).order("occurred_at", { ascending: false }).limit(DATASET_LIMITS.cases),
-    supa.from("medical_events").select("dog_id,kind,event_date").in("dog_id", ids).order("event_date", { ascending: false }).limit(DATASET_LIMITS.care),
+    rowsForAnimals(supa, "medical_events", "dog_id,kind,event_date", ids, "event_date", DATASET_LIMITS.care),
   ]);
   if (caseResult.error || careResult.error) throw caseResult.error ?? careResult.error;
   const cases = ((caseResult.data ?? []) as Array<CaseRow & { first_action_at?: string | null; provenance?: string | null }>).map((item) => ({
