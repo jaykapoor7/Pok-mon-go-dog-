@@ -15,6 +15,27 @@ type State = { ds: SpatialDataset | null; error: string | null; loading: boolean
 
 const cache = new Map<string, Promise<{ ds: SpatialDataset; city: string; cities: City[] }>>();
 
+const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+async function readJson(url: string, headers: HeadersInit) {
+  /* A serverless cold start or stale-while-revalidate race must not strand
+   * the map on an error screen. Retry only transient failures; a real 4xx is
+   * still surfaced immediately. */
+  let response: Response | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      response = await fetch(url, { headers });
+      if (response.ok || response.status < 500 || attempt === 2) break;
+    } catch (error) {
+      if (attempt === 2) throw error;
+    }
+    await pause(350 * (attempt + 1));
+  }
+  if (!response) throw new Error("Could not reach the map data service.");
+  if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "Could not load this city map.");
+  return response.json();
+}
+
 async function load(scope: Scope, requestedCity?: string | null) {
   const headers: HeadersInit = {};
   if (scope === "org") {
@@ -24,14 +45,12 @@ async function load(scope: Scope, requestedCity?: string | null) {
     headers.Authorization = `Bearer ${data.session.access_token}`;
   }
   const scopeParam = scope === "org" ? "&scope=org" : "";
-  const cityResponse = await fetch(`/api/spatial?kind=cities${scopeParam}`, { headers });
-  if (!cityResponse.ok) throw new Error("Could not load the cities on this map.");
-  const cities = ((await cityResponse.json()).cities ?? []) as City[];
+  const cityPayload = await readJson(`/api/spatial?kind=cities${scopeParam}`, headers);
+  const cities = (cityPayload.cities ?? []) as City[];
   const city = cities.find((item) => item.city === requestedCity)?.city ?? cities[0]?.city;
   if (!city) throw new Error("No mapped city is available for this view yet.");
-  const response = await fetch(`/api/spatial?kind=dataset&city=${encodeURIComponent(city)}${scopeParam}`, { headers });
-  if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "Could not load this city's bounded register.");
-  return { ds: await response.json() as SpatialDataset, city, cities };
+  const ds = await readJson(`/api/spatial?kind=dataset&city=${encodeURIComponent(city)}${scopeParam}`, headers) as SpatialDataset;
+  return { ds, city, cities };
 }
 
 /** The dataset for a scope. `enabled: false` loads nothing — for a screen
