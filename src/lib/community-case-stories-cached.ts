@@ -7,8 +7,11 @@ import { getPublicCareTimeline, getPublishedCaseStories } from "./community-case
    which already revalidates SPATIAL_TAG, so they share the tag; otherwise
    they refresh every five minutes. */
 export const getPublishedCaseStoriesCached = unstable_cache(
-  () => getPublishedCaseStories(120),
-  ["published-case-stories-v3"],
+  /* The app home renders twelve rows. A 48-record bounded page leaves room
+     for publication filtering without holding on to the outage-era empty
+     120-record cache. */
+  () => getPublishedCaseStories(48),
+  ["published-case-stories-v4"],
   { revalidate: 300 },
 );
 
