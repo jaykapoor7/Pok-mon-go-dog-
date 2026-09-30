@@ -30,7 +30,7 @@ import {
 import { coverageOf } from "./engine";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 14;
+export const DATASET_VERSION = 15;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -65,12 +65,21 @@ const located = (lat: number | null | undefined, lng: number | null | undefined)
 
 async function readAll<T>(load: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>, page = 1000): Promise<T[]> {
   const out: T[] = [];
-  for (let from = 0; ; from += page) {
-    const { data, error } = await load(from, from + page - 1);
-    if (error) throw error;
-    const rows = (Array.isArray(data) ? data : []) as T[];
-    out.push(...rows);
-    if (rows.length < page) return out;
+  // Supabase applies a statement timeout to each REST request. Historical
+  // imports make a serial 1,000-row walk exceed the serverless budget even
+  // though each bounded page is valid, so fetch a small bounded window in
+  // parallel. This keeps the public map responsive without widening data.
+  const parallel = 8;
+  for (let from = 0; ; from += page * parallel) {
+    const batch = await Promise.all(Array.from({ length: parallel }, (_, i) => load(from + i * page, from + (i + 1) * page - 1)));
+    let last = false;
+    for (const { data, error } of batch) {
+      if (error) throw error;
+      const rows = (Array.isArray(data) ? data : []) as T[];
+      out.push(...rows);
+      if (rows.length < page) last = true;
+    }
+    if (last) return out;
   }
 }
 
@@ -99,7 +108,7 @@ export async function readPublicRows(supa: SupabaseClient, city?: string) {
   // The query builder's type is deep; the city filter only needs its eq().
   const scoped = (q: any) => (city ? q.eq("city", city) : q);
   const [animals, cases, care, sightings, orgs] = await Promise.all([
-    readAll<AnimalRow>((f, t) => scoped(supa.from("public_spatial_animals").select(
+    readAll<AnimalRow>((f, t) => scoped(supa.from("public_spatial_animals_cache").select(
       "id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id",
     )).order("id").range(f, t)),
     readAll<CaseRow>((f, t) => scoped(supa.from("public_case_facts").select(
