@@ -30,7 +30,7 @@ import {
 import { coverageOf } from "./engine";
 
 /** Bump when assemble() changes shape or meaning, so cached datasets are rebuilt. */
-export const DATASET_VERSION = 11;
+export const DATASET_VERSION = 12;
 
 export type AnimalRow = {
   id: string; h3_r8: string | null; lat: number | null; lng: number | null;
@@ -51,9 +51,9 @@ export type CaseRow = {
   /** When a person reviewed an open case and closed it (case-review.sql). */
   reviewed_at?: string | null;
 };
-export type CareRow = { dog_id: string | null; kind: string | null; event_date: string | null; h3_r8: string | null };
+export type CareRow = { id: string; dog_id: string | null; kind: string | null; event_date: string | null; h3_r8: string | null };
 export type SightRow = {
-  dog_id: string | null; created_at: string | null; h3_r8: string | null; lat: number | null; lng: number | null;
+  id: string; dog_id: string | null; created_at: string | null; h3_r8: string | null; lat: number | null; lng: number | null;
   sterilisation_status: string | null; vaccination_status: string | null; has_photo: boolean | null;
 };
 
@@ -63,16 +63,28 @@ const round4 = (v: number) => Math.round(v * 1e4) / 1e4;
 const located = (lat: number | null | undefined, lng: number | null | undefined) =>
   typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
 
-async function readAll<T>(load: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>, page = 1000): Promise<T[]> {
+async function readAll<T extends { id: string }>(
+  load: (after: string | null, page: number) => PromiseLike<{ data: unknown; error: unknown }>,
+  page = 1000,
+): Promise<T[]> {
   const out: T[] = [];
-  for (let from = 0; ; from += page) {
-    const { data, error } = await load(from, from + page - 1);
+  let after: string | null = null;
+  for (;;) {
+    const { data, error } = await load(after, page);
     if (error) throw error;
     const rows = (Array.isArray(data) ? data : []) as T[];
     out.push(...rows);
     if (rows.length < page) return out;
+    const last = rows[rows.length - 1]?.id;
+    if (!last || last === after) return out;
+    after = last;
   }
 }
+
+const idPage = (q: any, after: string | null, page: number) => {
+  const ordered = q.order("id").limit(page);
+  return after ? ordered.gt("id", after) : ordered;
+};
 
 /** Writes exact H3 cells for rows that do not have one yet. Service role only. */
 export async function healCells(admin: SupabaseClient | null) {
@@ -99,16 +111,16 @@ export async function readPublicRows(supa: SupabaseClient, city?: string) {
   // The query builder's type is deep; the city filter only needs its eq().
   const scoped = (q: any) => (city ? q.eq("city", city) : q);
   const [animals, cases, care, sightings, orgs] = await Promise.all([
-    readAll<AnimalRow>((f, t) => scoped(supa.from("public_spatial_animals").select(
+    readAll<AnimalRow>((after, page) => idPage(scoped(supa.from("public_spatial_animals").select(
       "id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id",
-    )).order("id").range(f, t)),
-    readAll<CaseRow>((f, t) => scoped(supa.from("public_case_facts").select(
+    )), after, page)),
+    readAll<CaseRow>((after, page) => idPage(scoped(supa.from("public_case_facts").select(
       "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at",
-    )).order("id").range(f, t)),
-    readAll<CareRow>((f, t) => scoped(supa.from("public_care_facts").select("dog_id,kind,event_date,h3_r8")).order("id").range(f, t)),
-    readAll<SightRow>((f, t) => scoped(supa.from("public_sighting_facts").select(
-      "dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo",
-    )).order("id").range(f, t)),
+    )), after, page)),
+    readAll<CareRow>((after, page) => idPage(scoped(supa.from("public_care_facts").select("id,dog_id,kind,event_date,h3_r8")), after, page)),
+    readAll<SightRow>((after, page) => idPage(scoped(supa.from("public_sighting_facts").select(
+      "id,dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo",
+    )), after, page)),
     Promise.resolve([] as { id: string; name: string }[]),
   ]);
   return { animals, cases, care, sightings, orgs };
@@ -117,13 +129,13 @@ export async function readPublicRows(supa: SupabaseClient, city?: string) {
 /** An organisation's own register, under the member's RLS. */
 export async function readOrgRows(supa: SupabaseClient) {
   const [animals, cases, care] = await Promise.all([
-    readAll<AnimalRow & { provenance?: string | null }>((f, t) => supa.from("dogs").select(
+    readAll<AnimalRow & { provenance?: string | null }>((after, page) => idPage(supa.from("dogs").select(
       "id,h3_r8,lat,lng,city,state,zone,location_precision,provenance,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id",
-    ).order("id").range(f, t)),
-    readAll<CaseRow & { provenance?: string | null; occurred_at: string | null }>((f, t) => supa.from("org_case_facts").select(
+    ), after, page)),
+    readAll<CaseRow & { provenance?: string | null; occurred_at: string | null }>((after, page) => idPage(supa.from("org_case_facts").select(
       "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_at,resolved_at,resolved_at_source,provenance,followups_done,followups_missed,followups_upcoming,reviewed_at",
-    ).order("id").range(f, t)),
-    readAll<CareRow & { dog_id: string }>((f, t) => supa.from("medical_events").select("dog_id,kind,event_date").order("id").range(f, t)),
+    ), after, page)),
+    readAll<CareRow & { dog_id: string }>((after, page) => idPage(supa.from("medical_events").select("id,dog_id,kind,event_date"), after, page)),
   ]);
   const casesOut: CaseRow[] = (cases as (CaseRow & { first_action_at?: string | null; provenance?: string | null })[]).map((c) => ({
     ...c,
