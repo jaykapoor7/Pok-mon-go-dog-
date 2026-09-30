@@ -393,11 +393,11 @@ export async function getDogProfile(id: string): Promise<DogProfile | null> {
 
     const [sightingsRes, feedRes, vaccRes, sterRes, commentsRes] =
       await Promise.all([
-        supa.from("public_live_sightings").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
-        supa.from("public_feed_events").select("*").eq("dog_id", id).order("created_at", { ascending: false }),
-        supa.from("public_vaccinations").select("*").eq("dog_id", id),
-        supa.from("public_sterilisations").select("*").eq("dog_id", id),
-        supa.from("public_comments").select("*").eq("dog_id", id).order("created_at", { ascending: true }),
+        supa.from("public_live_sightings").select("*").eq("dog_id", id).order("created_at", { ascending: false }).limit(100),
+        supa.from("public_feed_events").select("*").eq("dog_id", id).order("created_at", { ascending: false }).limit(100),
+        supa.from("public_vaccinations").select("*").eq("dog_id", id).limit(100),
+        supa.from("public_sterilisations").select("*").eq("dog_id", id).limit(100),
+        supa.from("public_comments").select("*").eq("dog_id", id).order("created_at", { ascending: true }).limit(100),
       ]);
 
     const sightings = (sightingsRes.data ?? []).map(mapSighting);
