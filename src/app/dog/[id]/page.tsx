@@ -20,16 +20,23 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-function ProfileShell() {
-  return <main className="min-h-dvh bg-[#f3ede4] px-6 py-10 text-[#0b1e3d]"><a href="/app" className="font-mono text-xs uppercase tracking-[0.16em]">StrayPaw</a><h1 className="mt-10 font-serif text-4xl">Animal record</h1><p className="mt-3 max-w-lg">Loading this individual record and its bounded care history.</p></main>;
+function ProfileShell({ unavailable = false, id }: { unavailable?: boolean; id?: string }) {
+  return <main className="min-h-dvh bg-[#f3ede4] px-6 py-10 text-[#0b1e3d]"><a href="/app" className="font-mono text-xs uppercase tracking-[0.16em]">StrayPaw</a><h1 className="mt-10 font-serif text-4xl">Animal record</h1><p className="mt-3 max-w-lg">{unavailable ? "This record service is temporarily unavailable. No data has been changed." : "Loading this individual record and its bounded care history."}</p>{unavailable && id ? <a href={`/dog/${id}`} className="mt-6 inline-block font-mono text-xs uppercase tracking-[0.16em] underline">Try again</a> : null}</main>;
 }
 
 async function DogProfileContent({ id }: { id: string }) {
-  const [profile, operational, identity] = await Promise.all([
-    getDogProfile(id),
-    getProfileOperationalRecord(id),
-    getPublicAnimalIdentity(id),
-  ]);
+  let profile;
+  let operational;
+  let identity;
+  try {
+    [profile, operational, identity] = await Promise.all([
+      getDogProfile(id),
+      getProfileOperationalRecord(id),
+      getPublicAnimalIdentity(id),
+    ]);
+  } catch {
+    return <ProfileShell unavailable id={id} />;
+  }
   if (!profile) notFound();
   const record = await buildLiving(profile, operational, identity);
 
