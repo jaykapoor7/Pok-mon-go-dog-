@@ -423,11 +423,34 @@ select
 from public.dogs d
 where not coalesce(d.is_demo, false);
 
+-- The map reads this immutable, privacy-preserving projection. Keeping it
+-- materialized prevents a large historical register from timing out while
+-- PostgREST pages through the live dogs table.
+create materialized view if not exists public.public_spatial_animals_cache as
+select
+  d.id, d.h3_r8,
+  case when d.lat between -90 and 90 and d.lng between -180 and 180 and not (d.lat = 0 and d.lng = 0)
+       then round(d.lat::numeric, 2)::double precision end as lat,
+  case when d.lat between -90 and 90 and d.lng between -180 and 180 and not (d.lat = 0 and d.lng = 0)
+       then round(d.lng::numeric, 2)::double precision end as lng,
+  d.city, d.district, d.state, d.zone,
+  coalesce(d.location_precision, 'approximate') as location_precision,
+  case when d.provenance = 'community_report' then 'resident' else 'field' end as source,
+  d.name, d.code, d.straypaw_id, d.species, d.cover_photo,
+  d.status::text as status, d.needs_help,
+  d.sterilisation_status, d.vaccination_status, d.ear_notch,
+  d.first_seen, d.last_seen, d.sightings_count, d.ngo_id
+from public.dogs d
+where not coalesce(d.is_demo, false);
+
+create unique index if not exists public_spatial_animals_cache_id_idx on public.public_spatial_animals_cache (id);
+create index if not exists public_spatial_animals_cache_city_id_idx on public.public_spatial_animals_cache (city, id);
+
 create or replace view public.public_case_facts as
 select
   c.id, c.dog_id, c.ngo_id,
-  coalesce(c.h3_r8, d.h3_r8) as h3_r8,
-  coalesce(c.city, d.city) as city, coalesce(c.district, d.district) as district, c.zone,
+  c.h3_r8,
+  c.city, c.district, c.zone,
   coalesce(c.source_event_at, c.created_at) as occurred_at,
   c.condition_class, c.status_class, c.closure_reason, c.intake_channel,
   c.severity::text as severity,
@@ -440,9 +463,9 @@ select
   case when c.provenance = 'imported_historical_record' then 'field' else 'resident' end as source,
   coalesce(f.done, 0) as followups_done,
   coalesce(f.missed, 0) as followups_missed,
-  coalesce(f.upcoming, 0) as followups_upcoming
+  coalesce(f.upcoming, 0) as followups_upcoming,
+  c.status_reviewed_at as reviewed_at
 from public.cases c
-left join public.dogs d on d.id = c.dog_id
 left join lateral (
   select count(*) filter (where status = 'done') as done,
          count(*) filter (where status = 'missed') as missed,
@@ -454,10 +477,9 @@ where not coalesce(c.is_demo, false);
 create or replace view public.public_care_facts as
 select
   m.id, m.dog_id, m.case_id, m.kind, m.event_date,
-  d.h3_r8, d.city, d.district
+  null::text as h3_r8, null::text as city, null::text as district
 from public.medical_events m
-join public.dogs d on d.id = m.dog_id
-where not coalesce(m.is_demo, false) and not coalesce(d.is_demo, false);
+where not coalesce(m.is_demo, false);
 
 create or replace view public.public_sighting_facts as
 select
@@ -465,16 +487,16 @@ select
   s.h3_r8,
   round(s.lat::numeric, 2)::double precision as lat,
   round(s.lng::numeric, 2)::double precision as lng,
-  coalesce(d.city, null) as city,
+  null::text as city,
   s.sterilisation_status, s.vaccination_status,
   (s.photo_url is not null and s.photo_url <> '') as has_photo
 from public.sightings s
-left join public.dogs d on d.id = s.dog_id
 where not coalesce(s.is_demo, false)
   and s.status = 'live';
 
 revoke all on public.public_spatial_animals, public.public_case_facts, public.public_care_facts, public.public_sighting_facts from anon, authenticated;
 grant select on public.public_spatial_animals, public.public_case_facts, public.public_care_facts, public.public_sighting_facts to anon, authenticated, service_role;
+grant select on public.public_spatial_animals_cache to anon, authenticated, service_role;
 
 -- ── 7. The organisation's own cases, under its own RLS ─────────────
 
