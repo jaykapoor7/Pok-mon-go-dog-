@@ -6,14 +6,14 @@ import { animalKnowledge, casesIn, firstAction, statusTotals } from "@/lib/spati
 import { A_STRIDE, C, C_STRIDE, K, K_STRIDE, RES, countOf, type SpatialDataset } from "@/lib/spatial/types";
 import { CONDITIONS, DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 
-const LANDING_LIMITS = { cities: 48, animals: 480, cases: 720, care: 960, sightings: 720, relayCells: 240 } as const;
+const LANDING_LIMITS = { cities: 200, animals: 480, cases: 720, care: 960, sightings: 720, relayCells: 240 } as const;
 
 type CityCandidate = { city: string; state: string | null; animals: number; cases: number; open_cases: number; cells: number; latest_seen: string | null };
 type LandingRows = { animals: AnimalRow[]; cases: CaseRow[]; care: CareRow[]; sightings: SightRow[]; orgs: { id: string; name: string }[] };
 
 /** This is deliberately a one-city dataset. The landing must never page the
  * public register: every materialised row read below has a hard cap. */
-async function readLandingDataset(): Promise<{ ds: SpatialDataset; totalAnimals: number; totalCases: number } | null> {
+async function readLandingDataset(): Promise<{ ds: SpatialDataset; totalAnimals: number; totalCases: number; totalCities: number } | null> {
   const supa = getSupabase();
   if (!supa) return null;
   const [{ data: cityData, error: cityError }, animalTotal, caseTotal] = await Promise.all([
@@ -41,7 +41,7 @@ async function readLandingDataset(): Promise<{ ds: SpatialDataset; totalAnimals:
   ]);
   if (caseResult.error || careResult.error || sightResult.error) throw caseResult.error ?? careResult.error ?? sightResult.error;
   const rows: LandingRows = { animals, cases: (caseResult.data ?? []) as CaseRow[], care: (careResult.data ?? []) as CareRow[], sightings: (sightResult.data ?? []) as SightRow[], orgs: [] };
-  return { ds: assemble(rows, "public"), totalAnimals: animalTotal.count ?? animals.length, totalCases: caseTotal.count ?? rows.cases.length };
+  return { ds: assemble(rows, "public"), totalAnimals: animalTotal.count ?? animals.length, totalCases: caseTotal.count ?? rows.cases.length, totalCities: candidates.length };
 }
 
 export type LandingStory = Awaited<ReturnType<typeof getCachedLandingStory>>;
@@ -58,7 +58,7 @@ function coreBox(ds: SpatialDataset, cells: number[], lo: number, hi: number, pa
   return [q(xs, lo) - pad, q(ys, lo) - pad, q(xs, hi) + pad, q(ys, hi) + pad];
 }
 
-function buildStory(ds: SpatialDataset, totals: { animals: number; cases: number }) {
+function buildStory(ds: SpatialDataset, totals: { animals: number; cases: number; cities: number }) {
   const ix = buildIndex(ds), city = 0, sample = ds.cities[city];
   const cityCells = new Set<number>(); ds.cellCity.forEach((c, i) => { if (c === city) cityCells.add(i); });
   const cityCases = casesIn(ds, { cells: cityCells, from: 0, to: ds.today });
@@ -85,7 +85,7 @@ function buildStory(ds: SpatialDataset, totals: { animals: number; cases: number
   for (const i of live) openBy.set(at(i, C.cell), (openBy.get(at(i, C.cell)) ?? 0) + 1);
   const feed = cityCases.flatMap((i) => { const li = ds.cellLocality[at(i, C.cell)], base = { condition: CONDITIONS[at(i, C.cond)] ?? "Not recorded", locality: li >= 0 ? ds.localities[li] : "", cell: ds.cells[at(i, C.cell)], critical: isCritical(i) }, d = at(i, C.day), fa = at(i, C.firstAction), cd = at(i, C.closedDay); return [d >= 0 && d <= ds.today ? { kind: "report" as const, day: d, ...base } : null, d >= 0 && fa > 0 && d + fa <= ds.today ? { kind: "action" as const, day: d + fa, ...base } : null, cd >= 0 && cd <= ds.today && at(i, C.status) === CLOSED ? { kind: "closed" as const, day: cd, ...base } : null].filter(Boolean) as { kind: "report" | "action" | "closed"; day: number; condition: string; locality: string; cell: string; critical: boolean }[]; }).sort((a, b) => a.day - b.day).slice(-14).map((e) => ({ ...e, date: iso(e.day) }));
   const status = statusTotals(ds, cityCases), fa = firstAction(ds, cityCases), knowledge = animalKnowledge(ds, ix, null, ds.today);
-  return { totals: { animals: totals.animals, cases: totals.cases, care: countOf(ds.care, K_STRIDE), sightings: countOf(ds.sightings, 4), residentAnimals: knowledge.resident, cities: 1, sampleShare: 0, cityCases: cityCases.length }, hero, journey, record: { requests: cityCases.length, closedAfterWork: (status as Record<string, number>).closed ?? 0, medianFirstAction: fa.median }, desk: { live: live.length, critical: live.filter(isCritical).length, older: openCity.length - live.length, queue: [...live].sort((a, b) => (at(a, C.fuMissed) > 0 ? 0 : isCritical(a) ? 1 : 2) - (at(b, C.fuMissed) > 0 ? 0 : isCritical(b) ? 1 : 2) || at(a, C.day) - at(b, C.day)).slice(0, 3).map((i) => { const li = ds.cellLocality[at(i, C.cell)]; return { condition: CONDITIONS[at(i, C.cond)] ?? "Not recorded", locality: li >= 0 ? ds.localities[li] : "", days: ds.today - at(i, C.day), critical: isCritical(i), overdue: at(i, C.fuMissed) > 0 }; }), cells: cellList.map((c) => ({ key: ds.cells[c], ring: ds.rings[c], open: openBy.get(c) ?? 0 })), box: coreBox(ds, cellList, .02, .98, .01), feed }, today: ds.today, built: ds.built };
+  return { totals: { animals: totals.animals, cases: totals.cases, care: countOf(ds.care, K_STRIDE), sightings: countOf(ds.sightings, 4), residentAnimals: knowledge.resident, cities: totals.cities, sampleShare: 0, cityCases: cityCases.length }, hero, journey, record: { requests: cityCases.length, closedAfterWork: (status as Record<string, number>).closed ?? 0, medianFirstAction: fa.median }, desk: { live: live.length, critical: live.filter(isCritical).length, older: openCity.length - live.length, queue: [...live].sort((a, b) => (at(a, C.fuMissed) > 0 ? 0 : isCritical(a) ? 1 : 2) - (at(b, C.fuMissed) > 0 ? 0 : isCritical(b) ? 1 : 2) || at(a, C.day) - at(b, C.day)).slice(0, 3).map((i) => { const li = ds.cellLocality[at(i, C.cell)]; return { condition: CONDITIONS[at(i, C.cond)] ?? "Not recorded", locality: li >= 0 ? ds.localities[li] : "", days: ds.today - at(i, C.day), critical: isCritical(i), overdue: at(i, C.fuMissed) > 0 }; }), cells: cellList.map((c) => ({ key: ds.cells[c], ring: ds.rings[c], open: openBy.get(c) ?? 0 })), box: coreBox(ds, cellList, .02, .98, .01), feed }, today: ds.today, built: ds.built };
 }
 
 async function resolveRelay(feed: ReturnType<typeof buildStory>["desk"]["feed"], cityCells: string[], city: string) {
@@ -102,7 +102,7 @@ async function resolveRelay(feed: ReturnType<typeof buildStory>["desk"]["feed"],
 
 const getCachedLandingStory = unstable_cache(async () => {
   const source = await readLandingDataset(); if (!source || !source.ds.cities.length) return null;
-  const story = buildStory(source.ds, { animals: source.totalAnimals, cases: source.totalCases });
+  const story = buildStory(source.ds, { animals: source.totalAnimals, cases: source.totalCases, cities: source.totalCities });
   return { ...story, relay: await resolveRelay(story.desk.feed, story.desk.cells.map((c) => c.key).slice(0, LANDING_LIMITS.relayCells), story.hero.city) };
 }, ["landing-story-bounded-city-v1"], { revalidate: 300 });
 
