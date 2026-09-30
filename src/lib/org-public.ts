@@ -161,6 +161,25 @@ export function getPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
   )();
 }
 
+export async function getPublicOrgDirectoryImpacts(): Promise<Map<string, OrgImpact>> {
+  const admin = getSupabaseAdmin();
+  if (!admin) return new Map();
+  const read = unstable_cache(async () => {
+    const { data, error } = await admin.rpc("list_public_org_impacts");
+    if (error || !Array.isArray(data)) return [] as any[];
+    return data as any[];
+  }, ["public-org-directory-impacts-v1"], { revalidate: 300 });
+  const rows = await read();
+  return new Map(rows.map((row: any) => [String(row.ngo_id), {
+    animalsRecorded: number(row.animals_recorded),
+    sterilised: number(row.sterilised),
+    vaccinated: number(row.vaccinated),
+    caseRecords: number(row.case_records),
+    activeCases: number(row.active_cases),
+    resolvedCases: number(row.resolved_cases),
+  }]));
+}
+
 
 async function readPublicOrgMapCells(ngoId: string): Promise<PublicOrgMapCell[]> {
   const supa = getSupabase();
