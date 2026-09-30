@@ -139,7 +139,7 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
  * never starts a fan-out of relation queries and lands on a transient 503. */
 const getCachedPublicSpatialCityDataset = unstable_cache(
   async (city: string) => readPublicCityDataset(city),
-  ["public-spatial-city-dataset-v2"],
+  ["public-spatial-city-dataset-v3"],
   { revalidate: 300 },
 );
 
