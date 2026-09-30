@@ -84,7 +84,7 @@ test("public map mounts the rich map shell and core controls", async ({ page }) 
   await expect(page.locator(".sm").first()).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: /Street animals on the StrayPaw register/i })).toBeAttached();
   await expect(page.getByRole("button", { name: /Analysis grid/i })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Go to where I am/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Filters/ })).toBeVisible();
 });
 
 
