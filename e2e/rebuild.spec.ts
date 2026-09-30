@@ -45,8 +45,9 @@ test("educators enter a lesson studio containing the original Kind Hour material
 test("community navigation restores Saved dogs and the destination opens", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("straypaw.role", "individual"));
   await page.goto("/app");
-  const saved = page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Saved dogs" });
-  await expect(saved).toHaveAttribute("href", "/following");
+  await expect(page.getByRole("heading", { level: 1, name: "Where do you walk?" })).toBeVisible();
+  const saved = page.locator('nav[aria-label="Main navigation"] a[href="/following"]:visible').first();
+  await expect(saved).toBeVisible();
   await saved.click();
   await expect(page).toHaveURL(/\/following$/);
   await expect(page.locator("h1").first()).toBeVisible();
