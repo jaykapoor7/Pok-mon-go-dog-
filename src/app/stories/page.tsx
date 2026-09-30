@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { cellToLatLng } from "h3-js";
 import { AppShell } from "@/components/app/AppShell";
@@ -80,9 +81,7 @@ async function placesOf(ids: string[]) {
   return out;
 }
 
-export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ beforeAt?: string; beforeId?: string }> }) {
-  const params = await searchParams;
-  const before = params.beforeAt && params.beforeId ? { occurredAt: params.beforeAt, id: params.beforeId } : null;
+async function StoriesData({ before }: { before: { occurredAt: string; id: string } | null }) {
   const page = await getPublishedCaseStoriesPage({ limit: 48, before });
   const cases = page.rows;
   const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
@@ -102,8 +101,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   const historicalCount = stories.filter((s) => s.historical).length;
 
   return (
-    <AppShell>
-      <main className="st">
+    <main className="st">
         <header className="st-head">
           <h1>Animal records, <em>followed through care.</em></h1>
           {stories.length > 0 && (
@@ -120,7 +118,12 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
         </section>}
         {page.next && <p className="st-more"><Link className="sys-btn is-quiet" href={`/stories?beforeAt=${encodeURIComponent(page.next.occurredAt)}&beforeId=${encodeURIComponent(page.next.id)}`}>Older stories <ArrowUpRight size={15} /></Link></p>}
-      </main>
-    </AppShell>
+    </main>
   );
+}
+
+export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ beforeAt?: string; beforeId?: string }> }) {
+  const params = await searchParams;
+  const before = params.beforeAt && params.beforeId ? { occurredAt: params.beforeAt, id: params.beforeId } : null;
+  return <AppShell><Suspense fallback={<main className="st"><header className="st-head"><h1>Animal records, <em>followed through care.</em></h1><p className="st-lede">Loading the latest bounded public records…</p><Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link></header></main>}><StoriesData before={before} /></Suspense></AppShell>;
 }
