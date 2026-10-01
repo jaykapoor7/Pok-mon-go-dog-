@@ -1,8 +1,8 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   Projects: a register for work that is not a census — a rabies drive or
-   education round. Each project names its own
+   Projects: a register for work that is not a census — a rabies drive, a
+   sterilisation (ABC) drive, an education round. Each project names its own
    fields; each entry fills them in.
 
    A register is only as good as what gets filled in, so every project
@@ -40,7 +40,8 @@ export function ProjectRegisters() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [making, setMaking] = useState(false);
-  const [name, setName] = useState(""), [species, setSpecies] = useState("dog"), [fieldText, setFieldText] = useState(""), [purpose, setPurpose] = useState("");
+  /* Dog-only platform: a project's animals are always dogs, no longer asked. */
+  const [name, setName] = useState(""), [species] = useState("dog"), [fieldText, setFieldText] = useState(""), [purpose, setPurpose] = useState("");
   const [values, setValues] = useState<Record<string, string>>({}), [notes, setNotes] = useState("");
 
   const reload = async () => {
@@ -96,7 +97,7 @@ export function ProjectRegisters() {
         <div>
           <p className="sys-eyebrow">Projects</p>
           <h1>Registers for work that is not a&nbsp;census.</h1>
-          <p className="pj-lede">A rabies drive, clinic round or school round: name the fields once, then every entry fills them in. Ward counts and dog censuses stay under Surveys, where they are drawn on the map.</p>
+          <p className="pj-lede">A rabies drive, a sterilisation (ABC) drive, a school round: name the fields once, then every entry fills them in. Ward counts and censuses stay under Surveys, where they are drawn on the map.</p>
         </div>
         {member && <button type="button" className="sys-btn" onClick={() => setMaking((v) => !v)}><Plus size={16} /> New project</button>}
       </header>
@@ -104,9 +105,8 @@ export function ProjectRegisters() {
       {(making || (member && projects.length === 0)) && (
         <form onSubmit={make} className="pj-new">
           <p className="pj-h">A new project</p>
-          <label>Name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Rabies drive, Ukkadam" /></label>
-          <p className="pj-dog-note">Dog project</p>
-          <label className="is-wide">What each entry records<textarea rows={2} value={fieldText} onChange={(e) => setFieldText(e.target.value)} placeholder="Vaccination, treatment, next review — separated by commas" /></label>
+          <label>Name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="ABC drive, R.S. Puram" /></label>
+          <label className="is-wide">What each entry records<textarea rows={2} value={fieldText} onChange={(e) => setFieldText(e.target.value)} placeholder="Sterilised, vaccinated, treatment, next review — separated by commas" /></label>
           {fieldText.trim() && <p className="pj-preview is-wide">{fieldText.split(/[,\n]/).map((x) => x.trim()).filter(Boolean).map((f) => <span key={f}>{f}</span>)}</p>}
           <label className="is-wide">What it is for<input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="One line on why this is being recorded" /></label>
           <div className="pj-row is-wide">

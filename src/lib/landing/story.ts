@@ -30,10 +30,10 @@ const LANDING_LIMITS = {
   cityFacts: 3_000,
   joinedCare: 2_000,
   relayCandidates: 24,
-  registerCandidates: 120,
-  registerCards: 18,
-  registerCases: 360,
-  registerCare: 540,
+  registerCandidates: 140,
+  registerCards: 24,
+  registerCases: 480,
+  registerCare: 720,
 } as const;
 const dayOf = (iso: string | null) => { if (!iso) return -1; const t = Date.parse(iso); return Number.isFinite(t) ? Math.floor((t - EPOCH_MS) / DAY_MS) : -1; };
 const isoOf = (day: number) => new Date(EPOCH_MS + day * DAY_MS).toISOString().slice(0, 10);
@@ -291,7 +291,7 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   if (error) throw error;
   const rows = (data ?? []) as Array<any>;
   /* A fuller set of calm, photographed dogs for the landing's marquee — the
-     register shown as a wall of real profiles, not a short stack. */
+     register shown as a wall of real profiles across a few sliding rows. */
   const picks = rows.filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured").slice(0, LANDING_LIMITS.registerCards);
   const ids = picks.map((row) => row.id);
   const [{ data: cases }, { data: care }] = ids.length ? await Promise.all([
@@ -308,4 +308,4 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
     sterilisation: row.sterilisation_status, vaccination: row.vaccination_status, org: null,
     requests: byCase.get(row.id) ?? [], care: byCare.get(row.id) ?? [],
   })) };
-}, ["landing-animal-register-v8"], { revalidate: 300 });
+}, ["landing-animal-register-v10"], { revalidate: 300 });

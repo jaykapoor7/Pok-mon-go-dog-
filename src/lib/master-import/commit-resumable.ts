@@ -152,7 +152,7 @@ export async function commitStagedChunk(supa: any, ngo: any, batchIds: string[],
       const point = await cachedPoint(supa, row, ngo);
       const created = await upsertOne<DogRecord>(supa, "dogs", {
         import_source_key: animalKey(source), ngo_id: ngo.id, code: row.animal_code || null, name: row.animal_name || neutralName(row, ngo),
-        species: row.species || "animal", sex: row.sex, color: row.colour || "Unknown", zone: row.locality, lat: point.lat, lng: point.lng,
+        species: "dog", sex: row.sex, color: row.colour || "Unknown", zone: row.locality, lat: point.lat, lng: point.lng,
         location_precision: "approximate", status: statusFor(row), first_seen: row.event_date, last_seen: row.event_date,
         provenance: "imported_historical_record", import_batch_id: source.batch_id, source_metadata: metadata(source, ngo),
       }, "id,import_source_key");

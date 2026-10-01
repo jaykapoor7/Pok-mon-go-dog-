@@ -1,90 +1,98 @@
 "use client";
 
-/* Not a grid pretending to be a database: actual field records become a
-   moving contact sheet. We only duplicate the bounded server sample for a
-   seamless CSS loop; no browser-side fetches or randomisation. */
+/* ════════════════════════════════════════════════════════════════════
+   The register, as a living wall of real dogs.
+
+   A compact band on the night ground, quietly alive with drifting record-
+   lights (the map's own motif: mostly sky, a couple flame). Across it, three
+   rows of real resident photographs slide in an endless loop — adjacent rows
+   drift opposite ways — each a public profile with its StrayPaw ID and place.
+   The dogs are the asset and the whole point.
+
+   Each row duplicates its cards so the loop is seamless; the wall pauses on
+   hover or focus. Under reduced motion the rows hold still as a scrollable
+   strip, so every profile stays reachable.
+   ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Crosshair, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
 import { cleanPlace } from "@/lib/utils";
 import type { AnimalRegister as Data, RegisterFocus } from "@/lib/landing/story";
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
-const placeOf = (dog: RegisterFocus) => [cleanPlace(dog.zone), dog.city].filter(Boolean).join(" · ") || "India";
+const placeOf = (c: RegisterFocus) => [cleanPlace(c.zone), c.city].filter(Boolean).join(" · ") || "On the record";
 
-function markersFor(dog: RegisterFocus) {
-  const markers: { label: string; tone: "blue" | "green" | "warm" }[] = [];
-  if (dog.sterilisation?.toLowerCase().includes("steril")) markers.push({ label: "Sterilised", tone: "blue" });
-  if (dog.vaccination?.toLowerCase().includes("vaccin")) markers.push({ label: "Vaccinated", tone: "green" });
-  if (!markers.length) markers.push({ label: dog.sightings > 1 ? `${dog.sightings} sightings` : "On record", tone: "warm" });
-  return markers.slice(0, 2);
+const SPARKS: { x: number; y: number; s: number; d: number; dl: number; flame?: boolean }[] = [
+  { x: 5, y: 20, s: 3, d: 11, dl: 0 }, { x: 14, y: 72, s: 2, d: 14, dl: 2 },
+  { x: 23, y: 40, s: 4, d: 9, dl: 1, flame: true }, { x: 34, y: 82, s: 2, d: 13, dl: 4 },
+  { x: 42, y: 14, s: 3, d: 12, dl: 3 }, { x: 53, y: 76, s: 2, d: 15, dl: 1 },
+  { x: 61, y: 28, s: 3, d: 10, dl: 5 }, { x: 69, y: 86, s: 2, d: 12, dl: 2 },
+  { x: 78, y: 42, s: 4, d: 9, dl: 0, flame: true }, { x: 86, y: 72, s: 2, d: 14, dl: 3 },
+  { x: 93, y: 24, s: 3, d: 11, dl: 1 }, { x: 48, y: 50, s: 2, d: 16, dl: 6 },
+  { x: 10, y: 48, s: 2, d: 13, dl: 5 }, { x: 73, y: 60, s: 3, d: 12, dl: 4 },
+];
+
+function Card({ c }: { c: RegisterFocus }) {
+  return (
+    <Link href={`/dog/${c.id}`} className="rx-card" aria-label={`${c.straypaw_id ?? "A dog"} near ${placeOf(c)}`}>
+      <div className="rx-shot">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={sized(c.cover_photo, 420)} alt={`A dog near ${cleanPlace(c.zone) || c.city || "the reported spot"}, photographed by a resident`} loading="lazy" />
+        <span className="rx-id sys-mono">{c.straypaw_id}</span>
+      </div>
+      <p className="rx-place">{placeOf(c)}</p>
+    </Link>
+  );
 }
 
-function DogTile({ dog, duplicate }: { dog: RegisterFocus; duplicate: number }) {
-  const markers = markersFor(dog);
-  const record = dog.straypaw_id || "StrayPaw record";
+function Row({ cards, dir }: { cards: RegisterFocus[]; dir: "l" | "r" }) {
+  if (!cards.length) return null;
   return (
-    <li className="rx-tile" aria-hidden={duplicate > 0 || undefined}>
-      <Link href={`/dog/${dog.id}`} className="rx-card" tabIndex={duplicate > 0 ? -1 : undefined} aria-label={`${record}, ${placeOf(dog)}`}>
-        <div className="rx-photo">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={sized(dog.cover_photo, 640)} alt="" loading="lazy" />
-          <span className="rx-corner rx-corner-top">Field record</span>
-          <span className="rx-corner rx-corner-bottom"><MapPin size={11} aria-hidden /> {placeOf(dog)}</span>
-        </div>
-        <div className="rx-meta">
-          <span className="rx-id sys-mono">{record}</span>
-          <span className="rx-markers">{markers.map((marker) => <i key={marker.label} className={`is-${marker.tone}`}>{marker.label}</i>)}</span>
-        </div>
-      </Link>
-    </li>
+    <div className={`rx-row is-${dir}`}>
+      <div className="rx-track" style={{ ["--n" as string]: cards.length }}>
+        {[...cards, ...cards].map((c, i) => <Card key={`${c.id}-${i}`} c={c} />)}
+      </div>
+    </div>
   );
 }
 
 export function AnimalRegister({ data, total }: { data: Data; total: number }) {
   const [calm, setCalm] = useState(false);
   useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setCalm(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
+    const m = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setCalm(m.matches);
+    sync(); m.addEventListener("change", sync);
+    return () => m.removeEventListener("change", sync);
   }, []);
 
-  const dogs = data.cards.slice(0, 18);
-  if (!dogs.length || total <= 0) return null;
-  const rows = [0, 1, 2].map((offset) => dogs.filter((_, index) => index % 3 === offset));
+  const cards = data.cards;
+  if (!cards.length || total <= 0) return null;
+  /* Three rows; split so adjacent rows don't begin on the same dog. With few
+     cards it falls back to one or two rows. */
+  const per = Math.ceil(cards.length / 3);
+  const rows = [cards.slice(0, per), cards.slice(per, per * 2), cards.slice(per * 2)].filter((r) => r.length >= 2);
 
   return (
     <section className={`rx ${calm ? "is-calm" : ""}`} aria-labelledby="rx-title">
-      <div className="rx-grid" aria-hidden />
-      <div className="rx-orbit rx-orbit-one" aria-hidden />
-      <div className="rx-orbit rx-orbit-two" aria-hidden />
-      <div className="rx-index" aria-hidden><span>RECORD / 01</span><span>PUBLIC FIELD ARCHIVE</span></div>
-
-      <header className="rx-intro">
-        <div className="rx-copy">
-          <p className="rx-kicker sys-mono"><Crosshair size={13} aria-hidden /> The living register</p>
-          <h2 id="rx-title">A city is not a number.<br /><em>It is every dog inside it.</em></h2>
-          <p>Each photo becomes a shared record: a place, a history, and a starting point for care.</p>
-        </div>
-        <div className="rx-total" aria-label={`${fmt(total)} dogs on the StrayPaw register`}>
-          <strong>{fmt(total)}</strong><span>dogs<br />on record</span>
-          <Link href="/map" aria-label="Open the live map"><ArrowUpRight size={17} /></Link>
-        </div>
-      </header>
-
-      <div className="rx-wall" aria-label={`${fmt(total)} dog profiles from the StrayPaw register`}>
-        {rows.map((row, rowIndex) => <div className={`rx-track rx-track-${rowIndex + 1}`} key={rowIndex}>
-          <ol className="rx-run" role="list">
-            {[0, 1].flatMap((duplicate) => row.map((dog) => <DogTile key={`${dog.id}-${duplicate}`} dog={dog} duplicate={duplicate} />))}
-          </ol>
-        </div>)}
+      <div className="rx-field" aria-hidden>
+        {SPARKS.map((p, i) => (
+          <span key={i} className={`rx-spark${p.flame ? " is-flame" : ""}`}
+            style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.s, height: p.s, ["--t" as string]: `${p.d}s`, ["--dl" as string]: `${p.dl}s` }} />
+        ))}
       </div>
 
-      <div className="rx-caption"><span className="sys-mono">LIVE PROFILES · UPDATED FROM THE FIELD</span><span>Hover a record to hold it. <i>Open any profile to follow its story.</i></span></div>
+      <div className="rx-words">
+        <p className="rx-kicker sys-mono">The register</p>
+        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs. <em>One profile each.</em> <Link href="/map" className="rx-cta">Live map <ArrowUpRight size={14} aria-hidden /></Link></h2>
+      </div>
+
+      <div className="rx-wall" role="list" aria-label={`A sample of the ${fmt(total)} dogs on the register`}>
+        {rows.map((r, i) => <Row key={i} cards={r} dir={i % 2 === 0 ? "l" : "r"} />)}
+        <span className="rx-edge is-left" aria-hidden />
+        <span className="rx-edge is-right" aria-hidden />
+      </div>
     </section>
   );
 }

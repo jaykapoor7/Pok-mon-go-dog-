@@ -61,10 +61,10 @@ async function load(scope: Scope, requestedCity?: string | null) {
 /** The dataset for a scope. `enabled: false` loads nothing — for a screen
     that only needs it once someone is signed in as a member. */
 export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled = true) {
-  // Subscribe to App Router query changes. Reading window.location once made
-  // city selection stale after an in-app search or back/forward navigation.
-  const searchParams = useSearchParams();
-  const requestedCity = searchParams.get("city");
+  /* Subscribe to the URL through the router, not a one-off read of
+     window.location.search — so choosing a city (which pushes ?city=) actually
+     re-runs the load instead of leaving a stale city on screen. */
+  const requestedCity = useSearchParams().get("city");
   const [s, setS] = useState<State>({ ds: null, error: null, loading: enabled, city: null, cities: [] });
   useEffect(() => {
     if (!enabled) { setS({ ds: null, error: null, loading: false, city: null, cities: [] }); return; }

@@ -6,7 +6,7 @@ import { ArrowLeft, Camera, Crosshair, Minus, Plus, Loader2, Check, CheckCircle2
 import { useAuth } from "@/components/auth/AuthProvider";
 import { uploadPhoto } from "@/lib/actions";
 import { submitSurveyResponse } from "@/lib/survey-actions";
-import { type Survey, type SurveyArea } from "@/lib/types";
+import { SPECIES, type Survey, type SurveyArea } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 // Field capture, radically simpler than the admin UI. Large controls, one
@@ -19,7 +19,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
   const [areaId, setAreaId] = useState<string | null>(areas[0]?.id ?? null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
-  const species = "dog";
+  const [species, setSpecies] = useState(survey.species);
   const [count, setCount] = useState(1);
   const [sterilised, setSterilised] = useState<boolean | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -148,6 +148,19 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
             {locating ? <Loader2 className="h-5 w-5 animate-spin text-bark-400" /> : <Crosshair className="h-5 w-5 text-paw-500" />}
           </button>
         </Block>
+
+        {/* Species — only when the platform tracks more than one (dog-only today). */}
+        {SPECIES.length > 1 && (
+        <Block label="Species">
+          <div className="flex flex-wrap gap-2">
+            {SPECIES.filter((s) => s.id !== "other").map((s) => (
+              <button key={s.id} onClick={() => setSpecies(s.id)} className={cn("rounded-lg px-3.5 py-2.5 text-base font-medium", species === s.id ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "border border-black/[0.12] text-bark-600 dark:border-white/[0.15] dark:text-bark-300")}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </Block>
+        )}
 
         {/* Count */}
         <Block label="How many">

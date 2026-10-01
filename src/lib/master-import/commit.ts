@@ -156,7 +156,7 @@ export async function commitStaged(supa: any, ngo: any, batchIds: string[]) {
       const point = await locality(supa, row, ngo);
       if (!point) throw new Error("Map publishing is blocked: locality preflight did not return an approximate point.");
       const { data, error } = await supa.from("dogs").insert({
-        ngo_id: ngo.id, code: row.animal_code || null, name: row.animal_name || neutralName(row, ngo), species: row.species || "animal", sex: row.sex,
+        ngo_id: ngo.id, code: row.animal_code || null, name: row.animal_name || neutralName(row, ngo), species: "dog", sex: row.sex,
         color: row.colour || "Unknown", zone: row.locality, lat: point.lat, lng: point.lng, location_precision: "approximate",
         status: statusFor(row), first_seen: row.event_date, last_seen: row.event_date, provenance: "imported_historical_record",
         import_batch_id: source.batch_id, source_metadata: metadata(source, ngo),
