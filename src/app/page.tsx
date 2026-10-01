@@ -57,15 +57,13 @@ async function LandingAnimalRegister() {
   return <AnimalRegister data={register} total={register.total} />;
 }
 
-async function LandingStory() {
-  return getLandingStory().catch(() => null);
-}
-
 export default async function HomePage() {
-  /* The landing must be useful before any analytics work completes. Its
-     curated register read is bounded; the former spatial narrative assembled
-     the entire public animal/case/care ledger during an ordinary visit. */
-  const story = await LandingStory();
+  /* The landing's narrative — hero plate, three-screen relay, one-request
+     walkthrough — is computed from ONE sample city and cached (lib/landing/
+     story.ts). It is bounded by design and never reads the register; if it
+     is unavailable the page still renders every section that does not need
+     it. The animal register is streamed separately in its own Suspense. */
+  const story = await getLandingStory().catch(() => null);
   return (
     <div className="sp field-site product-site ld">
       <PageView name="landing_view" />
@@ -96,6 +94,18 @@ export default async function HomePage() {
           <LandingAnimalRegister />
         </Suspense>
 
+        {/* 3. One report, three screens — the system, one record the whole way. */}
+        {story?.relay && (
+          <section className="ld-sec ld-sec-shell" aria-labelledby="ld-relay-title">
+            <header className="sys-head">
+              <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
+              <p>A real request in {story.hero.city}: reported by a resident, worked by an NGO, visible to a municipality. One record the whole way.</p>
+            </header>
+            <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
+          </section>
+        )}
+
+        {/* 4. One request → field action → care → outcome — the proof. */}
         {story?.journey && (
           <CaseDive
             j={story.journey}
@@ -107,16 +117,8 @@ export default async function HomePage() {
           />
         )}
 
-        <section className="ld-sec ld-sec-shell" aria-labelledby={story?.relay ? "ld-relay-title" : undefined} aria-label={story?.relay ? undefined : "Who reads the record"}>
-          {story?.relay && (
-            <>
-              <header className="sys-head">
-                <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
-                <p>A real request in {story.hero.city}: reported by a resident, worked by an NGO, visible to a municipality. One record the whole way.</p>
-              </header>
-              <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
-            </>
-          )}
+        {/* 5. Resident / NGO / Municipality — who the record serves. */}
+        <section className="ld-sec ld-sec-shell" aria-label="Who reads the record">
           <div className="ld-scale">
             <ol className="ld-levels">
               {LEVELS.map((l, i) => (
@@ -136,6 +138,7 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* 6. Final CTA. */}
         <section className="ld-close">
           <div className="ld-close-copy">
             <p className="sys-mono">The record starts on a street</p>
