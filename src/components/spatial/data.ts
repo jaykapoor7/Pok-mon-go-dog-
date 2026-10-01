@@ -4,6 +4,7 @@
    geometry the map derives from it. */
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { buildIndex, type Index } from "@/lib/spatial/engine";
 import type { SpatialDataset } from "@/lib/spatial/types";
@@ -60,7 +61,10 @@ async function load(scope: Scope, requestedCity?: string | null) {
 /** The dataset for a scope. `enabled: false` loads nothing — for a screen
     that only needs it once someone is signed in as a member. */
 export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled = true) {
-  const requestedCity = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("city");
+  // Subscribe to App Router query changes. Reading window.location once made
+  // city selection stale after an in-app search or back/forward navigation.
+  const searchParams = useSearchParams();
+  const requestedCity = searchParams.get("city");
   const [s, setS] = useState<State>({ ds: null, error: null, loading: enabled, city: null, cities: [] });
   useEffect(() => {
     if (!enabled) { setS({ ds: null, error: null, loading: false, city: null, cities: [] }); return; }
