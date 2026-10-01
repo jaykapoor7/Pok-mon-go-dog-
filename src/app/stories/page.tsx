@@ -5,7 +5,7 @@ import { cellToLatLng } from "h3-js";
 import { AppShell } from "@/components/app/AppShell";
 import { StoryAtlas, type Story } from "@/components/stories/StoryAtlas";
 import type { PublicCaseStory, PublicTimelineEvent } from "@/lib/community-case-stories";
-import { getPublishedCaseStoriesPage, getPublicCareForDogs } from "@/lib/community-case-stories";
+import { getPublishedCaseStoriesPage } from "@/lib/community-case-stories";
 import { rescueCategory } from "@/lib/rescue-taxonomy";
 import { getSupabase } from "@/lib/supabase";
 import { dogLabel } from "@/lib/utils";
@@ -84,8 +84,9 @@ async function placesOf(ids: string[]) {
 async function StoriesData({ before }: { before: { occurredAt: string; id: string } | null }) {
   const page = await getPublishedCaseStoriesPage({ limit: 48, before });
   const cases = page.rows;
-  const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
-  const base = build(cases, care);
+  /* getPublishedCaseStoriesPage already read the care timeline to qualify the
+     stories; reuse it instead of a second identical round trip. */
+  const base = build(cases, page.care);
   const places = await placesOf(base.map((s) => s.id));
   const stories: Story[] = base.map((s, i) => ({ ...s, n: i + 1, pt: places.get(s.id)?.pt ?? null }));
 

@@ -7,7 +7,6 @@ import { getSupabase } from "./supabase";
 import type {
   Dog,
   Sighting,
-  CityStats,
   DogProfile,
   MapFilter,
   NGO,
@@ -144,47 +143,7 @@ async function readPages<T>(load: (from: number, to: number) => PromiseLike<{ da
   }
 }
 
-// ── Stats ────────────────────────────────────────────────────
-
-export async function getCityStats(): Promise<CityStats> {
-  const supa = getSupabase();
-  if (supa) {
-    /* The profile register is the source of truth for the public tally. The
-       stats RPC is useful for its other aggregates, but it can lag behind a
-       seed or a migration; never let that make dogs visible on the map yet
-       absent from “Animals recorded”. */
-    const [{ data }, { count }] = await Promise.all([
-      supa.rpc("get_city_stats"),
-      supa.from("public_animal_profiles").select("id", { count: "exact", head: true }),
-    ]);
-    if (data) {
-      const stats = data as CityStats;
-      return { ...stats, dogsSpotted: count ?? stats.dogsSpotted };
-    }
-  }
-  return {
-    dogsSpotted: 0,
-    dogsFed: 0,
-    dogsSterilised: 0,
-    dogsVaccinated: 0,
-    needsHelp: 0,
-    volunteers: 0,
-  };
-}
-
 // ── Dogs ─────────────────────────────────────────────────────
-
-export async function getAllDogs(): Promise<Dog[]> {
-  const supa = getSupabase();
-  if (supa) {
-    const data = await readPages<any>((from, to) => supa
-      .from("public_animal_profiles").select(PUBLIC_DOG_SELECT)
-      .order("last_seen", { ascending: false })
-      .range(from, to));
-    return data.map(mapDog).filter((dog) => Number.isFinite(dog.lat) && Number.isFinite(dog.lng) && (dog.lat !== 0 || dog.lng !== 0));
-  }
-  return [];
-}
 
 /* Bounded reads, so no screen sends the whole register to the browser. */
 
@@ -227,36 +186,6 @@ export async function searchDogs(q: string, limit = 10): Promise<Dog[]> {
   if (t) query = query.or(`name.ilike.%${t}%,zone.ilike.%${t}%,code.ilike.%${t}%`);
   const { data } = await query.order("last_seen", { ascending: false }).limit(limit);
   return (data ?? []).map(mapDog);
-}
-
-/** Small, real sample of dogs that have a cover photo, for the landing
- *  page's reported-dogs showcase. Returns an empty array (never fabricated
- *  entries) when no dogs with photos exist yet. */
-/** How many animals are on the record. One number, read rather than typed,
- *  so it moves when the database does. */
-export async function countDogs(): Promise<number> {
-  const supa = getSupabase();
-  if (!supa) return 0;
-  const { count } = await supa.from("public_animal_profiles").select("id", { count: "exact", head: true });
-  return count ?? 0;
-}
-
-/**
- * How many animals on the record nobody has checked for sterilisation.
- *
- * The landing page shows this next to the total because it is the number
- * the whole product is about: the gap between animals that are known and
- * animals that have been seen to. It is a real count, not an estimate,
- * and it is the figure a field team would sort their own list by.
- */
-export async function countUnchecked(): Promise<number> {
-  const supa = getSupabase();
-  if (!supa) return 0;
-  const { count } = await supa
-    .from("public_animal_profiles")
-    .select("id", { count: "exact", head: true })
-    .or("sterilisation_status.is.null,sterilisation_status.eq.unknown");
-  return count ?? 0;
 }
 
 /** Dogs for the hero wall, most recently seen first. */
@@ -543,56 +472,6 @@ export async function getOrgImpact(
     campaignsActive: campaigns.count ?? 0,
   };
 }
-
-export async function getDogsNeedingHelp(): Promise<Dog[]> {
-  const dogs = await getAllDogs();
-  return dogs
-    .filter((d) => d.needs_help)
-    .sort((a, b) => +new Date(b.last_seen) - +new Date(a.last_seen));
-}
-
-export async function getDashboardMetrics() {
-  const dogs = await getAllDogs();
-  const stats = await getCityStats();
-  const total = Math.max(1, dogs.length);
-  return {
-    totalTracked: dogs.length,
-    needsHelp: dogs.filter((d) => d.needs_help).length,
-    sterilised: dogs.filter((d) => d.sterilised).length,
-    vaccinated: dogs.filter((d) => d.vaccinated).length,
-    sterilisedPct: Math.round((dogs.filter((d) => d.sterilised).length / total) * 100),
-    vaccinatedPct: Math.round((dogs.filter((d) => d.vaccinated).length / total) * 100),
-    feedEventsThisMonth: stats.dogsFed,
-    activeVolunteers: stats.volunteers,
-  };
-}
-
-export async function getZoneCoverage() {
-  const dogs = await getAllDogs();
-  const byZone = new Map<
-    string,
-    { zone: string; lat: number; lng: number; total: number; help: number; sterilised: number }
-  >();
-  for (const d of dogs) {
-    const e =
-      byZone.get(d.zone) ??
-      { zone: d.zone, lat: d.lat, lng: d.lng, total: 0, help: 0, sterilised: 0 };
-    e.total += 1;
-    if (d.needs_help) e.help += 1;
-    if (d.sterilised) e.sterilised += 1;
-    byZone.set(d.zone, e);
-  }
-  return Array.from(byZone.values())
-    .map((z) => ({
-      ...z,
-      underserved: Math.min(
-        1,
-        z.help / Math.max(1, z.total) + (1 - z.sterilised / Math.max(1, z.total)) * 0.5
-      ),
-    }))
-    .sort((a, b) => b.underserved - a.underserved);
-}
-
 
 /* Animals already recorded near a point, for a reporter or reviewer to choose
    from. Proximity narrows the list; a person decides. Nothing here links an

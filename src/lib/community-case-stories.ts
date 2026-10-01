@@ -31,7 +31,9 @@ export type PublicTimelineEvent = {
 };
 
 export type PublicCaseStoryPage = { rows: PublicCaseStory[]; next: { occurredAt: string; id: string } | null; error?: string | null };
-export type PublishedCaseStoryPage = PublicCaseStoryPage;
+/* The published page also carries the care timeline it already read to decide
+ * which stories qualify, so the page component never fetches it a second time. */
+export type PublishedCaseStoryPage = PublicCaseStoryPage & { care: PublicTimelineEvent[] };
 
 export async function getPublicCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null } = {}): Promise<PublicCaseStoryPage> {
   const supa = getSupabase();
@@ -139,7 +141,7 @@ export async function getPublishedCaseStoriesPage(input: { limit?: number; befor
   const cases = await enrichHistoricalCases(page.rows);
   const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
   const animalsWithCare = new Set(care.map((event) => event.dog_id).filter((id): id is string => Boolean(id)));
-  return { next: page.next, error: page.error ?? null, rows: cases.filter((story) => {
+  return { next: page.next, error: page.error ?? null, care, rows: cases.filter((story) => {
     const hasIdentity = Boolean(story.dog_id && story.title?.trim() && story.occurred_at);
     if (!hasIdentity) return false;
 
