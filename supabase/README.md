@@ -1,86 +1,66 @@
-# Running the database migrations
+# supabase/ — schema, migrations and SQL
 
-## The short version
+This directory holds the database's SQL: the schema, the migration sets, the
+RPCs/views/RLS, and a set of historical one-off scripts. For the data model,
+RLS and index strategy see [`../docs/DATABASE.md`](../docs/DATABASE.md).
+
+## How migrations are applied
 
 ```bash
-DATABASE_URL='postgresql://...' npm run db:migrate -- pilot
+SUPABASE_POOLER_URL='postgresql://…' npm run db:migrate -- <set>
 ```
 
-The connection string is Supabase → Project Settings → Database → Connection
-string → **URI**. Use the direct connection or the session pooler; the
-transaction pooler on port 6543 cannot run DDL reliably. Put it in
-`.env.local` as `DATABASE_URL=...` and you can drop the prefix.
+Sets are defined in [`../scripts/db-migrate.mjs`](../scripts/db-migrate.mjs):
 
-Three sets:
+| Set | Contents |
+|---|---|
+| `pilot` | `RUN-PILOT-MIGRATIONS.sql` + programme-evidence, rollout-hardening, districts, wards-chennai, register-intelligence, case-review |
+| `rollout` | `rollout-hardening.sql` |
+| `register` | `register-intelligence.sql`, `case-review.sql` |
+| `wards` | `ward-density.sql`, districts, `wards-chennai.sql`, `map-search.sql` |
+| `personal` | `personal-access-codes.sql` |
+| `all` | `RUN-ALL-MIGRATIONS.sql` + the pilot tail |
 
-| Set | What it runs | When |
-| --- | --- | --- |
-| `all` | base schema, pilot schema, all boundaries | a brand new Supabase project |
-| `pilot` | pilot schema and all boundaries | the base schema is already there |
-| `wards` | rebuilds the density map and reloads its boundaries | only the map is wrong |
+The GitHub Action **Apply Supabase migration** runs the same script with the
+`SUPABASE_POOLER_URL` repository secret (use the Supabase **Session pooler**
+URI — GitHub runners are IPv4-only).
 
-`map-search.sql` is additive — one small table and three functions, no boundary
-reload — so it can also be pasted on its own to add ward search and the
-India-only mask to a database that already has everything else.
+- `RUN-PILOT-MIGRATIONS.sql` is **generated** by `npm run db:bundle` from the
+  `PARTS` list in [`../scripts/build-bundle.mjs`](../scripts/build-bundle.mjs).
+  Edit the part files, not the bundle.
+- `RUN-ALL-MIGRATIONS.sql` is a standalone, idempotent paste-once bundle.
 
-Every set is safe to run again, from any state, however badly a previous
-attempt went. That is verified against a database seeded with each earlier
-broken shape, not only against an empty one.
+## Recovery / hardening (current)
 
-## By hand, in the SQL editor
+- [`final-site-recovery.sql`](final-site-recovery.sql) — canonical spatial
+  attribution: `rebuild_spatial_city` (cases + care joined through the animal),
+  `list_public_org_impacts`, bounded public-read indexes, `public_case_facts`.
+- [`post-recovery-hardening.sql`](post-recovery-hardening.sql) — covering
+  indexes for all FKs, RLS init-plan `(select auth.uid())` rewrites, and the
+  remaining recovery indexes. Mirrors what is applied as tracked Supabase
+  migrations; additive and idempotent.
 
-Same files, same order, one paste each. This works too — it is just seven
-pastes instead of one command, and nothing checks that you ran them in
-order.
+## Historical one-off scripts — DO NOT RUN against production
 
-1. `RUN-ALL-MIGRATIONS.sql` — only on a brand new project
-2. `RUN-PILOT-MIGRATIONS.sql`
-3. `districts-india-1of5.sql` … `districts-india-5of5.sql`
-4. `wards-chennai.sql`
-5. `map-search.sql`
+These were written to diagnose or repair a specific past incident on specific
+rows. They are kept only as a record. They are **not** part of any migration
+set or bundle, several are **destructive**, and running them now could delete
+or rewrite live data. Treat them as archived.
 
-Step 2 ends by printing how many boundaries are loaded, which will be zero
-until you have done steps 3 and 4.
+| File | What it was for | Destructive? |
+|---|---|---|
+| `reset.sql` | Wipe/reset data during early development | **Yes** |
+| `delete-one-dog.sql` | Remove a single specific animal | **Yes** |
+| `the-22-dogs.sql` | One-off fix for 22 specific records | Maybe |
+| `merge-dogs.sql` / `unmerge-existing.sql` / `dedupe-sightings.sql` / `diagnose-duplicates.sql` / `no-auto-merge.sql` / `no-similarity-merge.sql` | De-duplication incident work | Maybe |
+| `find-pinky.sql` / `what-are-these-dogs.sql` / `why-cant-they-sign-in.sql` / `make-this-code-work.sql` / `find-pinky` | Ad-hoc diagnostic queries | No (reads) |
 
-## Why the boundary files are separate, and five of them
+If any of these encodes a rule that should be permanent, fold that rule into a
+proper part file and the bundle instead of re-running the one-off script.
 
-`wards` is the only table here that holds no original data. Every row is
-imported from a published boundary dataset (Census 2011 districts via
-DataMeet, CC BY 2.5 IN; Chennai wards via DataMeet, CC BY 4.0), and both are
-checked into this directory as SQL.
+## Conventions
 
-Because of that, `ward-density.sql` **drops and rebuilds** the table and its
-functions on every run instead of migrating them forward. Four separate
-migration failures came from trying to carry that table forward:
-
-- `create table if not exists` does nothing to a table that already exists,
-  so a new column never appeared
-- `create or replace function` cannot change a function's return type
-- adding an argument to a function creates an *overload*, so the old
-  one-argument version survived and calls became ambiguous
-- a run that failed halfway left a shape no alter script had predicted
-
-Rebuilding has exactly one code path and cannot half-apply. The cost is
-that the boundary loaders have to run again afterwards, which is why they
-come last in every set above.
-
-The districts are split across five files because Supabase's SQL editor
-refuses a batch of 1.5 MB. They are simplified to a 0.01° tolerance with
-`ST_SimplifyPreserveTopology`, which keeps all 641 districts — `ogr2ogr
--simplify` silently destroyed two or three of them at every tolerance
-tried. Total area comes to 3,270,689 km² against India's official
-3,287,263 km², and Chennai's 200 wards to 428.9 km² against the
-corporation's ~426 km².
-
-## Checking what is actually there
-
-```sql
-select
-  (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'public' and p.proname like 'ward\_%') as ward_functions,
-  (select count(*) from wards where level = 'district')      as districts,
-  (select count(*) from wards where level = 'ward')          as city_wards;
-```
-
-Expect `6, 641, 200`. More than six functions means an old overload
-survived; run the `wards` set again.
+- Additive and idempotent: `create … if not exists`, `create or replace`.
+- No destructive statements in migration parts (deletes only inside RPC bodies).
+- Public access is granted on `public_*` views and `SECURITY DEFINER` RPCs,
+  never on base tables; every base table keeps RLS enabled.
