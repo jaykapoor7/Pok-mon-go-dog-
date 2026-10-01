@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 2422)
+Total output lines: 279
+
 "use client";
 
 // ─────────────────────────────────────────────────────────────
@@ -54,6 +57,7 @@ export async function createCase(
   input: CreateCaseInput,
   actor: Actor
 ): Promise<string | null> {
+  if (input.species && input.species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
   if (!supa) return "demo-case";
   await ensureVolunteer(actor);
@@ -111,53 +115,7 @@ export async function setCaseIntake(caseId: string, patch: { informerContact?: s
 export async function addCasePhoto(caseId: string, url: string): Promise<boolean> {
   const supa = getSupabase();
   if (!supa) return true;
-  const { data, error } = await supa.rpc("add_case_photo", {
-    p_case_id: caseId,
-    p_url: url,
-  });
-  if (error) throw new Error(error.message);
-  return data === true;
-}
-
-/** Handler/NGO-only: set or clear a case's follow-up date (YYYY-MM-DD | null). */
-export async function setCaseFollowup(caseId: string, followUpAt: string | null): Promise<boolean> {
-  const supa = getSupabase();
-  if (!supa) return true;
-  const { data, error } = await supa.rpc("set_case_followup", {
-    p_case_id: caseId,
-    p_follow_up_at: followUpAt,
-  });
-  if (error) throw new Error(error.message);
-  return data === true;
-}
-
-export interface CaseFollowup {
-  id: string;
-  due_at: string;
-  note: string | null;
-  status: string;
-  kind: string;
-  completed_at: string | null;
-  created_at: string;
-}
-
-/** A dated follow-up is a first-class operational record, not just a date on
- * a case. The database trigger places it on the linked animal timeline. */
-export async function addCaseFollowup(input: { caseId: string; dogId?: string | null; dueAt: string; note?: string | null }): Promise<string | null> {
-  const supa = getSupabase();
-  if (!supa) return "demo-followup";
-  const { data, error } = await supa.rpc("add_case_followup", {
-    p_case_id: input.caseId, p_dog_id: input.dogId ?? null, p_due_at: input.dueAt, p_note: input.note?.trim() || null,
-  });
-  if (error) throw new Error(error.message);
-  spatialChanged();
-  return (data as string) ?? null;
-}
-
-export async function getCaseFollowups(caseId: string): Promise<CaseFollowup[]> {
-  const supa = getSupabase();
-  if (!supa) return [];
-  const { data, error } = await supa.from("animal_followups").select("id,due_at,note,status,kind,completed_at,created_at").eq("case_id", caseId).order("due_at", { ascending: false });
+  const { data, error } = await su…422 tokens truncated…e_id", caseId).order("due_at", { ascending: false });
   if (error) return [];
   return (data ?? []).map((row: any) => ({ id: row.id, due_at: row.due_at, note: row.note ?? null, status: row.status, kind: row.kind, completed_at: row.completed_at ?? null, created_at: row.created_at }));
 }
