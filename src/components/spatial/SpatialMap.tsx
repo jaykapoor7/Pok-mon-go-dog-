@@ -189,19 +189,28 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   const [sheet, setSheet] = useState<"hidden" | "peek" | "open">("hidden");
   const [hover, setHover] = useState<{ x: number; y: number; text: string } | null>(null);
   /* Authoritative per-cell totals from the rollup, keyed by H3. The bounded
-     dataset drives the dots and every time-sliced or filtered view; these are
-     used only for the counts a cell readout states as a current total, so a
-     dense cell (e.g. a one-cell import of 20k animals) is never under-reported
-     to its bounded-sample size. Public scope only; org cells come back under
-     the member session with the dataset. */
-  const [authByCell, setAuthByCell] = useState<Map<string, { animals: number; sterilised: number; vaccinated: number; cases: number; open_cases: number; needs_help: number }>>(new Map());
+     dataset drives dots and time-sliced/filtered views, while current unfiltered
+     readouts use the full cell totals. This applies to public AND organisation
+     maps; organisation cells are fetched with the member's own session. */
+  const [authByCell, setAuthByCell] = useState<Map<string, { animals: number; sterilised: number; vaccinated: number; cases: number; open_cases: number; needs_help: number; care_events?: number }>>(new Map());
   useEffect(() => {
-    if (scope !== "public" || !datasetCity) { setAuthByCell(new Map()); return; }
+    if (!datasetCity) { setAuthByCell(new Map()); return; }
     let live = true;
-    fetch(`/api/spatial?kind=cells&city=${encodeURIComponent(datasetCity)}&v=2`)
-      .then((r) => (r.ok ? r.json() : { cells: [] }))
-      .then((j) => { if (!live) return; const m = new Map<string, { animals: number; sterilised: number; vaccinated: number; cases: number; open_cases: number; needs_help: number }>(); for (const c of (j.cells ?? [])) m.set(c.h3_r8, c); setAuthByCell(m); })
-      .catch(() => { if (live) setAuthByCell(new Map()); });
+    (async () => {
+      const init: RequestInit = {};
+      const scopeParam = scope === "org" ? "&scope=org" : "";
+      if (scope === "org") {
+        const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
+        if (!data.session?.access_token) { if (live) setAuthByCell(new Map()); return; }
+        init.headers = { Authorization: `Bearer ${data.session.access_token}` };
+      }
+      const r = await fetch(`/api/spatial?kind=cells&city=${encodeURIComponent(datasetCity)}${scopeParam}&v=3`, init);
+      const j = r.ok ? await r.json() : { cells: [] };
+      if (!live) return;
+      const m = new Map<string, { animals: number; sterilised: number; vaccinated: number; cases: number; open_cases: number; needs_help: number; care_events?: number }>();
+      for (const c of (j.cells ?? [])) m.set(c.h3_r8, c);
+      setAuthByCell(m);
+    })().catch(() => { if (live) setAuthByCell(new Map()); });
     return () => { live = false; };
   }, [scope, datasetCity]);
   const [ready, setReady] = useState(false);
