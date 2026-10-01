@@ -71,8 +71,12 @@ const getCachedPublicSpatialCities = unstable_cache(async (): Promise<SpatialCit
     const prior = grouped.get(city);
     if (!prior) { grouped.set(city, { ...row, city }); continue; }
     prior.animals += Number(row.animals || 0);
+    prior.needs_help = Number(prior.needs_help || 0) + Number(row.needs_help || 0);
+    prior.sterilised = Number(prior.sterilised || 0) + Number(row.sterilised || 0);
+    prior.vaccinated = Number(prior.vaccinated || 0) + Number(row.vaccinated || 0);
     prior.cases += Number(row.cases || 0);
     prior.open_cases += Number(row.open_cases || 0);
+    prior.care_events = Number(prior.care_events || 0) + Number(row.care_events || 0);
     prior.cells += Number(row.cells || 0);
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
