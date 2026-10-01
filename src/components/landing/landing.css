@@ -560,18 +560,25 @@
    profiles, each a resident's photograph with its StrayPaw ID beneath. The
    cells collapse toward the centre when closed and spread, staggered from
    the middle out, when open. Reduced motion shows all five, already open. */
-.rx { position: relative; background: var(--sp-deep); color: var(--sp-night-text); padding: var(--sp-section) var(--sp-gutter); overflow: hidden; }
-.rx-words { max-width: 60ch; margin: 0 auto var(--sp-7); display: grid; gap: var(--sp-3); justify-items: center; text-align: center; }
-.rx-kicker { margin: 0; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-sky); }
-.rx h2 { margin: 0; font-size: clamp(30px, 4.2vw, 56px); line-height: 1; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; color: var(--sp-night-text); }
+.rx { position: relative; background: var(--sp-deep); color: var(--sp-night-text); padding: clamp(48px, 7vw, 96px) var(--sp-gutter); overflow: hidden; }
+
+/* The ground is quietly alive: faint record-lights drift and breathe, most
+   sky (recorded), a couple of flame (attention) — the map's own encoding. */
+.rx-field { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.rx-spark { position: absolute; border-radius: 50%; background: var(--sp-sky); opacity: 0; box-shadow: 0 0 6px currentColor; color: var(--sp-sky); animation: rx-twinkle var(--t, 12s) ease-in-out var(--dl, 0s) infinite; }
+.rx-spark.is-flame { background: var(--sp-flame); color: var(--sp-flame); }
+@keyframes rx-twinkle { 0%, 100% { opacity: 0; transform: translateY(7px) scale(0.7); } 50% { opacity: 0.55; transform: translateY(-7px) scale(1); } }
+
+.rx-words { position: relative; z-index: 1; max-width: 60ch; margin: 0 auto var(--sp-6); display: grid; gap: var(--sp-2); justify-items: center; text-align: center; }
+.rx-kicker { margin: 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-sky); }
+.rx h2 { margin: 0; font-size: clamp(26px, 3.6vw, 46px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 600; text-wrap: balance; color: var(--sp-night-text); }
 .rx h2 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: var(--sp-sky); }
 .rx-n { font-variant-numeric: tabular-nums; }
-.rx-lede { margin: 0; max-width: 52ch; font-size: 15.5px; line-height: 1.55; color: rgba(239, 231, 218, 0.78); }
-.rx-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: var(--sp-1); font-size: 14px; font-weight: 600; color: var(--sp-sky); text-decoration: none; }
-.rx-cta:hover { text-decoration: underline; }
+.rx-cta { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; vertical-align: middle; font-family: var(--font-sans); font-style: normal; font-size: 13px; font-weight: 600; color: var(--sp-sky); text-decoration: none; border-bottom: 1px solid rgba(143, 183, 255, 0.4); }
+.rx-cta:hover { border-bottom-color: var(--sp-sky); }
 
 /* Five profiles in one row, centred. */
-.rx-row { list-style: none; margin: 0 auto; padding: 0; display: flex; justify-content: center; align-items: start; gap: clamp(8px, 1.6vw, var(--sp-4)); max-width: 1120px; }
+.rx-row { position: relative; z-index: 1; list-style: none; margin: 0 auto; padding: 0; display: flex; justify-content: center; align-items: start; gap: clamp(8px, 1.6vw, var(--sp-4)); max-width: 1120px; }
 .rx-cell { flex: 0 0 auto; width: clamp(58px, 17vw, 198px); display: grid; gap: var(--sp-2); transition: transform 0.7s var(--sp-ease-out), opacity 0.5s var(--sp-ease); }
 /* Closed: the four siblings collapse onto the centre card and fade; the one
    dog (the centre) stays. */
