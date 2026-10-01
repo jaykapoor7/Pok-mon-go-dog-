@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 2349)
-Total output lines: 197
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -96,7 +93,35 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
       if (typeof navigator !== "undefined" && !navigator.onLine) throw new Error("offline");
       await submitSurveyResponse(payload);
     } catch {
-      // Offline or failed → queue locally; i…349 tokens truncated…status-vaccinated">
+      // Offline or failed → queue locally; it syncs when back online.
+      const q = readQ(); q.push(payload); writeQ(q);
+    } finally {
+      setRecorded((n) => n + 1);
+      setCount(1); setSterilised(null); setPhoto(null); setNotes("");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-md px-4 pb-32 pt-20 sm:px-6">
+      <Link href={`/surveys/${survey.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
+        <ArrowLeft className="h-4 w-4" /> {survey.title}
+      </Link>
+
+      {(!online || pending > 0) && (
+        <div className={cn("mb-3 flex items-center gap-2 rounded-md px-3 py-2 text-[13px]", online ? "bg-status-hungry/10 text-status-hungry" : "bg-bark-100 text-bark-500 dark:bg-bark-800")}>
+          {online ? <RefreshCw className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+          <span className="flex-1">
+            {online ? `${pending} saved offline · syncing…` : `Offline, ${pending} saved on this device`}
+          </span>
+          {online && pending > 0 && <button onClick={flush} className="font-semibold underline">Sync now</button>}
+        </div>
+      )}
+
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-lg font-semibold tracking-tight">Record an animal</h1>
+        {recorded > 0 && (
+          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-status-vaccinated">
             <CheckCircle2 className="h-4 w-4" /> {recorded} this session
           </span>
         )}
