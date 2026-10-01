@@ -77,7 +77,7 @@ const getCachedPublicSpatialCities = unstable_cache(async (): Promise<SpatialCit
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
   return [...grouped.values()].sort((a, b) => b.animals - a.animals);
-}, ["public-spatial-cities-v4"], { revalidate: 120 });
+}, ["public-spatial-cities-v5"], { revalidate: 120 });
 
 export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
   const rows = await getCachedPublicSpatialCities();
@@ -107,7 +107,7 @@ const getCachedPublicSpatialCityCells = unstable_cache(async (city: string): Pro
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
   return [...grouped.values()].sort((a, b) => b.animals - a.animals);
-}, ["public-spatial-city-cells-v4"], { revalidate: 120 });
+}, ["public-spatial-city-cells-v5"], { revalidate: 120 });
 
 export async function getPublicSpatialCityCells(city: string, limit = MAX_CELLS): Promise<SpatialCell[]> {
   const rows = await getCachedPublicSpatialCityCells(cleanCity(city));
