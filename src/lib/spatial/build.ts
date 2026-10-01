@@ -86,7 +86,8 @@ export async function healCells(admin: SupabaseClient | null) {
 
 /* ── assembly ─────────────────────────────────────────────────────────── */
 
-type Rows = { animals: AnimalRow[]; cases: CaseRow[]; care: CareRow[]; sightings: SightRow[]; orgs: { id: string; name: string }[] };
+export type SpatialCellSeed = { h3_r8: string; city: string | null; state: string | null; zone: string | null };
+type Rows = { animals: AnimalRow[]; cases: CaseRow[]; care: CareRow[]; sightings: SightRow[]; orgs: { id: string; name: string }[]; cells?: SpatialCellSeed[] };
 
 const tally = (m: Map<string, number>, k: string | null | undefined) => {
   const key = (k ?? "").trim();
@@ -123,6 +124,15 @@ export function assemble(rows: Rows, scope: "public" | "org", now = new Date()):
     }
     if (zone) { const m = cellZoneVotes.get(cell) ?? new Map<string, number>(); tally(m, zone); cellZoneVotes.set(cell, m); }
   };
+
+  /* Cell rollups seed the complete city geometry independently of the bounded
+     detail rows. A cell can therefore be drawn with its authoritative aggregate
+     even when none of its individual animals happened to land in the sample. */
+  for (const seed of rows.cells ?? []) {
+    if (!seed.h3_r8 || seed.h3_r8.length < 15) continue;
+    const cell = cellOfKey(seed.h3_r8);
+    vote(cell, seed.city, seed.zone, seed.state);
+  }
 
   const keptAnimals = rows.animals.filter((a) => keyFor(a.h3_r8, a.lat, a.lng));
   keptAnimals.forEach((a, i) => {

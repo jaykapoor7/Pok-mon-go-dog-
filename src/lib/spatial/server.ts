@@ -71,13 +71,17 @@ const getCachedPublicSpatialCities = unstable_cache(async (): Promise<SpatialCit
     const prior = grouped.get(city);
     if (!prior) { grouped.set(city, { ...row, city }); continue; }
     prior.animals += Number(row.animals || 0);
+    prior.needs_help = Number(prior.needs_help || 0) + Number(row.needs_help || 0);
+    prior.sterilised = Number(prior.sterilised || 0) + Number(row.sterilised || 0);
+    prior.vaccinated = Number(prior.vaccinated || 0) + Number(row.vaccinated || 0);
     prior.cases += Number(row.cases || 0);
     prior.open_cases += Number(row.open_cases || 0);
+    prior.care_events = Number(prior.care_events || 0) + Number(row.care_events || 0);
     prior.cells += Number(row.cells || 0);
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
   return [...grouped.values()].sort((a, b) => b.animals - a.animals);
-}, ["public-spatial-cities-v4"], { revalidate: 120 });
+}, ["public-spatial-cities-v5"], { revalidate: 120 });
 
 export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
   const rows = await getCachedPublicSpatialCities();
@@ -107,7 +111,7 @@ const getCachedPublicSpatialCityCells = unstable_cache(async (city: string): Pro
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
   return [...grouped.values()].sort((a, b) => b.animals - a.animals);
-}, ["public-spatial-city-cells-v4"], { revalidate: 120 });
+}, ["public-spatial-city-cells-v5"], { revalidate: 120 });
 
 export async function getPublicSpatialCityCells(city: string, limit = MAX_CELLS): Promise<SpatialCell[]> {
   const rows = await getCachedPublicSpatialCityCells(cleanCity(city));
@@ -154,9 +158,13 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
   const safeCity = canonicalCity(city);
   const supa = getSupabase();
   if (!supa || !safeCity) return null;
-  const { data: animalData, error: animalError } = await supa.from("public_spatial_animals")
-    .select("id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id")
-    .in("city", cityVariants(safeCity)).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals);
+  const [cellSeeds, animalResult] = await Promise.all([
+    getPublicSpatialCityCells(safeCity),
+    supa.from("public_spatial_animals")
+      .select("id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id")
+      .in("city", cityVariants(safeCity)).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals),
+  ]);
+  const { data: animalData, error: animalError } = animalResult;
   if (animalError) throw animalError;
   const animals = ((animalData ?? []) as AnimalRow[]).map((animal) => ({ ...animal, city: safeCity }));
   if (!animals.length) return null;
@@ -174,7 +182,10 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
   ]);
   if (caseResult.error || careResult.error || sightingResult.error) throw caseResult.error ?? careResult.error ?? sightingResult.error;
   const cases = ((caseResult.data ?? []) as CaseRow[]).map((item) => ({ ...item, city: safeCity }));
-  return assemble({ animals, cases, care: (careResult.data ?? []) as CareRow[], sightings: (sightingResult.data ?? []) as SightRow[], orgs: [] }, "public");
+  return assemble({
+    animals, cases, care: (careResult.data ?? []) as CareRow[], sightings: (sightingResult.data ?? []) as SightRow[], orgs: [],
+    cells: cellSeeds.map((cell) => ({ h3_r8: cell.h3_r8, city: safeCity, state: cell.state, zone: cell.zone })),
+  }, "public");
 }
 
 /* The rich map is read by several entry points at once (map, insights and
@@ -182,7 +193,7 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
  * never starts a fan-out of relation queries and lands on a transient 503. */
 const getCachedPublicSpatialCityDataset = unstable_cache(
   async (city: string) => readPublicCityDataset(city),
-  ["public-spatial-city-dataset-v4"],
+  ["public-spatial-city-dataset-v5"],
   { revalidate: 300 },
 );
 
@@ -232,9 +243,13 @@ export async function getOrgSpatialCityDataset(accessToken: string, city: string
   const supa = memberClient(accessToken);
   const safeCity = cleanCity(city);
   if (!supa || !safeCity) return null;
-  const { data: animalData, error: animalError } = await supa.from("dogs")
-    .select("id,h3_r8,lat,lng,city,state,zone,location_precision,provenance,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id")
-    .eq("city", safeCity).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals);
+  const [cellSeeds, animalResult] = await Promise.all([
+    getOrgSpatialCityCells(accessToken, safeCity),
+    supa.from("dogs")
+      .select("id,h3_r8,lat,lng,city,state,zone,location_precision,provenance,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id")
+      .eq("city", safeCity).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals),
+  ]);
+  const { data: animalData, error: animalError } = animalResult;
   if (animalError) throw animalError;
   const animals = ((animalData ?? []) as Array<AnimalRow & { provenance?: string | null }>).map((animal) => ({ ...animal, source: animal.provenance === "community_report" ? "resident" : "field" }));
   if (!animals.length) return null;
@@ -250,5 +265,8 @@ export async function getOrgSpatialCityDataset(accessToken: string, city: string
     first_action_days: item.first_action_at && item.occurred_at ? Math.max(0, Math.round((Date.parse(item.first_action_at) - Date.parse(item.occurred_at.slice(0, 10))) / 86_400_000)) : null,
   }));
   const care = ((careResult.data ?? []) as Array<CareRow & { dog_id: string }>).map((item) => ({ ...item, h3_r8: null }));
-  return assemble({ animals, cases, care, sightings: [] as SightRow[], orgs: [] }, "org");
+  return assemble({
+    animals, cases, care, sightings: [] as SightRow[], orgs: [],
+    cells: cellSeeds.map((cell) => ({ h3_r8: cell.h3_r8, city: safeCity, state: cell.state, zone: cell.zone })),
+  }, "org");
 }

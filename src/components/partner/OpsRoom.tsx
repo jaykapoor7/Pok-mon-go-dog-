@@ -35,7 +35,7 @@ import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
 import { getMyOrg } from "@/lib/actions";
-import { dueFollowups, isStale, openCases, opsCounts, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
+import { dueFollowups, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { NGO } from "@/lib/types";
 import "./ops.css";
@@ -65,6 +65,7 @@ export function OpsRoom() {
   const [due, setDue] = useState<DueFollowup[]>([]);
   const [changes, setChanges] = useState<Change[]>([]);
   const [counts, setCounts] = useState<OpsCounts | null>(null);
+  const [openCells, setOpenCells] = useState<OrgOpenWorkCell[] | null>(null);
   const [org, setOrg] = useState<NGO | null>(null);
   const [today, setToday] = useState("");
   const [cell, setCell] = useState<string | null>(null);
@@ -81,11 +82,11 @@ export function OpsRoom() {
   useEffect(() => {
     if (!ready || !accessReady) return;
     /* Signed out, or not yet a member, is a real state: the empty workspace. */
-    if (!isMember) { setOpen([]); setDue([]); setChanges([]); setCounts(null); setOrg(null); return; }
+    if (!isMember) { setOpen([]); setDue([]); setChanges([]); setCounts(null); setOpenCells([]); setOrg(null); return; }
     let live = true;
-    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null), opsCounts().catch(() => null)])
-      .then(([o, d, ch, g, c]) => { if (!live) return; setOpen(o); setDue(d); setChanges(ch); setOrg(g); setCounts(c); })
-      .catch(() => { if (live) { setOpen([]); setDue([]); setChanges([]); setCounts(null); } });
+    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null), opsCounts().catch(() => null), orgOpenWorkCells().catch(() => [])])
+      .then(([o, d, ch, g, c, cells]) => { if (!live) return; setOpen(o); setDue(d); setChanges(ch); setOrg(g); setCounts(c); setOpenCells(cells); })
+      .catch(() => { if (live) { setOpen([]); setDue([]); setChanges([]); setCounts(null); setOpenCells([]); } });
     return () => { live = false; };
   }, [ready, accessReady, isMember]);
 
@@ -115,36 +116,33 @@ export function OpsRoom() {
   }, [s]);
   const shown = cell ? queue.filter((q) => q.cell === cell) : queue;
 
-  /* The dashboard map comes from the same open-case rows as the queue.
-     It no longer waits for the separate analytics dataset, which could
-     legitimately lag the queue and leave this panel blank. */
+  /* The queue is a bounded list of named rows. The map is not: its counts
+     come from an exact RLS-scoped cell aggregate, so geography never stops at
+     the queue's 800-row safety cap. */
   const workMap = useMemo(() => {
-    if (!isMember) return null;
-    const liveBy = new Map<string, number>(), staleBy = new Map<string, number>();
-    for (const c of s.liveWork) if (c.h3_r8 && isValidCell(c.h3_r8)) liveBy.set(c.h3_r8, (liveBy.get(c.h3_r8) ?? 0) + 1);
-    for (const c of s.stale) if (c.h3_r8 && isValidCell(c.h3_r8)) staleBy.set(c.h3_r8, (staleBy.get(c.h3_r8) ?? 0) + 1);
-    const keys = [...new Set([...liveBy.keys(), ...staleBy.keys()])];
-    if (!keys.length) return null;
-    const spots: OpenSpot[] = keys.map((key) => {
-      const [lat, lng] = cellToLatLng(key);
-      return { key, lat, lng, live: liveBy.get(key) ?? 0, stale: staleBy.get(key) ?? 0 };
+    if (!isMember || !openCells?.length) return null;
+    const rows = openCells.filter((row) => row.h3_r8 && isValidCell(row.h3_r8) && row.open_cases > 0);
+    if (!rows.length) return null;
+    const spots: OpenSpot[] = rows.map((row) => {
+      const [lat, lng] = cellToLatLng(row.h3_r8);
+      return { key: row.h3_r8, lat, lng, live: Math.max(0, row.open_cases - row.stale_cases), stale: row.stale_cases };
     });
-    const boundary = keys.flatMap((key) => cellToBoundary(key));
+    const boundary = rows.flatMap((row) => cellToBoundary(row.h3_r8));
     const lats = boundary.map(([lat]) => lat), lngs = boundary.map(([, lng]) => lng);
     const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
     const pad = Math.max(0.012, Math.max(maxLat - minLat, maxLng - minLng) * 0.08);
-    const cities = [...new Set(s.all.map((c) => c.city).filter((name): name is string => Boolean(name)))];
+    const cities = [...new Set(rows.map((row) => row.city).filter(Boolean))];
     return {
       spots,
       box: [minLng - pad, minLat - pad, maxLng + pad, maxLat + pad] as [number, number, number, number],
       name: cities.length === 1 ? cities[0] : "all open work",
     };
-  }, [isMember, s]);
+  }, [isMember, openCells]);
 
   const loading = open === null || !ready || !accessReady;
   if (loading) return <main className="pr ops"><p className="ops-state">Reading the organisation&rsquo;s record…</p></main>;
 
-  const blank = isMember && s.all.length === 0;
+  const blank = isMember && (counts ? counts.open === 0 : s.all.length === 0);
   const signedOut = !isMember;
 
   return (
@@ -170,7 +168,7 @@ export function OpsRoom() {
       <p className="ops-reading">FIELD WORKSPACE <span>·</span> Live cases, overdue follow-ups and your organisation&rsquo;s own records</p>
 
       {isMember && !blank && <nav className="ops-pulse" aria-label="Current workload">
-        <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(counts?.liveWork ?? s.liveWork.length)}</b><small>{s.crit.length ? `${num(s.crit.length)}${counts && counts.liveWork > s.liveWork.length ? "+" : ""} critical cases` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
+        <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(counts?.liveWork ?? s.liveWork.length)}</b><small>{(counts?.critical ?? s.crit.length) ? `${num(counts?.critical ?? s.crit.length)} critical cases` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
         <Link href="/partner/records?view=overdue" className={(counts?.overdue ?? s.overdue.length) ? "is-hot" : ""}><span>02 / FOLLOW-UPS</span><b>{num(counts?.overdue ?? s.overdue.length)}</b><small>past their due date</small><ArrowUpRight size={17} aria-hidden /></Link>
         <Link href="/partner/review"><span>03 / TO REVIEW</span><b>{num(counts?.stale ?? s.stale.length)}</b><small>older open cases</small><ArrowUpRight size={17} aria-hidden /></Link>
       </nav>}

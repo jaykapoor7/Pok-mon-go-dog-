@@ -116,7 +116,15 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
     const ci = reach.city;
     const name = ds.cities[ci]?.name ?? "";
     const roll = cityRollup.find((c) => c.city === name);
-    if (roll) return { name, animalsN: roll.animals, help: roll.needs_help ?? 0 };
+    if (roll) return {
+      name,
+      animalsN: roll.animals,
+      help: roll.needs_help ?? 0,
+      sterilised: roll.sterilised ?? 0,
+      vaccinated: roll.vaccinated ?? 0,
+      openCases: roll.open_cases ?? 0,
+      cases: roll.cases ?? 0,
+    };
     /* Fallback only if the rollup row is missing: a bounded count, clearly
        an under-count, but never shown in normal operation. */
     let animalsN = 0, help = 0;
@@ -126,7 +134,7 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
       animalsN++;
       if (ds.animals[o + A.flags] & (AF.help | AF.injured)) help++;
     }
-    return { name, animalsN, help };
+    return { name, animalsN, help, sterilised: 0, vaccinated: 0, openCases: 0, cases: 0 };
   }, [ds, ix, patch, reach, cityRollup]);
 
   /* ── what the register holds there ─────────────────────────────────── */
@@ -224,6 +232,9 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
   };
 
   const attention = (animals ?? []).filter((a) => a.needs_help || a.status === "injured");
+  const cityMode = !!city && !!patch && patch.label.trim().toLowerCase() === city.name.trim().toLowerCase();
+  const cityNotSterilised = city ? Math.max(0, city.animalsN - city.sterilised) : 0;
+  const cityNotVaccinated = city ? Math.max(0, city.animalsN - city.vaccinated) : 0;
   const recent = [...(animals ?? [])].sort((a, b) => (b.last_seen ?? "").localeCompare(a.last_seen ?? "")).slice(0, 12);
   const list = tab === "attention" ? attention : tab === "recent" ? recent : followed;
   const patchIds = new Set((animals ?? []).map((a) => a.id));
@@ -307,7 +318,7 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
         {note && <p className="cp-note">{note}</p>}
       </div>
 
-      <p className="cp-near"><MapPin size={13} aria-hidden /> Near {patch.label === "Around you" ? "you" : patch.label} · {RADIUS_KM} km</p>
+      <p className="cp-near"><MapPin size={13} aria-hidden /> {cityMode ? `Near ${city.name} city centre` : `Near ${patch.label === "Around you" ? "you" : patch.label}`} · {RADIUS_KM} km{cityMode ? " · citywide totals are shown above" : ""}</p>
       <section className="cp-work" aria-label="Near you">
         <figure className="cp-plate">
           {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}
@@ -321,7 +332,7 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
 
         <div className="cp-register">
           <div className="cp-tabs" role="tablist" aria-label="Animals in your patch">
-            <button role="tab" aria-selected={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention <b className="sys-mono">{attention.length}</b></button>
+            <button role="tab" aria-selected={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention nearby <b className="sys-mono">{attention.length}</b>{cityMode && city.help > attention.length ? <small className="sys-mono"> · {city.help.toLocaleString("en-IN")} citywide</small> : null}</button>
             <button role="tab" aria-selected={tab === "recent"} className={tab === "recent" ? "is-on" : ""} onClick={() => setTab("recent")}>Seen lately</button>
             <button role="tab" aria-selected={tab === "following"} className={tab === "following" ? "is-on" : ""} onClick={() => setTab("following")}>You follow <b className="sys-mono">{followed.length}</b></button>
           </div>
@@ -360,14 +371,20 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
           of four. Each used to link into a map mode that already makes
           the same case on the map itself; this keeps only the one local
           fact a map mode can't say as directly. */}
-      {(stats.sterUnknown > 0 || cells.edge.length > 0 || stats.boosterDue > 0 || cells.nextHere[0]) && (
+      {(cityMode ? (cityNotSterilised > 0 || cityNotVaccinated > 0 || city.help > 0 || city.openCases > 0) : (stats.sterUnknown > 0 || cells.edge.length > 0 || stats.boosterDue > 0 || cells.nextHere[0])) && (
         <section className="cp-help" aria-label="Where help is needed">
-          <p className="cp-eyebrow">Where you can help</p>
+          <p className="cp-eyebrow">Where you can help{cityMode ? ` · ${city.name} citywide` : ""}</p>
           <ol>
-            {stats.sterUnknown > 0 ? (
+            {cityMode ? (
+              <li>
+                <b>{cityNotSterilised.toLocaleString("en-IN")}</b>
+                <p>animals across {city.name} are not recorded as sterilised. That is a citywide register count, not the {RADIUS_KM} km sample around the centre.</p>
+                <Link href={`/map?city=${encodeURIComponent(city.name)}&mode=abc`} className="sys-btn is-sm is-quiet">See the citywide ABC map</Link>
+              </li>
+            ) : stats.sterUnknown > 0 ? (
               <li>
                 <b>{stats.sterUnknown.toLocaleString("en-IN")}</b>
-                <p>animals here have no sterilisation on record. A notched ear is the sign — if you see one, a sighting with a photo settles it.</p>
+                <p>animals in this {RADIUS_KM} km patch have no sterilisation on record. A notched ear is the sign — if you see one, a sighting with a photo settles it.</p>
                 <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Report a sighting</Link>
               </li>
             ) : cells.edge.length > 0 ? (

@@ -104,6 +104,19 @@ assert.equal(ix.nCases, cases.length);
 assert.equal(ix.nCare, care.length);
 assert.equal(today, dayOf(NOW.toISOString()));
 
+/* A rollup-only cell stays in the geometry even when the bounded detail
+   sample contains no animal/case/care row from that cell. */
+{
+  const seedOnly = latLngToCell(11.2, 76.9, H3_RES);
+  const one = animal(c0, "2026-01-01", "2026-01-02");
+  const seeded = assemble({
+    animals: [one], cases: [], care: [], sightings: [], orgs: [],
+    cells: [{ h3_r8: seedOnly, city: "Coimbatore", state: "Tamil Nadu", zone: "Rollup-only cell" }],
+  }, "public", NOW);
+  assert.ok(seeded.cells.includes(seedOnly), "authoritative rollup-only cells remain drawable");
+  assert.equal(buildIndex(seeded).nAnimals, 1, "seeding geometry does not invent individual animals");
+}
+
 /* ── what the public dataset never carries ─────────────────────────────── */
 const wire = JSON.stringify(ds);
 for (const a of animals) assert.ok(!wire.includes(a.id), "no animal id on the wire");
