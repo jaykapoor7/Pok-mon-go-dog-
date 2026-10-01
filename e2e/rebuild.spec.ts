@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 test("the landing first view is self-contained and names all three roles", async ({ page }) => {
   await page.goto("/");
   const hero = page.locator(".ld-hero");
+  await expect(hero.getByRole("heading", { level: 1 })).toBeVisible();
   /* The hero is the whole first view; whatever section follows it (the animal
      register when the register has data, otherwise the reader-roles section)
      begins at or below the fold. Measure the hero's real next sibling rather

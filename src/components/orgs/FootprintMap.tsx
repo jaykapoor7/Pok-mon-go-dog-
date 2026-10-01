@@ -10,7 +10,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Map as MLMap, ExpressionSpecification } from "maplibre-gl";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
 
 export type FootCell = { lat: number; lng: number; records: number };
 
@@ -42,6 +42,7 @@ export function FootprintMap({ cells, label }: { cells: FootCell[]; label: strin
       type: "FeatureCollection" as const,
       features: cells.map((c, i) => ({ type: "Feature" as const, properties: { r: c.records, k: rank[i] }, geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] } })),
     };
+    if (!supportsWebGL2()) return;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

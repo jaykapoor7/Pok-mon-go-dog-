@@ -16,7 +16,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "maplibre-gl";
-import { PLATE, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, PLATE, groundStyle, underlay } from "@/components/map/basemap";
 import { EPOCH_MS } from "@/lib/spatial/types";
 import { pointInCell } from "@/components/spatial/data";
 import { projector } from "@/components/system/HexPlate";
@@ -55,6 +55,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
     let dead = false;
     let io: IntersectionObserver | null = null;
     let stopAll = () => {};
+    if (!supportsWebGL2()) return;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

@@ -223,3 +223,21 @@ export async function setAnimalOwner(dogId: string, ownerName: string, ownerCont
   if (error) throw new Error(error.message);
   return data === true;
 }
+
+/** The case picker must search the member's own register, including internal
+ * test records, rather than suggesting another organisation's public dogs. */
+export async function searchMyAnimals(query: string, limit = 10, id?: string): Promise<AnimalRow[]> {
+  const supa = getSupabase();
+  if (!supa) throw new Error("The organisation record is unavailable.");
+  const { data: ngo, error: orgError } = await supa.rpc("my_ngo");
+  if (orgError || !ngo) throw new Error("Organisation access required.");
+  let read = supa.from("dogs").select("id,straypaw_id,name,code,species,zone,status,cover_photo,assignee_name,last_seen,lat,lng").eq("ngo_id", ngo);
+  if (id) read = read.eq("id", id);
+  else {
+    const text = query.trim().replace(/[,%()\\]/g, " ").slice(0, 100);
+    if (text) read = read.or(`name.ilike.%${text}%,code.ilike.%${text}%,zone.ilike.%${text}%,straypaw_id.ilike.%${text}%`);
+  }
+  const { data, error } = await read.order("last_seen", { ascending: false }).limit(Math.max(1, Math.min(limit, 20)));
+  if (error) throw new Error(error.message);
+  return (data ?? []) as AnimalRow[];
+}

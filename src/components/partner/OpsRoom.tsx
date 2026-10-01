@@ -168,13 +168,14 @@ export function OpsRoom() {
 
       <p className="ops-reading">FIELD WORKSPACE <span>·</span> Live cases, overdue follow-ups and your organisation&rsquo;s own records</p>
 
-      {isMember && !blank && <nav className="ops-pulse" aria-label="Current workload">
+      {loadError && <p role="alert" className="ops-status">The organisation record could not be read. Please reload to retry; no data has been changed.</p>}
+      {isMember && !blank && !loadError && <nav className="ops-pulse" aria-label="Current workload">
         <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(counts?.liveWork ?? s.liveWork.length)}</b><small>{(counts?.critical ?? s.crit.length) ? `${num(counts?.critical ?? s.crit.length)} critical case${(counts?.critical ?? s.crit.length) === 1 ? "" : "s"}` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
         <Link href="/partner/records?view=overdue" className={(counts?.overdue ?? s.overdue.length) ? "is-hot" : ""}><span>02 / FOLLOW-UPS</span><b>{num(counts?.overdue ?? s.overdue.length)}</b><small>past their due date</small><ArrowUpRight size={17} aria-hidden /></Link>
         <Link href="/partner/review"><span>03 / TO REVIEW</span><b>{num(counts?.stale ?? s.stale.length)}</b><small>older open cases</small><ArrowUpRight size={17} aria-hidden /></Link>
       </nav>}
 
-      {(blank || signedOut) && (
+      {!loadError && (blank || signedOut) && (
         <section className="ops-setup">
           <div>
             <h2>{signedOut ? "Sign in to open your organisation’s record." : "Start with the records you already keep."}</h2>

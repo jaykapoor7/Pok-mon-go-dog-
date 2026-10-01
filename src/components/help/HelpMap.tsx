@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
 
 export function HelpMap({ points, me }: { points: { id: string; lng: number; lat: number }[]; me: { lat: number; lng: number } | null }) {
   const el = useRef<HTMLDivElement>(null);
@@ -14,6 +14,7 @@ export function HelpMap({ points, me }: { points: { id: string; lng: number; lat
 
   useEffect(() => {
     let dead = false;
+    if (!supportsWebGL2()) return;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current || !points.length) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

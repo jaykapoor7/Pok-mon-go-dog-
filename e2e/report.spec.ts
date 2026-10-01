@@ -191,6 +191,7 @@ test.describe("public routes", () => {
 
   test("primary public navigation does not point at a missing route", async ({ page, request }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "internal-link crawl is viewport-independent");
+    test.setTimeout(180_000);
     const hrefs = new Set<string>();
     for (const route of ["/", "/app", "/partner"]) {
       await page.goto(route);

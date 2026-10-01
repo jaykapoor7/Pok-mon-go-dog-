@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "maplibre-gl";
-import { PAPER, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, PAPER, groundStyle, underlay } from "@/components/map/basemap";
 
 /* The dashboard's open work on real streets. Nearby cells gather into one
    circle carrying the sum of their open cases; zooming in splits them back
@@ -40,6 +40,7 @@ export function OpsStreetMap({ spots, box, selected, onSpot, label }: {
 
   useEffect(() => {
     let map: MLMap | null = null, dead = false;
+    if (!supportsWebGL2()) return;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

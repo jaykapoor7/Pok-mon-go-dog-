@@ -13,13 +13,15 @@ export default defineConfig({
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3100",
     trace: "on-first-retry",
+    proxy: process.env.E2E_BASE_URL?.startsWith("https:") && process.env.HTTPS_PROXY
+      ? { server: process.env.HTTPS_PROXY } : undefined,
     /* PLAYWRIGHT_CHROMIUM_PATH lets a sandbox or CI image with its own
        Chromium run the suite without re-downloading one that only has to
        match the pinned Playwright version. Unset everywhere else, where the
        bundled browser is used as normal. */
     launchOptions: {
       executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined,
-      args: process.env.PLAYWRIGHT_CHROMIUM_PATH ? ["--no-proxy-server"] : [],
+      args: process.env.PLAYWRIGHT_CHROMIUM_PATH && !process.env.E2E_BASE_URL?.startsWith("https:") ? ["--no-proxy-server"] : [],
     },
   },
   projects: [

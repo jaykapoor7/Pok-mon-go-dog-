@@ -10,7 +10,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource } from "maplibre-gl";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
 
 export type Light = { lng: number; lat: number; help?: boolean };
 
@@ -42,6 +42,7 @@ export function LightsMap({ center, radiusKm, lights, label, zoom, credit = true
   useEffect(() => {
     let dead = false;
     /* Built only once it is near the screen: a page may carry several. */
+    if (!supportsWebGL2()) return;
     const start = () => import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

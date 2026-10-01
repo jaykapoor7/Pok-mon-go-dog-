@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "maplibre-gl";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
 import { Route, type RouteStop } from "@/components/system/Route";
 import "./stories.css";
 
@@ -104,6 +104,7 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
     if (!withPts.length) return;
     const xs = withPts.map((p) => p[0]), ys = withPts.map((p) => p[1]);
     const box: [number, number, number, number] = [Math.min(...xs) - 0.01, Math.min(...ys) - 0.01, Math.max(...xs) + 0.01, Math.max(...ys) + 0.01];
+    if (!supportsWebGL2()) return;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

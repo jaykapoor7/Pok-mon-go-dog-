@@ -13,7 +13,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
 
 type Cell = { key: string; ring: number[]; n: number; self: boolean };
 
@@ -28,6 +28,7 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
 
   useEffect(() => {
     let map: MLMap | null = null, dead = false;
+    if (!supportsWebGL2()) return;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

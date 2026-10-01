@@ -29,7 +29,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MLMap, ExpressionSpecification } from "maplibre-gl";
 import { Truck } from "lucide-react";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
 import { pointInCell } from "@/components/spatial/data";
 
 type Journey = {
@@ -206,6 +206,7 @@ export function CaseDive({ j, city, box, rings, events, note }: {
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(frame); };
 
+    if (!supportsWebGL2()) { setCalm(true); setT({ step: steps.length - 1, day: j.days, arrived: true }); return; }
     import("maplibre-gl").then((ml) => {
       if (dead || !mapEl.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");

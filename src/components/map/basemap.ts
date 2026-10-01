@@ -134,3 +134,14 @@ export async function underlay(map: MLMap, p: Palette, beforeId?: string) {
   restyle(map, p);
   return true;
 }
+
+/** Avoid MapLibre logging a failed renderer before an existing SVG fallback
+ * can take over on devices without WebGL2. */
+export function supportsWebGL2(): boolean {
+  try {
+    const context = document.createElement("canvas").getContext("webgl2");
+    if (!context) return false;
+    context.getExtension("WEBGL_lose_context")?.loseContext();
+    return true;
+  } catch { return false; }
+}

@@ -7,11 +7,10 @@ import Link from "next/link";
 import { PartnerWrite } from "@/components/partner/PartnerGate";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createCase } from "@/lib/case-actions";
-import { createAnimal } from "@/lib/animal-actions";
+import { createAnimal, searchMyAnimals, type AnimalRow } from "@/lib/animal-actions";
 import { uploadPhoto } from "@/lib/actions";
-import { getDogsByIds, searchDogs } from "@/lib/data";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { CASE_CATEGORY_META, CASE_SEVERITY_META, type CaseCategory, type CaseSeverity, type Dog } from "@/lib/types";
+import { CASE_CATEGORY_META, CASE_SEVERITY_META, type CaseCategory, type CaseSeverity, } from "@/lib/types";
 import { cn, dogLabel } from "@/lib/utils";
 
 const CATEGORIES = Object.keys(CASE_CATEGORY_META) as CaseCategory[];
@@ -23,7 +22,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [dogs, setDogs] = useState<Dog[]>([]);
+  const [dogs, setDogs] = useState<AnimalRow[]>([]);
   const [mode, setMode] = useState<"existing" | "new">(presetDogId ? "existing" : "existing");
   const [dogId, setDogId] = useState<string | null>(presetDogId ?? null);
   const [q, setQ] = useState("");
@@ -52,17 +51,17 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   /* The picker searches the register as you type — a bounded read, never
      the whole register sent to the browser. The chosen animal is kept so
      it stays selected when the search moves on. */
-  const [picked, setPicked] = useState<Dog | null>(null);
+  const [picked, setPicked] = useState<AnimalRow | null>(null);
   useEffect(() => {
     let live = true;
-    const t = setTimeout(() => { searchDogs(q, q.trim() ? 10 : 8).then((rows) => { if (live) setDogs(rows); }).catch(() => {}); }, q.trim() ? 220 : 0);
+    const t = setTimeout(() => { searchMyAnimals(q, q.trim() ? 10 : 8).then((rows) => { if (live) setDogs(rows); }).catch(() => { if (live) setError("Your organisation’s dogs could not be loaded. Try again."); }); }, q.trim() ? 220 : 0);
     return () => { live = false; clearTimeout(t); };
   }, [q]);
   useEffect(() => {
     if (!dogId) { setPicked(null); return; }
     const inList = dogs.find((d) => d.id === dogId);
     if (inList) setPicked(inList);
-    else getDogsByIds([dogId]).then((rows) => setPicked(rows[0] ?? null)).catch(() => {});
+    else searchMyAnimals("", 1, dogId).then((rows) => setPicked(rows[0] ?? null)).catch(() => {});
   }, [dogId, dogs]);
 
   const selectedDog = picked;
@@ -77,7 +76,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   async function submit() {
     if (!user) { setError("Sign in to create a case."); return; }
     if (!title.trim()) { setError("Give the case a short title."); return; }
-    if (mode === "existing" && !dogId) { setError("Pick an animal, or add a new one with a photo."); return; }
+    if (mode === "existing" && (!dogId || !selectedDog)) { setError("Pick an animal, or add a new one with a photo."); return; }
     if (mode === "new" && !photo) { setError("A photo is required to create a new animal profile."); return; }
     setBusy(true); setError(null);
     try {
