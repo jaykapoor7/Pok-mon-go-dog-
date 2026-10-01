@@ -17,6 +17,7 @@ export type PublicCaseStory = {
   animal_code: string | null;
   species: string | null;
   cover_photo: string | null;
+  city?: string | null;
   source_discharge_at: string | null;
 };
 
@@ -35,13 +36,17 @@ export type PublicCaseStoryPage = { rows: PublicCaseStory[]; next: { occurredAt:
  * which stories qualify, so the page component never fetches it a second time. */
 export type PublishedCaseStoryPage = PublicCaseStoryPage & { care: PublicTimelineEvent[] };
 
-export async function getPublicCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null } = {}): Promise<PublicCaseStoryPage> {
+export async function getPublicCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null; city?: string | null } = {}): Promise<PublicCaseStoryPage> {
   const supa = getSupabase();
   if (!supa) return { rows: [], next: null, error: "The public record store is unavailable." };
   const limit = Math.max(1, Math.min(100, input.limit ?? 48));
   let query = supa.from("public_case_stories")
-    .select("id,dog_id,ngo_id,ngo_name,category,status,title,zone,occurred_at,resolved_at,outcome,animal_name,animal_code,species,cover_photo")
+    .select("id,dog_id,ngo_id,ngo_name,category,status,title,zone,occurred_at,resolved_at,outcome,animal_name,animal_code,species,cover_photo,city")
     .order("occurred_at", { ascending: false }).order("id", { ascending: false }).limit(limit + 1);
+  /* Scope by city BEFORE paginating, so a page is one city's stories and the
+     count that accompanies it is that city's, never a merge of every city. */
+  const city = input.city?.trim();
+  if (city) query = query.ilike("city", city);
   if (input.before) query = query.or(`occurred_at.lt.${input.before.occurredAt},and(occurred_at.eq.${input.before.occurredAt},id.lt.${input.before.id})`);
   const { data, error } = await query;
   if (error) return { rows: [], next: null, error: error.message || "The public record could not be read." };
@@ -89,7 +94,7 @@ export async function getPublicCareForDogs(dogIds: string[]): Promise<PublicTime
  * The presentation layer labels Kind Hour rows as historical and only renders
  * care/discharge/outcome facts that are actually on the source record.
  */
-export async function getPublishedCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null } = {}): Promise<PublishedCaseStoryPage> {
+export async function getPublishedCaseStoriesPage(input: { limit?: number; before?: { occurredAt: string; id: string } | null; city?: string | null } = {}): Promise<PublishedCaseStoryPage> {
   const page = await getPublicCaseStoriesPage(input);
   const cases = await enrichHistoricalCases(page.rows);
   const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
@@ -106,6 +111,16 @@ export async function getPublishedCaseStoriesPage(input: { limit?: number; befor
       animalsWithCare.has(story.dog_id),
     );
   }) };
+}
+
+/** Authoritative count of distinct animals with a public story, optionally for
+ * one city. Never derive the headline count from a page's length. */
+export async function countPublicCaseStories(city?: string | null): Promise<number> {
+  const supa = getSupabase();
+  if (!supa) return 0;
+  const { data, error } = await supa.rpc("count_public_case_stories", { p_city: city?.trim() || null });
+  if (error) return 0;
+  return Number(data ?? 0);
 }
 
 async function enrichHistoricalCases(rows: PublicCaseStory[]): Promise<PublicCaseStory[]> {

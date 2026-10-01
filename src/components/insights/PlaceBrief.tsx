@@ -64,7 +64,7 @@ type Answer = { id: string; q: string; a: ReactNode; detail?: ReactNode; evidenc
 
 export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }: { scope: Scope; tail?: ReactNode; notice?: ReactNode; userKey?: string | null }) {
   const params = useSearchParams();
-  const { ds, ix, loading, error } = useSpatialDataset(scope, userKey);
+  const { ds, ix, loading, error, cities: cityList } = useSpatialDataset(scope, userKey);
   const [place, setPlace] = useState<Place | null>(null);
   const [period, setPeriod] = useState<Period>("all");
   const mine = usePlace();
@@ -138,6 +138,12 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
   const an = (x: number) => { const t = n(x); return t === "few" ? "a few" : t; };
   const cityName = ds && place ? ds.cities[place.city].name : "";
   const placeName = ds && place ? (isLocality ? ds.localities[place.locality] : cityName) : "";
+  /* Authoritative citywide totals from the rollup. Used whenever the whole
+     city is in scope, so a figure never reports the ~1,200-row bounded dataset
+     as the city total. A locality (a sub-city view) stays on the bounded
+     dataset, which is well within its cap. Public insights are city-level. */
+  const cityRoll = useMemo(() => (scope === "public" && cityName ? cityList.find((c) => c.city === cityName) ?? null : null), [scope, cityName, cityList]);
+  const cityWhole = !isLocality && !!cityRoll;
   const mapBase = scope === "org" ? "/partner/map" : "/map";
   const mapHref = (mode: string, extra: Record<string, string> = {}) => {
     const q = new URLSearchParams({ mode, ...extra });
@@ -304,8 +310,28 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       }
     }
 
-    /* 7. How much ABC and ARV is recorded. */
-    {
+    /* 7. How much ABC and ARV is recorded. At city scope the totals are the
+       authoritative rollup (sterilised/vaccinated over all recorded animals);
+       the rollup confirms the recorded-yes count only, so the remainder is
+       drawn as one hatched "not recorded as such" band rather than split into
+       "no" and "unknown", which only the bounded per-animal rows can separate.
+       A locality view keeps that finer bounded split. */
+    if (cityWhole && cityRoll) {
+      const total = cityRoll.animals, sterYes = cityRoll.sterilised ?? 0, vaccYes = cityRoll.vaccinated ?? 0;
+      if (total < 3) out.push({ id: "abc", q: "How many animals here are sterilised and vaccinated?", missing: "how many animals are sterilised and vaccinated" });
+      else out.push({
+        id: "abc", q: "How many animals here are sterilised and vaccinated?",
+        a: <><b>{pct(sterYes, total)}%</b> recorded as sterilised, <b>{pct(vaccYes, total)}%</b> as vaccinated.</>,
+        detail: <>Of {total.toLocaleString("en-IN")} animals on the record. The rest is not recorded as such.</>,
+        evidence: (
+          <div className="ib-bands">
+            <p>ABC</p><ShareBand height={10} legend={false} total={total} parts={[{ key: "y", n: sterYes, color: "var(--sp-blue)", label: "Sterilised" }, { key: "u", n: total - sterYes, hatch: true, label: "Not recorded as sterilised" }]} />
+            <p>ARV</p><ShareBand height={10} legend={false} total={total} parts={[{ key: "y", n: vaccYes, color: "var(--sp-arv)", label: "Vaccinated" }, { key: "u", n: total - vaccYes, hatch: true, label: "Not recorded as vaccinated" }]} />
+          </div>
+        ),
+        action: { href: mapHref("abc"), label: "See where on the map" },
+      });
+    } else {
       const k = animalKnowledge(ds, ix, scopeSets.here, today);
       if (k.total < 3) out.push({ id: "abc", q: "How many animals here are sterilised and vaccinated?", missing: "how many animals are sterilised and vaccinated" });
       else out.push({
@@ -324,11 +350,15 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
 
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ds, ix, place, scopeSets, idx, allIdx, cityIdx, isLocality, guard, fromDay, today]);
+  }, [ds, ix, place, scopeSets, idx, allIdx, cityIdx, isLocality, guard, fromDay, today, cityWhole, cityRoll]);
 
   const shown = answers.filter((x): x is Extract<Answer, { a: ReactNode }> => "a" in x);
-  const animalsHere = useMemo(() => (ds && ix && scopeSets ? animalKnowledge(ds, ix, scopeSets.here, today).total : 0), [ds, ix, scopeSets, today]);
-  const openNowHere = useMemo(() => (ds ? allIdx.filter((i) => openOn(ds, i, today)).length : 0), [ds, allIdx, today]);
+  const animalsHere = useMemo(() => (cityWhole ? cityRoll!.animals : ds && ix && scopeSets ? animalKnowledge(ds, ix, scopeSets.here, today).total : 0), [cityWhole, cityRoll, ds, ix, scopeSets, today]);
+  const openNowHere = useMemo(() => (cityWhole && cityRoll!.open_cases != null ? cityRoll!.open_cases : ds ? allIdx.filter((i) => openOn(ds, i, today)).length : 0), [cityWhole, cityRoll, ds, allIdx, today]);
+  /* "Requests for help" follows the chosen period, so only the all-time view
+     has an authoritative rollup equivalent; narrower periods are a time window
+     the rollup does not carry and stay on the bounded dataset. */
+  const requestsHere = cityWhole && period === "all" && cityRoll!.cases != null ? cityRoll!.cases : idx.length;
   const periodLabel = PERIODS.find((p) => p.id === period)!.label.toLowerCase();
 
   if (gate && !place) return (
@@ -350,7 +380,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
           <h1>{placeName || (scope === "org" ? "Your field evidence" : "Evidence, place by place.")}</h1>
           {isLocality && <p className="ib-city">{cityName}</p>}
           {ds && <><dl className="ib-figs">
-            <div><dt>requests for help</dt><dd>{n(idx.length)}</dd></div>
+            <div><dt>requests for help</dt><dd>{n(requestsHere)}</dd></div>
             <div><dt>open now</dt><dd>{n(openNowHere)}</dd></div>
             <div><dt>animals on record</dt><dd>{n(animalsHere)}</dd></div>
           </dl><p className="ib-scope-note">Requests follow the selected period. Open work and animals show the current record.</p></>}

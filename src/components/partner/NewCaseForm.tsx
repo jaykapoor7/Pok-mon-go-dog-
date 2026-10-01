@@ -11,7 +11,7 @@ import { createAnimal } from "@/lib/animal-actions";
 import { uploadPhoto } from "@/lib/actions";
 import { getDogsByIds, searchDogs } from "@/lib/data";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { CASE_CATEGORY_META, CASE_SEVERITY_META, SPECIES, type CaseCategory, type CaseSeverity, type Dog } from "@/lib/types";
+import { CASE_CATEGORY_META, CASE_SEVERITY_META, type CaseCategory, type CaseSeverity, type Dog } from "@/lib/types";
 import { cn, dogLabel } from "@/lib/utils";
 
 const CATEGORIES = Object.keys(CASE_CATEGORY_META) as CaseCategory[];
@@ -37,7 +37,8 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [zone, setZone] = useState("");
-  const [species, setSpecies] = useState("dog");
+  /* Dog-only platform: species is fixed, never chosen. */
+  const species = "dog";
   const [category, setCategory] = useState<CaseCategory>("injury");
   const [severity, setSeverity] = useState<CaseSeverity>("normal");
   const [informerContact, setInformerContact] = useState("");
@@ -151,14 +152,9 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
           )
         ) : (
           <div className="space-y-3">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
-              <div className="flex flex-wrap gap-1.5">
-                {SPECIES.filter((s) => s.id !== "other").map((s) => (
-                  <button key={s.id} onClick={() => setSpecies(s.id)} className={cn("rounded-md px-2.5 py-1.5 text-[13px] font-medium", species === s.id ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>{s.label}</button>
-                ))}
-              </div>
-            </div>
+            {/* StrayPaw is a dog-only platform, so a new animal is always a dog;
+                no species picker is offered. */}
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
             <div className="flex items-center gap-3">
               <button onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 rounded-md border border-black/[0.1] px-3 py-2 text-[13px] font-medium text-bark-600 dark:border-white/[0.12] dark:text-bark-200">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : photo ? <Check className="h-4 w-4 text-status-vaccinated" /> : <Camera className="h-4 w-4" />} {photo ? "Photo added" : "Add photo *"}
