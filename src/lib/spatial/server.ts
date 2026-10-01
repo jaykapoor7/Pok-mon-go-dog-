@@ -81,7 +81,7 @@ const getCachedPublicSpatialCities = unstable_cache(async (): Promise<SpatialCit
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
   return [...grouped.values()].sort((a, b) => b.animals - a.animals);
-}, ["public-spatial-cities-v5"], { revalidate: 120 });
+}, ["public-spatial-cities-v6"], { revalidate: 120 });
 
 export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
   const rows = await getCachedPublicSpatialCities();
@@ -111,7 +111,7 @@ const getCachedPublicSpatialCityCells = unstable_cache(async (city: string): Pro
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
   return [...grouped.values()].sort((a, b) => b.animals - a.animals);
-}, ["public-spatial-city-cells-v5"], { revalidate: 120 });
+}, ["public-spatial-city-cells-v6"], { revalidate: 120 });
 
 export async function getPublicSpatialCityCells(city: string, limit = MAX_CELLS): Promise<SpatialCell[]> {
   const rows = await getCachedPublicSpatialCityCells(cleanCity(city));
@@ -193,7 +193,7 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
  * never starts a fan-out of relation queries and lands on a transient 503. */
 const getCachedPublicSpatialCityDataset = unstable_cache(
   async (city: string) => readPublicCityDataset(city),
-  ["public-spatial-city-dataset-v5"],
+  ["public-spatial-city-dataset-v6"],
   { revalidate: 300 },
 );
 

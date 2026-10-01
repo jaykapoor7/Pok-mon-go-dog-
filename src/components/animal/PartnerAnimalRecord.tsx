@@ -22,7 +22,7 @@ export function PartnerAnimalRecord({ id, published }: { id: string; published: 
       if (!supa) throw new Error("The record service is unavailable.");
       const { data: org, error: orgError } = await supa.rpc("my_ngo");
       if (orgError || !org) throw new Error("Organisation access required.");
-      const { data, error } = await supa.from("dogs").select("id,name,species,zone,city,lat,lng,status,cover_photo,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,provenance,code,intake_notes,owner_name,owner_contact,assignee_id,assignee_name,photo_attribution,photo_source_url").eq("id", id).eq("ngo_id", org).maybeSingle();
+      const { data, error } = await supa.from("dogs").select("id,name,species,zone,city,lat,lng,status,cover_photo,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,provenance,code,intake_notes,owner_name,owner_contact,assignee_id,assignee_name").eq("id", id).eq("ngo_id", org).maybeSingle();
       if (error) throw error;
       if (!data) throw new Error("This dog is not in your organisation’s register.");
       if (live) setDog(mapDog(data));
