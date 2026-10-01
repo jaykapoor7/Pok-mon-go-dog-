@@ -284,13 +284,40 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   ].filter(Boolean).join(" · ");
 
   /* ── what each cell holds, now and a year earlier ─────────────────── */
-  const stats = useMemo(() => (ds && ix ? cellStats(ds, ix, t, eff) : []), [ds, ix, t, eff]);
-  const prev = useMemo(() => (ds && ix && mode === "change" ? cellStats(ds, ix, t - 365, NO_FILTERS) : []), [ds, ix, t, mode]);
-  const statOf = useMemo(() => new Map(stats.map((s) => [s.cell, s])), [stats]);
+  const boundedStats = useMemo(() => (ds && ix ? cellStats(ds, ix, t, eff) : []), [ds, ix, t, eff]);
   /* Current and unfiltered: the one state whose per-cell counts have an
      authoritative rollup equivalent. A time-sliced or filtered view is a
-     subset and keeps the bounded dataset's counts. */
+     subset and keeps the bounded analytical detail. */
   const unfiltered = month === null && eff.source === "all" && eff.seen === "any" && eff.condition < 0 && !(mode === "cases" && lens !== "open");
+  const stats = useMemo(() => {
+    if (!ds || !unfiltered || !authByCell.size) return boundedStats;
+    return boundedStats.map((row) => {
+      const exact = authByCell.get(ds.cells[row.cell]);
+      if (!exact) return row;
+      const animals = Number(exact.animals || 0);
+      const sterYes = Number(exact.sterilised || 0);
+      const vaccYes = Number(exact.vaccinated || 0);
+      const cases = Number(exact.cases || 0);
+      const open = Number(exact.open_cases || 0);
+      const medical = Number(exact.needs_help || 0);
+      return {
+        ...row,
+        animals,
+        observed: Math.max(row.observed, animals),
+        help: medical,
+        medical,
+        sterYes,
+        sterNo: Math.max(0, animals - sterYes),
+        vaccYes,
+        vaccNo: Math.max(0, animals - vaccYes),
+        cases,
+        open,
+        care: exact.care_events == null ? row.care : Number(exact.care_events),
+      };
+    });
+  }, [boundedStats, unfiltered, authByCell, ds]);
+  const prev = useMemo(() => (ds && ix && mode === "change" ? cellStats(ds, ix, t - 365, NO_FILTERS) : []), [ds, ix, t, mode]);
+  const statOf = useMemo(() => new Map(stats.map((row) => [row.cell, row])), [stats]);
 
   /* Which cases the Cases mode is asking about, on day t: 0 not asked
      about, 1 a match, 2 a case whose resolution day is unknown — drawn as
