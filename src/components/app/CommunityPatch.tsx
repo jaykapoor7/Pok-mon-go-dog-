@@ -232,7 +232,7 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
   };
 
   const attention = (animals ?? []).filter((a) => a.needs_help || a.status === "injured");
-  const cityMode = !!city && patch.label.trim().toLowerCase() === city.name.trim().toLowerCase();
+  const cityMode = !!city && !!patch && patch.label.trim().toLowerCase() === city.name.trim().toLowerCase();
   const cityNotSterilised = city ? Math.max(0, city.animalsN - city.sterilised) : 0;
   const cityNotVaccinated = city ? Math.max(0, city.animalsN - city.vaccinated) : 0;
   const recent = [...(animals ?? [])].sort((a, b) => (b.last_seen ?? "").localeCompare(a.last_seen ?? "")).slice(0, 12);
