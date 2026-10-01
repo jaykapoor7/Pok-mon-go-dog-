@@ -47,15 +47,15 @@ import "./spatial.css";
 
 type ModeDef = { id: Mode | "change"; label: string; q: string };
 const MODES: ModeDef[] = [
-  { id: "animals", label: "Animals", q: "Every recorded animal, as a point of light" },
+  { id: "animals", label: "Animals", q: "All recorded animals counted by cell, with individual records shown as detail" },
   { id: "density", label: "Density", q: "Where recorded animals gather, drawn as terrain" },
-  { id: "coverage", label: "Coverage", q: "How well each place is mapped — the fog is where nothing is recorded" },
-  { id: "abc", label: "ABC", q: "Sterilisation, animal by animal — and where it is unknown" },
-  { id: "arv", label: "ARV", q: "Vaccination, animal by animal, and where a booster is due" },
+  { id: "coverage", label: "Coverage", q: "Where the register has coverage, and where detailed field records are thin" },
+  { id: "abc", label: "ABC", q: "Citywide sterilisation totals by cell, with individual detail where loaded" },
+  { id: "arv", label: "ARV", q: "Citywide vaccination totals by cell, with individual detail where loaded" },
   { id: "medical", label: "Medical", q: "Where injured and sick animals are recorded" },
   { id: "cases", label: "Cases", q: "Where work is open, and how long it has waited" },
-  { id: "activity", label: "Field work", q: "Where field teams worked in the twelve months before this date" },
-  { id: "change", label: "Change", q: "Where work began, grew, slowed or stopped this year" },
+  { id: "activity", label: "Field work", q: "Detailed field records in the twelve months before this date" },
+  { id: "change", label: "Change", q: "Change visible in the loaded detailed field record" },
 ];
 type AnyMode = Mode | "change";
 /* Four modes answer most visits; the rest sit behind "More" so the bar
@@ -1000,7 +1000,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     );
     if (mode === "animals") return (
       <ul className="sm-key">
-        <li><i className="sm-dot is-ink" />One animal on record</li><li><i className="sm-dot is-help" />Injured or needs help</li><li><i className="sm-dot is-res" />Reported by a resident</li>
+        <li><i className="sm-dot is-ink" />Individual record loaded</li><li><i className="sm-dot is-help" />Injured or needs help</li><li><i className="sm-dot is-res" />Reported by a resident</li>
         {feeding.length > 0 && <li><i className="sm-dot is-feed" />Feeding point</li>}
       </ul>
     );
@@ -1093,7 +1093,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
           <h2>{mode === "cases" ? lensDef.q : def.q}</h2>
           <details className="sm-q-details">
             <summary>How to read this view</summary>
-            <div>{legend}<p className="sm-note">Recorded animals and work, not a population estimate.</p></div>
+            <div>{legend}<p className="sm-note">{unfiltered ? "Current cell totals use the full register. Individual dots remain bounded detail for performance." : "Filtered and historical views use bounded detailed records and never replace the current citywide totals."} Recorded animals and work, not a population estimate.</p></div>
           </details>
         </div>
       </div>
