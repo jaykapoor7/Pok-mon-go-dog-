@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
+import { allowRequest, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ function esc(s: string) {
 }
 
 export async function POST(req: Request) {
+  if (!(await allowRequest(clientIp(req), "contact", 5, 600))) return NextResponse.json({ error: "Please wait a few minutes before sending another message." }, { status: 429 });
   let body: { name?: string; email?: string; subject?: string; message?: string };
   try {
     body = await req.json();
@@ -39,5 +41,6 @@ export async function POST(req: Request) {
     text,
   });
 
-  return NextResponse.json({ ok: true, delivered });
+  if (!delivered) return NextResponse.json({ error: "Message delivery is temporarily unavailable. Please try again shortly.", delivered: false }, { status: 503 });
+  return NextResponse.json({ ok: true, delivered: true });
 }

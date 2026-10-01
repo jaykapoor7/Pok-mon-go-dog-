@@ -184,7 +184,7 @@ export function DeskMock({ city, desk }: { city: string; desk: Desk }) {
           <span className="sys-mono">{shortDate(feed[feed.length - 1].date)}</span>
         </div>
       )}
-      <figcaption className="ld-desk-replay">Replaying the latest {feed.length} events on the public record, each on its own date. The figures are today&apos;s.</figcaption>
+      <figcaption className="ld-desk-replay">{feed.length ? `Replaying ${feed.length} recorded events, each on its own date.` : "A view of recorded open work."} Queue and waiting figures describe the recent case sample.</figcaption>
     </figure>
   );
 }

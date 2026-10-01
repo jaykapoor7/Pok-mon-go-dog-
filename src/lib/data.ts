@@ -184,7 +184,7 @@ export async function getShowcaseDogs(limit = 10): Promise<Dog[]> {
 export async function getDogById(id: string): Promise<Dog | null> {
   const supa = getSupabase();
   if (supa) {
-    const { data, error } = await supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).eq("id", id).single();
+    const { data, error } = await supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).eq("id", id).maybeSingle();
     if (error) throw error;
     return data ? mapDog(data) : null;
   }

@@ -70,6 +70,7 @@ export function OpsRoom() {
   const [today, setToday] = useState("");
   const [cell, setCell] = useState<string | null>(null);
   const [hot, setHot] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [queueRows, setQueueRows] = useState(8);
 
   useEffect(() => { setToday(new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })); }, []);
@@ -83,10 +84,10 @@ export function OpsRoom() {
     if (!ready || !accessReady) return;
     /* Signed out, or not yet a member, is a real state: the empty workspace. */
     if (!isMember) { setOpen([]); setDue([]); setChanges([]); setCounts(null); setOpenCells([]); setOrg(null); return; }
-    let live = true;
-    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null), opsCounts().catch(() => null), orgOpenWorkCells().catch(() => [])])
+    let live = true; setLoadError(false);
+    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null), opsCounts(), orgOpenWorkCells().catch(() => [])])
       .then(([o, d, ch, g, c, cells]) => { if (!live) return; setOpen(o); setDue(d); setChanges(ch); setOrg(g); setCounts(c); setOpenCells(cells); })
-      .catch(() => { if (live) { setOpen([]); setDue([]); setChanges([]); setCounts(null); setOpenCells([]); } });
+      .catch(() => { if (live) { setLoadError(true); setOpen([]); setDue([]); setChanges([]); setCounts(null); setOpenCells([]); } });
     return () => { live = false; };
   }, [ready, accessReady, isMember]);
 
@@ -168,7 +169,7 @@ export function OpsRoom() {
       <p className="ops-reading">FIELD WORKSPACE <span>·</span> Live cases, overdue follow-ups and your organisation&rsquo;s own records</p>
 
       {isMember && !blank && <nav className="ops-pulse" aria-label="Current workload">
-        <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(counts?.liveWork ?? s.liveWork.length)}</b><small>{(counts?.critical ?? s.crit.length) ? `${num(counts?.critical ?? s.crit.length)} critical cases` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
+        <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(counts?.liveWork ?? s.liveWork.length)}</b><small>{(counts?.critical ?? s.crit.length) ? `${num(counts?.critical ?? s.crit.length)} critical case${(counts?.critical ?? s.crit.length) === 1 ? "" : "s"}` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
         <Link href="/partner/records?view=overdue" className={(counts?.overdue ?? s.overdue.length) ? "is-hot" : ""}><span>02 / FOLLOW-UPS</span><b>{num(counts?.overdue ?? s.overdue.length)}</b><small>past their due date</small><ArrowUpRight size={17} aria-hidden /></Link>
         <Link href="/partner/review"><span>03 / TO REVIEW</span><b>{num(counts?.stale ?? s.stale.length)}</b><small>older open cases</small><ArrowUpRight size={17} aria-hidden /></Link>
       </nav>}
@@ -216,7 +217,7 @@ export function OpsRoom() {
                   );
                 })}
               </ol>}
-          {shown.length > queueRows && <Link href="/partner/records?view=rescue" className="ops-more">{num(shown.length - queueRows)} more live <ArrowUpRight size={13} /></Link>}
+          {shown.length > queueRows && <Link href="/partner/records?view=rescue" className="ops-more">{num(shown.length - queueRows)} more queue entries <ArrowUpRight size={13} /></Link>}
         </div>
 
         <div className="pr-geo ops-geo">

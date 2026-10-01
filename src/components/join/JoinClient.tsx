@@ -112,7 +112,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
       }
 
       setStep(data.kind === "personal" ? "Opening your space" : `Opening ${data.orgName}`);
-      await fetch("/api/join", {
+      const claim = await fetch("/api/join", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,12 +121,17 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         body: JSON.stringify({ code: entered, action: "claim" }),
       });
 
+      if (!claim.ok) {
+        const failure = await claim.json().catch(() => null);
+        throw new Error(failure?.error ?? "Your sign-in completed, but access could not be confirmed. Try again.");
+      }
+
       if (data.kind === "personal") storeRole(data.role as Role);
       setWelcome(data.kind === "personal" ? `Welcome, ${data.name.split(" ")[0]}.` : data.name ? `Welcome, ${data.name.split(" ")[0]}. Opening ${data.orgName}.` : `Opening ${data.orgName}.`);
       router.push(destination);
       router.refresh();
-    } catch {
-      setError("Could not reach StrayPaw. Check your connection and try again.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not reach StrayPaw. Check your connection and try again.");
     } finally {
       setBusy(false);
       setStep(null);
@@ -163,7 +168,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
             disabled={busy}
             required
           />
-          <label htmlFor="join-code" className="join-label">
+          <label htmlFor="join-code" className="join-label join-label-spaced">
             Your six-character code
           </label>
           <input
@@ -177,6 +182,8 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
             autoCapitalize="characters"
             autoComplete="one-time-code"
             spellCheck={false}
+            required
+            aria-invalid={Boolean(error)}
             maxLength={8}
             disabled={busy}
             aria-describedby={error ? "join-error" : undefined}
@@ -200,7 +207,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
             {error}
           </p>
         )}
-        {welcome && <p className="join-welcome">{welcome}</p>}
+        {welcome && <p role="status" className="join-welcome">{welcome}</p>}
 
         <p className="join-foot">
           No code? Community members and feeders can <a href="/access">have one emailed to them</a>. If your organisation already uses StrayPaw, ask your team lead for one. Anyone can report a street animal without a code at{" "}

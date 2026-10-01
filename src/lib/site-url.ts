@@ -23,7 +23,8 @@ function clean(value: string | undefined) {
   return /^https?:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 
-export const SITE_URL =
-  clean(process.env.NEXT_PUBLIC_SITE_URL) ??
-  clean(process.env.VERCEL_PROJECT_PRODUCTION_URL) ??
-  "https://straypaw.org";
+const configured = clean(process.env.NEXT_PUBLIC_SITE_URL) ?? clean(process.env.VERCEL_PROJECT_PRODUCTION_URL);
+// Production serves www; preview builds must point crawlers at that same host.
+export const SITE_URL = !configured || (new URL(configured).hostname === "straypaw.org" || new URL(configured).hostname.endsWith(".vercel.app"))
+  ? "https://www.straypaw.org"
+  : configured;

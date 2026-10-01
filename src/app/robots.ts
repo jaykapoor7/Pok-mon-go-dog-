@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Operator/private surfaces stay out of search.
-      disallow: ["/admin", "/moderate", "/account", "/api/"],
+      disallow: ["/admin", "/moderate", "/account", "/api/", "/partner/", "/partner", "/join", "/access", "/reset-password", "/following", "/app", "/feeder", "/demo", "/learn"],
     },
     sitemap: `${SITE}/sitemap.xml`,
   };

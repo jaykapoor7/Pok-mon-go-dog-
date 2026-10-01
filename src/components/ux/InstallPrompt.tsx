@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Download, Share, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const DISMISS_KEY = "straypaw-install-dismissed";
 
@@ -17,9 +18,16 @@ type BeforeInstallPromptEvent = Event & {
  * Hidden once installed (display-mode: standalone) or after the user dismisses it.
  */
 export function InstallPrompt() {
+  const pathname = usePathname();
+  const [noticeSeen, setNoticeSeen] = useState(false);
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
   const [iosHint, setIosHint] = useState(false);
+  useEffect(() => {
+    const update = () => { try { setNoticeSeen(localStorage.getItem("straypaw.notice.storage.v1") === "1"); } catch { setNoticeSeen(false); } };
+    update(); window.addEventListener("straypaw:storage-notice-dismissed", update);
+    return () => window.removeEventListener("straypaw:storage-notice-dismissed", update);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -74,7 +82,7 @@ export function InstallPrompt() {
     dismiss();
   }
 
-  if (!show) return null;
+  if (!show || !noticeSeen || !["/app", "/feeder", "/following", "/learn"].includes(pathname)) return null;
 
   return (
     <div className="fixed inset-x-3 bottom-[5.5rem] z-[55] mx-auto max-w-md lg:bottom-6 lg:left-64 lg:right-auto lg:mx-0">
@@ -101,7 +109,7 @@ export function InstallPrompt() {
         <button
           onClick={dismiss}
           aria-label="Dismiss"
-          className="shrink-0 rounded-full p-1.5 text-bark-400 hover:bg-black/[0.05] dark:hover:bg-white/10"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-bark-500 hover:bg-black/[0.05] dark:hover:bg-white/10"
         >
           <X className="h-4 w-4" />
         </button>

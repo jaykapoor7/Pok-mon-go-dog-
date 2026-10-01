@@ -57,6 +57,7 @@ export type LandingStory = {
     queue: { condition: string; locality: string; days: number; critical: boolean; overdue: boolean }[];
     cells: { key: string; ring: number[]; open: number }[];
     box: [number, number, number, number];
+    feed: { kind: "report" | "action" | "closed"; date: string; condition: string; locality: string; cell: string; critical: boolean }[];
   };
   relay: { date: string; condition: string; locality: string; cell: string; critical: boolean; straypawId: string; animalId: string; photo: string | null } | null;
 };
@@ -118,7 +119,16 @@ async function buildStory(): Promise<LandingStory | null> {
      by city can never return a row and still makes PostgREST scan the view.
      Journey care is fetched later by the shortlisted dog ids, where it is
      useful and indexed. */
-  const care: CareFact[] = [];
+  // The recovery's care projection intentionally has null city/H3 columns.
+  // Read only linked dogs in this sample, then reuse their case-cell geometry.
+  const placeByDog = new Map(cases.filter((c) => c.dog_id && c.h3_r8).map((c) => [c.dog_id!, c.h3_r8!]));
+  const heroDogIds = [...placeByDog.keys()].slice(0, 80);
+  const { data: recentCare, error: careError } = heroDogIds.length ? await supa.from("public_care_facts")
+    .select("dog_id,kind,event_date").in("dog_id", heroDogIds)
+    .order("event_date", { ascending: false }).limit(LANDING_LIMITS.joinedCare)
+    : { data: [], error: null };
+  if (careError) throw careError;
+  const care = (recentCare ?? []).map((k: any) => ({ ...k, h3_r8: placeByDog.get(k.dog_id) ?? null })) as CareFact[];
   const today = dayOf(new Date().toISOString());
 
   /* hero: the sample city filling in, one record at a time. */
@@ -209,6 +219,14 @@ async function buildStory(): Promise<LandingStory | null> {
   const openByCell = new Map<string, number>();
   for (const c of live) if (c.h3_r8) openByCell.set(c.h3_r8, (openByCell.get(c.h3_r8) ?? 0) + 1);
   const desk = {
+    feed: cases.flatMap((c) => {
+      if (!c.h3_r8 || !idx.has(c.h3_r8) || dayOf(c.occurred_at) < 0) return [];
+      const base = { condition: c.condition_class ?? "Not recorded", locality: cleanPlace(c.zone) || sample.city, cell: c.h3_r8, critical: crit(c) };
+      const feed: LandingStory["desk"]["feed"] = [{ ...base, kind: "report", date: isoOf(dayOf(c.occurred_at)) }];
+      if (c.first_action_days != null && c.first_action_days >= 0) feed.push({ ...base, kind: "action", date: isoOf(dayOf(c.occurred_at) + c.first_action_days) });
+      if (c.resolved_at && c.resolved_at_source !== "assumed" && dayOf(c.resolved_at) <= today) feed.push({ ...base, kind: "closed", date: isoOf(dayOf(c.resolved_at)) });
+      return feed;
+    }).filter((e) => dayOf(e.date) <= today).sort((a, b) => a.date.localeCompare(b.date)).slice(-24),
     live: live.length,
     critical: live.filter(crit).length,
     older: openCases.length - live.length,
@@ -267,7 +285,7 @@ async function resolveRelay(
    into the compact story the landing draws. */
 export const getLandingStory = unstable_cache(
   async (): Promise<LandingStory | null> => buildStory(),
-  ["landing-story-bounded-v3"],
+  ["landing-story-bounded-v4"],
   { revalidate: 600 },
 );
 

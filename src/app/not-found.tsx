@@ -2,12 +2,12 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, MapPin, PawPrint } from "lucide-react";
 import "@/components/site/site.css";
 
-export const metadata = { title: "Not found, StrayPaw" };
+export const metadata = { title: "Not found, StrayPaw", robots: { index: false, follow: false } };
 
 export default function NotFound() {
   return (
     <div className="sp min-h-screen bg-[#f4f5f7] text-[#0b1020]">
-      <div data-not-found-recovery className="mx-auto flex min-h-[72vh] max-w-7xl items-center px-5 py-12 sm:px-8 lg:px-12">
+      <div data-not-found-recovery className="mx-auto flex min-h-[72vh] max-w-6xl items-center px-5 py-12 sm:px-8 lg:px-12">
         <section className="grid w-full gap-10 border-y border-[#0b1020]/10 py-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:py-16">
           <div>
             <p className="sp-kicker"><span>404</span> · Record not found</p>
@@ -17,7 +17,7 @@ export default function NotFound() {
           </div>
 
           <div>
-            <h1 className="max-w-3xl text-[clamp(3rem,8vw,6.8rem)] font-semibold leading-[0.9] tracking-[-0.065em]">
+            <h1 className="max-w-3xl text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.05] tracking-[-0.045em]">
               This trail ends here.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-[#0b1020]/60">

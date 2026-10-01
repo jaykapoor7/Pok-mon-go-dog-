@@ -27,10 +27,10 @@ export default async function OrgsPage() {
   const [dir, campaigns, impacts] = await Promise.all([
     getPartnerDirectory(),
     getPublicProgrammes(60).catch(() => []),
-    getPublicOrgDirectoryImpacts().catch(() => new Map()),
+    getPublicOrgDirectoryImpacts().catch(() => null),
   ]);
   const rows = dir.map((o) => {
-    const impact = impacts.get(o.id);
+    const impact = impacts?.get(o.id);
     return { o, animals: impact?.animalsRecorded ?? 0, cases: impact?.caseRecords ?? 0 };
   });
   // Partners first (field partners, then the other partner NGOs), then record contributors.
@@ -58,7 +58,7 @@ export default async function OrgsPage() {
                 </span>
                 <span className={`pp-tag ${o.kind === "Field partner" || o.kind === "Partner NGO" ? "is-partner" : ""}`}>{o.kind}</span>
                 <span className="pp-dir-n sys-mono">
-                  {animals ? `${fmt(animals)} animal${animals === 1 ? "" : "s"}` : cases ? `${fmt(cases)} request${cases === 1 ? "" : "s"}` : null}
+                  {animals ? `${fmt(animals)} dog${animals === 1 ? "" : "s"}` : cases ? `${fmt(cases)} request${cases === 1 ? "" : "s"}` : impacts === null ? "Counts unavailable" : "No published records"}
                 </span>
                 <ArrowUpRight size={16} aria-hidden className="pp-dir-go" />
               </Link>

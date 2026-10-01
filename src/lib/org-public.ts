@@ -107,16 +107,16 @@ async function readPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
   };
   if (admin) {
     const [animals, sterilised, vaccinated, caseRecords, activeCases, resolvedCases] = await Promise.all([
-      admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
-      admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
+      admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("is_demo", false),
+      admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("is_demo", false)
         .or("sterilisation_status.eq.sterilised,and(sterilisation_status.is.null,sterilised.eq.true)"),
-      admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)
+      admin.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("is_demo", false)
         .or("vaccination_status.eq.vaccinated,and(vaccination_status.is.null,vaccinated.eq.true)"),
-      admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
+      admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("is_demo", false),
       /* status_class is the case's actual state; the workflow status of an
          imported case can disagree with it. */
-      admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).in("status_class", ["open", "in_progress"]),
-      admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("status_class", "closed"),
+      admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("is_demo", false).in("status_class", ["open", "in_progress"]),
+      admin.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId).eq("is_demo", false).eq("status_class", "closed"),
     ]);
     if (![animals, sterilised, vaccinated, caseRecords, activeCases, resolvedCases].some((result) => result.error)) {
       return {
@@ -163,10 +163,10 @@ export function getPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
 
 export async function getPublicOrgDirectoryImpacts(): Promise<Map<string, OrgImpact>> {
   const admin = getSupabaseAdmin();
-  if (!admin) return new Map();
+  if (!admin) throw new Error("Organisation counts are unavailable.");
   const read = unstable_cache(async () => {
     const { data, error } = await admin.rpc("list_public_org_impacts");
-    if (error || !Array.isArray(data)) return [] as any[];
+    if (error || !Array.isArray(data)) throw new Error("Organisation counts could not be loaded.");
     return data as any[];
   }, ["public-org-directory-impacts-v1"], { revalidate: 300 });
   const rows = await read();

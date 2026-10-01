@@ -121,7 +121,15 @@ export async function underlay(map: MLMap, p: Palette, beforeId?: string) {
   for (const [id, src] of Object.entries(style.sources)) if (!map.getSource(id)) { try { map.addSource(id, src as never); } catch { /* ok */ } }
   for (const layer of style.layers) {
     if (layer.type === "background" || map.getLayer(layer.id)) continue;
-    try { map.addLayer(layer as never, before && map.getLayer(before) ? before : undefined); } catch { /* a layer this build cannot draw */ }
+    // Only text labels are used; importing icon-image references without the
+    // upstream sprite causes warnings and missing icons on every map.
+    const textLayer = { ...layer } as typeof layer & { layout?: Record<string, unknown> };
+    if (layer.type === "symbol") {
+      textLayer.layout = { ...textLayer.layout };
+      delete textLayer.layout["icon-image"];
+      if (!textLayer.layout["text-field"]) continue;
+    }
+    try { map.addLayer(textLayer as never, before && map.getLayer(before) ? before : undefined); } catch { /* a layer this build cannot draw */ }
   }
   restyle(map, p);
   return true;

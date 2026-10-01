@@ -53,13 +53,15 @@ export async function opsCounts(): Promise<OpsCounts | null> {
   const thirty = new Date(now - 30 * DAY).toISOString();
   const nowIso = new Date(now).toISOString();
   const criticalConditions = ["Road accident", "Maggot wound", "Human abuse", "Dog bite", "Entrapment", "Suspected rabies"];
-  const [openRes, staleRes, overdueRes, criticalRes] = await Promise.all([
+  const [openRes, staleRes, overdueRes, criticalRes, staleCriticalRes] = await Promise.all([
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]),
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).lt("occurred_at", ninety).or(`last_activity_at.is.null,last_activity_at.lt.${thirty}`),
     supa.from("animal_followups").select("id", { count: "exact", head: true }).eq("status", "upcoming").lt("due_at", nowIso),
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).in("condition_class", criticalConditions),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).in("condition_class", criticalConditions).lt("occurred_at", ninety).or(`last_activity_at.is.null,last_activity_at.lt.${thirty}`),
   ]);
-  const open = openRes.count ?? 0, stale = staleRes.count ?? 0, overdue = overdueRes.count ?? 0, critical = criticalRes.count ?? 0;
+  if ([openRes, staleRes, overdueRes, criticalRes, staleCriticalRes].some((r) => r.error)) throw new Error("Organisation workload counts could not be read.");
+  const open = openRes.count ?? 0, stale = staleRes.count ?? 0, overdue = overdueRes.count ?? 0, critical = Math.max(0, (criticalRes.count ?? 0) - (staleCriticalRes.count ?? 0));
   return { open, stale, overdue, critical, liveWork: Math.max(0, open - stale) };
 }
 

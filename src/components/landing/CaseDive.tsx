@@ -209,10 +209,11 @@ export function CaseDive({ j, city, box, rings, events, note }: {
     import("maplibre-gl").then((ml) => {
       if (dead || !mapEl.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
-      map = new ml.Map({
+      try { map = new ml.Map({
         container: mapEl.current, style: groundStyle(NIGHT), bounds: box, interactive: false, fadeDuration: 0,
         attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap" },
       });
+      } catch { frame(); return; }
       map.on("load", () => {
         const m = map!;
         m.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
@@ -230,7 +231,8 @@ export function CaseDive({ j, city, box, rings, events, note }: {
         underlay(m, NIGHT, "halo").catch(() => {});
         frame();
       });
-    });
+    }).catch(() => frame());
+    on();
     window.addEventListener("scroll", on, { passive: true });
     window.addEventListener("resize", on);
     return () => { dead = true; window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); map?.remove(); };

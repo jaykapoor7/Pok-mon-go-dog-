@@ -59,6 +59,7 @@ export function StorageNotice() {
       /* Dismissal simply will not persist; the notice is not blocking. */
     }
     setShow(false);
+    window.dispatchEvent(new Event("straypaw:storage-notice-dismissed"));
   };
 
   if (!show || reporting) return null;

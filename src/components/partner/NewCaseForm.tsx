@@ -81,6 +81,14 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
     if (mode === "new" && !photo) { setError("A photo is required to create a new animal profile."); return; }
     setBusy(true); setError(null);
     try {
+      const amount = (value: string, label: string) => {
+        if (!value.trim()) return null;
+        const parsed = Number(value.replace(/,/g, ""));
+        if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`${label} must be a valid non-negative amount.`);
+        return parsed;
+      };
+      const estimatedCost = amount(costEstimate, "Estimated treatment cost");
+      const spentCost = amount(costSpent, "Amount spent");
       let linkedDogId = mode === "existing" ? dogId : null;
       /* The case carries the incident's own locality. If the worker typed one
          for this report, that wins — a new incident can be somewhere other than
@@ -90,26 +98,21 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
 
       if (mode === "new") {
         const newId = await createAnimal({ name: name.trim() || undefined, species, zone: zone.trim() || undefined, coverPhoto: photo });
-        if (newId && newId !== "demo-animal") linkedDogId = newId;
+        if (!newId || newId === "demo-animal") throw new Error("The dog profile could not be created. Your case has not been submitted.");
+        linkedDogId = newId;
       }
 
-      const amount = (value: string, label: string) => {
-        if (!value.trim()) return null;
-        const parsed = Number(value.replace(/,/g, ""));
-        if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`${label} must be a valid non-negative amount.`);
-        return parsed;
-      };
       const id = await createCase(
         {
           title: title.trim(), description: description.trim(), dogId: linkedDogId, zone: linkedZone, severity, category, species,
           informerContact, hospital,
-          costEstimate: amount(costEstimate, "Estimated treatment cost"),
-          costSpent: amount(costSpent, "Amount spent"),
+          costEstimate: estimatedCost,
+          costSpent: spentCost,
         },
         { id: user.id, name: user.name }
       );
       if (id && id !== "demo-case") router.push(`/partner/cases/${id}`);
-      else router.push("/partner/cases");
+      else throw new Error("The case could not be saved. Please try again.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create the case.");
     } finally { setBusy(false); }
@@ -139,11 +142,11 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
             <div className="flex items-center gap-3 rounded-md border border-paw-200 bg-paw-50 p-2.5 dark:border-paw-500/30 dark:bg-paw-900/20">
               <DogPhoto src={selectedDog.cover_photo} alt="" seed={selectedDog.id} className="h-12 w-12 rounded-md" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{dogLabel(selectedDog)}</p><p className="truncate text-xs text-bark-400">{selectedDog.zone}</p></div>
-              <button onClick={() => setDogId(null)} className="text-bark-400 hover:text-status-injured"><X className="h-4 w-4" /></button>
+              <button aria-label="Clear selected dog" onClick={() => setDogId(null)} className="text-bark-400 hover:text-status-injured"><X className="h-4 w-4" /></button>
             </div>
           ) : (
             <div>
-              <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search animals by name, ID or area" className={cn(INPUT, "pl-9")} /></div>
+              <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" /><input aria-label="Search dogs" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search animals by name, ID or area" className={cn(INPUT, "pl-9")} /></div>
               <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
                 {matches.length === 0 ? <p className="py-4 text-center text-[13px] text-bark-400">No matches. Add a new animal instead.</p> : matches.map((d) => (
                   <button key={d.id} onClick={() => setDogId(d.id)} className="flex w-full items-center gap-3 rounded-md p-2 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
@@ -158,7 +161,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
           <div className="space-y-3">
             {/* StrayPaw is a dog-only platform, so a new animal is always a dog;
                 no species picker is offered. */}
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
+            <input aria-label="Dog name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
             <div className="flex items-center gap-3">
               <button onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 rounded-md border border-black/[0.1] px-3 py-2 text-[13px] font-medium text-bark-600 dark:border-white/[0.12] dark:text-bark-200">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : photo ? <Check className="h-4 w-4 text-status-vaccinated" /> : <Camera className="h-4 w-4" />} {photo ? "Photo added" : "Add photo *"}
@@ -173,9 +176,9 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
 
       {/* case fields */}
       <div className="mt-4 space-y-4 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Case title, e.g. Hind-leg injury" className={INPUT} />
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's going on? Condition, symptoms, context." className={cn(INPUT, "min-h-[80px] resize-y")} />
-        <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Area / locality" className={INPUT} />
+        <input aria-label="Case title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Case title, e.g. Hind-leg injury" className={INPUT} />
+        <textarea aria-label="Case description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's going on? Condition, symptoms, context." className={cn(INPUT, "min-h-[80px] resize-y")} />
+        <input aria-label="Incident locality" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Area / locality" className={INPUT} />
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Informer / reporter contact
             <input value={informerContact} onChange={(e) => setInformerContact(e.target.value)} placeholder="Phone, WhatsApp or email (private)" className={cn(INPUT, "mt-1.5")} />

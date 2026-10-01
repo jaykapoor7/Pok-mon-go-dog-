@@ -1,20 +1,27 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { cache } from "react";
 import { PageView } from "@/components/analytics/PageView";
 import { LivingRecord } from "@/components/animal/LivingRecord";
 import { buildLiving } from "@/lib/animal/living";
-import { getDogProfile } from "@/lib/data";
+import { getDogProfile, getDogById } from "@/lib/data";
 import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
 import { getPublicAnimalIdentity } from "@/lib/animal-identity";
 import { dogLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+const readIdentity = cache(getDogById);
+const validId = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!validId(id)) notFound();
+  const dog = await readIdentity(id).catch(() => undefined);
+  if (dog === null) notFound();
+  const name = dog ? dogLabel(dog) : "Dog record";
   return {
-    title: "Animal record, StrayPaw",
-    description: "A StrayPaw animal record: care, follow-ups and outcome in one longitudinal history.",
+    title: `${name}, StrayPaw`,
+    description: `Recorded sightings, care, follow-ups and documented outcomes for ${name}${dog?.city ? ` in ${dog.city}` : ""}.`,
     alternates: { canonical: `/dog/${id}` },
     openGraph: { title: "Animal record, StrayPaw", type: "article", url: `/dog/${id}` },
   };
@@ -80,7 +87,7 @@ async function DogProfileContent({ id }: { id: string }) {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
       <LivingRecord r={record} scope="public" />
@@ -91,5 +98,11 @@ async function DogProfileContent({ id }: { id: string }) {
 
 export default async function DogProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!validId(id)) notFound();
+  // Resolve existence before streaming a 200 response. A missing record is
+  // a real 404; an unavailable database remains a separate recovery state.
+  const dog = await readIdentity(id).catch(() => undefined);
+  if (dog === null) notFound();
+  if (dog === undefined) return <ProfileShell unavailable id={id} />;
   return <Suspense fallback={<ProfileShell />}><DogProfileContent id={id} /></Suspense>;
 }

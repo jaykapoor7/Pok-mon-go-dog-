@@ -84,8 +84,8 @@ async function placesOf(ids: string[]) {
 
 async function StoriesData({ before, city }: { before: { occurredAt: string; id: string } | null; city: string | null }) {
   const [page, totalForScope, cityIndex] = await Promise.all([
-    getPublishedCaseStoriesPage({ limit: 48, before, city }),
-    countPublicCaseStories(city),
+    getPublishedCaseStoriesPage({ limit: 48, before, city }).catch(() => ({ rows: [], care: [], next: null, error: "Public records temporarily unavailable" })),
+    countPublicCaseStories(city).catch(() => null),
     getPublicSpatialCities(40).catch(() => []),
   ]);
   /* Cities people can scope to: those with field work, most first. */
@@ -113,9 +113,9 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
           <h1>Animal records{city ? <> in <em>{city}</em></> : <>, <em>followed through care.</em></>}</h1>
           {stories.length > 0 && (
             <p className="st-lede">
-              <b>{totalForScope.toLocaleString("en-IN")}</b> public animal records{city ? <> in {city}</> : cityCount > 1 ? <> across the atlas</> : null}
+              {totalForScope !== null ? <><b>{totalForScope.toLocaleString("en-IN")}</b> public animal records</> : <>Public animal records</>}{city ? <> in {city}</> : cityCount > 1 ? <> across the atlas</> : null}
               {paged ? <> · showing {stories.length} here</> : null}. Care, discharge and outcomes appear only where the source actually records them
-              {median != null ? <>. Among records with a recorded ending, the median span is <b>{span(median)}</b></> : null}.
+              {median != null ? <>. Among the records shown here with a recorded ending, the median span is <b>{span(median)}</b></> : null}.
             </p>
           )}
           {cityChips.length > 0 && (
@@ -142,7 +142,8 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
 
 export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ beforeAt?: string; beforeId?: string; city?: string }> }) {
   const params = await searchParams;
-  const before = params.beforeAt && params.beforeId ? { occurredAt: params.beforeAt, id: params.beforeId } : null;
-  const city = params.city?.trim() || null;
+  const before = params.beforeAt && params.beforeId && Number.isFinite(Date.parse(params.beforeAt)) && /^[0-9a-f-]{36}$/i.test(params.beforeId) ? { occurredAt: new Date(params.beforeAt).toISOString(), id: params.beforeId } : null;
+  const rawCity = params.city?.trim().slice(0, 100) || null;
+  const city = rawCity === "New Delhi" ? "Delhi" : rawCity === "Secunderabad" ? "Hyderabad" : rawCity;
   return <AppShell><Suspense fallback={<main className="st"><header className="st-head"><h1>Animal records, <em>followed through care.</em></h1><p className="st-lede">Loading the latest bounded public records…</p><Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link></header></main>}><StoriesData before={before} city={city} /></Suspense></AppShell>;
 }

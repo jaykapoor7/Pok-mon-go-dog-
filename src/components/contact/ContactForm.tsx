@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Send, CheckCircle2, Mail } from "lucide-react";
-
-const INBOX = "jaykapoor7@outlook.com";
+import { Loader2, Send, CheckCircle2 } from "lucide-react";
 
 export function ContactForm() {
   const [name, setName] = useState("");
@@ -24,11 +22,6 @@ export function ContactForm() {
     if (s) setSubject(s.slice(0, 120));
   }, []);
 
-  const mailtoHref = () => {
-    const body = `${message}\n\n- ${name} (${email})`;
-    return `mailto:${INBOX}?subject=${encodeURIComponent(subject || "Hello StrayPaw")}&body=${encodeURIComponent(body)}`;
-  };
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -45,14 +38,8 @@ export function ContactForm() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Could not send. Try again.");
-      if (j.delivered) {
-        setDone(true);
-      } else {
-        // Email backend not configured, hand off to the user's mail app so the
-        // message is never lost.
-        window.location.href = mailtoHref();
-        setDone(true);
-      }
+      if (!j.delivered) throw new Error("Message delivery is temporarily unavailable. Your message is still here; please try again shortly.");
+      setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send. Try again.");
     } finally {
@@ -104,9 +91,6 @@ export function ContactForm() {
         <button type="submit" disabled={busy}>
           {busy ? <Loader2 className="animate-spin" /> : <Send />} Send message
         </button>
-        <a href={`mailto:${INBOX}`}>
-          <Mail /> Email directly
-        </a>
       </div>
     </form>
   );

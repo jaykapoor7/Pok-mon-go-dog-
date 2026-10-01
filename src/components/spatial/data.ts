@@ -14,7 +14,7 @@ export type Scope = "public" | "org";
 type City = { city: string; state: string | null; animals: number; cases: number; cells: number; latest_seen: string | null; needs_help?: number; sterilised?: number; vaccinated?: number; open_cases?: number; care_events?: number };
 type State = { ds: SpatialDataset | null; error: string | null; loading: boolean; city: string | null; cities: City[] };
 
-const cache = new Map<string, Promise<{ ds: SpatialDataset; city: string; cities: City[] }>>();
+const cache = new Map<string, { at: number; value: Promise<{ ds: SpatialDataset; city: string; cities: City[] }> }>();
 
 const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -70,10 +70,13 @@ export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled
     if (!enabled) { setS({ ds: null, error: null, loading: false, city: null, cities: [] }); return; }
     let live = true;
     const key = `${scope}:${userKey ?? ""}:${requestedCity ?? ""}`;
-    if (!cache.has(key)) cache.set(key, load(scope, requestedCity));
-    cache.get(key)!
+    setS((prev) => ({ ...prev, ds: null, city: null, error: null, loading: true }));
+    if (scope === "org" || !cache.has(key) || Date.now() - cache.get(key)!.at > 60_000) {
+      cache.set(key, { at: Date.now(), value: load(scope, requestedCity) });
+    }
+    cache.get(key)!.value
       .then((result) => { if (live) setS({ ...result, error: null, loading: false }); })
-      .catch((e: Error) => { cache.delete(key); if (live) setS((prev) => ({ ...prev, error: prev.ds ? null : e.message, loading: false })); });
+      .catch((e: Error) => { cache.delete(key); if (live) setS((prev) => ({ ...prev, ds: null, city: null, error: e.message, loading: false })); });
     return () => { live = false; };
   }, [scope, userKey, enabled, requestedCity]);
   const ix: Index | null = useMemo(() => (s.ds ? buildIndex(s.ds) : null), [s.ds]);

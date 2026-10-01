@@ -11,7 +11,7 @@ import "@/components/site/site.css";
 import "@/components/company/company.css";
 import "./cities.css";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 export const metadata = {
   title: "For municipalities, StrayPaw",
   description: "Coverage a municipality can audit: which localities and wards are recorded and which are not, animal to locality to ward to city, with ABC, ARV, census and programme records, and existing municipal and NGO data imported with its source.",
@@ -56,7 +56,7 @@ export default async function ForGovernmentsPage() {
     programmeCounts().catch(() => ({ programmes: 0, areaFacts: 0, municipal: [] as string[] })),
   ]);
 
-  const city = cities[0] ?? null;
+  const city = [...cities].sort((a, b) => b.cells - a.cells)[0] ?? null;
   const cells = city ? await getPublicSpatialCityCells(city.city).catch(() => []) : [];
   const byCov = new Map<string, number>();
   for (const cell of cells) { const c = coverage(cell); byCov.set(c, (byCov.get(c) ?? 0) + 1); }
@@ -112,7 +112,7 @@ export default async function ForGovernmentsPage() {
                   <li key={c}>
                     <i className={`gv-sw is-${c}`} aria-hidden />
                     <span><b>{c === "strong" ? "Strong record" : c === "partial" ? "Partial record" : c === "weak" ? "Thin record" : "Small record"}</b><small>Based on the number of animals recorded in this cell.</small></span>
-                    <strong>{fmt(byCov.get(c) ?? 0)}<small>cells</small></strong>
+                    <strong>{fmt(byCov.get(c) ?? 0)}<small>{(byCov.get(c) ?? 0) === 1 ? "cell" : "cells"}</small></strong>
                   </li>
                 ))}
               </ol>
@@ -168,7 +168,7 @@ export default async function ForGovernmentsPage() {
           <div className="co-sec-in">
             <header className="co-sec-head">
               <h2 id="gv-prog">ABC, ARV, census <em>and programme records.</em></h2>
-              <p>The records a municipal programme is judged on, held in one place and counted across the register.</p>
+              <p>{city ? `Sterilisation and vaccination figures are for ${city.city}. Area facts and published programmes are counted across the public register.` : "Published area facts and programmes across the public register."}</p>
             </header>
             <dl className="gv-figs">
               <div><dt>Sterilisations (ABC) on record</dt><dd>{fmt(abc)}</dd></div>

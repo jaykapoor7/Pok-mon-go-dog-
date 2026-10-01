@@ -19,6 +19,7 @@ import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "mapli
 import { PLATE, groundStyle, underlay } from "@/components/map/basemap";
 import { EPOCH_MS } from "@/lib/spatial/types";
 import { pointInCell } from "@/components/spatial/data";
+import { projector } from "@/components/system/HexPlate";
 
 const DURATION = 9000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -57,14 +58,14 @@ export function HeroPlate({ city, box, rings, events }: Props) {
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
-      map = new ml.Map({
+      try { map = new ml.Map({
         container: el.current,
         style: groundStyle(PLATE),
         bounds: box,
         interactive: false,
         attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · H3" },
         fadeDuration: 0,
-      });
+      }); } catch { return; }
       const fit = () => {
         if (!map) return;
         const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
@@ -176,7 +177,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
         io.observe(m.getContainer());
         underlay(m, PLATE, "glow").catch(() => {});
       });
-    });
+    }).catch(() => {});
     return () => { dead = true; stopAll(); cancelAnimationFrame(raf); io?.disconnect(); map?.remove(); };
     // The plate is built once per page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,10 +185,27 @@ export function HeroPlate({ city, box, rings, events }: Props) {
 
   return (
     <>
+      {!ready && <div className="ld-plate is-ready ld-plate-fallback" aria-hidden>
+        <svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+          {rings.map((ring, i) => {
+            const p = projector(box, 1000, 700, 50).p;
+            const d = ring.reduce((s, v, k) => k % 2 ? s : `${s}${k ? "L" : "M"}${p(v, ring[k + 1]).join(" ")}`, "") + "Z";
+            return <path key={i} d={d} fill="rgba(79,127,224,.13)" stroke="rgba(143,183,255,.25)" strokeWidth=".7" />;
+          })}
+          {Array.from({ length: n }, (_, i) => {
+            const ring = rings[events[i * 3]];
+            if (!ring?.length) return null;
+            const polygon: [number, number][] = []; for (let k = 0; k < ring.length; k += 2) polygon.push([ring[k], ring[k + 1]]);
+            const [lng, lat] = pointInCell(polygon, i + 7);
+            const [x, y] = projector(box, 1000, 700, 50).p(lng, lat);
+            return <circle key={i} cx={x} cy={y} r={events[i * 3 + 2] === 1 ? 2 : 1.5} fill={events[i * 3 + 2] === 1 ? "#7fc9d6" : "#c9d8ff"} />;
+          })}
+        </svg>
+      </div>}
       <div className={`ld-plate ${ready ? "is-ready" : ""}`} ref={el} aria-hidden />
       <div className="ld-meter" aria-live="off">
         <p className="ld-meter-when">
-          <span>Sample city · {city}</span>
+          <span>Recent sample · {city}</span>
           <b className="sys-mono">{monthOf(t.day)}</b>
         </p>
         <p className="ld-meter-count sys-mono"><b>{t.cases.toLocaleString("en-IN")}</b> cases · <b>{t.care.toLocaleString("en-IN")}</b> care</p>

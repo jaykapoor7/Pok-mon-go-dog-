@@ -4,6 +4,7 @@ import { DemoBanner } from "@/components/partner/DemoBanner";
 import { PartnerTabs } from "@/components/partner/PartnerTabs";
 
 export const dynamic = "force-dynamic";
+export const metadata = { robots: { index: false, follow: false } };
 
 // The field workspace lives inside the same console as the community surface, // one product, one shell. The gate still limits these records to verified
 // organisation members; only the chrome is shared.

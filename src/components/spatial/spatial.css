@@ -429,3 +429,11 @@
   .sm-q-kicker { font-size: 9px; }
   .sm-q-details > div { max-height: 26vh; }
 }
+
+/* Comfortable targets for city switching on touch screens. */
+.sm-city-select { min-height:44px; height:auto; }
+.sm-city-select select { min-height:42px; }
+.sm-select { display:flex; align-items:center; gap:8px; min-height:44px; padding:6px 12px; border:1px solid var(--sm-line); border-radius:10px; background:var(--sm-panel); color:var(--sm-text); }
+.sm-select select { min-height:32px; max-width:210px; background:var(--sm-panel); color:var(--sm-text); }
+
+.sm-modes button { min-height:44px; height:auto; }

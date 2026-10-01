@@ -125,16 +125,8 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
       openCases: roll.open_cases ?? 0,
       cases: roll.cases ?? 0,
     };
-    /* Fallback only if the rollup row is missing: a bounded count, clearly
-       an under-count, but never shown in normal operation. */
-    let animalsN = 0, help = 0;
-    for (let i = 0; i < ds.animals.length / A_STRIDE; i++) {
-      const o = i * A_STRIDE;
-      if (ds.cellCity[ds.animals[o + A.cell]] !== ci) continue;
-      animalsN++;
-      if (ds.animals[o + A.flags] & (AF.help | AF.injured)) help++;
-    }
-    return { name, animalsN, help, sterilised: 0, vaccinated: 0, openCases: 0, cases: 0 };
+    /* Missing aggregate totals stay unavailable; a sample is not a city total. */
+    return null;
   }, [ds, ix, patch, reach, cityRollup]);
 
   /* ── what the register holds there ─────────────────────────────────── */
@@ -210,7 +202,7 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
     ];
     const seen = new Set<string>();
     return all.filter((item) => {
-      const key = `${item.name.toLowerCase()}|${item.city.toLowerCase()}`;
+      const key = item.key.startsWith("l") ? `locality:${item.name.toLowerCase()}|${item.city.toLowerCase()}` : `city:${item.name.toLowerCase()}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -293,6 +285,7 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
         options={placeOptions} onPick={pickPlace} reportHref={patch ? `/report?lat=${patch.lat}&lng=${patch.lng}` : "/report"} />
     </main>
   );
+  if (!loading && ds && patch && !city) return <main className="cp"><h1>City totals are temporarily unavailable</h1><p>Please try again shortly.</p><Link href="/report" className="sys-btn is-flame">Report a dog</Link></main>;
   if (!placeReady || loading || !ds || !patch || !stats || !cells || !city) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
 
   return (
@@ -338,8 +331,8 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
           </div>
           {animals === null && tab !== "following" ? <p className="cp-quiet">Reading the patch…</p>
             : list.length === 0 ? (
-              <p className="cp-quiet">{tab === "attention" ? "Nobody in your patch is flagged as needing help. If you see an injured animal, report it — that is how it gets here."
-                : tab === "recent" ? "No animal is recorded in your patch yet. A photograph and the place are enough to start."
+              <p className="cp-quiet">{tab === "attention" ? "No loaded record in this patch is flagged as needing help. If you see an injured animal, report it — that is how it gets here."
+                : tab === "recent" ? "No individual record is loaded in this patch yet. A photograph and the place are enough to start."
                 : "Follow an animal from its record and it stays here, wherever you set your patch."}</p>
             ) : (
               <ol className="cp-list">

@@ -15,7 +15,7 @@ import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 export const metadata = {
   title: "StrayPaw, every street animal on the record",
   description: "One shared record connecting sightings, field work and outcomes for India's street animals.",
@@ -113,7 +113,7 @@ export default async function HomePage() {
             box={story.hero.box}
             rings={story.hero.rings}
             events={story.hero.events}
-            note={story.record.medianFirstAction !== null ? `Across ${story.hero.city}'s ${fmt(story.record.requests)} requests, half had a field team on them ${story.record.medianFirstAction === 0 ? "the same day" : `within ${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
+            note={story.record.medianFirstAction !== null ? `Among the ${fmt(story.record.requests)} recent requests sampled in ${story.hero.city}, records with a dated first action had a median response of ${story.record.medianFirstAction === 0 ? "the same day" : `${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
           />
         )}
 

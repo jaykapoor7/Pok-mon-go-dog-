@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./tokens.css";
 
-// Production must never materialise Supabase-backed route data during `next build`.
-// Public and NGO data is deliberately fetched through bounded request-time paths.
-export const dynamic = "force-dynamic";
 import "./globals.css";
 import "./design-system.css";
 import "./product.css";
@@ -29,7 +26,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "./" },
   title: "StrayPaw, every street animal on the record",
   description:
-    "One shared record connecting sightings, field work and outcomes for India's street animals, so residents, NGOs, municipalities and funders work from the same data.",
+    "Shared dog records for residents, NGOs and municipalities: sightings, field work, care and documented outcomes across India.",
   keywords: [
     "street animals",
     "India",
@@ -77,7 +74,7 @@ export const metadata: Metadata = {
     title: "StrayPaw",
   },
   icons: {
-    icon: "/straypaw-symbol.svg",
+    icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/straypaw-symbol.svg", type: "image/svg+xml" }],
     apple: "/apple-icon.png",
   },
 };

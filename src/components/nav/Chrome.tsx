@@ -67,10 +67,15 @@ const SELF_SHELLED = new Set<string>([
   "/insights",
   "/resources",
   "/learn",
+  "/stories",
+  "/orgs",
 ]);
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  // Marketing and profile routes have their own main landmark.
+  const own = OWN_CHROME.has(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
+  if (own) return <><a href="#main-content" className="skip-link">Skip to content</a><div id="main-content" tabIndex={-1}>{children}</div></>;
 
   if (pathname.startsWith("/embed/") || pathname.startsWith("/org/")) return <>{children}</>;
   if (OWN_CHROME.has(pathname)) return <>{children}</>;

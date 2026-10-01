@@ -30,6 +30,7 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
   const [cells, setCells] = useState<Cell[]>([]);
   const [mapReady, setMapReady] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const chosen = useMemo(() => cities.find((item) => item.city === city) ?? null, [cities, city]);
   const auth = useCallback(async () => {
@@ -44,28 +45,31 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
   useEffect(() => {
     let live = true;
     auth().then((init) => fetch(`/api/spatial?kind=cities${scope === "org" ? "&scope=org" : ""}`, init)).then(async (r) => r.ok ? r.json() : Promise.reject(new Error("Could not load map cities.")))
-      .then((body) => { if (!live) return; const rows = (body.cities ?? []) as City[]; setCities(rows); setCity((current) => current || params.get("city") || rows[0]?.city || ""); })
+      .then((body) => { if (!live) return; const rows = (body.cities ?? []) as City[]; setCities(rows); const requested = params.get("city"); setCity((current) => rows.some((r) => r.city === requested) ? requested! : rows.some((r) => r.city === current) ? current : rows[0]?.city || ""); })
       .catch((e: Error) => { if (live) setError(e.message); });
     return () => { live = false; };
-  }, [auth, params, scope]);
+  }, [auth, params, scope, retry]);
 
   useEffect(() => {
     if (!city) return;
     let live = true;
-    setLoading(true); setError(null);
+    setLoading(true); setError(null); setCells([]);
+    (mapRef.current?.getSource("animals") as GeoJSONSource | undefined)?.setData(EMPTY);
     auth().then((init) => fetch(`/api/spatial?kind=cells&city=${encodeURIComponent(city)}${scope === "org" ? "&scope=org" : ""}`, init)).then(async (r) => r.ok ? r.json() : Promise.reject(new Error((await r.json().catch(() => null))?.error ?? "Could not load this city.")))
       .then((body) => { if (live) setCells(body.cells ?? []); })
       .catch((e: Error) => { if (live) { setCells([]); setError(e.message); } })
       .finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
-  }, [auth, city, scope]);
+  }, [auth, city, scope, retry]);
 
   useEffect(() => {
     let dead = false;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
-      const map = new ml.Map({ container: el.current, style: groundStyle(NIGHT), center: [78.9629, 20.5937], zoom: 4.1, attributionControl: false });
+      let map: MLMap;
+      try { map = new ml.Map({ container: el.current, style: groundStyle(NIGHT), center: [78.9629, 20.5937], zoom: 4.1, attributionControl: false });
+      } catch { setError("This browser cannot render the interactive map. City totals remain available above; try a browser with WebGL enabled."); return; }
       mapRef.current = map;
       map.on("load", async () => {
         map.addSource("cells", { type: "geojson", data: EMPTY });
@@ -83,14 +87,14 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
           const b = map.getBounds();
           auth().then((init) => fetch(`/api/spatial?kind=animals&city=${encodeURIComponent(activeCity)}&west=${b.getWest()}&south=${b.getSouth()}&east=${b.getEast()}&north=${b.getNorth()}${scope === "org" ? "&scope=org" : ""}`, init))
             .then((r) => r.ok ? r.json() : null).then((body) => {
-              if (dead || !body) return;
+              if (dead || !body || activeCity !== cityRef.current) return;
               const features = ((body.animals ?? []) as Animal[]).filter((a) => Number.isFinite(a.lat) && Number.isFinite(a.lng)).map((a) => ({ type: "Feature" as const, properties: { help: a.needs_help ? 1 : 0, id: a.id }, geometry: { type: "Point" as const, coordinates: [a.lng!, a.lat!] } }));
               (map.getSource("animals") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features });
             }).catch(() => undefined);
         };
         map.on("moveend", () => { if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(loadViewport, 180); });
       });
-    });
+    }).catch(() => setError("The map could not load. Please retry."));
     return () => { dead = true; setMapReady(false); if (timer.current) clearTimeout(timer.current); mapRef.current?.remove(); mapRef.current = null; };
   }, [auth, scope]);
 
@@ -119,6 +123,6 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
       <label className="sm-select"> <span>City</span><select value={city} onChange={(e) => setCity(e.target.value)} disabled={!cities.length}>{cities.map((item) => <option key={item.city} value={item.city}>{item.city}{item.state ? `, ${item.state}` : ""}</option>)}</select><ChevronDown size={15} /></label>
       {chosen && <p className="sm-q">{fmt(chosen.animals)} recorded animals · {fmt(chosen.open_cases)} open cases</p>}
     </div>
-    <div className="sm-hud"><p>Low zoom shows pre-aggregated cells. At close zoom, the visible area loads at most 500 animals.</p>{loading && <p><RotateCw size={14} /> Loading city cells…</p>}{error && <p className="sm-err">{error} <button onClick={() => setCity((v) => `${v}`)}>Retry</button></p>}</div>
+    <div className="sm-hud"><p>Low zoom shows pre-aggregated cells. At close zoom, the visible area loads at most 500 animals.</p>{loading && <p><RotateCw size={14} /> Loading city cells…</p>}{error && <p className="sm-err">{error} <button onClick={() => setRetry((v) => v + 1)}>Retry</button></p>}</div>
   </div>;
 }

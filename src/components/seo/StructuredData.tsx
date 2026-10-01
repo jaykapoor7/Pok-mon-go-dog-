@@ -23,7 +23,7 @@ export function StructuredData({ siteUrl }: { siteUrl: string }) {
       name: "StrayPaw",
       url: base,
       logo: `${base}/icon.png`,
-      email: "jaykapoor7@outlook.com",
+      contactPoint: { "@type": "ContactPoint", contactType: "partnerships", url: `${base}/contact` },
       description:
         "StrayPaw is one shared record connecting sightings, field work and outcomes for India's street animals. Residents, field teams and municipalities write to the same record, so coverage can be counted instead of estimated.",
       areaServed: { "@type": "Country", name: "India" },
@@ -46,14 +46,6 @@ export function StructuredData({ siteUrl }: { siteUrl: string }) {
       publisher: { "@id": `${base}/${ORG_ID}` },
       /* The organisation directory is a real search endpoint that accepts a
          q parameter, so this action resolves to something that works. */
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${base}/orgs?q={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
     },
   ];
 
