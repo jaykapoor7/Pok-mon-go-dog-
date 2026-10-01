@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 3158)
-Total output lines: 217
-
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -65,7 +62,81 @@ export function ProjectRegisters() {
     if (!name.trim() || !f.length) return;
     setBusy(true); setError(null);
     try {
-      const id = …1158 tokens truncated…    </div>
+      const id = await createSurvey(name.trim(), species, `${PROJECT_MARKER}${f.join("|")}\n${purpose.trim()}`);
+      await reload(); if (id) setSelected(id);
+      setName(""); setFieldText(""); setPurpose(""); setMaking(false);
+    } catch (err) { setError(err instanceof Error ? err.message : "The project was not created."); }
+    finally { setBusy(false); }
+  };
+  const add = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!project) return;
+    setBusy(true); setError(null);
+    try {
+      await submitSurveyResponse({ surveyId: project.id, species: project.species, count: 1, attributes: Object.fromEntries(fields.map((f) => [f, values[f] || ""])), notes: notes || null });
+      setValues({}); setNotes(""); await loadEntries(project.id);
+    } catch (err) { setError(err instanceof Error ? err.message : "The entry was not saved."); }
+    finally { setBusy(false); }
+  };
+  const exportCsv = () => {
+    if (!project) return;
+    const cols = ["created_at", ...fields, "notes"];
+    const csv = [cols.join(","), ...entries.map((r) => [r.created_at, ...fields.map((f) => r.attributes?.[f]), r.notes].map(esc).join(","))].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = `${project.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-register.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (projects === null) return <main className="pj"><p className="pj-state"><Loader2 size={16} className="animate-spin" /> Reading your projects…</p></main>;
+
+  return (
+    <main className="pj">
+      <header className="pj-head">
+        <div>
+          <p className="sys-eyebrow">Projects</p>
+          <h1>Registers for work that is not a&nbsp;census.</h1>
+          <p className="pj-lede">A rabies drive, clinic round or school round: name the fields once, then every entry fills them in. Ward counts and dog censuses stay under Surveys, where they are drawn on the map.</p>
+        </div>
+        {member && <button type="button" className="sys-btn" onClick={() => setMaking((v) => !v)}><Plus size={16} /> New project</button>}
+      </header>
+
+      {(making || (member && projects.length === 0)) && (
+        <form onSubmit={make} className="pj-new">
+          <p className="pj-h">A new project</p>
+          <label>Name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Rabies drive, Ukkadam" /></label>
+          <p className="pj-dog-note">Dog project</p>
+          <label className="is-wide">What each entry records<textarea rows={2} value={fieldText} onChange={(e) => setFieldText(e.target.value)} placeholder="Vaccination, treatment, next review — separated by commas" /></label>
+          {fieldText.trim() && <p className="pj-preview is-wide">{fieldText.split(/[,\n]/).map((x) => x.trim()).filter(Boolean).map((f) => <span key={f}>{f}</span>)}</p>}
+          <label className="is-wide">What it is for<input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="One line on why this is being recorded" /></label>
+          <div className="pj-row is-wide">
+            <button type="submit" disabled={busy || !name.trim() || !fieldText.trim()} className="sys-btn">{busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Create the project</button>
+            {projects.length > 0 && <button type="button" className="pj-quiet" onClick={() => setMaking(false)}>Cancel</button>}
+          </div>
+        </form>
+      )}
+      {!member && projects.length === 0 && <p className="pj-state">Projects load once you sign in with an organisation account.</p>}
+      {error && <p className="pj-err" role="alert">{error}</p>}
+
+      {projects.length > 0 && (
+        <div className="pj-body">
+          <nav className="pj-list" aria-label="Projects">
+            {projects.map((p) => (
+              <button key={p.id} type="button" className={selected === p.id ? "is-on" : ""} aria-current={selected === p.id} onClick={() => setSelected(p.id)}>
+                <b>{p.title}</b><small>{fieldsOf(p).length} fields · {p.species} · since {day(p.created_at)}</small>
+              </button>
+            ))}
+          </nav>
+
+          {project && (
+            <section className="pj-main">
+              <div className="pj-title">
+                <div>
+                  <h2>{project.title}</h2>
+                  {purposeOf(project) && <p>{purposeOf(project)}</p>}
+                </div>
+                <button type="button" className="pj-quiet" onClick={exportCsv} disabled={!entries.length}><Download size={15} /> Export all</button>
+              </div>
 
               <Pulse entries={entries} />
               {entries.length > 0 && <Completeness fields={fields} entries={entries} />}
