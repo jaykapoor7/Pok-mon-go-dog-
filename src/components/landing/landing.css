@@ -554,132 +554,96 @@
   .ld-dive-stage::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 58vw); z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 55%, rgba(7, 20, 43, 0) 100%); }
 }
 
-/* ── The register: a card file of real animals ─────────────────────────
-   An index box in 3D: the front card a real animal, the next cards' tabs
-   peeking behind, blank cards for the rest of the register, and a tray in
-   front. AnimalRegister moves the cards on scroll; the board beside the box
-   flips to each animal's ID. */
-.rx { position: relative; height: 340svh; background: var(--sp-bone); color: var(--sp-ink); }
+/* ── The register: real animals, developed from one card into many ──────
+   The section opens on a single front card and, as it scrolls, the rest of
+   the register develops around it into centred lines — a contact sheet of
+   real public records, each with its StrayPaw ID. AnimalRegister owns the
+   per-tile transforms on desktop; on a phone and under reduced motion the
+   whole sheet is simply shown. */
+.rx { position: relative; background: var(--sp-bone); color: var(--sp-ink); }
 .rx-stage {
-  position: sticky; top: 0; height: 100svh; box-sizing: border-box; overflow: hidden;
-  max-width: 1440px; margin: 0 auto; padding: calc(68px + var(--sp-5)) var(--sp-gutter) var(--sp-6);
-  display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); align-items: center; gap: var(--sp-7);
-  --start: 1; --end: 0;
+  box-sizing: border-box; max-width: 1180px; margin: 0 auto;
+  padding: var(--sp-section) var(--sp-gutter);
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-7);
 }
 
-.rx-words { display: grid; gap: var(--sp-4); align-content: center; max-width: 540px; }
+.rx-words { display: grid; gap: var(--sp-3); justify-items: center; text-align: center; max-width: 60ch; }
 .rx-kicker { margin: 0; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-blue); }
-.rx h2 { margin: 0; font-size: clamp(40px, 5.2vw, 80px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600; text-wrap: balance; }
-.rx h2 em { display: block; font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: var(--sp-blue); }
+.rx h2 { margin: 0; font-size: clamp(34px, 4.6vw, 68px); line-height: 1; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
+.rx h2 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: var(--sp-blue); }
 .rx-n { font-variant-numeric: tabular-nums; }
-.rx-lede { margin: 0; max-width: 46ch; font-size: 16px; line-height: 1.55; color: var(--sp-body); }
+.rx-lede { margin: 0; max-width: 54ch; font-size: 16px; line-height: 1.55; color: var(--sp-body); }
 
-/* The board: the front card's ID, letter by letter, like a station board. */
-.rx-board { display: grid; gap: var(--sp-2); margin-top: var(--sp-2); }
-.rx-flap { display: flex; flex-wrap: wrap; gap: 3px; perspective: 500px; }
-.rx-flap i {
-  position: relative; display: grid; place-items: center; width: 1.08em; height: 1.46em;
-  font-style: normal; font-size: clamp(20px, 2.1vw, 30px); font-weight: 500; line-height: 1;
-  border-radius: 5px; background: var(--sp-ink); color: #efe7da;
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 4px 10px rgba(11, 30, 61, 0.18);
-  animation: rx-flap 0.16s var(--sp-ease) both;
+/* The sheet: one hero on top, the rest in centred lines beneath it. */
+.rx-grid { display: flex; flex-direction: column; align-items: center; gap: var(--sp-5); width: 100%; }
+.rx-rest { display: grid; grid-template-columns: repeat(4, minmax(0, 184px)); justify-content: center; gap: var(--sp-4); width: 100%; }
+
+/* A tile is a filed record: the photograph, its ID on a tab, its place. */
+.rx-tile {
+  position: relative; display: block; text-decoration: none; color: inherit;
+  border-radius: var(--sp-radius); background: var(--sp-paper); overflow: hidden;
+  box-shadow: 0 1px 0 rgba(11, 30, 61, 0.05), 0 10px 26px rgba(11, 30, 61, 0.09);
+  transition: box-shadow var(--sp-base) var(--sp-ease);
 }
-.rx-flap i::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 0, 0, 0.5); }
-.rx-flap i.is-dash { width: 0.55em; background: none; box-shadow: none; color: var(--sp-muted); }
-.rx-flap i.is-dash::after { display: none; }
-@keyframes rx-flap { from { transform: rotateX(-62deg) scaleY(0.9); color: #fff4e0; } }
-.rx-board-line { margin: 0; font-size: 15px; font-weight: 600; color: var(--sp-ink); }
-.rx-hint { margin: 0; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); opacity: var(--start); }
-.rx-end { margin: 0; font-size: 16px; line-height: 1.45; color: var(--sp-ink); opacity: var(--end); transform: translateY(calc((1 - var(--end)) * 8px)); }
-.rx-turn { margin: 0; display: flex; gap: var(--sp-2); }
-.rx-turn button { display: grid; place-items: center; width: var(--ctl-h); height: var(--ctl-h); padding: 0; border: 0; border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); cursor: pointer; }
-
-/* The box. */
-.rx-file { position: relative; height: min(680px, calc(100svh - 150px)); display: grid; place-items: end center; perspective: 1500px; perspective-origin: 50% 8%; }
-.rx-drum { --cw: 390px; --ch: 568px; position: relative; width: var(--cw); height: var(--ch); margin-bottom: 34px; transform-style: preserve-3d; }
-.rx-drum::before { content: ""; position: absolute; left: -16%; right: -16%; bottom: -40px; height: 70px; border-radius: 50%; background: rgba(11, 30, 61, 0.16); filter: blur(18px); transform: translateZ(-2px); }
-/* Before the section is reached the cards wait inside the tray. */
-.rx:not(.is-open) .rx-card { opacity: 0; }
-
-/* A card. Its tab carries the ID, so the ones waiting behind show theirs. */
-.rx-card {
-  position: absolute; inset: 0; box-sizing: border-box; transform-origin: 50% 100%;
-  display: flex; flex-direction: column; padding: 12px 12px 60px;
-  border-radius: 14px; background: var(--sp-paper);
-  box-shadow: 0 1px 0 rgba(11, 30, 61, 0.06), 0 22px 44px rgba(11, 30, 61, 0.15);
-  backface-visibility: hidden; will-change: transform;
+/* One to many: once the script arms it, tiles wait, then develop in as the
+   section enters — the hero first, the lines after it, by index. */
+.rx.is-ready .rx-tile {
+  opacity: 0; transform: translateY(20px) scale(0.97);
+  transition: opacity var(--sp-slow) var(--sp-ease), transform var(--sp-slow) var(--sp-ease-out), box-shadow var(--sp-base) var(--sp-ease);
+  transition-delay: calc(140ms + var(--i) * 60ms);
 }
-.rx-card.is-ghost { background: #fbf7ef; box-shadow: 0 12px 26px rgba(11, 30, 61, 0.09); }
+.rx.is-ready .rx-tile.is-hero { transition-delay: 0ms; }
+.rx.is-ready.is-in .rx-tile { opacity: 1; transform: none; }
+.rx-tile.is-hero { width: min(392px, 86vw); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.06), 0 20px 44px rgba(11, 30, 61, 0.15); }
+.rx-shot { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-shell); }
+.rx-tile.is-hero .rx-shot { aspect-ratio: 3 / 2; }
+.rx-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform var(--sp-slow) var(--sp-ease); }
+@media (hover: hover) {
+  .rx-tile:hover { box-shadow: 0 1px 0 rgba(11, 30, 61, 0.06), 0 22px 48px rgba(11, 30, 61, 0.2); }
+  .rx-tile:hover .rx-shot img { transform: scale(1.045); }
+  .rx-tile:hover .rx-open { opacity: 1; transform: none; }
+}
+.rx-tile:focus-visible { outline: 2px solid var(--sp-blue); outline-offset: 2px; }
+
+/* The ID, on a small index tab clear of any photograph. */
 .rx-tab {
-  position: absolute; top: -23px; left: calc(14px + var(--tab) * 31%); height: 24px; min-width: 104px; box-sizing: border-box;
-  display: flex; align-items: center; padding: 0 11px; border-radius: 8px 8px 0 0; background: inherit;
-  font-size: 10.5px; letter-spacing: 0.06em; color: var(--sp-blue); box-shadow: 0 -2px 4px rgba(11, 30, 61, 0.04);
+  position: absolute; top: var(--sp-3); left: var(--sp-3); z-index: 2;
+  display: inline-flex; align-items: center; height: 24px; padding: 0 9px;
+  border-radius: var(--ctl-r-row); background: var(--sp-paper); color: var(--sp-blue);
+  font-size: 11px; letter-spacing: 0.04em; box-shadow: 0 2px 8px rgba(11, 30, 61, 0.18);
 }
-.rx-photo { position: relative; flex: none; aspect-ratio: 3 / 2; border-radius: 9px; overflow: hidden; background: var(--sp-shell); }
-/* The photograph develops as its card comes to the front. */
-.rx-photo img {
-  display: block; width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(calc(1 - var(--dev, 1))) sepia(calc((1 - var(--dev, 1)) * 0.35)) brightness(calc(1 + (1 - var(--dev, 1)) * 0.45)) contrast(calc(0.65 + var(--dev, 1) * 0.35));
+/* The affordance, revealed on hover over a tile that can take a pointer. */
+.rx-open {
+  position: absolute; left: var(--sp-3); bottom: var(--sp-3); z-index: 2;
+  display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px;
+  border-radius: var(--ctl-r); background: var(--sp-blue); color: #fff;
+  font-size: 12px; font-weight: 600; opacity: 0; transform: translateY(4px);
+  transition: opacity var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io);
 }
-.rx-body { flex: 1; display: grid; align-content: start; gap: 3px; padding: 14px 6px 0; min-width: 0; min-height: 0; overflow: hidden; }
-.rx-id { margin: 0; font-size: 24px; font-weight: 500; letter-spacing: 0.02em; color: var(--sp-ink); }
-.rx-place { margin: 0; font-size: 15px; font-weight: 600; color: var(--sp-ink); overflow-wrap: anywhere; }
-.rx-seen { margin: 0; font-size: 13px; color: var(--sp-muted); }
-.rx-facts { margin: var(--sp-3) 0 0; padding: 0; list-style: none; display: grid; border-top: 1px solid var(--sp-ink); }
-.rx-facts li { display: grid; grid-template-columns: 11px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-2); padding: 7px 0; border-bottom: 1px solid var(--sp-line); font-size: 12.5px; }
-.rx-facts i { width: 10px; height: 10px; border-radius: 2px; }
-.rx-facts .is-known i { background: var(--sp-blue); }
-.rx-facts .is-open i { background: var(--sp-hatch); box-shadow: inset 0 0 0 1px var(--sp-hatch-line); }
-.rx-facts span { color: var(--sp-muted); }
-.rx-facts b { font-weight: 600; color: var(--sp-ink); text-align: right; }
-.rx-facts .is-open b { font-weight: 500; color: var(--sp-muted); }
-.rx-go { justify-self: start; display: inline-flex; align-items: center; gap: 4px; margin-top: var(--sp-2); font-size: 13.5px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+.rx-cap { display: grid; gap: 2px; padding: var(--sp-3) var(--sp-3) var(--sp-4); }
+.rx-place { margin: 0; font-size: 14px; font-weight: 600; color: var(--sp-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-tile.is-hero .rx-place { font-size: 16px; }
+.rx-meta { margin: 0; font-size: 11.5px; letter-spacing: 0.01em; color: var(--sp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* The tray the cards stand in. */
-.rx-tray {
-  position: absolute; left: -8%; right: -8%; bottom: -10px; height: 72px; box-sizing: border-box;
-  display: grid; align-content: center; gap: 2px; padding: 0 20px;
-  border-radius: 12px 12px 18px 18px; background: var(--sp-ink); color: #efe7da;
-  box-shadow: inset 0 1px 0 rgba(239, 231, 218, 0.14), 0 24px 44px rgba(11, 30, 61, 0.3);
-  transform: translateZ(90px);
-}
-.rx-tray span { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(239, 231, 218, 0.62); }
-.rx-tray b { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; }
+.rx-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--sp-2) var(--sp-4); margin: 0; font-size: 15px; color: var(--sp-body); text-align: center; }
+.rx-foot .sys-mono { font-variant-numeric: tabular-nums; color: var(--sp-ink); font-weight: 600; }
+.rx-foot a { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
 
-@media (max-height: 820px) and (min-width: 761px) {
-  .rx-drum { --cw: 330px; --ch: 488px; }
-  .rx-photo { aspect-ratio: 16 / 10; }
+@media (max-width: 1080px) {
+  .rx-rest { grid-template-columns: repeat(3, minmax(0, 184px)); }
 }
 @media (max-width: 760px) {
-  .rx { height: 300svh; }
-  .rx-stage { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-items: stretch; gap: var(--sp-3); padding: calc(58px + var(--sp-4)) var(--sp-gutter) var(--sp-3); }
-  .rx-words { gap: var(--sp-2); }
-  .rx h2 { font-size: clamp(32px, 9.4vw, 44px); }
-  .rx-lede { font-size: 14px; line-height: 1.45; }
-  .rx-board { display: none; }
-  .rx-hint, .rx-end { font-size: 12px; }
-  .rx-end { position: absolute; left: var(--sp-gutter); right: var(--sp-gutter); bottom: var(--sp-2); text-align: center; }
-  .rx-file { height: auto; min-height: 0; padding-top: var(--sp-3); perspective-origin: 50% 0%; }
-  .rx-drum { --cw: min(76vw, 300px); --ch: 430px; margin-bottom: 42px; }
-  .rx-card { padding: 10px 10px 54px; }
-  .rx-photo { aspect-ratio: 16 / 10; }
-  .rx-id { font-size: 20px; }
-  .rx-tab { min-width: 88px; font-size: 9.5px; left: calc(10px + var(--tab) * 30%); }
-  .rx-tray { height: 62px; padding: 0 16px; }
+  .rx-stage { gap: var(--sp-6); }
+  .rx h2 { font-size: clamp(30px, 8.4vw, 42px); }
+  .rx-lede { font-size: 14px; line-height: 1.5; }
+  .rx-rest { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); max-width: 440px; }
+  .rx-tile.is-hero { width: min(320px, 82vw); }
 }
-@media (max-width: 760px) and (max-height: 720px) {
-  .rx-lede { display: none; }
-  .rx-drum { --ch: 396px; }
-  .rx-photo { aspect-ratio: 2 / 1; }
-  .rx-body { padding-top: 10px; }
-  .rx-facts { margin-top: var(--sp-2); }
-  .rx-facts li:nth-child(3) { display: none; }
-  .rx-hint { display: none; }
+
+/* The sheet is always shown without the develop-in when motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  .rx .rx-tile { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
-.rx.is-calm { height: auto; }
-.rx.is-calm .rx-stage { position: relative; height: auto; min-height: 100svh; }
-.rx.is-calm .rx-card { transition: transform var(--sp-slow) var(--sp-ease), opacity var(--sp-base) var(--sp-ease-io); }
-@media (prefers-reduced-motion: reduce) { .rx-flap i { animation: none; } }
 
 /* The report's own photograph on the resident's phone, and the
    municipality's screen as the live map's night ground. */
