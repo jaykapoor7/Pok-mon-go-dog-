@@ -174,7 +174,7 @@ begin
   with animal_cells as (
     select d.city, max(d.state) as state, max(d.zone) as zone, d.h3_r8,
            count(*)::integer as animals,
-           count(*) filter (where d.needs_help)::integer as needs_help,
+           count(*) filter (where coalesce(d.needs_help, false) or d.status::text = 'injured')::integer as needs_help,
            count(*) filter (where d.sterilisation_status = 'sterilised')::integer as sterilised,
            count(*) filter (where d.vaccination_status = 'vaccinated')::integer as vaccinated,
            max(d.last_seen) as latest_seen
