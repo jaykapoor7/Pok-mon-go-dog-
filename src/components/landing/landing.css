@@ -554,59 +554,51 @@
   .ld-dive-stage::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 58vw); z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 55%, rgba(7, 20, 43, 0) 100%); }
 }
 
-/* ── The register: one dog, opening into five ───────────────────────────
-   A small, sleek band on the night ground. It rests on a single dog; as it
-   scrolls into view (.is-open) the one opens into a row of five real public
-   profiles, each a resident's photograph with its StrayPaw ID beneath. The
-   cells collapse toward the centre when closed and spread, staggered from
-   the middle out, when open. Reduced motion shows all five, already open. */
-.rx { position: relative; background: var(--sp-deep); color: var(--sp-night-text); padding: clamp(48px, 7vw, 96px) var(--sp-gutter); overflow: hidden; }
-
-/* The ground is quietly alive: faint record-lights drift and breathe, most
-   sky (recorded), a couple of flame (attention) — the map's own encoding. */
-.rx-field { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.rx-spark { position: absolute; border-radius: 50%; background: var(--sp-sky); opacity: 0; box-shadow: 0 0 6px currentColor; color: var(--sp-sky); animation: rx-twinkle var(--t, 12s) ease-in-out var(--dl, 0s) infinite; }
-.rx-spark.is-flame { background: var(--sp-flame); color: var(--sp-flame); }
-@keyframes rx-twinkle { 0%, 100% { opacity: 0; transform: translateY(7px) scale(0.7); } 50% { opacity: 0.55; transform: translateY(-7px) scale(1); } }
-
-.rx-words { position: relative; z-index: 1; max-width: 60ch; margin: 0 auto var(--sp-6); display: grid; gap: var(--sp-2); justify-items: center; text-align: center; }
-.rx-kicker { margin: 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-sky); }
-.rx h2 { margin: 0; font-size: clamp(26px, 3.6vw, 46px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 600; text-wrap: balance; color: var(--sp-night-text); }
-.rx h2 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: var(--sp-sky); }
-.rx-n { font-variant-numeric: tabular-nums; }
-.rx-cta { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; vertical-align: middle; font-family: var(--font-sans); font-style: normal; font-size: 13px; font-weight: 600; color: var(--sp-sky); text-decoration: none; border-bottom: 1px solid rgba(143, 183, 255, 0.4); }
-.rx-cta:hover { border-bottom-color: var(--sp-sky); }
-
-/* Five profiles in one row, centred. */
-.rx-row { position: relative; z-index: 1; list-style: none; margin: 0 auto; padding: 0; display: flex; justify-content: center; align-items: start; gap: clamp(8px, 1.6vw, var(--sp-4)); max-width: 1120px; }
-.rx-cell { flex: 0 0 auto; width: clamp(58px, 17vw, 198px); display: grid; gap: var(--sp-2); transition: transform 0.7s var(--sp-ease-out), opacity 0.5s var(--sp-ease); }
-/* Closed: the four siblings collapse onto the centre card and fade; the one
-   dog (the centre) stays. */
-.rx:not(.is-open) .rx-cell { opacity: 0; transform: translateX(calc(var(--d) * -116%)) scale(0.64); }
-.rx:not(.is-open) .rx-cell[data-center] { opacity: 1; transform: none; }
-/* Open: all five settle into the row, staggered from the middle outward. */
-.rx.is-open .rx-cell { opacity: 1; transform: none; transition-delay: calc(var(--ad) * 90ms); }
-
-.rx-card { display: block; border-radius: var(--sp-radius-lg); overflow: hidden; background: var(--sp-night); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 20px 44px rgba(0, 0, 0, 0.45); transition: transform var(--sp-base) var(--sp-ease), box-shadow var(--sp-base) var(--sp-ease); }
-.rx-shot { aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-night); }
-.rx-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform var(--sp-slow) var(--sp-ease); }
-.rx-id { margin: 2px 0 0; text-align: center; font-size: clamp(9px, 0.95vw, 12px); letter-spacing: 0.03em; color: var(--sp-sky); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rx-place { margin: 0; text-align: center; font-size: clamp(9px, 0.9vw, 11.5px); color: rgba(239, 231, 218, 0.62); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (hover: hover) {
-  .rx-card:hover { transform: translateY(-4px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 26px 52px rgba(0, 0, 0, 0.55); }
-  .rx-card:hover .rx-shot img { transform: scale(1.05); }
-}
-.rx-card:focus-visible { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
-
-@media (max-width: 760px) {
-  .rx h2 { font-size: clamp(26px, 7.4vw, 38px); }
-  .rx-lede { font-size: 14px; line-height: 1.5; }
-  /* Five across stays, but the place line is dropped so the smaller cells
-     keep the photo and ID legible. */
-  .rx-place { display: none; }
-}
-
-.rx.is-calm .rx-cell { opacity: 1 !important; transform: none !important; transition: none !important; }
+/* ── The living register ───────────────────────────────────────────────
+   A city-scale contact sheet moving under a precise field-note header.
+   The profiles deliberately retain their irregular crops; each is an
+   actual record, not stock imagery or a decorative data-card. */
+.rx { position: relative; isolation: isolate; padding: clamp(68px, 9vw, 130px) 0 clamp(44px, 6vw, 84px); overflow: hidden; background: var(--sp-deep); color: var(--sp-night-text); }
+.rx::before, .rx::after { content: ""; position: absolute; z-index: -1; pointer-events: none; }
+.rx::before { inset: 0; background: radial-gradient(circle at 18% 8%, rgba(88, 180, 196, .16), transparent 28%), radial-gradient(circle at 90% 76%, rgba(240, 91, 64, .15), transparent 24%), linear-gradient(105deg, rgba(143, 183, 255, .04), transparent 42%); }
+.rx::after { inset: auto 0 0; height: 34%; background: linear-gradient(transparent, rgba(0, 0, 0, .22)); }
+.rx-grid { position: absolute; inset: 0; z-index: -1; opacity: .36; pointer-events: none; background-image: linear-gradient(rgba(143,183,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(143,183,255,.12) 1px, transparent 1px); background-size: 74px 74px; mask-image: linear-gradient(90deg, transparent, black 16%, black 84%, transparent); }
+.rx-orbit { position: absolute; z-index: -1; border: 1px solid rgba(143,183,255,.18); border-radius: 50%; pointer-events: none; }
+.rx-orbit-one { width: min(70vw, 940px); aspect-ratio: 1; top: -57%; right: -18%; transform: rotate(-18deg); }
+.rx-orbit-two { width: min(54vw, 700px); aspect-ratio: 1; bottom: -49%; left: -12%; border-color: rgba(240,91,64,.16); }
+.rx-index { position: absolute; top: 26px; left: var(--sp-gutter); right: var(--sp-gutter); display: flex; justify-content: space-between; font: 10px var(--font-mono); letter-spacing: .12em; color: rgba(239,231,218,.43); }
+.rx-intro { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--sp-7); width: min(1120px, calc(100% - (var(--sp-gutter) * 2))); margin: 0 auto clamp(38px, 5vw, 70px); }
+.rx-copy { max-width: 690px; display: grid; gap: var(--sp-3); }
+.rx-kicker { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; color: var(--sp-sky); }
+.rx h2 { margin: 0; font-family: var(--font-sans-display), var(--font-sans), sans-serif; font-size: clamp(34px, 5vw, 66px); font-weight: 600; line-height: .97; letter-spacing: -.04em; color: var(--sp-night-text); }
+.rx h2 em { font-family: var(--font-serif-display), var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -.04em; color: var(--sp-sky); }
+.rx-copy > p:last-child { max-width: 48ch; margin: 0; color: var(--sp-night-dim); font-size: 15px; line-height: 1.5; }
+.rx-total { display: grid; grid-template-columns: auto auto 34px; gap: 11px; align-items: center; padding: 11px 0 11px 18px; border-left: 1px solid rgba(143,183,255,.38); }
+.rx-total strong { font-family: var(--font-sans-display), var(--font-sans); font-size: clamp(35px, 4vw, 54px); line-height: .85; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+.rx-total span { font-size: 10px; line-height: 1.22; letter-spacing: .1em; text-transform: uppercase; color: var(--sp-night-dim); }
+.rx-total a { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid rgba(143,183,255,.43); border-radius: 50%; color: var(--sp-sky); transition: transform var(--sp-fast) var(--sp-ease), background var(--sp-fast) var(--sp-ease); }
+.rx-total a:hover { transform: rotate(45deg); background: rgba(143,183,255,.16); }
+.rx-wall { position: relative; z-index: 1; display: grid; gap: clamp(12px, 1.35vw, 20px); transform: rotate(-1.5deg) scale(1.035); }
+.rx-track { position: relative; overflow: hidden; width: 100%; }
+.rx-track::before, .rx-track::after { content: ""; position: absolute; top: 0; bottom: 0; z-index: 3; width: min(12vw, 170px); pointer-events: none; }
+.rx-track::before { left: 0; background: linear-gradient(90deg, var(--sp-deep), transparent); }
+.rx-track::after { right: 0; background: linear-gradient(-90deg, var(--sp-deep), transparent); }
+.rx-run { --gap: clamp(12px, 1.35vw, 20px); display: flex; gap: var(--gap); width: max-content; margin: 0; padding: 0; list-style: none; animation: rx-left 44s linear infinite; }
+.rx-track-2 .rx-run { animation-name: rx-right; animation-duration: 57s; animation-delay: -16s; }
+.rx-track-3 .rx-run { animation-duration: 49s; animation-delay: -29s; }
+.rx-tile { width: clamp(166px, 16.4vw, 252px); flex: 0 0 auto; }
+.rx-track-2 .rx-tile { width: clamp(140px, 13.4vw, 210px); }.rx-track-3 .rx-tile { width: clamp(154px, 15.1vw, 232px); }
+.rx-card { display: grid; overflow: hidden; border: 1px solid rgba(215,229,255,.19); border-radius: 3px; background: rgba(7,20,43,.76); color: var(--sp-night-text); text-decoration: none; box-shadow: 0 14px 34px rgba(0,0,0,.26); transition: transform var(--sp-base) var(--sp-ease), border-color var(--sp-base) var(--sp-ease), box-shadow var(--sp-base) var(--sp-ease); }
+.rx-photo { position: relative; aspect-ratio: 4 / 4.6; overflow: hidden; background: var(--sp-night); }.rx-track-2 .rx-photo { aspect-ratio: 1.16; }.rx-track-3 .rx-photo { aspect-ratio: 4 / 3.4; }
+.rx-photo img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.82) contrast(1.06); transition: transform .7s var(--sp-ease), filter .45s var(--sp-ease); }
+.rx-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,16,35,.16), transparent 45%, rgba(5,16,35,.72)); }
+.rx-corner { position: absolute; z-index: 1; display: inline-flex; align-items: center; gap: 4px; font: 9px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--sp-night-text); }.rx-corner-top { left: 9px; top: 9px; padding: 3px 5px; background: rgba(7,20,43,.68); }.rx-corner-bottom { left: 9px; right: 9px; bottom: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: rgba(239,231,218,.89); }
+.rx-meta { display: flex; justify-content: space-between; gap: 7px; align-items: center; min-height: 35px; padding: 7px 9px; border-top: 1px solid rgba(215,229,255,.15); }.rx-id { overflow: hidden; color: var(--sp-sky); font-size: 9px; letter-spacing: .035em; text-overflow: ellipsis; white-space: nowrap; }.rx-markers { display: flex; justify-content: flex-end; gap: 4px; }.rx-markers i { padding: 2px 5px; border-radius: 99px; font-size: 8.5px; font-style: normal; font-weight: 650; white-space: nowrap; }.rx-markers .is-blue { background: rgba(143,183,255,.17); color: var(--sp-sky); }.rx-markers .is-green { background: rgba(88,180,196,.18); color: #8ad6e2; }.rx-markers .is-warm { background: rgba(240,91,64,.16); color: #ffae9e; }
+@keyframes rx-left { to { transform: translateX(calc(-50% - (var(--gap) / 2))); } } @keyframes rx-right { from { transform: translateX(calc(-50% - (var(--gap) / 2))); } to { transform: translateX(0); } }
+@media (hover: hover) { .rx-wall:hover .rx-run { animation-play-state: paused; }.rx-card:hover { position: relative; z-index: 4; transform: translateY(-12px) rotate(1.5deg) scale(1.035); border-color: var(--sp-sky); box-shadow: 0 28px 54px rgba(0,0,0,.5); }.rx-card:hover img { transform: scale(1.07); filter: saturate(1.08) contrast(1.03); } }
+.rx-card:focus-visible { outline: 2px solid var(--sp-sky); outline-offset: 3px; }.rx-caption { position: relative; z-index: 2; display: flex; justify-content: space-between; gap: var(--sp-4); width: min(1120px, calc(100% - (var(--sp-gutter) * 2))); margin: clamp(33px, 4.5vw, 56px) auto 0; color: rgba(239,231,218,.62); font-size: 12px; }.rx-caption .sys-mono { font-size: 9px; letter-spacing: .1em; color: var(--sp-sky); }.rx-caption i { color: var(--sp-night-text); font-style: normal; }
+@media (max-width: 760px) { .rx { padding-top: 62px; }.rx-index { top: 18px; font-size: 8.5px; }.rx-intro { grid-template-columns: 1fr; gap: var(--sp-5); }.rx-copy > p:last-child { font-size: 14px; }.rx-total { justify-self: start; }.rx-wall { gap: 10px; transform: rotate(-1.5deg) scale(1.1); }.rx-track-3 { display: none; }.rx-run { --gap: 10px; animation-duration: 33s; }.rx-track-2 .rx-run { animation-duration: 41s; }.rx-tile, .rx-track-2 .rx-tile { width: 158px; }.rx-track-2 .rx-photo { aspect-ratio: 4 / 3.7; }.rx-caption { display: grid; gap: 8px; margin-top: 42px; }.rx-caption > span:last-child { display: none; } }
+@media (prefers-reduced-motion: reduce) { .rx-run { animation: none; }.rx-track { overflow-x: auto; scrollbar-width: none; }.rx-track::-webkit-scrollbar { display: none; }.rx-run { width: max-content; }.rx-tile[aria-hidden="true"] { display: none; } }
 
 /* The report's own photograph on the resident's phone, and the
    municipality's screen as the live map's night ground. */
