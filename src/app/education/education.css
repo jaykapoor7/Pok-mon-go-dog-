@@ -194,3 +194,6 @@
   .edu-sensitive { grid-column: 2; justify-self: start; }
   .edu-library-action { align-items: flex-start; flex-direction: column; }
 }
+
+.edu-close .co-kicker { color: var(--sp-muted); }
+.edu-close .co-link { color: var(--sp-blue); }

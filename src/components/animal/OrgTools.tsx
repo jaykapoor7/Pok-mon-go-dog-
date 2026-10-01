@@ -131,7 +131,7 @@ function LogCare({ dogId, onDone }: { dogId: string; onDone: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const submit = async () => {
     setBusy(true); setError(null);
-    try { await addMedicalEvent({ dogId, kind, eventDate: date || null, notes: notes.trim() || undefined, performedBy: by.trim() || undefined }); onDone(); }
+    try { const id = await addMedicalEvent({ dogId, kind, eventDate: date || null, notes: notes.trim() || undefined, performedBy: by.trim() || undefined }); if (!id || id === "demo-event") throw new Error("Care was not saved. Please try again."); onDone(); }
     catch (e) { setError((e as Error).message || "Could not save."); } finally { setBusy(false); }
   };
   return (
@@ -159,15 +159,17 @@ function EditAnimal({ dog, onDone }: { dog: Dog; onDone: () => void }) {
   const [ownerContact, setOwnerContact] = useState(dog.owner_contact ?? "");
   const [members, setMembers] = useState<OrgMember[]>([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => { getMyOrgMembers().then(setMembers).catch(() => {}); }, []);
   const save = async () => {
-    setBusy(true);
+    setBusy(true); setError(null);
     try {
       const m = members.find((x) => x.user_id === assigneeId);
-      await updateAnimal(dog.id, { name: name.trim(), code: code.trim(), status, intakeNotes: notes.trim(), assigneeId: assigneeId || undefined, assigneeName: m?.name ?? undefined });
-      await setAnimalOwner(dog.id, ownerName.trim(), ownerContact.trim());
+      const updated = await updateAnimal(dog.id, { name: name.trim(), code: code.trim(), status, intakeNotes: notes.trim(), assigneeId: assigneeId || undefined, assigneeName: m?.name ?? undefined });
+      if (!updated) throw new Error("The record was not saved.");
+      if (!await setAnimalOwner(dog.id, ownerName.trim(), ownerContact.trim())) throw new Error("Owner details were not saved.");
       router.refresh(); onDone();
-    } finally { setBusy(false); }
+    } catch (e) { setError(e instanceof Error ? e.message : "The record was not saved."); } finally { setBusy(false); }
   };
   return (
     <div className="lr-form" role="group" aria-label="Edit the record">
@@ -182,6 +184,7 @@ function EditAnimal({ dog, onDone }: { dog: Dog; onDone: () => void }) {
         <label className="is-wide"><span>Their contact</span><input value={ownerContact} onChange={(e) => setOwnerContact(e.target.value)} placeholder="Kept inside the organisation" /></label>
       </div>
       <label className="is-wide"><span>Intake notes</span><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></label>
+      {error && <p role="alert" className="lr-form-err">{error}</p>}
       <button type="button" className="sys-btn is-sm" onClick={save} disabled={busy}>{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Save</button>
     </div>
   );

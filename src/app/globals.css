@@ -721,3 +721,6 @@ h1 em, h2 em, h3 em { font-style: normal; }
 @media (max-width: 900px) {
   .snotice { max-width: none; }
 }
+
+/* Keep onboarding and sign-in readable without stacked install/storage prompts. */
+body:has([role="dialog"]) :is(.sp-install-prompt, .snotice) { display: none; }

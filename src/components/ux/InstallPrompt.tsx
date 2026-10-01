@@ -85,7 +85,7 @@ export function InstallPrompt() {
   if (!show || !noticeSeen || !["/app", "/feeder", "/following", "/learn"].includes(pathname)) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-[5.5rem] z-[55] mx-auto max-w-md lg:bottom-6 lg:left-64 lg:right-auto lg:mx-0">
+    <div className="sp-install-prompt fixed inset-x-3 bottom-[5.5rem] z-[55] mx-auto max-w-md lg:bottom-6 lg:left-64 lg:right-auto lg:mx-0">
       <div className="flex items-center gap-3 rounded border border-black/[0.08] bg-paper/95 p-3 shadow-pop backdrop-blur-xl dark:border-white/10 dark:bg-ink/95">
         <img src="/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded" />
         <div className="min-w-0 flex-1">
@@ -108,7 +108,7 @@ export function InstallPrompt() {
         )}
         <button
           onClick={dismiss}
-          aria-label="Dismiss"
+          aria-label="Dismiss install prompt"
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-bark-500 hover:bg-black/[0.05] dark:hover:bg-white/10"
         >
           <X className="h-4 w-4" />

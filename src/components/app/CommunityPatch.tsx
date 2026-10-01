@@ -48,7 +48,7 @@ const km = (a: [number, number], b: [number, number]) => {
 const ago = (iso: string | null) => {
   if (!iso) return "";
   const d = Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000));
-  return d < 1 ? "today" : d === 1 ? "yesterday" : d < 31 ? `${d} days ago` : d < 365 ? `${Math.round(d / 30)} months ago` : `${(d / 365).toFixed(1)} years ago`;
+  return d < 1 ? "today" : d === 1 ? "yesterday" : d < 31 ? `${d} days ago` : d < 365 ? `${Math.round(d / 30)} month${Math.round(d / 30) === 1 ? "" : "s"} ago` : `${(d / 365).toFixed(1)} years ago`;
 };
 const nameOf = (a: PAnimal) => dogLabel({ name: a.name, zone: a.zone || "here" });
 const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const n = r.length / 2 - 1; for (let i = 0; i < n; i++) { x += r[i * 2]; y += r[i * 2 + 1]; } return [x / n, y / n]; };
