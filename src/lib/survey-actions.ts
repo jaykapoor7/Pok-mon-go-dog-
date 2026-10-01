@@ -3,6 +3,7 @@
 import { getSupabase } from "./supabase";
 
 export async function createSurvey(title: string, species: string, description?: string): Promise<string | null> {
+  if (species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
   if (!supa) return "demo-survey";
   const { data, error } = await supa.rpc("create_survey", {
@@ -45,6 +46,7 @@ export interface SurveyResponseInput {
 }
 
 export async function submitSurveyResponse(input: SurveyResponseInput): Promise<string | null> {
+  if (input.species && input.species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
   if (!supa) return "demo-response";
   const { data, error } = await supa.rpc("submit_survey_response", {
@@ -53,7 +55,7 @@ export async function submitSurveyResponse(input: SurveyResponseInput): Promise<
     p_lat: input.lat ?? null,
     p_lng: input.lng ?? null,
     p_photo_url: input.photoUrl ?? null,
-    p_species: input.species ?? null,
+    p_species: "dog",
     p_count: input.count ?? 1,
     p_attributes: input.attributes ?? {},
     p_notes: input.notes ?? null,
