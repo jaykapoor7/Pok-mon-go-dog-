@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Plus, Loader2, Check } from "lucide-react";
 import { isNgoMember } from "@/lib/actions";
 import { createSurvey } from "@/lib/survey-actions";
-import { SPECIES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const INPUT =
@@ -16,7 +15,7 @@ export function SurveyCreate() {
   const [member, setMember] = useState(false);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [species, setSpecies] = useState("dog");
+  const species = "dog";
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,20 +54,7 @@ export function SurveyCreate() {
   return (
     <div className="mt-4 space-y-3 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
       <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Survey title, e.g. Bengaluru Stray Dog Census 2026" className={INPUT} />
-      <div className="flex flex-wrap gap-2">
-        {SPECIES.filter((s) => s.id !== "other").map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setSpecies(s.id)}
-            className={cn(
-              "rounded-md px-2.5 py-1.5 text-[13px] font-medium",
-              species === s.id ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]"
-            )}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      <p className="text-[13px] font-medium text-bark-500">Dog census</p>
       <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is being counted, and how (optional)." className={cn(INPUT, "min-h-[70px] resize-y")} />
       {error && <p className="text-sm text-status-injured">{error}</p>}
       <div className="flex gap-2">
