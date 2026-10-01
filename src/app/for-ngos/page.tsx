@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 2909)
+Total output lines: 215
+
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -5,6 +8,8 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { OrgMark } from "@/components/orgs/OrgMark";
 import { getPartnerDirectory } from "@/lib/partners";
 import { getKindHour } from "@/lib/kind-hour";
+import { getLandingStory } from "@/lib/landing/story";
+import { DeskMock } from "@/components/landing/DeskMock";
 import "@/components/site/site.css";
 import "@/components/landing/landing.css";
 import "@/components/orgs/partners.css";
@@ -25,9 +30,10 @@ export const metadata = {
    ════════════════════════════════════════════════════════════════════ */
 
 export default async function ForNgosPage() {
-  const [dir, kh] = await Promise.all([
+  const [dir, kh, story] = await Promise.all([
     getPartnerDirectory().catch(() => []),
     getKindHour().catch(() => null),
+    getLandingStory().catch(() => null),
   ]);
   const ex = kh?.example ?? null;
   const ngos = dir.filter((o) => o.kind === "Field partner" || o.kind === "Partner NGO");
@@ -58,64 +64,12 @@ export default async function ForNgosPage() {
           </div>
         </section>
 
-        <section className="co-sec" aria-labelledby="co-what">
-          <div className="co-sec-in">
-            <header className="co-sec-head">
-              <h2 id="co-what">What the Field Workspace <em>holds.</em></h2>
-              <p>The parts of field work nobody funds and everybody needs, kept in one place.</p>
-            </header>
-            <ol className="co-rows">
-              {rows.map((r, i) => (
-                <li key={r.t}>
-                  <span className="co-n">{String(i + 1).padStart(2, "0")}</span>
-                  <span><b>{r.t}</b><p>{r.d}</p></span>
-                  <span />
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section className="co-sec is-shell" aria-labelledby="co-merge">
-          <div className="co-sec-in">
-            <header className="co-sec-head">
-              <h2 id="co-merge">WhatsApp, spreadsheets, paper. <em>One animal record.</em></h2>
-              <p>Field work is already written down, in three places at once. Each source is mapped onto the same animal, with the line it came from kept beside it. Names and numbers of the people who called stay out.</p>
-            </header>
-            <div className="co-merge">
-              <ol className="co-merge-in" aria-label="Where field records are kept today">
-                <li className="co-slip is-chat">
-                  <small>A WhatsApp message</small>
-                  <span className="co-slip-photo" aria-hidden />
-                  <span className="co-slip-f"><i>What is wrong</i><i>Where</i><i>When</i></span>
-                </li>
-                <li className="co-slip is-sheet">
-                  <small>A spreadsheet row{ex ? " · Kind Hour register, line KH-RR-001" : ""}</small>
-                  {ex ? (
-                    <table>
-                      <thead><tr><th>Date</th><th>Address</th><th>Dog</th><th>Name</th><th>OPD</th><th>Caretaker</th></tr></thead>
-                      <tbody><tr><td data-k="Date">25/1/2024</td><td data-k="Address">rajendra</td><td data-k="Dog">white and brown</td><td data-k="Name">chachi</td><td data-k="OPD">yes</td><td data-k="Caretaker" className="is-held">withheld</td></tr></tbody>
-                    </table>
-                  ) : <span className="co-slip-f"><i>Date</i><i>Locality</i><i>Animal</i><i>Status</i></span>}
-                </li>
-                <li className="co-slip is-paper">
-                  <small>A paper or vet record</small>
-                  <span className="co-slip-f"><i>Procedure</i><i>Date</i><i>Vet</i><i>Follow-up</i></span>
-                </li>
-              </ol>
-              <div className="co-merge-out">
-                <p className="co-merge-k sys-mono">One animal record</p>
-                {ex ? (
-                  <Link href={`/dog/${ex.id}`} className="co-record">
-                    <span className="co-record-id">{ex.straypawId}</span>
-                    <b>{ex.name}</b>
-                    <span>{[ex.zone, ex.city].filter(Boolean).join(" · ")}</span>
-                    <dl>
-                      <div><dt>Case</dt><dd>{ex.cases}</dd></div>
-                      <div><dt>Care</dt><dd>{ex.care}</dd></div>
-                      <div><dt>Recorded by</dt><dd>The Kind Hour Foundation</dd></div>
-                    </dl>
-                    <em>Imported history, not a live report <ArrowUpRight size={13} /></em>
+        {story && (
+          <section className="co-sec is-shell" aria-labelledby="co-workspace">
+            <div className="co-sec-in">
+              <header className="co-sec-head">
+                <h2 id="co-workspace">The Field Workspace, <em>in motion.</em></h2>
+                <p>A working view of what a partner team opens: live cases, urgent follow-ups and the local map.</p>…909 tokens truncated…rrowUpRight size={13} /></em>
                   </Link>
                 ) : (
                   <p className="co-record is-empty">Every source line lands on one StrayPaw ID: the animal&apos;s place, cases, care and outcome, with where each fact came from.</p>
