@@ -38,7 +38,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
   }, [ready, isAuthed, openSignIn]);
 
   function readQ(): any[] { try { return JSON.parse(localStorage.getItem(QKEY) || "[]"); } catch { return []; } }
-  function writeQ(arr: any[]) { try { localStorage.setItem(QKEY, JSON.stringify(arr)); } catch {} setPending(arr.length); }
+  function writeQ(arr: any[]) { localStorage.setItem(QKEY, JSON.stringify(arr)); setPending(arr.length); }
 
   async function flush() {
     const q = readQ();
@@ -71,7 +71,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }
-  useEffect(() => { locate(); }, []);
+
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -89,15 +89,19 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
       surveyId: survey.id, areaId, lat: coords?.lat ?? null, lng: coords?.lng ?? null,
       photoUrl: photo, species, count, attributes, notes: notes.trim() || null,
     };
+    let saved = false;
     try {
       if (typeof navigator !== "undefined" && !navigator.onLine) throw new Error("offline");
-      await submitSurveyResponse(payload);
-    } catch {
-      // Offline or failed → queue locally; it syncs when back online.
-      const q = readQ(); q.push(payload); writeQ(q);
+      const id = await submitSurveyResponse(payload);
+      if (!id || id === "demo-response") throw new Error("The observation was not saved.");
+      setRecorded((n) => n + 1); saved = true;
+    } catch (e) {
+      if (!navigator.onLine) {
+        try { const q = readQ(); q.push(payload); writeQ(q); saved = true; }
+        catch { setError("This device could not save the offline observation. Your entries are still here; try again when connected."); }
+      } else setError(e instanceof Error ? e.message : "The observation was not saved. Try again.");
     } finally {
-      setRecorded((n) => n + 1);
-      setCount(1); setSterilised(null); setPhoto(null); setNotes("");
+      if (saved) { setCount(1); setSterilised(null); setPhoto(null); setNotes(""); }
       setBusy(false);
     }
   }
@@ -112,7 +116,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
         <div className={cn("mb-3 flex items-center gap-2 rounded-md px-3 py-2 text-[13px]", online ? "bg-status-hungry/10 text-status-hungry" : "bg-bark-100 text-bark-500 dark:bg-bark-800")}>
           {online ? <RefreshCw className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
           <span className="flex-1">
-            {online ? `${pending} saved offline · syncing…` : `Offline, ${pending} saved on this device`}
+            {online ? `${pending} saved on this device · waiting to sync` : `Offline, ${pending} saved on this device`}
           </span>
           {online && pending > 0 && <button onClick={flush} className="font-semibold underline">Sync now</button>}
         </div>
@@ -131,7 +135,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
         {/* Area */}
         {areas.length > 0 && (
           <Block label="Area">
-            <select value={areaId ?? ""} onChange={(e) => setAreaId(e.target.value || null)} className="w-full rounded-lg border border-black/[0.12] bg-transparent px-3 py-3 text-base outline-none focus:border-paw-400 dark:border-white/[0.15]">
+            <select aria-label="Survey area" value={areaId ?? ""} onChange={(e) => setAreaId(e.target.value || null)} className="w-full rounded-lg border border-black/[0.12] bg-transparent px-3 py-3 text-base outline-none focus:border-paw-400 dark:border-white/[0.15]">
               {areas.map((a) => (
                 <option key={a.id} value={a.id}>{a.code ? `${a.code} · ` : ""}{a.name}</option>
               ))}
@@ -165,9 +169,9 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
         {/* Count */}
         <Block label="How many">
           <div className="flex items-center gap-4">
-            <button onClick={() => setCount((c) => Math.max(1, c - 1))} className="grid h-12 w-12 place-items-center rounded-lg border border-black/[0.12] dark:border-white/[0.15]"><Minus className="h-5 w-5" /></button>
+            <button aria-label="Decrease dog count" onClick={() => setCount((c) => Math.max(1, c - 1))} className="grid h-12 w-12 place-items-center rounded-lg border border-black/[0.12] dark:border-white/[0.15]"><Minus className="h-5 w-5" /></button>
             <span className="w-10 text-center text-2xl font-semibold tabular-nums">{count}</span>
-            <button onClick={() => setCount((c) => c + 1)} className="grid h-12 w-12 place-items-center rounded-lg border border-black/[0.12] dark:border-white/[0.15]"><Plus className="h-5 w-5" /></button>
+            <button aria-label="Increase dog count" onClick={() => setCount((c) => c + 1)} className="grid h-12 w-12 place-items-center rounded-lg border border-black/[0.12] dark:border-white/[0.15]"><Plus className="h-5 w-5" /></button>
           </div>
         </Block>
 
@@ -190,7 +194,8 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
           <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden onChange={pickPhoto} />
         </Block>
 
-        {error && <p className="text-sm font-medium text-status-injured">{error}</p>}
+        <label className="block text-sm">Notes (optional)<textarea aria-label="Observation notes" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-2 w-full rounded border border-black/10 bg-transparent p-3" /></label>
+        {error && <p role="alert" className="text-sm font-medium text-status-injured">{error}</p>}
 
         <button onClick={submit} disabled={busy} className="sticky bottom-4 flex w-full items-center justify-center gap-2 rounded bg-paw-500 py-4 text-base font-semibold text-white shadow-warm hover:bg-paw-600 disabled:opacity-50">
           {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />} Save &amp; next

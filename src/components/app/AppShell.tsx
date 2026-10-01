@@ -56,6 +56,7 @@ const COMMUNITY_NAV = [
 const NGO_NAV = [
   { href: "/partner", label: "Dashboard", Icon: LayoutGrid },
   { href: "/partner/animals", label: "Records", Icon: Database },
+  { href: "/partner/field", label: "Field work", Icon: BookOpen },
   { href: "/partner/map", label: "Map", Icon: MapPin },
   { href: "/partner/reports", label: "Analysis", Icon: ScanSearch },
   { href: "/partner/team", label: "Team", Icon: Building2 },
@@ -86,7 +87,7 @@ const SPACES: Record<Space, { label: string; home: string; nav: typeof COMMUNITY
   community: { label: "Community", home: "/app", nav: COMMUNITY_NAV, phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights" && x.href !== "/orgs") },
   feeder: { label: "Feeder", home: "/feeder", nav: FEEDER_NAV, phone: FEEDER_NAV.slice(0, 4) },
   educator: { label: "Educator", home: "/learn", nav: EDUCATOR_NAV, phone: EDUCATOR_NAV.filter((x) => x.href !== "/orgs") },
-  ngo: { label: "NGO operations", home: "/partner", nav: NGO_NAV, phone: NGO_NAV.slice(0, 4) },
+  ngo: { label: "NGO operations", home: "/partner", nav: NGO_NAV, phone: NGO_NAV.filter((x) => x.href !== "/partner/field").slice(0, 4) },
 };
 
 /* A space's own routes decide it outright: /partner is the organisation,

@@ -22,7 +22,7 @@ async function paged(load: (from: number, to: number) => any, max = 25000) {
   for (let from = 0; from < max; from += 500) {
     const to = Math.min(from + 499, max - 1);
     const { data, error } = await load(from, to);
-    if (error) return rows;
+    if (error) throw error;
     rows.push(...(data ?? []));
     if (!data || data.length < 500) break;
   }
@@ -32,14 +32,16 @@ async function paged(load: (from: number, to: number) => any, max = 25000) {
 export async function getSurveys(): Promise<Survey[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data } = await supa.from("surveys").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supa.from("surveys").select("id,ngo_id,title,species,description,status,created_by_id,created_at").order("created_at", { ascending: false }).limit(200);
+  if (error) throw error;
   return (data ?? []).map(mapSurvey);
 }
 
 export async function getSurveyById(id: string): Promise<Survey | null> {
   const supa = getSupabase();
   if (!supa) return null;
-  const { data } = await supa.from("surveys").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await supa.from("surveys").select("id,ngo_id,title,species,description,status,created_by_id,created_at").eq("id", id).maybeSingle();
+  if (error) throw error;
   return data ? mapSurvey(data) : null;
 }
 
@@ -47,28 +49,9 @@ export async function getSurveyById(id: string): Promise<Survey | null> {
 export async function getSurveyAreas(surveyId: string): Promise<SurveyArea[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const [{ data: areas }, responses] = await Promise.all([
-    supa.from("survey_areas").select("*").eq("survey_id", surveyId).order("created_at"),
-    paged((from, to) => supa.from("survey_responses").select("area_id, count").eq("survey_id", surveyId).range(from, to)),
-  ]);
-  const byArea = new Map<string, { responses: number; animals: number }>();
-  for (const r of responses) {
-    if (!r.area_id) continue;
-    const cur = byArea.get(r.area_id) ?? { responses: 0, animals: 0 };
-    cur.responses += 1;
-    cur.animals += r.count ?? 1;
-    byArea.set(r.area_id, cur);
-  }
-  return (areas ?? []).map((a: any) => ({
-    id: a.id,
-    survey_id: a.survey_id,
-    name: a.name,
-    code: a.code ?? null,
-    target_count: a.target_count ?? null,
-    status: a.status ?? "pending",
-    response_count: byArea.get(a.id)?.responses ?? 0,
-    animal_count: byArea.get(a.id)?.animals ?? 0,
-  }));
+  const { data, error } = await supa.rpc("survey_area_counts", { p_survey_id: surveyId });
+  if (error) throw error;
+  return (data ?? []) as SurveyArea[];
 }
 
 /**
@@ -100,4 +83,12 @@ export async function getSurveyResponses(surveyId: string, max = 25000): Promise
     notes: r.notes ?? null,
     created_at: r.created_at,
   }));
+}
+
+export async function getSurveyTotals(id: string): Promise<{ areas: number; responses: number; animals: number; covered: number }> {
+ const supa = getSupabase();
+ if (!supa) throw new Error("The record service is unavailable.");
+ const { data,error } = await supa.rpc("survey_totals", { p_survey_id: id });
+ if (error) throw error;
+ return data;
 }

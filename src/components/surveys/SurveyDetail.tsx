@@ -2,26 +2,26 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Loader2, ClipboardCheck, Download } from "lucide-react";
 import { isNgoMember } from "@/lib/actions";
 import { addSurveyArea } from "@/lib/survey-actions";
-import { getSurveyResponses } from "@/lib/surveys";
+import { getSurveyResponses, getSurveyTotals } from "@/lib/surveys";
 import { downloadCsv } from "@/lib/csv";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { speciesLabel, type Survey, type SurveyArea, type SurveyResponse, type Dog } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
-export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyArea[] }) {
-  const router = useRouter();
+export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; areas: SurveyArea[]; onChanged: () => Promise<void> }) {
   const [member, setMember] = useState(false);
   const [adding, setAdding] = useState(false);
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
 
+  const [totals, setTotals] = useState<{ areas: number; responses: number; animals: number; covered: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     isNgoMember().then(setMember).catch(() => {});
-    getSurveyResponses(survey.id).then(setResponses).catch(() => {});
-  }, [survey.id]);
+    Promise.all([getSurveyResponses(survey.id, 500), getSurveyTotals(survey.id)]).then(([rows,total]) => { setResponses(rows); setTotals(total); }).catch(() => setError("Survey totals and observations could not be loaded. Try again."));
+  }, [survey.id, areas]);
 
   const responseMarkers: Dog[] = responses
     .filter((r) => r.lat && r.lng)
@@ -32,20 +32,11 @@ export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyA
       first_seen: r.created_at, last_seen: r.created_at, last_fed_at: null, community_notes: [],
     }));
 
-  const totals = areas.reduce(
-    (acc, a) => {
-      acc.responses += a.response_count ?? 0;
-      acc.animals += a.animal_count ?? 0;
-      if ((a.response_count ?? 0) > 0) acc.covered += 1;
-      return acc;
-    },
-    { responses: 0, animals: 0, covered: 0 }
-  );
-  const coverage = areas.length ? Math.round((totals.covered / areas.length) * 100) : 0;
+  const coverage = totals?.areas ? Math.round((totals.covered / totals.areas) * 100) : 0;
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-32 pt-24 sm:px-6">
-      <Link href="/surveys" className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
+      <Link href="/partner/surveys" className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
         <ArrowLeft className="h-4 w-4" /> Surveys
       </Link>
 
@@ -57,12 +48,13 @@ export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyA
         {survey.description && <p className="mt-3 text-[14px] leading-relaxed text-bark-700 dark:text-bark-200">{survey.description}</p>}
       </div>
 
+      {error && <p role="alert" className="mt-4 text-status-injured">{error}</p>}
       {/* summary */}
       <div className="mt-5 grid grid-cols-4 divide-x divide-black/[0.07] overflow-hidden rounded-lg border border-black/[0.08] dark:divide-white/[0.08] dark:border-white/[0.1]">
-        <Metric label="Areas" value={areas.length} />
-        <Metric label="Responses" value={totals.responses} />
-        <Metric label="Animals" value={totals.animals} />
-        <Metric label="Coverage" value={`${coverage}%`} />
+        <Metric label="Areas" value={totals?.areas ?? "—"} />
+        <Metric label="Responses" value={totals?.responses ?? "—"} />
+        <Metric label="Animals" value={totals?.animals ?? "—"} />
+        <Metric label="Coverage" value={totals ? `${coverage}%` : "—"} />
       </div>
 
       <Link
@@ -87,7 +79,7 @@ export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyA
       {responses.length > 0 && (
         <section className="mt-8">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-[13px] font-semibold uppercase tracking-wide text-bark-400">Observations ({responses.length})</h2>
+            <h2 className="text-[13px] font-semibold uppercase tracking-wide text-bark-400">Recent observations ({responses.length} shown)</h2>
             <button
               onClick={() => {
                 const areaName = new Map(areas.map((a) => [a.id, a.name]));
@@ -127,7 +119,7 @@ export function SurveyDetail({ survey, areas }: { survey: Survey; areas: SurveyA
         )}
       </div>
 
-      {member && adding && <AddArea surveyId={survey.id} onDone={() => { setAdding(false); router.refresh(); }} />}
+      {member && adding && <AddArea surveyId={survey.id} onDone={() => { setAdding(false); void onChanged(); }} />}
 
       {areas.length === 0 ? (
         <p className="rounded-lg border border-dashed border-black/[0.1] py-10 text-center text-[14px] text-bark-400 dark:border-white/[0.12]">
@@ -181,24 +173,29 @@ function AddArea({ surveyId, onDone }: { surveyId: string; onDone: () => void })
   const [code, setCode] = useState("");
   const [target, setTarget] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const INPUT = "rounded-md border border-black/[0.1] bg-transparent px-3 py-2 text-sm outline-none focus:border-paw-400 dark:border-white/[0.12]";
 
   async function submit() {
     if (!name.trim()) return;
-    setBusy(true);
+    const amount = target.trim() ? Number(target) : null;
+    if (amount !== null && (!Number.isInteger(amount) || amount < 1)) { setError("Target must be a positive whole number."); return; }
+    setBusy(true); setError(null);
     try {
-      await addSurveyArea(surveyId, name.trim(), code.trim() || undefined, target ? parseInt(target, 10) : null);
+      const id = await addSurveyArea(surveyId, name.trim(), code.trim() || undefined, amount);
+      if (!id) throw new Error("The area was not saved.");
       onDone();
-    } finally {
+    } catch (e) { setError(e instanceof Error ? e.message : "The area was not saved."); } finally {
       setBusy(false);
     }
   }
 
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-black/[0.08] p-3 dark:border-white/[0.1]">
-      <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Code" className={cn(INPUT, "w-20")} />
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ward / village name" className={cn(INPUT, "min-w-0 flex-1")} />
-      <input value={target} onChange={(e) => setTarget(e.target.value)} inputMode="numeric" placeholder="Target" className={cn(INPUT, "w-20")} />
+      <input aria-label="Area code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Code" className={cn(INPUT, "w-20")} />
+      <input aria-label="Area name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ward / village name" className={cn(INPUT, "min-w-0 flex-1")} />
+      <input aria-label="Target dog count" value={target} onChange={(e) => setTarget(e.target.value)} inputMode="numeric" placeholder="Target" className={cn(INPUT, "w-20")} />
+      {error && <p role="alert" className="text-sm text-status-injured">{error}</p>}
       <button onClick={submit} disabled={busy || !name.trim()} className="inline-flex items-center gap-1 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Add
       </button>

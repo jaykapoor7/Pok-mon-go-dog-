@@ -35,6 +35,7 @@ export async function ensureVolunteer(actor: Actor) {
 
 export interface CreateCaseInput {
   title: string;
+  city: string;
   description?: string;
   dogId?: string | null;
   zone?: string | null;
@@ -60,7 +61,8 @@ export async function createCase(
   await ensureVolunteer(actor);
   // Demo dogs don't exist in the DB, never link a case to one.
   const dogId = input.dogId && !input.dogId.startsWith("demo-") ? input.dogId : null;
-  const { data, error } = await supa.rpc("create_case", {
+  const { data, error } = await supa.rpc("create_case_in_city", {
+    p_city: input.city.trim(),
     p_title: input.title,
     p_description: input.description || null,
     p_dog_id: dogId,

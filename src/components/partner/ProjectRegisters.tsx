@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Download, Loader2, Plus } from "lucide-react";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
-import { getSurveys, getSurveyResponses, PROJECT_MARKER } from "@/lib/surveys";
+import { getSurveys, getSurveyResponses, getSurveyTotals, PROJECT_MARKER } from "@/lib/surveys";
 import { createSurvey, submitSurveyResponse } from "@/lib/survey-actions";
 import "./projects.css";
 
@@ -36,6 +36,7 @@ export function ProjectRegisters() {
   const { member, ready } = usePartnerAccess();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [selected, setSelected] = useState("");
+  const [total, setTotal] = useState<number | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,16 +51,16 @@ export function ProjectRegisters() {
     setProjects(p);
     setSelected((s) => s || p[0]?.id || "");
   };
-  const loadEntries = async (id: string) => setEntries((await getSurveyResponses(id, 25000)) as unknown as Entry[]);
-  useEffect(() => { if (ready) reload().catch(() => setProjects([])); }, [ready, member]);
-  useEffect(() => { if (!selected) { setEntries([]); return; } loadEntries(selected).catch(() => setEntries([])); }, [selected]);
+  const loadEntries = async (id: string) => { setEntries([]); setTotal(null); const [rows, totals] = await Promise.all([getSurveyResponses(id, 500), getSurveyTotals(id)]); setEntries(rows as unknown as Entry[]); setTotal(totals.responses); };
+  useEffect(() => { if (ready) reload().catch(() => { setProjects([]); setError("Projects could not be loaded. Try again."); }); }, [ready, member]);
+  useEffect(() => { if (!selected) { setEntries([]); return; } loadEntries(selected).catch(() => setError("Project entries could not be loaded. Try again.")); }, [selected]);
 
   const project = projects?.find((p) => p.id === selected) ?? null;
   const fields = project ? fieldsOf(project) : [];
 
   const make = async (e: FormEvent) => {
     e.preventDefault();
-    const f = fieldText.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
+    const f = [...new Set(fieldText.split(/[,\n]/).map((x) => x.trim()).filter(Boolean))];
     if (!name.trim() || !f.length) return;
     setBusy(true); setError(null);
     try {
@@ -74,7 +75,8 @@ export function ProjectRegisters() {
     if (!project) return;
     setBusy(true); setError(null);
     try {
-      await submitSurveyResponse({ surveyId: project.id, species: project.species, count: 1, attributes: Object.fromEntries(fields.map((f) => [f, values[f] || ""])), notes: notes || null });
+      const id = await submitSurveyResponse({ surveyId: project.id, species: project.species, count: 1, attributes: Object.fromEntries(fields.map((f) => [f, values[f] || ""])), notes: notes || null });
+      if (!id || id === "demo-response") throw new Error("The entry was not saved.");
       setValues({}); setNotes(""); await loadEntries(project.id);
     } catch (err) { setError(err instanceof Error ? err.message : "The entry was not saved."); }
     finally { setBusy(false); }
@@ -135,9 +137,10 @@ export function ProjectRegisters() {
                   <h2>{project.title}</h2>
                   {purposeOf(project) && <p>{purposeOf(project)}</p>}
                 </div>
-                <button type="button" className="pj-quiet" onClick={exportCsv} disabled={!entries.length}><Download size={15} /> Export all</button>
+                <button type="button" className="pj-quiet" onClick={exportCsv} disabled={!entries.length}><Download size={15} /> Export shown</button>
               </div>
 
+              <p className="pj-fine">{total !== null ? `${total.toLocaleString("en-IN")} total entries · ` : ""}Charts, table and export use the latest {entries.length.toLocaleString("en-IN")} entries (up to 500).</p>
               <Pulse entries={entries} />
               {entries.length > 0 && <Completeness fields={fields} entries={entries} />}
 
@@ -163,7 +166,7 @@ export function ProjectRegisters() {
                     ))}
                   </tbody>
                 </table>
-                {entries.length > 500 && <p className="pj-fine">The latest 500 of {entries.length.toLocaleString("en-IN")} entries are shown here; the export carries all of them.</p>}
+                {entries.length > 500 && <p className="pj-fine">The latest 500 of {entries.length.toLocaleString("en-IN")} entries are shown here; the export carries the entries shown.</p>}
                 {!entries.length && <p className="pj-fine">No entries yet.</p>}
               </div>
             </section>

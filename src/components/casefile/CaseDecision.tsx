@@ -19,7 +19,7 @@
    Every close takes a second tap. Nothing here runs on a timer.
    ════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Check, CheckCircle2, Hand, Loader2, Play, RotateCcw, UserPlus, Wallet } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { uploadPhoto } from "@/lib/actions";
@@ -284,7 +284,7 @@ function Resolve({ busy, onCancel, onSubmit }: {
       </div>
       <PhotoPick label="After photo" need file={after} onPick={setAfter} />
       <PhotoPick label="Before photo (optional)" file={before} onPick={setBefore} />
-      <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What was done, and how the animal is now" />
+      <textarea aria-label="Resolution outcome" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What was done, and how the animal is now" />
       <label className="cf-check">
         <input type="checkbox" checked={returned} onChange={(e) => setReturned(e.target.checked)} />
         <span><b>Returned to the exact place it was caught.</b> Street dogs hold territory; released elsewhere, a dog loses its food, its shelter and its group.</span>
@@ -301,11 +301,11 @@ function Resolve({ busy, onCancel, onSubmit }: {
 }
 
 function PhotoPick({ label, need, file, onPick }: { label: string; need?: boolean; file: File | null; onPick: (f: File | null) => void }) {
+  const input = useRef<HTMLInputElement>(null);
   return (
-    <label className={`cf-photo ${file ? "is-set" : ""}`}>
+    <div><button type="button" aria-label={label} onClick={() => input.current?.click()} className={`cf-photo ${file ? "is-set" : ""}`}>
       <Camera size={15} /> <span>{file ? file.name : label}</span>{need && !file && <em>needed</em>}
-      <input type="file" accept="image/*" hidden onChange={(e) => onPick(e.target.files?.[0] ?? null)} />
-    </label>
+    </button><input ref={input} aria-label={label} type="file" accept="image/*" hidden onChange={(e) => onPick(e.target.files?.[0] ?? null)} /></div>
   );
 }
 

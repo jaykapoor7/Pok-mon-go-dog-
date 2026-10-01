@@ -11,7 +11,7 @@ test("the landing first view is self-contained and names all three roles", async
   const geometry = await page.evaluate(() => {
     const heroEl = document.querySelector(".ld-hero");
     const h = heroEl?.getBoundingClientRect();
-    const next = heroEl?.nextElementSibling?.getBoundingClientRect();
+    const next = heroEl && Array.from(heroEl.parentElement?.children ?? []).slice(Array.from(heroEl.parentElement?.children ?? []).indexOf(heroEl) + 1).map(el => el.getBoundingClientRect()).find(rect => rect.height > 0);
     return h && next ? { heroHeight: h.height, nextTop: next.top, viewport: innerHeight } : null;
   });
   expect(geometry).not.toBeNull();

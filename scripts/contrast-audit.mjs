@@ -158,7 +158,10 @@ const AUDIT = () => {
   return out.sort((a,b) => a.ratio - b.ratio);
 };
 
-const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+const b = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined,
+  proxy: BASE.startsWith("https:") && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined,
+  args: BASE.startsWith("https:") ? [] : ["--no-proxy-server"],
+});
 const findings = [];
 /* Both widths. The console's responsive rules swap layouts and, with them,
    which surface a given piece of text sits on, so a phone-only pass is only
@@ -166,7 +169,7 @@ const findings = [];
    laptop". */
 const VIEWPORTS = [
   { name: "phone", width: 390, height: 844 },
-  { name: "laptop", width: 1440, height: 900 },
+  { name: "laptop", width: 1280, height: 900 },
 ];
 for (const { name: vp, width, height } of VIEWPORTS)
 for (const theme of ["light", "dark"]) {

@@ -12,6 +12,7 @@
    is the only place anything is changed.
    ════════════════════════════════════════════════════════════════════ */
 
+import { CASE_CATEGORY_META } from "@/lib/types";
 import { WorkTrail, type TrailStep } from "@/components/partner/WorkTrail";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -83,7 +84,7 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
   const { c, reg } = file;
   const now = Date.now();
   const open = isOpenClass(reg.status_class, c.status);
-  const cond = condOf(reg.condition_class);
+  const cond = reg.provenance !== "imported_historical_record" && c.category !== "other" ? CASE_CATEGORY_META[c.category].label : condOf(reg.condition_class);
   const triage = cond ? triageOf(cond) : "Unclassified";
   const age = Math.max(0, Math.floor((now - Date.parse(reg.occurred_at)) / DAY));
   const quiet = Math.max(0, Math.floor((now - Date.parse(c.last_activity_at || reg.occurred_at)) / DAY));

@@ -11,6 +11,7 @@ import { createAnimal, searchMyAnimals, type AnimalRow } from "@/lib/animal-acti
 import { uploadPhoto } from "@/lib/actions";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { CASE_CATEGORY_META, CASE_SEVERITY_META, type CaseCategory, type CaseSeverity, } from "@/lib/types";
+import { CITIES } from "@/lib/geo/cities";
 import { cn, dogLabel } from "@/lib/utils";
 
 const CATEGORIES = Object.keys(CASE_CATEGORY_META) as CaseCategory[];
@@ -36,6 +37,9 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [zone, setZone] = useState("");
+  const [city, setCity] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
   /* Dog-only platform: species is fixed, never chosen. */
   const species = "dog";
   const [category, setCategory] = useState<CaseCategory>("injury");
@@ -60,8 +64,8 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   useEffect(() => {
     if (!dogId) { setPicked(null); return; }
     const inList = dogs.find((d) => d.id === dogId);
-    if (inList) setPicked(inList);
-    else searchMyAnimals("", 1, dogId).then((rows) => setPicked(rows[0] ?? null)).catch(() => {});
+    if (inList) { setPicked(inList); setCity(current => current || inList.city || ""); }
+    else searchMyAnimals("", 1, dogId).then((rows) => { setPicked(rows[0] ?? null); setCity(current => current || rows[0]?.city || ""); }).catch(() => {});
   }, [dogId, dogs]);
 
   const selectedDog = picked;
@@ -75,6 +79,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
 
   async function submit() {
     if (!user) { setError("Sign in to create a case."); return; }
+    if (!city.trim()) { setError("Choose the city for this incident."); return; }
     if (!title.trim()) { setError("Give the case a short title."); return; }
     if (mode === "existing" && (!dogId || !selectedDog)) { setError("Pick an animal, or add a new one with a photo."); return; }
     if (mode === "new" && !photo) { setError("A photo is required to create a new animal profile."); return; }
@@ -86,6 +91,9 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
         if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`${label} must be a valid non-negative amount.`);
         return parsed;
       };
+      const lat = latitude.trim() ? Number(latitude) : null;
+      const lng = longitude.trim() ? Number(longitude) : null;
+      if ((lat === null) !== (lng === null) || (lat !== null && (!Number.isFinite(lat) || Math.abs(lat) > 90 || !Number.isFinite(lng) || Math.abs(lng!) > 180))) throw new Error("Enter valid latitude and longitude together, or leave both blank.");
       const estimatedCost = amount(costEstimate, "Estimated treatment cost");
       const spentCost = amount(costSpent, "Amount spent");
       let linkedDogId = mode === "existing" ? dogId : null;
@@ -96,14 +104,14 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       const linkedZone = zone.trim() || selectedDog?.zone || null;
 
       if (mode === "new") {
-        const newId = await createAnimal({ name: name.trim() || undefined, species, zone: zone.trim() || undefined, coverPhoto: photo });
+        const newId = await createAnimal({ city: city.trim(), lat, lng, name: name.trim() || undefined, species, zone: zone.trim() || undefined, coverPhoto: photo });
         if (!newId || newId === "demo-animal") throw new Error("The dog profile could not be created. Your case has not been submitted.");
         linkedDogId = newId;
       }
 
       const id = await createCase(
         {
-          title: title.trim(), description: description.trim(), dogId: linkedDogId, zone: linkedZone, severity, category, species,
+          city: city.trim(), lat, lng, title: title.trim(), description: description.trim(), dogId: linkedDogId, zone: linkedZone, severity, category, species,
           informerContact, hospital,
           costEstimate: estimatedCost,
           costSpent: spentCost,
@@ -177,7 +185,11 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       <div className="mt-4 space-y-4 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
         <input aria-label="Case title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Case title, e.g. Hind-leg injury" className={INPUT} />
         <textarea aria-label="Case description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's going on? Condition, symptoms, context." className={cn(INPUT, "min-h-[80px] resize-y")} />
+        <label className="block text-sm">City<input aria-label="Incident city" list="case-cities" required value={city} onChange={(e) => setCity(e.target.value)} className={cn(INPUT, "mt-1")} /></label>
+        <datalist id="case-cities">{CITIES.map((c) => <option key={c.name} value={c.name} />)}</datalist>
         <input aria-label="Incident locality" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Area / locality" className={INPUT} />
+        <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Latitude (optional)<input aria-label="Incident latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} inputMode="decimal" className={cn(INPUT, "mt-1")} /></label><label className="text-sm">Longitude (optional)<input aria-label="Incident longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} inputMode="decimal" className={cn(INPUT, "mt-1")} /></label></div>
+        <p className="text-xs text-bark-500">Use the incident’s actual coordinates. Leave them blank when unknown; a locality alone does not create a map pin.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Informer / reporter contact
             <input value={informerContact} onChange={(e) => setInformerContact(e.target.value)} placeholder="Phone, WhatsApp or email (private)" className={cn(INPUT, "mt-1.5")} />

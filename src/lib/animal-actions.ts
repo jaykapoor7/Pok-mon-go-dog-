@@ -10,6 +10,7 @@ export interface AnimalRow {
   code: string | null;
   species: string;
   zone: string;
+  city?: string | null;
   status: string;
   cover_photo: string;
   assignee_name: string | null;
@@ -23,6 +24,7 @@ export interface CreateAnimalInput {
   species: string;
   code?: string;
   zone?: string;
+  city: string;
   lat?: number | null;
   lng?: number | null;
   coverPhoto?: string | null;
@@ -33,7 +35,8 @@ export async function createAnimal(input: CreateAnimalInput): Promise<string | n
   if (input.species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
   if (!supa) return "demo-animal";
-  const { data, error } = await supa.rpc("create_animal", {
+  const { data, error } = await supa.rpc("create_animal_in_city", {
+    p_city: input.city.trim(),
     p_name: input.name || null,
     p_species: input.species,
     p_code: input.code || null,
@@ -231,7 +234,7 @@ export async function searchMyAnimals(query: string, limit = 10, id?: string): P
   if (!supa) throw new Error("The organisation record is unavailable.");
   const { data: ngo, error: orgError } = await supa.rpc("my_ngo");
   if (orgError || !ngo) throw new Error("Organisation access required.");
-  let read = supa.from("dogs").select("id,straypaw_id,name,code,species,zone,status,cover_photo,assignee_name,last_seen,lat,lng").eq("ngo_id", ngo);
+  let read = supa.from("dogs").select("id,straypaw_id,name,code,species,zone,city,status,cover_photo,assignee_name,last_seen,lat,lng").eq("ngo_id", ngo);
   if (id) read = read.eq("id", id);
   else {
     const text = query.trim().replace(/[,%()\\]/g, " ").slice(0, 100);

@@ -33,7 +33,7 @@ const PUBLIC_DOG_SELECT = "id,name,species,zone,city,lat,lng,status,cover_photo,
 
 // ── Row mappers ──────────────────────────────────────────────
 
-function mapDog(row: any): Dog {
+export function mapDog(row: any): Dog {
   return {
     id: row.id,
     name: row.name ?? null,

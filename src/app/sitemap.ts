@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/site-url";
+import { getPartnerDirectory } from "@/lib/partners";
 import { getSupabase } from "@/lib/supabase";
 const SITE = SITE_URL;
 
@@ -80,5 +81,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: freq,
     priority,
   }));
-  return [...routes, ...(await recordEntries(now))];
+  const [records, organisations] = await Promise.all([recordEntries(now), getPartnerDirectory().catch(() => [])]);
+  return [...routes, ...organisations.map(org => ({ url: `${SITE}/org/${org.slug}`, changeFrequency: "weekly" as const, priority: 0.7 })), ...records];
 }

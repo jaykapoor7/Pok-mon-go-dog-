@@ -34,7 +34,7 @@ export function SurveyCreate() {
     try {
       const id = await createSurvey(title.trim(), species, description.trim() || undefined);
       if (id && id !== "demo-survey") router.push(`/surveys/${id}`);
-      else router.refresh();
+      else throw new Error("The survey could not be saved.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create survey.");
       setBusy(false);
@@ -54,7 +54,7 @@ export function SurveyCreate() {
 
   return (
     <div className="mt-4 space-y-3 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Survey title, e.g. Bengaluru Stray Dog Census 2026" className={INPUT} />
+      <input aria-label="Survey title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Survey title, e.g. Bengaluru Stray Dog Census 2026" className={INPUT} />
       {SPECIES.length > 1 && (
       <div className="flex flex-wrap gap-2">
         {SPECIES.filter((s) => s.id !== "other").map((s) => (
@@ -71,7 +71,7 @@ export function SurveyCreate() {
         ))}
       </div>
       )}
-      <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is being counted, and how (optional)." className={cn(INPUT, "min-h-[70px] resize-y")} />
+      <textarea aria-label="Survey description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is being counted, and how (optional)." className={cn(INPUT, "min-h-[70px] resize-y")} />
       {error && <p className="text-sm text-status-injured">{error}</p>}
       <div className="flex gap-2">
         <button onClick={submit} disabled={busy || !title.trim()} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600 disabled:opacity-50">

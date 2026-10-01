@@ -17,9 +17,10 @@ for (const width of [1280, 390]) test(`public launch review at ${width}px`, asyn
     await expect(page.locator('h1').first()).toBeVisible();
     // Let the page's own data-loading indicator settle before taking evidence.
     await page.locator('h1').first().scrollIntoViewIfNeeded();
+    await expect(page.locator("h1:visible")).toHaveCount(1);
     const layout = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth > innerWidth + 1,
-      h1: document.querySelectorAll('h1').length,
+      h1: Array.from(document.querySelectorAll('h1')).filter(el => el.getBoundingClientRect().height > 0).length,
       description: document.querySelector('meta[name="description"]')?.getAttribute('content'),
       canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
     }));
