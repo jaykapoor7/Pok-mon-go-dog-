@@ -55,6 +55,7 @@ jobs:
           npm run test:case-input-validation
           npm run test:sql-rpc-mapping
           npm run test:spatial
+          npm run test:no-full-register
       - name: Install browser
         run: npx playwright install --with-deps chromium
       - name: Browser regression suite

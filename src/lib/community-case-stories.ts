@@ -51,53 +51,6 @@ export async function getPublicCaseStoriesPage(input: { limit?: number; before?:
   return { rows, next: tail ? { occurredAt: tail.occurred_at, id: tail.id } : null, error: null };
 }
 
-export async function getPublicCaseStories(limit = 120): Promise<PublicCaseStory[]> {
-  const page = await getPublicCaseStoriesPage({ limit: Math.min(100, limit) });
-  return enrichHistoricalCases(page.rows);
-}
-
-function mapTimelineRow(row: any): PublicTimelineEvent {
-  return {
-    id: row.id,
-    dog_id: row.dog_id ?? null,
-    ngo_id: row.ngo_id ?? null,
-    ngo_name: row.ngo_name ?? null,
-    title: row.title ?? "Field activity",
-    occurred_at: row.occurred_at,
-    zone: row.zone ?? null,
-  };
-}
-
-/** Generic public activity feed. The limit is intentional for timeline pages. */
-export async function getPublicTimeline(limit = 500): Promise<PublicTimelineEvent[]> {
-  const supa = getSupabase();
-  if (!supa) return [];
-  const { data, error } = await supa
-    .from("public_field_activity")
-    .select("*")
-    .order("occurred_at", { ascending: false })
-    .limit(limit);
-  if (error) return [];
-  return (data ?? []).map(mapTimelineRow);
-}
-
-/**
- * Complete public care ledger. Filtering in the database, then paging, avoids
- * silently losing older medical events once case volume grows.
- */
-export async function getPublicCareTimeline(limit = 500): Promise<PublicTimelineEvent[]> {
-  const supa = getSupabase();
-  if (!supa) return [];
-  const { data, error } = await supa
-    .from("public_field_activity")
-    .select("id,dog_id,ngo_id,ngo_name,title,occurred_at,zone")
-    .like("id", "medical:%")
-    .order("occurred_at", { ascending: false })
-    .limit(Math.min(800, Math.max(1, limit)));
-  if (error) return [];
-  return (data ?? []).map(mapTimelineRow);
-}
-
 /** Care is read only for the current story page. A public story must never
  * cause the global timeline to be scanned just to establish its care. */
 export async function getPublicCareForDogs(dogIds: string[]): Promise<PublicTimelineEvent[]> {
@@ -170,9 +123,4 @@ async function enrichHistoricalCases(rows: PublicCaseStory[]): Promise<PublicCas
     }
   }
   return rows.map((row) => ({ ...row, source_discharge_at: dischargeByCase.get(row.id) ?? null }));
-}
-
-export async function getPublishedCaseStories(limit = 48): Promise<PublicCaseStory[]> {
-  const page = await getPublishedCaseStoriesPage({ limit: Math.min(100, limit) });
-  return page.rows;
 }
