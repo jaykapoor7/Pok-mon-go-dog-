@@ -218,3 +218,55 @@ update public.spatial_city_cells s
        refreshed_at = now()
   from attention a
  where a.city = s.city and a.h3_r8 = s.h3_r8;
+
+-- Exact open-work geography for the NGO operations-room map. The queue may
+-- remain a bounded list of named cases; the map never derives its totals from
+-- that list.
+create or replace function public.list_org_open_work_cells()
+returns table(
+  city text, h3_r8 text, open_cases bigint, stale_cases bigint, critical_cases bigint
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with me as (
+    select public.my_ngo() as ngo_id
+  ), scoped as (
+    select
+      case when c.provenance = 'imported_historical_record' and d.city is not null
+           then d.city else coalesce(nullif(btrim(c.city), ''), d.city) end as city,
+      case when c.provenance = 'imported_historical_record' and d.h3_r8 is not null
+           then d.h3_r8 else coalesce(c.h3_r8, d.h3_r8) end as h3_r8,
+      c.status_class,
+      c.condition_class,
+      coalesce(c.source_event_at, c.created_at) as occurred_at,
+      c.last_activity_at
+    from public.cases c
+    left join public.dogs d on d.id = c.dog_id
+    cross join me
+    where auth.uid() is not null
+      and me.ngo_id is not null
+      and coalesce(c.ngo_id, d.ngo_id) = me.ngo_id
+      and not coalesce(c.is_demo, false)
+  )
+  select city, h3_r8,
+         count(*)::bigint as open_cases,
+         count(*) filter (
+           where occurred_at < now() - interval '90 days'
+             and (last_activity_at is null or last_activity_at < now() - interval '30 days')
+         )::bigint as stale_cases,
+         count(*) filter (
+           where condition_class in ('Road accident','Maggot wound','Human abuse','Dog bite','Entrapment','Suspected rabies')
+         )::bigint as critical_cases
+    from scoped
+   where status_class in ('open','in_progress')
+     and city is not null and h3_r8 is not null
+   group by city, h3_r8
+   order by count(*) desc, city, h3_r8;
+$$;
+
+revoke all on function public.list_org_open_work_cells() from public, anon;
+grant execute on function public.list_org_open_work_cells() to authenticated, service_role;
+
