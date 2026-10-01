@@ -149,7 +149,8 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
           </button>
         </Block>
 
-        {/* Species */}
+        {/* Species — only when the platform tracks more than one (dog-only today). */}
+        {SPECIES.length > 1 && (
         <Block label="Species">
           <div className="flex flex-wrap gap-2">
             {SPECIES.filter((s) => s.id !== "other").map((s) => (
@@ -159,6 +160,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
             ))}
           </div>
         </Block>
+        )}
 
         {/* Count */}
         <Block label="How many">

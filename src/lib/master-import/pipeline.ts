@@ -74,16 +74,10 @@ export function sourceDate(value: string | null, fallbackYear: number | null) {
 }
 
 
-function inferredSpecies(sheet: string, row: Record<string, string>) {
-  const explicit = value(row, /^species$|animal type|animal species/i);
-  if (explicit) return normalKey(explicit).replace(/\s+/g, "_");
-  const text = normalKey([sheet, ...Object.values(row)].join(" "));
-  if (/\b(donkey|mule)\b/.test(text)) return "donkey";
-  if (/\b(horse|equine|pony)\b/.test(text)) return "horse";
-  if (/\b(cattle|cow|bull|calf|bovine)\b/.test(text)) return "cattle";
-  if (/\bcat|kitten|feline\b/.test(text)) return "cat";
-  if (/\bdog|puppy|canine\b/.test(text)) return "dog";
-  return "animal";
+/* StrayPaw is a dog-only platform: every imported animal is recorded as a dog.
+   Species is never inferred from or accepted off the sheet. */
+function inferredSpecies(_sheet: string, _row: Record<string, string>) {
+  return "dog";
 }
 
 function classify(sheet: string, row: Record<string, string>) : Pick<NormalizedImportRow, "classification" | "classification_reason"> {

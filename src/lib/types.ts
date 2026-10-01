@@ -310,14 +310,11 @@ export interface Case {
   stage?: string | null;
 }
 
+/* StrayPaw is a dog-only platform. Species is no longer a choice anywhere —
+   every record is a dog — so this list holds dog alone. speciesLabel still
+   resolves any legacy value stored on old/imported rows. */
 export const SPECIES: { id: string; label: string; plural: string }[] = [
   { id: "dog", label: "Dog", plural: "Dogs" },
-  { id: "donkey", label: "Donkey", plural: "Donkeys" },
-  { id: "mule", label: "Mule", plural: "Mules" },
-  { id: "cat", label: "Cat", plural: "Cats" },
-  { id: "cattle", label: "Cattle", plural: "Cattle" },
-  { id: "horse", label: "Horse", plural: "Horses" },
-  { id: "other", label: "Animal", plural: "Animals" },
 ];
 
 export function speciesLabel(id: string | null | undefined): string {

@@ -280,12 +280,12 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   if (error) throw error;
   const rows = (data ?? []) as Array<any>;
   /* A fuller set of calm, photographed dogs for the landing's marquee — the
-     register shown as a wall of real profiles, not a short stack. */
-  const picks = rows.filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured").slice(0, 18);
+     register shown as a wall of real profiles across a few sliding rows. */
+  const picks = rows.filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured").slice(0, 24);
   const ids = picks.map((row) => row.id);
   const [{ data: cases }, { data: care }] = ids.length ? await Promise.all([
-    supa.from("public_case_facts").select("dog_id,condition_class,status_class,occurred_at").in("dog_id", ids).order("occurred_at", { ascending: false }).limit(360),
-    supa.from("public_care_facts").select("dog_id,kind,event_date").in("dog_id", ids).order("event_date", { ascending: false }).limit(540),
+    supa.from("public_case_facts").select("dog_id,condition_class,status_class,occurred_at").in("dog_id", ids).order("occurred_at", { ascending: false }).limit(480),
+    supa.from("public_care_facts").select("dog_id,kind,event_date").in("dog_id", ids).order("event_date", { ascending: false }).limit(720),
   ]) : [{ data: [] }, { data: [] }];
   const byCase = new Map<string, RegisterFocus["requests"]>();
   for (const item of (cases ?? []) as any[]) (byCase.get(item.dog_id) ?? byCase.set(item.dog_id, []).get(item.dog_id)!).push({ condition: item.condition_class, at: item.occurred_at, closed: item.status_class === "closed" });
@@ -297,4 +297,4 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
     sterilisation: row.sterilisation_status, vaccination: row.vaccination_status, org: null,
     requests: byCase.get(row.id) ?? [], care: byCare.get(row.id) ?? [],
   })) };
-}, ["landing-animal-register-v8"], { revalidate: 300 });
+}, ["landing-animal-register-v9"], { revalidate: 300 });

@@ -82,7 +82,11 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
     setBusy(true); setError(null);
     try {
       let linkedDogId = mode === "existing" ? dogId : null;
-      const linkedZone = selectedDog?.zone ?? (zone.trim() || null);
+      /* The case carries the incident's own locality. If the worker typed one
+         for this report, that wins — a new incident can be somewhere other than
+         where the dog was last recorded. Fall back to the dog's zone only when
+         nothing was typed. */
+      const linkedZone = zone.trim() || selectedDog?.zone || null;
 
       if (mode === "new") {
         const newId = await createAnimal({ name: name.trim() || undefined, species, zone: zone.trim() || undefined, coverPhoto: photo });

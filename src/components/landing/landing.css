@@ -577,36 +577,51 @@
 .rx-cta { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; vertical-align: middle; font-family: var(--font-sans); font-style: normal; font-size: 13px; font-weight: 600; color: var(--sp-sky); text-decoration: none; border-bottom: 1px solid rgba(143, 183, 255, 0.4); }
 .rx-cta:hover { border-bottom-color: var(--sp-sky); }
 
-/* Five profiles in one row, centred. */
-.rx-row { position: relative; z-index: 1; list-style: none; margin: 0 auto; padding: 0; display: flex; justify-content: center; align-items: start; gap: clamp(8px, 1.6vw, var(--sp-4)); max-width: 1120px; }
-.rx-cell { flex: 0 0 auto; width: clamp(58px, 17vw, 198px); display: grid; gap: var(--sp-2); transition: transform 0.7s var(--sp-ease-out), opacity 0.5s var(--sp-ease); }
-/* Closed: the four siblings collapse onto the centre card and fade; the one
-   dog (the centre) stays. */
-.rx:not(.is-open) .rx-cell { opacity: 0; transform: translateX(calc(var(--d) * -116%)) scale(0.64); }
-.rx:not(.is-open) .rx-cell[data-center] { opacity: 1; transform: none; }
-/* Open: all five settle into the row, staggered from the middle outward. */
-.rx.is-open .rx-cell { opacity: 1; transform: none; transition-delay: calc(var(--ad) * 90ms); }
+/* The wall: three rows sliding in an endless loop, edges faded to the ground. */
+.rx-wall { position: relative; z-index: 1; display: grid; gap: clamp(10px, 1.4vw, var(--sp-4)); }
+.rx-row { overflow: hidden; }
+.rx-track { display: flex; gap: clamp(10px, 1.4vw, var(--sp-4)); width: max-content; padding: 2px 0; animation: rx-drift linear infinite; animation-duration: calc(var(--n, 8) * 4.4s); will-change: transform; }
+.rx-row.is-r .rx-track { animation-direction: reverse; }
+.rx-wall:hover .rx-track, .rx-track:focus-within { animation-play-state: paused; }
+@keyframes rx-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-.rx-card { display: block; border-radius: var(--sp-radius-lg); overflow: hidden; background: var(--sp-night); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 20px 44px rgba(0, 0, 0, 0.45); transition: transform var(--sp-base) var(--sp-ease), box-shadow var(--sp-base) var(--sp-ease); }
-.rx-shot { aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-night); }
+.rx-card { flex: 0 0 auto; width: clamp(130px, 15vw, 184px); display: grid; gap: var(--sp-2); text-decoration: none; color: inherit; }
+.rx-shot {
+  position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-night); border-radius: var(--sp-radius-lg);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 16px 36px rgba(0, 0, 0, 0.4);
+  transition: transform var(--sp-base) var(--sp-ease), box-shadow var(--sp-base) var(--sp-ease);
+}
 .rx-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform var(--sp-slow) var(--sp-ease); }
-.rx-id { margin: 2px 0 0; text-align: center; font-size: clamp(9px, 0.95vw, 12px); letter-spacing: 0.03em; color: var(--sp-sky); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rx-place { margin: 0; text-align: center; font-size: clamp(9px, 0.9vw, 11.5px); color: rgba(239, 231, 218, 0.62); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-id {
+  position: absolute; left: var(--sp-2); bottom: var(--sp-2); z-index: 2;
+  display: inline-flex; align-items: center; height: 20px; padding: 0 7px;
+  border-radius: var(--ctl-r-row); background: rgba(7, 20, 43, 0.82); color: var(--sp-sky);
+  font-size: 10px; letter-spacing: 0.03em;
+}
+.rx-place { margin: 0; text-align: center; font-size: 11.5px; color: rgba(239, 231, 218, 0.62); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (hover: hover) {
-  .rx-card:hover { transform: translateY(-4px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 26px 52px rgba(0, 0, 0, 0.55); }
+  .rx-card:hover .rx-shot { transform: translateY(-4px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 24px 48px rgba(0, 0, 0, 0.55); }
   .rx-card:hover .rx-shot img { transform: scale(1.05); }
 }
-.rx-card:focus-visible { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
+.rx-card:focus-visible { outline: none; }
+.rx-card:focus-visible .rx-shot { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
+
+.rx-edge { position: absolute; top: 0; bottom: 0; width: clamp(28px, 7vw, 110px); z-index: 3; pointer-events: none; }
+.rx-edge.is-left { left: 0; background: linear-gradient(90deg, var(--sp-deep), rgba(7, 22, 48, 0)); }
+.rx-edge.is-right { right: 0; background: linear-gradient(270deg, var(--sp-deep), rgba(7, 22, 48, 0)); }
 
 @media (max-width: 760px) {
-  .rx h2 { font-size: clamp(26px, 7.4vw, 38px); }
-  .rx-lede { font-size: 14px; line-height: 1.5; }
-  /* Five across stays, but the place line is dropped so the smaller cells
-     keep the photo and ID legible. */
-  .rx-place { display: none; }
+  .rx h2 { font-size: clamp(24px, 7vw, 36px); }
+  .rx-card { width: clamp(118px, 38vw, 150px); }
+  .rx-place { font-size: 11px; }
 }
 
-.rx.is-calm .rx-cell { opacity: 1 !important; transform: none !important; transition: none !important; }
+/* Reduced motion: no drift; rows become manual horizontal strips. */
+@media (prefers-reduced-motion: reduce) { .rx-track { animation: none; } }
+.rx.is-calm .rx-track { animation: none; width: auto; }
+.rx.is-calm .rx-row { overflow-x: auto; scrollbar-width: none; }
+.rx.is-calm .rx-row::-webkit-scrollbar { display: none; }
+.rx.is-calm .rx-edge, .rx.is-calm .rx-field { display: none; }
 
 /* The report's own photograph on the resident's phone, and the
    municipality's screen as the live map's night ground. */

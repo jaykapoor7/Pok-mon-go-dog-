@@ -272,11 +272,13 @@ function CreateAnimal({ onDone }: { onDone: () => void }) {
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
         <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Your source ID / tag (optional)" className={INPUT} />
       </div>
-      <div className="flex flex-wrap gap-2">
-        {SPECIES.filter((s) => s.id !== "other").map((s) => (
-          <button key={s.id} onClick={() => setSpecies(s.id)} className={cn("rounded-md px-2.5 py-1.5 text-[13px] font-medium", species === s.id ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>{s.label}</button>
-        ))}
-      </div>
+      {SPECIES.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {SPECIES.filter((s) => s.id !== "other").map((s) => (
+            <button key={s.id} onClick={() => setSpecies(s.id)} className={cn("rounded-md px-2.5 py-1.5 text-[13px] font-medium", species === s.id ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>{s.label}</button>
+          ))}
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Village / area" className={INPUT} />
         <button onClick={locate} className="flex items-center justify-between rounded-md border border-black/[0.1] px-3 py-2.5 text-sm dark:border-white/[0.12]" title="GPS makes this new profile appear on the public map immediately">

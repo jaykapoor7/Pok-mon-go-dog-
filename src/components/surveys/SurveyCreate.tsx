@@ -55,6 +55,7 @@ export function SurveyCreate() {
   return (
     <div className="mt-4 space-y-3 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
       <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Survey title, e.g. Bengaluru Stray Dog Census 2026" className={INPUT} />
+      {SPECIES.length > 1 && (
       <div className="flex flex-wrap gap-2">
         {SPECIES.filter((s) => s.id !== "other").map((s) => (
           <button
@@ -69,6 +70,7 @@ export function SurveyCreate() {
           </button>
         ))}
       </div>
+      )}
       <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is being counted, and how (optional)." className={cn(INPUT, "min-h-[70px] resize-y")} />
       {error && <p className="text-sm text-status-injured">{error}</p>}
       <div className="flex gap-2">
