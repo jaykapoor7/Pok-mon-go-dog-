@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 2349)
+Total output lines: 197
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -6,7 +9,7 @@ import { ArrowLeft, Camera, Crosshair, Minus, Plus, Loader2, Check, CheckCircle2
 import { useAuth } from "@/components/auth/AuthProvider";
 import { uploadPhoto } from "@/lib/actions";
 import { submitSurveyResponse } from "@/lib/survey-actions";
-import { SPECIES, type Survey, type SurveyArea } from "@/lib/types";
+import { type Survey, type SurveyArea } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 // Field capture, radically simpler than the admin UI. Large controls, one
@@ -19,7 +22,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
   const [areaId, setAreaId] = useState<string | null>(areas[0]?.id ?? null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
-  const [species, setSpecies] = useState(survey.species);
+  const species = "dog";
   const [count, setCount] = useState(1);
   const [sterilised, setSterilised] = useState<boolean | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -93,35 +96,7 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
       if (typeof navigator !== "undefined" && !navigator.onLine) throw new Error("offline");
       await submitSurveyResponse(payload);
     } catch {
-      // Offline or failed → queue locally; it syncs when back online.
-      const q = readQ(); q.push(payload); writeQ(q);
-    } finally {
-      setRecorded((n) => n + 1);
-      setCount(1); setSterilised(null); setPhoto(null); setNotes("");
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="mx-auto max-w-md px-4 pb-32 pt-20 sm:px-6">
-      <Link href={`/surveys/${survey.id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
-        <ArrowLeft className="h-4 w-4" /> {survey.title}
-      </Link>
-
-      {(!online || pending > 0) && (
-        <div className={cn("mb-3 flex items-center gap-2 rounded-md px-3 py-2 text-[13px]", online ? "bg-status-hungry/10 text-status-hungry" : "bg-bark-100 text-bark-500 dark:bg-bark-800")}>
-          {online ? <RefreshCw className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
-          <span className="flex-1">
-            {online ? `${pending} saved offline · syncing…` : `Offline, ${pending} saved on this device`}
-          </span>
-          {online && pending > 0 && <button onClick={flush} className="font-semibold underline">Sync now</button>}
-        </div>
-      )}
-
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold tracking-tight">Record an animal</h1>
-        {recorded > 0 && (
-          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-status-vaccinated">
+      // Offline or failed → queue locally; i…349 tokens truncated…status-vaccinated">
             <CheckCircle2 className="h-4 w-4" /> {recorded} this session
           </span>
         )}
@@ -147,17 +122,6 @@ export function CollectFlow({ survey, areas }: { survey: Survey; areas: SurveyAr
             </span>
             {locating ? <Loader2 className="h-5 w-5 animate-spin text-bark-400" /> : <Crosshair className="h-5 w-5 text-paw-500" />}
           </button>
-        </Block>
-
-        {/* Species */}
-        <Block label="Species">
-          <div className="flex flex-wrap gap-2">
-            {SPECIES.filter((s) => s.id !== "other").map((s) => (
-              <button key={s.id} onClick={() => setSpecies(s.id)} className={cn("rounded-lg px-3.5 py-2.5 text-base font-medium", species === s.id ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "border border-black/[0.12] text-bark-600 dark:border-white/[0.15] dark:text-bark-300")}>
-                {s.label}
-              </button>
-            ))}
-          </div>
         </Block>
 
         {/* Count */}
