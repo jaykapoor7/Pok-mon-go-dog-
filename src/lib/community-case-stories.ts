@@ -1,5 +1,4 @@
 import { getSupabase, getSupabaseAdmin } from "./supabase";
-import { isClosedStatus } from "./rescue-taxonomy";
 
 export type PublicCaseStory = {
   id: string;
@@ -98,18 +97,13 @@ export async function getPublishedCaseStoriesPage(input: { limit?: number; befor
   const page = await getPublicCaseStoriesPage(input);
   const cases = await enrichHistoricalCases(page.rows);
   const care = await getPublicCareForDogs(cases.map((story) => story.dog_id));
-  const animalsWithCare = new Set(care.map((event) => event.dog_id).filter((id): id is string => Boolean(id)));
   return { next: page.next, error: page.error ?? null, care, rows: cases.filter((story) => {
-    const hasIdentity = Boolean(story.dog_id && story.title?.trim() && story.occurred_at);
-    if (!hasIdentity) return false;
-
-    if (story.ngo_name === "The Kind Hour Foundation") return true;
-
-    return Boolean(
-      story.outcome?.trim() &&
-      isClosedStatus(story.status) &&
-      animalsWithCare.has(story.dog_id),
-    );
+    /* Show the whole rescue record for the scope — ongoing and completed —
+       not only cases with a recorded ending. The presentation still adds an
+       outcome or discharge only where the source records one (build()), so an
+       ongoing case reads as ongoing with no invented ending. A real identity
+       (animal + a titled, dated encounter) is all that is required. */
+    return Boolean(story.dog_id && story.title?.trim() && story.occurred_at);
   }) };
 }
 

@@ -256,7 +256,7 @@ async function resolveRelay(
    into the compact story the landing draws. */
 export const getLandingStory = unstable_cache(
   async (): Promise<LandingStory | null> => buildStory(),
-  ["landing-story-bounded-v1"],
+  ["landing-story-bounded-v2"],
   { revalidate: 600 },
 );
 
@@ -297,4 +297,4 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
     sterilisation: row.sterilisation_status, vaccination: row.vaccination_status, org: null,
     requests: byCase.get(row.id) ?? [], care: byCare.get(row.id) ?? [],
   })) };
-}, ["landing-animal-register-v7"], { revalidate: 300 });
+}, ["landing-animal-register-v8"], { revalidate: 300 });

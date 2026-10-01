@@ -3,12 +3,15 @@
 /* ════════════════════════════════════════════════════════════════════
    The register: one dog, opening into five.
 
-   A small, sleek section on the night ground. It rests on a single real
-   dog; as it scrolls into view the one opens into a row of five real
-   public profiles, each a resident's photograph with its StrayPaw ID
-   beneath. The dogs are the asset and the whole point.
+   A small, sleek band on the night ground. The ground is quietly alive —
+   faint points of light drift and settle, the same record-light motif the
+   hero and the map use (most sky, a couple of flame for attention). It
+   rests on a single real dog; as it scrolls into view the one opens into a
+   row of five real public profiles, each a resident's photograph with its
+   StrayPaw ID beneath. Minimal words above, so the section stays short.
 
-   Under reduced motion the five are simply shown, already open.
+   Under reduced motion the five are shown already open and the lights hold
+   still.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
@@ -20,6 +23,20 @@ import type { AnimalRegister as Data, RegisterFocus } from "@/lib/landing/story"
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const placeOf = (c: RegisterFocus) => [cleanPlace(c.zone), c.city].filter(Boolean).join(" · ") || "On the record";
+
+/* Deterministic so server and client render the same field (no hydration
+   mismatch). x/y in %, size in px, duration/delay in s, flame marks the few
+   attention-coloured lights. */
+const SPARKS: { x: number; y: number; s: number; d: number; dl: number; flame?: boolean }[] = [
+  { x: 6, y: 22, s: 3, d: 11, dl: 0 }, { x: 15, y: 68, s: 2, d: 14, dl: 2 },
+  { x: 24, y: 38, s: 4, d: 9, dl: 1, flame: true }, { x: 33, y: 80, s: 2, d: 13, dl: 4 },
+  { x: 41, y: 16, s: 3, d: 12, dl: 3 }, { x: 52, y: 72, s: 2, d: 15, dl: 1 },
+  { x: 60, y: 30, s: 3, d: 10, dl: 5 }, { x: 68, y: 84, s: 2, d: 12, dl: 2 },
+  { x: 77, y: 40, s: 4, d: 9, dl: 0, flame: true }, { x: 85, y: 70, s: 2, d: 14, dl: 3 },
+  { x: 92, y: 26, s: 3, d: 11, dl: 1 }, { x: 48, y: 48, s: 2, d: 16, dl: 6 },
+  { x: 11, y: 46, s: 2, d: 13, dl: 5 }, { x: 72, y: 60, s: 3, d: 12, dl: 4 },
+  { x: 30, y: 58, s: 2, d: 15, dl: 2 }, { x: 88, y: 50, s: 2, d: 10, dl: 6 },
+];
 
 export function AnimalRegister({ data, total }: { data: Data; total: number }) {
   const sec = useRef<HTMLElement>(null);
@@ -42,11 +59,16 @@ export function AnimalRegister({ data, total }: { data: Data; total: number }) {
 
   return (
     <section ref={sec} className={`rx ${open ? "is-open" : ""} ${calm ? "is-calm" : ""}`} aria-labelledby="rx-title">
+      <div className="rx-field" aria-hidden>
+        {SPARKS.map((p, i) => (
+          <span key={i} className={`rx-spark${p.flame ? " is-flame" : ""}`}
+            style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.s, height: p.s, ["--t" as string]: `${p.d}s`, ["--dl" as string]: `${p.dl}s` }} />
+        ))}
+      </div>
+
       <div className="rx-words">
         <p className="rx-kicker sys-mono">The register</p>
-        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs. <em>One profile each.</em></h2>
-        <p className="rx-lede">Every dog reported gets a StrayPaw ID and a profile that keeps its story — where it lives, every sighting, every request for help, every treatment. Real ones, photographed by residents.</p>
-        <Link href="/map" className="rx-cta">Open the live map <ArrowUpRight size={15} aria-hidden /></Link>
+        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs. <em>One profile each.</em> <Link href="/map" className="rx-cta">Live map <ArrowUpRight size={14} aria-hidden /></Link></h2>
       </div>
 
       <ol className="rx-row" role="list" aria-label={`Five of the ${fmt(total)} dogs on the register`}>

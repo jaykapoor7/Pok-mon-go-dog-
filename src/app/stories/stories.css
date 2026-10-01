@@ -14,3 +14,9 @@
 .st-empty li { display: flex; gap: var(--sp-5); padding: 13px 0; border-bottom: 1px solid var(--sp-rule); color: var(--sp-body); font-size: 13px; }
 .st-empty li b { color: var(--sp-ember); font: 11px var(--font-mono), ui-monospace, monospace; }
 @media (max-width: 700px) { .st-empty { grid-template-columns: 1fr; gap: var(--sp-6); } }
+
+/* City selector: browse the rescue record city by city. */
+.st-cities { display: flex; flex-wrap: wrap; gap: 8px; margin: var(--sp-3) 0 var(--sp-2); }
+.st-cities a { font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); text-decoration: none; line-height: 1; }
+.st-cities a:hover { background: var(--ctl-tint-hover); }
+.st-cities a.is-on { background: var(--sp-blue); color: #fff; }

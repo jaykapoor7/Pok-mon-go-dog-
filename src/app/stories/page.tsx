@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { StoryAtlas, type Story } from "@/components/stories/StoryAtlas";
 import type { PublicCaseStory, PublicTimelineEvent } from "@/lib/community-case-stories";
 import { getPublishedCaseStoriesPage, countPublicCaseStories } from "@/lib/community-case-stories";
+import { getPublicSpatialCities } from "@/lib/spatial/server";
 import { rescueCategory } from "@/lib/rescue-taxonomy";
 import { getSupabase } from "@/lib/supabase";
 import { dogLabel } from "@/lib/utils";
@@ -82,10 +83,13 @@ async function placesOf(ids: string[]) {
 }
 
 async function StoriesData({ before, city }: { before: { occurredAt: string; id: string } | null; city: string | null }) {
-  const [page, totalForScope] = await Promise.all([
+  const [page, totalForScope, cityIndex] = await Promise.all([
     getPublishedCaseStoriesPage({ limit: 48, before, city }),
     countPublicCaseStories(city),
+    getPublicSpatialCities(40).catch(() => []),
   ]);
+  /* Cities people can scope to: those with field work, most first. */
+  const cityChips = cityIndex.filter((c) => (c.cases || 0) > 0 || (c.animals || 0) > 0).slice(0, 10);
   const cases = page.rows;
   /* getPublishedCaseStoriesPage already read the care timeline to qualify the
      stories; reuse it instead of a second identical round trip. */
@@ -114,7 +118,14 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
               {median != null ? <>. Among records with a recorded ending, the median span is <b>{span(median)}</b></> : null}.
             </p>
           )}
-          {city && <p className="st-scope"><Link href="/stories">← All cities</Link></p>}
+          {cityChips.length > 0 && (
+            <nav className="st-cities" aria-label="Browse rescue records by city">
+              <Link href="/stories" className={!city ? "is-on" : ""}>All cities</Link>
+              {cityChips.map((c) => (
+                <Link key={c.city} href={`/stories?city=${encodeURIComponent(c.city)}`} className={city && c.city.toLowerCase() === city.toLowerCase() ? "is-on" : ""}>{c.city}</Link>
+              ))}
+            </nav>
+          )}
           <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
         </header>
         {stories.length ? <StoryAtlas stories={stories} /> : page.error ? <section className="st-empty" aria-label="Public records temporarily unavailable">
