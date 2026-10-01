@@ -204,9 +204,12 @@ test.describe("public routes", () => {
       });
     }
 
-    for (const href of hrefs) {
-      const res = await request.get(href);
-      expect(res.status(), `broken internal link: ${href}`).toBeLessThan(400);
+    const links = [...hrefs];
+    for (let from = 0; from < links.length; from += 3) {
+      await Promise.all(links.slice(from, from + 3).map(async (href) => {
+        const res = await request.get(href);
+        expect(res.status(), `broken internal link: ${href}`).toBeLessThan(400);
+      }));
     }
   });
 });

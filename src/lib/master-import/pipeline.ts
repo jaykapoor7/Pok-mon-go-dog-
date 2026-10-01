@@ -1,3 +1,4 @@
+import { importedSpecies } from "../dog-only-import";
 import { createHash } from "node:crypto";
 import * as XLSX from "xlsx";
 
@@ -74,11 +75,6 @@ export function sourceDate(value: string | null, fallbackYear: number | null) {
 }
 
 
-/* StrayPaw is a dog-only platform: every imported animal is recorded as a dog.
-   Species is never inferred from or accepted off the sheet. */
-function inferredSpecies(_sheet: string, _row: Record<string, string>) {
-  return "dog";
-}
 
 function classify(sheet: string, row: Record<string, string>) : Pick<NormalizedImportRow, "classification" | "classification_reason"> {
   const name = normalKey(sheet);
@@ -101,8 +97,8 @@ function normalize(sheet: string, sourceRowNumber: number, raw: Record<string, s
   const condition = value(raw, /injury|condition|diagnosis|type/i);
   const caseDetail = value(raw, /case detail|description/i);
   const animalName = value(raw, /^(animal|dog) name$|^nickname$/i);
-  const species = inferredSpecies(sheet, raw);
-  const dogOnly = species === "dog" || species === "animal";
+  const species = importedSpecies(raw, null, sheet);
+  const dogOnly = species === "dog";
   const record = {
     source_sheet: sheet, source_row: sourceRowNumber,
     ...(dogOnly ? kind : { classification: "skip" as const, classification_reason: "StrayPaw currently accepts dog records only" }), event_date: sourceDate(date, fallbackYear), locality, city: null,
@@ -167,6 +163,7 @@ export function explicitWorkbookIdentity(row: NormalizedImportRow) {
 }
 
 export function isAccepted(row: NormalizedImportRow) {
+  if (row.species && row.species !== "dog") return false;
   if (["expense", "summary", "template", "skip"].includes(row.classification)) return false;
   if (row.classification === "sterilisation") return Boolean(row.event_date && row.locality);
   if (row.classification === "rescue") return Boolean(row.event_date && row.locality && (row.case_detail || row.condition || row.treatment_update || row.rescue_plan));

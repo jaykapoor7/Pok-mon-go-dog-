@@ -1,3 +1,4 @@
+import { importedSpecies } from "@/lib/dog-only-import";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -28,7 +29,8 @@ type SheetKind = "rescue" | "care" | "follow_up" | "programme" | "operations" | 
 type ParsedSheet = { sheetName: string; headers: string[]; rows: Array<{ sourceRowNumber: number; raw: Record<string, unknown> }> };
 
 const FIELDS: Record<string, RegExp> = {
-  name: /^(name|animal|dog name|nickname)$/i,
+  name: /^(name|animal|animal name|dog name|nickname)$/i,
+  species: /^(species|animal\s*type|type\s*of\s*animal)$/i,
   animalCode: /(animal|dog).{0,8}(id|code)|^id$/i,
   sex: /^(sex|gender)$/i,
   colour: /colou?r|markings?|identifier/i,
@@ -66,14 +68,20 @@ function field(row: Record<string, unknown>, mapping: Mapping, name: string): st
 }
 
 function normalize(row: Record<string, unknown>, mapping: Mapping): Normalized {
+  const species = importedSpecies(row, mapping.species);
+  if (species !== "dog") throw new Error(`This sheet contains ${species} records. StrayPaw accepts dogs only; remove non-dog rows before importing.`);
+  const coordinate = (name: string, max: number) => {
+    const raw = field(row, mapping, name);
+    if (!raw) return undefined;
+    const value = Number(raw);
+    if (!Number.isFinite(value) || Math.abs(value) > max) throw new Error(`Invalid ${name}. Correct the coordinate before importing.`);
+    return value;
+  };
   const condition = field(row, mapping, "condition");
   const detail = field(row, mapping, "caseDetail");
   return {
     name: field(row, mapping, "name") || undefined,
     animalCode: field(row, mapping, "animalCode") || undefined,
-    // Imports intentionally do not map a species column. This product's
-    // register is dog-only, so accepting a value here would let a workbook
-    // bypass the same rule the field forms enforce.
     species: "dog",
     sex: field(row, mapping, "sex") || undefined,
     colour: field(row, mapping, "colour") || undefined,
@@ -85,8 +93,8 @@ function normalize(row: Record<string, unknown>, mapping: Mapping): Normalized {
     reviewDate: field(row, mapping, "reviewDate") || undefined,
     detailedStatus: field(row, mapping, "detailedStatus") || undefined,
     programme: field(row, mapping, "programme") || undefined,
-    latitude: Number.isFinite(Number(field(row, mapping, "latitude"))) ? Number(field(row, mapping, "latitude")) : undefined,
-    longitude: Number.isFinite(Number(field(row, mapping, "longitude"))) ? Number(field(row, mapping, "longitude")) : undefined,
+    latitude: coordinate("latitude", 90),
+    longitude: coordinate("longitude", 180),
   };
 }
 
@@ -187,6 +195,8 @@ export async function POST(request: Request) {
     const parsed = await readWorkbook(file, text(body.get("sheetName")) || undefined);
     const mapping: Mapping = JSON.parse(text(body.get("mapping")) || "null") ?? suggestMapping(parsed.headers);
 
+    // Validate all source rows before any batch or canonical record is written.
+    for (const row of parsed.rows) normalize(row.raw, mapping);
     if (action === "preview") {
       const actor = await identity(accessToken);
       const sample = parsed.rows.slice(0, 40).map((row) => ({ ...row, normalized: normalize(row.raw, mapping) }));

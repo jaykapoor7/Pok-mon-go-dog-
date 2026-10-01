@@ -1,3 +1,4 @@
+import { importedSpecies } from "../dog-only-import";
 import { explicitWorkbookIdentity, isAccepted, type NormalizedImportRow, workbookAnimalKey } from "./pipeline";
 
 export type LocalityStatus = { recordsFound: number; successfullyGeocoded: number; unresolved: number; geocoderConfigured: boolean; requiredEnv: "MAPBOX_ACCESS_TOKEN" | null };
@@ -144,6 +145,7 @@ export async function commitStaged(supa: any, ngo: any, batchIds: string[]) {
   const ordered = [...rows].sort((a, b) => (sourceDate(a.normalized) || 0) - (sourceDate(b.normalized) || 0) || a.id.localeCompare(b.id));
   for (const source of ordered) {
     const row = source.normalized;
+    if (importedSpecies(source.raw_row ?? {}, null, row?.source_sheet) !== "dog") continue;
     if (!row || !isAccepted(row) || source.decision === "skip" || source.imported_case_id || source.imported_dog_id) continue;
     const explicit = explicitWorkbookIdentity(row); const local = normal(row.locality); const clinical = clinicalKey(row); const eventAt = sourceDate(row);
     let profile: ImportedDog | undefined = source.matched_dog_id ? { id: source.matched_dog_id, key: "manual", explicit: null, locality: local, clinical, eventAt } : explicit ? exact.get(explicit) : undefined;

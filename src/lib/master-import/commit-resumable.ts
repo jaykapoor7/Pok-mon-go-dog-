@@ -1,3 +1,4 @@
+import { importedSpecies } from "../dog-only-import";
 /*
  * Bounded, resumable master-import commit path.
  *
@@ -101,7 +102,7 @@ async function upsertOne<T>(supa: any, table: string, value: Record<string, unkn
 
 function pendingFor(source: SourceRow) {
   const row = source.normalized;
-  return Boolean(row && isAccepted(row) && source.decision !== "skip" && !source.error && (
+  return Boolean(row && importedSpecies(source.raw_row ?? {}, null, row.source_sheet) === "dog" && isAccepted(row) && source.decision !== "skip" && !source.error && (
     (isCase(row) && !source.imported_case_id) || ((isMedical(row) || row.classification === "follow_up") && !source.imported_dog_id)
   ));
 }

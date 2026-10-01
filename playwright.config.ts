@@ -4,6 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
    hydration, do not reproduce under `next dev`. */
 export default defineConfig({
   testDir: "./e2e",
+  outputDir: process.env.E2E_BASE_URL?.startsWith("https:") ? "./test-results/production" : "./test-results/local",
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,

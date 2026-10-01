@@ -1,3 +1,4 @@
+import { importedSpecies } from "../src/lib/dog-only-import";
 import assert from "node:assert/strict";
 import * as XLSX from "xlsx";
 import { parseMasterWorkbook } from "../src/lib/master-import/pipeline";
@@ -38,4 +39,15 @@ assert.equal(plan.profilesToCreate, 65, "valid unnamed ledger records become nat
 assert.equal(plan.sterilisations, 61, "only dated, located sterilisation records become native care events");
 assert.equal(plan.cases, 4, "rescue, adoption and foster records become canonical cases");
 
+const mixed = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(mixed, XLSX.utils.aoa_to_sheet([
+  ["Date", "Location", "Condition", "Species"],
+  ["2026-10-01", "RS Puram", "Injury", "cat"],
+  ["2026-10-01", "RS Puram", "Injury", "dog"],
+]), "Rescue Requests 2026");
+const mixedRows = parseMasterWorkbook(bytes(mixed)).sheets[0].rows;
+assert.equal(mixedRows[0].normalized.classification, "skip", "explicit cat records are rejected, never relabelled as dogs");
+assert.equal(mixedRows[1].normalized.species, "dog");
+assert.equal(importedSpecies({ Species: "cat" }), "cat", "an unmapped source species still enforces the rule");
+assert.equal(importedSpecies({}, null, "Cat rescue"), "non-dog");
 console.log("Master import parser regression checks passed.");
