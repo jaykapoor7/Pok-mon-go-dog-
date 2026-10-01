@@ -27,13 +27,13 @@ const DAY_MS = 86_400_000;
 /* Every landing read is deliberately capped. Keep the bounds named so the
  * static performance guard can prevent a future full-register regression. */
 const LANDING_LIMITS = {
-  cityFacts: 3_000,
-  joinedCare: 2_000,
+  cityFacts: 1_200,
+  joinedCare: 600,
   relayCandidates: 24,
-  registerCandidates: 140,
+  registerCandidates: 96,
   registerCards: 24,
-  registerCases: 480,
-  registerCare: 720,
+  registerCases: 240,
+  registerCare: 360,
 } as const;
 const dayOf = (iso: string | null) => { if (!iso) return -1; const t = Date.parse(iso); return Number.isFinite(t) ? Math.floor((t - EPOCH_MS) / DAY_MS) : -1; };
 const isoOf = (day: number) => new Date(EPOCH_MS + day * DAY_MS).toISOString().slice(0, 10);
@@ -64,7 +64,7 @@ export type LandingStory = {
 type CaseFact = {
   dog_id: string | null; h3_r8: string | null; zone: string | null; occurred_at: string | null;
   condition_class: string | null; status_class: string | null; closure_reason: string | null; severity: string | null;
-  first_action_days: number | null; resolved_at: string | null; resolved_at_source: string | null; followups_missed: number | null;
+  first_action_days: number | null; resolved_at: string | null; resolved_at_source: string | null;
 };
 type CareFact = { dog_id: string | null; kind: string | null; event_date: string | null; h3_r8: string | null };
 
@@ -109,16 +109,16 @@ async function buildStory(): Promise<LandingStory | null> {
 
   /* The sample city's own field work. Bounded to one city, cached; the
      register itself is never read. */
-  const [caseRes, careRes] = await Promise.all([
-    supa.from("public_case_facts")
-      .select("dog_id,h3_r8,zone,occurred_at,condition_class,status_class,closure_reason,severity,first_action_days,resolved_at,resolved_at_source,followups_missed")
-      .eq("city", sample.city).order("occurred_at", { ascending: false }).limit(LANDING_LIMITS.cityFacts),
-    supa.from("public_care_facts")
-      .select("dog_id,kind,event_date,h3_r8")
-      .eq("city", sample.city).order("event_date", { ascending: false }).limit(LANDING_LIMITS.cityFacts),
-  ]);
+  const caseRes = await supa.from("public_case_facts")
+    .select("dog_id,h3_r8,zone,occurred_at,condition_class,status_class,closure_reason,severity,first_action_days,resolved_at,resolved_at_source")
+    .eq("city", sample.city).order("occurred_at", { ascending: false }).limit(LANDING_LIMITS.cityFacts);
+  if (caseRes.error) throw caseRes.error;
   const cases = (caseRes.data ?? []) as CaseFact[];
-  const care = (careRes.data ?? []) as CareFact[];
+  /* public_care_facts deliberately publishes no city/h3 fields. Filtering it
+     by city can never return a row and still makes PostgREST scan the view.
+     Journey care is fetched later by the shortlisted dog ids, where it is
+     useful and indexed. */
+  const care: CareFact[] = [];
   const today = dayOf(new Date().toISOString());
 
   /* hero: the sample city filling in, one record at a time. */
@@ -205,7 +205,7 @@ async function buildStory(): Promise<LandingStory | null> {
   const openCases = cases.filter((c) => c.status_class !== "closed" && dayOf(c.occurred_at) >= 0 && dayOf(c.occurred_at) <= today);
   const live = openCases.filter((c) => today - dayOf(c.occurred_at) <= 90);
   const crit = (c: CaseFact) => isCritical(c.condition_class ?? "", c.severity);
-  const rank = (c: CaseFact) => ((c.followups_missed ?? 0) > 0 ? 0 : crit(c) ? 1 : 2);
+  const rank = (c: CaseFact) => (crit(c) ? 0 : 1);
   const openByCell = new Map<string, number>();
   for (const c of live) if (c.h3_r8) openByCell.set(c.h3_r8, (openByCell.get(c.h3_r8) ?? 0) + 1);
   const desk = {
@@ -213,7 +213,7 @@ async function buildStory(): Promise<LandingStory | null> {
     critical: live.filter(crit).length,
     older: openCases.length - live.length,
     queue: [...live].sort((a, b) => rank(a) - rank(b) || dayOf(a.occurred_at) - dayOf(b.occurred_at)).slice(0, 3).map((c) => ({
-      condition: c.condition_class ?? "Not recorded", locality: cleanPlace(c.zone) || "", days: today - dayOf(c.occurred_at), critical: crit(c), overdue: (c.followups_missed ?? 0) > 0,
+      condition: c.condition_class ?? "Not recorded", locality: cleanPlace(c.zone) || "", days: today - dayOf(c.occurred_at), critical: crit(c), overdue: false,
     })),
     cells: cellList.map((h) => ({ key: h, ring: rings[idx.get(h)!], open: openByCell.get(h) ?? 0 })),
     box: coreBox(centers, 0.02, 0.98, 0.01),
@@ -267,7 +267,7 @@ async function resolveRelay(
    into the compact story the landing draws. */
 export const getLandingStory = unstable_cache(
   async (): Promise<LandingStory | null> => buildStory(),
-  ["landing-story-bounded-v2"],
+  ["landing-story-bounded-v3"],
   { revalidate: 600 },
 );
 
@@ -278,17 +278,20 @@ export type RegisterFocus = {
 };
 export type AnimalRegister = { total: number; cards: RegisterFocus[] };
 
-/* Landing cards are a fixed, curated sample plus an exact count. Their
- * related case/care reads are bounded to those card ids, never a register. */
+/* Landing cards are a fixed, curated sample. The total comes from the same
+ * authoritative city rollups as the hero, so this path never runs an exact
+ * count across the public animal view. Related history stays bounded to the
+ * selected card ids. */
 export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister> => {
   const supa = getSupabase();
   if (!supa) return { total: 0, cards: [] };
-  const [{ count }, { data, error }] = await Promise.all([
-    supa.from("public_spatial_animals").select("id", { count: "exact", head: true }),
+  const [cities, { data, error }] = await Promise.all([
+    getPublicSpatialCities(200),
     supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,sterilisation_status,vaccination_status,status,needs_help,ngo_id")
-      .eq("source", "resident").not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates),
+      .not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates),
   ]);
   if (error) throw error;
+  const total = cities.reduce((n, city) => n + Number(city.animals || 0), 0);
   const rows = (data ?? []) as Array<any>;
   /* A fuller set of calm, photographed dogs for the landing's marquee — the
      register shown as a wall of real profiles across a few sliding rows. */
@@ -302,10 +305,10 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   for (const item of (cases ?? []) as any[]) (byCase.get(item.dog_id) ?? byCase.set(item.dog_id, []).get(item.dog_id)!).push({ condition: item.condition_class, at: item.occurred_at, closed: item.status_class === "closed" });
   const byCare = new Map<string, RegisterFocus["care"]>();
   for (const item of (care ?? []) as any[]) (byCare.get(item.dog_id) ?? byCare.set(item.dog_id, []).get(item.dog_id)!).push({ kind: item.kind, at: item.event_date });
-  return { total: count ?? 0, cards: picks.map((row) => ({
+  return { total, cards: picks.map((row) => ({
     id: row.id, name: row.name, straypaw_id: row.straypaw_id, cover_photo: row.cover_photo, zone: row.zone, city: row.city,
     first_seen: row.first_seen, last_seen: row.last_seen, sightings: row.sightings_count ?? 0,
     sterilisation: row.sterilisation_status, vaccination: row.vaccination_status, org: null,
     requests: byCase.get(row.id) ?? [], care: byCare.get(row.id) ?? [],
   })) };
-}, ["landing-animal-register-v10"], { revalidate: 300 });
+}, ["landing-animal-register-v11"], { revalidate: 300 });

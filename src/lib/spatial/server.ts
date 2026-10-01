@@ -30,7 +30,7 @@ const MAX_CELLS = 4_000;
 const MAX_ANIMALS = 500;
 /* Rich map modes still need the compact SpatialDataset shape, but never the
  * platform register. These are hard payload limits for one selected city. */
-const DATASET_LIMITS = { animals: 1_200, cases: 1_500, care: 1_800, sightings: 1_800 } as const;
+const DATASET_LIMITS = { animals: 800, cases: 1_200, care: 900, sightings: 900 } as const;
 const cleanCity = (city: string | null | undefined) => city?.replace(/\s+/g, " ").trim().slice(0, 120) ?? "";
 /* Imports arrive with administrative aliases. A map must not make a tiny
  * "New Delhi" island beside Delhi, or split Hyderabad from Secunderabad. */
@@ -162,7 +162,13 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
   if (!animals.length) return null;
   const ids = animals.map((animal) => animal.id);
   const [caseResult, careResult, sightingResult] = await Promise.all([
-    rowsForAnimals(supa, "public_case_facts", "id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,followups_done,followups_missed,followups_upcoming,reviewed_at", ids, "occurred_at", DATASET_LIMITS.cases),
+    /* Cases already carry city, so read the bounded city slice directly.
+       This avoids splitting hundreds of dog ids into many public_case_facts
+       requests; omitting follow-up aggregates also lets Postgres skip the
+       view's lateral follow-up work for this map payload. */
+    supa.from("public_case_facts")
+      .select("id,dog_id,ngo_id,h3_r8,city,zone,occurred_at,condition_class,status_class,closure_reason,intake_channel,severity,first_action_days,resolved_at,resolved_at_source,source,reviewed_at")
+      .in("city", cityVariants(safeCity)).order("occurred_at", { ascending: false }).limit(DATASET_LIMITS.cases),
     rowsForAnimals(supa, "public_care_facts", "dog_id,kind,event_date,h3_r8", ids, "event_date", DATASET_LIMITS.care),
     rowsForAnimals(supa, "public_sighting_facts", "dog_id,created_at,h3_r8,lat,lng,sterilisation_status,vaccination_status,has_photo", ids, "created_at", DATASET_LIMITS.sightings),
   ]);
@@ -176,7 +182,7 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
  * never starts a fan-out of relation queries and lands on a transient 503. */
 const getCachedPublicSpatialCityDataset = unstable_cache(
   async (city: string) => readPublicCityDataset(city),
-  ["public-spatial-city-dataset-v3"],
+  ["public-spatial-city-dataset-v4"],
   { revalidate: 300 },
 );
 

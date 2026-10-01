@@ -42,6 +42,7 @@ import { getSupabase } from "@/lib/supabase";
 import { useSpatialDataset, ringOf, flatRing, pointInCell, boxOfRings, INDIA_BOX, type Scope } from "./data";
 import { Inspector, type Sel } from "./Inspector";
 import { Timeline } from "./Timeline";
+import { BoundedSpatialMap } from "./BoundedSpatialMap";
 import "./spatial.css";
 
 type ModeDef = { id: Mode | "change"; label: string; q: string };
@@ -1019,6 +1020,12 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     url.searchParams.set("city", nextCity);
     window.location.assign(url.toString());
   };
+
+  /* The rich dataset is intentionally bounded, but a cold database can still
+     miss its serverless budget. Never turn that transient failure into a dead
+     map: the cell-rollup map uses the same authoritative city totals and has
+     no register fan-out. Rich modes return automatically on the next load. */
+  if (error && !ds) return <BoundedSpatialMap scope={scope} />;
 
   return (
     <div className={`sm ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`}>
