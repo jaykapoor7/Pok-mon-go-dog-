@@ -41,6 +41,26 @@ export async function dueFollowups(): Promise<DueFollowup[]> {
   return (data ?? []) as DueFollowup[];
 }
 
+/** Exact organisation totals for the dashboard tiles. The queue above lists a
+ * bounded page of rows; these counts are authoritative (head-only, RLS-scoped),
+ * so a tile never reports the 800-row page cap as the organisation's total. */
+export type OpsCounts = { open: number; liveWork: number; stale: number; overdue: number };
+export async function opsCounts(): Promise<OpsCounts | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const now = Date.now();
+  const ninety = new Date(now - 90 * DAY).toISOString();
+  const thirty = new Date(now - 30 * DAY).toISOString();
+  const nowIso = new Date(now).toISOString();
+  const [openRes, staleRes, overdueRes] = await Promise.all([
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).lt("occurred_at", ninety).or(`last_activity_at.is.null,last_activity_at.lt.${thirty}`),
+    supa.from("animal_followups").select("id", { count: "exact", head: true }).eq("status", "upcoming").lt("due_at", nowIso),
+  ]);
+  const open = openRes.count ?? 0, stale = staleRes.count ?? 0, overdue = overdueRes.count ?? 0;
+  return { open, stale, overdue, liveWork: Math.max(0, open - stale) };
+}
+
 export async function recentChanges(limit = 6): Promise<Change[]> {
   const supa = getSupabase();
   if (!supa) return [];

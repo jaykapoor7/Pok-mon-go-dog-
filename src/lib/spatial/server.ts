@@ -15,6 +15,9 @@ import type { SpatialDataset } from "./types";
 export type SpatialCity = {
   city: string; state: string | null; animals: number; cases: number;
   open_cases: number; cells: number; latest_seen: string | null;
+  /* Authoritative citywide totals summed from the cell rollup. Present on the
+   * public city list; absent (0) only on older org rows that predate them. */
+  needs_help?: number; sterilised?: number; vaccinated?: number; care_events?: number;
 };
 export type SpatialCell = {
   city: string; state: string | null; zone: string | null; h3_r8: string;

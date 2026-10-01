@@ -187,6 +187,22 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   /* Nothing sits over the map until someone picks a place on it. */
   const [sheet, setSheet] = useState<"hidden" | "peek" | "open">("hidden");
   const [hover, setHover] = useState<{ x: number; y: number; text: string } | null>(null);
+  /* Authoritative per-cell totals from the rollup, keyed by H3. The bounded
+     dataset drives the dots and every time-sliced or filtered view; these are
+     used only for the counts a cell readout states as a current total, so a
+     dense cell (e.g. a one-cell import of 20k animals) is never under-reported
+     to its bounded-sample size. Public scope only; org cells come back under
+     the member session with the dataset. */
+  const [authByCell, setAuthByCell] = useState<Map<string, { animals: number; sterilised: number; vaccinated: number; cases: number; open_cases: number; needs_help: number }>>(new Map());
+  useEffect(() => {
+    if (scope !== "public" || !datasetCity) { setAuthByCell(new Map()); return; }
+    let live = true;
+    fetch(`/api/spatial?kind=cells&city=${encodeURIComponent(datasetCity)}&v=2`)
+      .then((r) => (r.ok ? r.json() : { cells: [] }))
+      .then((j) => { if (!live) return; const m = new Map<string, { animals: number; sterilised: number; vaccinated: number; cases: number; open_cases: number; needs_help: number }>(); for (const c of (j.cells ?? [])) m.set(c.h3_r8, c); setAuthByCell(m); })
+      .catch(() => { if (live) setAuthByCell(new Map()); });
+    return () => { live = false; };
+  }, [scope, datasetCity]);
   const [ready, setReady] = useState(false);
   const [baseReady, setBaseReady] = useState(false);
   const [layersReady, setLayersReady] = useState(false);
@@ -261,6 +277,10 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   const stats = useMemo(() => (ds && ix ? cellStats(ds, ix, t, eff) : []), [ds, ix, t, eff]);
   const prev = useMemo(() => (ds && ix && mode === "change" ? cellStats(ds, ix, t - 365, NO_FILTERS) : []), [ds, ix, t, mode]);
   const statOf = useMemo(() => new Map(stats.map((s) => [s.cell, s])), [stats]);
+  /* Current and unfiltered: the one state whose per-cell counts have an
+     authoritative rollup equivalent. A time-sliced or filtered view is a
+     subset and keeps the bounded dataset's counts. */
+  const unfiltered = month === null && eff.source === "all" && eff.seen === "any" && eff.condition < 0 && !(mode === "cases" && lens !== "open");
 
   /* Which cases the Cases mode is asking about, on day t: 0 not asked
      about, 1 a match, 2 a case whose resolution day is unknown — drawn as
@@ -880,21 +900,27 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       /* One cell on the public map never shows a count of one or two. */
       const pub = scope === "public";
       const n = (x: number) => fewOr(x, pub);
+      /* Authoritative current totals for the counts a readout states as totals;
+         the bounded `s` still decides what is drawn and every filtered view. */
+      const auth = unfiltered ? authByCell.get(ds.cells[ci]) : undefined;
+      const aAnimals = auth ? auth.animals : s.animals;
+      const aSter = auth ? auth.sterilised : s.sterYes;
+      const aVacc = auth ? auth.vaccinated : s.vaccYes;
       const v = mode === "coverage" ? COVERAGE_TEXT[s.coverage].label
         : mode === "cases" ? `${n(value(s))} ${LENSES.find((l) => l.id === lens)!.unit}`
         : mode === "medical" ? `${n(s.medical)} injured or needing help`
         : mode === "activity" || mode === "change" ? `${n(s.recentField)} field-team records this year`
-        : (mode === "abc" || mode === "arv") && pub && isSparse(s.animals) ? "few records — too few for a share"
-        : mode === "abc" ? `${n(s.sterYes)} of ${n(s.animals)} sterilised on record`
-        : mode === "arv" ? `${n(s.vaccYes)} of ${n(s.animals)} vaccinated on record`
-        : pub && isSparse(s.animals) ? "few records"
-        : `${n(s.animals)} animal${s.animals === 1 ? "" : "s"} recorded`;
+        : (mode === "abc" || mode === "arv") && pub && isSparse(aAnimals) ? "few records — too few for a share"
+        : mode === "abc" ? `${n(aSter)} of ${n(aAnimals)} sterilised on record`
+        : mode === "arv" ? `${n(aVacc)} of ${n(aAnimals)} vaccinated on record`
+        : pub && isSparse(aAnimals) ? "few records"
+        : `${n(aAnimals)} animal${aAnimals === 1 ? "" : "s"} recorded`;
       setHover({ x: e.point.x, y: e.point.y, text: `${loc} · ${v}` });
     };
     const onOut = () => setHover(null);
     map.on("click", onClick); map.on("mousemove", onMove); map.on("mouseout", onOut);
     return () => { map.off("click", onClick); map.off("mousemove", onMove); map.off("mouseout", onOut); };
-  }, [ready, ds, statOf, mode, choose, phone, scope, router, value, lens]);
+  }, [ready, ds, statOf, mode, choose, phone, scope, router, value, lens, authByCell, unfiltered]);
 
   /* ── Escape steps out one rung ───────────────────────────────────── */
   const stepOut = useCallback(() => {

@@ -554,96 +554,72 @@
   .ld-dive-stage::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 58vw); z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 55%, rgba(7, 20, 43, 0) 100%); }
 }
 
-/* ── The register: real animals, developed from one card into many ──────
-   The section opens on a single front card and, as it scrolls, the rest of
-   the register develops around it into centred lines — a contact sheet of
-   real public records, each with its StrayPaw ID. AnimalRegister owns the
-   per-tile transforms on desktop; on a phone and under reduced motion the
-   whole sheet is simply shown. */
-.rx { position: relative; background: var(--sp-bone); color: var(--sp-ink); }
-.rx-stage {
-  box-sizing: border-box; max-width: 1180px; margin: 0 auto;
-  padding: var(--sp-section) var(--sp-gutter);
-  display: flex; flex-direction: column; align-items: center; gap: var(--sp-7);
-}
-
-.rx-words { display: grid; gap: var(--sp-3); justify-items: center; text-align: center; max-width: 60ch; }
+/* ── The register: a living wall of real dogs ───────────────────────────
+   A compact, sleek section: a short lede, then two slow rows of real
+   resident photographs drifting past, each a public profile with its ID
+   and place. The dogs are the asset and the point; the chrome is minimal.
+   The marquee duplicates its cards so the loop is seamless, pauses on hover
+   or focus, and under reduced motion becomes a manual horizontal strip. */
+.rx { position: relative; background: var(--sp-bone); color: var(--sp-ink); padding: var(--sp-section) 0; overflow: hidden; }
+.rx-words { box-sizing: border-box; max-width: 62ch; margin: 0 auto var(--sp-7); padding: 0 var(--sp-gutter); display: grid; gap: var(--sp-3); justify-items: center; text-align: center; }
 .rx-kicker { margin: 0; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-blue); }
-.rx h2 { margin: 0; font-size: clamp(34px, 4.6vw, 68px); line-height: 1; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
+.rx h2 { margin: 0; font-size: clamp(32px, 4.4vw, 60px); line-height: 1; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
 .rx h2 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: var(--sp-blue); }
 .rx-n { font-variant-numeric: tabular-nums; }
-.rx-lede { margin: 0; max-width: 54ch; font-size: 16px; line-height: 1.55; color: var(--sp-body); }
+.rx-lede { margin: 0; max-width: 52ch; font-size: 15.5px; line-height: 1.55; color: var(--sp-body); }
+.rx-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: var(--sp-1); font-size: 14px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+.rx-cta:hover { text-decoration: underline; }
 
-/* The sheet: one hero on top, the rest in centred lines beneath it. */
-.rx-grid { display: flex; flex-direction: column; align-items: center; gap: var(--sp-5); width: 100%; }
-.rx-rest { display: grid; grid-template-columns: repeat(4, minmax(0, 184px)); justify-content: center; gap: var(--sp-4); width: 100%; }
+/* The wall: two rows, edges faded into the ground. */
+.rx-wall { position: relative; display: grid; gap: var(--sp-4); }
+.rx-row { overflow: hidden; }
+.rx-track { display: flex; gap: var(--sp-4); width: max-content; padding: var(--sp-2) 0; animation: rx-drift linear infinite; animation-duration: calc(var(--n, 8) * 4.6s); will-change: transform; }
+.rx-row.is-r .rx-track { animation-direction: reverse; }
+.rx-wall:hover .rx-track, .rx-track:focus-within { animation-play-state: paused; }
+@keyframes rx-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-/* A tile is a filed record: the photograph, its ID on a tab, its place. */
-.rx-tile {
-  position: relative; display: block; text-decoration: none; color: inherit;
-  border-radius: var(--sp-radius); background: var(--sp-paper); overflow: hidden;
-  box-shadow: 0 1px 0 rgba(11, 30, 61, 0.05), 0 10px 26px rgba(11, 30, 61, 0.09);
-  transition: box-shadow var(--sp-base) var(--sp-ease);
+/* A card: the photograph, its ID over it, its place beneath. */
+.rx-card { flex: 0 0 auto; width: clamp(156px, 18vw, 208px); display: grid; gap: var(--sp-2); text-decoration: none; color: inherit; }
+.rx-shot {
+  position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-shell);
+  border-radius: var(--sp-radius-lg);
+  box-shadow: 0 1px 0 rgba(11, 30, 61, 0.05), 0 12px 30px rgba(11, 30, 61, 0.12);
+  transition: transform var(--sp-base) var(--sp-ease), box-shadow var(--sp-base) var(--sp-ease);
 }
-/* One to many: once the script arms it, tiles wait, then develop in as the
-   section enters — the hero first, the lines after it, by index. */
-.rx.is-ready .rx-tile {
-  opacity: 0; transform: translateY(20px) scale(0.97);
-  transition: opacity var(--sp-slow) var(--sp-ease), transform var(--sp-slow) var(--sp-ease-out), box-shadow var(--sp-base) var(--sp-ease);
-  transition-delay: calc(140ms + var(--i) * 60ms);
-}
-.rx.is-ready .rx-tile.is-hero { transition-delay: 0ms; }
-.rx.is-ready.is-in .rx-tile { opacity: 1; transform: none; }
-.rx-tile.is-hero { width: min(392px, 86vw); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.06), 0 20px 44px rgba(11, 30, 61, 0.15); }
-.rx-shot { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-shell); }
-.rx-tile.is-hero .rx-shot { aspect-ratio: 3 / 2; }
 .rx-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform var(--sp-slow) var(--sp-ease); }
-@media (hover: hover) {
-  .rx-tile:hover { box-shadow: 0 1px 0 rgba(11, 30, 61, 0.06), 0 22px 48px rgba(11, 30, 61, 0.2); }
-  .rx-tile:hover .rx-shot img { transform: scale(1.045); }
-  .rx-tile:hover .rx-open { opacity: 1; transform: none; }
-}
-.rx-tile:focus-visible { outline: 2px solid var(--sp-blue); outline-offset: 2px; }
-
-/* The ID, on a small index tab clear of any photograph. */
-.rx-tab {
-  position: absolute; top: var(--sp-3); left: var(--sp-3); z-index: 2;
-  display: inline-flex; align-items: center; height: 24px; padding: 0 9px;
+.rx-id {
+  position: absolute; left: var(--sp-2); bottom: var(--sp-2); z-index: 2;
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px;
   border-radius: var(--ctl-r-row); background: var(--sp-paper); color: var(--sp-blue);
-  font-size: 11px; letter-spacing: 0.04em; box-shadow: 0 2px 8px rgba(11, 30, 61, 0.18);
+  font-size: 10.5px; letter-spacing: 0.04em; box-shadow: 0 2px 8px rgba(11, 30, 61, 0.22);
 }
-/* The affordance, revealed on hover over a tile that can take a pointer. */
-.rx-open {
-  position: absolute; left: var(--sp-3); bottom: var(--sp-3); z-index: 2;
-  display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px;
-  border-radius: var(--ctl-r); background: var(--sp-blue); color: #fff;
-  font-size: 12px; font-weight: 600; opacity: 0; transform: translateY(4px);
-  transition: opacity var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io);
+.rx-place { margin: 0; text-align: center; font-size: 12.5px; font-weight: 600; color: var(--sp-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (hover: hover) {
+  .rx-card:hover .rx-shot { transform: translateY(-4px); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.06), 0 20px 44px rgba(11, 30, 61, 0.2); }
+  .rx-card:hover .rx-shot img { transform: scale(1.05); }
 }
-.rx-cap { display: grid; gap: 2px; padding: var(--sp-3) var(--sp-3) var(--sp-4); }
-.rx-place { margin: 0; font-size: 14px; font-weight: 600; color: var(--sp-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rx-tile.is-hero .rx-place { font-size: 16px; }
-.rx-meta { margin: 0; font-size: 11.5px; letter-spacing: 0.01em; color: var(--sp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-card:focus-visible { outline: none; }
+.rx-card:focus-visible .rx-shot { outline: 2px solid var(--sp-blue); outline-offset: 2px; }
 
-.rx-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--sp-2) var(--sp-4); margin: 0; font-size: 15px; color: var(--sp-body); text-align: center; }
-.rx-foot .sys-mono { font-variant-numeric: tabular-nums; color: var(--sp-ink); font-weight: 600; }
-.rx-foot a { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+.rx-edge { position: absolute; top: 0; bottom: 0; width: clamp(28px, 7vw, 96px); z-index: 3; pointer-events: none; }
+.rx-edge.is-left { left: 0; background: linear-gradient(90deg, var(--sp-bone), rgba(244, 238, 229, 0)); }
+.rx-edge.is-right { right: 0; background: linear-gradient(270deg, var(--sp-bone), rgba(244, 238, 229, 0)); }
 
-@media (max-width: 1080px) {
-  .rx-rest { grid-template-columns: repeat(3, minmax(0, 184px)); }
-}
 @media (max-width: 760px) {
-  .rx-stage { gap: var(--sp-6); }
-  .rx h2 { font-size: clamp(30px, 8.4vw, 42px); }
+  .rx h2 { font-size: clamp(28px, 8vw, 40px); }
   .rx-lede { font-size: 14px; line-height: 1.5; }
-  .rx-rest { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); max-width: 440px; }
-  .rx-tile.is-hero { width: min(320px, 82vw); }
+  .rx-wall { gap: var(--sp-3); }
 }
 
-/* The sheet is always shown without the develop-in when motion is reduced. */
+/* Reduced motion: no drift. The rows become manual horizontal strips so
+   every profile is still reachable. */
 @media (prefers-reduced-motion: reduce) {
-  .rx .rx-tile { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .rx-track { animation: none; }
 }
+.rx.is-calm .rx-track { animation: none; width: auto; }
+.rx.is-calm .rx-row { overflow-x: auto; scrollbar-width: none; }
+.rx.is-calm .rx-row::-webkit-scrollbar { display: none; }
+.rx.is-calm .rx-edge { display: none; }
 
 /* The report's own photograph on the resident's phone, and the
    municipality's screen as the live map's night ground. */

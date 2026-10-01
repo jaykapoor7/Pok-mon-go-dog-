@@ -35,7 +35,7 @@ import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
 import { getMyOrg } from "@/lib/actions";
-import { dueFollowups, isStale, openCases, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase } from "@/lib/ops";
+import { dueFollowups, isStale, openCases, opsCounts, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { NGO } from "@/lib/types";
 import "./ops.css";
@@ -64,6 +64,7 @@ export function OpsRoom() {
   const [open, setOpen] = useState<OpenCase[] | null>(null);
   const [due, setDue] = useState<DueFollowup[]>([]);
   const [changes, setChanges] = useState<Change[]>([]);
+  const [counts, setCounts] = useState<OpsCounts | null>(null);
   const [org, setOrg] = useState<NGO | null>(null);
   const [today, setToday] = useState("");
   const [cell, setCell] = useState<string | null>(null);
@@ -80,11 +81,11 @@ export function OpsRoom() {
   useEffect(() => {
     if (!ready || !accessReady) return;
     /* Signed out, or not yet a member, is a real state: the empty workspace. */
-    if (!isMember) { setOpen([]); setDue([]); setChanges([]); setOrg(null); return; }
+    if (!isMember) { setOpen([]); setDue([]); setChanges([]); setCounts(null); setOrg(null); return; }
     let live = true;
-    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null)])
-      .then(([o, d, ch, g]) => { if (!live) return; setOpen(o); setDue(d); setChanges(ch); setOrg(g); })
-      .catch(() => { if (live) { setOpen([]); setDue([]); setChanges([]); } });
+    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null), opsCounts().catch(() => null)])
+      .then(([o, d, ch, g, c]) => { if (!live) return; setOpen(o); setDue(d); setChanges(ch); setOrg(g); setCounts(c); })
+      .catch(() => { if (live) { setOpen([]); setDue([]); setChanges([]); setCounts(null); } });
     return () => { live = false; };
   }, [ready, accessReady, isMember]);
 
@@ -169,9 +170,9 @@ export function OpsRoom() {
       <p className="ops-reading">FIELD WORKSPACE <span>·</span> Live cases, overdue follow-ups and your organisation&rsquo;s own records</p>
 
       {isMember && !blank && <nav className="ops-pulse" aria-label="Current workload">
-        <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(s.liveWork.length)}</b><small>{s.crit.length ? `${num(s.crit.length)} critical cases` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
-        <Link href="/partner/records?view=overdue" className={s.overdue.length ? "is-hot" : ""}><span>02 / FOLLOW-UPS</span><b>{num(s.overdue.length)}</b><small>past their due date</small><ArrowUpRight size={17} aria-hidden /></Link>
-        <Link href="/partner/review"><span>03 / TO REVIEW</span><b>{num(s.stale.length)}</b><small>older open cases</small><ArrowUpRight size={17} aria-hidden /></Link>
+        <Link href="/partner/records?view=rescue"><span>01 / THE LIVE QUEUE</span><b>{num(counts?.liveWork ?? s.liveWork.length)}</b><small>{s.crit.length ? `${num(s.crit.length)}${counts && counts.liveWork > s.liveWork.length ? "+" : ""} critical cases` : "cases needing a response"}</small><ArrowUpRight size={17} aria-hidden /></Link>
+        <Link href="/partner/records?view=overdue" className={(counts?.overdue ?? s.overdue.length) ? "is-hot" : ""}><span>02 / FOLLOW-UPS</span><b>{num(counts?.overdue ?? s.overdue.length)}</b><small>past their due date</small><ArrowUpRight size={17} aria-hidden /></Link>
+        <Link href="/partner/review"><span>03 / TO REVIEW</span><b>{num(counts?.stale ?? s.stale.length)}</b><small>older open cases</small><ArrowUpRight size={17} aria-hidden /></Link>
       </nav>}
 
       {(blank || signedOut) && (
@@ -239,12 +240,12 @@ export function OpsRoom() {
         <div className="pr-tasks ops-tasks"><TasksSection compact /></div>
       </section>
 
-      {isMember && !blank && s.stale.length > 0 && (
+      {isMember && !blank && (counts?.stale ?? s.stale.length) > 0 && (
         <section className="ops-decide" aria-label="Needs a decision">
           <p className="ops-eyebrow"><span>Needs a decision</span></p>
           <ol>
             <li>
-              <b className="is-hot">{num(s.stale.length)}</b>
+              <b className="is-hot">{num(counts?.stale ?? s.stale.length)}</b>
               <p>
                 Cases open for months with nothing recorded.
               </p>

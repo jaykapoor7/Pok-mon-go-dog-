@@ -5,7 +5,7 @@ import { cellToLatLng } from "h3-js";
 import { AppShell } from "@/components/app/AppShell";
 import { StoryAtlas, type Story } from "@/components/stories/StoryAtlas";
 import type { PublicCaseStory, PublicTimelineEvent } from "@/lib/community-case-stories";
-import { getPublishedCaseStoriesPage } from "@/lib/community-case-stories";
+import { getPublishedCaseStoriesPage, countPublicCaseStories } from "@/lib/community-case-stories";
 import { rescueCategory } from "@/lib/rescue-taxonomy";
 import { getSupabase } from "@/lib/supabase";
 import { dogLabel } from "@/lib/utils";
@@ -81,8 +81,11 @@ async function placesOf(ids: string[]) {
   return out;
 }
 
-async function StoriesData({ before }: { before: { occurredAt: string; id: string } | null }) {
-  const page = await getPublishedCaseStoriesPage({ limit: 48, before });
+async function StoriesData({ before, city }: { before: { occurredAt: string; id: string } | null; city: string | null }) {
+  const [page, totalForScope] = await Promise.all([
+    getPublishedCaseStoriesPage({ limit: 48, before, city }),
+    countPublicCaseStories(city),
+  ]);
   const cases = page.rows;
   /* getPublishedCaseStoriesPage already read the care timeline to qualify the
      stories; reuse it instead of a second identical round trip. */
@@ -94,24 +97,24 @@ async function StoriesData({ before }: { before: { occurredAt: string; id: strin
   const median = lengths.length ? lengths[Math.floor(lengths.length / 2)] : null;
   const cities = new Map<string, number>();
   for (const s of base) { const c = places.get(s.id)?.city; if (c) cities.set(c, (cities.get(c) ?? 0) + 1); }
-  /* Name a city only when every published story belongs to that one city.
-     Previously the most common city was printed as if it described the
-     whole atlas, which made every rescue appear to be in Coimbatore. */
-  const city = cities.size === 1 ? [...cities.keys()][0] : null;
   const cityCount = cities.size;
-  const historicalCount = stories.filter((s) => s.historical).length;
+  /* The headline count is the authoritative total for the scope (the whole
+     atlas, or one city when scoped), never the length of this 48-row page —
+     and this page is one city's stories when a city is chosen. */
+  const paged = !!(page.next || before);
 
   return (
     <main className="st">
         <header className="st-head">
-          <h1>Animal records, <em>followed through care.</em></h1>
+          <h1>Animal records{city ? <> in <em>{city}</em></> : <>, <em>followed through care.</em></>}</h1>
           {stories.length > 0 && (
             <p className="st-lede">
-              <b>{stories.length}</b> public animal records{city ? <> in {city}</> : cityCount > 1 ? <> across <b>{cityCount}</b> cities</> : null}
-              {historicalCount ? <>, including <b>{historicalCount}</b> historical Kind Hour records</> : null}. Care, discharge and outcomes appear only where the source actually records them
+              <b>{totalForScope.toLocaleString("en-IN")}</b> public animal records{city ? <> in {city}</> : cityCount > 1 ? <> across the atlas</> : null}
+              {paged ? <> · showing {stories.length} here</> : null}. Care, discharge and outcomes appear only where the source actually records them
               {median != null ? <>. Among records with a recorded ending, the median span is <b>{span(median)}</b></> : null}.
             </p>
           )}
+          {city && <p className="st-scope"><Link href="/stories">← All cities</Link></p>}
           <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
         </header>
         {stories.length ? <StoryAtlas stories={stories} /> : page.error ? <section className="st-empty" aria-label="Public records temporarily unavailable">
@@ -121,13 +124,14 @@ async function StoriesData({ before }: { before: { occurredAt: string; id: strin
           <div><span className="st-empty-index">THE ATLAS / PUBLIC FIELD RECORDS</span><h2>Every record starts somewhere.</h2><p>No public animal record is available yet. Stories show only what the source actually establishes: an encounter, care when documented, and a discharge or outcome when recorded.</p></div>
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
         </section>}
-        {page.next && <p className="st-more"><Link className="sys-btn is-quiet" href={`/stories?beforeAt=${encodeURIComponent(page.next.occurredAt)}&beforeId=${encodeURIComponent(page.next.id)}`}>Older stories <ArrowUpRight size={15} /></Link></p>}
+        {page.next && <p className="st-more"><Link className="sys-btn is-quiet" href={`/stories?${city ? `city=${encodeURIComponent(city)}&` : ""}beforeAt=${encodeURIComponent(page.next.occurredAt)}&beforeId=${encodeURIComponent(page.next.id)}`}>Older stories <ArrowUpRight size={15} /></Link></p>}
     </main>
   );
 }
 
-export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ beforeAt?: string; beforeId?: string }> }) {
+export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ beforeAt?: string; beforeId?: string; city?: string }> }) {
   const params = await searchParams;
   const before = params.beforeAt && params.beforeId ? { occurredAt: params.beforeAt, id: params.beforeId } : null;
-  return <AppShell><Suspense fallback={<main className="st"><header className="st-head"><h1>Animal records, <em>followed through care.</em></h1><p className="st-lede">Loading the latest bounded public records…</p><Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link></header></main>}><StoriesData before={before} /></Suspense></AppShell>;
+  const city = params.city?.trim() || null;
+  return <AppShell><Suspense fallback={<main className="st"><header className="st-head"><h1>Animal records, <em>followed through care.</em></h1><p className="st-lede">Loading the latest bounded public records…</p><Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link></header></main>}><StoriesData before={before} city={city} /></Suspense></AppShell>;
 }

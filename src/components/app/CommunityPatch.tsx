@@ -55,7 +55,7 @@ const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const 
 
 export function CommunityPatch({ stories, availableCities = [] }: { stories: PublicCaseStory[]; availableCities?: { city: string; state: string | null }[] }) {
   const router = useRouter();
-  const { ds, ix, loading, error } = useSpatialDataset("public");
+  const { ds, ix, loading, error, cities: cityRollup } = useSpatialDataset("public");
   const { ids: follows } = useFollows();
   const { place, ready: placeReady, locating, choose: savePlace, locate: findMe } = usePlace();
   const patch = useMemo<Patch | null>(() => (place ? { ...place, mine: true } : null), [place]);
@@ -105,11 +105,20 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
     return { inside, set: new Set(inside), edge, nextHere };
   }, [ds, patch]);
 
-  /* ── the city the patch is in: its whole record, not the patch's ───── */
+  /* ── the city the patch is in: its whole record, not the patch's ─────
+     Citywide figures are authoritative totals from the city rollup, never a
+     count of the bounded dataset (which caps at ~1,200 animals and would
+     under-report a large city like Jamshedpur or Ranchi). The bounded dataset
+     still supplies the geometry and the patch's own dots below. */
   const city = useMemo(() => {
     if (!ds || !ix || !patch) return null;
     if (!reach?.reached) return null;
     const ci = reach.city;
+    const name = ds.cities[ci]?.name ?? "";
+    const roll = cityRollup.find((c) => c.city === name);
+    if (roll) return { name, animalsN: roll.animals, help: roll.needs_help ?? 0 };
+    /* Fallback only if the rollup row is missing: a bounded count, clearly
+       an under-count, but never shown in normal operation. */
     let animalsN = 0, help = 0;
     for (let i = 0; i < ds.animals.length / A_STRIDE; i++) {
       const o = i * A_STRIDE;
@@ -117,8 +126,8 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
       animalsN++;
       if (ds.animals[o + A.flags] & (AF.help | AF.injured)) help++;
     }
-    return { name: ds.cities[ci]?.name ?? "", animalsN, help };
-  }, [ds, ix, patch, reach]);
+    return { name, animalsN, help };
+  }, [ds, ix, patch, reach, cityRollup]);
 
   /* ── what the register holds there ─────────────────────────────────── */
   const stats = useMemo(() => {
