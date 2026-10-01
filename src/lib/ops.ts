@@ -44,7 +44,7 @@ export async function dueFollowups(): Promise<DueFollowup[]> {
 /** Exact organisation totals for the dashboard tiles. The queue above lists a
  * bounded page of rows; these counts are authoritative (head-only, RLS-scoped),
  * so a tile never reports the 800-row page cap as the organisation's total. */
-export type OpsCounts = { open: number; liveWork: number; stale: number; overdue: number };
+export type OpsCounts = { open: number; liveWork: number; stale: number; overdue: number; critical: number };
 export async function opsCounts(): Promise<OpsCounts | null> {
   const supa = getSupabase();
   if (!supa) return null;
@@ -52,13 +52,15 @@ export async function opsCounts(): Promise<OpsCounts | null> {
   const ninety = new Date(now - 90 * DAY).toISOString();
   const thirty = new Date(now - 30 * DAY).toISOString();
   const nowIso = new Date(now).toISOString();
-  const [openRes, staleRes, overdueRes] = await Promise.all([
+  const criticalConditions = ["Road accident", "Maggot wound", "Human abuse", "Dog bite", "Entrapment", "Suspected rabies"];
+  const [openRes, staleRes, overdueRes, criticalRes] = await Promise.all([
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]),
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).lt("occurred_at", ninety).or(`last_activity_at.is.null,last_activity_at.lt.${thirty}`),
     supa.from("animal_followups").select("id", { count: "exact", head: true }).eq("status", "upcoming").lt("due_at", nowIso),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).in("condition_class", criticalConditions),
   ]);
-  const open = openRes.count ?? 0, stale = staleRes.count ?? 0, overdue = overdueRes.count ?? 0;
-  return { open, stale, overdue, liveWork: Math.max(0, open - stale) };
+  const open = openRes.count ?? 0, stale = staleRes.count ?? 0, overdue = overdueRes.count ?? 0, critical = criticalRes.count ?? 0;
+  return { open, stale, overdue, critical, liveWork: Math.max(0, open - stale) };
 }
 
 export async function recentChanges(limit = 6): Promise<Change[]> {
@@ -83,3 +85,18 @@ export const isStale = (c: OpenCase, now = Date.now()) =>
 export type QueueItem = { kind: "followup" | "case"; crit: boolean; age: number };
 export const queueRank = (x: QueueItem) => (x.kind === "followup" ? 0 : x.crit ? 1 : 2);
 export const queueOrder = (a: QueueItem, b: QueueItem) => queueRank(a) - queueRank(b) || b.age - a.age;
+
+export type OrgOpenWorkCell = {
+  city: string; h3_r8: string; open_cases: number; stale_cases: number; critical_cases: number;
+};
+
+/** Exact cell-level open-work totals for the NGO operations map. The named
+ * queue remains bounded, but the geography is never inferred from that page. */
+export async function orgOpenWorkCells(): Promise<OrgOpenWorkCell[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.rpc("list_org_open_work_cells");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as OrgOpenWorkCell[];
+}
+
