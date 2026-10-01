@@ -142,7 +142,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
      city is in scope, so a figure never reports the ~1,200-row bounded dataset
      as the city total. A locality (a sub-city view) stays on the bounded
      dataset, which is well within its cap. Public insights are city-level. */
-  const cityRoll = useMemo(() => (scope === "public" && cityName ? cityList.find((c) => c.city === cityName) ?? null : null), [scope, cityName, cityList]);
+  const cityRoll = useMemo(() => (cityName ? cityList.find((c) => c.city === cityName) ?? null : null), [cityName, cityList]);
   const cityWhole = !isLocality && !!cityRoll;
   const mapBase = scope === "org" ? "/partner/map" : "/map";
   const mapHref = (mode: string, extra: Record<string, string> = {}) => {
