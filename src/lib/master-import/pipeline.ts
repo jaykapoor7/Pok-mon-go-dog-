@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 3349)
-Total output lines: 210
-
 import { createHash } from "node:crypto";
 import * as XLSX from "xlsx";
 
@@ -79,7 +76,90 @@ export function sourceDate(value: string | null, fallbackYear: number | null) {
 
 function inferredSpecies(sheet: string, row: Record<string, string>) {
   const explicit = value(row, /^species$|animal type|animal species/i);
-  if (explicit) return …1349 tokens truncated…row.locality)}`;
+  if (explicit) return normalKey(explicit).replace(/\s+/g, "_");
+  const text = normalKey([sheet, ...Object.values(row)].join(" "));
+  if (/\b(donkey|mule)\b/.test(text)) return "donkey";
+  if (/\b(horse|equine|pony)\b/.test(text)) return "horse";
+  if (/\b(cattle|cow|bull|calf|bovine)\b/.test(text)) return "cattle";
+  if (/\bcat|kitten|feline\b/.test(text)) return "cat";
+  if (/\bdog|puppy|canine\b/.test(text)) return "dog";
+  return "animal";
+}
+
+function classify(sheet: string, row: Record<string, string>) : Pick<NormalizedImportRow, "classification" | "classification_reason"> {
+  const name = normalKey(sheet);
+  const joined = Object.values(row).map(clean).join(" ").toLowerCase();
+  if (/van details|salary|rent|monthly graph/.test(name)) return { classification: "expense", classification_reason: "Operations or finance log" };
+  if (/^summary$/.test(name)) return { classification: "summary", classification_reason: "Summary worksheet" };
+  if (/adopt.*foster/.test(name)) return { classification: "manual_review", classification_reason: "Split adoption/foster worksheet" };
+  if (/sterili[sz]|abc/.test(name)) return { classification: "sterilisation", classification_reason: "Sterilisation drive ledger" };
+  if (/^tvt$/.test(name)) return { classification: "treatment", classification_reason: "TVT treatment register" };
+  if (/review|appoint|follow.?up/.test(name)) return { classification: "follow_up", classification_reason: "Review or appointment register" };
+  if (/vaccin|arv|rabies/.test(`${name} ${joined}`)) return { classification: "vaccination", classification_reason: "Vaccination or ARV record" };
+  if (/rescue request/.test(name)) return { classification: "rescue", classification_reason: "Rescue request register" };
+  return { classification: "manual_review", classification_reason: "Worksheet needs a mapping review" };
+}
+
+function normalize(sheet: string, sourceRowNumber: number, raw: Record<string, string>, fallbackYear = yearForSheet(sheet)): NormalizedImportRow {
+  const kind = classify(sheet, raw);
+  const date = value(raw, /^(date|reported|request date)$/i);
+  const locality = value(raw, /^(location|locality|area|ward|zone|place)$/i);
+  const condition = value(raw, /injury|condition|diagnosis|type/i);
+  const caseDetail = value(raw, /case detail|description/i);
+  const animalName = value(raw, /^(animal|dog) name$|^nickname$/i);
+  const species = inferredSpecies(sheet, raw);
+  const dogOnly = species === "dog" || species === "animal";
+  const record = {
+    source_sheet: sheet, source_row: sourceRowNumber,
+    ...(dogOnly ? kind : { classification: "skip" as const, classification_reason: "StrayPaw currently accepts dog records only" }), event_date: sourceDate(date, fallbackYear), locality, city: null,
+    animal_name: animalName,
+    animal_code: value(raw, /(animal|dog|cat|horse|cattle).{0,8}(id|code)|^animal id$/i),
+    species: dogOnly ? "dog" : species,
+    sex: value(raw, /^sex$|^gender$/i), colour: value(raw, /colou?r|markings?/i),
+    condition, status: value(raw, /^status$|completed|outcome/i), case_detail: caseDetail,
+    treatment_update: value(raw, /^detailed status$|treatment|update/i),
+    review: value(raw, /review|appoint|appt|next dose|next date/i), rescue_plan: value(raw, /rescue plan/i),
+    admit_date: sourceDate(value(raw, /admit date/i), fallbackYear),
+    release_date: sourceDate(value(raw, /release date/i), fallbackYear),
+  } satisfies Omit<NormalizedImportRow, "fingerprint">;
+  // A workbook may legitimately repeat the same operational details on two
+  // physical spreadsheet rows. The row number is therefore part of staging
+  // identity; workbook bytes, not this fingerprint, provide retry idempotency.
+  return { ...record, fingerprint: fingerprint({ sheet: normalKey(sheet), ...record }) };
+}
+
+function specialAdoptFoster(sheet: string, sourceRowNumber: number, raw: Record<string, string>, fallbackYear: number | null) {
+  const events: ParsedImportRow[] = [];
+  const adoption = clean(raw.Adoptions);
+  const foster = clean(raw.Foster);
+  for (const [subrecord, label, date, locality] of ([
+    ["adoption", adoption, raw.Month, raw.Location],
+    ["foster", foster, raw["Month__foster"], raw["Location__foster"]],
+  ] as const)) {
+    if (!label) continue;
+    const normalized = normalize(sheet, sourceRowNumber, { "Animal name": label, Date: date, Location: locality, Status: subrecord }, fallbackYear);
+    normalized.source_subrecord = subrecord;
+    normalized.classification = subrecord;
+    normalized.classification_reason = `${subrecord === "adoption" ? "Adoption" : "Foster"} register`;
+    normalized.fingerprint = fingerprint({ ...normalized });
+    events.push({ sourceRowNumber, raw, normalized });
+  }
+  return events;
+}
+
+export function hasDefensibleIdentity(row: NormalizedImportRow) {
+  return Boolean(row.animal_code || (row.animal_name && row.locality && (row.sex || row.colour)));
+}
+
+/**
+ * A workbook may not contain a formal animal ID.  That is not a reason to
+ * throw a legitimate operational record away: the import creates a native
+ * profile, then uses only explicit workbook identifiers (or an exact
+ * workbook-local signature) when it needs to attach another row to it.
+ */
+export function workbookAnimalKey(row: NormalizedImportRow) {
+  if (row.animal_code) return `code:${normalKey(row.animal_code)}`;
+  if (row.animal_name) return `name:${normalKey(row.animal_name)}@${normalKey(row.locality)}`;
   return `row:${row.fingerprint}`;
 }
 
