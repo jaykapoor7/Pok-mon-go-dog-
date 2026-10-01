@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 3335)
-Total output lines: 221
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -85,7 +82,84 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
     setBusy(true); setError(null);
     try {
       let linkedDogId = mode === "existing" ? dogId : null;
-      …1335 tokens truncated…k:border-white/[0.12] dark:text-bark-200">
+      // A case is an incident at a place. An existing animal's recorded
+      // locality is only a convenient default; it must never overwrite the
+      // locality the team typed for this new incident.
+      const linkedZone = zone.trim() || selectedDog?.zone || null;
+
+      if (mode === "new") {
+        const newId = await createAnimal({ name: name.trim() || undefined, species, zone: zone.trim() || undefined, coverPhoto: photo });
+        if (newId && newId !== "demo-animal") linkedDogId = newId;
+      }
+
+      const amount = (value: string, label: string) => {
+        if (!value.trim()) return null;
+        const parsed = Number(value.replace(/,/g, ""));
+        if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`${label} must be a valid non-negative amount.`);
+        return parsed;
+      };
+      const id = await createCase(
+        {
+          title: title.trim(), description: description.trim(), dogId: linkedDogId, zone: linkedZone, severity, category, species,
+          informerContact, hospital,
+          costEstimate: amount(costEstimate, "Estimated treatment cost"),
+          costSpent: amount(costSpent, "Amount spent"),
+        },
+        { id: user.id, name: user.name }
+      );
+      if (id && id !== "demo-case") router.push(`/partner/cases/${id}`);
+      else router.push("/partner/cases");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not create the case.");
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <Link href="/partner/cases" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"><ArrowLeft className="h-4 w-4" /> Cases</Link>
+      <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">New case</h1>
+      <p className="mt-0.5 text-[13px] text-bark-500">Link the case to an animal in your registry, or add a new one with a photo.</p>
+
+      {/* Opening a case writes to the organisation's records, which the
+          database refuses from anyone who is not an organisation member. Better
+          to say so here than after the form has been filled in. */}
+      <div className="mt-5">
+        <PartnerWrite what="open a case">
+
+      {/* animal picker */}
+      <div className="mt-6 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
+        <div className="mb-3 flex gap-2">
+          <button onClick={() => setMode("existing")} className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", mode === "existing" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>Existing animal</button>
+          <button onClick={() => { setMode("new"); setDogId(null); }} className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", mode === "new" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>New animal</button>
+        </div>
+
+        {mode === "existing" ? (
+          selectedDog ? (
+            <div className="flex items-center gap-3 rounded-md border border-paw-200 bg-paw-50 p-2.5 dark:border-paw-500/30 dark:bg-paw-900/20">
+              <DogPhoto src={selectedDog.cover_photo} alt="" seed={selectedDog.id} className="h-12 w-12 rounded-md" />
+              <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{dogLabel(selectedDog)}</p><p className="truncate text-xs text-bark-400">{selectedDog.zone}</p></div>
+              <button onClick={() => setDogId(null)} className="text-bark-400 hover:text-status-injured"><X className="h-4 w-4" /></button>
+            </div>
+          ) : (
+            <div>
+              <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search animals by name, ID or area" className={cn(INPUT, "pl-9")} /></div>
+              <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+                {matches.length === 0 ? <p className="py-4 text-center text-[13px] text-bark-400">No matches. Add a new animal instead.</p> : matches.map((d) => (
+                  <button key={d.id} onClick={() => setDogId(d.id)} className="flex w-full items-center gap-3 rounded-md p-2 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
+                    <DogPhoto src={d.cover_photo} alt="" seed={d.id} className="h-9 w-9 rounded-md" />
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{dogLabel(d)}</span><span className="block truncate text-xs text-bark-400">{d.zone}</span></span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="space-y-3">
+            {/* StrayPaw is a dog-only platform, so a new animal is always a dog;
+                no species picker is offered. */}
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={INPUT} />
+            <div className="flex items-center gap-3">
+              <button onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 rounded-md border border-black/[0.1] px-3 py-2 text-[13px] font-medium text-bark-600 dark:border-white/[0.12] dark:text-bark-200">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : photo ? <Check className="h-4 w-4 text-status-vaccinated" /> : <Camera className="h-4 w-4" />} {photo ? "Photo added" : "Add photo *"}
               </button>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
