@@ -30,6 +30,7 @@ export interface CreateAnimalInput {
 }
 
 export async function createAnimal(input: CreateAnimalInput): Promise<string | null> {
+  if (input.species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
   if (!supa) return "demo-animal";
   const { data, error } = await supa.rpc("create_animal", {
