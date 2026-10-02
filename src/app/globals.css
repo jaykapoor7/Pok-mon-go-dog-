@@ -724,3 +724,15 @@ h1 em, h2 em, h3 em { font-style: normal; }
 
 /* Keep onboarding and sign-in readable without stacked install/storage prompts. */
 body:has([role="dialog"]) :is(.sp-install-prompt, .snotice) { display: none; }
+
+/* Small text links that sit in a heading row or under a record (a
+   "See all", "Directions to the area", a record's name). Their type stays
+   the size it is; on a touch screen the tappable area grows to the 44px
+   floor and the same amount is taken back in margin, so nothing around
+   them moves. */
+@media (pointer: coarse) {
+  :is(.hp-link, .hp-dir, .hp-name, .rx-cta, .ops-eyebrow a, .spa-panel-head a, .ngo-hero-cap a, .sp-wordmark) {
+    padding-block: max(0px, calc((44px - 1lh) / 2));
+    margin-block: min(0px, calc((1lh - 44px) / 2));
+  }
+}

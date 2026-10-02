@@ -231,7 +231,7 @@ async function buildStory(): Promise<LandingStory | null> {
     live: live.length,
     critical: live.filter(crit).length,
     older: openCases.length - live.length,
-    queue: [...live].sort((a, b) => rank(a) - rank(b) || dayOf(a.occurred_at) - dayOf(b.occurred_at)).slice(0, 3).map((c) => ({
+    queue: [...live].sort((a, b) => rank(a) - rank(b) || dayOf(a.occurred_at) - dayOf(b.occurred_at)).slice(0, 5).map((c) => ({
       condition: c.condition_class ?? "Not recorded", locality: cleanPlace(c.zone) || "", days: today - dayOf(c.occurred_at), critical: crit(c), overdue: false,
     })),
     cells: cellList.map((h) => ({ key: h, ring: rings[idx.get(h)!], open: openByCell.get(h) ?? 0 })),
@@ -286,7 +286,7 @@ async function resolveRelay(
    into the compact story the landing draws. */
 export const getLandingStory = unstable_cache(
   async (): Promise<LandingStory | null> => buildStory(),
-  ["landing-story-bounded-v4"],
+  ["landing-story-bounded-v5"],
   { revalidate: 600 },
 );
 

@@ -83,6 +83,8 @@ html .ld .ld-sec-shell .ld-scale { position: relative; background: var(--sp-shel
 html .ld .ld-sec-bone { --gd: var(--gd-survey); --gd-at: 30% 50%; }
 html .ld .ld-close { --gd: var(--gd-night); --gd-at: 60% 50%; }
 html .ld .ld-close::before { -webkit-mask-image: var(--gd-mask-right); mask-image: var(--gd-mask-right); }
+/* The call to report reads on its own solid ground; the contours stop at it. */
+html .ld .ld-close .ld-close-action { position: relative; background: var(--sp-night); box-shadow: 0 0 0 var(--sp-5) var(--sp-night); }
 
 /* ── The public pages ────────────────────────────────────────────── */
 html .co .co-sec { --gd: var(--gd-survey); --gd-at: 80% 30%; }
