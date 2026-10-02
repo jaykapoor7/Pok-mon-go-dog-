@@ -313,7 +313,13 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   const rows = (data ?? []) as Array<any>;
   /* A fuller set of calm, photographed dogs for the landing's marquee — the
      register shown as a wall of real profiles across a few sliding rows. */
-  const picks = rows.filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured").slice(0, LANDING_LIMITS.registerCards);
+  /* The fullest records first (most sightings), recency breaking ties: the
+     landing deals a profile card from these, so it should show what a
+     profile holds. Still a bounded sample of real dogs. */
+  const picks = rows
+    .filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured")
+    .sort((a, b) => (b.sightings_count ?? 0) - (a.sightings_count ?? 0))
+    .slice(0, LANDING_LIMITS.registerCards);
   const ids = picks.map((row) => row.id);
   const [{ data: cases }, { data: care }] = ids.length ? await Promise.all([
     supa.from("public_case_facts").select("dog_id,condition_class,status_class,occurred_at").in("dog_id", ids).order("occurred_at", { ascending: false }).limit(LANDING_LIMITS.registerCases),
@@ -329,4 +335,4 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
     sterilisation: row.sterilisation_status, vaccination: row.vaccination_status, org: null,
     requests: byCase.get(row.id) ?? [], care: byCare.get(row.id) ?? [],
   })) };
-}, ["landing-animal-register-v11"], { revalidate: 300 });
+}, ["landing-animal-register-v12"], { revalidate: 300 });

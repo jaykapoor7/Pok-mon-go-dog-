@@ -9,6 +9,7 @@ import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
+import type { RegisterPlateData } from "@/components/landing/RegisterPlate";
 import { Relay } from "@/components/landing/Relay";
 import { getAnimalRegister, getLandingStory } from "@/lib/landing/story";
 import "@/components/site/site.css";
@@ -52,9 +53,9 @@ const LEVELS = [
 
 const EMPTY_REGISTER = { total: 0, cards: [] };
 
-async function LandingAnimalRegister() {
+async function LandingAnimalRegister({ plate }: { plate: RegisterPlateData | null }) {
   const register = await getAnimalRegister().catch(() => EMPTY_REGISTER);
-  return <AnimalRegister data={register} total={register.total} />;
+  return <AnimalRegister data={register} total={register.total} plate={plate} />;
 }
 
 export default async function HomePage() {
@@ -91,7 +92,7 @@ export default async function HomePage() {
             card. It shows the hero's own count (one source); its own count
             is only a fallback for a visit where the story could not load. */}
         <Suspense fallback={<AnimalRegister data={EMPTY_REGISTER} total={0} />}>
-          <LandingAnimalRegister />
+          <LandingAnimalRegister plate={story ? { city: story.hero.city, box: story.hero.box, rings: story.hero.rings, events: story.hero.events } : null} />
         </Suspense>
 
         {/* 3. One report, three screens — the system, one record the whole way. */}
