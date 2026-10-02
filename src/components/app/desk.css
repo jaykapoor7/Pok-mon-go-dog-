@@ -255,3 +255,63 @@ html .spa.spa.spa-desk .studio-hero .studio-route span { border-color: var(--sp-
 html .spa.spa.spa-desk .studio-hero .studio-route b { color: var(--sp-ember); }
 html .spa.spa.spa-desk .material-title > a:hover { background: var(--sp-blue-deep); }
 html .spa.spa.spa-desk .ib-head h1 { color: var(--sp-night-text); }
+
+/* ── The NGO console: section tabs and console pages ──────────────── */
+/* One segmented control: a row you select, the current view on ink. */
+html .spa.spa.spa.spa-desk .partner-workspace-tabs {
+  box-sizing: border-box; display: flex; width: fit-content; max-width: min(100%, 1240px); gap: 2px; margin: 0 0 var(--sp-5); padding: 4px;
+  overflow-x: auto; scrollbar-width: none; border: 0; border-radius: calc(var(--ctl-r-row) + 4px);
+  background: var(--sp-paper); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 8px 22px rgba(11, 30, 61, 0.05);
+}
+html .spa.spa.spa.spa-desk .partner-workspace-tabs::-webkit-scrollbar { display: none; }
+html .spa.spa.spa.spa-desk .partner-workspace-tabs a {
+  flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--ctl-r-row);
+  color: var(--sp-body); font-size: 13px; font-weight: 600; white-space: nowrap;
+  transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io);
+}
+html .spa.spa.spa.spa-desk .partner-workspace-tabs a:hover { background: var(--sp-bone); color: var(--sp-ink); }
+html .spa.spa.spa.spa-desk .partner-workspace-tabs a[aria-current=page] { background: var(--sp-ink); color: var(--sp-night-text); }
+@media (pointer: coarse) { html .spa.spa.spa.spa-desk .partner-workspace-tabs a { min-height: var(--ctl-h); } }
+
+.cpage { max-width: 1240px; margin: 0 auto; }
+.cpage-read { max-width: 1240px; }
+.cpage-tabs { margin: 0 0 var(--sp-5); }
+html .spa.spa.spa-desk .csect { margin-top: var(--sp-7); padding-top: 0; border-top: 0; }
+html .spa.spa.spa-desk .csect-bare { margin-top: 0; }
+html .spa.spa.spa-desk .csect-head { margin-bottom: var(--sp-4); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--sp-ink); }
+html .spa.spa.spa-desk .csect-head h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--sp-ink); }
+
+/* ── Status marks in a list: ABC blue, ARV teal, hollow for not done,
+   dotted for not examined (never a colour that reads as alarm) ── */
+.dk-status {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 20px; min-width: 24px; padding: 0 5px;
+  border-radius: 5px; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em;
+}
+.dk-status.is-yes.is-ster { background: var(--ctl-tint); color: var(--sp-blue-deep); }
+.dk-status.is-yes.is-vacc { background: rgba(88, 180, 196, 0.18); color: var(--sp-arv-ink); }
+.dk-status.is-no { background: transparent; border: 1.2px solid var(--sp-ink); color: var(--sp-ink); }
+.dk-status.is-unknown { background: transparent; border: 1px dotted var(--sp-muted); color: var(--sp-muted); }
+.dh-link { color: var(--sp-sky); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(143, 183, 255, 0.45); }
+.dh-link:hover { text-decoration-color: currentColor; }
+
+/* A form page: the plate full width, the form at a comfortable measure. */
+.dk-form-page > :not(.dh) { max-width: 672px; margin-left: auto; margin-right: auto; }
+.dh .dr-meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--sp-night-dim); }
+
+/* Ledger row parts, a quiet note, fine print. */
+.dk-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sp-seq-3); }
+.dk-row-main { display: grid; gap: 2px; min-width: 0; }
+.dk-row-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14.5px; font-weight: 600; color: var(--sp-ink); }
+.dk-row-main small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--sp-muted); }
+.dk-row-go { font-size: 12.5px; font-weight: 600; color: var(--sp-blue); }
+.dk-ledger > li > a:hover .dk-row-main b { color: var(--sp-blue); }
+.dk-note { margin: 0; padding: var(--sp-5); border-radius: var(--sp-radius); background: var(--sp-paper); font-size: 14px; line-height: 1.55; color: var(--sp-body); }
+.dk-fine { margin: 0; font-size: 12px; color: var(--sp-muted); }
+
+/* The remaining dashed boxes (drop zones, empty notes, the write wall) as
+   quiet paper: a dashed edge is reserved for "not mapped". */
+html .spa.spa.spa-desk .spa-main :is(.imp-drop, .spa-empty, .ds-empty, .partner-write-wall) {
+  border: 0; border-radius: var(--sp-radius); background: var(--sp-paper);
+  box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 10px 26px rgba(11, 30, 61, 0.05);
+}
+html .spa.spa.spa-desk .spa-main .imp-drop > svg { color: var(--sp-blue); }

@@ -375,6 +375,9 @@
   /* Care kinds that need their own hue on a map: vaccination reads cool. */
   --sp-arv: #58b4c4;
   --sp-arv-night: #7fc9d6;
+  /* ARV teal for small text on light grounds (status marks in a list):
+     the fill teal is too light to read at 11px; this passes 4.5:1 on paper. */
+  --sp-arv-ink: #1d6672;
 
   /* Coverage: ink weight, strongest to none. */
   --sp-cov-strong: rgba(11, 30, 61, 0.78);

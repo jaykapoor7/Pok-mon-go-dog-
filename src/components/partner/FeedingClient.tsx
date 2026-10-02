@@ -5,6 +5,7 @@ import { Loader2, Plus, Camera, Check, Crosshair, MapPin, Users } from "lucide-r
 import { getMyOrgFeedingZones, createOrgFeedingZone, type OrgFeedingZone } from "@/lib/feeding-zones";
 import { uploadPhoto } from "@/lib/actions";
 import { timeAgo } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 const INPUT = "w-full rounded-md border border-black/[0.1] bg-transparent px-3 py-2.5 text-sm outline-none focus:border-paw-400 dark:border-white/[0.12]";
 
@@ -18,15 +19,13 @@ export function FeedingClient() {
 
   return (
     <div>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Feeding zones</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">Spots your organisation feeds. They appear on the public map for volunteers to sign up.</p>
-        </div>
-        <button onClick={() => setCreating((v) => !v)} className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
-          <Plus className="h-4 w-4" /> Add feeding zone
-        </button>
-      </header>
+      <DeskHeader
+        kicker="Field work · feeding"
+        title="Feeding zones"
+        lede="The spots your organisation feeds. They appear on the public map, where volunteers can sign up to help."
+        figures={[{ label: "feeding zones", value: loading ? null : zones.length }]}
+        actions={<button type="button" onClick={() => setCreating((v) => !v)} className="dk-btn"><Plus size={16} /> Add feeding zone</button>}
+      />
 
       {creating && <CreateZone onDone={() => { setCreating(false); load(); }} />}
 

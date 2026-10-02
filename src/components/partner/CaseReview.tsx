@@ -25,6 +25,7 @@ import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 import { REVIEW_REASONS, reasonlessCases, reviewCase, staleCases, type ReviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
 import "./review.css";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 type Tab = "stale" | "reasons";
 type Done = { label: string; ok: boolean };
@@ -171,15 +172,13 @@ export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
 
 function Header({ count }: { count: number }) {
   return (
-    <header className="rv-head">
-      <p className="sys-eyebrow is-flame">Case review</p>
-      <h1>Decide what happened to old&nbsp;cases.</h1>
-      <p>
-        {count ? <><b>{count.toLocaleString("en-IN")}</b> cases have been open for more than ninety days with nothing recorded in the last thirty. </> : null}
-        Most are finished work nobody closed; some are real and still going. Nothing here closes by itself — each decision is yours, and it is written into the case&rsquo;s history under your name.
-      </p>
-      <p className="rv-links"><Link href="/partner">Back to the dashboard</Link><Link href="/partner/reports#response">How this affects the figures <ArrowUpRight size={13} /></Link></p>
-    </header>
+    <DeskHeader
+      kicker="Records · case review"
+      title={<>Decide what happened to old&nbsp;cases</>}
+      lede="Open for more than ninety days, nothing recorded for thirty. Most are finished work nobody closed; some are still going. Nothing closes by itself: each decision is yours, written into the case’s history under your name."
+      figures={[{ label: "cases waiting for a decision", value: count, tone: count ? "attention" : undefined }]}
+      actions={<Link href="/partner/reports#response" className="dk-btn is-tint">How this affects the figures <ArrowUpRight size={13} /></Link>}
+    />
   );
 }
 

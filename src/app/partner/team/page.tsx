@@ -15,9 +15,9 @@ export const metadata = { title: "Team, StrayPaw Partner" };
 export default function PartnerTeamPage() {
   return (
     <ConsolePage
-      kicker="Field work / people"
+      kicker="Organisation · team"
       title="Team"
-      lede="Everyone you add gets six characters of their own. That code is how they sign in, every time, on any phone, with no account and no password. Staff codes open this dashboard; volunteer codes only attribute reports to their name."
+      lede="Everyone you add gets six characters of their own: their sign-in on any phone, with no account and no password. Staff codes open this workspace; volunteer codes only put their name on reports."
     >
       <InviteCodesClient />
     </ConsolePage>

@@ -154,7 +154,7 @@ export function OpsRoom() {
   return (
     <main className="ops ops-desk">
       <DeskHeader
-        city={place}
+        city={place ?? undefined}
         kicker={`${org?.name ?? "Your organisation"}${today ? ` · ${today}` : ""}`}
         title="What needs attention"
         lede={signedOut

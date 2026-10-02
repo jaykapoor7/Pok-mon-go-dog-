@@ -8,6 +8,7 @@ import type { Survey, SurveyArea } from "@/lib/types";
 import { SurveyCreate } from "./SurveyCreate";
 import { SurveyDetail } from "./SurveyDetail";
 import { CollectFlow } from "./CollectFlow";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 export function PrivateSurvey({ id, collect = false }: { id?: string; collect?: boolean }) {
  const { user, ready, openSignIn } = useAuth();
@@ -30,9 +31,31 @@ export function PrivateSurvey({ id, collect = false }: { id?: string; collect?: 
    isNgoMember().then(async ok => { if (!live) return; setMember(ok); if (ok) await load(); }).catch(e => { if (live) setError(e.message || "The survey could not be loaded."); });
    return () => { live=false; };
  }, [ready,user,id,load]);
- if (error) return <div className="py-10"><h1 className="text-2xl">Survey unavailable</h1><p role="alert" className="mt-4">{error}</p></div>;
- if (member===false) return <div className="py-10"><h1 className="text-2xl">Your organisation’s surveys</h1><p className="mt-4">Surveys and field observations are private to the organisation that keeps them.</p>{!user ? <button className="sys-btn mt-4" onClick={openSignIn}>Sign in</button> : <p className="mt-4">Active organisation access is required.</p>}</div>;
+ const head = (lede: React.ReactNode, actions?: React.ReactNode) => (
+   <DeskHeader kicker="Field work · surveys" title={<>Surveys &amp; census</>} lede={lede}
+     figures={surveys ? [{ label: "surveys", value: surveys.length }] : undefined} actions={actions} />
+ );
+ if (error) return <div className="dk-page">{head("This survey could not be opened.")}<p role="alert" className="ops-alert">{error}</p></div>;
+ if (member===false) return <div className="dk-page">{head("Surveys and field observations are private to the organisation that keeps them.", !user ? <button type="button" className="dk-btn" onClick={openSignIn}>Sign in</button> : undefined)}{user && <p className="dk-note">Your organisation access is not active yet.</p>}</div>;
  if (id && survey) return collect ? <CollectFlow survey={survey} areas={areas} /> : <SurveyDetail survey={survey} areas={areas} onChanged={load} />;
- if (id || surveys===null) return <div className="py-10"><h1 className="text-2xl">Surveys &amp; census</h1><p className="mt-4" role="status">Loading your organisation’s surveys…</p></div>;
- return <div><header className="mb-5 flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-xl font-semibold">Surveys &amp; census</h1><p className="mt-2 text-sm text-bark-500">Structured field counts across wards, villages and districts.</p></div><SurveyCreate /></header>{surveys.length ? <ul className="divide-y border-y border-black/10">{surveys.map(s => <li key={s.id}><Link className="block py-4" href={`/surveys/${s.id}`}><b>{s.title}</b><p className="mt-1 text-sm text-bark-500">Dog census · {s.status}</p></Link></li>)}</ul> : <p className="py-12 text-sm text-bark-500">No surveys have been recorded. Create one, then add the areas your team will cover.</p>}<p className="mt-4 text-xs text-bark-500">Showing up to 200 recent surveys.</p></div>;
+ if (id || surveys===null) return <div className="dk-page">{head(<span role="status">Loading your organisation’s surveys…</span>)}</div>;
+ return (
+   <div className="dk-page">
+     {head("Structured field counts across wards, villages and districts, drawn on the map as they are collected.", <SurveyCreate />)}
+     {surveys.length ? (
+       <ul className="dk-ledger">
+         {surveys.map(s => (
+           <li key={s.id}>
+             <Link href={`/surveys/${s.id}`}>
+               <i className="dk-dot" aria-hidden />
+               <span className="dk-row-main"><b>{s.title}</b><small>Dog census · {s.status}</small></span>
+               <span className="dk-row-go" aria-hidden>Open</span>
+             </Link>
+           </li>
+         ))}
+       </ul>
+     ) : <p className="dk-note">No surveys yet. Create one, then add the areas your team will cover.</p>}
+     {surveys.length >= 200 && <p className="dk-fine">Showing the 200 most recent surveys.</p>}
+   </div>
+ );
 }

@@ -18,6 +18,7 @@ import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { getSurveys, getSurveyResponses, getSurveyTotals, PROJECT_MARKER } from "@/lib/surveys";
 import { createSurvey, submitSurveyResponse } from "@/lib/survey-actions";
 import "./projects.css";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 type Project = { id: string; title: string; species: string; description: string | null; status: string; created_at: string };
 type Entry = { id: string; attributes: Record<string, unknown>; notes: string | null; created_at: string; count: number; species: string | null };
@@ -95,14 +96,13 @@ export function ProjectRegisters() {
 
   return (
     <main className="pj">
-      <header className="pj-head">
-        <div>
-          <p className="sys-eyebrow">Projects</p>
-          <h1>Registers for work that is not a&nbsp;census.</h1>
-          <p className="pj-lede">A rabies drive, a sterilisation (ABC) drive, a school round: name the fields once, then every entry fills them in. Ward counts and censuses stay under Surveys, where they are drawn on the map.</p>
-        </div>
-        {member && <button type="button" className="sys-btn" onClick={() => setMaking((v) => !v)}><Plus size={16} /> New project</button>}
-      </header>
+      <DeskHeader
+        kicker="Field work · projects"
+        title={<>Registers for work that is not a&nbsp;census</>}
+        lede="A rabies drive, an ABC drive, a school round: name the fields once and every entry fills them in. Ward counts and censuses stay under Surveys, drawn on the map."
+        figures={[{ label: "projects", value: projects.length }]}
+        actions={member ? <button type="button" className="dk-btn" onClick={() => setMaking((v) => !v)}><Plus size={16} /> New project</button> : undefined}
+      />
 
       {(making || (member && projects.length === 0)) && (
         <form onSubmit={make} className="pj-new">

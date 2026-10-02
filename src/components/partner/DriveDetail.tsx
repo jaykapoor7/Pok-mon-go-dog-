@@ -11,6 +11,7 @@ import {
   type CampaignAnimal,
   type CampaignStats,
 } from "@/lib/campaigns";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 /* One drive, in full: its coverage, and the animals behind every figure.
 
@@ -73,27 +74,15 @@ export function DriveDetail({ id }: { id: string }) {
     <div>
       <BackLink label="All drives" to="/partner/drives" />
 
-      <header className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">
-          {stats.name}
-        </h1>
-        <p className="dr-meta">
-          {KIND_LABEL[stats.kind]} · <CalendarRange size={13} /> {dateText}
-          {stats.zone && (
-            <>
-              {" · "}
-              <MapPin size={13} /> {stats.zone}
-            </>
-          )}
-          {stats.people > 0 && (
-            <>
-              {" · "}
-              <Users size={13} /> {stats.people}{" "}
-              {stats.people === 1 ? "person" : "people"}
-            </>
-          )}
-        </p>
-      </header>
+      <DeskHeader
+        kicker={`Field work · ${KIND_LABEL[stats.kind]}`}
+        title={stats.name}
+        lede={<span className="dr-meta"><CalendarRange size={13} /> {dateText}{stats.zone && <> · <MapPin size={13} /> {stats.zone}</>}</span>}
+        figures={[
+          { label: "animals in this drive", value: stats.total },
+          { label: stats.people === 1 ? "person on the team" : "people on the team", value: stats.people || null, tone: "quiet" },
+        ]}
+      />
 
       <section className="pgm" aria-label="Drive coverage">
         <div className="pgm-block">

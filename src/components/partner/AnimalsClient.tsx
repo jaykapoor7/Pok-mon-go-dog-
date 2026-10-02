@@ -14,6 +14,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { SPECIES, speciesLabel, STATUS_META } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 const FILTER =
   "min-h-[40px] rounded-md border border-black/[0.09] bg-transparent px-2 text-[13px] outline-none focus:border-paw-400 dark:border-white/[0.12]";
@@ -32,14 +33,7 @@ function StatusPill({ kind, value }: { kind: "ster" | "vacc"; value: string }) {
   return (
     <span
       title={label}
-      className={
-        "inline-flex h-[19px] min-w-[19px] items-center justify-center rounded px-1 text-[11.5px] font-bold " +
-        (positive
-          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300"
-          : negative
-            ? "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300"
-            : "bg-bark-100 text-bark-500 dark:bg-white/10 dark:text-bark-300")
-      }
+      className={`dk-status is-${kind} ${positive ? "is-yes" : negative ? "is-no" : "is-unknown"}`}
     >
       {letter}
       {positive ? "\u2713" : negative ? "\u2717" : "?"}
@@ -105,27 +99,27 @@ export function AnimalsClient() {
 
   return (
     <div>
-      <header className="mb-5">
-        <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Records</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">Animals, care history and active casework, in one registry.</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+      <DeskHeader
+        kicker="Records · animals"
+        title="Every animal your team keeps"
+        lede="One permanent StrayPaw ID per animal, with its photographs, place, sterilisation, vaccination and casework underneath."
+        figures={[
+          { label: filtered ? "animals match these filters" : "animals on your record", value: loading && !animals.length ? null : total },
+          { label: "localities", value: zones.length || null, tone: "quiet" },
+        ]}
+        actions={<>
+          <button type="button" onClick={() => setCreating((v) => !v)} className="dk-btn"><Plus size={16} /> New animal</button>
           {animals.length > 0 && (
             <button
+              type="button"
               onClick={() => downloadCsv("animals.csv", animals.map((a) => ({ straypaw_id: a.straypaw_id, source_id: a.code, name: a.name, species: a.species, status: a.status, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, location: a.zone, assignee: a.assignee_name, recorded_by: a.recorded_by, recorded_on: a.created_at, last_seen: a.last_seen })))}
-              className="inline-flex items-center gap-1.5 rounded-md border border-black/[0.1] px-3 py-2 text-[13px] font-semibold text-bark-600 hover:bg-black/[0.04] dark:border-white/[0.12] dark:text-bark-200"
+              className="dk-btn is-tint"
             >
-              <Download className="h-4 w-4" /> Export
+              <Download size={15} /> Export
             </button>
           )}
-          <button onClick={() => setCreating((v) => !v)} className="inline-flex items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
-            <Plus className="h-4 w-4" /> New animal
-          </button>
-        </div>
-        </div>
-      </header>
+        </>}
+      />
 
       {creating && <CreateAnimal onDone={() => { setCreating(false); load(); }} />}
 

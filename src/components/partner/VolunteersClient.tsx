@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Phone, MapPin } from "lucide-react";
 import { getOrgVolunteers, type Volunteer } from "@/lib/team-actions";
 import { timeAgo } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 export function VolunteersClient() {
   const [rows, setRows] = useState<Volunteer[]>([]);
@@ -17,15 +18,12 @@ export function VolunteersClient() {
 
   return (
     <div>
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Volunteer sign-ups</h1>
-        <p className="mt-0.5 max-w-2xl text-[13px] leading-relaxed text-bark-500">
-          People who offered to help through the StrayPaw site. They are not
-          on your team and cannot see anything: this is a list to call.
-          Somebody you want reporting for you gets added on{" "}
-          <a href="/partner/team" className="font-semibold underline underline-offset-2">Team</a>.
-        </p>
-      </header>
+      <DeskHeader
+        kicker="Organisation · volunteers"
+        title="Volunteer sign-ups"
+        lede={<>People who offered to help through StrayPaw. They are not on your team and see nothing: this is a list to call. Add someone who should report for you on <a href="/partner/team" className="dh-link">Team</a>.</>}
+        figures={[{ label: "sign-ups", value: loading ? null : rows.length }]}
+      />
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-paw-500" /></div>

@@ -16,8 +16,24 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
+import { getMyOrg } from "@/lib/actions";
+
+/* The place a whole space stands on: an organisation's own city for every
+   page in its workspace, set once by the layout. A page may still name its
+   own place. */
+const DeskPlace = createContext<string | null>(null);
+
+export function OrgPlace({ children }: { children: ReactNode }) {
+  const [city, setCity] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    getMyOrg().then((org) => { if (live) setCity(org?.city?.trim() || null); }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+  return <DeskPlace.Provider value={city}>{children}</DeskPlace.Provider>;
+}
 import { LiveGround, type GroundData } from "@/components/system/LiveGround";
 
 export type DeskFigure = { label: string; value: number | string | null | undefined; tone?: "attention" | "quiet"; href?: string };
@@ -46,6 +62,8 @@ export function DeskHeader({ kicker, title, lede, figures, actions, city, childr
   /** Anything that belongs in the plate beneath the figures (a place picker, a tab row). */
   children?: ReactNode;
 }) {
+  const spacePlace = useContext(DeskPlace);
+  const place = city === undefined ? spacePlace : city;
   const [ground, setGround] = useState<GroundData | null>(null);
   const [el, setEl] = useState<HTMLElement | null>(null);
   const [seen, setSeen] = useState(false);
@@ -53,9 +71,9 @@ export function DeskHeader({ kicker, title, lede, figures, actions, city, childr
 
   useEffect(() => {
     let live = true;
-    loadGround(city).then((g) => { if (live) setGround(g); });
+    loadGround(place).then((g) => { if (live) setGround(g); });
     return () => { live = false; };
-  }, [city]);
+  }, [place]);
 
   useEffect(() => {
     const m = window.matchMedia("(prefers-reduced-motion: reduce)");
