@@ -184,8 +184,19 @@ export function OpsRoom() {
               : "Import an existing workbook, open your first rescue case, or add an animal directly. StrayPaw keeps your own source IDs and builds a permanent animal identity underneath them."}</p>
           </div>
           <div className="ops-setup-actions">
-            <Link href="/partner/import" className="dk-btn">Import workbook</Link>
-            <Link href="/partner/cases/new" className="dk-btn is-tint">New rescue case</Link>
+            {signedOut && !user ? (
+              <>
+                <Link href="/join" className="dk-btn">Sign in with your code</Link>
+                <Link href="/partner-apply" className="dk-btn is-tint">Apply to partner</Link>
+              </>
+            ) : signedOut ? (
+              <Link href="/partner-apply" className="dk-btn">Apply to partner</Link>
+            ) : (
+              <>
+                <Link href="/partner/import" className="dk-btn">Import workbook</Link>
+                <Link href="/partner/cases/new" className="dk-btn is-tint">New rescue case</Link>
+              </>
+            )}
           </div>
         </section>
       )}
@@ -250,7 +261,7 @@ export function OpsRoom() {
       </section>
 
       <div className="ops-lower">
-        <section className="dk-section ops-tasks" aria-label="Tasks"><TasksSection compact /></section>
+        {isMember && <section className="dk-section ops-tasks" aria-label="Tasks"><TasksSection compact /></section>}
 
         {working && (
           <section className="dk-section" aria-label="Needs a decision and recent changes">

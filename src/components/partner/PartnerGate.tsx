@@ -9,6 +9,7 @@ import {
   startTransition,
 } from "react";
 import { Loader2, ShieldCheck, LogIn, HeartHandshake, Check } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -116,6 +117,10 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
   const [member, setMember] = useState<boolean | null>(null);
   const [reqStatus, setReqStatus] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  /* The dashboard carries its own members-only card with the same sign-in,
+     so a signed-out visitor is not asked twice on one screen. */
+  const pathname = usePathname();
+  const ownCard = !user && pathname === "/partner";
 
   /* Depend on the id, not the object: a new user object with the same id
      should not refetch membership. */
@@ -152,7 +157,7 @@ export function PartnerGate({ title, children }: { title: string; children: Reac
           "Sign in to load your team's records", so the button was dead in
           the one state it is most often seen in. Dismissing dismisses.
           Signing in is still one tap away in the header and in the rail. */}
-      {resolved && !member && !dismissed && (
+      {resolved && !member && !dismissed && !ownCard && (
         /* A callout is what Alert is for. This was a styled div doing the
            same job without the role="alert" that tells a screen reader
            something has appeared, and re-specifying its own border, tint and
