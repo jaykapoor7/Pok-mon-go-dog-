@@ -111,13 +111,28 @@ export default function ReportPage() {
 
   /* Where is found while the photo is being taken: from the link (someone
      pressed "report here" on the map or a profile), else from the phone. */
+  /* Set when the person chooses the map while the phone is still looking. */
+  const byHand = useRef(false);
   const locate = useCallback(() => {
     if (!navigator.geolocation) { setWhere("denied"); setEditPlace(true); return; }
     setWhere("finding");
+    /* The browser's own timeout only starts once permission is given; a
+       prompt left unanswered would spin here for ever. After 15 seconds the
+       map takes over; a late answer is then ignored rather than moving a
+       place the person may already have set by hand. */
+    let late = false;
+    byHand.current = false;
+    const giveUp = window.setTimeout(() => {
+      late = true;
+      setWhere((w) => (w === "finding" ? "denied" : w));
+      setEditPlace(true);
+    }, 15000);
     navigator.geolocation.getCurrentPosition(({ coords: c }) => {
+      window.clearTimeout(giveUp);
+      if (late || byHand.current) return;
       if (!looksIndian(c.latitude, c.longitude)) { setWhere("abroad"); setEditPlace(true); return; }
       setPlace(c.latitude, c.longitude, "found");
-    }, () => { setWhere("denied"); setEditPlace(true); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    }, () => { window.clearTimeout(giveUp); if (!late) { setWhere("denied"); setEditPlace(true); } }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
   }, [setPlace]);
 
   useEffect(() => {
@@ -267,7 +282,10 @@ export default function ReportPage() {
                     <button type="button" className="rq-skip" onClick={() => setEditPlace(true)}>Change</button>
                   </>
                 ) : where === "finding" ? (
-                  <p className="rq-lede"><Loader2 size={16} className="rq-spin" aria-hidden /> Finding where you are…</p>
+                  <>
+                    <p className="rq-lede"><Loader2 size={16} className="rq-spin" aria-hidden /> Finding where you are…</p>
+                    <button type="button" className="rq-skip" onClick={() => { byHand.current = true; setWhere("map"); setEditPlace(true); }}>Set it on the map instead</button>
+                  </>
                 ) : (
                   <>
                     {where === "abroad" && <p className="rq-warn">Your phone places you outside India. StrayPaw records India&apos;s street animals: set where the animal is on the map.</p>}
