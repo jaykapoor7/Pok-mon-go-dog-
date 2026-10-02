@@ -17,7 +17,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, MapPin } from "lucide-react";
 import type { Box } from "@/components/system/HexPlate";
-import { LightsMap } from "@/components/system/LightsMap";
+import { projector } from "@/components/system/HexPlate";
 import { sized } from "@/lib/photo/src";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 
@@ -54,18 +54,32 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
     return () => window.clearTimeout(t);
   }, [live, step]);
 
-  /* The municipality's screen is the live map's own night ground: the city's
-     open requests as lights, and the report's cell outlined in flame, never
+  /* The municipality's screen: the wards around the report, drawn in the
+     map's own honeycomb. Each cell is shaded by the open requests recorded
+     in it; the report's own cell is outlined in flame when it arrives, never
      finer than the cell. */
   const centre = (ring: number[]) => { let lng = 0, lat = 0; const n = ring.length / 2; for (let i = 0; i < ring.length; i += 2) { lng += ring[i]; lat += ring[i + 1]; } return { lng: lng / n, lat: lat / n }; };
-  const lights = useMemo(() => desk.cells.map((c) => ({ ...centre(c.ring), help: c.open > 0 })), [desk.cells]);
-  const own = useMemo(() => (report ? desk.cells.find((x) => x.key === report.cell) ?? null : null), [desk.cells, report]);
-  const outline = useMemo(() => {
-    if (!own) return undefined;
-    const pts: [number, number][] = [];
-    for (let i = 0; i < own.ring.length; i += 2) pts.push([own.ring[i], own.ring[i + 1]]);
-    return pts;
-  }, [own]);
+  const muni = useMemo(() => {
+    const own = report ? desk.cells.find((x) => x.key === report.cell) ?? null : null;
+    if (!own) return null;
+    const o = centre(own.ring);
+    const near = desk.cells
+      .map((c) => ({ c, m: centre(c.ring) }))
+      .map((x) => ({ ...x, d: Math.hypot(x.m.lng - o.lng, x.m.lat - o.lat) }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 70);
+    let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+    for (const { c } of near) for (let i = 0; i < c.ring.length; i += 2) { w = Math.min(w, c.ring[i]); e = Math.max(e, c.ring[i]); s = Math.min(s, c.ring[i + 1]); n = Math.max(n, c.ring[i + 1]); }
+    const { p } = projector([w, s, e, n], 320, 220, 10);
+    const path = (ring: number[]) => { let d = ""; for (let i = 0; i < ring.length; i += 2) { const [x, y] = p(ring[i], ring[i + 1]); d += `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`; } return d + "Z"; };
+    const [ox, oy] = p(o.lng, o.lat);
+    return {
+      cells: near.map(({ c }) => ({ key: c.key, d: path(c.ring), open: c.open, own: c.key === own.key })),
+      at: [ox, oy] as [number, number],
+      withWork: desk.cells.filter((c) => c.open > 0).length,
+      total: desk.cells.length,
+    };
+  }, [desk.cells, report]);
 
   if (!report) return null;
   const screen = step <= 1 ? 0 : step === 2 ? 1 : 2; // which screen holds the report now
@@ -124,12 +138,24 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
 
         <span className={`rl-link ${step === 3 ? "is-go" : ""}`}><b>{report.straypawId}</b><i /></span>
 
-        {/* 3 — the public map */}
+        {/* 3 — the municipality's coverage view */}
         <div className={`rl-screen rl-map ${screen === 2 ? "is-on" : ""}`}>
-          <p className="rl-bar"><b>Municipality · coverage view</b><span>{city}</span></p>
-          <div className="rl-lights">
-            {own && <LightsMap center={[centre(own.ring).lng, centre(own.ring).lat]} zoom={13.2} lights={lights} outline={step >= 3 ? outline : undefined} credit={false} dot={2.4} label={`${city} at night: open requests as lights, and the report's own area outlined`} />}
-          </div>
+          <p className="rl-bar"><StrayPawMark size={16} /> <b>Municipality · coverage</b><span>{city}</span></p>
+          {muni && (
+            <svg className={`rl-wards ${step >= 3 ? "is-lit" : ""}`} viewBox="0 0 320 220" role="img" aria-label={`Wards around ${report.locality}, shaded by open requests on the record, with the report's own area outlined`}>
+              {muni.cells.map((c) => <path key={c.key} d={c.d} className={`rl-ward o${Math.min(c.open, 3)}${c.own ? " is-own" : ""}`} />)}
+              {step >= 3 && <>
+                <circle className="rl-pulse" cx={muni.at[0]} cy={muni.at[1]} r="9" />
+                <circle className="rl-pin" cx={muni.at[0]} cy={muni.at[1]} r="3.4" />
+              </>}
+            </svg>
+          )}
+          <div className="rl-key"><span><i className="o1" />1</span><span><i className="o2" />2</span><span><i className="o3" />3+ open</span><span><i className="o0" />on record, none open</span></div>
+          <dl className="rl-figs">
+            <div><dt>Open, 90 days</dt><dd>{desk.live.toLocaleString("en-IN")}</dd></div>
+            <div><dt>Critical</dt><dd className="is-hot">{desk.critical.toLocaleString("en-IN")}</dd></div>
+            <div><dt>Areas with work</dt><dd>{muni ? `${muni.withWork}/${muni.total}` : "—"}</dd></div>
+          </dl>
           <p className="rl-map-cap"><i /><span className="rl-id-inline">{report.straypawId}</span> · {report.locality}</p>
         </div>
       </div>

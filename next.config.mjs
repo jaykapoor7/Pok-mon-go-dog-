@@ -20,6 +20,8 @@ const nextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },
       { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "inaturalist-open-data.s3.amazonaws.com" },
+      { protocol: "https", hostname: "static.inaturalist.org" },
     ],
   },
   // mapbox-gl / maplibre-gl ship untranspiled ESM in places; keep them happy.

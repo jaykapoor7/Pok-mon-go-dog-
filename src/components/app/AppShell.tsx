@@ -6,6 +6,7 @@ import {
   createContext,
   type FormEvent,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -27,12 +28,14 @@ import {
   Search,
   ChartColumn,
   GraduationCap,
+  Menu,
   Utensils,
 } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
+import { PhoneMenu } from "./PhoneMenu";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { groupFor } from "@/components/partner/PartnerTabs";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
@@ -84,8 +87,8 @@ const EDUCATOR_NAV = [
 
 type Space = "community" | "feeder" | "educator" | "ngo";
 const SPACES: Record<Space, { label: string; home: string; nav: typeof COMMUNITY_NAV; phone: typeof COMMUNITY_NAV }> = {
-  /* The phone bar has four places around Report; the fifth rail item is
-     reached from the map and the desktop rail. */
+  /* The phone bar has three places around Report and a More slot that
+     opens every section (PhoneMenu). */
   community: { label: "Community", home: "/app", nav: COMMUNITY_NAV, phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights" && x.href !== "/orgs") },
   feeder: { label: "Feeder", home: "/feeder", nav: FEEDER_NAV, phone: FEEDER_NAV.slice(0, 4) },
   educator: { label: "Educator", home: "/learn", nav: EDUCATOR_NAV, phone: EDUCATOR_NAV.filter((x) => x.href !== "/orgs") },
@@ -116,6 +119,8 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [cursor, setCursor] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   /* Which space you are in is decided by where you are, not by what you
      once picked. Including the stored role here meant anybody who had ever
@@ -236,11 +241,14 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           <div className="spa-phone-links">
             {phoneNav.slice(0, 2).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
             <Link href="/report" className="spa-mobile-report" aria-label="Report an animal"><Radio size={20}/><span>Report</span></Link>
-            {phoneNav.slice(2).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+            {phoneNav.slice(2, 3).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
+            <button type="button" className="spa-phone-more" aria-haspopup="dialog" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><Menu size={20}/><span>More</span></button>
           </div>
 
           <div className="spa-side-foot"><ProfilePanel/><div className="spa-side-feedback"><FeedbackButton label="Send feedback"/></div></div>
         </nav>
+
+        <PhoneMenu open={menuOpen} onClose={closeMenu} nav={primaryNav} spaceLabel={spaceLabel} isNgo={isNgo} isActive={isActive} />
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
           {!flush && <div className="spa-page-context"><span>{spaceLabel} / {pageLabel}</span></div>}
