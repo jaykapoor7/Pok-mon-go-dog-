@@ -20,7 +20,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Download, Loader2, Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
-import { closedCounts, closedRegister, openRegister, PAGE, searchRegister, type RegisterRow } from "@/lib/case-register";
+import { closedCounts, closedRegister, openRegister, OPEN_REGISTER_LIMIT, PAGE, searchRegister, type RegisterRow } from "@/lib/case-register";
 import { CLOSURE_META, STATUS_META, triageOf, type ClosureReason, type StatusClass, type Triage } from "@/lib/register/taxonomy";
 import { downloadCsv } from "@/lib/csv";
 import "./register.css";
@@ -165,6 +165,7 @@ export function CaseRegister() {
   return (
     <main className="cr">
       <Head count={lensCount} review={counts?.reasonless} />
+      {openRows.length >= OPEN_REGISTER_LIMIT && <p className="cr-note">The board and open-case lenses show the {OPEN_REGISTER_LIMIT} oldest loaded open cases. These counts describe that slice. Search checks the whole register.</p>}
 
       {openRows.length > 0 && <Board rows={openRows} now={now} cell={cell} onCell={(c) => { setCell(c); setLens((l) => (OPEN_LENSES.includes(l) ? l : "open")); }} />}
 

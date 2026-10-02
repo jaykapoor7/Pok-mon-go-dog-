@@ -1,5 +1,6 @@
 "use client";
 
+import { locationCell } from "./location-cell";
 import { getSupabase } from "./supabase";
 import { isRecordingDemo, recordingDemoAnimals } from "./recording-demo";
 
@@ -35,8 +36,9 @@ export async function createAnimal(input: CreateAnimalInput): Promise<string | n
   if (input.species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
   if (!supa) return "demo-animal";
-  const { data, error } = await supa.rpc("create_animal_in_city", {
+  const { data, error } = await supa.rpc("create_animal_with_location", {
     p_city: input.city.trim(),
+    p_h3_r8: await locationCell(input.lat, input.lng),
     p_name: input.name || null,
     p_species: input.species,
     p_code: input.code || null,

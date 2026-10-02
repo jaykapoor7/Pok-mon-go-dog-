@@ -8,6 +8,7 @@
 // With no Supabase configured the helpers simulate success for local dev.
 // ─────────────────────────────────────────────────────────────
 
+import { locationCell } from "./location-cell";
 import { getSupabase } from "./supabase";
 import { spatialChanged } from "./spatial/refresh";
 import type {
@@ -61,8 +62,9 @@ export async function createCase(
   await ensureVolunteer(actor);
   // Demo dogs don't exist in the DB, never link a case to one.
   const dogId = input.dogId && !input.dogId.startsWith("demo-") ? input.dogId : null;
-  const { data, error } = await supa.rpc("create_case_in_city", {
+  const { data, error } = await supa.rpc("create_case_with_location", {
     p_city: input.city.trim(),
+    p_h3_r8: await locationCell(input.lat, input.lng),
     p_title: input.title,
     p_description: input.description || null,
     p_dog_id: dogId,

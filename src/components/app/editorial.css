@@ -139,8 +139,8 @@ html .spa.spa-editorial .spa-main:not(.flush) :is(.spa-empty, .spa-note) p { col
 @media (max-width: 900px) {
   .spa-editorial .spa-page-context span:not(:first-child) { display: none; }
   html .spa.spa-editorial .spa-side { background: var(--sp-night); border-color: rgba(255,255,255,.15); }
-  html .spa.spa-editorial .spa-phone-links > a { color: var(--sp-night-dim); }
-  html .spa.spa-editorial .spa-phone-links > a[aria-current="page"] { color: var(--sp-night-text); }
+  html .spa.spa.spa-editorial .spa-side .spa-phone-links > a { color: var(--sp-night-dim); font-size: 12px; }
+  html .spa.spa.spa-editorial .spa-side .spa-phone-links > a[aria-current="page"] { color: var(--sp-night-text); }
   html .spa.spa-editorial .spa-side a.spa-mobile-report { background: var(--sp-flame); color: var(--sp-night); }
 }
 @media (max-width: 600px) {

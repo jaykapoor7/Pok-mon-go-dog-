@@ -22,12 +22,13 @@ export type RegisterRow = {
 
 const FIELDS = "id,case_code,title,condition_class,status_class,closure_reason,occurred_at,last_activity_at,resolved_at,resolved_at_source,reviewed_at,severity,assignee_name,animal_name,straypaw_id,dog_id,zone,h3_r8,next_due,followups_done,followups_missed,intake_channel";
 export const PAGE = 150;
+export const OPEN_REGISTER_LIMIT = 300;
 
 export async function openRegister(): Promise<RegisterRow[]> {
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.from("org_case_facts").select(FIELDS)
-    .in("status_class", ["open", "in_progress"]).order("occurred_at", { ascending: true }).limit(300);
+    .in("status_class", ["open", "in_progress"]).order("occurred_at", { ascending: true }).limit(OPEN_REGISTER_LIMIT);
   if (error) throw new Error(error.message);
   return (data ?? []) as RegisterRow[];
 }
@@ -67,5 +68,6 @@ export async function closedCounts(): Promise<{ closed: number; reasonless: numb
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).not("status_class", "in", "(open,in_progress)"),
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["no_action", "not_attended"]).or("closure_reason.is.null,closure_reason.eq.unspecified"),
   ]);
+  if (a.error || b.error) throw new Error("Case totals could not be loaded.");
   return { closed: a.count ?? 0, reasonless: b.count ?? 0 };
 }

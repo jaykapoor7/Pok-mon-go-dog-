@@ -13,24 +13,14 @@ export const maxDuration = 60;
  *         imports and edits, authorised by CRON_SECRET. Without a matching
  *         secret the endpoint is closed, so it is never a public lever. */
 
-const BATCH = 60;
+const BATCH = 4;
 
 async function drain(): Promise<{ ok: boolean; status: number; body: Record<string, unknown> }> {
   const supa = getSupabaseAdmin();
   if (!supa) return { ok: false, status: 500, body: { error: "Service role not configured." } };
-  const { data, error } = await supa
-    .from("spatial_refresh_queue")
-    .select("city")
-    .order("requested_at")
-    .limit(BATCH);
+  const { data, error } = await supa.rpc("drain_spatial_refresh_queue", { p_limit: BATCH });
   if (error) return { ok: false, status: 500, body: { error: error.message } };
-  const refreshed: Array<{ city: string; cells: number }> = [];
-  for (const item of data ?? []) {
-    const { data: cells, error: rebuildError } = await supa.rpc("rebuild_spatial_city", { p_city: item.city });
-    if (rebuildError) return { ok: false, status: 500, body: { error: rebuildError.message, refreshed } };
-    refreshed.push({ city: item.city, cells: Number(cells ?? 0) });
-  }
-  return { ok: true, status: 200, body: { ok: true, refreshed } };
+  return { ok: true, status: 200, body: { ok: true, refreshed: data ?? [] } };
 }
 
 function authorised(req: Request, secret: string | undefined) {

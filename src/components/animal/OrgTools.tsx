@@ -28,7 +28,7 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 const day = (iso: string | null) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const kindLabel = (k: string) => MEDICAL_KINDS.find((m) => m.id === k)?.label ?? k.replace(/_/g, " ");
 
-export function OrgTools({ dog, photos }: { dog: Dog; photos: string[] }) {
+export function OrgTools({ dog, photos, onChanged }: { dog: Dog; photos: string[]; onChanged?: () => void }) {
   const { member, ready } = usePartnerAccess();
   const [cases, setCases] = useState<OrgCase[] | null>(null);
   const [medical, setMedical] = useState<MedicalEvent[]>([]);
@@ -42,7 +42,7 @@ export function OrgTools({ dog, photos }: { dog: Dog; photos: string[] }) {
   const load = useCallback(() => {
     const supa = getSupabase();
     supa?.from("org_case_facts").select("id,case_code,title,condition_class,status_class,occurred_at,last_activity_at,assignee_name")
-      .eq("dog_id", dog.id).order("occurred_at", { ascending: false })
+      .eq("dog_id", dog.id).order("occurred_at", { ascending: false }).limit(200)
       .then(({ data }) => setCases((data ?? []) as OrgCase[]));
     getMedicalEvents(dog.id).then(setMedical).catch(() => {});
     getAnimalTimeline(dog.id).then(setTimeline).catch(() => {});
@@ -78,8 +78,8 @@ export function OrgTools({ dog, photos }: { dog: Dog; photos: string[] }) {
         <button type="button" className="sys-btn is-sm" onClick={() => setLogging((v) => !v)} aria-expanded={logging}><Stethoscope size={15} /> Log care</button>
         <button type="button" className="sys-btn is-quiet is-sm" onClick={() => setEditing((v) => !v)} aria-expanded={editing}><Pencil size={14} /> {editing ? "Close editing" : "Edit the record"}</button>
       </div>
-      {logging && <LogCare dogId={dog.id} onDone={() => { setLogging(false); load(); }} />}
-      {editing && <EditAnimal key={`${full.code ?? ""}|${full.owner_name ?? ""}|${full.intake_notes ?? ""}`} dog={full} onDone={() => { setEditing(false); load(); }} />}
+      {logging && <LogCare dogId={dog.id} onDone={() => { setLogging(false); load(); onChanged?.(); }} />}
+      {editing && <EditAnimal key={`${full.code ?? ""}|${full.owner_name ?? ""}|${full.intake_notes ?? ""}`} dog={full} onDone={() => { setEditing(false); load(); onChanged?.(); }} />}
 
       <div className="lr-org-grid">
         <div>
@@ -90,7 +90,7 @@ export function OrgTools({ dog, photos }: { dog: Dog; photos: string[] }) {
               <ol className="lr-org-cases">
                 {cases.map((c) => (
                   <li key={c.id}><Link href={`/partner/cases/${c.id}`}>
-                    <span><b>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Case"}</b>
+                    <span><b>{c.condition_class && !["Not recorded", "Other"].includes(c.condition_class) ? c.condition_class : c.title || "Case"}</b>
                       <small>{[c.case_code, STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label, c.assignee_name].filter(Boolean).join(" · ")}</small></span>
                     <em className="sys-mono">{day(c.occurred_at)}</em>
                   </Link></li>

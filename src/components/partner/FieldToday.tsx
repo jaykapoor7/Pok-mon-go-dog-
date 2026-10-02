@@ -31,12 +31,14 @@ export function FieldToday() {
   const { member, ready: accessReady } = usePartnerAccess();
   const [open, setOpen] = useState<RegisterRow[] | null>(null);
   const [due, setDue] = useState<DueFollowup[]>([]);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (!ready || !accessReady) return;
     if (!user || !member) { setOpen([]); return; }
     let live = true;
-    Promise.all([openRegister(), dueFollowups()]).then(([o, d]) => { if (live) { setOpen(o); setDue(d); } }).catch(() => live && setOpen([]));
+    setLoadError(false);
+    Promise.all([openRegister(), dueFollowups()]).then(([o, d]) => { if (live) { setOpen(o); setDue(d); } }).catch(() => { if (live) { setLoadError(true); setOpen([]); } });
     return () => { live = false; };
   }, [ready, accessReady, user, member]);
 
@@ -61,12 +63,14 @@ export function FieldToday() {
 
   if (!ready || !accessReady || open === null) return <p className="ft-state"><Loader2 size={16} className="animate-spin" /> Reading today&rsquo;s work…</p>;
   if (!user || !member) return <p className="ft-state">Field work loads once you sign in with an organisation account.</p>;
+  if (loadError) return <p className="ft-state" role="alert">Field work could not be loaded. Please refresh to try again.</p>;
 
   const overdue = due.filter((f) => Date.parse(f.due_at) < now).length;
   const maxPlace = places[0]?.[1].n ?? 1;
 
   return (
     <div className="ft">
+      {(open.length >= 300 || due.length >= 200) && <p className="ft-quiet">This view uses up to 300 loaded open cases and 200 follow-ups. Counts and assignments below describe that loaded slice; search the case register for other records.</p>}
       <p className="ft-line">
         <b>{due.length}</b> follow-up{due.length === 1 ? "" : "s"} due this week{overdue ? <>, <em>{overdue} already overdue</em></> : null}.{" "}
         <b>{nobody.length}</b> open case{nobody.length === 1 ? "" : "s"} with nobody on {nobody.length === 1 ? "it" : "them"}.
