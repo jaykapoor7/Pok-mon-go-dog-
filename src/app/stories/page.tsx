@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { cellToLatLng } from "h3-js";
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { AppShell } from "@/components/app/AppShell";
 import { StoryAtlas, type Story } from "@/components/stories/StoryAtlas";
 import type { PublicCaseStory, PublicTimelineEvent } from "@/lib/community-case-stories";
@@ -109,15 +110,18 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
 
   return (
     <main className="st">
-        <header className="st-head">
-          <h1>Animal records{city ? <> in <em>{city}</em></> : <>, <em>followed through care.</em></>}</h1>
-          {stories.length > 0 && (
-            <p className="st-lede">
-              {totalForScope !== null ? <><b>{totalForScope.toLocaleString("en-IN")}</b> public animal records</> : <>Public animal records</>}{city ? <> in {city}</> : cityCount > 1 ? <> across the atlas</> : null}
-              {paged ? <> · showing {stories.length} here</> : null}. Care, discharge and outcomes appear only where the source actually records them
-              {median != null ? <>. Among the records shown here with a recorded ending, the median span is <b>{span(median)}</b></> : null}.
-            </p>
-          )}
+        <DeskHeader
+          city={city ?? undefined}
+          kicker={city ? `Stories · ${city}` : "Stories · the atlas"}
+          title={city ? <>Animal records in <em>{city}</em></> : <>Animal records, <em>followed through care</em></>}
+          lede="Care, discharge and outcomes appear only where the source actually records them."
+          figures={[
+            { label: city ? `public records in ${city}` : cityCount > 1 ? "public records across the atlas" : "public records", value: totalForScope },
+            ...(paged ? [{ label: "shown on this page", value: stories.length, tone: "quiet" as const }] : []),
+            ...(median != null ? [{ label: "median span to a recorded ending", value: span(median) }] : []),
+          ]}
+          actions={<Link href="/report" className="dk-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>}
+        >
           {cityChips.length > 0 && (
             <nav className="st-cities" aria-label="Browse rescue records by city">
               <Link href="/stories" className={!city ? "is-on" : ""}>All cities</Link>
@@ -126,8 +130,7 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
               ))}
             </nav>
           )}
-          <Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>
-        </header>
+        </DeskHeader>
         {stories.length ? <StoryAtlas stories={stories} /> : page.error ? <section className="st-empty" aria-label="Public records temporarily unavailable">
           <div><span className="st-empty-index">THE ATLAS / PUBLIC FIELD RECORDS</span><h2>The record is reconnecting.</h2><p>Stories exist, but the public record could not be read just now. Try this page again shortly; do not treat this state as an empty register.</p></div>
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
@@ -145,5 +148,5 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   const before = params.beforeAt && params.beforeId && Number.isFinite(Date.parse(params.beforeAt)) && /^[0-9a-f-]{36}$/i.test(params.beforeId) ? { occurredAt: new Date(params.beforeAt).toISOString(), id: params.beforeId } : null;
   const rawCity = params.city?.trim().slice(0, 100) || null;
   const city = rawCity === "New Delhi" ? "Delhi" : rawCity === "Secunderabad" ? "Hyderabad" : rawCity;
-  return <AppShell><Suspense fallback={<main className="st"><header className="st-head"><h1>Animal records, <em>followed through care.</em></h1><p className="st-lede">Loading the latest bounded public records…</p><Link href="/report" className="sys-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link></header></main>}><StoriesData before={before} city={city} /></Suspense></AppShell>;
+  return <AppShell><Suspense fallback={<main className="st"><DeskHeader kicker="Stories" title={<>Animal records, <em>followed through care</em></>} lede="Loading the latest public records…" figures={[{ label: "public records", value: null }]} actions={<Link href="/report" className="dk-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>} /></main>}><StoriesData before={before} city={city} /></Suspense></AppShell>;
 }

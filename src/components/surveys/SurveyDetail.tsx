@@ -10,6 +10,7 @@ import { downloadCsv } from "@/lib/csv";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { speciesLabel, type Survey, type SurveyArea, type SurveyResponse, type Dog } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; areas: SurveyArea[]; onChanged: () => Promise<void> }) {
   const [member, setMember] = useState(false);
@@ -35,27 +36,21 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
   const coverage = totals?.areas ? Math.round((totals.covered / totals.areas) * 100) : 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-32 pt-24 sm:px-6">
-      <Link href="/partner/surveys" className="mb-4 inline-flex items-center gap-1.5 text-sm text-bark-500 hover:text-paw-600">
-        <ArrowLeft className="h-4 w-4" /> Surveys
-      </Link>
-
-      <div className="border-b border-black/[0.08] pb-5 dark:border-white/[0.1]">
-        <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">{survey.title}</h1>
-        <p className="mt-0.5 text-[13px] text-bark-500">
-          {speciesLabel(survey.species)} census{survey.status !== "active" ? " · closed" : ""}
-        </p>
-        {survey.description && <p className="mt-3 text-[14px] leading-relaxed text-bark-700 dark:text-bark-200">{survey.description}</p>}
-      </div>
+    <div className="dk-form-page is-wide">
+      <DeskHeader
+        kicker={`Field work · ${speciesLabel(survey.species).toLowerCase()} census${survey.status !== "active" ? " · closed" : ""}`}
+        title={survey.title}
+        lede={survey.description || undefined}
+        figures={[
+          { label: "areas", value: totals?.areas ?? null },
+          { label: "responses", value: totals?.responses ?? null },
+          { label: "dogs counted", value: totals?.animals ?? null },
+          { label: "areas started", value: totals ? `${coverage}%` : null, tone: "quiet" },
+        ]}
+        actions={<Link href="/partner/surveys" className="dk-btn is-tint"><ArrowLeft size={15} /> Surveys</Link>}
+      />
 
       {error && <p role="alert" className="mt-4 text-status-injured">{error}</p>}
-      {/* summary */}
-      <div className="mt-5 grid grid-cols-4 divide-x divide-black/[0.07] overflow-hidden rounded-lg border border-black/[0.08] dark:divide-white/[0.08] dark:border-white/[0.1]">
-        <Metric label="Areas" value={totals?.areas ?? "—"} />
-        <Metric label="Responses" value={totals?.responses ?? "—"} />
-        <Metric label="Dogs" value={totals?.animals ?? "—"} />
-        <Metric label="Areas started" value={totals ? `${coverage}%` : "—"} />
-      </div>
 
       <Link
         href={`/surveys/${survey.id}/collect`}
@@ -155,15 +150,6 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
           })}
         </ul>
       )}
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="px-3 py-3">
-      <div className="text-xl font-semibold tabular-nums tracking-tight text-bark-900 dark:text-bark-50">{value}</div>
-      <div className="mt-0.5 text-[12px] text-bark-500">{label}</div>
     </div>
   );
 }

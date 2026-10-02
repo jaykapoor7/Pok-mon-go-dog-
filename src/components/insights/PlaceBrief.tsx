@@ -36,6 +36,7 @@ import { FATE_META, FATES, fates, season } from "@/lib/spatial/report";
 import { C, C_STRIDE, type SpatialDataset } from "@/lib/spatial/types";
 import { CONDITIONS, DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 import "./brief.css";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 type Place = { city: number; locality: number };
 type Period = "all" | "12m" | "90d";
@@ -391,31 +392,32 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       {notice && <div className="ib-notice">{notice}</div>}
 
       {/* ── the place ──────────────────────────────────────────────── */}
-      <header className={`ib-head${!ds ? " is-unavailable" : ""}`}>
-        <div className="ib-head-words">
-          <p className="ib-kicker sys-mono">{scope === "org" ? "Your records" : "Insights"} · {periodLabel}</p>
-          <h1>{placeName || (scope === "org" ? "Your field evidence" : "Evidence, place by place.")}</h1>
-          {isLocality && <p className="ib-city">{cityName}</p>}
-          {ds && <><dl className="ib-figs">
-            <div><dt>{cityWhole && period === "all" ? "requests for help" : "requests in loaded detail"}</dt><dd>{n(requestsHere)}</dd></div>
-            <div><dt>{cityWhole ? "open now" : "open in loaded detail"}</dt><dd>{n(openNowHere)}</dd></div>
-            <div><dt>{cityWhole ? "animals on record" : "animals in loaded detail"}</dt><dd>{n(animalsHere)}</dd></div>
-          </dl><p className="ib-scope-note">{cityWhole ? "All-time requests, current open work and animals are citywide totals. Period filters and detailed findings below use bounded records." : "Locality figures and findings describe the loaded records, rather than a complete locality register."}</p></>}
-        </div>
-        {plate && ds && place && <div className="ib-plate">
-            <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Loaded requests by cell in ${cityName}`}
-              onCell={(key) => { const i = ds.cells.indexOf(key); if (i >= 0 && ds.cellLocality[i] >= 0) setPlace({ city: place.city, locality: ds.cellLocality[i] }); }} />
-          <p className="ib-plate-note">Brighter cells have more requests in the loaded detail. Choose one to read its locality.</p>
-        </div>}
-      </header>
+      <DeskHeader
+        city={cityName || undefined}
+        kicker={`${scope === "org" ? "Your records" : "Insights"} · ${periodLabel}`}
+        title={placeName || (scope === "org" ? "Your field evidence" : "Evidence, place by place")}
+        lede={isLocality ? cityName : ds ? (cityWhole ? "All-time requests, open work and animals are citywide totals. Period filters and findings below use bounded records." : "Locality figures and findings describe the loaded records, not a complete locality register.") : undefined}
+        figures={ds ? [
+          { label: cityWhole && period === "all" ? "requests for help" : "requests in loaded detail", value: requestsHere },
+          { label: cityWhole ? "open now" : "open in loaded detail", value: openNowHere, tone: "attention" },
+          { label: cityWhole ? "animals on record" : "animals in loaded detail", value: animalsHere },
+        ] : undefined}
+        actions={ds ? <Link href={mapHref("density")} className="dk-btn is-tint"><MapIcon size={15} aria-hidden /> Open on the map</Link> : undefined}
+      />
 
-      {ds && <div className="ib-bar">
-        <PlaceSearch options={options} onPick={pickPlace} label="Choose a place" />
-        {isLocality && ds && place && <button type="button" className="ib-up" onClick={() => setPlace({ city: place.city, locality: -1 })}>All of {cityName}</button>}
-        <div className="ib-period" role="group" aria-label="Period">
-          {PERIODS.map((p) => <button key={p.id} type="button" aria-pressed={period === p.id} className={period === p.id ? "is-on" : ""} onClick={() => setPeriod(p.id)}>{p.label}</button>)}
+      {ds && <div className="ib-pick">
+        {plate && place && <figure className="ib-plate">
+          <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Loaded requests by cell in ${cityName}`}
+            onCell={(key) => { const i = ds.cells.indexOf(key); if (i >= 0 && ds.cellLocality[i] >= 0) setPlace({ city: place.city, locality: ds.cellLocality[i] }); }} />
+          <figcaption className="ib-plate-note">Brighter cells have more requests. Choose one to read its locality.</figcaption>
+        </figure>}
+        <div className="ib-bar">
+          <PlaceSearch options={options} onPick={pickPlace} label="Choose a place" />
+          {isLocality && place && <button type="button" className="dk-btn is-tint" onClick={() => setPlace({ city: place.city, locality: -1 })}>All of {cityName}</button>}
+          <div className="ib-period" role="group" aria-label="Period">
+            {PERIODS.map((pp) => <button key={pp.id} type="button" aria-pressed={period === pp.id} className={period === pp.id ? "is-on" : ""} onClick={() => setPeriod(pp.id)}>{pp.label}</button>)}
+          </div>
         </div>
-        <Link href={mapHref("density")} className="ib-map"><MapIcon size={15} aria-hidden /> Open on the map</Link>
       </div>}
 
       {/* ── the answers ────────────────────────────────────────────── */}

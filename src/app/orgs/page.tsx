@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { AppShell } from "@/components/app/AppShell";
 import { OrgMark } from "@/components/orgs/OrgMark";
 import { CampaignStrip } from "@/components/orgs/CampaignStrip";
@@ -41,11 +42,15 @@ export default async function OrgsPage() {
   return (
     <AppShell>
       <div className="pp">
-        <header className="pp-head">
-          <p className="pp-kicker">THE SHARED NETWORK <span>·</span> {fmt(rows.length)} {rows.length === 1 ? "organisation" : "organisations"} on the directory</p>
-          <h1>Organisations on the record</h1>
-          <p>Partner NGOs and record contributors helping keep the shared record useful. Every figure is their own record, live.</p>
-        </header>
+        <DeskHeader
+          kicker="The shared network"
+          title="Organisations on the record"
+          lede="Partner NGOs and record contributors keeping the shared record useful. Every figure is their own record, live."
+          figures={[
+            { label: rows.length === 1 ? "organisation" : "organisations", value: rows.length },
+            { label: "field partners and partner NGOs", value: rows.filter((r) => r.o.kind === "Field partner" || r.o.kind === "Partner NGO").length, tone: "quiet" },
+          ]}
+        />
 
         <ol className="pp-dir" aria-label="Organisations">
           {rows.map(({ o, animals, cases }) => (

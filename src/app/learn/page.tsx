@@ -8,7 +8,8 @@ import {
   MapPinned,
   ShieldCheck,
 } from "lucide-react";
-import { PlatformShell } from "@/components/platform/PlatformNav";
+import { AppShell } from "@/components/app/AppShell";
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { KIND_HOUR_MATERIALS } from "@/lib/platform/education";
 import "./learn.css";
 
@@ -38,23 +39,19 @@ const QUICK_GUIDES = [
 
 export default function LearnPage() {
   return (
-    <PlatformShell>
+    <AppShell>
       <div className="studio">
-        <header className="studio-hero">
-          <div>
-            <p className="studio-kicker">Educator workspace</p>
-            <h1>Lesson materials, <em>with the source still attached.</em></h1>
-            <p>
-              Open The Kind Hour Foundation&rsquo;s original PDFs, see how each one is best facilitated,
-              then bring the conversation back to a real place on StrayPaw.
-            </p>
-          </div>
-          <div className="studio-route" aria-label="A three-part lesson route">
-            <span><b>01</b> Choose a source</span>
-            <span><b>02</b> Frame the room</span>
-            <span><b>03</b> Open the local record</span>
-          </div>
-        </header>
+        <DeskHeader
+          kicker="Educator · lesson studio"
+          title={<>Lesson materials, <em>with the source still attached</em></>}
+          lede="Open The Kind Hour Foundation’s original PDFs, see how each is best facilitated, then bring the conversation back to a real place on StrayPaw."
+        >
+          <ol className="studio-steps" aria-label="A three-part lesson route">
+            <li><b>01</b> Choose a source</li>
+            <li><b>02</b> Frame the room</li>
+            <li><b>03</b> Open the local record</li>
+          </ol>
+        </DeskHeader>
 
         <section className="studio-materials" aria-labelledby="materials-title">
           <header className="studio-section-head">
@@ -138,6 +135,6 @@ export default function LearnPage() {
           </ol>
         </section>
       </div>
-    </PlatformShell>
+    </AppShell>
   );
 }

@@ -21,6 +21,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { LightsMap, type Light } from "@/components/system/LightsMap";
 import { PlaceSearch, type PlaceOption } from "./PlaceSearch";
 import { PlaceGate, type GateState } from "./PlaceGate";
+import { DeskHeader } from "./DeskHeader";
 import { reachOf, usePlace } from "@/lib/place";
 import { pointInCell, ringOf } from "@/components/spatial/data";
 import { useSpatialDataset } from "@/components/spatial/data";
@@ -269,18 +270,15 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
      things a person came to do here still work. */
   if (!loading && !ds && error) return (
     <main className="cp">
-      <header className="cp-head is-error">
-        <div className="cp-head-id">
-          <p className="sys-eyebrow">Your patch{patch ? ` · ${patch.label}` : ""}</p>
-          <h1>The register could not be read just now.</h1>
-          <p className="cp-sample">Your patch is drawn here once it can be. Reporting an animal does not wait for it.</p>
-        </div>
-        <div className="cp-head-acts">
-          <Link href={patch ? `/report?lat=${patch.lat}&lng=${patch.lng}` : "/report"} className="sys-btn is-flame"><Plus size={16} /> Report an animal</Link>
-          <button type="button" className="sys-btn is-quiet" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
-        </div>
-        {note && <p className="cp-note">{note}</p>}
-      </header>
+      <DeskHeader
+        kicker={`Your patch${patch ? ` · ${patch.label}` : ""}`}
+        title="The register could not be read just now"
+        lede="Your patch is drawn here once it can be. Reporting an animal does not wait for it."
+        actions={<>
+          <Link href={patch ? `/report?lat=${patch.lat}&lng=${patch.lng}` : "/report"} className="dk-btn is-flame"><Plus size={16} /> Report an animal</Link>
+          <button type="button" className="dk-btn is-tint" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
+        </>}
+      >{note && <p className="cp-note">{note}</p>}</DeskHeader>
     </main>
   );
   /* No place yet, outside India, or beyond the record's reach: say so,
@@ -293,30 +291,34 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
     </main>
   );
   if (!loading && ds && patch && !city) return <main className="cp"><h1>City totals are temporarily unavailable</h1><p>Please try again shortly.</p><Link href="/report" className="sys-btn is-flame">Report a dog</Link></main>;
-  if (!placeReady || loading || !ds || !patch || !stats || !cells || !city) return <main className="cp"><p className="cp-state">Reading the register…</p></main>;
+  if (!placeReady || loading || !ds || !patch || !stats || !cells || !city) return (
+    <main className="cp">
+      <DeskHeader kicker={`Your patch${patch ? ` · ${patch.label}` : ""}`} title="Reading the register…" lede="Your place, its animals and what needs help nearby."
+        figures={[{ label: "animals on the record", value: null }, { label: "flagged for help", value: null }]} />
+    </main>
+  );
 
   return (
     <main className="cp">
-      <header className="cp-head is-loaded">
-        <div className="cp-head-id">
-          <p className="cp-head-kicker">Your patch / the living record</p>
-          <h1>{city.name}{!patch.mine && <small>Sample city</small>}</h1>
-          <p className="cp-head-deck">Citywide figures from recorded animals. The street-level picture begins with your patch below.</p>
-        </div>
-        <dl className="cp-figs">
-          <div><dt>animals on the record</dt><dd>{city.animalsN.toLocaleString("en-IN")}</dd></div>
-          <div className="is-hot"><dt>flagged for help</dt><dd>{city.help.toLocaleString("en-IN")}</dd></div>
-        </dl>
-      </header>
-      <div className="cp-location-bar">
-        <p>{patch.mine ? "Your chosen place" : "Showing a sample place"}<span>{patch.label}</span></p>
-        <div className="cp-head-acts">
-          <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-flame"><Plus size={16} /> Report an animal</Link>
-          <button type="button" className="sys-btn is-quiet" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
+      <DeskHeader
+        city={city.name}
+        kicker={`Your patch · ${patch.mine ? patch.label : "a sample place"}`}
+        title={<>{city.name}{!patch.mine && <small className="cp-sample-tag">Sample city</small>}</>}
+        lede="Citywide figures from recorded animals. The street-level picture of your patch is below."
+        figures={[
+          { label: "animals on the record", value: city.animalsN },
+          { label: "flagged for help", value: city.help, tone: city.help ? "attention" : undefined },
+        ]}
+        actions={<>
+          <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="dk-btn is-flame"><Plus size={16} /> Report an animal</Link>
+          <button type="button" className="dk-btn is-tint" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
+        </>}
+      >
+        <div className="cp-place-row">
           <PlaceSearch options={placeOptions} onPick={pickPlace} label="Choose a place" />
+          {note && <p className="cp-note">{note}</p>}
         </div>
-        {note && <p className="cp-note">{note}</p>}
-      </div>
+      </DeskHeader>
 
       <p className="cp-near"><MapPin size={13} aria-hidden /> {cityMode ? `Near ${city.name} city centre` : `Near ${patch.label === "Around you" ? "you" : patch.label}`} · {RADIUS_KM} km{cityMode ? " · citywide totals are shown above" : ""}</p>
       <p className="cp-sample">Nearby lists, lights and recent activity describe bounded, loaded records. They do not count every dog or event in your patch.</p>

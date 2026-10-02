@@ -315,3 +315,30 @@ html .spa.spa.spa-desk .spa-main :is(.imp-drop, .spa-empty, .ds-empty, .partner-
   box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 10px 26px rgba(11, 30, 61, 0.05);
 }
 html .spa.spa.spa-desk .spa-main .imp-drop > svg { color: var(--sp-blue); }
+
+/* Insights: choose a place under the plate — the cell plate to pick a
+   locality, beside search and the period. */
+.ib-pick { box-sizing: border-box; width: 100%; max-width: 1240px; margin: 0 auto var(--sp-6); display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); align-items: center; gap: var(--sp-5); }
+.ib-pick .ib-plate { margin: 0; padding: var(--sp-3); border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 10px 26px rgba(11, 30, 61, 0.05); }
+.ib-pick .ib-plate .sys-plate { width: 100%; height: auto; }
+.ib-pick .ib-plate-note { margin: var(--sp-2) 0 0; font-size: 12px; line-height: 1.45; color: var(--sp-muted); }
+.ib-pick .ib-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin: 0; padding: 0; border: 0; }
+.ib-pick:not(:has(.ib-plate)) { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 760px) { .ib-pick { grid-template-columns: minmax(0, 1fr); } }
+
+/* Stories: the city chips ride inside the plate. */
+.dh .st-cities { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--sp-1) 0 0; }
+.dh .st-cities a { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border: 0; border-radius: var(--ctl-r); background: rgba(239, 231, 218, 0.08); color: var(--sp-night-dim); font-size: 12.5px; font-weight: 600; text-decoration: none; transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io); }
+.dh .st-cities a:hover { background: rgba(239, 231, 218, 0.15); color: var(--sp-night-text); }
+.dh .st-cities a.is-on { background: var(--sp-sky); color: var(--sp-ink); }
+@media (pointer: coarse) { .dh .st-cities a { height: var(--ctl-h); } }
+
+/* Lesson studio: the three-step route inside the plate. */
+.dh .studio-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
+.dh .studio-steps li { display: inline-flex; align-items: baseline; gap: 8px; font-size: 13.5px; color: var(--sp-night-text); }
+.dh .studio-steps b { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; font-weight: 500; color: var(--sp-sky); }
+.dk-form-page.is-wide > :not(.dh) { max-width: 820px; }
+
+/* The place search: one pill, not a box inside a box. */
+html .spa.spa.spa-desk .spa-main .ps-field input { min-height: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+html .spa.spa.spa-desk .spa-main .ps-field:focus-within { border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }

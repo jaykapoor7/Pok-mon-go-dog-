@@ -51,7 +51,7 @@ function loadGround(city: string | null | undefined): Promise<GroundData | null>
 
 const fmt = (v: DeskFigure["value"]) => (v === null || v === undefined || v === "" ? "—" : typeof v === "number" ? v.toLocaleString("en-IN") : v);
 
-export function DeskHeader({ kicker, title, lede, figures, actions, city, children }: {
+export function DeskHeader({ kicker, title, lede, figures, actions, city, ground: withGround = true, children }: {
   kicker?: string;
   title: ReactNode;
   lede?: ReactNode;
@@ -59,6 +59,8 @@ export function DeskHeader({ kicker, title, lede, figures, actions, city, childr
   actions?: ReactNode;
   /** The place behind the plate; the busiest city when not given. */
   city?: string | null;
+  /** False where no place is chosen yet: a screen must not show another city meanwhile. */
+  ground?: boolean;
   /** Anything that belongs in the plate beneath the figures (a place picker, a tab row). */
   children?: ReactNode;
 }) {
@@ -70,10 +72,11 @@ export function DeskHeader({ kicker, title, lede, figures, actions, city, childr
   const [calm, setCalm] = useState(false);
 
   useEffect(() => {
+    if (!withGround) { setGround(null); return; }
     let live = true;
     loadGround(place).then((g) => { if (live) setGround(g); });
     return () => { live = false; };
-  }, [place]);
+  }, [place, withGround]);
 
   useEffect(() => {
     const m = window.matchMedia("(prefers-reduced-motion: reduce)");

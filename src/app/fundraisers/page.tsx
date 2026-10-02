@@ -3,6 +3,8 @@ import { HeartHandshake, Plus } from "lucide-react";
 import { getFundraisers } from "@/lib/fundraisers";
 import { FundraiserCard } from "@/components/fundraisers/FundraiserCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AppShell } from "@/components/app/AppShell";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 export const metadata = {
   title: "Fundraisers, support rescues | StrayPaw",
@@ -16,16 +18,14 @@ export default async function FundraisersPage() {
   const fundraisers = await getFundraisers();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 sm:px-6">
-
-      <header className="mb-5">
-        <h1 className="font-display text-3xl tracking-tightest">Fundraisers</h1>
-        <p className="mt-1 text-sm text-bark-500">
-          Reputable rescues raising for vet bills, sterilisation and emergencies,
-          partner NGOs and campaigns we&apos;ve vetted. Every one links straight to
-          the rescue&apos;s own donation channel; StrayPaw never handles the money.
-        </p>
-      </header>
+    <AppShell>
+    <div className="dk-form-page">
+      <DeskHeader
+        kicker="Community · fundraisers"
+        title="Fundraisers"
+        lede="Vetted rescues and partner NGOs raising for vet bills, sterilisation and emergencies. Every one links straight to the rescue’s own donation channel; StrayPaw never handles the money."
+        figures={[{ label: fundraisers.length === 1 ? "active fundraiser" : "active fundraisers", value: fundraisers.length }]}
+      />
 
       {fundraisers.length === 0 ? (
         <EmptyState
@@ -48,5 +48,6 @@ export default async function FundraisersPage() {
         </Link>
       </p>
     </div>
+    </AppShell>
   );
 }
