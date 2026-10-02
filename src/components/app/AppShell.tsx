@@ -38,6 +38,7 @@ import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import { readStoredRole, type Role } from "@/lib/roles";
 import "./app.css";
 import "./editorial.css";
+import "./desk.css";
 
 /* Community is intentionally small: report, see the map, and understand the
    complete animal stories produced by community + NGO records. */
@@ -205,7 +206,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   if (nested) return <>{children}</>;
 
   return <InShell.Provider value={true}>
-    <div className={`spa spa-editorial${isReporting ? " spa-reporting" : ""}`}>
+    <div className={`spa spa-editorial spa-desk${isReporting ? " spa-reporting" : ""}`}>
       <Welcome />
       <a href="#spa-main" className="skip-link">Skip to content</a>
 

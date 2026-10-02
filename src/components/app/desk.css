@@ -1,0 +1,257 @@
+/* ════════════════════════════════════════════════════════════════════
+   The desk: the app after "Open app".
+
+   Grown out of the Field Workspace on the landing — the night desk with
+   what needs attention, the queue and the city's cells lighting up. The
+   shell is that night, an L of rail and bar framing a warm bone page;
+   every page opens on a night plate with its place living behind it
+   (DeskHeader + LiveGround); the work itself sits on bone and paper as
+   ledgers and ruled sections, not stacks of cards.
+
+   Selectors carry `html .spa.spa.spa-desk` because the older shell rules
+   in app.css reach 0-4-x specificity; this sheet is meant to win.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── The shell ─────────────────────────────────────────────────────── */
+html .spa.spa.spa-desk {
+  --ink: var(--sp-ink);
+  --paper: var(--sp-paper);
+  --bone: var(--sp-bone);
+  background: var(--sp-bone);
+  color: var(--sp-ink);
+}
+html .spa.spa.spa-desk .spa-body { background: var(--sp-bone); }
+html .spa.spa.spa-desk .spa-main:not(.flush) {
+  background: var(--sp-bone);
+  padding: clamp(18px, 2.2vw, 28px) clamp(16px, 2.6vw, 36px) 64px;
+}
+
+html .spa.spa.spa-desk .spa-top {
+  background: var(--sp-night);
+  border-bottom: 1px solid var(--sp-night-line);
+  color: var(--sp-night-text);
+}
+html .spa.spa.spa-desk .spa-brand { color: var(--sp-night-text); gap: 12px; font-size: 16px; }
+.spa-desk .spa-brand-copy { display: grid; gap: 1px; line-height: 1; }
+.spa-desk .spa-brand-copy strong { font-weight: 700; letter-spacing: -0.035em; }
+html .spa.spa.spa-desk .spa-brand-copy small {
+  margin: 0; color: var(--sp-night-dim);
+  font-family: var(--font-mono), ui-monospace, monospace; font-size: 9px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase;
+}
+html .spa.spa.spa-desk .spa-search input {
+  height: 40px; border-radius: var(--ctl-r-row);
+  background: rgba(239, 231, 218, 0.07); border: 1px solid var(--sp-night-line); color: var(--sp-night-text);
+}
+html .spa.spa.spa-desk .spa-search input::placeholder { color: var(--sp-night-faint); }
+html .spa.spa.spa-desk .spa-search svg { color: var(--sp-sky); }
+html .spa.spa.spa-desk .spa-search input:focus { border-color: var(--sp-sky); background: rgba(239, 231, 218, 0.11); box-shadow: 0 0 0 3px rgba(143, 183, 255, 0.18); }
+html .spa.spa.spa-desk .spa-top-right .spa-switch,
+html .spa.spa.spa-desk .spa-top-right .spa-exit {
+  height: var(--ctl-h-sm); border-radius: var(--ctl-r);
+  color: var(--sp-night-text); background: rgba(239, 231, 218, 0.07); border: 1px solid var(--sp-night-line); opacity: 1;
+  transition: background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io);
+}
+html .spa.spa.spa-desk .spa-top-right .spa-switch:hover,
+html .spa.spa.spa-desk .spa-top-right .spa-exit:hover { background: rgba(239, 231, 218, 0.14); color: var(--sp-night-text); }
+html .spa.spa.spa-desk .spa-top-right .spa-switch:active,
+html .spa.spa.spa-desk .spa-top-right .spa-exit:active { transform: var(--ctl-press); }
+
+/* The breadcrumb only where a page has no plate of its own. */
+.spa-desk .spa-page-context {
+  display: flex; align-items: center; gap: 16px; max-width: 1240px; margin: 0 auto var(--sp-5); padding: 0 0 10px;
+  border-bottom: 1px solid var(--sp-line); color: var(--sp-muted);
+  font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.spa-desk .spa-page-context span:first-child { color: var(--sp-ember); }
+html .spa.spa.spa-desk .spa-main:has(.dh) .spa-page-context { display: none; }
+html .spa.spa.spa-desk .spa-back { max-width: 1240px; margin: 0 auto var(--sp-3); }
+html .spa.spa.spa-desk .spa-back button {
+  height: var(--ctl-h-sm); padding: 0 14px 0 10px; border: 0; border-radius: var(--ctl-r);
+  background: var(--ctl-tint); color: var(--sp-blue); font-size: var(--ctl-fs-sm); font-weight: var(--ctl-fw);
+  box-shadow: none; transition: background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io);
+}
+html .spa.spa.spa-desk .spa-back button:hover { background: var(--ctl-tint-hover); }
+html .spa.spa.spa-desk .spa-back button:active { transform: var(--ctl-press); }
+
+@media (min-width: 901px) {
+  html .spa.spa.spa-desk .spa-body { grid-template-columns: 236px minmax(0, 1fr); }
+  html .spa.spa.spa-desk .spa-side {
+    padding: 22px 12px 16px; background: var(--sp-deep); border-right: 1px solid var(--sp-night-line); color: var(--sp-night-text);
+  }
+  html .spa.spa.spa-desk .spa-nav-context {
+    margin: 0 10px 14px; color: var(--sp-sky);
+    font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav { gap: 2px; }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a {
+    position: relative; min-height: 42px; padding: 0 12px; gap: 11px;
+    border-radius: var(--ctl-r-row); color: var(--sp-night-dim); background: transparent;
+    font-size: 14px; font-weight: 500; box-shadow: none;
+    transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io);
+  }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a svg { color: var(--sp-night-faint); }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a:hover { background: rgba(239, 231, 218, 0.06); color: var(--sp-night-text); }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a.active {
+    background: rgba(143, 183, 255, 0.12); color: var(--sp-night-text); font-weight: 600; box-shadow: inset 3px 0 0 var(--sp-sky);
+  }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a.active svg { color: var(--sp-sky); }
+
+  html .spa.spa.spa-desk .spa-side .spa-quick-list { margin-top: var(--sp-5); padding-top: var(--sp-4); border-top: 1px solid var(--sp-night-line); }
+  html .spa.spa.spa-desk .spa-side .spa-quick-list p {
+    margin: 0 10px 8px; color: var(--sp-night-faint);
+    font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  html .spa.spa.spa-desk .spa-side .spa-quick-list a {
+    min-height: 38px; padding: 0 12px; gap: 10px; border: 0; border-radius: var(--ctl-r-row);
+    color: var(--sp-night-dim); background: transparent; font-size: 13px; font-weight: 500;
+  }
+  html .spa.spa.spa-desk .spa-side .spa-quick-list a:hover { background: rgba(239, 231, 218, 0.06); color: var(--sp-night-text); }
+  html .spa.spa.spa-desk .spa-side .spa-quick-list a svg { color: var(--sp-sky); }
+  html .spa.spa.spa-desk .spa-side .spa-quick-list a.spa-quick-primary { color: var(--sp-night-text); background: rgba(143, 183, 255, 0.1); }
+
+  html .spa.spa.spa-desk .spa-side .spa-side-foot { border-top: 1px solid var(--sp-night-line); color: var(--sp-night-text); }
+  html .spa.spa.spa-desk .spa-side .spa-side-foot :is(b, strong, p, span, a, button, small) { color: inherit; }
+  html .spa.spa.spa-desk .spa-side .spa-side-foot :is(small, .muted, p) { color: var(--sp-night-dim); }
+  html .spa.spa.spa-desk .spa-side .spa-side-foot :is(a, button):hover { color: var(--sp-sky); }
+}
+@media (max-width: 900px) {
+  html .spa.spa.spa-desk .spa-side { background: var(--sp-night); border-color: var(--sp-night-line); }
+  html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a { color: var(--sp-night-dim); font-size: 12px; }
+  html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a[aria-current="page"] { color: var(--sp-night-text); }
+  html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a[aria-current="page"] svg { color: var(--sp-sky); }
+  html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a.spa-mobile-report { background: var(--sp-flame); color: var(--sp-night); }
+}
+@media (max-width: 600px) { html .spa.spa.spa-desk .spa-brand-copy small { display: none; } }
+
+/* ── The plate: every page opens on its place ──────────────────────── */
+.dh {
+  position: relative; isolation: isolate; overflow: hidden; box-sizing: border-box; width: 100%; max-width: 1240px; margin: 0 auto var(--sp-6);
+  border-radius: var(--sp-radius-lg); background: var(--sp-night); color: var(--sp-night-text);
+  box-shadow: 0 22px 56px rgba(7, 20, 43, 0.16);
+}
+.dh-ground { opacity: 0.85; }
+.dh::before {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, var(--sp-night) 0%, rgba(7, 20, 43, 0.88) 38%, rgba(7, 20, 43, 0.3) 72%, rgba(7, 20, 43, 0.12) 100%);
+}
+.dh-in {
+  position: relative; z-index: 2; min-height: 184px; box-sizing: border-box;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: end; gap: var(--sp-4) var(--sp-6);
+  padding: clamp(22px, 3vw, 34px) clamp(18px, 3vw, 34px) clamp(18px, 2.4vw, 28px);
+}
+.dh-copy { grid-column: 1; display: grid; gap: var(--sp-2); max-width: 62ch; min-width: 0; }
+.dh-kicker { margin: 0; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-sky); }
+.dh-title {
+  margin: 0; font-family: var(--font-sans-display, var(--font-sans)), var(--font-sans), sans-serif;
+  font-size: clamp(27px, 3.3vw, 42px); line-height: 1.04; letter-spacing: -0.025em; font-weight: 600;
+  color: var(--sp-night-text); text-wrap: balance;
+}
+.dh-title em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.01em; color: var(--sp-sky); }
+.dh-lede { margin: 0; max-width: 60ch; font-size: 15px; line-height: 1.5; color: var(--sp-night-dim); text-wrap: pretty; }
+.dh-actions { grid-column: 2; grid-row: 1; align-self: start; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-2); }
+.dh-figs { grid-column: 1 / -1; margin: var(--sp-1) 0 0; padding-top: var(--sp-4); display: flex; flex-wrap: wrap; gap: var(--sp-3) clamp(var(--sp-5), 4vw, var(--sp-8)); border-top: 1px solid var(--sp-night-line); }
+.dh-figs > div { display: flex; flex-direction: column-reverse; gap: 3px; min-width: 0; }
+.dh-figs dd { margin: 0; font-size: clamp(22px, 2.3vw, 30px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--sp-night-text); }
+.dh-figs dt { font-size: 12px; color: var(--sp-night-dim); }
+.dh-figs dd a { display: inline-flex; align-items: flex-start; gap: 5px; color: inherit; text-decoration: none; }
+.dh-figs dd a svg { margin-top: 2px; color: var(--sp-sky); transition: transform var(--sp-fast) var(--sp-ease); }
+.dh-figs dd a:hover svg { transform: translate(2px, -2px); }
+.dh-figs .is-attention dd { color: var(--sp-flame); }
+.dh-figs .is-quiet dd { color: var(--sp-night-dim); }
+.dh-extra { grid-column: 1 / -1; min-width: 0; }
+.dh .lg-cap { right: clamp(18px, 3vw, 34px); bottom: 12px; }
+@media (max-width: 720px) {
+  .dh { margin-bottom: var(--sp-5); border-radius: var(--sp-radius); }
+  .dh-ground { opacity: 0.45; }
+  .dh-in { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .dh-actions { grid-column: 1; grid-row: auto; justify-content: flex-start; }
+  .dh .lg-cap { display: none; }
+}
+
+/* ── Buttons: three kinds, capsules, one press ─────────────────────── */
+.dk-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: var(--ctl-h-sm); padding: var(--ctl-pad-sm);
+  border: 0; border-radius: var(--ctl-r); font: inherit; font-size: var(--ctl-fs-sm); font-weight: var(--ctl-fw); white-space: nowrap;
+  text-decoration: none; cursor: pointer; background: var(--sp-blue); color: var(--sp-paper);
+  transition: background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io);
+}
+.dk-btn:hover { background: var(--sp-blue-deep); }
+.dk-btn:active { transform: var(--ctl-press); }
+.dk-btn.is-tint { background: var(--ctl-tint); color: var(--sp-blue); }
+.dk-btn.is-tint:hover { background: var(--ctl-tint-hover); }
+.dk-btn.is-plain { background: transparent; color: var(--sp-blue); padding: 0 6px; }
+.dk-btn.is-flame { background: var(--sp-flame); color: var(--sp-ink); }
+.dk-btn.is-flame:hover { background: #e2492e; }
+.dh .dk-btn.is-tint, .dk-panel .dk-btn.is-tint { background: rgba(239, 231, 218, 0.08); color: var(--sp-night-text); box-shadow: inset 0 0 0 1px var(--sp-night-line); }
+.dh .dk-btn.is-tint:hover, .dk-panel .dk-btn.is-tint:hover { background: rgba(239, 231, 218, 0.15); }
+.dh .dk-btn.is-plain, .dk-panel .dk-btn.is-plain { color: var(--sp-sky); }
+@media (pointer: coarse) { .dk-btn { height: var(--ctl-h); } }
+
+/* ── Sections, ledgers, panels ─────────────────────────────────────── */
+.dk-page { max-width: 1240px; margin: 0 auto; display: grid; gap: var(--sp-7); }
+.dk-section { display: grid; gap: var(--sp-4); }
+.dk-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-2) var(--sp-4); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--sp-ink); }
+.dk-section-head h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--sp-ink); }
+.dk-section-head p { margin: 0; font-size: 13px; color: var(--sp-muted); }
+.dk-kicker { margin: 0; font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-ember); }
+
+.dk-ledger { margin: 0; padding: 0; list-style: none; }
+.dk-ledger > li { border-bottom: 1px solid var(--sp-line); }
+.dk-ledger > li > :is(a, button, div) {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3);
+  width: 100%; padding: 12px 4px; border: 0; background: none; color: inherit; font: inherit; text-align: left; text-decoration: none;
+}
+.dk-ledger > li > :is(a, button):hover { background: rgba(255, 253, 249, 0.6); }
+
+.dk-panel { position: relative; overflow: hidden; border-radius: var(--sp-radius-lg); background: var(--sp-night); color: var(--sp-night-text); box-shadow: 0 22px 56px rgba(7, 20, 43, 0.14); }
+.dk-sheet { border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 12px 30px rgba(11, 30, 61, 0.05); }
+
+/* ── App-wide: controls and empty states, on every page at once ─────── */
+html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select, textarea) {
+  border-radius: var(--ctl-r-row); border: 1px solid var(--sp-line); background-color: var(--sp-paper); color: var(--sp-ink);
+  font-size: 14px; transition: border-color var(--sp-fast) var(--sp-ease-io), box-shadow var(--sp-fast) var(--sp-ease-io);
+}
+html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select) { min-height: 42px; }
+html .spa.spa.spa-desk .spa-main :is(input, select, textarea)::placeholder { color: #8a95a3; }
+html .spa.spa.spa-desk .spa-main :is(input, select, textarea):focus { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+/* A select reads as a control, with its own caret, not the browser's grey box. */
+html .spa.spa.spa-desk .spa-main select {
+  appearance: none; -webkit-appearance: none; padding-right: 34px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%232457ce' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; background-size: 12px 8px;
+}
+html .spa.spa.spa-desk .spa-main input[type=date]::-webkit-calendar-picker-indicator { opacity: 0.55; cursor: pointer; }
+html .spa.spa.spa-desk .spa-main input[type=date] { color: var(--sp-ink); font-variant-numeric: tabular-nums; }
+/* A dashed edge means "not mapped" on every map here, so an empty list is
+   never drawn as one. It is a quiet paper sheet that says what to do next. */
+html .spa.spa.spa-desk .spa-main .border-dashed {
+  border-style: solid; border-color: var(--sp-line); background-color: var(--sp-paper);
+  border-radius: var(--sp-radius); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.03);
+}
+
+/* ── Carried over from the old shell: the welcome panel and lesson studio ── */
+.wc-panel.spa-scope { background: var(--sp-paper); border: 1px solid var(--sp-panel-line); border-radius: var(--sp-radius-lg); box-shadow: 0 28px 90px rgba(7, 22, 48, 0.24); }
+.wc-panel .wc-kicker { color: var(--sp-ember); font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; }
+.wc-panel .wc-title { max-width: 13ch; color: var(--sp-ink); font-size: clamp(30px, 4vw, 43px); line-height: 1; }
+.wc-panel .wc-lede { color: var(--sp-body); }
+.wc-panel .wc-roles { gap: 0; border-top: 1px solid var(--sp-ink); }
+.wc-panel .wc-role { min-height: 76px; padding: 14px 8px; border: 0; border-bottom: 1px solid var(--sp-line); border-radius: 0; background: transparent; }
+.wc-panel .wc-role:hover { background: var(--sp-bone); }
+.wc-panel .wc-role svg { color: var(--sp-flame-deep); }
+.wc-panel .wc-role b { color: var(--sp-ink); }
+.wc-panel .wc-role span { color: var(--sp-body); }
+.wc-panel .wc-icon { background: var(--sp-bone); color: var(--sp-flame-deep); border-radius: 50%; }
+.wc-panel .wc-dots span.on { background: var(--sp-flame-deep); }
+
+html .spa.spa.spa-desk .studio { --studio-ink: var(--sp-ink); --studio-moss: var(--sp-blue); --studio-mint: rgba(36, 87, 206, 0.1); --studio-cream: var(--sp-shell); }
+html .spa.spa.spa-desk .studio-hero { min-height: 0; padding: var(--sp-4) 0 var(--sp-5); border-radius: 0; border-top: 1px solid var(--sp-ink); border-bottom: 1px solid var(--sp-rule); background: transparent; color: var(--sp-ink); }
+html .spa.spa.spa-desk .studio-hero::after { display: none; }
+html .spa.spa.spa-desk .studio-hero h1 { color: var(--sp-ink) !important; font-size: clamp(36px, 4.5vw, 56px); }
+html .spa.spa.spa-desk .studio-hero h1 em { color: var(--sp-blue) !important; }
+html .spa.spa.spa-desk .studio-hero .studio-kicker { color: var(--sp-ember); opacity: 1; }
+html .spa.spa.spa-desk .studio-hero > div > p:last-child { color: var(--sp-body); }
+html .spa.spa.spa-desk .studio-hero .studio-route { border-color: var(--sp-rule); color: var(--sp-body); }
+html .spa.spa.spa-desk .studio-hero .studio-route span { border-color: var(--sp-rule); color: var(--sp-body); }
+html .spa.spa.spa-desk .studio-hero .studio-route b { color: var(--sp-ember); }
+html .spa.spa.spa-desk .material-title > a:hover { background: var(--sp-blue-deep); }
+html .spa.spa.spa-desk .ib-head h1 { color: var(--sp-night-text); }
