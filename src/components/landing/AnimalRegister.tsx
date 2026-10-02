@@ -26,7 +26,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
-import { frameStyle } from "@/lib/landing/frames";
+import { FramedPhoto } from "./FramedPhoto";
 import { cleanPlace } from "@/lib/utils";
 import type { AnimalRegister as Data, RegisterFocus } from "@/lib/landing/story";
 import { RegisterPlate, type RegisterPlateData } from "./RegisterPlate";
@@ -80,8 +80,7 @@ function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
         <b>{c.straypaw_id ?? "On file"}</b>
       </header>
       <div className="rx-card-photo">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photographed by a resident`} style={frameStyle(c.straypaw_id, 0.7)} />
+        <FramedPhoto src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photographed by a resident`} sid={c.straypaw_id} />
       </div>
       <div className="rx-card-body">
         <span className="rx-stamp" aria-hidden><small>On file</small><b>{c.city ?? "India"}</b></span>
@@ -126,8 +125,7 @@ function Tile({ c, feat, dup }: { c: RegisterFocus; feat: boolean; dup: boolean 
       aria-hidden={dup || undefined}
       tabIndex={dup ? -1 : undefined}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={sized(c.cover_photo, 320)} alt="" loading="lazy" style={frameStyle(c.straypaw_id)} />
+      <FramedPhoto src={sized(c.cover_photo, 320)} alt="" sid={c.straypaw_id} lazy />
       <span className="rx-tile-id sys-mono">{c.straypaw_id}</span>
     </Link>
   );
