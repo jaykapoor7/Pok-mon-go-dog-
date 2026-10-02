@@ -88,7 +88,7 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
     <figure className={`lr-placemap is-area ${ready ? "is-ready" : ""}`}>
       <div className="lr-placemap-canvas" ref={el} role="img" aria-label={`A street map of the neighbourhood around ${label}, shaded by how many animals are recorded in each area.`} />
       <figcaption>
-        <span className="lr-placemap-key"><i className="is-self" /> its area <i className="is-some" /> more recorded <i className="is-none" /> none recorded yet</span>
+        <span className="lr-placemap-key"><i className="is-self" /> its area {cells.length > 1 && <><i className="is-some" /> more recorded <i className="is-none" /> none recorded yet</>}</span>
         <small className="lr-placemap-credit">Map © OpenStreetMap contributors · OpenFreeMap</small>
       </figcaption>
     </figure>

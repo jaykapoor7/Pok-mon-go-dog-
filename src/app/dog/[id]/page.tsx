@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const name = dog ? dogLabel(dog) : "Dog record";
   return {
     title: `${name}, StrayPaw`,
-    description: `Recorded sightings, care, follow-ups and documented outcomes for ${name}${dog?.city ? ` in ${dog.city}` : ""}.`,
+    description: `Recorded sightings, care, follow-ups and documented outcomes for ${name}${dog?.city ? ` in ${dog.city}` : ""}. Individual dog record ${id}.`,
     alternates: { canonical: `/dog/${id}` },
     openGraph: { title: "Animal record, StrayPaw", type: "article", url: `/dog/${id}` },
   };

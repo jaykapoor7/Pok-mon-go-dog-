@@ -127,7 +127,7 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
             {reg.status_reviewed_at && <span className="cf-pill">Reviewed {day(reg.status_reviewed_at)}</span>}
             {reg.provenance === "imported_historical_record" && <span className="cf-kick-note">From the organisation&rsquo;s own register</span>}
           </p>
-          <h1 className={cond ? "" : "is-muted"}>{cond ?? "Condition not recorded"}</h1>
+          <h1 className={cond || said ? "" : "is-muted"}>{(!cond || cond === "Other") && said ? said : cond ?? "Condition not recorded"}</h1>
           <p className="cf-place"><MapPin size={16} /> {c.zone || reg.city || "Place not recorded"}{reg.location_precision === "approximate" && <small>placed at the locality, not the spot</small>}</p>
           <p className="cf-line">{sentence}</p>
         </div>
