@@ -1,3 +1,4 @@
+import { cleanPlace } from "@/lib/utils";
 import type { Dog } from "./types";
 
 export type Need = { label: string; urgent: boolean };
@@ -45,5 +46,5 @@ export function latestNote(dog: Dog): string | null {
 export function placeLabel(zone: string | null | undefined): string {
   const z = String(zone ?? "").trim();
   if (!z || /^awaiting|^unknown|^n\/?a$/i.test(z)) return "Location pending";
-  return z;
+  return cleanPlace(z);
 }

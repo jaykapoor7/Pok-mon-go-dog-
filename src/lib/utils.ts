@@ -122,6 +122,10 @@ export function displayReporter(name: string | null | undefined): string | null 
     recorded name stays "Ward 28": a name is never guessed. */
 export function cleanPlace(raw: string | null | undefined): string {
   let s = String(raw ?? "").replace(/\s+/g, " ").trim();
+  /* Imports cut some cells short: "Nava India," or "Arumuga Goundanur (near
+     selvapuram". Trailing separators go, and an open bracket is closed. */
+  s = s.replace(/[\s,;\-–·]+$/, "").replace(/\s+([,)])/g, "$1");
+  if ((s.match(/\(/g) ?? []).length > (s.match(/\)/g) ?? []).length) s += ")";
   if (!s) return "";
   s = s.replace(/\b(?:ward|wd)\.?\s+(?:(?:ward|wd)\.?\s+)+/gi, "Ward ");
   const m = /^(.*?)[\s,\-–·(]*\b(?:ward|wd)\.?\s*(?:no\.?\s*)?(\d+[a-z]?)\b[\s,\-–·)]*(.*)$/i.exec(s);

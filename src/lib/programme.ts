@@ -299,6 +299,7 @@ export async function myProfile(): Promise<Profile> {
   const supa = getSupabase();
   if (!supa) return { signed_in: false };
   try {
+    if (!(await supa.auth.getSession()).data.session) return { signed_in: false };
     const { data, error } = await supa.rpc("my_profile");
     if (error || !data) return { signed_in: false };
     return data as Profile;

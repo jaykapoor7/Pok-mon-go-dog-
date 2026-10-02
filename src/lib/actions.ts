@@ -354,6 +354,8 @@ export async function getMyPartnerRequestStatus(): Promise<string | null> {
 export async function getMyNgo(): Promise<{ id: string; name: string; logo_url: string | null } | null> {
   const supa = getSupabase();
   if (!supa) return null;
+  /* Signed out, there is no org to ask for; the call would only 401. */
+  if (!(await supa.auth.getSession()).data.session) return null;
   const { data: ngoId } = await supa.rpc("my_ngo");
   if (!ngoId) return null;
   const { data } = await supa
@@ -369,6 +371,8 @@ export async function getMyOrg(): Promise<NGO | null> {
   if (isRecordingDemo) return recordingDemoOrg;
   const supa = getSupabase();
   if (!supa) return null;
+  /* Signed out, there is no org to ask for; the call would only 401. */
+  if (!(await supa.auth.getSession()).data.session) return null;
   const { data: ngoId } = await supa.rpc("my_ngo");
   if (!ngoId) return null;
   const { data } = await supa.from("ngos").select("*").eq("id", ngoId).maybeSingle();
@@ -379,6 +383,7 @@ export async function getMyOrg(): Promise<NGO | null> {
 export async function getMyOrgCampaigns(): Promise<Fundraiser[]> {
   const supa = getSupabase();
   if (!supa) return [];
+  if (!(await supa.auth.getSession()).data.session) return [];
   const { data: ngoId } = await supa.rpc("my_ngo");
   if (!ngoId) return [];
   const { data } = await supa
