@@ -1,4 +1,6 @@
 import { importedSpecies } from "@/lib/dog-only-import";
+import { cityAt } from "@/lib/geo/cities";
+import { locationCell } from "@/lib/location-cell";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -14,6 +16,7 @@ type Normalized = {
   sex?: string;
   colour?: string;
   location?: string;
+  city?: string;
   condition?: string;
   status?: string;
   caseDetail?: string;
@@ -35,6 +38,7 @@ const FIELDS: Record<string, RegExp> = {
   sex: /^(sex|gender)$/i,
   colour: /colou?r|markings?|identifier/i,
   location: /location|locality|area|ward|zone|place/i,
+  city: /^(city|town|municipality)$/i,
   condition: /injury|condition|type|diagnosis/i,
   status: /^status$/i,
   caseDetail: /case detail|description|details?$/i,
@@ -79,6 +83,12 @@ function normalize(row: Record<string, unknown>, mapping: Mapping): Normalized {
   };
   const condition = field(row, mapping, "condition");
   const detail = field(row, mapping, "caseDetail");
+  const latitude = coordinate("latitude", 90), longitude = coordinate("longitude", 180);
+  if ((latitude === undefined) !== (longitude === undefined)) throw new Error("Provide latitude and longitude together, or leave both blank.");
+  for (const [key, label] of [["date", "Report date"], ["reviewDate", "Review date"]]) {
+    const value = field(row, mapping, key);
+    if (value && !dateValue(value)) throw new Error(`${label} is invalid. Correct it before importing.`);
+  }
   return {
     name: field(row, mapping, "name") || undefined,
     animalCode: field(row, mapping, "animalCode") || undefined,
@@ -86,6 +96,7 @@ function normalize(row: Record<string, unknown>, mapping: Mapping): Normalized {
     sex: field(row, mapping, "sex") || undefined,
     colour: field(row, mapping, "colour") || undefined,
     location: field(row, mapping, "location") || undefined,
+    city: field(row, mapping, "city") || (latitude !== undefined && longitude !== undefined ? cityAt(latitude, longitude) ?? undefined : undefined),
     condition: condition || undefined,
     status: field(row, mapping, "status") || undefined,
     caseDetail: detail || undefined,
@@ -93,17 +104,9 @@ function normalize(row: Record<string, unknown>, mapping: Mapping): Normalized {
     reviewDate: field(row, mapping, "reviewDate") || undefined,
     detailedStatus: field(row, mapping, "detailedStatus") || undefined,
     programme: field(row, mapping, "programme") || undefined,
-    latitude: coordinate("latitude", 90),
-    longitude: coordinate("longitude", 180),
+    latitude,
+    longitude,
   };
-}
-
-function usableCoordinates(record: Normalized) {
-  return Number.isFinite(record.latitude) && Number.isFinite(record.longitude) && record.latitude !== 0 && record.longitude !== 0 && Math.abs(record.latitude!) <= 90 && Math.abs(record.longitude!) <= 180;
-}
-
-function hasDefensibleIdentity(record: Normalized) {
-  return Boolean(record.animalCode || (record.name && record.location && (record.sex || record.colour)));
 }
 
 function parseSheet(sheet: XLSX.WorkSheet, sheetName: string): ParsedSheet {
@@ -205,11 +208,16 @@ export async function POST(request: Request) {
         const codes = sample.map((row) => row.normalized.animalCode).filter(Boolean) as string[];
         const names = sample.map((row) => row.normalized.name).filter(Boolean) as string[];
         if (codes.length || names.length) {
-          const { data: existing } = await actor.admin
+          const literal = (v: string) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/[%_]/g, "\\$&")}"`;
+          const filters = [...new Set(codes)].map(v => `code.ilike.${literal(v)}`).concat([...new Set(names)].map(v => `name.ilike.${literal(v)}`));
+          const { data: existing, error: matchError } = await actor.admin
             .from("dogs")
             .select("id, name, code, zone, color, species")
             .eq("ngo_id", actor.ngoId)
-            .limit(2500);
+            .eq("species", "dog")
+            .or(filters.join(","))
+            .limit(120);
+          if (matchError) throw new Error("Identity suggestions could not be loaded. Retry the preview.");
           matches = Object.fromEntries(sample.map((row) => {
             const candidate = (existing ?? []).flatMap((dog: any) => {
               const reasons: string[] = [];
@@ -238,6 +246,11 @@ export async function POST(request: Request) {
     const actor = await identity(accessToken);
     if (!actor) return NextResponse.json({ error: "Sign in with an organisation account to import records." }, { status: 401 });
     const decisions = JSON.parse(text(body.get("decisions")) || "{}") as Record<string, { decision: "new" | "merge" | "review" | "skip"; matchedDogId?: string }>;
+    for (const row of parsed.rows) {
+      const choice = decisions[String(row.sourceRowNumber)];
+      if (choice && !["new", "merge", "review", "skip"].includes(choice.decision)) throw new Error("Choose a valid identity decision for each row.");
+      if (choice?.decision === "new" && !normalize(row.raw, mapping).city) throw new Error("Map a City column, or provide coordinates in a known city, before creating new dogs.");
+    }
 
     const sourceKind = file.name.split(".").pop()?.toLowerCase() ?? "xlsx";
     const batchPayload = {
@@ -273,91 +286,38 @@ export async function POST(request: Request) {
         matched_dog_id: choice.matchedDogId ?? null,
       };
       if (choice.decision === "review" || choice.decision === "skip") {
+        const { error: reviewError } = await actor.admin.from("import_rows").insert(importRow);
+        if (reviewError) throw new Error(`Row ${row.sourceRowNumber} could not be saved. Batch ${batch.id} remains available for review.`);
         if (choice.decision === "review") review++;
-        await actor.admin.from("import_rows").insert(importRow);
         continue;
       }
       try {
-        let dogId = choice.matchedDogId ?? null;
-        if (choice.decision === "new") {
-          if (!hasDefensibleIdentity(normalized)) throw new Error("This row needs identity review before a permanent animal profile can be created.");
-          const { data: dog, error: dogError } = await actor.admin.from("dogs").insert({
-            ngo_id: actor.ngoId,
-            name: normalized.name ?? null,
-            code: normalized.animalCode ?? null,
-            species: normalized.species ?? "dog",
-            zone: normalized.location ?? "",
-            lat: usableCoordinates(normalized) ? normalized.latitude : 0,
-            lng: usableCoordinates(normalized) ? normalized.longitude : 0,
-            status: "seen",
-            color: normalized.colour ?? "Unknown",
-            created_by_id: actor.userId,
-            created_by_name: actor.userLabel,
-            sex: normalized.sex ?? null,
-            intake_notes: null,
-            provenance: "imported_historical_record",
-            source_metadata: { import_batch_id: batch.id, source_row: row.sourceRowNumber, source_sheet: parsed.sheetName },
-          }).select("id").single();
-          if (dogError || !dog) throw new Error(dogError?.message ?? "Animal could not be created.");
-          dogId = dog.id;
-        }
-        if (!dogId) throw new Error("Choose an existing animal for this merge.");
-        const title = [normalized.condition || "Imported care record", normalized.location].filter(Boolean).join(" · ");
-        const { data: caseRecord, error: caseError } = await actor.admin.from("cases").insert({
-          dog_id: dogId,
-          ngo_id: actor.ngoId,
-          title,
-          description: [normalized.caseDetail, normalized.detailedStatus].filter(Boolean).join("\n") || null,
-          zone: normalized.location ?? null,
-          category: caseCategory(normalized.condition ?? ""),
-          status: /closed|completed|released|recovered/i.test(normalized.status ?? "") ? "closed" : "in_progress",
-          condition_text: normalized.condition ?? null,
-          follow_up_at: dateValue(normalized.reviewDate)?.slice(0, 10) ?? null,
-          provenance: "imported_historical_record",
-          verification_state: "needs_review",
-          created_at: dateValue(normalized.date) ?? new Date().toISOString(),
-          last_activity_at: new Date().toISOString(),
-        }).select("id").single();
-        if (caseError || !caseRecord) throw new Error(caseError?.message ?? "Case could not be created.");
-        if (normalized.reviewDate) {
-          await actor.admin.from("animal_followups").insert({
-            ngo_id: actor.ngoId,
-            dog_id: dogId,
-            case_id: caseRecord.id,
-            due_at: dateValue(normalized.reviewDate) ?? new Date().toISOString(),
-            kind: "imported review",
-            note: "Imported from historical workbook. Confirm date before acting.",
-            created_by: actor.userId,
-          });
-        }
-        await actor.admin.from("animal_timeline_events").insert({
-          ngo_id: actor.ngoId,
-          dog_id: dogId,
-          case_id: caseRecord.id,
-          event_type: "imported_record",
-          title: "Historical record imported",
-          details: [normalized.condition, normalized.detailedStatus].filter(Boolean).join(" · ") || null,
-          occurred_at: dateValue(normalized.date) ?? new Date().toISOString(),
-          actor_id: actor.userId,
-          provenance: "imported_historical_record",
-          source_ref: { import_batch_id: batch.id, source_row: row.sourceRowNumber, source_sheet: parsed.sheetName },
+        const { error: rowError } = await actor.admin.rpc("import_partner_row", {
+          p_ngo_id: actor.ngoId, p_actor_id: actor.userId, p_actor_name: actor.userLabel,
+          p_batch_id: batch.id, p_source_row_number: row.sourceRowNumber,
+          p_raw: row.raw, p_decision: choice.decision, p_matched_dog_id: choice.matchedDogId ?? null,
+          p_record: { ...normalized, source_sheet: parsed.sheetName,
+            h3_r8: await locationCell(normalized.latitude, normalized.longitude),
+            recorded_at: dateValue(normalized.date), review_at: dateValue(normalized.reviewDate),
+            category: caseCategory(normalized.condition ?? ""),
+          },
         });
-        importRow.imported_dog_id = dogId;
-        importRow.imported_case_id = caseRecord.id;
-        await actor.admin.from("import_rows").insert(importRow);
+        if (rowError) throw new Error(rowError.message);
         imported++;
       } catch (error) {
         failed++;
         importRow.error = error instanceof Error ? error.message : "Import failed.";
-        await actor.admin.from("import_rows").insert(importRow);
+        const { error: failureError } = await actor.admin.from("import_rows").insert(importRow);
+        if (failureError) throw new Error(`Row ${row.sourceRowNumber} failed and its error could not be saved. Batch ${batch.id} needs review.`);
       }
     }
-    await actor.admin.from("import_batches").update({
+    const { error: completionError } = await actor.admin.from("import_batches").update({
       status: failed ? "failed" : review ? "reviewing" : "imported",
       rows_imported: imported,
       rows_needing_review: review,
       completed_at: new Date().toISOString(),
     }).eq("id", batch.id);
+    if (completionError) throw new Error(`Rows were saved, but batch ${batch.id} could not be marked complete. Review it before retrying.`);
     return NextResponse.json({ batchId: batch.id, imported, review, failed, sourceStored: !uploaded.error });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Import could not be processed." }, { status: 400 });

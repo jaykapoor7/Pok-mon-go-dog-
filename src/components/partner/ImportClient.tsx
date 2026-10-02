@@ -13,7 +13,7 @@ type Preview = { sheetNames: string[]; sheetName: string; sheetProfiles: SheetPr
 type Decision = "new" | "merge" | "review" | "skip";
 
 const FIELDS: Array<[string, string]> = [
-  ["animalCode", "Legacy animal ID"], ["name", "Animal name"], ["species", "Species"], ["sex", "Sex"], ["colour", "Colour / identifiers"], ["location", "Location"], ["latitude", "Latitude (for map)"], ["longitude", "Longitude (for map)"], ["condition", "Condition"], ["date", "Report date"], ["reviewDate", "Review / follow-up"], ["detailedStatus", "Treatment / outcome notes"], ["programme", "Programme / drive"],
+  ["animalCode", "Legacy animal ID"], ["name", "Animal name"], ["species", "Species"], ["sex", "Sex"], ["colour", "Colour / identifiers"], ["city", "City"], ["location", "Location"], ["latitude", "Latitude (for map)"], ["longitude", "Longitude (for map)"], ["condition", "Condition"], ["date", "Report date"], ["reviewDate", "Review / follow-up"], ["detailedStatus", "Treatment / outcome notes"], ["programme", "Programme / drive"],
 ];
 
 async function accessToken() {

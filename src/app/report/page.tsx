@@ -73,7 +73,7 @@ export default function ReportPage() {
   const [noPhoto, setNoPhoto] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [zone, setZone] = useState<string | null>(null);
-  const [where, setWhere] = useState<"finding" | "found" | "photo" | "denied" | "abroad" | "idle">("idle");
+  const [where, setWhere] = useState<"finding" | "found" | "photo" | "map" | "link" | "denied" | "abroad" | "idle">("idle");
   const [editPlace, setEditPlace] = useState(false);
   const [landmark, setLandmark] = useState("");
   const [condition, setCondition] = useState<Condition | null>(null);
@@ -104,7 +104,7 @@ export default function ReportPage() {
     go(reviewing ? 4 : ((from + 1) as Step));
   }, [go, reviewing]);
 
-  const setPlace = useCallback(async (lat: number, lng: number, how: "found" | "photo") => {
+  const setPlace = useCallback(async (lat: number, lng: number, how: "found" | "photo" | "link") => {
     setCoords({ lat, lng }); setWhere(how);
     setZone(await reverseGeocode(lat, lng).catch(() => null));
   }, []);
@@ -127,7 +127,7 @@ export default function ReportPage() {
     const lat = Number(q.get("lat")), lng = Number(q.get("lng"));
     const dog = q.get("dog");
     if (dog && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dog)) setClaimedDogId(dog);
-    if (looksIndian(lat, lng)) setPlace(lat, lng, "found");
+    if (looksIndian(lat, lng)) setPlace(lat, lng, "link");
     else locate();
   }, [locate, setPlace]);
   useEffect(() => { if (user?.email) setEmail((cur) => cur || user.email!); }, [user?.email]);
@@ -257,7 +257,7 @@ export default function ReportPage() {
                   <>
                     <div className="rq-place">
                       <MapPin size={22} aria-hidden />
-                      <span><b>{placeLine}</b><small>{where === "photo" ? "From your photo" : "From your phone"}</small></span>
+                      <span><b>{placeLine}</b><small>{where === "photo" ? "From your photo" : where === "found" ? "From your phone" : where === "link" ? "From the record or map" : "Selected on the map"}</small></span>
                     </div>
                     <label className="rq-landmark">
                       <span>A landmark people would know <em>optional</em></span>
@@ -273,7 +273,7 @@ export default function ReportPage() {
                     {where === "abroad" && <p className="rq-warn">Your phone places you outside India. StrayPaw records India&apos;s street animals: set where the animal is on the map.</p>}
                     {where === "denied" && <p className="rq-warn">Location is off. Allow it, or set the place on the map.</p>}
                     {where !== "found" && where !== "photo" && <button type="button" className="rq-chip" onClick={locate}><Crosshair size={15} /> Use where I am</button>}
-                    <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); setWhere("found"); }} />
+                    <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); setWhere("map"); }} />
                     <button type="button" className="rq-next" disabled={!coords} onClick={() => { setEditPlace(false); answered(1); }}><Check size={17} /> This is the place</button>
                   </>
                 )}
