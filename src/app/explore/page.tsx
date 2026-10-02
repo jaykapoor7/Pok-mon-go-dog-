@@ -81,7 +81,7 @@ export default async function ExplorePage() {
                       <Link href={`/map?city=${encodeURIComponent(x.city)}`}>
                         <span className="ex-city"><b>{x.city}</b><small>{x.state}</small></span>
                         <span className="ex-bar" aria-hidden><i style={{ width: `${Math.max(1.5, (x.animals / max) * 100)}%` }} /></span>
-                        <span className="ex-n"><strong>{fmt(x.animals)}</strong>{x.cases > 0 ? `${fmt(x.cases)} requests` : "no requests yet"}</span>
+                        <span className="ex-n"><strong>{fmt(x.animals)}</strong>{x.cases > 0 ? `${fmt(x.cases)} request${x.cases === 1 ? "" : "s"}` : "no requests yet"}</span>
                       </Link>
                     </li>
                   ))}

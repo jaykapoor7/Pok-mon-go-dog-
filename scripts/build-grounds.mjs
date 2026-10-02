@@ -154,12 +154,10 @@ function labels(city, fr, ink, n = 6) {
   for (const x of z) { const [px, py] = fr.p(x.lat, x.lng); if (px < 80 || px > fr.W - 200 || py < 40 || py > fr.H - 40) continue; if (placed.every((o) => Math.hypot(o.px - px, o.py - py) > 220)) placed.push({ ...x, px, py }); if (placed.length >= n) break; }
   return placed.map((x) => `<text x="${f1(x.px + 10)}" y="${f1(x.py - 8)}" fill="${ink}" fill-opacity="0.24" font-family="DM Mono, ui-monospace, Menlo, monospace" font-size="11" letter-spacing="1.4">${x.name.toUpperCase().replace(/&/g, "&amp;").replace(/</g, "")}</text><circle cx="${f1(x.px)}" cy="${f1(x.py)}" r="2" fill="${ink}" fill-opacity="0.28"/>`).join("");
 }
-function ticks(fr, ink) {
-  const step = Math.max(0.01, Math.round(((fr.n - fr.s) / 5) * 100) / 100);
-  let out = "";
-  for (let lat = Math.ceil(fr.s / step) * step; lat < fr.n; lat += step) { const [, y] = fr.p(lat, fr.w); out += `<line x1="0" x2="14" y1="${f1(y)}" y2="${f1(y)}" stroke="${ink}" stroke-opacity="0.35"/><text x="20" y="${f1(y + 4)}" fill="${ink}" fill-opacity="0.34" font-family="DM Mono, ui-monospace, Menlo, monospace" font-size="10">${lat.toFixed(2)}°N</text>`; }
-  for (let lng = Math.ceil(fr.w / step) * step; lng < fr.e; lng += step) { const [x] = fr.p(fr.s, lng); out += `<line y1="${fr.H}" y2="${fr.H - 14}" x1="${f1(x)}" x2="${f1(x)}" stroke="${ink}" stroke-opacity="0.35"/><text x="${f1(x + 4)}" y="${fr.H - 18}" fill="${ink}" fill-opacity="0.34" font-family="DM Mono, ui-monospace, Menlo, monospace" font-size="10">${lng.toFixed(2)}°E</text>`; }
-  return out;
+/* No coordinate ticks: masked into a corner of a page they read as a stray
+   label ("85.36°E") rather than a map margin. */
+function ticks() {
+  return "";
 }
 
 const REDUCE = "@media (prefers-reduced-motion: reduce){*{animation:none!important}}";
