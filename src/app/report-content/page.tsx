@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Flag, Check } from "lucide-react";
+import { Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 const REASONS = [
   "Not a street dog / off-topic",
@@ -48,103 +49,39 @@ export default function ReportContentPage() {
 
   if (sent) {
     return (
-      <div className="mx-auto max-w-md px-4 pt-28 text-center">
-        <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded bg-status-vaccinated/15 text-status-vaccinated">
-          <Check className="h-8 w-8" />
-        </span>
-        <h1 className="font-display text-2xl">Report received</h1>
-        <p className="mt-2 text-sm text-bark-500">
-          Thank you. Our team will review this and take action if it breaks our
-          Community Guidelines.
-        </p>
-        <Link href="/map" className="btn-primary mt-5 px-6 py-3">
-          Back to the map
-        </Link>
+      <div className="dk-form-page">
+        <DeskHeader ground={false} kicker="Community · moderation" title="Report received" lede="Thank you. Our team will review it and act if it breaks the Community Guidelines." actions={<Link href="/map" className="dk-btn is-tint">Back to the map</Link>} />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 sm:px-6">
-      <h1 className="font-display text-3xl">Report content</h1>
-      <p className="mt-1 text-sm text-bark-500">
-        Flag a sighting or photo that breaks our guidelines. Reports are
-        confidential.
-      </p>
-
-      <div className="mt-6 space-y-5">
-        <div>
-          <label className="mb-2 block text-sm font-semibold">Reason</label>
-          <div className="flex flex-wrap gap-2">
+    <div className="dk-form-page">
+      <DeskHeader ground={false} kicker="Community · moderation" title="Report content" lede="Flag a sighting or photo that breaks our guidelines. Reports are confidential." />
+      <div className="dk-sheet rc-sheet">
+        <fieldset className="rc-field">
+          <legend>Reason</legend>
+          <div className="rc-reasons">
             {REASONS.map((r) => (
-              <button
-                key={r}
-                onClick={() => setReason(r)}
-                className={cn(
-                  "chip border transition-colors",
-                  reason === r
-                    ? "border-paw-300 bg-paw-500 text-white"
-                    : "border-bark-200 bg-white text-bark-600 hover:border-paw-300"
-                )}
-              >
-                {r}
-              </button>
+              <button key={r} type="button" aria-pressed={reason === r} onClick={() => setReason(r)} className={cn("rc-reason", reason === r && "is-on")}>{r}</button>
             ))}
           </div>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-semibold">
-            Link to the content{" "}
-            <span className="font-normal text-bark-400">(optional)</span>
-          </label>
-          <input
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            placeholder="Paste the dog profile or sighting link"
-            className="w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-semibold">Details</label>
-          <textarea
-            value={details}
-            onChange={(e) => setDetails(e.target.value)}
-            rows={4}
-            placeholder="Tell us what's wrong…"
-            className="w-full resize-none rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-semibold">
-            Your email <span className="font-normal text-bark-400">(optional)</span>
-          </label>
-          <input
-            type="email"
-            inputMode="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@email.com"
-            className="w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100"
-          />
-          <p className="mt-1.5 text-xs text-bark-400">Leave your email and we&apos;ll let you know once your report has been reviewed.</p>
-        </div>
-
-        {error && (
-          <p className="rounded bg-status-injured/10 px-3 py-2 text-center text-sm font-medium text-status-injured">
-            {error}
-          </p>
-        )}
-
-        <button
-          onClick={submit}
-          disabled={!reason || busy}
-          className="btn-primary w-full py-4 text-base"
-        >
-          <Flag className="h-5 w-5" /> {busy ? "Submitting…" : "Submit report"}
-        </button>
+        </fieldset>
+        <label className="rc-field">
+          <span>Link to the content <small>(optional)</small></span>
+          <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="Paste the dog profile or sighting link" />
+        </label>
+        <label className="rc-field">
+          <span>Details</span>
+          <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={4} placeholder="Tell us what's wrong…" />
+        </label>
+        <label className="rc-field">
+          <span>Your email <small>(optional)</small></span>
+          <input type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" />
+          <small className="rc-hint">Leave your email and we&apos;ll let you know once your report has been reviewed.</small>
+        </label>
+        {error && <p className="rc-error" role="alert">{error}</p>}
+        <button type="button" onClick={submit} disabled={!reason || busy} className="dk-btn is-flame rc-submit"><Flag size={16} aria-hidden /> {busy ? "Sending…" : "Submit report"}</button>
       </div>
     </div>
   );

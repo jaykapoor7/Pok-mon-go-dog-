@@ -8,9 +8,9 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
      button. It had no way back at all — and a person who opened it
      by mistake, or who does not have a code yet, was stuck. */
   return (
-    <div className="sp mx-auto w-full max-w-2xl px-5 py-8 sm:px-8">
+    <main className="sp join-page">
       <BackLink fallback="/" />
       <AccessCodeRequest role={role === "feeder" ? "feeder" : "individual"} />
-    </div>
+    </main>
   );
 }

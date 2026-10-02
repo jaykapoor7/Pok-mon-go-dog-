@@ -207,15 +207,15 @@ html .spa.spa.spa-desk .spa-back button:active { transform: var(--ctl-press); }
 .dk-sheet { border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 12px 30px rgba(11, 30, 61, 0.05); }
 
 /* ── App-wide: controls and empty states, on every page at once ─────── */
-html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select, textarea) {
+html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select, textarea):not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) {
   border-radius: var(--ctl-r-row); border: 1px solid var(--sp-line); background-color: var(--sp-paper); color: var(--sp-ink);
   font-size: 14px; transition: border-color var(--sp-fast) var(--sp-ease-io), box-shadow var(--sp-fast) var(--sp-ease-io);
 }
-html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select) { min-height: 42px; }
+html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select):not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) { min-height: 42px; }
 html .spa.spa.spa-desk .spa-main :is(input, select, textarea)::placeholder { color: #8a95a3; }
-html .spa.spa.spa-desk .spa-main :is(input, select, textarea):focus { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+html .spa.spa.spa-desk .spa-main :is(input, select, textarea):focus:not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
 /* A select reads as a control, with its own caret, not the browser's grey box. */
-html .spa.spa.spa-desk .spa-main select {
+html .spa.spa.spa-desk .spa-main select:not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) {
   appearance: none; -webkit-appearance: none; padding-right: 34px; cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%232457ce' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 12px center; background-size: 12px 8px;
@@ -340,7 +340,8 @@ html .spa.spa.spa-desk .spa-main .imp-drop > svg { color: var(--sp-blue); }
 .dk-form-page.is-wide > :not(.dh) { max-width: 820px; }
 
 /* The place search: one pill, not a box inside a box. */
-html .spa.spa.spa-desk .spa-main .ps-field input { min-height: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+html .spa.spa.spa-desk .spa-main .ps-field input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]),
+html .spa.spa.spa-desk .spa-main .ps-field input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]):focus { min-height: 0; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 html .spa.spa.spa-desk .spa-main .ps-field:focus-within { border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
 
 @media (pointer: coarse) { .dh-figs dd a { min-height: var(--ctl-h); align-items: center; } }
@@ -458,3 +459,20 @@ html .spa.spa.spa-desk .pm-row .lang-menu { top: auto; bottom: calc(100% + 8px);
 @media (pointer: coarse) { .pm-chip, .pm-feedback button { height: var(--ctl-h); } }
 @media (min-width: 901px) { .pm { display: none; } }
 @media (max-width: 480px) { html .spa.spa.spa-desk .spa-top .spa-brand-copy { display: none; } }
+
+/* Report content: one sheet, the reason as a row of choices. */
+.rc-sheet { display: grid; gap: var(--sp-5); padding: clamp(18px, 3vw, 28px); }
+.rc-field { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.rc-field > span, .rc-field > legend { padding: 0; font-size: 13px; font-weight: 650; color: var(--sp-ink); }
+.rc-field small { font-weight: 400; color: var(--sp-muted); }
+.rc-field textarea { resize: vertical; min-height: 110px; padding: 12px 14px; }
+.rc-field input { padding: 0 14px; }
+.rc-hint { font-size: 12px; line-height: 1.45; }
+.rc-reasons { display: flex; flex-wrap: wrap; gap: 8px; }
+.rc-reason { min-height: 40px; padding: 0 14px; border: 1px solid var(--sp-line); border-radius: 999px; background: var(--sp-paper); color: var(--sp-ink); font: inherit; font-size: 13.5px; cursor: pointer; transition: background var(--sp-fast) var(--sp-ease-io), border-color var(--sp-fast) var(--sp-ease-io); }
+.rc-reason:hover { border-color: var(--sp-blue); }
+.rc-reason.is-on { background: var(--sp-ink); border-color: var(--sp-ink); color: var(--sp-paper); }
+.rc-error { margin: 0; padding: 10px 12px; border-radius: var(--ctl-r-row); background: rgba(240, 91, 64, 0.1); color: var(--sp-flame-deep); font-size: 13.5px; }
+.rc-submit { justify-self: start; }
+.rc-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 560px) { .rc-submit { justify-self: stretch; justify-content: center; } }

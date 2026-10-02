@@ -409,7 +409,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
         {plate && place && <figure className="ib-plate">
           <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Loaded requests by cell in ${cityName}`}
             onCell={(key) => { const i = ds.cells.indexOf(key); if (i >= 0 && ds.cellLocality[i] >= 0) setPlace({ city: place.city, locality: ds.cellLocality[i] }); }} />
-          <figcaption className="ib-plate-note">Brighter cells have more requests. Choose one to read its locality.</figcaption>
+          <figcaption className="ib-plate-note">Deeper blue cells have more requests. Choose one to read its locality.</figcaption>
         </figure>}
         <div className="ib-bar">
           <PlaceSearch options={options} onPick={pickPlace} label="Choose a place" />

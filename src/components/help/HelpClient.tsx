@@ -6,6 +6,7 @@ import { HeartHandshake, MapPin, HandHelping, Utensils, ArrowRight } from "lucid
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { HelpMap } from "@/components/help/HelpMap";
 import "./help.css";
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { HelperForm, type HelperTarget } from "@/components/help/HelperForm";
 import { needsFor, latestNote, placeLabel } from "@/lib/help-needs";
 import { distanceMeters, dogLabel } from "@/lib/utils";
@@ -57,23 +58,21 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
 
   return (
     <main className="hp">
-      <header className="hp-head">
-        <div>
-          <p className="sys-eyebrow">Help</p>
-          <h1>{needy.length ? <>{needy.length} animals need someone{coords ? " near you" : ""}.</> : "Nobody is flagged as needing help right now."}</h1>
-          <p className="hp-lede">
-            Each was flagged by a resident or a field team: injured, hungry, or in trouble. Pick one you can reach — feeding it, getting it to a vet, or just
-            checking on it and saying what you saw all count. {coords ? "Nearest first." : null}
-          </p>
-          <div className="hp-acts">
-            {!coords && <button type="button" className="sys-btn" onClick={ask}><MapPin size={16} /> Show the nearest first</button>}
-            <button type="button" className="sys-btn is-quiet" onClick={helpGeneral}><HandHelping size={16} /> Be on call as a volunteer</button>
-            <Link href="/feeding" className="hp-link"><Utensils size={15} /> Feeding points <ArrowRight size={14} /></Link>
-            <Link href="/for-ngos" className="hp-link"><HeartHandshake size={15} /> For organisations <ArrowRight size={14} /></Link>
-          </div>
-        </div>
-        {needy.length > 0 && <HelpMap points={needy.map((d) => ({ id: d.id, lng: d.lng, lat: d.lat }))} me={coords} />}
-      </header>
+      <DeskHeader
+        kicker={coords ? "Help · nearest first" : "Help"}
+        title={needy.length ? <>{needy.length} animals need someone{coords ? " near you" : ""}.</> : "Nobody is flagged as needing help right now."}
+        lede="Each was flagged by a resident or a field team: injured, hungry, or in trouble. Pick one you can reach. Feeding it, getting it to a vet, or checking on it and saying what you saw all count."
+        actions={<>
+          {!coords && <button type="button" className="dk-btn is-tint" onClick={ask}><MapPin size={15} aria-hidden /> Show the nearest first</button>}
+          <button type="button" className="dk-btn is-plain" onClick={helpGeneral}><HandHelping size={15} aria-hidden /> Be on call as a volunteer</button>
+        </>}
+      >
+        <p className="hp-links">
+          <Link href="/feeding" className="hp-link"><Utensils size={15} aria-hidden /> Feeding points <ArrowRight size={14} aria-hidden /></Link>
+          <Link href="/for-ngos" className="hp-link"><HeartHandshake size={15} aria-hidden /> For organisations <ArrowRight size={14} aria-hidden /></Link>
+        </p>
+      </DeskHeader>
+      {needy.length > 0 && <div className="hp-mapwrap"><HelpMap points={needy.map((d) => ({ id: d.id, lng: d.lng, lat: d.lat }))} me={coords} /></div>}
 
       {needy.length > 0 && (
         <ol className="hp-list">

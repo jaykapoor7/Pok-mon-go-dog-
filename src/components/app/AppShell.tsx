@@ -178,10 +178,10 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
     }
   }
 
-  const isReporting = pathname.startsWith("/report");
+  const isReporting = pathname === "/report" || pathname.startsWith("/report/");
   const { nav: primaryNav, phone: phoneNav, home, label: spaceLabel } = SPACES[space];
   const destinations = new Set(primaryNav.map((n) => n.href));
-  const showBack = !destinations.has(pathname) && !pathname.startsWith("/report") && pathname !== "/";
+  const showBack = !destinations.has(pathname) && !isReporting && pathname !== "/";
 
   /* Exactly one destination is current, decided once rather than asked of
      each item in turn. Asked separately, three rules could all say yes:
