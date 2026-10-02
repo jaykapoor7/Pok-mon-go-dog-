@@ -185,7 +185,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
             <dl className="lr-tag-rows">
               <div><dt>On the register</dt><dd className="sys-mono">{day(r.firstSeen)}</dd></div>
               <div><dt>Last seen</dt><dd className="sys-mono">{r.lastSeen ? day(r.lastSeen) : "not recorded"}</dd></div>
-              <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
+              <div><dt>Recorded by</dt><dd>{r.keeper}</dd></div>
             </dl>
             <ul className="lr-checks" aria-label="What is known">
               <Check state={r.known.ster} label="Sterilised" note={r.known.ster === "unknown" ? "not recorded" : r.known.sterAt ? day(r.known.sterAt) : r.known.ster === "no" ? "recorded as not" : "on the record"} />
@@ -230,7 +230,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
             <p>
               {r.straypawId && <><span className="sys-mono">{r.straypawId}</span> · </>}
               {r.sourceCode && <>source ID <span className="sys-mono">{r.sourceCode}</span> · </>}
-              {r.keeper}
+              recorded by {r.keeper}
             </p>
             <p>Recorded animals, not population. Positions are shown to their cell, never finer.</p>
           </footer>

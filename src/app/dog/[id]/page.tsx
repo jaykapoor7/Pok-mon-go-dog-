@@ -1,3 +1,4 @@
+import { AppShell } from "@/components/app/AppShell";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { cache } from "react";
@@ -90,7 +91,7 @@ async function DogProfileContent({ id }: { id: string }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
-      <main className="lr-public-ground"><LivingRecord r={record} scope="public" /></main>
+      <AppShell><LivingRecord r={record} scope="public" /></AppShell>
     </>
   );
 }

@@ -37,3 +37,8 @@
 .hp-map { position: relative; }
 .hp-map > .hp-map-canvas, .hp-map > .hp-map-canvas.maplibregl-map { position: absolute; inset: 0; }
 .hp-map-credit { position: absolute; right: 10px; bottom: 6px; margin: 0; font-size: 10px; color: rgba(239, 231, 218, 0.5); z-index: 2; }
+/* Inside the night plate. */
+.hp-links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 4px 0 0; }
+.dh .hp-link { color: var(--sp-sky); }
+.hp-mapwrap .hp-map { min-height: 320px; border-radius: var(--sp-radius-lg); }
+@media (max-width: 720px) { .hp-mapwrap .hp-map { min-height: 240px; } }
