@@ -342,3 +342,10 @@ html .spa.spa.spa-desk .spa-main .imp-drop > svg { color: var(--sp-blue); }
 /* The place search: one pill, not a box inside a box. */
 html .spa.spa.spa-desk .spa-main .ps-field input { min-height: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 html .spa.spa.spa-desk .spa-main .ps-field:focus-within { border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+
+@media (pointer: coarse) { .dh-figs dd a { min-height: var(--ctl-h); align-items: center; } }
+@media (max-width: 720px) {
+  .dh .st-cities { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * clamp(18px, 3vw, 34px)); padding-right: clamp(18px, 3vw, 34px); }
+  .dh .st-cities::-webkit-scrollbar { display: none; }
+  .dh .st-cities a { flex: none; }
+}
