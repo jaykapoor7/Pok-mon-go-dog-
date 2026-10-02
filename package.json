@@ -25,6 +25,7 @@
     "test:master-import:staging": "node --import tsx scripts/test-master-import-staging-retry.ts",
     "test:master-import:resume": "node --import tsx scripts/test-master-import-resume.ts",
     "test:case-input-validation": "node --import tsx scripts/test-case-input-validation.ts",
+    "test:bounded-supabase-fetch": "node --import tsx scripts/test-bounded-supabase-fetch.ts",
     "test:public-map-footprint": "node --import tsx scripts/test-public-map-footprint.ts",
     "test:spatial": "node --import tsx scripts/test-spatial.ts",
     "test:record-dates": "node --import tsx scripts/test-record-dates.ts",

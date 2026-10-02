@@ -5,6 +5,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { ExportStudio } from "@/components/partner/ExportStudio";
 import { BoundedSpatialMap } from "@/components/spatial/BoundedSpatialMap";
+import "./brief.css";
 
 /* An organisation's own records, explained: the same report as /insights,
    read from the organisation's register under its own access, with exact
@@ -26,8 +27,8 @@ export function OrgReport() {
     : null;
   return (
     <Suspense fallback={null}>
-      <main className="ib">
-        <header className="ib-head">
+      <div className="ib">
+        <header className="ib-head is-org">
           <p className="ib-kicker">PLACE INSIGHTS</p>
           <h1>{org ? "Your organisation’s map" : "Public map insights"}</h1>
           <p>{notice ?? "Choose a city to inspect bounded, pre-aggregated field activity. Close zoom loads only the animals in view."}</p>
@@ -40,7 +41,7 @@ export function OrgReport() {
             <ExportStudio />
           </section>
         ) : null}
-      </main>
+      </div>
     </Suspense>
   );
 }

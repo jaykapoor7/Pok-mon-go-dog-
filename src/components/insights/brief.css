@@ -132,6 +132,8 @@
 .ib-plate { min-height: 300px; align-content: center; padding: var(--sp-5); border-radius: var(--sp-radius-lg); background: var(--sp-night); }
 .ib-plate-note { color: var(--sp-night-dim); }
 html .spa.spa-editorial .ib-head h1 { color: var(--sp-ink); }
+.ib-head.is-org { min-height: 0; grid-template-columns: 1fr; gap: var(--sp-3); }
+.ib-head.is-org > p:last-child { margin: 0; max-width: 65ch; color: var(--sp-body); font-size: 15px; line-height: 1.55; }
 .ib-head.is-unavailable { min-height: 0; grid-template-columns: 1fr; padding-bottom: var(--sp-5); }
 .ib-head.is-unavailable h1 { max-width: 16ch; font-size: clamp(34px, 4vw, 52px); }
 .ib-head.is-unavailable + .ib-body .ib-state { max-width: 52ch; padding: var(--sp-4) 0; font-size: 15px; }

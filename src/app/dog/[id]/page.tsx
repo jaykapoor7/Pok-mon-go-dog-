@@ -90,7 +90,7 @@ async function DogProfileContent({ id }: { id: string }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <PageView name="animal_viewed" props={{ observations: profile.sightings.length }} />
-      <LivingRecord r={record} scope="public" />
+      <main className="lr-public-ground"><LivingRecord r={record} scope="public" /></main>
     </>
   );
 }

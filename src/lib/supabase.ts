@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createBoundedSupabaseFetch } from "./bounded-supabase-fetch";
 
 const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
@@ -21,20 +22,7 @@ const url = validUrl(rawUrl);
  * five-minute function limit. This applies to every Supabase client made by
  * this module, including the server-role reader, and turns a stalled network
  * request into the existing per-route empty/error states. */
-const SUPABASE_REQUEST_TIMEOUT_MS = 7_000;
-
-async function boundedSupabaseFetch(input: RequestInfo | URL, init?: RequestInit) {
-  const controller = new AbortController();
-  const abortFromCaller = () => controller.abort();
-  init?.signal?.addEventListener("abort", abortFromCaller, { once: true });
-  const timer = setTimeout(() => controller.abort(), SUPABASE_REQUEST_TIMEOUT_MS);
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-    init?.signal?.removeEventListener("abort", abortFromCaller);
-  }
-}
+const boundedSupabaseFetch = createBoundedSupabaseFetch();
 
 /** True when valid Supabase credentials are configured. */
 export const isSupabaseConfigured = Boolean(url && anonKey);

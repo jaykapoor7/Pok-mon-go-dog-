@@ -5,6 +5,7 @@
    what neighbours can add. Unknown is hatched throughout.
    ════════════════════════════════════════════════════════════════════ */
 
+.lr-public-ground { min-height: 100dvh; background: var(--sp-bone); }
 .lr { max-width: 1120px; margin: 0 auto; padding-bottom: 60px; color: var(--sp-ink); }
 .lr em { color: inherit; }
 
@@ -69,7 +70,7 @@
 .lr-check.is-unknown i { border: 1px solid var(--sp-hatch-line); background: var(--sp-hatch); }
 .lr-check.is-unknown b { color: var(--sp-body); font-weight: 500; }
 .lr-check.is-flag i { border-color: var(--sp-flame); background: var(--sp-flame); }
-.lr-check.is-flag b, .lr-check.is-warn span { color: var(--sp-flame-deep); }
+.lr-check.is-flag b, .lr-check.is-warn span { color: var(--sp-ember); }
 .lr-tag-note { margin: 0; font-size: 11px; color: var(--sp-muted); }
 
 /* actions */
