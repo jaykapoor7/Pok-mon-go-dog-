@@ -21,7 +21,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight, Map as MapIcon } from "lucide-react";
 import { HexPlate } from "@/components/system/HexPlate";
 import { ShareBand } from "@/components/system/ShareBand";
@@ -64,17 +64,24 @@ type Answer = { id: string; q: string; a: ReactNode; detail?: ReactNode; evidenc
 
 export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }: { scope: Scope; tail?: ReactNode; notice?: ReactNode; userKey?: string | null }) {
   const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const requestedCity = params.get("city");
   const { ds, ix, loading, error, cities: cityList } = useSpatialDataset(scope, userKey);
   const [place, setPlace] = useState<Place | null>(null);
   const [period, setPeriod] = useState<Period>("all");
   const mine = usePlace();
   const [gate, setGate] = useState<GateState | null>(null);
+  useEffect(() => { setPlace(null); }, [requestedCity, scope, userKey]);
 
   /* ── the place: links and saved places win. A public visitor outside the
      record still gets a real, current sample city instead of a dead-end
      "not reached" screen; they can choose their own place in the bar. ── */
   useEffect(() => {
     if (!ds || place || !mine.ready) return;
+    // A city selection can arrive before its replacement dataset. Wait for it
+    // rather than restoring the old city's name and indices into the URL.
+    if (requestedCity && cityList.some(c => c.city === requestedCity) && !ds.cities.some(c => c.name === requestedCity)) return;
     let city = -1, locality = -1;
     const cell = params.get("cell"), name = params.get("city"), q = params.get("q");
     const ci = cell ? ds.cells.indexOf(cell) : -1;
@@ -96,7 +103,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
     if (city < 0) { setGate((g) => g ?? "ask"); return; }
     setGate(null);
     setPlace({ city, locality });
-  }, [ds, place, params, mine.ready, mine.place, scope]);
+  }, [ds, place, params, requestedCity, cityList, mine.ready, mine.place, scope]);
   const locateMe = async () => {
     const r = await mine.locate();
     if (!r.ok) setGate(r.why === "abroad" ? "abroad" : "denied");
@@ -161,11 +168,21 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       const k = `${ds.cellCity[c]}:${l}`; if (seen.has(k)) continue; seen.add(k);
       locs.push({ key: `l${ds.cellCity[c]}:${l}`, name: ds.localities[l], city: ds.cities[ds.cellCity[c]]?.name ?? "" });
     }
-    return [...ds.cities.map((c, i) => ({ key: `c${i}`, name: c.name, city: c.state ?? "" })), ...locs];
-  }, [ds]);
+    const cities = cityList.length ? cityList.map(c => ({ key: `city:${c.city}`, name: c.city, city: c.state ?? "" })) : ds.cities.map((c, i) => ({ key: `c${i}`, name: c.name, city: c.state ?? "" }));
+    return [...cities, ...locs];
+  }, [ds, cityList]);
   const pickPlace = (o: PlaceOption) => {
     setGate(null);
-    if (o.key.startsWith("c")) setPlace({ city: Number(o.key.slice(1)), locality: -1 });
+    if (o.key.startsWith("city:")) {
+      const name = o.key.slice(5);
+      const current = ds?.cities.findIndex(c => c.name === name) ?? -1;
+      if (current >= 0) { setPlace({ city: current, locality: -1 }); return; }
+      setPlace(null);
+      const query = new URLSearchParams({ city: name });
+      if (period !== "all") query.set("p", period);
+      router.push(`${pathname}?${query}`);
+    }
+    else if (o.key.startsWith("c")) setPlace({ city: Number(o.key.slice(1)), locality: -1 });
     else { const [c, l] = o.key.slice(1).split(":").map(Number); setPlace({ city: c, locality: l }); }
   };
 
@@ -208,8 +225,8 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       if (!allIdx.length) out.push({ id: "now", q: "What needs attention now?", missing: "what needs attention now" });
       else out.push({
         id: "now", q: "What needs attention now?",
-        a: aging.open ? <><b>{n(aging.open)}</b> request{aging.open === 1 ? " is" : "s are"} open{critical ? <>, <b className="is-hot">{an(critical)}</b> critical</> : null}.</> : <>Nothing is open {where}.</>,
-        detail: aging.open ? <>Longest wait: {days(oldest)}{aging.bins[3] ? <>. {n(aging.bins[3])} over 90 days</> : null}.</> : "Every request on the record here has been dealt with.",
+        a: aging.open ? <>In the loaded detail, <b>{n(aging.open)}</b> request{aging.open === 1 ? " is" : "s are"} open{critical ? <>, <b className="is-hot">{an(critical)}</b> critical</> : null}.</> : <>No open request appears in the loaded detail {where}.</>,
+        detail: aging.open ? <>Longest recorded wait in this detail: {days(oldest)}{aging.bins[3] ? <>. {n(aging.bins[3])} over 90 days</> : null}.</> : "This describes the loaded records; the citywide open total appears above.",
         evidence: aging.open ? <Bars rows={AGE_BINS.map((l, k) => ({ label: l, n: aging.bins[k], hot: k === 3 }))} fmt={n} /> : undefined,
         action: aging.open ? { href: mapHref("cases"), label: "See them on the map" } : undefined,
       });
@@ -380,15 +397,15 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
           <h1>{placeName || (scope === "org" ? "Your field evidence" : "Evidence, place by place.")}</h1>
           {isLocality && <p className="ib-city">{cityName}</p>}
           {ds && <><dl className="ib-figs">
-            <div><dt>requests for help</dt><dd>{n(requestsHere)}</dd></div>
-            <div><dt>open now</dt><dd>{n(openNowHere)}</dd></div>
-            <div><dt>animals on record</dt><dd>{n(animalsHere)}</dd></div>
-          </dl><p className="ib-scope-note">Requests follow the selected period. Open work and animals show the current record.</p></>}
+            <div><dt>{cityWhole && period === "all" ? "requests for help" : "requests in loaded detail"}</dt><dd>{n(requestsHere)}</dd></div>
+            <div><dt>{cityWhole ? "open now" : "open in loaded detail"}</dt><dd>{n(openNowHere)}</dd></div>
+            <div><dt>{cityWhole ? "animals on record" : "animals in loaded detail"}</dt><dd>{n(animalsHere)}</dd></div>
+          </dl><p className="ib-scope-note">{cityWhole ? "All-time requests, current open work and animals are citywide totals. Period filters and detailed findings below use bounded records." : "Locality figures and findings describe the loaded records, rather than a complete locality register."}</p></>}
         </div>
         {plate && ds && place && <div className="ib-plate">
-            <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Requests by cell in ${cityName}`}
+            <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Loaded requests by cell in ${cityName}`}
               onCell={(key) => { const i = ds.cells.indexOf(key); if (i >= 0 && ds.cellLocality[i] >= 0) setPlace({ city: place.city, locality: ds.cellLocality[i] }); }} />
-          <p className="ib-plate-note">Brighter cells ask for more help. Choose one to read its locality.</p>
+          <p className="ib-plate-note">Brighter cells have more requests in the loaded detail. Choose one to read its locality.</p>
         </div>}
       </header>
 
@@ -403,7 +420,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
 
       {/* ── the answers ────────────────────────────────────────────── */}
       <div className="ib-body">
-        {shown.length > 0 && <div className="ib-chapter"><div><span>THE FIELD BRIEF / {String(shown.length).padStart(2, "0")} FINDINGS</span><h2>What the record says <em>here.</em></h2></div><p>Read the answer first. The chart or breakdown beside it shows the evidence behind it.</p></div>}
+        {shown.length > 0 && <div className="ib-chapter"><div><span>THE FIELD BRIEF / {String(shown.length).padStart(2, "0")} FINDINGS</span><h2>Inside the <em>loaded record.</em></h2></div><p>Request findings and charts describe {allIdx.length.toLocaleString("en-IN")} loaded, location-linked requests{cityRoll ? ` from ${cityRoll.cases.toLocaleString("en-IN")} citywide` : ""}. Period filters apply within this detail. Citywide sterilisation and vaccination figures are labelled separately.</p></div>}
         {loading && <p className="ib-state" role="status">Reading the register…</p>}
         {error && <div className="ib-unavailable" role="status">
           <div><span>THE RECORD IS TEMPORARILY UNAVAILABLE</span><h2>Keep exploring while it reconnects.</h2><p>{error}</p></div>

@@ -435,5 +435,12 @@
 .sm-city-select select { min-height:42px; }
 .sm-select { display:flex; align-items:center; gap:8px; min-height:44px; padding:6px 12px; border:1px solid var(--sm-line); border-radius:10px; background:var(--sm-panel); color:var(--sm-text); }
 .sm-select select { min-height:32px; max-width:210px; background:var(--sm-panel); color:var(--sm-text); }
+.sm-bounded { position:relative; inset:auto; width:100%; height:clamp(430px,65svh,660px); margin-block:var(--sp-5); border:1px solid var(--sm-line); border-radius:var(--sp-radius-lg); }
+.sm-topbar { position:absolute; z-index:3; top:16px; left:18px; right:18px; display:flex; flex-wrap:wrap; align-items:flex-start; gap:10px; }
+.sm-topbar .sm-q { display:flex; margin:0; padding:11px 14px; min-height:44px; font-size:13px; }
+.sm-hud { position:absolute; z-index:3; bottom:16px; left:18px; right:18px; max-width:38rem; padding:12px 14px; background:var(--sm-panel); border:1px solid var(--sm-line); border-radius:12px; font-size:12px; line-height:1.5; }
+.sm-hud p { margin:0; }
+.sm-hud p + p { margin-top:8px; }
+.sm-hud button { min-height:44px; padding:8px 12px; border:1px solid var(--sm-line); border-radius:8px; background:var(--sm-chip); color:var(--sm-text); }
 
 .sm-modes button { min-height:44px; height:auto; }

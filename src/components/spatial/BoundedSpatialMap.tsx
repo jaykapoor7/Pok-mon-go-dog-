@@ -9,7 +9,8 @@ import { useSearchParams } from "next/navigation";
 import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
 import { cellToBoundary, cellToLatLng } from "h3-js";
 import { ChevronDown, RotateCw } from "lucide-react";
-import { NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { NIGHT, groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
+import { HexPlate, type Box } from "@/components/system/HexPlate";
 import { getSupabase } from "@/lib/supabase";
 import "./spatial.css";
 
@@ -33,6 +34,19 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
   const [retry, setRetry] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const chosen = useMemo(() => cities.find((item) => item.city === city) ?? null, [cities, city]);
+  const plate = useMemo(() => {
+    let west=180,south=90,east=-180,north=-90;
+    const max = Math.max(1,...cells.map(c => c.animals));
+    const shapes = cells.flatMap(c => {
+      try {
+        const ring = cellToBoundary(c.h3_r8,true).flat();
+        for (let i=0;i<ring.length;i+=2) { west=Math.min(west,ring[i]);east=Math.max(east,ring[i]);south=Math.min(south,ring[i+1]);north=Math.max(north,ring[i+1]); }
+        return [{ key:c.h3_r8,ring,fill:`rgba(147,177,240,${.15+.65*Math.sqrt(c.animals/max)})`,stroke:c.open_cases ? "#ff8a6e" : "rgba(219,231,255,.45)" }];
+      } catch { return []; }
+    });
+    const box: Box = [west-.005,south-.005,east+.005,north+.005];
+    return { shapes,box };
+  }, [cells]);
   const auth = useCallback(async () => {
     if (scope !== "org") return {};
     const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
@@ -64,12 +78,13 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
 
   useEffect(() => {
     let dead = false;
+    if (!supportsWebGL2()) return;
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       let map: MLMap;
       try { map = new ml.Map({ container: el.current, style: groundStyle(NIGHT), center: [78.9629, 20.5937], zoom: 4.1, attributionControl: false });
-      } catch { setError("This browser cannot render the interactive map. City totals remain available above; try a browser with WebGL enabled."); return; }
+      } catch { return; /* The recorded-area plate remains available. */ }
       mapRef.current = map;
       map.on("load", async () => {
         map.addSource("cells", { type: "geojson", data: EMPTY });
@@ -80,7 +95,7 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
         map.addLayer({ id: "animal-glow", type: "heatmap", source: "animals", maxzoom: 15, paint: { "heatmap-radius": 18, "heatmap-intensity": 0.3, "heatmap-opacity": 0.7, "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(19,43,85,0)", 0.5, "rgba(79,127,224,0.55)", 1, "#dbe7ff"] } });
         map.addLayer({ id: "animals", type: "circle", source: "animals", minzoom: 11.5, paint: { "circle-radius": 4, "circle-color": ["case", ["==", ["get", "help"], 1], "#ff8a6e", "#dbe7ff"], "circle-stroke-color": "#0b1e3d", "circle-stroke-width": 1 } });
         await underlay(map, NIGHT, "cells-fill").catch(() => false);
-        setMapReady(true);
+        if (!dead) setMapReady(true);
         const loadViewport = () => {
           const activeCity = cityRef.current;
           if (map.getZoom() < 11.5 || !activeCity) { (map.getSource("animals") as GeoJSONSource | undefined)?.setData(EMPTY); return; }
@@ -119,10 +134,11 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
 
   return <div className="sm sm-bounded">
     <div className="sm-canvas" ref={el} />
+    {!mapReady && plate.shapes.length > 0 && <HexPlate className="sm-fallback-map" cells={plate.shapes} box={plate.box} width={900} height={540} pad={84} night label={`Recorded areas in ${city}. Cell shading shows animal totals; orange boundaries have open cases.`} />}
     <div className="sm-topbar">
       <label className="sm-select"> <span>City</span><select value={city} onChange={(e) => setCity(e.target.value)} disabled={!cities.length}>{cities.map((item) => <option key={item.city} value={item.city}>{item.city}{item.state ? `, ${item.state}` : ""}</option>)}</select><ChevronDown size={15} /></label>
       {chosen && <p className="sm-q">{fmt(chosen.animals)} recorded animals · {fmt(chosen.open_cases)} open cases</p>}
     </div>
-    <div className="sm-hud"><p>Low zoom shows pre-aggregated cells. At close zoom, the visible area loads at most 500 animals.</p>{loading && <p><RotateCw size={14} /> Loading city cells…</p>}{error && <p className="sm-err">{error} <button onClick={() => setRetry((v) => v + 1)}>Retry</button></p>}</div>
+    <div className="sm-hud"><p>{mapReady ? "City areas and totals cover the full register. At close zoom, the visible area loads at most 500 animals." : "Recorded city areas and totals cover the full register. Orange boundaries have open cases."}</p>{loading && <p><RotateCw size={14} /> Loading city areas…</p>}{!loading && !cells.length && !error && <p>No mapped area is recorded in this city yet.</p>}{error && <p className="sm-err">{error} <button onClick={() => setRetry((v) => v + 1)}>Retry</button></p>}</div>
   </div>;
 }

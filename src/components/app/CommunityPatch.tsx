@@ -53,7 +53,7 @@ const ago = (iso: string | null) => {
 const nameOf = (a: PAnimal) => dogLabel({ name: a.name, zone: a.zone || "here" });
 const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const n = r.length / 2 - 1; for (let i = 0; i < n; i++) { x += r[i * 2]; y += r[i * 2 + 1]; } return [x / n, y / n]; };
 
-export function CommunityPatch({ stories, availableCities = [] }: { stories: PublicCaseStory[]; availableCities?: { city: string; state: string | null }[] }) {
+export function CommunityPatch({ stories, storyError = false, availableCities = [] }: { stories: PublicCaseStory[]; storyError?: boolean; availableCities?: { city: string; state: string | null }[] }) {
   const router = useRouter();
   const { ds, ix, loading, error, cities: cityRollup } = useSpatialDataset("public");
   const { ids: follows } = useFollows();
@@ -63,6 +63,9 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
   const [note, setNote] = useState<string | null>(null);
   const [animals, setAnimals] = useState<PAnimal[] | null>(null);
   const [followed, setFollowed] = useState<PAnimal[]>([]);
+  const [animalsError, setAnimalsError] = useState(false);
+  const [followedError, setFollowedError] = useState(false);
+  const [followedLoading, setFollowedLoading] = useState(false);
   const [tab, setTab] = useState<"attention" | "recent" | "following">("attention");
   const [lastSeenVisit, setLastSeenVisit] = useState<number | null>(null);
 
@@ -173,16 +176,20 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
   useEffect(() => {
     if (!ds || !cells) return;
     const keys = cells.inside.map((i) => ds.cells[i]).slice(0, 80);
-    if (!keys.length) { setAnimals([]); return; }
+    if (!keys.length) { setAnimals([]); setAnimalsError(false); return; }
     let live = true;
-    setAnimals(null);
-    fetch(`/api/spatial/patch?cells=${keys.join(",")}`).then((r) => (r.ok ? r.json() : { animals: [] })).then((j) => { if (live) setAnimals(j.animals ?? []); }).catch(() => { if (live) setAnimals([]); });
+    setAnimals(null); setAnimalsError(false);
+    fetch(`/api/spatial/patch?cells=${keys.join(",")}`).then((r) => r.ok ? r.json() : Promise.reject(new Error("Patch records unavailable"))).then((j) => { if (live) setAnimals(j.animals ?? []); }).catch(() => { if (live) { setAnimals([]); setAnimalsError(true); } });
     return () => { live = false; };
   }, [ds, cells]);
   const followKey = (follows ?? []).join(",");
   useEffect(() => {
-    if (!followKey) { setFollowed([]); return; }
-    fetch(`/api/spatial/patch?ids=${followKey}`).then((r) => (r.ok ? r.json() : { animals: [] })).then((j) => setFollowed(j.animals ?? [])).catch(() => setFollowed([]));
+    setFollowedError(false);
+    if (!followKey) { setFollowed([]); setFollowedLoading(false); return; }
+    setFollowedLoading(true);
+    let live = true;
+    fetch(`/api/spatial/patch?ids=${followKey}`).then((r) => r.ok ? r.json() : Promise.reject(new Error("Saved records unavailable"))).then((j) => { if (live) { setFollowed(j.animals ?? []); setFollowedLoading(false); } }).catch(() => { if (live) { setFollowed([]); setFollowedError(true); setFollowedLoading(false); } });
+    return () => { live = false; };
   }, [followKey]);
 
   const localities = useMemo(() => {
@@ -312,6 +319,7 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
       </div>
 
       <p className="cp-near"><MapPin size={13} aria-hidden /> {cityMode ? `Near ${city.name} city centre` : `Near ${patch.label === "Around you" ? "you" : patch.label}`} · {RADIUS_KM} km{cityMode ? " · citywide totals are shown above" : ""}</p>
+      <p className="cp-sample">Nearby lists, lights and recent activity describe bounded, loaded records. They do not count every dog or event in your patch.</p>
       <section className="cp-work" aria-label="Near you">
         <figure className="cp-plate">
           {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}
@@ -325,11 +333,13 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
 
         <div className="cp-register">
           <div className="cp-tabs" role="tablist" aria-label="Animals in your patch">
-            <button role="tab" aria-selected={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention nearby <b className="sys-mono">{attention.length}</b>{cityMode && city.help > attention.length ? <small className="sys-mono"> · {city.help.toLocaleString("en-IN")} citywide</small> : null}</button>
+            <button role="tab" aria-selected={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention nearby <b className="sys-mono">{animalsError || animals === null ? "—" : attention.length}</b>{cityMode && city.help > attention.length ? <small className="sys-mono"> · {city.help.toLocaleString("en-IN")} citywide</small> : null}</button>
             <button role="tab" aria-selected={tab === "recent"} className={tab === "recent" ? "is-on" : ""} onClick={() => setTab("recent")}>Seen lately</button>
-            <button role="tab" aria-selected={tab === "following"} className={tab === "following" ? "is-on" : ""} onClick={() => setTab("following")}>You follow <b className="sys-mono">{followed.length}</b></button>
+            <button role="tab" aria-selected={tab === "following"} className={tab === "following" ? "is-on" : ""} onClick={() => setTab("following")}>You follow <b className="sys-mono">{followedError || followedLoading ? "—" : followed.length}</b></button>
           </div>
-          {animals === null && tab !== "following" ? <p className="cp-quiet">Reading the patch…</p>
+          {(tab === "following" ? followedError : animalsError) ? <p className="cp-quiet" role="alert">These records could not be loaded. Please try again shortly.</p>
+            : tab === "following" && followedLoading ? <p className="cp-quiet">Reading your saved dogs…</p>
+            : animals === null && tab !== "following" ? <p className="cp-quiet">Reading the patch…</p>
             : list.length === 0 ? (
               <p className="cp-quiet">{tab === "attention" ? "No loaded record in this patch is flagged as needing help. If you see an injured animal, report it — that is how it gets here."
                 : tab === "recent" ? "No individual record is loaded in this patch yet. A photograph and the place are enough to start."
@@ -404,19 +414,20 @@ export function CommunityPatch({ stories, availableCities = [] }: { stories: Pub
       )}
 
       {shownStories.length > 0 && (
-        <section className="cp-done" aria-label="Recently completed">
-          <p className="cp-eyebrow"><span>{nearStories.length ? "Finished near you" : "Finished recently"}</span><Link href="/stories">All stories <ArrowUpRight size={12} /></Link></p>
+        <section className="cp-done" aria-label="Recent animal records nearby">
+          <p className="cp-eyebrow"><span>Recent records nearby</span><Link href={`/stories?city=${encodeURIComponent(city.name)}`}>City stories <ArrowUpRight size={12} /></Link></p>
           <ol>
             {shownStories.map((s) => (
               <li key={s.id}><Link href={`/dog/${s.dog_id}`}>
-                <DogPhoto src={s.cover_photo} alt="" seed={s.dog_id} tone="resolved" className="cp-done-thumb" />
-                <span><b>{s.animal_name || s.animal_code || "An animal"}</b><small>{[s.title, s.zone].filter(Boolean).join(" · ")}</small></span>
+                <DogPhoto src={s.cover_photo} alt="" seed={s.dog_id} tone={s.resolved_at ? "resolved" : "neutral"} className="cp-done-thumb" />
+                <span><b>{s.animal_name || s.animal_code || "A dog"}</b><small>{[s.title, s.zone && !(s.title ?? "").toLowerCase().includes(s.zone.toLowerCase()) ? s.zone : null].filter(Boolean).join(" · ")}</small></span>
                 <em className="sys-mono">{ago(s.resolved_at ?? s.occurred_at)}</em>
               </Link></li>
             ))}
           </ol>
         </section>
       )}
+      {storyError && <p className="cp-quiet" role="status">Recent story records are temporarily unavailable. <Link href={`/stories?city=${encodeURIComponent(city.name)}`}>Open city stories</Link></p>}
 
       <p className="cp-foot"><MapPin size={12} /> Your patch is kept on this device only. Positions are shown to their cell, never finer. Recorded animals, not population.</p>
     </main>

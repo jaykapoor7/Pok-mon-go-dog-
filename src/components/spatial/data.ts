@@ -46,7 +46,7 @@ async function load(scope: Scope, requestedCity?: string | null) {
     headers.Authorization = `Bearer ${data.session.access_token}`;
   }
   const scopeParam = scope === "org" ? "&scope=org" : "";
-  const cityPayload = await readJson(`/api/spatial?kind=cities${scopeParam}&v=3`, headers);
+  const cityPayload = await readJson(`/api/spatial?kind=cities${scopeParam}&v=4`, headers);
   const cities = (cityPayload.cities ?? []) as City[];
   const requested = requestedCity === "New Delhi" ? "Delhi" : requestedCity === "Secunderabad" ? "Hyderabad" : requestedCity;
   /* Start with a fresh multi-cell city, not the largest historical import
@@ -54,7 +54,7 @@ async function load(scope: Scope, requestedCity?: string | null) {
   const defaultCity = [...cities].filter((item) => item.cells > 1).sort((a, b) => (b.latest_seen ?? "").localeCompare(a.latest_seen ?? "") || b.animals - a.animals)[0]?.city ?? cities[0]?.city;
   const city = cities.find((item) => item.city === requested)?.city ?? defaultCity;
   if (!city) throw new Error("No mapped city is available for this view yet.");
-  const ds = await readJson(`/api/spatial?kind=dataset&city=${encodeURIComponent(city)}${scopeParam}&v=3`, headers) as SpatialDataset;
+  const ds = await readJson(`/api/spatial?kind=dataset&city=${encodeURIComponent(city)}${scopeParam}&v=4`, headers) as SpatialDataset;
   return { ds, city, cities };
 }
 

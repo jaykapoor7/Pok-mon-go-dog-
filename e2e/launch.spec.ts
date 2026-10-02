@@ -77,3 +77,19 @@ test('a public dog keeps its recorded area visible without a street-map renderer
   }
   await page.screenshot({ path: testInfo.outputPath('public-dog-recorded-area.png'), fullPage: true });
 });
+
+test('Insights city search reloads geography and authoritative totals', async ({ page }) => {
+  await page.goto('/insights?city=Coimbatore');
+  await expect(page.locator('.ib-head h1')).toHaveText('Coimbatore');
+  const search = page.getByRole('combobox', { name: 'Choose a place', exact: true });
+  await search.fill('Ranchi');
+  await page.getByRole('option', { name: /Ranchi/ }).click();
+  await expect(page.locator('.ib-head h1')).toHaveText('Ranchi');
+  await expect(page).toHaveURL(/city=Ranchi/);
+  await expect(page.locator('.ib-figs')).toContainText('6,462');
+  await search.fill('Jamshedpur');
+  await page.getByRole('option', { name: /Jamshedpur/ }).click();
+  await expect(page.locator('.ib-head h1')).toHaveText('Jamshedpur');
+  await expect(page.locator('.ib-figs')).toContainText('20,915');
+  await expect(page.locator('.ib-chapter')).toContainText('loaded, location-linked requests');
+});
