@@ -126,7 +126,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
               <span><b>{report.condition}</b><small><span className="rl-id-inline">{report.straypawId}</span> · {report.locality}</small></span>
               <em>New</em>
             </li>
-            {desk.queue.slice(0, 3).map((q, i) => (
+            {desk.queue.slice(0, 4).map((q, i) => (
               <li key={i}>
                 <i className={q.critical ? "is-hot" : q.overdue ? "is-due" : ""} />
                 <span><b>{q.condition}</b><small>{q.locality}</small></span>
@@ -134,6 +134,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
               </li>
             ))}
           </ul>
+          <p className="rl-desk-foot"><b>{desk.live}</b> open in {city}{desk.critical ? <> · <b className="is-hot">{desk.critical}</b> critical</> : null}</p>
         </div>
 
         <span className={`rl-link ${step === 3 ? "is-go" : ""}`}><b>{report.straypawId}</b><i /></span>

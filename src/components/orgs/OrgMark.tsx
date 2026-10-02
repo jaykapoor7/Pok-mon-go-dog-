@@ -1,7 +1,12 @@
 /* An organisation's mark: its logo on a bone disc, or its initials when it
    has not given one. The same mark in the list, on its profile and beside
    each of its campaigns. */
-export function OrgMark({ name, logoUrl, size = 40 }: { name: string; logoUrl: string | null | undefined; size?: number }) {
+/* A logo kept in this site's own public folder is linked by path, so it
+   loads on every deploy (preview, local) and not only on the live domain. */
+const ownPath = (url: string) => url.replace(/^https?:\/\/(www\.)?straypaw\.org(?=\/)/i, "");
+
+export function OrgMark({ name, logoUrl: raw, size = 40 }: { name: string; logoUrl: string | null | undefined; size?: number }) {
+  const logoUrl = raw ? ownPath(raw) : raw;
   const initials = name.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
   return (
     <span className={`om ${logoUrl ? "" : "is-initials"}`} style={{ ["--om" as string]: `${size}px` }} aria-hidden="true">
