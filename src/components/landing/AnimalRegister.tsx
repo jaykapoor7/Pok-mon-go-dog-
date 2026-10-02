@@ -28,6 +28,7 @@ import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
 import { cleanPlace } from "@/lib/utils";
 import type { AnimalRegister as Data, RegisterFocus } from "@/lib/landing/story";
+import { RegisterPlate, type RegisterPlateData } from "./RegisterPlate";
 
 const DEAL_MS = 5200;
 const fmt = (n: number) => n.toLocaleString("en-IN");
@@ -144,7 +145,7 @@ function Band({ cards, depth, dir, featId }: { cards: RegisterFocus[]; depth: "f
   );
 }
 
-export function AnimalRegister({ data, total }: { data: Data; total: number }) {
+export function AnimalRegister({ data, total, plate }: { data: Data; total: number; plate?: RegisterPlateData | null }) {
   const cards = data.cards;
   const n = cards.length;
   /* A callback ref, so the observer attaches whenever the section actually
@@ -198,6 +199,7 @@ export function AnimalRegister({ data, total }: { data: Data; total: number }) {
 
   return (
     <section ref={setEl} className={`rx${calm ? " is-calm" : ""}`} aria-labelledby="rx-title">
+      {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
       <div className="rx-rail">
         <p className="rx-kicker sys-mono">The register<span className="rx-live" aria-hidden /></p>
         <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs on file. <span className="rx-lbl">Every one gets a profile like&nbsp;this.</span></h2>
