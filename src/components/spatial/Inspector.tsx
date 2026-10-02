@@ -92,8 +92,14 @@ const since = (iso: string | null) => {
   return d < 1 ? "today" : d < 31 ? `${d}d ago` : d < 365 ? `${Math.round(d / 30)}mo ago` : `${(d / 365).toFixed(1)}y ago`;
 };
 
-export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand, onMode, filters = NO_FILTERS, note = "" }: {
+export type ExactCell = { animals: number; cases: number; open_cases: number };
+
+export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand, onMode, filters = NO_FILTERS, note = "", exact }: {
   ds: SpatialDataset; ix: Index; sel: Sel; t: number; scope: Scope; next: NextCell[];
+  /** Full-register totals per H3 cell for the current city, when the view is
+      current and unfiltered. The headline counts use them; the bounded
+      detail still drives the breakdowns below. */
+  exact?: Map<string, ExactCell>;
   /** The map's filters, so the card counts what the map draws; `note` says which are on. */
   filters?: Filters; note?: string;
   onSelect: (s: Sel) => void; onClose: () => void; onPickNext: (n: NextCell) => void;
@@ -131,11 +137,22 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
   }, [ds, scopeQ, sel.t, filters]);
   const series = useMemo(() => monthly(ds, caseIdx, 0, t), [ds, caseIdx, t]);
   const know = useMemo(() => animalKnowledge(ds, ix, cells, t), [ds, ix, cells, t]);
-  const openNow = stats.reduce((a, s) => a + s.open, 0);
+  /* The register's own totals for this place: every cell of the city, or the
+     selected cells. Null when filtered, time-sliced, or not loaded. */
+  const full = useMemo(() => {
+    if (!exact?.size || note || sel.t === "india" || sel.t === "empty") return null;
+    const sum = { animals: 0, open: 0, cases: 0 };
+    const add = (e: ExactCell | undefined) => { if (!e) return; sum.animals += Number(e.animals || 0); sum.open += Number(e.open_cases || 0); sum.cases += Number(e.cases || 0); };
+    if (sel.t === "city") exact.forEach(add);
+    else if (cells) cells.forEach((c) => add(exact.get(ds.cells[c])));
+    return sum.animals || sum.cases ? sum : null;
+  }, [exact, note, sel.t, cells, ds]);
+  const openNow = full ? full.open : stats.reduce((a, s) => a + s.open, 0);
   /* With a filter on, the headline count is the animals the map is drawing;
      the ABC and ARV shares below stay about every animal here. */
-  const animalsShown = note ? stats.reduce((a, s) => a + s.animals, 0) : know.total;
-  const critical = stats.reduce((a, s) => a + s.critical, 0);
+  const animalsShown = full ? full.animals : note ? stats.reduce((a, s) => a + s.animals, 0) : know.total;
+  const casesAll = full ? full.cases : caseIdx.length;
+  const critical = Math.min(openNow, stats.reduce((a, s) => a + s.critical, 0));
   const cov = useMemo(() => {
     const m = Object.fromEntries(COVERAGE_ORDER.map((k) => [k, 0])) as Record<string, number>;
     for (const s of stats) m[s.coverage]++;
@@ -195,7 +212,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
   /* A small place on the public map shows one or two records as "few". */
   const guard = scope === "public" && (sel.t === "cell" || sel.t === "locality");
   const n = (x: number) => fewOr(x, guard);
-  const anyFew = guard && [animalsShown, openNow, caseIdx.length].some(isSparse);
+  const anyFew = guard && [animalsShown, openNow, casesAll].some(isSparse);
   const tooFewToShare = guard && know.total < FEW;
 
   return (
@@ -214,7 +231,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
         <button type="button" className="sm-insp-peek" onClick={onExpand}>
           <span><b className="sys-mono">{n(animalsShown)}</b> animals</span>
           <span><b className="sys-mono">{n(openNow)}</b> open</span>
-          <span><b className="sys-mono">{n(caseIdx.length)}</b> cases</span>
+          <span><b className="sys-mono">{n(casesAll)}</b> cases</span>
           <em>Details</em>
         </button>
       )}
@@ -269,7 +286,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
             <div className="sm-insp-figs">
               <div><b className={isSparse(animalsShown) && guard ? "is-few" : ""}>{n(animalsShown)}</b><span>animals recorded</span></div>
               <div><b className={`${openNow ? "is-hot" : ""} ${isSparse(openNow) && guard ? "is-few" : ""}`}>{n(openNow)}</b><span>cases open{critical ? ` · ${n(critical)} critical` : ""}</span></div>
-              <div><b className={isSparse(caseIdx.length) && guard ? "is-few" : ""}>{n(caseIdx.length)}</b><span>cases, all time</span></div>
+              <div><b className={isSparse(casesAll) && guard ? "is-few" : ""}>{n(casesAll)}</b><span>cases, all time</span></div>
             </div>
             {anyFew && <p className="sm-insp-quiet">“Few” is one or two records. On the public map a small place never shows an exact count that low.</p>}
 
