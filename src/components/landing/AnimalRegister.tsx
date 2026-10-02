@@ -1,17 +1,20 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   The register, as a living wall of real dogs.
+   The register, drawn as what it actually is: a kept archive.
 
-   A compact band on the night ground, quietly alive with drifting record-
-   lights (the map's own motif: mostly sky, a couple flame). Across it, three
-   rows of real resident photographs slide in an endless loop — adjacent rows
-   drift opposite ways — each a public profile with its StrayPaw ID and place.
-   The dogs are the asset and the whole point.
+   Not a wall of pretty cards — a living contact sheet of filed records.
+   Across the night ground, rows of real resident photographs advance in
+   an endless loop (adjacent rows drift opposite ways). Each frame is an
+   entry in the register: a contact-sheet frame number, the dog's StrayPaw
+   record id, and — the moment it has your attention — the record itself
+   slides up: where it was found, when it was first seen, and its honest
+   ABC/ARV marks (filled = done, hollow = not, dashed = not examined).
 
-   Each row duplicates its cards so the loop is seamless; the wall pauses on
-   hover or focus. Under reduced motion the rows hold still as a scrollable
-   strip, so every profile stays reachable.
+   The dogs and their records are the whole point; nothing here is
+   decoration. Each row duplicates its entries so the loop is seamless and
+   pauses on hover or focus. Under reduced motion the rows hold still as a
+   scrollable strip, so every record stays reachable.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
@@ -24,35 +27,55 @@ import type { AnimalRegister as Data, RegisterFocus } from "@/lib/landing/story"
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const placeOf = (c: RegisterFocus) => [cleanPlace(c.zone), c.city].filter(Boolean).join(" · ") || "On the record";
 
-const SPARKS: { x: number; y: number; s: number; d: number; dl: number; flame?: boolean }[] = [
-  { x: 5, y: 20, s: 3, d: 11, dl: 0 }, { x: 14, y: 72, s: 2, d: 14, dl: 2 },
-  { x: 23, y: 40, s: 4, d: 9, dl: 1, flame: true }, { x: 34, y: 82, s: 2, d: 13, dl: 4 },
-  { x: 42, y: 14, s: 3, d: 12, dl: 3 }, { x: 53, y: 76, s: 2, d: 15, dl: 1 },
-  { x: 61, y: 28, s: 3, d: 10, dl: 5 }, { x: 69, y: 86, s: 2, d: 12, dl: 2 },
-  { x: 78, y: 42, s: 4, d: 9, dl: 0, flame: true }, { x: 86, y: 72, s: 2, d: 14, dl: 3 },
-  { x: 93, y: 24, s: 3, d: 11, dl: 1 }, { x: 48, y: 50, s: 2, d: 16, dl: 6 },
-  { x: 10, y: 48, s: 2, d: 13, dl: 5 }, { x: 73, y: 60, s: 3, d: 12, dl: 4 },
-];
+/* first_seen → a short ledger year, "'19". Guards the day-zero sentinel. */
+function sinceYear(iso: string | null): string | null {
+  if (!iso) return null;
+  const y = new Date(iso).getFullYear();
+  return Number.isFinite(y) && y > 1990 ? `’${String(y).slice(2)}` : null;
+}
 
-function Card({ c }: { c: RegisterFocus }) {
+type Mark = "yes" | "no" | "unknown";
+const sterMark = (s: string | null): Mark => (s === "sterilised" ? "yes" : s === "not_sterilised" ? "no" : "unknown");
+const vacMark = (s: string | null): Mark => (s === "vaccinated" ? "yes" : s === "not_vaccinated" ? "no" : "unknown");
+
+function Entry({ c, no }: { c: RegisterFocus; no: string }) {
+  const place = placeOf(c);
+  const since = sinceYear(c.first_seen);
+  const ster = sterMark(c.sterilisation);
+  const vac = vacMark(c.vaccination);
   return (
-    <Link href={`/dog/${c.id}`} className="rx-card" aria-label={`${c.straypaw_id ?? "A dog"} near ${placeOf(c)}`}>
-      <div className="rx-shot">
+    <Link href={`/dog/${c.id}`} className="rx-entry" aria-label={`${c.straypaw_id ?? "A recorded dog"} — ${place}`}>
+      <div className="rx-frame">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={sized(c.cover_photo, 420)} alt={`A dog near ${cleanPlace(c.zone) || c.city || "the reported spot"}, photographed by a resident`} loading="lazy" />
-        <span className="rx-id sys-mono">{c.straypaw_id}</span>
+        <img
+          src={sized(c.cover_photo, 420)}
+          alt={`A dog on the register near ${cleanPlace(c.zone) || c.city || "the reported spot"}, photographed by a resident`}
+          loading="lazy"
+        />
+        <span className="rx-no sys-mono" aria-hidden>{no}</span>
+        {/* Resting: the one value every screen agrees on — the record id. */}
+        <span className="rx-tag sys-mono">{c.straypaw_id ?? "ON FILE"}</span>
+        {/* The record slip, revealed on attention. */}
+        <div className="rx-slip" aria-hidden>
+          <span className="rx-slip-place">{place}</span>
+          <span className="rx-marks">
+            <i className={`rx-mk is-${ster}`} />ABC
+            <i className={`rx-mk is-vac is-${vac}`} />ARV
+            {since && <em>since {since}{c.sightings ? ` · ${fmt(c.sightings)} seen` : ""}</em>}
+          </span>
+        </div>
       </div>
-      <p className="rx-place">{placeOf(c)}</p>
     </Link>
   );
 }
 
-function Row({ cards, dir }: { cards: RegisterFocus[]; dir: "l" | "r" }) {
+function Row({ cards, dir, start }: { cards: RegisterFocus[]; dir: "l" | "r"; start: number }) {
   if (!cards.length) return null;
+  const no = (i: number) => String(start + (i % cards.length) + 1).padStart(4, "0");
   return (
     <div className={`rx-row is-${dir}`}>
       <div className="rx-track" style={{ ["--n" as string]: cards.length }}>
-        {[...cards, ...cards].map((c, i) => <Card key={`${c.id}-${i}`} c={c} />)}
+        {[...cards, ...cards].map((c, i) => <Entry key={`${c.id}-${i}`} c={c} no={no(i)} />)}
       </div>
     </div>
   );
@@ -76,20 +99,14 @@ export function AnimalRegister({ data, total }: { data: Data; total: number }) {
 
   return (
     <section className={`rx ${calm ? "is-calm" : ""}`} aria-labelledby="rx-title">
-      <div className="rx-field" aria-hidden>
-        {SPARKS.map((p, i) => (
-          <span key={i} className={`rx-spark${p.flame ? " is-flame" : ""}`}
-            style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.s, height: p.s, ["--t" as string]: `${p.d}s`, ["--dl" as string]: `${p.dl}s` }} />
-        ))}
-      </div>
-
-      <div className="rx-words">
-        <p className="rx-kicker sys-mono">The register</p>
-        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs. <em>One profile each.</em> <Link href="/map" className="rx-cta">Live map <ArrowUpRight size={14} aria-hidden /></Link></h2>
+      <div className="rx-rail">
+        <p className="rx-kicker sys-mono">The register<span className="rx-live" aria-hidden /></p>
+        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> <span className="rx-lbl">dogs on file, one profile each</span></h2>
+        <Link href="/map" className="rx-cta">Live map <ArrowUpRight size={14} aria-hidden /></Link>
       </div>
 
       <div className="rx-wall" role="list" aria-label={`A sample of the ${fmt(total)} dogs on the register`}>
-        {rows.map((r, i) => <Row key={i} cards={r} dir={i % 2 === 0 ? "l" : "r"} />)}
+        {rows.map((r, i) => <Row key={i} cards={r} dir={i % 2 === 0 ? "l" : "r"} start={i * per} />)}
         <span className="rx-edge is-left" aria-hidden />
         <span className="rx-edge is-right" aria-hidden />
       </div>
