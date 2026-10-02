@@ -27,6 +27,43 @@ import { useEffect } from "react";
 import type { Locale } from "./locales";
 
 type Phrases = Record<string, string>;
+type Pattern = { re: RegExp; to: string };
+
+/* A few phrases wrap a value read from the record ("Dog near {0}"). Their
+   keys carry numbered slots; the value in each slot is kept as recorded
+   and set into the translation's matching slot. A slot written {#0} takes
+   only a figure ("{#0} days ago"). Longer literal text is tried first, so
+   "{0}: few requests" wins over "{0}: {1} requests". */
+const patternCache = new WeakMap<Phrases, Pattern[]>();
+function patterns(dict: Phrases): Pattern[] {
+  let list = patternCache.get(dict);
+  if (list) return list;
+  list = Object.keys(dict)
+    .filter((k) => /\{#?\d\}/.test(k))
+    .sort((a, b) => b.replace(/\{#?\d\}/g, "").length - a.replace(/\{#?\d\}/g, "").length)
+    .map((k) => {
+      const order: number[] = [];
+      const src = k.split(/(\{#?\d\})/).map((part) => {
+        const slot = part.match(/^\{(#?)(\d)\}$/);
+        if (slot) { order.push(Number(slot[2])); return slot[1] ? "([\\d,.]+)" : "(.+?)"; }
+        return part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }).join("");
+      const to = dict[k].replace(/\{#?(\d)\}/g, (_, d) => `{${order.indexOf(Number(d))}}`);
+      return { re: new RegExp(`^${src}$`), to };
+    });
+  patternCache.set(dict, list);
+  return list;
+}
+
+function lookup(dict: Phrases, key: string): string | undefined {
+  const hit = dict[key];
+  if (hit) return hit;
+  for (const p of patterns(dict)) {
+    const m = key.match(p.re);
+    if (m) return p.to.replace(/\{(\d)\}/g, (_, i) => m[Number(i) + 1] ?? "");
+  }
+  return undefined;
+}
 
 const LOADERS: Partial<Record<Locale, () => Promise<{ default: Phrases }>>> = {
   hi: () => import("./phrases/hi.json"),
@@ -62,7 +99,7 @@ function translateText(node: Text, dict: Phrases | null) {
   const english = now;
   const key = normPhrase(english);
   if (!key || !dict) { if (seen) textSeen.delete(node); return; }
-  const hit = dict[key];
+  const hit = lookup(dict, key);
   if (!hit) { if (seen) textSeen.delete(node); return; }
   if (skipped(node.parentElement)) return;
   const lead = english.match(/^\s*/)?.[0] ?? "";
@@ -79,7 +116,7 @@ function translateAttrs(el: Element, dict: Phrases | null) {
     const rec = attrSeen.get(el) ?? {};
     const seen = rec[name];
     if (seen && now === seen.written) continue;
-    const hit = dict ? dict[normPhrase(now)] : undefined;
+    const hit = dict ? lookup(dict, normPhrase(now)) : undefined;
     if (!hit || skipped(el)) { if (seen) delete rec[name]; continue; }
     rec[name] = { english: now, written: hit };
     attrSeen.set(el, rec);

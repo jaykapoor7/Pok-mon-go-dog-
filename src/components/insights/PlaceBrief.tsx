@@ -226,7 +226,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       if (!allIdx.length) out.push({ id: "now", q: "What needs attention now?", missing: "what needs attention now" });
       else out.push({
         id: "now", q: "What needs attention now?",
-        a: aging.open ? <>In the loaded detail, <b>{n(aging.open)}</b> request{aging.open === 1 ? " is" : "s are"} open{critical ? <>, <b className="is-hot">{an(critical)}</b> critical</> : null}.</> : <>No open request appears in the loaded detail {where}.</>,
+        a: aging.open ? <>In the loaded detail, <b>{n(aging.open)}</b>{aging.open === 1 ? " request is open" : " requests are open"}{critical ? <>, <b className="is-hot">{an(critical)}</b> critical</> : null}.</> : <>No open request appears in the loaded detail {where}.</>,
         detail: aging.open ? <>Longest recorded wait in this detail: {days(oldest)}{aging.bins[3] ? <>. {n(aging.bins[3])} over 90 days</> : null}.</> : "This describes the loaded records; the citywide open total appears above.",
         evidence: aging.open ? <Bars rows={AGE_BINS.map((l, k) => ({ label: l, n: aging.bins[k], hot: k === 3 }))} fmt={n} /> : undefined,
         action: aging.open ? { href: mapHref("cases"), label: "See them on the map" } : undefined,
