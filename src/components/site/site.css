@@ -17,14 +17,14 @@
   --violet: #a68cff;
   /* Text-sized accents on light grounds. The bright brand tones sit at
      ~1.9–2.6:1 there, so anything small and readable uses these instead. */
-  --electric-ink: #2457ce;
+  --electric-ink: #214dbf;
   /* Measured against the bone ground (#dce2e8), the darkest surface this
      accent sits on: #cc371c reached only 3.9:1, under the 4.5:1 small text
      needs. This clears it on bone and on paper. */
   --vermilion-ink: #a8300f;
   --line: rgba(11, 30, 61, 0.14);
   --line-dark: #293753;
-  --muted: #5d6b7c;
+  --muted: #505d70;
 
   /* ── motion: three eases, four durations, and that is the whole
      vocabulary ─────────────────────────────────────────────────────

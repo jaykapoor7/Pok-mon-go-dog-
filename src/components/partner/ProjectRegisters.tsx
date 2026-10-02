@@ -29,7 +29,7 @@ const fieldsOf = (p: Project) => {
 const purposeOf = (p: Project) => (p.description ?? "").split("\n").filter((x) => !x.startsWith(PROJECT_MARKER)).join("\n").trim();
 const filled = (v: unknown) => v != null && String(v).trim() !== "";
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (iso: string) => { const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const esc = (v: unknown) => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 
 export function ProjectRegisters() {
@@ -140,7 +140,7 @@ export function ProjectRegisters() {
                 <button type="button" className="pj-quiet" onClick={exportCsv} disabled={!entries.length}><Download size={15} /> Export shown</button>
               </div>
 
-              <p className="pj-fine">{total !== null ? `${total.toLocaleString("en-IN")} total entries · ` : ""}Charts, table and export use the latest {entries.length.toLocaleString("en-IN")} entries (up to 500).</p>
+              <p className="pj-fine">{total !== null ? `${total.toLocaleString("en-IN")} total ${total === 1 ? "entry" : "entries"} · ` : ""}Charts, table and export use the latest {entries.length.toLocaleString("en-IN")} {entries.length === 1 ? "entry" : "entries"} (up to 500).</p>
               <Pulse entries={entries} />
               {entries.length > 0 && <Completeness fields={fields} entries={entries} />}
 
@@ -195,7 +195,7 @@ function Pulse({ entries }: { entries: Entry[] }) {
   return (
     <figure className="pj-pulse">
       <div className="pj-pulse-bars" aria-hidden>{weeks.map((v, i) => <i key={i} style={{ height: `${v ? Math.max(8, (v / max) * 100) : 0}%` }} className={v ? "" : "is-zero"} />)}</div>
-      <figcaption><b>{entries.length.toLocaleString("en-IN")}</b> entries over {weeks.length} {weeks.length === 1 ? "week" : "weeks"}; {quiet === 0 ? "the last one today" : <>the last one <span className={quiet > 30 ? "is-hot" : ""}>{quiet} {quiet === 1 ? "day" : "days"} ago</span></>}.</figcaption>
+      <figcaption><b>{entries.length.toLocaleString("en-IN")}</b> {entries.length === 1 ? "entry" : "entries"} over {weeks.length} {weeks.length === 1 ? "week" : "weeks"}; {quiet === 0 ? "the last one today" : <>the last one <span className={quiet > 30 ? "is-hot" : ""}>{quiet} {quiet === 1 ? "day" : "days"} ago</span></>}.</figcaption>
     </figure>
   );
 }

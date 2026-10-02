@@ -54,3 +54,12 @@ test('unknown dog IDs are real 404s and production health identifies its build',
   expect(health.status()).toBe(200);
   expect((await health.json()).sha).toMatch(/^[0-9a-f]{40}$/);
 });
+
+test('landing server HTML keeps marketing navigation during ISR', async ({ request }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'viewport-independent server check');
+  const response = await request.get('/');
+  const html = await response.text();
+  expect(response.status()).toBe(200);
+  expect(html).toContain('class="sp-header');
+  expect(html).not.toContain('id="spa-side-nav"');
+});

@@ -62,8 +62,7 @@ const AUDIT = () => {
      section behind it, which turned a perfectly readable dark card into
      eight "invisible text" findings. Computed backgroundImage has its
      var()s already resolved to rgb(), so the stops can be averaged. */
-  const gradientColor = (cs) => {
-    const bi = cs.backgroundImage;
+  const gradientLayer = (bi) => {
     if (!bi || bi === "none" || !/gradient/.test(bi)) return null;
     const stops = [...bi.matchAll(/rgba?\(([^)]+)\)/g)].map(m => {
       const n = m[1].split(/[,\s/]+/).filter(Boolean).map(Number);
@@ -81,6 +80,24 @@ const AUDIT = () => {
     if (totalA === 0) return null;
     const rgb = [0,1,2].map(i => stops.reduce((s, c) => s + c[i] * c[3], 0) / totalA);
     return [...rgb, totalA / stops.length];
+  };
+  const gradientColor = (cs) => {
+    // CSS paints each earlier image above the later background layers.
+    const layers = []; let start = 0, depth = 0;
+    const value = cs.backgroundImage;
+    for (let i = 0; i <= value.length; i++) {
+      if (value[i] === "(") depth++;
+      if (value[i] === ")") depth--;
+      if (i === value.length || (value[i] === "," && depth === 0)) {
+        layers.push(value.slice(start, i)); start = i + 1;
+      }
+    }
+    let result = null;
+    for (const layer of layers.reverse()) {
+      const colour = gradientLayer(layer);
+      if (colour) result = result ? over(colour, result) : colour;
+    }
+    return result;
   };
   const effBg = (el) => {
     /* Walk up collecting one layer per element, nearest first, and stop at
@@ -131,6 +148,7 @@ const AUDIT = () => {
     // only elements with their own visible text
     const own = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim().length > 1);
     if (!own) continue;
+    if (el.closest('[inert], [aria-hidden="true"]')) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === "hidden" || cs.display === "none" || +cs.opacity === 0) continue;
     const r = el.getBoundingClientRect();
@@ -177,6 +195,7 @@ for (const theme of ["light", "dark"]) {
   await ctx.addInitScript((t) => {
     try {
       localStorage.setItem("straypaw.theme", t);
+      localStorage.setItem("straypaw.role", "community");
       if (process?.env) {}
     } catch {}
   }, theme);
@@ -186,6 +205,8 @@ for (const theme of ["light", "dark"]) {
       await p.goto(BASE + route, { waitUntil: "domcontentloaded", timeout: 25000 });
       await p.evaluate((t) => document.documentElement.classList.toggle("dark", t === "dark"), theme);
       await p.waitForTimeout(1200);
+      const skip = p.getByRole("button", { name: "Skip for now", exact: true });
+      if (await skip.isVisible()) await skip.click();
       const res = await p.evaluate(AUDIT);
       for (const r of res) findings.push({ vp, theme, route, ...r });
     } catch (e) {

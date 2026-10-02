@@ -118,7 +118,7 @@
 .ib-q.is-lead { grid-column: 1 / -1; display: grid; grid-template-columns: 40px minmax(0, 1.1fr) minmax(0, .9fr); gap: var(--sp-5); align-items: center; padding: var(--sp-6); background: var(--sp-paper); border: 1px solid var(--sp-panel-line); border-radius: var(--sp-radius-lg); margin: var(--sp-5) 0 0; }
 .ib-q.is-lead .ib-q-ev { grid-column: 3; padding: 0 0 0 var(--sp-5); border-left: 1px solid var(--sp-rule); }
 .ib-q.is-lead .ib-a { font-size: clamp(27px, 3vw, 40px); }
-.ib-q.is-lead .ib-q-index { color: var(--sp-flame-deep); align-self: start; }
+.ib-q.is-lead .ib-q-index { color: var(--sp-ember); align-self: start; }
 /* Insights reads as an open report: the place and figures sit on paper,
    while geography is the only dark plate. */
 .ib-head { min-height: 360px; background: transparent; color: var(--sp-ink); border-radius: 0; border-top: 1px solid var(--sp-ink); border-bottom: 1px solid var(--sp-rule); padding: var(--sp-5) 0; }

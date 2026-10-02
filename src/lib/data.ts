@@ -128,7 +128,8 @@ export async function getDogsByIds(ids: string[]): Promise<Dog[]> {
   const supa = getSupabase();
   const clean = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 100);
   if (!supa || !clean.length) return [];
-  const { data } = await supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).in("id", clean);
+  const { data, error } = await supa.from("public_animal_profiles").select(PUBLIC_DOG_SELECT).in("id", clean);
+  if (error) throw error;
   return (data ?? []).map(mapDog);
 }
 

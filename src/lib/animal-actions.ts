@@ -123,6 +123,7 @@ export interface AnimalTimelineEvent {
   details: string | null;
   occurred_at: string;
   provenance: string;
+  medicalEventId: string | null;
 }
 
 /** The canonical, append-only operational timeline for one animal. Older
@@ -133,7 +134,7 @@ export async function getAnimalTimeline(dogId: string): Promise<AnimalTimelineEv
   if (!supa) return [];
   const { data, error } = await supa
     .from("animal_timeline_events")
-    .select("id,event_type,title,details,occurred_at,provenance")
+    .select("id,event_type,title,details,occurred_at,provenance,source_ref")
     .eq("dog_id", dogId)
     .order("occurred_at", { ascending: false })
     .limit(200);
@@ -145,6 +146,7 @@ export async function getAnimalTimeline(dogId: string): Promise<AnimalTimelineEv
     details: row.details ?? null,
     occurred_at: row.occurred_at,
     provenance: row.provenance,
+    medicalEventId: typeof row.source_ref?.medical_event_id === "string" ? row.source_ref.medical_event_id : null,
   }));
 }
 

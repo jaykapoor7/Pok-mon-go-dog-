@@ -33,7 +33,7 @@ export const nameOf = (a: { name: string | null }) => {
   return n && !/^(unknown|unnamed|dog|cat|animal|puppy)\b/i.test(n) && !n.includes(" · ") ? n : null;
 };
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (iso: string | null) => { if (!iso) return null; const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+const day = (iso: string | null) => { if (!iso) return null; const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const yes = (v: string | null) => !!v && /^(yes|done|sterilised|sterilized|vaccinated|complete|recorded)/i.test(v);
 
 /** A dot tapped on the map: its cell and what the dot itself says about the animal. */

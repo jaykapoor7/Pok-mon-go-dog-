@@ -60,7 +60,7 @@
   --sp-ink: #0b1e3d;         /* headings, and the dark ground        */
   --sp-deep: #071630;        /* one step darker: the footer          */
   --sp-body: #42526b;        /* running text on a light ground       */
-  --sp-muted: #5d6b7c;       /* labels, captions, secondary          */
+  --sp-muted: #505d70;       /* labels, captions, secondary          */
 
   /* ── Ground ───────────────────────────────────────────────────── */
   --sp-paper: #fffdf9;       /* panels and cards                     */
@@ -86,7 +86,7 @@
   --sp-orange: #f47d45;      /* the soft tint, backgrounds only      */
 
   /* ── Blue ─────────────────────────────────────────────────────── */
-  --sp-blue: #2457ce;        /* the action colour                    */
+  --sp-blue: #214dbf;        /* the action colour                    */
   --sp-blue-deep: #1b46b0;   /* pressed, and heavy weights           */
   --sp-sky: #8fb7ff;         /* cool support on dark                 */
   --sp-deepsky: #2f57a4;     /* cool support on light                */
@@ -349,7 +349,7 @@
   --sp-night-line: rgba(239, 231, 218, 0.12);
   --sp-night-text: #efe7da;
   --sp-night-dim: rgba(239, 231, 218, 0.62);
-  --sp-night-faint: rgba(239, 231, 218, 0.36);
+  --sp-night-faint: rgba(239, 231, 218, 0.58);
 
   /* Sequential: recorded density, light ground → deep blue. */
   --sp-seq-0: #ece4d6;

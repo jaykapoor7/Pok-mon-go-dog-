@@ -78,7 +78,7 @@
   max-width: 460px; padding: 12px 14px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: 12px;
   display: grid; gap: 8px;
 }
-.sm-note { margin: 0; font-size: 11px; color: var(--sm-faint); }
+.sm-note { margin: 0; font-size: 12px; color: var(--sm-faint); }
 .sm-empty { margin: 0; font-size: 12px; line-height: 1.5; color: var(--sm-dim); max-width: 420px; }
 .sm-notice {
   max-width: 460px; padding: 10px 14px; border-radius: 12px; font-size: 12.5px; line-height: 1.45;

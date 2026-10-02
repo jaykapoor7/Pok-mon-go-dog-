@@ -96,7 +96,7 @@ const SPACES: Record<Space, { label: string; home: string; nav: typeof COMMUNITY
    educator space that was picked, and otherwise read as community, so the
    organisation's navigation never leaks onto public pages. */
 function spaceFor(path: string, stored: Role | null): Space {
-  if (path.startsWith("/partner")) return "ngo";
+  if (path.startsWith("/partner") || path === "/surveys" || path.startsWith("/surveys/")) return "ngo";
   if (path === "/app") return "community";
   if (path === "/feeder" || path.startsWith("/feeding")) return "feeder";
   if (path === "/learn") return "educator";

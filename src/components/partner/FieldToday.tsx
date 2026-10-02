@@ -21,7 +21,7 @@ import "./field.css";
 
 const DAY = 86_400_000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (iso: string) => { const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]}`; };
+const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`; };
 const cond = (r: RegisterRow) => (r.condition_class && r.condition_class !== "Not recorded" ? r.condition_class : null);
 const triage = (r: RegisterRow): Triage => (r.severity === "critical" ? "Critical" : cond(r) ? triageOf(cond(r)) : "Unclassified");
 const RANK: Record<Triage, number> = { Critical: 0, Priority: 1, Routine: 2, Unclassified: 3 };

@@ -40,7 +40,7 @@ const BANDS = [
   { id: 3, label: "3–6 months", max: 180 }, { id: 4, label: "6–12 months", max: 365 }, { id: 5, label: "Over a year", max: Infinity },
 ];
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (iso: string | null) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+const day = (iso: string | null) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const daysSince = (iso: string | null, now: number) => (iso ? Math.max(0, Math.floor((now - Date.parse(iso)) / DAY)) : 0);
 const span = (d: number) => (d >= 365 ? `${(d / 365).toFixed(1)} y` : d >= 60 ? `${Math.round(d / 30)} mo` : `${d} d`);
 const cond = (r: RegisterRow) => (r.condition_class && r.condition_class !== "Not recorded" ? r.condition_class : null);

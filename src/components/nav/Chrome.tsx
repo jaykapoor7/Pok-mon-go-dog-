@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSelectedLayoutSegments } from "next/navigation";
 import { AppShell } from "@/components/app/AppShell";
 
 /**
@@ -73,8 +73,12 @@ const SELF_SHELLED = new Set<string>([
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const segments = useSelectedLayoutSegments();
   // Marketing and profile routes have their own main landmark.
-  const own = OWN_CHROME.has(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
+  // ISR can render the root through an internal pathname. The route tree
+  // identifies the landing page consistently during regeneration and in the
+  // browser, so its server HTML never acquires the application console.
+  const own = segments.length === 0 || OWN_CHROME.has(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
   if (own) return <><a href="#main-content" className="skip-link">Skip to content</a><div id="main-content" tabIndex={-1}>{children}</div></>;
 
   if (pathname.startsWith("/embed/") || pathname.startsWith("/org/")) return <>{children}</>;

@@ -24,7 +24,7 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
   }, [survey.id, areas]);
 
   const responseMarkers: Dog[] = responses
-    .filter((r) => r.lat && r.lng)
+    .filter((r) => r.lat != null && r.lng != null)
     .map((r) => ({
       id: r.id, name: speciesLabel(r.species), zone: "", lat: r.lat as number, lng: r.lng as number,
       status: "seen", cover_photo: r.photo_url ?? "", photos: [], size: "medium", color: "", is_friendly: true,
@@ -53,8 +53,8 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
       <div className="mt-5 grid grid-cols-4 divide-x divide-black/[0.07] overflow-hidden rounded-lg border border-black/[0.08] dark:divide-white/[0.08] dark:border-white/[0.1]">
         <Metric label="Areas" value={totals?.areas ?? "—"} />
         <Metric label="Responses" value={totals?.responses ?? "—"} />
-        <Metric label="Animals" value={totals?.animals ?? "—"} />
-        <Metric label="Coverage" value={totals ? `${coverage}%` : "—"} />
+        <Metric label="Dogs" value={totals?.animals ?? "—"} />
+        <Metric label="Areas started" value={totals ? `${coverage}%` : "—"} />
       </div>
 
       <Link
@@ -137,7 +137,7 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
                       {a.code ? <span className="text-bark-400">{a.code} · </span> : null}{a.name}
                     </p>
                     <p className="mt-0.5 text-[12px] text-bark-400">
-                      {a.animal_count ?? 0} animals · {a.response_count ?? 0} responses
+                      {a.animal_count ?? 0} dog{a.animal_count === 1 ? "" : "s"} · {a.response_count ?? 0} response{a.response_count === 1 ? "" : "s"}
                       {a.target_count ? ` · target ${a.target_count}` : ""}
                     </p>
                   </div>

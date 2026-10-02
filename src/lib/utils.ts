@@ -42,6 +42,9 @@ export function timeAgo(iso: string): string {
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-IN", {
+    // Register dates and date-only medical events use their recorded UTC day.
+    // Browser time zones must not move an October 1 record into September 30.
+    timeZone: "UTC",
     day: "numeric",
     month: "short",
     year: "numeric",

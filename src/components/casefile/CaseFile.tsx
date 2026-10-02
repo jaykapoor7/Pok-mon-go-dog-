@@ -30,7 +30,7 @@ import "./casefile.css";
 
 const DAY = 86_400_000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (iso: string | null | undefined) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+const day = (iso: string | null | undefined) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 export const shortCode = (code: string | null) => (!code ? null : code.length > 14 ? code.slice(0, 12) : code);
 const condOf = (cls: string | null) => (cls && cls !== "Not recorded" ? cls : null);
 

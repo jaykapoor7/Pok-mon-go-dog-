@@ -25,7 +25,7 @@ import { STATUS_META, type StatusClass } from "@/lib/register/taxonomy";
 type OrgCase = { id: string; case_code: string | null; title: string | null; condition_class: string | null; status_class: string | null; occurred_at: string | null; last_activity_at: string | null; assignee_name: string | null };
 const DOG_STATUSES: DogStatus[] = ["seen", "hungry", "injured", "sterilised", "vaccinated"];
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const day = (iso: string | null) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+const day = (iso: string | null) => { if (!iso) return "—"; const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const kindLabel = (k: string) => MEDICAL_KINDS.find((m) => m.id === k)?.label ?? k.replace(/_/g, " ");
 
 export function OrgTools({ dog, photos }: { dog: Dog; photos: string[] }) {
@@ -60,9 +60,10 @@ export function OrgTools({ dog, photos }: { dog: Dog; photos: string[] }) {
     </section>
   );
 
+  const medicalIds = new Set(medical.map(m => m.id));
   const notes = [
     ...medical.filter((m) => m.notes).map((m) => ({ id: `m-${m.id}`, date: m.event_date, title: kindLabel(m.kind), text: m.notes!, by: m.performed_by })),
-    ...timeline.filter((t) => t.details).map((t) => ({ id: `t-${t.id}`, date: t.occurred_at, title: t.title, text: t.details!, by: null as string | null })),
+    ...timeline.filter((t) => t.details && (!t.medicalEventId || !medicalIds.has(t.medicalEventId))).map((t) => ({ id: `t-${t.id}`, date: t.occurred_at, title: t.title, text: t.details!, by: null as string | null })),
   ].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
   return (

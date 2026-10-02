@@ -57,11 +57,14 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
   // Follows are kept on-device, so the followed animals are read by id from
   // here — never by sending the whole register to the page.
   const [followedRows, setFollowedRows] = useState<Dog[]>([]);
+  const [loadedIdKey, setLoadedIdKey] = useState<string | null>(null);
+  const [followError, setFollowError] = useState(false);
   const idKey = ids.join(",");
   useEffect(() => {
-    if (!idKey) { setFollowedRows([]); return; }
+    if (!idKey) { setFollowedRows([]); setLoadedIdKey(idKey); return; }
     let live = true;
-    getDogsByIds(idKey.split(",")).then((rows) => { if (live) setFollowedRows(rows); }).catch(() => {});
+    setFollowError(false);
+    getDogsByIds(idKey.split(",")).then((rows) => { if (live) { setFollowedRows(rows); setLoadedIdKey(idKey); } }).catch(() => { if (live) { setFollowError(true); setLoadedIdKey(idKey); } });
     return () => { live = false; };
   }, [idKey]);
   /* Most recently seen first. Somebody opens this page to find out what has
@@ -187,7 +190,9 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
     );
   }
 
-  if (followed.length === 0) {
+  if (loadedIdKey !== idKey) return <p className="cp-state" role="status">Loading your followed records…</p>;
+
+  if (followed.length === 0 || followError) {
     return (
       <div className="spa-empty follow-empty follow-empty-error">
         <Constellation size={132} />
