@@ -557,74 +557,97 @@
   .ld-dive-stage::after { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 58vw); z-index: 1; pointer-events: none; background: linear-gradient(90deg, var(--sp-night) 0%, var(--sp-night) 55%, rgba(7, 20, 43, 0) 100%); }
 }
 
-/* ── The register: one dog, opening into five ───────────────────────────
-   A small, sleek band on the night ground. It rests on a single dog; as it
-   scrolls into view (.is-open) the one opens into a row of five real public
-   profiles, each a resident's photograph with its StrayPaw ID beneath. The
-   cells collapse toward the centre when closed and spread, staggered from
-   the middle out, when open. Reduced motion shows all five, already open. */
-.rx { position: relative; background: var(--sp-deep); color: var(--sp-night-text); padding: clamp(48px, 7vw, 96px) var(--sp-gutter); overflow: hidden; }
+/* ── The register: a living contact sheet of filed records ─────────────
+   On the night ground, the register shown as the kept archive it is. Rows
+   of real resident photographs advance in an endless loop (adjacent rows
+   opposite ways); each frame is one entry — a contact-sheet number, its
+   StrayPaw record id, and, on attention, the record itself: locality, when
+   first seen, and its honest ABC/ARV marks. No glow, no decoration: the
+   faces and the record carry the section. Reduced motion holds the rows
+   still as scrollable strips so every record stays reachable. */
+.rx { position: relative; background: var(--sp-deep); color: var(--sp-night-text); padding: clamp(40px, 5.5vw, 76px) var(--sp-gutter) clamp(44px, 6vw, 84px); overflow: hidden; }
 
-/* The ground is quietly alive: faint record-lights drift and breathe, most
-   sky (recorded), a couple of flame (attention) — the map's own encoding. */
-.rx-field { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.rx-spark { position: absolute; border-radius: 50%; background: var(--sp-sky); opacity: 0; box-shadow: 0 0 6px currentColor; color: var(--sp-sky); animation: rx-twinkle var(--t, 12s) ease-in-out var(--dl, 0s) infinite; }
-.rx-spark.is-flame { background: var(--sp-flame); color: var(--sp-flame); }
-@keyframes rx-twinkle { 0%, 100% { opacity: 0; transform: translateY(7px) scale(0.7); } 50% { opacity: 0.55; transform: translateY(-7px) scale(1); } }
-
-.rx-words { position: relative; z-index: 1; max-width: 60ch; margin: 0 auto var(--sp-6); display: grid; gap: var(--sp-2); justify-items: center; text-align: center; }
-.rx-kicker { margin: 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-sky); }
-.rx h2 { margin: 0; font-size: clamp(26px, 3.6vw, 46px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 600; text-wrap: balance; color: var(--sp-night-text); }
-.rx h2 em { font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: var(--sp-sky); }
-.rx-n { font-variant-numeric: tabular-nums; }
-.rx-cta { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; vertical-align: middle; font-family: var(--font-sans); font-style: normal; font-size: 13px; font-weight: 600; color: var(--sp-sky); text-decoration: none; border-bottom: 1px solid rgba(143, 183, 255, 0.4); }
+/* The rail: one ruled line, like the head of a ledger page. */
+.rx-rail { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-5); margin: 0 0 var(--sp-5); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--sp-night-line); }
+.rx-kicker { margin: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-sky); }
+.rx-live { width: 6px; height: 6px; border-radius: 50%; background: var(--sp-flame); }
+.rx h2 { margin: 0; flex: 1 1 auto; min-width: 0; font-size: clamp(22px, 2.8vw, 36px); line-height: 1.04; letter-spacing: -0.02em; font-weight: 600; color: var(--sp-night-text); text-wrap: balance; }
+.rx-n { font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -0.015em; }
+.rx-lbl { font-weight: 500; color: var(--sp-night-dim); }
+.rx-cta { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--sp-sky); text-decoration: none; border-bottom: 1px solid rgba(143, 183, 255, 0.4); }
 .rx-cta:hover { border-bottom-color: var(--sp-sky); }
 
-/* The wall: three rows sliding in an endless loop, edges faded to the ground. */
-.rx-wall { position: relative; z-index: 1; display: grid; gap: clamp(10px, 1.4vw, var(--sp-4)); }
+/* The wall: the rows of entries, edges faded into the ground. */
+.rx-wall { position: relative; z-index: 1; display: grid; gap: clamp(8px, 1vw, var(--sp-3)); }
 .rx-row { overflow: hidden; }
-.rx-track { display: flex; gap: clamp(10px, 1.4vw, var(--sp-4)); width: max-content; padding: 2px 0; animation: rx-drift linear infinite; animation-duration: calc(var(--n, 8) * 4.4s); will-change: transform; }
+.rx-track { display: flex; gap: clamp(8px, 1vw, var(--sp-3)); width: max-content; padding: 1px 0; animation: rx-drift linear infinite; animation-duration: calc(var(--n, 8) * 4.6s); will-change: transform; }
 .rx-row.is-r .rx-track { animation-direction: reverse; }
 .rx-wall:hover .rx-track, .rx-track:focus-within { animation-play-state: paused; }
 @keyframes rx-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-.rx-card { flex: 0 0 auto; width: clamp(130px, 15vw, 184px); display: grid; gap: var(--sp-2); text-decoration: none; color: inherit; }
-.rx-shot {
-  position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-night); border-radius: var(--sp-radius-lg);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 16px 36px rgba(0, 0, 0, 0.4);
+/* One entry: a filed print, keylined like a contact sheet, not a card. */
+.rx-entry { flex: 0 0 auto; width: clamp(122px, 13.5vw, 170px); text-decoration: none; color: inherit; }
+.rx-frame {
+  position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sp-night);
+  border-radius: var(--sp-radius);
+  box-shadow: inset 0 0 0 1px rgba(239, 231, 218, 0.10), 0 10px 22px rgba(0, 0, 0, 0.34);
   transition: transform var(--sp-base) var(--sp-ease), box-shadow var(--sp-base) var(--sp-ease);
 }
-.rx-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform var(--sp-slow) var(--sp-ease); }
-.rx-id {
-  position: absolute; left: var(--sp-2); bottom: var(--sp-2); z-index: 2;
-  display: inline-flex; align-items: center; height: 20px; padding: 0 7px;
-  border-radius: var(--ctl-r-row); background: rgba(7, 20, 43, 0.82); color: var(--sp-sky);
-  font-size: 10px; letter-spacing: 0.03em;
-}
-.rx-place { margin: 0; text-align: center; font-size: 11.5px; color: rgba(239, 231, 218, 0.62); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (hover: hover) {
-  .rx-card:hover .rx-shot { transform: translateY(-4px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 24px 48px rgba(0, 0, 0, 0.55); }
-  .rx-card:hover .rx-shot img { transform: scale(1.05); }
-}
-.rx-card:focus-visible { outline: none; }
-.rx-card:focus-visible .rx-shot { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
+.rx-frame img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform var(--sp-slow) var(--sp-ease); }
+/* The contact-sheet frame number, quiet in the corner. */
+.rx-no { position: absolute; left: 8px; top: 7px; z-index: 2; font-size: 9.5px; letter-spacing: 0.08em; color: rgba(239, 231, 218, 0.7); text-shadow: 0 1px 5px rgba(7, 20, 43, 0.95); }
+/* Resting: the record id along the foot. */
+.rx-tag { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 16px 9px 8px; font-size: 10.5px; letter-spacing: 0.02em; color: var(--sp-sky); background: linear-gradient(to top, rgba(7, 20, 43, 0.92), rgba(7, 20, 43, 0)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: opacity var(--sp-base) var(--sp-ease); }
+/* The record slip, waiting below the frame until it has attention. */
+.rx-slip { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: grid; gap: 5px; padding: 18px 9px 9px; background: linear-gradient(to top, rgba(7, 20, 43, 0.97) 72%, rgba(7, 20, 43, 0)); transform: translateY(101%); transition: transform var(--sp-base) var(--sp-ease); }
+.rx-slip-place { font-size: 11.5px; font-weight: 600; color: var(--sp-night-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-marks { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 7px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.03em; color: var(--sp-night-dim); }
+/* ABC/ARV, drawn honestly: filled done, hollow not, dashed not examined. */
+.rx-mk { width: 8px; height: 8px; border-radius: 50%; box-sizing: border-box; margin-right: 1px; }
+.rx-mk.is-yes { background: var(--sp-sky); border: 1px solid var(--sp-sky); }
+.rx-mk.is-vac.is-yes { background: var(--sp-arv); border-color: var(--sp-arv); }
+.rx-mk.is-no { background: transparent; border: 1px solid rgba(239, 231, 218, 0.55); }
+.rx-mk.is-unknown { background: transparent; border: 1px dotted rgba(239, 231, 218, 0.4); }
+.rx-marks em { margin-left: auto; font-style: normal; color: var(--sp-night-dim); }
 
-.rx-edge { position: absolute; top: 0; bottom: 0; width: clamp(28px, 7vw, 110px); z-index: 3; pointer-events: none; }
+@media (hover: hover) {
+  .rx-entry:hover .rx-frame { transform: translateY(-5px); box-shadow: inset 0 0 0 1px rgba(239, 231, 218, 0.16), 0 18px 34px rgba(0, 0, 0, 0.5); }
+  .rx-entry:hover .rx-frame img { transform: scale(1.04); }
+  .rx-entry:hover .rx-tag { opacity: 0; }
+  .rx-entry:hover .rx-slip { transform: none; }
+}
+.rx-entry:focus-visible { outline: none; }
+.rx-entry:focus-visible .rx-frame { outline: 2px solid var(--sp-sky); outline-offset: 2px; }
+.rx-entry:focus-visible .rx-tag { opacity: 0; }
+.rx-entry:focus-visible .rx-slip { transform: none; }
+
+.rx-edge { position: absolute; top: 0; bottom: 0; width: clamp(24px, 6vw, 96px); z-index: 4; pointer-events: none; }
 .rx-edge.is-left { left: 0; background: linear-gradient(90deg, var(--sp-deep), rgba(7, 22, 48, 0)); }
 .rx-edge.is-right { right: 0; background: linear-gradient(270deg, var(--sp-deep), rgba(7, 22, 48, 0)); }
 
+/* The register is live: one restrained pulse on the rail's own mark. */
+@media (prefers-reduced-motion: no-preference) {
+  .rx-live { animation: rx-pulse 2.6s var(--sp-ease-io) infinite; }
+}
+@keyframes rx-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(240, 91, 64, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(240, 91, 64, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(240, 91, 64, 0); }
+}
+
 @media (max-width: 760px) {
-  .rx h2 { font-size: clamp(24px, 7vw, 36px); }
-  .rx-card { width: clamp(118px, 38vw, 150px); }
-  .rx-place { font-size: 11px; }
+  .rx h2 { font-size: clamp(20px, 6vw, 28px); }
+  .rx-cta { margin-left: auto; }
+  .rx-entry { width: clamp(116px, 40vw, 150px); }
 }
 
 /* Reduced motion: no drift; rows become manual horizontal strips. */
-@media (prefers-reduced-motion: reduce) { .rx-track { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .rx-track, .rx-live { animation: none; } }
 .rx.is-calm .rx-track { animation: none; width: auto; }
 .rx.is-calm .rx-row { overflow-x: auto; scrollbar-width: none; }
 .rx.is-calm .rx-row::-webkit-scrollbar { display: none; }
-.rx.is-calm .rx-edge, .rx.is-calm .rx-field { display: none; }
+.rx.is-calm .rx-edge { display: none; }
+.rx.is-calm .rx-live { animation: none; }
 
 /* The report's own photograph on the resident's phone, and the
    municipality's screen as the live map's night ground. */

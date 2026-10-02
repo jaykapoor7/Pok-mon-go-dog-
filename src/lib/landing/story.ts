@@ -30,8 +30,8 @@ const LANDING_LIMITS = {
   cityFacts: 1_200,
   joinedCare: 600,
   relayCandidates: 24,
-  registerCandidates: 96,
-  registerCards: 24,
+  registerCandidates: 120,
+  registerCards: 30,
   registerCases: 240,
   registerCare: 360,
 } as const;
