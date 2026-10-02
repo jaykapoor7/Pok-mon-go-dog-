@@ -484,3 +484,13 @@ html .spa.spa.spa-desk .spa-main label.border:has(> svg):has(> input) {
   transition: border-color var(--sp-fast) var(--sp-ease-io), box-shadow var(--sp-fast) var(--sp-ease-io);
 }
 html .spa.spa.spa-desk .spa-main label.border:has(> svg):focus-within { border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+
+/* The signed-out pair at the foot of the night sidebar. Its colours were
+   set for a light rail: "I have a code" kept a deep-blue label on navy
+   (2.2:1) and "Sign in" was ink on night. On the night ground the primary
+   is sky with a night label and the secondary a sky tint with a sky
+   label. */
+html .spa.spa.spa-desk .spa-side .spa-profile-links.out a.pp-signin { background: var(--sp-sky); color: var(--sp-night); }
+html .spa.spa.spa-desk .spa-side .spa-profile-links.out a.pp-signin:hover { background: #a6c6ff; color: var(--sp-night); }
+html .spa.spa.spa-desk .spa-side .spa-profile-links.out a.pp-code { background: rgba(143, 183, 255, 0.12); color: var(--sp-sky); }
+html .spa.spa.spa-desk .spa-side .spa-profile-links.out a.pp-code:hover { background: rgba(143, 183, 255, 0.2); color: var(--sp-sky); }
