@@ -150,3 +150,5 @@
   .lg svg { animation: lg-drift 70s ease-in-out infinite alternate; }
 }
 @keyframes lg-drift { from { transform: scale(1) translate(-1.2%, -0.8%); } to { transform: scale(1.06) translate(1.2%, 0.8%); } }
+/* PlaceGround: the living city behind a plate or a hero. */
+.place-ground { position: absolute; inset: 0; z-index: 0; pointer-events: none; }

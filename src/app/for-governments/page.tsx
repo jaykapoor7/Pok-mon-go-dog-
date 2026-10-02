@@ -10,6 +10,7 @@ import { getSupabase } from "@/lib/supabase";
 import "@/components/site/site.css";
 import "@/components/company/company.css";
 import "./cities.css";
+import { PlaceGround } from "@/components/system/PlaceGround";
 
 export const revalidate = 300;
 export const metadata = {
@@ -94,31 +95,19 @@ export default async function ForGovernmentsPage() {
             {city && plateBox && plateCells.length > 0 && (
               <figure className="gv-plate">
                 <HexPlate night width={560} height={460} box={plateBox} cells={plateCells} label={`Coverage of ${city.city}: each recorded cell drawn by how well it is mapped`} scaleBarKm={2} />
-                <figcaption><span className="sys-mono">{city.city} · live</span>Each cell about 0.7 km². Brighter is better mapped.</figcaption>
+                <figcaption>
+                  <span className="sys-mono">{city.city} · live · each cell about 0.7 km²</span>
+                  <ul className="gv-legend">
+                    {(["strong", "partial", "weak", "insufficient"] as const).map((c) => (
+                      <li key={c}><i className={`gv-sw is-${c}`} aria-hidden />{c === "strong" ? "Strong record" : c === "partial" ? "Partial" : c === "weak" ? "Thin" : "Small"}<b>{fmt(byCov.get(c) ?? 0)}</b></li>
+                    ))}
+                  </ul>
+                  <span className="gv-legend-note">A place not mapped is a place nobody has recorded, not a place without dogs.</span>
+                </figcaption>
               </figure>
             )}
           </div>
         </section>
-
-        {city && (
-          <section className="co-sec" aria-labelledby="gv-cov">
-            <div className="co-sec-in">
-              <header className="co-sec-head">
-                <h2 id="gv-cov">Coverage, <em>and the unmapped gaps.</em></h2>
-                <p>How well each place in {city.city} is recorded, by the same rules the map uses. A place not mapped is a place nobody has recorded, not a place without dogs.</p>
-              </header>
-              <ol className="gv-cov">
-                {(["strong", "partial", "weak", "insufficient"] as const).map((c) => (
-                  <li key={c}>
-                    <i className={`gv-sw is-${c}`} aria-hidden />
-                    <span><b>{c === "strong" ? "Strong record" : c === "partial" ? "Partial record" : c === "weak" ? "Thin record" : "Small record"}</b><small>Based on the number of animals recorded in this cell.</small></span>
-                    <strong>{fmt(byCov.get(c) ?? 0)}<small>{(byCov.get(c) ?? 0) === 1 ? "cell" : "cells"}</small></strong>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </section>
-        )}
 
         {city && topLoc && oneCell && (
           <section className="co-sec is-shell" aria-labelledby="gv-roll">
@@ -152,63 +141,49 @@ export default async function ForGovernmentsPage() {
         <section className="co-sec" aria-labelledby="gv-q">
           <div className="co-sec-in">
             <header className="co-sec-head">
-              <h2 id="gv-q">Questions a municipality <em>can answer.</em></h2>
-              <p>Each one is answered from the record, on a page anyone can open.</p>
+              <h2 id="gv-q">What the record <em>answers.</em></h2>
+              <p>{city ? `Sterilisation and vaccination are for ${city.city}; area facts and programmes across the public register.` : "Across the public register."} Each answer is on a page anyone can open.</p>
+              <dl className="gv-figs is-compact">
+                <div><dt>Sterilisations (ABC)</dt><dd>{fmt(abc)}</dd></div>
+                <div><dt>Rabies vaccinations (ARV)</dt><dd>{fmt(arv)}</dd></div>
+                <div><dt>Census figures, by area</dt><dd>{fmt(pc.areaFacts)}</dd></div>
+                <div><dt>Programmes and drives</dt><dd>{fmt(pc.programmes)}</dd></div>
+              </dl>
             </header>
             <ol className="co-rows">
-              <li><span className="co-n">01</span><span><b>Which localities has nobody recorded?</b><p>The unmapped edge of the record, drawn and counted, so a drive can be planned where the gaps are.</p></span><Link className="gv-q-go" href="/map">Map</Link></li>
-              <li><span className="co-n">02</span><span><b>How many animals are known to be sterilised, and of how many checked?</b><p>Every rate shown twice: of the animals actually examined, and of everything on record.</p></span><Link className="gv-q-go" href="/insights">Insights</Link></li>
-              <li><span className="co-n">03</span><span><b>How quickly do requests get a field response?</b><p>Time to first action and to closure, from recorded dates only; assumed dates are counted and left out.</p></span><Link className="gv-q-go" href="/insights">Insights</Link></li>
-              <li><span className="co-n">04</span><span><b>What happened to a particular animal?</b><p>One StrayPaw ID carries every report, case, treatment and outcome, with who recorded each.</p></span><Link className="gv-q-go" href="/stories">Stories</Link></li>
+              <li><span className="co-n">01</span><span><b>Which localities has nobody recorded?</b><p>The unmapped edge, drawn and counted, so a drive can go where the gaps are.</p></span><Link className="gv-q-go" href="/map">Map</Link></li>
+              <li><span className="co-n">02</span><span><b>How many are sterilised, of how many checked?</b><p>Every rate shown twice: of the animals examined, and of everything on record.</p></span><Link className="gv-q-go" href="/insights">Insights</Link></li>
+              <li><span className="co-n">03</span><span><b>How fast do requests get a field response?</b><p>From recorded dates only; assumed dates are counted and left out.</p></span><Link className="gv-q-go" href="/insights">Insights</Link></li>
+              <li><span className="co-n">04</span><span><b>What happened to a particular animal?</b><p>One StrayPaw ID carries every report, case, treatment and outcome.</p></span><Link className="gv-q-go" href="/stories">Stories</Link></li>
             </ol>
           </div>
         </section>
 
-        <section className="co-sec is-shell" aria-labelledby="gv-prog">
-          <div className="co-sec-in">
+        <section className="co-sec is-shell" aria-labelledby="gv-import">
+          <div className="co-sec-in is-stack">
             <header className="co-sec-head">
-              <h2 id="gv-prog">ABC, ARV, census <em>and programme records.</em></h2>
-              <p>{city ? `Sterilisation and vaccination figures are for ${city.city}. Area facts and published programmes are counted across the public register.` : "Published area facts and programmes across the public register."}</p>
+              <h2 id="gv-import">Your data in, <em>its source kept.</em></h2>
+              <p>Existing municipal and NGO records come in as they are, mapped and checked before anything is added.</p>
             </header>
-            <dl className="gv-figs">
-              <div><dt>Sterilisations (ABC) on record</dt><dd>{fmt(abc)}</dd></div>
-              <div><dt>Anti-rabies vaccinations (ARV) on record</dt><dd>{fmt(arv)}</dd></div>
-              <div><dt>Census and survey figures, by area</dt><dd>{fmt(pc.areaFacts)}</dd></div>
-              <div><dt>Published programmes and drives</dt><dd>{fmt(pc.programmes)}</dd></div>
-            </dl>
+            <div className="ngo-join">
+              <ol className="co-steps">
+                <li><b>Census and survey tables</b><p>Ward and zone counts stay area facts, never invented animals.</p></li>
+                <li><b>ABC and ARV registers</b><p>Care on an animal where a row identifies one; a counted fact where it does not.</p></li>
+                <li><b>NGO rescue registers</b><p>Imported as history, placed no finer than the source allows, reporters left out.</p></li>
+              </ol>
+              <ul className="ngo-terms">
+                <li><b>Every record badged</b> with where it came from.</li>
+                <li><b>Absence recorded</b>, never counted as zero.</li>
+                <li><b>Nothing merged on a guess</b>: a field team confirms.</li>
+                <li><b>Every source named</b>, on <Link href="/evidence">the evidence page</Link>.</li>
+              </ul>
+              {pc.municipal.length > 0 && <p className="gv-already">Already imported with their source: {pc.municipal.join(", ")}.</p>}
+            </div>
           </div>
         </section>
 
-        <section className="co-sec" aria-labelledby="gv-import">
-          <div className="co-sec-in">
-            <header className="co-sec-head">
-              <h2 id="gv-import">Bring the data <em>you already hold.</em></h2>
-              <p>Existing municipal and NGO records come in as they are, mapped and checked before anything is added, with their source kept.</p>
-            </header>
-            <ol className="co-steps">
-              <li><b>Census and survey tables</b><p>Ward and zone counts stay area facts; they are never turned into invented animals.</p></li>
-              <li><b>ABC and ARV registers</b><p>Each row becomes care on an animal where the register identifies one, and a counted fact where it does not.</p></li>
-              <li><b>NGO rescue registers</b><p>Imported as history, dated by the event, placed no finer than the source allows, with reporters&apos; names left out.</p></li>
-            </ol>
-            {pc.municipal.length > 0 && <p className="gv-already">Already imported with their source: {pc.municipal.join(", ")}.</p>}
-          </div>
-        </section>
-
-        <section className="co-sec is-shell" aria-labelledby="gv-prov">
-          <div className="co-sec-in">
-            <header className="co-sec-head">
-              <h2 id="gv-prov">Provenance <em>on every figure.</em></h2>
-            </header>
-            <ul className="co-terms">
-              <li><b>Where each record came from</b><p>A resident report, a field intake or an imported register, badged on the record itself.</p></li>
-              <li><b>Absence is recorded</b><p>A place with no data is reported as not recorded, never as zero coverage.</p></li>
-              <li><b>Nothing merged on a guess</b><p>Two reports become one animal only when a field team confirms it.</p></li>
-              <li><b>Every source is named</b><p>Licence, date and department, on <Link href="/evidence">the evidence page</Link>.</p></li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="co-close">
+        <section className="co-close has-ground">
+          <PlaceGround className="co-hero-ground" caption={null} city={city?.city} />
           <div className="co-close-in">
             <div>
               <h2>Start with one ward, <em>one quarter.</em></h2>

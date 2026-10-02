@@ -34,20 +34,9 @@ export function OrgPlace({ children }: { children: ReactNode }) {
   }, []);
   return <DeskPlace.Provider value={city}>{children}</DeskPlace.Provider>;
 }
-import { LiveGround, type GroundData } from "@/components/system/LiveGround";
+import { PlaceGround } from "@/components/system/PlaceGround";
 
 export type DeskFigure = { label: string; value: number | string | null | undefined; tone?: "attention" | "quiet"; href?: string };
-
-const grounds = new Map<string, Promise<GroundData | null>>();
-function loadGround(city: string | null | undefined): Promise<GroundData | null> {
-  const key = city?.trim() || "";
-  if (!grounds.has(key)) {
-    grounds.set(key, fetch(`/api/ground${key ? `?city=${encodeURIComponent(key)}` : ""}`)
-      .then((r) => (r.ok ? (r.json() as Promise<GroundData>) : null))
-      .catch(() => { grounds.delete(key); return null; }));
-  }
-  return grounds.get(key)!;
-}
 
 const fmt = (v: DeskFigure["value"]) => (v === null || v === undefined || v === "" ? "—" : typeof v === "number" ? v.toLocaleString("en-IN") : v);
 
@@ -66,36 +55,10 @@ export function DeskHeader({ kicker, title, lede, figures, actions, city, ground
 }) {
   const spacePlace = useContext(DeskPlace);
   const place = city === undefined ? spacePlace : city;
-  const [ground, setGround] = useState<GroundData | null>(null);
-  const [el, setEl] = useState<HTMLElement | null>(null);
-  const [seen, setSeen] = useState(false);
-  const [calm, setCalm] = useState(false);
-
-  useEffect(() => {
-    if (!withGround) { setGround(null); return; }
-    let live = true;
-    loadGround(place).then((g) => { if (live) setGround(g); });
-    return () => { live = false; };
-  }, [place, withGround]);
-
-  useEffect(() => {
-    const m = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setCalm(m.matches);
-    sync(); m.addEventListener("change", sync);
-    return () => m.removeEventListener("change", sync);
-  }, []);
-
-  useEffect(() => {
-    if (!el) return;
-    if (typeof IntersectionObserver === "undefined") { setSeen(true); return; }
-    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [el]);
 
   return (
-    <header ref={setEl} className="dh">
-      {ground && <LiveGround data={ground} running={seen} calm={calm} replayMs={60_000} caption={`${ground.city} · on the record`} className="dh-ground" />}
+    <header className="dh">
+      <PlaceGround city={place} enabled={withGround} className="dh-ground" />
       <div className="dh-in">
         <div className="dh-copy">
           {kicker && <p className="dh-kicker sys-mono">{kicker}</p>}

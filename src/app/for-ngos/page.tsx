@@ -11,6 +11,7 @@ import "@/components/site/site.css";
 import "@/components/landing/landing.css";
 import "@/components/orgs/partners.css";
 import "@/components/company/company.css";
+import { PlaceGround } from "@/components/system/PlaceGround";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -47,46 +48,36 @@ export default async function ForNgosPage() {
     <div className="co ngo">
       <SiteHeader tone="night" />
       <main>
-        <section className="co-hero is-solo">
+        <section className="co-hero has-ground ngo-hero">
+          <PlaceGround className="co-hero-ground" caption={null} city={story?.hero.city} />
           <div className="co-hero-in">
             <div className="co-hero-copy">
               <p className="co-kicker">Field Workspace · for NGOs</p>
               <h1>Run your field work on one record. <em>Keep it&nbsp;yours.</em></h1>
-              <p className="co-lede">Cases, animals, care, reports and imports in the Field Workspace, so the next person on your team knows what was done, and a funder can see it months later.</p>
+              <p className="co-lede">Cases, animals, care, reports and imports in one workspace, so the next person on your team knows what was done, and a funder can see it months later. Free for verified organisations.</p>
               <p className="co-acts">
                 <Link href="/partner-apply" className="sys-btn is-flame">Apply to partner <ArrowUpRight size={15} /></Link>
-                <Link href="/join" className="co-link">I have a code <ArrowUpRight size={14} /></Link>
+                <Link href="/join" className="co-link is-night">I have a code <ArrowUpRight size={14} /></Link>
               </p>
             </div>
+            {story && (
+              <div className="ngo-hero-desk">
+                <DeskMock city={story.hero.city} desk={story.desk} />
+                <p className="ngo-hero-cap">The Field Workspace, replaying {story.hero.city}’s recent record. <Link href="/partner">Open it <ArrowUpRight size={13} /></Link></p>
+              </div>
+            )}
           </div>
         </section>
 
-        {story && (
-          <section className="co-sec is-shell" aria-labelledby="co-workspace">
-            <div className="co-sec-in">
-              <header className="co-sec-head">
-                <h2 id="co-workspace">The Field Workspace, <em>in motion.</em></h2>
-                <p>A working view of what a partner team opens: live cases, urgent follow-ups and the local map.</p>
-              </header>
-              <DeskMock city={story.hero.city} desk={story.desk} />
-              <p className="co-more"><Link href="/partner">Open the Field Workspace <ArrowUpRight size={14} /></Link></p>
-            </div>
-          </section>
-        )}
-
         <section className="co-sec" aria-labelledby="co-what">
-          <div className="co-sec-in">
+          <div className="co-sec-in is-stack">
             <header className="co-sec-head">
-              <h2 id="co-what">What the Field Workspace <em>holds.</em></h2>
-              <p>The parts of field work nobody funds and everybody needs, kept in one place.</p>
+              <h2 id="co-what">What the workspace <em>holds.</em></h2>
+              <p>The parts of field work nobody funds and everybody needs, in one place.</p>
             </header>
-            <ol className="co-rows">
+            <ol className="ngo-holds">
               {rows.map((r, i) => (
-                <li key={r.t}>
-                  <span className="co-n">{String(i + 1).padStart(2, "0")}</span>
-                  <span><b>{r.t}</b><p>{r.d}</p></span>
-                  <span />
-                </li>
+                <li key={r.t}><span className="co-n">{String(i + 1).padStart(2, "0")}</span><b>{r.t}</b><p>{r.d}</p></li>
               ))}
             </ol>
           </div>
@@ -143,25 +134,16 @@ export default async function ForNgosPage() {
 
         {ngos.length > 0 && (
           <section className="co-sec" aria-labelledby="co-who">
-            <div className="co-sec-in">
+            <div className="co-sec-in is-stack">
               <header className="co-sec-head">
-                <h2 id="co-who">Partner NGOs, <em>on the record.</em></h2>
-                <p>Organisations keep their own public identity and records. Open one to see its published coverage and work.</p>
+                <h2 id="co-who">Already <em>on the record.</em></h2>
               </header>
-              <div>
-                <ul className="co-orgs">
-                  {ngos.map((o) => (
-                    <li key={o.id}>
-                      <Link href={`/org/${o.slug}`}>
-                        <OrgMark name={o.name} logoUrl={o.logoUrl} size={40} />
-                        <span><b>{o.name}</b><small>{[o.city, o.state].filter(Boolean).join(", ")}</small></span>
-                        <span className="co-orgs-n">{o.kind}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <p className="co-more"><Link href="/orgs">All partner NGOs <ArrowUpRight size={14} /></Link></p>
-              </div>
+              <ul className="ngo-marks">
+                {ngos.slice(0, 10).map((o) => (
+                  <li key={o.id}><Link href={`/org/${o.slug}`}><OrgMark name={o.name} logoUrl={o.logoUrl} size={34} /><span><b>{o.name}</b><small>{[o.city, o.state].filter(Boolean).join(", ")}</small></span></Link></li>
+                ))}
+              </ul>
+              <p className="co-more"><Link href="/orgs">All partner NGOs <ArrowUpRight size={14} /></Link></p>
             </div>
           </section>
         )}
@@ -169,34 +151,27 @@ export default async function ForNgosPage() {
         <section className="co-sec is-shell" aria-labelledby="co-how">
           <div className="co-sec-in">
             <header className="co-sec-head">
-              <h2 id="co-how">Joining takes <em>three steps.</em></h2>
+              <h2 id="co-how">Three steps, <em>plain terms.</em></h2>
               <p>Free for verified animal-welfare organisations.</p>
             </header>
-            <ol className="co-steps">
-              <li><b>Apply</b><p>Tell us who you are and the area you cover.</p></li>
-              <li><b>Get your code</b><p>Once verified, your team lead gets an access code and adds the rest of the team.</p></li>
-              <li><b>Bring your records</b><p>Upload the spreadsheets and registers you already keep; they are mapped before anything is added.</p></li>
-            </ol>
+            <div className="ngo-join">
+              <ol className="co-steps">
+                <li><b>Apply</b><p>Tell us who you are and the area you cover.</p></li>
+                <li><b>Get your code</b><p>Once verified, your team lead gets a code and adds the team.</p></li>
+                <li><b>Bring your records</b><p>Upload the registers you keep; each is mapped before anything is added.</p></li>
+              </ol>
+              <ul className="ngo-terms">
+                <li><b>Private to your team</b> until you publish.</li>
+                <li><b>Reporters stay private</b>, always.</li>
+                <li><b>Your records leave with you</b>: export any time.</li>
+                <li><b>We do no field work</b> and compete for no grants.</li>
+              </ul>
+            </div>
           </div>
         </section>
 
-        <section className="co-sec" aria-labelledby="co-terms">
-          <div className="co-sec-in">
-            <header className="co-sec-head">
-              <h2 id="co-terms">The terms, <em>plainly.</em></h2>
-            </header>
-            <ul className="co-terms">
-              <li><b>Free</b><p>Verified animal-welfare organisations use the Field Workspace at no cost.</p></li>
-              <li><b>Private to your team</b><p>Your workspace is visible only to your verified members.</p></li>
-              <li><b>You decide what is public</b><p>The public sees only what your organisation chooses to publish.</p></li>
-              <li><b>Reporters stay private</b><p>The names and contacts of people who report are never published.</p></li>
-              <li><b>We do no field work</b><p>StrayPaw does not run programmes or compete for your grants.</p></li>
-              <li><b>Your records leave with you</b><p>Export your cases, animals and care whenever you need them.</p></li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="co-close">
+        <section className="co-close has-ground">
+          <PlaceGround className="co-hero-ground" caption={null} city={story?.hero.city} />
           <div className="co-close-in">
             <div>
               <h2>Bring your field records. <em>Keep them yours.</em></h2>
