@@ -13,6 +13,7 @@ import { DogPhoto } from "@/components/ui/DogPhoto";
 import { CASE_CATEGORY_META, CASE_SEVERITY_META, type CaseCategory, type CaseSeverity, } from "@/lib/types";
 import { CITIES } from "@/lib/geo/cities";
 import { cn, dogLabel } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 const CATEGORIES = Object.keys(CASE_CATEGORY_META) as CaseCategory[];
 const SEVERITIES: CaseSeverity[] = ["low", "normal", "high", "critical"];
@@ -126,10 +127,13 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <Link href="/partner/cases" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-bark-500 hover:text-paw-600"><ArrowLeft className="h-4 w-4" /> Cases</Link>
-      <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">New case</h1>
-      <p className="mt-0.5 text-[13px] text-bark-500">Link the case to an animal in your registry, or add a new one with a photo.</p>
+    <div className="dk-form-page">
+      <DeskHeader
+        kicker="Records · new case"
+        title="Open a rescue case"
+        lede="Link it to an animal already on your record, or add a new one with a photo. The incident’s own locality is what gets saved."
+        actions={<Link href="/partner/cases" className="dk-btn is-tint"><ArrowLeft size={15} /> Cases</Link>}
+      />
 
       {/* Opening a case writes to the organisation's records, which the
           database refuses from anyone who is not an organisation member. Better

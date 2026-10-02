@@ -7,6 +7,7 @@ import { getMyOrgCampaigns } from "@/lib/actions";
 import { formatINR } from "@/lib/fundraisers";
 import type { Fundraiser } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 // Need → Campaign. Common DDS needs prefill a new campaign's title.
 const NEEDS = [
@@ -26,15 +27,13 @@ export function PartnerFundraising() {
 
   return (
     <div>
-      <header className="mb-5 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-bark-900 dark:text-bark-50">Fundraising</h1>
-          <p className="mt-0.5 text-[13px] text-bark-500">Turn real needs into campaigns. StrayPaw links out, it never holds the money.</p>
-        </div>
-        <Link href="/partner/fundraisers/new" className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-paw-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-paw-600">
-          <Plus className="h-4 w-4" /> New campaign
-        </Link>
-      </header>
+      <DeskHeader
+        kicker="Organisation · fundraising"
+        title="Fundraising"
+        lede="Turn real needs into campaigns. StrayPaw links out to your own page; it never holds the money."
+        figures={[{ label: "campaigns", value: loading ? null : campaigns.length }]}
+        actions={<Link href="/partner/fundraisers/new" className="dk-btn"><Plus size={16} /> New campaign</Link>}
+      />
 
       <section className="mb-8">
         <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">Start from a need</h2>

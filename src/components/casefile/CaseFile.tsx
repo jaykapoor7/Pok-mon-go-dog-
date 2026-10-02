@@ -12,6 +12,7 @@
    is the only place anything is changed.
    ════════════════════════════════════════════════════════════════════ */
 
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { CASE_CATEGORY_META } from "@/lib/types";
 import { WorkTrail, type TrailStep } from "@/components/partner/WorkTrail";
 import Link from "next/link";
@@ -51,30 +52,26 @@ export function CaseFile({ id }: { id: string }) {
     load();
   }, [ready, accessReady, user, member, load]);
 
-  if (!ready || !accessReady || file === undefined) return <main className="cf"><p className="cf-state"><Loader2 size={16} className="animate-spin" /> Opening the case…</p></main>;
+  if (!ready || !accessReady || file === undefined) return <main className="cf"><DeskHeader kicker="Records · case" title="Opening the case…" /></main>;
   if (!user) return (
     <main className="cf">
-      <div className="cf-gate">
-        <h1>This case is kept by an organisation.</h1>
-        <p>Cases hold what callers said and where an animal was found, so only the organisation that holds a case can open it. Sign in with your organisation account.</p>
-        <button type="button" className="sys-btn" onClick={openSignIn}><LogIn size={16} /> Sign in</button>
-      </div>
+      <DeskHeader kicker="Records · case" title="This case is kept by an organisation"
+        lede="Cases hold what callers said and where an animal was found, so only the organisation that holds a case can open it."
+        actions={<button type="button" className="dk-btn" onClick={openSignIn}><LogIn size={16} /> Sign in</button>} />
     </main>
   );
   if (!member) return (
     <main className="cf">
-      <div className="cf-gate">
-        <h1>Only the organisation that holds this case can open it.</h1>
-        <p>Your account is not a member of an organisation yet. <Link href="/partner-apply">Ask for organisation access</Link>.</p>
-      </div>
+      <DeskHeader kicker="Records · case" title="Only the organisation that holds this case can open it"
+        lede="Your account is not a member of an organisation yet."
+        actions={<Link href="/partner-apply" className="dk-btn is-tint">Ask for organisation access</Link>} />
     </main>
   );
   if (!file) return (
     <main className="cf">
-      <div className="cf-gate">
-        <h1>No case with this link in your organisation&rsquo;s register.</h1>
-        <p>{error ?? "It may belong to another organisation, or the link may be incomplete."} <Link href="/partner/cases">Back to all cases</Link>.</p>
-      </div>
+      <DeskHeader kicker="Records · case" title={<>No case with this link in your organisation&rsquo;s register</>}
+        lede={error ?? "It may belong to another organisation, or the link may be incomplete."}
+        actions={<Link href="/partner/cases" className="dk-btn is-tint">All cases</Link>} />
     </main>
   );
   return <Loaded file={file} reload={load} />;

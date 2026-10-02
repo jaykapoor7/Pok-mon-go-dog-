@@ -10,6 +10,7 @@
 import Link from "next/link";
 import { Crosshair, Plus } from "lucide-react";
 import { PlaceSearch, type PlaceOption } from "./PlaceSearch";
+import { DeskHeader } from "./DeskHeader";
 import "./place-gate.css";
 
 export type GateState = "ask" | "denied" | "abroad" | "unreached";
@@ -29,22 +30,20 @@ export function PlaceGate({ state, where, locating, onLocate, options, onPick, r
 }) {
   const c = state === "ask" && ask ? { ...COPY.ask, kicker: "Choose a place", ...ask } : COPY[state];
   return (
-    <section className="pg" aria-labelledby="pg-title">
-      <div className="pg-in">
-        <p className="pg-kicker sys-mono">{c.kicker}{where && state === "unreached" ? ` · ${where}` : ""}</p>
-        <h1 id="pg-title">{c.title}</h1>
-        <p className="pg-body">{c.body}</p>
-        <div className="pg-acts">
-          {state === "unreached" ? (
-            <Link href={reportHref} className="sys-btn is-flame"><Plus size={16} /> Report the first animal</Link>
-          ) : (
-            <button type="button" className="sys-btn" onClick={onLocate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
-          )}
-          <PlaceSearch options={options} onPick={onPick} label={state === "unreached" ? "Choose another place" : "Or type a place"} />
-        </div>
-        {state !== "unreached" && <p className="pg-foot">Seeing an animal right now? <Link href="/report">Report it</Link>, no place needed first.</p>}
-        {state === "unreached" && <p className="pg-foot">When the record reaches here, {what} fills in on its own.</p>}
-      </div>
-    </section>
+    <div className="pg">
+      <DeskHeader
+        ground={false}
+        kicker={`${c.kicker}${where && state === "unreached" ? ` · ${where}` : ""}`}
+        title={c.title}
+        lede={c.body}
+        actions={state === "unreached"
+          ? <Link href={reportHref} className="dk-btn is-flame"><Plus size={16} /> Report the first animal</Link>
+          : <button type="button" className="dk-btn" onClick={onLocate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>}
+      >
+        <div className="pg-search"><PlaceSearch options={options} onPick={onPick} label={state === "unreached" ? "Choose another place" : "Or type a place"} /></div>
+      </DeskHeader>
+      {state !== "unreached" && <p className="pg-foot">Seeing an animal right now? <Link href="/report">Report it</Link>, no place needed first.</p>}
+      {state === "unreached" && <p className="pg-foot">When the record reaches here, {what} fills in on its own.</p>}
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DeskHeader, type DeskFigure } from "@/components/app/DeskHeader";
 
 /* ════════════════════════════════════════════════════════════════════
    The console page.
@@ -38,6 +39,8 @@ export function ConsolePage({
   lede,
   actions,
   tabs,
+  figures,
+  city,
   children,
   /* A record screen (one animal, one case) is a document rather than a
      dashboard, so it gets the reading measure instead of the full width. */
@@ -48,22 +51,19 @@ export function ConsolePage({
   lede?: ReactNode;
   actions?: ReactNode;
   tabs?: ReactNode;
+  /** The page's own live numbers, drawn in the plate. */
+  figures?: DeskFigure[];
+  /** The place standing behind the plate. */
+  city?: string | null;
   children: ReactNode;
   width?: "full" | "read";
 }) {
+  /* The header is the desk plate now: the same night band with the place
+     living behind it that every in-app page opens on. */
   return (
     <div className={`cpage${width === "read" ? " cpage-read" : ""}`}>
-      <header className="cpage-head">
-        <div className="cpage-headline">
-          <div className="cpage-titling">
-            {kicker && <span className="cpage-kicker">{kicker}</span>}
-            <h1>{title}</h1>
-            {lede && <p className="cpage-lede">{lede}</p>}
-          </div>
-          {actions && <div className="cpage-actions">{actions}</div>}
-        </div>
-        {tabs}
-      </header>
+      <DeskHeader kicker={kicker} title={title} lede={lede} actions={actions} figures={figures} city={city} />
+      {tabs && <div className="cpage-tabs">{tabs}</div>}
       {children}
     </div>
   );

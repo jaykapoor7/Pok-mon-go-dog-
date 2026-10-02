@@ -35,8 +35,8 @@ const cleanCity = (city: string | null | undefined) => city?.replace(/\s+/g, " "
 /* Imports arrive with administrative aliases. A map must not make a tiny
  * "New Delhi" island beside Delhi, or split Hyderabad from Secunderabad. */
 const CITY_ALIAS: Record<string, string> = { "New Delhi": "Delhi", Secunderabad: "Hyderabad" };
-const canonicalCity = (city: string | null | undefined) => CITY_ALIAS[cleanCity(city)] ?? cleanCity(city);
-const cityVariants = (city: string) => [...new Set([city, ...Object.keys(CITY_ALIAS).filter((alias) => CITY_ALIAS[alias] === city)])];
+export const canonicalCity = (city: string | null | undefined) => CITY_ALIAS[cleanCity(city)] ?? cleanCity(city);
+export const cityVariants = (city: string) => [...new Set([city, ...Object.keys(CITY_ALIAS).filter((alias) => CITY_ALIAS[alias] === city)])];
 
 /* PostgREST rejects a giant UUID `in` URL before the query reaches Postgres.
  * Split only the relation lookup, then enforce the same aggregate cap after

@@ -9,6 +9,7 @@ import { uploadPhoto } from "@/lib/actions";
 import { createFundraiser } from "@/lib/fundraiser-actions";
 import { FUNDRAISER_CATEGORIES } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 export function NewFundraiserForm() {
   const { user } = useAuth();
@@ -89,13 +90,8 @@ export function NewFundraiserForm() {
         <ArrowLeft className="h-4 w-4" /> Fundraisers
       </Link>
 
-      <header className="mb-5">
-        <h1 className="font-display text-2xl sm:text-3xl">Start a fundraiser</h1>
-        <p className="text-sm text-bark-500">
-          Donors give directly through your own link, StrayPaw just hosts the
-          campaign and sends people your way.
-        </p>
-      </header>
+      <DeskHeader kicker="Fundraising · new campaign" title="Start a fundraiser"
+        lede="Donors give directly through your own link. StrayPaw hosts the campaign and sends people your way." />
 
       <div className="space-y-5">
         <div>

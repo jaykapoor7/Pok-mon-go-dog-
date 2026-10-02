@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { getFeedingZones } from "@/lib/feeding-zones";
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { FeedingZoneCard } from "@/components/feeding/FeedingZoneCard";
 
 export const metadata = {
@@ -16,14 +17,13 @@ export default async function FeedingZonesPage() {
 
   return (
     <main className="feed-index">
-      <header className="feed-index-head">
-        <div className="feed-index-copy">
-          <p className="feed-kicker">The community route book</p>
-          <h1>Feeding spots, <em>kept in view.</em></h1>
-          <p>Find a regular spot, see when it was last fed, and help keep its route covered.</p>
-        </div>
-        <Link href="/feeding/new" className="sys-btn is-flame"><Plus size={16} /> Add a feeding spot</Link>
-      </header>
+      <DeskHeader
+        kicker="Feeding · the community route book"
+        title={<>Feeding spots, <em>kept in view</em></>}
+        lede="Find a regular spot, see when it was last fed, and help keep its route covered."
+        figures={[{ label: zones.length === 1 ? "spot on the public record" : "spots on the public record", value: zones.length }]}
+        actions={<Link href="/feeding/new" className="dk-btn is-flame"><Plus size={16} /> Add a feeding spot</Link>}
+      />
 
       <section className="feed-index-list" aria-labelledby="feed-index-list-title">
         <div className="feed-index-list-head"><h2 id="feed-index-list-title">On the public record</h2><span>{zones.length} {zones.length === 1 ? "spot" : "spots"} shown</span></div>

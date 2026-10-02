@@ -72,3 +72,15 @@
   .co-rows .gv-q-go { grid-column: 2; justify-self: start; }
 }
 @media (pointer: coarse) { .gv-q-go { min-height: var(--ctl-h); display: inline-flex; align-items: center; } }
+
+/* The coverage legend, in the hero plate (it replaced a whole section). */
+.gv-legend { margin: var(--sp-2) 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px var(--sp-5); }
+.gv-legend li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--sp-night-dim); }
+.gv-legend .gv-sw { width: 14px; height: 14px; background: var(--sp-night-text); }
+.gv-legend b { margin-left: auto; font-family: var(--font-mono), ui-monospace, monospace; font-weight: 500; color: var(--sp-night-text); font-variant-numeric: tabular-nums; }
+.gv-legend-note { margin-top: var(--sp-2); font-size: 12px; line-height: 1.45; color: var(--sp-night-dim); }
+/* The figures sit under the heading of "what the record answers". */
+.gv-figs.is-compact { margin-top: var(--sp-4); }
+.gv-figs.is-compact div { padding: var(--sp-3) var(--sp-3) var(--sp-3) 0; }
+.gv-figs.is-compact div:nth-child(even) { padding-left: var(--sp-3); }
+.gv-figs.is-compact dd { font-size: clamp(24px, 2.4vw, 32px); }

@@ -7,7 +7,7 @@ export const metadata = { title: "Drives, StrayPaw Partner" };
 export default function PartnerDrivesPage() {
   return (
     <ConsolePage
-      kicker="Field work / programme"
+      kicker="Field work · drives"
       title="Drives"
       lede="A census, a sterilisation round, a rabies drive. Each one carries its own coverage figure, counted over the animals in it rather than the observations, so two sightings of one dog on one day stay one sterilisation."
     >

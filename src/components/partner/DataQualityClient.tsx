@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Loader2 } from "lucide-react";
 import { getMyAnimals } from "@/lib/animal-actions";
 import { getPartnerRecordRows, type PartnerRecordRow } from "@/lib/partner-record-explorer";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 const DAY=86400000;
 
@@ -38,5 +39,5 @@ export function DataQualityClient(){
   {title:"Completed without structured outcome",count:issues.completedNoOutcome.length,detail:"Closed cases where the result is not represented as a first-class outcome.",href:"/partner/records?type=outcome"},
   {title:"Care recorded after last follow-up",count:issues.careNoFollow.length,detail:"Animals with medical care but no later review/follow-up entry.",href:"/partner/records?type=follow_up"},
  ];
- return <div><header className="mb-6"><span className="product-kicker">Record quality</span><h1 className="mt-1 text-2xl font-semibold">What needs cleaning</h1><p className="mt-2 max-w-2xl text-sm opacity-70">These are fixable review queues, not scores. They surface records likely to weaken matching, analysis or reporting while keeping the original source intact.</p></header><div className="border-t border-black/[.1]">{rows.map(r=><Link key={r.title} href={r.href} className="grid gap-2 border-b border-black/[.08] py-5 hover:bg-black/[.02] sm:grid-cols-[260px_90px_1fr_20px] sm:items-center"><b className="text-sm">{r.title}</b><strong className="text-2xl tabular-nums">{r.count.toLocaleString()}</strong><span className="text-xs leading-5 opacity-65">{r.detail}</span><ArrowUpRight size={15}/></Link>)}</div></div>;
+ return <div><DeskHeader kicker="Records · data quality" title="What needs cleaning" lede="Fixable review queues, not scores. Each one lists records likely to weaken matching, analysis or reporting; the original source stays intact." figures={[{ label: "records to review", value: rows.reduce((n, r) => n + r.count, 0), tone: "quiet" }]} /><div className="border-t border-black/[.1]">{rows.map(r=><Link key={r.title} href={r.href} className="grid gap-2 border-b border-black/[.08] py-5 hover:bg-black/[.02] sm:grid-cols-[260px_90px_1fr_20px] sm:items-center"><b className="text-sm">{r.title}</b><strong className="text-2xl tabular-nums">{r.count.toLocaleString()}</strong><span className="text-xs leading-5 opacity-65">{r.detail}</span><ArrowUpRight size={15}/></Link>)}</div></div>;
 }

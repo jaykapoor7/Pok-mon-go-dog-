@@ -9,6 +9,7 @@ import type { Living } from "@/lib/animal/living";
 import { LivingRecord } from "./LivingRecord";
 import { OrgTools } from "./OrgTools";
 import { dogLabel } from "@/lib/utils";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 export function PartnerAnimalRecord({ id, published }: { id: string; published: Living | null }) {
   const { ready, member } = usePartnerAccess();
@@ -50,9 +51,9 @@ export function PartnerAnimalRecord({ id, published }: { id: string; published: 
     load().catch(e => { if (live) setError(e.message || "The record could not be loaded."); });
     return () => { live = false; };
   }, [id, ready, member, revision]);
-  if (!ready || (member && (!dog || dog.id !== id) && !error)) return <div className="py-12"><h1 className="text-2xl">Dog record</h1><p role="status" className="mt-4">Loading your organisation’s record…</p></div>;
-  if (!member) return <div className="py-12"><h1 className="mb-6 text-2xl">Your organisation’s dog record</h1><PartnerWrite what="open the private record"><span /></PartnerWrite></div>;
-  if (error || !dog) return <div className="py-12"><h1 className="text-2xl">Dog record unavailable</h1><p role="alert" className="mt-4">{error}</p></div>;
+  if (!ready || (member && (!dog || dog.id !== id) && !error)) return <DeskHeader kicker="Records · animal" title="Opening the record…" lede="Your organisation’s private record of this animal." />;
+  if (!member) return <div className="dk-page"><DeskHeader kicker="Records · animal" title="Your organisation’s record of this animal" lede="Private to the organisation that keeps it." /><PartnerWrite what="open the private record"><span /></PartnerWrite></div>;
+  if (error || !dog) return <div className="dk-page"><DeskHeader kicker="Records · animal" title="This record could not be opened" lede={error || "It may belong to another organisation, or the link may be incomplete."} /></div>;
   const record: Living = published ?? {
     id, label: dogLabel(dog), straypawId: null, sourceCode: dog.code ?? null,
     species: "dog", sex: null, colour: dog.color, locality: dog.zone, city: dog.city ?? null, state: null,

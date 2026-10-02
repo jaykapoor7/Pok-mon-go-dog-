@@ -33,11 +33,13 @@ import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome, openTour } from "./Welcome";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { ProfilePanel } from "./ProfilePanel";
+import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { groupFor } from "@/components/partner/PartnerTabs";
 import { search, searchAreas, KIND_LABEL, type SearchHit } from "@/lib/search";
 import { readStoredRole, type Role } from "@/lib/roles";
 import "./app.css";
 import "./editorial.css";
+import "./desk.css";
 
 /* Community is intentionally small: report, see the map, and understand the
    complete animal stories produced by community + NGO records. */
@@ -205,7 +207,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   if (nested) return <>{children}</>;
 
   return <InShell.Provider value={true}>
-    <div className={`spa spa-editorial${isReporting ? " spa-reporting" : ""}`}>
+    <div className={`spa spa-editorial spa-desk${isReporting ? " spa-reporting" : ""}`}>
       <Welcome />
       <a href="#spa-main" className="skip-link">Skip to content</a>
 
@@ -216,7 +218,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           <input ref={searchRef} type="search" placeholder="Search StrayPaw ID, place or organisation" aria-label="Search the network" value={query} onChange={(e) => onQueryChange(e.target.value)} onKeyDown={onSearchKey} onBlur={() => window.setTimeout(() => setHits([]), 120)} role="combobox" aria-expanded={hits.length > 0} aria-controls="spa-search-results" enterKeyHint="search" autoComplete="off" autoCorrect="off" spellCheck={false}/>
           {hits.length > 0 && <ul className="spa-results" id="spa-search-results" role="listbox">{hits.map((h, i) => <li key={`${h.kind}-${h.href}-${h.label}`} role="option" aria-selected={i === cursor}><button type="button" className={i === cursor ? "on" : ""} onMouseEnter={() => setCursor(i)} onMouseDown={(e) => e.preventDefault()} onClick={() => go(h)}><span className="spa-res-kind">{KIND_LABEL[h.kind]}</span><b>{h.label}</b><span className="spa-res-detail">{h.detail}</span></button></li>)}</ul>}
         </form>
-        <div className="spa-top-right"><div className="spa-top-account"><ProfilePanel/></div><button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15}/> Switch space</button><Link href="/" className="spa-exit"><ArrowUpRight size={13}/> Main site</Link></div>
+        <div className="spa-top-right"><LanguageSwitcher /><div className="spa-top-account"><ProfilePanel/></div><button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15}/> Switch space</button><Link href="/" className="spa-exit"><ArrowUpRight size={13}/> Main site</Link></div>
       </div>
 
       <div className="spa-body">

@@ -144,3 +144,145 @@
   .co-slip.is-sheet td { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: var(--sp-2); padding: 4px 0; border-bottom: 1px dashed var(--sp-line); white-space: normal; }
   .co-slip.is-sheet td::before { content: attr(data-k); color: var(--sp-muted); }
 }
+
+/* ── Heroes and closes standing on a living city (PlaceGround) ───────
+   The static night drawing gives way to the live one; a gradient keeps
+   the reading column on clean night. */
+html .co .co-hero.has-ground::before, html .co .co-close.has-ground::before { display: none; }
+.co-hero.has-ground, .co-close.has-ground { position: relative; isolation: isolate; overflow: hidden; }
+.co-hero-ground { opacity: 0.9; }
+.co-hero.has-ground::after, .co-close.has-ground::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, var(--sp-night) 0%, rgba(7, 20, 43, 0.9) 42%, rgba(7, 20, 43, 0.35) 78%, rgba(7, 20, 43, 0.15) 100%);
+}
+.co-hero.has-ground .co-hero-in, .co-close.has-ground .co-close-in { position: relative; z-index: 2; }
+.co-hero.has-ground { padding-top: clamp(64px, 9vw, 120px); padding-bottom: clamp(64px, 9vw, 120px); }
+.co-hero .lg-cap, .co-close .lg-cap { z-index: 3; }
+.co-link.is-night { color: var(--sp-sky); }
+@media (max-width: 760px) { .co-hero-ground { opacity: 0.45; } .co-hero .lg-cap { display: none; } }
+
+/* A section that reads top to bottom rather than heading-beside-list. */
+.co-sec-in.is-stack { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+.co-sec-in.is-stack .co-sec-head { position: static; max-width: 720px; }
+
+/* ── Drawn arguments ── */
+.dg { display: block; width: 100%; height: auto; }
+.dg-chat rect:first-child { fill: var(--sp-paper); stroke: var(--sp-line); stroke-width: 1.2; }
+.dg-chat rect.is-gone { fill: none; stroke: var(--sp-muted); stroke-dasharray: 3 3; }
+.dg-line { fill: var(--sp-line); }
+.dg-line.is-ink { fill: rgba(11, 30, 61, 0.22); }
+.dg-arrow { fill: none; stroke: var(--sp-ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.dg-card rect:first-child { fill: var(--sp-paper); stroke: var(--sp-ink); stroke-width: 1.4; }
+.dg-id { fill: var(--sp-ink); }
+.dg-cell { fill: var(--sp-seq-3); stroke: var(--sp-paper); stroke-width: 1.2; }
+.dg-cell.is-big { fill: var(--sp-ink); }
+.dg-idtext { fill: var(--sp-night-text); font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.1em; }
+.dg-dot { fill: var(--sp-seq-3); }
+.dg-dot.is-flame { fill: var(--sp-flame); }
+.dg-sheet rect:first-child { fill: var(--sp-paper); stroke: var(--sp-line); stroke-width: 1.2; }
+.dg-flow { fill: none; stroke: var(--sp-blue); stroke-width: 1.6; stroke-dasharray: 2 4; stroke-linecap: round; }
+.dg-cov { stroke: var(--sp-shell); stroke-width: 1.2; }
+.dg-cov.is-rec1 { fill: var(--sp-seq-2); } .dg-cov.is-rec2 { fill: var(--sp-seq-3); } .dg-cov.is-rec3 { fill: var(--sp-seq-5); }
+.dg-cov.is-hatch { stroke: var(--sp-muted); stroke-width: 0.8; }
+.dg-cov.is-edge { fill: none; stroke: var(--sp-muted); stroke-width: 0.9; stroke-dasharray: 2.5 2.5; }
+.dg-hatchline { stroke: var(--sp-muted); stroke-width: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .dg-flow { animation: dg-flow 1.6s linear infinite; }
+  .dg-dot.is-flame { animation: dg-blink 2.2s var(--sp-ease-io) infinite; }
+}
+@keyframes dg-flow { to { stroke-dashoffset: -12; } }
+@keyframes dg-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* About: why one record. */
+.ab-why { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); }
+.ab-why li { display: grid; align-content: start; gap: var(--sp-2); padding-top: var(--sp-4); border-top: 1px solid var(--sp-ink); }
+.ab-why .dg { margin-bottom: var(--sp-2); max-width: 300px; }
+.ab-why b { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; color: var(--sp-ink); }
+.ab-why p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); }
+
+/* About: six rules. */
+.ab-rules { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); counter-reset: rule; border-top: 1px solid var(--sp-ink); }
+.ab-rules li { counter-increment: rule; display: grid; grid-template-columns: 36px minmax(0, 1fr); column-gap: var(--sp-3); row-gap: 3px; padding: var(--sp-4) var(--sp-4) var(--sp-4) 0; border-bottom: 1px solid var(--sp-line); }
+.ab-rules li::before { content: counter(rule, decimal-leading-zero); grid-row: span 2; font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; color: var(--sp-ember); padding-top: 3px; }
+.ab-rules b { font-size: 15.5px; font-weight: 600; color: var(--sp-ink); }
+.ab-rules p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--sp-body); }
+
+/* About: where records come from — one proportional bar, then the ledger. */
+.src-bar { margin: 0; display: grid; gap: var(--sp-2); }
+.src-track { display: flex; gap: 2px; height: 18px; overflow: hidden; border-radius: 5px; }
+.src-track span { flex-basis: 0; min-width: 4px; }
+.src-bar figcaption { font-size: 13px; color: var(--sp-muted); }
+.src-track .is-0, .src-list .is-0 { background: var(--sp-seq-5); } .src-track .is-1, .src-list .is-1 { background: var(--sp-seq-4); }
+.src-track .is-2, .src-list .is-2 { background: var(--sp-seq-3); } .src-track .is-3, .src-list .is-3 { background: var(--sp-seq-2); }
+.src-track .is-4, .src-list .is-4 { background: var(--sp-seq-1); }
+.src-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-7); }
+.src-list li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); padding: 11px 0; border-bottom: 1px solid var(--sp-line); }
+.src-list i { width: 12px; height: 12px; border-radius: 3px; }
+.src-list i.is-live { background: var(--sp-flame); border-radius: 50%; }
+.src-list i.is-none { background: transparent; border: 1px dashed var(--sp-muted); }
+.src-list span { display: grid; gap: 2px; min-width: 0; }
+.src-list b { font-size: 14.5px; font-weight: 600; color: var(--sp-ink); }
+.src-list small { font-size: 12.5px; line-height: 1.4; color: var(--sp-muted); }
+.src-list em { font-family: var(--font-mono), ui-monospace, monospace; font-size: 12.5px; font-style: normal; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
+.co-close p a { color: var(--sp-sky); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .ab-why { grid-template-columns: minmax(0, 1fr); }
+  .ab-why .dg { max-width: 280px; }
+  .ab-rules, .src-list { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Education: the session as a route inside the hero. */
+.edu-route { position: relative; margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-5); }
+.edu-route li { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: var(--sp-3); }
+.edu-route li i { position: relative; z-index: 1; width: 13px; height: 13px; margin-top: 4px; border-radius: 50%; border: 2px solid var(--sp-night-text); background: var(--sp-night); }
+.edu-route li:last-child i { border-color: var(--sp-flame); background: var(--sp-flame); }
+.edu-route li:not(:last-child)::after { content: ""; position: absolute; left: 6px; top: 22px; bottom: calc(-1 * var(--sp-5) + 2px); width: 1.5px; background: var(--sp-night-line); }
+.edu-route span { display: grid; gap: 3px; font-size: 14px; line-height: 1.5; color: var(--sp-night-dim); }
+.edu-route b { font-size: 16px; font-weight: 600; color: var(--sp-night-text); }
+.edu-hero2 .co-hero-in { align-items: center; }
+
+/* Education: the materials as cards on the shell ground. */
+.edu-cards { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--sp-4); }
+.edu-cards li { position: relative; display: grid; align-content: start; gap: var(--sp-2); padding: var(--sp-5); border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 12px 30px rgba(11, 30, 61, 0.06); }
+.edu-card-n { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; color: var(--sp-ember); }
+.edu-cards h3 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--sp-ink); }
+.edu-cards p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--sp-body); }
+.edu-card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--sp-1) !important; }
+.edu-card-meta span { padding: 3px 9px; border-radius: var(--ctl-r); background: var(--sp-bone); font-size: 12px; color: var(--sp-muted); }
+.edu-cards .edu-sensitive { position: absolute; top: var(--sp-4); right: var(--sp-4); display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: var(--ctl-r); background: rgba(240, 91, 64, 0.1); font-size: 11.5px; font-weight: 600; color: var(--sp-ember); }
+
+/* NGOs: the Field Workspace itself, in the hero. */
+.ngo-hero .co-hero-in { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: center; }
+.ngo-hero-desk { display: grid; gap: var(--sp-3); min-width: 0; }
+.ngo-hero-desk .ld-desk { box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5); }
+.ngo-hero-cap { margin: 0; font-size: 12.5px; color: var(--sp-night-dim); }
+.ngo-hero-cap a { display: inline-flex; align-items: center; gap: 3px; color: var(--sp-sky); font-weight: 600; text-decoration: none; }
+.ngo-hero.co-hero.has-ground::after { background: linear-gradient(90deg, var(--sp-night) 0%, rgba(7, 20, 43, 0.85) 45%, rgba(7, 20, 43, 0.55) 100%); }
+
+/* What it holds: five parts in one strip. */
+.ngo-holds { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--sp-ink); }
+.ngo-holds li { display: grid; align-content: start; gap: var(--sp-2); padding: var(--sp-4) var(--sp-4) var(--sp-4) 0; }
+.ngo-holds li + li { padding-left: var(--sp-4); border-left: 1px solid var(--sp-line); }
+.ngo-holds b { font-size: 17px; font-weight: 600; color: var(--sp-ink); }
+.ngo-holds p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--sp-body); }
+
+/* Partners: one row of marks. */
+.ngo-marks { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-2) var(--sp-5); }
+.ngo-marks a { display: flex; align-items: center; gap: var(--sp-3); padding: 10px 0; border-bottom: 1px solid var(--sp-line); color: var(--sp-ink); text-decoration: none; }
+.ngo-marks a:hover b { color: var(--sp-blue); }
+.ngo-marks span { display: grid; gap: 1px; min-width: 0; }
+.ngo-marks b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
+.ngo-marks small { font-size: 12px; color: var(--sp-muted); }
+
+/* Joining and the terms, together. */
+.ngo-join { display: grid; gap: var(--sp-6); }
+.ngo-terms { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2) var(--sp-6); }
+.ngo-terms li { padding: 10px 0 10px 18px; position: relative; border-bottom: 1px solid var(--sp-line); font-size: 14px; color: var(--sp-body); }
+.ngo-terms li::before { content: ""; position: absolute; left: 0; top: 17px; width: 7px; height: 7px; border-radius: 50%; background: var(--sp-blue); }
+.ngo-terms b { color: var(--sp-ink); font-weight: 600; }
+
+@media (max-width: 1000px) { .ngo-holds { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ngo-holds li:nth-child(odd) { padding-left: 0; border-left: 0; } .ngo-holds li { border-bottom: 1px solid var(--sp-line); } }
+@media (max-width: 900px) { .ngo-hero .co-hero-in { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .ngo-holds, .ngo-terms { grid-template-columns: minmax(0, 1fr); } .ngo-holds li + li { padding-left: 0; border-left: 0; } }
+@media (min-width: 1000px) { .edu-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app/AppShell";
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { FollowingClient } from "@/components/app/FollowingClient";
 import { getSuggestedDogs } from "@/lib/data";
 import "./following.css";
@@ -16,16 +17,11 @@ export default async function FollowingPage() {
 
   return (
     <AppShell>
-      <div className="spa-head follow-head">
-        <div>
-          <span className="spa-mono">Your follow-up</span>
-          <h1>
-            Saved animals and <em>your reports.</em>
-          </h1>
-        </div>
-      </div>
-
-      <p className="spa-lede follow-lede">A place to return to the animals you care about and the reports you have made. This device keeps your report trail, whether or not you chose to sign in.</p>
+      <DeskHeader
+        kicker="Your follow-up"
+        title={<>Saved animals and <em>your reports</em></>}
+        lede="The animals you care about and the reports you have made, kept on this device whether or not you sign in."
+      />
 
       <FollowingClient suggestions={suggestions} />
     </AppShell>

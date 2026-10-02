@@ -8,6 +8,7 @@ import { uploadPhoto } from "@/lib/actions";
 import { createFeedingZone } from "@/lib/feeding-actions";
 import { LocationPicker } from "@/components/report/LocationPicker";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 export default function NewFeedingZonePage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
@@ -61,13 +62,8 @@ export default function NewFeedingZonePage() {
 
   return (
     <main className="feed-form">
-      <header className="mb-5">
-        <p className="feed-kicker">Community route book / new place</p>
-        <h1 className="font-display text-2xl sm:text-3xl">Add a feeding zone</h1>
-        <p className="text-sm text-bark-500">
-          Mark an existing spot the community feeds, so others can find it and cover it.
-        </p>
-      </header>
+      <DeskHeader kicker="Feeding · new spot" title="Add a feeding spot"
+        lede="Mark a spot the community already feeds, so others can find it and help cover it." />
 
       {ready && !isAuthed && (
         <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded border border-status-hungry/30 bg-status-hungry/10 px-4 py-3">

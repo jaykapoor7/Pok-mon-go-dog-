@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { DICTIONARIES, type Dictionary } from "./dictionaries";
 import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES, isLocale, type Locale } from "./locales";
+import { DomTranslator } from "./DomTranslator";
 
 type Ctx = { locale: Locale; t: Dictionary; setLocale: (next: Locale) => void };
 
@@ -93,7 +94,14 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     [locale, setLocale],
   );
 
-  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
+  /* The header reads its own words from the small dictionaries; everything
+     else on the page is translated in place by DomTranslator. */
+  return (
+    <LocaleContext.Provider value={value}>
+      {children}
+      <DomTranslator locale={locale} />
+    </LocaleContext.Provider>
+  );
 }
 
 export function useLocale() {

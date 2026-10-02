@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyFeedingZones, type MyFeedingZone } from "@/lib/feeding-zones";
 import { FeedingZoneCard } from "./FeedingZoneCard";
 import "./feeder.css";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 /** The feeder's home: their route, and the two things they do on it. Not a
  * shadow version of the organisation dashboard. */
@@ -28,18 +29,16 @@ export function FeederWorkspace() {
 
   return (
     <div className="fd">
-      <header className="fd-head">
-        <div className="fd-head-copy">
-          <p className="fd-kicker">Feeder workspace / your route</p>
-          <h1>Your patch, <em>on the record.</em></h1>
-          <p className="fd-intro">Keep the places you feed and the animals you meet connected to the same local record.</p>
-          {user && !loading && <p className="fd-count"><b>{zones.length}</b> feeding {zones.length === 1 ? "spot" : "spots"} on your route</p>}
-        </div>
-        <div className="fd-acts">
-          <Link href="/report" className="sys-btn"><Radio size={16} /> Add a sighting</Link>
-          <Link href="/feeding/new" className="sys-btn is-quiet"><Plus size={16} /> Add a feeding spot</Link>
-        </div>
-      </header>
+      <DeskHeader
+        kicker="Feeder · your route"
+        title={<>Your patch, <em>on the record</em></>}
+        lede="The places you feed and the animals you meet, connected to the same local record."
+        figures={user ? [{ label: zones.length === 1 ? "feeding spot on your route" : "feeding spots on your route", value: loading ? null : zones.length }] : undefined}
+        actions={<>
+          <Link href="/report" className="dk-btn is-flame"><Radio size={16} /> Add a sighting</Link>
+          <Link href="/feeding/new" className="dk-btn is-tint"><Plus size={16} /> Add a feeding spot</Link>
+        </>}
+      />
 
       {!user && ready && (
         <p className="fd-sign">

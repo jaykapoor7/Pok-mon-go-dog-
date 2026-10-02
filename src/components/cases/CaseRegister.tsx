@@ -24,6 +24,7 @@ import { closedCounts, closedRegister, openRegister, OPEN_REGISTER_LIMIT, PAGE, 
 import { CLOSURE_META, STATUS_META, triageOf, type ClosureReason, type StatusClass, type Triage } from "@/lib/register/taxonomy";
 import { downloadCsv } from "@/lib/csv";
 import "./register.css";
+import { DeskHeader } from "@/components/app/DeskHeader";
 
 const DAY = 86_400_000;
 type Lens = "open" | "quiet" | "critical" | "nobody" | "overdue" | "closed" | "reasonless" | "search";
@@ -154,7 +155,7 @@ export function CaseRegister() {
     with: r.assignee_name ?? "", followups_done: r.followups_done ?? 0, followups_missed: r.followups_missed ?? 0,
   })));
 
-  if (!ready || !accessReady || open === null) return <main className="cr"><p className="cr-state"><Loader2 size={16} className="animate-spin" /> Reading your organisation&rsquo;s cases…</p></main>;
+  if (!ready || !accessReady || open === null) return <main className="cr"><Head /><p className="cr-state"><Loader2 size={16} className="animate-spin" /> Reading your organisation&rsquo;s cases…</p></main>;
   if (!user || !member) return (
     <main className="cr">
       <Head />
@@ -223,24 +224,21 @@ export function CaseRegister() {
 
 function Head({ count, review }: { count?: Record<string, number>; review?: number }) {
   return (
-    <header className="cr-head">
-      <div>
-        <p className="sys-eyebrow">Cases</p>
-        <h1>Every request, and where it&nbsp;stands.</h1>
-        {count && (
-          <p className="cr-line">
-            <b>{count.open.toLocaleString("en-IN")}</b> open.{" "}
-            {count.quiet ? <><em>{count.quiet}</em> quiet for more than a month, </> : null}
-            {count.critical ? <><em>{count.critical}</em> critical, </> : null}
-            <b>{count.nobody}</b> with nobody on {count.nobody === 1 ? "it" : "them"}.
-          </p>
-        )}
-      </div>
-      <div className="cr-acts">
-        <Link href="/partner/cases/new" className="sys-btn is-flame"><Plus size={16} /> New rescue case</Link>
-        <Link href="/partner/review" className="cr-link">Case review{review ? ` · ${review} need a reason` : ""} <ArrowUpRight size={14} /></Link>
-      </div>
-    </header>
+    <DeskHeader
+      kicker="Records · cases"
+      title={<>Every request, and where it&nbsp;stands</>}
+      lede="Each case from report to outcome. Critical first, then the ones that have gone quiet."
+      figures={count ? [
+        { label: "open", value: count.open },
+        { label: "critical", value: count.critical, tone: count.critical ? "attention" : undefined },
+        { label: "quiet for a month", value: count.quiet, tone: "quiet" },
+        { label: count.nobody === 1 ? "with nobody on it" : "with nobody on them", value: count.nobody },
+      ] : [{ label: "open", value: null }]}
+      actions={<>
+        <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} /> New rescue case</Link>
+        <Link href="/partner/review" className="dk-btn is-tint">Case review{review ? ` · ${review}` : ""} <ArrowUpRight size={14} /></Link>
+      </>}
+    />
   );
 }
 

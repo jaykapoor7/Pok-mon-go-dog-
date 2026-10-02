@@ -128,3 +128,27 @@
 .lm > .lm-canvas, .lm > .lm-canvas.maplibregl-map { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s ease; }
 .lm.is-ready .lm-canvas { opacity: 1; }
 .lm-credit { position: absolute; right: 10px; bottom: 6px; margin: 0; font-size: 12px; color: rgba(239, 231, 218, 0.58); z-index: 2; }
+
+/* ── LiveGround: a city's honeycomb, its real record replayed ──────────
+   Faint on night and behind everything. A report pings sky, care teal, an
+   animal's first record bone; cells step up the night blue ramp as records
+   gather. Used under the landing register and the in-app page plates. */
+.lg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.lg svg { position: absolute; inset: -4%; width: 108%; height: 108%; }
+.lg-cell { --ping: var(--sp-sky); fill: transparent; stroke: rgba(143, 183, 255, 0.11); stroke-width: 0.8; transition: fill 1.1s var(--sp-ease); }
+.lg-cell.is-care { --ping: var(--sp-arv); }
+.lg-cell.is-first { --ping: var(--sp-night-text); }
+.lg-cell.is-ping { animation: lg-ping 1.5s var(--sp-ease) both; }
+@keyframes lg-ping {
+  0% { stroke: var(--ping); stroke-width: 3; }
+  100% { stroke: rgba(143, 183, 255, 0.11); stroke-width: 0.8; }
+}
+.lg.is-clearing .lg-cell { fill: transparent !important; transition-duration: 2s; }
+.lg-cap { position: absolute; right: var(--sp-gutter); bottom: var(--sp-3); z-index: 5; margin: 0; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-night-faint); }
+.lg-cap span { color: var(--sp-sky); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) {
+  .lg svg { animation: lg-drift 70s ease-in-out infinite alternate; }
+}
+@keyframes lg-drift { from { transform: scale(1) translate(-1.2%, -0.8%); } to { transform: scale(1.06) translate(1.2%, 0.8%); } }
+/* PlaceGround: the living city behind a plate or a hero. */
+.place-ground { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
