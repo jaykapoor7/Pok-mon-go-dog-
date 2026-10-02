@@ -207,15 +207,15 @@ html .spa.spa.spa-desk .spa-back button:active { transform: var(--ctl-press); }
 .dk-sheet { border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 12px 30px rgba(11, 30, 61, 0.05); }
 
 /* ── App-wide: controls and empty states, on every page at once ─────── */
-html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select, textarea):not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) {
+html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select, textarea):not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field, label:has(> svg):has(> input.bg-transparent)) *) {
   border-radius: var(--ctl-r-row); border: 1px solid var(--sp-line); background-color: var(--sp-paper); color: var(--sp-ink);
   font-size: 14px; transition: border-color var(--sp-fast) var(--sp-ease-io), box-shadow var(--sp-fast) var(--sp-ease-io);
 }
-html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select):not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) { min-height: 42px; }
+html .spa.spa.spa-desk .spa-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=submit]):not([type=button]), select):not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field, label:has(> svg):has(> input.bg-transparent)) *) { min-height: 42px; }
 html .spa.spa.spa-desk .spa-main :is(input, select, textarea)::placeholder { color: #8a95a3; }
-html .spa.spa.spa-desk .spa-main :is(input, select, textarea):focus:not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+html .spa.spa.spa-desk .spa-main :is(input, select, textarea):focus:not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field, label:has(> svg):has(> input.bg-transparent)) *) { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
 /* A select reads as a control, with its own caret, not the browser's grey box. */
-html .spa.spa.spa-desk .spa-main select:not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field) *) {
+html .spa.spa.spa-desk .spa-main select:not(:is(.sm-city-select, .sm-select, .ps-field, .bare-field, label:has(> svg):has(> input.bg-transparent)) *) {
   appearance: none; -webkit-appearance: none; padding-right: 34px; cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%232457ce' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 12px center; background-size: 12px 8px;
@@ -476,3 +476,11 @@ html .spa.spa.spa-desk .pm-row .lang-menu { top: auto; bottom: calc(100% + 8px);
 .rc-submit { justify-self: start; }
 .rc-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 560px) { .rc-submit { justify-self: stretch; justify-content: center; } }
+
+/* A search box drawn as a label holding an icon and a bare input: the label
+   is the field, so it takes the field's shape and the input stays bare. */
+html .spa.spa.spa-desk .spa-main label.border:has(> svg):has(> input) {
+  min-height: 42px; border-radius: var(--ctl-r-row); border-color: var(--sp-line); background: var(--sp-paper); color: var(--sp-muted);
+  transition: border-color var(--sp-fast) var(--sp-ease-io), box-shadow var(--sp-fast) var(--sp-ease-io);
+}
+html .spa.spa.spa-desk .spa-main label.border:has(> svg):focus-within { border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }

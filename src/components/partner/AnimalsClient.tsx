@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,6 +44,8 @@ function StatusPill({ kind, value }: { kind: "ster" | "vacc"; value: string }) {
 
 export function AnimalsClient() {
   const params = useSearchParams();
+  const { isAuthed, ready } = useAuth();
+  const signedOut = ready && !isAuthed;
   const [animals, setAnimals] = useState<OrgAnimal[]>([]);
   const [zones, setZones] = useState<{ zone: string; n: number }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,12 +85,13 @@ export function AnimalsClient() {
   };
 
   useEffect(() => {
+    if (!ready || !isAuthed) { setLoading(!ready); return; }
     const t = setTimeout(load, q ? 250 : 0);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, ster, vacc, zone, from, to, needsOnly, page]);
+  }, [q, ster, vacc, zone, from, to, needsOnly, page, ready, isAuthed]);
 
-  useEffect(() => { orgZones().then(setZones).catch(() => undefined); }, []);
+  useEffect(() => { if (isAuthed) orgZones().then(setZones).catch(() => undefined); }, [isAuthed]);
   useEffect(() => { setPage(0); }, [q, ster, vacc, zone, from, to, needsOnly]);
 
   const rows = animals;
@@ -155,7 +159,7 @@ export function AnimalsClient() {
         )}
       </div>
 
-      {!loading && (
+      {!loading && !signedOut && (
         <p className="mb-3 text-[12.5px] text-bark-500">
           {filtered
             ? `${total} matching ${total === 1 ? "animal" : "animals"}`
@@ -164,7 +168,9 @@ export function AnimalsClient() {
         </p>
       )}
 
-      {loading ? (
+      {signedOut ? (
+        <p className="rounded-lg border border-dashed border-black/[0.1] py-16 text-center text-[14px] text-bark-400">Animals load once you sign in with your organisation&apos;s code.</p>
+      ) : loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-5 w-5 animate-spin text-paw-500" /></div>
       ) : rows.length === 0 ? (
         <p className="rounded-lg border border-dashed border-black/[0.1] py-16 text-center text-[14px] text-bark-400 dark:border-white/[0.12]">
