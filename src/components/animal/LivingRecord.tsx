@@ -147,7 +147,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
       {/* ── where, with its name set on it ────────────────────────── */}
       <header className={`lr-hero ${r.place ? "" : "is-noplace"}`}>
         {r.place ? (
-          <PlaceMap variant="banner" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
+          <PlaceMap key={`${r.id}:${r.place.cell}`} variant="banner" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
         ) : null}
         {!r.place && <p className="lr-hero-noplace sys-mono">Its place is not on the record yet</p>}
         <div className="lr-hero-words">

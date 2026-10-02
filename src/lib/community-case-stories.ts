@@ -61,7 +61,8 @@ export async function getPublicCaseStoriesPage(input: { limit?: number; before?:
 export async function getPublicCareForDogs(dogIds: string[]): Promise<PublicTimelineEvent[]> {
   const ids = [...new Set(dogIds.filter(Boolean))].slice(0, 100);
   const supa = getSupabase();
-  if (!supa || !ids.length) return [];
+  if (!ids.length) return [];
+  if (!supa) throw new Error("Care records are temporarily unavailable.");
   /* Stories only need the current page's care. Query the small care fact
    * projection directly instead of the platform-wide public_field_activity
    * union, which became a hotspot after the imports. */
@@ -71,7 +72,7 @@ export async function getPublicCareForDogs(dogIds: string[]): Promise<PublicTime
     .in("dog_id", ids)
     .order("event_date", { ascending: false })
     .limit(800);
-  if (error) return [];
+  if (error) throw new Error("Care records could not be loaded.");
   return (data ?? []).filter((row: any) => row.event_date).map((row: any) => ({
     id: `medical:${row.id}`,
     dog_id: row.dog_id ?? null,
@@ -108,18 +109,18 @@ async function readPublishedCaseStoriesPage(input: { limit?: number; before?: { 
     return Boolean(story.dog_id && story.title?.trim() && story.occurred_at);
   }) };
 }
-export const getPublishedCaseStoriesPage = unstable_cache(readPublishedCaseStoriesPage, ["published-story-page-v2"], { revalidate: 120 });
+export const getPublishedCaseStoriesPage = unstable_cache(readPublishedCaseStoriesPage, ["published-story-page-v3"], { revalidate: 120 });
 
 /** Authoritative count of distinct animals with a public story, optionally for
  * one city. Never derive the headline count from a page's length. */
 async function readPublicCaseStoryCount(city?: string | null): Promise<number> {
   const supa = getSupabase();
-  if (!supa) return 0;
+  if (!supa) throw new Error("Story counts are temporarily unavailable.");
   const { data, error } = await supa.rpc("count_public_case_stories", { p_city: city?.trim() || null });
   if (error) throw error;
   return Number(data ?? 0);
 }
-export const countPublicCaseStories = unstable_cache(readPublicCaseStoryCount, ["public-story-count-v2"], { revalidate: 300 });
+export const countPublicCaseStories = unstable_cache(readPublicCaseStoryCount, ["public-story-count-v3"], { revalidate: 300 });
 
 async function enrichHistoricalCases(rows: PublicCaseStory[]): Promise<PublicCaseStory[]> {
   const kindHour = rows.filter((row) => row.ngo_name === "The Kind Hour Foundation");

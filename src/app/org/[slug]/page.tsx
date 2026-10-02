@@ -107,6 +107,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
             <PartnerFigures figures={figures} />
           </section>
         )}
+        {!impact && <p className="op-context" role="status">Live record counts are temporarily unavailable. Please try again shortly.</p>}
 
         {campaigns.length > 0 && (
           <section className="op-sec" aria-labelledby="op-camp-h">

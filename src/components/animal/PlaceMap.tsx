@@ -14,6 +14,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
 import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { HexPlate, type Box } from "@/components/system/HexPlate";
 
 type Cell = { key: string; ring: number[]; n: number; self: boolean };
 
@@ -25,6 +26,14 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
 }) {
   const el = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  const geometry = cells.filter(c => c.ring.length >= 6 && c.ring.every(Number.isFinite));
+  const longs = geometry.flatMap(c => c.ring.filter((_, i) => i % 2 === 0));
+  const lats = geometry.flatMap(c => c.ring.filter((_, i) => i % 2 === 1));
+  const box: Box = geometry.length ? [Math.min(...longs), Math.min(...lats), Math.max(...longs), Math.max(...lats)] : [center[0] - .005, center[1] - .005, center[0] + .005, center[1] + .005];
+  const fallback = <div className="lr-area-fallback" aria-hidden={ready}>
+    <HexPlate cells={geometry.map(c => ({ key: c.key, ring: c.ring, fill: c.self ? "rgba(240,91,64,.2)" : c.n > 0 ? "rgba(79,127,224,.45)" : "transparent", stroke: c.self ? "#f7a08c" : "rgba(239,231,218,.4)", dashed: true }))} box={box} width={640} height={360} pad={64} night label={`Recorded area for ${label}${locality ? `, around ${locality}` : city ? `, ${city}` : ""}. This boundary does not show an exact location.`} />
+  </div>;
+  const credit = ready ? "Map © OpenStreetMap contributors · OpenFreeMap" : "Recorded area · StrayPaw";
 
   useEffect(() => {
     let map: MLMap | null = null, dead = false;
@@ -72,7 +81,7 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
         };
         requestAnimationFrame(tick);
       });
-    });
+    }).catch(() => { /* The recorded-area plate remains available. */ });
     return () => { dead = true; map?.remove(); };
     // Drawn once for the record.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,27 +89,30 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
 
   if (variant === "banner") return (
     <div className={`lr-banner-map ${ready ? "is-ready" : ""}`}>
-      <div className="lr-placemap-canvas" ref={el} role="img" aria-label={`A street map of the neighbourhood where ${label} is recorded${locality ? `, around ${locality}` : ""}: its area in flame, the areas around it shaded by how many animals are recorded there.`} />
-      <small className="lr-placemap-credit">Map © OpenStreetMap contributors · OpenFreeMap</small>
+      {fallback}
+      <div className="lr-placemap-canvas" ref={el} role="img" aria-hidden={!ready} aria-label={`A street map of the neighbourhood where ${label} is recorded${locality ? `, around ${locality}` : ""}: its area in flame, the areas around it shaded by how many animals are recorded there.`} />
+      <small className="lr-placemap-credit">{credit}</small>
     </div>
   );
   if (variant === "area") return (
     <figure className={`lr-placemap is-area ${ready ? "is-ready" : ""}`}>
-      <div className="lr-placemap-canvas" ref={el} role="img" aria-label={`A street map of the neighbourhood around ${label}, shaded by how many animals are recorded in each area.`} />
+      {fallback}
+      <div className="lr-placemap-canvas" ref={el} role="img" aria-hidden={!ready} aria-label={`A street map of the neighbourhood around ${label}, shaded by how many animals are recorded in each area.`} />
       <figcaption>
         <span className="lr-placemap-key"><i className="is-self" /> its area {cells.length > 1 && <><i className="is-some" /> more recorded <i className="is-none" /> none recorded yet</>}</span>
-        <small className="lr-placemap-credit">Map © OpenStreetMap contributors · OpenFreeMap</small>
+        <small className="lr-placemap-credit">{credit}</small>
       </figcaption>
     </figure>
   );
   return (
     <figure className={`lr-placemap ${ready ? "is-ready" : ""}`}>
-      <div className="lr-placemap-canvas" ref={el} role="img" aria-label={`A street map of the area where ${label} is recorded${locality ? `, around ${locality}` : ""}.`} />
+      {fallback}
+      <div className="lr-placemap-canvas" ref={el} role="img" aria-hidden={!ready} aria-label={`A street map of the area where ${label} is recorded${locality ? `, around ${locality}` : ""}.`} />
       <figcaption>
         <span className="lr-placemap-k sys-mono">No photograph yet · recorded around</span>
         <b>{locality ?? city ?? "This area"}</b>
         <span>{city && locality ? `${city} · ` : ""}within the area marked, about 0.7 km² — the register does not publish an exact spot.{others > 1 ? ` ${others} animals are recorded in it.` : ""}</span>
-        <small className="lr-placemap-credit">Map © OpenStreetMap contributors · OpenFreeMap</small>
+        <small className="lr-placemap-credit">{credit}</small>
       </figcaption>
     </figure>
   );

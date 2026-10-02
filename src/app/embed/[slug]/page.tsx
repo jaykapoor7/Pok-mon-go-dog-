@@ -114,17 +114,17 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
   if (!org?.slug) notFound();
 
   const [impact, mapCells] = await Promise.all([
-    getPublicOrgImpact(org.id),
+    getPublicOrgImpact(org.id).catch(() => null),
     getPublicOrgMapCells(org.id),
   ]);
   const location = [org.city, org.state].filter(Boolean).join(", ") || org.area;
   const mapPlace = org.city || org.area || "Mapped records";
-  const extraMetrics = [
+  const extraMetrics = impact ? [
     impact.sterilised > 0 && { value: impact.sterilised, label: "Sterilised" },
     impact.vaccinated > 0 && { value: impact.vaccinated, label: "Vaccinated" },
     impact.caseRecords > 0 && { value: impact.caseRecords, label: "Case records" },
     impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
-  ].filter(Boolean) as { value: number; label: string }[];
+  ].filter(Boolean) as { value: number; label: string }[] : [];
   const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
   return (
@@ -136,7 +136,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
             <img className={styles.logo} src={org.logo_url} alt={`${org.name} logo`} />
           ) : <span className={styles.logoFallback} aria-hidden="true">{initials || "NGO"}</span>}
           <div className={styles.identityCopy}>
-            <p className={styles.live}><span aria-hidden="true" />Live records</p>
+            <p className={styles.live}><span aria-hidden="true" />{impact ? "Live records" : "Public records"}</p>
             <h1 className={styles.name}>{org.name}</h1>
             {location && <p className={styles.place}>{location}</p>}
           </div>
@@ -144,8 +144,10 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
 
         <div className={styles.primary}>
           <div className={styles.primaryStat}>
-            <strong className={styles.primaryNumber}>{formatter.format(impact.animalsRecorded)}</strong>
-            <span className={styles.primaryLabel}>Animal records</span>
+            {impact ? <>
+              <strong className={styles.primaryNumber}>{formatter.format(impact.animalsRecorded)}</strong>
+              <span className={styles.primaryLabel}>Dog records</span>
+            </> : <p className={styles.countsUnavailable}>Live counts are temporarily unavailable. Open the organisation record to try again.</p>}
           </div>
           <MiniFootprint cells={mapCells} place={mapPlace} />
         </div>

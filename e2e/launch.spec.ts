@@ -63,3 +63,17 @@ test('landing server HTML keeps marketing navigation during ISR', async ({ reque
   expect(html).toContain('class="sp-header');
   expect(html).not.toContain('id="spa-side-nav"');
 });
+
+test('a public dog keeps its recorded area visible without a street-map renderer', async ({ page }, testInfo) => {
+  await page.goto('/dog/07f2e905-6ec8-46d5-9fd7-cecaf5339be9');
+  await expect(page.locator('#lr-name')).toBeVisible();
+  const area = page.locator('.lr-banner-map');
+  await expect(area).toBeVisible();
+  const rendered = await area.evaluate(el => el.classList.contains('is-ready'));
+  if (!rendered) {
+    await expect(area.locator('.lr-area-fallback')).toBeVisible();
+    await expect(area.locator('svg[aria-label^="Recorded area"] path').first()).toBeVisible();
+    await expect(area.locator('.lr-placemap-credit')).toHaveText('Recorded area · StrayPaw');
+  }
+  await page.screenshot({ path: testInfo.outputPath('public-dog-recorded-area.png'), fullPage: true });
+});
