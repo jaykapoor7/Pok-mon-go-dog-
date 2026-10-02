@@ -1159,6 +1159,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
           compact={sheet === "peek"} onExpand={() => setSheet("open")}
           onMode={(x) => { setMode(x); setMoreOpen(false); }}
           filters={eff} note={filterNote}
+          exact={unfiltered ? authByCell : undefined}
         />
       )}
 
