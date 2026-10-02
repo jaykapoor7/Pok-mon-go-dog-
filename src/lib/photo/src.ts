@@ -41,5 +41,16 @@ export function sized(src: string | null | undefined, width: number, quality = 7
   /* Already small, already local, or not something the optimizer takes. */
   if (url.startsWith("data:") || url.startsWith("blob:")) return url;
   if (!/^https?:\/\//i.test(url)) return url;
-  return `/_next/image?url=${encodeURIComponent(url)}&w=${snap(width * 2)}&q=${quality}`;
+  return `/_next/image?url=${encodeURIComponent(inatAt(url, width * 2))}&w=${snap(width * 2)}&q=${quality}`;
+}
+
+/* iNaturalist serves each photo at fixed sizes named in the path: square
+   is 75px, small 240, medium 500, large 1024. Imported records often carry
+   the square thumbnail, which the optimizer can only blow up into mush.
+   Ask for the smallest named size that covers the drawn width instead. */
+function inatAt(url: string, px: number): string {
+  const m = url.match(/^(https:\/\/(?:inaturalist-open-data\.s3\.amazonaws\.com|static\.inaturalist\.org)\/photos\/\d+\/)(square|thumb|small|medium|large|original)(\.\w+)(\?.*)?$/i);
+  if (!m) return url;
+  const name = px <= 240 ? "small" : px <= 500 ? "medium" : "large";
+  return `${m[1]}${name}${m[3]}`;
 }

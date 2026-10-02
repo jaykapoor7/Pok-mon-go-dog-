@@ -14,6 +14,7 @@
    register. Nothing is invented; where the record is thin the plate is.
    ════════════════════════════════════════════════════════════════════ */
 
+import { REGISTER_FRAMES } from "./frames";
 import { unstable_cache } from "next/cache";
 import { cellToBoundary, cellToLatLng } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
@@ -300,17 +301,26 @@ export type AnimalRegister = { total: number; cards: RegisterFocus[] };
  * authoritative city rollups as the hero, so this path never runs an exact
  * count across the public animal view. Related history stays bounded to the
  * selected card ids. */
+const REGISTER_COLUMNS = "id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,sterilisation_status,vaccination_status,status,needs_help,ngo_id";
 export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister> => {
   const supa = getSupabase();
   if (!supa) return { total: 0, cards: [] };
   const [cities, { data, error }] = await Promise.all([
     getPublicSpatialCities(200),
-    supa.from("public_spatial_animals").select("id,name,straypaw_id,cover_photo,zone,city,first_seen,last_seen,sightings_count,sterilisation_status,vaccination_status,status,needs_help,ngo_id")
-      .not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates),
+    supa.from("public_spatial_animals").select(REGISTER_COLUMNS)
+      .in("straypaw_id", Object.keys(REGISTER_FRAMES)).not("cover_photo", "is", null).neq("cover_photo", "").limit(Object.keys(REGISTER_FRAMES).length),
   ]);
   if (error) throw error;
   const total = cities.reduce((n, city) => n + Number(city.animals || 0), 0);
-  const rows = (data ?? []) as Array<any>;
+  let rows = (data ?? []) as Array<any>;
+  /* The framed faces (lib/landing/frames). If the register no longer holds
+     enough of them, fall back to the fullest photographed records. */
+  if (rows.length < 12) {
+    const { data: wide, error: wideError } = await supa.from("public_spatial_animals").select(REGISTER_COLUMNS)
+      .not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates);
+    if (wideError) throw wideError;
+    rows = (wide ?? []) as Array<any>;
+  }
   /* A fuller set of calm, photographed dogs for the landing's marquee — the
      register shown as a wall of real profiles across a few sliding rows. */
   /* The fullest records first (most sightings), recency breaking ties: the
@@ -319,7 +329,7 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   const picks = rows
     .filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured")
     .sort((a, b) => (b.sightings_count ?? 0) - (a.sightings_count ?? 0))
-    .slice(0, LANDING_LIMITS.registerCards);
+    .slice(0, Math.max(LANDING_LIMITS.registerCards, Object.keys(REGISTER_FRAMES).length));
   const ids = picks.map((row) => row.id);
   const [{ data: cases }, { data: care }] = ids.length ? await Promise.all([
     supa.from("public_case_facts").select("dog_id,condition_class,status_class,occurred_at").in("dog_id", ids).order("occurred_at", { ascending: false }).limit(LANDING_LIMITS.registerCases),
@@ -335,4 +345,4 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
     sterilisation: row.sterilisation_status, vaccination: row.vaccination_status, org: null,
     requests: byCase.get(row.id) ?? [], care: byCare.get(row.id) ?? [],
   })) };
-}, ["landing-animal-register-v12"], { revalidate: 300 });
+}, ["landing-animal-register-v13"], { revalidate: 300 });
