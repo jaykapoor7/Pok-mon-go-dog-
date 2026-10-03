@@ -27,7 +27,8 @@
 .ops-board-clock i { width: 6px; height: 6px; border-radius: 50%; background: var(--sp-flame); }
 .ops-board-body { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
 .ops-queue { padding: var(--sp-5); display: grid; align-content: start; min-width: 0; }
-.ops-geo { padding: var(--sp-5); border-left: 1px solid var(--sp-night-line); display: grid; align-content: start; gap: var(--sp-2); min-width: 0; }
+/* The map fills its column, so it runs as long as the queue beside it. */
+.ops-geo { padding: var(--sp-5); border-left: 1px solid var(--sp-night-line); display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--sp-2); min-width: 0; }
 
 .ops-eyebrow { margin: 0 0 var(--sp-3); display: flex; justify-content: space-between; gap: var(--sp-3); font-family: var(--font-mono), ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-night-dim); }
 .ops-eyebrow a { display: inline-flex; align-items: center; gap: 3px; font-family: var(--font-sans), system-ui, sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--sp-sky); text-decoration: none; }
@@ -54,8 +55,8 @@
 .ops-list.is-loading li span { display: block; height: 18px; margin: 14px 0; border-radius: 6px; background: linear-gradient(90deg, rgba(239, 231, 218, 0.05), rgba(239, 231, 218, 0.11), rgba(239, 231, 218, 0.05)); background-size: 200% 100%; }
 
 /* Where it is. */
-.ops-map { display: grid; align-content: start; gap: var(--sp-2); min-height: 300px; }
-.ops-street { width: 100%; height: 360px; overflow: hidden; border-radius: var(--sp-radius); border: 1px solid var(--sp-night-line); }
+.ops-map { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: var(--sp-2); min-height: 300px; }
+.ops-street { width: 100%; min-height: 360px; overflow: hidden; border-radius: var(--sp-radius); border: 1px solid var(--sp-night-line); }
 .ops-map-key { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; color: var(--sp-night-dim); }
 .ops-map-key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
 .ops-map-key i.is-dot { background: var(--sp-flame); }
@@ -64,6 +65,7 @@
 
 /* ── Below the desk, on bone ── */
 .ops-lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-7); align-items: start; }
+.ops-lower-side { display: grid; gap: var(--sp-6); align-content: start; min-width: 0; }
 .ops-decide { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-5); border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: inset 3px 0 0 var(--sp-flame); }
 .ops-decide b { font-size: 30px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--sp-flame-deep); font-variant-numeric: tabular-nums; }
 .ops-decide p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--sp-body); }
@@ -94,7 +96,7 @@
   .ops-board-clock { margin-left: auto; }
   .ops-queue, .ops-geo { padding: var(--sp-4); }
   .ops-list a { grid-template-columns: 10px minmax(0, 1fr) 92px; }
-  .ops-street { height: 300px; }
+  .ops-street { min-height: 300px; }
   .ops-decide { grid-template-columns: auto minmax(0, 1fr); }
   .ops-decide .dk-btn { grid-column: 1 / -1; justify-self: start; }
   .ops-setup { padding: var(--sp-4); }

@@ -90,6 +90,22 @@ export function FieldToday() {
     );
   };
 
+  const curRows = Math.min(10, current.length) + (backlog.length ? 2 : 0);
+  const nobodyRows = Math.max(4, Math.min(10, curRows + 2));
+  const whoLeft = curRows + 2 <= Math.min(nobody.length, nobodyRows);
+  const whoSec = (
+        <section className="ft-sec">
+          <h2>Who has what</h2>
+          {holders.length ? (
+            <ul className="ft-bars">
+              {holders.map(([name, n]) => (
+                <li key={name}><span>{name}</span><i style={{ width: `${(n / holders[0][1]) * 100}%` }} /><b className="sys-mono">{n}</b></li>
+              ))}
+            </ul>
+          ) : <p className="ft-quiet">No open case is assigned to anyone yet. Taking a case on its page puts it here.</p>}
+        </section>
+  );
+
   return (
     <div className="ft">
       {(open.length >= 300 || due.length >= 200) && <p className="ft-quiet">This view uses up to 300 loaded open cases and 200 follow-ups. Counts and assignments below describe that loaded slice; search the case register for other records.</p>}
@@ -99,6 +115,10 @@ export function FieldToday() {
       </p>
 
       <div className="ft-grid">
+        {/* Two columns that keep level: "Nobody on it" lists about as many
+            rows as the follow-ups beside it, and "Who has what" sits under
+            whichever column is shorter. */}
+        <div className="ft-stack">
         <section className="ft-sec">
           <h2>Follow-ups, overdue first <span className="sys-mono">{due.length}</span></h2>
           {due.length ? (
@@ -115,13 +135,15 @@ export function FieldToday() {
             </>
           ) : <p className="ft-quiet">Nothing due in the next seven days.</p>}
         </section>
-
+        {whoLeft && whoSec}
+        </div>
+        <div className="ft-stack">
         <section className="ft-sec">
           <h2>Nobody on it <span className="sys-mono">{nobody.length}</span></h2>
           {nobody.length ? (
             <>
               <ol className="ft-list">
-                {nobody.slice(0, 10).map((r) => (
+                {nobody.slice(0, nobodyRows).map((r) => (
                   <li key={r.id}>
                     <Link href={`/partner/cases/${r.id}`}>
                       <span className={`ft-mark is-${triage(r).toLowerCase()}`} />
@@ -131,26 +153,17 @@ export function FieldToday() {
                   </li>
                 ))}
               </ol>
-              {nobody.length > 10 && <Link href="/partner/cases?lens=nobody" className="ft-more">All {nobody.length} in the register <ArrowUpRight size={14} /></Link>}
+              {nobody.length > nobodyRows && <Link href="/partner/cases?lens=nobody" className="ft-more">All {nobody.length} in the register <ArrowUpRight size={14} /></Link>}
             </>
           ) : <p className="ft-quiet">Every open case has someone on it.</p>}
         </section>
+        {!whoLeft && whoSec}
+        </div>
 
-        <section className="ft-sec">
-          <h2>Who has what</h2>
-          {holders.length ? (
-            <ul className="ft-bars">
-              {holders.map(([name, n]) => (
-                <li key={name}><span>{name}</span><i style={{ width: `${(n / holders[0][1]) * 100}%` }} /><b className="sys-mono">{n}</b></li>
-              ))}
-            </ul>
-          ) : <p className="ft-quiet">No open case is assigned to anyone yet. Taking a case on its page puts it here.</p>}
-        </section>
-
-        <section className="ft-sec">
+        <section className="ft-sec is-wide">
           <h2>Where the open work is</h2>
           {places.length ? (
-            <ul className="ft-bars is-places">
+            <ul className="ft-bars is-places" style={{ ["--rows" as string]: Math.ceil(places.length / 2) }}>
               {places.map(([z, v]) => (
                 <li key={z}>
                   <span>{z}</span>

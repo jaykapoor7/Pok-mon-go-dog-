@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Loader2, Tent, Check } from "lucide-react";
+import Link from "next/link";
+import { Plus, Loader2, Tent, Check, ArrowUpRight } from "lucide-react";
 import { getMyCamps, createVetCamp, setVetCampStatus } from "@/lib/camp-actions";
 import { formatDate } from "@/lib/utils";
 import type { VetCamp } from "@/lib/types";
 import "./field.css";
 
-export function CampsSection() {
+/* compact: the dashboard's view — only camps still to come, the next three,
+   with a link to the full list on Field work. */
+export function CampsSection({ compact = false }: { compact?: boolean }) {
   const [camps, setCamps] = useState<VetCamp[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -15,10 +18,15 @@ export function CampsSection() {
   const load = () => getMyCamps().then(setCamps).finally(() => setLoading(false));
   useEffect(() => { load(); }, []);
 
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = camps.filter((c) => c.status !== "done" && (!c.camp_date || c.camp_date >= today))
+    .sort((a, b) => (a.camp_date ?? "9999").localeCompare(b.camp_date ?? "9999"));
+  const shown = compact ? upcoming.slice(0, 3) : camps;
+
   return (
     <section className="fw-sec" aria-labelledby="fw-camps-h">
       <header className="fw-head">
-        <h2 id="fw-camps-h">Veterinary camps{camps.length ? <span className="sys-mono">{camps.length}</span> : null}</h2>
+        <h2 id="fw-camps-h">{compact ? "Camps coming up" : "Veterinary camps"}{(compact ? upcoming : camps).length ? <span className="sys-mono">{(compact ? upcoming : camps).length}</span> : null}</h2>
         <button type="button" className="fw-act" aria-expanded={adding} onClick={() => setAdding((v) => !v)}>
           <Plus size={15} aria-hidden /> {adding ? "Close" : "Plan a camp"}
         </button>
@@ -28,11 +36,11 @@ export function CampsSection() {
 
       {loading ? (
         <p className="fw-wait" role="status"><Loader2 size={16} className="fw-spin" aria-hidden /> Reading camps…</p>
-      ) : camps.length === 0 ? (
-        <p className="fw-empty">No camps planned yet. Plan one to put a sterilisation or vaccination day on the team&apos;s calendar.</p>
+      ) : shown.length === 0 ? (
+        <p className="fw-empty">{compact && camps.length ? "No camp is coming up. Plan the next one to put it on the team's calendar." : "No camps planned yet. Plan one to put a sterilisation or vaccination day on the team's calendar."}</p>
       ) : (
         <ul className="fw-list">
-          {camps.map((c) => (
+          {shown.map((c) => (
             <li key={c.id}>
               <Tent size={16} aria-hidden className="fw-ico" />
               <span className="fw-what">
@@ -48,6 +56,7 @@ export function CampsSection() {
           ))}
         </ul>
       )}
+      {compact && upcoming.length > 3 && <Link href="/partner/field" className="fw-more">All {upcoming.length} coming up <ArrowUpRight size={13} aria-hidden /></Link>}
     </section>
   );
 }
