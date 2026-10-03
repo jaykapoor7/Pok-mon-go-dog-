@@ -35,16 +35,23 @@ for (const width of [1280, 390]) test(`public launch review at ${width}px`, asyn
   expect(failures).toEqual([]);
 });
 
-test('map city changes replace the current totals and loaded geography', async ({ page }, testInfo) => {
+test('map city changes replace the current totals and India overview stays on the map', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'viewport-independent data check');
   await page.goto('/map?city=Delhi');
   const city = page.getByRole('combobox', { name: /city/i }).first();
   await expect(city).toHaveValue('Delhi');
-  await city.selectOption('Coimbatore');
-  await expect(city).toHaveValue('Coimbatore');
+  await city.fill('Coimbatore');
+  await page.getByRole('option', { name: /Coimbatore/ }).click();
   await expect(page).toHaveURL(/city=Coimbatore/);
-  await city.selectOption('Ranchi');
+  await expect(city).toHaveValue('Coimbatore');
+  await city.fill('Ranchi');
+  await page.getByRole('option', { name: /Ranchi/ }).click();
   await expect(page).toHaveURL(/city=Ranchi/);
+  await expect(city).toHaveValue('Ranchi');
+  await page.getByRole('button', { name: 'Clear city' }).click();
+  await expect(page).toHaveURL(/\/map(?:\?|$)/);
+  await expect(page).not.toHaveURL(/city=/);
+  await expect(city).toHaveValue('India overview');
 });
 
 test('unknown dog IDs are real 404s and production health identifies its build', async ({ request }, testInfo) => {
