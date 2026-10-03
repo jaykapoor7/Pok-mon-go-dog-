@@ -12,8 +12,11 @@ import { uploadPhoto } from "@/lib/actions";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { CASE_CATEGORY_META, CASE_SEVERITY_META, type CaseCategory, type CaseSeverity, } from "@/lib/types";
 import { CITIES } from "@/lib/geo/cities";
+import { LocationPicker } from "@/components/report/LocationPicker";
+import { nearestCity } from "@/lib/delhi";
 import { cn, dogLabel } from "@/lib/utils";
 import { DeskHeader } from "@/components/app/DeskHeader";
+import { SearchSelect } from "@/components/app/SearchSelect";
 
 const CATEGORIES = Object.keys(CASE_CATEGORY_META) as CaseCategory[];
 const SEVERITIES: CaseSeverity[] = ["low", "normal", "high", "critical"];
@@ -94,7 +97,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       };
       const lat = latitude.trim() ? Number(latitude) : null;
       const lng = longitude.trim() ? Number(longitude) : null;
-      if ((lat === null) !== (lng === null) || (lat !== null && (!Number.isFinite(lat) || Math.abs(lat) > 90 || !Number.isFinite(lng) || Math.abs(lng!) > 180))) throw new Error("Enter valid latitude and longitude together, or leave both blank.");
+      if ((lat === null) !== (lng === null) || (lat !== null && (!Number.isFinite(lat) || Math.abs(lat) > 90 || !Number.isFinite(lng) || Math.abs(lng!) > 180))) throw new Error("The map pin is not valid. Choose the place again, or remove the pin.");
       const estimatedCost = amount(costEstimate, "Estimated treatment cost");
       const spentCost = amount(costSpent, "Amount spent");
       let linkedDogId = mode === "existing" ? dogId : null;
@@ -189,11 +192,35 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       <div className="mt-4 space-y-4 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
         <input aria-label="Case title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Case title, e.g. Hind-leg injury" className={INPUT} />
         <textarea aria-label="Case description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's going on? Condition, symptoms, context." className={cn(INPUT, "min-h-[80px] resize-y")} />
-        <label className="block text-sm">City<input aria-label="Incident city" list="case-cities" required value={city} onChange={(e) => setCity(e.target.value)} className={cn(INPUT, "mt-1")} /></label>
-        <datalist id="case-cities">{CITIES.map((c) => <option key={c.name} value={c.name} />)}</datalist>
-        <input aria-label="Incident locality" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Area / locality" className={INPUT} />
-        <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Latitude (optional)<input aria-label="Incident latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} inputMode="decimal" className={cn(INPUT, "mt-1")} /></label><label className="text-sm">Longitude (optional)<input aria-label="Incident longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} inputMode="decimal" className={cn(INPUT, "mt-1")} /></label></div>
-        <p className="text-xs text-bark-500">Use the incident’s actual coordinates. Leave them blank when unknown; a locality alone does not create a map pin.</p>
+        <div className="space-y-2">
+          <p className="text-sm">Where it happened</p>
+          {/* Search a place by name, use this phone's location, or drag the
+              pin. Choosing a place fills the locality and city; both stay
+              editable below. */}
+          <LocationPicker
+            value={latitude && longitude ? { lat: Number(latitude), lng: Number(longitude) } : null}
+            zone={zone}
+            onChange={({ lat, lng, zone: picked }) => {
+              setLatitude(lat.toFixed(6)); setLongitude(lng.toFixed(6));
+              if (picked && !zone.trim()) setZone(picked);
+              if (!city.trim()) setCity(nearestCity(lat, lng));
+            }}
+          />
+          {latitude && longitude ? (
+            <p className="text-xs text-bark-500">Pinned on the map. <button type="button" className="font-semibold text-paw-600 underline" onClick={() => { setLatitude(""); setLongitude(""); }}>Remove the pin</button></p>
+          ) : (
+            <p className="text-xs text-bark-500">No pin yet. Without one the case keeps its locality but does not appear on the map.</p>
+          )}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="text-[13px] font-medium text-bark-600 dark:text-bark-200">
+            <p className="mb-1.5">City</p>
+            <SearchSelect options={CITIES.map((c) => c.name)} value={city} onChange={setCity} label="Incident city" allLabel="No city chosen" placeholder="Search a city…" icon="place" />
+          </div>
+          <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Area or locality
+            <input aria-label="Incident locality" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="e.g. RS Puram" className={cn(INPUT, "mt-1.5")} />
+          </label>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-[13px] font-medium text-bark-600 dark:text-bark-200">Informer / reporter contact
             <input value={informerContact} onChange={(e) => setInformerContact(e.target.value)} placeholder="Phone, WhatsApp or email (private)" className={cn(INPUT, "mt-1.5")} />

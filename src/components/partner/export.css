@@ -1,0 +1,38 @@
+/* ── Take the record out: choose what, then choose the file ─────────── */
+.xs { display: grid; gap: var(--sp-6); color: var(--sp-ink); }
+.xs-step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: var(--sp-4); }
+.xs-n { margin: 0; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--sp-ink); color: var(--sp-paper); font-size: 13px; }
+.xs-body { display: grid; gap: var(--sp-3); min-width: 0; }
+.xs-body h3 { margin: 4px 0 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.xs-lede { margin: 0; font-size: 13.5px; color: var(--sp-muted); }
+.xs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); }
+.xs-f { display: grid; gap: 4px; min-width: 0; }
+.xs-f.is-wide { grid-column: span 2; }
+.xs-f > span { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.xs-f select, .xs-f input { width: 100%; height: var(--ctl-h); padding: 0 var(--sp-3); border: 1px solid var(--sp-line); border-radius: var(--ctl-r-row); background: var(--sp-paper); color: var(--sp-ink); font: inherit; font-size: 14px; }
+.xs-f select:focus, .xs-f input:focus { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+.xs-outs { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+.xs-outs button { width: 100%; height: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: start; gap: var(--sp-3); padding: var(--sp-4); border: 1px solid var(--sp-line); border-radius: var(--ctl-r-row); background: var(--sp-paper); color: var(--sp-ink); font: inherit; text-align: left; cursor: pointer; transition: border-color var(--sp-fast) var(--sp-ease-io), background var(--sp-fast) var(--sp-ease-io); }
+.xs-outs button:hover { border-color: var(--sp-blue); background: #fff9f0; }
+.xs-outs button:active { transform: scale(0.99); }
+.xs-outs button:disabled { opacity: 0.6; cursor: default; }
+.xs-ico { margin-top: 1px; color: var(--sp-blue); }
+.xs-what { display: grid; gap: 3px; min-width: 0; }
+.xs-what b { font-size: 14.5px; font-weight: 600; }
+.xs-what small { font-size: 12.5px; line-height: 1.45; color: var(--sp-muted); }
+.xs-fmt { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); font-size: 11px; white-space: nowrap; }
+.xs-spin { animation: xs-spin 0.9s linear infinite; }
+@keyframes xs-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .xs-spin { animation: none; } }
+.xs-err { margin: 0; font-size: 13px; font-weight: 600; color: var(--sp-ember); }
+@media (max-width: 900px) {
+  .xs-grid { grid-template-columns: 1fr 1fr; }
+  .xs-outs { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .xs-step { grid-template-columns: 1fr; gap: var(--sp-2); }
+  .xs-grid { grid-template-columns: 1fr; }
+  .xs-f.is-wide { grid-column: auto; }
+  .xs-outs button { grid-template-columns: 22px minmax(0, 1fr); }
+  .xs-fmt { grid-column: 2; justify-self: start; }
+}

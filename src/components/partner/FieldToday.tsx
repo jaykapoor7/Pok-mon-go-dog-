@@ -22,6 +22,8 @@ import "./field.css";
 const DAY = 86_400_000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`; };
+/* "1004 d late" reads as a counter; past a month, say it in months or years. */
+const lateBy = (ms: number) => { const d = Math.floor(ms / DAY); return d < 45 ? `${d} d late` : d < 540 ? `${Math.round(d / 30)} months late` : `${(d / 365).toFixed(1)} years late`; };
 const cond = (r: RegisterRow) => (r.condition_class && r.condition_class !== "Not recorded" ? r.condition_class : null);
 const triage = (r: RegisterRow): Triage => (r.severity === "critical" ? "Critical" : cond(r) ? triageOf(cond(r)) : "Unclassified");
 const RANK: Record<Triage, number> = { Critical: 0, Priority: 1, Routine: 2, Unclassified: 3 };
@@ -66,36 +68,51 @@ export function FieldToday() {
   if (loadError) return <p className="ft-state" role="alert">Field work could not be loaded. Please refresh to try again.</p>;
 
   const overdue = due.filter((f) => Date.parse(f.due_at) < now).length;
-  const maxPlace = places[0]?.[1].n ?? 1;
+  const dueSoon = due.length - overdue;
+  const maxPlace = Math.max(1, ...places.map(([, v]) => v.n));
+  // Follow-ups more than three months late are almost all from imported
+  // registers; they sit in their own fold so this week's work stays on top.
+  const BACKLOG = 90 * 86400000;
+  const current = due.filter((f) => now - Date.parse(f.due_at) <= BACKLOG).sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at));
+  const backlog = due.filter((f) => now - Date.parse(f.due_at) > BACKLOG);
+  const item = (f: DueFollowup) => {
+    const c = f.case_id ? byId.get(f.case_id) : null;
+    const late = Date.parse(f.due_at) < now;
+    const href = f.case_id ? `/partner/cases/${f.case_id}` : f.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/records?view=overdue";
+    return (
+      <li key={f.id} className={late ? "is-late" : ""}>
+        <Link href={href}>
+          <time className="sys-mono">{day(f.due_at)}</time>
+          <span><b>{c ? cond(c) ?? "A case" : f.kind && !/^imported/i.test(f.kind) ? f.kind.replace(/_/g, " ") : "Follow-up from the imported register"}</b><small>{c ? [c.animal_name, c.zone].filter(Boolean).join(" · ") : late ? "Overdue" : "Due"}</small></span>
+          <i>{late ? lateBy(now - Date.parse(f.due_at)) : "due"}</i>
+        </Link>
+      </li>
+    );
+  };
 
   return (
     <div className="ft">
       {(open.length >= 300 || due.length >= 200) && <p className="ft-quiet">This view uses up to 300 loaded open cases and 200 follow-ups. Counts and assignments below describe that loaded slice; search the case register for other records.</p>}
       <p className="ft-line">
-        <b>{due.length}</b> follow-up{due.length === 1 ? "" : "s"} due this week{overdue ? <>, <em>{overdue} already overdue</em></> : null}.{" "}
+        <b>{dueSoon}</b> follow-up{dueSoon === 1 ? "" : "s"} due in the next seven days{overdue ? <>, <em>{overdue} overdue</em></> : null}.{" "}
         <b>{nobody.length}</b> open case{nobody.length === 1 ? "" : "s"} with nobody on {nobody.length === 1 ? "it" : "them"}.
       </p>
 
       <div className="ft-grid">
         <section className="ft-sec">
-          <h2>Follow-ups due <span className="sys-mono">{due.length}</span></h2>
+          <h2>Follow-ups, overdue first <span className="sys-mono">{due.length}</span></h2>
           {due.length ? (
-            <ol className="ft-list">
-              {due.slice(0, 14).map((f) => {
-                const c = f.case_id ? byId.get(f.case_id) : null;
-                const late = Date.parse(f.due_at) < now;
-                const href = f.case_id ? `/partner/cases/${f.case_id}` : f.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/records";
-                return (
-                  <li key={f.id} className={late ? "is-late" : ""}>
-                    <Link href={href}>
-                      <time className="sys-mono">{day(f.due_at)}</time>
-                      <span><b>{c ? cond(c) ?? "A case" : f.kind ? f.kind.replace(/_/g, " ") : "Follow-up"}</b><small>{c ? [c.animal_name, c.zone].filter(Boolean).join(" · ") : late ? "Overdue" : "Due"}</small></span>
-                      <i>{late ? `${Math.floor((now - Date.parse(f.due_at)) / DAY)} d late` : "due"}</i>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ol>
+            <>
+              {current.length ? <ol className="ft-list">{current.slice(0, 10).map(item)}</ol> : <p className="ft-quiet">Nothing due this week, and nothing late from the last three months.</p>}
+              {current.length > 10 && <Link href="/partner/records?view=overdue" className="ft-more">All {current.length} in the register <ArrowUpRight size={14} /></Link>}
+              {backlog.length > 0 && (
+                <details className="ft-fold">
+                  <summary><b>{backlog.length}</b> older follow-up{backlog.length === 1 ? "" : "s"}, more than three months late</summary>
+                  <ol className="ft-list">{backlog.slice(0, 8).map(item)}</ol>
+                  <Link href="/partner/records?view=overdue" className="ft-more">Review or close them in Records <ArrowUpRight size={14} /></Link>
+                </details>
+              )}
+            </>
           ) : <p className="ft-quiet">Nothing due in the next seven days.</p>}
         </section>
 

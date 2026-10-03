@@ -444,3 +444,9 @@
 .sm-hud button { min-height:44px; padding:8px 12px; border:1px solid var(--sm-line); border-radius:8px; background:var(--sm-chip); color:var(--sm-text); }
 
 .sm-modes button { min-height:44px; height:auto; }
+
+/* The city search on the map's control bar: the same picker as the rest of
+   the app, sized to the bar. */
+.sm-city-ss { width: 240px; }
+.sm-city-ss .ps-field { height: 40px; }
+@media (max-width: 760px) { .sm-city-ss { width: 100%; } }

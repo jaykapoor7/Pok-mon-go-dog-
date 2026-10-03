@@ -4,7 +4,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Loader2, Camera, Crosshair, Check, Download } from "lucide-react";
+import { Plus, Search, Loader2, Camera, Check, Download } from "lucide-react";
 import { CITIES } from "@/lib/geo/cities";
 import { createAnimal } from "@/lib/animal-actions";
 import { orgAnimals, orgZones, type OrgAnimal } from "@/lib/programme";
@@ -16,6 +16,9 @@ import { SPECIES, speciesLabel, STATUS_META } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { DeskHeader } from "@/components/app/DeskHeader";
+import { SearchSelect } from "@/components/app/SearchSelect";
+import { LocationPicker } from "@/components/report/LocationPicker";
+import { nearestCity } from "@/lib/delhi";
 
 const FILTER =
   "min-h-[40px] rounded-md border border-black/[0.09] bg-transparent px-2 text-[13px] outline-none focus:border-paw-400 dark:border-white/[0.12]";
@@ -52,7 +55,7 @@ export function AnimalsClient() {
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 200;
+  const PAGE_SIZE = 40;
 
   /* Filters start from the URL, so the dashboard figures can link straight
      to their own list and a filtered view can be shared or bookmarked. */
@@ -66,6 +69,29 @@ export function AnimalsClient() {
   /* Filtering happens in the database, against the same rows and columns the
      dashboard totals count. Filtering a page of results in the browser would
      make the two disagree the moment there are more animals than one page. */
+  const filters = () => ({
+    search: q,
+    ster: (ster || null) as OrgAnimal["sterilisation_status"] | null,
+    vacc: (vacc || null) as OrgAnimal["vaccination_status"] | null,
+    zone: zone || null,
+    from: from ? new Date(from).toISOString() : null,
+    to: to ? new Date(new Date(to).getTime() + 86_400_000).toISOString() : null,
+    needsHelp: needsOnly ? true : null,
+  });
+  /* Export takes every animal the filters match, not only the page in view. */
+  const [exporting, setExporting] = useState(false);
+  const exportAll = async () => {
+    setExporting(true);
+    try {
+      const all: OrgAnimal[] = [];
+      for (let offset = 0; offset < 50_000; offset += 500) {
+        const batch = await orgAnimals({ ...filters(), limit: 500, offset });
+        all.push(...batch);
+        if (batch.length < 500) break;
+      }
+      downloadCsv(`animals-${new Date().toISOString().slice(0, 10)}.csv`, all.map((a) => ({ straypaw_id: a.straypaw_id, source_id: a.code, name: a.name, species: a.species, status: a.status, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, location: a.zone, assignee: a.assignee_name, recorded_by: a.recorded_by, recorded_on: a.created_at, last_seen: a.last_seen })));
+    } finally { setExporting(false); }
+  };
   const load = () => {
     setLoading(true);
     return orgAnimals({
@@ -109,17 +135,14 @@ export function AnimalsClient() {
         lede="One permanent StrayPaw ID per animal, with its photographs, place, sterilisation, vaccination and casework underneath."
         figures={[
           { label: filtered ? "animals match these filters" : "animals on your record", value: loading && !animals.length ? null : total },
-          { label: "localities", value: zones.length || null, tone: "quiet" },
+          /* The locality list is read up to 1,000 names; past that, say so. */
+          { label: "localities", value: zones.length >= 1000 ? "1,000+" : zones.length || null, tone: "quiet" },
         ]}
         actions={<>
           <button type="button" onClick={() => setCreating((v) => !v)} className="dk-btn"><Plus size={16} /> New animal</button>
           {animals.length > 0 && (
-            <button
-              type="button"
-              onClick={() => downloadCsv("animals.csv", animals.map((a) => ({ straypaw_id: a.straypaw_id, source_id: a.code, name: a.name, species: a.species, status: a.status, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, location: a.zone, assignee: a.assignee_name, recorded_by: a.recorded_by, recorded_on: a.created_at, last_seen: a.last_seen })))}
-              className="dk-btn is-tint"
-            >
-              <Download size={15} /> Export
+            <button type="button" onClick={exportAll} disabled={exporting} className="dk-btn is-tint">
+              {exporting ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />} {exporting ? "Exporting…" : `Export ${total ? total.toLocaleString("en-IN") : ""} as CSV`}
             </button>
           )}
         </>}
@@ -144,12 +167,9 @@ export function AnimalsClient() {
           <option value="not_vaccinated">Not vaccinated</option>
           <option value="unknown">Unknown</option>
         </select>
-        <select aria-label="Location" value={zone} onChange={(e) => setZone(e.target.value)} className={FILTER}>
-          <option value="">Location: all</option>
-          {zones.map((z) => (
-            <option key={z.zone} value={z.zone}>{z.zone} ({z.n})</option>
-          ))}
-        </select>
+        <SearchSelect className="pa-zone" icon="place" label="Location" allLabel="All locations" placeholder="Any location"
+          options={zones.map((z) => ({ value: z.zone, hint: `${z.n.toLocaleString("en-IN")} animal${z.n === 1 ? "" : "s"}` }))}
+          value={zone} onChange={setZone} />
         <input type="date" aria-label="Recorded from" value={from} onChange={(e) => setFrom(e.target.value)} className={FILTER} />
         <input type="date" aria-label="Recorded until" value={to} onChange={(e) => setTo(e.target.value)} className={FILTER} />
         {filtered && (
@@ -256,10 +276,6 @@ function CreateAnimal({ onDone }: { onDone: () => void }) {
     setUploading(true);
     try { setPhoto(await uploadPhoto(f)); } catch { setError("The photo could not be uploaded. Try again."); } finally { setUploading(false); }
   }
-  function locate() {
-    navigator.geolocation?.getCurrentPosition((p) => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {}, { enableHighAccuracy: true, timeout: 8000 });
-  }
-
   async function submit() {
     if (!city.trim()) { setError("Choose the city for this dog."); return; }
     setBusy(true); setError(null);
@@ -285,14 +301,18 @@ function CreateAnimal({ onDone }: { onDone: () => void }) {
       )}
       <label className="block text-sm">City<input aria-label="Dog city" required list="animal-cities" value={city} onChange={(e) => setCity(e.target.value)} className={cn(INPUT, "mt-1")} /></label>
       <datalist id="animal-cities">{CITIES.map(c => <option key={c.name} value={c.name} />)}</datalist>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <input aria-label="Dog locality" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Village / area" className={INPUT} />
-        <button onClick={locate} className="flex items-center justify-between rounded-md border border-black/[0.1] px-3 py-2.5 text-sm dark:border-white/[0.12]" title="GPS makes this new profile appear on the public map immediately">
-          <span className={coords ? "text-bark-900 dark:text-bark-50" : "text-bark-400"}>{coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : "Capture GPS for map"}</span>
-          <Crosshair className="h-4 w-4 text-paw-500" />
-        </button>
+      <div className="space-y-2">
+        <p className="text-sm">Where the dog lives</p>
+        {/* Search a place by name, use this phone's location, or drag the pin. */}
+        <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: picked }) => {
+          setCoords({ lat, lng });
+          if (picked && !zone.trim()) setZone(picked);
+          if (!city.trim()) setCity(nearestCity(lat, lng));
+        }} />
+        {coords && <p className="text-[12px] text-bark-500">Pinned on the map. <button type="button" className="font-semibold text-paw-600 underline" onClick={() => setCoords(null)}>Remove the pin</button></p>}
       </div>
-      {!coords && <p className="text-[12px] leading-relaxed text-bark-500">Profiles publish immediately. Add GPS to place this one on the public map; an area name alone is kept as an unpinned profile so StrayPaw never invents a location.</p>}
+      <input aria-label="Dog locality" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Village / area" className={INPUT} />
+      {!coords && <p className="text-[12px] leading-relaxed text-bark-500">Profiles publish immediately. Pin the place to show this one on the public map; an area name alone is kept as an unpinned profile so StrayPaw never invents a location.</p>}
       <textarea aria-label="Intake notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Intake notes (optional)" className={cn(INPUT, "min-h-[60px] resize-y")} />
       {error && <p role="alert" className="text-sm text-status-injured">{error}</p>}
       <div className="flex items-center gap-3">

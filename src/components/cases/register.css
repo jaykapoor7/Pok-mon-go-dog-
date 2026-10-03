@@ -135,3 +135,5 @@
   .cr-status { grid-column: 3; grid-row: 1; }
   .cr-where { display: flex; gap: 8px; align-items: baseline; }
 }
+.cr-tools .cr-place { width: 240px; }
+@media (max-width: 760px) { .cr-tools .cr-place { width: 100%; } }

@@ -393,7 +393,8 @@ assert.equal(se.surge?.month, 0);
   assert.ok(!byCell.has(hub), "a well-mapped place is never suggested");
 }
 
-/* ── the NGO queue: overdue follow-ups, then critical, then the rest; oldest first in each ── */
+/* ── the NGO queue: critical, then recently slipped follow-ups, then the rest,
+      then a follow-up backlog over ninety days; oldest first in each ── */
 {
   const items: (QueueItem & { id: string })[] = [
     { id: "new-routine", kind: "case", crit: false, age: 2 },
@@ -402,10 +403,11 @@ assert.equal(se.surge?.month, 0);
     { id: "old-critical", kind: "case", crit: true, age: 20 },
     { id: "late-followup", kind: "followup", crit: false, age: 3 },
     { id: "later-followup", kind: "followup", crit: false, age: 12 },
+    { id: "backlog-followup", kind: "followup", crit: false, age: 1004 },
   ];
   assert.deepEqual([...items].sort(queueOrder).map((x) => x.id),
-    ["later-followup", "late-followup", "old-critical", "new-critical", "old-routine", "new-routine"],
-    "within each group the item that has waited longest comes first");
+    ["old-critical", "new-critical", "later-followup", "late-followup", "old-routine", "new-routine", "backlog-followup"],
+    "critical work leads, an old follow-up backlog never buries it, and within each group the longest wait comes first");
 }
 
 /* ── places are never said twice ───────────────────────────────────────── */
