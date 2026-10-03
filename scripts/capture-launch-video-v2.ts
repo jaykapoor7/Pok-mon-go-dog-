@@ -120,6 +120,13 @@ async function captureAnimal(page: Page) {
   await viewportShot(page, "02-profile", focus);
 }
 
+async function captureReport(page: Page) {
+  await page.goto(PUBLIC_URL + "/report", { waitUntil: "domcontentloaded" });
+  await settle(page, 2200);
+  const root = page.locator("main").first();
+  await viewportShot(page, "02-report", root);
+}
+
 async function captureMap(page: Page) {
   await page.goto(PUBLIC_URL + "/map?mode=animals", { waitUntil: "domcontentloaded" });
   await settle(page, 2800);
@@ -180,7 +187,7 @@ async function makeEndCard(browser: Awaited<ReturnType<typeof chromium.launch>>)
 }
 
 async function makeContactSheet(browser: Awaited<ReturnType<typeof chromium.launch>>) {
-  const names = ["01-animal","02-profile","03-map","04-case-queue","05-case-detail","06-coverage","07-end"];
+  const names = ["01-animal","02-report","02-profile","03-map","04-case-queue","05-case-detail","06-coverage","07-end"];
   const cards: string[] = [];
   for (const name of names) {
     const b = await readFile(join(STILLS, name + ".png"));
@@ -205,6 +212,7 @@ async function main() {
   const page = await context.newPage();
   try {
     await captureAnimal(page);
+    await captureReport(page);
     await captureMap(page);
     await captureCases(page, demoUrl);
     await captureCoverage(page, demoUrl);
@@ -213,7 +221,7 @@ async function main() {
     await writeFile(join(OUT, "capture-manifest.json"), JSON.stringify({
       publicUrl: PUBLIC_URL,
       demoUrl,
-      shots: ["01-animal","02-profile","03-map","04-case-queue","05-case-detail","06-coverage","07-end"],
+      shots: ["01-animal","02-report","02-profile","03-map","04-case-queue","05-case-detail","06-coverage","07-end"],
       createdAt: new Date().toISOString()
     }, null, 2));
   } finally {
