@@ -1,6 +1,10 @@
 name: Render StrayPaw launch video v2
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/render-launch-video-v2.yml
   workflow_dispatch:
     inputs:
       public_base_url:
