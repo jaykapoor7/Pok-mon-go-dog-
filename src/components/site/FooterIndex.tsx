@@ -14,7 +14,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     { label: "Map", href: "/map" },
     { label: "Insights", href: "/insights" },
     { label: "Stories", href: "/stories" },
-    { label: "Report an animal", href: "/report" },
+    { label: "Report a dog", href: "/report" },
   ] },
   { title: "Who it's for", links: [
     { label: "NGOs", href: "/for-ngos" },

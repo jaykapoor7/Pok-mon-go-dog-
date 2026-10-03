@@ -136,8 +136,8 @@ export default async function AboutPage() {
           <PlaceGround className="co-hero-ground" caption={null} />
           <div className="co-close-in">
             <div>
-              <h2>Built and run in India <em>by Jay.</em></h2>
-              <p>Partnerships, press, procurement and governance questions get a reply from the person who builds it. Reporters are never named, places are shown to about 0.7 km², and nothing tracks you across sites. <Link href="/data-governance">Data policy</Link>.</p>
+              <h2>Built and run in India <em>by Jay Kapoor.</em></h2>
+              <p>Partnerships, press, procurement and governance questions get a reply from the person who builds it: <a href="mailto:hello@straypaw.org">hello@straypaw.org</a>. Reporters are never named, places are shown to about 0.7 km², and nothing tracks you across sites. <Link href="/data-governance">Data policy</Link>.</p>
             </div>
             <p className="co-acts">
               <Link href="/contact?subject=About%20StrayPaw" className="sys-btn is-flame">Contact StrayPaw <ArrowUpRight size={15} /></Link>

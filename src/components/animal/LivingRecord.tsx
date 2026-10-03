@@ -118,7 +118,7 @@ function routeOf(r: Living, scope: "public" | "org", reportHref: string): RouteS
   if (r.known.ster === "unknown") gaps.push({
     key: "ster", at: null, kind: "missing", label: "Sterilisation",
     detail: scope === "public" ? "Nobody has recorded whether it is sterilised. A notched ear is the sign." : "Nobody has recorded whether it is sterilised.",
-    href: scope === "org" ? "#org-care" : reportHref, cta: scope === "org" ? "Record sterilisation" : "Report a sighting",
+    href: scope === "org" ? "#org-care" : reportHref, cta: scope === "org" ? "Record sterilisation" : "Report a dog",
   });
   if (r.known.vacc === "unknown") gaps.push({
     key: "vacc", at: null, kind: "missing", label: "Vaccination", detail: "No anti-rabies vaccination on the record.",
@@ -193,7 +193,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
               <Check state={r.known.earNotch ? "yes" : "unknown"} label="Ear notched" note={r.known.earNotch ? "seen" : "not noted"} />
               <Check state={r.known.health === "none" ? "unknown" : "flag"} label={r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "Health"} note={r.known.health === "none" ? "no concern recorded" : "flagged"} />
             </ul>
-            <p className="lr-tag-note">Hatched: not recorded, which is not the same as no.</p>
+            <p className="lr-tag-note">Hatched fields are not recorded — they do not mean no.</p>
           </div>
         </aside>
 

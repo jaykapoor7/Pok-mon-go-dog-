@@ -277,7 +277,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
               reported one. {nextHere[0] ? "The cells around it are busy:" : ""}
             </p>
             {nextHere[0] && <ul className="sm-insp-reasons">{nextHere[0].reasons.map((r) => <li key={r}>{r}</li>)}</ul>}
-            <Link href={`/report?lat=${sel.center[1]}&lng=${sel.center[0]}`} className="sys-btn is-flame">Report an animal here <ArrowUpRight size={15} /></Link>
+            <Link href={`/report?lat=${sel.center[1]}&lng=${sel.center[0]}`} className="sys-btn is-flame">Report a dog here <ArrowUpRight size={15} /></Link>
           </div>
         )}
 
@@ -433,4 +433,3 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
     </aside>
   );
 }
-

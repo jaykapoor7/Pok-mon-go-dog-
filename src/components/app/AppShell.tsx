@@ -234,13 +234,13 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           {isNgo && <div className="spa-quick-list" aria-label="Quick actions">
             <p>Start</p>
             <Link href="/partner/cases/new" className="spa-quick-primary"><Plus size={15}/><span>New rescue case</span></Link>
-            <Link href="/report"><Radio size={14}/><span>Report an animal</span></Link>
+            <Link href="/report"><Radio size={14}/><span>Report a dog</span></Link>
             <Link href="/partner/import"><Database size={14}/><span>Import workbook</span></Link>
           </div>}
 
           <div className="spa-phone-links">
             {phoneNav.slice(0, 2).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
-            <Link href="/report" className="spa-mobile-report" aria-label="Report an animal"><Radio size={20}/><span>Report</span></Link>
+            <Link href="/report" className="spa-mobile-report" aria-label="Report a dog"><Radio size={20}/><span>Report</span></Link>
             {phoneNav.slice(2, 3).map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={20}/><span>{label}</span></Link>)}
             <button type="button" className="spa-phone-more" aria-haspopup="dialog" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><Menu size={20}/><span>More</span></button>
           </div>

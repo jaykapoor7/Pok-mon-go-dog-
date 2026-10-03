@@ -51,8 +51,8 @@ export function RecordActions({ id, label, place, mapHref, rows, straypawId }: {
 
   return (
     <div className="lr-actions" ref={box}>
-      <button type="button" className={`lr-act ${on ? "is-on" : ""}`} aria-pressed={on} onClick={() => { toggle(id); setOn(!on); haptic(on ? "select" : "success"); }}>
-        <Star size={15} className={on ? "is-filled" : ""} /> {on ? "Following" : "Follow"}
+      <button type="button" className={`lr-act ${on ? "is-on" : ""}`} aria-pressed={on} title="Saved only on this device; no account is needed." onClick={() => { toggle(id); setOn(!on); haptic(on ? "select" : "success"); }}>
+        <Star size={15} className={on ? "is-filled" : ""} /> {on ? "Following on this device" : "Follow on this device"}
       </button>
       <div className="lr-pop-host">
         <button type="button" className="lr-act" aria-expanded={share} onClick={nativeShare}><Share2 size={15} /> Share</button>

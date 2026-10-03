@@ -390,7 +390,7 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
               <li>
                 <b>{stats.sterUnknown.toLocaleString("en-IN")}</b>
                 <p>animals in this {RADIUS_KM} km patch have no sterilisation on record. A notched ear is the sign — if you see one, a sighting with a photo settles it.</p>
-                <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Report a sighting</Link>
+                <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Report a dog</Link>
               </li>
             ) : cells.edge.length > 0 ? (
               <li>

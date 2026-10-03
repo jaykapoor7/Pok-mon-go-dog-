@@ -46,7 +46,7 @@ type Condition = "injured" | "hungry" | "puppies" | "fine";
 type Step = 0 | 1 | 2 | 3 | 4;
 
 const CONDITIONS: { v: Condition; label: string; note: string }[] = [
-  { v: "injured", label: "Hurt or sick", note: "Someone should come" },
+  { v: "injured", label: "Hurt or sick", note: "Sent for review — not an emergency service" },
   { v: "hungry", label: "Thin or hungry", note: "Food, and a check" },
   { v: "puppies", label: "Puppies", note: "A litter, or a mother" },
   { v: "fine", label: "Seems fine", note: "Adds to the record" },
@@ -56,7 +56,7 @@ const EARS: { v: SterilisationStatus; label: string; note: string }[] = [
   { v: "not_sterilised", label: "Not notched", note: "Both ears whole" },
   { v: "unknown", label: "Can't see", note: "Kept as not examined" },
 ];
-const TITLES = ["Start a care report", "Where is the dog?", "How is it?", "Is an ear notched?", "Ready to share"];
+const TITLES = ["Report a dog", "Where is the dog?", "How is it?", "Is an ear notched?", "Ready to share"];
 
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
@@ -114,7 +114,7 @@ export default function ReportPage() {
   /* Set when the person chooses the map while the phone is still looking. */
   const byHand = useRef(false);
   const locate = useCallback(() => {
-    if (!navigator.geolocation) { setWhere("denied"); setEditPlace(true); return; }
+    if (!navigator.geolocation) { setWhere("map"); setEditPlace(true); return; }
     setWhere("finding");
     /* The browser's own timeout only starts once permission is given; a
        prompt left unanswered would spin here for ever. After 15 seconds the
@@ -124,7 +124,7 @@ export default function ReportPage() {
     byHand.current = false;
     const giveUp = window.setTimeout(() => {
       late = true;
-      setWhere((w) => (w === "finding" ? "denied" : w));
+      setWhere((w) => (w === "finding" ? "map" : w));
       setEditPlace(true);
     }, 15000);
     navigator.geolocation.getCurrentPosition(({ coords: c }) => {
@@ -132,7 +132,7 @@ export default function ReportPage() {
       if (late || byHand.current) return;
       if (!looksIndian(c.latitude, c.longitude)) { setWhere("abroad"); setEditPlace(true); return; }
       setPlace(c.latitude, c.longitude, "found");
-    }, () => { window.clearTimeout(giveUp); if (!late) { setWhere("denied"); setEditPlace(true); } }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    }, () => { window.clearTimeout(giveUp); if (!late) { setWhere("map"); setEditPlace(true); } }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
   }, [setPlace]);
 
   useEffect(() => {
@@ -162,7 +162,8 @@ export default function ReportPage() {
   }
 
   const ready4 = !!coords && !!condition && !!ear;
-  const canSubmit = ready4 && consent && status === "idle" && (!HAS_TURNSTILE || !!token);
+  const hasPhoto = Boolean(file || photo);
+  const canSubmit = ready4 && (!hasPhoto || consent) && status === "idle" && (!HAS_TURNSTILE || !!token);
 
   async function submit() {
     if (!canSubmit || !coords || !condition || !ear) return;
@@ -222,6 +223,7 @@ export default function ReportPage() {
         <span><HeartHandshake size={15} aria-hidden /> A shared care trail starts here</span>
         <small>About a minute · no account needed</small>
       </div>}
+      {!volunteer && <p className="rq-orientation"><Link href="/">Main site</Link><span>·</span>Nothing is saved until you send.</p>}
       {volunteer && step === 0 && <p className="rq-for">Reporting for <b>{volunteer.orgName}</b> as {volunteer.name}</p>}
 
       <div className="rq report-form">
@@ -289,7 +291,6 @@ export default function ReportPage() {
                 ) : (
                   <>
                     {where === "abroad" && <p className="rq-warn">Your phone places you outside India. StrayPaw records India&apos;s street animals: set where the animal is on the map.</p>}
-                    {where === "denied" && <p className="rq-warn">Location is off. Allow it, or set the place on the map.</p>}
                     {where !== "found" && where !== "photo" && <button type="button" className="rq-chip" onClick={locate}><Crosshair size={15} /> Use where I am</button>}
                     <LocationPicker value={coords} zone={zone} onChange={({ lat, lng, zone: z }) => { setCoords({ lat, lng }); setZone(z); setWhere("map"); }} />
                     <button type="button" className="rq-next" disabled={!coords} onClick={() => { setEditPlace(false); answered(1); }}><Check size={17} /> This is the place</button>
@@ -356,7 +357,7 @@ export default function ReportPage() {
                     <li><i>03</i><span>Care teams working nearby can take it into their field work.</span></li>
                   </ol>
                 </section>
-                {condition === "injured" && <p className="rq-urgent">Marked for urgent review. If the dog is bleeding or cannot move, also call your local animal ambulance now.</p>}
+                {condition === "injured" && <p className="rq-urgent">Marked for urgent review. StrayPaw is not an emergency service and cannot promise a response time. If the dog is in immediate danger, call a local animal ambulance or emergency vet.</p>}
 
                 <label className="rq-update">
                   <span><b>Get the link when this report is live</b><small>Optional. We only email you about this report.</small></span>
@@ -376,10 +377,11 @@ export default function ReportPage() {
                   )}
                 </div>
 
-                <label className="rq-consent">
+                {hasPhoto && <label className="rq-consent">
                   <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                   <span>My photo shows no faces, homes or number plates, and I may share it.</span>
-                </label>
+                </label>}
+                {HAS_TURNSTILE && <div className="rq-human-check"><b>One last step</b><span>Before sending, complete the short human check below. It protects the shared record from spam.</span></div>}
                 {HAS_TURNSTILE && <Turnstile onVerify={handleVerify} />}
                 {error && <p className="rq-error">{error}</p>}
                 <button type="button" className="rq-go" onClick={submit} disabled={!canSubmit}>

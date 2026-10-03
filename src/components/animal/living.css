@@ -142,6 +142,12 @@
 .lr-note-form button { width: 48px; height: 48px; flex: none; display: grid; place-items: center; border-radius: 12px; border: 0; background: var(--sp-ink); color: var(--sp-bone); cursor: pointer; }
 .lr-note-form button:disabled { opacity: 0.4; cursor: default; }
 .lr-fine { margin: 8px 0 0; font-size: 11.5px; color: var(--sp-muted); }
+.lr-confirm-wrap { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--sp-5); background: rgba(7, 20, 43, 0.58); }
+.lr-confirm { width: min(390px, 100%); display: grid; gap: var(--sp-3); padding: var(--sp-5); border-radius: var(--sp-radius-lg); background: var(--sp-paper); box-shadow: var(--sp-lift); }
+.lr-confirm h3, .lr-confirm p { margin: 0; }
+.lr-confirm h3 { font-size: 21px; letter-spacing: -0.02em; }
+.lr-confirm p { color: var(--sp-body); font-size: 14px; line-height: 1.5; }
+.lr-confirm > div { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 
 /* place */
 .lr-place { grid-template-columns: minmax(0, 1fr); }

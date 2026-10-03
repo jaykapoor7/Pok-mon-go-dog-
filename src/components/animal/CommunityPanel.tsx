@@ -1,14 +1,13 @@
 "use client";
 
-/* What anyone nearby can add to the record: I saw it, I fed it, it needs
-   help, and a note. Each is a real write; the button only turns to "done"
-   once the register has it. */
+/* What anyone nearby can add to the record. A sighting must go through the
+   reviewed report flow; no one-tap action can silently change a shared record. */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Eye, Loader2, Send, Siren, Utensils } from "lucide-react";
-import { addComment, logFeed, logSeen, updateDogStatus } from "@/lib/actions";
+import { addComment, logFeed, updateDogStatus } from "@/lib/actions";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { haptic } from "@/lib/haptics";
 
@@ -18,22 +17,22 @@ export function CommunityPanel({ id, label, needsHelp, comments }: {
 }) {
   const { user, requireAuth } = useAuth();
   const router = useRouter();
-  const [seen, setSeen] = useState(false);
   const [fed, setFed] = useState(false);
   const [help, setHelp] = useState(needsHelp);
   const [busy, setBusy] = useState<null | "seen" | "fed" | "help" | "note">(null);
   const [note, setNote] = useState("");
+  const [confirm, setConfirm] = useState<"seen" | "fed" | null>(null);
 
-  const act = async (kind: "seen" | "fed") => {
-    if (busy || (kind === "seen" ? seen : fed)) return;
-    setBusy(kind);
+  const recordMeal = async () => {
+    if (busy || fed) return;
+    setBusy("fed");
     try {
-      const ok = kind === "seen" ? await logSeen(id) : await logFeed(id, user?.name);
+      const ok = await logFeed(id, user?.name);
       if (!ok) { toast("That was not saved. Please try again."); return; }
-      if (kind === "seen") setSeen(true); else setFed(true);
+      setFed(true);
       haptic("success");
-      toast(kind === "seen" ? `Sighting recorded for ${label}.` : `Meal recorded for ${label}.`);
-    } catch { toast("That was not saved. Please try again."); } finally { setBusy(null); }
+      toast(`Meal recorded for ${label}.`);
+    } catch { toast("That was not saved. Please try again."); } finally { setBusy(null); setConfirm(null); }
   };
   const flag = () => requireAuth(async () => {
     const next = !help;
@@ -55,10 +54,10 @@ export function CommunityPanel({ id, label, needsHelp, comments }: {
   return (
     <div className="lr-community">
       <div className="lr-community-acts">
-        <button type="button" className={seen ? "is-done" : ""} disabled={!!busy || seen} onClick={() => act("seen")}>
-          {busy === "seen" ? <Loader2 size={16} className="animate-spin" /> : <Eye size={16} />} {seen ? "Sighting recorded" : "I saw it today"}
+        <button type="button" disabled={!!busy} onClick={() => setConfirm("seen")}>
+          <Eye size={16} /> I saw it today
         </button>
-        <button type="button" className={fed ? "is-done" : ""} disabled={!!busy || fed} onClick={() => act("fed")}>
+        <button type="button" className={fed ? "is-done" : ""} disabled={!!busy || fed} onClick={() => setConfirm("fed")}>
           {busy === "fed" ? <Loader2 size={16} className="animate-spin" /> : <Utensils size={16} />} {fed ? "Meal recorded" : "I fed it"}
         </button>
         <button type="button" className={help ? "is-hot" : ""} disabled={!!busy} onClick={flag} aria-pressed={help}>
@@ -82,6 +81,20 @@ export function CommunityPanel({ id, label, needsHelp, comments }: {
         </div>
         <p className="lr-fine">Notes are public. Leave out phone numbers and anyone&rsquo;s name but your own.</p>
       </div>
+      {confirm && (
+        <div className="lr-confirm-wrap" role="presentation">
+          <div className="lr-confirm" role="dialog" aria-modal="true" aria-labelledby="lr-confirm-title">
+            <h3 id="lr-confirm-title">{confirm === "seen" ? "Add a sighting?" : "Record a meal?"}</h3>
+            <p>{confirm === "seen" ? "Sightings are reviewed before they become part of this shared record. Continue to the short report." : "This adds a meal to the shared record for this animal."}</p>
+            <div>
+              <button type="button" className="lr-act" onClick={() => setConfirm(null)}>Cancel</button>
+              <button type="button" className="lr-act is-on" onClick={() => confirm === "seen" ? router.push(`/report?dog=${id}`) : recordMeal()}>
+                {confirm === "seen" ? "Continue to report" : busy === "fed" ? "Recording…" : "Record meal"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

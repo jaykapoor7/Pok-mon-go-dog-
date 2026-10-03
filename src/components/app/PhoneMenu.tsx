@@ -96,7 +96,7 @@ export function PhoneMenu({ open, onClose, nav, spaceLabel, isNgo, isActive }: {
         {isNgo && <>
           <div className="pm-start">
             <Link href="/partner/cases/new" className="is-primary"><Plus size={16} />New rescue case</Link>
-            <Link href="/report"><Radio size={15} />Report an animal</Link>
+            <Link href="/report"><Radio size={15} />Report a dog</Link>
             <Link href="/partner/import"><Database size={15} />Import workbook</Link>
           </div>
           {CONSOLE_GROUPS.map((g) => (

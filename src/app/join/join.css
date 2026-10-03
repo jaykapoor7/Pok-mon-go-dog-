@@ -12,8 +12,8 @@
    `place-items: center` on a 100dvh grid was also pushing the card ~110px
    down a phone screen with nothing above it. It starts near the top on a
    phone and only centres when there is room to spare. */
-.join-page { min-height: 100dvh; background: var(--sp-shell, #f3ede4); padding: 20px; }
-.join-page > a { display: inline-flex; min-height: 44px; align-items: center; }
+.join-shell { min-height: 100dvh; background: var(--sp-shell, #f3ede4); }
+.join-page { min-height: calc(100dvh - 72px); padding: 20px; }
 .join-wrap {
   min-height: calc(100dvh - 100px);
   display: grid;
