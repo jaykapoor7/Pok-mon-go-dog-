@@ -146,7 +146,7 @@ async function makeAudio(path: string) {
 }
 
 function filmHtml() {
-  return String.raw\`<!doctype html>
+  return String.raw`<!doctype html>
 <html><head><meta charset="utf-8"><style>
 @font-face{font-family:Inter;src:local("Arial")}
 :root{--ink:#0b1e3d;--shell:#f3ede4;--flame:#f05b40;--blue:#2457ce;--white:#fff;--soft:#e8e0d5;--muted:#667084}
@@ -270,7 +270,7 @@ function render(t){
 function tick(now){if(!started)return;const t=(now-t0)/1000;render(t);if(t<D+.15)requestAnimationFrame(tick);else window.__filmDone=true}
 window.startFilm=async()=>{S("street1").currentTime=.2;await S("street1").play().catch(()=>{});started=true;t0=performance.now();render(0);requestAnimationFrame(tick);return true};
 window.__filmReady=true;
-</script></body></html>\`;
+</script></body></html>`;
 }
 
 async function waitFor(url: string) {
