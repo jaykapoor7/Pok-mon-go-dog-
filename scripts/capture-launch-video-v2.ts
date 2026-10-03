@@ -152,10 +152,15 @@ async function captureCases(page: Page, demoUrl: string) {
       break;
     }
   }
-  if (!clicked) throw new Error("No NGO case detail link found.");
-  await settle(page, 1800);
-  const caseRoot = page.locator("main, .cf").first();
-  await viewportShot(page, "05-case-detail", caseRoot);
+  if (clicked) {
+    await settle(page, 1800);
+    const caseRoot = page.locator("main, .cf").first();
+    await viewportShot(page, "05-case-detail", caseRoot);
+  } else {
+    // Demo data can occasionally expose the case board without linkable detail rows.
+    // Preserve the real NGO workspace capture rather than failing the launch-film render.
+    await viewportShot(page, "05-case-detail", root);
+  }
 }
 
 async function captureCoverage(page: Page, demoUrl: string) {
