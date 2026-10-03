@@ -5,7 +5,6 @@ import { AppShell } from "@/components/app/AppShell";
 import { OrgMark } from "@/components/orgs/OrgMark";
 import { CampaignStrip } from "@/components/orgs/CampaignStrip";
 import { getPartnerDirectory, type DirectoryOrg } from "@/lib/partners";
-import { getPublicOrgDirectoryImpacts } from "@/lib/org-public";
 import { getPublicProgrammes } from "@/lib/public-programmes";
 import "@/components/orgs/partners.css";
 
@@ -16,27 +15,18 @@ export const metadata = {
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   Organisations on the record: every organisation has one quiet row, and
-   their campaigns on one time axis. A row carries the organisation's mark,
-   where it is, a small tag saying what it is, and what its record holds
-   today when it holds anything. Each opens the organisation's profile.
+   Organisations on the record: every organisation is a field partner and
+   has one quiet row: its mark, where it is, and a link to its profile.
+   What each has done is told once, in the campaigns below, where the
+   animals and the work sit against a drive and its dates.
    ════════════════════════════════════════════════════════════════════ */
 
-const fmt = (n: number) => n.toLocaleString("en-IN");
-
 export default async function OrgsPage() {
-  const [dir, campaigns, impacts] = await Promise.all([
+  const [dir, campaigns] = await Promise.all([
     getPartnerDirectory(),
     getPublicProgrammes(60).catch(() => []),
-    getPublicOrgDirectoryImpacts().catch(() => null),
   ]);
-  const rows = dir.map((o) => {
-    const impact = impacts?.get(o.id);
-    return { o, animals: impact?.animalsRecorded ?? 0, cases: impact?.caseRecords ?? 0 };
-  });
-  // Partners first (field partners, then the other partner NGOs), then record contributors.
-  const rank = (k: string) => (k === "Field partner" ? 0 : k === "Partner NGO" ? 1 : 2);
-  rows.sort((a, b) => rank(a.o.kind) - rank(b.o.kind) || b.animals + b.cases - (a.animals + a.cases) || a.o.name.localeCompare(b.o.name));
+  const rows = [...dir].sort((a, b) => a.name.localeCompare(b.name));
   const logos = Object.fromEntries(dir.map((o) => [o.slug, o.logoUrl]));
 
   return (
@@ -45,15 +35,15 @@ export default async function OrgsPage() {
         <DeskHeader
           kicker="The shared network"
           title="Organisations on the record"
-          lede="Partner NGOs and record contributors keeping the shared record useful. Every figure is their own record, live."
+          lede="The field partners keeping the shared record. What each has done is in its campaigns below."
           figures={[
-            { label: rows.length === 1 ? "organisation" : "organisations", value: rows.length },
-            { label: "field partners and partner NGOs", value: rows.filter((r) => r.o.kind === "Field partner" || r.o.kind === "Partner NGO").length, tone: "quiet" },
+            { label: rows.length === 1 ? "field partner" : "field partners", value: rows.length },
+            { label: campaigns.length === 1 ? "campaign published" : "campaigns published", value: campaigns.length, tone: "quiet" },
           ]}
         />
 
         <ol className="pp-dir" aria-label="Organisations">
-          {rows.map(({ o, animals, cases }) => (
+          {rows.map((o) => (
             <li key={o.id}>
               <Link href={`/org/${o.slug}`}>
                 <OrgMark name={o.name} logoUrl={o.logoUrl} size={44} />
@@ -61,10 +51,7 @@ export default async function OrgsPage() {
                   <b>{o.name}</b>
                   <small>{[o.city, o.state].filter(Boolean).join(", ") || "India"}</small>
                 </span>
-                <span className={`pp-tag ${o.kind === "Field partner" || o.kind === "Partner NGO" ? "is-partner" : ""}`}>{o.kind}</span>
-                <span className="pp-dir-n sys-mono">
-                  {animals ? `${fmt(animals)} dog${animals === 1 ? "" : "s"}` : cases ? `${fmt(cases)} request${cases === 1 ? "" : "s"}` : impacts === null ? "Counts unavailable" : "No published records"}
-                </span>
+                <span className="pp-tag is-partner">Field partner</span>
                 <ArrowUpRight size={16} aria-hidden className="pp-dir-go" />
               </Link>
             </li>
@@ -75,7 +62,7 @@ export default async function OrgsPage() {
           <section className="pp-camps" id="campaigns" aria-labelledby="pp-camps-h">
             <header>
               <h2 id="pp-camps-h">Campaigns</h2>
-              <p>Drives and programmes the organisations have published, each on the same time axis.</p>
+              <p>What each partner has done: the animals, the care and the drive they belong to, on one time axis.</p>
             </header>
             <CampaignStrip campaigns={campaigns} logos={logos} />
           </section>

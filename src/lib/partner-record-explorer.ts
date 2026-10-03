@@ -104,3 +104,28 @@ export async function getPartnerRecordRows(): Promise<PartnerRecordRow[]> {
   }
   return [...unique.values()].sort((a,b)=>+new Date(b.date)-+new Date(a.date));
 }
+
+/** What deleting a row removes: its own record, or for an outcome read off
+    a case, the case it belongs to. */
+export function deletionTarget(row: PartnerRecordRow): { kind: "case" | "medical" | "followup" | "timeline"; id: string; what: string } | null {
+  const [prefix, id] = row.id.split(":");
+  if (!id) return null;
+  if (prefix === "case" || prefix === "outcome") return { kind: "case", id: row.caseId ?? id, what: "the rescue case, with its updates and follow-ups" };
+  if (prefix === "medical") return { kind: "medical", id, what: "this care entry" };
+  if (prefix === "followup") return { kind: "followup", id, what: "this follow-up" };
+  if (prefix === "timeline") return { kind: "timeline", id, what: "this outcome entry" };
+  return null;
+}
+
+/** Delete one record for the signed-in team lead's organisation. The
+    database keeps a full copy in the audit log before it goes. */
+export async function deletePartnerRecord(row: PartnerRecordRow): Promise<void> {
+  const supa = getSupabase();
+  const target = deletionTarget(row);
+  if (!supa || !target) throw new Error("This record cannot be deleted here.");
+  const { error } = await supa.rpc("delete_org_record", { p_kind: target.kind, p_id: target.id });
+  if (error) {
+    if (/function .*delete_org_record|does not exist|PGRST202/i.test(error.message + (error.code ?? ""))) throw new Error("Deleting records is not switched on yet. Nothing was removed.");
+    throw new Error(error.message || "The record was not deleted.");
+  }
+}

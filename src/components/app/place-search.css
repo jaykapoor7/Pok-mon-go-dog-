@@ -17,3 +17,14 @@
   .ps { min-width: 0; width: 100%; }
   .ps-list { min-width: 0; }
 }
+
+/* SearchSelect: the same field holding a chosen filter value. */
+.ss .ps-field.is-set { border-color: var(--sp-blue); color: var(--sp-blue); }
+.ss .ps-field.is-set input { color: var(--sp-blue); font-weight: 600; }
+.ss-clear { flex: none; display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: -8px; border: 0; border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); cursor: pointer; }
+.ss-clear:hover { background: var(--ctl-tint-hover); }
+.ss .ps-list li.is-chosen b { color: var(--sp-blue); }
+.ss .ps-list li.ss-all b { font-weight: 500; color: var(--sp-muted); }
+.ss { min-width: 0; }
+/* Hide the browser's own clear cross; the field has its own. */
+.ss input[type="search"]::-webkit-search-cancel-button { display: none; }

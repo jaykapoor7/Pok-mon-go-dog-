@@ -227,7 +227,7 @@ export function OpsRoom() {
                         <i className={`ops-mark ${q.kind === "followup" ? "is-due" : q.crit ? "is-crit" : ""}`} aria-hidden />
                         <span className="ops-what">
                           <b>{q.kind === "followup" ? "Follow-up overdue" : c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c?.title || "Open case"}</b>
-                          <small>{who(c) || "Linked record"}</small>
+                          <small>{who(c) || (f?.kind && !/^imported/i.test(f.kind) ? f.kind.replace(/_/g, " ") : f?.dog_id ? "An animal's review" : "From the imported register")}</small>
                         </span>
                         <span className="ops-age">
                           <i style={{ width: `${Math.min(100, (q.age / 90) * 100)}%` }} className={q.age > 30 ? "is-long" : ""} aria-hidden />

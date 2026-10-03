@@ -25,6 +25,10 @@ import { CLOSURE_META, STATUS_META, triageOf, type ClosureReason, type StatusCla
 import { downloadCsv } from "@/lib/csv";
 import "./register.css";
 import { DeskHeader } from "@/components/app/DeskHeader";
+import { SearchSelect } from "@/components/app/SearchSelect";
+
+/* Cases are shown a screenful at a time; the list grows on request. */
+const SHOW = 30;
 
 const DAY = 86_400_000;
 type Lens = "open" | "quiet" | "critical" | "nobody" | "overdue" | "closed" | "reasonless" | "search";
@@ -67,6 +71,8 @@ export function CaseRegister() {
   const [sort, setSort] = useState<"oldest" | "newest" | "quiet">("oldest");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [place, setPlace] = useState("");
+  const [limit, setLimit] = useState(SHOW);
   const now = useMemo(() => Date.now(), []);
 
   // Arrive with ?q (the top-bar search) or ?lens.
@@ -137,8 +143,17 @@ export function CaseRegister() {
       list = [...list].sort((a, b) => sort === "newest" ? (b.occurred_at ?? "").localeCompare(a.occurred_at ?? "")
         : sort === "quiet" ? quietDays(b, now) - quietDays(a, now) : (a.occurred_at ?? "").localeCompare(b.occurred_at ?? ""));
     }
-    return list;
-  }, [lens, found, closed, openRows, cell, sort, now]);
+    return place ? list.filter((r) => (r.zone ?? "") === place) : list;
+  }, [lens, found, closed, openRows, cell, sort, now, place]);
+
+  /* Every place on the loaded cases, busiest first, for the place search. */
+  const places = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of [...openRows, ...(closed?.rows ?? [])]) if (r.zone) m.set(r.zone, (m.get(r.zone) ?? 0) + 1);
+    return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([value, n]) => ({ value, hint: `${n.toLocaleString("en-IN")} case${n === 1 ? "" : "s"}` }));
+  }, [openRows, closed]);
+  useEffect(() => { setLimit(SHOW); }, [lens, cell, sort, place, q]);
+  const visibleRows = rows.slice(0, limit);
 
   const loadMore = async () => {
     if (!closed || (lens !== "closed" && lens !== "reasonless")) return;
@@ -199,6 +214,9 @@ export function CaseRegister() {
             </select>
           </label>
         )}
+        {places.length > 1 && lens !== "search" && (
+          <SearchSelect className="cr-place" icon="place" label="Place" allLabel="All places" placeholder="Any place" options={places} value={place} onChange={setPlace} />
+        )}
         {cell && <button type="button" className="cr-chip" onClick={() => setCell(null)}>{TRIAGE_ROWS.find((t) => t.id === cell.t)?.label} · {BANDS[cell.b].label.toLowerCase()} <span aria-hidden>×</span><span className="sys-sr">Clear</span></button>}
         <p className="cr-tally">{busy ? <Loader2 size={14} className="animate-spin" /> : null}{rows.length.toLocaleString("en-IN")}{closed?.more && (lens === "closed" || lens === "reasonless") ? "+" : ""} {rows.length === 1 ? "case" : "cases"}</p>
         <button type="button" className="cr-btn" onClick={exportCsv} disabled={!rows.length}><Download size={15} /> CSV</button>
@@ -212,8 +230,13 @@ export function CaseRegister() {
       {rows.length ? (
         <>
           <div className="cr-scale" aria-hidden><span className="cr-scale-ax">{["1 week", "1 month", "3 months", "1 year", "3 years"].map((l, i) => <i key={l} style={{ left: `${(Math.log1p([7, 30, 90, 365, 1095][i]) / Math.log1p(1500)) * 100}%` }}>{l}</i>)}</span></div>
-          <ol className="cr-list">{rows.map((r) => <Row key={r.id} r={r} now={now} />)}</ol>
-          {closed?.more && (lens === "closed" || lens === "reasonless") && <button type="button" className="cr-more" onClick={loadMore} disabled={busy}>{busy ? <Loader2 size={15} className="animate-spin" /> : null} Read {PAGE} more</button>}
+          <ol className="cr-list">{visibleRows.map((r) => <Row key={r.id} r={r} now={now} />)}</ol>
+          {rows.length > limit && (
+            <button type="button" className="cr-more" onClick={() => setLimit((n) => n + SHOW)}>
+              Show {Math.min(SHOW, rows.length - limit)} more <span className="sys-mono">· {limit.toLocaleString("en-IN")} of {rows.length.toLocaleString("en-IN")} shown</span>
+            </button>
+          )}
+          {rows.length <= limit && closed?.more && (lens === "closed" || lens === "reasonless") && <button type="button" className="cr-more" onClick={loadMore} disabled={busy}>{busy ? <Loader2 size={15} className="animate-spin" /> : null} Read {PAGE} more</button>}
         </>
       ) : (
         <p className="cr-state">{lens === "search" ? (q.trim().length < 2 ? "Type at least two letters." : busy ? "Searching…" : "No case matches that.") : busy ? "Reading…" : lens === "open" ? "No open cases. Everything recorded has been closed." : "No cases in this view."}</p>

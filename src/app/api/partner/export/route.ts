@@ -258,7 +258,11 @@ export async function GET(request: Request) {
 
   const date = new Date().toISOString().slice(0, 10);
   if (format === "csv") {
-    const [name, rows] = Object.entries(chosen).find(([name]) => name !== "Summary") ?? Object.entries(chosen)[0];
+    /* ?sheet= picks one table (Cases, Animals, Care history); otherwise the
+       first table after the summary. */
+    const wanted = url.searchParams.get("sheet");
+    const [name, rows] = (wanted && Object.entries(chosen).find(([n]) => n.toLowerCase() === wanted.toLowerCase()))
+      || Object.entries(chosen).find(([n]) => n !== "Summary") || Object.entries(chosen)[0];
     return new Response(csv(rows), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="straypaw-${name.toLowerCase().replace(/\s+/g, "-")}-${date}.csv"`, "Cache-Control": "no-store" } });
   }
 

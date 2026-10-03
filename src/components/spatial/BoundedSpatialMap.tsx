@@ -4,11 +4,12 @@
  * individual animals are fetched only after a close-zoom move and only for
  * the visible bbox. No browser state can contain the public register. */
 
+import { SearchSelect } from "@/components/app/SearchSelect";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
 import { cellToBoundary, cellToLatLng } from "h3-js";
-import { ChevronDown, RotateCw } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import { NIGHT, groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
 import { HexPlate, type Box } from "@/components/system/HexPlate";
 import { getSupabase } from "@/lib/supabase";
@@ -136,7 +137,9 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
     <div className="sm-canvas" ref={el} />
     {!mapReady && plate.shapes.length > 0 && <HexPlate className="sm-fallback-map" cells={plate.shapes} box={plate.box} width={900} height={540} pad={84} night label={`Recorded areas in ${city}. Cell shading shows animal totals; orange boundaries have open cases.`} />}
     <div className="sm-topbar">
-      <label className="sm-select"> <span>City</span><select value={city} onChange={(e) => setCity(e.target.value)} disabled={!cities.length}>{cities.map((item) => <option key={item.city} value={item.city}>{item.city}{item.state ? `, ${item.state}` : ""}</option>)}</select><ChevronDown size={15} /></label>
+      <SearchSelect className="sm-city-ss" icon="place" label="City" allLabel={cities[0]?.city ?? "City"} placeholder="Find a city"
+        options={cities.map((item) => ({ value: item.city, hint: item.state || undefined }))}
+        value={city} onChange={(v) => setCity(v || cities[0]?.city || "")} />
       {chosen && <p className="sm-q">{fmt(chosen.animals)} recorded animals · {fmt(chosen.open_cases)} open cases</p>}
     </div>
     <div className="sm-hud"><p>{mapReady ? "City areas and totals cover the full register. At close zoom, the visible area loads at most 500 animals." : "Recorded city areas and totals cover the full register. Orange boundaries have open cases."}</p>{loading && <p><RotateCw size={14} /> Loading city areas…</p>}{!loading && !cells.length && !error && <p>No mapped area is recorded in this city yet.</p>}{error && <p className="sm-err">{error} <button onClick={() => setRetry((v) => v + 1)}>Retry</button></p>}</div>

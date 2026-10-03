@@ -38,3 +38,47 @@
 .fp-head { display: grid; gap: 6px; padding-top: 10px; }
 .fp-head h1 { margin: 0; font-size: clamp(30px, 4.4vw, 52px); line-height: 1.02; letter-spacing: -0.045em; font-weight: 600; }
 .fp-rest { display: grid; gap: 28px; padding-top: 10px; }
+
+/* ── Tasks and camps: a heading row with one plain action, then a flush
+      list of rows. The same block on the dashboard and on Field work. ── */
+.fw-sec { display: grid; gap: var(--sp-3); }
+.fw-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--sp-ink); }
+.fw-head h2 { margin: 0; display: inline-flex; align-items: baseline; gap: var(--sp-2); font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--sp-ink); }
+.fw-head h2 span { font-size: 12px; font-weight: 500; color: var(--sp-muted); }
+.fw-act { display: inline-flex; align-items: center; gap: 6px; height: var(--ctl-h-sm); padding: var(--ctl-pad-sm); border: 0; border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); font: inherit; font-size: var(--ctl-fs-sm); font-weight: var(--ctl-fw); cursor: pointer; }
+.fw-act:hover { background: var(--ctl-tint-hover); }
+.fw-act:active { transform: var(--ctl-press); }
+.fw-wait { margin: 0; display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-4) 0; font-size: 13.5px; color: var(--sp-muted); }
+.fw-spin { animation: fw-spin 0.9s linear infinite; }
+@keyframes fw-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .fw-spin { animation: none; } }
+.fw-empty { margin: 0; padding: var(--sp-4) 0; font-size: 14px; line-height: 1.5; color: var(--sp-muted); }
+.fw-list { margin: 0; padding: 0; list-style: none; }
+.fw-list li { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); min-height: 56px; padding: var(--sp-2) 0; border-bottom: 1px solid var(--sp-line); }
+.fw-tick { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: var(--ctl-r); background: none; color: var(--sp-muted); cursor: pointer; }
+.fw-tick:hover { background: var(--ctl-tint); color: var(--sp-blue); }
+.fw-ico { justify-self: center; color: var(--sp-muted); }
+.fw-what { display: grid; gap: 2px; min-width: 0; }
+.fw-what b { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fw-what small { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--sp-muted); }
+.fw-what small.is-late { color: var(--sp-ember); font-weight: 600; }
+.fw-who select { height: var(--ctl-h-sm); max-width: 180px; padding: 0 var(--sp-3); border: 1px solid var(--sp-line); border-radius: var(--ctl-r-row); background: var(--sp-paper); color: var(--sp-ink); font: inherit; font-size: 13px; }
+.fw-state { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px; border: 0; border-radius: var(--ctl-r); background: rgba(240, 91, 64, 0.1); color: var(--sp-ember); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.fw-state.is-done { background: rgba(36, 87, 206, 0.1); color: var(--sp-blue); }
+.fw-add { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: var(--sp-3); padding: var(--sp-4); border: 1px solid var(--sp-line); border-radius: var(--sp-radius); background: var(--sp-paper); }
+.fw-add label { display: grid; gap: 4px; min-width: 0; }
+.fw-add label span { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.fw-add input, .fw-add select { width: 100%; height: var(--ctl-h-sm); padding: 0 var(--sp-3); border: 1px solid var(--sp-line); border-radius: var(--ctl-r-row); background: var(--sp-paper); color: var(--sp-ink); font: inherit; font-size: 13.5px; }
+.fw-add input:focus, .fw-add select:focus { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
+@media (max-width: 860px) {
+  .fw-add { grid-template-columns: 1fr 1fr; }
+  .fw-add .is-wide { grid-column: 1 / -1; }
+  .fw-add .sys-btn { grid-column: 1 / -1; justify-content: center; }
+  .fw-list li { grid-template-columns: 36px minmax(0, 1fr); }
+  .fw-who, .fw-state { grid-column: 2; justify-self: start; }
+}
+.ft-fold { display: grid; gap: var(--sp-2); margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--sp-line); }
+.ft-fold summary { cursor: pointer; font-size: 13px; color: var(--sp-body); list-style-position: inside; }
+.ft-fold summary b { font-weight: 600; color: var(--sp-ember); font-variant-numeric: tabular-nums; }
+.ft-fold summary:hover { color: var(--sp-blue); }
+.ft-fold[open] summary { margin-bottom: var(--sp-1); }
