@@ -334,7 +334,7 @@ async function main() {
     "-y","-ss",trim.toFixed(3),"-i",recorded,"-i",WAV,
     "-t","45.000",
     "-vf","fps=30,scale=1080:1920:flags=lanczos,format=yuv420p",
-    "-c:v","libx264","-preset","medium","-crf","18",
+    "-c:v","libx264","-preset","veryfast","-crf","18",
     "-c:a","aac","-b:a","192k","-ar","48000",
     "-movflags","+faststart","-shortest",FINAL
   ]);
