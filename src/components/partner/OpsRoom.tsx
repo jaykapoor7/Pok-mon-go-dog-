@@ -32,6 +32,7 @@ import { ArrowUpRight, Plus, Search, X } from "lucide-react";
 import { cellToBoundary, cellToLatLng, isValidCell } from "h3-js";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
+import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { DeskHeader } from "@/components/app/DeskHeader";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
@@ -261,17 +262,24 @@ export function OpsRoom() {
       </section>
 
       <div className="ops-lower">
-        {isMember && <section className="dk-section ops-tasks" aria-label="Tasks"><TasksSection compact /></section>}
-
-        {working && (
-          <section className="dk-section" aria-label="Needs a decision and recent changes">
-            {stale > 0 && (
+        {/* Tasks and the one decision waiting sit together, beside what changed,
+            so neither column runs on alone. */}
+        {(isMember || (working && stale > 0)) && (
+          <div className="ops-lower-side">
+            {isMember && <section className="dk-section ops-tasks" aria-label="Tasks"><TasksSection compact /></section>}
+            {isMember && <section className="dk-section ops-tasks" aria-label="Camps coming up"><CampsSection compact /></section>}
+            {working && stale > 0 && (
               <div className="ops-decide">
                 <b>{num(stale)}</b>
                 <p>Cases open for months with nothing recorded. A person decides what happened to each.</p>
                 <Link href="/partner/review" className="dk-btn is-tint">Review them</Link>
               </div>
             )}
+          </div>
+        )}
+
+        {working && (
+          <section className="dk-section" aria-label="Recent changes">
             <div className="dk-section-head"><h2>What changed</h2><Link href="/partner/records" className="dk-btn is-plain">Record <ArrowUpRight size={13} /></Link></div>
             {changes.length ? (
               <ol className="ops-changes">
