@@ -17,11 +17,13 @@ export type SearchOption = { value: string; label?: string; hint?: string };
 
 const SHOW = 8;
 
-export function SearchSelect({ options, value, onChange, placeholder = "Search…", label, allLabel = "Any", icon = "search", className = "" }: {
+export function SearchSelect({ options, value, onChange, placeholder = "Search…", emptyLabel, label, allLabel = "Any", icon = "search", className = "" }: {
   options: (string | SearchOption)[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  /** A readable resting label for an empty selection, e.g. "India overview". */
+  emptyLabel?: string;
   /** Read by screen readers and shown as the field's caption when set. */
   label: string;
   /** What an empty value means, e.g. "All localities". */
@@ -67,7 +69,7 @@ export function SearchSelect({ options, value, onChange, placeholder = "Search�
         <input
           ref={input}
           type="search"
-          value={open ? q : chosen ? (chosen.label ?? chosen.value) : q}
+          value={open ? q : chosen ? (chosen.label ?? chosen.value) : (emptyLabel ?? q)}
           placeholder={value ? undefined : placeholder}
           autoComplete="off"
           role="combobox"
