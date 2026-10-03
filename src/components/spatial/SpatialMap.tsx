@@ -832,7 +832,10 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     if (Number.isFinite(mParam) && params.get("m")) setMonth(Math.max(m0, Math.min(mNow, mParam)));
     const byCity = (name: string) => ds.cities.findIndex((c) => c.name.toLowerCase() === name.toLowerCase());
     const nearestCity = (x: number, y: number) => ds.cities.reduce((b, c, i) => ((c.lng - x) ** 2 + (c.lat - y) ** 2 < (ds.cities[b].lng - x) ** 2 + (ds.cities[b].lat - y) ** 2 ? i : b), 0);
-    let s: Sel = { t: "city", city: 0 };
+    /* With no city in the URL, the map is an India overview. The bounded
+       dataset still supplies the nearby detail when a visitor chooses a
+       city, but we must not silently turn that fallback into a city URL. */
+    let s: Sel = cityName ? { t: "city", city: 0 } : { t: "india" };
     if (cellKey) {
       const ci = ds.cells.indexOf(cellKey);
       if (ci >= 0) s = { t: "cell", cell: ci };
@@ -1052,9 +1055,11 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     }, () => {}, { timeout: 8000 });
   };
   const changeCity = (nextCity: string) => {
-    if (nextCity === "__india") { window.location.assign("/explore"); return; }
     const url = new URL(window.location.href);
-    url.searchParams.set("city", nextCity);
+    /* City changes are a fresh map view. Keep the selected lens, but discard
+       a cell/locality deep-link that belongs to the previous place. */
+    ["cell", "city", "q", "lat", "lng", "bbox", "focus"].forEach((key) => url.searchParams.delete(key));
+    if (nextCity !== "__india") url.searchParams.set("city", nextCity);
     window.location.assign(url.toString());
   };
 
@@ -1072,9 +1077,9 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
 
       <div className="sm-top">
         {availableCities.length > 1 && (
-          <SearchSelect className="sm-city-ss" icon="place" label="City" allLabel={scope === "public" ? "India overview" : "All cities"} placeholder="Find a city"
+          <SearchSelect className="sm-city-ss" icon="place" label="City" allLabel={scope === "public" ? "India overview" : "All cities"} emptyLabel={scope === "public" ? "India overview" : "All cities"} placeholder="Find a city"
             options={availableCities.map((item) => ({ value: item.city, hint: item.state || undefined }))}
-            value={datasetCity ?? ""} onChange={(v) => changeCity(v || (scope === "public" ? "__india" : availableCities[0].city))} />
+            value={params.get("city") ? (datasetCity ?? "") : ""} onChange={(v) => changeCity(v || (scope === "public" ? "__india" : availableCities[0].city))} />
         )}
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.filter((x) => PRIMARY_MODES.includes(x.id)).map((x) => (
