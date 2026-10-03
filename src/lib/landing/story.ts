@@ -16,7 +16,7 @@
 
 import { REGISTER_FRAMES } from "./frames";
 import { unstable_cache } from "next/cache";
-import { cellToBoundary, cellToLatLng } from "h3-js";
+import { cellToBoundary, cellToLatLng, gridDisk } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
 import { getPublicSpatialCities, getPublicSpatialCityCells } from "@/lib/spatial/server";
 import { robustStart } from "@/lib/spatial/engine";
@@ -56,7 +56,11 @@ export type LandingStory = {
   desk: {
     live: number; critical: number; older: number;
     queue: { condition: string; locality: string; days: number; critical: boolean; overdue: boolean }[];
-    cells: { key: string; ring: number[]; open: number }[];
+    /* name: the locality most often recorded in the cell; crit: open
+       requests in it that are critical. */
+    cells: { key: string; ring: number[]; open: number; crit: number; name: string }[];
+    /* The ring of cells one step past the last record: not mapped. */
+    edge: number[][];
     box: [number, number, number, number];
     feed: { kind: "report" | "action" | "closed"; date: string; condition: string; locality: string; cell: string; critical: boolean }[];
   };
@@ -219,6 +223,17 @@ async function buildStory(): Promise<LandingStory | null> {
   const rank = (c: CaseFact) => (crit(c) ? 0 : 1);
   const openByCell = new Map<string, number>();
   for (const c of live) if (c.h3_r8) openByCell.set(c.h3_r8, (openByCell.get(c.h3_r8) ?? 0) + 1);
+  const critByCell = new Map<string, number>();
+  for (const c of live) if (c.h3_r8 && crit(c)) critByCell.set(c.h3_r8, (critByCell.get(c.h3_r8) ?? 0) + 1);
+  const zoneVotes = new Map<string, Map<string, number>>();
+  for (const c of cases) {
+    const z = cleanPlace(c.zone); if (!c.h3_r8 || !z) continue;
+    const m = zoneVotes.get(c.h3_r8) ?? new Map<string, number>();
+    m.set(z, (m.get(z) ?? 0) + 1); zoneVotes.set(c.h3_r8, m);
+  }
+  const nameOf = (h: string) => { const m = zoneVotes.get(h); return m ? [...m].sort((a, b) => b[1] - a[1])[0][0] : ""; };
+  const edgeSet = new Set<string>();
+  for (const h of cellList) for (const n of gridDisk(h, 1)) if (!idx.has(n)) edgeSet.add(n);
   const desk = {
     feed: cases.flatMap((c) => {
       if (!c.h3_r8 || !idx.has(c.h3_r8) || dayOf(c.occurred_at) < 0) return [];
@@ -234,7 +249,8 @@ async function buildStory(): Promise<LandingStory | null> {
     queue: [...live].sort((a, b) => rank(a) - rank(b) || dayOf(a.occurred_at) - dayOf(b.occurred_at)).slice(0, 5).map((c) => ({
       condition: c.condition_class ?? "Not recorded", locality: cleanPlace(c.zone) || "", days: today - dayOf(c.occurred_at), critical: crit(c), overdue: false,
     })),
-    cells: cellList.map((h) => ({ key: h, ring: rings[idx.get(h)!], open: openByCell.get(h) ?? 0 })),
+    cells: cellList.map((h) => ({ key: h, ring: rings[idx.get(h)!], open: openByCell.get(h) ?? 0, crit: critByCell.get(h) ?? 0, name: nameOf(h) })),
+    edge: [...edgeSet].map(ringOf),
     box: coreBox(centers, 0.02, 0.98, 0.01),
   };
 
@@ -286,7 +302,7 @@ async function resolveRelay(
    into the compact story the landing draws. */
 export const getLandingStory = unstable_cache(
   async (): Promise<LandingStory | null> => buildStory(),
-  ["landing-story-bounded-v5"],
+  ["landing-story-bounded-v6"],
   { revalidate: 600 },
 );
 
