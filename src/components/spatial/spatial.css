@@ -449,4 +449,23 @@
    the app, sized to the bar. */
 .sm-city-ss { width: 240px; }
 .sm-city-ss .ps-field { height: 40px; }
+.sm .sm-city-ss .ps-field {
+  background: var(--sm-panel);
+  border-color: var(--sm-line);
+  color: var(--sm-text);
+}
+.sm .sm-city-ss .ps-field input { color: var(--sm-text); }
+.sm .sm-city-ss .ps-field > svg { color: var(--sm-faint); }
+/* A city is an active scope, not placeholder text: fill the control so it
+   remains obvious over either map ground and at a quick glance. */
+.sm .sm-city-ss .ps-field.is-set {
+  background: var(--sp-blue);
+  border-color: #5e83e0;
+  box-shadow: 0 7px 18px rgba(8, 20, 50, 0.24);
+  color: #fff;
+}
+.sm .sm-city-ss .ps-field.is-set input { color: #fff; }
+.sm .sm-city-ss .ps-field.is-set > svg { color: rgba(255, 255, 255, 0.76); }
+.sm .sm-city-ss .ps-field.is-set .ss-clear { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.sm .sm-city-ss .ps-field.is-set .ss-clear:hover { background: rgba(255, 255, 255, 0.26); }
 @media (max-width: 760px) { .sm-city-ss { width: 100%; } }
