@@ -14,7 +14,7 @@ import { OrgMark } from "./OrgMark";
 const DAY = 86_400_000;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 export const KIND_LABEL: Record<string, string> = { vaccination: "Vaccination", sterilisation: "Sterilisation drive", treatment: "Rescue and treatment", study: "Study", other: "Programme" };
-export const KIND_UNIT: Record<string, string> = { vaccination: "vaccinated", sterilisation: "sterilised", treatment: "records", study: "records", other: "records" };
+export const KIND_UNIT: Record<string, string> = { vaccination: "vaccinated", sterilisation: "sterilised", treatment: "records", study: "observed", other: "records" };
 const t = (iso: string | null) => (iso ? Date.parse(`${iso}T00:00:00Z`) : NaN);
 export const monthYear = (iso: string | null) => { const v = t(iso); if (Number.isNaN(v)) return null; const d = new Date(v); return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 
@@ -29,12 +29,14 @@ export function CampaignStrip({ campaigns, showOrg = true, current, logos = {} }
   const x = (v: number) => ((v - from) / (to - from)) * 100;
   const years: number[] = [];
   for (let y = lo.getUTCFullYear(); y <= hi.getUTCFullYear(); y++) years.push(y);
+  // Over a long span, label every second or fifth year so the labels never touch.
+  const step = years.length > 14 ? 5 : years.length > 7 ? 2 : 1;
 
   return (
     <div className="cs">
       <div className="cs-axis" aria-hidden="true">
         <span />
-        <span className="cs-years">{years.map((y) => <i key={y} style={{ left: `${x(Date.UTC(y, 0, 1))}%` }}>{y}</i>)}</span>
+        <span className="cs-years">{years.filter((y) => y % step === 0).map((y) => <i key={y} style={{ left: `${x(Date.UTC(y, 0, 1))}%` }}>{y}</i>)}</span>
         <span />
       </div>
       <ol className="cs-rows">
