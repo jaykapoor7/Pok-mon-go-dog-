@@ -11,7 +11,7 @@ import type { SpatialDataset } from "@/lib/spatial/types";
 
 export type Scope = "public" | "org";
 
-type City = { city: string; state: string | null; animals: number; cases: number; cells: number; latest_seen: string | null; needs_help?: number; sterilised?: number; vaccinated?: number; open_cases?: number; care_events?: number };
+type City = { city: string; state: string | null; animals: number; cases: number; cells: number; latest_seen: string | null; needs_help?: number; sterilised?: number; vaccinated?: number; open_cases?: number; care_events?: number; lng?: number; lat?: number };
 type State = { ds: SpatialDataset | null; error: string | null; loading: boolean; city: string | null; cities: City[] };
 
 const cache = new Map<string, { at: number; value: Promise<{ ds: SpatialDataset; city: string; cities: City[] }> }>();

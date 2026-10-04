@@ -760,6 +760,25 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     (map.getSource("sel") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feats });
   }, [selCells, sel, ds, ready, layersReady]);
 
+  /* The national overview: one bubble per city on the record, not just the
+   * bounded dataset's own city. Coordinates come from the city list (the
+   * centroid of each city's busiest cell), falling back to the loaded
+   * dataset's geometry. Shown only at overview zoom (the layer's maxzoom). */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ds || !ready || !layersReady) return;
+    const src = map.getSource("cities") as GeoJSONSource | undefined;
+    if (!src) return;
+    const feats = availableCities.flatMap((c) => {
+      const geo = ds.cities.find((x) => x.name.toLowerCase() === c.city.toLowerCase());
+      const lng = typeof c.lng === "number" ? c.lng : geo?.lng;
+      const lat = typeof c.lat === "number" ? c.lat : geo?.lat;
+      if (typeof lng !== "number" || typeof lat !== "number") return [];
+      return [{ type: "Feature" as const, properties: { name: c.city, n: c.animals }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
+    });
+    if (feats.length) src.setData({ type: "FeatureCollection", features: feats });
+  }, [availableCities, ds, ready, layersReady]);
+
   const padding = useCallback(() => {
     const w = el.current?.clientWidth ?? 1000;
     return w > 900 ? { top: 150, bottom: 110, left: 40, right: 420 } : { top: 150, bottom: 170, left: 20, right: 20 };
@@ -909,7 +928,15 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       const h = hits[0];
       if (!h) return;
       const id = h.layer.id;
-      if (id === "cities") { choose({ t: "city", city: Number(h.properties?.i) }); return; }
+      if (id === "cities") {
+        /* The overview shows every city on the record. The one already loaded
+         * zooms in place; any other loads its bounded dataset. */
+        const name = String(h.properties?.name ?? "");
+        const idx = ds.cities.findIndex((c) => c.name.toLowerCase() === name.toLowerCase());
+        if (idx >= 0) choose({ t: "city", city: idx });
+        else if (name) changeCity(name);
+        return;
+      }
       if (id === "feeding") { router.push(`/feeding/${h.properties?.id}`); return; }
       if (id === "pts" || id === "cases" || id === "care-pts") { choose({ t: "cell", cell: Number(h.properties?.c) }); return; }
       if (id === "next") {

@@ -90,13 +90,13 @@ export function SearchSelect({ options, value, onChange, placeholder = "Searchâ€
       {open && (
         <ul className="ps-list" id={`${id}-list`} role="listbox" aria-label={label}>
           {value && !q && (
-            <li role="option" aria-selected={false} className="ss-all" onMouseDown={(e) => { e.preventDefault(); onChange(""); setOpen(false); input.current?.blur(); }}>
+            <li role="option" aria-selected={false} className="ss-all" onMouseDown={(e) => e.preventDefault()} onClick={() => { onChange(""); setQ(""); setOpen(false); input.current?.blur(); }}>
               <X size={14} aria-hidden /><span><b>{allLabel}</b></span>
             </li>
           )}
           {hits.length ? hits.map((o, i) => (
             <li key={o.value} id={`${id}-${i}`} role="option" aria-selected={o.value === value}
-              className={`${i === at ? "is-on" : ""} ${o.value === value ? "is-chosen" : ""}`} onMouseDown={(e) => { e.preventDefault(); pick(o); }} onMouseEnter={() => setAt(i)}>
+              className={`${i === at ? "is-on" : ""} ${o.value === value ? "is-chosen" : ""}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(o)} onMouseEnter={() => setAt(i)}>
               <Icon size={14} aria-hidden />
               <span><b>{o.label ?? o.value}</b>{o.hint ? <small>{o.hint}</small> : null}</span>
             </li>
