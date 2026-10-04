@@ -44,15 +44,22 @@ import "./app.css";
 import "./editorial.css";
 import "./desk.css";
 
-/* Community is intentionally small: report, see the map, and understand the
-   complete animal stories produced by community + NGO records. */
-const COMMUNITY_NAV = [
-  { href: "/app", label: "Home", Icon: LayoutGrid },
+/* The shared record everyone can reach: the map, saved animals, the place
+   brief, the stories and the partner directory. Every public space carries
+   this same set after its own distinctive pages, so Stories, Insights and
+   the rest work the same way whichever role you are in. */
+const SHARED_NAV = [
   { href: "/map", label: "Map", Icon: MapPin },
   { href: "/following", label: "Saved dogs", Icon: Bookmark },
   { href: "/insights", label: "Insights", Icon: ChartColumn },
   { href: "/stories", label: "Stories", Icon: BookOpen },
   { href: "/orgs", label: "Partner NGOs", Icon: Building2 },
+];
+
+/* Community: report, follow, and the shared record. */
+const COMMUNITY_NAV = [
+  { href: "/app", label: "Home", Icon: LayoutGrid },
+  ...SHARED_NAV,
 ];
 
 /* NGO navigation is about decisions, records, geography and reporting. The
@@ -71,18 +78,13 @@ const NGO_NAV = [
    share the public map and record with the community. */
 const FEEDER_NAV = [
   { href: "/feeder", label: "My patch", Icon: LayoutGrid },
-  { href: "/map", label: "Map", Icon: MapPin },
   { href: "/feeding", label: "Feeding spots", Icon: Utensils },
-  { href: "/following", label: "Saved", Icon: Bookmark },
-  { href: "/stories", label: "Stories", Icon: BookOpen },
+  ...SHARED_NAV,
 ];
 
 const EDUCATOR_NAV = [
   { href: "/learn", label: "Lesson studio", Icon: GraduationCap },
-  { href: "/map", label: "Map", Icon: MapPin },
-  { href: "/insights", label: "Insights", Icon: ChartColumn },
-  { href: "/stories", label: "Stories", Icon: BookOpen },
-  { href: "/orgs", label: "Partner NGOs", Icon: Building2 },
+  ...SHARED_NAV,
 ];
 
 type Space = "community" | "feeder" | "educator" | "ngo";
