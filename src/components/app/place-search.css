@@ -19,8 +19,9 @@
 }
 
 /* SearchSelect: the same field holding a chosen filter value. */
-.ss .ps-field.is-set { border-color: var(--sp-blue); color: var(--sp-blue); }
+.ss .ps-field.is-set { border-color: var(--sp-blue); background: var(--ctl-tint); color: var(--sp-blue); }
 .ss .ps-field.is-set input { color: var(--sp-blue); font-weight: 600; }
+.ss .ps-field.is-set > svg { color: var(--sp-blue); }
 .ss-clear { flex: none; display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: -8px; border: 0; border-radius: var(--ctl-r); background: var(--ctl-tint); color: var(--sp-blue); cursor: pointer; }
 .ss-clear:hover { background: var(--ctl-tint-hover); }
 .ss .ps-list li.is-chosen b { color: var(--sp-blue); }

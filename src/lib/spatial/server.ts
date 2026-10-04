@@ -8,6 +8,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
+import { cellToLatLng } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
 import { assemble, type AnimalRow, type CaseRow, type CareRow, type SightRow } from "./build";
 import type { SpatialDataset } from "./types";
@@ -18,6 +19,9 @@ export type SpatialCity = {
   /* Authoritative citywide totals summed from the cell rollup. Present on the
    * public city list; absent (0) only on older org rows that predate them. */
   needs_help?: number; sterilised?: number; vaccinated?: number; care_events?: number;
+  /* A representative point for the city — the centroid of its busiest cell —
+   * so the national map can place one bubble per city at overview zoom. */
+  lng?: number; lat?: number;
 };
 export type SpatialCell = {
   city: string; state: string | null; zone: string | null; h3_r8: string;
@@ -80,8 +84,23 @@ const getCachedPublicSpatialCities = unstable_cache(async (): Promise<SpatialCit
     prior.cells += Number(row.cells || 0);
     if ((row.latest_seen ?? "") > (prior.latest_seen ?? "")) prior.latest_seen = row.latest_seen;
   }
+  /* One representative point per city — the centroid of its busiest cell —
+   * so the national map can place a bubble per city without loading each
+   * city's full geometry. One bounded query, grouped client-side. */
+  const { data: cellRows } = await supa.from("spatial_city_cells")
+    .select("city,h3_r8,animals").order("animals", { ascending: false }).limit(MAX_CITIES * 8);
+  const topCell = new Map<string, string>();
+  for (const row of (cellRows ?? []) as { city: string; h3_r8: string; animals: number }[]) {
+    const city = canonicalCity(row.city);
+    if (!topCell.has(city) && row.h3_r8) topCell.set(city, row.h3_r8);
+  }
+  for (const [city, entry] of grouped) {
+    const h3 = topCell.get(city);
+    if (!h3) continue;
+    try { const [lat, lng] = cellToLatLng(h3); entry.lat = lat; entry.lng = lng; } catch { /* skip unmappable */ }
+  }
   return [...grouped.values()].sort((a, b) => b.animals - a.animals);
-}, ["public-spatial-cities-v7"], { revalidate: 120 });
+}, ["public-spatial-cities-v8"], { revalidate: 120 });
 
 export async function getPublicSpatialCities(limit = 80): Promise<SpatialCity[]> {
   const rows = await getCachedPublicSpatialCities();
