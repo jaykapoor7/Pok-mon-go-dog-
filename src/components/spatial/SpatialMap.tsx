@@ -1,29 +1,29 @@
 "use client";
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    StrayPaw spatial intelligence: one map, one question at a time.
 
-   The unit of place is an H3 cell (≈0.74 km²), the same cell on the
+   The unit of place is an H3 cell (â0.74 kmÂ²), the same cell on the
    landing page, in analytics and on a profile. Each mode asks the cells
-   one question — where are animals recorded, how densely, how well is the
+   one question â where are animals recorded, how densely, how well is the
    place known, where is sterilisation or vaccination recorded and where is
-   it unknown, where is work open, where did it change — and colours them
+   it unknown, where is work open, where did it change â and colours them
    by the answer. Nothing else competes: the streets are a quiet ground,
    there is no text on the map, and the numbers wait in the inspector until
    a place is chosen.
 
    THREE RULES THE MAP KEEPS
-   • Recorded is not real. A light or empty cell is "not recorded", and the
+   â¢ Recorded is not real. A light or empty cell is "not recorded", and the
      edge of the record is drawn as a dashed honeycomb that carries on into
      the unknown rather than stopping at the last dot.
-   • Unknown is hatched. In ABC and ARV the cell is hatched and the recorded
+   â¢ Unknown is hatched. In ABC and ARV the cell is hatched and the recorded
      share is drawn solid inside it, at its real size.
-   • Positions are honest. A record is known to its cell, so its dot is
-     drawn inside its cell — never at an address the register does not hold.
+   â¢ Positions are honest. A record is known to its cell, so its dot is
+     drawn inside its cell â never at an address the register does not hold.
 
    The same component serves the public map (/map) and an organisation's
    field map (/partner/map); only where the data comes from differs.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -264,7 +264,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     return () => { live = false; };
   }, []);
 
-  /* ── the clock ─────────────────────────────────────────────────────── */
+  /* ââ the clock âââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
   const m0 = useMemo(() => (ds ? monthOfDay(firstDay(ds)) : 0), [ds]);
   const mNow = ds ? monthOfDay(ds.today) : 0;
   const m = month ?? mNow;
@@ -307,9 +307,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     eff.source === "field" ? "field-team records" : eff.source === "resident" ? "residents' reports" : "",
     eff.seen !== "any" ? `seen in the last ${eff.seen === "90" ? "90 days" : "year"}` : "",
     eff.condition >= 0 ? CONDITIONS[eff.condition] : "",
-  ].filter(Boolean).join(" · ");
+  ].filter(Boolean).join(" Â· ");
 
-  /* ── what each cell holds, now and a year earlier ─────────────────── */
+  /* ââ what each cell holds, now and a year earlier âââââââââââââââââââ */
   const boundedStats = useMemo(() => (ds && ix ? cellStats(ds, ix, t, eff) : []), [ds, ix, t, eff]);
   /* Current and unfiltered: the one state whose per-cell counts have an
      authoritative rollup equivalent. A time-sliced or filtered view is a
@@ -346,7 +346,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const statOf = useMemo(() => new Map(stats.map((row) => [row.cell, row])), [stats]);
 
   /* Which cases the Cases mode is asking about, on day t: 0 not asked
-     about, 1 a match, 2 a case whose resolution day is unknown — drawn as
+     about, 1 a match, 2 a case whose resolution day is unknown â drawn as
      its own thing, never counted as open or as resolved on a day it may
      not have been (engine.caseStateOn). */
   const caseKind = useCallback((i: number): 0 | 1 | 2 => {
@@ -441,7 +441,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     }
   }, [mode, br, pal, ground, value, changeOf, scope]);
 
-  /* ── dots: one per animal, inside its cell ───────────────────────── */
+  /* ââ dots: one per animal, inside its cell âââââââââââââââââââââââââ */
   const animalPts = useMemo(() => {
     if (!ds || !ix) return EMPTY;
     const feats: GeoJSON.Feature[] = [];
@@ -518,13 +518,13 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       const yes = mode === "abc" ? s.sterYes : s.vaccYes;
       if (!s.animals || !yes) continue;
       const n = fewOr(yes, scope === "public");
-      const due = mode === "arv" && s.due > 0 ? ` · ${fewOr(s.due, scope === "public")} due` : "";
+      const due = mode === "arv" && s.due > 0 ? ` Â· ${fewOr(s.due, scope === "public")} due` : "";
       feats.push({ type: "Feature", properties: { n: `${n}${due}` }, geometry: { type: "Point", coordinates: [ds.centers[s.cell * 2], ds.centers[s.cell * 2 + 1]] } });
     }
     return { type: "FeatureCollection" as const, features: feats };
   }, [ds, stats, mode, scope]);
 
-  /* ── the map, built once ─────────────────────────────────────────── */
+  /* ââ the map, built once âââââââââââââââââââââââââââââââââââââââââââ */
   useEffect(() => {
     let map: MLMap | null = null, dead = false;
     const canvas = document.createElement("canvas");
@@ -543,7 +543,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         style: groundStyle(pal),
         bounds: INDIA_BOX,
         fitBoundsOptions: { padding: 30 },
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · H3" },
+        attributionControl: { compact: true, customAttribution: "Â© OpenStreetMap contributors Â· OpenFreeMap Â· H3" },
         maxPitch: 60,
         dragRotate: false,
         pitchWithRotate: false,
@@ -570,7 +570,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ── data layers, once the register has arrived ──────────────────── */
+  /* ââ data layers, once the register has arrived ââââââââââââââââââââ */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || !ds || layersDone.current) return;
@@ -600,7 +600,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       "line-color": ["match", ["get", "rank"], ...LEVELS.flatMap((_, i) => [i, L.band[Math.min(L.band.length - 1, i)]]), L.band[0]] as unknown as ExpressionSpecification,
       "line-width": ["interpolate", ["linear"], ["get", "rank"], 0, 0.8, 6, 2.2] as ExpressionSpecification, "line-opacity": 0.95,
     } });
-    map.addLayer({ id: "terrain-label", type: "symbol", source: "terrain", minzoom: 11.6, layout: { visibility: "none", "symbol-placement": "line", "text-field": ["concat", ["to-string", ["get", "v"]], " / km²"], "text-font": ["Noto Sans Regular"], "text-size": 10, "symbol-spacing": 320 }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.6, "text-opacity": 0.8 } });
+    map.addLayer({ id: "terrain-label", type: "symbol", source: "terrain", minzoom: 11.6, layout: { visibility: "none", "symbol-placement": "line", "text-field": ["concat", ["to-string", ["get", "v"]], " / kmÂ²"], "text-font": ["Noto Sans Regular"], "text-size": 10, "symbol-spacing": 320 }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.6, "text-opacity": 0.8 } });
 
     map.addLayer({ id: "cells", type: "fill", source: "cells", paint: { "fill-color": fs("c", T), "fill-opacity": fs("o", 0) } });
     map.addLayer({ id: "cells-hatch", type: "fill", source: "cells", paint: { "fill-pattern": "hatch-night", "fill-opacity": fs("hatch", 0) } });
@@ -627,7 +627,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       "circle-radius": Z(12, 1.4, 16, 3.4), "circle-color": L.skyCore, "circle-opacity": ["interpolate", ["linear"], ["get", "age"], 0, 1, 365, 0.35] as ExpressionSpecification,
     } });
 
-    /* An open case is a beacon; every ring around it is time it has waited — a month, a quarter, half a year, a year. */
+    /* An open case is a beacon; every ring around it is time it has waited â a month, a quarter, half a year, a year. */
     [[365, 24, 0.22], [180, 18, 0.32], [90, 12.5, 0.45], [30, 8, 0.62]].forEach(([age, r, o]) => map.addLayer({
       id: `case-r${age}`, type: "circle", source: "cases", filter: [">=", ["get", "age"], age], layout: { visibility: "none" },
       paint: { "circle-radius": Z(9, r * 0.42, 15, r), "circle-color": T, "circle-stroke-color": L.ring, "circle-stroke-width": 1, "circle-stroke-opacity": o },
@@ -657,7 +657,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
   }, [ready, ds, pal, cityPins]);
 
-  /* ── how the points are drawn in each mode ───────────────────────── */
+  /* ââ how the points are drawn in each mode âââââââââââââââââââââââââ */
   const pointStyle = useCallback(() => {
     const L = lightsOf(pal);
     const ring = ["case", ["==", ["get", "st"], 2], L.ring, pal.bg] as ExpressionSpecification;
@@ -682,7 +682,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     }
   }, [mode, pal]);
 
-  /* ── repaint the ground ──────────────────────────────────────────── */
+  /* ââ repaint the ground ââââââââââââââââââââââââââââââââââââââââââââ */
   useEffect(() => {
     const map = mapRef.current; if (!map || !layersDone.current) return;
     restyle(map, pal);
@@ -716,7 +716,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     try { localStorage.setItem("sp.map.ground", ground); } catch { /* storage blocked */ }
   }, [ground, pal, baseReady, mode, layersReady, pointStyle]);
 
-  /* ── what is drawn, for the mode, the time and the filters ───────── */
+  /* ââ what is drawn, for the mode, the time and the filters âââââââââ */
   const cellsOn = grid || mode === "coverage" || mode === "change" || mode === "abc" || mode === "arv";
   useEffect(() => {
     const map = mapRef.current; if (!map || !layersDone.current || !ds) return;
@@ -750,7 +750,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     (map.getSource("next") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: ds.next.map((n, i) => ({ type: "Feature", properties: { n: String(i + 1), k: n.cell }, geometry: { type: "Point", coordinates: n.center } })) });
   }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding]);
 
-  /* ── a critical open case breathes ───────────────────────────────── */
+  /* ââ a critical open case breathes âââââââââââââââââââââââââââââââââ */
   useEffect(() => {
     const map = mapRef.current; if (!map || !layersReady || mode !== "cases") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -767,7 +767,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     return () => cancelAnimationFrame(raf);
   }, [mode, layersReady]);
 
-  /* ── selection: outline and camera ───────────────────────────────── */
+  /* ââ selection: outline and camera âââââââââââââââââââââââââââââââââ */
   const selCells = useMemo(() => {
     if (!ds || !sel) return [] as number[];
     if (sel.t === "cell") return [sel.cell];
@@ -818,7 +818,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     else map.flyTo({ center: s.center, zoom: Math.max(map.getZoom(), 13.8), duration: d, padding: padding() });
   }, [ds, padding, selCells]);
 
-  /* The inspector opens collapsed — place name and three figures — for
+  /* The inspector opens collapsed â place name and three figures â for
      every kind of selection except an empty cell, whose "nothing recorded
      here, report one" card has no collapsed form worth hiding behind a
      tap. A person who wants the full breakdown of a cell taps Details. */
@@ -880,7 +880,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel]);
 
-  /* ── first view: from the URL, or the busiest city ───────────────── */
+  /* ââ first view: from the URL, or the busiest city âââââââââââââââââ */
   const started = useRef(false);
   useEffect(() => {
     if (!ds || !ready || !layersReady || started.current) return;
@@ -935,7 +935,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     camera(s, true);
   }, [ds, ready, layersReady, params, camera, choose, mNow, m0]);
 
-  /* ── keep the URL in step, without navigating ────────────────────── */
+  /* ââ keep the URL in step, without navigating ââââââââââââââââââââââ */
   useEffect(() => {
     if (!ds || !sel || !started.current) return;
     const u = new URL(window.location.href);
@@ -951,13 +951,17 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   }, [ds, sel, mode, month, mNow, lens]);
 
   /* Zooming into a city from the India overview must load that city's
-     bounded cells and individual records before overview bubbles disappear. */
+     bounded cells and individual records *before* overview bubbles disappear.
+     `moveend` alone is too late on touch/pinch zooms: the bubbles have a
+     maxzoom of 7.5, while a final move event can arrive after that cutoff.
+     Start the handoff below the cutoff and listen to zoomend as well, so the
+     city always opens with its individual points already available. */
   const overviewCityLoading = useRef(false);
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || !layersReady || !indiaOverview || !cityPins.length) return;
     const openCityAtZoom = () => {
-      if (overviewCityLoading.current || map.getZoom() < 7.75) return;
+      if (overviewCityLoading.current || map.getZoom() < 6.8) return;
       const center = map.getCenter();
       const withinView = cityPins.filter((city) => map.getBounds().contains([city.lng, city.lat]));
       if (!withinView.length) return;
@@ -970,10 +974,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       changeCity(city.city);
     };
     map.on("moveend", openCityAtZoom);
-    return () => { map.off("moveend", openCityAtZoom); };
+    map.on("zoomend", openCityAtZoom);
+    return () => { map.off("moveend", openCityAtZoom); map.off("zoomend", openCityAtZoom); };
   }, [ready, layersReady, indiaOverview, cityPins]);
 
-  /* ── clicks and hover ────────────────────────────────────────────── */
+  /* ââ clicks and hover ââââââââââââââââââââââââââââââââââââââââââââââ */
   useEffect(() => {
     const map = mapRef.current; if (!map || !ready || !ds) return;
     const onClick = (e: MapMouseEvent) => {
@@ -1044,19 +1049,19 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         : mode === "cases" ? `${n(value(s))} ${LENSES.find((l) => l.id === lens)!.unit}`
         : mode === "medical" ? `${n(s.medical)} injured or needing help`
         : mode === "activity" || mode === "change" ? `${n(s.recentField)} field-team records this year`
-        : (mode === "abc" || mode === "arv") && pub && isSparse(aAnimals) ? "few records — too few for a share"
+        : (mode === "abc" || mode === "arv") && pub && isSparse(aAnimals) ? "few records â too few for a share"
         : mode === "abc" ? `${n(aSter)} of ${n(aAnimals)} sterilised on record`
         : mode === "arv" ? `${n(aVacc)} of ${n(aAnimals)} vaccinated on record`
         : pub && isSparse(aAnimals) ? "few records"
         : `${n(aAnimals)} animal${aAnimals === 1 ? "" : "s"} recorded`;
-      setHover({ x: e.point.x, y: e.point.y, text: `${loc} · ${v}` });
+      setHover({ x: e.point.x, y: e.point.y, text: `${loc} Â· ${v}` });
     };
     const onOut = () => setHover(null);
     map.on("click", onClick); map.on("mousemove", onMove); map.on("mouseout", onOut);
     return () => { map.off("click", onClick); map.off("mousemove", onMove); map.off("mouseout", onOut); };
   }, [ready, ds, statOf, mode, choose, phone, scope, router, value, lens, authByCell, unfiltered, indiaOverview]);
 
-  /* ── Escape steps out one rung ───────────────────────────────────── */
+  /* ââ Escape steps out one rung âââââââââââââââââââââââââââââââââââââ */
   const stepOut = useCallback(() => {
     if (!ds || !sel) return;
     if (sel.t === "cell") { const c = ds.cellCity[sel.cell]; const l = ds.cellLocality[sel.cell]; choose(l >= 0 ? { t: "locality", city: c, locality: l } : { t: "city", city: c }); }
@@ -1070,13 +1075,13 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     return () => window.removeEventListener("keydown", k);
   }, [stepOut, filterOpen]);
 
-  /* ── legend ──────────────────────────────────────────────────────── */
+  /* ââ legend ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
   const def = MODES.find((x) => x.id === mode)!;
   const legend = (() => {
     if (mode === "coverage") return (
       <ul className="sm-key">
         {(["strong", "partial", "weak", "insufficient"] as const).map((k) => <li key={k}><i className={`sm-sw is-cov-${k}`} />{COVERAGE_TEXT[k].label}</li>)}
-        <li><i className="sm-sw is-fog" />Fog — nothing recorded here yet</li>
+        <li><i className="sm-sw is-fog" />Fog â nothing recorded here yet</li>
         <li><i className="sm-sw is-next" />Map next</li>
       </ul>
     );
@@ -1085,7 +1090,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         <li><i className={`sm-dot ${mode === "arv" ? "is-arv" : "is-abc"}`} />{mode === "abc" ? "Sterilised, on record" : "Vaccinated, on record"}</li>
         {mode === "arv" && <li><i className="sm-dot is-due" />Booster due</li>}
         <li><i className="sm-dot is-ring" />{mode === "abc" ? "Recorded as not sterilised" : "Recorded as not vaccinated"}</li>
-        <li><i className="sm-dot is-unk" />Not recorded — unknown, not zero</li>
+        <li><i className="sm-dot is-unk" />Not recorded â unknown, not zero</li>
         <li><b className="sys-mono">12</b>&nbsp;on a cell: how many are on record {mode === "abc" ? "as sterilised" : "as vaccinated"} there; a darker cell is a larger share, a hatched one has none on record</li>
       </ul>
     );
@@ -1107,13 +1112,13 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       <div className="sm-ramp is-terrain">
         <span>{LEVELS[0]}</span>
         <i style={{ background: `linear-gradient(90deg, ${lightsOf(pal).band.join(",")})` }} />
-        <span>{LEVELS[LEVELS.length - 1]}+ animals / km²</span>
+        <span>{LEVELS[LEVELS.length - 1]}+ animals / kmÂ²</span>
       </div>
     );
     if (mode === "cases" && lensCounts && !lensCounts.some((x) => x > 0)) return (
       <p className="sm-empty">
         {lens === "repeat"
-          ? "No animal has a second case yet. Each imported case created its own animal record, so a return visit is not linked — linking it on the case is what makes it appear here."
+          ? "No animal has a second case yet. Each imported case created its own animal record, so a return visit is not linked â linking it on the case is what makes it appear here."
           : `No case matches this question${eff.condition >= 0 ? " for this condition" : ""}, as of ${monthLabel(m)}.`}
       </p>
     );
@@ -1124,7 +1129,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
           : <><li><i className="sm-dot is-help" />Critical</li><li><i className="sm-dot is-ink" />Other</li></>}
         {undatedShown > 0 && <li><i className="sm-dot is-undated" />{lens === "resolved"
           ? `Resolved, date unknown (${undatedShown.toLocaleString("en-IN")})`
-          : `Closed, day unknown (${undatedShown.toLocaleString("en-IN")}) · not counted as open`}</li>}
+          : `Closed, day unknown (${undatedShown.toLocaleString("en-IN")}) Â· not counted as open`}</li>}
         {lens !== "resolved" && <li><i className="sm-rings" />Rings: how long it has waited</li>}
       </ul>
     );
@@ -1166,7 +1171,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     <div className={`sm ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`}>
       <div className="sm-canvas" ref={el} />
       {mapError && ds && <LiveMapFallback ds={ds} stats={stats} paint={cellPaint} animals={animalPts} cases={casePts} mode={mode} pal={pal} />}
-      <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} — {def.q}</h1>
+      <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} â {def.q}</h1>
 
       <div className="sm-top">
         {availableCities.length > 1 && (
@@ -1177,7 +1182,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.filter((x) => primaryModes.includes(x.id)).map((x) => (
             <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>
-              {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases · ${lensDef.label}` : x.label}
+              {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases Â· ${lensDef.label}` : x.label}
             </button>
           ))}
           <button type="button" className={`sm-modes-more ${primaryModes.includes(mode) ? "" : "is-on"}`} aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
@@ -1203,7 +1208,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
       <div className="sm-tools">
         <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label={nFilters ? `Filters, ${nFilters} on` : "Filters"}><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
-        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={16} /></button>
+        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 kmÂ²" title="Analysis grid"><Hexagon size={16} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the paper ground, for daylight" : "Switch to the night ground"}><Layers size={16} /></button>
         <button type="button" onClick={locate} aria-label="Go to where I am"><Crosshair size={16} /></button>
       </div>
@@ -1271,7 +1276,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
       <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals"} pick={dotPick} />
 
-      {loading && <div className="sm-state" role="status"><span>Reading the register…</span></div>}
+      {loading && <div className="sm-state" role="status"><span>Reading the registerâ¦</span></div>}
       {(error || mapError) && <div className="sm-state" role="status"><span>{error ?? mapError}</span></div>}
     </div>
   );
