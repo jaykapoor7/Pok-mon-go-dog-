@@ -376,9 +376,16 @@ html .spa.spa.spa-desk :is(.spa-top-right, .pm-row) .lang-note { padding: 8px 10
 /* ── Phone: the bar's More slot and the sheet it opens ───────────────── */
 .spa-phone-more { display: none; }
 @media (max-width: 900px) {
-  /* The top bar is brand and search; language, account, switching space
-     and the main site live in the More sheet. */
-  html .spa.spa.spa-desk .spa-top-right { display: none; }
+  /* The top bar is brand, search and the way in. Signing in or entering a
+     code is intake — it stays one tap away in the bar, never only behind
+     More. Language, switching space and the main-site link do live in the
+     More sheet, so only the account control stays here. */
+  html .spa.spa.spa-desk .spa-top-right { display: flex; align-items: center; gap: var(--sp-2); }
+  html .spa.spa.spa-desk .spa-top-right > :not(.spa-top-account) { display: none; }
+  html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out a.pp-signin { background: var(--sp-sky); color: var(--sp-night); }
+  html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out a.pp-signin:hover { background: #a6c6ff; color: var(--sp-night); }
+  html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out a.pp-code { display: inline-flex; background: rgba(143, 183, 255, 0.14); color: var(--sp-sky); }
+  html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out a.pp-code:hover { background: rgba(143, 183, 255, 0.22); color: var(--sp-sky); }
   html .spa.spa.spa-desk .spa-top { flex-wrap: nowrap; }
   html .spa.spa.spa-desk .spa-top .spa-search { flex: 1 1 0; min-width: 0; max-width: none; }
   html .spa.spa.spa-desk .spa-top .spa-search input { width: 100%; min-width: 0; text-overflow: ellipsis; }
