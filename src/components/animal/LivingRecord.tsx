@@ -15,6 +15,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import type { ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { Route, type RouteStop } from "@/components/system/Route";
 import { PlaceMap } from "./PlaceMap";
@@ -128,6 +129,7 @@ function routeOf(r: Living, scope: "public" | "org", reportHref: string): RouteS
 }
 
 export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "public" | "org"; org?: ReactNode; trail?: ReactNode }) {
+  const reduceMotion = useReducedMotion();
   const reportHref = `/report?dog=${r.id}${r.place ? `&lat=${r.place.center[1]}&lng=${r.place.center[0]}` : ""}`;
   const mapHref = r.place ? `${scope === "org" ? "/partner/map" : "/map"}?mode=animals&cell=${r.place.cell}` : `/map?focus=animal:${r.id}`;
   const status = r.known.health === "needs_help" ? { t: "Needs help", c: "is-hot" }
@@ -214,7 +216,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
           {chronology.length > 0 && (
             <details className="lr-more">
               <summary>Every entry, with where it came from ({chronology.length})</summary>
-              <ol className="lr-chrono">{chronology.map((e) => <Chrono key={e.id} e={e} />)}</ol>
+              <ol className="lr-chrono">{chronology.map((e, i) => <Chrono key={e.id} e={e} index={i} reduced={Boolean(reduceMotion)} />)}</ol>
             </details>
           )}
 
@@ -252,9 +254,9 @@ function Check({ state, label, note, warn = false }: { state: "yes" | "no" | "un
   );
 }
 
-function Chrono({ e }: { e: LivingEvent }) {
+function Chrono({ e, index, reduced }: { e: LivingEvent; index: number; reduced: boolean }) {
   return (
-    <li className={`lr-ch is-${e.lane}`}>
+    <motion.li className={`lr-ch is-${e.lane}`} initial={reduced ? false : { opacity: 0, y: 8 }} whileInView={reduced ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.22 }} transition={{ duration: 0.2, delay: Math.min(index, 5) * 0.025, ease: [0.23, 1, 0.32, 1] }}>
       <span className="lr-ch-date sys-mono">{day(e.date)}</span>
       <i className={`lr-ch-mark is-${e.tone}`} aria-hidden />
       <span className="lr-ch-what">
@@ -262,6 +264,6 @@ function Chrono({ e }: { e: LivingEvent }) {
         {e.note && <span>{e.note}</span>}
       </span>
       <span className="lr-ch-src">{SOURCE[e.source]}</span>
-    </li>
+    </motion.li>
   );
 }

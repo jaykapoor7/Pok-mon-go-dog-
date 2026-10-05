@@ -61,7 +61,7 @@ export function PhoneMenu({ open, onClose, nav, spaceLabel, isNgo, isActive }: {
   const here = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   /* A route change is the answer to the menu; close it. */
-  useEffect(() => { if (open) onClose(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [pathname]);
+  useEffect(() => { if (open) onClose(); }, [pathname, open, onClose]);
 
   useEffect(() => {
     if (!open) return;

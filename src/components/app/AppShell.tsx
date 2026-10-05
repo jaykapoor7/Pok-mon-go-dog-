@@ -74,6 +74,16 @@ const NGO_NAV = [
   { href: "/partner/team", label: "Team", Icon: Building2 },
 ];
 
+/* Municipality is a geographic command surface, not the community map with
+   a different label. It keeps access to the shared record, but returns to the
+   command map as its home and puts coverage analysis beside it. */
+const MUNICIPAL_NAV = [
+  { href: "/municipality", label: "City command", Icon: MapPin },
+  { href: "/insights", label: "Coverage analysis", Icon: ChartColumn },
+  { href: "/map", label: "Public atlas", Icon: LayoutGrid },
+  { href: "/orgs", label: "Partner NGOs", Icon: Building2 },
+];
+
 /* A feeder's space is their route; an educator's is the lessons. Both
    share the public map and record with the community. */
 const FEEDER_NAV = [
@@ -87,14 +97,15 @@ const EDUCATOR_NAV = [
   ...SHARED_NAV,
 ];
 
-type Space = "community" | "feeder" | "educator" | "ngo";
-const SPACES: Record<Space, { label: string; home: string; nav: typeof COMMUNITY_NAV; phone: typeof COMMUNITY_NAV }> = {
+type Space = "community" | "feeder" | "educator" | "ngo" | "municipality";
+const SPACES = {
   /* The phone bar has three places around Report and a More slot that
      opens every section (PhoneMenu). */
   community: { label: "Community", home: "/app", nav: COMMUNITY_NAV, phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights" && x.href !== "/orgs") },
   feeder: { label: "Feeder", home: "/feeder", nav: FEEDER_NAV, phone: FEEDER_NAV.slice(0, 4) },
   educator: { label: "Educator", home: "/learn", nav: EDUCATOR_NAV, phone: EDUCATOR_NAV.filter((x) => x.href !== "/orgs") },
   ngo: { label: "NGO operations", home: "/partner", nav: NGO_NAV, phone: NGO_NAV.filter((x) => x.href !== "/partner/field").slice(0, 4) },
+  municipality: { label: "Municipality", home: "/municipality", nav: MUNICIPAL_NAV, phone: MUNICIPAL_NAV },
 };
 
 /* A space's own routes decide it outright: /partner is the organisation,
@@ -104,6 +115,7 @@ const SPACES: Record<Space, { label: string; home: string; nav: typeof COMMUNITY
    organisation's navigation never leaks onto public pages. */
 function spaceFor(path: string, stored: Role | null): Space {
   if (path.startsWith("/partner") || path === "/surveys" || path.startsWith("/surveys/")) return "ngo";
+  if (path === "/municipality") return "municipality";
   if (path === "/app") return "community";
   if (path === "/feeder" || path.startsWith("/feeding")) return "feeder";
   if (path === "/learn") return "educator";
@@ -133,6 +145,20 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   useEffect(() => {
     setSpace(spaceFor(pathname, readStoredRole()));
   }, [pathname]);
+
+  /* Command-palette behaviour without another modal layer: the global finder
+     * is already capable of records, places and organisations, so Cmd/Ctrl-K
+     * should take a person straight to it from every working surface. */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function go(hit: SearchHit) {
     router.push(hit.href);
@@ -223,6 +249,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
         <form className="spa-search" onSubmit={handleSearch} role="search">
           <Search size={13}/>
           <input ref={searchRef} type="search" placeholder="Search StrayPaw ID, place or organisation" aria-label="Search the network" value={query} onChange={(e) => onQueryChange(e.target.value)} onKeyDown={onSearchKey} onBlur={() => window.setTimeout(() => setHits([]), 120)} role="combobox" aria-expanded={hits.length > 0} aria-controls="spa-search-results" enterKeyHint="search" autoComplete="off" autoCorrect="off" spellCheck={false}/>
+          <kbd className="spa-search-key" aria-hidden>⌘K</kbd>
           {hits.length > 0 && <ul className="spa-results" id="spa-search-results" role="listbox">{hits.map((h, i) => <li key={`${h.kind}-${h.href}-${h.label}`} role="option" aria-selected={i === cursor}><button type="button" className={i === cursor ? "on" : ""} onMouseEnter={() => setCursor(i)} onMouseDown={(e) => e.preventDefault()} onClick={() => go(h)}><span className="spa-res-kind">{KIND_LABEL[h.kind]}</span><b>{h.label}</b><span className="spa-res-detail">{h.detail}</span></button></li>)}</ul>}
         </form>
         <div className="spa-top-right"><LanguageSwitcher /><div className="spa-top-account"><ProfilePanel/></div><button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15}/> Switch space</button><Link href="/" className="spa-exit"><ArrowUpRight size={13}/> Main site</Link></div>

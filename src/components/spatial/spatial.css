@@ -287,6 +287,13 @@
 .sm-insp-peek em { margin-left: auto; font-style: normal; font-weight: 600; color: var(--sp-sky); }
 .sm.is-paper .sm-insp-peek em { color: var(--sp-blue); }
 
+/* The desktop inspector is a fixed contextual sheet beside the map. On a
+   phone the same inspector becomes a two-stop drawer: a useful summary first,
+   then full detail without navigating away from the map. The grip owns the
+   gesture, so dragging the drawer never pans the map underneath it. */
+.sm-sheet { position: static; }
+.sm-sheet-grip { display: none; }
+
 /* ── phone: the map first, the numbers in a sheet ────────────────── */
 @media (max-width: 760px) {
   .sm { --sm-insp-w: 0px; }
@@ -312,8 +319,13 @@
   .sm-time { left: 8px; right: 8px; width: auto; bottom: 112px; grid-template-columns: 44px 1fr; padding: 6px 10px 4px 6px; }
   .sm-time-play { width: 44px; height: 44px; }
   .sm-report { right: 8px; bottom: 186px; }
-  .sm-insp { top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 72%; border-radius: 16px 16px 0 0; border-bottom: 0; }
-  .sm-insp.is-compact { max-height: none; bottom: 0; }
+  .sm-sheet { position: absolute; z-index: 4; inset: auto 0 0; pointer-events: none; }
+  .sm-sheet-grip { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; height: 28px; margin-bottom: -1px; border: 0; border-radius: 16px 16px 0 0; background: var(--sm-panel); color: var(--sm-text); cursor: grab; pointer-events: auto; touch-action: none; }
+  .sm-sheet-grip:active { cursor: grabbing; }
+  .sm-sheet-grip i { width: 38px; height: 4px; border-radius: 999px; background: var(--sm-faint); opacity: .7; }
+  .sm-sheet .sm-insp { position: relative; top: auto; left: auto; right: auto; bottom: auto; width: 100%; max-height: min(72dvh, 680px); border-radius: 0; border-bottom: 0; pointer-events: auto; transition: max-height 180ms cubic-bezier(.23,1,.32,1); }
+  .sm-sheet.is-peek .sm-insp, .sm-sheet .sm-insp.is-compact { max-height: 190px; }
+  .sm-sheet.is-open .sm-insp { max-height: min(72dvh, 680px); }
   .sm-insp-head h2 { font-size: 20px; }
   .sm-insp:not(.is-compact) ~ .sm-time, .sm-insp:not(.is-compact) ~ .sm-report { display: none; }
 }

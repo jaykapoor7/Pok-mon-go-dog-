@@ -89,7 +89,7 @@ export default async function ForGovernmentsPage() {
               <p className="co-lede">The Animal Birth Control Rules, 2023 place sterilisation and vaccination on the local body. The hard part is proving, a year later, which localities were reached. StrayPaw draws it from the record, and draws the gaps as gaps.</p>
               <p className="co-acts">
                 <Link href="/contact?subject=Request%20a%20municipal%20pilot" className="sys-btn is-flame">Request a small pilot <ArrowUpRight size={15} /></Link>
-                {city && <Link href={`/insights?city=${encodeURIComponent(city.city)}`} className="co-link">Read {city.city} <ArrowUpRight size={14} /></Link>}
+                <Link href={`/municipality${city ? `?city=${encodeURIComponent(city.city)}&mode=coverage` : ""}`} className="co-link">Open the city command <ArrowUpRight size={14} /></Link>
               </p>
             </div>
             {city && plateBox && plateCells.length > 0 && (

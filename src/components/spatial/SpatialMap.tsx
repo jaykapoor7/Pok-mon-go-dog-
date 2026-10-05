@@ -165,7 +165,7 @@ function lightsOf(p: Palette) {
 }
 const heatRamp = (c: string[]) => ["interpolate", ["linear"], ["heatmap-density"], 0, c[0], 0.12, c[1], 0.3, c[2], 0.55, c[3], 0.8, c[4], 1, c[5]];
 
-export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope; userKey?: string | null }) {
+export function SpatialMap({ scope = "public", userKey = null, surface = "community" }: { scope?: Scope; userKey?: string | null; surface?: "community" | "municipality" }) {
   const params = useSearchParams();
   const router = useRouter();
   const { ds, ix, error, loading, city: datasetCity, cities: availableCities } = useSpatialDataset(scope, userKey);
@@ -191,7 +191,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
   const pal: Palette = ground === "night" ? NIGHT : PAPER;
 
-  const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? "animals") as AnyMode;
+  const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? (surface === "municipality" ? "coverage" : "animals")) as AnyMode;
   const [mode, setMode] = useState<AnyMode>(initialMode);
   const [lens, setLens] = useState<CaseLens>((LENSES.find((l) => l.id === params.get("lens"))?.id ?? "open") as CaseLens);
   const [month, setMonth] = useState<number | null>(null);
@@ -202,10 +202,17 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const primaryModes = surface === "municipality"
+    ? (["coverage", "abc", "arv", "cases"] as AnyMode[])
+    : PRIMARY_MODES;
   /* The hex grid is an analysis overlay: on by default only where a mode is about cells. */
   const [grid, setGrid] = useState(params.get("grid") === "1");
   /* Nothing sits over the map until someone picks a place on it. */
   const [sheet, setSheet] = useState<"hidden" | "peek" | "open">("hidden");
+  /* The phone inspector behaves as a real bottom drawer. Keep the drag
+     deliberately small and state-based: it should reveal context without
+     ever moving the map or leaving the sheet between ambiguous heights. */
+  const sheetDrag = useRef<{ y: number; from: "hidden" | "peek" | "open" } | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number; text: string } | null>(null);
   /* Authoritative per-cell totals from the rollup, keyed by H3. The bounded
      dataset drives dots and time-sliced/filtered views, while current unfiltered
@@ -820,6 +827,25 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     // On a phone the panel and the place card share the screen: a place wins.
     if (window.matchMedia("(max-width: 760px)").matches) setFilterOpen(false);
   }, []);
+  const beginSheetDrag = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!phone || sheet === "hidden") return;
+    sheetDrag.current = { y: event.clientY, from: sheet };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, [phone, sheet]);
+  const endSheetDrag = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = sheetDrag.current;
+    sheetDrag.current = null;
+    if (!phone || !drag) return;
+    const delta = event.clientY - drag.y;
+    if (delta < -34) setSheet("open");
+    else if (delta > 34) setSheet(drag.from === "open" ? "peek" : "hidden");
+    else setSheet(drag.from === "peek" ? "open" : "peek");
+  }, [phone]);
+  const cancelSheetDrag = useCallback(() => {
+    const drag = sheetDrag.current;
+    sheetDrag.current = null;
+    if (drag) setSheet(drag.from);
+  }, []);
   /* The mode chips scroll sideways on a phone: fade the edge that has more
      behind it, and keep the chosen mode in view. */
   const modesRef = useRef<HTMLDivElement>(null);
@@ -1149,24 +1175,24 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
             value={params.get("city") ? (datasetCity ?? "") : ""} onChange={(v) => changeCity(v || (scope === "public" ? "__india" : availableCities[0].city))} />
         )}
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
-          {MODES.filter((x) => PRIMARY_MODES.includes(x.id)).map((x) => (
+          {MODES.filter((x) => primaryModes.includes(x.id)).map((x) => (
             <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>
               {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases · ${lensDef.label}` : x.label}
             </button>
           ))}
-          <button type="button" className={`sm-modes-more ${PRIMARY_MODES.includes(mode) ? "" : "is-on"}`} aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
-            {PRIMARY_MODES.includes(mode) ? "More" : def.label}<ChevronDown size={14} aria-hidden />
+          <button type="button" className={`sm-modes-more ${primaryModes.includes(mode) ? "" : "is-on"}`} aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
+            {primaryModes.includes(mode) ? "More" : def.label}<ChevronDown size={14} aria-hidden />
           </button>
         </div>
         {moreOpen && (
           <div className="sm-modes sm-modes-menu" role="group" aria-label="More map modes">
-            {MODES.filter((x) => !PRIMARY_MODES.includes(x.id)).map((x) => (
+            {MODES.filter((x) => !primaryModes.includes(x.id)).map((x) => (
               <button key={x.id} type="button" aria-pressed={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>{x.label}</button>
             ))}
           </div>
         )}
         <div className="sm-q" aria-live="polite">
-          <p className="sm-q-kicker">Reading the record / {def.label}</p>
+          <p className="sm-q-kicker">{surface === "municipality" ? "Municipal command" : "Reading the record"} / {def.label}</p>
           <h2>{mode === "cases" ? lensDef.q : def.q}</h2>
           <details className="sm-q-details">
             <summary>How to read this view</summary>
@@ -1226,18 +1252,21 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       {hover && <div className="sm-hover" style={{ left: hover.x + 14, top: hover.y + 14 }}>{hover.text}</div>}
 
       {ds && ix && sel && sheet !== "hidden" && !(phone && filterOpen) && (
-        <Inspector
-          ds={ds} ix={ix} sel={sel} t={t} scope={scope} next={ds.next}
-          onSelect={choose} onClose={() => (sel.t === "city" || sel.t === "india" ? setSheet("hidden") : stepOut())}
-          onPickNext={(n: NextCell) => {
-            const ci = ds.cells.indexOf(n.cell);
-            if (ci >= 0) choose({ t: "cell", cell: ci }); else choose({ t: "empty", key: n.cell, city: n.city, center: n.center });
-          }}
-          compact={sheet === "peek"} onExpand={() => setSheet("open")}
-          onMode={(x) => { setMode(x); setMoreOpen(false); }}
-          filters={eff} note={filterNote}
-          exact={unfiltered ? authByCell : undefined}
-        />
+        <div className={`sm-sheet ${sheet === "peek" ? "is-peek" : "is-open"}`}>
+          {phone && <button type="button" className="sm-sheet-grip" aria-label={sheet === "peek" ? "Expand place details" : "Collapse place details"} onPointerDown={beginSheetDrag} onPointerUp={endSheetDrag} onPointerCancel={cancelSheetDrag}><i aria-hidden /></button>}
+          <Inspector
+            ds={ds} ix={ix} sel={sel} t={t} scope={scope} next={ds.next}
+            onSelect={choose} onClose={() => (sel.t === "city" || sel.t === "india" ? setSheet("hidden") : stepOut())}
+            onPickNext={(n: NextCell) => {
+              const ci = ds.cells.indexOf(n.cell);
+              if (ci >= 0) choose({ t: "cell", cell: ci }); else choose({ t: "empty", key: n.cell, city: n.city, center: n.center });
+            }}
+            compact={sheet === "peek"} onExpand={() => setSheet("open")}
+            onMode={(x) => { setMode(x); setMoreOpen(false); }}
+            filters={eff} note={filterNote}
+            exact={unfiltered ? authByCell : undefined}
+          />
+        </div>
       )}
 
       <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals"} pick={dotPick} />
