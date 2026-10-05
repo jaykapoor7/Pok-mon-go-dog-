@@ -50,6 +50,7 @@ export const CITIES: City[] = [
   { name: "Agra", lat: 27.1767, lng: 78.0081 },
   { name: "Patna", lat: 25.5941, lng: 85.1376 },
   { name: "Ranchi", lat: 23.3441, lng: 85.3096 },
+  { name: "Jamshedpur", lat: 22.8046, lng: 86.2029 },
   { name: "Bhopal", lat: 23.2599, lng: 77.4126 },
   { name: "Indore", lat: 22.7196, lng: 75.8577 },
   { name: "Raipur", lat: 21.2514, lng: 81.6296 },
