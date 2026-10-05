@@ -38,6 +38,7 @@ import { A, A_STRIDE, AF, C, C_STRIDE, K, K_STRIDE, type NextCell, type SpatialD
 import { densityContours, LEVELS } from "@/lib/spatial/contours";
 import { Portraits, type DotPick } from "./Portraits";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, type Condition } from "@/lib/register/taxonomy";
+import { CITIES } from "@/lib/geo/cities";
 import { getSupabase } from "@/lib/supabase";
 import { useSpatialDataset, ringOf, flatRing, pointInCell, boxOfRings, INDIA_BOX, type Scope } from "./data";
 import { Inspector, type Sel } from "./Inspector";
@@ -168,6 +169,17 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
   const params = useSearchParams();
   const router = useRouter();
   const { ds, ix, error, loading, city: datasetCity, cities: availableCities } = useSpatialDataset(scope, userKey);
+  /* The overview keeps one bounded city dataset in memory, while its lights
+     represent every city. Entering a city switches to its bounded detail. */
+  const indiaOverview = scope === "public" && !params.get("city");
+  const cityPins = useMemo(() => {
+    const positions = new Map(CITIES.map((city) => [city.name.toLowerCase(), city]));
+    for (const city of ds?.cities ?? []) positions.set(city.name.toLowerCase(), city);
+    return availableCities.flatMap((city) => {
+      const point = positions.get(city.city.toLowerCase());
+      return point ? [{ ...city, lat: point.lat, lng: point.lng }] : [];
+    });
+  }, [availableCities, ds]);
 
   const [ground, setGround] = useState<"night" | "paper">("night");
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
@@ -555,7 +567,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     map.addSource("frontier", { type: "geojson", data: { type: "FeatureCollection", features: ds.frontier.map((f, i) => ({ type: "Feature", id: i, properties: { k: f.cell, near: f.near, city: f.city }, geometry: { type: "Polygon", coordinates: [flatRing(f.ring)] } })) } });
     ["inner", "cases", "sel", "next", "feeding"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
     ["pts", "care", "terrain", "fog"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
-    map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: ds.cities.map((c, i) => ({ type: "Feature", properties: { i, n: c.animals, name: c.name }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) } });
+    map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: cityPins.map((c, i) => ({ type: "Feature", properties: { i, n: c.animals, name: c.city }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) } });
 
     const fs = (k: string, d: number | string) => ["coalesce", ["feature-state", k], d] as ExpressionSpecification;
     const Z = (a: number, b: number, c: number, d: number) => ["interpolate", ["linear"], ["zoom"], a, b, c, d] as ExpressionSpecification;
@@ -630,7 +642,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
 
     setLayersReady(true);
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
-  }, [ready, ds, pal]);
+  }, [ready, ds, pal, cityPins]);
 
   /* ── how the points are drawn in each mode ───────────────────────── */
   const pointStyle = useCallback(() => {
@@ -906,6 +918,29 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     window.history.replaceState(window.history.state, "", u.toString());
   }, [ds, sel, mode, month, mNow, lens]);
 
+  /* Zooming into a city from the India overview must load that city's
+     bounded cells and individual records before overview bubbles disappear. */
+  const overviewCityLoading = useRef(false);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !layersReady || !indiaOverview || !cityPins.length) return;
+    const openCityAtZoom = () => {
+      if (overviewCityLoading.current || map.getZoom() < 7.75) return;
+      const center = map.getCenter();
+      const withinView = cityPins.filter((city) => map.getBounds().contains([city.lng, city.lat]));
+      if (!withinView.length) return;
+      const city = withinView.reduce((best, candidate) => {
+        const bestDistance = (best.lng - center.lng) ** 2 + (best.lat - center.lat) ** 2;
+        const candidateDistance = (candidate.lng - center.lng) ** 2 + (candidate.lat - center.lat) ** 2;
+        return candidateDistance < bestDistance ? candidate : best;
+      });
+      overviewCityLoading.current = true;
+      changeCity(city.city);
+    };
+    map.on("moveend", openCityAtZoom);
+    return () => { map.off("moveend", openCityAtZoom); };
+  }, [ready, layersReady, indiaOverview, cityPins]);
+
   /* ── clicks and hover ────────────────────────────────────────────── */
   useEffect(() => {
     const map = mapRef.current; if (!map || !ready || !ds) return;
@@ -929,11 +964,10 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
       if (!h) return;
       const id = h.layer.id;
       if (id === "cities") {
-        /* The overview shows every city on the record. The one already loaded
-         * zooms in place; any other loads its bounded dataset. */
         const name = String(h.properties?.name ?? "");
         const idx = ds.cities.findIndex((c) => c.name.toLowerCase() === name.toLowerCase());
-        if (idx >= 0) choose({ t: "city", city: idx });
+        if (scope === "public" && indiaOverview && name) changeCity(name);
+        else if (idx >= 0) choose({ t: "city", city: idx });
         else if (name) changeCity(name);
         return;
       }
@@ -988,7 +1022,7 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     const onOut = () => setHover(null);
     map.on("click", onClick); map.on("mousemove", onMove); map.on("mouseout", onOut);
     return () => { map.off("click", onClick); map.off("mousemove", onMove); map.off("mouseout", onOut); };
-  }, [ready, ds, statOf, mode, choose, phone, scope, router, value, lens, authByCell, unfiltered]);
+  }, [ready, ds, statOf, mode, choose, phone, scope, router, value, lens, authByCell, unfiltered, indiaOverview]);
 
   /* ── Escape steps out one rung ───────────────────────────────────── */
   const stepOut = useCallback(() => {
