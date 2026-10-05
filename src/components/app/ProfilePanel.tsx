@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { myProfile, type Profile } from "@/lib/programme";
 import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volunteer";
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    Who you are, at the foot of the console's side nav.
 
    Three states, because StrayPaw has three kinds of person and they
@@ -22,7 +22,7 @@ import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volu
 
    It replaces a line that said "Network, Pan-India", which was true and
    told nobody anything they could act on.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
   const { user, isAuthed, signOut } = useAuth();
@@ -132,7 +132,7 @@ export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
       <div className="spa-profile-links out">
         <Link href="/join" onClick={onNavigate} className="pp-signin">Sign in</Link>
         <Link href="/join" onClick={onNavigate} className="pp-code">
-          <KeyRound size={14} /> I have a code
+          <KeyRound size={14} aria-hidden /> <span>I have a code</span>
         </Link>
       </div>
     </div>
