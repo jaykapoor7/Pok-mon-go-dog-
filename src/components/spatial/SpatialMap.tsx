@@ -178,10 +178,12 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     return availableCities.flatMap((city) => {
       /* City rollups include a centroid derived from their own H3 cells. That
          makes every city addressable, including new imports not in CITIES. */
-      const point = Number.isFinite(city.lat) && Number.isFinite(city.lng)
-        ? city
-        : positions.get(city.city.toLowerCase());
-      return point ? [{ ...city, lat: point.lat, lng: point.lng }] : [];
+      const fallback = positions.get(city.city.toLowerCase());
+      const lat = typeof city.lat === "number" ? city.lat : fallback?.lat;
+      const lng = typeof city.lng === "number" ? city.lng : fallback?.lng;
+      return typeof lat === "number" && typeof lng === "number"
+        ? [{ ...city, lat, lng }]
+        : [];
     });
   }, [availableCities, ds]);
 
