@@ -21,7 +21,7 @@ html .spa.spa .spa-search svg{color:var(--sp-muted)}
 html .spa.spa .spa-search input::placeholder{color:var(--sp-muted)}
 html .spa.spa .spa-search input:focus{border-color:var(--sp-blue);box-shadow:0 0 0 3px #2457ce15}
 html .spa.spa .spa-tour,html .spa.spa /* These two were transparent with grey text on a white header, which
-   made them read as labels rather than controls — measured at 0 contrast
+   made them read as labels rather than controls â measured at 0 contrast
    against the bar behind them. They take the secondary control treatment
    now: a tinted capsule with an accent label, same as every other
    secondary action on the site. */
@@ -108,7 +108,7 @@ html .spa.spa button:disabled{cursor:not-allowed}
 
    It was a white card with a full border sitting directly above every
    page title in the console, which made it compete with the heading it
-   was supposed to be subordinate to — the first thing a visiting NGO
+   was supposed to be subordinate to â the first thing a visiting NGO
    read on every screen was a box about signing in rather than the name
    of the screen. A left rule and a tint say the same thing at a fraction
    of the weight, which is this product's default separator anyway. */
@@ -138,7 +138,7 @@ html .spa.spa .partner-gate p{font-size:var(--sp-t-sm)}
 .report-form .report-upload>svg{color:var(--sp-blue);width:34px;height:34px}
 .report-form .chip{border-radius:6px;min-height:36px}
 
-/* ── The photo editor ──────────────────────────────────────────────
+/* ââ The photo editor ââââââââââââââââââââââââââââââââââââââââââââââ
    The canvas is the export, so it gets the room. Everything under it is
    one row of controls and one row of actions, because this sits at the
    step where reports are already most often abandoned. */
@@ -198,7 +198,7 @@ html .spa.spa .spa-side>.spa-sect,html .spa.spa .spa-side>a.spa-report-shortcut,
 /* The NGO rail's "Start" shortcuts were never hidden on a phone, so on
    /partner they rendered inside the 60px tab bar: the word START and three
    full-width links sharing the row with five destinations, which squeezed
-   every label down to "Dash…" and "Recor…". They belong to the desktop
+   every label down to "Dashâ¦" and "Recorâ¦". They belong to the desktop
    column; on a phone the same actions live on the screens themselves. */
 html .spa.spa .spa-side>.spa-quick-list{display:none}
 html .spa.spa .spa-more{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 2px;border:0;font-size:10px;color:#556475;background:white;border-radius:0;min-width:0}
@@ -295,7 +295,7 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
  /* a.spa-mobile-report, not .spa-mobile-report: the phone Report button
     is a descendant of .spa-side, so "html .spa.spa .spa-side a" (three
     classes AND two elements) outranked the three-classes-one-element
-    rule that set the white. The button rendered #50617b on #2457ce —
+    rule that set the white. The button rendered #50617b on #2457ce â
     2.0:1, the least readable control in the app. */
  html .spa.spa .spa-side a.spa-mobile-report{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;color:#fff;background:var(--sp-blue);text-decoration:none;font-size:10px;font-weight:600}
  html .spa.spa .spa-side a.spa-mobile-report svg{margin-top:-2px;color:#fff}
@@ -309,7 +309,7 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
  html .spa.spa .spa-main:not(.flush){padding:20px 16px 32px}.community-map .field-map-preview{height:320px}.feeder-zones{margin-top:24px}
 }
 
-/* ── Phone reach in the console top bar ────────────────────────────────────
+/* ââ Phone reach in the console top bar ââââââââââââââââââââââââââââââââââââ
    Measured at 390px: Switch space 41x40, Main site 81x36, the search field
    43px tall. All three sit within a few pixels of the 44px minimum, which
    is the range where a control is hit most of the time and feels broken the
@@ -320,18 +320,18 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
   html .spa.spa .spa-search input { min-height: 44px; }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    The phone bar.
 
    Five slots, Report in the middle. Report used to be a sixth element
    sitting after the grid, which put the one action this product exists to
-   collect at the far right edge — the corner a right thumb reaches last
+   collect at the far right edge â the corner a right thumb reaches last
    and a left thumb cannot reach at all. The grid now holds it.
 
    Written here at the end rather than edited into the block above so the
    whole bar reads as one object instead of four rules that have to be
    held in your head at once.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 @media (max-width: 900px) {
   html .spa.spa .spa-phone-links {
     display: grid;
@@ -388,7 +388,7 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
     color: var(--sp-blue);
   }
 
-  /* The centre slot. Not a bigger version of its neighbours — a different
+  /* The centre slot. Not a bigger version of its neighbours â a different
      kind of thing, so it carries the fill and they do not. */
   html .spa.spa .spa-side a.spa-mobile-report {
     display: flex;
@@ -419,7 +419,7 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
   html .spa.spa .spa-more { display: none; }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    The console ground.
 
    Flat, and warm. What stood here was a survey-paper texture: two
@@ -427,9 +427,9 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
    behind every screen in the console. It was argued for as a light source
    and a street-block scale, but it is a grid pattern with a glow in the
    corner, and it sat underneath dashboards that group their own content
-   with rules — so the page carried two grids that agreed about nothing.
+   with rules â so the page carried two grids that agreed about nothing.
    The ground's job is to hold still under an hour of case notes.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 html .spa.spa .spa-main:not(.flush) {
   position: relative;
   background-color: var(--sp-ground);
@@ -451,7 +451,7 @@ html .spa.spa .cc {
   html .spa.spa .spa-main:not(.flush) { background-color: var(--sp-ground); }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    The way out of the report flow.
 
    /report deliberately hides the side nav, the search and the top-right
@@ -462,9 +462,9 @@ html .spa.spa .cc {
 
    It spans the whole workspace and sits above both columns, so it reads
    as "leave this screen" rather than as one more form control. 40px tall
-   on any pointer — it is the control somebody reaches for when they are
+   on any pointer â it is the control somebody reaches for when they are
    lost, which is the worst moment to make a target hard to hit.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .report-back {
   grid-column: 1 / -1;
   margin-bottom: 4px;
@@ -498,20 +498,20 @@ html .spa.spa .cc {
   .report-back button { padding-left: 10px; font-size: 12.5px; }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    The shell's back control.
 
    Same object as the report flow's, so a person learns one control and
    finds it in the same place on every screen they get pushed into.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 html .spa.spa .spa-back { margin: 0 0 14px; }
 
 /* ONE back control per screen.
 
    The shell renders .spa-back on any screen that is not a nav
    destination. Some pages ALSO render their own BackLink (.backbar),
-   which names where it goes — "Back to the evidence", "Back to the
-   dashboard" — and that is the better control of the two. Where both
+   which names where it goes â "Back to the evidence", "Back to the
+   dashboard" â and that is the better control of the two. Where both
    existed the reader got two Back buttons about 55px apart, and on
    /donate and /faq both of them just said "Back".
 
@@ -547,7 +547,7 @@ html .spa.spa .spa-back button svg { flex: none; }
   html .spa.spa .spa-back { margin-bottom: 11px; }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    Controls inside the sidebar.
 
    The sidebar's nav rows are rows, so they take --ctl-r-row. But the two
@@ -555,9 +555,9 @@ html .spa.spa .spa-back button svg { flex: none; }
    select, and they were inheriting the row shape purely because they
    happen to be anchors inside .spa-side. The selector has to out-rank
    `html .spa.spa .spa-side a` (0-4-2), which is why it names the element
-   and repeats the class — the same argument this file has already lost
+   and repeats the class â the same argument this file has already lost
    three times to that rule.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 html .spa.spa .spa-side .spa-profile-links.out a.pp-signin,
 html .spa.spa .spa-side .spa-profile-links.out a.pp-code {
   border-radius: var(--ctl-r);
@@ -567,7 +567,7 @@ html .spa.spa .spa-side .spa-profile-links.out a.pp-code {
      `html .spa.spa .spa-side a` sets align-items on these, so the text
      sat at the TOP of a 44px capsule with 22px of empty space under it.
      justify-content: center was already being applied, which is why this
-     looked like it should have worked — horizontal centring was correct
+     looked like it should have worked â horizontal centring was correct
      the whole time and vertical never was.
 
      The 12px gap comes from the same sidebar rule. On "I have a code",
@@ -591,7 +591,7 @@ html .spa.spa .spa-side .spa-profile-links.out a.pp-code:active {
   transform: var(--ctl-press);
 }
 
-/* The secondary button's label was #50617b — the sidebar's muted link
+/* The secondary button's label was #50617b â the sidebar's muted link
    colour, inherited past the .pp-code rule that meant to set it. A tinted
    fill with a GREY label is the combination this system specifically
    avoids, because it reads as disabled. Secondary means accent tint,
@@ -599,7 +599,13 @@ html .spa.spa .spa-side .spa-profile-links.out a.pp-code:active {
 html .spa.spa .spa-side .spa-profile-links.out a.pp-code {
   background: var(--ctl-tint);
   color: #1f4bb8;
+  /* The icon and its label are separate, non-shrinking flex items. This
+     prevents the key from intruding into the first letter when sidebar
+     layout rules tighten the control at intermediate widths. */
+  gap: 7px;
 }
+html .spa.spa .spa-profile-links.out a.pp-code > svg { flex: 0 0 14px; }
+html .spa.spa .spa-profile-links.out a.pp-code > span { display: block; line-height: 1; }
 html .spa.spa .spa-side .spa-profile-links.out a.pp-code:hover {
   background: var(--ctl-tint-hover);
   color: #1f4bb8;
@@ -633,13 +639,13 @@ html .spa.spa .spa-side .spa-ngo-actions a.spa-ngo-action-primary>svg:first-chil
 html .spa.spa .spa-side .spa-ngo-actions a.spa-ngo-action-primary small{color:rgba(255,255,255,.78)}
 html .spa.spa .spa-side .spa-ngo-actions a.spa-ngo-action-primary:hover{border-color:var(--sp-blue-deep);background:var(--sp-blue-deep)}
 
-/* ════════════════════════════════════════════════════════════════════
-   CONSOLE PAGE — the one header every partner screen uses.
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   CONSOLE PAGE â the one header every partner screen uses.
 
    Ten screens each built this themselves and landed a few pixels apart.
    Everything below comes from tokens; there is no typed value in here
    that is not on a scale.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .cpage { min-width: 0; }
 .cpage-read { max-width: var(--sp-measure); }
@@ -703,7 +709,7 @@ html .spa.spa .cpage-head h1 {
   gap: var(--sp-2);
 }
 
-/* ── Sections inside a page ──────────────────────────────────────── */
+/* ââ Sections inside a page ââââââââââââââââââââââââââââââââââââââââ */
 .csect { margin-top: var(--sp-7); padding-top: var(--sp-5); border-top: 1px solid var(--sp-line); }
 .csect-bare { margin-top: 0; padding-top: 0; border-top: 0; }
 .csect-head {
@@ -724,7 +730,7 @@ html .spa.spa .csect-head h2 {
 .csect-meta { margin: var(--sp-1) 0 0; font-size: var(--sp-t-sm); color: var(--sp-muted); }
 .csect-actions { display: flex; flex-shrink: 0; align-items: center; gap: var(--sp-2); }
 
-/* ── Phone ───────────────────────────────────────────────────────────
+/* ââ Phone âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    The actions come off the title's line. Two buttons beside a heading at
    390px leaves the heading about 90px wide, which is the layout that
    breaks first and the one this product can least afford, since the
@@ -738,11 +744,11 @@ html .spa.spa .csect-head h2 {
   html .spa.spa .cpage-head h1 { font-size: var(--sp-t-lg); }
 }
 
-/* ── The account controls on a phone ──────────────────────────────────
+/* ââ The account controls on a phone ââââââââââââââââââââââââââââââââââ
    One ProfilePanel is rendered in the side nav's foot and one in the top
    bar; exactly one of them is ever displayed. On a desktop the side nav
    has room for the pair stacked. On a phone the side nav IS the bottom
-   bar, so the foot is hidden and this copy carries the account flow —
+   bar, so the foot is hidden and this copy carries the account flow â
    without it there was no way to sign in from the app at 390px. */
 .spa-top-account { display: none; }
 
@@ -789,7 +795,7 @@ html .spa.spa .csect-head h2 {
   html .spa.spa .spa-exit { font-size: 0; padding: 0 12px; min-width: var(--ctl-h); justify-content: center; }
   html .spa.spa .spa-exit svg { width: 17px; height: 17px; }
 }
-/* ═══════════════════════════════════════════════════════════════════
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    Composition pass: the product is a field ledger, not a grid of widgets.
 
    This intentionally sits after the earlier product rules. The surface
@@ -797,7 +803,7 @@ html .spa.spa .csect-head h2 {
    controls carry blue, urgency carries orange. Removing decorative dots,
    rings, and default card treatment makes hierarchy come from sequence,
    alignment, and whitespace instead of containers.
-   ═══════════════════════════════════════════════════════════════════ */
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 html .spa.spa,
 html .spa.spa .spa-body { background: #f7f2ea; }
 html .spa.spa .spa-top {
@@ -806,8 +812,8 @@ html .spa.spa .spa-top {
   background: rgba(255, 253, 249, .96);
   border-color: #e4dacb;
 }
-/* Desktop only. Unscoped, this padding also applied to the phone tab bar —
-   the same element — and 20px of vertical padding inside a 60px bar left a
+/* Desktop only. Unscoped, this padding also applied to the phone tab bar â
+   the same element â and 20px of vertical padding inside a 60px bar left a
    20px content box, so the five slots were laid out 19px tall and then
    overflowed 21px below the bottom of the screen with their labels cut off.
    This was the actual cause of the clipped phone navigation. */
@@ -849,7 +855,7 @@ html .spa.spa .card { border-radius: 0; box-shadow: none; }
   background: var(--sp-blue);
 }
 
-/* ── Partner overview: command header → operational signal → work. ── */
+/* ââ Partner overview: command header â operational signal â work. ââ */
 
 /* Tables, filters and notices should join the content they govern. */
 html .spa .ds-table { border-color: var(--sp-rule); border-radius: 0; background: rgba(255, 253, 249, .7); }
@@ -863,7 +869,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   html .spa.spa .spa-main:not(.flush) { padding: 22px 16px 112px; }
 }
 
-/* ── Community field journal ─────────────────────────────────────── */
+/* ââ Community field journal âââââââââââââââââââââââââââââââââââââââ */
 .feed-page { width: min(100%, 1040px); padding-top: 4px; padding-bottom: 80px; }
 .feed-page-head { position: relative; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--sp-rule); }
 .feed-page-head::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 64px; height: 2px; background: var(--sp-blue); }
@@ -903,7 +909,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   .sighting-row-kicker { font-size: 9px; }
 }
 
-/* ── Role homes: three distinct work surfaces, not the same dashboard. ── */
+/* ââ Role homes: three distinct work surfaces, not the same dashboard. ââ */
 .community-command-header,
 .feeder-command-header {
   display:flex;
@@ -1031,14 +1037,14 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   .feeder-zone-list > a + a { border-top:1px solid var(--sp-rule) !important; }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    PHONE FIXES for the console top bar and the dashboard greeting.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 @media (max-width: 900px) {
   /* THE TOP BAR WAS CLIPPING ITS OWN CONTENTS.
 
-     .spa-top is given a fixed `height` at four breakpoints — 72, 68, 64
+     .spa-top is given a fixed `height` at four breakpoints â 72, 68, 64
      and 62px. A fixed height does not grow, so when the account controls
      moved into this bar they were cut in half by its bottom edge: the
      top of each capsule rendered and the rest was outside the box. This
@@ -1059,7 +1065,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   /* ONE ACCOUNT CONTROL ON A PHONE, not two.
 
      Both capsules together are 193px, and beside the wordmark, the space
-     switcher and the exit they could not fit a 390px row — so the bar
+     switcher and the exit they could not fit a 390px row â so the bar
      wrapped to three rows and stood 165px tall, a quarter of the screen
      before any content. Measured, not guessed.
 
@@ -1072,14 +1078,14 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 
   /* THE GREETING WAS CENTRED, and nothing else on the screen is.
 
-     The markup is `flex flex-col … sm:flex-row`, and design-system.css
+     The markup is `flex flex-col â¦ sm:flex-row`, and design-system.css
      sets align-items:center on .partner-greeting for the row layout. On
      the column layout that same declaration centres every child
-     horizontally instead — so on a phone the date, the greeting and the
+     horizontally instead â so on a phone the date, the greeting and the
      organisation line all sat in the middle of a left-aligned page. */
 }
 
-/* ── The rail must not scroll ────────────────────────────────────────
+/* ââ The rail must not scroll ââââââââââââââââââââââââââââââââââââââââ
    A navigation column that scrolls hides destinations below its own fold,
    and the one thing a person looks at the rail for is what else there is.
    The 44px floor exists for fingers; a mouse is precise, so on a fine
@@ -1105,7 +1111,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   html .spa.spa .spa-side a.spa-report-shortcut { margin-bottom: 10px; }
 }
 
-/* ── The console on a phone ──────────────────────────────────────────
+/* ââ The console on a phone ââââââââââââââââââââââââââââââââââââââââââ
    A tab bar with six views does not fit 390px, and the two that fall off
    the end are invisible rather than merely off-screen. It scrolls
    sideways in its own track, which is the one place the design allows a
@@ -1145,7 +1151,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 /* The 44px floor, inside the console's own content. The global floor in
    globals.css reaches controls that carry the design system's classes;
    these are the ones written with utility classes in older console
-   screens — a fundraising card link at 34px, a medical sub-tab at 38, a
+   screens â a fundraising card link at 34px, a medical sub-tab at 38, a
    role selector at 40. Inline links inside a sentence are left alone on
    purpose (WCAG 2.5.8): padding a word out to 44px wrecks the line it
    sits in. */
@@ -1171,12 +1177,12 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   .report-signin-note button { min-height: var(--ctl-h); }
 }
 
-/* ── The phone bar, finished ─────────────────────────────────────────
+/* ââ The phone bar, finished âââââââââââââââââââââââââââââââââââââââââ
    The current item was marked with a 2px rule pinned to the TOP of its
    cell, which is a desktop tab treatment applied upside down: the line
    sits against the bar's own top edge, far from the icon it refers to,
    and reads as a stray border rather than a selection. It looked like a
-   bug even when it was pointing at the right cell — and until the
+   bug even when it was pointing at the right cell â and until the
    isActive fix it usually was not.
 
    The selection is now the thing itself: the icon sits on a soft tinted
@@ -1240,7 +1246,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   html .spa.spa .spa-side a.spa-mobile-report:active { transform: none; }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    COMMUNITY HOME (/app)
 
    One workspace, not a column of cards. The map and the register of
@@ -1254,7 +1260,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
    860px down the page. Here the map takes a little under half the
    viewport and the register starts immediately under it, so records are
    on the first screen and Report is in the header above them.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .ch { max-width:1360px; margin:0 auto; }
 
@@ -1346,7 +1352,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   .ch-thumb { width:42px; height:42px; }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    NGO OPERATIONS CONSOLE (/partner)
 
    Five questions, in the order a field team asks them: what needs
@@ -1356,7 +1362,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
    because the map is where the queue is; the programme and the ledger run
    as lists. Nothing here is a floating card, and the only orange marks
    the count that is actually late.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .pr { max-width:1420px; margin:0 auto; }
 
@@ -1365,7 +1371,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 
 /* Three areas, not two columns with tasks nested inside the queue. Nested,
    the phone had no way to read them in a different order, and stacking the
-   column whole put the map 1,144px down the page — below the queue and the
+   column whole put the map 1,144px down the page â below the queue and the
    whole tasks block. Named areas let the desktop keep queue-over-tasks
    beside the map while the phone reads queue, map, tasks. */
 .pr-work { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.12fr); grid-template-areas:"queue geo" "tasks tasks"; border-bottom:1px solid var(--sp-rule); }
@@ -1407,19 +1413,19 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
   .pr-map { height:clamp(240px,40vh,340px); }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    THE SHELL ON A DESKTOP
 
    Three surfaces were competing: a filled top bar, a filled white side
    column with a filled white active chip inside it, and a dashboard with
-   its own surfaces. The navigation is the least important of the three —
-   it is how you leave this screen, not part of it — so it gives up its
+   its own surfaces. The navigation is the least important of the three â
+   it is how you leave this screen, not part of it â so it gives up its
    fill and keeps only a hairline and its type. The page beneath gains the
    room the panel was spending on itself.
 
    Scoped to min-width:901px on purpose: below that the same element is
    the phone tab bar, which does need a fill of its own.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 @media (min-width:901px) {
   html .spa.spa .spa-body { grid-template-columns:216px minmax(0,1fr); }
   /* Navigation, not a second panel. */
@@ -1450,17 +1456,17 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 html .spa.spa .spa-top-right .spa-exit { opacity:.78; font-weight:600; }
 html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    THE PHONE, MEASURED
 
    Three things were wrong at 390 and 320, and all three were measured
    rather than guessed.
-   ════════════════════════════════════════════════════════════════════ */
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 @media (max-width:900px) {
   /* 1. The tab bar's five slots were hanging 21px below the bottom of the
      screen, so every label was cut in half. .spa-side still inherited
-     flex-direction:column from the desktop rail — the mobile override sets
-     display:flex and align-items but never the direction — so the grid
+     flex-direction:column from the desktop rail â the mobile override sets
+     display:flex and align-items but never the direction â so the grid
      inside it was laid out as a column item and resolved to a 19px track
      that its own 56px children then overflowed.
      An explicit height on the grid does not fix it either: a percentage
@@ -1475,7 +1481,7 @@ html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
   /* 2. Report was on the screen twice: a full-width orange button in the
      header and the blue centre slot of the tab bar, which is always there
      and always reachable with a thumb. Two primary actions for one job is
-     one too many, and removing the header copy gives the register 72px —
+     one too many, and removing the header copy gives the register 72px â
      the difference between one animal above the fold and three. */
   .ch-report { display:none; }
   .ch-map { padding-top:12px; }
@@ -1485,8 +1491,8 @@ html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
 }
 
 @media (max-width:360px) {
-  /* 3. At 320 the top bar ran to three rows — 165px of chrome before the
-     page began — because the wordmark and the three account controls could
+  /* 3. At 320 the top bar ran to three rows â 165px of chrome before the
+     page began â because the wordmark and the three account controls could
      not share 288px. The mark alone still says which product this is. */
   html .spa.spa .spa-brand span { display:none; }
   html .spa.spa .spa-top { height:106px; padding:0 10px; }
@@ -1508,7 +1514,7 @@ html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
   body:has(.spa) .snotice { left: auto; right: var(--sp-4); }
 }
 
-/* ════════════════════════════════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    THE NGO FIELD MAP (/partner/map)
 
    It fills the console's main area instead of positioning itself against
@@ -1519,8 +1525,8 @@ html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
 
    The phone layout is a flex column, which is what actually gives the map
    pane a height. As a plain block it had none, and the map asks for 100%
-   of its parent — so the page was an empty rectangle.
-   ════════════════════════════════════════════════════════════════════ */
+   of its parent â so the page was an empty rectangle.
+   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 /* The map's own toolbar sits inside the pane, so it clears the top bar by
    construction; it only needs to clear the map's zoom controls. */
 
