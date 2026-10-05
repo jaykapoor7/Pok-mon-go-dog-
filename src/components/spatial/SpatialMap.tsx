@@ -176,7 +176,11 @@ export function SpatialMap({ scope = "public", userKey = null }: { scope?: Scope
     const positions = new Map(CITIES.map((city) => [city.name.toLowerCase(), city]));
     for (const city of ds?.cities ?? []) positions.set(city.name.toLowerCase(), city);
     return availableCities.flatMap((city) => {
-      const point = positions.get(city.city.toLowerCase());
+      /* City rollups include a centroid derived from their own H3 cells. That
+         makes every city addressable, including new imports not in CITIES. */
+      const point = Number.isFinite(city.lat) && Number.isFinite(city.lng)
+        ? city
+        : positions.get(city.city.toLowerCase());
       return point ? [{ ...city, lat: point.lat, lng: point.lng }] : [];
     });
   }, [availableCities, ds]);
