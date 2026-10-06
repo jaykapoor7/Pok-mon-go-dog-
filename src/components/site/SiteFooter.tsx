@@ -9,9 +9,9 @@ export function SiteFooter({ className = "" }: { className?: string }) {
     <footer className={`sp-footer mk-foot ${className}`.trim()}>
       <FooterIndex />
       <div className="sp-footer-bottom sp-mono">
-        <span>STRAYPAW © 2026</span>
-        <span className="sp-footer-links"><FeedbackButton label="FEEDBACK" /></span>
-        <span>BUILT IN INDIA / FOR EVERYWHERE</span>
+        <span>© 2026 StrayPaw</span>
+        <span className="sp-footer-links"><FeedbackButton label="Feedback" /></span>
+        <span>Built in India, for street animals everywhere.</span>
       </div>
     </footer>
   );
