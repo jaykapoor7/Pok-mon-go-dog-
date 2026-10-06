@@ -62,9 +62,9 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgMapCell[]; place: str
   );
   if (!visible.length) return null;
 
-  const width = 164;
-  const height = 76;
-  const pad = 7;
+  const width = 360;
+  const height = 112;
+  const pad = 9;
   const midLat = (south + north) / 2;
   const lngScale = Math.cos((midLat * Math.PI) / 180);
   const xSpan = Math.max(0.0001, (east - west) * lngScale);
@@ -145,10 +145,12 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
           <div className={styles.primaryStat}>
             {impact ? <>
               <strong className={styles.primaryNumber}>{formatter.format(impact.animalsRecorded)}</strong>
-              <span className={styles.primaryLabel}>Dogs on record</span>
-              {impact.caseRecords > 0 && (
-                <span className={styles.caseLine}>{formatter.format(impact.caseRecords)} documented case records</span>
-              )}
+              <div className={styles.primaryCopy}>
+                <span className={styles.primaryLabel}>Dogs on record</span>
+                {impact.caseRecords > 0 && (
+                  <span className={styles.caseLine}>{formatter.format(impact.caseRecords)} documented case records</span>
+                )}
+              </div>
             </> : <p className={styles.countsUnavailable}>Live counts are temporarily unavailable. Open the organisation record to try again.</p>}
           </div>
           <MiniFootprint cells={mapCells} place={mapPlace} />
