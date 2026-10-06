@@ -301,13 +301,21 @@
   .sm .maplibregl-ctrl-bottom-right { right: 0; bottom: 118px; }
   .sm-top { top: 8px; left: 8px; right: 8px; width: auto; gap: 6px; }
   .sm-top .sys-ladder { max-width: calc(100vw - 72px); overflow: hidden; white-space: nowrap; }
-  .sm-modes { flex-wrap: nowrap; overflow-x: auto; max-width: calc(100vw - 64px); scrollbar-width: none; scroll-behavior: smooth; }
-  /* More chips past the edge: that edge fades, so the row reads as a row that scrolls. */
-  .sm-modes[data-more="right"] { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
-  .sm-modes[data-more="left"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px); mask-image: linear-gradient(90deg, transparent, #000 36px); }
-  .sm-modes[data-more="both"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
-  .sm-modes::-webkit-scrollbar { display: none; }
-  .sm-modes button { flex: none; height: 36px; }
+  /* A scrollable row hid the last map choices — especially More — outside
+     the phone viewport. Keep every operational lens visible and thumb-safe. */
+  .sm-modes:not(.sm-modes-menu) {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: calc(100vw - 16px); max-width: none; overflow: visible;
+  }
+  .sm-modes:not(.sm-modes-menu) button {
+    min-width: 0; height: 40px; padding: 0 8px; justify-content: center;
+    white-space: nowrap;
+  }
+  .sm-modes-menu {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: calc(100vw - 16px); max-width: none;
+  }
+  .sm-modes-menu button { justify-content: center; }
   .sm-q { max-width: calc(100vw - 64px); padding: 8px 10px; gap: 6px; }
     .sm-notice { max-width: calc(100vw - 64px); padding: 8px 10px; font-size: 12px; }
   .sm-tools { top: 8px; right: 8px; }
