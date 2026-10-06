@@ -378,7 +378,7 @@
   .sm-atlas h2 { font-size: 18px; }
   .sm-atlas header { gap: 2px; padding-bottom: 5px; border-bottom: 0; }
   .sm-atlas header > span { display: none; }
-  .sm-atlas-mobile-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px; padding: 6px 0; border: 0; background: transparent; color: var(--sm-text); font: inherit; text-align: left; cursor: pointer; }
+  .sm-atlas .sm-atlas-mobile-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px; padding: 6px 0; border: 0; background: transparent; color: var(--sm-text); font: inherit; text-align: left; cursor: pointer; }
   .sm-atlas-mobile-summary span { display: grid; min-width: 0; gap: 2px; }
   .sm-atlas-mobile-summary b { overflow: hidden; font-size: 13px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
   .sm-atlas-mobile-summary small { color: var(--sm-faint); font-size: 10.5px; }
