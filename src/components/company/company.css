@@ -209,6 +209,8 @@ html .co .co-hero.has-ground::before, html .co .co-close.has-ground::before { di
 
 /* About: where records come from — one proportional bar, then the ledger. */
 .src-bar { margin: 0; display: grid; gap: var(--sp-2); }
+.src-total { margin: 0; max-width: 64ch; font-size: 15px; line-height: 1.55; color: var(--sp-body); }
+.src-total b { color: var(--sp-ink); font-weight: 650; }
 .src-track { display: flex; gap: 2px; height: 18px; overflow: hidden; border-radius: 5px; }
 .src-track span { flex-basis: 0; min-width: 4px; }
 .src-bar figcaption { font-size: 13px; color: var(--sp-muted); }
