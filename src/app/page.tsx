@@ -54,6 +54,18 @@ const LEVELS = [
 
 const EMPTY_REGISTER = { total: 0, cards: [] };
 
+/* A cold visual sample must never hold the landing page hostage. It can warm
+   its cache after the hero and register have rendered. */
+function within<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Landing story timed out.")), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); },
+    );
+  });
+}
+
 async function LandingAnimalRegister({ plate }: { plate: RegisterPlateData | null }) {
   const register = await getAnimalRegister().catch(() => EMPTY_REGISTER);
   return <AnimalRegister data={register} total={register.total} plate={plate} />;
@@ -65,7 +77,7 @@ export default async function HomePage() {
      story.ts). It is bounded by design and never reads the register; if it
      is unavailable the page still renders every section that does not need
      it. The animal register is streamed separately in its own Suspense. */
-  const story = await getLandingStory().catch(() => null);
+  const story = await within(getLandingStory(), 3_500).catch(() => null);
   return (
     <div className="sp field-site product-site ld">
       <PageView name="landing_view" />
