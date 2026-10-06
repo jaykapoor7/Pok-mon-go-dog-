@@ -67,9 +67,9 @@ export function StorageNotice() {
   return (
     <aside className="snotice" role="region" aria-label="How this site stores data">
       <p>
-        StrayPaw keeps one random ID in your browser so return visits are not
-        counted twice. No cookies, no tracking across other sites, and nothing
-        shared with anyone else. <Link href="/cookies">What is stored</Link>.
+        StrayPaw stores one random ID in your browser so return visits are not
+        counted twice. It does not use tracking cookies or track you across
+        other sites, and nothing is shared with anyone else. <Link href="/cookies">What is stored</Link>.
       </p>
       <div className="snotice-actions">
         <button type="button" className="snotice-ok" onClick={() => close(false)}>
