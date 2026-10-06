@@ -113,12 +113,23 @@ export const getPublishedCaseStoriesPage = unstable_cache(readPublishedCaseStori
 
 /** Authoritative count of distinct animals with a public story, optionally for
  * one city. Never derive the headline count from a page's length. */
-async function readPublicCaseStoryCount(city?: string | null): Promise<number> {
+async function readPublicCaseStoryCount(city?: string | null): Promise<number | null> {
   const supa = getSupabase();
-  if (!supa) throw new Error("Story counts are temporarily unavailable.");
-  const { data, error } = await supa.rpc("count_public_case_stories", { p_city: city?.trim() || null });
-  if (error) throw error;
-  return Number(data ?? 0);
+  /* This is a headline enhancement, not a reason to fail an entire public
+     route. `unstable_cache` revalidates independently after it has served a
+     page; allowing a bounded Supabase abort to reject here turns a harmless
+     refresh into a Vercel runtime error on whichever page happened to read
+     it. Keep the verified count when the read succeeds and explicitly omit
+     the figure when it does not — never substitute an invented zero. */
+  if (!supa) return null;
+  try {
+    const { data, error } = await supa.rpc("count_public_case_stories", { p_city: city?.trim() || null });
+    if (error) return null;
+    const count = Number(data);
+    return Number.isFinite(count) && count >= 0 ? count : null;
+  } catch {
+    return null;
+  }
 }
 export const countPublicCaseStories = unstable_cache(readPublicCaseStoryCount, ["public-story-count-v3"], { revalidate: 300 });
 
