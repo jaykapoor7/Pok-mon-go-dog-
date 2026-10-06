@@ -10,12 +10,12 @@ import "@/components/orgs/partners.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "Organisations on the record, StrayPaw",
+  title: "Partner NGOs on the record, StrayPaw",
   description: "StrayPaw's partner NGOs and record contributors, and their campaigns.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   Organisations on the record: every organisation is a field partner and
+   Partner NGOs on the record: every listed organisation is a field partner and
    has one quiet row: its mark, where it is, and a link to its profile.
    What each has done is told once, in the campaigns below, where the
    animals and the work sit against a drive and its dates.
@@ -34,7 +34,7 @@ export default async function OrgsPage() {
       <div className="pp">
         <DeskHeader
           kicker="The shared network"
-          title="Organisations on the record"
+          title="Partner NGOs on the record"
           lede="The field partners keeping the shared record. What each has done is in its campaigns below."
           figures={[
             { label: rows.length === 1 ? "field partner" : "field partners", value: rows.length },
@@ -42,7 +42,7 @@ export default async function OrgsPage() {
           ]}
         />
 
-        <ol className="pp-dir" aria-label="Organisations">
+        <ol className="pp-dir" aria-label="Partner NGOs">
           {rows.map((o) => (
             <li key={o.id}>
               <Link href={`/org/${o.slug}`}>
