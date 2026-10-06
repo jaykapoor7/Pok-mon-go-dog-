@@ -63,7 +63,7 @@ export default async function ForNgosPage() {
             {story && (
               <div className="ngo-hero-desk">
                 <DeskMock city={story.hero.city} desk={story.desk} />
-                <p className="ngo-hero-cap">The Field Workspace, replaying {story.hero.city}’s recent record. <Link href="/partner">Open it <ArrowUpRight size={13} /></Link></p>
+                <p className="ngo-hero-cap">The Field Workspace, shown with a published {story.hero.city} record sample. <Link href="/partner">Open it <ArrowUpRight size={13} /></Link></p>
               </div>
             )}
           </div>
