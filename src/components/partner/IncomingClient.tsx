@@ -11,6 +11,7 @@ import {
   type Incoming,
 } from "@/lib/campaigns";
 import { timeAgo } from "@/lib/utils";
+import { HairlineFigure } from "@/components/hairline/HairlineFigure";
 
 /* ════════════════════════════════════════════════════════════════════
    Incoming.
@@ -195,7 +196,7 @@ export function IncomingClient() {
         </div>
       ) : rows.length === 0 ? (
         <div className="spa-empty">
-          <Inbox size={40} strokeWidth={1.25} />
+          <HairlineFigure kind="empty" className="spa-empty-figure" label="An open, empty case drawer: no reports are waiting to be filed." />
           <h2>No reports waiting to be filed</h2>
           <p>
             {source === "ours"

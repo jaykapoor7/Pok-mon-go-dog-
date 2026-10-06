@@ -18,6 +18,7 @@
 .ops-setup h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
 .ops-setup p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--sp-body); }
 .ops-setup-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.ops-setup-figure { width: min(100%, 184px); flex: 0 0 184px; margin: calc(-1 * var(--sp-4)) 0; }
 
 /* ── The desk ── */
 .ops-board-bar { display: flex; align-items: center; gap: var(--sp-3); padding: 11px var(--sp-5); border-bottom: 1px solid var(--sp-night-line); }
@@ -100,4 +101,5 @@
   .ops-decide { grid-template-columns: auto minmax(0, 1fr); }
   .ops-decide .dk-btn { grid-column: 1 / -1; justify-self: start; }
   .ops-setup { padding: var(--sp-4); }
+  .ops-setup-figure { width: 136px; flex-basis: 136px; margin: 0 0 0 auto; }
 }

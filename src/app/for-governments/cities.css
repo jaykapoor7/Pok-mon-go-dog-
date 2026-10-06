@@ -84,3 +84,11 @@
 .gv-figs.is-compact div { padding: var(--sp-3) var(--sp-3) var(--sp-3) 0; }
 .gv-figs.is-compact div:nth-child(even) { padding-left: var(--sp-3); }
 .gv-figs.is-compact dd { font-size: clamp(24px, 2.4vw, 32px); }
+.gv-answers-head { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 176px; column-gap: var(--sp-6); align-items: center; }
+.gv-answers-head > div { min-width: 0; }
+.gv-answers-head .gv-figs { grid-column: 1 / -1; width: 100%; }
+.gv-answers-figure { width: 176px; justify-self: end; }
+@media (max-width: 640px) {
+  .gv-answers-head { grid-template-columns: minmax(0, 1fr) 112px; column-gap: var(--sp-3); }
+  .gv-answers-figure { width: 112px; }
+}

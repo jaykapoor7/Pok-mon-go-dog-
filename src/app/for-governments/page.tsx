@@ -11,6 +11,7 @@ import "@/components/site/site.css";
 import "@/components/company/company.css";
 import "./cities.css";
 import { PlaceGround } from "@/components/system/PlaceGround";
+import { HairlineFigure } from "@/components/hairline/HairlineFigure";
 
 export const revalidate = 300;
 export const metadata = {
@@ -140,9 +141,16 @@ export default async function ForGovernmentsPage() {
 
         <section className="co-sec" aria-labelledby="gv-q">
           <div className="co-sec-in">
-            <header className="co-sec-head">
-              <h2 id="gv-q">What the record <em>answers.</em></h2>
-              <p>{city ? `Sterilisation and vaccination are for ${city.city}; area facts and programmes across the public register.` : "Across the public register."} Each answer is on a page anyone can open.</p>
+            <header className="co-sec-head gv-answers-head">
+              <div>
+                <h2 id="gv-q">What the record <em>answers.</em></h2>
+                <p>{city ? `Sterilisation and vaccination are for ${city.city}; area facts and programmes across the public register.` : "Across the public register."} Each answer is on a page anyone can open.</p>
+              </div>
+              <HairlineFigure
+                kind="coverage"
+                className="gv-answers-figure"
+                label="A compact terrain of recorded places, illustrating city-level coverage."
+              />
               <dl className="gv-figs is-compact">
                 <div><dt>Sterilisations (ABC)</dt><dd>{fmt(abc)}</dd></div>
                 <div><dt>Rabies vaccinations (ARV)</dt><dd>{fmt(arv)}</dd></div>

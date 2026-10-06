@@ -1,0 +1,40 @@
+.figure {
+  --hairline-plate: #f3ede4;
+  --hairline-hi: #0b1e3d;
+  --hairline-edge: #63718a;
+  --hairline-mid: #a9b3c1;
+  --hairline-lo: #d9d3ca;
+  --hairline-stroke: 1;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  contain: layout paint;
+}
+
+.figure > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.handoff {
+  --hairline-hi: #2457ce;
+  --hairline-edge: #64779e;
+  --hairline-mid: #a7b4cf;
+  --hairline-lo: #d9dfeb;
+}
+
+.coverage {
+  --hairline-hi: #0b1e3d;
+  --hairline-edge: #2457ce;
+  --hairline-mid: #9baccb;
+  --hairline-lo: #d9dfe9;
+}
+
+.empty {
+  --hairline-hi: #0b1e3d;
+  --hairline-edge: #63718a;
+  --hairline-mid: #b4aea3;
+  --hairline-lo: #e4ddd4;
+}

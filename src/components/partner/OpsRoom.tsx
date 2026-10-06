@@ -35,6 +35,7 @@ import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { DeskHeader } from "@/components/app/DeskHeader";
+import { HairlineFigure } from "@/components/hairline/HairlineFigure";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
 import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
@@ -199,6 +200,11 @@ export function OpsRoom() {
               </>
             )}
           </div>
+          <HairlineFigure
+            kind="handoff"
+            className="ops-setup-figure"
+            label="A case moving through four stages of a field-work hand-off."
+          />
         </section>
       )}
 

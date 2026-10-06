@@ -6,6 +6,7 @@ import { Loader2, Stethoscope } from "lucide-react";
 import { getPartnerCases } from "@/lib/cases";
 import { speciesLabel, type Case } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
+import { HairlineFigure } from "@/components/hairline/HairlineFigure";
 
 /* Medical work, scoped to the organisation you belong to.
 
@@ -46,7 +47,7 @@ export function MedicalCases() {
   if (medical.length === 0) {
     return (
       <div className="spa-empty">
-        <Stethoscope size={40} strokeWidth={1.25} />
+        <HairlineFigure kind="empty" className="spa-empty-figure" label="An empty care drawer, ready for the first treatment record." />
         <h2>No medical work recorded yet</h2>
         <p>
           Treatment, vaccination and sterilisation your organisation records

@@ -837,6 +837,7 @@ html .spa.spa .spa-main:not(.flush) {
 html .spa.spa .spa-main:not(.flush)::before { display: none; }
 html .spa.spa .spa-panel,
 html .spa.spa .card { border-radius: 0; box-shadow: none; }
+.spa-empty-figure { width: min(100%, 180px); margin: 0 auto 4px; }
 
 /* Shared page headers establish orientation before any data enters. */
 .cpage-head {
