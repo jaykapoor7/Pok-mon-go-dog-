@@ -129,6 +129,7 @@ html .spa.spa.spa-desk .spa-back button:active { transform: var(--ctl-press); }
   border-radius: var(--sp-radius-lg); background: var(--sp-night); color: var(--sp-night-text);
   box-shadow: 0 22px 56px rgba(7, 20, 43, 0.16);
 }
+.dh:focus-within { overflow: visible; }
 .dh-ground { opacity: 0.85; }
 .dh::before {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -386,6 +387,8 @@ html .spa.spa.spa-desk :is(.spa-top-right, .pm-row) .lang-note { padding: 8px 10
   html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out a.pp-signin:hover { background: #a6c6ff; color: var(--sp-night); }
   html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out a.pp-code { display: inline-flex; background: rgba(143, 183, 255, 0.14); color: var(--sp-sky); }
   html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out a.pp-code:hover { background: rgba(143, 183, 255, 0.22); color: var(--sp-sky); }
+  html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out .auth-entry-trigger { background: var(--sp-sky); color: var(--sp-night); }
+  html .spa.spa.spa-desk .spa-top-account .spa-profile-links.out .auth-entry-trigger:hover { background: #a6c6ff; color: var(--sp-night); }
   html .spa.spa.spa-desk .spa-top { flex-wrap: nowrap; }
   html .spa.spa.spa-desk .spa-top .spa-search { flex: 1 1 0; min-width: 0; max-width: none; }
   html .spa.spa.spa-desk .spa-top .spa-search input { width: 100%; min-width: 0; text-overflow: ellipsis; }
