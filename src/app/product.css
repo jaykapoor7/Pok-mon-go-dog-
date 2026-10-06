@@ -783,6 +783,11 @@ html .spa.spa .csect-head h2 {
   html .spa.spa .spa-top-account .spa-profile-links.out a.pp-code {
     background: var(--ctl-tint); color: #1f4bb8;
   }
+  html .spa.spa .spa-top-account .spa-profile-links.out .auth-entry-trigger {
+    display: inline-flex; align-items: center; justify-content: center; min-height: var(--ctl-h);
+    padding: var(--ctl-pad-sm); border-radius: var(--ctl-r); background: var(--sp-ink); color: var(--sp-bone);
+  }
+  html .spa.spa .spa-top-account .spa-profile-links.out .auth-entry-options { top: calc(100% + 8px); right: 0; bottom: auto; left: auto; }
   /* The signed-in panel would bring an avatar and two links into a bar
      that has no room for them; the bottom nav covers those screens. */
   html .spa.spa .spa-top-account .spa-profile-who,
