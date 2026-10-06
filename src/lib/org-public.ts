@@ -27,6 +27,11 @@ export type PublicOrgMapCell = {
   records: number;
 };
 
+export type PublicOrgH3Cell = {
+  h3: string;
+  records: number;
+};
+
 export type PublicProgramme = {
   id: string;
   name: string;
@@ -146,6 +151,72 @@ export function getPublicOrgMapCells(ngoId: string): Promise<PublicOrgMapCell[]>
   return unstable_cache(
     () => readPublicOrgMapCells(ngoId),
     ["public-org-map-cells", ngoId],
+    { revalidate: 300 }
+  )();
+}
+
+
+async function readPublicOrgH3Cells(ngoId: string): Promise<PublicOrgH3Cell[]> {
+  const admin = getSupabaseAdmin();
+  if (!admin) return [];
+  const counts = new Map<string, number>();
+  const pageSize = 1000;
+  for (let from = 0; from < 20000; from += pageSize) {
+    const { data, error } = await admin
+      .from("dogs")
+      .select("h3_r8")
+      .eq("ngo_id", ngoId)
+      .eq("is_demo", false)
+      .not("h3_r8", "is", null)
+      .range(from, from + pageSize - 1);
+    if (error) return [];
+    for (const row of data ?? []) {
+      const h3 = String((row as any).h3_r8 ?? "").trim();
+      if (h3) counts.set(h3, (counts.get(h3) ?? 0) + 1);
+    }
+    if ((data ?? []).length < pageSize) break;
+  }
+  return [...counts.entries()]
+    .map(([h3, records]) => ({ h3, records }))
+    .sort((a, b) => b.records - a.records);
+}
+
+export function getPublicOrgH3Cells(ngoId: string): Promise<PublicOrgH3Cell[]> {
+  return unstable_cache(
+    () => readPublicOrgH3Cells(ngoId),
+    ["public-org-h3-cells", ngoId],
+    { revalidate: 300 }
+  )();
+}
+
+async function readPublicOrgMedianFirstActionDays(ngoId: string): Promise<number | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const values: number[] = [];
+  const pageSize = 1000;
+  for (let from = 0; from < 20000; from += pageSize) {
+    const { data, error } = await supa
+      .from("public_case_facts")
+      .select("first_action_days")
+      .eq("ngo_id", ngoId)
+      .gte("first_action_days", 0)
+      .range(from, from + pageSize - 1);
+    if (error) return null;
+    for (const row of data ?? []) {
+      const value = number((row as any).first_action_days);
+      if (value >= 0) values.push(value);
+    }
+    if ((data ?? []).length < pageSize) break;
+  }
+  if (!values.length) return null;
+  values.sort((a, b) => a - b);
+  return values[Math.floor(values.length / 2)] ?? null;
+}
+
+export function getPublicOrgMedianFirstActionDays(ngoId: string): Promise<number | null> {
+  return unstable_cache(
+    () => readPublicOrgMedianFirstActionDays(ngoId),
+    ["public-org-median-first-action-days", ngoId],
     { revalidate: 300 }
   )();
 }

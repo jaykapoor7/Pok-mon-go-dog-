@@ -25,22 +25,22 @@
   min-height: 100%;
   gap: var(--sp-3);
   overflow: hidden;
-  padding: clamp(var(--sp-4), 4.5vw, var(--sp-5));
-  border: 1px solid color-mix(in srgb, var(--sp-paper) 78%, transparent);
+  padding: clamp(var(--sp-4), 4vw, var(--sp-5));
+  border: 1px solid color-mix(in srgb, var(--sp-paper) 72%, transparent);
   border-radius: var(--sp-radius-lg);
   background:
     linear-gradient(
       145deg,
-      color-mix(in srgb, var(--sp-paper) 76%, transparent),
-      color-mix(in srgb, var(--sp-sky) 18%, transparent)
+      color-mix(in srgb, var(--sp-paper) 78%, transparent),
+      color-mix(in srgb, var(--sp-sky) 15%, transparent)
     ),
-    color-mix(in srgb, var(--sp-ground) 48%, transparent);
+    color-mix(in srgb, var(--sp-ground) 42%, transparent);
   box-shadow:
     0 24px 64px rgba(11, 30, 61, 0.17),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78),
-    inset 0 -1px 0 rgba(11, 30, 61, 0.06);
-  -webkit-backdrop-filter: blur(26px) saturate(145%);
-  backdrop-filter: blur(26px) saturate(145%);
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    inset 0 -1px 0 rgba(11, 30, 61, 0.05);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
   isolation: isolate;
 }
 
@@ -49,13 +49,12 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.28) 0%,
-      rgba(255, 255, 255, 0.08) 24%,
-      rgba(255, 255, 255, 0) 54%
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.07) 24%,
+    rgba(255, 255, 255, 0) 54%
+  );
   content: "";
   pointer-events: none;
 }
@@ -64,7 +63,7 @@
   position: absolute;
   inset: 1px;
   z-index: -1;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: calc(var(--sp-radius-lg) - 1px);
   content: "";
   pointer-events: none;
@@ -159,7 +158,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
   text-align: center;
 }
 
@@ -168,7 +167,6 @@
   justify-items: center;
   gap: var(--sp-1);
   min-width: 0;
-  padding-bottom: 0;
   text-align: center;
 }
 
@@ -177,22 +175,22 @@
   color: var(--sp-body);
   font-size: 12px;
   line-height: 1.4;
+  text-align: center;
 }
 
 .primaryNumber {
   display: block;
   color: var(--sp-ink);
   font-family: var(--font-sans), Arial, sans-serif;
-  font-size: clamp(44px, 11vw, 58px);
+  font-size: clamp(48px, 11vw, 64px);
   font-weight: 760;
   letter-spacing: -0.065em;
-  line-height: 0.84;
+  line-height: 0.86;
   font-variant-numeric: tabular-nums;
 }
 
 .primaryLabel {
   display: block;
-  margin-top: 0;
   color: var(--sp-deepsky);
   font-size: clamp(8.5px, 2.4vw, 10px);
   font-weight: 760;
@@ -203,7 +201,6 @@
 
 .caseLine {
   display: block;
-  margin-top: 0;
   color: var(--sp-muted);
   font-size: clamp(8.5px, 2.35vw, 10px);
   line-height: 1.18;
@@ -211,21 +208,17 @@
 
 .miniMap {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
-  padding: var(--sp-3) var(--sp-3) var(--sp-2);
-  border: 1px solid color-mix(in srgb, var(--sp-blue) 16%, transparent);
+  overflow: hidden;
+  padding: var(--sp-3);
+  border: 1px solid color-mix(in srgb, var(--sp-sky) 35%, transparent);
   border-radius: var(--sp-radius);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--sp-sky) 13%, transparent),
-      color-mix(in srgb, var(--sp-paper) 30%, transparent)
-    );
+  background: var(--sp-ink);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.52),
-    inset 0 -1px 0 rgba(11, 30, 61, 0.05);
+    inset 0 1px 0 color-mix(in srgb, var(--sp-sky) 18%, transparent),
+    0 12px 30px rgba(7, 22, 48, 0.15);
 }
 
 .miniMapHead {
@@ -234,7 +227,7 @@
   justify-content: space-between;
   gap: var(--sp-2);
   margin-bottom: var(--sp-2);
-  color: var(--sp-muted);
+  color: color-mix(in srgb, var(--sp-paper) 64%, transparent);
   font-size: 7px;
   font-weight: 760;
   letter-spacing: 0.075em;
@@ -245,7 +238,7 @@
 .miniMapHead span:last-child {
   max-width: 50%;
   overflow: hidden;
-  color: var(--sp-deepsky);
+  color: var(--sp-sky);
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -255,21 +248,57 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 150px;
-  max-height: none;
+  min-height: 230px;
 }
 
-.mapGuide {
-  stroke: color-mix(in srgb, var(--sp-ink) 14%, transparent);
-  stroke-width: 0.65;
-  stroke-dasharray: 2 3;
+.mapGraticule line {
+  stroke: color-mix(in srgb, var(--sp-sky) 14%, transparent);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 5;
 }
 
-.mapDot {
-  fill: var(--sp-blue);
-  fill-opacity: 0.82;
-  stroke: var(--sp-paper);
-  stroke-width: 0.75;
+.mapEdge {
+  fill: none;
+  stroke: color-mix(in srgb, var(--sp-sky) 38%, transparent);
+  stroke-width: 0.8;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.mapCell {
+  stroke: color-mix(in srgb, var(--sp-paper) 22%, transparent);
+  stroke-width: 0.55;
+  vector-effect: non-scaling-stroke;
+}
+
+.density1 { fill: color-mix(in srgb, var(--sp-sky) 18%, transparent); }
+.density2 { fill: color-mix(in srgb, var(--sp-sky) 32%, transparent); }
+.density3 { fill: color-mix(in srgb, var(--sp-sky) 48%, transparent); }
+.density4 { fill: color-mix(in srgb, var(--sp-sky) 68%, transparent); }
+.density5 { fill: color-mix(in srgb, var(--sp-sky) 90%, transparent); }
+
+.mapHotspot {
+  fill: none;
+  stroke: color-mix(in srgb, var(--sp-paper) 62%, transparent);
+  stroke-width: 0.9;
+  opacity: 0.72;
+  vector-effect: non-scaling-stroke;
+}
+
+.mapFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  color: color-mix(in srgb, var(--sp-paper) 52%, transparent);
+  font-size: 7.5px;
+  line-height: 1.15;
+}
+
+.mapFoot span:last-child {
+  color: color-mix(in srgb, var(--sp-sky) 76%, transparent);
+  white-space: nowrap;
 }
 
 .lower {
@@ -281,16 +310,17 @@
 
 .metrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   min-width: 0;
-  padding: 0 0 var(--sp-2);
+  padding-bottom: var(--sp-2);
   border-bottom: 1px solid var(--sp-rule);
 }
 
 .metric {
   min-width: 0;
-  padding: var(--sp-1) var(--sp-3) var(--sp-2);
+  padding: var(--sp-1) var(--sp-2) var(--sp-2);
   border-right: 1px solid var(--sp-rule);
+  text-align: center;
 }
 
 .metric:first-child {
@@ -305,9 +335,9 @@
 .metricValue {
   display: block;
   color: var(--sp-ink);
-  font-size: clamp(18px, 5.2vw, 23px);
+  font-size: clamp(16px, 4.8vw, 21px);
   font-weight: 700;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -316,8 +346,8 @@
   display: block;
   margin-top: var(--sp-1);
   color: var(--sp-muted);
-  font-size: clamp(8px, 2.25vw, 9.5px);
-  line-height: 1.12;
+  font-size: clamp(7.5px, 2vw, 9px);
+  line-height: 1.1;
   overflow-wrap: anywhere;
 }
 
@@ -326,7 +356,6 @@
   align-items: center;
   justify-content: space-between;
   min-height: var(--ctl-h, 44px);
-  margin-top: 0;
   padding: var(--ctl-pad-sm, 0 15px);
   border: 1px solid color-mix(in srgb, var(--sp-blue) 82%, transparent);
   border-radius: var(--ctl-r, 980px);
@@ -381,40 +410,32 @@
   }
 }
 
-/* The existing partner iframe is tall. Let the map absorb that room instead
-   of leaving an empty tail below the data. */
 @media (min-height: 520px) and (min-width: 361px) {
   .card {
-    gap: var(--sp-4);
-    padding: var(--sp-5);
+    gap: var(--sp-3);
+    padding: var(--sp-4);
   }
 
   .logo,
   .logoFallback {
-    width: 56px;
-    height: 56px;
+    width: 54px;
+    height: 54px;
   }
 
   .primary {
-    min-height: 0;
-    gap: var(--sp-2);
     padding-block: var(--sp-3);
   }
 
   .primaryNumber {
-    font-size: clamp(56px, 11vw, 66px);
+    font-size: clamp(58px, 11vw, 68px);
   }
 
   .miniMap {
-    padding: var(--sp-4);
+    padding: var(--sp-3);
   }
 
   .miniMapPlot {
-    min-height: 220px;
-  }
-
-  .metricValue {
-    font-size: clamp(20px, 5.2vw, 24px);
+    min-height: 250px;
   }
 }
 
@@ -422,7 +443,6 @@
   .card {
     gap: var(--sp-2);
     padding: var(--sp-3);
-    border-radius: var(--sp-radius-lg);
   }
 
   .logo,
@@ -448,60 +468,60 @@
   }
 
   .primary {
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: var(--sp-2);
+    gap: var(--sp-1);
     padding-block: var(--sp-2);
   }
 
-  .primaryStat {
-    align-items: center;
-    gap: var(--sp-1);
-  }
-
   .primaryNumber {
-    font-size: 38px;
+    font-size: 40px;
   }
 
-  .primaryLabel {
-    margin-top: 0;
-    font-size: 7.8px;
-  }
-
+  .primaryLabel,
   .caseLine {
-    margin-top: 0;
     font-size: 7.8px;
+  }
+
+  .miniMap {
+    padding: var(--sp-2);
   }
 
   .miniMapHead {
-    margin-bottom: 3px;
+    margin-bottom: var(--sp-1);
     font-size: 6.2px;
   }
 
-  .miniMapHead span:first-child {
-    display: none;
-  }
-
-  .miniMapHead span:last-child {
-    max-width: 100%;
-    margin-left: auto;
-  }
-
   .miniMapPlot {
-    min-height: 132px;
-    max-height: none;
+    min-height: 170px;
+  }
+
+  .mapFoot {
+    font-size: 6.5px;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-bottom: var(--sp-1);
   }
 
   .metric {
-    padding: var(--sp-1) 6px var(--sp-1);
+    padding: var(--sp-1) var(--sp-2);
+    border-bottom: 1px solid var(--sp-rule);
+  }
+
+  .metric:nth-child(2) {
+    border-right: 0;
+  }
+
+  .metric:nth-last-child(-n + 2) {
+    border-bottom: 0;
   }
 
   .metricValue {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .metricLabel {
-    margin-top: 3px;
-    font-size: 7.7px;
+    font-size: 7.5px;
   }
 
   .cta {
@@ -515,10 +535,10 @@
   }
 }
 
-@media (max-height: 330px) {
+@media (max-height: 430px) {
   .card {
     gap: 7px;
-    padding: 12px 14px;
+    padding: 11px 13px;
   }
 
   .logo,
@@ -528,20 +548,28 @@
   }
 
   .primary {
-    padding-block: 7px;
+    gap: 5px;
+    padding-block: 6px;
   }
 
   .primaryNumber {
     font-size: 36px;
   }
 
+  .miniMap {
+    padding: 7px;
+  }
+
   .miniMapPlot {
-    min-height: 92px;
-    max-height: none;
+    min-height: 118px;
+  }
+
+  .mapFoot {
+    margin-top: 4px;
   }
 
   .metricValue {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .cta {
