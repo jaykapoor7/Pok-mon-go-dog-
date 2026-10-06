@@ -7,7 +7,8 @@ import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { ROLE_META, readStoredRole } from "@/lib/roles";
-import { ArrowUpRight, KeyRound, Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
+import { AuthEntryMenu } from "@/components/auth/AuthEntryMenu";
 import "./header.css";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -88,10 +89,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
 
         <div className="sp-header-actions">
           <LanguageSwitcher />
-          {/* Someone arriving from an invitation looks for this first: quiet, but always in the bar. */}
-          <Link href="/join" className="sp-header-code" aria-label="I have a code" title="I have a code">
-            <KeyRound size={15} aria-hidden /><span>I have a code</span>
-          </Link>
+          <AuthEntryMenu className="sp-header-entry" />
           <Link href={appHref} prefetch className="sp-header-cta">
             Open app <ArrowUpRight size={15} />
           </Link>
