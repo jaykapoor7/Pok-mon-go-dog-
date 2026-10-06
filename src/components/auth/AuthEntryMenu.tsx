@@ -33,7 +33,7 @@ export function AuthEntryMenu({ className = "", onNavigate }: { className?: stri
 
   return (
     <div className={`auth-entry ${className}`.trim()} ref={root}>
-      <button type="button" className="auth-entry-trigger" aria-expanded={open} aria-controls={`${id}-options`} onClick={() => setOpen((value) => !value)}>
+      <button type="button" className="auth-entry-trigger" aria-label="Sign in or use a code" aria-expanded={open} aria-controls={`${id}-options`} onClick={() => setOpen((value) => !value)}>
         <KeyRound size={14} aria-hidden /> <span>Sign in</span><ChevronDown size={14} aria-hidden />
       </button>
       {open && (
