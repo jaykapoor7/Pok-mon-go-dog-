@@ -1,8 +1,8 @@
 .embed {
   display: grid;
   width: 100%;
-  min-height: 0;
-  place-items: start stretch;
+  min-height: 100svh;
+  place-items: center stretch;
   overflow: hidden;
   background: transparent;
   color: #f8fbff;
@@ -313,6 +313,58 @@
   65%, 100% { box-shadow: 0 0 0 7px rgba(142,182,244,0); }
 }
 
+/* Pawsome's existing iframe is 600px tall. Use that room intentionally
+   rather than leaving a large trailing blank area below the compact card. */
+@media (min-height: 520px) and (min-width: 361px) {
+  .card {
+    gap: 14px;
+    padding: 21px;
+  }
+
+  .logo, .logoFallback {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+  }
+
+  .primary {
+    min-height: 190px;
+    gap: 11px;
+  }
+
+  .primaryStat {
+    padding: 16px;
+  }
+
+  .primaryNumber {
+    font-size: clamp(52px, 12vw, 62px);
+  }
+
+  .miniMap {
+    padding: 11px 11px 9px;
+  }
+
+  .miniMapPlot {
+    height: 126px;
+  }
+
+  .lower {
+    gap: 11px;
+  }
+
+  .metric {
+    padding: 13px 11px 12px;
+  }
+
+  .metricValue {
+    font-size: clamp(20px, 5.2vw, 24px);
+  }
+
+  .cta {
+    min-height: 42px;
+  }
+}
+
 @media (max-width: 360px) {
   .card {
     gap: 9px;
@@ -375,6 +427,11 @@
 }
 
 @media (max-height: 330px) {
+  .embed {
+    min-height: 0;
+    place-items: start stretch;
+  }
+
   .card { gap: 7px; padding: 12px 14px; }
   .logo, .logoFallback { width: 40px; height: 40px; border-radius: 10px; }
   .primaryStat { padding: 9px 10px; }
