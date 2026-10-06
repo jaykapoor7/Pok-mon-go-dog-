@@ -131,7 +131,7 @@ export function PhoneMenu({ open, onClose, nav, spaceLabel, isNgo, isActive }: {
 
         <section className="pm-group pm-account">
           <h3>You</h3>
-          <ProfilePanel onNavigate={onClose} />
+          <ProfilePanel onNavigate={onClose} variant="sheet" />
         </section>
 
         <div className="pm-row">
