@@ -33,8 +33,8 @@ type NavItem = { label: string; href: string; tKey?: NavKey };
 const LINKS: NavItem[] = [
   { label: "Explore", href: "/explore" },
   { label: "About", href: "/about", tKey: "about" },
-  { label: "Education", href: "/education" },
-  { label: "NGOs", href: "/for-ngos" },
+  { label: "Funders", href: "/for-funders" },
+  { label: "For NGOs", href: "/for-ngos" },
   { label: "Municipalities", href: "/for-governments" },
 ];
 
