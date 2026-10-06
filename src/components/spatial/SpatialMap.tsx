@@ -60,9 +60,9 @@ const MODES: ModeDef[] = [
   { id: "change", label: "Change", q: "Change visible in the loaded detailed field record" },
 ];
 type AnyMode = Mode | "change";
-/* Four modes answer most visits; the rest sit behind "More" so the bar
-   stays one short row. */
-const PRIMARY_MODES: AnyMode[] = ["animals", "cases", "coverage", "density"];
+/* The operational modes belong in reach, not only behind More. The remaining
+   analytical views stay available without competing with the everyday map. */
+const PRIMARY_MODES: AnyMode[] = ["animals", "cases", "abc", "arv", "coverage"];
 
 /* Cases mode asks one of the field map's working questions. */
 type CaseLens = "open" | "critical" | "followup" | "noaction" | "repeat" | "resolved";
@@ -203,8 +203,10 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const primaryModes = surface === "municipality"
-    ? (["coverage", "abc", "arv", "cases"] as AnyMode[])
-    : PRIMARY_MODES;
+    ? (["coverage", "abc", "arv", "cases", "animals"] as AnyMode[])
+    : scope === "org"
+      ? (["animals", "cases", "activity", "abc", "arv"] as AnyMode[])
+      : PRIMARY_MODES;
   /* The hex grid is an analysis overlay: on by default only where a mode is about cells. */
   const [grid, setGrid] = useState(params.get("grid") === "1");
   /* Nothing sits over the map until someone picks a place on it. */
@@ -647,11 +649,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     map.addLayer({ id: "next", type: "circle", source: "next", layout: { visibility: "none" }, paint: { "circle-radius": 11, "circle-color": pal.bg, "circle-stroke-color": pal.att[3], "circle-stroke-width": 2 } });
     map.addLayer({ id: "next-n", type: "symbol", source: "next", layout: { visibility: "none", "text-field": ["get", "n"], "text-font": ["Noto Sans Bold"], "text-size": 11, "text-allow-overlap": true }, paint: { "text-color": pal.ink } });
     map.addLayer({ id: "sel", type: "line", source: "sel", paint: { "line-color": pal.ink, "line-width": 2.2 } });
-    map.addLayer({ id: "cities", type: "circle", source: "cities", maxzoom: 7.5, paint: {
-      "circle-radius": ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 6, 48, 26] as ExpressionSpecification,
+    map.addLayer({ id: "cities", type: "circle", source: "cities", paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 6, 48, 26], 10, 8, 14, 5] as ExpressionSpecification,
       "circle-color": pal.seq[3], "circle-opacity": 0.9, "circle-stroke-color": pal.bg, "circle-stroke-width": 1.5,
     } });
-    map.addLayer({ id: "cities-l", type: "symbol", source: "cities", maxzoom: 7.5, layout: { "text-field": ["concat", ["get", "name"], "\n", ["to-string", ["get", "n"]]], "text-font": ["Noto Sans Regular"], "text-size": 11.5, "text-offset": [0, 2.1], "text-anchor": "top" }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.4 } });
+    map.addLayer({ id: "cities-l", type: "symbol", source: "cities", maxzoom: 10, layout: { "text-field": ["concat", ["get", "name"], "\n", ["to-string", ["get", "n"]]], "text-font": ["Noto Sans Regular"], "text-size": 11.5, "text-offset": [0, 2.1], "text-anchor": "top" }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.4 } });
 
     setLayersReady(true);
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
@@ -949,34 +951,6 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     if (sel.t === "empty") u.searchParams.set("cell", sel.key);
     window.history.replaceState(window.history.state, "", u.toString());
   }, [ds, sel, mode, month, mNow, lens]);
-
-  /* Zooming into a city from the India overview must load that city's
-     bounded cells and individual records *before* overview bubbles disappear.
-     `moveend` alone is too late on touch/pinch zooms: the bubbles have a
-     maxzoom of 7.5, while a final move event can arrive after that cutoff.
-     Start the handoff below the cutoff and listen to zoomend as well, so the
-     city always opens with its individual points already available. */
-  const overviewCityLoading = useRef(false);
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !ready || !layersReady || !indiaOverview || !cityPins.length) return;
-    const openCityAtZoom = () => {
-      if (overviewCityLoading.current || map.getZoom() < 6.8) return;
-      const center = map.getCenter();
-      const withinView = cityPins.filter((city) => map.getBounds().contains([city.lng, city.lat]));
-      if (!withinView.length) return;
-      const city = withinView.reduce((best, candidate) => {
-        const bestDistance = (best.lng - center.lng) ** 2 + (best.lat - center.lat) ** 2;
-        const candidateDistance = (candidate.lng - center.lng) ** 2 + (candidate.lat - center.lat) ** 2;
-        return candidateDistance < bestDistance ? candidate : best;
-      });
-      overviewCityLoading.current = true;
-      changeCity(city.city);
-    };
-    map.on("moveend", openCityAtZoom);
-    map.on("zoomend", openCityAtZoom);
-    return () => { map.off("moveend", openCityAtZoom); map.off("zoomend", openCityAtZoom); };
-  }, [ready, layersReady, indiaOverview, cityPins]);
 
   /* ââ clicks and hover ââââââââââââââââââââââââââââââââââââââââââââââ */
   useEffect(() => {
