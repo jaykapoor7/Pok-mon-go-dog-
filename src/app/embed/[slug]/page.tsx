@@ -62,9 +62,9 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgMapCell[]; place: str
   );
   if (!visible.length) return null;
 
-  const width = 360;
-  const height = 112;
-  const pad = 9;
+  const width = 420;
+  const height = 150;
+  const pad = 10;
   const midLat = (south + north) / 2;
   const lngScale = Math.cos((midLat * Math.PI) / 180);
   const xSpan = Math.max(0.0001, (east - west) * lngScale);
