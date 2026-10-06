@@ -193,6 +193,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
      silently replaces the place someone was reading. */
   const [mapZoom, setMapZoom] = useState(4);
   const [approachingCity, setApproachingCity] = useState<(typeof cityPins)[number] | null>(null);
+  /* On a phone the map remains the surface. The atlas starts as one compact
+     route into city data; the city search remains available for the full list. */
+  const [atlasOpen, setAtlasOpen] = useState(false);
 
   const [ground, setGround] = useState<"night" | "paper">("night");
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
