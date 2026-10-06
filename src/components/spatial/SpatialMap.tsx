@@ -1180,12 +1180,19 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} â {def.q}</h1>
 
       {scope === "public" && indiaOverview && cityPins.length > 0 && (
-        <section className={`sm-atlas ${mapZoom >= 7 ? "is-away" : ""}`} aria-label="India city registers">
+        <section className={`sm-atlas ${mapZoom >= 7 ? "is-away" : ""} ${atlasOpen ? "is-open" : ""}`} aria-label="India city registers">
           <header>
             <p>India atlas</p>
-            <h2>Every light is a city register.</h2>
+            <h2>{phone ? "City registers" : "Every light is a city register."}</h2>
             <span>Open a city to resolve its record into cells, cases and individual dogs.</span>
           </header>
+          {phone && (() => {
+            const lead = [...cityPins].sort((a, b) => b.animals - a.animals)[0];
+            return lead ? <button type="button" className="sm-atlas-mobile-summary" onClick={() => setAtlasOpen((open) => !open)} aria-expanded={atlasOpen}>
+              <span><b>{lead.city}</b><small>{lead.animals.toLocaleString("en-IN")} recorded animals</small></span>
+              <em>{atlasOpen ? "Close" : `Browse ${cityPins.length} cities`}</em>
+            </button> : null;
+          })()}
           <ol>
             {[...cityPins].sort((a, b) => b.animals - a.animals).slice(0, phone ? 3 : 6).map((city) => {
               const care = Number(city.sterilised ?? 0) + Number(city.vaccinated ?? 0);
