@@ -212,6 +212,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  /* Phone controls are intentionally one disclosed surface. The map keeps
+     its space until someone asks to change how it is read. */
+  const [phoneControlsOpen, setPhoneControlsOpen] = useState(false);
   const primaryModes = surface === "municipality"
     ? (["coverage", "abc", "arv", "cases", "animals"] as AnyMode[])
     : scope === "org"
@@ -1234,9 +1237,13 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
             options={availableCities.map((item) => ({ value: item.city, hint: item.state || undefined }))}
             value={params.get("city") ? (datasetCity ?? "") : ""} onChange={(v) => changeCity(v || (scope === "public" ? "__india" : availableCities[0].city))} />
         )}
+        {phone && <button type="button" className={`sm-mobile-controls-trigger ${phoneControlsOpen ? "is-open" : ""}`} aria-expanded={phoneControlsOpen} onClick={() => setPhoneControlsOpen((open) => !open)}>
+          <span>Map view</span><b>{def.label}</b><ChevronDown size={16} aria-hidden />
+        </button>}
+        <div className={`sm-mobile-controls ${phoneControlsOpen ? "is-open" : ""}`}>
         <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.filter((x) => primaryModes.includes(x.id)).map((x) => (
-            <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>
+            <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); setPhoneControlsOpen(false); }}>
               {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases Â· ${lensDef.label}` : x.label}
             </button>
           ))}
@@ -1247,7 +1254,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         {moreOpen && (
           <div className="sm-modes sm-modes-menu" role="group" aria-label="More map modes">
             {MODES.filter((x) => !primaryModes.includes(x.id)).map((x) => (
-              <button key={x.id} type="button" aria-pressed={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); }}>{x.label}</button>
+              <button key={x.id} type="button" aria-pressed={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); setPhoneControlsOpen(false); }}>{x.label}</button>
             ))}
           </div>
         )}
@@ -1259,14 +1266,21 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
             <div>{legend}<p className="sm-note">{unfiltered ? "Current cell totals use the full register. Individual dots remain bounded detail for performance." : "Filtered and historical views use bounded detailed records and never replace the current citywide totals."} Recorded animals and work, not a population estimate.</p></div>
           </details>
         </div>
+        {phone && <div className="sm-mobile-actions" aria-label="Map tools">
+          <button type="button" onClick={() => { setFilterOpen((v) => !v); }} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""}><SlidersHorizontal size={16} />Filters{nFilters ? <b>{nFilters}</b> : null}</button>
+          <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""}><Hexagon size={16} />Grid</button>
+          <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))}><Layers size={16} />{ground === "night" ? "Day" : "Night"}</button>
+          <button type="button" onClick={locate}><Crosshair size={16} />Locate</button>
+        </div>}
+        </div>
       </div>
 
-      <div className="sm-tools">
+      {!phone && <div className="sm-tools">
         <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label={nFilters ? `Filters, ${nFilters} on` : "Filters"}><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
         <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 kmÂ²" title="Analysis grid"><Hexagon size={16} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the paper ground, for daylight" : "Switch to the night ground"}><Layers size={16} /></button>
         <button type="button" onClick={locate} aria-label="Go to where I am"><Crosshair size={16} /></button>
-      </div>
+      </div>}
 
       {filterOpen && (
         <div className="sm-filter" role="dialog" aria-label="Filters">
