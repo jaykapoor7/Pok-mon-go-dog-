@@ -1,13 +1,8 @@
-:global(html),
-:global(body) {
-  background: transparent !important;
-}
-
 .embed {
   display: grid;
   width: 100%;
-  height: auto;
-  min-height: 0;
+  height: 100svh;
+  min-height: 100svh;
   place-items: stretch;
   overflow: hidden;
   background: transparent;
@@ -24,10 +19,10 @@
 .card {
   position: relative;
   display: grid;
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   width: 100%;
-  height: auto;
-  min-height: 0;
+  height: 100%;
+  min-height: 100%;
   gap: var(--sp-3);
   overflow: hidden;
   padding: clamp(var(--sp-4), 4.5vw, var(--sp-5));
@@ -152,7 +147,7 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
   padding: var(--sp-3) 0;
   border-top: 1px solid var(--sp-rule);
   border-bottom: 1px solid var(--sp-rule);
@@ -215,23 +210,22 @@
 }
 
 .miniMap {
-  display: flex;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
-  flex-direction: column;
-  justify-content: stretch;
   padding: var(--sp-3) var(--sp-3) var(--sp-2);
-  border: 1px solid color-mix(in srgb, var(--sp-blue) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sp-blue) 16%, transparent);
   border-radius: var(--sp-radius);
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--sp-sky) 10%, transparent),
-      color-mix(in srgb, var(--sp-paper) 26%, transparent)
+      color-mix(in srgb, var(--sp-sky) 13%, transparent),
+      color-mix(in srgb, var(--sp-paper) 30%, transparent)
     );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.46),
-    inset 0 -1px 0 rgba(11, 30, 61, 0.045);
+    inset 0 1px 0 rgba(255, 255, 255, 0.52),
+    inset 0 -1px 0 rgba(11, 30, 61, 0.05);
 }
 
 .miniMapHead {
@@ -260,9 +254,8 @@
 .miniMapPlot {
   display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: 14 / 5;
-  min-height: 0;
+  height: 100%;
+  min-height: 150px;
   max-height: none;
 }
 
@@ -404,8 +397,8 @@
 
   .primary {
     min-height: 0;
-    gap: var(--sp-3);
-    padding-block: var(--sp-4);
+    gap: var(--sp-2);
+    padding-block: var(--sp-3);
   }
 
   .primaryNumber {
@@ -417,7 +410,7 @@
   }
 
   .miniMapPlot {
-    aspect-ratio: 14 / 5;
+    min-height: 220px;
   }
 
   .metricValue {
@@ -494,8 +487,7 @@
   }
 
   .miniMapPlot {
-    aspect-ratio: 14 / 5;
-    min-height: 0;
+    min-height: 132px;
     max-height: none;
   }
 
@@ -544,8 +536,7 @@
   }
 
   .miniMapPlot {
-    aspect-ratio: 14 / 5;
-    min-height: 0;
+    min-height: 92px;
     max-height: none;
   }
 
