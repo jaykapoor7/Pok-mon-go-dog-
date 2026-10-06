@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
-import { ChevronDown, Crosshair, Hexagon, Layers, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Crosshair, Hexagon, Layers, SlidersHorizontal, X } from "lucide-react";
 import { NIGHT, PAPER, groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
   animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf, caseStateOn, resolvedOn, resolutionUndated,
@@ -186,6 +186,13 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         : [];
     });
   }, [availableCities, ds]);
+
+  /* A national map is not a shrunken city map. At India scale it is a
+     directory of real city registers; at street scale it is individual
+     animals. Keep that handoff explicit, so zooming into another city never
+     silently replaces the place someone was reading. */
+  const [mapZoom, setMapZoom] = useState(4);
+  const [approachingCity, setApproachingCity] = useState<(typeof cityPins)[number] | null>(null);
 
   const [ground, setGround] = useState<"night" | "paper">("night");
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
@@ -658,6 +665,31 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     setLayersReady(true);
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
   }, [ready, ds, pal, cityPins]);
+
+  /* Zoom has meaning here: India → a city register → H3 cells → individual
+     records. A nearby-city prompt makes the next step discoverable without
+     treating an incidental pan as consent to change the selected city. */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const readScale = () => {
+      const z = map.getZoom();
+      setMapZoom(z);
+      if (!indiaOverview || z < 7 || !cityPins.length) { setApproachingCity(null); return; }
+      const at = map.getCenter();
+      const nearest = cityPins.reduce((best, city) => {
+        const distance = (city.lng - at.lng) ** 2 + (city.lat - at.lat) ** 2;
+        const bestDistance = (best.lng - at.lng) ** 2 + (best.lat - at.lat) ** 2;
+        return distance < bestDistance ? city : best;
+      }, cityPins[0]);
+      const reach = Math.min(2.5, 200 / (2 ** z));
+      setApproachingCity((nearest.lng - at.lng) ** 2 + (nearest.lat - at.lat) ** 2 <= reach ** 2 ? nearest : null);
+    };
+    readScale();
+    map.on("moveend", readScale);
+    map.on("zoomend", readScale);
+    return () => { map.off("moveend", readScale); map.off("zoomend", readScale); };
+  }, [ready, indiaOverview, cityPins]);
 
   /* ââ how the points are drawn in each mode âââââââââââââââââââââââââ */
   const pointStyle = useCallback(() => {
@@ -1146,6 +1178,45 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       <div className="sm-canvas" ref={el} />
       {mapError && ds && <LiveMapFallback ds={ds} stats={stats} paint={cellPaint} animals={animalPts} cases={casePts} mode={mode} pal={pal} />}
       <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} â {def.q}</h1>
+
+      {scope === "public" && indiaOverview && cityPins.length > 0 && (
+        <section className={`sm-atlas ${mapZoom >= 7 ? "is-away" : ""}`} aria-label="India city registers">
+          <header>
+            <p>India atlas</p>
+            <h2>Every light is a city register.</h2>
+            <span>Open a city to resolve its record into cells, cases and individual dogs.</span>
+          </header>
+          <ol>
+            {[...cityPins].sort((a, b) => b.animals - a.animals).slice(0, phone ? 3 : 6).map((city) => {
+              const care = Number(city.sterilised ?? 0) + Number(city.vaccinated ?? 0);
+              return <li key={city.city}>
+                <button type="button" onClick={() => changeCity(city.city)} aria-label={`Open ${city.city}, ${city.animals.toLocaleString("en-IN")} recorded animals`}>
+                  <span className="sm-atlas-dot" aria-hidden />
+                  <b>{city.city}</b>
+                  <small>{city.state ?? "Mapped city"}</small>
+                  <strong>{city.animals.toLocaleString("en-IN")}</strong>
+                  <em>{city.open_cases ? `${city.open_cases.toLocaleString("en-IN")} open` : care ? `${care.toLocaleString("en-IN")} care records` : `${city.cells.toLocaleString("en-IN")} cells`}</em>
+                </button>
+              </li>;
+            })}
+          </ol>
+        </section>
+      )}
+
+      {scope === "public" && indiaOverview && approachingCity && (
+        <aside className="sm-city-entry" aria-live="polite">
+          <span>{approachingCity.state ?? "City register"}</span>
+          <b>{approachingCity.city}</b>
+          <p>{approachingCity.animals.toLocaleString("en-IN")} recorded animals · {approachingCity.cells.toLocaleString("en-IN")} mapped cells</p>
+          <button type="button" onClick={() => changeCity(approachingCity.city)}>Open city data <ArrowUpRight size={14} /></button>
+        </aside>
+      )}
+
+      <div className="sm-scale" aria-label="Map detail scale">
+        {[{ label: "India", at: 7 }, { label: "City", at: 11 }, { label: "Cells", at: 15 }, { label: "Dogs", at: Infinity }].map(({ label, at }, i) => (
+          <span key={label} className={mapZoom < at && (i === 0 || mapZoom >= [{ at: 0 }, { at: 7 }, { at: 11 }, { at: 15 }][i].at) ? "is-on" : ""}>{label}</span>
+        ))}
+      </div>
 
       <div className="sm-top">
         {availableCities.length > 1 && (
