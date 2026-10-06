@@ -16,9 +16,9 @@ export function HeroTally({ animals, cases, cities }: { animals: number; cases: 
   const c = useCount(cases, run, 1800);
   const k = useCount(cities, run, 1200);
   return (
-    <dl className="ld-hero-tally" aria-label={`${fmt(animals)} animals tracked, ${fmt(cases)} cases, ${cities} cities`}>
-      <div><dt>Animals tracked</dt><dd style={{ minWidth: `${fmt(animals).length * 0.6}em` }}>{fmt(a)}</dd></div>
-      <div><dt>Cases</dt><dd style={{ minWidth: `${fmt(cases).length * 0.6}em` }}>{fmt(c)}</dd></div>
+    <dl className="ld-hero-tally" aria-label={`${fmt(animals)} animal records, ${fmt(cases)} case records, ${cities} cities`}>
+      <div><dt>Animal records</dt><dd style={{ minWidth: `${fmt(animals).length * 0.6}em` }}>{fmt(a)}</dd></div>
+      <div><dt>Case records</dt><dd style={{ minWidth: `${fmt(cases).length * 0.6}em` }}>{fmt(c)}</dd></div>
       <div><dt>Cities</dt><dd style={{ minWidth: `${fmt(cities).length * 0.6}em` }}>{fmt(k)}</dd></div>
     </dl>
   );
