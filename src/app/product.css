@@ -1523,6 +1523,67 @@ html .spa.spa .spa-top-right .spa-exit:hover { opacity:1; }
   body:has(.spa) .snotice { left: auto; right: var(--sp-4); }
 }
 
+/* The phone bar keeps its five thumb-reachable slots. Key role workflows
+   that do not fit there are deliberately surfaced above the page instead of
+   being buried in More. This stays a narrow scroller so long labels never
+   squeeze or reflow the working surface. */
+.spa-mobile-shortcuts { display: none; }
+@media (max-width:900px) {
+  html .spa.spa .spa-mobile-shortcuts {
+    display: grid;
+    gap: 7px;
+    max-width: 1240px;
+    margin: 0 auto 18px;
+    min-width: 0;
+  }
+  html .spa.spa .spa-mobile-shortcuts-label {
+    color: var(--sp-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  html .spa.spa .spa-mobile-shortcuts > div {
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    overflow-x: auto;
+    padding: 1px 1px 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  html .spa.spa .spa-mobile-shortcuts > div::-webkit-scrollbar { display: none; }
+  html .spa.spa .spa-mobile-shortcuts a {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 0 13px;
+    border: 1px solid var(--sp-line);
+    border-radius: var(--ctl-r-row);
+    background: var(--sp-paper);
+    color: var(--sp-ink);
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 1px 0 rgba(11, 30, 61, .03);
+    transition: background var(--sp-fast) var(--sp-ease-io), border-color var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io);
+  }
+  html .spa.spa .spa-mobile-shortcuts a svg { color: var(--sp-blue); }
+  html .spa.spa .spa-mobile-shortcuts a[aria-current="page"] { border-color: var(--sp-blue); background: var(--ctl-tint); color: var(--sp-blue); }
+  html .spa.spa .spa-mobile-shortcuts a.is-action { border-color: var(--sp-flame); background: var(--sp-flame); color: var(--sp-ink); box-shadow: 0 5px 14px rgba(240, 91, 64, .2); }
+  html .spa.spa .spa-mobile-shortcuts a.is-action svg { color: currentColor; }
+  @media (hover:hover) and (pointer:fine) { html .spa.spa .spa-mobile-shortcuts a:hover { border-color: var(--sp-blue); background: var(--ctl-tint); color: var(--sp-blue); } html .spa.spa .spa-mobile-shortcuts a.is-action:hover { border-color: #e2492e; background: #e2492e; color: var(--sp-ink); } }
+  html .spa.spa .spa-mobile-shortcuts a:active { transform: var(--ctl-press); }
+}
+@media (prefers-reduced-motion:reduce) {
+  html .spa.spa .spa-mobile-shortcuts a { transition: none; }
+  html .spa.spa .spa-mobile-shortcuts a:active { transform: none; }
+}
+
 /* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    THE NGO FIELD MAP (/partner/map)
 
