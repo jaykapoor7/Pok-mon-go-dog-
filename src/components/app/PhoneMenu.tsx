@@ -58,10 +58,15 @@ export function PhoneMenu({ open, onClose, nav, spaceLabel, isNgo, isActive }: {
 }) {
   const pathname = usePathname();
   const sheet = useRef<HTMLDivElement>(null);
+  const previousPathname = useRef(pathname);
   const here = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   /* A route change is the answer to the menu; close it. */
-  useEffect(() => { if (open) onClose(); }, [pathname, open, onClose]);
+  useEffect(() => {
+    const didNavigate = previousPathname.current !== pathname;
+    previousPathname.current = pathname;
+    if (didNavigate && open) onClose();
+  }, [pathname, open, onClose]);
 
   useEffect(() => {
     if (!open) return;
