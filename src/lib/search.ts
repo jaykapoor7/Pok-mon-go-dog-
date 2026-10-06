@@ -14,7 +14,7 @@ const PAGES: { label: string; detail: string; href: string; terms: string }[] = 
   { label: "Map", detail: "Find recorded animals, clusters and places", href: "/map", terms: "map animals sightings places clusters gaps" },
   { label: "Report an animal", detail: "Add an animal or new sighting", href: "/report", terms: "report add sighting new animal" },
   { label: "Animal stories", detail: "Rescue, care, follow-up and outcomes in one timeline", href: "/stories", terms: "stories rescue care treatment follow up outcomes completed active cases" },
-  { label: "Partner NGO directory", detail: "Animal-welfare organisations", href: "/orgs", terms: "orgs ngos directory organisations partners",
+  { label: "Partner NGO directory", detail: "Animal-welfare organisations", href: "/orgs", terms: "orgs ngos directory organisations partners" },
   { label: "Saved animals", detail: "Animals you follow", href: "/following", terms: "following saved bookmarks animals" },
 ];
 
