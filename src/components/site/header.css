@@ -108,6 +108,7 @@ html .sp-header .sp-menu-btn {
 @media (max-width: 900px) and (pointer: coarse) {
   html .sp-header .sp-header-cta { height: var(--ctl-h); }
   html .sp-header .sp-header-entry .auth-entry-trigger { width: var(--ctl-h); height: var(--ctl-h); }
+  html .sp-header .sp-menu-btn { width: var(--ctl-h); height: var(--ctl-h); }
 }
 @media (max-width: 349px) {
   html .sp-header .sp-wordmark span { display: none; }
