@@ -1,8 +1,13 @@
+:global(html),
+:global(body) {
+  background: transparent !important;
+}
+
 .embed {
   display: grid;
   width: 100%;
-  height: 100svh;
-  min-height: 100svh;
+  height: auto;
+  min-height: 0;
   place-items: stretch;
   overflow: hidden;
   background: transparent;
@@ -19,10 +24,10 @@
 .card {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
   width: 100%;
-  height: 100%;
-  min-height: 100%;
+  height: auto;
+  min-height: 0;
   gap: var(--sp-3);
   overflow: hidden;
   padding: clamp(var(--sp-4), 4.5vw, var(--sp-5));
@@ -31,9 +36,10 @@
   background:
     linear-gradient(
       145deg,
-      color-mix(in srgb, var(--sp-paper) 84%, transparent),
-      color-mix(in srgb, var(--sp-ground) 72%, transparent)
-    );
+      color-mix(in srgb, var(--sp-paper) 76%, transparent),
+      color-mix(in srgb, var(--sp-sky) 18%, transparent)
+    ),
+    color-mix(in srgb, var(--sp-ground) 48%, transparent);
   box-shadow:
     0 24px 64px rgba(11, 30, 61, 0.17),
     inset 0 1px 0 rgba(255, 255, 255, 0.78),
@@ -155,15 +161,20 @@
 .primaryStat {
   display: flex;
   min-width: 0;
-  align-items: end;
-  gap: var(--sp-3);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  text-align: center;
 }
 
 .primaryCopy {
   display: grid;
+  justify-items: center;
   gap: var(--sp-1);
   min-width: 0;
-  padding-bottom: var(--sp-1);
+  padding-bottom: 0;
+  text-align: center;
 }
 
 .countsUnavailable {
@@ -209,7 +220,18 @@
   min-height: 0;
   flex-direction: column;
   justify-content: stretch;
-  padding-top: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  border: 1px solid color-mix(in srgb, var(--sp-blue) 14%, transparent);
+  border-radius: var(--sp-radius);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--sp-sky) 10%, transparent),
+      color-mix(in srgb, var(--sp-paper) 26%, transparent)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    inset 0 -1px 0 rgba(11, 30, 61, 0.045);
 }
 
 .miniMapHead {
@@ -238,9 +260,10 @@
 .miniMapPlot {
   display: block;
   width: 100%;
-  height: 100%;
-  min-height: 148px;
-  max-height: 220px;
+  height: auto;
+  aspect-ratio: 14 / 5;
+  min-height: 0;
+  max-height: none;
 }
 
 .mapGuide {
@@ -386,12 +409,15 @@
   }
 
   .primaryNumber {
-    font-size: clamp(52px, 11vw, 62px);
+    font-size: clamp(56px, 11vw, 66px);
+  }
+
+  .miniMap {
+    padding: var(--sp-4);
   }
 
   .miniMapPlot {
-    min-height: 188px;
-    max-height: none;
+    aspect-ratio: 14 / 5;
   }
 
   .metricValue {
@@ -435,8 +461,8 @@
   }
 
   .primaryStat {
-    align-items: end;
-    gap: var(--sp-2);
+    align-items: center;
+    gap: var(--sp-1);
   }
 
   .primaryNumber {
@@ -468,8 +494,9 @@
   }
 
   .miniMapPlot {
-    min-height: 128px;
-    max-height: 150px;
+    aspect-ratio: 14 / 5;
+    min-height: 0;
+    max-height: none;
   }
 
   .metric {
@@ -517,8 +544,9 @@
   }
 
   .miniMapPlot {
-    min-height: 92px;
-    max-height: 110px;
+    aspect-ratio: 14 / 5;
+    min-height: 0;
+    max-height: none;
   }
 
   .metricValue {
