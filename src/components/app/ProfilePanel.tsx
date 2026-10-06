@@ -25,7 +25,14 @@ import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volu
    told nobody anything they could act on.
    ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
-export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
+export function ProfilePanel({
+  onNavigate,
+  variant = "default",
+}: {
+  onNavigate?: () => void;
+  /** The phone menu needs direct links, not a popover inside a scrolling sheet. */
+  variant?: "default" | "sheet";
+}) {
   const { user, isAuthed, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
@@ -123,6 +130,23 @@ export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
           >
             <LogOut size={13} /> Stop reporting for them
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === "sheet") {
+    return (
+      <div className="spa-profile">
+        <div className="spa-profile-links out spa-profile-sheet-entry">
+          <Link href="/access" onClick={onNavigate}>
+            <KeyRound size={16} aria-hidden />
+            <span><b>Sign up</b><small>Get a personal code by email</small></span>
+          </Link>
+          <Link href="/join" onClick={onNavigate}>
+            <KeyRound size={16} aria-hidden />
+            <span><b>I have a code</b><small>Enter the code you were given</small></span>
+          </Link>
         </div>
       </div>
     );
