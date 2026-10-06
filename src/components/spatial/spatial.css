@@ -125,6 +125,9 @@
 .sm-modes .sm-modes-more { display: inline-flex; align-items: center; gap: 4px; }
 .sm-modes .sm-modes-more[aria-expanded="true"] svg { transform: rotate(180deg); }
 .sm-modes-menu { position: relative; z-index: 6; max-width: 100%; box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2); }
+.sm-mobile-controls-trigger { display: none; }
+.sm-mobile-controls { display: contents; }
+.sm-mobile-actions { display: none; }
 .sm-q {
   max-width: 460px; padding: 12px 14px; background: var(--sm-panel); border: 1px solid var(--sm-line); border-radius: 12px;
   display: grid; gap: 8px;
@@ -351,8 +354,21 @@
   .sm .maplibregl-ctrl-bottom-right { right: 0; bottom: 118px; }
   .sm-top { top: 8px; left: 8px; right: 8px; width: auto; gap: 6px; }
   .sm-top .sys-ladder { max-width: calc(100vw - 72px); overflow: hidden; white-space: nowrap; }
+  /* The city picker stays present. Everything that changes the map is one
+     disclosed surface, so the data—not controls—owns the phone screen. */
+  .sm-mobile-controls-trigger {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; width: min(230px, calc(100vw - 68px)); min-height: 44px; padding: 0 12px;
+    border: 1px solid var(--sm-line); border-radius: 12px; background: var(--sm-panel); color: var(--sm-text); font: inherit; text-align: left; cursor: pointer;
+  }
+  .sm-mobile-controls-trigger span { color: var(--sm-faint); font-family: var(--font-mono), monospace; font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+  .sm-mobile-controls-trigger b { min-width: 0; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  .sm-mobile-controls-trigger svg { transition: transform var(--sp-fast) var(--sp-ease-io); }
+  .sm-mobile-controls-trigger.is-open svg { transform: rotate(180deg); }
+  .sm-mobile-controls:not(.is-open) { display: none; }
+  .sm-mobile-controls.is-open { display: grid; gap: 6px; width: min(360px, calc(100vw - 16px)); }
+  .sm-mobile-controls.is-open .sm-q { max-width: none; }
   /* A scrollable row hid the last map choices — especially More — outside
-     the phone viewport. Keep every operational lens visible and thumb-safe. */
+     the phone viewport. The disclosed grid keeps every operational lens reachable. */
   .sm-modes:not(.sm-modes-menu) {
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     width: calc(100vw - 16px); max-width: none; overflow: visible;
@@ -368,17 +384,20 @@
   .sm-modes-menu button { justify-content: center; }
   .sm-q { max-width: calc(100vw - 64px); padding: 8px 10px; gap: 6px; }
     .sm-notice { max-width: calc(100vw - 64px); padding: 8px 10px; font-size: 12px; }
-  .sm-tools { top: 8px; right: 8px; }
-  .sm-tools button { width: 44px; height: 44px; }
-  .sm-tools button:nth-child(n + 4) { display: none; }
+  .sm-mobile-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .sm-mobile-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 8px; border: 1px solid var(--sm-line); border-radius: 10px; background: var(--sm-panel); color: var(--sm-text); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+  .sm-mobile-actions button.is-on { background: var(--sm-chip-on); color: var(--sm-chip-on-text); }
+  .sm-mobile-actions button b { display: grid; place-items: center; min-width: 16px; height: 16px; border-radius: 999px; background: var(--sp-flame); color: var(--sp-night); font-size: 10px; }
   /* India scale is a small launch point on phones, never a second screen.
      The full city selector is already in the top bar; this only exposes the
      leading register and an optional short list. */
-  .sm-atlas { left: 8px; right: 8px; bottom: 12px; width: auto; max-height: none; padding: 9px 12px; }
+  .sm-atlas { left: 8px; right: auto; bottom: 12px; width: auto; max-width: calc(100% - 16px); max-height: none; padding: 0; border: 0; background: transparent; box-shadow: none; }
+  .sm-atlas.is-open { right: 8px; padding: 9px 12px; border: 1px solid var(--sm-line); background: var(--sm-panel); box-shadow: 0 16px 38px rgba(0, 0, 0, .16); }
   .sm-atlas h2 { font-size: 18px; }
-  .sm-atlas header { gap: 2px; padding-bottom: 5px; border-bottom: 0; }
+  .sm-atlas header { display: none; }
   .sm-atlas header > span { display: none; }
-  .sm-atlas .sm-atlas-mobile-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px; padding: 6px 0; border: 0; background: transparent; color: var(--sm-text); font: inherit; text-align: left; cursor: pointer; }
+  .sm-atlas .sm-atlas-mobile-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: min(234px, calc(100vw - 16px)); min-height: 48px; padding: 6px 12px; border: 1px solid var(--sm-line); border-radius: 12px; background: var(--sm-panel); color: var(--sm-text); font: inherit; text-align: left; cursor: pointer; }
+  .sm-atlas.is-open .sm-atlas-mobile-summary { width: 100%; padding-inline: 0; border: 0; border-radius: 0; background: transparent; }
   .sm-atlas-mobile-summary span { display: grid; min-width: 0; gap: 2px; }
   .sm-atlas-mobile-summary b { overflow: hidden; font-size: 13px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
   .sm-atlas-mobile-summary small { color: var(--sm-faint); font-size: 10.5px; }
