@@ -19,7 +19,13 @@ html .spa.spa.spa-desk {
   --bone: var(--sp-bone);
   background: var(--sp-bone);
   color: var(--sp-ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+html .spa.spa.spa-desk :is(button, input, select, textarea) { font-family: inherit; }
 html .spa.spa.spa-desk .spa-body { background: var(--sp-bone); }
 html .spa.spa.spa-desk .spa-main:not(.flush) {
   background: var(--sp-bone);
@@ -119,7 +125,11 @@ html .spa.spa.spa-desk .spa-back button:active { transform: var(--ctl-press); }
   html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a { color: var(--sp-night-dim); font-size: 12px; }
   html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a[aria-current="page"] { color: var(--sp-night-text); }
   html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a[aria-current="page"] svg { color: var(--sp-sky); }
-  html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a.spa-mobile-report { background: var(--sp-flame); color: var(--sp-night); }
+  html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a.spa-mobile-report {
+    background: var(--sp-flame); color: var(--sp-ink); border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(240, 91, 64, 0.28);
+  }
+  html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a.spa-mobile-report svg { color: currentColor; }
 }
 @media (max-width: 600px) { html .spa.spa.spa-desk .spa-brand-copy small { display: none; } }
 
