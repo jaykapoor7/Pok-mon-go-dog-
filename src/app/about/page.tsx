@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { getSupabase } from "@/lib/supabase";
+import { getRegisterTotals } from "@/lib/register/totals";
 import { PlaceGround } from "@/components/system/PlaceGround";
 import { ChatVsRecord, CoveredAndNot, ThreeSheetsOneId } from "@/components/company/Diagrams";
 import "@/components/site/site.css";
@@ -20,8 +21,8 @@ export const metadata = {
    how it is run: what it is, with the register's own figures; why a
    shared record matters; the rules the software holds to; where every
    record comes from and who owns it; the organisations on it; privacy;
-   who is behind it. /mission, /journey and /what-we-do send their
-   visitors here. Facts only: anything this page cannot state goes to
+   who is behind it. /mission and /what-we-do send their visitors here.
+   Facts only: anything this page cannot state goes to
    contact.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -46,11 +47,14 @@ async function getSources() {
     const g = by.get(r.source_type) ?? { kind: SOURCE_KIND[r.source_type] ?? r.source_type, sources: 0, records: 0, orgs: new Set<string>() };
     g.sources++; g.records += r.published_record_count ?? 0; g.orgs.add(r.organization_name); by.set(r.source_type, g);
   }
-  return [...by.values()].sort((a, b) => b.records - a.records).map((g) => ({ ...g, orgs: [...g.orgs] }));
+  return [...by.values()].sort((a, b) => b.records - a.records).map((g) => ({ ...g, orgs: [...g.orgs].sort((a, b) => a.localeCompare(b)) }));
 }
 
 export default async function AboutPage() {
-  const sources = await getSources().catch(() => []);
+  const [sources, totals] = await Promise.all([
+    getSources().catch(() => []),
+    getRegisterTotals().catch(() => null),
+  ]);
   const imported = sources.reduce((n, g) => n + g.records, 0);
 
   return (
@@ -109,12 +113,13 @@ export default async function AboutPage() {
               <h2 id="ab-from">Where the records <em>come from.</em></h2>
               <p>Live reports and imported history are labelled apart on every profile. Each organisation owns its records; imported sources keep their licence and credit.</p>
             </header>
+            {totals && <p className="src-total"><b>{fmt(totals.animals)} animal records on the register</b> across {totals.cities} cities. This is StrayPaw&apos;s public headline count; imported source records below describe provenance, not a second animal total.</p>}
             {imported > 0 && (
               <figure className="src-bar">
                 <div className="src-track" role="img" aria-label="Share of published imported records by kind of source">
                   {sources.filter((g) => g.records > 0).map((g, i) => <span key={g.kind} className={`is-${i % 5}`} style={{ flexGrow: g.records }} title={`${g.kind}: ${fmt(g.records)}`} />)}
                 </div>
-                <figcaption>{fmt(imported)} published records imported from {sources.length} kinds of source, alongside residents’ live reports and partner NGOs’ field records.</figcaption>
+                <figcaption>{fmt(imported)} published source records imported from {sources.length} kinds of source, alongside residents’ live reports and partner NGOs’ field records.</figcaption>
               </figure>
             )}
             <ol className="src-list">
@@ -123,7 +128,7 @@ export default async function AboutPage() {
               {sources.map((g, i) => (
                 <li key={g.kind}>
                   <i className={g.records > 0 ? `is-${sources.filter((x) => x.records > 0).indexOf(g) % 5}` : "is-none"} />
-                  <span><b>{g.kind}</b><small>{g.orgs.slice(0, 3).join(", ")}{g.orgs.length > 3 ? ` and ${g.orgs.length - 3} more` : ""}</small></span>
+                  <span><b>{g.kind}</b><small>{g.orgs.join(", ")}</small></span>
                   <em>{g.records > 0 ? fmt(g.records) : "—"}</em>
                 </li>
               ))}
