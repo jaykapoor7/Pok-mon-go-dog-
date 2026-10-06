@@ -144,10 +144,10 @@
 
 .primary {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(142px, 0.92fr);
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
-  gap: var(--sp-4);
-  padding: var(--sp-4) 0;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
   border-top: 1px solid var(--sp-rule);
   border-bottom: 1px solid var(--sp-rule);
 }
@@ -155,9 +155,15 @@
 .primaryStat {
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  justify-content: center;
-  padding-right: var(--sp-2);
+  align-items: end;
+  gap: var(--sp-3);
+}
+
+.primaryCopy {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+  padding-bottom: var(--sp-1);
 }
 
 .countsUnavailable {
@@ -171,7 +177,7 @@
   display: block;
   color: var(--sp-ink);
   font-family: var(--font-sans), Arial, sans-serif;
-  font-size: clamp(45px, 12vw, 60px);
+  font-size: clamp(44px, 11vw, 58px);
   font-weight: 760;
   letter-spacing: -0.065em;
   line-height: 0.84;
@@ -180,7 +186,7 @@
 
 .primaryLabel {
   display: block;
-  margin-top: 7px;
+  margin-top: 0;
   color: var(--sp-deepsky);
   font-size: clamp(8.5px, 2.4vw, 10px);
   font-weight: 760;
@@ -191,7 +197,7 @@
 
 .caseLine {
   display: block;
-  margin-top: 5px;
+  margin-top: 0;
   color: var(--sp-muted);
   font-size: clamp(8.5px, 2.35vw, 10px);
   line-height: 1.18;
@@ -202,16 +208,15 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  justify-content: space-between;
-  padding-left: var(--sp-4);
-  border-left: 1px solid var(--sp-rule);
+  justify-content: stretch;
+  padding-top: var(--sp-2);
 }
 
 .miniMapHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--sp-2);
   margin-bottom: var(--sp-2);
   color: var(--sp-muted);
   font-size: 7px;
@@ -222,7 +227,7 @@
 }
 
 .miniMapHead span:last-child {
-  max-width: 84px;
+  max-width: 50%;
   overflow: hidden;
   color: var(--sp-deepsky);
   text-align: right;
@@ -234,8 +239,8 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 82px;
-  max-height: 176px;
+  min-height: 148px;
+  max-height: 220px;
 }
 
 .mapGuide {
@@ -376,20 +381,16 @@
 
   .primary {
     min-height: 0;
-    gap: var(--sp-5);
-    padding-block: var(--sp-5);
+    gap: var(--sp-3);
+    padding-block: var(--sp-4);
   }
 
   .primaryNumber {
-    font-size: clamp(54px, 12vw, 64px);
-  }
-
-  .miniMap {
-    padding-left: var(--sp-5);
+    font-size: clamp(52px, 11vw, 62px);
   }
 
   .miniMapPlot {
-    min-height: 128px;
+    min-height: 188px;
     max-height: none;
   }
 
@@ -428,13 +429,14 @@
   }
 
   .primary {
-    grid-template-columns: minmax(0, 1fr) minmax(112px, 0.8fr);
+    grid-template-rows: auto minmax(0, 1fr);
     gap: var(--sp-2);
     padding-block: var(--sp-2);
   }
 
   .primaryStat {
-    padding-right: 0;
+    align-items: end;
+    gap: var(--sp-2);
   }
 
   .primaryNumber {
@@ -442,17 +444,13 @@
   }
 
   .primaryLabel {
-    margin-top: var(--sp-1);
+    margin-top: 0;
     font-size: 7.8px;
   }
 
   .caseLine {
-    margin-top: 3px;
+    margin-top: 0;
     font-size: 7.8px;
-  }
-
-  .miniMap {
-    padding-left: var(--sp-2);
   }
 
   .miniMapHead {
@@ -470,8 +468,8 @@
   }
 
   .miniMapPlot {
-    min-height: 62px;
-    max-height: 82px;
+    min-height: 128px;
+    max-height: 150px;
   }
 
   .metric {
@@ -519,8 +517,8 @@
   }
 
   .miniMapPlot {
-    min-height: 48px;
-    max-height: 58px;
+    min-height: 92px;
+    max-height: 110px;
   }
 
   .metricValue {
