@@ -39,8 +39,8 @@ export function WebsiteWidget({ org }: { org: NGO }) {
     "<iframe",
     '  src="' + embedUrl + '"',
     '  width="400"',
-    '  height="400"',
-    '  style="border:0;max-width:100%;"',
+    '  height="300"',
+    '  style="border:0;width:100%;max-width:400px;height:auto;aspect-ratio:4/3;border-radius:18px;overflow:hidden;"',
     '  loading="lazy"',
     '  title="' + title + '"',
     "></iframe>",
@@ -77,14 +77,14 @@ export function WebsiteWidget({ org }: { org: NGO }) {
       <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:items-start">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-bark-400">Your website widget</p>
-          <div className="max-w-[400px] overflow-hidden border border-black/[0.08] bg-white dark:border-white/10">
+          <div className="max-w-[400px] overflow-hidden rounded-[18px] bg-transparent">
             <iframe
               src={embedUrl}
               width="400"
-              height="400"
+              height="300"
               loading="lazy"
               title={title}
-              className="block h-auto w-full aspect-square border-0"
+              className="block h-auto w-full aspect-[4/3] border-0"
             />
           </div>
         </div>

@@ -119,10 +119,9 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
   ]);
   const location = [org.city, org.state].filter(Boolean).join(", ") || org.area;
   const mapPlace = org.city || org.area || "Mapped records";
-  const extraMetrics = impact ? [
+  const compactMetrics = impact ? [
     impact.sterilised > 0 && { value: impact.sterilised, label: "Sterilised" },
     impact.vaccinated > 0 && { value: impact.vaccinated, label: "Vaccinated" },
-    impact.caseRecords > 0 && { value: impact.caseRecords, label: "Case records" },
     impact.activeCases > 0 && { value: impact.activeCases, label: "Active cases" },
   ].filter(Boolean) as { value: number; label: string }[] : [];
   const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
@@ -146,16 +145,19 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
           <div className={styles.primaryStat}>
             {impact ? <>
               <strong className={styles.primaryNumber}>{formatter.format(impact.animalsRecorded)}</strong>
-              <span className={styles.primaryLabel}>Dog records</span>
+              <span className={styles.primaryLabel}>Dogs on record</span>
+              {impact.caseRecords > 0 && (
+                <span className={styles.caseLine}>{formatter.format(impact.caseRecords)} documented case records</span>
+              )}
             </> : <p className={styles.countsUnavailable}>Live counts are temporarily unavailable. Open the organisation record to try again.</p>}
           </div>
           <MiniFootprint cells={mapCells} place={mapPlace} />
         </div>
 
         <div className={styles.lower}>
-          {extraMetrics.length > 0 && (
+          {compactMetrics.length > 0 && (
             <div className={styles.metrics} aria-label="Documented impact">
-              {extraMetrics.map((metric) => (
+              {compactMetrics.map((metric) => (
                 <div className={styles.metric} key={metric.label}>
                   <strong className={styles.metricValue}>{formatter.format(metric.value)}</strong>
                   <span className={styles.metricLabel}>{metric.label}</span>
@@ -164,9 +166,9 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
             </div>
           )}
           <a className={styles.cta} href={`${SITE_URL}/org/${org.slug}`} target="_blank" rel="noopener noreferrer">
-            <span>View live records</span><ArrowUpRight aria-hidden="true" size={17} strokeWidth={2} />
+            <span>Explore live records</span><ArrowUpRight aria-hidden="true" size={17} strokeWidth={2} />
           </a>
-          <p className={styles.attribution}>Data infrastructure by StrayPaw</p>
+          <p className={styles.attribution}>Data infrastructure by <strong>StrayPaw</strong></p>
         </div>
       </section>
     </main>
