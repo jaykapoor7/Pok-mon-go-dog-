@@ -345,7 +345,7 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
      60px, and the icon and label are sized to fill it: the slot used to
      be a 72px box holding 41px of content, which read as a small button
      floating in a large bar. */
-  html .spa.spa .spa-side .spa-phone-links > a {
+  html .spa.spa .spa-side .spa-phone-links > :is(a, .spa-phone-more) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -364,15 +364,16 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
     line-height: 1.1;
     text-align: center;
     text-decoration: none;
+    cursor: pointer;
     /* The label is one word wide and the column is a fifth of a phone. */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  html .spa.spa .spa-side .spa-phone-links > a svg { flex: none; }
+  html .spa.spa .spa-side .spa-phone-links > :is(a, .spa-phone-more) svg { flex: none; }
   /* The label is the affordance. One line, and an ellipsis where a word
      such as "Organisations" cannot fit a fifth of a 390px screen. */
-  html .spa.spa .spa-side .spa-phone-links > a span,
+  html .spa.spa .spa-side .spa-phone-links > :is(a, .spa-phone-more) span,
   html .spa.spa .spa-side a.spa-mobile-report span {
     display: block;
     max-width: 100%;
@@ -381,7 +382,8 @@ html .spa.spa .spa-main:not(.flush){padding:28px 32px 42px}.community-counts{mar
     white-space: nowrap;
   }
 
-  html .spa.spa .spa-side .spa-phone-links > a[aria-current="page"] {
+  html .spa.spa .spa-side .spa-phone-links > a[aria-current="page"],
+  html .spa.spa .spa-side .spa-phone-links > .spa-phone-more[aria-expanded="true"] {
     /* No top rule. It hung against the bar's own edge, far from the icon
        it referred to, and read as a stray border; the selection is the
        tinted lozenge under the icon instead. */
@@ -1199,14 +1201,14 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
    Everything moves on one token'd curve, so a tap reads as one motion
    rather than three properties changing at their own speeds. */
 @media (max-width: 900px) {
-  html .spa.spa .spa-phone-links > a {
+  html .spa.spa .spa-phone-links > :is(a, .spa-phone-more) {
     position: relative;
     gap: 4px;
     transition: color var(--sp-fast) var(--sp-ease-io);
   }
   /* The lozenge. A pseudo-element so it can sit behind the icon without
      another wrapper, and so it can scale independently of the label. */
-  html .spa.spa .spa-phone-links > a::before {
+  html .spa.spa .spa-phone-links > :is(a, .spa-phone-more)::before {
     content: "";
     position: absolute;
     top: 3px;
@@ -1222,15 +1224,16 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
                 transform var(--sp-base) var(--sp-ease);
     pointer-events: none;
   }
-  html .spa.spa .spa-phone-links > a[aria-current="page"]::before {
+  html .spa.spa .spa-phone-links > a[aria-current="page"]::before,
+  html .spa.spa .spa-phone-links > .spa-phone-more[aria-expanded="true"]::before {
     opacity: 1;
     transform: translateX(-50%) scale(1);
   }
-  html .spa.spa .spa-phone-links > a svg,
-  html .spa.spa .spa-phone-links > a span { position: relative; }
+  html .spa.spa .spa-phone-links > :is(a, .spa-phone-more) svg,
+  html .spa.spa .spa-phone-links > :is(a, .spa-phone-more) span { position: relative; }
   html .spa.spa .spa-phone-links > a[aria-current="page"] span { font-weight: 650; }
   /* A press reads on the whole cell, not just the label. */
-  html .spa.spa .spa-phone-links > a:active { transform: var(--ctl-press); }
+  html .spa.spa .spa-phone-links > :is(a, .spa-phone-more):active { transform: var(--ctl-press); }
   html .spa.spa .spa-side a.spa-mobile-report:active { transform: var(--ctl-press); }
   html .spa.spa .spa-side a.spa-mobile-report {
     transition: background var(--sp-fast) var(--sp-ease-io),
