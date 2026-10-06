@@ -2495,6 +2495,22 @@ a.pgm-figure:hover { background: #f3f6fb; }
    controls: one solid, one outlined, both full width and at a real touch
    height. They used to be a plain button and a text link. */
 .spa-profile-links.out { gap: 7px; }
+.spa-profile-links.out .auth-entry { position: relative; }
+.spa-profile-links.out .auth-entry-trigger {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: var(--ctl-h); padding: var(--ctl-pad);
+  border: 0; border-radius: var(--ctl-r); background: var(--sp-ink); color: var(--sp-bone); cursor: pointer;
+  font: var(--ctl-fw) var(--ctl-fs-sm)/1 var(--font-sans), system-ui, sans-serif; white-space: nowrap;
+}
+.spa-profile-links.out .auth-entry-trigger:hover { background: #1d2942; }
+.spa-profile-links.out .auth-entry-trigger:active { transform: var(--ctl-press); }
+.spa-profile-links.out .auth-entry-options {
+  position: absolute; z-index: 80; bottom: calc(100% + 8px); left: 0; width: 228px; padding: 6px;
+  border: 1px solid var(--sp-line); border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 16px 36px rgba(7, 20, 43, 0.22);
+}
+.spa-profile-links.out .auth-entry-options a { display: grid; gap: 2px; min-height: 44px; padding: 8px 10px; border-radius: var(--ctl-r-row); color: var(--sp-ink); text-decoration: none; }
+.spa-profile-links.out .auth-entry-options a:hover { background: var(--ctl-tint); color: var(--sp-ink); }
+.spa-profile-links.out .auth-entry-options b { font-size: 13px; font-weight: 650; }
+.spa-profile-links.out .auth-entry-options small { font-size: 11px; color: var(--sp-muted); }
 .spa-profile-links.out .pp-signin,
 .spa-profile-links.out .pp-code {
   position: relative;
