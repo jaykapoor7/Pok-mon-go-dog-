@@ -99,13 +99,32 @@ const EDUCATOR_NAV = [
 
 type Space = "community" | "feeder" | "educator" | "ngo" | "municipality";
 const SPACES = {
-  /* The phone bar has three places around Report and a More slot that
-     opens every section (PhoneMenu). */
-  community: { label: "Community", home: "/app", nav: COMMUNITY_NAV, phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights" && x.href !== "/orgs") },
-  feeder: { label: "Feeder", home: "/feeder", nav: FEEDER_NAV, phone: FEEDER_NAV.slice(0, 4) },
-  educator: { label: "Educator", home: "/learn", nav: EDUCATOR_NAV, phone: EDUCATOR_NAV.filter((x) => x.href !== "/orgs") },
-  ngo: { label: "NGO operations", home: "/partner", nav: NGO_NAV, phone: NGO_NAV.filter((x) => x.href !== "/partner/field").slice(0, 4) },
-  municipality: { label: "Municipality", home: "/municipality", nav: MUNICIPAL_NAV, phone: MUNICIPAL_NAV },
+  /* The phone bar has three places around Report and a More slot. Work
+     that does not fit there remains one horizontal, always-visible row
+     above the page; More is reserved for genuinely secondary navigation. */
+  community: {
+    label: "Community", home: "/app", nav: COMMUNITY_NAV,
+    phone: COMMUNITY_NAV.filter((x) => x.href !== "/insights" && x.href !== "/orgs"),
+    shortcuts: SHARED_NAV.filter((x) => x.href === "/insights" || x.href === "/stories" || x.href === "/orgs"),
+  },
+  feeder: {
+    label: "Feeder", home: "/feeder", nav: FEEDER_NAV, phone: FEEDER_NAV.slice(0, 4),
+    shortcuts: SHARED_NAV.filter((x) => x.href === "/insights" || x.href === "/stories" || x.href === "/orgs"),
+  },
+  educator: {
+    label: "Educator", home: "/learn", nav: EDUCATOR_NAV,
+    phone: EDUCATOR_NAV.filter((x) => x.href !== "/orgs"),
+    shortcuts: SHARED_NAV.filter((x) => x.href === "/insights" || x.href === "/stories" || x.href === "/orgs"),
+  },
+  ngo: {
+    label: "NGO operations", home: "/partner", nav: NGO_NAV,
+    phone: NGO_NAV.filter((x) => x.href !== "/partner/field").slice(0, 4),
+    shortcuts: NGO_NAV.filter((x) => x.href === "/partner/field" || x.href === "/partner/reports" || x.href === "/partner/team"),
+  },
+  municipality: {
+    label: "Municipality", home: "/municipality", nav: MUNICIPAL_NAV, phone: MUNICIPAL_NAV,
+    shortcuts: MUNICIPAL_NAV.filter((x) => x.href === "/orgs"),
+  },
 };
 
 /* A space's own routes decide it outright: /partner is the organisation,
@@ -207,7 +226,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   }
 
   const isReporting = pathname === "/report" || pathname.startsWith("/report/");
-  const { nav: primaryNav, phone: phoneNav, home, label: spaceLabel } = SPACES[space];
+  const { nav: primaryNav, phone: phoneNav, shortcuts, home, label: spaceLabel } = SPACES[space];
   const destinations = new Set(primaryNav.map((n) => n.href));
   const showBack = !destinations.has(pathname) && !isReporting && pathname !== "/";
 
@@ -280,6 +299,13 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
         <PhoneMenu open={menuOpen} onClose={closeMenu} nav={primaryNav} spaceLabel={spaceLabel} isNgo={isNgo} isActive={isActive} />
 
         <main id="spa-main" className={`spa-main ${flush ? "flush" : ""}`}>
+          {!flush && !isReporting && shortcuts.length > 0 && <nav className="spa-mobile-shortcuts" aria-label={`${spaceLabel} key workflows`}>
+            <span className="spa-mobile-shortcuts-label">Key workflows</span>
+            <div>
+              {isNgo && <Link href="/partner/cases/new" className="is-action"><Plus size={15}/><span>New case</span></Link>}
+              {shortcuts.map(({ href, label, Icon }) => <Link key={label} href={href} aria-current={isActive(href) ? "page" : undefined}><Icon size={15}/><span>{label}</span></Link>)}
+            </div>
+          </nav>}
           {!flush && <div className="spa-page-context"><span>{spaceLabel} / {pageLabel}</span></div>}
           {showBack && <div className="spa-back"><button type="button" onClick={goBack}><ArrowLeft size={15}/>Back</button></div>}
           {children}
