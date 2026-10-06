@@ -49,7 +49,7 @@ const km = (a: [number, number], b: [number, number]) => {
 const ago = (iso: string | null) => {
   if (!iso) return "";
   const d = Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000));
-  return d < 1 ? "today" : d === 1 ? "yesterday" : d < 31 ? `${d} days ago` : d < 365 ? `${Math.round(d / 30)} month${Math.round(d / 30) === 1 ? "" : "s"} ago` : `${(d / 365).toFixed(1)} years ago`;
+  return d < 1 ? "today" : d === 1 ? "yesterday" : d <= 7 ? `${d} days ago` : "";
 };
 const nameOf = (a: PAnimal) => dogLabel({ name: a.name, zone: a.zone || "here" });
 const ringCenter = (r: number[]): [number, number] => { let x = 0, y = 0; const n = r.length / 2 - 1; for (let i = 0; i < n; i++) { x += r[i * 2]; y += r[i * 2 + 1]; } return [x / n, y / n]; };
@@ -352,7 +352,7 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
                   <li key={a.id}><Link href={`/dog/${a.id}`}>
                     <DogPhoto src={a.cover_photo} alt="" seed={a.id} tone={a.needs_help ? "urgent" : "neutral"} className="cp-thumb" />
                     <span className="cp-who"><b>{nameOf(a)}</b><small>{[a.straypaw_id, a.zone && !nameOf(a).toLowerCase().includes(a.zone.toLowerCase()) ? a.zone : null].filter(Boolean).join(" · ") || "On the record"}</small></span>
-                    <span className="cp-when">{a.needs_help ? <em className="is-hot">Needs help</em> : a.status === "injured" ? <em className="is-hot">Injured</em> : null}<small>seen {ago(a.last_seen)}</small></span>
+                    <span className="cp-when">{a.needs_help ? <em className="is-hot">Needs help</em> : a.status === "injured" ? <em className="is-hot">Injured</em> : null}<small>{ago(a.last_seen) ? `seen ${ago(a.last_seen)}` : "On the record"}</small></span>
                   </Link></li>
                 ))}
               </ol>
