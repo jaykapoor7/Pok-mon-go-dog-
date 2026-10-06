@@ -371,12 +371,24 @@
   .sm-tools { top: 8px; right: 8px; }
   .sm-tools button { width: 44px; height: 44px; }
   .sm-tools button:nth-child(n + 4) { display: none; }
-  .sm-atlas { left: 8px; right: 8px; bottom: 116px; width: auto; max-height: 258px; overflow: hidden; padding: 13px 14px 6px; }
-  .sm-atlas h2 { font-size: 21px; }
-  .sm-atlas header { padding-bottom: 8px; }
-  .sm-atlas header > span { font-size: 11px; }
-  .sm-atlas button { min-height: 48px; padding: 7px 0; }
-  .sm-city-entry { right: 8px; bottom: 116px; width: min(270px, calc(100% - 16px)); }
+  /* India scale is a small launch point on phones, never a second screen.
+     The full city selector is already in the top bar; this only exposes the
+     leading register and an optional short list. */
+  .sm-atlas { left: 8px; right: 8px; bottom: 12px; width: auto; max-height: none; padding: 9px 12px; }
+  .sm-atlas h2 { font-size: 18px; }
+  .sm-atlas header { gap: 2px; padding-bottom: 5px; border-bottom: 0; }
+  .sm-atlas header > span { display: none; }
+  .sm-atlas-mobile-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px; padding: 6px 0; border: 0; background: transparent; color: var(--sm-text); font: inherit; text-align: left; cursor: pointer; }
+  .sm-atlas-mobile-summary span { display: grid; min-width: 0; gap: 2px; }
+  .sm-atlas-mobile-summary b { overflow: hidden; font-size: 13px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+  .sm-atlas-mobile-summary small { color: var(--sm-faint); font-size: 10.5px; }
+  .sm-atlas-mobile-summary em { flex: none; color: var(--sp-sky); font-size: 11px; font-style: normal; font-weight: 650; white-space: nowrap; }
+  .sm.is-paper .sm-atlas-mobile-summary em { color: var(--sp-blue); }
+  .sm-atlas:not(.is-open) ol { display: none; }
+  .sm-atlas.is-open { max-height: min(250px, calc(100dvh - 160px)); overflow: auto; }
+  .sm-atlas.is-open ol { max-height: 176px; overflow: auto; border-top: 1px solid var(--sm-line); }
+  .sm-atlas button:not(.sm-atlas-mobile-summary) { min-height: 46px; padding: 6px 0; }
+  .sm-city-entry { right: 8px; bottom: 72px; width: min(270px, calc(100% - 16px)); }
   .sm-scale { display: none; }
   /* Below the mode chips, so a mode can be switched with the panel open. */
   .sm-filter { top: 62px; right: 60px; left: 8px; width: auto; max-height: calc(100% - 176px); }
