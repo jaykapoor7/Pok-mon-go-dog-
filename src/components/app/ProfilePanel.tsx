@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { HelpCircle, KeyRound, LogOut, Users } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { AuthEntryMenu } from "@/components/auth/AuthEntryMenu";
 import { myProfile, type Profile } from "@/lib/programme";
 import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volunteer";
 
@@ -130,10 +131,7 @@ export function ProfilePanel({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="spa-profile">
       <div className="spa-profile-links out">
-        <Link href="/join" onClick={onNavigate} className="pp-signin">Sign in</Link>
-        <Link href="/join" onClick={onNavigate} className="pp-code">
-          <KeyRound size={14} aria-hidden /> <span>I have a code</span>
-        </Link>
+        <AuthEntryMenu onNavigate={onNavigate} />
       </div>
     </div>
   );
