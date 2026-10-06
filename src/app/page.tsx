@@ -11,6 +11,7 @@ import { HeroTally } from "@/components/landing/HeroTally";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import type { RegisterPlateData } from "@/components/landing/RegisterPlate";
 import { Relay } from "@/components/landing/Relay";
+import { SharedSystem } from "@/components/landing/SharedSystem";
 import { getAnimalRegister, getLandingStory } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
@@ -87,6 +88,24 @@ export default async function HomePage() {
           </div>
           </div>
         </section>
+
+        {/* The hero's first scroll beat: the same data shapes visitors meet
+            later as a profile and a case, brought into one record. It shares
+            the register's ground so the resolved system becomes that next
+            section instead of adding a new landing-page panel. */}
+        {story && (
+          <SharedSystem
+            city={story.hero.city}
+            animals={story.totals.animals}
+            cases={story.totals.cases}
+            cities={story.totals.cities}
+            report={story.relay ? {
+              condition: story.relay.condition,
+              locality: story.relay.locality,
+              straypawId: story.relay.straypawId,
+            } : null}
+          />
+        )}
 
         {/* Right after the hero, the centre of the page: every animal has a
             card. It shows the hero's own count (one source); its own count
