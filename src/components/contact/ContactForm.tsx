@@ -64,7 +64,7 @@ export function ContactForm() {
     <form onSubmit={submit} className="ct-form" noValidate>
       <div className="ct-form-head">
         <p className="ct-label">Your message</p>
-        <p>All fields except subject are required.</p>
+        <p>Name, email and message are required.</p>
       </div>
       <div className="ct-pair">
         <div className="ct-field">
