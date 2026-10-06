@@ -18,11 +18,26 @@ const readStories = unstable_cache(async (city: string | null) => {
   return page;
 }, ["community-city-stories-v1"], { revalidate: 120 });
 
+const noStories = { rows: [], next: null, error: "Recent stories could not be loaded." };
+
+/** Keep the community route responsive when a city-scoped public read stalls.
+ * The underlying read still warms the short cache when it completes; this only
+ * chooses the page's existing honest empty/error state over a stalled render. */
+function within<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Story read timed out.")), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); },
+    );
+  });
+}
+
 export default async function ConsoleHome({ searchParams }: { searchParams: Promise<{ city?: string }> }) {
   const [cities, params] = await Promise.all([getPublicSpatialCities(80).catch(() => []), searchParams]);
   const requested = params.city === "New Delhi" ? "Delhi" : params.city === "Secunderabad" ? "Hyderabad" : params.city;
   const city = cities.find(c => c.city === requested)?.city ?? [...cities].filter(c => c.cells > 1).sort((a,b) => (b.latest_seen ?? "").localeCompare(a.latest_seen ?? "") || b.animals-a.animals)[0]?.city ?? cities[0]?.city ?? null;
-  const storyPage = await readStories(city).catch(() => ({ rows: [], next: null, error: "Recent stories could not be loaded." }));
+  const storyPage = await within(readStories(city), 4_000).catch(() => noStories);
   return (
     <AppShell>
       <CommunityPatch
