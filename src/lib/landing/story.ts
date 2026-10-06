@@ -19,6 +19,7 @@ import { unstable_cache } from "next/cache";
 import { cellToBoundary, cellToLatLng, gridDisk } from "h3-js";
 import { getSupabase } from "@/lib/supabase";
 import { getPublicSpatialCities, getPublicSpatialCityCells } from "@/lib/spatial/server";
+import { registerTotalsFromCities } from "@/lib/register/totals";
 import { robustStart } from "@/lib/spatial/engine";
 import { CONDITIONS, DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 import { cleanPlace } from "@/lib/utils";
@@ -259,11 +260,7 @@ async function buildStory(): Promise<LandingStory | null> {
      relay — the landing never prints an id it cannot back. */
   const relay = await resolveRelay(supa, cases, sample.city);
 
-  const totals = {
-    animals: cities.reduce((n, c) => n + (c.animals || 0), 0),
-    cases: cities.reduce((n, c) => n + (c.cases || 0), 0),
-    cities: cities.filter((c) => (c.animals || 0) > 0).length,
-  };
+  const totals = registerTotalsFromCities(cities);
 
   return { totals, hero, journey, record, desk, relay };
 }
