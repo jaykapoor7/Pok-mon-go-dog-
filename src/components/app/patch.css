@@ -17,7 +17,8 @@
 .cp-quiet { margin: 0; padding: var(--sp-4) 0; }
 .cp-note { margin: var(--sp-2) 0 0; font-size: 13px; color: var(--sp-flame); }
 .cp-sample-tag { margin-left: var(--sp-3); padding: 3px 8px; vertical-align: middle; border-radius: var(--ctl-r); background: rgba(239, 231, 218, 0.1); font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-night-dim); }
-.cp-place-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.cp-place-row { position: relative; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.cp-place-row:focus-within { z-index: 8; }
 
 .cp-near { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--sp-muted); }
 .cp-sample { margin: calc(-1 * var(--sp-4)) 0 0; font-size: 12.5px; color: var(--sp-muted); }
