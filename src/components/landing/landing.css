@@ -76,48 +76,6 @@
 .ld-sec-tight { padding-top: var(--sp-8); padding-bottom: var(--sp-8); }
 .ld-sec .sys-head h2 { font-size: clamp(32px, 4.6vw, 58px); letter-spacing: -0.008em; line-height: 1.02; }
 
-/* ── Disconnected data → one shared system ───────────────────────────
-   This is a scroll scene made from the page's real data language: a map
-   cell, a ledger row, care marks and a record ID. The dark ground continues
-   into the register below it, so the resolved network has somewhere to go.
-   The progress values are written by SharedSystem with one rAF per scroll
-   frame; the scene never mounts a WebGL/canvas layer or a second live map. */
-.ds { --ds-appear: 0; --ds-resolve: 0; --ds-map-scale: .9; --ds-problem: 1; --ds-answer: 0; position: relative; z-index: 1; height: 200svh; background: var(--sp-deep); color: var(--sp-night-text); isolation: isolate; overflow: clip; }
-.ds-sticky { position: sticky; top: 0; display: grid; min-height: 100svh; overflow: hidden; background: var(--sp-deep); }
-.ds::after { content: ""; position: absolute; z-index: 2; right: 0; bottom: 0; left: 0; height: 16vh; pointer-events: none; background: linear-gradient(0deg, var(--sp-deep) 0%, rgba(7,22,48,0) 100%); }
-.ds-rail { position: absolute; z-index: 4; top: clamp(22px, 3vw, 38px); right: var(--sp-gutter); left: var(--sp-gutter); display: flex; align-items: center; gap: 9px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .11em; text-transform: uppercase; color: var(--sp-night-faint); }
-.ds-rail i { width: 5px; height: 5px; border-radius: 50%; background: var(--sp-flame); }
-.ds-copy { position: relative; z-index: 4; align-self: end; width: min(620px, 51vw); margin: 0 0 clamp(56px, 9vh, 108px) var(--sp-gutter); pointer-events: none; }
-.ds-copy > p { margin: 0 0 var(--sp-3); color: var(--sp-sky); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; }
-.ds-copy h2 { position: relative; min-height: 2.12em; margin: 0; font-family: var(--font-sans-display), var(--font-sans), sans-serif; font-size: clamp(35px, 4.65vw, 66px); font-weight: 600; line-height: 1.02; letter-spacing: -.022em; text-wrap: balance; }
-.ds-copy h2 > span { display: block; transition: opacity .14s linear; }
-.ds-copy h2 em { display: block; font-family: var(--font-serif-display), var(--font-serif-stack); font-weight: 400; font-style: italic; color: var(--sp-sky); letter-spacing: -.03em; }
-.ds-answer { position: absolute; inset: 0; }
-.ds-network { position: absolute; inset: 0; min-height: 0; }
-.ds-map { position: absolute; z-index: 2; top: 50%; left: 58%; width: min(44vw, 550px); aspect-ratio: 1.42; transform: translate(-50%, -50%) scale(var(--ds-map-scale)); opacity: var(--ds-resolve); transition: opacity .12s linear; }
-.ds-map svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.ds-cell { stroke: var(--sp-deep); stroke-width: 1.5; }
-.ds-cell.c0 { fill: var(--sp-nseq-1); }.ds-cell.c1 { fill: var(--sp-nseq-2); }.ds-cell.c2 { fill: var(--sp-nseq-3); }.ds-cell.c3 { fill: var(--sp-nseq-4); }.ds-cell.c4 { fill: var(--sp-nseq-5); }
-.ds-route { fill: none; stroke: var(--sp-night-text); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 3 5; opacity: .72; }.ds-route.is-faint { stroke-width: 1; opacity: .38; }
-.ds-core { fill: var(--sp-flame); }.ds-ring { fill: none; stroke: var(--sp-flame); stroke-width: 1.3; animation: ds-ring 2s var(--sp-ease) infinite; transform-origin: 165px 137px; }
-.ds-map-note { position: absolute; right: 10%; bottom: 7%; display: grid; gap: 2px; padding: 7px 9px; border-left: 2px solid var(--sp-flame); background: rgba(7,22,48,.88); }
-.ds-map-note b { font-size: 11px; font-weight: 600; }.ds-map-note small { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: .05em; color: var(--sp-night-dim); }
-.ds-city-label { position: absolute; z-index: 3; top: 22%; left: 54%; display: inline-flex; align-items: center; gap: 5px; padding: 5px 7px; border: 1px solid var(--sp-night-line); background: rgba(7,22,48,.86); font-family: var(--font-mono); font-size: 9px; letter-spacing: .06em; color: var(--sp-night-dim); opacity: var(--ds-resolve); }
-.ds-city-label svg { color: var(--sp-flame); }
-.ds-links { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; overflow: visible; opacity: var(--ds-resolve); transition: opacity .12s linear; }
-.ds-links path { fill: none; stroke: var(--sp-sky); stroke-width: 1; stroke-dasharray: 3 7; vector-effect: non-scaling-stroke; opacity: .72; }
-.ds-fragment { position: absolute; z-index: 3; display: grid; gap: 1px; min-width: 112px; padding: 7px 9px; border: 1px solid var(--sp-night-line); background: rgba(11,30,61,.94); box-shadow: 8px 10px 0 rgba(0,0,0,.1); color: var(--sp-night-text); opacity: 0; will-change: transform; pointer-events: none; }
-.ds.is-ready .ds-fragment { opacity: var(--ds-appear); }
-.ds-fragment span { font-size: 11px; font-weight: 600; line-height: 1.25; white-space: nowrap; }.ds-fragment small { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: .055em; color: var(--sp-night-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ds-fragment.is-tag { min-width: auto; border-color: rgba(143,183,255,.36); }.ds-fragment.is-tag span { color: var(--sp-sky); font-family: var(--font-mono); font-size: 9.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }.ds-fragment.is-tag small { display: none; }
-.ds-fragment.is-row { padding-left: 25px; }.ds-fragment.is-row::before { content: ""; position: absolute; top: 8px; bottom: 8px; left: 9px; width: 7px; background: linear-gradient(var(--sp-seq-4) 0 28%, transparent 28% 42%, var(--sp-seq-2) 42% 68%, transparent 68% 82%, var(--sp-flame) 82%); }
-.ds-fragment.is-status { grid-template-columns: 16px minmax(0,1fr); column-gap: 5px; }.ds-fragment.is-status i { grid-row: span 2; display: grid; width: 16px; height: 16px; place-items: center; align-self: center; border: 1px solid rgba(143,183,255,.5); border-radius: 50%; color: var(--sp-sky); }.ds-fragment.is-status span { color: var(--sp-night-text); }
-.ds-fragment.is-note { border-left: 2px solid var(--sp-flame); background: var(--sp-paper); color: var(--sp-ink); }.ds-fragment.is-note small { color: var(--sp-muted); }
-.ds-caption { position: absolute; z-index: 4; right: var(--sp-gutter); bottom: clamp(38px, 6vh, 72px); display: grid; gap: 2px; width: min(242px, 25vw); margin: 0; padding-top: var(--sp-3); border-top: 1px solid var(--sp-night-line); color: var(--sp-night-dim); font-size: 12px; line-height: 1.42; opacity: var(--ds-answer); }
-.ds-caption b { color: var(--sp-night-text); font-size: 13px; font-weight: 600; }
-@keyframes ds-ring { 0%,100% { transform: scale(.82); opacity: .45; } 50% { transform: scale(1.2); opacity: .1; } }
-
-
 /* ── One request, followed to the end ─────────────────────────────
    A route line with a stop for each step the record holds; the last stop,
    the outcome, is the one filled in. Across on wide screens, down on a
@@ -213,32 +171,7 @@
   .ld-meter-when span { font-size: 10px; letter-spacing: 0.08em; }
   .ld-meter-count { display: none; }
   .ld-close { min-height: 0; grid-template-columns: minmax(0, 1fr); gap: var(--sp-7); }
-
-  /* The same story on a phone, with just the legible fragments. It is a
-     short scroll beat, not a miniature desktop scene crowded with labels. */
-  .ds { height: 156svh; }
-  .ds-rail { top: 18px; font-size: 9px; }
-  .ds-copy { align-self: start; width: auto; margin: clamp(62px, 11vh, 84px) var(--sp-gutter) 0; }
-  .ds-copy h2 { min-height: 2.55em; font-size: clamp(31px, 9vw, 46px); }
-  .ds-map { top: 60%; left: 51%; width: min(118vw, 500px); }
-  .ds-city-label { top: 39%; left: 31%; }
-  .ds-links { display: none; }
-  .ds-fragment { min-width: 94px; padding: 6px 7px; box-shadow: 5px 7px 0 rgba(0,0,0,.1); }
-  .ds-fragment span { font-size: 10px; }.ds-fragment small { font-size: 7.5px; }
-  .ds-fragment.is-extra { display: none; }
-  .ds-fragment.is-tag { display: none; }
-  .ds-fragment.is-row { padding-left: 20px; }.ds-fragment.is-row::before { top: 7px; bottom: 7px; left: 7px; width: 6px; }
-  .ds-caption { right: var(--sp-gutter); bottom: 28px; width: min(230px, 65vw); font-size: 11px; }
-  .ds-map-note { right: 8%; bottom: 2%; }}
-@media (prefers-reduced-motion: reduce) {
-  .ds { height: auto; min-height: 500px; }
-  .ds-sticky { position: relative; min-height: 500px; }
-  .ds::after { height: 100px; }
-  .ds-map { transform: translate(-50%, -50%); }
-  .ds-ring { animation: none; }
-  .ds-fragment:not(.is-key) { display: none; }
 }
-
 @media (max-width: 420px) {
   .ld-hero-actions { gap: var(--sp-3) var(--sp-5); }
 }
