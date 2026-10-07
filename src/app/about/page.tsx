@@ -142,7 +142,7 @@ export default async function AboutPage() {
           <div className="co-close-in">
             <div>
               <h2>Questions about StrayPaw?</h2>
-              <p>For partnerships, press, procurement and governance questions, contact <a href="mailto:hello@straypaw.org">hello@straypaw.org</a>. Reporters are never named, places are shown to about 0.7 km², and nothing tracks you across sites. <Link href="/data-governance">Data policy</Link>.</p>
+              <p>For partnerships, press, procurement and governance questions, use the contact form. Reporters are never named, places are shown to about 0.7 km², and nothing tracks you across sites. <Link href="/data-governance">Data policy</Link>.</p>
             </div>
             <p className="co-acts">
               <Link href="/contact?subject=About%20StrayPaw" className="sys-btn is-flame">Contact StrayPaw <ArrowUpRight size={15} /></Link>
