@@ -1,4 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": [
+    "icn1"
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "dev": false
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/admin/spatial/refresh",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "ignoreCommand": "if [ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ]; then exit 1; fi; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- src public scripts package.json package-lock.json next.config.mjs vercel.json tsconfig.json postcss.config.mjs tailwind.config.ts middleware.ts"
 }
