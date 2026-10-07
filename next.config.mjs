@@ -24,8 +24,7 @@ const nextConfig = {
       { protocol: "https", hostname: "static.inaturalist.org" },
     ],
   },
-  // mapbox-gl / maplibre-gl ship untranspiled ESM in places; keep them happy.
-  transpilePackages: ["react-map-gl", "mapbox-gl", "maplibre-gl"],
+  // react-map-gl / MapLibre ship untranspiled ESM in places; keep them happy.\n  transpilePackages: ["react-map-gl", "maplibre-gl"],
 
   // Security headers. CSP is scoped to frame-ancestors only (clickjacking
   // defence) so it can't break the map tiles / Supabase / inline runtime
