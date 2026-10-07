@@ -16,4 +16,4 @@ export function registerTotalsFromCities(cities: Pick<SpatialCity, "animals" | "
 export const getRegisterTotals = unstable_cache(async (): Promise<RegisterTotals> => {
   const cities = await getPublicSpatialCities(200);
   return registerTotalsFromCities(cities);
-}, ["public-register-totals-v1"], { revalidate: 120 });
+}, ["public-register-totals-v2"], { revalidate: 120 });
