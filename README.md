@@ -11,7 +11,7 @@ and deploys to a URL — there is no native app.
 Live: **https://straypaw.org**
 
 - **Stack:** Next.js 15 (App Router, React 19) · TypeScript · Tailwind · MapLibre/Mapbox GL + H3 · Supabase (Postgres 17 + PostGIS) · Vercel.
-- **Scale today:** ~30k animals, ~23k cases across ~28 cities, designed to stay bounded to 1M+ records (see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
+- **Scale today:** ~30k animals, ~23k cases across 30 cities, designed to stay bounded to 1M+ records (see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 
 ## How it fits together
 
