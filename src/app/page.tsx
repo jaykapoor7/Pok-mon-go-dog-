@@ -11,7 +11,6 @@ import { HeroTally } from "@/components/landing/HeroTally";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import type { RegisterPlateData } from "@/components/landing/RegisterPlate";
 import { Relay } from "@/components/landing/Relay";
-import { SharedSystem } from "@/components/landing/SharedSystem";
 import { getAnimalRegister, getLandingStory } from "@/lib/landing/story";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
@@ -54,18 +53,6 @@ const LEVELS = [
 
 const EMPTY_REGISTER = { total: 0, cards: [] };
 
-/* A cold visual sample must never hold the landing page hostage. It can warm
-   its cache after the hero and register have rendered. */
-function within<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Landing story timed out.")), ms);
-    promise.then(
-      (value) => { clearTimeout(timer); resolve(value); },
-      (error) => { clearTimeout(timer); reject(error); },
-    );
-  });
-}
-
 async function LandingAnimalRegister({ plate }: { plate: RegisterPlateData | null }) {
   const register = await getAnimalRegister().catch(() => EMPTY_REGISTER);
   return <AnimalRegister data={register} total={register.total} plate={plate} />;
@@ -77,7 +64,7 @@ export default async function HomePage() {
      story.ts). It is bounded by design and never reads the register; if it
      is unavailable the page still renders every section that does not need
      it. The animal register is streamed separately in its own Suspense. */
-  const story = await within(getLandingStory(), 3_500).catch(() => null);
+  const story = await getLandingStory().catch(() => null);
   return (
     <div className="sp field-site product-site ld">
       <PageView name="landing_view" />
@@ -100,24 +87,6 @@ export default async function HomePage() {
           </div>
           </div>
         </section>
-
-        {/* The hero's first scroll beat: the same data shapes visitors meet
-            later as a profile and a case, brought into one record. It shares
-            the register's ground so the resolved system becomes that next
-            section instead of adding a new landing-page panel. */}
-        {story && (
-          <SharedSystem
-            city={story.hero.city}
-            animals={story.totals.animals}
-            cases={story.totals.cases}
-            cities={story.totals.cities}
-            report={story.relay ? {
-              condition: story.relay.condition,
-              locality: story.relay.locality,
-              straypawId: story.relay.straypawId,
-            } : null}
-          />
-        )}
 
         {/* Right after the hero, the centre of the page: every animal has a
             card. It shows the hero's own count (one source); its own count
