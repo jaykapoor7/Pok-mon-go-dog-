@@ -119,7 +119,7 @@ export default async function AboutPage() {
                 <div className="src-track" role="img" aria-label="Share of published imported records by kind of source">
                   {sources.filter((g) => g.records > 0).map((g, i) => <span key={g.kind} className={`is-${i % 5}`} style={{ flexGrow: g.records }} title={`${g.kind}: ${fmt(g.records)}`} />)}
                 </div>
-                <figcaption>{fmt(imported)} published source records imported from {sources.length} kinds of source, alongside residents’ live reports and partner NGOs’ field records.</figcaption>
+                <figcaption>{fmt(imported)} public, licence-verified source records imported from {sources.length} kinds of source, alongside residents’ live reports and partner NGOs’ field records.</figcaption>
               </figure>
             )}
             <ol className="src-list">

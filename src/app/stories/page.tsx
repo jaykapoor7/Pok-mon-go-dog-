@@ -116,7 +116,7 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
           title={city ? <>Animal records in <em>{city}</em></> : <>Animal records, <em>followed through care</em></>}
           lede="Care, discharge and outcomes appear only where the source actually records them."
           figures={[
-            { label: city ? `public records in ${city}` : cityCount > 1 ? "public records across the atlas" : "public records", value: totalForScope },
+            { label: city ? `animals with case histories in ${city}` : cityCount > 1 ? "animals with case histories across the atlas" : "animals with case histories", value: totalForScope },
             ...(paged ? [{ label: "shown on this page", value: stories.length, tone: "quiet" as const }] : []),
             ...(median != null ? [{ label: "median span to a recorded ending", value: span(median) }] : []),
           ]}
