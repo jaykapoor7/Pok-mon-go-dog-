@@ -1,11 +1,11 @@
 import { AppShell } from "@/components/app/AppShell";
-import { CommunityPatch } from "@/components/app/CommunityPatch";
+import { CommunityHome } from "@/components/community/CommunityHome";
 import { getPublicSpatialCities } from "@/lib/spatial/server";
 import { getPublicCaseStoriesPage } from "@/lib/community-case-stories";
 import { unstable_cache } from "next/cache";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Your community, StrayPaw" };
+export const metadata = { title: "Nearby, StrayPaw" };
 
 /* The original community home, now backed by one bounded city dataset at a
    time. The lightweight city index lets someone switch place without ever
@@ -40,10 +40,11 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
   const storyPage = await within(readStories(city), 4_000).catch(() => noStories);
   return (
     <AppShell>
-      <CommunityPatch
+      <CommunityHome
         stories={storyPage.rows}
         storyError={Boolean(storyPage.error)}
-        availableCities={cities.map((item) => ({ city: item.city, state: item.state }))}
+        availableCities={cities.map((item) => ({ city: item.city, state: item.state, lng: item.lng, lat: item.lat }))}
+        defaultCity={city}
       />
     </AppShell>
   );

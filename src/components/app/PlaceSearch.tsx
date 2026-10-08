@@ -15,7 +15,7 @@ export type PlaceOption = { key: string; name: string; city: string };
 
 const SHOW = 8;
 
-export function PlaceSearch({ options, onPick, label = "Find a place" }: { options: PlaceOption[]; onPick: (o: PlaceOption) => void; label?: string }) {
+export function PlaceSearch({ options, onPick, label = "Find a place", placeholder = "Find a locality or city…" }: { options: PlaceOption[]; onPick: (o: PlaceOption) => void; label?: string; placeholder?: string }) {
   const id = useId();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -53,7 +53,7 @@ export function PlaceSearch({ options, onPick, label = "Find a place" }: { optio
           ref={input}
           type="search"
           value={q}
-          placeholder="Find a locality or city…"
+          placeholder={placeholder}
           autoComplete="off"
           role="combobox"
           aria-expanded={showList}
