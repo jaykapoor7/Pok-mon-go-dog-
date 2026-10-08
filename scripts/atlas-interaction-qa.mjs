@@ -17,7 +17,7 @@ try {
     const errors = [], requests = [];
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("request", (r) => { if (r.url().includes("/api/spatial")) requests.push(r.url()); });
-    await page.goto(base + "/app");
+    await page.goto(base + "/map");
     await page.waitForFunction(() => document.querySelectorAll(".atlas-directory li").length > 0);
     assert(!requests.some((url) => url.includes("kind=dataset")), "India must not preload a rich city dataset");
     const photo = page.locator(".atlas-encounter");

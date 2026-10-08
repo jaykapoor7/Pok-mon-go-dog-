@@ -6,8 +6,10 @@ description: StrayPaw product and visual engineering: original cartography, evid
 # StrayPaw: design as a public record
 
 StrayPaw connects living animals, residents, care organisations and geographic
-evidence. Its public product is a living atlas. Its professional product is a
-working record. Both should feel made by the same animal-welfare institution.
+evidence. Its map is a living atlas; community, insights and professional pages
+retain their own purposes and workflows. All share one institutional identity.
+Never substitute a map for an existing home, insights brief or working page.
+Improve map exploration on map routes, and improve other pages on their own terms.
 
 Read `docs/PHASE-1-ATLAS-AUDIT.md` before changing visualizations and inspect the
 actual components before prescribing layouts. User instructions take precedence,

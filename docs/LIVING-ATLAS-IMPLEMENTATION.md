@@ -8,19 +8,21 @@ navigation are unchanged.
 
 | Experience | Implemented change |
 |---|---|
-| `/app`, `/map` | A continuous India register beside an ink cartographic field. National view loads the city index, not a rich animal register. City selection keeps the map alive and replaces the national rail with geographic intelligence. |
+| `/map` | A continuous India register beside an ink cartographic field. National view loads the city index, not a rich animal register. City selection keeps the map alive and replaces the national rail with geographic intelligence. |
 | City intelligence | H3 aggregates at city scale; schematic individual records at detail scale; contextual counts, source precision and bounded-sample disclosures. Animals, Care, Cases and Evidence change both representation and readout. Existing specialist modes and filters remain accessible. |
 | Animal preview and `/dog/[id]` | Authentic cell candidates, real photographs where available, explicit schematic-position note, linked histories and a documentary identity spread. Missing photographs receive a record treatment, never substitute imagery. |
 | `/partner` | A working ledger, operational navigation, priority and waiting columns, linked geographic context, preserved tasks/camps and existing case actions. Mobile status columns wrap rather than clip. |
 | `/partner/records` | Existing search, filters, export, pagination and permission-gated deletion retained. Added keyboard-dismissable record inspectors with recorded fields, complete notes and working-record/history/map links. |
 | `/partner/map` | Uses the same geographic system with existing organization scope and authentication. Opens its recorded city rather than the public India overview. |
-| `/municipality`, `/insights` | Geographic exploration uses the continuous Atlas and source-aware city intelligence. H3 analysis areas are explicitly not wards or coverage denominators. |
+| `/municipality` | Geographic exploration uses the continuous Atlas and source-aware city intelligence. H3 analysis areas are explicitly not wards or coverage denominators. |
 | `/report` | A resident field-note procedure with visible numbered steps, accessible review and a direct mobile sequence; existing submission logic remains intact. |
 | Shared post-app content | Editorial headers, warm-paper ground, ruled tables and documentary typography. Scoped styles do not touch the primary navigation or landing. |
 
-The former community patch remains at `/app?view=patch`; the original place
-brief remains at `/insights?view=brief`. Existing routes and operational actions
-have not been removed to achieve a cleaner screen.
+Correction after user review: `/app` again opens Community Home and `/insights`
+again opens its analytical place brief directly. The initial map replacement of
+those defaults was a product regression, not an approved simplification. Existing
+`view=patch` and `view=brief` links remain compatible but are no longer required.
+Map improvement belongs on map routes; other screens retain their own purpose.
 
 ## Evidence and geographic safeguards
 
