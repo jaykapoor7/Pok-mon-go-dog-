@@ -53,6 +53,7 @@ function randomId() {
    the same reason it is everywhere else in this file: reading it throws
    in private mode, and analytics must never be what breaks a report. */
 const OPT_OUT_KEY = "straypaw.analytics.optout";
+const CONSENT_KEY = "straypaw.analytics.consent";
 
 /* Do Not Track is a stated preference not to be counted, and first-party
    counting is still counting. Honouring it costs one check and means the
@@ -72,9 +73,9 @@ function browserSaysNo(): boolean {
 function hasOptedOut(): boolean {
   if (browserSaysNo()) return true;
   try {
-    return localStorage.getItem(OPT_OUT_KEY) === "1";
+    return localStorage.getItem(OPT_OUT_KEY) === "1" || localStorage.getItem(CONSENT_KEY) !== "1";
   } catch {
-    return false;
+    return true; // Fail closed when consent cannot be read.
   }
 }
 
