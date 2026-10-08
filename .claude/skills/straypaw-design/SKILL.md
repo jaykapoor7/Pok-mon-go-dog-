@@ -9,10 +9,15 @@ StrayPaw connects living animals, residents, care organisations and geographic
 evidence. Its map is a living atlas; community, insights and professional pages
 retain their own purposes and workflows. All share one institutional identity.
 Never substitute a map for an existing home, insights brief or working page.
-Community Home includes visible contextual geography alongside its animal
-register; do not hide that map behind a disclosure. The app desktop shell uses
-a horizontal route register, not a full-height SaaS sidebar. Keep account,
-feedback and professional quick actions reachable after shell changes.
+Community Home (Nearby) opens on a place with its night geography as the
+hero; do not hide that map behind a disclosure or a "choose a place" gate.
+The app shell is one ink bar (space switcher, destinations, ⌘K search, the
+space's single primary action, account) with the long tail in the space menu
+and the phone More sheet — not a sidebar and not a second register strip.
+Keep account, feedback and professional actions reachable after shell changes.
+Read `docs/REINVENTION.md` before changing post-app surfaces; build on
+`src/components/shell/shell.css` (`.sx` scope, `x-*` primitives) rather than
+adding another override layer.
 Improve map exploration on map routes, and improve other pages on their own terms.
 
 Read `docs/PHASE-1-ATLAS-AUDIT.md` before changing visualizations and inspect the
@@ -52,9 +57,11 @@ app. Put app-specific extensions in scoped styles or a separate map palette.
 Use existing spacing and motion tokens; new layout dimensions should represent
 actual content or interaction requirements rather than arbitrary decoration.
 
-DM Sans is the working face. The existing serif stack gives animal names,
-geographic titles and consequential figures an editorial voice. DM Mono serves
-IDs, dates and aligned measurements. Do not introduce another font family.
+DM Sans is the working face (titles at 600 with tight tracking). Instrument
+Serif italic is for emphasis and record plates, not whole headings or data.
+DM Mono serves IDs, codes and dates only. All three are loaded for the app by
+`components/shell/fonts.ts`; the landing keeps its own stack. Labels are
+sentence case: no spaced mono capitals. Do not introduce another font family.
 Use tabular numerals for comparisons. Compact text must remain readable.
 
 Shape follows role: continuous map/register surfaces can have square edges,
@@ -154,15 +161,18 @@ cannot be disabled by a CSS media query alone.
 
 ## Failures to reject
 
-The post-app composition contract is purpose-specific: Atlas is a geographic
-surface with a city/source index; Community is a photographic contact sheet;
-animal identities are accessioned dossiers with dated event trails; NGO work is
-a queue-led workbench; Insights is an analytical register; Municipality is a
-planning-question rail beside geography. Reporting is an evidence receipt and
-an input protocol. Do not repeat one composition across these surfaces.
+The post-app composition contract is purpose-specific: the Atlas is night
+cartography with one scale-aware rail (source-aware India index → city Lens
+readout → cell inspector); Nearby is a place hero followed by animal tiles that
+use record plates where no photograph exists; animal identities are dossiers
+with a year spine and actionable gaps; NGO Today is queue beside open-work
+geography; Insights is an analytical register; Municipality is a City Brief
+(evidence profile, qualified totals, locality concentration, change, gaps,
+city comparison, limits) that links into the Atlas rather than embedding it.
+Reporting is a live draft receipt beside one question at a time.
 
-Reject slogan-led two-column heroes, decorative geometric route objects,
-icon feature rows and pill-based navigation. Source labels, real photography,
+Reject slogan-led two-column heroes, decorative geometric route objects and
+icon feature rows. Capsules are for actions and filters, not for decoration. Source labels, real photography,
 state rails, continuous tables and provenance are StrayPaw's design material.
 Maps belong to geographic tasks, not every route. Keep Community and Insights
 independent; retain contextual geography without replacing their workflows.

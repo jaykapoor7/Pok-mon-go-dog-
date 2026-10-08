@@ -1,5 +1,25 @@
 # StrayPaw product design system
 
+> **Current system (October 2026).** The post-app experience was rebuilt on
+> one shell and one token set: `src/components/shell/shell.css` (`.sx` scope,
+> `x-*` primitives) with DM Sans, Instrument Serif and DM Mono loaded by
+> `src/components/shell/fonts.ts` for the app only. See
+> `docs/REINVENTION.md` for the architecture, surfaces and verification.
+> Where this document and that one disagree, the code and REINVENTION.md win.
+>
+> * Two grounds: **night** (ink `#0b1e3d`/`#081631`, continuous with the
+>   landing plate) for the bar, geography and the hero of a place or animal;
+>   **paper** (`#f4efe6`) for records and work.
+> * One ink bar: space switcher, destinations, ⌘K search, the space's single
+>   primary action (flame capsule), account. Long tail in the space menu /
+>   phone More sheet. Phones: thumb bar with the action at its centre.
+> * Type: DM Sans 600 with tight tracking for titles; Instrument Serif italic
+>   only for emphasis (`<em>`); DM Mono only for IDs, codes and dates.
+>   Labels are sentence case — no spaced mono capitals.
+> * Shape: capsules for things you press and filter; 14–22px radius for the
+>   one lifted surface in a region; rules and rows for lists.
+> * Missing photographs are record plates (place + ID), never placeholders.
+
 ## Product character
 
 StrayPaw is a shared field record, not a generic dashboard. The landing site is
