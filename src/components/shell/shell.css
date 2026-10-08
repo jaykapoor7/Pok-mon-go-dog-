@@ -371,3 +371,48 @@ a.x-row:hover { background: rgba(11, 30, 61, 0.035); }
 .sx .partner-workspace-tabs a { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--x-mute); font-size: 14.5px; font-weight: 500; text-decoration: none; }
 .sx .partner-workspace-tabs a:hover { color: var(--x-text); }
 .sx .partner-workspace-tabs a[aria-current="page"] { color: var(--x-text); border-bottom-color: var(--x-flame); font-weight: 600; }
+
+/* ════════════════════════════════════════════════════════════════════
+   The page header every secondary page shares (DeskHeader). Paper, not a
+   dark card: the bar above is already the institution's ink, and a second
+   slab under it made every page feel like the same dashboard tile.
+   ════════════════════════════════════════════════════════════════════ */
+.sx .dh { max-width: var(--x-max); margin: 0 auto 8px; overflow: visible; border-radius: 0; background: transparent; color: var(--x-text); box-shadow: none; }
+.sx .dh::before, .sx .dh::after, .sx .dh-ground { display: none; }
+.sx .dh-in { min-height: 0; padding: 32px var(--x-gutter) 24px; gap: 16px 32px; align-content: start; }
+.sx .dh-copy { gap: 10px; max-width: 70ch; }
+.sx .dh-kicker { font-family: var(--x-sans); font-size: 14px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--x-mute); }
+.sx .dh-title { margin: 0; font-family: var(--x-sans); font-size: clamp(34px, 4.2vw, 54px); font-weight: 600; line-height: 1.04; letter-spacing: -0.04em; color: var(--x-text); }
+.sx .dh-title em { font-family: var(--x-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; color: var(--x-blue); }
+.sx .dh-lede { font-size: 17px; line-height: 1.55; color: var(--x-body); }
+.sx .dh-actions { align-self: end; }
+.sx .dh-figs { gap: 12px 40px; padding-top: 18px; border-top: 1px solid var(--x-line); }
+.sx .dh-figs dd { font-size: clamp(24px, 2.4vw, 32px); font-weight: 600; letter-spacing: -0.03em; color: var(--x-text); }
+.sx .dh-figs dt { font-size: 13px; color: var(--x-mute); }
+.sx .dh-figs dd a svg { color: var(--x-blue); }
+.sx .dh-figs .is-attention dd { color: var(--x-flame-ink); }
+.sx .dh-figs .is-quiet dd { color: var(--x-mute); }
+@media (max-width: 760px) {
+  .sx .dh-in { grid-template-columns: minmax(0, 1fr); padding-top: 20px; }
+  .sx .dh-actions { grid-column: 1; grid-row: auto; justify-content: flex-start; }
+}
+
+/* Older buttons, as capsules in the app's language. */
+.sx :is(.dk-btn, .sys-btn) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--x-ink); border-radius: 999px; background: var(--x-ink); color: var(--x-on-night); font-family: var(--x-sans); font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: none; }
+.sx :is(.dk-btn, .sys-btn):hover { background: var(--x-ink-3); }
+.sx :is(.dk-btn, .sys-btn):is(.is-tint, .is-quiet) { background: var(--x-card); color: var(--x-text); border-color: var(--x-line-2); }
+.sx :is(.dk-btn, .sys-btn):is(.is-tint, .is-quiet):hover { border-color: var(--x-ink); }
+.sx :is(.dk-btn, .sys-btn).is-plain { background: transparent; border-color: transparent; color: var(--x-blue); padding: 0 8px; }
+.sx :is(.dk-btn, .sys-btn).is-flame { background: var(--x-flame); border-color: var(--x-flame); color: #fff; }
+.sx :is(.dk-btn, .sys-btn).is-flame:hover { background: #e24b30; }
+.sx :is(.dk-btn, .sys-btn).is-sm { min-height: 40px; padding: 0 14px; font-size: 14px; }
+
+/* Mono uppercase eyebrows from earlier layers, read as plain labels. */
+.sx :is(.dk-kicker, .sys-eyebrow, .ops-eyebrow, .pa-filter-kicker) { font-family: var(--x-sans); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--x-mute); }
+
+/* Earlier layers set many small labels in spaced mono capitals. In the app
+   they read as one size of shouting; labels are sentence case, in the
+   working face, at a readable size. IDs keep their mono via .sys-mono. */
+html .sx .sx-main * { text-transform: none; }
+html .sx .sx-main :is([class*="kicker"], [class*="eyebrow"], [class*="label"], [class*="caption"], [class*="-meta"], [class*="-head"] > span, th):not(.sys-mono):not(.x-mono) { font-family: var(--x-sans); letter-spacing: 0; }
+html .sx .sx-main th { font-size: 13px; font-weight: 600; color: var(--x-mute); }

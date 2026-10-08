@@ -52,7 +52,7 @@ export function DeskHeader({ kicker, title, lede, figures, actions, city, ground
     <header className="dh dh-editorial">
       <div className="dh-in">
         <div className="dh-copy">
-          {(kicker || (withGround && place)) && <p className="dh-kicker sys-mono"><span>{kicker}</span>{withGround && place && <span className="dh-place-label">{place}</span>}</p>}
+          {(kicker || (withGround && place)) && <p className="dh-kicker">{[kicker, withGround ? place : null].filter(Boolean).join(" · ")}</p>}
           <h1 className="dh-title">{title}</h1>
           {lede && <p className="dh-lede">{lede}</p>}
         </div>
