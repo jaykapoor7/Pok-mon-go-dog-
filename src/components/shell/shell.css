@@ -441,3 +441,9 @@ html .sx .cf-fact dt { font-family: var(--x-sans); font-size: 13px; letter-spaci
 .sx .sx-page .dh-in { padding-inline: 0; }
 html .sx .nc-guide-k { font-family: var(--x-sans); font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--x-mute); }
 html .sx .nc-guide h2 em { font-family: var(--x-serif); font-style: italic; font-weight: 400; }
+
+/* Chip rows inside the shared header (Stories cities and similar). */
+html .sx .dh-extra nav { display: flex; flex-wrap: wrap; gap: 6px; }
+html .sx .dh-extra nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--x-line-2); background: transparent; color: var(--x-body); font-size: 14px; font-weight: 500; text-decoration: none; }
+html .sx .dh-extra nav a:hover { border-color: var(--x-ink); color: var(--x-text); }
+html .sx .dh-extra nav a.is-on { background: var(--x-ink); border-color: var(--x-ink); color: var(--x-on-night); }

@@ -33,3 +33,5 @@
   .sx .ib-measures dd { font-size: 26px; }
   .sx .ib-q.is-lead { padding: 20px; }
 }
+.sx .sx-page .ib { padding-inline: 0; }
+.sx .ib.is-org .ib-register-head { margin: 16px 0 0; padding: 32px; border-radius: var(--x-r-l); }
