@@ -40,6 +40,7 @@ import { PhotoStudio } from "@/components/report/PhotoStudio";
 import { readVolunteer, type VolunteerSession } from "@/lib/volunteer";
 import { track } from "@/lib/analytics";
 import "./report.css";
+import "./report-x.css";
 
 type Status = "idle" | "submitting" | "done";
 type Condition = "injured" | "hungry" | "puppies" | "fine";
@@ -220,7 +221,7 @@ export default function ReportPage() {
         </ol>
         <span className="rq-count sys-mono">{step + 1}/5</span>
       </header>
-      <aside className="rq-context"><p className="sys-mono">OBSERVATION / FIELD ENTRY</p><dl><div><dt>Entry stage</dt><dd>{String(step + 1).padStart(2, "0")} / 05</dd></div><div><dt>Place</dt><dd>{zone || (coords ? "Location selected" : "Not recorded yet")}</dd></div><div><dt>Evidence</dt><dd>{file ? "Photograph attached" : "Photograph pending"}</dd></div><div><dt>State</dt><dd>Not submitted</dd></div></dl><p className="rq-context-evidence">Record what you can see. Unknown is a valid observation, not a failed answer.</p></aside>
+      <aside className="rq-context"><p>Your report</p><dl><div><dt>Entry stage</dt><dd>{String(step + 1).padStart(2, "0")} / 05</dd></div><div><dt>Place</dt><dd>{zone || (coords ? "Location selected" : "Not recorded yet")}</dd></div><div><dt>Evidence</dt><dd>{file ? "Photograph attached" : "Photograph pending"}</dd></div><div><dt>State</dt><dd>Not submitted</dd></div></dl><p className="rq-context-evidence">Record what you can see. Unknown is a valid observation, not a failed answer.</p></aside>
       {!volunteer && <div className="rq-purpose">
         <span><HeartHandshake size={15} aria-hidden /> A shared care trail starts here</span>
         <small>About a minute · no account needed</small>

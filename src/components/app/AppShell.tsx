@@ -76,7 +76,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   const def = SPACES[space];
   const current = currentOf(def.nav, pathname, def.home);
   const isCurrent = (href: string) => href === current;
-  const isDestination = def.nav.some((n) => n.href === pathname) || pathname === def.home;
+  const isDestination = def.nav.some((n) => n.href === pathname) || pathname === def.home || pathname === "/report";
   const isReporting = pathname === "/report" || pathname.startsWith("/report/");
   const phoneNav = def.phone.map((href) => def.nav.find((n) => n.href === href)).filter((n): n is NonNullable<typeof n> => !!n);
   const left = def.action ? phoneNav.slice(0, 2) : phoneNav.slice(0, 4);
