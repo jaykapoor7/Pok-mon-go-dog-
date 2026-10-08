@@ -1,10 +1,13 @@
 import { NIGHT, PAPER, type Palette } from "@/components/map/basemap";
 
 // Atlas-specific cartography. Shared landing palettes remain untouched.
+/* Night: the landing plate's ground, quieter. Streets are a hairline so
+   the evidence carries the colour; place names stay legible but recede. */
 export const ATLAS_NIGHT: Palette = {
-  ...NIGHT, roadMajor: "rgba(143,183,255,0.20)", road: "rgba(143,183,255,0.08)",
-  labelOpacity: 0.46, showRoadNames: false, buildings: false,
-  water: "#07142b", land: "#10243b", park: "#142d3b", boundary: "rgba(143,183,255,0.30)",
+  ...NIGHT, bg: "#081631", land: "#081631", water: "#0c2548", park: "#0a1d38", building: "#0d2142",
+  roadMajor: "rgba(239,231,218,0.16)", road: "rgba(239,231,218,0.06)", rail: "rgba(239,231,218,0.06)",
+  labelOpacity: 0.5, showRoadNames: false, buildings: false, boundary: "rgba(185,199,221,0.26)",
+  seq: ["#16305e", "#22498e", "#3467c4", "#5f8ff0", "#a9c4fb"],
 };
 export const ATLAS_PAPER: Palette = {
   ...PAPER, bg: "#f4f3eb", land: "#eceee5", water: "#dae2dc", park: "#e0e7d8",

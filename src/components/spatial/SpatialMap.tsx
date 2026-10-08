@@ -47,10 +47,10 @@ import { BoundedSpatialMap } from "./BoundedSpatialMap";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import "./spatial.css";
 import "./atlas.css";
-import { AtlasRegister, CityEvidence } from "./AtlasRegister";
+import "./atlas-x.css";
+import { AtlasIndex, CityEvidence, KIND_META, cityEvidence, kindOf } from "./AtlasRegister";
 import { ATLAS_NIGHT, ATLAS_PAPER } from "./atlas-palette";
 import { LensReadout } from "./LensReadout";
-import { AtlasEncounter } from "./AtlasEncounter";
 
 type ModeDef = { id: Mode | "change"; label: string; q: string };
 const MODES: ModeDef[] = [
@@ -93,6 +93,8 @@ const SOURCE_OPTS: [string, string][] = [["all", "Everyone"], ["field", "Field t
 const SEEN_OPTS: [string, string][] = [["any", "Any time"], ["90", "90 days"], ["365", "1 year"]];
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] as GeoJSON.Feature[] };
+/* India scale: each city coloured by the kind of record it holds. */
+const KIND_COLOR = ["match", ["get", "k"], "rescue", "#f26c52", "campaign", "#66c5d5", "clinical", "#93b1f0", "photo", "#e3b35b", "#c9cfdb"] as unknown as ExpressionSpecification;
 const T = "rgba(0,0,0,0)";
 
 /** A real, bounded map when a browser cannot start WebGL2. It deliberately
@@ -204,8 +206,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
      route into city data; the city search remains available for the full list. */
   const [atlasOpen, setAtlasOpen] = useState(false);
 
-  const [ground, setGround] = useState<"night" | "paper">("paper");
-  useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
+  /* Night by default: the same ground as the landing plate, so opening the
+     Atlas continues the picture rather than switching to another product. */
+  const [ground, setGround] = useState<"night" | "paper">("night");
+  const [railClosed, setRailClosed] = useState(false);
+  useEffect(() => { try { const g = localStorage.getItem("sp.atlas.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
   const pal: Palette = ground === "night" ? ATLAS_NIGHT : ATLAS_PAPER;
 
   const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? (surface === "municipality" ? "coverage" : "animals")) as AnyMode;
@@ -610,7 +615,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     map.addSource("frontier", { type: "geojson", data: { type: "FeatureCollection", features: ds.frontier.map((f, i) => ({ type: "Feature", id: i, properties: { k: f.cell, near: f.near, city: f.city }, geometry: { type: "Polygon", coordinates: [flatRing(f.ring)] } })) } });
     ["inner", "cases", "sel", "next", "feeding"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
     ["pts", "care", "terrain", "fog"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
-    map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: cityPins.map((c, i) => ({ type: "Feature", properties: { i, n: c.animals, name: c.city }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) } });
+    map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: cityPins.map((c, i) => ({ type: "Feature", properties: { i, n: c.animals, name: c.city, k: kindOf(c.city, c.cells), one: c.cells <= 1 ? 1 : 0 }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) } });
 
     const fs = (k: string, d: number | string) => ["coalesce", ["feature-state", k], d] as ExpressionSpecification;
     const Z = (a: number, b: number, c: number, d: number) => ["interpolate", ["linear"], ["zoom"], a, b, c, d] as ExpressionSpecification;
@@ -679,9 +684,10 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     map.addLayer({ id: "sel", type: "line", source: "sel", paint: { "line-color": pal.ink, "line-width": 2.2 } });
     map.addLayer({ id: "cities", type: "circle", source: "cities", paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 6, 48, 26], 10, 8, 14, 5] as ExpressionSpecification,
-      "circle-color": pal.seq[3], "circle-opacity": 0.9, "circle-stroke-color": pal.bg, "circle-stroke-width": 1.5,
+      "circle-color": KIND_COLOR, "circle-opacity": ["case", ["==", ["get", "one"], 1], 0.14, 0.78] as ExpressionSpecification,
+      "circle-stroke-color": ["case", ["==", ["get", "one"], 1], KIND_COLOR, pal.bg] as ExpressionSpecification, "circle-stroke-width": ["case", ["==", ["get", "one"], 1], 2, 1] as ExpressionSpecification,
     } });
-    map.addLayer({ id: "cities-l", type: "symbol", source: "cities", maxzoom: 10, layout: { "text-field": ["concat", ["get", "name"], "\n", ["to-string", ["get", "n"]]], "text-font": ["Noto Sans Regular"], "text-size": 11.5, "text-offset": [0, 2.1], "text-anchor": "top" }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.4 } });
+    map.addLayer({ id: "cities-l", type: "symbol", source: "cities", maxzoom: 10, layout: { "text-field": ["format", ["get", "name"], { "text-font": ["literal", ["Noto Sans Bold"]], "font-scale": 1 }, "\n", {}, ["number-format", ["get", "n"], { locale: "en-IN" }], { "font-scale": 0.9 }] as ExpressionSpecification, "text-font": ["Noto Sans Regular"], "text-size": 12, "text-offset": [0, 1.4], "text-anchor": "top", "text-optional": true }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.4 } });
 
     setLayersReady(true);
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
@@ -777,11 +783,8 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     set("feeding", "circle-color", pal.bg); set("feeding", "circle-stroke-color", pal.feed);
     set("sel", "line-color", pal.ink);
     set("inner", "text-color", pal.ink); set("inner", "text-halo-color", pal.bg);
-    set("cities", "circle-color", atlasLens === "cases" ? pal.att[3] : atlasLens === "care" ? pal.arv : pal.seq[3]);
-    set("cities", "circle-opacity", atlasLens === "evidence" ? 0.18 : 0.72);
-    set("cities", "circle-stroke-width", atlasLens === "evidence" ? 2 : 1.5);
-    set("cities", "circle-stroke-color", atlasLens === "evidence" ? pal.ink : pal.bg); set("cities-l", "text-color", pal.ink); set("cities-l", "text-halo-color", pal.bg);
-    try { localStorage.setItem("sp.map.ground", ground); } catch { /* storage blocked */ }
+    set("cities", "circle-stroke-color", ["case", ["==", ["get", "one"], 1], KIND_COLOR, pal.bg]); set("cities-l", "text-color", pal.ink); set("cities-l", "text-halo-color", pal.bg);
+    try { localStorage.setItem("sp.atlas.ground", ground); } catch { /* storage blocked */ }
   }, [ground, pal, baseReady, mode, atlasLens, layersReady, pointStyle]);
 
   /* ââ what is drawn, for the mode, the time and the filters âââââââââ */
@@ -874,19 +877,19 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       const lat = typeof c.lat === "number" ? c.lat : geo?.lat;
       if (typeof lng !== "number" || typeof lat !== "number") return [];
       const n = atlasLens === "cases" ? c.open_cases ?? 0 : atlasLens === "care" ? mode === "arv" ? c.vaccinated ?? 0 : mode === "medical" ? c.needs_help ?? 0 : c.sterilised ?? 0 : atlasLens === "evidence" ? c.cells : c.animals;
-      return [{ type: "Feature" as const, properties: { name: c.city, n }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
+      return [{ type: "Feature" as const, properties: { name: c.city, n, k: kindOf(c.city, c.cells), one: c.cells <= 1 ? 1 : 0 }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
     });
     if (feats.length) src.setData({ type: "FeatureCollection", features: feats });
   }, [availableCities, ds, ready, layersReady, atlasLens, mode, indiaOverview]);
 
   const padding = useCallback(() => {
     const w = el.current?.clientWidth ?? 1000;
-    return w > 1100 ? { top: 160, bottom: 150, left: 315, right: 350 } : w > 760 ? { top: 175, bottom: 140, left: 30, right: 310 } : { top: 165, bottom: 215, left: 25, right: 25 };
+    return w > 1100 ? { top: 60, bottom: 90, left: 470, right: 90 } : w > 760 ? { top: 60, bottom: 90, left: 410, right: 80 } : { top: 30, bottom: 250, left: 20, right: 20 };
   }, []);
   const camera = useCallback((s: Sel, instant = false) => {
     const map = mapRef.current; if (!map || !ds) return;
     const d = instant || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1000;
-    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: (el.current?.clientWidth ?? 0) > 900 ? { top: 150, bottom: 260, left: 60, right: 80 } : { top: 150, bottom: 215, left: 25, right: 25 }, duration: d });
+    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: (el.current?.clientWidth ?? 0) > 900 ? { top: 40, bottom: 70, left: 470, right: 70 } : { top: 20, bottom: 250, left: 15, right: 15 }, duration: d });
     else if (s.t === "city") map.fitBounds(ds.cities[s.city].box, { padding: padding(), duration: d, maxZoom: ds.cells.length <= 1 ? 10 : 13 });
     else if (s.t === "locality") map.fitBounds(boxOfRings(selCells.map((c) => ringOf(ds, c)), 0.01), { padding: padding(), duration: d, maxZoom: 14.2 });
     else if (s.t === "cell") map.flyTo({ center: [ds.centers[s.cell * 2], ds.centers[s.cell * 2 + 1]], zoom: Math.max(map.getZoom(), 14.2), duration: d, padding: padding() });
@@ -1221,112 +1224,135 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
      no register fan-out. Rich modes return automatically on the next load. */
   if (error && !ds) return <BoundedSpatialMap scope={scope} />;
 
+  const LENS_DEFS = [
+    { id: "animals", label: "Animals", mode: "animals", q: "Where are animals on the record?" },
+    { id: "care", label: "Care", mode: "abc", q: "Where is sterilisation and vaccination recorded — and where is it unknown?" },
+    { id: "cases", label: "Cases", mode: "cases", q: "Where are requests for help open, and how long have they waited?" },
+    { id: "evidence", label: "Evidence", mode: "coverage", q: "How well is each place known, and where is the record thin?" },
+  ] as const;
+  const lensNow = LENS_DEFS.find((l) => l.id === atlasLens)!;
+  const cityRow = availableCities.find((c) => c.city === datasetCity) ?? null;
+  const evidence = datasetCity ? cityEvidence(datasetCity, cityRow?.cells ?? ds?.cells.length ?? 0) : null;
+  const measure = (c: (typeof availableCities)[number]) => atlasLens === "cases" ? c.open_cases ?? 0 : atlasLens === "care" ? (mode === "arv" ? c.vaccinated ?? 0 : c.sterilised ?? 0) : atlasLens === "evidence" ? c.cells : c.animals;
+  const measureLabel = atlasLens === "cases" ? "Open cases" : atlasLens === "care" ? (mode === "arv" ? "Vaccination recorded" : "Sterilisation recorded") : atlasLens === "evidence" ? "Cells with records" : "Profiles";
+  const placeTitle = indiaOverview ? "India"
+    : !ds || !sel ? (datasetCity ?? params.get("city") ?? "Reading…")
+    : sel.t === "cell" ? (ds.cellLocality[sel.cell] >= 0 ? ds.localities[ds.cellLocality[sel.cell]] : "An unnamed cell")
+    : sel.t === "locality" ? ds.localities[sel.locality]
+    : sel.t === "empty" ? "A cell with no record"
+    : datasetCity ?? ds.cities[0]?.name ?? "City";
+  const rung = indiaOverview ? 0 : !sel || sel.t === "city" || sel.t === "india" ? 1 : 2;
+  const showInspector = !indiaOverview && ds && ix && sel && sel.t !== "india";
+  const railState = phone ? (sheet === "hidden" ? "peek" : sheet) : (sheet === "hidden" && railClosed ? "closed" : "open");
+
   return (
-    <div className={`sm atlas ${indiaOverview ? "atlas-india" : "atlas-city"} ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`} data-lens={atlasLens}>
-      <div className="sm-canvas" ref={el} />
+    <div className={`sm ax ${indiaOverview ? "is-india" : "is-city"} ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`} data-lens={atlasLens} data-rail={railState}>
+      <div className="sm-canvas ax-canvas" ref={el} />
       {mapError && ds && <LiveMapFallback ds={ds} stats={stats} paint={cellPaint} animals={animalPts} cases={casePts} mode={mode} pal={pal} />}
-      <h1 className="sys-sr">StrayPaw Living India Atlas: {def.label.toLowerCase()} — {def.q}</h1>
+      <h1 className="sys-sr">StrayPaw Living Atlas: {placeTitle}, {lensNow.label} — {lensNow.q}</h1>
 
-      {scope === "public" && indiaOverview && <AtlasRegister cities={availableCities} open={atlasOpen} onToggle={() => setAtlasOpen((v) => !v)} onCity={changeCity} municipal={surface === "municipality"} />}
-      {scope === "public" && indiaOverview && availableCities.some((c) => c.city === "Delhi") && <AtlasEncounter city="Delhi" />}
+      <aside className="ax-rail" aria-label="Atlas">
+        {phone && <button type="button" className="ax-grip" aria-label={railState === "open" ? "Collapse the Atlas panel" : "Expand the Atlas panel"} aria-expanded={railState === "open"} onPointerDown={beginSheetDrag} onPointerUp={endSheetDrag} onPointerCancel={cancelSheetDrag} onClick={(e) => { if (e.detail === 0) setSheet(railState === "open" ? "peek" : "open"); }}><i aria-hidden /></button>}
+        <header className="ax-head">
+          <div className="ax-topline">
+            <nav className="ax-ladder" aria-label="Scale">
+              {scope === "public" ? <button type="button" aria-current={rung === 0 ? "true" : undefined} onClick={() => changeCity("__india")}>India</button> : <span>{scope === "org" ? "Your organisation" : "India"}</span>}
+              {!indiaOverview && <><span aria-hidden>/</span><button type="button" aria-current={rung === 1 ? "true" : undefined} onClick={() => ds && choose({ t: "city", city: Math.max(0, ds.cities.findIndex((c) => c.name === datasetCity)) })}>{datasetCity ?? params.get("city")}</button></>}
+              {rung === 2 && <><span aria-hidden>/</span><span aria-current="true">{sel?.t === "cell" || sel?.t === "empty" ? "Cell" : "Locality"}</span></>}
+            </nav>
+            {availableCities.length > 1 && (
+              <SearchSelect className="ax-city-find" icon="place" label="Go to a city" allLabel={scope === "public" ? "India overview" : "All cities"} emptyLabel="Go to a city" placeholder="Find a city"
+                options={availableCities.map((item) => ({ value: item.city, hint: item.state || undefined }))}
+                value="" onChange={(v) => changeCity(v || (scope === "public" ? "__india" : availableCities[0].city))} />
+            )}
+          </div>
+          <h2 className="ax-title">{placeTitle}</h2>
+          {indiaOverview
+            ? <p className="ax-char">The record, city by city — coloured by the kind of evidence each holds.</p>
+            : evidence && <p className="ax-char"><i style={{ background: KIND_META[kindOf(datasetCity!, cityRow?.cells ?? 0)].color }} aria-hidden /><b>{evidence.label}</b> · {evidence.precision}</p>}
 
-      <div className="atlas-topline"><span>{surface === "municipality" ? "Municipal intelligence" : scope === "org" ? "Organisation field atlas" : "The living atlas"}</span><span>{indiaOverview ? "INDIA / RECORDED EVIDENCE" : `${datasetCity ?? "Reading city"} / CITY INTELLIGENCE`}</span></div>
-      <div className="atlas-map-caption"><span className="atlas-map-key" /><span>{indiaOverview ? `City registers · ${atlasLens === "cases" ? "current open cases" : atlasLens === "care" ? mode === "arv" ? "profiles with vaccination recorded" : mode === "medical" ? "profiles flagged as needing help" : "profiles with sterilisation recorded" : atlasLens === "evidence" ? "cells with records, not population coverage" : "symbol size shows recorded profiles"}` : atlasLens === "animals" && mapZoom < 13 ? `Recorded profiles per cell · ${ground === "paper" ? "darker" : "lighter"} shade, more records` : "Public location cells · individual dots are schematic"}</span></div>
+          <div className="ax-lenses" role="group" aria-label="Lens">
+            {LENS_DEFS.map((item) => <button key={item.id} type="button" aria-pressed={atlasLens === item.id} onClick={() => { setMode(item.mode); setMoreOpen(false); if (phone && railState === "peek") setSheet("peek"); }}>{item.label}</button>)}
+          </div>
+          <p className="ax-q">{mode === "cases" ? lensDef.q : lensNow.q}</p>
+          {!indiaOverview && (
+            <div className="ax-repr">
+              <label>
+                <span className="sys-sr">{atlasLens === "cases" ? "Which cases" : "Representation"}</span>
+                {atlasLens === "cases"
+                  ? <select value={lens} onChange={(event) => setLens(event.target.value as CaseLens)}>{LENSES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
+                  : <select value={mode} onChange={(event) => setMode(event.target.value as AnyMode)}>{MODES.filter((item) => atlasLens === "care" ? ["abc", "arv", "medical"].includes(item.id) : atlasLens === "evidence" ? ["coverage", "activity", "change"].includes(item.id) : ["animals", "density"].includes(item.id)).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>}
+              </label>
+              <button type="button" className={`ax-filter-btn${nFilters ? " is-on" : ""}`} aria-expanded={filterOpen} onClick={() => setFilterOpen((v) => !v)}><SlidersHorizontal size={15} aria-hidden /> Time & filters{nFilters ? <b>{nFilters}</b> : null}</button>
+            </div>
+          )}
+        </header>
+
+        <div className="ax-body">
+          {indiaOverview && scope === "public" && <AtlasIndex cities={availableCities} onCity={changeCity} measure={measure} measureLabel={measureLabel} />}
+          {!indiaOverview && <div className="ax-legend-block">{legend}</div>}
+          {showInspector && (
+            <Inspector
+              ds={ds} ix={ix} sel={sel} t={t} scope={scope} next={ds.next}
+              intelligence={sel.t === "city" && cityRow ? <LensReadout city={cityRow} ds={ds} lens={atlasLens} municipal={surface === "municipality"} /> : undefined}
+              onSelect={choose} onClose={() => (sel.t === "city" ? (phone ? setSheet("peek") : setRailClosed(true)) : stepOut())}
+              onPickNext={(n: NextCell) => {
+                const ci = ds.cells.indexOf(n.cell);
+                if (ci >= 0) choose({ t: "cell", cell: ci }); else choose({ t: "empty", key: n.cell, city: n.city, center: n.center });
+              }}
+              compact={false} onExpand={() => setSheet("open")}
+              onMode={(x) => { setMode(x); setMoreOpen(false); }}
+              filters={eff} note={filterNote}
+              exact={unfiltered ? authByCell : undefined}
+            />
+          )}
+          {!indiaOverview && !showInspector && datasetCity && <CityEvidence city={datasetCity} cells={cityRow?.cells ?? ds?.cells.length ?? 0} municipal={surface === "municipality"} />}
+          {!indiaOverview && <p className="ax-fine">{unfiltered ? "Current cell totals come from the full register; individual dots are bounded detail." : "Filtered and historical views use bounded detail and never replace citywide totals."} Recorded animals and work — not a population estimate.</p>}
+        </div>
+      </aside>
+      {!phone && railState === "closed" && <button type="button" className="ax-rail-open" onClick={() => setRailClosed(false)}>Show the Atlas panel</button>}
+
+      <div className="ax-scale" aria-label="Map detail scale" data-zoom={mapZoom.toFixed(2)}>
+        {[{ label: "India", at: 7 }, { label: "City", at: 11 }, { label: "Cells", at: 15 }, { label: "Animals", at: Infinity }].map(({ label, at }, i) => (
+          <span key={label} className={mapZoom < at && (i === 0 || mapZoom >= [0, 7, 11, 15][i]) ? "is-on" : ""}>{label}</span>
+        ))}
+        <em>{indiaOverview ? `Size: ${measureLabel.toLowerCase()} · colour: kind of evidence` : (cityRow?.cells ?? 2) <= 1 ? "Every record here shares one city location — no street detail exists" : atlasLens === "animals" && mapZoom < 13 ? "Shade: recorded profiles per cell" : "Cells ≈ 0.7 km² · dots placed within their cell"}</em>
+      </div>
 
       {scope === "public" && indiaOverview && approachingCity && (
-        <aside className="sm-city-entry" aria-live="polite">
+        <aside className="ax-approach" aria-live="polite">
           <span>{approachingCity.state ?? "City register"}</span>
           <b>{approachingCity.city}</b>
-          <p>{approachingCity.animals.toLocaleString("en-IN")} recorded animals · {approachingCity.cells.toLocaleString("en-IN")} mapped cells</p>
-          <button type="button" onClick={() => changeCity(approachingCity.city)}>Open city data <ArrowUpRight size={14} /></button>
+          <p>{approachingCity.animals.toLocaleString("en-IN")} recorded profiles · {approachingCity.cells.toLocaleString("en-IN")} cells</p>
+          <button type="button" className="x-btn is-flame" onClick={() => changeCity(approachingCity.city)}>Enter {approachingCity.city} <ArrowUpRight size={15} /></button>
         </aside>
       )}
 
-      <div className="sm-scale" aria-label="Map detail scale" data-zoom={mapZoom.toFixed(2)}>
-        {[{ label: "India", at: 7 }, { label: "City", at: 11 }, { label: "Cells", at: 15 }, { label: "Dogs", at: Infinity }].map(({ label, at }, i) => (
-          <span key={label} className={mapZoom < at && (i === 0 || mapZoom >= [{ at: 0 }, { at: 7 }, { at: 11 }, { at: 15 }][i].at) ? "is-on" : ""}>{label}</span>
-        ))}
-      </div>
-
-      <div className="sm-top">
-        {availableCities.length > 1 && (
-          <SearchSelect className="sm-city-ss" icon="place" label="City" allLabel={scope === "public" ? "India overview" : "All cities"} emptyLabel={scope === "public" ? "India overview" : "All cities"} placeholder="Find a city"
-            options={availableCities.map((item) => ({ value: item.city, hint: item.state || undefined }))}
-            value={params.get("city") ? (datasetCity ?? "") : ""} onChange={(v) => changeCity(v || (scope === "public" ? "__india" : availableCities[0].city))} />
-        )}
-        <div className="atlas-lenses" role="group" aria-label="StrayPaw Lens">
-          {([{ id: "animals", label: "Animals", mode: "animals" }, { id: "care", label: "Care", mode: "abc" }, { id: "cases", label: "Cases", mode: "cases" }, { id: "evidence", label: "Evidence", mode: "coverage" }] as const).map((item, index) => <button key={item.id} type="button" aria-pressed={atlasLens === item.id} onClick={() => { setMode(item.mode); setMoreOpen(false); }}><small>0{index + 1}</small>{item.label}</button>)}
-        </div>
-        <div className="atlas-specialist">
-          <label className="bare-field"><span>{atlasLens === "care" ? "Recorded care" : atlasLens === "evidence" ? "Evidence view" : atlasLens === "cases" ? "Case view" : "Representation"}</span>
-            {atlasLens === "cases" ? <select aria-label="Case view" value={lens} onChange={(event) => setLens(event.target.value as CaseLens)}>{LENSES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select> : <select aria-label="Map representation" value={mode} onChange={(event) => setMode(event.target.value as AnyMode)}>{MODES.filter((item) => atlasLens === "care" ? ["abc", "arv", "medical"].includes(item.id) : atlasLens === "evidence" ? ["coverage", "activity", "change"].includes(item.id) : ["animals", "density"].includes(item.id)).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>}
-          </label>
-          <button type="button" aria-label="Open map tools and filters" aria-expanded={phoneControlsOpen} onClick={() => { setPhoneControlsOpen((v) => !v); if (!phone) setFilterOpen((v) => !v); }}><SlidersHorizontal size={16} /></button>
-        </div>
-        <div className={`sm-mobile-controls ${phoneControlsOpen ? "is-open" : ""}`}>
-        <div className="sm-modes atlas-legacy-modes" role="group" aria-label="Specialist map modes" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
-          {MODES.filter((x) => primaryModes.includes(x.id)).map((x) => (
-            <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); setPhoneControlsOpen(false); }}>
-              {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases · ${lensDef.label}` : x.label}
-            </button>
-          ))}
-          <button type="button" className={`sm-modes-more ${primaryModes.includes(mode) ? "" : "is-on"}`} aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
-            {primaryModes.includes(mode) ? "More" : def.label}<ChevronDown size={14} aria-hidden />
-          </button>
-        </div>
-        {moreOpen && (
-          <div className="sm-modes sm-modes-menu" role="group" aria-label="More map modes">
-            {MODES.filter((x) => !primaryModes.includes(x.id)).map((x) => (
-              <button key={x.id} type="button" aria-pressed={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); setPhoneControlsOpen(false); }}>{x.label}</button>
-            ))}
-          </div>
-        )}
-        <div className="sm-q" aria-live="polite">
-          <p className="sm-q-kicker">{surface === "municipality" ? "Municipal command" : "Reading the record"} / {def.label}</p>
-          <h2>{mode === "cases" ? lensDef.q : def.q}</h2>
-          <details className="sm-q-details">
-            <summary>How to read this view</summary>
-            <div>{legend}<p className="sm-note">{unfiltered ? "Current cell totals use the full register. Individual dots remain bounded detail for performance." : "Filtered and historical views use bounded detailed records and never replace the current citywide totals."} Recorded animals and work, not a population estimate.</p></div>
-          </details>
-        </div>
-        {phone && <div className="sm-mobile-actions" aria-label="Map tools">
-          <button type="button" onClick={() => { setFilterOpen((v) => !v); }} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""}><SlidersHorizontal size={16} />Filters{nFilters ? <b>{nFilters}</b> : null}</button>
-          <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""}><Hexagon size={16} />Grid</button>
-          <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))}><Layers size={16} />{ground === "night" ? "Day" : "Night"}</button>
-          <button type="button" onClick={locate}><Crosshair size={16} />Locate</button>
-        </div>}
-        </div>
-      </div>
-
-      {<div className="sm-tools">
+      <div className="ax-tools" role="group" aria-label="Map tools">
         <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomIn({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom in" title="Zoom in"><Plus size={18} /></button>
         <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomOut({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom out" title="Zoom out"><Minus size={18} /></button>
-        <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label={nFilters ? `Filters, ${nFilters} on` : "Filters"}><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
-        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={16} /></button>
-        <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the paper ground, for daylight" : "Switch to the night ground"}><Layers size={16} /></button>
-        <button type="button" onClick={locate} aria-label="Go to where I am"><Crosshair size={16} /></button>
-      </div>}
+        <span className="ax-tools-gap" aria-hidden />
+        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={17} /></button>
+        <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the daylight ground" : "Switch to the night ground"} title={ground === "night" ? "Daylight ground" : "Night ground"}><Layers size={17} /></button>
+        <button type="button" onClick={locate} aria-label="Go to where I am" title="Go to where I am"><Crosshair size={17} /></button>
+      </div>
 
       {filterOpen && (
-        <div className="sm-filter bare-field" role="dialog" aria-label="Filters">
-          <div className="sm-filter-head">
-            <b>Filters</b>
-            {nFilters > 0 && <button type="button" className="sm-filter-reset" onClick={() => { setFilters(NO_FILTERS); setLens("open"); }}>Reset</button>}
-            <button type="button" className="sm-filter-x" onClick={() => setFilterOpen(false)} aria-label="Close filters"><X size={16} /></button>
+        <div className="ax-filter" role="dialog" aria-label="Time and filters">
+          <div className="ax-filter-head">
+            <b>Time & filters</b>
+            {nFilters > 0 && <button type="button" className="x-btn is-ghost" onClick={() => { setFilters(NO_FILTERS); setLens("open"); }}>Reset</button>}
+            <button type="button" className="ax-x" onClick={() => setFilterOpen(false)} aria-label="Close filters"><X size={18} /></button>
           </div>
           {ds && series.length > 1 && (
-            <Timeline series={series} m0={m0} m={m} onChange={(x) => { setPlaying(false); setMonth(x); }} playing={playing} onPlay={play} night={ground === "night"} />
+            <Timeline series={series} m0={m0} m={m} onChange={(x) => { setPlaying(false); setMonth(x); }} playing={playing} onPlay={play} night={false} />
           )}
           {mode === "cases" && (
-            <div className="sm-filter-pair">
-              <label className="sm-filter-row">
-                <span>Show</span>
-                <select value={lens} onChange={(e) => setLens(e.target.value as CaseLens)}>
-                  {LENSES.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
-                </select>
+            <div className="ax-filter-pair">
+              <label className="ax-filter-row"><span>Show</span>
+                <select value={lens} onChange={(e) => setLens(e.target.value as CaseLens)}>{LENSES.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select>
               </label>
-              <label className="sm-filter-row">
-                <span>Condition</span>
+              <label className="ax-filter-row"><span>Condition</span>
                 <select value={filters.condition} onChange={(e) => setFilters({ ...filters, condition: Number(e.target.value) })}>
                   <option value={-1}>Any</option>
                   {CONDITIONS.map((c, i) => <option key={c} value={i}>{c}</option>)}
@@ -1336,48 +1362,24 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
           )}
           {applies.includes("source") && <FilterRow label="Recorded by" value={filters.source} options={SOURCE_OPTS} onChange={(v) => setFilters({ ...filters, source: v as Filters["source"] })} />}
           {applies.includes("seen") && <FilterRow label="Seen" value={filters.seen} options={SEEN_OPTS} onChange={(v) => setFilters({ ...filters, seen: v as Filters["seen"] })} />}
-          {!applies.length && <p className="sm-note">{def.label} is read from every record; only the date changes it.</p>}
-          <div className="sm-filter-key">
-            {legend}
-            <p className="sm-note">Recorded animals, not population.</p>
-          </div>
+          {!applies.length && <p className="ax-fine">{def.label} is read from every record; only the date changes it.</p>}
         </div>
       )}
 
       {mode === "cases" && lensCounts && !lensCounts.some((x) => x > 0) && !filterOpen && (
-        <p className="sm-hint" role="status">No {lensDef.label.toLowerCase()} cases{eff.condition >= 0 ? ` for ${CONDITIONS[eff.condition]}` : ""} as of {monthLabel(m)}</p>
+        <p className="ax-hint" role="status">No {lensDef.label.toLowerCase()} cases{eff.condition >= 0 ? ` for ${CONDITIONS[eff.condition]}` : ""} as of {monthLabel(m)}</p>
       )}
 
-      {hover && <div className="sm-hover" style={{ left: hover.x + 14, top: hover.y + 14 }}>{hover.text}</div>}
-
-      {!indiaOverview && ds && ix && sel && sheet === "hidden" && <button className="atlas-reopen" type="button" onClick={() => setSheet("peek")}>Read this place <ChevronDown size={16} /></button>}
-      {!indiaOverview && datasetCity && sheet !== "open" && <div className="atlas-place-evidence"><CityEvidence city={datasetCity} cells={ds?.cells.length ?? 0} municipal={surface === "municipality"} /></div>}
-      {!indiaOverview && ds && ix && sel && sheet !== "hidden" && !(phone && filterOpen) && (
-        <div className={`sm-sheet ${sheet === "peek" ? "is-peek" : "is-open"}`}>
-          {phone && <button type="button" className="sm-sheet-grip" aria-label={sheet === "peek" ? "Expand place details" : "Collapse place details"} onPointerDown={beginSheetDrag} onPointerUp={endSheetDrag} onPointerCancel={cancelSheetDrag}><i aria-hidden /></button>}
-          <Inspector
-            ds={ds} ix={ix} sel={sel} t={t} scope={scope} next={ds.next}
-            intelligence={sel.t === "city" && availableCities.find((c) => c.city === datasetCity) ? <LensReadout city={availableCities.find((c) => c.city === datasetCity)!} ds={ds} lens={atlasLens} municipal={surface === "municipality"} /> : undefined}
-            onSelect={choose} onClose={() => (sel.t === "city" || sel.t === "india" ? setSheet("hidden") : stepOut())}
-            onPickNext={(n: NextCell) => {
-              const ci = ds.cells.indexOf(n.cell);
-              if (ci >= 0) choose({ t: "cell", cell: ci }); else choose({ t: "empty", key: n.cell, city: n.city, center: n.center });
-            }}
-            compact={sheet === "peek"} onExpand={() => setSheet("open")}
-            onMode={(x) => { setMode(x); setMoreOpen(false); }}
-            filters={eff} note={filterNote}
-            exact={unfiltered ? authByCell : undefined}
-          />
-        </div>
-      )}
+      {hover && <div className="ax-hover" style={{ left: hover.x + 14, top: hover.y + 14 }}>{hover.text}</div>}
 
       <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals" && (ds?.cells.length ?? 0) > 1} pick={dotPick} />
 
-      {loading && <div className="sm-state" role="status"><span>Reading the register…</span></div>}
-      {(error || mapError) && <div className="sm-state" role="status"><span>{error ?? mapError}</span></div>}
+      {loading && <div className="ax-state" role="status"><span className="ax-spin" aria-hidden />{indiaOverview ? "Reading the national index…" : `Reading ${params.get("city") ?? "the city"}'s record…`}</div>}
+      {(error || mapError) && <div className="ax-state is-err" role="status">{error ?? mapError}</div>}
     </div>
   );
 }
+
 
 function FilterRow({ label, value, options, onChange }: { label: string; value: string; options: [string, string][]; onChange: (v: string) => void }) {
   return (

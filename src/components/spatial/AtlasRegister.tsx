@@ -53,3 +53,64 @@ export function CityEvidence({ city, cells, municipal }: { city: string; cells: 
     <div><b>{source.precision}</b><p>{source.note}</p>{municipal && <p>Cells are analysis areas, not ward boundaries. Programme coverage needs a compatible population denominator.</p>}</div>
   </div>;
 }
+
+/* ── source-aware India ──────────────────────────────────────────────
+   The thirty-odd city registers are not one kind of evidence. A clinical
+   programme's archive, a GPS vaccination campaign, a rescue line's
+   requests and a handful of photographed observations answer different
+   questions, so at national scale the Atlas colours each city by the KIND
+   of record it holds, and sizes it by the measure the Lens asks about. */
+export type EvidenceKind = "clinical" | "campaign" | "rescue" | "photo" | "register";
+export const KIND_META: Record<EvidenceKind, { label: string; color: string; reads: string }> = {
+  rescue: { label: "Rescue & care", color: "#f26c52", reads: "Requests for help, treatment and outcomes" },
+  campaign: { label: "Vaccination campaign", color: "#66c5d5", reads: "Where a campaign worked, with source GPS" },
+  clinical: { label: "Clinical register", color: "#93b1f0", reads: "A programme archive at city level only" },
+  photo: { label: "Photo observations", color: "#e3b35b", reads: "Individual animals, photographed" },
+  register: { label: "Place registers", color: "#c9cfdb", reads: "Smaller lists of recorded animals" },
+};
+export function kindOf(city: string, cells: number): EvidenceKind {
+  const label = cityEvidence(city, cells).label;
+  if (label === "Clinical register") return "clinical";
+  if (label === "Vaccination campaign") return "campaign";
+  if (label === "Rescue & care" || label === "Rescue register") return "rescue";
+  if (label === "Photo observations" || city === "Delhi") return "photo";
+  return "register";
+}
+
+export function AtlasIndex({ cities, onCity, measure, measureLabel }: {
+  cities: SpatialCity[]; onCity: (city: string) => void;
+  measure: (c: SpatialCity) => number; measureLabel: string;
+}) {
+  const total = cities.reduce((sum, c) => sum + c.animals, 0);
+  const ordered = [...cities].sort((a, b) => measure(b) - measure(a) || b.animals - a.animals);
+  const max = Math.max(1, ...ordered.map(measure));
+  const kinds = (Object.keys(KIND_META) as EvidenceKind[]).map((k) => ({ k, n: cities.filter((c) => kindOf(c.city, c.cells) === k).length })).filter((x) => x.n > 0);
+  return (
+    <div className="ax-index">
+      <div className="ax-total">
+        <b className="x-num">{cities.length ? number(total) : "—"}</b>
+        <span>animal profiles recorded across <b>{cities.length || "—"}</b> city registers. Records, not a population — and not one kind of record.</span>
+      </div>
+      <ul className="ax-kinds" aria-label="Kinds of evidence">
+        {kinds.map(({ k, n }) => <li key={k}><i style={{ background: KIND_META[k].color }} aria-hidden /><span><b>{KIND_META[k].label}</b><small>{KIND_META[k].reads} · {n} {n === 1 ? "city" : "cities"}</small></span></li>)}
+      </ul>
+      <div className="ax-index-head"><span>City register</span><span>{measureLabel}</span></div>
+      <ol className="ax-cities">
+        {ordered.map((c) => {
+          const k = kindOf(c.city, c.cells);
+          const v = measure(c);
+          return (
+            <li key={c.city}>
+              <button type="button" onClick={() => onCity(c.city)}>
+                <i className={`ax-kind-dot${c.cells <= 1 ? " is-one" : ""}`} style={{ ["--k" as string]: KIND_META[k].color }} aria-hidden />
+                <span className="ax-city-t"><b>{c.city}</b><small>{KIND_META[k].label}{c.cells <= 1 ? " · one location" : ` · ${number(c.cells)} cells`}</small></span>
+                <span className="ax-city-v"><b className="x-num">{number(v)}</b><span className="ax-bar" aria-hidden><span style={{ width: `${Math.max(2, Math.sqrt(v / max) * 100)}%`, background: KIND_META[k].color }} /></span></span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="ax-fine">Bars use a square-root scale so small registers stay visible. Hollow marks hold every record at one shared city location.</p>
+    </div>
+  );
+}
