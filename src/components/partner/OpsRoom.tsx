@@ -40,16 +40,19 @@ import { dueFollowups, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrd
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { NGO } from "@/lib/types";
 import "./ops.css";
+import "./today.css";
 
 const DAY = 86_400_000;
 const num = (n: number) => n.toLocaleString("en-IN");
 const ageDays = (iso: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / DAY)) : 0);
-const ago = (iso: string | null) => { const d = ageDays(iso); return d < 1 ? "today" : d === 1 ? "yesterday" : d < 31 ? `${d} days` : d < 365 ? `${Math.round(d / 30)} months` : `${(d / 365).toFixed(1)} years`; };
+const ago = (iso: string | null) => { const d = ageDays(iso); if (d < 1) return "today"; if (d === 1) return "1 day"; if (d < 31) return `${d} days`; if (d < 365) { const m = Math.round(d / 30); return `${m} month${m === 1 ? "" : "s"}`; } return `${(d / 365).toFixed(1)} years`; };
 /* Imported animals are named "Dog · <locality> · <month>", so the place is
    printed once, not twice. */
 const who = (c?: OpenCase) => {
   if (!c) return "";
-  const name = (c.animal_name ?? "").trim(), place = (c.zone ?? "").trim();
+  /* A generated label ("Dog · Place · Month") is not a name; say the place once. */
+  const raw = (c.animal_name ?? "").trim(), place = (c.zone ?? "").trim();
+  const name = /·/.test(raw) ? "" : raw;
   return [name, place && !name.toLowerCase().includes(place.toLowerCase()) ? place : "", c.case_code].filter(Boolean).join(" · ");
 };
 const critical = (c: { condition_class: string | null }) => DEFAULT_TRIAGE[(c.condition_class ?? "Not recorded") as Condition] === "Critical";
@@ -72,12 +75,13 @@ export function OpsRoom() {
   const [cell, setCell] = useState<string | null>(null);
   const [hot, setHot] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [queueRows, setQueueRows] = useState(8);
+  const [queueRows, setQueueRows] = useState(10);
+  const [focus, setFocus] = useState<"all" | "critical" | "followup">("all");
 
   useEffect(() => { setToday(new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })); }, []);
   useEffect(() => {
     const phone = window.matchMedia("(max-width: 640px)");
-    const apply = () => setQueueRows(phone.matches ? 5 : 8);
+    const apply = () => setQueueRows(phone.matches ? 6 : 10);
     apply(); phone.addEventListener("change", apply);
     return () => phone.removeEventListener("change", apply);
   }, []);
@@ -151,146 +155,140 @@ export function OpsRoom() {
   const working = isMember && !blank && !loading;
   const place = workMap && workMap.name !== "all open work" ? workMap.name : org?.city ?? null;
 
-  return (
-    <main className="ops ops-desk">
-      <header className="ops-masthead">
-        <div className="ops-masthead-meta"><span>StrayPaw / Operations register</span><span>{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</span></div>
-        <div className="ops-masthead-title"><div><h1>Field operations<span>.</span></h1><p>{signedOut ? "The working record for the people who respond." : blank ? "Begin with the records your team already keeps." : "Live work, geographic context, and the next decision."}</p></div><div className="ops-masthead-actions"><Link href="/partner/cases/new"><Plus size={16} />New rescue case</Link><Link href="/partner/records"><Search size={16} />Find a record</Link></div></div>
-      </header>
-      <div className="ops-workbench">
-        <nav className="ops-flow" aria-label="Operational workflows">
-          <Link href="/partner/records?view=rescue"><span>01 / Live work</span>{working || loading ? <b>{loading ? "—" : num(live)}{crit ? <small> · {num(crit)} critical</small> : null}</b> : <b>Open the queue <ArrowUpRight size={15} /></b>}</Link>
-          <Link href="/partner/records?view=overdue"><span>02 / Follow-ups</span><b>{working || loading ? loading ? "—" : `${num(overdue)} overdue` : "Review the schedule"}</b></Link>
-          <Link href="/partner/review"><span>03 / Case review</span><b>{working || loading ? loading ? "—" : `${num(stale)} older cases` : "Resolve the record"}</b></Link>
-          <Link href="/partner/import"><span>04 / Source records</span><b>Import a workbook <ArrowUpRight size={15} /></b></Link>
-        </nav>
-      <div className="ops-workcontents">
+  const summary = loading ? null : signedOut ? null : blank ? "Nothing is open. Start from the records you already keep." : null;
+  const filtered = shown.filter((q) => focus === "all" ? true : focus === "critical" ? q.crit : q.kind === "followup");
 
-      {loadError && <p role="alert" className="ops-alert">The organisation record could not be read. Reload to try again; nothing has been changed.</p>}
+  return (
+    <main className="td">
+      <header className="td-head x-wrap">
+        <div className="td-head-copy">
+          <p className="x-kicker">{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</p>
+          <h1 className="x-h1">Today</h1>
+          {working ? (
+            <p className="td-sum" aria-live="polite">
+              <span><b className="x-num">{num(live)}</b> live case{live === 1 ? "" : "s"}</span>
+              <span className={crit ? "is-hot" : ""}><b className="x-num">{num(crit)}</b> critical</span>
+              <span className={overdue ? "is-hot" : ""}><b className="x-num">{num(overdue)}</b> follow-up{overdue === 1 ? "" : "s"} overdue</span>
+              <span><b className="x-num">{num(stale)}</b> older case{stale === 1 ? "" : "s"} waiting on a decision</span>
+            </p>
+          ) : <p className="x-lede">{summary ?? (loading ? "Reading your organisation's record…" : "The working record for the people who respond: what needs someone, where it is, and what happened.")}</p>}
+        </div>
+        <div className="td-head-do">
+          <Link href="/partner/cases/new" className="x-btn is-flame"><Plus size={16} aria-hidden /> New case</Link>
+          <Link href="/partner/records" className="x-btn"><Search size={16} aria-hidden /> Find a record</Link>
+        </div>
+      </header>
+
+      {loadError && <p role="alert" className="td-alert x-wrap">The organisation record could not be read. Reload to try again — nothing has been changed.</p>}
 
       {!loadError && (blank || signedOut) && (
-        <section className="ops-setup dk-sheet">
-          <div>
-            <p className="dk-kicker">{signedOut ? "Members only" : "Day one"}</p>
-            <h2>{signedOut ? "Sign in to open your organisation’s record." : "Start with the records you already keep."}</h2>
-            <p>{signedOut
-              ? "Anyone can look around the Field Workspace. The records themselves load only for members of the organisation that keeps them."
-              : "Import an existing workbook, open your first rescue case, or add an animal directly. StrayPaw keeps your own source IDs and builds a permanent animal identity underneath them."}</p>
+        <section className="td-start x-wrap" aria-labelledby="td-start-h">
+          <div className="td-start-card x-night">
+            <p className="x-kicker">{signedOut ? "Members only" : "Day one"}</p>
+            <h2 id="td-start-h" className="x-h2">{signedOut ? <>Your organisation&apos;s record opens <em>after you sign in</em></> : <>Start with the records <em>you already keep</em></>}</h2>
+            <p className="x-lede">{signedOut
+              ? "Anyone can look around the workspace. Cases, animals and locations load only for members of the organisation that keeps them — they never reach this page otherwise."
+              : "Import the workbook your team already uses, open your first rescue case, or add an animal directly. StrayPaw keeps your own source IDs and builds a lasting identity underneath them."}</p>
+            <div className="td-start-do">
+              {signedOut && !user ? <>
+                <Link href="/join" className="x-btn is-flame">Sign in with your code</Link>
+                <Link href="/partner-apply" className="x-btn">Apply to partner</Link>
+              </> : signedOut ? <Link href="/partner-apply" className="x-btn is-flame">Apply to partner</Link> : <>
+                <Link href="/partner/import" className="x-btn is-flame">Import a workbook</Link>
+                <Link href="/partner/cases/new" className="x-btn">Open a rescue case</Link>
+              </>}
+            </div>
           </div>
-          <div className="ops-setup-actions">
-            {signedOut && !user ? (
-              <>
-                <Link href="/join" className="dk-btn">Sign in with your code</Link>
-                <Link href="/partner-apply" className="dk-btn is-tint">Apply to partner</Link>
-              </>
-            ) : signedOut ? (
-              <Link href="/partner-apply" className="dk-btn">Apply to partner</Link>
-            ) : (
-              <>
-                <Link href="/partner/import" className="dk-btn">Import workbook</Link>
-                <Link href="/partner/cases/new" className="dk-btn is-tint">New rescue case</Link>
-              </>
-            )}
-          </div>
+          <ol className="td-flow" aria-label="How the workspace is organised">
+            <li><b>1 · The queue</b><p>Live cases and overdue follow-ups, critical conditions first. Months-old cases with no activity are kept out of it and sent to review instead.</p></li>
+            <li><b>2 · The record</b><p>Every case opens into the animal it concerns, its history, care and follow-ups — one identity across every source your team imported.</p></li>
+            <li><b>3 · The action</b><p>Assign, record treatment, schedule the follow-up or close with a reason. The map and reports update from what you record.</p></li>
+          </ol>
         </section>
       )}
 
-      {/* The desk: the queue beside where the queue is. */}
-      <section className="ops-board dk-panel" aria-label="Today’s operations">
-        <div className="ops-board-bar">
-          <b>The working ledger</b>
-          <span className="ops-board-place sys-mono">{place ?? "Your area"}</span>
-          {today && <span className="ops-board-clock"><i aria-hidden />{today}</span>}
-        </div>
-        <div className="ops-board-body">
-          <div className="ops-queue">
-            <p className="ops-eyebrow"><span>The queue{cell ? " · one cell" : ""}</span><Link href="/partner/records">All records <ArrowUpRight size={12} /></Link></p>
-            {cell && <button type="button" className="ops-chip" onClick={() => setCell(null)}>Showing one cell <X size={13} /></button>}
-            <div className="ops-ledger-head" aria-hidden><span>Record / locality</span><span>Priority</span><span>Waiting</span></div>
+      {(working || loading) && (
+        <section className="td-desk x-wrap" aria-label="The queue and where it is">
+          <div className="td-queue">
+            <div className="td-queue-head">
+              <h2 className="x-h3">Needs someone</h2>
+              <div className="x-chips" role="group" aria-label="Show">
+                <button type="button" className="x-chip" aria-pressed={focus === "all"} onClick={() => setFocus("all")}>All <b>{loading ? "—" : num(shown.length)}</b></button>
+                <button type="button" className="x-chip" aria-pressed={focus === "critical"} onClick={() => setFocus("critical")}>Critical <b>{loading ? "—" : num(shown.filter((q) => q.crit).length)}</b></button>
+                <button type="button" className="x-chip" aria-pressed={focus === "followup"} onClick={() => setFocus("followup")}>Overdue follow-ups <b>{loading ? "—" : num(shown.filter((q) => q.kind === "followup").length)}</b></button>
+                {cell && <button type="button" className="x-chip is-on" onClick={() => setCell(null)}>One cell <X size={14} aria-hidden /></button>}
+              </div>
+            </div>
             {loading ? (
-              <ol className="ops-list is-loading" aria-label="Loading the queue">{[0, 1, 2, 3, 4].map((i) => <li key={i}><span /></li>)}</ol>
-            ) : shown.length === 0 ? (
-              <p className="ops-empty">{signedOut ? "Your organisation’s live work appears here." : blank ? "Nothing is queued yet. The first case you open appears here." : cell ? "Nothing live in this cell." : "No live case and nothing overdue. This is the state you want."}</p>
+              <ol className="td-rows is-loading" aria-label="Loading the queue">{[0, 1, 2, 3, 4].map((i) => <li key={i}><span className="x-skel" /></li>)}</ol>
+            ) : filtered.length === 0 ? (
+              <p className="td-empty">{cell ? "Nothing live in this cell." : focus !== "all" ? "Nothing in this view." : "No live case and nothing overdue. This is the state you want."}</p>
             ) : (
-              <ol className="ops-list">
-                {shown.slice(0, queueRows).map((q, i) => {
+              <ol className="td-rows">
+                {filtered.slice(0, queueRows).map((q) => {
                   const c = q.c, f = q.f;
                   const href = c ? `/partner/cases/${c.id}` : f?.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/records?view=overdue";
                   return (
-                    <li key={q.key} style={{ ["--i" as string]: i }} onPointerEnter={() => setHot(q.cell)} onPointerLeave={() => setHot(null)}>
+                    <li key={q.key} onPointerEnter={() => setHot(q.cell)} onPointerLeave={() => setHot(null)} className={q.crit ? "is-crit" : q.kind === "followup" ? "is-due" : ""}>
                       <Link href={href} onFocus={() => setHot(q.cell)} onBlur={() => setHot(null)}>
-                        <i className={`ops-mark ${q.kind === "followup" ? "is-due" : q.crit ? "is-crit" : ""}`} aria-hidden />
-                        <span className="ops-what">
+                        <span className="td-tri" aria-hidden />
+                        <span className="td-what">
                           <b>{q.kind === "followup" ? "Follow-up overdue" : c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c?.title || "Open case"}</b>
                           <small>{who(c) || (f?.kind && !/^imported/i.test(f.kind) ? f.kind.replace(/_/g, " ") : f?.dog_id ? "An animal's review" : "From the imported register")}</small>
                         </span>
-                        <span className={`ops-priority ${q.crit ? "is-critical" : ""}`}>{q.kind === "followup" ? "Overdue" : q.crit ? "Critical" : "Open case"}</span>
-                        <span className="ops-age">
-                          <i style={{ width: `${Math.min(100, (q.age / 90) * 100)}%` }} className={q.age > 30 ? "is-long" : ""} aria-hidden />
-                          <small>{q.kind === "followup" ? `due ${ago(f!.due_at)} ago` : `${STATUS_META[(c?.status_class ?? "open") as StatusClass]?.short ?? "Open"} · ${ago(c?.occurred_at ?? null)}`}</small>
-                        </span>
+                        <span className={`x-state ${q.crit ? "is-hot" : q.kind === "followup" ? "is-hot" : "is-open"}`}>{q.kind === "followup" ? "Overdue" : q.crit ? "Critical" : STATUS_META[(c?.status_class ?? "open") as StatusClass]?.short ?? "Open"}</span>
+                        <span className="td-age"><b className="x-num">{q.kind === "followup" ? ago(f!.due_at) : ago(c?.occurred_at ?? null)}</b><small>{q.kind === "followup" ? "overdue" : "waiting"}</small></span>
                       </Link>
                     </li>
                   );
                 })}
               </ol>
             )}
-            {shown.length > queueRows && <Link href="/partner/records?view=rescue" className="ops-more">{num(shown.length - queueRows)} more in the queue <ArrowUpRight size={13} /></Link>}
+            {filtered.length > queueRows && <Link href="/partner/records?view=rescue" className="x-link">{num(filtered.length - queueRows)} more in the full register <ArrowUpRight size={14} aria-hidden /></Link>}
           </div>
 
-          <div className="ops-geo">
-            <p className="ops-eyebrow">
-              <span>Where it is{workMap ? ` · ${workMap.name}` : ""}</span>
-              <Link href="/partner/map?mode=cases">Field map <ArrowUpRight size={12} /></Link>
-            </p>
-            <div className="ops-map">
+          <div className="td-geo">
+            <div className="td-geo-head"><h2 className="x-h3">Where it is{workMap ? <span className="x-small"> · {workMap.name}</span> : null}</h2><Link href="/partner/map?mode=cases" className="x-link">Field map <ArrowUpRight size={14} aria-hidden /></Link></div>
+            <div className="td-map">
               {workMap ? (
-                <>
-                  <OpsStreetMap spots={workMap.spots} box={workMap.box} selected={cell ?? hot}
-                    label={`Open work on the streets of ${workMap.name}`} onSpot={(k) => setCell((x) => (x === k ? null : k))} />
-                  <p className="ops-map-key"><i className="is-dot" /> live cases <i className="is-ring" /> only older cases <span>· tap a point to narrow the queue</span></p>
-                </>
-              ) : <p className="ops-map-empty">{signedOut ? "Sign in with your organisation’s code to see where your open work is." : loading ? "Placing the open work…" : "Open work appears here by cell once a case carries a location."}</p>}
+                <OpsStreetMap spots={workMap.spots} box={workMap.box} selected={cell ?? hot} label={`Open work on the streets of ${workMap.name}`} onSpot={(k) => setCell((x) => (x === k ? null : k))} />
+              ) : <p className="td-map-empty">{loading ? "Placing the open work…" : "Open work appears here by cell once a case carries a location."}</p>}
             </div>
+            {workMap && <p className="td-key"><i className="is-dot" /> live cases <i className="is-ring" /> only older cases · choose a point to narrow the queue</p>}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <div className="ops-lower">
-        {/* Tasks and the one decision waiting sit together, beside what changed,
-            so neither column runs on alone. */}
-        {(isMember || (working && stale > 0)) && (
-          <div className="ops-lower-side">
-            {isMember && <section className="dk-section ops-tasks" aria-label="Tasks"><TasksSection compact /></section>}
-            {isMember && <section className="dk-section ops-tasks" aria-label="Camps coming up"><CampsSection compact /></section>}
-            {working && stale > 0 && (
-              <div className="ops-decide">
-                <b>{num(stale)}</b>
-                <p>Cases open for months with nothing recorded. A person decides what happened to each.</p>
-                <Link href="/partner/review" className="dk-btn is-tint">Review them</Link>
-              </div>
-            )}
+      {working && (
+        <section className="td-lower x-wrap" aria-label="Decisions, plans and what changed">
+          {stale > 0 && (
+            <div className="td-decide">
+              <b className="x-num">{num(stale)}</b>
+              <div><h2 className="x-h3">cases wait on a decision</h2><p>Open for months with nothing recorded. They are kept out of the queue; a person decides what happened to each — usually from the imported register.</p></div>
+              <Link href="/partner/review" className="x-btn is-ink">Review them</Link>
+            </div>
+          )}
+          <div className="td-plan">
+            <section className="td-panel" aria-label="Tasks"><TasksSection compact /></section>
+            <section className="td-panel" aria-label="Camps coming up"><CampsSection compact /></section>
           </div>
-        )}
-
-        {working && (
-          <section className="dk-section" aria-label="Recent changes">
-            <div className="dk-section-head"><h2>What changed</h2><Link href="/partner/records" className="dk-btn is-plain">Record <ArrowUpRight size={13} /></Link></div>
+          <section className="td-panel td-changes" aria-labelledby="td-ch">
+            <div className="td-geo-head"><h2 id="td-ch" className="x-h3">What changed</h2><Link href="/partner/records" className="x-link">Register <ArrowUpRight size={14} aria-hidden /></Link></div>
             {changes.length ? (
-              <ol className="ops-changes">
-                {changes.slice(0, 5).map((c) => (
-                  <li key={c.id}><Link href={`/partner/cases/${c.id}`}>
+              <ol className="x-rows">
+                {changes.slice(0, 6).map((c) => (
+                  <li key={c.id}><Link className="x-row td-change" href={`/partner/cases/${c.id}`}>
+                    <span className="x-state is-done" aria-hidden />
                     <span><b>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Case"}</b>
-                      <small>{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label}{c.closure_reason ? ` · ${CLOSURE_SHORT[c.closure_reason] ?? c.closure_reason}` : ""}{c.zone ? ` · ${c.zone}` : ""}</small></span>
-                    <em>{ago(c.last_activity_at)}</em>
+                      <small className="x-small">{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label}{c.closure_reason ? ` · ${CLOSURE_SHORT[c.closure_reason] ?? c.closure_reason}` : ""}{c.zone ? ` · ${c.zone}` : ""}</small></span>
+                    <em>{ago(c.last_activity_at)} ago</em>
                   </Link></li>
                 ))}
               </ol>
-            ) : <p className="ops-empty">Closed cases and recorded outcomes show here.</p>}
+            ) : <p className="td-empty">Closed cases and recorded outcomes show here.</p>}
           </section>
-        )}
-      </div>
-      </div></div>
+        </section>
+      )}
     </main>
   );
 }

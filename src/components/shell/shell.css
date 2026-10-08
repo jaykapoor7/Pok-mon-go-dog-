@@ -365,3 +365,9 @@ a.x-row:hover { background: rgba(11, 30, 61, 0.035); }
 .at-s .at-plate, .at-s .at-photo { aspect-ratio: 4 / 3; }
 .at-s .at-place { font-size: clamp(22px, 2vw, 28px); }
 @media (max-width: 760px) { .at-s .at-plate, .at-s .at-photo { aspect-ratio: 1; } .at-plate { padding: 12px; } }
+
+/* NGO workspace sub-views: a quiet underline register under the page. */
+.sx .partner-workspace-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 var(--x-gutter); padding-top: 12px; border-bottom: 1px solid var(--x-line); }
+.sx .partner-workspace-tabs a { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--x-mute); font-size: 14.5px; font-weight: 500; text-decoration: none; }
+.sx .partner-workspace-tabs a:hover { color: var(--x-text); }
+.sx .partner-workspace-tabs a[aria-current="page"] { color: var(--x-text); border-bottom-color: var(--x-flame); font-weight: 600; }
