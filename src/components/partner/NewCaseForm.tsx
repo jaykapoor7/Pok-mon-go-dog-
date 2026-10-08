@@ -17,6 +17,7 @@ import { nearestCity } from "@/lib/delhi";
 import { cn, dogLabel } from "@/lib/utils";
 import { DeskHeader } from "@/components/app/DeskHeader";
 import { SearchSelect } from "@/components/app/SearchSelect";
+import "./case-intake.css";
 
 const CATEGORIES = Object.keys(CASE_CATEGORY_META) as CaseCategory[];
 const SEVERITIES: CaseSeverity[] = ["low", "normal", "high", "critical"];
@@ -130,7 +131,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
   }
 
   return (
-    <div className="dk-form-page">
+    <div className="dk-form-page case-intake">
       <DeskHeader
         kicker="Records · new case"
         title="Open a rescue case"
@@ -141,14 +142,16 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
       {/* Opening a case writes to the organisation's records, which the
           database refuses from anyone who is not an organisation member. Better
           to say so here than after the form has been filled in. */}
-      <div className="mt-5">
+      <div className="nc-workspace">
+      <aside className="nc-guide"><p>Organisation / intake protocol</p><h2>One incident.<br /><em>A complete care trail.</em></h2><nav aria-label="Case intake steps"><a href="#nc-animal">01 / Identify the animal</a><a href="#nc-incident">02 / Record the incident</a><a href="#nc-create">03 / Open the case</a></nav><p>Search existing identities first. A new case can occur somewhere other than the animal’s last recorded locality.</p><p className="nc-private">Contacts, medical notes and costs stay inside the organisation’s working record. Don’t place private contact details in public titles.</p></aside>
+      <div className="nc-form">
         <PartnerWrite what="open a case">
 
       {/* animal picker */}
-      <div className="mt-6 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
+      <section className="nc-section" id="nc-animal"><h2><span>01</span> The animal identity</h2>
         <div className="mb-3 flex gap-2">
-          <button onClick={() => setMode("existing")} className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", mode === "existing" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>Existing animal</button>
-          <button onClick={() => { setMode("new"); setDogId(null); }} className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", mode === "new" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>New animal</button>
+          <button type="button" aria-pressed={mode === "existing"} onClick={() => setMode("existing")} className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", mode === "existing" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>Existing animal</button>
+          <button type="button" aria-pressed={mode === "new"} onClick={() => { setMode("new"); setDogId(null); }} className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", mode === "new" ? "bg-bark-900 text-white dark:bg-white dark:text-bark-900" : "text-bark-500 hover:bg-black/[0.04]")}>New animal</button>
         </div>
 
         {mode === "existing" ? (
@@ -186,11 +189,12 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
             <p className="text-xs text-bark-400">A photo is required, it creates the animal&apos;s profile alongside this case.</p>
           </div>
         )}
-      </div>
+      </section>
 
       {/* case fields */}
-      <div className="mt-4 space-y-4 rounded-lg border border-black/[0.08] p-4 dark:border-white/[0.1]">
-        <input aria-label="Case title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Case title, e.g. Hind-leg injury" className={INPUT} />
+      <section className="nc-section space-y-4" id="nc-incident"><h2><span>02</span> Incident & care context</h2>
+        <label className="nc-field-label" htmlFor="nc-title">Case title</label>
+        <input id="nc-title" aria-label="Case title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Case title, e.g. Hind-leg injury" className={INPUT} />
         <textarea aria-label="Case description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's going on? Condition, symptoms, context." className={cn(INPUT, "min-h-[80px] resize-y")} />
         <div className="space-y-2">
           <p className="text-sm">Where it happened</p>
@@ -241,7 +245,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
           <p className="mb-1.5 text-xs font-medium text-bark-500">Category</p>
           <div className="flex flex-wrap gap-1.5">
             {CATEGORIES.map((c) => (
-              <button key={c} onClick={() => setCategory(c)} className={cn("rounded-md px-2.5 py-1.5 text-[13px] font-medium", category === c ? "bg-paw-500 text-white" : "text-bark-500 hover:bg-black/[0.04]")}>{CASE_CATEGORY_META[c].label}</button>
+              <button key={c} type="button" aria-pressed={category === c} onClick={() => setCategory(c)} className={cn("rounded-md px-2.5 py-1.5 text-[13px] font-medium", category === c ? "bg-paw-500 text-white" : "text-bark-500 hover:bg-black/[0.04]")}>{CASE_CATEGORY_META[c].label}</button>
             ))}
           </div>
         </div>
@@ -249,18 +253,19 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
           <p className="mb-1.5 text-xs font-medium text-bark-500">Severity</p>
           <div className="flex flex-wrap gap-1.5">
             {SEVERITIES.map((s) => (
-              <button key={s} onClick={() => setSeverity(s)} className={cn("rounded-md px-2.5 py-1.5 text-[13px] font-medium", severity === s ? "bg-paw-500 text-white" : "text-bark-500 hover:bg-black/[0.04]")}>{CASE_SEVERITY_META[s].label}</button>
+              <button key={s} type="button" aria-pressed={severity === s} onClick={() => setSeverity(s)} className={cn("rounded-md px-2.5 py-1.5 text-[13px] font-medium", severity === s ? "bg-paw-500 text-white" : "text-bark-500 hover:bg-black/[0.04]")}>{CASE_SEVERITY_META[s].label}</button>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {error && <p className="mt-3 text-sm font-medium text-status-injured">{error}</p>}
 
-      <button onClick={submit} disabled={busy} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-paw-500 py-3 text-sm font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
+      <button id="nc-create" type="button" onClick={submit} disabled={busy} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-paw-500 py-3 text-sm font-semibold text-white hover:bg-paw-600 disabled:opacity-50">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Create case
       </button>
         </PartnerWrite>
+      </div>
       </div>
     </div>
   );

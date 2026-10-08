@@ -181,7 +181,7 @@ html .spa.spa.spa-desk .spa-main .atlas .atlas-specialist label select { min-wid
   .atlas .sm-insp-peek { padding: 0 var(--sp-4) var(--sp-4); }
   .atlas .sm-insp-body { padding: var(--sp-4); }
   .atlas .sm-filter, .atlas-city .sm-filter { top: 210px; left: var(--sp-4); right: var(--sp-4); bottom: var(--sp-4); width: auto; max-height: calc(100% - 226px); z-index: 7; }
-  .atlas .sm-tools, .atlas-city .sm-tools { top: 210px; right: var(--sp-4); display: grid; }
+  .atlas .sm-tools, .atlas-city .sm-tools { top: 210px; right: var(--sp-4); display: grid; grid-template-columns: repeat(3, 44px); }
   .atlas .sm-tools button { width: 44px; height: 44px; }
   .atlas-reopen { top: auto; bottom: var(--sp-5); right: var(--sp-4); }
   .atlas .sm-card { left: var(--sp-4); right: var(--sp-4); bottom: var(--sp-3); top: auto; width: auto; max-height: calc(100% - 80px); overflow-y: auto; }

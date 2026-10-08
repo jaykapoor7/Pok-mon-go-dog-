@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
-import { FloatingPillNav } from "@/components/platform/FloatingPillNav";
+import { DeskHeader } from "@/components/app/DeskHeader";
+import "./resources-desk.css";
 import { ResourcesDirectory } from "@/components/platform/ResourcesDirectory";
 import { Phone } from "lucide-react";
 
@@ -56,23 +57,9 @@ const POST_BITE_STEPS = [
 export default function ResourcesPage() {
   return (
     <PlatformShell>
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <h1 className="font-display text-3xl tracking-tight text-bark-900 sm:text-4xl">
-          Resources
-        </h1>
-        <p className="mt-3 text-bark-500">
-          Rescue contacts, welfare organisations, and practical guidance for
-          helping street animals across India.
-        </p>
-
-        <FloatingPillNav
-          sections={[
-            { id: "helplines", label: "Helplines" },
-            { id: "post-bite", label: "Post-bite care" },
-            { id: "directory", label: "Organisations" },
-            { id: "data", label: "Data & research" },
-          ]}
-        />
+      <div className="resource-desk">
+        <DeskHeader kicker="Community / reference desk" title="Know where to turn." lede="Rescue contacts, welfare organisations and practical guidance. Recorded animals live in the Atlas; these resources help you decide what to do next." actions={<Link href="/map" className="dk-btn is-tint">Open the Atlas</Link>} />
+        <div className="rd-workspace"><nav className="rd-contents" aria-label="Resource sections"><p>Find the right help</p><a href="#helplines">01 / Rescue helplines</a><a href="#post-bite">02 / After a bite</a><a href="#directory">03 / Organisations</a><a href="#data">04 / Data & research</a><Link href="/report">Record an observation →</Link></nav><div className="rd-main">
 
         {/* ── Emergency helplines ── */}
         <section id="helplines" className="mt-12 scroll-mt-40">
@@ -84,18 +71,19 @@ export default function ResourcesPage() {
             Call for injured, trapped, or distressed animals. These are not
             StrayPaw lines; they connect to established rescue organisations.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rd-helplines">
             {HELPLINES.map((h) => (
-              <div
+              <a
+                href={`tel:${h.number.replace(/[^0-9+]/g, "")}`}
                 key={h.number}
-                className="rounded-lg border border-bark-200 bg-white p-4"
+                className="rd-contact"
               >
                 <p className="font-semibold text-bark-900">{h.name}</p>
                 <p className="mt-1 font-mono text-lg text-paw-600">
                   {h.number}
                 </p>
                 <p className="mt-0.5 text-xs text-bark-400">{h.note}</p>
-              </div>
+              </a>
             ))}
           </div>
         </section>
@@ -125,7 +113,7 @@ export default function ResourcesPage() {
         </section>
 
         <ResourcesDirectory />
-
+        </div></div>
       </div>
     </PlatformShell>
   );

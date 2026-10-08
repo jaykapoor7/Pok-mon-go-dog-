@@ -1,0 +1,19 @@
+.mc-protocol { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 18px 24px; border-top: 1px solid var(--sp-ink); border-bottom: 1px solid var(--sp-line); background: var(--sp-bone); color: var(--sp-ink); }
+.mc-protocol p { margin: 0; font: 10px/1.6 var(--font-mono), monospace; color: var(--sp-body); letter-spacing: .05em; text-transform: uppercase; }
+.mc-protocol h1 { margin: 6px 0 0; font: 400 26px/1.15 var(--font-serif-stack); }
+.mc-protocol h1 em { color: var(--sp-blue); }
+.mc-protocol nav { display: flex; flex-wrap: wrap; gap: 4px; }
+.mc-protocol nav a { display: flex; align-items: center; min-height: 44px; padding: 10px 12px; border: 1px solid var(--sp-line); color: var(--sp-ink); text-decoration: none; font-size: 12px; }
+.mc-protocol nav a:hover { background: var(--ctl-tint); }
+.mc-protocol details { font-size: 12px; max-width: 60ch; }
+.mc-protocol summary { padding-block: 12px; min-height: 44px; cursor: pointer; color: var(--sp-blue); }
+.mc-protocol details p { text-transform: none; font: 12px/1.7 var(--font-sans), sans-serif; letter-spacing: 0; padding-bottom: 12px; }
+.municipal-command { display: flex; flex-direction: column; min-height: 680px; }
+.mc-atlas { position: relative; flex: 1; min-height: 520px; }
+@media (max-width: 760px) {
+  .mc-protocol { padding: 12px 16px; gap: 8px; }
+  .mc-protocol h1 { font-size: 24px; }
+  .mc-protocol nav { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mc-protocol nav a { justify-content: center; padding: 8px 4px; font-size: 11px; }
+  .mc-protocol details { width: 100%; }
+}

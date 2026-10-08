@@ -1,0 +1,28 @@
+.case-intake { max-width: 1160px; }
+.nc-workspace { display: grid; grid-template-columns: minmax(220px, .65fr) minmax(0, 1.35fr); gap: 48px; align-items: start; }
+.nc-guide { position: sticky; top: 96px; padding-top: 20px; }
+.nc-guide > p:first-child { font: 11px/1.5 var(--font-mono), monospace; text-transform: uppercase; letter-spacing: .05em; color: var(--sp-blue); }
+.nc-guide h2 { margin: 28px 0; font: 400 36px/1.12 var(--font-serif-stack); letter-spacing: -.03em; }
+.nc-guide h2 em { color: var(--sp-blue); }
+.nc-guide nav { display: grid; border-top: 1px solid var(--sp-ink); }
+.nc-guide nav a { display: flex; align-items: center; min-height: 48px; border-bottom: 1px solid var(--sp-line); text-decoration: none; font-size: 13px; color: var(--sp-ink); }
+.nc-guide > p { margin: 20px 0; color: var(--sp-body); font-size: 13px; line-height: 1.7; }
+.nc-guide .nc-private { border-top: 1px solid var(--sp-line); padding-top: 20px; font-size: 12px; }
+.nc-form { min-width: 0; }
+.nc-section { padding: 24px 0; border-top: 1px solid var(--sp-ink); scroll-margin-top: 100px; }
+.nc-section h2 { display: flex; align-items: baseline; gap: 16px; margin: 0 0 24px; font: 400 28px/1.2 var(--font-serif-stack); }
+.nc-section h2 > span { color: var(--sp-blue); font: 11px/1.5 var(--font-mono), monospace; }
+.nc-field-label { display: block; color: var(--sp-body); font-size: 13px; }
+.spa .spa-main .case-intake .nc-form button { min-height: 44px; min-width: 44px; border-radius: 0; }
+.spa .spa-main .case-intake input:not([type="file"]), .spa .spa-main .case-intake textarea { border-radius: 0; min-height: 44px; background: var(--sp-paper); border-color: var(--sp-line); color: var(--sp-ink); }
+.spa .spa-main .case-intake button[aria-pressed="true"] { background: var(--sp-ink); color: var(--sp-bone); }
+.spa .spa-main .case-intake #nc-create { background: var(--sp-flame); color: var(--sp-ink); min-height: 52px; }
+.case-intake #nc-create { scroll-margin-top: 100px; }
+@media (max-width: 820px) {
+  .nc-workspace { grid-template-columns: 1fr; gap: 16px; }
+  .nc-guide { position: static; padding-top: 0; }
+  .nc-guide h2, .nc-guide > p:not(:first-child) { display: none; }
+  .nc-guide nav { display: flex; flex-wrap: wrap; gap: 0 16px; }
+  .nc-guide nav a { font-size: 12px; }
+  .nc-section { padding-block: 20px; }
+}

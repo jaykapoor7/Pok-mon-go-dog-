@@ -143,6 +143,7 @@ html .spa.spa-editorial .ib-head h1 { color: var(--sp-ink); }
 .ib-unavailable p { max-width: 50ch; margin: 0; color: var(--sp-body); font-size: 14px; }
 .ib-unavailable nav { min-width: 220px; display: grid; border-top: 1px solid var(--sp-rule); }
 .ib-unavailable a { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: 10px 0; border-bottom: 1px solid var(--sp-rule); color: var(--sp-blue); font-size: 13px; font-weight: 600; text-decoration: none; }
+.ib-unavailable button { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: 44px; padding: 10px 0; border: 0; border-bottom: 1px solid var(--sp-rule); background: transparent; color: var(--sp-blue); font: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer; }
 @media (max-width: 700px) { .ib-unavailable { align-items: stretch; flex-direction: column; } }
 @media (max-width: 960px) {
   .ib-head { min-height: 0; padding: var(--sp-4) 0; }

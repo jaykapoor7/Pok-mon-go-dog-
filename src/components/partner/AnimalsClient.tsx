@@ -128,13 +128,13 @@ export function AnimalsClient() {
   };
 
   return (
-    <div>
+    <div className="pa-workdesk">
       <DeskHeader
         kicker="Records · animals"
-        title="Every animal your team keeps"
-        lede="One permanent StrayPaw ID per animal, with its photographs, place, sterilisation, vaccination and casework underneath."
+        title="The identity register."
+        lede="Documented profiles, source identities and longitudinal care. A StrayPaw ID identifies this record; imported profiles are not proof of unique animals."
         figures={[
-          { label: filtered ? "animals match these filters" : "animals on your record", value: loading && !animals.length ? null : total },
+          { label: filtered ? "profiles match these filters" : "profiles on your record", value: loading && !animals.length ? null : total },
           /* The locality list is read up to 1,000 names; past that, say so. */
           { label: "localities", value: zones.length >= 1000 ? "1,000+" : zones.length || null, tone: "quiet" },
         ]}
@@ -150,6 +150,7 @@ export function AnimalsClient() {
 
       {creating && <CreateAnimal onDone={() => { setCreating(false); load(); }} />}
 
+      <div className="pa-workspace"><aside className="pa-filters" aria-label="Animal register filters"><p className="pa-filter-kicker">Find the record</p>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[180px] flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bark-400" />
@@ -178,12 +179,13 @@ export function AnimalsClient() {
           </button>
         )}
       </div>
+      <p className="pa-filter-note">S: sterilisation. R: rabies vaccination. “?” means not recorded—not a verified absence of care.</p></aside><section className="pa-ledger" aria-label="Animal identity register">
 
       {!loading && !signedOut && (
         <p className="mb-3 text-[12.5px] text-bark-500">
           {filtered
             ? `${total} matching ${total === 1 ? "animal" : "animals"}`
-            : `${total} ${total === 1 ? "animal" : "animals"} on record`}
+            : `${total} ${total === 1 ? "profile" : "profiles"} on record`}
           {needsOnly ? " needing attention" : ""}
         </p>
       )}
@@ -251,6 +253,7 @@ export function AnimalsClient() {
           </div>
         </div>
       )}
+      </section></div>
     </div>
   );
 }

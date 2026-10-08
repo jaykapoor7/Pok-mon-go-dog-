@@ -426,7 +426,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
         {loading && <p className="ib-state" role="status">Reading the register…</p>}
         {error && <div className="ib-unavailable" role="status">
           <div><span>THE RECORD IS TEMPORARILY UNAVAILABLE</span><h2>Keep exploring while it reconnects.</h2><p>{error}</p></div>
-          <nav aria-label="Other ways to explore"><Link href="/stories">Read completed rescues <ArrowUpRight size={15} /></Link><Link href="/orgs">Meet the organisations <ArrowUpRight size={15} /></Link></nav>
+          <nav aria-label="Recover the record"><button type="button" onClick={() => window.location.reload()}>Retry this brief <ArrowUpRight size={15} /></button>{scope === "org" ? <><Link href="/partner/records">Open working records <ArrowUpRight size={15} /></Link><Link href="/partner/map">Open the field map <ArrowUpRight size={15} /></Link></> : <><Link href="/stories">Read completed rescues <ArrowUpRight size={15} /></Link><Link href="/orgs">Meet the organisations <ArrowUpRight size={15} /></Link></>}</nav>
         </div>}
         {shown.map((x, k) => (
           <section key={x.id} className={`ib-q${k === 0 ? " is-lead" : ""}`} aria-labelledby={`ib-${x.id}`} style={{ ["--i" as string]: k }}>

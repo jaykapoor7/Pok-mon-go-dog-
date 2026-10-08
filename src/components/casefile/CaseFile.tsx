@@ -82,7 +82,7 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
   const now = Date.now();
   const open = isOpenClass(reg.status_class, c.status);
   const cond = reg.provenance !== "imported_historical_record" && c.category !== "other" ? CASE_CATEGORY_META[c.category].label : condOf(reg.condition_class);
-  const triage = cond ? triageOf(cond) : "Unclassified";
+  const triage = c.severity === "critical" ? "Critical" : cond ? triageOf(cond) : "Unclassified";
   const age = Math.max(0, Math.floor((now - Date.parse(reg.occurred_at)) / DAY));
   const quiet = Math.max(0, Math.floor((now - Date.parse(c.last_activity_at || reg.occurred_at)) / DAY));
   const stale = open && age > 90 && quiet > 30;
@@ -115,6 +115,7 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
     <main className="cf">
       <WorkTrail at="case" done={done} next={trailNext}
         links={{ dashboard: "/partner", animal: dogHref ?? "/partner/animals", care: dogHref ? `${dogHref}#org-care` : undefined, outcome: "#cf-next" }} />
+      <nav className="cf-desk-nav" aria-label="Case workspace"><Link href="/partner/cases">← Case desk</Link><div><a href="#cf-section-01">Record</a><a href="#cf-section-02">Care</a><a href="#cf-section-03">History</a><a href="#cf-section-04">Place</a><a className="cf-decision-jump" href="#cf-next">Next decision <ArrowUpRight size={14} /></a></div></nav>
       <header className="cf-mast">
         <div className="cf-id">
           <p className="cf-kicker">
@@ -144,6 +145,13 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
       </dl>
 
       <div className="cf-body">
+        <aside className="cf-side">
+          <p className="cf-side-eyebrow">Action desk / organisation only</p>
+          <CaseDecision file={file} member onChanged={reload} />
+          <Followups file={file} reload={reload} />
+          <Note file={file} reload={reload} />
+          <Link href={`/fundraisers/new?title=${encodeURIComponent(c.title)}&case=${c.id}`} className="cf-side-link">Raise funds for this case <ArrowUpRight size={14} /></Link>
+        </aside>
         <div className="cf-main">
           <Section n="01" title="What happened">
             {said && said.toLowerCase() !== (cond ?? "").toLowerCase() && <p className="cf-said">Recorded as <q>{said}</q>{reg.condition_text && reg.condition_text !== "Unknown" && !said.toLowerCase().includes(reg.condition_text.toLowerCase()) ? <>, condition noted as <q>{reg.condition_text}</q></> : null}.</p>}
@@ -166,12 +174,6 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
           </Section>
         </div>
 
-        <aside className="cf-side">
-          <CaseDecision file={file} member onChanged={reload} />
-          <Followups file={file} reload={reload} />
-          <Note file={file} reload={reload} />
-          <Link href={`/fundraisers/new?title=${encodeURIComponent(c.title)}&case=${c.id}`} className="cf-side-link">Raise funds for this case <ArrowUpRight size={14} /></Link>
-        </aside>
       </div>
     </main>
   );
@@ -189,7 +191,7 @@ function Fact({ t, v, w, hot }: { t: string; v: string | null | undefined; w: st
 
 function Section({ n, title, lede, children }: { n: string; title: string; lede?: string; children: React.ReactNode }) {
   return (
-    <section className="cf-sec">
+    <section className="cf-sec" id={`cf-section-${n}`}>
       <header><p className="cf-sec-n sys-mono">{n}</p><h2>{title}</h2>{lede && <p>{lede}</p>}</header>
       {children}
     </section>
@@ -338,7 +340,7 @@ function Place({ file }: { file: File_ }) {
           </p>
           {neighbours.length > 0 && <Strip rows={neighbours} />}
           <p className="cf-row">
-            <Link href={`/partner/map?cell=${reg.h3_r8}`} className="cf-btn">See the cell on the map</Link>
+            <Link href={`/partner/map?cell=${reg.h3_r8}${reg.city ? `&city=${encodeURIComponent(reg.city)}` : ""}&mode=cases`} className="cf-btn">See the recorded area</Link>
             <Link href={`/partner/reports?cell=${reg.h3_r8}`} className="cf-btn is-quiet">Its figures</Link>
           </p>
         </>

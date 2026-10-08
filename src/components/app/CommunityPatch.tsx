@@ -303,8 +303,8 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
       <DeskHeader
         city={city.name}
         kicker={`Your patch · ${patch.mine ? patch.label : "a sample place"}`}
-        title={<>{city.name}{!patch.mine && <small className="cp-sample-tag">Sample city</small>}</>}
-        lede="Citywide figures from recorded animals. The street-level picture of your patch is below."
+        title={<>The lives around {city.name}.</>}
+        lede="A local reading of the Atlas: discover recorded identities, follow their histories and add what you actually observe."
         figures={[
           { label: "animals on the record", value: city.animalsN },
           { label: "flagged for help", value: city.help, tone: city.help ? "attention" : undefined },
@@ -320,6 +320,8 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
         </div>
       </DeskHeader>
 
+      <nav className="cp-journey" aria-label="Community exploration"><Link href={`/map?city=${encodeURIComponent(city.name)}`}>01 / Read the city Atlas <ArrowUpRight size={15} /></Link><a href="#cp-identities">02 / Meet the recorded animals</a><Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`}>03 / Add an observation <Plus size={15} /></Link></nav>
+
       <p className="cp-near"><MapPin size={13} aria-hidden /> {cityMode ? `Near ${city.name} city centre` : `Near ${patch.label === "Around you" ? "you" : patch.label}`} · {RADIUS_KM} km{cityMode ? " · citywide totals are shown above" : ""}</p>
       <p className="cp-sample">Nearby lists, lights and recent activity describe bounded, loaded records. They do not count every dog or event in your patch.</p>
       <section className="cp-work" aria-label="Near you">
@@ -333,11 +335,11 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
           </figcaption>
         </figure>
 
-        <div className="cp-register">
-          <div className="cp-tabs" role="tablist" aria-label="Animals in your patch">
-            <button role="tab" aria-selected={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention nearby <b className="sys-mono">{animalsError || animals === null ? "—" : attention.length}</b>{cityMode && city.help > attention.length ? <small className="sys-mono"> · {city.help.toLocaleString("en-IN")} citywide</small> : null}</button>
-            <button role="tab" aria-selected={tab === "recent"} className={tab === "recent" ? "is-on" : ""} onClick={() => setTab("recent")}>Seen lately</button>
-            <button role="tab" aria-selected={tab === "following"} className={tab === "following" ? "is-on" : ""} onClick={() => setTab("following")}>You follow <b className="sys-mono">{followedError || followedLoading ? "—" : followed.length}</b></button>
+        <div className="cp-register" id="cp-identities">
+          <div className="cp-tabs" role="group" aria-label="Animals in your patch">
+            <button type="button" aria-pressed={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention nearby <b className="sys-mono">{animalsError || animals === null ? "—" : attention.length}</b>{cityMode && city.help > attention.length ? <small className="sys-mono"> · {city.help.toLocaleString("en-IN")} citywide</small> : null}</button>
+            <button type="button" aria-pressed={tab === "recent"} className={tab === "recent" ? "is-on" : ""} onClick={() => setTab("recent")}>Seen lately</button>
+            <button type="button" aria-pressed={tab === "following"} className={tab === "following" ? "is-on" : ""} onClick={() => setTab("following")}>You follow <b className="sys-mono">{followedError || followedLoading ? "—" : followed.length}</b></button>
           </div>
           {(tab === "following" ? followedError : animalsError) ? <p className="cp-quiet" role="alert">These records could not be loaded. Please try again shortly.</p>
             : tab === "following" && followedLoading ? <p className="cp-quiet">Reading your saved dogs…</p>
@@ -376,20 +378,20 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
           of four. Each used to link into a map mode that already makes
           the same case on the map itself; this keeps only the one local
           fact a map mode can't say as directly. */}
-      {(cityMode ? (cityNotSterilised > 0 || cityNotVaccinated > 0 || city.help > 0 || city.openCases > 0) : (stats.sterUnknown > 0 || cells.edge.length > 0 || stats.boosterDue > 0 || cells.nextHere[0])) && (
+      {(cityMode ? (cityNotSterilised > 0 || cityNotVaccinated > 0) : (stats.sterUnknown > 0 || cells.edge.length > 0 || stats.boosterDue > 0 || cells.nextHere[0])) && (
         <section className="cp-help" aria-label="Where help is needed">
-          <p className="cp-eyebrow">Where you can help{cityMode ? ` · ${city.name} citywide` : ""}</p>
+          <p className="cp-eyebrow">Read the care evidence{cityMode ? ` · ${city.name} citywide` : ""}</p>
           <ol>
             {cityMode ? (
               <li>
-                <b>{cityNotSterilised.toLocaleString("en-IN")}</b>
-                <p>animals across {city.name} are not recorded as sterilised. That is a citywide register count, not the {RADIUS_KM} km sample around the centre.</p>
-                <Link href={`/map?city=${encodeURIComponent(city.name)}&mode=abc`} className="sys-btn is-sm is-quiet">See the citywide ABC map</Link>
+                <b>{(cityNotSterilised || cityNotVaccinated).toLocaleString("en-IN")}</b>
+                <p>profiles across {city.name} lack a positive {cityNotSterilised ? "sterilisation" : "vaccination"} status on record. This includes unknown and explicit negative statuses—not verified intervention gaps. This is a citywide register count, not the nearby loaded sample.</p>
+                <Link href={`/map?city=${encodeURIComponent(city.name)}&mode=${cityNotSterilised ? "abc" : "arv"}`} className="sys-btn is-sm is-quiet">Read the recorded care</Link>
               </li>
             ) : stats.sterUnknown > 0 ? (
               <li>
                 <b>{stats.sterUnknown.toLocaleString("en-IN")}</b>
-                <p>animals in this {RADIUS_KM} km patch have no sterilisation on record. A notched ear is the sign — if you see one, a sighting with a photo settles it.</p>
+                <p>loaded profiles in this patch have no positive sterilisation status recorded. Unknown is not a verified absence of care. A clear photograph of an ear notch can help a care team verify the record.</p>
                 <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="sys-btn is-sm is-quiet">Report a dog</Link>
               </li>
             ) : cells.edge.length > 0 ? (

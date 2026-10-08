@@ -8,7 +8,6 @@ import Image from "next/image";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { AnimalSeal } from "@/components/system/AnimalSeal";
 import { useFollows } from "@/lib/follows";
-import { Constellation } from "@/components/site/vectors";
 import type { Dog } from "@/lib/types";
 import { formatPlace } from "@/lib/delhi";
 import { dogLabel, timeAgo } from "@/lib/utils";
@@ -138,7 +137,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
             <p>Find an animal on the map and save its record. Its sightings and care will be here when you come back. Follows stay on this device and need no account.</p>
             <Link href="/map" className="spa-cta">Explore the map <ArrowUpRight size={14} /></Link>
           </div>
-          <div className="follow-empty-art" aria-hidden="true"><Constellation size={180} /><span>One shared record.<br />Your way back to it.</span></div>
+          <nav className="follow-wayfinding" aria-label="Start your follow-up trail"><p>Build your own care trail</p><Link href="/map">01 / Discover an identity <ArrowUpRight size={15} /></Link><Link href="/report">02 / Add what you observed <ArrowUpRight size={15} /></Link><Link href="/app">03 / Read your local patch <ArrowUpRight size={15} /></Link><small>Follows are saved on this device. No account is required to explore.</small></nav>
         </div>
 
         {suggestions.length > 0 && (
@@ -195,7 +194,6 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
   if (followed.length === 0 || followError) {
     return (
       <div className="spa-empty follow-empty follow-empty-error">
-        <Constellation size={132} />
         <h2>Followed records aren&apos;t loading</h2>
         <p>
           You follow {ids.length} record{ids.length > 1 ? "s" : ""} on this device,

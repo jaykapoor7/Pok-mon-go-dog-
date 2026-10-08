@@ -5,6 +5,30 @@
    ════════════════════════════════════════════════════════════════════ */
 
 .cf { max-width: 1160px; margin: 0 auto; padding-bottom: 96px; color: var(--sp-ink); }
+.cf-desk-nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding-block: 8px; border-top: 1px solid var(--sp-ink); border-bottom: 1px solid var(--sp-line); margin-bottom: 24px; }
+.cf-desk-nav > div { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.cf-desk-nav a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding-inline: 8px; font-size: 13px; color: var(--sp-blue); text-decoration: none; }
+.cf-desk-nav .cf-decision-jump { color: var(--sp-bone); background: var(--sp-ink); padding-inline: 16px; }
+.cf .cf-mast h1 { font-family: var(--font-serif-stack); font-weight: 400; font-size: clamp(36px, 4.5vw, 60px); letter-spacing: -.025em; }
+.cf .cf-animal { border-radius: 0; background: var(--sp-shell); border: 0; border-left: 1px solid var(--sp-line); }
+.cf .cf-panel { border-radius: 0; padding: 20px; border: 0; border-top: 2px solid var(--sp-ink); background: var(--sp-paper); }
+.cf .cf-panel-h { font-family: var(--font-serif-stack); font-size: 26px; font-weight: 400; text-transform: none; letter-spacing: -.02em; }
+.cf-side-eyebrow { margin: 0; font: 11px/1.5 var(--font-mono), monospace; letter-spacing: .04em; text-transform: uppercase; color: var(--sp-body); }
+.cf .cf-body { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 32px; }
+.cf .cf-main { grid-column: 1; grid-row: 1; }
+.cf .cf-side { grid-column: 2; grid-row: 1; min-width: 0; }
+.cf .cf-sec { scroll-margin-top: 100px; }
+.cf .cf-sec h2 { font-family: var(--font-serif-stack); font-weight: 400; font-size: 30px; }
+.cf .cf-btn, .cf .cf-editbtn, .cf .cf-addphoto { min-height: 44px; min-width: 44px; height: auto; border-radius: 0; }
+.cf .cf-form input, .cf .cf-form textarea, .cf .cf-form select { border-radius: 0; min-height: 44px; }
+.cf #cf-next { scroll-margin-top: 100px; }
+@media (max-width: 860px) {
+  .cf .cf-body { display: flex; flex-direction: column; gap: 32px; }
+  .cf .cf-side { order: 0; }
+  .cf .cf-main { order: 1; }
+  .cf-desk-nav > div { gap: 0 4px; }
+  .cf-desk-nav a { font-size: 12px; }
+}
 .cf em { color: inherit; }
 .cf-state { display: flex; align-items: center; gap: 8px; padding: 40px 0; color: var(--sp-muted); font-size: 14px; }
 .cf-code { padding: 4px 9px; border-radius: 7px; background: var(--sp-ink); color: var(--sp-bone); font-size: 12px; letter-spacing: 0.04em; }

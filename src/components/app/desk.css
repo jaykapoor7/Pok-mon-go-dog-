@@ -270,13 +270,13 @@ html .spa.spa.spa-desk .ib-head h1 { color: var(--sp-night-text); }
 /* ── The NGO console: section tabs and console pages ──────────────── */
 /* One segmented control: a row you select, the current view on ink. */
 html .spa.spa.spa.spa-desk .partner-workspace-tabs {
-  box-sizing: border-box; display: flex; width: fit-content; max-width: min(100%, 1240px); gap: 2px; margin: 0 0 var(--sp-5); padding: 4px;
-  overflow-x: auto; scrollbar-width: none; border: 0; border-radius: calc(var(--ctl-r-row) + 4px);
-  background: var(--sp-paper); box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 8px 22px rgba(11, 30, 61, 0.05);
+  box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; max-width: 1240px; gap: 0; margin: 0 0 var(--sp-5); padding: 0;
+  overflow: visible; border: 0; border-block: 1px solid var(--sp-line); border-radius: 0;
+  background: transparent; box-shadow: none;
 }
 html .spa.spa.spa.spa-desk .partner-workspace-tabs::-webkit-scrollbar { display: none; }
 html .spa.spa.spa.spa-desk .partner-workspace-tabs a {
-  flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--ctl-r-row);
+  flex: none; min-height: 44px; padding: 0 14px; border: 0; border-radius: 0;
   color: var(--sp-body); font-size: 13px; font-weight: 600; white-space: nowrap;
   transition: background var(--sp-fast) var(--sp-ease-io), color var(--sp-fast) var(--sp-ease-io);
 }

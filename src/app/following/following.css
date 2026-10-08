@@ -8,18 +8,22 @@ html .spa.spa-editorial .spa-main:not(.flush) .spa-empty.follow-empty {
   gap: 0;
   margin: 0;
   padding: 0;
-  min-height: 310px;
+  min-height: 0;
   border: 0;
-  background: var(--sp-night);
-  border-radius: var(--sp-radius-lg);
+  background: var(--sp-paper);
+  border-radius: 0;
   overflow: hidden;
-  color: var(--sp-night-text);
+  color: var(--sp-ink);
   text-align: left;
 }
-.follow-empty-copy { align-self: center; padding: clamp(26px, 4vw, 52px); }
-.follow-eyebrow { display: block; margin-bottom: 16px; color: var(--sp-sky); font: 11px var(--font-mono), ui-monospace, monospace; letter-spacing: .12em; }
-.spa-editorial .follow-empty h2 { color: var(--sp-night-text); font-size: clamp(30px, 3vw, 43px); letter-spacing: -.035em; }
-html .spa.spa-editorial .spa-main:not(.flush) .spa-empty.follow-empty p { max-width: 48ch; color: #c7d5e3; font-size: 15px; }
+.follow-empty-copy { align-self: center; padding: 24px; }
+.follow-eyebrow { display: block; margin-bottom: 16px; color: var(--sp-blue); font: 11px var(--font-mono), ui-monospace, monospace; letter-spacing: .12em; }
+.spa-editorial .follow-empty h2 { color: var(--sp-ink); font-size: 32px; letter-spacing: -.035em; }
+html .spa.spa-editorial .spa-main:not(.flush) .spa-empty.follow-empty p { max-width: 48ch; color: var(--sp-body); font-size: 14px; }
+.follow-wayfinding { display: grid; align-content: start; padding: 24px; border-left: 1px solid var(--sp-line); }
+.follow-wayfinding > p { margin: 0 0 12px; font: 11px/1.5 var(--font-mono), monospace; text-transform: uppercase; }
+.follow-wayfinding a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 14px; min-height: 48px; border-bottom: 1px solid var(--sp-line); color: var(--sp-blue); font-size: 13px; text-decoration: none; }
+.follow-wayfinding small { margin-top: 20px; font-size: 12px; line-height: 1.6; color: var(--sp-body); }
 .follow-empty .spa-cta { margin-top: 3px; }
 .follow-empty-art { display: grid; place-content: center; justify-items: center; gap: 18px; background: rgba(143,183,255,.07); border-left: 1px solid rgba(255,255,255,.12); }
 .follow-empty-art svg { color: var(--sp-sky); opacity: .85; margin: 0; }
@@ -31,4 +35,5 @@ html .spa.spa-editorial .spa-main:not(.flush) .spa-empty.follow-empty p { max-wi
 @media (max-width: 760px) {
   html .spa.spa-editorial .spa-main:not(.flush) .spa-empty.follow-empty { grid-template-columns: 1fr; }
   .follow-empty-art { display: none; }
+  .follow-wayfinding { border-left: 0; border-top: 1px solid var(--sp-line); }
 }

@@ -77,7 +77,7 @@ export function ImportClient() {
 
   const selectedProfile = preview?.sheetProfiles?.find((sheet)=>sheet.name===preview.sheetName) ?? null;
 
-  return <div className="space-y-5">
+  return <div className="space-y-5 import-workdesk">
     <section className="rounded-xl border border-black/[.08] bg-white/70 p-5 dark:border-white/10 dark:bg-white/[.03]">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div className="flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paw-50 text-paw-600 dark:bg-paw-900/30"><FileSpreadsheet className="h-5 w-5" /></span><div><h2 className="font-semibold text-bark-900 dark:text-bark-50">Bring your existing workbook</h2><p className="mt-1 max-w-xl text-[13px] leading-relaxed text-bark-500">StrayPaw reads the whole workbook first, identifies what each sheet appears to represent, then lets you map and review the operational sheet you want to stage. Original files and raw rows remain attached as provenance.</p></div></div><button type="button" className="spa-cta shrink-0" onClick={() => fileRef.current?.click()} disabled={busy}><Upload className="h-4 w-4" /> Choose file</button><input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={(e) => { const next = e.target.files?.[0] ?? null; setFile(next); setPreview(null); setMapping({}); if (next) void read(next, undefined, false); }} /></div>
       {file && <p className="mt-4 border-t border-black/[.06] pt-3 text-[12px] text-bark-500 dark:border-white/[.08]"><b className="text-bark-700 dark:text-bark-200">{file.name}</b> · {(file.size / 1024 / 1024).toFixed(1)} MB · {preview ? `${preview.sheetProfiles?.length ?? preview.sheetNames.length} sheets understood` : "reading…"}</p>}

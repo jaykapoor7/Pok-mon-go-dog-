@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/app/AppShell";
 import { MunicipalCommand } from "@/components/municipality/MunicipalCommand";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Municipal command, StrayPaw",
@@ -7,5 +8,5 @@ export const metadata = {
 };
 
 export default function MunicipalityCommandPage() {
-  return <AppShell flush><MunicipalCommand /></AppShell>;
+  return <AppShell flush><Suspense fallback={null}><MunicipalCommand /></Suspense></AppShell>;
 }

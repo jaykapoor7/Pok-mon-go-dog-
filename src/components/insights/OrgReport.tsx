@@ -4,9 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { ExportStudio } from "@/components/partner/ExportStudio";
-import { BoundedSpatialMap } from "@/components/spatial/BoundedSpatialMap";
+import { PlaceBrief } from "./PlaceBrief";
 import "./brief.css";
-import { DeskHeader } from "@/components/app/DeskHeader";
 
 /* An organisation's own records, explained: the same report as /insights,
    read from the organisation's register under its own access, with exact
@@ -28,21 +27,13 @@ export function OrgReport() {
     : null;
   return (
     <Suspense fallback={null}>
-      <div className="ib">
-        <DeskHeader
-          kicker="Analysis · by place"
-          title={org ? "Your organisation’s record, by place" : "The public record, by place"}
-          lede={notice ?? "Choose a city to see its field activity cell by cell. Up close, only the animals in view load."}
-        />
-        <BoundedSpatialMap scope={org ? "org" : "public"} />
-        {org ? (
+      <PlaceBrief scope={org ? "org" : "public"} userKey={org ? user?.id : null} notice={notice} tail={org ? (
           <section className="ib-tail" id="export" aria-labelledby="export-q">
             <h2 id="export-q">Take the record out</h2>
-            <p>Everything above, as files a funder, a municipality or a vet can open.</p>
+            <p>Export the underlying records for a funder, municipality or vet. The findings above describe bounded loaded detail; exports retain their selected record scope.</p>
             <ExportStudio />
           </section>
-        ) : null}
-      </div>
+        ) : null} />
     </Suspense>
   );
 }

@@ -26,6 +26,12 @@ try {
     if (width < 700) await page.locator(".atlas-mobile-toggle").click();
     await page.locator(".atlas-directory button").filter({ hasText: "Coimbatore" }).click();
     await page.waitForFunction(() => document.querySelector(".sm-insp-head h2")?.textContent?.includes("Coimbatore"), { timeout: 60000 });
+    await page.waitForFunction(() => Number(document.querySelector(".sm-scale")?.dataset.zoom) > 7);
+    const zoomBefore = Number(await page.locator(".sm-scale").getAttribute("data-zoom"));
+    await page.getByRole("button", { name: "Zoom in", exact: true }).click();
+    await page.waitForFunction((z) => Number(document.querySelector(".sm-scale")?.dataset.zoom) > z + .5, zoomBefore);
+    await page.getByRole("button", { name: "Zoom out", exact: true }).click();
+    await page.waitForFunction((z) => Math.abs(Number(document.querySelector(".sm-scale")?.dataset.zoom) - z) < .1, zoomBefore);
     for (const lens of ["Care", "Cases", "Evidence", "Animals"]) {
       await page.locator(".atlas-lenses button").filter({ hasText: lens }).click();
       assert.equal(await page.locator(".atlas").getAttribute("data-lens"), lens.toLowerCase());
@@ -82,7 +88,7 @@ try {
     await page.screenshot({ path: `${output}/animal-${width}.png`, fullPage: true });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
     assert.deepEqual(errors, []);
-    results.push({ width, profile, errors, nationalRichPrefetch: false, lenses: 4, cityTransition: true, backNavigation: true, cellToAnimalPreview: true, mobileSheet: width < 700 });
+    results.push({ width, profile, errors, nationalRichPrefetch: false, zoomButtons: true, lenses: 4, cityTransition: true, backNavigation: true, cellToAnimalPreview: true, mobileSheet: width < 700 });
     console.log(JSON.stringify(results.at(-1)));
     await context.close();
   }

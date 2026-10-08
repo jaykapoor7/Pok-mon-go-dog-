@@ -17,14 +17,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Download, Loader2, Plus, Search } from "lucide-react";
+import { ArrowUpRight, Download, Loader2, Plus, Search, PanelRightOpen, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { closedCounts, closedRegister, openRegister, OPEN_REGISTER_LIMIT, PAGE, searchRegister, type RegisterRow } from "@/lib/case-register";
 import { CLOSURE_META, STATUS_META, triageOf, type ClosureReason, type StatusClass, type Triage } from "@/lib/register/taxonomy";
 import { downloadCsv } from "@/lib/csv";
 import "./register.css";
-import { DeskHeader } from "@/components/app/DeskHeader";
 import { SearchSelect } from "@/components/app/SearchSelect";
 
 /* Cases are shown a screenful at a time; the list grows on request. */
@@ -73,6 +73,7 @@ export function CaseRegister() {
   const [error, setError] = useState<string | null>(null);
   const [place, setPlace] = useState("");
   const [limit, setLimit] = useState(SHOW);
+  const [selected, setSelected] = useState<RegisterRow | null>(null);
   const now = useMemo(() => Date.now(), []);
 
   // Arrive with ?q (the top-bar search) or ?lens.
@@ -183,30 +184,35 @@ export function CaseRegister() {
       <Head count={lensCount} review={counts?.reasonless} />
       {openRows.length >= OPEN_REGISTER_LIMIT && <p className="cr-note">The board and open-case lenses show the {OPEN_REGISTER_LIMIT} oldest loaded open cases. These counts describe that slice. Search checks the whole register.</p>}
 
-      {openRows.length > 0 && <Board rows={openRows} now={now} cell={cell} onCell={(c) => { setCell(c); setLens((l) => (OPEN_LENSES.includes(l) ? l : "open")); }} />}
+      {openRows.length > 0 && <details className="cr-analysis"><summary>Read the triage × waiting-time matrix <span>Filter by urgency and age</span></summary><Board rows={openRows} now={now} cell={cell} onCell={(c) => { setCell(c); setLens((l) => (OPEN_LENSES.includes(l) ? l : "open")); }} /></details>}
 
-      <div className="cr-lenses" role="tablist" aria-label="Which cases">
+      <div className="cr-workspace">
+      <nav className="cr-lenses" aria-label="Which cases">
+        <p className="cr-lens-heading">The working queue</p>
         {OPEN_LENSES.map((l) => (
-          <button key={l} role="tab" aria-selected={lens === l} className={`${lens === l ? "is-on" : ""} ${l === "critical" || l === "quiet" || l === "overdue" ? "is-att" : ""}`} onClick={() => setLens(l)}>
+          <button key={l} type="button" aria-pressed={lens === l} className={`${lens === l ? "is-on" : ""} ${l === "critical" || l === "quiet" || l === "overdue" ? "is-att" : ""}`} onClick={() => { setLens(l); setQ(""); }}>
             {LENS_LABEL[l]} <b className="sys-mono">{lensCount[l as keyof typeof lensCount]}</b>
           </button>
         ))}
         <span className="cr-lens-gap" aria-hidden />
         {(["closed", "reasonless"] as Lens[]).map((l) => (
-          <button key={l} role="tab" aria-selected={lens === l} className={lens === l ? "is-on" : ""} onClick={() => { setLens(l); setCell(null); }}>
+          <button key={l} type="button" aria-pressed={lens === l} className={lens === l ? "is-on" : ""} onClick={() => { setLens(l); setCell(null); setQ(""); }}>
             {LENS_LABEL[l]} {counts && <b className="sys-mono">{(l === "closed" ? counts.closed : counts.reasonless).toLocaleString("en-IN")}</b>}
           </button>
         ))}
-      </div>
+        <Link className="cr-geography" href="/partner/map?mode=cases"><MapPin size={16} /> Read the field map <ArrowUpRight size={14} /></Link>
+        <p className="cr-scope">Counts describe loaded open work. Absence of an assignee or update means it is not recorded—not that nobody responded.</p>
+      </nav>
+      <section className="cr-ledger" aria-label="Case register">
 
       <div className="cr-tools">
-        <label className="cr-search">
+        <label className="cr-search bare-field">
           <Search size={15} aria-hidden />
           <span className="sys-sr">Search every case</span>
           <input value={q} placeholder="Search every case: code, animal, place, condition" onChange={(e) => { setQ(e.target.value); if (e.target.value.trim()) { setLens("search"); setCell(null); } else if (lens === "search") setLens("open"); }} />
         </label>
         {OPEN_LENSES.includes(lens) && (
-          <label className="cr-sort"><span className="sys-sr">Order</span>
+          <label className="cr-sort bare-field"><span className="sys-sr">Order</span>
             <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
               <option value="oldest">Oldest first</option>
               <option value="quiet">Quietest first</option>
@@ -229,8 +235,9 @@ export function CaseRegister() {
 
       {rows.length ? (
         <>
-          <div className="cr-scale" aria-hidden><span className="cr-scale-ax">{["1 week", "1 month", "3 months", "1 year", "3 years"].map((l, i) => <i key={l} style={{ left: `${(Math.log1p([7, 30, 90, 365, 1095][i]) / Math.log1p(1500)) * 100}%` }}>{l}</i>)}</span></div>
-          <ol className="cr-list">{visibleRows.map((r) => <Row key={r.id} r={r} now={now} />)}</ol>
+          <p className="cr-waiting-key">Waiting bars use a logarithmic scale. Exact elapsed time appears on each record.</p>
+          <div className="cr-ledger-labels" aria-hidden><span>Case / animal</span><span>Locality / reported</span><span>Recorded waiting time</span><span>With</span><span>Status</span></div>
+          <ol className="cr-list">{visibleRows.map((r) => <Row key={r.id} r={r} now={now} onInspect={() => setSelected(r)} />)}</ol>
           {rows.length > limit && (
             <button type="button" className="cr-more" onClick={() => setLimit((n) => n + SHOW)}>
               Show {Math.min(SHOW, rows.length - limit)} more <span className="sys-mono">· {limit.toLocaleString("en-IN")} of {rows.length.toLocaleString("en-IN")} shown</span>
@@ -239,29 +246,41 @@ export function CaseRegister() {
           {rows.length <= limit && closed?.more && (lens === "closed" || lens === "reasonless") && <button type="button" className="cr-more" onClick={loadMore} disabled={busy}>{busy ? <Loader2 size={15} className="animate-spin" /> : null} Read {PAGE} more</button>}
         </>
       ) : (
-        <p className="cr-state">{lens === "search" ? (q.trim().length < 2 ? "Type at least two letters." : busy ? "Searching…" : "No case matches that.") : busy ? "Reading…" : lens === "open" ? "No open cases. Everything recorded has been closed." : "No cases in this view."}</p>
+        <p className="cr-state" role="status">{lens === "search" ? (q.trim().length < 2 ? "Type at least two letters." : busy ? "Searching…" : "No case matches that.") : busy ? "Reading…" : lens === "open" ? "No open cases recorded in this view." : "No cases in this view."}</p>
       )}
+      </section>
+      </div>
+      <Dialog open={Boolean(selected)} onOpenChange={(v) => { if (!v) setSelected(null); }}><DialogContent className="spa-scope cr-inspector">
+        {selected && <>
+          <p className="cr-inspector-kicker">Case register / {triage(selected)}</p>
+          <DialogTitle>{cond(selected) || selected.title || "Condition not recorded"}</DialogTitle>
+          <DialogDescription>{selected.case_code || "Source code not recorded"} · {STATUS_META[(selected.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}</DialogDescription>
+          <dl className="cr-inspector-facts">
+            <div><dt>Animal identity</dt><dd>{selected.straypaw_id || selected.animal_name || "Not linked"}</dd></div>
+            <div><dt>Locality</dt><dd>{selected.zone || "Not recorded"}</dd></div>
+            <div><dt>Reported</dt><dd>{day(selected.occurred_at)}</dd></div>
+            <div><dt>Last recorded activity</dt><dd>{day(selected.last_activity_at)}</dd></div>
+            <div><dt>Assigned to</dt><dd>{selected.assignee_name || "Not recorded"}</dd></div>
+            <div><dt>Next follow-up</dt><dd>{day(selected.next_due)}</dd></div>
+          </dl>
+          <p className="cr-scope">This preview preserves the queue. Open the case file for source notes, care, assignment, follow-ups, costs and outcome decisions.</p>
+          <div className="cr-inspector-actions"><Link href={`/partner/cases/${selected.id}`}>Open case & actions <ArrowUpRight size={16} /></Link>{selected.dog_id && <Link href={`/partner/animals/${selected.dog_id}`}>Animal history <ArrowUpRight size={16} /></Link>}{selected.h3_r8 && <Link href={`/partner/map?cell=${selected.h3_r8}&mode=cases`}><MapPin size={16} />Recorded area</Link>}</div>
+        </>}
+      </DialogContent></Dialog>
     </main>
   );
 }
 
 function Head({ count, review }: { count?: Record<string, number>; review?: number }) {
   return (
-    <DeskHeader
-      kicker="Records · cases"
-      title={<>Every request, and where it&nbsp;stands</>}
-      lede="Each case from report to outcome. Critical first, then the ones that have gone quiet."
-      figures={count ? [
-        { label: "open", value: count.open },
-        { label: "critical", value: count.critical, tone: count.critical ? "attention" : undefined },
-        { label: "quiet for a month", value: count.quiet, tone: "quiet" },
-        { label: count.nobody === 1 ? "with nobody on it" : "with nobody on them", value: count.nobody },
-      ] : [{ label: "open", value: null }]}
-      actions={<>
+    <header className="cr-command-head">
+      <p className="cr-inspector-kicker">StrayPaw / organisation case desk</p>
+      <div><h1>The case desk<span>.</span></h1><p>{count ? `${count.open.toLocaleString("en-IN")} loaded open cases. ` : "Your organisation’s working record. "}Triage, inspect, act—and keep the evidence together.</p></div>
+      <div className="cr-command-actions">
         <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} /> New rescue case</Link>
         <Link href="/partner/review" className="dk-btn is-tint">Case review{review ? ` · ${review}` : ""} <ArrowUpRight size={14} /></Link>
-      </>}
-    />
+      </div>
+    </header>
   );
 }
 
@@ -275,21 +294,21 @@ function Board({ rows, now, cell, onCell }: { rows: RegisterRow[]; now: number; 
   const colTotal = BANDS.map((b) => rows.filter((r) => band(daysSince(r.occurred_at, now)) === b.id).length);
   return (
     <figure className="cr-board">
-      <div className="cr-grid" role="grid" aria-label="Open cases by triage and by how long they have been open">
+      <div className="cr-grid" role="group" aria-label="Open cases by triage and by how long they have been open">
         <span className="cr-corner" />
-        {BANDS.map((b, i) => <span key={b.id} className="cr-colh" role="columnheader">{b.label}<small className="sys-mono">{colTotal[i]}</small></span>)}
+        {BANDS.map((b, i) => <span key={b.id} className="cr-colh">{b.label}<small className="sys-mono">{colTotal[i]}</small></span>)}
         {TRIAGE_ROWS.map((t) => {
           const total = rows.filter((r) => triage(r) === t.id).length;
           return (
-            <div key={t.id} className={`cr-trow is-${t.id.toLowerCase()}`} role="row">
-              <span className="cr-rowh" role="rowheader"><i />{t.label}<small className="sys-mono">{total}</small></span>
+            <div key={t.id} className={`cr-trow is-${t.id.toLowerCase()}`}>
+              <span className="cr-rowh"><i />{t.label}<small className="sys-mono">{total}</small></span>
               {BANDS.map((b) => {
                 const list = grid.get(`${t.id}|${b.id}`) ?? [];
                 const on = cell?.t === t.id && cell.b === b.id;
                 const quiet = list.filter((r) => isQuiet(r, now)).length;
                 return (
-                  <button key={b.id} type="button" role="gridcell" className={`cr-cell ${on ? "is-on" : ""} ${list.length ? "" : "is-empty"}`} disabled={!list.length}
-                    aria-selected={on} aria-label={`${t.label}, ${b.label.toLowerCase()}: ${list.length} open, ${quiet} quiet`}
+                  <button key={b.id} type="button" className={`cr-cell ${on ? "is-on" : ""} ${list.length ? "" : "is-empty"}`} disabled={!list.length}
+                    aria-pressed={on} aria-label={`${t.label}, ${b.label.toLowerCase()}: ${list.length} open, ${quiet} quiet`}
                     onClick={() => onCell(on ? null : { t: t.id, b: b.id })}>
                     <span className="cr-units">
                       {list.slice(0, 60).map((r) => <i key={r.id} className={isQuiet(r, now) ? "is-quiet" : ""} />)}
@@ -312,14 +331,14 @@ function Board({ rows, now, cell, onCell }: { rows: RegisterRow[]; now: number; 
   );
 }
 
-function Row({ r, now }: { r: RegisterRow; now: number }) {
+function Row({ r, now, onInspect }: { r: RegisterRow; now: number; onInspect: () => void }) {
   const t = triage(r);
   const o = isOpen(r);
   const age = daysSince(r.occurred_at, now);
   const q = quietDays(r, now);
   const close = closeOf(r);
   const closedDays = !o && close && r.occurred_at ? Math.max(0, Math.round((Date.parse(close) - Date.parse(r.occurred_at)) / DAY)) : null;
-  const L = (d: number) => (Math.log1p(Math.max(0, d)) / Math.log1p(1500)) * 100;
+  const L = (d: number) => Math.min(100, (Math.log1p(Math.max(0, d)) / Math.log1p(1500)) * 100);
   const total = o ? age : closedDays ?? 0;
   const active = o ? Math.max(0, age - q) : total;
   const cls = (r.status_class ?? "unknown") as StatusClass;
@@ -346,6 +365,7 @@ function Row({ r, now }: { r: RegisterRow; now: number }) {
       </div>
       <div className="cr-with">{o ? (r.assignee_name ? <span>{r.assignee_name}</span> : <span className="is-none">Nobody</span>) : reason ? <small>{reason}</small> : null}{overdue && <small className="is-hot">follow-up overdue</small>}</div>
       <span className={`cr-status is-${cls}`}>{STATUS_META[cls]?.short ?? cls}</span>
+      <button className="cr-inspect" type="button" aria-label={`Inspect ${cond(r) || r.title || "case"}`} onClick={onInspect}><PanelRightOpen size={17} /></button>
     </li>
   );
 }

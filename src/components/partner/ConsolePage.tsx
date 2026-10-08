@@ -64,7 +64,7 @@ export function ConsolePage({
     <div className={`cpage${width === "read" ? " cpage-read" : ""}`}>
       <DeskHeader kicker={kicker} title={title} lede={lede} actions={actions} figures={figures} city={city} />
       {tabs && <div className="cpage-tabs">{tabs}</div>}
-      {children}
+      <div className="cpage-content">{children}</div>
     </div>
   );
 }

@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
-import { ArrowUpRight, ChevronDown, Crosshair, Hexagon, Layers, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
 import { groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
   animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf, caseStateOn, resolvedOn, resolutionUndated,
@@ -210,6 +210,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
   const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? (surface === "municipality" ? "coverage" : "animals")) as AnyMode;
   const [mode, setMode] = useState<AnyMode>(initialMode);
+  const urlMode = params.get("mode");
+  useEffect(() => {
+    const requested = MODES.find((item) => item.id === urlMode)?.id;
+    if (requested) setMode(requested);
+  }, [urlMode]);
   const atlasLens = mode === "cases" ? "cases" : ["abc", "arv", "medical"].includes(mode) ? "care" : ["coverage", "activity", "change"].includes(mode) ? "evidence" : "animals";
   const [lens, setLens] = useState<CaseLens>((LENSES.find((l) => l.id === params.get("lens"))?.id ?? "open") as CaseLens);
   const [month, setMonth] = useState<number | null>(null);
@@ -1237,7 +1242,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         </aside>
       )}
 
-      <div className="sm-scale" aria-label="Map detail scale">
+      <div className="sm-scale" aria-label="Map detail scale" data-zoom={mapZoom.toFixed(2)}>
         {[{ label: "India", at: 7 }, { label: "City", at: 11 }, { label: "Cells", at: 15 }, { label: "Dogs", at: Infinity }].map(({ label, at }, i) => (
           <span key={label} className={mapZoom < at && (i === 0 || mapZoom >= [{ at: 0 }, { at: 7 }, { at: 11 }, { at: 15 }][i].at) ? "is-on" : ""}>{label}</span>
         ))}
@@ -1294,6 +1299,8 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       </div>
 
       {<div className="sm-tools">
+        <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomIn({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom in" title="Zoom in"><Plus size={18} /></button>
+        <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomOut({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom out" title="Zoom out"><Minus size={18} /></button>
         <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label={nFilters ? `Filters, ${nFilters} on` : "Filters"}><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
         <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={16} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the paper ground, for daylight" : "Switch to the night ground"}><Layers size={16} /></button>

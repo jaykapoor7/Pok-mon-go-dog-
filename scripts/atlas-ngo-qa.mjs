@@ -14,7 +14,7 @@ const browser = await chromium.launch({ executablePath: "/usr/bin/chromium", arg
 const results = [];
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce", ignoreHTTPSErrors: true });
-  await context.addInitScript(() => { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("straypaw.analytics.optout", "1"); });
+  await context.addInitScript(() => { try { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("straypaw.analytics.optout", "1"); } catch { /* Embedded reference documents can deny browser storage. */ } });
   // Local development has no administrative secret. Only the real sign-in
   // endpoint uses the existing account service; UI and reads remain local.
   await context.route("**/api/join", async (route) => {
@@ -60,6 +60,53 @@ try {
     await page.locator(".sm-insp-head h2").waitFor({ timeout: 60000 });
     assert.equal(await page.locator(".atlas").getAttribute("data-lens"), "cases");
     await page.screenshot({ path: `${output}/field-map-${width}.png` });
+    if (process.env.NGO_CASE_QA === "1") {
+      await page.goto(base + "/partner/cases");
+      await page.locator(".cr-inspect").first().waitFor({ timeout: 60000 });
+      await page.screenshot({ path: `${output}/case-desk-${width}.png` });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+      await page.getByRole("button", { name: /^Critical \d+/ }).click();
+      await page.locator(".cr-inspect").first().click();
+      await page.locator(".cr-inspector").waitFor();
+      assert.equal(await page.locator(".cr-inspector-facts > div").count(), 6);
+      await page.screenshot({ path: `${output}/case-preview-${width}.png` });
+      await page.keyboard.press("Escape");
+      assert.equal(await page.locator(".cr-inspector").count(), 0);
+      const caseHref = await page.locator(".cr-name").first().getAttribute("href");
+      await page.goto(base + caseHref);
+      await page.locator(".cf-mast h1").waitFor({ timeout: 60000 });
+      assert.equal(await page.locator(".cf-sec").count(), 4);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+      await page.getByRole("link", { name: "Next decision", exact: true }).click();
+      await page.screenshot({ path: `${output}/case-file-${width}.png`, mask: [page.locator(".cf-prose"), page.locator(".cf-hist-note"), page.locator("textarea"), page.locator("input")] });
+      await page.goto(base + "/partner/cases/new");
+      await page.locator("#nc-title").waitFor({ timeout: 60000 });
+      await page.getByRole("button", { name: "New animal", exact: true }).click();
+      assert.equal(await page.getByRole("button", { name: "New animal", exact: true }).getAttribute("aria-pressed"), "true");
+      await page.getByRole("button", { name: "Existing animal", exact: true }).click();
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+      await page.screenshot({ path: `${output}/case-intake-${width}.png` });
+    }
+    if (process.env.NGO_SECONDARY_QA === "1") {
+      const secondaryRoutes = process.env.NGO_SECONDARY_ROUTES?.split(",") ?? ["animals", "review", "field", "incoming", "import", "quality", "projects", "reports", "team", "settings", "resources", "operations", "feeding", "drives", "volunteers", "medical", "fundraising", "stories"];
+      for (const route of secondaryRoutes) {
+        const response = await page.goto(base + `/partner/${route}`);
+        await page.waitForFunction(() => !document.querySelector(".animate-spin,.xs-spin,.imp-spin"), { timeout: 30000 }).catch(() => {});
+        await page.waitForTimeout(1500);
+        assert.equal(response.status(), 200, route);
+        if (route === "reports") {
+          await page.locator(".ib-period").waitFor({ timeout: 60000 });
+          assert.equal(await page.locator(".xs").count(), 1, "NGO analysis must retain its export studio.");
+          assert.equal(await page.locator(".atlas,.bsm").count(), 0, "NGO Reports must not be a replacement map dashboard.");
+          await page.getByRole("button", { name: "Last 90 days", exact: true }).click();
+          assert.equal(await page.getByRole("button", { name: "Last 90 days", exact: true }).getAttribute("aria-pressed"), "true");
+          await page.getByRole("button", { name: "All time", exact: true }).click();
+        }
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, `Overflow on ${route} at ${width}px`);
+        await page.screenshot({ path: `${output}/secondary-${route}-${width}.png` });
+        console.log(JSON.stringify({ route, width, status: response.status(), overflow: 0, operationalWrites: 0 }));
+      }
+    }
     results.push({ width, authorizedSession: true, registerRowsVisible: rowCount, inspector: true, keyboardDismissal: true, scopedMap: true, operationalWrites: 0 });
   }
   assert.deepEqual(errors, []);

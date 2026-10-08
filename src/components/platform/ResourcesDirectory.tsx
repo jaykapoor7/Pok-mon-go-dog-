@@ -43,7 +43,7 @@ function getStateName(code: string) {
 
 function OrgCard({ org }: { org: OrgEntry }) {
   return (
-    <div className="rounded border border-bark-100 bg-white p-5">
+    <div className="rd-org-entry">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-semibold text-bark-900">{org.name}</p>
@@ -55,10 +55,11 @@ function OrgCard({ org }: { org: OrgEntry }) {
         </div>
         {org.url && (
           <a
+            aria-label={`Visit ${org.name}`}
             href={org.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 rounded-full p-1.5 text-bark-300 hover:bg-bark-50 hover:text-paw-500"
+            className="rd-org-visit"
           >
             <ExternalLink className="h-4 w-4" />
           </a>

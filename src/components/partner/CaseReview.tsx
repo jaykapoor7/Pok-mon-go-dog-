@@ -111,11 +111,11 @@ export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
 
       {tab === "stale" && (stale?.length ?? 0) > 0 && <AgeStrip cases={stale!} done={done} />}
 
-      <div className="rv-tabs" role="tablist" aria-label="What to review">
-        <button role="tab" aria-selected={tab === "stale"} className={tab === "stale" ? "is-on" : ""} onClick={() => { setTab("stale"); setSelected(new Set()); }}>
+      <div className="rv-tabs" role="group" aria-label="What to review">
+        <button type="button" aria-pressed={tab === "stale"} className={tab === "stale" ? "is-on" : ""} onClick={() => { setTab("stale"); setSelected(new Set()); }}>
           Open too long <b className="sys-mono">{(stale ?? []).filter((c) => !done[c.id]).length}</b>
         </button>
-        <button role="tab" aria-selected={tab === "reasons"} className={tab === "reasons" ? "is-on" : ""} onClick={() => { setTab("reasons"); setSelected(new Set()); }}>
+        <button type="button" aria-pressed={tab === "reasons"} className={tab === "reasons" ? "is-on" : ""} onClick={() => { setTab("reasons"); setSelected(new Set()); }}>
           Closed without a reason <b className="sys-mono">{(reasonless ?? []).filter((c) => !done[c.id]).length}</b>
         </button>
       </div>
