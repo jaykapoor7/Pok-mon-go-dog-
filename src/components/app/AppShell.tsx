@@ -270,10 +270,9 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
         <form className="spa-search" onSubmit={handleSearch} role="search">
           <Search size={13}/>
           <input ref={searchRef} type="search" placeholder="Search StrayPaw ID, place or organisation" aria-label="Search the network" value={query} onChange={(e) => onQueryChange(e.target.value)} onKeyDown={onSearchKey} onBlur={() => window.setTimeout(() => setHits([]), 120)} role="combobox" aria-expanded={hits.length > 0} aria-controls="spa-search-results" enterKeyHint="search" autoComplete="off" autoCorrect="off" spellCheck={false}/>
-          <kbd className="spa-search-key" aria-hidden>⌘K</kbd>
           {hits.length > 0 && <ul className="spa-results" id="spa-search-results" role="listbox">{hits.map((h, i) => <li key={`${h.kind}-${h.href}-${h.label}`} role="option" aria-selected={i === cursor}><button type="button" className={i === cursor ? "on" : ""} onMouseEnter={() => setCursor(i)} onMouseDown={(e) => e.preventDefault()} onClick={() => go(h)}><span className="spa-res-kind">{KIND_LABEL[h.kind]}</span><b>{h.label}</b><span className="spa-res-detail">{h.detail}</span></button></li>)}</ul>}
         </form>
-        <div className="spa-top-right"><LanguageSwitcher /><div className="spa-top-account"><ProfilePanel/></div><button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15}/> Switch space</button><Link href="/" className="spa-exit"><ArrowUpRight size={13}/> Main site</Link></div>
+        <div className="spa-top-right"><LanguageSwitcher /><div className="spa-top-account"><ProfilePanel/></div><div className="spa-register-feedback"><FeedbackButton label="Feedback"/></div><button type="button" className="spa-switch" onClick={openTour}><Repeat2 size={15}/> Switch space</button><Link href="/" className="spa-exit"><ArrowUpRight size={13}/> Main site</Link></div>
       </div>
 
       <div className="spa-body">

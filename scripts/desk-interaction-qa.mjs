@@ -1,5 +1,5 @@
 /* Read-only public workspace QA. No report submission or operational writes. */
-import { chromium } from "@playwright/test";
+import { chromium, request } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 const base = process.env.BASE || "http://127.0.0.1:3001";
@@ -8,10 +8,19 @@ await mkdir(output, { recursive: true });
 const proxy = process.env.HTTPS_PROXY;
 const browser = await chromium.launch({ executablePath: "/usr/bin/chromium", args: ["--enable-unsafe-swiftshader", ...(proxy ? [`--proxy-server=${proxy}`, "--proxy-bypass-list=localhost;127.0.0.1"] : [])] });
 const results = [];
+const remote = process.env.QA_PUBLIC_PROXY === "1" ? await request.newContext({ ignoreHTTPSErrors: true, ...(proxy ? { proxy: { server: proxy } } : {}) }) : null;
+const responses = new Map();
 try {
   for (const width of [1440, 390]) {
     const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce", ignoreHTTPSErrors: true });
     await context.addInitScript(() => { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("straypaw.analytics.optout", "1"); });
+    if (remote) await context.route("**/api/spatial**", async (intercept) => {
+      const url = new URL(intercept.request().url());
+      if (intercept.request().method() !== "GET" || url.searchParams.get("scope") === "org") return intercept.continue();
+      const key = url.pathname + url.search;
+      if (!responses.has(key)) responses.set(key, remote.get(`https://www.straypaw.org${key}`).then(async (r) => ({ status: r.status(), contentType: "application/json", body: await r.body() })));
+      await intercept.fulfill(await responses.get(key));
+    });
     const page = await context.newPage(), errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(base + "/municipality?city=Ranchi");
@@ -45,7 +54,13 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
     await page.waitForFunction(() => !document.querySelector(".cp-register")?.textContent.includes("Reading the patch"), { timeout: 60000 });
     await page.waitForTimeout(1500);
-    await page.locator(".cp-journey").scrollIntoViewIfNeeded();
+    assert(await page.locator(".cp-home-map").isVisible(), "Community geography must be visible without a disclosure.");
+    await page.locator(".cp-home-map").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1500);
+    const mapHeight = await page.locator(".cp-home-map .lm").evaluate((e) => e.getBoundingClientRect().height);
+    assert(mapHeight <= (width < 700 ? 220 : 320), "Home map must stay compact, not consume the page.");
+    assert.equal(await page.locator(".spa-search-key").count(), 0, "No decorative shortcut badge.");
+    await page.locator(".cp-home-map").scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${output}/community-patch-${width}.png` });
     await page.goto(base + "/resources");
     assert.equal(await page.locator(".rd-contact[href^='tel:']").count(), 6);
@@ -64,5 +79,5 @@ try {
     assert.deepEqual(errors, []);
     await context.close();
   }
-} finally { await writeFile(`${output}/results.json`, JSON.stringify(results, null, 2)); await browser.close(); }
+} finally { await writeFile(`${output}/results.json`, JSON.stringify(results, null, 2)); await browser.close(); await remote?.dispose(); }
 console.log(JSON.stringify(results));

@@ -317,6 +317,10 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
       <p className="cp-near"><MapPin size={13} aria-hidden /> {cityMode ? `Near ${city.name} city centre` : `Near ${patch.label === "Around you" ? "you" : patch.label}`} · {RADIUS_KM} km{cityMode ? " · citywide totals are shown above" : ""}</p>
       <p className="cp-sample">Nearby lists, lights and recent activity describe bounded, loaded records. They do not count every dog or event in your patch.</p>
       <section className="cp-work" aria-label="Near you">
+        <section className="cp-home-map" aria-label="Recorded geography near you"><header><h2>Recorded geography</h2><Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`}>Explore the Atlas ↗</Link></header><figure className="cp-plate">
+          {lights ? <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} /> : <p role="status">Loading recorded geography…</p>}
+          <figcaption>Loaded profiles in public cells · {RADIUS_KM} km around this place · not exact animal locations.</figcaption>
+        </figure></section>
         <div className="cp-register" id="cp-identities">
           <div className="cp-tabs" role="group" aria-label="Animals in your patch">
             <button type="button" aria-pressed={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention nearby <b className="sys-mono">{animalsError || animals === null ? "—" : attention.length}</b>{cityMode && city.help > attention.length ? <small className="sys-mono"> · {city.help.toLocaleString("en-IN")} citywide</small> : null}</button>
@@ -344,10 +348,6 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
             )}
           {list.length > 5 && <Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`} className="cp-more">{list.length - 5} more on the map <ArrowUpRight size={13} /></Link>}
         </div>
-        <details className="cp-ground"><summary>Recorded geography / {RADIUS_KM} km around this place</summary><figure className="cp-plate">
-          {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}
-          <figcaption><span>Loaded profiles in public cells—not exact locations.</span><Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`}>Open the Atlas ↗</Link></figcaption>
-        </figure></details>
       </section>
 
       {/* What changed is for someone coming back, and only when something did. */}

@@ -9,6 +9,10 @@ StrayPaw connects living animals, residents, care organisations and geographic
 evidence. Its map is a living atlas; community, insights and professional pages
 retain their own purposes and workflows. All share one institutional identity.
 Never substitute a map for an existing home, insights brief or working page.
+Community Home includes visible contextual geography alongside its animal
+register; do not hide that map behind a disclosure. The app desktop shell uses
+a horizontal route register, not a full-height SaaS sidebar. Keep account,
+feedback and professional quick actions reachable after shell changes.
 Improve map exploration on map routes, and improve other pages on their own terms.
 
 Read `docs/PHASE-1-ATLAS-AUDIT.md` before changing visualizations and inspect the

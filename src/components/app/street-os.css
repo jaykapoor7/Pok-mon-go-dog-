@@ -1,6 +1,86 @@
 /* StrayPaw street-record OS. Content only: never the landing or primary nav.
    Primitives: accession line, source index, photographic contact sheet,
    state rail, dated trail and continuous analytical register. */
+/* Compact phone hierarchy. Navigation remains in the bottom bar / More menu. */
+@media(max-width:760px) {
+  html .spa.spa-desk .spa-mobile-shortcuts { display: none; }
+  html .spa.spa-desk .spa-page-context { margin-bottom: 10px; padding-bottom: 8px; }
+  html .spa.spa-desk .spa-main:not(.flush) { padding: 12px 16px 24px; }
+  html .spa.spa-desk .spa-main .cp-street-head h1 { font-size: 30px; margin: 12px 0; }
+  html .spa.spa-desk .spa-main .cp-street-head h1 > span { display: inline; margin: 0; font-size: 16px; }
+  html .spa.spa-desk .spa-main .cp-journey { gap: 0; margin: 12px 0; }
+  html .spa.spa-desk .spa-main .cp-journey a { padding: 8px 0; min-height: 44px; }
+  html .spa.spa-desk .spa-main .cp-near { margin: 8px 0; }
+  html .spa.spa-desk .spa-main .cp-sample { margin: 8px 0 12px; font-size: 12px; }
+  html .spa.spa.spa-desk .spa-main .cp-home-map .lm { height: 200px; min-height: 200px; aspect-ratio: auto; }
+  html .spa.spa-desk .spa-main .cp-home-map header { padding: 8px 0; }
+  html .spa.spa-desk .spa-main .cp-home-map header a { min-height: 44px; display: flex; align-items: center; }
+  html .spa.spa-desk .spa-main .cp-list li { padding: 12px 0; }
+  html .spa.spa-desk .spa-main .lr-documentary-photo .lr-photo { height: 220px; }
+  html .spa.spa-desk .spa-main .lr-documentary-photo { margin-top: 8px; }
+  html .spa.spa-desk .spa-main .lr-documentary-photo figcaption { padding: 6px 0; }
+  html .spa.spa-desk .spa-main .lr-documentary .lr-hero-words { margin-top: 0; }
+  html .spa.spa-desk .spa-main .lr-hero-words { padding: 16px 0; }
+  html .spa.spa-desk .spa-main .lr-hero-words h1 { font-size: 30px; }
+  html .spa.spa-desk .spa-main .lr-sec { padding-block: 16px; }
+  html .spa.spa-desk .spa-main .lr-actions { gap: 0; display: flex; flex-wrap: wrap; border-block: 1px solid var(--os-rule); }
+  html .spa.spa-desk .spa-main .lr-actions > * { flex: 1 1 45%; }
+  html .spa.spa-desk .spa-main .lr-actions .lr-act { width: 100%; padding: 10px 8px; min-height: 44px; border: 0; background: transparent; }
+  html .spa.spa-desk .spa-main .atlas .sm-tools { display: flex; }
+  html .spa.spa-desk .spa-main .atlas .sm-tools button:nth-child(n+4) { display: none; }
+  html .spa.spa-desk .spa-main .atlas-encounter { right: 16px; top: auto; bottom: 225px; }
+  html .spa.spa-desk .spa-main :is(.ib-q,.csect,.dk-section) { padding-block: 16px; }
+}
+/* App-only route register replaces the desktop SaaS sidebar. */
+html .spa.spa-desk { --ctl-r: 0px; --ctl-r-row: 0px; --sp-radius: 0px; --sp-radius-lg: 0px; }
+html .spa.spa-desk .spa-search { border-radius: 0; background: transparent; border: 0; border-bottom: 1px solid #8193aa; box-shadow: none; }
+html .spa.spa-desk :is(.spa-switch,.spa-exit,.spa-back button,.spa-mobile-shortcuts a,.spa-mobile-report) { border-radius: 0; box-shadow: none; }
+html .spa.spa-desk .spa-main .lr-pill { display: inline-flex; border-radius: 0; background: transparent; border: 0; border-left: 3px solid currentColor; padding: 4px 8px; }
+html .spa.spa-desk .spa-main :is(.lr-check,.lr-tag,.lr-actions button,.lr-actions a,.lr-care,.lr-story,.lr-org,.lr-pop,.card,.sys-btn) { border-radius: 0; box-shadow: none; }
+html .spa.spa-desk .spa-main .lr-check { border: 0; border-bottom: 1px solid var(--os-rule); background: transparent; }
+html .spa.spa-desk .spa-main .lr-cols { display: block; }
+html .spa.spa-desk .spa-main .lr-body { display: block; }
+html .spa.spa-desk .spa-main .lr-tag { position: static; width: 100%; margin-bottom: 24px; border: 0; border-block: 1px solid var(--os-rule); background: transparent; }
+html .spa.spa-desk .spa-main .lr-checks { display: flex; flex-wrap: wrap; gap: 0 24px; }
+html .spa.spa-desk .spa-main .lr-checks li { flex: 1 1 220px; }
+html .spa.spa-desk .spa-main .lr-aside { display: grid; grid-template-columns: minmax(0,1fr) minmax(240px,.6fr); gap: 24px; border-bottom: 1px solid var(--os-rule); margin-bottom: 24px; }
+html .spa.spa-desk .spa-main .cp-home-map { margin: 0 0 24px; border-block: 1px solid var(--os-rule); }
+html .spa.spa-desk .spa-main .cp-home-map header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 0; }
+html .spa.spa-desk .spa-main .cp-home-map h2 { margin: 0; font: 600 16px var(--font-sans),sans-serif; }
+html .spa.spa-desk .spa-main .cp-home-map header h2 { color: #0b1e3d; }
+html .spa.spa-desk .spa-main .cp-home-map header a { color: #2457ce; }
+html .spa.spa-desk .spa-nav-context { color: #435a60; }
+html .spa.spa.spa.spa-desk .spa-side .spa-phone-links > a.spa-mobile-report { border-radius: 0; box-shadow: none; }
+html .spa.spa-desk .spa-top-account button { border-radius: 0; }
+html .spa.spa-desk .spa-main .cp-home-map .cp-plate { max-width: none; width: 100%; margin: 0; border-radius: 0; }
+html .spa.spa-desk .spa-main .cp-home-map .lm { height: 300px; min-height: 0; aspect-ratio: auto; }
+html .spa.spa-desk .spa-main .cp-home-map figcaption { padding: 10px 0; font-size: 12px; }
+@media(min-width:761px) {
+  html .spa.spa.spa-desk .spa-side { background: #f4f3eb; color: #0b1e3d; min-height: 48px; height: 48px; padding: 0 20px; border-bottom: 1px solid #c8cec6; }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a { color: #435a60; background: transparent; border-radius: 0; padding: 10px 16px; border: 0; border-bottom: 3px solid transparent; }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a.active { color: #0b1e3d; border-bottom-color: #f05b40; background: transparent; }
+  html .spa.spa.spa-desk .spa-side .spa-primary-nav a:is(:hover,:focus-visible) { color: #0b1e3d; background: #e0e7dd; }
+  html .spa.spa.spa-desk .spa-nav-context { color: #435a60; }
+  html .spa.spa-desk .spa-body { display: flex; flex-direction: column; min-height: 0; }
+  html .spa.spa-desk .spa-side { position: relative; inset: auto; display: flex; flex-direction: row; flex: 0 0 auto; width: 100%; max-width: none; height: auto; padding: 0 20px; gap: 16px; align-items: center; background: #f4f3eb; color: #0b1e3d; border: 0; border-bottom: 1px solid #c8cec6; }
+  html .spa.spa-desk .spa-nav-context { flex: none; margin: 0; padding: 12px 0; }
+  html .spa.spa-desk .spa-primary-nav { display: flex; flex: 1; min-width: 0; overflow-x: auto; gap: 0; padding: 0; }
+  html .spa.spa-desk .spa-primary-nav a { flex: none; min-height: 48px; padding: 12px 16px; color: #435a60; border-radius: 0; border: 0; border-bottom: 3px solid transparent; background: transparent; white-space: nowrap; }
+  html .spa.spa-desk .spa-primary-nav a.active { color: #0b1e3d; background: transparent; border-bottom-color: #f05b40; }
+  html .spa.spa-desk .spa-primary-nav a svg { display: none; }
+  html .spa.spa-desk .spa-side-foot { display: none; }
+  html .spa.spa-desk .spa-top-account { display: block; }
+  html .spa.spa-desk .spa-quick-list { display: flex; flex: none; gap: 8px; margin: 0; padding: 0; }
+  html .spa.spa-desk .spa-quick-list p { display: none; }
+  html .spa.spa-desk .spa-quick-list a { border-radius: 0; min-height: 44px; padding: 8px; }
+  html .spa.spa-desk .spa-main { flex: 1; min-height: 0; width: 100%; margin: 0; }
+}
+@media(max-width:760px) {
+  html .spa.spa-desk .spa-register-feedback { display: none; }
+  html .spa.spa-desk .spa-main .lr-tag-body { display: block; padding: 12px 0; }
+  html .spa.spa-desk .spa-main .lr-tag-rows { margin: 12px 0; }
+  html .spa.spa-desk .spa-main .lr-aside { display: block; }
+}
 html .spa .spa-main { --os-ground: #f4f3eb; --os-rule: #c8cec6; --os-quiet: #4b5d62; background: var(--os-ground); }
 html .spa .spa-main .os-origin { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0; max-width: none; width: 100%; padding: 12px 0; border-block: 1px solid var(--sp-ink); font: 11px/1.5 var(--font-mono), monospace; color: var(--sp-ink); letter-spacing: .04em; }
 html .spa .spa-main .atlas .sm-insp-go :is(button,a), html .spa .spa-main .atlas .sm-insp-x { border-radius: 0; box-shadow: none; }
