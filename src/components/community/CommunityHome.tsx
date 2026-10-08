@@ -360,13 +360,13 @@ export function CommunityHome({ stories, storyError = false, availableCities = [
           <div className="nb-ask">
             <h2 className="x-h2">The most useful thing <em>you</em> can do here</h2>
             {stats && stats.sterUnknown > 0 ? (
-              <p><b className="x-num">{fmt(stats.sterUnknown)}</b> of the {fmt(stats.n)} loaded profiles around {placeName} have no sterilisation status recorded. Unknown is not "no" — but a clear photograph of a notched ear lets a care team settle it.</p>
+              <p><b className="x-num">{fmt(stats.sterUnknown)}</b> of the {fmt(stats.n)} loaded profiles around {placeName} have no sterilisation status recorded. Unknown is not &ldquo;no&rdquo; — but a clear photograph of a notched ear lets a care team settle it.</p>
             ) : cells && cells.edge.length > 0 ? (
               <p><b className="x-num">{cells.edge.length}</b> cells at the edge of this place have no animal recorded at all. That is a gap in the record, not proof that no animal lives there.</p>
             ) : stats && stats.boosterDue > 0 ? (
               <p><b className="x-num">{stats.boosterDue}</b> animals here were last vaccinated more than a year ago, by the record. A sighting tells a team they are still around.</p>
             ) : (
-              <p>Every sighting with a photograph and a place adds to an animal's history and helps a care team find it.</p>
+              <p>Every sighting with a photograph and a place adds to an animal&rsquo;s history and helps a care team find it.</p>
             )}
             <div className="nb-ask-do">
               <Link className="x-btn is-flame" href={reportHref}><Radio size={16} aria-hidden /> Report what you see</Link>

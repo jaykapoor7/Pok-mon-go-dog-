@@ -27,6 +27,19 @@ export function CommandPalette({ open, onClose, jumps }: { open: boolean; onClos
   const [busy, setBusy] = useState(false);
   const [cursor, setCursor] = useState(0);
   const seq = useRef(0);
+  /* The live city registers, so every city on the record is findable by
+     name — the static place list alone does not know them. */
+  const [registers, setRegisters] = useState<{ city: string; state: string | null; animals: number }[]>([]);
+  useEffect(() => {
+    if (!open || registers.length) return;
+    fetch("/api/spatial?kind=cities&v=4").then((r) => (r.ok ? r.json() : { cities: [] })).then((j) => setRegisters(j.cities ?? [])).catch(() => {});
+  }, [open, registers.length]);
+  const cityHits = (v: string): SearchHit[] => {
+    const t = v.trim().toLowerCase();
+    if (t.length < 2) return [];
+    return registers.filter((c) => c.city.toLowerCase().includes(t)).slice(0, 4)
+      .map((c) => ({ kind: "place" as const, label: c.city, detail: `${c.state ? `${c.state} · ` : ""}${c.animals.toLocaleString("en-IN")} recorded profiles · open in the Atlas`, href: `/map?city=${encodeURIComponent(c.city)}` }));
+  };
 
   useEffect(() => {
     const el = dialog.current;
@@ -40,13 +53,16 @@ export function CommandPalette({ open, onClose, jumps }: { open: boolean; onClos
   useEffect(() => { if (!open) { setQuery(""); setHits([]); setCursor(0); } }, [open]);
 
   const empty: Jump[] = jumps.map((j) => ({ label: j.label, detail: j.detail ?? "", href: j.href }));
-  const rows: (SearchHit | (Jump & { kind: "jump" }))[] = query.trim().length < 2 ? empty.map((j) => ({ ...j, kind: "jump" as const })) : hits;
+  /* City registers are merged at render, so they appear even when the city
+     list arrives after the first keystroke. */
+  const reg = cityHits(query);
+  const merged = [...reg, ...hits.filter((h) => !reg.some((r) => r.label.toLowerCase() === h.label.toLowerCase()))].slice(0, 10);
+  const rows: (SearchHit | (Jump & { kind: "jump" }))[] = query.trim().length < 2 ? empty.map((j) => ({ ...j, kind: "jump" as const })) : merged;
 
   function change(v: string) {
     setQuery(v);
     setCursor(0);
-    const base = search(v, 8);
-    setHits(base);
+    setHits(search(v, 8));
     const n = ++seq.current;
     if (v.trim().length < 2) { setBusy(false); return; }
     setBusy(true);

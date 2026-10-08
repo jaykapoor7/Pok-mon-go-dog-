@@ -26,7 +26,7 @@
 .ax-rail-open { position: absolute; z-index: 5; top: var(--ax-gap); left: var(--ax-gap); min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: var(--x-ink, #0b1e3d); color: #f4eee5; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5); }
 .ax-head { flex: none; padding: 18px 20px 14px; border-bottom: 1px solid var(--sm-line); }
 .ax-ladder { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin: 0 0 6px; font-size: 13.5px; color: var(--sm-faint); }
-.ax-ladder button { min-height: 32px; padding: 0 6px; margin: 0 -6px; border: 0; border-radius: 8px; background: none; color: var(--sm-dim); font: inherit; cursor: pointer; }
+.ax-ladder button { min-height: 40px; padding: 0 6px; margin: 0 -6px; border: 0; border-radius: 8px; background: none; color: var(--sm-dim); font: inherit; cursor: pointer; }
 .ax-ladder button:hover { color: var(--sm-text); background: var(--sm-chip); }
 .ax-ladder [aria-current] { color: var(--sm-text); font-weight: 600; }
 .ax-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
