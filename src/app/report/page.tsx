@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Camera, Check, ChevronDown, Clock, Crosshair, HeartHandshake, Loader2, MapPin, PawPrint } from "lucide-react";
 import type { MoodTag } from "@/lib/types";
 import { nearestCity, reverseGeocode } from "@/lib/delhi";
@@ -61,6 +61,7 @@ const TITLES = ["Report a dog", "Where is the dog?", "How is it?", "Is an ear no
 export default function ReportPage() {
   const { user, isAuthed, ready, openSignIn } = useAuth();
   const router = useRouter();
+  const reducedMotion = useReducedMotion();
   const fileRef = useRef<HTMLInputElement>(null);
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
@@ -215,10 +216,11 @@ export default function ReportPage() {
       <header className="rq-top">
         <button type="button" className="rq-back" onClick={back} aria-label={step === 0 && !raw ? "Leave the report" : "Back"}><ArrowLeft size={18} /></button>
         <ol className="rq-dots" aria-label={`Step ${step + 1} of 5`}>
-          {TITLES.map((t, i) => <li key={t} className={i < step ? "is-done" : i === step ? "is-now" : ""} />)}
+          {TITLES.map((t, i) => <li key={t} aria-current={i === step ? "step" : undefined} className={i < step ? "is-done" : i === step ? "is-now" : ""}><span>{String(i + 1).padStart(2, "0")}</span><b>{["Photograph", "Location", "Condition", "Ear notch", "Review"][i]}</b></li>)}
         </ol>
         <span className="rq-count sys-mono">{step + 1}/5</span>
       </header>
+      <aside className="rq-context"><p className="sys-mono">Resident field record</p><h2>One observation.<br /><em>A shared record.</em></h2><p>Preserve what you noticed. A photograph, a place, and what you can actually see.</p><p className="rq-context-evidence">Not sure? Say so. Unknown information is useful when it is kept honest.</p></aside>
       {!volunteer && <div className="rq-purpose">
         <span><HeartHandshake size={15} aria-hidden /> A shared care trail starts here</span>
         <small>About a minute · no account needed</small>
@@ -233,10 +235,10 @@ export default function ReportPage() {
             className="rq-screen"
             aria-labelledby="rq-title"
             custom={dir}
-            initial={{ opacity: 0, x: 28 * dir }}
+            initial={{ opacity: 0, x: reducedMotion ? 0 : 28 * dir }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -28 * dir }}
-            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            exit={{ opacity: 0, x: reducedMotion ? 0 : -28 * dir }}
+            transition={{ duration: reducedMotion ? 0 : 0.22, ease: [0.23, 1, 0.32, 1] }}
           >
             <h1 id="rq-title">{TITLES[step]}</h1>
 

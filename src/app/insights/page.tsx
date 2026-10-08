@@ -1,5 +1,7 @@
 import { AppShell } from "@/components/app/AppShell";
 import { PlaceBrief } from "@/components/insights/PlaceBrief";
+import { Suspense } from "react";
+import { SpatialMap } from "@/components/spatial/SpatialMap";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -10,7 +12,8 @@ export const metadata = {
 
 /* Insights retains the intended place brief, backed by one bounded city
    dataset rather than a platform-wide analytical bootstrap. */
-export default function InsightsPage() {
+export default async function InsightsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  if ((await searchParams).view !== "brief") return <AppShell flush><div className="sm-host"><Suspense fallback={null}><SpatialMap /></Suspense></div></AppShell>;
   return (
     <AppShell>
       <PlaceBrief scope="public" />

@@ -130,7 +130,8 @@ function routeOf(r: Living, scope: "public" | "org", reportHref: string): RouteS
 
 export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "public" | "org"; org?: ReactNode; trail?: ReactNode }) {
   const reportHref = `/report?dog=${r.id}${r.place ? `&lat=${r.place.center[1]}&lng=${r.place.center[0]}` : ""}`;
-  const mapHref = r.place ? `${scope === "org" ? "/partner/map" : "/map"}?mode=animals&cell=${r.place.cell}` : `/map?focus=animal:${r.id}`;
+  const cityQuery = r.city ? `&city=${encodeURIComponent(r.city)}` : "";
+  const mapHref = r.place ? `${scope === "org" ? "/partner/map" : "/map"}?mode=animals&cell=${r.place.cell}${cityQuery}` : `/map?focus=animal:${r.id}${cityQuery}`;
   const status = r.known.health === "needs_help" ? { t: "Needs help", c: "is-hot" }
     : r.open.cases ? { t: `${r.open.cases} open request${r.open.cases === 1 ? "" : "s"}`, c: "is-open" }
     : { t: "No open request", c: "" };
@@ -146,37 +147,25 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
       {trail}
 
       {/* ── where, with its name set on it ────────────────────────── */}
-      <header className={`lr-hero ${r.place ? "" : "is-noplace"}`}>
-        {r.place ? (
-          <PlaceMap key={`${r.id}:${r.place.cell}`} variant="banner" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
-        ) : null}
-        {!r.place && <p className="lr-hero-noplace sys-mono">Its place is not on the record yet</p>}
+      <header className={`lr-hero lr-documentary ${r.photo ? "has-photo" : "no-photo"}`}>
         <div className="lr-hero-words">
-          {placeLine && <p className="lr-hero-k sys-mono">{placeLine}</p>}
+          <p className="lr-hero-k sys-mono">Individual record / {r.straypawId ?? "Identity pending"}</p>
           <h1 id="lr-name" className={r.label.length > 30 ? "is-long" : ""}>{r.label}</h1>
+          <p className="lr-documentary-place">{placeLine || "Locality not recorded"}</p>
           <p className="lr-hero-line">
             On the register since <b>{day(r.firstSeen)}</b>{r.lastSeen ? <>; last seen <b>{since(r.lastSeen)}</b></> : null}.
-            {r.place && r.place.here >= 3 ? <> One of <b>{r.place.here}</b> animals recorded in its area, which is drawn, never a spot.</> : <> Its area is drawn, never a spot.</>}
           </p>
+          <p className="lr-documentary-source">Recorded by {r.keeper}. A documented identity, not a claim of verified uniqueness.</p>
         </div>
+        {r.photo ? <figure className="lr-documentary-photo">
+          <DogPhoto src={r.photo} alt={r.label} seed={r.id} width={640} className="lr-photo" />
+          <figcaption><span>From this animal’s record{r.photos.length > 1 ? ` · ${r.photos.length} photographs` : ""}</span>{r.photoAttribution && <span>{r.photoSourceUrl ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a> : r.photoAttribution}</span>}</figcaption>
+        </figure> : <div className="lr-documentary-absence"><span className="sys-mono">Photograph / not recorded</span><p>Known through its record.<br /><em>Not yet through a photograph.</em></p><span>There is no substitute image for this animal.</span></div>}
       </header>
 
       <div className="lr-body">
         {/* ── the record tag: the one lifted object on the page ──────── */}
         <aside className="lr-tag" aria-label="The record at a glance">
-          <div className={`lr-tag-photo ${r.photo ? "" : "is-none"}`}>
-            {r.photo
-              ? <DogPhoto src={r.photo} alt={r.label} seed={r.id} tone={r.known.health === "needs_help" ? "urgent" : "neutral"} className="lr-photo" />
-              : <span>No photograph yet</span>}
-            {r.photos.length > 1 && <span className="lr-count sys-mono">{r.photos.length} photographs</span>}
-          </div>
-          {r.photoAttribution && (
-            <p className="lr-photo-credit">
-              {r.photoSourceUrl
-                ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a>
-                : r.photoAttribution}
-            </p>
-          )}
           <div className="lr-tag-body">
             <p className="lr-tag-top">
               <span className="lr-tag-id sys-mono">{r.straypawId ?? "ID pending"}</span>
@@ -196,6 +185,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
             </ul>
             <p className="lr-tag-note">Hatched fields are not recorded — they do not mean no.</p>
           </div>
+          {r.place && <div className="lr-documentary-area"><PlaceMap key={`${r.id}:${r.place.cell}`} variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} /><p>Recorded area, not an exact animal location.</p></div>}
         </aside>
 
         <div className="lr-main">

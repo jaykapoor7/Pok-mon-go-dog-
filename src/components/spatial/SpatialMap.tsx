@@ -29,7 +29,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
 import { ArrowUpRight, ChevronDown, Crosshair, Hexagon, Layers, SlidersHorizontal, X } from "lucide-react";
-import { NIGHT, PAPER, groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
+import { groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
   animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf, caseStateOn, resolvedOn, resolutionUndated,
   type CellStat, type Filters, type Mode,
@@ -46,12 +46,17 @@ import { Timeline } from "./Timeline";
 import { BoundedSpatialMap } from "./BoundedSpatialMap";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import "./spatial.css";
+import "./atlas.css";
+import { AtlasRegister, CityEvidence } from "./AtlasRegister";
+import { ATLAS_NIGHT, ATLAS_PAPER } from "./atlas-palette";
+import { LensReadout } from "./LensReadout";
+import { AtlasEncounter } from "./AtlasEncounter";
 
 type ModeDef = { id: Mode | "change"; label: string; q: string };
 const MODES: ModeDef[] = [
   { id: "animals", label: "Animals", q: "All recorded animals counted by cell, with individual records shown as detail" },
   { id: "density", label: "Density", q: "Where recorded animals gather, drawn as terrain" },
-  { id: "coverage", label: "Coverage", q: "Where the register has coverage, and where detailed field records are thin" },
+  { id: "coverage", label: "Evidence", q: "How much is recorded, and where the evidence is incomplete" },
   { id: "abc", label: "ABC", q: "Citywide sterilisation totals by cell, with individual detail where loaded" },
   { id: "arv", label: "ARV", q: "Citywide vaccination totals by cell, with individual detail where loaded" },
   { id: "medical", label: "Medical", q: "Where injured and sick animals are recorded" },
@@ -70,7 +75,7 @@ const LENSES: { id: CaseLens; label: string; q: string; unit: string }[] = [
   { id: "open", label: "Open", q: "Where work is open, and how long it has waited", unit: "open" },
   { id: "critical", label: "Critical", q: "Where critical cases are still open", unit: "critical, open" },
   { id: "followup", label: "Follow-up", q: "Where a follow-up is due or was missed", unit: "with a follow-up due or missed" },
-  { id: "noaction", label: "No action", q: "Where requests closed without field action", unit: "closed without action" },
+  { id: "noaction", label: "Source: no action", q: "Records classified as no action; imported status is not proof of a missed intervention", unit: "classified as no action" },
   { id: "repeat", label: "Repeat animals", q: "Where the same animal keeps coming back", unit: "for animals seen before" },
   { id: "resolved", label: "Resolved", q: "Where cases were resolved", unit: "resolved" },
 ];
@@ -104,7 +109,7 @@ function LiveMapFallback({
   mode: AnyMode;
   pal: Palette;
 }) {
-  const [west, south, east, north] = ds.cities[0]?.box ?? INDIA_BOX;
+  const [west, south, east, north] = ds.cells.length ? ds.cities[0]?.box ?? INDIA_BOX : INDIA_BOX;
   const dx = Math.max(0.0001, east - west), dy = Math.max(0.0001, north - south);
   const point = ([lng, lat]: number[]) => [36 + ((lng - west) / dx) * 928, 664 - ((lat - south) / dy) * 628] as const;
   const path = (ring: [number, number][]) => ring.map((p, i) => {
@@ -112,12 +117,13 @@ function LiveMapFallback({
     return `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
   }).join(" ") + " Z";
   const cells = stats.map((s) => ({ s, p: paint(s) })).filter(({ p }) => p.o > 0 || p.line);
-  const animalPoints = (mode === "animals" || mode === "abc" || mode === "arv" || mode === "medical" || mode === "density")
+  const animalPoints = ds.cells.length > 1 && (mode === "animals" || mode === "abc" || mode === "arv" || mode === "medical" || mode === "density")
     ? animals.features.slice(0, 850) : [];
-  const casePoints = (mode === "cases" || mode === "medical") ? cases.features.slice(0, 600) : [];
+  const casePoints = ds.cells.length > 1 && (mode === "cases" || mode === "medical") ? cases.features.slice(0, 600) : [];
   return (
     <svg className="sm-fallback-map" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
       <rect width="1000" height="700" fill={pal.bg} />
+      {!ds.cells.length && ds.cities.map((city) => { const [x, y] = point([city.lng, city.lat]); return <g key={city.name}><circle cx={x} cy={y} r={Math.min(30, 3 + Math.sqrt(city.animals) / 6)} fill={pal.seq[3]} /><text x={x + 8} y={y + 20} fill={pal.ink} fontSize="12">{city.name}</text></g>; })}
       {cells.map(({ s, p }) => <path key={s.cell} d={path(ringOf(ds, s.cell))} fill={p.c} fillOpacity={p.o} stroke={p.line ?? "rgba(239,231,218,.16)"} strokeWidth=".75" />)}
       {animalPoints.map((feature, i) => {
         if (feature.geometry.type !== "Point") return null;
@@ -168,7 +174,8 @@ const heatRamp = (c: string[]) => ["interpolate", ["linear"], ["heatmap-density"
 export function SpatialMap({ scope = "public", userKey = null, surface = "community" }: { scope?: Scope; userKey?: string | null; surface?: "community" | "municipality" }) {
   const params = useSearchParams();
   const router = useRouter();
-  const { ds, ix, error, loading, city: datasetCity, cities: availableCities } = useSpatialDataset(scope, userKey);
+  const overviewOnly = scope === "public" && !["city", "cell", "q", "lat", "lng", "bbox", "focus"].some((key) => params.has(key));
+  const { ds, ix, error, loading, city: datasetCity, cities: availableCities } = useSpatialDataset(scope, userKey, true, overviewOnly);
   /* The overview keeps one bounded city dataset in memory, while its lights
      represent every city. Entering a city switches to its bounded detail. */
   const indiaOverview = scope === "public" && !params.get("city");
@@ -199,10 +206,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
   const [ground, setGround] = useState<"night" | "paper">("night");
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
-  const pal: Palette = ground === "night" ? NIGHT : PAPER;
+  const pal: Palette = ground === "night" ? ATLAS_NIGHT : ATLAS_PAPER;
 
   const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? (surface === "municipality" ? "coverage" : "animals")) as AnyMode;
   const [mode, setMode] = useState<AnyMode>(initialMode);
+  const atlasLens = mode === "cases" ? "cases" : ["abc", "arv", "medical"].includes(mode) ? "care" : ["coverage", "activity", "change"].includes(mode) ? "evidence" : "animals";
   const [lens, setLens] = useState<CaseLens>((LENSES.find((l) => l.id === params.get("lens"))?.id ?? "open") as CaseLens);
   const [month, setMonth] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -322,7 +330,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     eff.source === "field" ? "field-team records" : eff.source === "resident" ? "residents' reports" : "",
     eff.seen !== "any" ? `seen in the last ${eff.seen === "90" ? "90 days" : "year"}` : "",
     eff.condition >= 0 ? CONDITIONS[eff.condition] : "",
-  ].filter(Boolean).join(" Â· ");
+  ].filter(Boolean).join(" · ");
 
   /* ââ what each cell holds, now and a year earlier âââââââââââââââââââ */
   const boundedStats = useMemo(() => (ds && ix ? cellStats(ds, ix, t, eff) : []), [ds, ix, t, eff]);
@@ -348,9 +356,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         help: medical,
         medical,
         sterYes,
-        sterNo: Math.max(0, animals - sterYes),
+        // Rollups lack a verified no/unknown split. Preserve only explicit
+        // negative evidence from loaded detail rather than inventing "no".
+        sterNo: row.sterNo,
         vaccYes,
-        vaccNo: Math.max(0, animals - vaccYes),
+        vaccNo: row.vaccNo,
         cases,
         open,
         care: exact.care_events == null ? row.care : Number(exact.care_events),
@@ -533,7 +543,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       const yes = mode === "abc" ? s.sterYes : s.vaccYes;
       if (!s.animals || !yes) continue;
       const n = fewOr(yes, scope === "public");
-      const due = mode === "arv" && s.due > 0 ? ` Â· ${fewOr(s.due, scope === "public")} due` : "";
+      const due = mode === "arv" && s.due > 0 ? ` · ${fewOr(s.due, scope === "public")} due` : "";
       feats.push({ type: "Feature", properties: { n: `${n}${due}` }, geometry: { type: "Point", coordinates: [ds.centers[s.cell * 2], ds.centers[s.cell * 2 + 1]] } });
     }
     return { type: "FeatureCollection" as const, features: feats };
@@ -558,7 +568,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         style: groundStyle(pal),
         bounds: INDIA_BOX,
         fitBoundsOptions: { padding: 30 },
-        attributionControl: { compact: true, customAttribution: "Â© OpenStreetMap contributors Â· OpenFreeMap Â· H3" },
+        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · H3" },
         maxPitch: 60,
         dragRotate: false,
         pitchWithRotate: false,
@@ -631,10 +641,10 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       "heatmap-weight": 1, "heatmap-intensity": Z(9, 0.6, 14, 1.3), "heatmap-radius": Z(9, 10, 14, 30),
       "heatmap-opacity": Z(11, 0.85, 15.5, 0), "heatmap-color": heatRamp(L.sky) as ExpressionSpecification,
     } });
-    map.addLayer({ id: "pts-halo", type: "circle", source: "pts", layout: { visibility: "none" }, paint: {
+    map.addLayer({ id: "pts-halo", type: "circle", source: "pts", minzoom: 13, layout: { visibility: "none" }, paint: {
       "circle-radius": Z(9, 2.5, 16, 11), "circle-blur": 1, "circle-color": L.halo, "circle-opacity": 0.3,
     } });
-    map.addLayer({ id: "pts", type: "circle", source: "pts", layout: { visibility: "none" }, paint: {
+    map.addLayer({ id: "pts", type: "circle", source: "pts", minzoom: 13, layout: { visibility: "none" }, paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 1.1, 12, 2.1, 15, 4, 17, 6] as ExpressionSpecification,
       "circle-color": L.core, "circle-stroke-color": pal.bg, "circle-stroke-width": Z(13, 0, 15, 1),
     } });
@@ -671,6 +681,16 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     setLayersReady(true);
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
   }, [ready, ds, pal, cityPins]);
+
+  // Client-side city navigation keeps the WebGL canvas alive. Replace the
+  // geometry as well as the values: cell indices belong to each dataset.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !layersReady || !ds) return;
+    map.removeFeatureState({ source: "cells" });
+    (map.getSource("cells") as GeoJSONSource).setData({ type: "FeatureCollection", features: ds.cells.map((_, i) => ({ type: "Feature", id: i, properties: { i }, geometry: { type: "Polygon", coordinates: [ringOf(ds, i)] } })) });
+    (map.getSource("frontier") as GeoJSONSource).setData({ type: "FeatureCollection", features: ds.frontier.map((f, i) => ({ type: "Feature", id: i, properties: { k: f.cell, near: f.near, city: f.city }, geometry: { type: "Polygon", coordinates: [flatRing(f.ring)] } })) });
+  }, [ds, layersReady]);
 
   /* Zoom has meaning here: India → a city register → H3 cells → individual
      records. A nearby-city prompt makes the next step discoverable without
@@ -752,12 +772,15 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     set("feeding", "circle-color", pal.bg); set("feeding", "circle-stroke-color", pal.feed);
     set("sel", "line-color", pal.ink);
     set("inner", "text-color", pal.ink); set("inner", "text-halo-color", pal.bg);
-    set("cities", "circle-stroke-color", pal.bg); set("cities-l", "text-color", pal.ink); set("cities-l", "text-halo-color", pal.bg);
+    set("cities", "circle-color", atlasLens === "cases" ? pal.att[3] : atlasLens === "care" ? pal.arv : pal.seq[3]);
+    set("cities", "circle-opacity", atlasLens === "evidence" ? 0.18 : 0.72);
+    set("cities", "circle-stroke-width", atlasLens === "evidence" ? 2 : 1.5);
+    set("cities", "circle-stroke-color", atlasLens === "evidence" ? pal.ink : pal.bg); set("cities-l", "text-color", pal.ink); set("cities-l", "text-halo-color", pal.bg);
     try { localStorage.setItem("sp.map.ground", ground); } catch { /* storage blocked */ }
-  }, [ground, pal, baseReady, mode, layersReady, pointStyle]);
+  }, [ground, pal, baseReady, mode, atlasLens, layersReady, pointStyle]);
 
   /* ââ what is drawn, for the mode, the time and the filters âââââââââ */
-  const cellsOn = grid || mode === "coverage" || mode === "change" || mode === "abc" || mode === "arv";
+  const cellsOn = grid || (!indiaOverview && mapZoom < 13) || mode === "coverage" || mode === "change" || mode === "abc" || mode === "arv";
   useEffect(() => {
     const map = mapRef.current; if (!map || !layersDone.current || !ds) return;
     const seen = new Set<number>();
@@ -768,15 +791,16 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     }
     for (let i = 0; i < ds.cells.length; i++) if (!seen.has(i)) map.setFeatureState({ source: "cells", id: i }, { c: T, o: 0, line: null, hatch: 0, h: 0 });
     const vis = (id: string, on: boolean) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "visible" : "none"); };
-    const pointsOn = mode === "animals" || mode === "abc" || mode === "arv" || mode === "medical" || mode === "density";
+    const spatialDetail = ds.cells.length > 1;
+    const pointsOn = spatialDetail && (mode === "animals" || mode === "abc" || mode === "arv" || mode === "medical" || mode === "density");
     vis("pts", pointsOn); vis("pts-halo", pointsOn && mode !== "density");
-    vis("heat", mode === "animals" || mode === "medical");
-    vis("heat-care", mode === "activity"); vis("care-pts", mode === "activity");
-    vis("terrain-fill", mode === "density"); vis("terrain-line", mode === "density"); vis("terrain-label", mode === "density");
+    vis("heat", spatialDetail && mapZoom >= 13 && (mode === "animals" || mode === "medical"));
+    vis("heat-care", spatialDetail && mode === "activity"); vis("care-pts", spatialDetail && mode === "activity");
+    vis("terrain-fill", spatialDetail && mode === "density"); vis("terrain-line", spatialDetail && mode === "density"); vis("terrain-label", spatialDetail && mode === "density");
     vis("fog", mode === "coverage"); vis("fog-hatch", mode === "coverage"); vis("fog-edge", mode === "coverage");
     vis("frontier-line", false);
     vis("next", mode === "coverage"); vis("next-n", mode === "coverage");
-    const rings = mode === "cases";
+    const rings = spatialDetail && mode === "cases";
     ["case-r365", "case-r180", "case-r90", "case-r30", "case-pulse", "cases"].forEach((id) => vis(id, rings));
     vis("inner", cellsOn); vis("cells-hatch", cellsOn);
     vis("feeding", mode === "animals");
@@ -788,7 +812,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     (map.getSource("inner") as GeoJSONSource | undefined)?.setData(inner);
     (map.getSource("feeding") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feeding.map((z) => ({ type: "Feature", properties: { id: z.id, name: z.name }, geometry: { type: "Point", coordinates: [z.lng, z.lat] } })) });
     (map.getSource("next") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: ds.next.map((n, i) => ({ type: "Feature", properties: { n: String(i + 1), k: n.cell }, geometry: { type: "Point", coordinates: n.center } })) });
-  }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding]);
+  }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding, mapZoom]);
 
   /* ââ a critical open case breathes âââââââââââââââââââââââââââââââââ */
   useEffect(() => {
@@ -834,25 +858,31 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     if (!map || !ds || !ready || !layersReady) return;
     const src = map.getSource("cities") as GeoJSONSource | undefined;
     if (!src) return;
+    ["cities", "cities-l"].forEach((id) => {
+      if (!map.getLayer(id)) return;
+      map.setLayoutProperty(id, "visibility", indiaOverview || ds.cells.length === 1 ? "visible" : "none");
+      map.setFilter(id, indiaOverview ? null : ["==", ["get", "name"], ds.cities[0]?.name ?? ""]);
+    });
     const feats = availableCities.flatMap((c) => {
       const geo = ds.cities.find((x) => x.name.toLowerCase() === c.city.toLowerCase());
       const lng = typeof c.lng === "number" ? c.lng : geo?.lng;
       const lat = typeof c.lat === "number" ? c.lat : geo?.lat;
       if (typeof lng !== "number" || typeof lat !== "number") return [];
-      return [{ type: "Feature" as const, properties: { name: c.city, n: c.animals }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
+      const n = atlasLens === "cases" ? c.open_cases ?? 0 : atlasLens === "care" ? mode === "arv" ? c.vaccinated ?? 0 : mode === "medical" ? c.needs_help ?? 0 : c.sterilised ?? 0 : atlasLens === "evidence" ? c.cells : c.animals;
+      return [{ type: "Feature" as const, properties: { name: c.city, n }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
     });
     if (feats.length) src.setData({ type: "FeatureCollection", features: feats });
-  }, [availableCities, ds, ready, layersReady]);
+  }, [availableCities, ds, ready, layersReady, atlasLens, mode, indiaOverview]);
 
   const padding = useCallback(() => {
     const w = el.current?.clientWidth ?? 1000;
-    return w > 900 ? { top: 150, bottom: 110, left: 40, right: 420 } : { top: 150, bottom: 170, left: 20, right: 20 };
+    return w > 900 ? { top: 160, bottom: 150, left: 365, right: 380 } : w > 760 ? { top: 175, bottom: 140, left: 30, right: 310 } : { top: 165, bottom: 215, left: 25, right: 25 };
   }, []);
   const camera = useCallback((s: Sel, instant = false) => {
     const map = mapRef.current; if (!map || !ds) return;
-    const d = instant ? 0 : 1400;
-    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: 30, duration: d });
-    else if (s.t === "city") map.fitBounds(ds.cities[s.city].box, { padding: padding(), duration: d, maxZoom: 13 });
+    const d = instant || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1000;
+    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: (el.current?.clientWidth ?? 0) > 900 ? { top: 110, bottom: 60, left: 390, right: 50 } : { top: 130, bottom: 195, left: 25, right: 25 }, duration: d });
+    else if (s.t === "city") map.fitBounds(ds.cities[s.city].box, { padding: padding(), duration: d, maxZoom: ds.cells.length <= 1 ? 10 : 13 });
     else if (s.t === "locality") map.fitBounds(boxOfRings(selCells.map((c) => ringOf(ds, c)), 0.01), { padding: padding(), duration: d, maxZoom: 14.2 });
     else if (s.t === "cell") map.flyTo({ center: [ds.centers[s.cell * 2], ds.centers[s.cell * 2 + 1]], zoom: Math.max(map.getZoom(), 14.2), duration: d, padding: padding() });
     else map.flyTo({ center: s.center, zoom: Math.max(map.getZoom(), 13.8), duration: d, padding: padding() });
@@ -922,8 +952,23 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
   /* ââ first view: from the URL, or the busiest city âââââââââââââââââ */
   const started = useRef(false);
+  const startedDataset = useRef<SpatialDataset | null>(null);
+  const startedPlace = useRef("");
+  const changeCity = useCallback((nextCity: string) => {
+    const url = new URL(window.location.href);
+    ["cell", "city", "q", "lat", "lng", "bbox", "focus", "m"].forEach((key) => url.searchParams.delete(key));
+    if (nextCity !== "__india") url.searchParams.set("city", nextCity);
+    setSel(null); setSheet("hidden"); setDotPick(null); setAtlasOpen(false); setMonth(null);
+    started.current = false;
+    router.push(url.pathname + url.search, { scroll: false });
+  }, [router]);
   useEffect(() => {
-    if (!ds || !ready || !layersReady || started.current) return;
+    if (ds && startedDataset.current !== ds) { started.current = false; startedDataset.current = ds; }
+    const requested = params.get("city");
+    const placeKey = `${datasetCity}:${requested ?? ""}`;
+    if (startedPlace.current !== placeKey) { started.current = false; startedPlace.current = placeKey; }
+    if (requested && requested !== datasetCity && !(requested === "New Delhi" && datasetCity === "Delhi") && !(requested === "Secunderabad" && datasetCity === "Hyderabad")) return;
+    if (!ds || (!mapError && (!ready || !layersReady)) || started.current) return;
     started.current = true;
     const cellKey = params.get("cell");
     const cityName = params.get("city");
@@ -938,7 +983,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     /* With no city in the URL, the map is an India overview. The bounded
        dataset still supplies the nearby detail when a visitor chooses a
        city, but we must not silently turn that fallback into a city URL. */
-    let s: Sel = cityName ? { t: "city", city: 0 } : { t: "india" };
+    let s: Sel = cityName || scope === "org" ? { t: "city", city: 0 } : { t: "india" };
     if (cellKey) {
       const ci = ds.cells.indexOf(cellKey);
       if (ci >= 0) s = { t: "cell", cell: ci };
@@ -971,9 +1016,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       setSel({ t: "city", city: 0 }); camera({ t: "city", city: 0 }, true);
       return;
     }
-    setSel(s); setSheet(s.t === "empty" ? "open" : cellKey || cityName || q ? "peek" : "hidden");
+    setSel(s); setSheet(s.t === "empty" ? "open" : cellKey || cityName || q || scope === "org" ? (window.matchMedia("(max-width: 760px)").matches ? "peek" : "open") : "hidden");
     camera(s, true);
-  }, [ds, ready, layersReady, params, camera, choose, mNow, m0]);
+  }, [ds, datasetCity, ready, layersReady, mapError, params, camera, choose, mNow, m0, scope]);
 
   /* ââ keep the URL in step, without navigating ââââââââââââââââââââââ */
   useEffect(() => {
@@ -985,7 +1030,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     if (month !== null && month !== mNow) u.searchParams.set("m", String(month)); else u.searchParams.delete("m");
     if (sel.t === "city") u.searchParams.set("city", ds.cities[sel.city].name);
     if (sel.t === "locality") { u.searchParams.set("city", ds.cities[sel.city].name); u.searchParams.set("q", ds.localities[sel.locality]); }
-    if (sel.t === "cell") u.searchParams.set("cell", ds.cells[sel.cell]);
+    if (sel.t === "cell") { u.searchParams.set("cell", ds.cells[sel.cell]); u.searchParams.set("city", ds.cities[ds.cellCity[sel.cell]].name); }
     if (sel.t === "empty") u.searchParams.set("cell", sel.key);
     window.history.replaceState(window.history.state, "", u.toString());
   }, [ds, sel, mode, month, mNow, lens]);
@@ -1061,17 +1106,17 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         : mode === "cases" ? `${n(value(s))} ${LENSES.find((l) => l.id === lens)!.unit}`
         : mode === "medical" ? `${n(s.medical)} injured or needing help`
         : mode === "activity" || mode === "change" ? `${n(s.recentField)} field-team records this year`
-        : (mode === "abc" || mode === "arv") && pub && isSparse(aAnimals) ? "few records â too few for a share"
+        : (mode === "abc" || mode === "arv") && pub && isSparse(aAnimals) ? "few records — too few for a share"
         : mode === "abc" ? `${n(aSter)} of ${n(aAnimals)} sterilised on record`
         : mode === "arv" ? `${n(aVacc)} of ${n(aAnimals)} vaccinated on record`
         : pub && isSparse(aAnimals) ? "few records"
         : `${n(aAnimals)} animal${aAnimals === 1 ? "" : "s"} recorded`;
-      setHover({ x: e.point.x, y: e.point.y, text: `${loc} Â· ${v}` });
+      setHover({ x: e.point.x, y: e.point.y, text: `${loc} · ${v}` });
     };
     const onOut = () => setHover(null);
     map.on("click", onClick); map.on("mousemove", onMove); map.on("mouseout", onOut);
     return () => { map.off("click", onClick); map.off("mousemove", onMove); map.off("mouseout", onOut); };
-  }, [ready, ds, statOf, mode, choose, phone, scope, router, value, lens, authByCell, unfiltered, indiaOverview]);
+  }, [ready, ds, statOf, mode, choose, phone, scope, router, value, lens, authByCell, unfiltered, indiaOverview, changeCity]);
 
   /* ââ Escape steps out one rung âââââââââââââââââââââââââââââââââââââ */
   const stepOut = useCallback(() => {
@@ -1093,7 +1138,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     if (mode === "coverage") return (
       <ul className="sm-key">
         {(["strong", "partial", "weak", "insufficient"] as const).map((k) => <li key={k}><i className={`sm-sw is-cov-${k}`} />{COVERAGE_TEXT[k].label}</li>)}
-        <li><i className="sm-sw is-fog" />Fog â nothing recorded here yet</li>
+        <li><i className="sm-sw is-fog" />Unreported area — not a verified intervention gap</li>
         <li><i className="sm-sw is-next" />Map next</li>
       </ul>
     );
@@ -1102,8 +1147,8 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         <li><i className={`sm-dot ${mode === "arv" ? "is-arv" : "is-abc"}`} />{mode === "abc" ? "Sterilised, on record" : "Vaccinated, on record"}</li>
         {mode === "arv" && <li><i className="sm-dot is-due" />Booster due</li>}
         <li><i className="sm-dot is-ring" />{mode === "abc" ? "Recorded as not sterilised" : "Recorded as not vaccinated"}</li>
-        <li><i className="sm-dot is-unk" />Not recorded â unknown, not zero</li>
-        <li><b className="sys-mono">12</b>&nbsp;on a cell: how many are on record {mode === "abc" ? "as sterilised" : "as vaccinated"} there; a darker cell is a larger share, a hatched one has none on record</li>
+        <li><i className="sm-dot is-unk" />Not recorded — unknown, not zero</li>
+        <li>Cell numbers show profiles recorded {mode === "abc" ? "as sterilised" : "as vaccinated"}; shading shows the recorded share, not programme coverage. Hatching means no positive status recorded, not verified absence of care.</li>
       </ul>
     );
     if (mode === "change") return (
@@ -1124,13 +1169,13 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       <div className="sm-ramp is-terrain">
         <span>{LEVELS[0]}</span>
         <i style={{ background: `linear-gradient(90deg, ${lightsOf(pal).band.join(",")})` }} />
-        <span>{LEVELS[LEVELS.length - 1]}+ animals / kmÂ²</span>
+        <span>{LEVELS[LEVELS.length - 1]}+ loaded profiles / km²</span>
       </div>
     );
     if (mode === "cases" && lensCounts && !lensCounts.some((x) => x > 0)) return (
       <p className="sm-empty">
         {lens === "repeat"
-          ? "No animal has a second case yet. Each imported case created its own animal record, so a return visit is not linked â linking it on the case is what makes it appear here."
+          ? "No linked repeat case in the loaded detail. Imported encounters may have separate animal identities; a return visit needs a verified link to appear here."
           : `No case matches this question${eff.condition >= 0 ? " for this condition" : ""}, as of ${monthLabel(m)}.`}
       </p>
     );
@@ -1141,7 +1186,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
           : <><li><i className="sm-dot is-help" />Critical</li><li><i className="sm-dot is-ink" />Other</li></>}
         {undatedShown > 0 && <li><i className="sm-dot is-undated" />{lens === "resolved"
           ? `Resolved, date unknown (${undatedShown.toLocaleString("en-IN")})`
-          : `Closed, day unknown (${undatedShown.toLocaleString("en-IN")}) Â· not counted as open`}</li>}
+          : `Closed, day unknown (${undatedShown.toLocaleString("en-IN")}) · not counted as open`}</li>}
         {lens !== "resolved" && <li><i className="sm-rings" />Rings: how long it has waited</li>}
       </ul>
     );
@@ -1164,14 +1209,6 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       mapRef.current?.flyTo({ center: [p.coords.longitude, p.coords.latitude], zoom: 14, duration: 1200 });
     }, () => {}, { timeout: 8000 });
   };
-  const changeCity = (nextCity: string) => {
-    const url = new URL(window.location.href);
-    /* City changes are a fresh map view. Keep the selected lens, but discard
-       a cell/locality deep-link that belongs to the previous place. */
-    ["cell", "city", "q", "lat", "lng", "bbox", "focus"].forEach((key) => url.searchParams.delete(key));
-    if (nextCity !== "__india") url.searchParams.set("city", nextCity);
-    window.location.assign(url.toString());
-  };
 
   /* The rich dataset is intentionally bounded, but a cold database can still
      miss its serverless budget. Never turn that transient failure into a dead
@@ -1180,41 +1217,16 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   if (error && !ds) return <BoundedSpatialMap scope={scope} />;
 
   return (
-    <div className={`sm ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`}>
+    <div className={`sm atlas ${indiaOverview ? "atlas-india" : "atlas-city"} ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`} data-lens={atlasLens}>
       <div className="sm-canvas" ref={el} />
       {mapError && ds && <LiveMapFallback ds={ds} stats={stats} paint={cellPaint} animals={animalPts} cases={casePts} mode={mode} pal={pal} />}
-      <h1 className="sys-sr">Street animals on the StrayPaw register: {def.label.toLowerCase()} â {def.q}</h1>
+      <h1 className="sys-sr">StrayPaw Living India Atlas: {def.label.toLowerCase()} — {def.q}</h1>
 
-      {scope === "public" && indiaOverview && cityPins.length > 0 && (
-        <section className={`sm-atlas ${mapZoom >= 7 ? "is-away" : ""} ${atlasOpen ? "is-open" : ""}`} aria-label="India city registers">
-          <header>
-            <p>India atlas</p>
-            <h2>{phone ? "City registers" : "Every light is a city register."}</h2>
-            <span>Open a city to resolve its record into cells, cases and individual dogs.</span>
-          </header>
-          {phone && (() => {
-            const lead = [...cityPins].sort((a, b) => b.animals - a.animals)[0];
-            return lead ? <button type="button" className="sm-atlas-mobile-summary" onClick={() => setAtlasOpen((open) => !open)} aria-expanded={atlasOpen}>
-              <span><b>{lead.city}</b><small>{lead.animals.toLocaleString("en-IN")} recorded animals</small></span>
-              <em>{atlasOpen ? "Close" : `Browse ${cityPins.length} cities`}</em>
-            </button> : null;
-          })()}
-          <ol>
-            {[...cityPins].sort((a, b) => b.animals - a.animals).slice(0, phone ? 3 : 6).map((city) => {
-              const care = Number(city.sterilised ?? 0) + Number(city.vaccinated ?? 0);
-              return <li key={city.city}>
-                <button type="button" onClick={() => changeCity(city.city)} aria-label={`Open ${city.city}, ${city.animals.toLocaleString("en-IN")} recorded animals`}>
-                  <span className="sm-atlas-dot" aria-hidden />
-                  <b>{city.city}</b>
-                  <small>{city.state ?? "Mapped city"}</small>
-                  <strong>{city.animals.toLocaleString("en-IN")}</strong>
-                  <em>{city.open_cases ? `${city.open_cases.toLocaleString("en-IN")} open` : care ? `${care.toLocaleString("en-IN")} care records` : `${city.cells.toLocaleString("en-IN")} cells`}</em>
-                </button>
-              </li>;
-            })}
-          </ol>
-        </section>
-      )}
+      {scope === "public" && indiaOverview && <AtlasRegister cities={availableCities} open={atlasOpen} onToggle={() => setAtlasOpen((v) => !v)} onCity={changeCity} municipal={surface === "municipality"} />}
+      {scope === "public" && indiaOverview && availableCities.some((c) => c.city === "Delhi") && <AtlasEncounter city="Delhi" />}
+
+      <div className="atlas-topline"><span>{surface === "municipality" ? "Municipal intelligence" : scope === "org" ? "Organisation field atlas" : "The living atlas"}</span><span>{indiaOverview ? "INDIA / RECORDED EVIDENCE" : `${datasetCity ?? "Reading city"} / CITY INTELLIGENCE`}</span></div>
+      <div className="atlas-map-caption"><span className="atlas-map-key" /><span>{indiaOverview ? `City registers · ${atlasLens === "cases" ? "current open cases" : atlasLens === "care" ? mode === "arv" ? "profiles with vaccination recorded" : mode === "medical" ? "profiles flagged as needing help" : "profiles with sterilisation recorded" : atlasLens === "evidence" ? "cells with records, not population coverage" : "symbol size shows recorded profiles"}` : atlasLens === "animals" && mapZoom < 13 ? "Recorded profiles per cell · lighter shade, more records" : "Public location cells · individual dots are schematic"}</span></div>
 
       {scope === "public" && indiaOverview && approachingCity && (
         <aside className="sm-city-entry" aria-live="polite">
@@ -1237,14 +1249,20 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
             options={availableCities.map((item) => ({ value: item.city, hint: item.state || undefined }))}
             value={params.get("city") ? (datasetCity ?? "") : ""} onChange={(v) => changeCity(v || (scope === "public" ? "__india" : availableCities[0].city))} />
         )}
-        {phone && <button type="button" className={`sm-mobile-controls-trigger ${phoneControlsOpen ? "is-open" : ""}`} aria-expanded={phoneControlsOpen} onClick={() => setPhoneControlsOpen((open) => !open)}>
-          <span>Map view</span><b>{def.label}</b><ChevronDown size={16} aria-hidden />
-        </button>}
+        <div className="atlas-lenses" role="group" aria-label="StrayPaw Lens">
+          {([{ id: "animals", label: "Animals", mode: "animals" }, { id: "care", label: "Care", mode: "abc" }, { id: "cases", label: "Cases", mode: "cases" }, { id: "evidence", label: "Evidence", mode: "coverage" }] as const).map((item, index) => <button key={item.id} type="button" aria-pressed={atlasLens === item.id} onClick={() => { setMode(item.mode); setMoreOpen(false); }}><small>0{index + 1}</small>{item.label}</button>)}
+        </div>
+        <div className="atlas-specialist">
+          <label className="bare-field"><span>{atlasLens === "care" ? "Recorded care" : atlasLens === "evidence" ? "Evidence view" : atlasLens === "cases" ? "Case view" : "Representation"}</span>
+            {atlasLens === "cases" ? <select aria-label="Case view" value={lens} onChange={(event) => setLens(event.target.value as CaseLens)}>{LENSES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select> : <select aria-label="Map representation" value={mode} onChange={(event) => setMode(event.target.value as AnyMode)}>{MODES.filter((item) => atlasLens === "care" ? ["abc", "arv", "medical"].includes(item.id) : atlasLens === "evidence" ? ["coverage", "activity", "change"].includes(item.id) : ["animals", "density"].includes(item.id)).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>}
+          </label>
+          <button type="button" aria-label="Open map tools and filters" aria-expanded={phoneControlsOpen} onClick={() => { setPhoneControlsOpen((v) => !v); if (!phone) setFilterOpen((v) => !v); }}><SlidersHorizontal size={16} /></button>
+        </div>
         <div className={`sm-mobile-controls ${phoneControlsOpen ? "is-open" : ""}`}>
-        <div className="sm-modes" role="tablist" aria-label="What the map shows" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
+        <div className="sm-modes atlas-legacy-modes" role="group" aria-label="Specialist map modes" ref={modesRef} data-more={modesMore} onScroll={readModesEdge}>
           {MODES.filter((x) => primaryModes.includes(x.id)).map((x) => (
             <button key={x.id} type="button" role="tab" aria-selected={mode === x.id} className={mode === x.id ? "is-on" : ""} onClick={() => { setMode(x.id); setMoreOpen(false); setPhoneControlsOpen(false); }}>
-              {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases Â· ${lensDef.label}` : x.label}
+              {x.id === "cases" && mode === "cases" && lens !== "open" ? `Cases · ${lensDef.label}` : x.label}
             </button>
           ))}
           <button type="button" className={`sm-modes-more ${primaryModes.includes(mode) ? "" : "is-on"}`} aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
@@ -1275,15 +1293,15 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         </div>
       </div>
 
-      {!phone && <div className="sm-tools">
+      {<div className="sm-tools">
         <button type="button" onClick={() => setFilterOpen((v) => !v)} aria-expanded={filterOpen} className={nFilters ? "is-on" : ""} aria-label={nFilters ? `Filters, ${nFilters} on` : "Filters"}><SlidersHorizontal size={16} />{nFilters ? <b>{nFilters}</b> : null}</button>
-        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 kmÂ²" title="Analysis grid"><Hexagon size={16} /></button>
+        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} className={cellsOn ? "is-on" : ""} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={16} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the paper ground, for daylight" : "Switch to the night ground"}><Layers size={16} /></button>
         <button type="button" onClick={locate} aria-label="Go to where I am"><Crosshair size={16} /></button>
       </div>}
 
       {filterOpen && (
-        <div className="sm-filter" role="dialog" aria-label="Filters">
+        <div className="sm-filter bare-field" role="dialog" aria-label="Filters">
           <div className="sm-filter-head">
             <b>Filters</b>
             {nFilters > 0 && <button type="button" className="sm-filter-reset" onClick={() => { setFilters(NO_FILTERS); setLens("open"); }}>Reset</button>}
@@ -1325,11 +1343,14 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
       {hover && <div className="sm-hover" style={{ left: hover.x + 14, top: hover.y + 14 }}>{hover.text}</div>}
 
-      {ds && ix && sel && sheet !== "hidden" && !(phone && filterOpen) && (
+      {!indiaOverview && ds && ix && sel && sheet === "hidden" && <button className="atlas-reopen" type="button" onClick={() => setSheet("peek")}>Read this place <ChevronDown size={16} /></button>}
+      {!indiaOverview && datasetCity && sheet !== "open" && <div className="atlas-place-evidence"><CityEvidence city={datasetCity} cells={ds?.cells.length ?? 0} municipal={surface === "municipality"} /></div>}
+      {!indiaOverview && ds && ix && sel && sheet !== "hidden" && !(phone && filterOpen) && (
         <div className={`sm-sheet ${sheet === "peek" ? "is-peek" : "is-open"}`}>
           {phone && <button type="button" className="sm-sheet-grip" aria-label={sheet === "peek" ? "Expand place details" : "Collapse place details"} onPointerDown={beginSheetDrag} onPointerUp={endSheetDrag} onPointerCancel={cancelSheetDrag}><i aria-hidden /></button>}
           <Inspector
             ds={ds} ix={ix} sel={sel} t={t} scope={scope} next={ds.next}
+            intelligence={sel.t === "city" && availableCities.find((c) => c.city === datasetCity) ? <LensReadout city={availableCities.find((c) => c.city === datasetCity)!} ds={ds} lens={atlasLens} municipal={surface === "municipality"} /> : undefined}
             onSelect={choose} onClose={() => (sel.t === "city" || sel.t === "india" ? setSheet("hidden") : stepOut())}
             onPickNext={(n: NextCell) => {
               const ci = ds.cells.indexOf(n.cell);
@@ -1343,9 +1364,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         </div>
       )}
 
-      <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals"} pick={dotPick} />
+      <Portraits map={layersReady ? mapRef.current : null} ds={ds} on={mode === "animals" && (ds?.cells.length ?? 0) > 1} pick={dotPick} />
 
-      {loading && <div className="sm-state" role="status"><span>Reading the registerâ¦</span></div>}
+      {loading && <div className="sm-state" role="status"><span>Reading the register…</span></div>}
       {(error || mapError) && <div className="sm-state" role="status"><span>{error ?? mapError}</span></div>}
     </div>
   );

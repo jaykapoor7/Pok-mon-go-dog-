@@ -3,9 +3,11 @@ import { CommunityPatch } from "@/components/app/CommunityPatch";
 import { getPublicSpatialCities } from "@/lib/spatial/server";
 import { getPublicCaseStoriesPage } from "@/lib/community-case-stories";
 import { unstable_cache } from "next/cache";
+import { Suspense } from "react";
+import { SpatialMap } from "@/components/spatial/SpatialMap";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Your patch, StrayPaw" };
+export const metadata = { title: "Living India Atlas, StrayPaw" };
 
 /* The original community home, now backed by one bounded city dataset at a
    time. The lightweight city index lets someone switch place without ever
@@ -33,7 +35,9 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-export default async function ConsoleHome({ searchParams }: { searchParams: Promise<{ city?: string }> }) {
+export default async function ConsoleHome({ searchParams }: { searchParams: Promise<{ city?: string; view?: string }> }) {
+  const requestedView = await searchParams;
+  if (requestedView.view !== "patch") return <AppShell flush><div className="sm-host"><Suspense fallback={null}><SpatialMap /></Suspense></div></AppShell>;
   const [cities, params] = await Promise.all([getPublicSpatialCities(80).catch(() => []), searchParams]);
   const requested = params.city === "New Delhi" ? "Delhi" : params.city === "Secunderabad" ? "Hyderabad" : params.city;
   const city = cities.find(c => c.city === requested)?.city ?? [...cities].filter(c => c.cells > 1).sort((a,b) => (b.latest_seen ?? "").localeCompare(a.latest_seen ?? "") || b.animals-a.animals)[0]?.city ?? cities[0]?.city ?? null;

@@ -167,7 +167,7 @@ export function Portraits({ map, ds, on, pick }: { map: MLMap | null; ds: Spatia
     <div className="sm-card" key={open.id} role="dialog" aria-label={name ?? "An animal"}>
       <button type="button" className="sm-card-x" onClick={() => setCard(null)} aria-label="Close"><X size={15} /></button>
       <div className={`sm-card-ph ${open.cover_photo ? "" : "is-mono"}`}>
-        {open.cover_photo ? <img src={open.cover_photo} alt="" /> : <AnimalSeal seed={open.id} name={name} />}
+        {open.cover_photo ? <img src={open.cover_photo} alt={name ? `Photograph of ${name}` : "Photograph attached to this animal record"} /> : <><AnimalSeal seed={open.id} name={name} /><span className="atlas-no-photo">Photograph not recorded</span></>}
       </div>
       <div className="sm-card-b">
         <p className="sm-card-code">{open.straypaw_id ?? open.code ?? "On the register"}</p>
@@ -178,6 +178,7 @@ export function Portraits({ map, ds, on, pick }: { map: MLMap | null; ds: Spatia
           <span className={yes(open.vaccination_status) ? "is-yes" : "is-unk"}>{yes(open.vaccination_status) ? "Vaccinated" : "Vaccination not recorded"}</span>
         </p>
         <p className="sm-card-seen">{[open.zone, open.last_seen ? `last seen ${day(open.last_seen)}` : null].filter(Boolean).join(" · ")}</p>
+        <p className="atlas-preview-note">A record from this cell. The map mark is schematic, not this animal’s exact position.</p>
         <Link href={`/dog/${open.id}`} className="sm-card-go">Open the record <ArrowUpRight size={14} /></Link>
         {many && (
           <p className="sm-card-many">

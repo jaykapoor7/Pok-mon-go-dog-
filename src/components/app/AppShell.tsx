@@ -43,6 +43,7 @@ import { readStoredRole, type Role } from "@/lib/roles";
 import "./app.css";
 import "./editorial.css";
 import "./desk.css";
+import "./institution.css";
 
 /* The shared record everyone can reach: the map, saved animals, the place
    brief, the stories and the partner directory. Every public space carries

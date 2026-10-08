@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, BookOpen, Building2, GraduationCap, KeyRound, MapPin, Radio, Users, Utensils } from "lucide-react";
-import { ROLE_META, readStoredRole, storeRole, type Role } from "@/lib/roles";
+import { ROLE_META, storeRole, type Role } from "@/lib/roles";
 import {
   Dialog,
   DialogClose,
@@ -104,7 +104,7 @@ export function Welcome() {
   useEffect(() => {
     if (onReportFlow) return;
     const requestedChoice = new URLSearchParams(window.location.search).get("choose") === "1";
-    if (requestedChoice || (pathname === "/app" && !readStoredRole())) {
+    if (requestedChoice) {
       setRole(null);
       setStep(0);
     }

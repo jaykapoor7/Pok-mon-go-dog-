@@ -34,8 +34,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
-import { DeskHeader } from "@/components/app/DeskHeader";
-import { HairlineFigure } from "@/components/hairline/HairlineFigure";
 import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
 import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
@@ -155,24 +153,16 @@ export function OpsRoom() {
 
   return (
     <main className="ops ops-desk">
-      <DeskHeader
-        city={place ?? undefined}
-        kicker={`${org?.name ?? "Your organisation"}${today ? ` · ${today}` : ""}`}
-        title="What needs attention"
-        lede={signedOut
-          ? "A working view of the field, ready for your organisation’s records."
-          : blank ? "Your first case starts the live work here."
-          : "The work that needs a response, the follow-ups that have slipped, and the cases waiting for a decision."}
-        figures={working || loading ? [
-          { label: crit ? `in the live queue · ${num(crit)} critical` : "in the live queue", value: loading ? null : live, href: "/partner/records?view=rescue" },
-          { label: "follow-ups overdue", value: loading ? null : overdue, tone: overdue ? "attention" : undefined, href: "/partner/records?view=overdue" },
-          { label: "older cases to review", value: loading ? null : stale, tone: "quiet", href: "/partner/review" },
-        ] : undefined}
-        actions={<>
-          <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} />New rescue case</Link>
-          <Link href="/partner/records" className="dk-btn is-tint"><Search size={14} />Find a record</Link>
-        </>}
-      />
+      <header className="ops-masthead">
+        <div className="ops-masthead-meta"><span>StrayPaw / Operations register</span><span>{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</span></div>
+        <div className="ops-masthead-title"><div><h1>Field operations<span>.</span></h1><p>{signedOut ? "The working record for the people who respond." : blank ? "Begin with the records your team already keeps." : "Live work, geographic context, and the next decision."}</p></div><div className="ops-masthead-actions"><Link href="/partner/cases/new"><Plus size={16} />New rescue case</Link><Link href="/partner/records"><Search size={16} />Find a record</Link></div></div>
+        <nav className="ops-flow" aria-label="Operational workflows">
+          <Link href="/partner/records?view=rescue"><span>01 / Live work</span>{working || loading ? <b>{loading ? "—" : num(live)}{crit ? <small> · {num(crit)} critical</small> : null}</b> : <b>Open the queue <ArrowUpRight size={15} /></b>}</Link>
+          <Link href="/partner/records?view=overdue"><span>02 / Follow-ups</span><b>{working || loading ? loading ? "—" : `${num(overdue)} overdue` : "Review the schedule"}</b></Link>
+          <Link href="/partner/review"><span>03 / Case review</span><b>{working || loading ? loading ? "—" : `${num(stale)} older cases` : "Resolve the record"}</b></Link>
+          <Link href="/partner/import"><span>04 / Source records</span><b>Import a workbook <ArrowUpRight size={15} /></b></Link>
+        </nav>
+      </header>
 
       {loadError && <p role="alert" className="ops-alert">The organisation record could not be read. Reload to try again; nothing has been changed.</p>}
 
@@ -200,18 +190,13 @@ export function OpsRoom() {
               </>
             )}
           </div>
-          <HairlineFigure
-            kind="handoff"
-            className="ops-setup-figure"
-            label="A case moving through four stages of a field-work hand-off."
-          />
         </section>
       )}
 
       {/* The desk: the queue beside where the queue is. */}
       <section className="ops-board dk-panel" aria-label="Today’s operations">
         <div className="ops-board-bar">
-          <b>Field Workspace</b>
+          <b>The working ledger</b>
           <span className="ops-board-place sys-mono">{place ?? "Your area"}</span>
           {today && <span className="ops-board-clock"><i aria-hidden />{today}</span>}
         </div>
@@ -219,6 +204,7 @@ export function OpsRoom() {
           <div className="ops-queue">
             <p className="ops-eyebrow"><span>The queue{cell ? " · one cell" : ""}</span><Link href="/partner/records">All records <ArrowUpRight size={12} /></Link></p>
             {cell && <button type="button" className="ops-chip" onClick={() => setCell(null)}>Showing one cell <X size={13} /></button>}
+            <div className="ops-ledger-head" aria-hidden><span>Record / locality</span><span>Priority</span><span>Waiting</span></div>
             {loading ? (
               <ol className="ops-list is-loading" aria-label="Loading the queue">{[0, 1, 2, 3, 4].map((i) => <li key={i}><span /></li>)}</ol>
             ) : shown.length === 0 ? (
@@ -236,6 +222,7 @@ export function OpsRoom() {
                           <b>{q.kind === "followup" ? "Follow-up overdue" : c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c?.title || "Open case"}</b>
                           <small>{who(c) || (f?.kind && !/^imported/i.test(f.kind) ? f.kind.replace(/_/g, " ") : f?.dog_id ? "An animal's review" : "From the imported register")}</small>
                         </span>
+                        <span className={`ops-priority ${q.crit ? "is-critical" : ""}`}>{q.kind === "followup" ? "Overdue" : q.crit ? "Critical" : "Open case"}</span>
                         <span className="ops-age">
                           <i style={{ width: `${Math.min(100, (q.age / 90) * 100)}%` }} className={q.age > 30 ? "is-long" : ""} aria-hidden />
                           <small>{q.kind === "followup" ? `due ${ago(f!.due_at)} ago` : `${STATUS_META[(c?.status_class ?? "open") as StatusClass]?.short ?? "Open"} · ${ago(c?.occurred_at ?? null)}`}</small>

@@ -11,7 +11,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Download, Search, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Download, Search, Trash2, X, PanelRightOpen, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { deletePartnerRecord, deletionTarget, getPartnerRecordRows, type PartnerRecordKind, type PartnerRecordRow } from "@/lib/partner-record-explorer";
 import { myProfile } from "@/lib/programme";
 import { SearchSelect } from "@/components/app/SearchSelect";
@@ -45,6 +46,7 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
   const [lead, setLead] = useState(false);
   const [query, setQuery] = useState(""), [filter, setFilter] = useState(initialFilter), [locality, setLocality] = useState(""), [year, setYear] = useState(""), [status, setStatus] = useState(""), [subtype, setSubtype] = useState(""), [sort, setSort] = useState("newest"), [page, setPage] = useState(1);
   const [asking, setAsking] = useState<string | null>(null), [busy, setBusy] = useState<string | null>(null), [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  const [selected, setSelected] = useState<PartnerRecordRow | null>(null);
 
   useEffect(() => { getPartnerRecordRows().then(setRows).catch(() => setRows([])); myProfile().then((p) => setLead(Boolean(p.is_lead))).catch(() => {}); }, []);
 
@@ -152,7 +154,7 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
         ) : shown.map((row) => {
           const target = deletionTarget(row);
           return (
-            <div key={row.id} className={`rec-row ${asking === row.id ? "is-asking" : ""}`}>
+            <div key={row.id} className={`rec-row has-inspector ${asking === row.id ? "is-asking" : ""} ${selected?.id === row.id ? "is-selected" : ""}`}>
               <Link href={destination(row)} className="rec-open">
                 <time className="sys-mono">{formatDate(row.date)}</time>
                 <span className="rec-kind">{words(row.subtype)}</span>
@@ -161,6 +163,7 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
                 <span className="rec-status">{row.status ? words(row.status) : "—"}</span>
                 <ArrowUpRight size={14} aria-hidden className="rec-go" />
               </Link>
+              <button type="button" className="rec-inspect" aria-label={`Inspect ${row.animalLabel || row.title}`} onClick={() => setSelected(row)}><PanelRightOpen size={16} /></button>
               {lead && target && (asking === row.id ? (
                 <div className="rec-confirm" role="group" aria-label="Confirm deletion">
                   <span>Delete {target.what}?</span>
@@ -176,6 +179,29 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
           );
         })}
       </div>
+
+      <Dialog open={Boolean(selected)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
+        <DialogContent className="spa-scope rec-inspector">
+          {selected && <>
+            <p className="rec-inspector-kicker">Organisation record / {words(selected.kind)}</p>
+            <DialogTitle>{selected.animalLabel || selected.title}</DialogTitle>
+            <DialogDescription>{selected.straypawId || selected.sourceCode || "Source identity not recorded"}</DialogDescription>
+            <dl className="rec-inspector-facts">
+              <div><dt>Recorded date</dt><dd>{formatDate(selected.date)}</dd></div>
+              <div><dt>Activity</dt><dd>{words(selected.subtype)}</dd></div>
+              <div><dt>Status</dt><dd>{selected.status ? words(selected.status) : "Not recorded"}</dd></div>
+              <div><dt>Locality</dt><dd>{selected.locality || "Not recorded"}</dd></div>
+              <div><dt>Source record</dt><dd>{selected.sourceCode || "Not recorded"}</dd></div>
+            </dl>
+            <section><h3>Recorded detail</h3><p className="rec-inspector-detail">{selected.detail || selected.title}</p></section>
+            <div className="rec-inspector-actions">
+              <Link href={destination(selected)}>Open working record <ArrowUpRight size={16} /></Link>
+              {selected.animalId && <Link href={`/partner/animals/${selected.animalId}`}>Animal history <ArrowUpRight size={16} /></Link>}
+              {selected.locality && <Link href={`/partner/map?q=${encodeURIComponent(selected.locality)}&mode=cases`}><MapPin size={16} />Locality on the field map</Link>}
+            </div>
+          </>}
+        </DialogContent>
+      </Dialog>
 
       {visible.length > PAGE_SIZE && (
         <nav className="rec-pages" aria-label="Pages">

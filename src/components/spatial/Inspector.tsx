@@ -23,6 +23,7 @@ import { animalKnowledge, casesIn, monthly } from "@/lib/spatial/measures";
 import { C, C_STRIDE, type NextCell, type SpatialDataset } from "@/lib/spatial/types";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { Scope } from "./data";
+import type { ReactNode } from "react";
 
 export type Sel =
   | { t: "india" }
@@ -94,7 +95,8 @@ const since = (iso: string | null) => {
 
 export type ExactCell = { animals: number; cases: number; open_cases: number };
 
-export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand, onMode, filters = NO_FILTERS, note = "", exact }: {
+export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPickNext, compact, onExpand, onMode, filters = NO_FILTERS, note = "", exact, intelligence }: {
+  intelligence?: ReactNode;
   ds: SpatialDataset; ix: Index; sel: Sel; t: number; scope: Scope; next: NextCell[];
   /** Full-register totals per H3 cell for the current city, when the view is
       current and unfiltered. The headline counts use them; the bounded
@@ -177,10 +179,10 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
   }, [cellCases]);
   const profile = (id: string) => (scope === "org" ? `/partner/animals/${id}` : `/dog/${id}`);
   const analyticsHref = (() => {
-    const base = scope === "org" ? "/partner/reports" : "/insights";
-    if (sel.t === "city") return `${base}?city=${encodeURIComponent(ds.cities[sel.city].name)}`;
-    if (sel.t === "locality") return `${base}?city=${encodeURIComponent(ds.cities[sel.city].name)}&q=${encodeURIComponent(ds.localities[sel.locality])}`;
-    if (sel.t === "cell") return `${base}?cell=${ds.cells[sel.cell]}`;
+    const base = scope === "org" ? "/partner/reports?" : "/insights?view=brief&";
+    if (sel.t === "city") return `${base}city=${encodeURIComponent(ds.cities[sel.city].name)}`;
+    if (sel.t === "locality") return `${base}city=${encodeURIComponent(ds.cities[sel.city].name)}&q=${encodeURIComponent(ds.localities[sel.locality])}`;
+    if (sel.t === "cell") return `${base}cell=${ds.cells[sel.cell]}&city=${encodeURIComponent(ds.cities[ds.cellCity[sel.cell]].name)}`;
     return base;
   })();
 
@@ -238,10 +240,10 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
 
       {sel.t !== "india" && sel.t !== "empty" && (() => {
         const unknownPct = know.total ? Math.round((know.ster.unknown / know.total) * 100) : 0;
-        const matter = critical > 0 ? { hot: true, text: <><b>{n(critical)}</b> critical {critical === 1 ? "case is" : "cases are"} open{openNow > critical ? <>, {n(openNow)} in all</> : null}.</> }
+        const matter = critical > 0 ? { hot: true, text: <><b>{n(critical)}</b> critical {critical === 1 ? "case is" : "cases are"} open in loaded detail{openNow > critical ? <>; {n(openNow)} open in the register</> : null}.</> }
           : openNow > 0 ? { hot: true, text: <><b>{n(openNow)}</b> {openNow === 1 ? "case is" : "cases are"} open here.</> }
           : know.total >= FEW && unknownPct >= 50 ? { hot: false, text: <><b>{unknownPct}%</b> of the animals here have no sterilisation on record.</> }
-          : animalsShown ? { hot: false, text: <>Nothing is open. {n(animalsShown)} animals on record.</> }
+          : animalsShown ? { hot: false, text: <>No open cases recorded. {n(animalsShown)} animal profiles on record.</> }
           : { hot: false, text: <>Nothing is recorded here yet.</> };
         return (
           <div className="sm-insp-todo">
@@ -257,6 +259,8 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
       })()}
 
       <div className="sm-insp-body">
+        {intelligence}
+        {sel.t !== "empty" && <p className="atlas-sample-note">{full ? "Headline counts use current full-register totals. " : "This view describes the loaded records. "}Breakdowns and findings below use bounded detail; they are not complete citywide statistics.</p>}
         {sel.t === "india" && (
           <ol className="sm-insp-cities">
             {ds.cities.map((c, i) => (
@@ -283,11 +287,11 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
 
         {sel.t !== "india" && sel.t !== "empty" && (
           <>
-            <div className="sm-insp-figs">
+            {!(sel.t === "city" && intelligence) && <div className="sm-insp-figs">
               <div><b className={isSparse(animalsShown) && guard ? "is-few" : ""}>{n(animalsShown)}</b><span>animals recorded</span></div>
-              <div><b className={`${openNow ? "is-hot" : ""} ${isSparse(openNow) && guard ? "is-few" : ""}`}>{n(openNow)}</b><span>cases open{critical ? ` · ${n(critical)} critical` : ""}</span></div>
+              <div><b className={`${openNow ? "is-hot" : ""} ${isSparse(openNow) && guard ? "is-few" : ""}`}>{n(openNow)}</b><span>cases open{critical ? ` · ${n(critical)} critical in loaded detail` : ""}</span></div>
               <div><b className={isSparse(casesAll) && guard ? "is-few" : ""}>{n(casesAll)}</b><span>cases, all time</span></div>
-            </div>
+            </div>}
             {anyFew && <p className="sm-insp-quiet">“Few” is one or two records. On the public map a small place never shows an exact count that low.</p>}
 
             {sel.t === "cell" && covOfCell && (
@@ -298,15 +302,15 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
 
             {(sel.t === "city" || sel.t === "locality") && (
               <section className="sm-insp-sec">
-                <h3>How well it is mapped</h3>
+                <h3>Evidence by recorded cell</h3>
                 <ShareBand
                   height={10}
                   parts={[
-                    { key: "strong", n: cov.strong, color: "var(--sm-cov-strong)", label: "Well mapped" },
-                    { key: "partial", n: cov.partial, color: "var(--sm-cov-partial)", label: "Partly" },
-                    { key: "weak", n: cov.weak, color: "var(--sm-cov-weak)", label: "Weakly" },
+                    { key: "strong", n: cov.strong, color: "var(--sm-cov-strong)", label: "Dense record" },
+                    { key: "partial", n: cov.partial, color: "var(--sm-cov-partial)", label: "Some records" },
+                    { key: "weak", n: cov.weak, color: "var(--sm-cov-weak)", label: "Sparse record" },
                     { key: "insufficient", n: cov.insufficient, color: "var(--sm-cov-insufficient)", label: "1–2 records" },
-                    ...(sel.t === "city" ? [{ key: "unmapped", n: frontierInCity, hatch: true, label: "Unmapped edge" }] : []),
+                    ...(sel.t === "city" ? [{ key: "unmapped", n: frontierInCity, hatch: true, label: "Unreported edge" }] : []),
                   ]}
                 />
               </section>

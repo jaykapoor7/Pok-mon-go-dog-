@@ -80,3 +80,27 @@
 /* The app-wide field style draws its own border on inputs; the search sits
    inside its own rounded field, so the inner one is removed. */
 html .spa.spa.spa-desk .rec-q input, html .spa.spa.spa-desk .rec-q input:focus { border: 0; box-shadow: none; background: transparent; padding: 0; height: 100%; min-height: 0; }
+
+/* The register and its selected document stay in the same working context. */
+.rec-row.has-inspector { grid-template-columns: minmax(0, 1fr) 44px 44px; }
+.rec-inspect { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; color: var(--sp-blue); border-radius: var(--ctl-r-row); cursor: pointer; }
+.rec-inspect:hover, .rec-row.is-selected { background: var(--ctl-tint); }
+.rec-head { position: sticky; top: 0; z-index: 2; background: var(--sp-shell); padding-block: var(--sp-3); }
+.rec-inspector.spa-scope { left: auto; right: 0; top: 0; bottom: 0; width: min(480px, 100%); max-width: none; transform: none; border-radius: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-5); background: var(--sp-bone); color: var(--sp-ink); padding: var(--sp-7) var(--sp-6); animation: none; }
+.rec-inspector > button:last-child { min-width: 44px; min-height: 44px; display: grid; place-items: center; }
+.rec-inspector-kicker { margin: 0; color: var(--sp-muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.rec-inspector h2 { font: 400 38px/1.1 var(--font-serif-stack); color: var(--sp-ink); }
+.rec-inspector h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.rec-inspector-facts { margin: 0; border-top: 1px solid var(--sp-ink); }
+.rec-inspector-facts > div { display: grid; grid-template-columns: 110px 1fr; gap: var(--sp-3); padding: var(--sp-3) 0; border-bottom: 1px solid var(--sp-line); font-size: 13px; }
+.rec-inspector-facts dt { color: var(--sp-muted); }
+.rec-inspector-facts dd { margin: 0; overflow-wrap: anywhere; }
+.rec-inspector-detail { margin-top: var(--sp-3); font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rec-inspector-actions { margin-top: auto; display: grid; gap: var(--sp-2); }
+.rec-inspector-actions a { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: var(--sp-3); background: var(--ctl-tint); color: var(--sp-blue); text-decoration: none; border-radius: var(--ctl-r-row); font-size: 13px; }
+.rec-inspector-actions a:first-child { background: var(--sp-ink); color: var(--sp-bone); }
+@media (max-width: 760px) {
+  .rec-row.has-inspector { grid-template-columns: minmax(0, 1fr) 44px; }
+  .rec-row.has-inspector > .rec-del { grid-column: 2; }
+  .rec-inspector.spa-scope { top: 8%; border-radius: var(--sp-radius-lg) var(--sp-radius-lg) 0 0; padding: var(--sp-7) var(--sp-4) var(--sp-5); }
+}

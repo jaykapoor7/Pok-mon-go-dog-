@@ -7,14 +7,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { buildIndex, type Index } from "@/lib/spatial/engine";
-import type { SpatialDataset } from "@/lib/spatial/types";
+import { dayOf, type SpatialDataset } from "@/lib/spatial/types";
+import { CITIES } from "@/lib/geo/cities";
 
 export type Scope = "public" | "org";
 
-type City = { city: string; state: string | null; animals: number; cases: number; cells: number; latest_seen: string | null; needs_help?: number; sterilised?: number; vaccinated?: number; open_cases?: number; care_events?: number; lng?: number; lat?: number };
+export type SpatialCity = { city: string; state: string | null; animals: number; cases: number; cells: number; latest_seen: string | null; needs_help?: number; sterilised?: number; vaccinated?: number; open_cases?: number; care_events?: number; lng?: number; lat?: number };
+type City = SpatialCity;
 type State = { ds: SpatialDataset | null; error: string | null; loading: boolean; city: string | null; cities: City[] };
 
-const cache = new Map<string, { at: number; value: Promise<{ ds: SpatialDataset; city: string; cities: City[] }> }>();
+const cache = new Map<string, { at: number; value: Promise<{ ds: SpatialDataset; city: string | null; cities: City[] }> }>();
 
 const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -37,7 +39,7 @@ async function readJson(url: string, headers: HeadersInit) {
   return response.json();
 }
 
-async function load(scope: Scope, requestedCity?: string | null) {
+async function load(scope: Scope, requestedCity?: string | null, overviewOnly = false) {
   const headers: HeadersInit = {};
   if (scope === "org") {
     const supa = getSupabase();
@@ -48,6 +50,21 @@ async function load(scope: Scope, requestedCity?: string | null) {
   const scopeParam = scope === "org" ? "&scope=org" : "";
   const cityPayload = await readJson(`/api/spatial?kind=cities${scopeParam}&v=4`, headers);
   const cities = (cityPayload.cities ?? []) as City[];
+  if (scope === "public" && overviewOnly) {
+    const built = new Date().toISOString();
+    const ds: SpatialDataset = {
+      v: 1, scope, built, today: dayOf(built),
+      cities: cities.flatMap((item) => {
+        const fallback = CITIES.find((city) => city.name === item.city);
+        const lng = item.lng ?? fallback?.lng, lat = item.lat ?? fallback?.lat;
+        return lng == null || lat == null ? [] : [{ name: item.city, state: item.state ?? "", lng, lat, box: [lng, lat, lng, lat] as [number, number, number, number], animals: item.animals, cases: item.cases }];
+      }),
+      cells: [], centers: [], rings: [], cellCity: [], cellLocality: [], localities: [],
+      animals: [], cases: [], care: [], sightings: [], frontier: [], next: [],
+      dict: { condition: [], status: [], closure: [], intake: [], care: [], severity: [], org: [] },
+    };
+    return { ds, city: null, cities };
+  }
   const requested = requestedCity === "New Delhi" ? "Delhi" : requestedCity === "Secunderabad" ? "Hyderabad" : requestedCity;
   /* Start with a fresh multi-cell city, not the largest historical import
    * collapsed to one centroid. Direct city links always win. */
@@ -60,7 +77,7 @@ async function load(scope: Scope, requestedCity?: string | null) {
 
 /** The dataset for a scope. `enabled: false` loads nothing — for a screen
     that only needs it once someone is signed in as a member. */
-export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled = true) {
+export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled = true, overviewOnly = false) {
   /* Subscribe to the URL through the router, not a one-off read of
      window.location.search — so choosing a city (which pushes ?city=) actually
      re-runs the load instead of leaving a stale city on screen. */
@@ -69,16 +86,16 @@ export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled
   useEffect(() => {
     if (!enabled) { setS({ ds: null, error: null, loading: false, city: null, cities: [] }); return; }
     let live = true;
-    const key = `${scope}:${userKey ?? ""}:${requestedCity ?? ""}`;
+    const key = `${scope}:${userKey ?? ""}:${requestedCity ?? ""}:${overviewOnly ? "overview" : "detail"}`;
     setS((prev) => ({ ...prev, ds: null, city: null, error: null, loading: true }));
     if (scope === "org" || !cache.has(key) || Date.now() - cache.get(key)!.at > 60_000) {
-      cache.set(key, { at: Date.now(), value: load(scope, requestedCity) });
+      cache.set(key, { at: Date.now(), value: load(scope, requestedCity, overviewOnly) });
     }
     cache.get(key)!.value
       .then((result) => { if (live) setS({ ...result, error: null, loading: false }); })
       .catch((e: Error) => { cache.delete(key); if (live) setS((prev) => ({ ...prev, ds: null, city: null, error: e.message, loading: false })); });
     return () => { live = false; };
-  }, [scope, userKey, enabled, requestedCity]);
+  }, [scope, userKey, enabled, requestedCity, overviewOnly]);
   const ix: Index | null = useMemo(() => (s.ds ? buildIndex(s.ds) : null), [s.ds]);
   return { ...s, ix };
 }
