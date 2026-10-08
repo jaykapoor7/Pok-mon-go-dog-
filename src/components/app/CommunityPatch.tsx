@@ -67,7 +67,7 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
   const [animalsError, setAnimalsError] = useState(false);
   const [followedError, setFollowedError] = useState(false);
   const [followedLoading, setFollowedLoading] = useState(false);
-  const [tab, setTab] = useState<"attention" | "recent" | "following">("attention");
+  const [tab, setTab] = useState<"attention" | "recent" | "following">("recent");
   const [lastSeenVisit, setLastSeenVisit] = useState<number | null>(null);
 
   useEffect(() => {
@@ -300,41 +300,23 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
 
   return (
     <main className="cp">
-      <DeskHeader
-        city={city.name}
-        kicker={`Your patch · ${patch.mine ? patch.label : "a sample place"}`}
-        title={<>The lives around {city.name}.</>}
-        lede="A local reading of the Atlas: discover recorded identities, follow their histories and add what you actually observe."
-        figures={[
-          { label: "animals on the record", value: city.animalsN },
-          { label: "flagged for help", value: city.help, tone: city.help ? "attention" : undefined },
-        ]}
-        actions={<>
-          <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`} className="dk-btn is-flame"><Plus size={16} /> Report an animal</Link>
-          <button type="button" className="dk-btn is-tint" onClick={locate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>
-        </>}
-      >
+      <header className="cp-street-head">
+        <p className="os-origin">COMMUNITY / STREET RECORDS <span>{patch.mine ? patch.label : "Sample place"}</span></p>
+        <h1>{city.name}<span> / community</span></h1>
         <div className="cp-place-row">
           <PlaceSearch options={placeOptions} onPick={pickPlace} label="Choose a place" />
+          <button type="button" onClick={locate} disabled={locating}>{locating ? "Locating…" : "Locate me"}</button>
+          <Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`}>Add an observation ↗</Link>
           {note && <p className="cp-note">{note}</p>}
         </div>
-      </DeskHeader>
+        <p className="cp-register-scope"><b>{city.animalsN.toLocaleString("en-IN")}</b> citywide profiles <span>/</span><b>{city.help.toLocaleString("en-IN")}</b> flagged citywide <span>/</span> Nearby records below are a loaded sample, not a street-dog population.</p>
+      </header>
 
       <nav className="cp-journey" aria-label="Community exploration"><Link href={`/map?city=${encodeURIComponent(city.name)}`}>01 / Read the city Atlas <ArrowUpRight size={15} /></Link><a href="#cp-identities">02 / Meet the recorded animals</a><Link href={`/report?lat=${patch.lat}&lng=${patch.lng}`}>03 / Add an observation <Plus size={15} /></Link></nav>
 
       <p className="cp-near"><MapPin size={13} aria-hidden /> {cityMode ? `Near ${city.name} city centre` : `Near ${patch.label === "Around you" ? "you" : patch.label}`} · {RADIUS_KM} km{cityMode ? " · citywide totals are shown above" : ""}</p>
       <p className="cp-sample">Nearby lists, lights and recent activity describe bounded, loaded records. They do not count every dog or event in your patch.</p>
       <section className="cp-work" aria-label="Near you">
-        <figure className="cp-plate">
-          {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}
-          <figcaption>
-            <span><i className="is-light" /> one animal on record</span>
-            <span><i className="is-flame" /> needs help</span>
-            <span><i className="is-ring" /> your {RADIUS_KM} km</span>
-            <Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`}>Open on the map <ArrowUpRight size={12} /></Link>
-          </figcaption>
-        </figure>
-
         <div className="cp-register" id="cp-identities">
           <div className="cp-tabs" role="group" aria-label="Animals in your patch">
             <button type="button" aria-pressed={tab === "attention"} className={tab === "attention" ? "is-on" : ""} onClick={() => setTab("attention")}>Needs attention nearby <b className="sys-mono">{animalsError || animals === null ? "—" : attention.length}</b>{cityMode && city.help > attention.length ? <small className="sys-mono"> · {city.help.toLocaleString("en-IN")} citywide</small> : null}</button>
@@ -350,8 +332,9 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
                 : "Follow an animal from its record and it stays here, wherever you set your patch."}</p>
             ) : (
               <ol className="cp-list">
-                {list.slice(0, 5).map((a) => (
+                {list.slice(0, 5).map((a, index) => (
                   <li key={a.id}><Link href={`/dog/${a.id}`}>
+                    <span className="cp-photo-accession">{String(index + 1).padStart(2, "0")} / {a.straypaw_id ?? "ID pending"}</span>
                     <DogPhoto src={a.cover_photo} alt="" seed={a.id} tone={a.needs_help ? "urgent" : "neutral"} className="cp-thumb" />
                     <span className="cp-who"><b>{nameOf(a)}</b><small>{[a.straypaw_id, a.zone && !nameOf(a).toLowerCase().includes(a.zone.toLowerCase()) ? a.zone : null].filter(Boolean).join(" · ") || "On the record"}</small></span>
                     <span className="cp-when">{a.needs_help ? <em className="is-hot">Needs help</em> : a.status === "injured" ? <em className="is-hot">Injured</em> : null}<small>{ago(a.last_seen) ? `seen ${ago(a.last_seen)}` : "On the record"}</small></span>
@@ -361,6 +344,10 @@ export function CommunityPatch({ stories, storyError = false, availableCities = 
             )}
           {list.length > 5 && <Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`} className="cp-more">{list.length - 5} more on the map <ArrowUpRight size={13} /></Link>}
         </div>
+        <details className="cp-ground"><summary>Recorded geography / {RADIUS_KM} km around this place</summary><figure className="cp-plate">
+          {lights && <LightsMap center={[patch.lng, patch.lat]} radiusKm={RADIUS_KM} lights={lights} label={`The animals recorded in your patch around ${patch.label}`} />}
+          <figcaption><span>Loaded profiles in public cells—not exact locations.</span><Link href={`/map?mode=animals&lat=${patch.lat}&lng=${patch.lng}`}>Open the Atlas ↗</Link></figcaption>
+        </figure></details>
       </section>
 
       {/* What changed is for someone coming back, and only when something did. */}

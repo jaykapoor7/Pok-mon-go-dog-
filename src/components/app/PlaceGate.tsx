@@ -8,9 +8,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { Crosshair, Plus } from "lucide-react";
 import { PlaceSearch, type PlaceOption } from "./PlaceSearch";
-import { DeskHeader } from "./DeskHeader";
 import "./place-gate.css";
 
 export type GateState = "ask" | "denied" | "abroad" | "unreached";
@@ -31,17 +29,11 @@ export function PlaceGate({ state, where, locating, onLocate, options, onPick, r
   const c = state === "ask" && ask ? { ...COPY.ask, kicker: "Choose a place", ...ask } : COPY[state];
   return (
     <div className="pg">
-      <DeskHeader
-        ground={false}
-        kicker={`${c.kicker}${where && state === "unreached" ? ` · ${where}` : ""}`}
-        title={c.title}
-        lede={c.body}
-        actions={state === "unreached"
-          ? <Link href={reportHref} className="dk-btn is-flame"><Plus size={16} /> Report the first animal</Link>
-          : <button type="button" className="dk-btn" onClick={onLocate} disabled={locating}><Crosshair size={15} /> {locating ? "Finding you…" : "Use my location"}</button>}
-      >
+      <header className="pg-entry-head"><p className="os-origin">STREET RECORD / SELECT A PLACE<span>{c.kicker}{where && state === "unreached" ? ` · ${where}` : ""}</span></p><h1>{c.title}</h1><p>{c.body}</p></header>
+      <section className="pg-protocol" aria-label="Set your place"><p className="pg-step">01 / PLACE</p>
         <div className="pg-search"><PlaceSearch options={options} onPick={onPick} label={state === "unreached" ? "Choose another place" : "Or type a place"} /></div>
-      </DeskHeader>
+        {state === "unreached" ? <Link href={reportHref} className="dk-btn is-flame">Report the first animal ↗</Link> : <button type="button" className="dk-btn" onClick={onLocate} disabled={locating}>{locating ? "Finding you…" : "Use my location"}</button>}
+      </section>
       {state !== "unreached" && <p className="pg-foot">Seeing an animal right now? <Link href="/report">Report it</Link>, no place needed first.</p>}
       {state === "unreached" && <p className="pg-foot">When the record reaches here, {what} fills in on its own.</p>}
     </div>

@@ -16,7 +16,7 @@
 
 import type { ReactNode } from "react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { Route, type RouteStop } from "@/components/system/Route";
+import type { RouteStop } from "@/components/system/Route";
 import { PlaceMap } from "./PlaceMap";
 import type { Living, LivingEvent } from "@/lib/animal/living";
 import { RecordActions } from "./RecordActions";
@@ -148,6 +148,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
 
       {/* ── where, with its name set on it ────────────────────────── */}
       <header className={`lr-hero lr-documentary ${r.photo ? "has-photo" : "no-photo"}`}>
+        <div className="lr-accession"><span>STRAYPAW / ANIMAL DOSSIER</span><span>{r.straypawId ?? "Identity pending"} · {scope === "org" ? "Organisation record" : "Public record"}</span></div>
         <div className="lr-hero-words">
           <p className="lr-hero-k sys-mono">Individual record / {r.straypawId ?? "Identity pending"}</p>
           <h1 id="lr-name" className={r.label.length > 30 ? "is-long" : ""}>{r.label}</h1>
@@ -197,13 +198,13 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
               <h2 id="lr-route-h">Its record</h2>
               <p>{stops.some((s) => s.kind === "missing") ? "From the first entry to today. Dashed: what nobody has recorded yet." : "From the first entry to today."}</p>
             </header>
-            {stops.length ? <Route stops={stops} label={`The record of ${r.label}, in order`} /> : <p className="lr-quiet">Nothing has been recorded against this animal yet.</p>}
+            {stops.length ? <ol className="lr-event-trail" aria-label={`The record of ${r.label}, in order`}>{stops.map((stop, index) => <li key={stop.key} data-state={stop.kind}><span className="lr-event-number">{String(index + 1).padStart(2, "0")}</span><time dateTime={stop.at ?? undefined}>{stop.at ? day(stop.at) : stop.kind === "missing" ? "Not recorded" : "Date not recorded"}</time><div><b>{stop.label}</b>{stop.detail && <p>{stop.detail}</p>}</div>{stop.href && <a href={stop.href}>{stop.cta ?? "Open record"} ↗</a>}</li>)}</ol> : <p className="lr-quiet">Nothing has been recorded against this animal yet.</p>}
           </section>
 
           {org}
 
           {chronology.length > 0 && (
-            <details className="lr-more">
+            <details className="lr-more" open>
               <summary>Every entry, with where it came from ({chronology.length})</summary>
               <LivingChronology entries={chronology} />
             </details>

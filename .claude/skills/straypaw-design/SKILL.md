@@ -150,6 +150,19 @@ cannot be disabled by a CSS media query alone.
 
 ## Failures to reject
 
+The post-app composition contract is purpose-specific: Atlas is a geographic
+surface with a city/source index; Community is a photographic contact sheet;
+animal identities are accessioned dossiers with dated event trails; NGO work is
+a queue-led workbench; Insights is an analytical register; Municipality is a
+planning-question rail beside geography. Reporting is an evidence receipt and
+an input protocol. Do not repeat one composition across these surfaces.
+
+Reject slogan-led two-column heroes, decorative geometric route objects,
+icon feature rows and pill-based navigation. Source labels, real photography,
+state rails, continuous tables and provenance are StrayPaw's design material.
+Maps belong to geographic tasks, not every route. Keep Community and Insights
+independent; retain contextual geography without replacing their workflows.
+
 - KPI-card grids with a subordinate map.
 - Decorative gradients, glows, frosted panels and repetitive rounded cards.
 - Arbitrary background grids; a geographic graticule is different.

@@ -44,6 +44,7 @@ import "./app.css";
 import "./editorial.css";
 import "./desk.css";
 import "./institution.css";
+import "./street-os.css";
 
 /* The shared record everyone can reach: the map, saved animals, the place
    brief, the stories and the partner directory. Every public space carries

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown, ArrowUpRight, ChevronRight, MapPin } from "lucide-react";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
 import type { SpatialCity } from "./data";
 
 const number = (value: number) => value.toLocaleString("en-IN");
@@ -25,24 +25,24 @@ export function AtlasRegister({ cities, open, onToggle, onCity, municipal = fals
   return <section className={`atlas-register ${open ? "is-expanded" : ""}`} aria-label="India Atlas register">
     <header className="atlas-intro">
       <p className="atlas-eyebrow">StrayPaw / {municipal ? "Geographic intelligence" : "Living India Atlas"}</p>
-      <h2>Every record.<br /><em>A life on the map.</em></h2>
-      <p className="atlas-deck">Explore the animals, the care, and the evidence connecting India’s streets.</p>
-      <div className="atlas-total"><strong>{cities.length ? number(total) : "—"}</strong><span>animal records<br />across {cities.length || "—"} city registers</span></div>
+      <h2>INDIA</h2>
+      <p className="atlas-deck">The recorded street-animal index</p>
+      <div className="atlas-total"><strong>{cities.length ? number(total) : "—"}</strong><span>recorded profiles · {cities.length || "—"} city registers</span></div>
       <p className="atlas-caveat">Recorded profiles, not a population estimate.</p>
     </header>
     <button className="atlas-mobile-toggle" type="button" aria-expanded={open} onClick={onToggle}><span>Explore {cities.length} city registers</span><ArrowDown size={16} /></button>
-    <div className="atlas-directory">
-      <div className="atlas-directory-head"><span>City / evidence</span><span>Records</span></div>
+    <div className="atlas-directory" role="region" aria-label="City and source comparison" tabIndex={0}>
+      <div className="atlas-directory-head"><span>City / source register</span><span>Profiles · open cases</span></div>
       <ol>{ordered.map((city, i) => {
         const source = cityEvidence(city.city, city.cells);
         return <li key={city.city}><button type="button" onClick={() => onCity(city.city)}>
           <span className="atlas-index">{String(i + 1).padStart(2, "0")}</span>
           <span className="atlas-city-name"><b>{city.city}</b><small>{source.label}</small></span>
-          <span className="atlas-city-count">{number(city.animals)}<ChevronRight size={14} /></span>
+          <span className="atlas-city-count">{number(city.animals)}<small>{typeof city.open_cases === "number" ? `${number(city.open_cases)} open` : "Case total not recorded"}</small></span>
         </button></li>;
       })}</ol>
     </div>
-    <footer className="atlas-directory-foot"><MapPin size={14} /><span>Your local patch & community actions</span><Link href="/app?view=patch" aria-label="Open your local patch"><ArrowUpRight size={17} /></Link></footer>
+    <footer className="atlas-directory-foot"><span>Index scope / recorded profiles, not comparable populations</span><Link href="/app" aria-label="Open your local patch">Community <ArrowUpRight size={17} /></Link></footer>
   </section>;
 }
 

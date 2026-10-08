@@ -22,7 +22,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowUpRight, Map as MapIcon } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { HexPlate } from "@/components/system/HexPlate";
 import { ShareBand } from "@/components/system/ShareBand";
 import { MiniBars } from "@/components/system/Spark";
@@ -36,7 +36,6 @@ import { FATE_META, FATES, fates, season } from "@/lib/spatial/report";
 import { C, C_STRIDE, type SpatialDataset } from "@/lib/spatial/types";
 import { CONDITIONS, DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 import "./brief.css";
-import { DeskHeader } from "@/components/app/DeskHeader";
 
 type Place = { city: number; locality: number };
 type Period = "all" | "12m" | "90d";
@@ -392,25 +391,19 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       {notice && <div className="ib-notice">{notice}</div>}
 
       {/* ── the place ──────────────────────────────────────────────── */}
-      <DeskHeader
-        city={cityName || undefined}
-        kicker={`${scope === "org" ? "Your records" : "Insights"} · ${periodLabel}`}
-        title={placeName || (scope === "org" ? "Your field evidence" : "Evidence, place by place")}
-        lede={isLocality ? cityName : ds ? (cityWhole ? "All-time requests, open work and animals are citywide totals. Period filters and findings below use bounded records." : "Locality figures and findings describe the loaded records, not a complete locality register.") : undefined}
-        figures={ds ? [
-          { label: cityWhole && period === "all" ? "requests for help" : "requests in loaded detail", value: requestsHere },
-          { label: cityWhole ? "open now" : "open in loaded detail", value: openNowHere, tone: "attention" },
-          { label: cityWhole ? "animals on record" : "animals in loaded detail", value: animalsHere },
-        ] : undefined}
-        actions={ds ? <Link href={mapHref("density")} className="dk-btn is-tint"><MapIcon size={15} aria-hidden /> Open on the map</Link> : undefined}
-      />
+      <header className="ib-register-head">
+        <p className="os-origin">{scope === "org" ? "NGO / SCOPED ANALYSIS" : "INSIGHTS / FIELD ANALYSIS"}<span>{periodLabel}</span></p>
+        <h1>{placeName || "Reading the evidence"}</h1>
+        {ds && <dl className="ib-measures"><div><dt>{cityWhole && period === "all" ? "Citywide requests" : "Loaded requests"}</dt><dd>{requestsHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Open citywide" : "Open in detail"}</dt><dd>{openNowHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Citywide profiles" : "Loaded profiles"}</dt><dd>{animalsHere.toLocaleString("en-IN")}</dd></div><div><dt>Explore geography</dt><dd><Link href={mapHref("density")}>Open the map ↗</Link></dd></div></dl>}
+        <p>{isLocality ? `Loaded locality detail / ${cityName}` : "Citywide totals and bounded findings are different scopes. Period filters apply to the loaded record."}</p>
+      </header>
 
       {ds && <div className="ib-pick">
-        {plate && place && <figure className="ib-plate">
+        {plate && place && <details className="ib-geography"><summary>Spatial distribution / loaded requests</summary><figure className="ib-plate">
           <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Loaded requests by cell in ${cityName}`}
             onCell={(key) => { const i = ds.cells.indexOf(key); if (i >= 0 && ds.cellLocality[i] >= 0) setPlace({ city: place.city, locality: ds.cellLocality[i] }); }} />
           <figcaption className="ib-plate-note">Deeper blue cells have more requests. Choose one to read its locality.</figcaption>
-        </figure>}
+        </figure></details>}
         <div className="ib-bar">
           <PlaceSearch options={options} onPick={pickPlace} label="Choose a place" />
           {isLocality && place && <button type="button" className="dk-btn is-tint" onClick={() => setPlace({ city: place.city, locality: -1 })}>All of {cityName}</button>}
@@ -422,7 +415,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
 
       {/* ── the answers ────────────────────────────────────────────── */}
       <div className="ib-body">
-        {shown.length > 0 && <div className="ib-chapter"><div><span>THE FIELD BRIEF / {String(shown.length).padStart(2, "0")} FINDINGS</span><h2>Inside the <em>loaded record.</em></h2></div><p>Request findings and charts describe {allIdx.length.toLocaleString("en-IN")} loaded, location-linked requests{cityRoll ? ` from ${cityRoll.cases.toLocaleString("en-IN")} citywide` : ""}. Period filters apply within this detail. Citywide sterilisation and vaccination figures are labelled separately.</p></div>}
+        {shown.length > 0 && <div className="ib-chapter"><h2>Findings / {String(shown.length).padStart(2, "0")}</h2><p>{allIdx.length.toLocaleString("en-IN")} loaded, location-linked requests{cityRoll ? ` / ${cityRoll.cases.toLocaleString("en-IN")} citywide` : ""}. Status figures outside this sample are labelled separately.</p></div>}
         {loading && <p className="ib-state" role="status">Reading the register…</p>}
         {error && <div className="ib-unavailable" role="status">
           <div><span>THE RECORD IS TEMPORARILY UNAVAILABLE</span><h2>Keep exploring while it reconnects.</h2><p>{error}</p></div>

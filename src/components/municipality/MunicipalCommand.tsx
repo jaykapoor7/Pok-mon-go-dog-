@@ -16,7 +16,7 @@ export function MunicipalCommand() {
   return (
     <div className="sm-host municipal-command">
       <div className="mc-protocol">
-        <div><p>StrayPaw / municipal evidence desk</p><h1>Read the place. <em>Then decide.</em></h1></div>
+        <div><p>StrayPaw / municipal evidence desk</p><h1>Planning<br />register</h1><p>Choose a question.<br />Inspect the recorded evidence.</p></div>
         <nav aria-label="Municipal planning questions"><Link href={href("arv")}>Recorded care</Link><Link href={href("cases")}>Case activity</Link><Link href={href("coverage")}>Evidence quality</Link></nav>
         <details><summary>Planning limits</summary><p>These are recorded profiles and interventions—not a population denominator. H3 cells are not wards. Empty areas mean incomplete reporting, not verified absence of animals or care. Allocation decisions need compatible local population, cost and programme evidence.</p></details>
       </div>

@@ -38,7 +38,9 @@ try {
       assert.equal(await page.locator(".atlas-lenses button[aria-pressed=true]").count(), 1);
     }
     await page.locator(".atlas-lenses button").filter({ hasText: "Care" }).click();
+    await page.waitForFunction(() => document.querySelector(".atlas")?.dataset.lens === "care" && new URL(location.href).searchParams.get("mode") === "abc");
     await page.getByLabel("Map representation", { exact: true }).selectOption("arv");
+    await page.waitForFunction(() => document.querySelector('select[aria-label="Map representation"]')?.value === "arv");
     assert.equal(await page.getByLabel("Map representation", { exact: true }).inputValue(), "arv");
     if (width < 700) {
       await page.locator(".sm-sheet-grip").click();

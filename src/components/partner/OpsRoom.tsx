@@ -156,13 +156,15 @@ export function OpsRoom() {
       <header className="ops-masthead">
         <div className="ops-masthead-meta"><span>StrayPaw / Operations register</span><span>{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</span></div>
         <div className="ops-masthead-title"><div><h1>Field operations<span>.</span></h1><p>{signedOut ? "The working record for the people who respond." : blank ? "Begin with the records your team already keeps." : "Live work, geographic context, and the next decision."}</p></div><div className="ops-masthead-actions"><Link href="/partner/cases/new"><Plus size={16} />New rescue case</Link><Link href="/partner/records"><Search size={16} />Find a record</Link></div></div>
+      </header>
+      <div className="ops-workbench">
         <nav className="ops-flow" aria-label="Operational workflows">
           <Link href="/partner/records?view=rescue"><span>01 / Live work</span>{working || loading ? <b>{loading ? "—" : num(live)}{crit ? <small> · {num(crit)} critical</small> : null}</b> : <b>Open the queue <ArrowUpRight size={15} /></b>}</Link>
           <Link href="/partner/records?view=overdue"><span>02 / Follow-ups</span><b>{working || loading ? loading ? "—" : `${num(overdue)} overdue` : "Review the schedule"}</b></Link>
           <Link href="/partner/review"><span>03 / Case review</span><b>{working || loading ? loading ? "—" : `${num(stale)} older cases` : "Resolve the record"}</b></Link>
           <Link href="/partner/import"><span>04 / Source records</span><b>Import a workbook <ArrowUpRight size={15} /></b></Link>
         </nav>
-      </header>
+      <div className="ops-workcontents">
 
       {loadError && <p role="alert" className="ops-alert">The organisation record could not be read. Reload to try again; nothing has been changed.</p>}
 
@@ -288,6 +290,7 @@ export function OpsRoom() {
           </section>
         )}
       </div>
+      </div></div>
     </main>
   );
 }

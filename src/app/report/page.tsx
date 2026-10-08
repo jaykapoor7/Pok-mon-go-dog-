@@ -220,7 +220,7 @@ export default function ReportPage() {
         </ol>
         <span className="rq-count sys-mono">{step + 1}/5</span>
       </header>
-      <aside className="rq-context"><p className="sys-mono">Resident field record</p><h2>One observation.<br /><em>A shared record.</em></h2><p>Preserve what you noticed. A photograph, a place, and what you can actually see.</p><p className="rq-context-evidence">Not sure? Say so. Unknown information is useful when it is kept honest.</p></aside>
+      <aside className="rq-context"><p className="sys-mono">OBSERVATION / FIELD ENTRY</p><dl><div><dt>Entry stage</dt><dd>{String(step + 1).padStart(2, "0")} / 05</dd></div><div><dt>Place</dt><dd>{zone || (coords ? "Location selected" : "Not recorded yet")}</dd></div><div><dt>Evidence</dt><dd>{file ? "Photograph attached" : "Photograph pending"}</dd></div><div><dt>State</dt><dd>Not submitted</dd></div></dl><p className="rq-context-evidence">Record what you can see. Unknown is a valid observation, not a failed answer.</p></aside>
       {!volunteer && <div className="rq-purpose">
         <span><HeartHandshake size={15} aria-hidden /> A shared care trail starts here</span>
         <small>About a minute · no account needed</small>

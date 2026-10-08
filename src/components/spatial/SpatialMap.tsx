@@ -204,7 +204,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
      route into city data; the city search remains available for the full list. */
   const [atlasOpen, setAtlasOpen] = useState(false);
 
-  const [ground, setGround] = useState<"night" | "paper">("night");
+  const [ground, setGround] = useState<"night" | "paper">("paper");
   useEffect(() => { try { const g = localStorage.getItem("sp.map.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
   const pal: Palette = ground === "night" ? ATLAS_NIGHT : ATLAS_PAPER;
 
@@ -881,12 +881,12 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
   const padding = useCallback(() => {
     const w = el.current?.clientWidth ?? 1000;
-    return w > 900 ? { top: 160, bottom: 150, left: 365, right: 380 } : w > 760 ? { top: 175, bottom: 140, left: 30, right: 310 } : { top: 165, bottom: 215, left: 25, right: 25 };
+    return w > 1100 ? { top: 160, bottom: 150, left: 315, right: 350 } : w > 760 ? { top: 175, bottom: 140, left: 30, right: 310 } : { top: 165, bottom: 215, left: 25, right: 25 };
   }, []);
   const camera = useCallback((s: Sel, instant = false) => {
     const map = mapRef.current; if (!map || !ds) return;
     const d = instant || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1000;
-    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: (el.current?.clientWidth ?? 0) > 900 ? { top: 110, bottom: 60, left: 390, right: 50 } : { top: 130, bottom: 195, left: 25, right: 25 }, duration: d });
+    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: (el.current?.clientWidth ?? 0) > 900 ? { top: 150, bottom: 260, left: 60, right: 80 } : { top: 150, bottom: 215, left: 25, right: 25 }, duration: d });
     else if (s.t === "city") map.fitBounds(ds.cities[s.city].box, { padding: padding(), duration: d, maxZoom: ds.cells.length <= 1 ? 10 : 13 });
     else if (s.t === "locality") map.fitBounds(boxOfRings(selCells.map((c) => ringOf(ds, c)), 0.01), { padding: padding(), duration: d, maxZoom: 14.2 });
     else if (s.t === "cell") map.flyTo({ center: [ds.centers[s.cell * 2], ds.centers[s.cell * 2 + 1]], zoom: Math.max(map.getZoom(), 14.2), duration: d, padding: padding() });
@@ -1231,7 +1231,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       {scope === "public" && indiaOverview && availableCities.some((c) => c.city === "Delhi") && <AtlasEncounter city="Delhi" />}
 
       <div className="atlas-topline"><span>{surface === "municipality" ? "Municipal intelligence" : scope === "org" ? "Organisation field atlas" : "The living atlas"}</span><span>{indiaOverview ? "INDIA / RECORDED EVIDENCE" : `${datasetCity ?? "Reading city"} / CITY INTELLIGENCE`}</span></div>
-      <div className="atlas-map-caption"><span className="atlas-map-key" /><span>{indiaOverview ? `City registers · ${atlasLens === "cases" ? "current open cases" : atlasLens === "care" ? mode === "arv" ? "profiles with vaccination recorded" : mode === "medical" ? "profiles flagged as needing help" : "profiles with sterilisation recorded" : atlasLens === "evidence" ? "cells with records, not population coverage" : "symbol size shows recorded profiles"}` : atlasLens === "animals" && mapZoom < 13 ? "Recorded profiles per cell · lighter shade, more records" : "Public location cells · individual dots are schematic"}</span></div>
+      <div className="atlas-map-caption"><span className="atlas-map-key" /><span>{indiaOverview ? `City registers · ${atlasLens === "cases" ? "current open cases" : atlasLens === "care" ? mode === "arv" ? "profiles with vaccination recorded" : mode === "medical" ? "profiles flagged as needing help" : "profiles with sterilisation recorded" : atlasLens === "evidence" ? "cells with records, not population coverage" : "symbol size shows recorded profiles"}` : atlasLens === "animals" && mapZoom < 13 ? `Recorded profiles per cell · ${ground === "paper" ? "darker" : "lighter"} shade, more records` : "Public location cells · individual dots are schematic"}</span></div>
 
       {scope === "public" && indiaOverview && approachingCity && (
         <aside className="sm-city-entry" aria-live="polite">
