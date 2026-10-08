@@ -7,7 +7,7 @@ export const ATLAS_NIGHT: Palette = {
   ...NIGHT, bg: "#081631", land: "#081631", water: "#0c2548", park: "#0a1d38", building: "#0d2142",
   roadMajor: "rgba(239,231,218,0.16)", road: "rgba(239,231,218,0.06)", rail: "rgba(239,231,218,0.06)",
   labelOpacity: 0.5, showRoadNames: false, buildings: false, boundary: "rgba(185,199,221,0.26)",
-  seq: ["#16305e", "#22498e", "#3467c4", "#5f8ff0", "#a9c4fb"],
+  seq: ["#22324f", "#3e5274", "#6f82a6", "#aebbd3", "#f4f7fc"],
 };
 export const ATLAS_PAPER: Palette = {
   ...PAPER, bg: "#f4f3eb", land: "#eceee5", water: "#dae2dc", park: "#e0e7d8",

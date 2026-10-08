@@ -81,7 +81,7 @@
 .op-head::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .24; background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 30px 30px; mask-image: linear-gradient(90deg, #000, transparent 65%); }
 .op-head.has-map { grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); padding-right: clamp(20px, 3vw, 36px); }
 .op-id { position: relative; z-index: 1; display: grid; gap: var(--sp-3); justify-items: start; align-content: center; }
-.op-id .om { background: #fffdf9; box-shadow: 0 14px 36px rgba(0,0,0,.24); }
+.op-id .om { background: var(--x-card, #fffdf9); box-shadow: 0 14px 36px rgba(0,0,0,.24); }
 .op-kind { margin: var(--sp-2) 0 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,248,246,.58); }
 .op h1 { margin: 0; font-size: clamp(32px, 4.4vw, 52px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 600; text-wrap: balance; }
 .op-place { margin: 0; font-family: var(--font-serif-stack); font-style: italic; font-size: 21px; color: #9ad7b5; }

@@ -201,12 +201,12 @@
   gap: 10px;
   font-size: 13px;
   line-height: 1.5;
-  color: #5d594d;
+  color: var(--x-mute, #5d594d);
 }
 .material-note svg { margin-top: 2px; color: var(--studio-moss); }
 .material-note b { display: block; color: var(--studio-ink); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
-.material-note.is-sensitive { background: #fff0eb; color: #744c3d; }
-.material-note.is-sensitive svg, .material-note.is-sensitive b { color: #a5482c; }
+.material-note.is-sensitive { background: var(--x-card, #fff0eb); color: var(--x-mute, #744c3d); }
+.material-note.is-sensitive svg, .material-note.is-sensitive b { color: var(--x-mute, #a5482c); }
 
 .studio-bridge {
   padding: clamp(28px, 5vw, 58px);

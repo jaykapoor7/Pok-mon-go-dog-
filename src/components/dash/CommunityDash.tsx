@@ -1,0 +1,126 @@
+"use client";
+
+/* Community home on the shared dashboard frame: the city around you as a
+   live 3D map, its headline record, who needs someone nearby and what was
+   followed through. */
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, Crosshair, MapPin, Radio } from "lucide-react";
+import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "./Dashboard";
+import { LiveMap, type MapTone } from "./LiveMap";
+import { useCityCells, MEASURE_LABEL, ago, fmtN, type Measure } from "./useCity";
+import { useSpatialDataset } from "@/components/spatial/data";
+import { PlaceSearch, type PlaceOption } from "@/components/app/PlaceSearch";
+import { AnimalTile, realName } from "@/components/community/AnimalTile";
+import { DogPhoto } from "@/components/ui/DogPhoto";
+import { usePlace, kmBetween } from "@/lib/place";
+import { useFollows } from "@/lib/follows";
+import type { PublicCaseStory } from "@/lib/community-case-stories";
+
+type PAnimal = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string | null; status: string | null; needs_help: boolean | null; zone: string | null; last_seen: string | null; h3_r8: string | null };
+const RADIUS = 2.5;
+const LENSES: { id: Measure; label: string; tone: MapTone }[] = [
+  { id: "animals", label: "Animals", tone: "blue" },
+  { id: "needs_help", label: "Needs help", tone: "flame" },
+  { id: "open_cases", label: "Open requests", tone: "flame" },
+  { id: "sterilised", label: "Care", tone: "teal" },
+];
+
+export function CommunityDash({ stories, availableCities = [], defaultCity = null }: { stories: PublicCaseStory[]; availableCities?: { city: string; state: string | null }[]; defaultCity?: string | null }) {
+  const router = useRouter();
+  const { ds, city, cities, loading } = useSpatialDataset("public");
+  const { cells, names } = useCityCells(city, ds);
+  const { place, locating, choose, locate } = usePlace();
+  const { ids: follows } = useFollows();
+  const [lens, setLens] = useState<Measure>("animals");
+  const [sel, setSel] = useState<string | null>(null);
+  const [near, setNear] = useState<PAnimal[] | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const row = cities.find((c) => c.city === city) ?? null;
+  const loaded = ds?.cities.find((c) => c.name === city);
+
+  /* The place you set, if it is in this city; otherwise the city centre. */
+  const centre = useMemo<[number, number] | null>(() => {
+    if (place && loaded && kmBetween([place.lng, place.lat], [loaded.lng, loaded.lat]) < 40) return [place.lng, place.lat];
+    return loaded ? [loaded.lng, loaded.lat] : null;
+  }, [place, loaded]);
+  const placeLabel = place && centre && place.lng === centre[0] ? place.label.split(",")[0] : city;
+
+  useEffect(() => {
+    if (!ds || !centre) return;
+    const keys: string[] = [];
+    for (let i = 0; i < ds.cells.length; i++) if (kmBetween(centre, [ds.centers[i * 2], ds.centers[i * 2 + 1]]) <= RADIUS) keys.push(ds.cells[i]);
+    if (!keys.length) { setNear([]); return; }
+    let live = true; setNear(null);
+    fetch(`/api/spatial/patch?cells=${keys.slice(0, 80).join(",")}`).then((r) => (r.ok ? r.json() : { animals: [] })).then((j) => { if (live) setNear(j.animals ?? []); }).catch(() => { if (live) setNear([]); });
+    return () => { live = false; };
+  }, [ds, centre]);
+
+  const options = useMemo<PlaceOption[]>(() => {
+    const out: PlaceOption[] = [];
+    const seen = new Set<string>();
+    for (const c of availableCities) if (!seen.has(c.city)) { seen.add(c.city); out.push({ key: `ac:${c.city}`, name: c.city, city: c.state ?? "" }); }
+    if (ds) { const loc = new Map<number, number>(); ds.cellLocality.forEach((l, c) => { if (l >= 0 && !loc.has(l)) loc.set(l, c); }); for (const [l, c] of loc) out.push({ key: `l:${c}`, name: ds.localities[l], city: city ?? "" }); }
+    return out;
+  }, [availableCities, ds, city]);
+  const pick = (o: PlaceOption) => {
+    if (o.key.startsWith("ac:")) { const n = o.key.slice(3); if (n !== city) router.push(`/app?city=${encodeURIComponent(n)}`, { scroll: false }); return; }
+    const c = Number(o.key.slice(2)); if (ds && Number.isFinite(c)) choose({ lng: ds.centers[c * 2], lat: ds.centers[c * 2 + 1], label: `${o.name}, ${o.city}` });
+  };
+  const findMe = async () => { const r = await locate(); setNote(r.ok ? null : r.why === "abroad" ? "Your location is outside India." : "Location unavailable — choose a place instead."); };
+
+  const L = LENSES.find((l) => l.id === lens)!;
+  const mapCells = (cells ?? []).map((c) => ({ h3: c.h3_r8, value: (c[lens] as number | undefined) ?? 0, hot: c.needs_help, label: names.get(c.h3_r8) ?? null }));
+  const selCell = sel ? cells?.find((c) => c.h3_r8 === sel) : null;
+
+  const hot = (near ?? []).filter((a) => a.needs_help || a.status === "injured");
+  const attention: Item[] = hot.slice(0, 7).map((a) => ({
+    key: a.id, href: `/dog/${a.id}`, title: realName(a.name) ?? `Dog near ${a.zone?.split(",")[0] ?? "here"}`,
+    meta: [a.straypaw_id, a.last_seen ? `seen ${ago(a.last_seen)}` : null].filter(Boolean).join(" · "),
+    tag: { text: a.status === "injured" ? "Injured" : "Needs help", tone: "hot" },
+    thumb: a.cover_photo ? <DogPhoto src={a.cover_photo} alt="" seed={a.id} className="db-thumb" /> : undefined,
+  }));
+  const feed: Item[] = stories.filter((s) => !city || !s.city || s.city === city).slice(0, 7).map((s) => ({
+    key: s.id, href: `/dog/${s.dog_id}`,
+    title: s.resolved_at ? `${s.title?.split(" · ")[0] ?? "Request"} — closed` : `${s.title?.split(" · ")[0] ?? "Request"} opened`,
+    meta: [s.zone, s.ngo_name].filter(Boolean).join(" · "), right: ago(s.resolved_at ?? s.occurred_at), tag: { text: "", tone: s.resolved_at ? "care" : "open" },
+  }));
+  const recent = (near ?? []).filter((a) => !(a.needs_help || a.status === "injured")).sort((a, b) => Number(!!b.cover_photo) - Number(!!a.cover_photo) || (b.last_seen ?? "").localeCompare(a.last_seen ?? "")).slice(0, 6);
+
+  return (
+    <Dashboard
+      eyebrow={<><MapPin size={14} aria-hidden /> {place ? "Your place" : `Most recently active city${defaultCity ? "" : ""}`} · {row?.state ?? ""}</>}
+      title={<>Around <em>{placeLabel ?? "…"}</em></>}
+      subtitle={note ?? "Recorded animals, requests and care around you. Counts are records, never a population."}
+      controls={<div className="db-place"><PlaceSearch options={options} onPick={pick} label="Change place" placeholder="Change place…" /><button type="button" className="x-btn" onClick={findMe} disabled={locating}><Crosshair size={15} aria-hidden /> {locating ? "Locating…" : "Near me"}</button></div>}
+      kpis={[
+        { label: "Animals on record", value: row?.animals, note: `${city ?? ""} · all sources`, href: `/map?city=${encodeURIComponent(city ?? "")}` },
+        { label: "Flagged needing help", value: row?.needs_help, tone: "hot", note: "Injured or flagged by a reporter" },
+        { label: "Open requests", value: row?.open_cases, tone: "blue", note: `of ${fmtN(row?.cases)} recorded` },
+        { label: "Sterilisation recorded", value: row?.sterilised, tone: "care", note: "Unknown is not “no”" },
+        { label: "You follow", value: follows?.length ?? 0, href: "/following", note: "Saved on this device" },
+      ]}
+      map={<LiveMap cells={mapCells} tone={L.tone} metric={MEASURE_LABEL[lens]} label={`${city}: ${MEASURE_LABEL[lens]} by cell`} selected={sel} onCell={setSel} emptyNote={loading ? "Reading the city…" : `No ${MEASURE_LABEL[lens]} recorded here.`}>
+        <MapChips value={lens} options={LENSES} onChange={setLens} label="Map measure" />
+        <Link href={`/map?city=${encodeURIComponent(city ?? "")}`} className="db-maplink">Open full Atlas <ArrowUpRight size={14} aria-hidden /></Link>
+        {selCell && <div className="db-selcard"><b>{names.get(selCell.h3_r8) ?? "Analysis cell"}</b><p>{fmtN(selCell.animals)} animals · {fmtN(selCell.open_cases)} open requests · {fmtN(selCell.needs_help)} flagged</p><Link href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`}>Meet the animals in this cell →</Link></div>}
+      </LiveMap>}
+      side={<>
+        <Panel title="Needs someone nearby" count={near ? hot.length : undefined} action={{ label: "Report", href: centre ? `/report?lat=${centre[1]}&lng=${centre[0]}` : "/report" }}>
+          <ItemList items={attention} loading={near === null} empty={<>No animal within {RADIUS} km is flagged right now. That only means nobody has recorded one. <Link href="/report" className="db-inline">Report a dog <Radio size={13} aria-hidden /></Link></>} />
+        </Panel>
+        <Panel title="Followed through" action={{ label: "Stories", href: `/stories${city ? `?city=${encodeURIComponent(city)}` : ""}` }}>
+          <Feed items={feed} empty="No recent outcomes are published for this city." />
+        </Panel>
+      </>}
+    >
+      {recent.length > 0 && (
+        <Panel title={`On the record within ${RADIUS} km`} action={{ label: "See on the map", href: centre ? `/map?mode=animals&lat=${centre[1]}&lng=${centre[0]}&city=${encodeURIComponent(city ?? "")}` : "/map" }}>
+          <div className="db-tiles">{recent.map((a) => <AnimalTile key={a.id} a={a} size="s" />)}</div>
+        </Panel>
+      )}
+    </Dashboard>
+  );
+}

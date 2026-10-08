@@ -44,7 +44,7 @@
 .cf-kicker { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .cf-triage { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px 0 9px; border-radius: 999px; font-size: 12.5px; font-weight: 700; box-shadow: inset 0 0 0 1.5px var(--sp-ink); }
 .cf-triage i { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--sp-ink); }
-.cf-triage.is-critical { background: var(--sp-flame); color: #1a0d08; box-shadow: none; }
+.cf-triage.is-critical { background: var(--sp-flame); color: var(--x-mute, #1a0d08); box-shadow: none; }
 .cf-triage.is-critical i { background: #1a0d08; box-shadow: none; }
 .cf-triage.is-priority i { background: var(--sp-ink); }
 .cf-triage.is-unclassified { box-shadow: inset 0 0 0 1.5px var(--sp-muted); color: var(--sp-muted); }
@@ -211,7 +211,7 @@ a.cf-animal:hover { border-color: var(--sp-ink); }
 .cf-btn:hover { border-color: var(--sp-ink); }
 .cf-btn:disabled { opacity: 0.45; cursor: default; }
 .cf-btn.is-ink { background: var(--sp-ink); border-color: var(--sp-ink); color: var(--sp-bone); }
-.cf-btn.is-flame { background: var(--sp-flame); border-color: var(--sp-flame); color: #1a0d08; }
+.cf-btn.is-flame { background: var(--sp-flame); border-color: var(--sp-flame); color: var(--x-mute, #1a0d08); }
 .cf-btn.is-quiet { border-color: transparent; background: rgba(11, 30, 61, 0.05); }
 .cf-link { justify-self: start; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--sp-blue); cursor: pointer; }
 .cf-link:hover { text-decoration: underline; text-underline-offset: 3px; }

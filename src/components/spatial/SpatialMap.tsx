@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
-import { ArrowUpRight, ChevronDown, Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpRight, Box, ChevronDown, Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal, Square, X } from "lucide-react";
 import { groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
   animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf, caseStateOn, resolvedOn, resolutionUndated,
@@ -210,6 +210,8 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
      Atlas continues the picture rather than switching to another product. */
   const [ground, setGround] = useState<"night" | "paper">("night");
   const [railClosed, setRailClosed] = useState(false);
+  /* 3D columns by default at city scale; the plan view stays one press away. */
+  const [three, setThree] = useState(params.get("view") !== "2d");
   useEffect(() => { try { const g = localStorage.getItem("sp.atlas.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
   const pal: Palette = ground === "night" ? ATLAS_NIGHT : ATLAS_PAPER;
 
@@ -580,8 +582,8 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         fitBoundsOptions: { padding: 30 },
         attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · H3" },
         maxPitch: 60,
-        dragRotate: false,
-        pitchWithRotate: false,
+        dragRotate: true,
+        pitchWithRotate: true,
       });
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __spmap?: MLMap }).__spmap = map;
@@ -642,6 +644,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     map.addLayer({ id: "inner", type: "symbol", source: "inner", minzoom: 11, layout: { "text-field": ["to-string", ["get", "n"]], "text-font": ["Noto Sans Regular"], "text-size": ["interpolate", ["linear"], ["zoom"], 11, 10, 15, 14] as ExpressionSpecification, "text-allow-overlap": false }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.6 } });
     map.addLayer({ id: "cells-edge", type: "line", source: "cells", paint: { "line-color": fs("line", pal.cellEdge), "line-width": ["case", ["!=", ["feature-state", "line"], null], 1.4, 0.8] as ExpressionSpecification, "line-opacity": ["case", [">", fs("o", 0), 0], 1, ["!=", ["feature-state", "line"], null], 1, [">", fs("hatch", 0), 0], 1, 0] as ExpressionSpecification } });
 
+    /* 3D: the same cells rising by the Lens measure. Hidden until 3D is on. */
+    map.addLayer({ id: "cells-3d", type: "fill-extrusion", source: "cells", layout: { visibility: "none" }, paint: {
+      "fill-extrusion-color": fs("c", T), "fill-extrusion-height": fs("e", 0), "fill-extrusion-base": 0,
+      "fill-extrusion-opacity": 0.9, "fill-extrusion-vertical-gradient": true,
+    } });
     /* Light: a soft glow where records gather, fading as the streets come in. */
     map.addLayer({ id: "heat", type: "heatmap", source: "pts", maxzoom: 16, layout: { visibility: "none" }, paint: {
       "heatmap-weight": 0.6, "heatmap-intensity": Z(9, 0.18, 14, 0.5), "heatmap-radius": Z(9, 7, 14, 26),
@@ -787,6 +794,22 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     try { localStorage.setItem("sp.atlas.ground", ground); } catch { /* storage blocked */ }
   }, [ground, pal, baseReady, mode, atlasLens, layersReady, pointStyle]);
 
+  /* 3D columns: applied now and after every layer rebuild (the city index
+     arriving rebuilds the layers). The tilt waits for the first camera fit. */
+  useEffect(() => {
+    const map = mapRef.current; if (!map || !layersReady || !ds) return;
+    const on = three && !indiaOverview && ds.cells.length > 1;
+    const apply = () => {
+      if (!map.getLayer("cells-3d")) return;
+      if (map.getLayoutProperty("cells-3d", "visibility") !== (on ? "visible" : "none")) map.setLayoutProperty("cells-3d", "visibility", on ? "visible" : "none");
+    };
+    apply();
+    map.on("styledata", apply);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const t = window.setTimeout(() => map.easeTo({ pitch: on ? 55 : 0, bearing: on ? -12 : 0, duration: reducedMotion ? 0 : 900 }), 1300);
+    return () => { map.off("styledata", apply); window.clearTimeout(t); };
+  }, [three, layersReady, ds, indiaOverview, cityPins, pal]);
+
   /* ââ what is drawn, for the mode, the time and the filters âââââââââ */
   const cellsOn = grid || (!indiaOverview && mapZoom < 13) || mode === "coverage" || mode === "change" || mode === "abc" || mode === "arv";
   useEffect(() => {
@@ -794,10 +817,12 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     const seen = new Set<number>();
     for (const s of stats) {
       const p = cellsOn ? cellPaint(s) : { c: T, o: 0 } as ReturnType<typeof cellPaint>;
-      map.setFeatureState({ source: "cells", id: s.cell }, { c: p.c, o: p.o, line: p.line ?? null, hatch: p.hatch ?? 0, h: p.h ?? 0 });
+      const rk = rankOf(value(s), br);
+      const e = p.o > 0 && p.c !== T ? (rk >= 0 ? (rk + 1) * 520 : 260) : 0;
+      map.setFeatureState({ source: "cells", id: s.cell }, { c: p.c, o: p.o, line: p.line ?? null, hatch: p.hatch ?? 0, h: p.h ?? 0, e });
       seen.add(s.cell);
     }
-    for (let i = 0; i < ds.cells.length; i++) if (!seen.has(i)) map.setFeatureState({ source: "cells", id: i }, { c: T, o: 0, line: null, hatch: 0, h: 0 });
+    for (let i = 0; i < ds.cells.length; i++) if (!seen.has(i)) map.setFeatureState({ source: "cells", id: i }, { c: T, o: 0, line: null, hatch: 0, h: 0, e: 0 });
     const vis = (id: string, on: boolean) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "visible" : "none"); };
     const spatialDetail = ds.cells.length > 1;
     const pointsOn = spatialDetail && (mode === "animals" || mode === "abc" || mode === "arv" || mode === "medical" || mode === "density");
@@ -820,7 +845,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     (map.getSource("inner") as GeoJSONSource | undefined)?.setData(inner);
     (map.getSource("feeding") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feeding.map((z) => ({ type: "Feature", properties: { id: z.id, name: z.name }, geometry: { type: "Point", coordinates: [z.lng, z.lat] } })) });
     (map.getSource("next") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: ds.next.map((n, i) => ({ type: "Feature", properties: { n: String(i + 1), k: n.cell }, geometry: { type: "Point", coordinates: n.center } })) });
-  }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding, mapZoom]);
+  }, [stats, cellPaint, cellsOn, mode, animalPts, carePts, terrain, fog, casePts, inner, ds, pal, layersReady, feeding, mapZoom, br, value]);
 
   /* ââ a critical open case breathes âââââââââââââââââââââââââââââââââ */
   useEffect(() => {
@@ -1332,6 +1357,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomIn({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom in" title="Zoom in"><Plus size={18} /></button>
         <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomOut({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom out" title="Zoom out"><Minus size={18} /></button>
         <span className="ax-tools-gap" aria-hidden />
+        {!indiaOverview && <button type="button" onClick={() => setThree((v) => !v)} aria-pressed={three} aria-label={three ? "Switch to plan view" : "Switch to 3D columns"} title={three ? "Plan view" : "3D columns"}>{three ? <Square size={16} /> : <Box size={16} />}</button>}
         <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={17} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the daylight ground" : "Switch to the night ground"} title={ground === "night" ? "Daylight ground" : "Night ground"}><Layers size={17} /></button>
         <button type="button" onClick={locate} aria-label="Go to where I am" title="Go to where I am"><Crosshair size={17} /></button>

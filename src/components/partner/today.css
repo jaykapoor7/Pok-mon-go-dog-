@@ -7,7 +7,7 @@
 .td-sum b { font-size: 22px; font-weight: 600; color: var(--x-text); letter-spacing: -0.02em; }
 .td-sum .is-hot b { color: var(--x-flame-ink); }
 .td-head-do { display: flex; flex-wrap: wrap; gap: 10px; }
-.td-alert { padding: 12px 16px; border-radius: 12px; background: var(--x-flame-soft); color: #8e2a12; }
+.td-alert { padding: 12px 16px; border-radius: 12px; background: var(--x-flame-soft); color: var(--x-mute, #8e2a12); }
 
 .td-start { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: stretch; }
 .td-start-card { display: grid; gap: 14px; align-content: start; padding: 32px; border-radius: var(--x-r-l); }

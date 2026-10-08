@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app/AppShell";
-import { CommunityHome } from "@/components/community/CommunityHome";
+import { CommunityDash } from "@/components/dash/CommunityDash";
 import { getPublicSpatialCities } from "@/lib/spatial/server";
 import { getPublicCaseStoriesPage } from "@/lib/community-case-stories";
 import { unstable_cache } from "next/cache";
@@ -40,10 +40,9 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
   const storyPage = await within(readStories(city), 4_000).catch(() => noStories);
   return (
     <AppShell>
-      <CommunityHome
+      <CommunityDash
         stories={storyPage.rows}
-        storyError={Boolean(storyPage.error)}
-        availableCities={cities.map((item) => ({ city: item.city, state: item.state, lng: item.lng, lat: item.lat }))}
+        availableCities={cities.map((item) => ({ city: item.city, state: item.state }))}
         defaultCity={city}
       />
     </AppShell>

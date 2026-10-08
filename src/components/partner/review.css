@@ -82,7 +82,7 @@
 .rv-bulk p { margin: 0; font-size: 13.5px; }
 .rv-bulk-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
 .rv-bulk button { background: rgba(244, 238, 229, 0.08); border-color: rgba(244, 238, 229, 0.18); color: var(--sp-bone); }
-.rv-bulk button.is-go { background: var(--sp-flame); border-color: var(--sp-flame); color: #1a0d08; }
+.rv-bulk button.is-go { background: var(--sp-flame); border-color: var(--sp-flame); color: var(--x-mute, #1a0d08); }
 .rv-bulk button.is-quiet { background: none; border-color: transparent; }
 .rv-bulk input { width: 220px; }
 

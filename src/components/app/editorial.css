@@ -4,12 +4,12 @@ html .spa.spa-editorial {
   --ink: var(--sp-ink);
   --paper: #f7f8f7;
   --bone: #f7f8f7;
-  background: #f7f8f7;
+  background: var(--x-card, #f7f8f7);
   color: var(--sp-ink);
 }
 html .spa.spa-editorial .spa-body,
 html .spa.spa-editorial .spa-main:not(.flush) {
-  background: #f7f8f7;
+  background: var(--x-card, #f7f8f7);
 }
 html .spa.spa-editorial .spa-top {
   background: var(--sp-night);
@@ -102,7 +102,7 @@ html .spa.spa-editorial .spa-main:not(.flush) :is(.spa-empty, .spa-note) p { col
   html .spa.spa-editorial .spa-body { grid-template-columns: 226px minmax(0, 1fr); }
   html .spa.spa-editorial .spa-side {
     padding: 26px 15px 18px;
-    background: #edf0ef;
+    background: var(--x-card, #edf0ef);
     border-right: 1px solid #dce2e0;
   }
   html .spa.spa-editorial .spa-nav-context {

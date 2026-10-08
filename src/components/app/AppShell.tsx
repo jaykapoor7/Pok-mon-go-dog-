@@ -22,6 +22,7 @@ import "./desk.css";
 import "./institution.css";
 import "./street-os.css";
 import "@/components/shell/shell.css";
+import "@/components/shell/dark.css";
 
 /* ════════════════════════════════════════════════════════════════════
    The StrayPaw app shell.
@@ -89,51 +90,46 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
 
   return (
     <InShell.Provider value={true}>
-      <div className={`sx spa-scope ${SX_FONTS}${flush ? " is-flush" : ""}${isReporting ? " is-reporting" : ""}`} data-space={space}>
+      <div className={`sx sd spa-scope ${SX_FONTS}${flush ? " is-flush" : ""}${isReporting ? " is-reporting" : ""}`} data-space={space}>
         <Welcome />
         <a href="#spa-main" className="sx-skip">Skip to content</a>
 
-        <header className="sx-bar">
-          <div className="sx-bar-in">
-            {!isDestination && <button type="button" className="sx-back" onClick={back} aria-label="Back"><ArrowLeft size={20} /></button>}
-            <Link href={def.home} className={`sx-brand${!isDestination ? " has-back" : ""}`} aria-label={`StrayPaw ${def.label} home`}>
-              <StrayPawMark size={30} />
-              <span className="sx-brand-t">StrayPaw</span>
-            </Link>
-            <div className="sx-space-slot"><SpaceMenu space={space} onPick={pick} /></div>
-
-            <nav className="sx-nav" aria-label={`${def.label} destinations`}>
-              {def.nav.map(({ href, label }) => (
-                <Link key={href} href={href} prefetch aria-current={isCurrent(href) ? "page" : undefined}>{label}</Link>
-              ))}
-            </nav>
-
-            <div className="sx-bar-end">
-              <button type="button" className="sx-find" onClick={() => setCmd(true)} aria-label="Search animals, places and organisations" aria-keyshortcuts="Control+K Meta+K /">
-                <Search size={16} aria-hidden /><span className="sx-find-t">Search</span><kbd className="sx-find-k">⌘K</kbd>
-              </button>
-              <div className="sx-lang"><LanguageSwitcher /></div>
-              {def.action && !isReporting && (
-                <Link href={def.action.href} className="sx-action"><def.action.Icon size={16} aria-hidden /><span>{def.action.label}</span></Link>
-              )}
-              <AccountMenu />
-            </div>
+        <aside className="sd-side" aria-label="StrayPaw">
+          <Link href={def.home} className="sd-brand" aria-label={`StrayPaw ${def.label} home`}>
+            <StrayPawMark size={30} /><span>StrayPaw</span>
+          </Link>
+          <div className="sd-space"><SpaceMenu space={space} onPick={pick} /></div>
+          {def.action && <Link href={def.action.href} className="sd-action"><def.action.Icon size={17} aria-hidden /><span>{def.action.label}</span></Link>}
+          <nav className="sd-nav" aria-label={`${def.label} destinations`}>
+            {def.nav.map(({ href, label, Icon }) => (
+              <Link key={href} href={href} prefetch aria-current={isCurrent(href) ? "page" : undefined}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>
+            ))}
+          </nav>
+          <div className="sd-more">
+            {def.more.map((g) => (
+              <details key={g.label} open={g.links.some((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))}>
+                <summary>{g.label}</summary>
+                <div>{g.links.map((l) => <Link key={l.href} href={l.href} aria-current={pathname === l.href ? "page" : undefined}>{l.label}</Link>)}</div>
+              </details>
+            ))}
           </div>
-        </header>
+          <div className="sd-foot">
+            <div className="sd-foot-row"><LanguageSwitcher /><FeedbackButton label="Feedback" /></div>
+            <Link href="/" className="sd-site">Main site</Link>
+          </div>
+        </aside>
 
-        <main id="spa-main" className="sx-main">{children}</main>
-
-        {!flush && (
-          <footer className="sx-foot">
-            <p>StrayPaw holds recorded animals, cases and care from many sources. Counts are records, never a population estimate.</p>
-            <div>
-              <FeedbackButton label="Send feedback" />
-              <Link href="/data-governance">Data governance</Link>
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/">Main site</Link>
-            </div>
-          </footer>
-        )}
+        <div className="sd-body">
+          <header className="sd-top">
+            {!isDestination && <button type="button" className="sx-back" onClick={back} aria-label="Back"><ArrowLeft size={20} /></button>}
+            <Link href={def.home} className="sd-top-brand" aria-label="StrayPaw home"><StrayPawMark size={28} /></Link>
+            <button type="button" className="sd-find" onClick={() => setCmd(true)} aria-label="Search animals, places and organisations" aria-keyshortcuts="Control+K Meta+K /">
+              <Search size={16} aria-hidden /><span>Search animal IDs, places, organisations…</span><kbd>⌘K</kbd>
+            </button>
+            <div className="sd-top-end"><AccountMenu /></div>
+          </header>
+          <main id="spa-main" className="sx-main">{children}</main>
+        </div>
 
         <nav className="sx-tabs" aria-label={`${def.label} navigation`}>
           {left.map(({ href, label, Icon }) => <Link key={href} href={href} aria-current={isCurrent(href) ? "page" : undefined}><Icon size={22} strokeWidth={1.8} /><span>{label}</span></Link>)}

@@ -34,13 +34,13 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
-import { OpsStreetMap, type OpenSpot } from "@/components/partner/OpsStreetMap";
+import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "@/components/dash/Dashboard";
+import { LiveMap, type MapCell } from "@/components/dash/LiveMap";
 import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { NGO } from "@/lib/types";
 import "./ops.css";
-import "./today.css";
 
 const DAY = 86_400_000;
 const num = (n: number) => n.toLocaleString("en-IN");
@@ -129,7 +129,7 @@ export function OpsRoom() {
     if (!isMember || !openCells?.length) return null;
     const rows = openCells.filter((row) => row.h3_r8 && isValidCell(row.h3_r8) && row.open_cases > 0);
     if (!rows.length) return null;
-    const spots: OpenSpot[] = rows.map((row) => {
+    const spots: { key: string; lat: number; lng: number; live: number; stale: number }[] = rows.map((row) => {
       const [lat, lng] = cellToLatLng(row.h3_r8);
       return { key: row.h3_r8, lat, lng, live: Math.max(0, row.open_cases - row.stale_cases), stale: row.stale_cases };
     });
@@ -155,140 +155,78 @@ export function OpsRoom() {
   const working = isMember && !blank && !loading;
   const place = workMap && workMap.name !== "all open work" ? workMap.name : org?.city ?? null;
 
-  const summary = loading ? null : signedOut ? null : blank ? "Nothing is open. Start from the records you already keep." : null;
+  const [mapMode, setMapMode] = useState<"open" | "live" | "stale">("open");
+  const mapCells: MapCell[] = (openCells ?? []).filter((r) => r.h3_r8 && isValidCell(r.h3_r8)).map((r) => ({
+    h3: r.h3_r8, value: mapMode === "open" ? r.open_cases : mapMode === "live" ? Math.max(0, r.open_cases - r.stale_cases) : r.stale_cases,
+    hot: r.critical_cases, label: (open ?? []).find((c) => c.h3_r8 === r.h3_r8)?.zone ?? r.city,
+  }));
   const filtered = shown.filter((q) => focus === "all" ? true : focus === "critical" ? q.crit : q.kind === "followup");
+  const queueItems: Item[] = filtered.slice(0, queueRows).map((q) => {
+    const c = q.c, f = q.f;
+    return {
+      key: q.key, href: c ? `/partner/cases/${c.id}` : f?.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/records?view=overdue",
+      title: q.kind === "followup" ? "Follow-up overdue" : c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c?.title || "Open case",
+      meta: who(c) || (f?.kind ? f.kind.replace(/_/g, " ") : "From the imported register"),
+      tag: { text: q.kind === "followup" ? "Overdue" : q.crit ? "Critical" : STATUS_META[(c?.status_class ?? "open") as StatusClass]?.short ?? "Open", tone: q.crit || q.kind === "followup" ? "hot" : "open" },
+      right: q.kind === "followup" ? `${ago(f!.due_at)} late` : `${ago(c?.occurred_at ?? null)} waiting`,
+    };
+  });
+  const changeItems: Item[] = changes.slice(0, 7).map((c) => ({
+    key: c.id, href: `/partner/cases/${c.id}`,
+    title: c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Case",
+    meta: [STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label, c.closure_reason ? CLOSURE_SHORT[c.closure_reason] ?? c.closure_reason : null, c.zone].filter(Boolean).join(" · "),
+    right: `${ago(c.last_activity_at)} ago`, tag: { text: "", tone: c.status_class === "closed" ? "care" : "quiet" },
+  }));
+
+  if (!loadError && (blank || signedOut)) return (
+    <Dashboard
+      eyebrow={org?.name ?? "NGO workspace"}
+      title={signedOut ? <>Your organisation&apos;s <em>operations</em></> : <>Start with the records <em>you already keep</em></>}
+      subtitle={signedOut ? "Cases, animals and locations load only for members of the organisation that keeps them." : "Import the workbook your team already uses, or open your first rescue case."}
+      actions={signedOut && !user ? <><Link href="/join" className="x-btn is-flame">Sign in with your code</Link><Link href="/partner-apply" className="x-btn">Apply to partner</Link></> : signedOut ? <Link href="/partner-apply" className="x-btn is-flame">Apply to partner</Link> : <><Link href="/partner/import" className="x-btn is-flame">Import a workbook</Link><Link href="/partner/cases/new" className="x-btn">Open a rescue case</Link></>}
+      kpis={[{ label: "Live cases", value: signedOut ? null : 0 }, { label: "Critical", value: signedOut ? null : 0, tone: "hot" }, { label: "Follow-ups overdue", value: signedOut ? null : 0, tone: "hot" }, { label: "Waiting on a decision", value: signedOut ? null : 0 }]}
+      map={<LiveMap cells={[]} tone="flame" metric="open cases" label="Open work by cell" emptyNote={signedOut ? "Sign in with your organisation code to see where your open work is." : "Open work appears here once a case carries a location."} />}
+      side={<>
+        <Panel title="Needs someone"><ItemList items={[]} empty="Live cases and overdue follow-ups appear here, critical conditions first." /></Panel>
+        <Panel title="How the workspace works"><ol className="db-steps"><li><b>Queue</b> — live cases and overdue follow-ups, critical first.</li><li><b>Record</b> — every case opens into the animal, its history and care.</li><li><b>Action</b> — assign, treat, schedule a follow-up or close with a reason.</li></ol></Panel>
+      </>}
+    />
+  );
 
   return (
-    <main className="td">
-      <header className="td-head x-wrap">
-        <div className="td-head-copy">
-          <p className="x-kicker">{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</p>
-          <h1 className="x-h1">Today</h1>
-          {working ? (
-            <p className="td-sum" aria-live="polite">
-              <span><b className="x-num">{num(live)}</b> live case{live === 1 ? "" : "s"}</span>
-              <span className={crit ? "is-hot" : ""}><b className="x-num">{num(crit)}</b> critical</span>
-              <span className={overdue ? "is-hot" : ""}><b className="x-num">{num(overdue)}</b> follow-up{overdue === 1 ? "" : "s"} overdue</span>
-              <span><b className="x-num">{num(stale)}</b> older case{stale === 1 ? "" : "s"} waiting on a decision</span>
-            </p>
-          ) : <p className="x-lede">{summary ?? (loading ? "Reading your organisation's record…" : "The working record for the people who respond: what needs someone, where it is, and what happened.")}</p>}
-        </div>
-        <div className="td-head-do">
-          <Link href="/partner/cases/new" className="x-btn is-flame"><Plus size={16} aria-hidden /> New case</Link>
-          <Link href="/partner/records" className="x-btn"><Search size={16} aria-hidden /> Find a record</Link>
-        </div>
-      </header>
-
-      {loadError && <p role="alert" className="td-alert x-wrap">The organisation record could not be read. Reload to try again — nothing has been changed.</p>}
-
-      {!loadError && (blank || signedOut) && (
-        <section className="td-start x-wrap" aria-labelledby="td-start-h">
-          <div className="td-start-card x-night">
-            <p className="x-kicker">{signedOut ? "Members only" : "Day one"}</p>
-            <h2 id="td-start-h" className="x-h2">{signedOut ? <>Your organisation&apos;s record opens <em>after you sign in</em></> : <>Start with the records <em>you already keep</em></>}</h2>
-            <p className="x-lede">{signedOut
-              ? "Anyone can look around the workspace. Cases, animals and locations load only for members of the organisation that keeps them — they never reach this page otherwise."
-              : "Import the workbook your team already uses, open your first rescue case, or add an animal directly. StrayPaw keeps your own source IDs and builds a lasting identity underneath them."}</p>
-            <div className="td-start-do">
-              {signedOut && !user ? <>
-                <Link href="/join" className="x-btn is-flame">Sign in with your code</Link>
-                <Link href="/partner-apply" className="x-btn">Apply to partner</Link>
-              </> : signedOut ? <Link href="/partner-apply" className="x-btn is-flame">Apply to partner</Link> : <>
-                <Link href="/partner/import" className="x-btn is-flame">Import a workbook</Link>
-                <Link href="/partner/cases/new" className="x-btn">Open a rescue case</Link>
-              </>}
-            </div>
+    <Dashboard
+      eyebrow={<>{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</>}
+      title={<>Today in <em>{place ?? "the field"}</em></>}
+      subtitle={loadError ? "The organisation record could not be read. Reload to try again — nothing has been changed." : "Live work first. Months-old cases with no activity wait in review, not in the queue."}
+      actions={<><Link href="/partner/records" className="x-btn"><Search size={15} aria-hidden /> Find a record</Link><Link href="/partner/import" className="x-btn">Import</Link></>}
+      kpis={[
+        { label: "Live cases", value: loading ? null : live, href: "/partner/cases", note: "Open, with recent activity" },
+        { label: "Critical", value: loading ? null : crit, tone: "hot", note: "Accident, maggots, abuse, bite…" },
+        { label: "Follow-ups overdue", value: loading ? null : overdue, tone: "hot", href: "/partner/records?view=overdue" },
+        { label: "Waiting on a decision", value: loading ? null : stale, tone: "blue", href: "/partner/review", note: "Open 90+ days, quiet 30+" },
+      ]}
+      map={<LiveMap cells={mapCells} tone="flame" metric={mapMode === "stale" ? "older open cases" : "open cases"} label={`Open work by cell in ${place ?? "your area"}`} selected={cell} onCell={(k) => setCell((x) => (x === k ? null : k))} emptyNote={loading ? "Placing the open work…" : "No open case carries a location."}>
+        <MapChips value={mapMode} options={[{ id: "open", label: "All open" }, { id: "live", label: "Live" }, { id: "stale", label: "Waiting on review" }]} onChange={setMapMode} label="Map measure" />
+        <Link href="/partner/map?mode=cases" className="db-maplink">Field map <ArrowUpRight size={14} aria-hidden /></Link>
+        {cell && <div className="db-selcard"><b>{(open ?? []).find((c) => c.h3_r8 === cell)?.zone ?? "Selected cell"}</b><p>The queue shows this cell only.</p><button type="button" className="x-btn" onClick={() => setCell(null)}><X size={14} aria-hidden /> Show everywhere</button></div>}
+      </LiveMap>}
+      side={<>
+        <Panel title="Needs someone" count={loading ? undefined : filtered.length} action={{ label: "All cases", href: "/partner/cases" }}>
+          <div className="db-filter" role="group" aria-label="Show">
+            {(["all", "critical", "followup"] as const).map((k) => <button key={k} type="button" aria-pressed={focus === k} onClick={() => setFocus(k)}>{k === "all" ? "All" : k === "critical" ? "Critical" : "Overdue"}</button>)}
           </div>
-          <ol className="td-flow" aria-label="How the workspace is organised">
-            <li><b>1 · The queue</b><p>Live cases and overdue follow-ups, critical conditions first. Months-old cases with no activity are kept out of it and sent to review instead.</p></li>
-            <li><b>2 · The record</b><p>Every case opens into the animal it concerns, its history, care and follow-ups — one identity across every source your team imported.</p></li>
-            <li><b>3 · The action</b><p>Assign, record treatment, schedule the follow-up or close with a reason. The map and reports update from what you record.</p></li>
-          </ol>
-        </section>
-      )}
-
-      {(working || loading) && (
-        <section className="td-desk x-wrap" aria-label="The queue and where it is">
-          <div className="td-queue">
-            <div className="td-queue-head">
-              <h2 className="x-h3">Needs someone</h2>
-              <div className="x-chips" role="group" aria-label="Show">
-                <button type="button" className="x-chip" aria-pressed={focus === "all"} onClick={() => setFocus("all")}>All <b>{loading ? "—" : num(shown.length)}</b></button>
-                <button type="button" className="x-chip" aria-pressed={focus === "critical"} onClick={() => setFocus("critical")}>Critical <b>{loading ? "—" : num(shown.filter((q) => q.crit).length)}</b></button>
-                <button type="button" className="x-chip" aria-pressed={focus === "followup"} onClick={() => setFocus("followup")}>Overdue follow-ups <b>{loading ? "—" : num(shown.filter((q) => q.kind === "followup").length)}</b></button>
-                {cell && <button type="button" className="x-chip is-on" onClick={() => setCell(null)}>One cell <X size={14} aria-hidden /></button>}
-              </div>
-            </div>
-            {loading ? (
-              <ol className="td-rows is-loading" aria-label="Loading the queue">{[0, 1, 2, 3, 4].map((i) => <li key={i}><span className="x-skel" /></li>)}</ol>
-            ) : filtered.length === 0 ? (
-              <p className="td-empty">{cell ? "Nothing live in this cell." : focus !== "all" ? "Nothing in this view." : "No live case and nothing overdue. This is the state you want."}</p>
-            ) : (
-              <ol className="td-rows">
-                {filtered.slice(0, queueRows).map((q) => {
-                  const c = q.c, f = q.f;
-                  const href = c ? `/partner/cases/${c.id}` : f?.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/records?view=overdue";
-                  return (
-                    <li key={q.key} onPointerEnter={() => setHot(q.cell)} onPointerLeave={() => setHot(null)} className={q.crit ? "is-crit" : q.kind === "followup" ? "is-due" : ""}>
-                      <Link href={href} onFocus={() => setHot(q.cell)} onBlur={() => setHot(null)}>
-                        <span className="td-tri" aria-hidden />
-                        <span className="td-what">
-                          <b>{q.kind === "followup" ? "Follow-up overdue" : c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c?.title || "Open case"}</b>
-                          <small>{who(c) || (f?.kind && !/^imported/i.test(f.kind) ? f.kind.replace(/_/g, " ") : f?.dog_id ? "An animal's review" : "From the imported register")}</small>
-                        </span>
-                        <span className={`x-state ${q.crit ? "is-hot" : q.kind === "followup" ? "is-hot" : "is-open"}`}>{q.kind === "followup" ? "Overdue" : q.crit ? "Critical" : STATUS_META[(c?.status_class ?? "open") as StatusClass]?.short ?? "Open"}</span>
-                        <span className="td-age"><b className="x-num">{q.kind === "followup" ? ago(f!.due_at) : ago(c?.occurred_at ?? null)}</b><small>{q.kind === "followup" ? "overdue" : "waiting"}</small></span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-            {filtered.length > queueRows && <Link href="/partner/records?view=rescue" className="x-link">{num(filtered.length - queueRows)} more in the full register <ArrowUpRight size={14} aria-hidden /></Link>}
-          </div>
-
-          <div className="td-geo">
-            <div className="td-geo-head"><h2 className="x-h3">Where it is{workMap ? <span className="x-small"> · {workMap.name}</span> : null}</h2><Link href="/partner/map?mode=cases" className="x-link">Field map <ArrowUpRight size={14} aria-hidden /></Link></div>
-            <div className="td-map">
-              {workMap ? (
-                <OpsStreetMap spots={workMap.spots} box={workMap.box} selected={cell ?? hot} label={`Open work on the streets of ${workMap.name}`} onSpot={(k) => setCell((x) => (x === k ? null : k))} />
-              ) : <p className="td-map-empty">{loading ? "Placing the open work…" : "Open work appears here by cell once a case carries a location."}</p>}
-            </div>
-            {workMap && <p className="td-key"><i className="is-dot" /> live cases <i className="is-ring" /> only older cases · choose a point to narrow the queue</p>}
-          </div>
-        </section>
-      )}
-
-      {working && (
-        <section className="td-lower x-wrap" aria-label="Decisions, plans and what changed">
-          {stale > 0 && (
-            <div className="td-decide">
-              <b className="x-num">{num(stale)}</b>
-              <div><h2 className="x-h3">cases wait on a decision</h2><p>Open for months with nothing recorded. They are kept out of the queue; a person decides what happened to each — usually from the imported register.</p></div>
-              <Link href="/partner/review" className="x-btn is-ink">Review them</Link>
-            </div>
-          )}
-          <div className="td-plan">
-            <section className="td-panel" aria-label="Tasks"><TasksSection compact /></section>
-            <section className="td-panel" aria-label="Camps coming up"><CampsSection compact /></section>
-          </div>
-          <section className="td-panel td-changes" aria-labelledby="td-ch">
-            <div className="td-geo-head"><h2 id="td-ch" className="x-h3">What changed</h2><Link href="/partner/records" className="x-link">Register <ArrowUpRight size={14} aria-hidden /></Link></div>
-            {changes.length ? (
-              <ol className="x-rows">
-                {changes.slice(0, 6).map((c) => (
-                  <li key={c.id}><Link className="x-row td-change" href={`/partner/cases/${c.id}`}>
-                    <span className="x-state is-done" aria-hidden />
-                    <span><b>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Case"}</b>
-                      <small className="x-small">{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label}{c.closure_reason ? ` · ${CLOSURE_SHORT[c.closure_reason] ?? c.closure_reason}` : ""}{c.zone ? ` · ${c.zone}` : ""}</small></span>
-                    <em>{ago(c.last_activity_at)} ago</em>
-                  </Link></li>
-                ))}
-              </ol>
-            ) : <p className="td-empty">Closed cases and recorded outcomes show here.</p>}
-          </section>
-        </section>
-      )}
-    </main>
+          <ItemList items={queueItems} loading={loading} empty={cell ? "Nothing live in this cell." : "No live case and nothing overdue."} />
+        </Panel>
+        <Panel title="What changed" action={{ label: "Register", href: "/partner/records" }}>
+          <Feed items={changeItems} loading={loading} empty="Closed cases and recorded outcomes show here." />
+        </Panel>
+      </>}
+    >
+      <div className="db-row3">
+        {stale > 0 && <Panel title="Decisions waiting" count={stale} action={{ label: "Review them", href: "/partner/review" }}><p className="db-empty">Open for months with nothing recorded — usually imported. A person decides what happened to each, and the queue stays about today.</p></Panel>}
+        <Panel title="Tasks"><div className="db-legacy"><TasksSection compact /></div></Panel>
+        <Panel title="Camps coming up"><div className="db-legacy"><CampsSection compact /></div></Panel>
+      </div>
+    </Dashboard>
   );
 }

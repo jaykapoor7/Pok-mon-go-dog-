@@ -13,7 +13,7 @@
 .xs-f select:focus, .xs-f input:focus { outline: none; border-color: var(--sp-blue); box-shadow: 0 0 0 3px var(--ctl-tint); }
 .xs-outs { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
 .xs-outs button { width: 100%; height: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: start; gap: var(--sp-3); padding: var(--sp-4); border: 1px solid var(--sp-line); border-radius: var(--ctl-r-row); background: var(--sp-paper); color: var(--sp-ink); font: inherit; text-align: left; cursor: pointer; transition: border-color var(--sp-fast) var(--sp-ease-io), background var(--sp-fast) var(--sp-ease-io); }
-.xs-outs button:hover { border-color: var(--sp-blue); background: #fff9f0; }
+.xs-outs button:hover { border-color: var(--sp-blue); background: var(--x-card, #fff9f0); }
 .xs-outs button:active { transform: scale(0.99); }
 .xs-outs button:disabled { opacity: 0.6; cursor: default; }
 .xs-ico { margin-top: 1px; color: var(--sp-blue); }
