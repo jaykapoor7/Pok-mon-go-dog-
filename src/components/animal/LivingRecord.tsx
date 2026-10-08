@@ -1,17 +1,17 @@
 /* ════════════════════════════════════════════════════════════════════
-   The living record: one animal, as the register knows it.
+   One animal, as the record knows it.
 
-   It opens on the streets the animal is recorded among, with its name set
-   on them. Beside that sits its record tag: the ID, the dates, and a row
-   of tick boxes for what is known, hatched where nothing is recorded,
-   never guessed. Then the record itself, as a route: every report, every
-   piece of care, every closure in order, with the time between them on the
-   line, and the route carrying on dashed to what nobody has recorded yet.
-   The full chronology, with where each entry came from, sits under it.
+   A dossier, not a database row. It opens on the animal — its photograph
+   when one exists, otherwise the place it is known by, said plainly — with
+   its name, where it lives on the record and the state it is in. Then what
+   the record knows about its care, as four facts that are hatched where
+   nothing is recorded (never "no"). Then its history as a single spine,
+   year by year, carrying on dashed into what nobody has recorded yet, each
+   gap with the action that would fill it. The recorded area, identity and
+   provenance sit alongside, and everything any neighbour can add is last.
 
    The same record serves the public profile and the organisation's view;
-   the organisation's tools and notes arrive as their own island, read
-   under the member's session.
+   an organisation's tools arrive as their own island.
    ════════════════════════════════════════════════════════════════════ */
 
 import type { ReactNode } from "react";
@@ -23,6 +23,7 @@ import { RecordActions } from "./RecordActions";
 import { CommunityPanel } from "./CommunityPanel";
 import { LivingChronology } from "./LivingChronology";
 import "./living.css";
+import "./dossier.css";
 import { placeLine as joinPlace } from "@/lib/utils";
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -133,113 +134,154 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
   const cityQuery = r.city ? `&city=${encodeURIComponent(r.city)}` : "";
   const mapHref = r.place ? `${scope === "org" ? "/partner/map" : "/map"}?mode=animals&cell=${r.place.cell}${cityQuery}` : `/map?focus=animal:${r.id}${cityQuery}`;
   const status = r.known.health === "needs_help" ? { t: "Needs help", c: "is-hot" }
+    : r.known.health === "injured" ? { t: "Recorded injured", c: "is-hot" }
     : r.open.cases ? { t: `${r.open.cases} open request${r.open.cases === 1 ? "" : "s"}`, c: "is-open" }
-    : { t: "No open request", c: "" };
+    : { t: "No open request", c: "is-done" };
   const rows = r.events.map((e) => ({ date: e.date, kind: e.lane, title: e.title, source: SOURCE[e.source] }));
   const chronology = [...r.events].reverse();
   const stops = routeOf(r, scope, reportHref);
   const placeLine = joinPlace(r.locality, r.city);
-  const sex = /^(m|male)$/i.test(r.sex ?? "") ? "Male" : /^(f|female)$/i.test(r.sex ?? "") ? "Female" : null;
-  const what = [sex, r.colour ? cap(r.colour.toLowerCase()) : null, r.species === "dog" ? "street dog" : r.species].filter(Boolean).join(" · ");
+  const sex = /^(m|male)$/i.test(r.sex ?? "") ? "male" : /^(f|female)$/i.test(r.sex ?? "") ? "female" : null;
+  const what = [r.colour ? r.colour.toLowerCase() : null, sex, r.species === "dog" ? "street dog" : r.species].filter(Boolean).join(" ");
+  const generated = /·/.test(r.label) || /^(dog|animal) near /i.test(r.label);
+  const known = stops.filter((s) => s.kind !== "missing" && !(s.key === "help"));
+  const gaps = stops.filter((s) => s.kind === "missing" || s.key === "help");
+  /* Group the spine by year so a decade-long record stays readable. */
+  const years: { year: string; items: typeof known }[] = [];
+  for (const s of known) {
+    const y = s.at ? String(new Date(s.at).getUTCFullYear()) : "Date not recorded";
+    const last = years[years.length - 1];
+    if (last && last.year === y) last.items.push(s); else years.push({ year: y, items: [s] });
+  }
 
   return (
-    <article className="lr" aria-labelledby="lr-name">
+    <article className="dz" aria-labelledby="dz-name">
       {trail}
 
-      {/* ── where, with its name set on it ────────────────────────── */}
-      <header className={`lr-hero lr-documentary ${r.photo ? "has-photo" : "no-photo"}`}>
-        <div className="lr-accession"><span>STRAYPAW / ANIMAL DOSSIER</span><span>{r.straypawId ?? "Identity pending"} · {scope === "org" ? "Organisation record" : "Public record"}</span></div>
-        <div className="lr-hero-words">
-          <p className="lr-hero-k sys-mono">Individual record / {r.straypawId ?? "Identity pending"}</p>
-          <h1 id="lr-name" className={r.label.length > 30 ? "is-long" : ""}>{r.label}</h1>
-          <p className="lr-documentary-place">{placeLine || "Locality not recorded"}</p>
-          <p className="lr-hero-line">
-            On the register since <b>{day(r.firstSeen)}</b>{r.lastSeen ? <>; last seen <b>{since(r.lastSeen)}</b></> : null}.
-          </p>
-          <p className="lr-documentary-source">Recorded by {r.keeper}. A documented identity, not a claim of verified uniqueness.</p>
-        </div>
-        {r.photo ? <figure className="lr-documentary-photo">
-          <DogPhoto src={r.photo} alt={r.label} seed={r.id} width={640} className="lr-photo" />
-          <figcaption><span>From this animal’s record{r.photos.length > 1 ? ` · ${r.photos.length} photographs` : ""}</span>{r.photoAttribution && <span>{r.photoSourceUrl ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a> : r.photoAttribution}</span>}</figcaption>
-        </figure> : <div className="lr-documentary-absence"><span className="sys-mono">Photograph / not recorded</span><p>Known through its record.<br /><em>Not yet through a photograph.</em></p><span>There is no substitute image for this animal.</span></div>}
-      </header>
-
-      <div className="lr-body">
-        {/* ── the record tag: the one lifted object on the page ──────── */}
-        <aside className="lr-tag" aria-label="The record at a glance">
-          <div className="lr-tag-body">
-            <p className="lr-tag-top">
-              <span className="lr-tag-id sys-mono">{r.straypawId ?? "ID pending"}</span>
-              <span className={`lr-pill ${status.c}`}>{status.t}</span>
-            </p>
-            {what && <p className="lr-tag-what">{what}</p>}
-            <dl className="lr-tag-rows">
-              <div><dt>On the register</dt><dd className="sys-mono">{day(r.firstSeen)}</dd></div>
-              <div><dt>Last seen</dt><dd className="sys-mono">{r.lastSeen ? day(r.lastSeen) : "not recorded"}</dd></div>
+      <header className={`dz-hero x-night ${r.photo ? "has-photo" : "no-photo"}`}>
+        <div className="dz-hero-in">
+          <figure className="dz-portrait">
+            {r.photo ? <>
+              <DogPhoto src={r.photo} alt={r.label} seed={r.id} width={900} className="dz-photo" />
+              <figcaption>{r.photos.length > 1 ? `${r.photos.length} photographs on this record` : "Photographed for this record"}{r.photoAttribution && <> · {r.photoSourceUrl ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a> : r.photoAttribution}</>}</figcaption>
+            </> : (
+              <div className="dz-plate" role="img" aria-label={`No photograph is recorded for ${r.label}`}>
+                <span className="dz-plate-id">{r.straypawId ?? "Identity pending"}</span>
+                <span className="dz-plate-place">{r.locality ?? r.city ?? "Place not recorded"}</span>
+                <span className="dz-plate-note">No photograph on record. This animal is known through its record — there is no substitute image.</span>
+              </div>
+            )}
+          </figure>
+          <div className="dz-id">
+            <p className="dz-where">{placeLine || "Locality not recorded"}</p>
+            <h1 id="dz-name" className={`dz-name${r.label.length > 26 ? " is-long" : ""}`}>{r.label}</h1>
+            {(what || generated) && <p className="dz-what">{what ? <em>{what.replace(/^./, (c) => c.toUpperCase())}</em> : null}{generated ? <span> · a descriptive name from the source, not a given one</span> : null}</p>}
+            <p className={`x-state dz-status ${status.c}`}>{status.t}</p>
+            <dl className="dz-dates">
+              <div><dt>On the record since</dt><dd>{day(r.firstSeen)}</dd></div>
+              <div><dt>Last seen</dt><dd>{r.lastSeen ? since(r.lastSeen) : "Not recorded"}</dd></div>
               <div><dt>Recorded by</dt><dd>{r.keeper}</dd></div>
             </dl>
-            <ul className="lr-checks" aria-label="What is known">
-              <Check state={r.known.ster} label="Sterilised" note={r.known.ster === "unknown" ? "not recorded" : r.known.sterAt ? day(r.known.sterAt) : r.known.ster === "no" ? "recorded as not" : "on the record"} />
-              <Check state={r.known.vacc} label="Vaccinated" note={r.known.vacc === "unknown" ? "not recorded" : r.known.boosterDue ? "booster due" : r.known.vaccAt ? day(r.known.vaccAt) : r.known.vacc === "no" ? "recorded as not" : "on the record"} warn={r.known.boosterDue} />
-              <Check state={r.known.earNotch ? "yes" : "unknown"} label="Ear notched" note={r.known.earNotch ? "seen" : "not noted"} />
-              <Check state={r.known.health === "none" ? "unknown" : "flag"} label={r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "Health"} note={r.known.health === "none" ? "no concern recorded" : "flagged"} />
-            </ul>
-            <p className="lr-tag-note">Hatched fields are not recorded — they do not mean no.</p>
+            <div className="dz-do">
+              <a href={reportHref} className="x-btn is-flame">{r.known.health === "needs_help" ? "I can see it now" : "Report a sighting"}</a>
+              <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
+            </div>
           </div>
-          {r.place && <div className="lr-documentary-area"><PlaceMap key={`${r.id}:${r.place.cell}`} variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} /><p>Recorded area, not an exact animal location.</p></div>}
-        </aside>
+        </div>
+      </header>
 
-        <div className="lr-main">
-          <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
+      <div className="x-wrap dz-wrap">
+        <section className="dz-known" aria-labelledby="dz-known-h">
+          <h2 id="dz-known-h" className="sys-sr">What the record knows</h2>
+          <Fact state={r.known.ster} label="Sterilised" note={r.known.ster === "unknown" ? "Not recorded" : r.known.sterAt ? day(r.known.sterAt) : r.known.ster === "no" ? "Recorded as not" : "On the record"} />
+          <Fact state={r.known.vacc} label="Vaccinated" note={r.known.vacc === "unknown" ? "Not recorded" : r.known.boosterDue ? `Booster due · last ${since(r.known.vaccAt)}` : r.known.vaccAt ? day(r.known.vaccAt) : r.known.vacc === "no" ? "Recorded as not" : "On the record"} warn={r.known.boosterDue} />
+          <Fact state={r.known.earNotch ? "yes" : "unknown"} label="Ear notch" note={r.known.earNotch ? "Seen" : "Not noted"} />
+          <Fact state={r.known.health === "none" ? "unknown" : "flag"} label="Health" note={r.known.health === "needs_help" ? "Flagged: needs help" : r.known.health === "injured" ? "Flagged: injured" : "No concern recorded"} />
+          <p className="dz-known-note"><i aria-hidden /> Hatched means nothing is recorded. It never means no.</p>
+        </section>
 
-          {/* ── the record, as a route ───────────────────────────────── */}
-          <section className="lr-sec" aria-labelledby="lr-route-h">
-            <header className="lr-sec-head">
-              <h2 id="lr-route-h">Its record</h2>
-              <p>{stops.some((s) => s.kind === "missing") ? "From the first entry to today. Dashed: what nobody has recorded yet." : "From the first entry to today."}</p>
-            </header>
-            {stops.length ? <ol className="lr-event-trail" aria-label={`The record of ${r.label}, in order`}>{stops.map((stop, index) => <li key={stop.key} data-state={stop.kind}><span className="lr-event-number">{String(index + 1).padStart(2, "0")}</span><time dateTime={stop.at ?? undefined}>{stop.at ? day(stop.at) : stop.kind === "missing" ? "Not recorded" : "Date not recorded"}</time><div><b>{stop.label}</b>{stop.detail && <p>{stop.detail}</p>}</div>{stop.href && <a href={stop.href}>{stop.cta ?? "Open record"} ↗</a>}</li>)}</ol> : <p className="lr-quiet">Nothing has been recorded against this animal yet.</p>}
-          </section>
+        <div className="dz-cols">
+          <div className="dz-main">
+            <section className="dz-sec" aria-labelledby="dz-hist">
+              <header className="dz-sec-head">
+                <h2 id="dz-hist" className="x-h2">Its history</h2>
+                <p className="x-small">{r.events.length ? `${r.events.length} entr${r.events.length === 1 ? "y" : "ies"} from ${[...new Set(r.events.map((e) => SOURCE[e.source]))].join(", ")}.` : "Nothing has been recorded against this animal yet."}</p>
+              </header>
+              {years.length > 0 && (
+                <ol className="dz-spine">
+                  {years.map((y) => (
+                    <li key={y.year} className="dz-year">
+                      <h3 className={/^\d{4}$/.test(y.year) ? "" : "is-undated"}>{y.year}</h3>
+                      <ol>
+                        {y.items.map((stop) => (
+                          <li key={stop.key} data-state={stop.kind}>
+                            <time dateTime={stop.at ?? undefined}>{stop.at ? shortDay(stop.at) : "Date not recorded"}</time>
+                            <div><b>{stop.label}</b>{stop.detail && <p>{stop.detail}</p>}{stop.href && <a href={stop.href} className="x-link">{stop.cta ?? "Open record"} →</a>}</div>
+                          </li>
+                        ))}
+                      </ol>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              {gaps.length > 0 && (
+                <div className="dz-gaps">
+                  <h3 className="x-h3">Not yet on the record</h3>
+                  <ul>
+                    {gaps.map((g) => (
+                      <li key={g.key} className={g.key === "help" ? "is-hot" : ""}>
+                        <div><b>{g.label}</b>{g.detail && <p>{g.detail}</p>}</div>
+                        {g.href && <a href={g.href} className="x-btn">{g.cta ?? "Add it"}</a>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
 
-          {org}
+            {org}
 
-          {chronology.length > 0 && (
-            <details className="lr-more" open>
-              <summary>Every entry, with where it came from ({chronology.length})</summary>
-              <LivingChronology entries={chronology} />
-            </details>
-          )}
+            {chronology.length > 0 && (
+              <details className="dz-sec dz-full">
+                <summary><span className="x-h3">Every entry, with its source</span><span className="x-small">{chronology.length} entries, newest first</span></summary>
+                <LivingChronology entries={chronology} />
+              </details>
+            )}
 
-          {/* ── what neighbours have added ─────────────────────────────── */}
-          <section className="lr-sec">
-            <header className="lr-sec-head">
-              <h2>Seen it? Add to its record</h2>
-            </header>
-            <CommunityPanel id={r.id} label={r.label} needsHelp={r.known.health === "needs_help"} comments={r.comments} />
-          </section>
+            <section className="dz-sec" aria-labelledby="dz-add">
+              <header className="dz-sec-head"><h2 id="dz-add" className="x-h2">Seen {generated ? "this dog" : r.label}? <em>Add to its record</em></h2></header>
+              <CommunityPanel id={r.id} label={r.label} needsHelp={r.known.health === "needs_help"} comments={r.comments} />
+            </section>
+          </div>
 
-          <footer className="lr-foot">
-            <p>
-              {r.straypawId && <><span className="sys-mono">{r.straypawId}</span> · </>}
-              {r.sourceCode && <>source ID <span className="sys-mono">{r.sourceCode}</span> · </>}
-              recorded by {r.keeper}
-            </p>
-            <p>Recorded animals, not population. Positions are shown to their cell, never finer.</p>
-          </footer>
+          <aside className="dz-side" aria-label="Where and whose record">
+            {r.place && (
+              <figure className="dz-area">
+                <PlaceMap key={`${r.id}:${r.place.cell}`} variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
+                <figcaption>The recorded area — a cell of about 0.7 km², never an exact location. <a href={mapHref} className="x-link">Open on the Atlas →</a></figcaption>
+              </figure>
+            )}
+            <dl className="dz-prov">
+              <div><dt>StrayPaw ID</dt><dd className="x-mono">{r.straypawId ?? "Pending"}</dd></div>
+              {r.sourceCode && <div><dt>Source ID</dt><dd className="x-mono">{r.sourceCode}</dd></div>}
+              <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
+              <div><dt>Record</dt><dd>{scope === "org" ? "Organisation record" : "Public record"}</dd></div>
+            </dl>
+            <p className="dz-fine">A documented identity, not a claim of verified uniqueness: imported rows can describe the same animal twice. Recorded animals, never a population.</p>
+          </aside>
         </div>
       </div>
     </article>
   );
 }
 
-/* A tick box on a survey form: ticked, crossed, flagged, or hatched when
-   nothing is recorded. */
-function Check({ state, label, note, warn = false }: { state: "yes" | "no" | "unknown" | "flag"; label: string; note: string; warn?: boolean }) {
+const shortDay = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`; };
+
+function Fact({ state, label, note, warn = false }: { state: "yes" | "no" | "unknown" | "flag"; label: string; note: string; warn?: boolean }) {
   return (
-    <li className={`lr-check is-${state} ${warn ? "is-warn" : ""}`}>
+    <div className={`dz-fact is-${state}${warn ? " is-warn" : ""}`}>
       <i aria-hidden />
-      <b>{label}</b>
-      <span>{note}</span>
-    </li>
+      <span><b>{label}</b><small>{note}</small></span>
+    </div>
   );
 }
