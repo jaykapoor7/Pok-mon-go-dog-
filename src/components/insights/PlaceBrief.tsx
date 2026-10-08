@@ -36,6 +36,7 @@ import { FATE_META, FATES, fates, season } from "@/lib/spatial/report";
 import { C, C_STRIDE, type SpatialDataset } from "@/lib/spatial/types";
 import { CONDITIONS, DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
 import "./brief.css";
+import "./insights-x.css";
 
 type Place = { city: number; locality: number };
 type Period = "all" | "12m" | "90d";
@@ -392,7 +393,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
 
       {/* ── the place ──────────────────────────────────────────────── */}
       <header className="ib-register-head">
-        <p className="os-origin">{scope === "org" ? "NGO / SCOPED ANALYSIS" : "INSIGHTS / FIELD ANALYSIS"}<span>{periodLabel}</span></p>
+        <p className="ib-k">{scope === "org" ? "Your organisation's analysis" : "Insights"} · {periodLabel}</p>
         <h1>{placeName || "Reading the evidence"}</h1>
         {ds && <dl className="ib-measures"><div><dt>{cityWhole && period === "all" ? "Citywide requests" : "Loaded requests"}</dt><dd>{requestsHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Open citywide" : "Open in detail"}</dt><dd>{openNowHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Citywide profiles" : "Loaded profiles"}</dt><dd>{animalsHere.toLocaleString("en-IN")}</dd></div><div><dt>Explore geography</dt><dd><Link href={mapHref("density")}>Open the map ↗</Link></dd></div></dl>}
         <p>{isLocality ? `Loaded locality detail / ${cityName}` : "Citywide totals and bounded findings are different scopes. Period filters apply to the loaded record."}</p>
@@ -415,10 +416,10 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
 
       {/* ── the answers ────────────────────────────────────────────── */}
       <div className="ib-body">
-        {shown.length > 0 && <div className="ib-chapter"><h2>Findings / {String(shown.length).padStart(2, "0")}</h2><p>{allIdx.length.toLocaleString("en-IN")} loaded, location-linked requests{cityRoll ? ` / ${cityRoll.cases.toLocaleString("en-IN")} citywide` : ""}. Status figures outside this sample are labelled separately.</p></div>}
+        {shown.length > 0 && <div className="ib-chapter"><h2>{shown.length} findings from the record</h2><p>{allIdx.length.toLocaleString("en-IN")} loaded, location-linked requests{cityRoll ? ` / ${cityRoll.cases.toLocaleString("en-IN")} citywide` : ""}. Status figures outside this sample are labelled separately.</p></div>}
         {loading && <p className="ib-state" role="status">Reading the register…</p>}
         {error && <div className="ib-unavailable" role="status">
-          <div><span>THE RECORD IS TEMPORARILY UNAVAILABLE</span><h2>Keep exploring while it reconnects.</h2><p>{error}</p></div>
+          <div><span>The record is temporarily unavailable</span><h2>Keep exploring while it reconnects.</h2><p>{error}</p></div>
           <nav aria-label="Recover the record"><button type="button" onClick={() => window.location.reload()}>Retry this brief <ArrowUpRight size={15} /></button>{scope === "org" ? <><Link href="/partner/records">Open working records <ArrowUpRight size={15} /></Link><Link href="/partner/map">Open the field map <ArrowUpRight size={15} /></Link></> : <><Link href="/stories">Read completed rescues <ArrowUpRight size={15} /></Link><Link href="/orgs">Meet the organisations <ArrowUpRight size={15} /></Link></>}</nav>
         </div>}
         {shown.map((x, k) => (
