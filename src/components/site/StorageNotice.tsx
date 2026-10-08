@@ -33,6 +33,7 @@ import { usePathname } from "next/navigation";
 
 const SEEN_KEY = "straypaw.notice.storage.v1";
 const OPT_OUT_KEY = "straypaw.analytics.optout";
+const CONSENT_KEY = "straypaw.analytics.consent";
 
 export function StorageNotice() {
   const [show, setShow] = useState(false);
@@ -54,7 +55,8 @@ export function StorageNotice() {
   const close = (optOut: boolean) => {
     try {
       localStorage.setItem(SEEN_KEY, "1");
-      if (optOut) localStorage.setItem(OPT_OUT_KEY, "1");
+      localStorage.setItem(CONSENT_KEY, optOut ? "0" : "1");
+      localStorage.setItem(OPT_OUT_KEY, optOut ? "1" : "0");
     } catch {
       /* Dismissal simply will not persist; the notice is not blocking. */
     }
@@ -67,16 +69,16 @@ export function StorageNotice() {
   return (
     <aside className="snotice" role="region" aria-label="How this site stores data">
       <p>
-        StrayPaw stores one random ID in your browser so return visits are not
-        counted twice. It does not use tracking cookies or track you across
+        With your permission, StrayPaw stores one random ID in your browser so return visits are not
+        counted twice. Analytics are off until you choose to allow them. It does not use tracking cookies or track you across
         other sites, and nothing is shared with anyone else. <Link href="/cookies">What is stored</Link>.
       </p>
       <div className="snotice-actions">
         <button type="button" className="snotice-ok" onClick={() => close(false)}>
-          Got it
+          Allow anonymous analytics
         </button>
         <button type="button" className="snotice-off" onClick={() => close(true)}>
-          Don&apos;t count my visits
+          No analytics, thanks
         </button>
       </div>
     </aside>
