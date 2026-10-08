@@ -143,7 +143,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
           database refuses from anyone who is not an organisation member. Better
           to say so here than after the form has been filled in. */}
       <div className="nc-workspace">
-      <aside className="nc-guide"><p>Organisation / intake protocol</p><h2>One incident.<br /><em>A complete care trail.</em></h2><nav aria-label="Case intake steps"><a href="#nc-animal">01 / Identify the animal</a><a href="#nc-incident">02 / Record the incident</a><a href="#nc-create">03 / Open the case</a></nav><p>Search existing identities first. A new case can occur somewhere other than the animal’s last recorded locality.</p><p className="nc-private">Contacts, medical notes and costs stay inside the organisation’s working record. Don’t place private contact details in public titles.</p></aside>
+      <aside className="nc-guide"><p className="nc-guide-k">How intake works</p><h2>One incident.<br /><em>A complete care trail.</em></h2><nav aria-label="Case intake steps"><a href="#nc-animal">01 / Identify the animal</a><a href="#nc-incident">02 / Record the incident</a><a href="#nc-create">03 / Open the case</a></nav><p>Search existing identities first. A new case can occur somewhere other than the animal’s last recorded locality.</p><p className="nc-private">Contacts, medical notes and costs stay inside the organisation’s working record. Don’t place private contact details in public titles.</p></aside>
       <div className="nc-form">
         <PartnerWrite what="open a case">
 

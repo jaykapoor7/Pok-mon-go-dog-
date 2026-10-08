@@ -416,3 +416,28 @@ a.x-row:hover { background: rgba(11, 30, 61, 0.035); }
 html .sx .sx-main * { text-transform: none; }
 html .sx .sx-main :is([class*="kicker"], [class*="eyebrow"], [class*="label"], [class*="caption"], [class*="-meta"], [class*="-head"] > span, th):not(.sys-mono):not(.x-mono) { font-family: var(--x-sans); letter-spacing: 0; }
 html .sx .sx-main th { font-size: 13px; font-weight: 600; color: var(--x-mute); }
+
+/* ── Working records (case file, case desk, intake, field, review) ──────
+   Titles in the working face; the serif is reserved for emphasis. */
+html .sx :is(.cf .cf-mast h1, .cf .cf-sec h2, .cf .cf-panel-h, .nc-guide h2, .nc-section h2, .rec-inspector h2, .cr-inspector h2) { font-family: var(--x-sans); font-weight: 600; letter-spacing: -0.03em; }
+html .sx .cf .cf-mast h1 { font-size: clamp(34px, 4vw, 52px); line-height: 1.04; }
+html .sx :is(.cf .cf-sec h2, .nc-guide h2, .rec-inspector h2, .cr-inspector h2) { font-size: clamp(24px, 2.4vw, 30px); }
+html .sx :is(.cf .cf-panel-h, .nc-section h2) { font-size: 20px; }
+html .sx :is(.cf-line, .ft-line, .pj-lede, .cr-line, .rv-head > p:not(.sys-eyebrow):not(.rv-links)) { font-family: var(--x-sans); font-size: 17px; line-height: 1.55; color: var(--x-body); }
+html .sx .cf-prose { font-family: var(--x-sans); font-size: 16px; }
+html .sx .cf-fact dd { font-family: var(--x-sans); font-size: 20px; font-weight: 600; font-style: normal; letter-spacing: -0.02em; }
+html .sx .cf-desk-nav { border-top: 0; position: sticky; top: var(--x-bar); z-index: 6; background: var(--x-paper); }
+html .sx .cf-desk-nav a { font-size: 14px; font-weight: 500; border-radius: 999px; }
+html .sx .cf-desk-nav .cf-decision-jump { background: var(--x-flame); color: #fff; font-weight: 600; }
+@media (min-width: 900px) { html .sx .cf-side { position: sticky; top: calc(var(--x-bar) + 72px); align-self: start; } }
+html .sx .cf-side > section, html .sx .cf-side > div:not(:first-child) { border-radius: var(--x-r); }
+html .sx .cf-fact dd small, html .sx .cf-fact dd + dd, html .sx .cf-fact dd span { font-size: 13.5px; font-weight: 400; color: var(--x-mute); letter-spacing: 0; }
+html .sx .cf-fact dt { font-family: var(--x-sans); font-size: 13px; letter-spacing: 0; color: var(--x-mute); }
+
+/* A gutter for workspaces whose pages were written for the old padded main. */
+.sx-page { width: 100%; max-width: var(--x-max); margin: 0 auto; padding: 0 var(--x-gutter) 24px; }
+.sx-page .x-wrap { padding-inline: 0; }
+.sx .sx-page .partner-workspace-tabs { margin-inline: 0; }
+.sx .sx-page .dh-in { padding-inline: 0; }
+html .sx .nc-guide-k { font-family: var(--x-sans); font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--x-mute); }
+html .sx .nc-guide h2 em { font-family: var(--x-serif); font-style: italic; font-weight: 400; }

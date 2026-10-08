@@ -14,7 +14,7 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
     <AppShell>
       <PartnerGate title="Your organisation">
         <OrgPlace>
-          <div className="mx-auto w-full max-w-[1240px]">
+          <div className="sx-page">
             <DemoBanner />
             {/* One tab bar for the whole console, rendered from one list.
                 Every page under /partner belongs to a group; pages that are

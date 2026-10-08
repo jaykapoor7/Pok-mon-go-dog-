@@ -1,5 +1,7 @@
 "use client";
 
+import { DeskHeader } from "@/components/app/DeskHeader";
+
 /* ════════════════════════════════════════════════════════════════════
    The cases register.
 
@@ -273,14 +275,15 @@ export function CaseRegister() {
 
 function Head({ count, review }: { count?: Record<string, number>; review?: number }) {
   return (
-    <header className="cr-command-head">
-      <p className="cr-inspector-kicker">StrayPaw / organisation case desk</p>
-      <div><h1>The case desk<span>.</span></h1><p>{count ? `${count.open.toLocaleString("en-IN")} loaded open cases. ` : "Your organisation’s working record. "}Triage, inspect, act—and keep the evidence together.</p></div>
-      <div className="cr-command-actions">
-        <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} /> New rescue case</Link>
+    <DeskHeader
+      kicker="Cases"
+      title={<>Every request, <em>triaged</em></>}
+      lede={count ? `${count.open.toLocaleString("en-IN")} open cases loaded. Choose a queue on the left, inspect a row, act from the case file.` : "Your organisation’s working record of requests for help: triage, inspect, act — with the evidence kept together."}
+      actions={<>
+        <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} /> New case</Link>
         <Link href="/partner/review" className="dk-btn is-tint">Case review{review ? ` · ${review}` : ""} <ArrowUpRight size={14} /></Link>
-      </div>
-    </header>
+      </>}
+    />
   );
 }
 
