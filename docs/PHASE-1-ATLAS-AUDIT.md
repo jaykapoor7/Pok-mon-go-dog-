@@ -4,6 +4,12 @@
 
 **Scope:** Existing map/dashboard architecture; Supabase animal, case and geographic data; available NGO spreadsheet fields; realistic support for the new Atlas and City Intelligence experiences.
 
+**Subsequent product clarification:** This audit's proposed route merges are not
+the current implementation mandate. The user explicitly required Community Home,
+Insights and professional screens to retain independent purposes. Keep the Atlas
+on map routes; improve other screens without substituting maps for their workflows.
+The verified source-data limitations below still apply.
+
 **Repository baseline:** `jaykapoor7/Pok-mon-go-dog-` at `1549412`
 
 **Production:** `www.straypaw.org`; Vercel project `pok-mon-go-dog`; Supabase project `toujthlzjmhmoyykmayx`.
