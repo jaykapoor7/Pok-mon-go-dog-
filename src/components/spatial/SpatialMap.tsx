@@ -173,6 +173,8 @@ function lightsOf(p: Palette) {
 }
 const heatRamp = (c: string[]) => ["interpolate", ["linear"], ["heatmap-density"], 0, c[0], 0.12, c[1], 0.3, c[2], 0.55, c[3], 0.8, c[4], 1, c[5]];
 
+const AUTO_ENTER_ZOOM = 8.5;
+
 export function SpatialMap({ scope = "public", userKey = null, surface = "community" }: { scope?: Scope; userKey?: string | null; surface?: "community" | "municipality" }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -202,6 +204,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
      silently replaces the place someone was reading. */
   const [mapZoom, setMapZoom] = useState(4);
   const [approachingCity, setApproachingCity] = useState<(typeof cityPins)[number] | null>(null);
+  const autoEntered = useRef<string | null>(null);
   /* On a phone the map remains the surface. The atlas starts as one compact
      route into city data; the city search remains available for the full list. */
   const [atlasOpen, setAtlasOpen] = useState(false);
@@ -727,13 +730,26 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         return distance < bestDistance ? city : best;
       }, cityPins[0]);
       const reach = Math.min(2.5, 200 / (2 ** z));
-      setApproachingCity((nearest.lng - at.lng) ** 2 + (nearest.lat - at.lat) ** 2 <= reach ** 2 ? nearest : null);
+      const near = (nearest.lng - at.lng) ** 2 + (nearest.lat - at.lat) ** 2 <= reach ** 2 ? nearest : null;
+      setApproachingCity(near);
+      /* Zoomed in close to a city: go straight into it, at this exact view,
+         so its areas and then its animals appear without a click. */
+      if (near && z >= AUTO_ENTER_ZOOM && autoEntered.current !== near.city) {
+        autoEntered.current = near.city;
+        const url = new URL(window.location.href);
+        ["cell", "q", "bbox", "focus", "m"].forEach((key) => url.searchParams.delete(key));
+        url.searchParams.set("city", near.city);
+        url.searchParams.set("lat", at.lat.toFixed(4)); url.searchParams.set("lng", at.lng.toFixed(4)); url.searchParams.set("z", z.toFixed(1));
+        setSel(null); setSheet("hidden"); setDotPick(null); setAtlasOpen(false);
+        started.current = false;
+        router.push(url.pathname + url.search, { scroll: false });
+      }
     };
     readScale();
     map.on("moveend", readScale);
     map.on("zoomend", readScale);
     return () => { map.off("moveend", readScale); map.off("zoomend", readScale); };
-  }, [ready, indiaOverview, cityPins]);
+  }, [ready, indiaOverview, cityPins, router]);
 
   /* ââ how the points are drawn in each mode âââââââââââââââââââââââââ */
   const pointStyle = useCallback(() => {
@@ -989,8 +1005,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const startedPlace = useRef("");
   const changeCity = useCallback((nextCity: string) => {
     const url = new URL(window.location.href);
-    ["cell", "city", "q", "lat", "lng", "bbox", "focus", "m"].forEach((key) => url.searchParams.delete(key));
+    ["cell", "city", "q", "lat", "lng", "z", "bbox", "focus", "m"].forEach((key) => url.searchParams.delete(key));
     if (nextCity !== "__india") url.searchParams.set("city", nextCity);
+    else autoEntered.current = null;
     setSel(null); setSheet("hidden"); setDotPick(null); setAtlasOpen(false); setMonth(null);
     started.current = false;
     router.push(url.pathname + url.search, { scroll: false });
@@ -1021,6 +1038,14 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       const ci = ds.cells.indexOf(cellKey);
       if (ci >= 0) s = { t: "cell", cell: ci };
       else { const f = ds.frontier.find((x) => x.cell === cellKey); if (f) { const r = flatRing(f.ring); s = { t: "empty", key: f.cell, city: f.city, center: r[0] }; } }
+    } else if (cityName && byCity(cityName) >= 0 && !q && Number.isFinite(lat) && Number.isFinite(lng)) {
+      /* Arrived by zooming in from the India map: keep the exact view. */
+      s = { t: "city", city: byCity(cityName) };
+      keepLinkedView.current = true;
+      setSel(s); setSheet("hidden");
+      const z = parseFloat(params.get("z") ?? "");
+      mapRef.current?.jumpTo({ center: [lng, lat], zoom: Number.isFinite(z) ? Math.max(9, Math.min(17, z)) : 13.5 });
+      return;
     } else if (cityName && byCity(cityName) >= 0) {
       s = { t: "city", city: byCity(cityName) };
       if (q) { const li = ds.localities.findIndex((l) => l.toLowerCase() === q.toLowerCase()); if (li >= 0) s = { t: "locality", city: s.city, locality: li }; }
@@ -1280,7 +1305,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     <div className={`sm ax ${indiaOverview ? "is-india" : "is-city"} ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`} data-lens={atlasLens} data-rail={railState}>
       <div className="sm-canvas ax-canvas" ref={el} />
       {mapError && ds && <LiveMapFallback ds={ds} stats={stats} paint={cellPaint} animals={animalPts} cases={casePts} mode={mode} pal={pal} />}
-      <h1 className="sys-sr">StrayPaw Living Atlas: {placeTitle}, {lensNow.label} — {lensNow.q}</h1>
+      <h1 className="sys-sr">StrayPaw map: {placeTitle}, {lensNow.label} — {lensNow.q}</h1>
 
       <header className="ax-cap">
         <nav className="ax-ladder" aria-label="Scale">

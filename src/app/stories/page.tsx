@@ -113,11 +113,11 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
     <main className="st">
         <DeskHeader
           city={city ?? undefined}
-          kicker={city ? `Stories · ${city}` : "Stories · the atlas"}
+          kicker={city ? `Stories · ${city}` : "Stories · all cities"}
           title={city ? <>Animal records in <em>{city}</em></> : <>Animal records, <em>followed through care</em></>}
           lede="Care, discharge and outcomes appear only where the source actually records them."
           figures={[
-            { label: city ? `animals with case histories in ${city}` : cityCount > 1 ? "animals with case histories across the atlas" : "animals with case histories", value: totalForScope },
+            { label: city ? `animals with case histories in ${city}` : cityCount > 1 ? "animals with case histories across all cities" : "animals with case histories", value: totalForScope },
             ...(paged ? [{ label: "shown on this page", value: stories.length, tone: "quiet" as const }] : []),
             ...(median != null ? [{ label: "median span to a recorded ending", value: span(median) }] : []),
           ]}
@@ -135,7 +135,7 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
         {stories.length ? <StoryAtlas stories={stories} /> : page.error ? <section className="st-empty" aria-label="Public records temporarily unavailable">
           <div><span className="st-empty-index">THE ATLAS / PUBLIC FIELD RECORDS</span><h2>The record is reconnecting.</h2><p>Stories exist, but the public record could not be read just now. Try this page again shortly; do not treat this state as an empty register.</p></div>
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
-        </section> : <section className="st-empty" aria-label="How stories enter the atlas">
+        </section> : <section className="st-empty" aria-label="How stories reach the map">
           <div><span className="st-empty-index">THE ATLAS / PUBLIC FIELD RECORDS</span><h2>Every record starts somewhere.</h2><p>No public animal record is available yet. Stories show only what the source actually establishes: an encounter, care when documented, and a discharge or outcome when recorded.</p></div>
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
         </section>}

@@ -1,0 +1,142 @@
+/* ════════════════════════════════════════════════════════════════════
+   Calm sheet. One white surface per page, not a stack of cards.
+
+   Each page sits on a single sheet laid over the folk ground, which stays
+   visible around it. Inside the sheet nothing is boxed: the page header,
+   figures, panels, tabs and sections are separated by whitespace and
+   hairline rules, the way a well-set document is. Only things that truly
+   float (map pop-ups, sheets, menus) keep a shadow; maps keep a thin frame.
+
+   Loaded last (after record.css) so it overrides the earlier card frame.
+   ════════════════════════════════════════════════════════════════════ */
+
+.sx.sd {
+  --hair: rgba(11, 30, 61, 0.09);
+  --hair-2: rgba(11, 30, 61, 0.14);
+  --sheet-r: 22px;
+}
+
+/* ── the sheet ─────────────────────────────────────────────────────── */
+.sx.sd:not(.is-flush) .sx-main {
+  width: calc(100% - 32px);
+  max-width: 1280px;
+  margin: 16px auto 20px;
+  border-radius: var(--sheet-r);
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--hair), 0 30px 60px -48px rgba(11, 30, 61, 0.35);
+  box-sizing: border-box;
+  /* Cards inside the sheet lose their edge and lift. */
+  --card-b: transparent;
+  --card-sh: 0 0 #0000;
+  --card-r: 0px;
+}
+.sx.sd .sd-top { background: rgba(250, 247, 241, 0.86); }
+
+/* ── page header: type, not a box ─────────────────────────────────── */
+.sx.sd .sx-main .dh { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; border-bottom: 1px solid var(--hair); }
+.sx.sd .sx-main .dh .dh-in { padding-top: 34px !important; padding-bottom: 28px !important; }
+.sx.sd .sx-main .dh-title { letter-spacing: -0.028em; }
+.sx.sd .sx-main .dh-figs { border-top: 1px solid var(--hair); padding-top: 16px; }
+
+/* ── sections: whitespace and a rule between them ─────────────────── */
+.sx.sd .sx-main :is(div, main, section, article):has(> .dh),
+.sx.sd .sx-main:has(> .dh) { gap: 0 !important; padding: 0 0 24px !important; max-width: none !important; }
+.sx.sd .sx-main :is(div, main, section, article):has(> .dh) > :not(.dh):not(script):not(style),
+.sx.sd .sx-main:has(> .dh) > :not(.dh):not(script):not(style) {
+  margin: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
+  padding: 28px 32px !important; border-top: 1px solid var(--hair);
+}
+.sx.sd .sx-main :is(div, main, section, article):has(> .dh) > .dh + *,
+.sx.sd .sx-main:has(> .dh) > .dh + * { border-top: 0; }
+.sx.sd .sx-main .ptabs { gap: 0 !important; }
+.sx.sd .sx-main .ptabs-panel > * { margin: 0 !important; padding: 24px 0 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+.sx.sd .sx-main .ptabs-panel > * + * { border-top: 1px solid var(--hair); margin-top: 24px !important; }
+
+/* ── tabs: underlined text, not pills ─────────────────────────────── */
+.sx.sd .sx-main :is(.ptabs-bar, .partner-workspace-tabs) {
+  background: transparent !important; box-shadow: none !important; border-radius: 0 !important;
+  padding: 0 !important; gap: 22px !important; border-bottom: 1px solid var(--hair);
+}
+.sx.sd .sx-main .ptabs-bar button,
+.sx.sd .sx-main .partner-workspace-tabs :is(a, button) {
+  flex: 0 0 auto !important; min-height: 44px; padding: 0 !important; border-radius: 0 !important;
+  background: transparent !important; color: var(--d-mute) !important; font-weight: 500;
+  box-shadow: inset 0 -2px 0 transparent;
+}
+.sx.sd .sx-main .ptabs-bar button[aria-selected="true"],
+.sx.sd .sx-main .partner-workspace-tabs :is([aria-current="page"], [aria-selected="true"], .is-active) {
+  color: var(--d-text) !important; box-shadow: inset 0 -2px 0 var(--d-text) !important;
+}
+
+/* ── dashboards ───────────────────────────────────────────────────── */
+.sx.sd .sx-main .db { gap: 0 !important; padding: 0 32px 28px !important; }
+.sx.sd .sx-main .db-head { margin: 0 -32px !important; padding: 30px 32px 24px !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; border-bottom: 1px solid var(--hair); }
+/* Figures: one row of numbers divided by hairlines. */
+.sx.sd .sx-main .db-kpis { gap: 0 !important; padding: 22px 0 !important; border-bottom: 1px solid var(--hair); }
+.sx.sd .sx-main .db-kpi { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 2px 22px !important; border-left: 1px solid var(--hair); }
+.sx.sd .sx-main .db-kpi:first-child { border-left: 0; padding-left: 0 !important; }
+.sx.sd .sx-main .db-kpi::before { display: none !important; }
+.sx.sd .sx-main .db-kpi dd { font-size: 30px; letter-spacing: -0.02em; }
+/* The map: a thin frame, no lift. */
+.sx.sd .sx-main .db-map { margin-top: 24px !important; border-radius: 16px !important; box-shadow: 0 0 0 1px var(--hair-2) !important; }
+/* Panels: a heading over plain rows. */
+.sx.sd .sx-main .db-panel { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; border-top: 1px solid var(--hair); }
+.sx.sd .sx-main .db-panel > header { padding: 18px 0 8px; }
+.sx.sd .sx-main .db-panel h2 { font-size: 15px; }
+
+/* ── records and tiles ────────────────────────────────────────────── */
+.sx.sd .sx-main .at2 { box-shadow: none !important; border-radius: 16px; background: transparent; }
+.sx.sd .sx-main .at2 :is(.at2-ph, img, .fp-art) { border-radius: 16px; }
+.sx.sd .sx-main .dz2-hero { box-shadow: none !important; background: transparent !important; border-radius: 0 !important; padding: 32px 32px 28px !important; border-bottom: 1px solid var(--hair); }
+.sx.sd .sx-main .dz2-hero :is(.dz2-ph, figure > div) { border-radius: 18px; overflow: hidden; }
+.sx.sd .sx-main .dz2-facts { gap: 0 !important; padding: 0 32px; border-bottom: 1px solid var(--hair); }
+.sx.sd .sx-main .dz2-facts .dz-fact { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 18px 16px !important; border-left: 1px solid var(--hair); }
+.sx.sd .sx-main .dz2-facts .dz-fact:first-child { border-left: 0; padding-left: 0 !important; }
+.sx.sd .sx-main :is(.dt-panel, .dt-bar, .mq-card, .mq-empty, .mq-gate) { box-shadow: none !important; }
+
+/* ── insights ─────────────────────────────────────────────────────── */
+.sx.sd .sx-main .ib { gap: 0 !important; padding: 0 0 28px !important; max-width: none !important; }
+.sx.sd .sx-main :is(.ib-register-head, .ib-pick, .ib-q, .ib-chapter) { border-radius: 0 !important; box-shadow: none !important; background: transparent !important; padding: 26px 32px !important; border-top: 1px solid var(--hair) !important; }
+.sx.sd .sx-main .ib-register-head { border-top: 0 !important; padding-top: 34px !important; }
+
+/* ── site pages inside the app, credits, sign-in ──────────────────── */
+.sx.sd .sx-main :is(.mk-inapp, .ms-inapp, .ac-page) { gap: 0 !important; padding: 0 0 28px !important; max-width: none !important; }
+.sx.sd .sx-main .mk-inapp :is(.mk-band, .mk-next), .sx.sd .sx-main .ms-inapp .ms-body {
+  border-radius: 0 !important; box-shadow: none !important; background: transparent !important; padding: 28px 32px !important; border-top: 1px solid var(--hair);
+}
+.sx.sd .sx-main .ac-grid { padding: 28px 32px 0; gap: 28px 20px; }
+.sx.sd .sx-main .ac-card { box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; background: transparent !important; }
+.sx.sd .sx-main .ex-inapp main > section { border-radius: 0 !important; box-shadow: none !important; border-top: 1px solid var(--hair); }
+.sx.sd .sx-main .join-inapp :is(.join-page, main) { box-shadow: none !important; }
+/* Old full-width wrappers that were turned into cards. */
+.sx.sd .sx-main > .relative.w-full:first-child,
+.sx.sd .sx-main > div.relative.w-full:not(.sx-page):not(.db) { margin: 0 !important; max-width: none !important; border-radius: 0 !important; box-shadow: none !important; }
+
+/* ── phone: the sheet nearly edge to edge ─────────────────────────── */
+@media (max-width: 760px) {
+  .sx.sd:not(.is-flush) .sx-main { width: calc(100% - 16px); margin: 8px auto calc(var(--x-tabs) + 8px); --sheet-r: 18px; padding-bottom: 0; }
+  .sx.sd .sx-main .dh .dh-in { padding: 22px 18px 18px !important; }
+  .sx.sd .sx-main :is(div, main, section, article):has(> .dh) > :not(.dh):not(script):not(style),
+  .sx.sd .sx-main:has(> .dh) > :not(.dh):not(script):not(style),
+  .sx.sd .sx-main .mk-inapp :is(.mk-band, .mk-next), .sx.sd .sx-main .ms-inapp .ms-body,
+  .sx.sd .sx-main :is(.ib-register-head, .ib-pick, .ib-q, .ib-chapter) { padding: 20px 18px !important; }
+  .sx.sd .sx-main .ptabs-panel > * { padding-top: 18px !important; }
+  .sx.sd .sx-main :is(.ptabs-bar, .partner-workspace-tabs) { gap: 18px !important; top: 56px; background: rgba(255, 255, 255, 0.96) !important; }
+  .sx.sd .sx-main .db { padding: 0 18px 22px !important; }
+  .sx.sd .sx-main .db-head { margin: 0 -18px !important; padding: 0 18px 18px !important; }
+  .sx.sd .sx-main .db-kpis { padding: 16px 18px !important; margin: 0 -18px !important; scroll-padding-inline: 18px; }
+  .sx.sd .sx-main .db-map { margin-inline: 0 !important; border-radius: 14px !important; }
+  /* The swipeable findings deck keeps a light frame: cards you swipe need edges. */
+  .sx.sd .sx-main .ib-body > * { background: #fff !important; box-shadow: 0 0 0 1px var(--hair-2) !important; border-radius: 18px !important; border-top: 0 !important; padding: 16px !important; }
+  .sx.sd .sx-main .ib-body > .ib-chapter { background: var(--d-text) !important; }
+  .sx.sd .sx-main .ib-body { margin: 0 !important; padding: 12px 18px 18px !important; scroll-padding-inline: 18px; }
+  .sx.sd .sx-main .db-kpi { flex: 0 0 auto !important; padding: 0 16px !important; }
+  .sx.sd .sx-main .db-kpi dd { font-size: 24px; }
+  .sx.sd .sx-main .db-map { margin-top: 18px !important; }
+  .sx.sd .sx-main .dz2-hero { padding: 18px !important; }
+  .sx.sd .sx-main .dz2-facts { padding: 0 18px; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .sx.sd .sx-main .dz2-facts .dz-fact { padding: 14px 12px !important; border-top: 1px solid var(--hair); }
+  .sx.sd .sx-main .dz2-facts .dz-fact:nth-child(odd) { border-left: 0; padding-left: 0 !important; }
+  .sx.sd .sx-main .dz2-facts .dz-fact:nth-child(-n+2) { border-top: 0; }
+  .sx.sd .sx-main .ac-grid { padding: 18px 18px 0; gap: 20px 14px; }
+}

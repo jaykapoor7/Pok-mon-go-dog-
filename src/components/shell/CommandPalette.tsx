@@ -38,7 +38,7 @@ export function CommandPalette({ open, onClose, jumps }: { open: boolean; onClos
     const t = v.trim().toLowerCase();
     if (t.length < 2) return [];
     return registers.filter((c) => c.city.toLowerCase().includes(t)).slice(0, 4)
-      .map((c) => ({ kind: "place" as const, label: c.city, detail: `${c.state ? `${c.state} · ` : ""}${c.animals.toLocaleString("en-IN")} recorded profiles · open in the Atlas`, href: `/map?city=${encodeURIComponent(c.city)}` }));
+      .map((c) => ({ kind: "place" as const, label: c.city, detail: `${c.state ? `${c.state} · ` : ""}${c.animals.toLocaleString("en-IN")} recorded profiles · open on the map`, href: `/map?city=${encodeURIComponent(c.city)}` }));
   };
 
   useEffect(() => {

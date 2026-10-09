@@ -134,10 +134,10 @@ export function MunicipalBrief() {
       ]}
       map={<LiveMap pin={selCell ? <CellCard h3={selCell.h3_r8} title={names.get(selCell.h3_r8) ?? "This area"} facts={`${fmt(selCell.animals)} profiles · ${fmt(selCell.cases)} requests (${fmt(selCell.open_cases)} open) · ${fmt(selCell.sterilised)} sterilised · ${fmt(selCell.vaccinated)} vaccinated`} href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`} linkLabel="Open this area's records" focus={focus} onClose={() => { setSel(null); setFocus(null); }} /> : null} cells={oneLocation ? [] : mapCells} tone={tone} metric={MEAS[measure]} label={`${city}: ${MEAS[measure]} by cell`} viewport={vp} dotFocus={measure === "open_cases" ? "hot" : "all"} selected={sel} onCell={(h, id) => { setSel(h); setFocus(id ?? null); }} emptyNote={oneLocation ? `Every ${city} record shares one city location, so no street geography exists.` : loading ? "Reading the city…" : `No ${MEAS[measure]} recorded here.`}>
         <MapChips value={measure} options={[{ id: "animals", label: "Animals" }, { id: "open_cases", label: "Open requests" }, { id: "sterilised", label: "Sterilised" }, { id: "vaccinated", label: "Vaccinated" }, { id: "care_events", label: "Care" }]} onChange={setMeasure} label="Map measure" />
-        <Link href={`/map?city=${encodeURIComponent(city ?? "")}&mode=coverage`} className="db-maplink">Open in Atlas <ArrowUpRight size={14} aria-hidden /></Link>
+        <Link href={`/map?city=${encodeURIComponent(city ?? "")}&mode=coverage`} className="db-maplink">Open in map <ArrowUpRight size={14} aria-hidden /></Link>
       </LiveMap>}
       side={<>
-        <Panel title={`Hotspots by ${locLabel}`} action={{ label: "Atlas", href: `/map?city=${encodeURIComponent(city ?? "")}` }}>
+        <Panel title={`Hotspots by ${locLabel}`} action={{ label: "Map", href: `/map?city=${encodeURIComponent(city ?? "")}` }}>
           <ItemList items={hotspots} loading={!topLoc && !oneLocation} empty={oneLocation ? "No locality pattern can be read from a single city location." : "No named localities are recorded for this city."} />
         </Panel>
         <Panel title="Where the record is thin">

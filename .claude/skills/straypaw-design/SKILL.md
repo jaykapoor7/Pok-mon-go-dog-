@@ -54,11 +54,14 @@ selection or neutral evidence, flame is urgency and the single primary action,
 teal is care. Hatching means unknown. Dark blue is an accent, never a whole
 page.
 
-Every page is a dashboard of bordered cards: a container with a `.dh` header
-gets white sections with `--card-b`, `--card-r` and `--card-sh`. Site pages
-reached from inside the app use the same frame (`MarketingPage inApp`,
-`MarketingShell inApp`, `AppShell`). Keep the public landing hero and
-marketing navigation unchanged.
+Every page is one white sheet over the folk ground, styled in
+`shell/calm.css`. Think Apple or Zara, not a card grid: inside the sheet,
+sections, figures, panels and tabs are separated by whitespace and hairline
+rules, never boxed. Only floating things keep a shadow; maps keep a thin
+frame. Never reintroduce stacked bordered cards. Site pages reached from
+inside the app use the same sheet (`MarketingPage inApp`, `MarketingShell
+inApp`, `AppShell`). Keep the public landing hero and marketing navigation
+unchanged. Call the map "map" in every label, never "Atlas".
 
 One face: DM Sans. No italics, no serif headlines, no spaced mono capitals;
 weight and size carry hierarchy. Use tabular numerals for comparisons. Calm,

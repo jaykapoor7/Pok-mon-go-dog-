@@ -10,8 +10,8 @@ import type { Role } from "@/lib/roles";
 
    A space is the job someone came to do. It decides the handful of
    destinations in the bar, the one primary action, and the long tail the
-   More sheet carries. Shared routes (the Atlas, Insights, Stories) keep
-   the space you arrived from, so a municipal officer who opens the Atlas
+   More sheet carries. Shared routes (the map, Insights, Stories) keep
+   the space you arrived from, so a municipal officer who opens the map
    is still in the City space when they come back.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -49,7 +49,7 @@ export const SPACES: Record<Space, SpaceDef> = {
     label: "Community", blurb: "Animals near you, reports and what happened next", home: "/app",
     nav: [
       { href: "/app", label: "Nearby", Icon: Home },
-      { href: "/map", label: "Atlas", Icon: MapIcon },
+      { href: "/map", label: "Map", Icon: MapIcon },
       { href: "/following", label: "Saved", Icon: Bookmark },
       { href: "/stories", label: "Stories", Icon: BookOpen },
       { href: "/insights", label: "Insights", Icon: ChartColumn },
@@ -63,7 +63,7 @@ export const SPACES: Record<Space, SpaceDef> = {
     nav: [
       { href: "/feeder", label: "My route", Icon: Route },
       { href: "/feeding", label: "Feeding spots", Icon: Utensils },
-      { href: "/map", label: "Atlas", Icon: MapIcon },
+      { href: "/map", label: "Map", Icon: MapIcon },
       { href: "/following", label: "Saved", Icon: Bookmark },
       { href: "/stories", label: "Stories", Icon: BookOpen },
     ],
@@ -75,7 +75,7 @@ export const SPACES: Record<Space, SpaceDef> = {
     label: "Educator", blurb: "Lessons built from real local records", home: "/learn",
     nav: [
       { href: "/learn", label: "Lessons", Icon: GraduationCap },
-      { href: "/map", label: "Atlas", Icon: MapIcon },
+      { href: "/map", label: "Map", Icon: MapIcon },
       { href: "/stories", label: "Stories", Icon: BookOpen },
       { href: "/insights", label: "Insights", Icon: ChartColumn },
       { href: "/resources", label: "Guides", Icon: FileText },
@@ -123,7 +123,7 @@ export const SPACES: Record<Space, SpaceDef> = {
       ] },
       { label: "Shared record", links: [
         { href: "/report", label: "Report a dog" },
-        { href: "/map", label: "Public Atlas" },
+        { href: "/map", label: "Public map" },
         { href: "/orgs", label: "Partner NGOs" },
       ] },
     ],
@@ -132,7 +132,7 @@ export const SPACES: Record<Space, SpaceDef> = {
     label: "Municipality", blurb: "Programme evidence and gaps, city by city", home: "/municipality",
     nav: [
       { href: "/municipality", label: "City brief", Icon: Landmark },
-      { href: "/map", label: "Atlas", Icon: MapIcon },
+      { href: "/map", label: "Map", Icon: MapIcon },
       { href: "/insights", label: "Analysis", Icon: ChartColumn },
       { href: "/programmes", label: "Programmes", Icon: Database },
       { href: "/orgs", label: "Partners", Icon: Building2 },

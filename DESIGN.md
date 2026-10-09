@@ -11,10 +11,13 @@
 > * **Ground.** Cream paper (`#f4efe6`) under white cards. The ground is never
 >   plain: `FolkBackdrop` paints slow clouds, a sun, birds, hills and a
 >   trotting dog behind every app page (static under reduced motion).
-> * **Cards.** Any container with a `.dh` header gets a full dashboard frame:
->   white sections with `--card-b` borders, `--card-r` radius and `--card-sh`
->   shadow. One frame language across Community, NGO, municipality, admin and
->   the in-app site pages (`MarketingPage inApp`, `MarketingShell inApp`).
+> * **One sheet, not cards.** Every page sits on a single white sheet over
+>   the folk ground (`shell/calm.css`, loaded last). Inside it nothing is
+>   boxed: the header, figures, panels, tabs and sections are separated by
+>   whitespace and hairline rules (`--hair`); figures are one row divided by
+>   hairlines; tabs are underlined text. Only things that float (map
+>   pop-ups, sheets, menus) keep a shadow, maps keep a thin frame, and a
+>   phone swipe deck keeps light card edges. Do not add bordered cards.
 > * **Colour.** Ink `#0b1e3d` for text, blue `#2457ce` for selection and
 >   neutral data, flame `#f05b40` for urgency and the one primary action
 >   (Report). Dark blue grounds are kept for small accents, never whole pages.
@@ -23,7 +26,10 @@
 > * **Areas are round.** H3 cells are drawn as inset circles
 >   (`lib/spatial/round.ts`: `roundRing`, `roundCell`); no hexagons anywhere
 >   in the app, including fallbacks (`HexPlate round`).
-> * **Map.** `LiveMap` on a daylight basemap with an easy zoom ladder:
+> * **Map.** It is called the map, never "Atlas", in every label. On the
+>   India map, zooming in near a city (zoom ≥ 8.5) enters that city at the
+>   same view, so its areas and then its animals appear without a click.
+>   `LiveMap` on a daylight basemap with an easy zoom ladder:
 >   choropleth → counts per area → one dot per recorded animal from z 12.6
 >   (fetched per visible area from `/api/spatial/patch`). Selection is a
 >   small card pinned to the map, not a side panel.

@@ -59,7 +59,7 @@ export default function ResourcesPage() {
   return (
     <PlatformShell>
       <div className="resource-desk">
-        <DeskHeader kicker="Community / reference desk" title="Know where to turn." lede="Rescue contacts, welfare organisations and practical guidance. Recorded animals live in the Atlas; these resources help you decide what to do next." actions={<Link href="/map" className="dk-btn is-tint">Open the Atlas</Link>} />
+        <DeskHeader kicker="Community / reference desk" title="Know where to turn." lede="Rescue contacts, welfare organisations and practical guidance. Recorded animals live on the map; these resources help you decide what to do next." actions={<Link href="/map" className="dk-btn is-tint">Open the map</Link>} />
         <div className="rd-workspace"><nav className="rd-contents" aria-label="Resource sections"><p>Find the right help</p><a href="#helplines">01 / Rescue helplines</a><a href="#post-bite">02 / After a bite</a><a href="#directory">03 / Organisations</a><a href="#data">04 / Data & research</a><Link href="/report">Record an observation →</Link></nav><div className="rd-main">
 
         {/* ── Emergency helplines ── */}

@@ -22,9 +22,9 @@ export function AtlasRegister({ cities, open, onToggle, onCity, municipal = fals
 }) {
   const ordered = [...cities].sort((a, b) => b.animals - a.animals);
   const total = cities.reduce((sum, city) => sum + city.animals, 0);
-  return <section className={`atlas-register ${open ? "is-expanded" : ""}`} aria-label="India Atlas register">
+  return <section className={`atlas-register ${open ? "is-expanded" : ""}`} aria-label="India map register">
     <header className="atlas-intro">
-      <p className="atlas-eyebrow">StrayPaw / {municipal ? "Geographic intelligence" : "Living India Atlas"}</p>
+      <p className="atlas-eyebrow">StrayPaw / {municipal ? "Geographic intelligence" : "India map"}</p>
       <h2>INDIA</h2>
       <p className="atlas-deck">The recorded street-animal index</p>
       <div className="atlas-total"><strong>{cities.length ? number(total) : "—"}</strong><span>recorded profiles · {cities.length || "—"} city registers</span></div>
@@ -58,7 +58,7 @@ export function CityEvidence({ city, cells, municipal }: { city: string; cells: 
    The thirty-odd city registers are not one kind of evidence. A clinical
    programme's archive, a GPS vaccination campaign, a rescue line's
    requests and a handful of photographed observations answer different
-   questions, so at national scale the Atlas colours each city by the KIND
+   questions, so at national scale the map colours each city by the KIND
    of record it holds, and sizes it by the measure the Lens asks about. */
 export type EvidenceKind = "clinical" | "campaign" | "rescue" | "photo" | "register";
 export const KIND_META: Record<EvidenceKind, { label: string; color: string; reads: string }> = {

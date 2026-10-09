@@ -198,7 +198,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
       {r.place ? (
         <figure className="dz-area">
           <PlaceMap key={`${r.id}:${r.place.cell}`} variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
-          <figcaption>The recorded area, about 0.7 km², never an exact location. <a href={mapHref} className="x-link">Open on the Atlas →</a></figcaption>
+          <figcaption>The recorded area, about 0.7 km², never an exact location. <a href={mapHref} className="x-link">Open on the map →</a></figcaption>
         </figure>
       ) : <p className="dz-lead">No area is recorded for this animal.</p>}
       <dl className="dz-prov">

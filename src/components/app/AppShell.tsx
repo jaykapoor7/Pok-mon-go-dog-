@@ -25,6 +25,7 @@ import "@/components/shell/shell.css";
 import "@/components/shell/dark.css";
 import "@/components/shell/paper.css";
 import "@/components/shell/record.css";
+import "@/components/shell/calm.css";
 import { FolkVignette } from "@/components/art/Folk";
 import { FolkBackdrop } from "@/components/art/FolkBackdrop";
 
