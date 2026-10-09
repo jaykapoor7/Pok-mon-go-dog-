@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { themeBootScript } from "@/components/theme/ThemeProvider";
 import { StructuredData } from "@/components/seo/StructuredData";
 import { RouteEnvironment } from "@/components/embed/RouteEnvironment";
+import { Analytics } from "@vercel/analytics/next";
 
 import { SITE_URL } from "@/lib/site-url";
 
@@ -121,6 +122,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <StructuredData siteUrl={siteUrl} />
         <RouteEnvironment>{children}</RouteEnvironment>
+        <Analytics />
       </body>
     </html>
   );
