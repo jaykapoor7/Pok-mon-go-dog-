@@ -12,7 +12,7 @@ export const metadata = {
    product actually does today; anything not yet true is not listed here. */
 export default function DataGovernancePage() {
   return (
-    <MarketingPage
+    <MarketingPage inApp
       title="What we hold,"
       accent="and what we don't."
       lede="StrayPaw is a public record of animals, not of people. This page says plainly what is collected, what is never published, how long it is kept and how to have something taken down. It is written against the Digital Personal Data Protection Act, 2023."

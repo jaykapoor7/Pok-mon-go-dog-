@@ -401,7 +401,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
 
       {ds && <div className="ib-pick">
         {plate && place && <details className="ib-geography"><summary>Spatial distribution / loaded requests</summary><figure className="ib-plate">
-          <HexPlate width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Loaded requests by cell in ${cityName}`}
+          <HexPlate round width={360} height={300} box={ds.cities[place.city].box} cells={plate} label={`Loaded requests by cell in ${cityName}`}
             onCell={(key) => { const i = ds.cells.indexOf(key); if (i >= 0 && ds.cellLocality[i] >= 0) setPlace({ city: place.city, locality: ds.cellLocality[i] }); }} />
           <figcaption className="ib-plate-note">Deeper blue cells have more requests. Choose one to read its locality.</figcaption>
         </figure></details>}

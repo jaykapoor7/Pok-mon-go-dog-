@@ -47,35 +47,36 @@ one-handed mobile flow. Then build. Preserve routes, permissions and real action
 
 ## Brand foundations
 
-Use the existing ink, warm paper, blue, flame and teal tokens. Ink anchors the
-institution and cartographic field; paper carries readable records; blue means
-selection or neutral evidence; flame means urgency; teal means care. Hatching
-means unknown and dashed edges indicate uncertain extent.
+The app is light: cream paper under white cards, with a live folk-art ground
+(`FolkBackdrop`) behind every page. `paper.css` re-points the `--d-*` tokens
+to that palette; use the tokens, not literal colours. Ink is text, blue is
+selection or neutral evidence, flame is urgency and the single primary action,
+teal is care. Hatching means unknown. Dark blue is an accent, never a whole
+page.
 
-Keep the landing page and shared palettes unchanged when the task concerns the
-app. Put app-specific extensions in scoped styles or a separate map palette.
-Use existing spacing and motion tokens; new layout dimensions should represent
-actual content or interaction requirements rather than arbitrary decoration.
+Every page is a dashboard of bordered cards: a container with a `.dh` header
+gets white sections with `--card-b`, `--card-r` and `--card-sh`. Site pages
+reached from inside the app use the same frame (`MarketingPage inApp`,
+`MarketingShell inApp`, `AppShell`). Keep the public landing hero and
+marketing navigation unchanged.
 
-DM Sans is the working face (titles at 600 with tight tracking). Instrument
-Serif italic is for emphasis and record plates, not whole headings or data.
-DM Mono serves IDs, codes and dates only. All three are loaded for the app by
-`components/shell/fonts.ts`; the landing keeps its own stack. Labels are
-sentence case: no spaced mono capitals. Do not introduce another font family.
-Use tabular numerals for comparisons. Compact text must remain readable.
+One face: DM Sans. No italics, no serif headlines, no spaced mono capitals;
+weight and size carry hierarchy. Use tabular numerals for comparisons. Calm,
+Apple- or Zara-like restraint: few words, generous space, one action per
+region. Copy that sounds like generated filler ("seamless", "empower", stacked
+taglines) is rejected.
 
-Shape follows role: continuous map/register surfaces can have square edges,
-selectable rows can have a small radius, and compact filters can be capsules.
-Never apply a large radius and shadow to every surface. Prefer rules, alignment
-and deliberate changes of ground. Lift only the active inspector or overlay.
+Areas are round. Draw H3 cells with `roundRing` / `roundCell` from
+`lib/spatial/round.ts` (and `HexPlate round` for fallbacks). Never show a
+hexagon in the app.
 
 ## The map is the dashboard
 
 | Scale | Representation | Next step |
 |---|---|---|
 | India | City registers and source reach | Enter a city |
-| City | H3 aggregates and supported activity | Select a Lens or area |
-| Neighbourhood | Cell/locality with bounded records | Inspect a record |
+| City | Round areas shaded by count | Select a Lens or area |
+| Neighbourhood | One dot per recorded animal (z ≥ 12.6, fetched per visible area) | Inspect a record |
 | Animal | Authentic photo or explicit missing-photo treatment | Read history or act |
 
 Keep transitions continuous. Preserve place, Lens and selection in the URL.
@@ -118,14 +119,24 @@ detail. Inspect limits and measure payloads.
 
 ## Animal records
 
-Use only the animal's real photograph and preserve attribution. Let available
-photography carry visual weight. When absent, use an explicit record treatment;
-no stock animals or generated photographs. A graphic seal is an identifier.
+Use only the animal's real photograph and preserve attribution. When absent,
+show its `FolkPortrait`: a seeded folk illustration (smaller for puppies and
+small dogs), always labelled as an illustration, never a likeness. No stock or
+generated photographs.
 
-Lead with name/source identity, locality, recorded status and provenance. Keep
-provisional identity visible. Connect observations, cases, care and follow-ups
-chronologically; preserve unknown dates. A map preview must disclose whether it
-identifies an individual or browses candidate records within a selected cell.
+Name it with `lib/animal-name.ts`: the given name if a person gave one, else
+the short StrayPaw tag. The subtitle describes the record from its recorded
+sex and size ("Female · medium", "Male puppy") and the short place. Never
+invent a name and never title a record "Dog near…".
+
+Lead with identity, locality, recorded status and provenance. Connect
+observations, cases, care and follow-ups chronologically; preserve unknown
+dates. A map preview must disclose whether it identifies an individual or
+browses candidate records within a selected area.
+
+Sightings are moderated one at a time at `/moderate`. Auto-approval needs every
+rule in `lib/auto-approve.ts` and, when configured, the photo check in
+`lib/photo-check.ts`; both fail closed, so anything uncertain waits for a person.
 
 ## Professional workspaces
 
@@ -143,7 +154,10 @@ or the first useful action. Never seed private workspaces with fake NGO activity
 
 ## Mobile, accessibility and motion
 
-Use one compact Lens control and one contextual sheet. Keep the map, selection
+Keep every phone page within about two screens: split long content with
+`PhoneTabs` or `PhoneFold`, turn dashboards into swipe decks, cap or slide long
+lists. The More sheet is a short settings-style list. Use one compact Lens
+control and one contextual sheet. Keep the map, selection
 and primary action distinguishable. Sheets need peek, expanded and closed
 states, visible reopening, and a grip that does not pan the map.
 
@@ -154,7 +168,7 @@ also meet WCAG AA. At 320px and 200% text zoom, wrap or reorganize controls; nev
 clip critical actions. Wide tables scroll inside their own labelled region.
 
 Animate meaningful changes only: camera travel, selection, inspector, Lens and
-completion. Use existing easing/duration tokens. Avoid continuous decoration,
+completion. Use existing easing/duration tokens. The folk backdrop is the only ambient motion and stops under reduced motion. Avoid other continuous decoration,
 expensive filters, animated shadows, counting numbers and delayed primary data.
 Honor reduced motion in CSS and JavaScript camera durations. Camera animation
 cannot be disabled by a CSS media query alone.

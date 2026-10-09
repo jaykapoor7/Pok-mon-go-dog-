@@ -38,8 +38,9 @@ export function PartnerAnimalRecord({ id, published }: { id: string; published: 
       let ownedPlace: Living["place"] = null;
       if (data.h3_r8) {
         const { isValidCell, cellToBoundary, cellToLatLng } = await import("h3-js");
+        const { roundRing } = await import("@/lib/spatial/round");
         if (isValidCell(data.h3_r8)) {
-          const boundary = cellToBoundary(data.h3_r8, true);
+          const boundary = roundRing(cellToBoundary(data.h3_r8, true) as [number, number][]);
           const [lat, lng] = cellToLatLng(data.h3_r8);
           ownedPlace = { cell: data.h3_r8, center: [lng, lat],
             box: [Math.min(...boundary.map(p => p[0])), Math.min(...boundary.map(p => p[1])), Math.max(...boundary.map(p => p[0])), Math.max(...boundary.map(p => p[1]))],

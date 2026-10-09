@@ -9,7 +9,7 @@
    a name.
    ════════════════════════════════════════════════════════════════════ */
 
-type Named = { name?: string | null; straypaw_id?: string | null; id?: string | null; zone?: string | null };
+type Named = { name?: string | null; straypaw_id?: string | null; id?: string | null; zone?: string | null; sex?: string | null; size?: string | null };
 
 const FILING = [
   /·/,
@@ -45,9 +45,20 @@ export function animalTitle(a: Named): string {
   return givenName(a.name) ?? animalTag(a);
 }
 
-/** The line under the title: the place, and "Unnamed" when there is no name. */
+/** What the record says the animal is, from its recorded sex and size:
+ *  "Female · medium", "Male puppy", "Small dog". Null when neither is known. */
+export function describeAnimal(a: Named): string | null {
+  const sex = /^(m|male)$/i.test(a.sex?.trim() ?? "") ? "male" : /^(f|female)$/i.test(a.sex?.trim() ?? "") ? "female" : null;
+  const size = (a.size ?? "").trim().toLowerCase();
+  const cap = (t: string) => t.replace(/^./, (c) => c.toUpperCase());
+  if (size === "puppy") return sex ? `${cap(sex)} puppy` : "Puppy";
+  if (size === "small" || size === "medium" || size === "large") return sex ? `${cap(sex)} · ${size}` : `${cap(size)} dog`;
+  return sex ? cap(sex) : null;
+}
+
+/** The line under the title: what it is when there is no name, then the place. */
 export function animalSubtitle(a: Named): string {
   const place = shortPlace(a.zone);
   const named = !!givenName(a.name);
-  return [named ? null : "Unnamed", place].filter(Boolean).join(" · ") || "Place not recorded";
+  return [named ? describeAnimal(a) : (describeAnimal(a) ?? "Unnamed"), place].filter(Boolean).join(" · ") || "Place not recorded";
 }

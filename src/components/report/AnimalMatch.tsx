@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
-import { AnimalSeal } from "@/components/system/AnimalSeal";
+import { FolkPortrait } from "@/components/art/FolkPortrait";
 import { nearbyAnimals, type AnimalCandidate } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -113,7 +113,7 @@ export function AnimalMatch({
                     unoptimized
                   />
                 ) : (
-                  <span className="absolute inset-0"><AnimalSeal seed={a.id} name={a.name} /></span>
+                  <span className="absolute inset-0"><FolkPortrait seed={a.id} className="h-full w-full" /></span>
                 )}
               </span>
               <span className="min-w-0 flex-1">

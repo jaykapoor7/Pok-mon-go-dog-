@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, MapPin } from "lucide-react";
-import { AnimalSeal } from "@/components/system/AnimalSeal";
+import { FolkPortrait } from "@/components/art/FolkPortrait";
 import { useFollows } from "@/lib/follows";
 import type { Dog } from "@/lib/types";
 import { formatPlace } from "@/lib/delhi";
@@ -165,7 +165,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
                       />
                     ) : (
                       <span className="fl-noimg" aria-hidden="true">
-                        <AnimalSeal seed={d.id} name={d.name} />
+                        <FolkPortrait seed={d.id} className="fl-folk" />
                       </span>
                     )}
                     {d.needs_help && <i className="fl-badge">Needs help</i>}

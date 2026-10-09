@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function PartnerApplyPage() {
   return (
-    <MarketingShell
+    <MarketingShell inApp
       eyebrow="Partnerships"
       title="Apply to partner with StrayPaw."
       intro="Tell us about your organisation and how you'd use StrayPaw, and upload anything that helps us verify you. We review every application and get in touch personally. It's free for verified partners."

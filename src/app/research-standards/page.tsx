@@ -78,7 +78,7 @@ export default function ResearchStandardsPage() {
   const counts = barrierCounts();
 
   return (
-    <MarketingPage
+    <MarketingPage inApp
       title="A defined protocol."
       accent="Published either way."
       lede="Funders avoid this field because most work in it cannot say what would prove it wrong. Every StrayPaw study is falsifiable, measured against established methods, and published either way."

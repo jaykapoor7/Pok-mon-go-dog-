@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendSightingLiveEmail } from "@/lib/email";
 import { autoApprovalOn, sightingChecks } from "@/lib/auto-approve";
+import { checkSightingPhoto, photoCheckAvailable } from "@/lib/photo-check";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,7 +67,7 @@ export async function GET(req: Request) {
     const facts = { photoUrl: row.photo_url, lat: row.lat, lng: row.lng, notes: row.notes, nickname: row.nickname, signedIn: !!user_id, forOrganisation: !!ngo_id, claimedDogId: row.claimed_dog_id, trust: row.trust_score };
     return { ...row, reporter_kind: ngo_id ? "organisation" : user_id ? "signed-in" : "guest", checks: sightingChecks(facts), passes: sightingChecks(facts).every((c) => c.ok) };
   });
-  return NextResponse.json({ pending, count: pending.length, autoApproval: autoApprovalOn() });
+  return NextResponse.json({ pending, count: pending.length, autoApproval: autoApprovalOn(), photoCheck: photoCheckAvailable() });
 }
 
 export async function POST(req: Request) {
@@ -86,6 +87,14 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+  /* Run the photo check on one pending report, on demand. */
+  if (body.action === "photo_check" && body.id) {
+    if (!photoCheckAvailable()) return NextResponse.json({ available: false });
+    const { data: row } = await supa.from("sightings").select("photo_url").eq("id", body.id).eq("status", "pending").maybeSingle();
+    if (!row?.photo_url) return NextResponse.json({ available: true, verdict: { ok: false, reason: "No photograph" } });
+    return NextResponse.json({ available: true, verdict: await checkSightingPhoto(row.photo_url) });
+  }
+
   /* Approve every pending report that passes all the checks, as new animals. */
   if (body.action === "approve_passing") {
     const { data: rows, error: listError } = await supa
@@ -96,6 +105,7 @@ export async function POST(req: Request) {
     const passing = (rows ?? []).filter((r) => sightingChecks({ photoUrl: r.photo_url, lat: r.lat, lng: r.lng, notes: r.notes, nickname: r.nickname, signedIn: !!r.user_id, forOrganisation: !!r.ngo_id, claimedDogId: r.claimed_dog_id, trust: r.trust_score }).every((c) => c.ok));
     const approved: string[] = [];
     for (const r of passing) {
+      if (photoCheckAvailable() && !(r.photo_url && (await checkSightingPhoto(r.photo_url)).ok)) continue;
       const { error: e } = await supa.rpc("approve_sighting", { p_sighting_id: r.id, p_dog_id: null });
       if (!e) approved.push(r.id);
     }

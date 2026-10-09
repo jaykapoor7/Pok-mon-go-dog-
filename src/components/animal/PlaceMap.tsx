@@ -33,7 +33,7 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
   const lats = geometry.flatMap(c => c.ring.filter((_, i) => i % 2 === 1));
   const box: Box = geometry.length ? [Math.min(...longs), Math.min(...lats), Math.max(...longs), Math.max(...lats)] : [center[0] - .005, center[1] - .005, center[0] + .005, center[1] + .005];
   const fallback = <div className="lr-area-fallback" aria-hidden={ready}>
-    <HexPlate cells={geometry.map(c => ({ key: c.key, ring: c.ring, fill: c.self ? "rgba(240,91,64,.2)" : c.n > 0 ? "rgba(79,127,224,.45)" : "transparent", stroke: c.self ? "#f05b40" : "rgba(36,87,206,.35)", dashed: false }))} box={box} width={640} height={360} pad={64} label={`Recorded area for ${label}${locality ? `, around ${locality}` : city ? `, ${city}` : ""}. This boundary does not show an exact location.`} />
+    <HexPlate round cells={geometry.map(c => ({ key: c.key, ring: c.ring, fill: c.self ? "rgba(240,91,64,.2)" : c.n > 0 ? "rgba(79,127,224,.45)" : "transparent", stroke: c.self ? "#f05b40" : "rgba(36,87,206,.35)", dashed: false }))} box={box} width={640} height={360} pad={64} label={`Recorded area for ${label}${locality ? `, around ${locality}` : city ? `, ${city}` : ""}. This boundary does not show an exact location.`} />
   </div>;
   const credit = ready ? "Map © OpenStreetMap contributors · OpenFreeMap" : "Recorded area · StrayPaw";
 

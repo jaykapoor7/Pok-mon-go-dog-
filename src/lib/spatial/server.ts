@@ -163,7 +163,7 @@ export async function getPublicSpatialViewportAnimals(input: { city: string; wes
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.from("public_spatial_animals")
-    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen")
+    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,sex,size")
     .in("city", cityVariants(city)).gte("lng", west).lte("lng", east).gte("lat", south).lte("lat", north)
     .order("needs_help", { ascending: false }).order("last_seen", { ascending: false })
     .limit(Math.max(1, Math.min(input.limit ?? MAX_ANIMALS, MAX_ANIMALS)));
@@ -249,7 +249,7 @@ export async function getOrgSpatialViewportAnimals(accessToken: string, input: {
   const city = cleanCity(input.city);
   if (!supa || !city || input.west >= input.east || input.south >= input.north || input.east - input.west > 3 || input.north - input.south > 3) return [] as SpatialAnimal[];
   const { data, error } = await supa.from("dogs")
-    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen")
+    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,sex,size")
     .eq("city", city).gte("lng", input.west).lte("lng", input.east).gte("lat", input.south).lte("lat", input.north)
     .order("needs_help", { ascending: false }).order("last_seen", { ascending: false }).limit(MAX_ANIMALS);
   if (error) throw error;

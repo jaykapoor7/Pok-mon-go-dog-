@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { cellToBoundary, cellToLatLng, gridDisk } from "h3-js";
+import { roundRing } from "@/lib/spatial/round";
 import {
   getPublicOrgBySlug,
   getPublicOrgH3Cells,
@@ -51,7 +52,7 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgH3Cell[]; place: stri
   const all: DrawCell[] = cells.flatMap((cell) => {
     try {
       const [lat, lng] = cellToLatLng(cell.h3);
-      const ring = cellToBoundary(cell.h3, true) as [number, number][];
+      const ring = roundRing(cellToBoundary(cell.h3, true) as [number, number][]);
       return [{ ...cell, lat, lng, ring }];
     } catch {
       return [];
@@ -123,7 +124,7 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgH3Cell[]; place: stri
   }
   const edgeRings = [...edgeSet].flatMap((h3) => {
     try {
-      return [cellToBoundary(h3, true) as [number, number][]];
+      return [roundRing(cellToBoundary(h3, true) as [number, number][])];
     } catch {
       return [];
     }

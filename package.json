@@ -41,6 +41,7 @@
     "import:kind-hour": "node scripts/import-kind-hour.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "@lucasmarkes/hairline": "0.3.0",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-dialog": "^1.1.23",

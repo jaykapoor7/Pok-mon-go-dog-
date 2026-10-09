@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { SiteHeader } from "@/components/site/SiteHeader";
-import { SiteFooter } from "@/components/site/SiteFooter";
+import { AppShell } from "@/components/app/AppShell";
+import { PhoneTabs } from "@/components/shell/PhoneTabs";
 import { LightsMap } from "@/components/system/LightsMap";
 import { getPublicSpatialCities } from "@/lib/spatial/server";
 import { CITIES } from "@/lib/geo/cities";
@@ -49,8 +49,8 @@ export default async function ExplorePage() {
   ];
 
   return (
-    <div className="co ex">
-      <SiteHeader tone="night" />
+    <AppShell>
+    <div className="co ex ex-inapp">
       <main>
         <section className="ex-hero" aria-labelledby="ex-title">
           <div className="ex-map" aria-hidden={lights.length === 0}>
@@ -67,8 +67,9 @@ export default async function ExplorePage() {
           </div>
         </section>
 
-        {top.length > 0 && (
-          <section className="co-sec" aria-labelledby="ex-where">
+        <PhoneTabs label="Explore" tabs={[
+          { id: "where", label: "Where", node: top.length > 0 ? (
+<section className="co-sec" aria-labelledby="ex-where">
             <div className="co-sec-in">
               <header className="co-sec-head">
                 <h2 id="ex-where">Where the record <em>is deepest.</em></h2>
@@ -90,9 +91,9 @@ export default async function ExplorePage() {
               </div>
             </div>
           </section>
-        )}
-
-        <section className="co-sec is-shell" aria-labelledby="ex-ways">
+          ) : null },
+          { id: "ways", label: "Ways in", node: (
+<section className="co-sec is-shell" aria-labelledby="ex-ways">
           <div className="ex-ways-in">
             <header className="co-sec-head ex-ways-head">
               <h2 id="ex-ways">Four ways <em>into it.</em></h2>
@@ -110,8 +111,10 @@ export default async function ExplorePage() {
             </ol>
           </div>
         </section>
+          ) },
+        ]} />
       </main>
-      <SiteFooter />
     </div>
+    </AppShell>
   );
 }

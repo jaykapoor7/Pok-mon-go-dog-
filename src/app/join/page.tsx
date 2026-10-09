@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { JoinClient } from "@/components/join/JoinClient";
 import "./join.css";
-import { SiteHeader } from "@/components/site/SiteHeader";
+import { AppShell } from "@/components/app/AppShell";
 
 export const metadata: Metadata = {
   title: "Enter your code",
@@ -20,11 +20,12 @@ export default async function JoinPage({
      button. It had no way back at all — and a person who opened it
      by mistake, or who does not have a code yet, was stuck. */
   return (
-    <div className="sp join-shell">
-      <SiteHeader />
-      <main className="join-page">
-      <JoinClient initialCode={code?.trim().toUpperCase()} />
-      </main>
-    </div>
+    <AppShell>
+      <div className="sp join-shell join-inapp">
+        <main className="join-page">
+          <JoinClient initialCode={code?.trim().toUpperCase()} />
+        </main>
+      </div>
+    </AppShell>
   );
 }

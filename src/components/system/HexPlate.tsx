@@ -1,3 +1,4 @@
+import { roundRing } from "@/lib/spatial/round";
 /* Hexagonal cells drawn to SVG, in the same H3 geometry the live map uses,
    for places where a map library would be too heavy: the landing plates,
    a profile's place plate, the mini maps beside a chart.
@@ -7,6 +8,8 @@
    map's Web Mercator, and it keeps the SVG free of any library. */
 
 export type Box = [number, number, number, number];
+
+const roundFlat = (ring: number[]) => { const pts: [number, number][] = []; for (let i = 0; i < ring.length; i += 2) pts.push([ring[i], ring[i + 1]]); return roundRing(pts).flat(); };
 
 export function projector(box: Box, width: number, height: number, pad = 8) {
   const [w, s, e, n] = box;
@@ -36,8 +39,10 @@ const pathOf = (ring: number[], p: (x: number, y: number) => [number, number]) =
 };
 
 export function HexPlate({
-  cells, box, width, height, pad = 8, hatchId, marks, label, className = "", scaleBarKm, night = false, children, onCell,
+  cells, box, width, height, pad = 8, hatchId, marks, label, className = "", scaleBarKm, night = false, children, onCell, round = false,
 }: {
+  /** Draw each cell as a round area inside its hexagon (the app's style). */
+  round?: boolean;
   cells: PlateCell[]; box: Box; width: number; height: number; pad?: number; hatchId?: string;
   marks?: { lng: number; lat: number; r?: number; color?: string; ring?: boolean }[];
   label: string; className?: string; scaleBarKm?: number; night?: boolean;
@@ -52,7 +57,7 @@ export function HexPlate({
       {cells.map((c) => (
         <path
           key={c.key}
-          d={pathOf(c.ring, p)}
+          d={pathOf(round ? roundFlat(c.ring) : c.ring, p)}
           style={{ fill: c.hatch && hatchId ? `url(#${hatchId})` : c.fill, stroke: c.stroke ?? (night ? "rgba(7,20,43,0.9)" : "rgba(11,30,61,0.16)"), opacity: c.opacity ?? 1, cursor: onCell ? "pointer" : undefined }}
           strokeWidth={c.dashed ? 0.9 : 0.7}
           strokeDasharray={c.dashed ? "2.5 2.5" : undefined}
@@ -62,7 +67,7 @@ export function HexPlate({
         </path>
       ))}
       {cells.filter((c) => c.selected).map((c) => (
-        <path key={`sel-${c.key}`} d={pathOf(c.ring, p)} className="sys-plate-sel" style={{ fill: "none", stroke: night ? "var(--sp-night-text)" : "var(--sp-ink)", pointerEvents: "none" }} strokeWidth="1.8" />
+        <path key={`sel-${c.key}`} d={pathOf(round ? roundFlat(c.ring) : c.ring, p)} className="sys-plate-sel" style={{ fill: "none", stroke: night ? "var(--sp-night-text)" : "var(--sp-ink)", pointerEvents: "none" }} strokeWidth="1.8" />
       ))}
       {marks?.map((m, i) => {
         const [x, y] = p(m.lng, m.lat);

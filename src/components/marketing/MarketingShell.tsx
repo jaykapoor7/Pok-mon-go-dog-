@@ -1,5 +1,7 @@
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { AppShell } from "@/components/app/AppShell";
+import { DeskHeader } from "@/components/app/DeskHeader";
 import { BackLink } from "@/components/app/BackLink";
 import "@/components/site/site.css";
 import "./shell.css";
@@ -11,13 +13,24 @@ export function MarketingShell({
   intro,
   wide,
   children,
+  inApp = false,
 }: {
+  /** Render inside the app frame (sidebar, ground, cards) instead of the site chrome. */
+  inApp?: boolean;
   eyebrow?: string;
   title: string;
   intro?: string;
   wide?: boolean;
   children: React.ReactNode;
 }) {
+  if (inApp) return (
+    <AppShell>
+      <div className="sp ms ms-inapp">
+        <DeskHeader kicker={eyebrow} title={title} lede={intro} />
+        <div className="ms-body">{children}</div>
+      </div>
+    </AppShell>
+  );
   return (
     <div className="sp ms">
       <SiteHeader />

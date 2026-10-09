@@ -11,7 +11,7 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <MarketingShell
+    <MarketingShell inApp
       eyebrow="Contact"
       title="Get in touch."
       intro="Partnerships, product questions, corrections and removal requests all reach the person building StrayPaw."

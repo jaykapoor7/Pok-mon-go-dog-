@@ -21,7 +21,7 @@ import { usePlace, kmBetween } from "@/lib/place";
 import { useFollows } from "@/lib/follows";
 import type { PublicCaseStory } from "@/lib/community-case-stories";
 
-type PAnimal = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string | null; status: string | null; needs_help: boolean | null; zone: string | null; last_seen: string | null; h3_r8: string | null };
+type PAnimal = { id: string; name: string | null; straypaw_id: string | null; cover_photo: string | null; status: string | null; needs_help: boolean | null; zone: string | null; last_seen: string | null; h3_r8: string | null; sex?: string | null; size?: string | null };
 const RADIUS = 2.5;
 const LENSES: { id: Measure; label: string; tone: MapTone }[] = [
   { id: "animals", label: "Animals", tone: "blue" },

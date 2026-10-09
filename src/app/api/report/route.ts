@@ -1,4 +1,5 @@
 import { passesAutoApproval } from "@/lib/auto-approve";
+import { checkSightingPhoto, photoCheckAvailable } from "@/lib/photo-check";
 import { sendSightingLiveEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
@@ -211,10 +212,14 @@ export async function POST(req: Request) {
   /* Automatic approval: only when every check passes (lib/auto-approve).
      Anything in doubt stays in the moderation queue for a person. */
   let autoApproved = false;
-  if (result?.sighting_id && passesAutoApproval({
+  const rulesPass = !!result?.sighting_id && passesAutoApproval({
     photoUrl, lat, lng, notes: body.notes ? String(body.notes) : null, nickname: body.nickname ? String(body.nickname) : null,
-    signedIn: !!userId, forOrganisation: !!orgCtx, claimedDogId: body.claimedDogId ? String(body.claimedDogId) : null, trust: result.trust_score ?? null,
-  })) {
+    signedIn: !!userId, forOrganisation: !!orgCtx, claimedDogId: body.claimedDogId ? String(body.claimedDogId) : null, trust: result?.trust_score ?? null,
+  });
+  /* When a Claude API key is configured, the photo must also show an animal
+     and nothing that identifies a person; any doubt leaves it for review. */
+  const photoPass = rulesPass && (!photoCheckAvailable() || (photoUrl ? (await checkSightingPhoto(photoUrl)).ok : false));
+  if (result?.sighting_id && rulesPass && photoPass) {
     const { data: approved, error: approveError } = await supa.rpc("approve_sighting", { p_sighting_id: result.sighting_id, p_dog_id: null });
     if (!approveError) {
       autoApproved = true;

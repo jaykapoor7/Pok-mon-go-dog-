@@ -1,6 +1,6 @@
 import { AccessCodeRequest } from "@/components/join/AccessCodeRequest";
 import "../join/join.css";
-import { BackLink } from "@/components/app/BackLink";
+import { AppShell } from "@/components/app/AppShell";
 
 export const metadata = {
   title: "Get your StrayPaw code",
@@ -14,9 +14,10 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
      button. It had no way back at all — and a person who opened it
      by mistake, or who does not have a code yet, was stuck. */
   return (
-    <main className="sp join-page">
-      <BackLink fallback="/" />
-      <AccessCodeRequest role={role === "feeder" ? "feeder" : "individual"} />
-    </main>
+    <AppShell>
+      <main className="sp join-page join-inapp">
+        <AccessCodeRequest role={role === "feeder" ? "feeder" : "individual"} />
+      </main>
+    </AppShell>
   );
 }

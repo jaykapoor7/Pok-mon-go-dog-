@@ -51,7 +51,7 @@ export default function HowToHelpPage() {
   const states = statesWithOrgs(stateName);
 
   return (
-    <MarketingPage
+    <MarketingPage inApp
       title="Four ways in."
       accent="Start with any."
       lede="Most people want to help and stop at not knowing what would actually make a difference. These are the four things that do, ordered by how much they ask of you."

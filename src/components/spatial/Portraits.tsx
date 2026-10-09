@@ -17,7 +17,8 @@ import type { Map as MLMap, Marker } from "maplibre-gl";
 import { ArrowUpRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { SpatialDataset } from "@/lib/spatial/types";
 import { ringOf, pointInCell } from "./data";
-import { AnimalSeal, sealMarkup } from "@/components/system/AnimalSeal";
+import { FolkPortrait } from "@/components/art/FolkPortrait";
+import { sealMarkup } from "@/components/system/AnimalSeal";
 
 type Animal = {
   id: string; name: string | null; code: string | null; straypaw_id: string | null; cover_photo: string | null;
@@ -167,7 +168,7 @@ export function Portraits({ map, ds, on, pick }: { map: MLMap | null; ds: Spatia
     <div className="sm-card" key={open.id} role="dialog" aria-label={name ?? "An animal"}>
       <button type="button" className="sm-card-x" onClick={() => setCard(null)} aria-label="Close"><X size={15} /></button>
       <div className={`sm-card-ph ${open.cover_photo ? "" : "is-mono"}`}>
-        {open.cover_photo ? <img src={open.cover_photo} alt={name ? `Photograph of ${name}` : "Photograph attached to this animal record"} /> : <><AnimalSeal seed={open.id} name={name} /><span className="atlas-no-photo">Photograph not recorded</span></>}
+        {open.cover_photo ? <img src={open.cover_photo} alt={name ? `Photograph of ${name}` : "Photograph attached to this animal record"} /> : <><FolkPortrait seed={open.id} className="atlas-folk" /><span className="atlas-no-photo">Photograph not recorded</span></>}
       </div>
       <div className="sm-card-b">
         <p className="sm-card-code">{open.straypaw_id ?? open.code ?? "On the register"}</p>

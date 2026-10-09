@@ -68,7 +68,7 @@ export default function LearnPage() {
             </p>
           </header>
 
-          <PhoneFold count={3} total={KIND_HOUR_MATERIALS.length} noun="more materials">
+          <PhoneFold count={2} total={KIND_HOUR_MATERIALS.length} noun="more materials">
           <ol className="material-list">
             {KIND_HOUR_MATERIALS.map((material, index) => (
               <li key={material.id} id={material.id}>

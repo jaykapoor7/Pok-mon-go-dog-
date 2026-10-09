@@ -32,7 +32,10 @@ export function DogPhoto({
   fit = "cover",
   width = 384,
   tone = "neutral",
+  size,
 }: {
+  /** Recorded size class; a puppy's illustration is drawn smaller. */
+  size?: string | null;
   src: string | null | undefined;
   alt: string;
   seed?: string;
@@ -77,7 +80,7 @@ export function DogPhoto({
         )
       ) : (
         <div className="h-full w-full" style={{ boxShadow: `inset 0 0 0 2px ${RING[tone]}` }}>
-          <FolkPortrait seed={seed ?? alt ?? ""} className="block h-full w-full" label={`${alt || "Animal"}: illustration, no photograph on record`} />
+          <FolkPortrait seed={seed ?? alt ?? ""} size={size} className="block h-full w-full" label={`${alt || "Animal"}: illustration, no photograph on record`} />
         </div>
       )}
     </div>

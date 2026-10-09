@@ -489,6 +489,7 @@
   .sx.sd .ptabs-bar button { flex: 1 0 auto; min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--d-dim); font: inherit; font-size: 13.5px; font-weight: 600; white-space: nowrap; cursor: pointer; }
   .sx.sd .ptabs-bar button[aria-selected="true"] { background: var(--d-text); color: #fff; }
   .sx.sd .ptabs-panel:not([data-on]) { display: none; }
+  .sx.sd .pfold:not(.is-open)[data-count="2"] :is(ul, ol) > li:nth-child(n+3),
   .sx.sd .pfold:not(.is-open)[data-count="3"] :is(ul, ol) > li:nth-child(n+4),
   .sx.sd .pfold:not(.is-open)[data-count="4"] :is(ul, ol) > li:nth-child(n+5),
   .sx.sd .pfold:not(.is-open)[data-count="5"] :is(ul, ol) > li:nth-child(n+6),
@@ -631,3 +632,75 @@
 .sx.sd .sx-sheet3 .sx-sheet-row { justify-content: center; gap: 4px 20px; padding: 2px 0 0; border: 0; font-size: 13.5px; }
 .sx.sd .sx-sheet3 .sx-sheet-row a, .sx.sd .sx-sheet3 .sx-sheet-row button { color: var(--d-mute); text-decoration: none; min-height: 40px; display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; font: inherit; }
 .sx.sd .sx-row > .sx-avatar { flex: none !important; width: 36px; }
+
+/* ── site pages shown inside the app frame ────────────────────────── */
+.sx.sd :is(.mk-inapp, .ms-inapp, .join-inapp, .ex-inapp, .admin-inapp) { background: transparent !important; color: var(--d-text); min-height: 0; }
+.sx.sd :is(.mk-inapp, .ms-inapp) { display: grid; gap: 16px; padding: 20px var(--x-gutter) 40px; max-width: 1240px; margin: 0 auto; box-sizing: border-box; }
+.sx.sd .mk-inapp :is(.mk-band, .mk-next), .sx.sd .ms-inapp .ms-body { margin: 0 !important; padding: 22px 24px !important; border-radius: var(--card-r); background: #fff !important; color: var(--d-text) !important; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); }
+.sx.sd .mk-inapp .mk-band.mk-ink :is(h2, h3, p, li, span, b, div) { color: var(--d-text) !important; }
+.sx.sd .mk-inapp :is(.mk-h2, .sp-display) { font-size: clamp(24px, 2.4vw, 32px) !important; font-weight: 600; letter-spacing: -0.03em; }
+.sx.sd .mk-inapp .mk-h2 span, .sx.sd .mk-inapp .sp-display span { color: var(--d-sky) !important; }
+.sx.sd .mk-inapp .mk-next-card { background: var(--d-panel-2); color: var(--d-text); border-radius: 16px; }
+.sx.sd :is(.join-inapp) { display: grid; place-items: start center; padding: 28px var(--x-gutter) 40px; }
+.sx.sd .join-inapp :is(.join-page, main) { width: min(560px, 100%); margin: 0 auto; padding: 24px !important; border-radius: var(--card-r); background: #fff; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); }
+.sx.sd .join-inapp.join-shell main { padding: 24px !important; }
+.sx.sd .ex-inapp { padding: 20px var(--x-gutter) 40px; display: grid; gap: 16px; max-width: 1240px; margin: 0 auto; }
+.sx.sd .ex-inapp main { display: grid; gap: 16px; }
+.sx.sd .ex-inapp main > section { margin: 0 !important; border-radius: var(--card-r); background: #fff !important; color: var(--d-text) !important; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); overflow: hidden; }
+.sx.sd .ex-inapp main > section :is(h1, h2, h3, p, b, span, dt, dd, small, a:not(.x-btn):not(.sys-btn)) { color: inherit; }
+.sx.sd .admin-inapp { padding: 20px var(--x-gutter) 40px; max-width: 1240px; margin: 0 auto; }
+.sx.sd .admin-inapp > * { background: transparent; }
+@media (max-width: 760px) {
+  .sx.sd :is(.mk-inapp, .ms-inapp, .ex-inapp, .admin-inapp) { padding: 12px var(--x-gutter) 24px; gap: 12px; }
+  .sx.sd .mk-inapp :is(.mk-band, .mk-next), .sx.sd .ms-inapp .ms-body { padding: 16px !important; }
+  .sx.sd .join-inapp { padding: 12px var(--x-gutter) 24px; }
+}
+.sx.sd .ex-inapp .ex-hero { --sp-night: #ffffff; --sp-night-text: #0b1e3d; background: #fff; color: var(--d-text); min-height: min(64vh, 620px); }
+.sx.sd .ex-inapp .ex-hero::after { background: linear-gradient(90deg, #fff 0%, #fff 55%, rgba(255, 255, 255, 0) 100%); }
+.sx.sd .ex-inapp .ex-hero :is(h1, p, span, small, b) { color: var(--d-text) !important; }
+.sx.sd .ex-inapp .ex-hero-copy { padding: 32px 32px; }
+.sx.sd .ex-inapp .ex-hero h1 { font-size: clamp(36px, 4.4vw, 60px); }
+/* Sign-in pages already draw their own card: no frame around it. */
+.sx.sd .join-inapp :is(.join-page, main) { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
+@media (max-width: 760px) {
+  /* Review lists (data quality and similar): name and count on one line, the note clamped. */
+  .sx.sd .sx-main .border-t > a.grid { grid-template-columns: minmax(0, 1fr) auto !important; gap: 2px 12px !important; padding: 12px 0 !important; align-items: center; }
+  .sx.sd .sx-main .border-t > a.grid > span { grid-column: 1 / -1; display: -webkit-box !important; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .sx.sd .sx-main .border-t > a.grid > svg { display: none; }
+  .sx.sd .sx-main .border-t > a.grid > strong { font-size: 18px !important; }
+  /* Saved: four suggestions are enough on a phone. */
+  .sx.sd .fl-grid > :nth-child(n+5) { display: none; }
+  /* Dashboards and Explore: a shorter map on a phone. */
+  .sx.sd .db-map { height: 38vh !important; min-height: 280px; }
+  .sx.sd .ex-inapp .ex-map { height: 34vh !important; min-height: 220px; }
+  .sx.sd .ex-inapp .ex-hero-copy { padding: 18px 16px 8px; }
+  .sx.sd .ex-inapp .ex-hero h1 { font-size: 32px; }
+}
+
+/* Phone: long step lists and city lists slide sideways or stop at five,
+   so every page stays within about two screens. */
+@media (max-width: 760px) {
+  .sx.sd .mk-inapp .mk-steps { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; grid-template-columns: none; border: 0; padding-bottom: 6px; }
+  .sx.sd .mk-inapp .mk-step { flex: 0 0 78%; scroll-snap-align: start; border: 1px solid var(--card-b); border-radius: 14px; background: #fff; }
+  .sx.sd .mk-inapp .mk-step:empty { display: none; }
+  .sx.sd .ex-inapp .ex-cities > li:nth-child(n+6) { display: none; }
+  .sx.sd .ex-inapp .ex-rest { display: none; }
+}
+@media (max-width: 760px) {
+  .sx.sd .fl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sx.sd .fl-grid .fl-photo { aspect-ratio: 1 / 1; height: auto; }
+  .sx.sd .fl-grid .fl-photo img, .sx.sd .fl-grid .fl-noimg { height: 100%; }
+  .sx.sd .fl-grid .fl-meta { display: none; }
+}
+/* Phone: helplines as tight two-line rows; every number stays visible. */
+@media (max-width: 760px) {
+  .sx.sd .rd-helplines { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 10px; }
+  .sx.sd .rd-helplines .rd-contact { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; padding: 10px 0; border: 0; border-bottom: 1px solid var(--card-b); border-radius: 0; box-shadow: none; background: none; }
+  .sx.sd .rd-helplines .rd-contact > p { margin: 0; }
+  .sx.sd .rd-helplines .rd-contact > p:nth-child(2) { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-size: 15px; }
+  .sx.sd .resource-desk #helplines, .sx.sd .resource-desk #post-bite { margin-top: 0; }
+}
+/* Site pages inside the app speak in sentence case: no spaced capitals. */
+.sx.sd .sx-main .mk-inapp .mk-tag, .sx.sd .sx-main .ms-inapp .mk-tag { display: inline-block; text-transform: lowercase !important; letter-spacing: 0 !important; font-family: inherit; }
+.sx.sd .sx-main .mk-inapp .mk-tag::first-letter, .sx.sd .sx-main .ms-inapp .mk-tag::first-letter { text-transform: uppercase !important; }
+.sx.sd .sx-main .mk-inapp svg text, .sx.sd .sx-main .ms-inapp svg text { text-transform: lowercase !important; letter-spacing: 0 !important; font-family: inherit; }

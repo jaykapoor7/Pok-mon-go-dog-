@@ -182,3 +182,4 @@
   .sx.sd .mq-do kbd { display: none; }
   .sx.sd .mq-head-c { width: 100%; }
 }
+.sx.sd .mq-checks li.is-wait { color: var(--d-mute); }

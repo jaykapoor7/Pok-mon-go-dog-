@@ -40,6 +40,8 @@ export function ModerationQueue() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [done, setDone] = useState(0);
+  const [photoCheck, setPhotoCheck] = useState(false);
+  const [verdicts, setVerdicts] = useState<Record<string, { ok: boolean; reason: string } | "checking">>({});
 
   const load = useCallback(async (s: string) => {
     setMsg(null);
@@ -47,7 +49,7 @@ export function ModerationQueue() {
     if (!res) { setMsg("Network error."); return; }
     const j = await res.json().catch(() => ({}));
     if (!res.ok) { setMsg(j.error ?? "Could not load."); if (res.status === 401) { setSecret(null); try { localStorage.removeItem(KEY); } catch { /* ok */ } } return; }
-    setSecret(s); setItems(j.pending ?? []); setAuto(j.autoApproval !== false); setAt(0);
+    setSecret(s); setItems(j.pending ?? []); setAuto(j.autoApproval !== false); setPhotoCheck(!!j.photoCheck); setAt(0);
     try { localStorage.setItem(KEY, s); } catch { /* ok */ }
   }, []);
 
@@ -67,6 +69,15 @@ export function ModerationQueue() {
     setItems((xs) => (xs ?? []).filter((x) => x.id !== cur.id));
     setAt((i) => Math.max(0, Math.min(i, (items?.length ?? 1) - 2)));
   }, [cur, secret, busy, items]);
+
+  /* The photo check for the report on screen, once per report. */
+  useEffect(() => {
+    if (!cur || !secret || !photoCheck || verdicts[cur.id] || !cur.photo_url) return;
+    setVerdicts((v) => ({ ...v, [cur.id]: "checking" }));
+    fetch("/api/admin/sightings", { method: "POST", headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" }, body: JSON.stringify({ action: "photo_check", id: cur.id }) })
+      .then((r) => r.json()).then((j) => setVerdicts((v) => ({ ...v, [cur.id]: j.verdict ?? { ok: false, reason: "Photo check unavailable" } })))
+      .catch(() => setVerdicts((v) => ({ ...v, [cur.id]: { ok: false, reason: "Photo check failed" } })));
+  }, [cur, secret, photoCheck, verdicts]);
 
   const skip = useCallback(() => setAt((i) => ((items?.length ?? 0) ? (i + 1) % items!.length : 0)), [items]);
 
@@ -115,7 +126,7 @@ export function ModerationQueue() {
           <p>{items === null ? "Loading…" : `${items.length} waiting${done ? ` · ${done} handled this session` : ""}`}</p>
         </div>
         <div className="mq-head-c">
-          <span className={`mq-auto${auto ? " is-on" : ""}`}><ShieldCheck size={15} aria-hidden /> Auto-approval {auto ? "on" : "off"}</span>
+          <span className={`mq-auto${auto ? " is-on" : ""}`}><ShieldCheck size={15} aria-hidden /> Auto-approval {auto ? "on" : "off"}{auto && photoCheck ? " · photo check on" : ""}</span>
           {passing > 0 && <button type="button" className="x-btn is-ink" disabled={busy} onClick={approvePassing}>Approve {passing} that pass every check</button>}
           <Link href="/admin" className="mq-more">Other admin tools <ArrowRight size={14} aria-hidden /></Link>
         </div>
@@ -145,6 +156,7 @@ export function ModerationQueue() {
             {!!cur.mood_tags?.length && <p className="mq-tags">{cur.mood_tags.map((t) => <span key={t}>{t}</span>)}</p>}
             <ul className="mq-checks" aria-label="Automatic approval checks">
               {cur.checks.map((c) => <li key={c.id} className={c.ok ? "is-ok" : "is-no"}>{c.ok ? <Check size={14} aria-hidden /> : <X size={14} aria-hidden />}{c.label}</li>)}
+              {photoCheck && (() => { const v = verdicts[cur.id]; return v === "checking" || !v ? <li className="is-wait"><Clock size={14} aria-hidden />Checking the photo…</li> : <li className={v.ok ? "is-ok" : "is-no"}>{v.ok ? <Check size={14} aria-hidden /> : <X size={14} aria-hidden />}Photo: {v.reason}</li>; })()}
             </ul>
             {cur.claimed_dog_id && (
               <p className="mq-claim">The reporter says this is <Link href={`/dog/${cur.claimed_dog_id}`} target="_blank">{animalTag({ id: cur.claimed_dog_id })}</Link>. Check the record before linking.</p>

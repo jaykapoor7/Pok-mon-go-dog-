@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { AppShell } from "@/components/app/AppShell";
+import { PhoneTabs } from "@/components/shell/PhoneTabs";
+import { Children, isValidElement, type ReactElement } from "react";
+
+/* A tab label from a section title: its first few words. */
+const shortLabel = (t: string) => { const w = t.split(/\s+/); return w.length > 3 ? `${w.slice(0, 3).join(" ")}…` : t; };
+import { DeskHeader } from "@/components/app/DeskHeader";
 import type { ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -38,7 +45,10 @@ export function MarketingPage({
   figure,
   children,
   next,
+  inApp = false,
 }: {
+  /** Render inside the app frame (sidebar, ground, cards) instead of the site chrome. */
+  inApp?: boolean;
   kicker?: string;
   title: string;
   /** The second line, set in the accent colour. */
@@ -48,6 +58,32 @@ export function MarketingPage({
   children: ReactNode;
   next: { label: string; href: string; note: string }[];
 }) {
+  if (inApp) return (
+    <AppShell>
+      <div className="sp mk mk-inapp">
+        <DeskHeader kicker={kicker} title={<>{title} {accent}</>} lede={lede} />
+        <PhoneTabs label="Sections" tabs={[
+          ...Children.toArray(children).filter(isValidElement).map((c, i) => {
+            const pr = (c as ReactElement<{ title?: string; kicker?: string }>).props;
+            return { id: `s${i}`, label: shortLabel(pr.title ?? pr.kicker ?? `Part ${i + 1}`), node: c };
+          }),
+          { id: "next", label: "Read next", node: (
+            <section className="mk-next">
+              <div className="mk-next-grid">
+                {next.map((n) => (
+                  <Link key={n.href} href={n.href} className="mk-next-card">
+                    <b>{n.label}</b>
+                    <span>{n.note}</span>
+                    <ArrowUpRight size={14} />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) },
+        ]} />
+      </div>
+    </AppShell>
+  );
   return (
     <div className="sp mk">
       <SiteHeader />

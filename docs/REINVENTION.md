@@ -149,3 +149,11 @@ never finer than a cell; sample-derived figures say they are loaded detail.
 ## Round 7 — dashboard frame
 
 Every page is a set of bordered white cards on the living ground (`paper.css`, "Dashboard frame"): the page header (`.dh`) is a card, each section beside it is a card (one rule for any container whose child is `.dh`, using `:has()`), phone-tab panels are cards, insights' header/picker/findings are cards, and dashboards' header, figures, map and panels share the same edge (`--card-b`, `--card-sh`, `--card-r`). The sidebar and top bar carry the same border. The NGO workspace tab row and the sign-in notice are cards too. Verified on a production build: 41 journey checks; pages ≤ 2.4 screens on a phone.
+
+## Round 8 — site pages in the app, descriptions, photo check
+
+- **Site pages inside the app frame:** `/access`, `/join`, `/partner-apply`, `/explore`, `/admin`, `/contact`, `/data-governance`, `/how-to-help` and `/research-standards` render inside `AppShell` with the same header card, backdrop and section cards (`MarketingPage inApp`, `MarketingShell inApp`). Long sections become phone tabs. The public landing and marketing navigation are unchanged.
+- **No hexagons left:** `HexPlate round`, the partner animal record, the embed map and the Following / report-match fallbacks now use round areas or folk portraits.
+- **Descriptions from the record:** the view `public.public_spatial_animals` gained `sex` (normalised to male / female / null) and `size` (migration `public_animal_appearance`, applied to the live project; additive, existing columns and grants unchanged; `supabase/public-animal-appearance.sql`). Unnamed animals read "Female · medium · place" or "Male puppy · place"; puppies and small dogs get a smaller folk portrait. Unknown stays unstated.
+- **Photo check:** `lib/photo-check.ts` asks Claude whether a street animal is visible and whether a face, plate or address is. Auto-approval in `/api/report` needs it to pass when `ANTHROPIC_API_KEY` is set; with no key the rules alone decide, as before. Any error, refusal or doubt fails closed and the report waits in `/moderate`, which shows the verdict per report. Not verified against the live API (no key in this environment); unit tests cover the fail-closed paths.
+- **Phones:** every app route now measures ≤ 2.1 screens at 390 × 844 (municipality 2.1; the rest ≤ 2.0).

@@ -35,7 +35,7 @@ function rng(seed: string) {
   return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; };
 }
 
-export function FolkPortrait({ seed, className = "", label }: { seed: string; className?: string; label?: string }) {
+export function FolkPortrait({ seed, className = "", label, size }: { seed: string; className?: string; label?: string; size?: string | null }) {
   const uid = useId().replace(/:/g, "");
   const r = rng(seed || "straypaw");
   const S = SCHEMES[Math.floor(r() * SCHEMES.length)];
@@ -131,7 +131,7 @@ export function FolkPortrait({ seed, className = "", label }: { seed: string; cl
       <rect width="200" height="200" fill={`url(#${clip}-d)`} />
       {skyEl}
       <path d="M-10 200 C 30 168, 90 160, 210 176 L 210 200 Z" fill={S.hill} />
-      <g transform={flip ? "translate(200 0) scale(-1 1)" : undefined}>
+      <g transform={`${flip ? "translate(200 0) scale(-1 1) " : ""}${size === "puppy" ? "translate(26 40) scale(0.74)" : size === "small" ? "translate(12 18) scale(0.88)" : ""}`.trim() || undefined}>
         {tail}
         <g fill={S.coat}>{bodyShapes}{pose === "sit" ? earsSit : earsLie}</g>
         <g clipPath={`url(#${clip})`}>{marks}</g>

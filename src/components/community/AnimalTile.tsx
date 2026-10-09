@@ -15,7 +15,7 @@ import { animalSubtitle, animalTitle, givenName } from "@/lib/animal-name";
 
 export type TileAnimal = {
   id: string; name: string | null; straypaw_id: string | null; cover_photo: string | null;
-  zone: string | null; last_seen: string | null; status?: string | null; needs_help?: boolean | null;
+  zone: string | null; last_seen: string | null; status?: string | null; needs_help?: boolean | null; sex?: string | null; size?: string | null;
 };
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -42,7 +42,7 @@ export function AnimalTile({ a, size = "m", state }: { a: TileAnimal; size?: "s"
   return (
     <Link href={`/dog/${a.id}`} className={`at2 at2-${size}${hot ? " is-hot" : ""}`}>
       <span className="at2-media">
-        <DogPhoto src={a.cover_photo} alt={title} seed={a.id} className="at2-ph" width={480} />
+        <DogPhoto src={a.cover_photo} alt={title} seed={a.id} size={a.size} className="at2-ph" width={480} />
         {st && <span className={`at2-state is-${st.tone || "quiet"}`}>{st.label}</span>}
         {!a.cover_photo && <span className="at2-ill">Illustration</span>}
       </span>

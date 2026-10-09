@@ -1,7 +1,8 @@
 /* Automatic approval only when every check passes; anything in doubt waits for a person. */
 import assert from "node:assert/strict";
 import { passesAutoApproval, sightingChecks } from "../src/lib/auto-approve";
-import { animalTag, animalTitle, givenName } from "../src/lib/animal-name";
+import { checkSightingPhoto, photoCheckAvailable } from "../src/lib/photo-check";
+import { animalSubtitle, animalTag, animalTitle, describeAnimal, givenName } from "../src/lib/animal-name";
 
 const base = { photoUrl: "https://x/p.jpg", lat: 11.0, lng: 76.9, notes: "Limping near the bus stop", nickname: null, signedIn: true, forOrganisation: false, claimedDogId: null, trust: 60 };
 
@@ -30,4 +31,21 @@ assert.equal(animalTag({ straypaw_id: "SP-D-PK0UBR" }), "PK0UBR");
 assert.equal(animalTitle({ name: "Dog near Kovilmedu", straypaw_id: "SP-D-PK0UBR" }), "PK0UBR");
 assert.equal(animalTitle({ name: "Moti", straypaw_id: "SP-D-PK0UBR" }), "Moti");
 
-console.log("auto-approve and naming: ok");
+assert.equal(describeAnimal({ sex: "Female", size: "medium" }), "Female · medium");
+assert.equal(describeAnimal({ sex: "M", size: "puppy" }), "Male puppy");
+assert.equal(describeAnimal({ sex: null, size: "small" }), "Small dog");
+assert.equal(describeAnimal({}), null);
+assert.equal(animalSubtitle({ name: null, sex: "female", size: "small", zone: "Kovilmedu, Coimbatore" }), "Female · small · Kovilmedu");
+assert.equal(animalSubtitle({ name: null, zone: "Kovilmedu" }), "Unnamed · Kovilmedu");
+/* Without credentials the photo check is unavailable and never approves. */
+async function photo() {
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_AUTH_TOKEN;
+  assert.equal(photoCheckAvailable(), false);
+  const v = await checkSightingPhoto("https://example.com/dog.jpg");
+  assert.equal(v.ok, false, "no key: the photo check never approves");
+  process.env.ANTHROPIC_API_KEY = "test-key-not-real";
+  const insecure = await checkSightingPhoto("http://example.com/dog.jpg");
+  assert.equal(insecure.ok, false, "non-https photos are never sent");
+  delete process.env.ANTHROPIC_API_KEY;
+}
+photo().then(() => console.log("auto-approve, photo check and naming: ok"));
