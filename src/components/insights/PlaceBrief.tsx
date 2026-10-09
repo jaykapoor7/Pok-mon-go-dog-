@@ -21,6 +21,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+
+const PHONE_FIRST = 2;
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { HexPlate } from "@/components/system/HexPlate";
@@ -70,6 +72,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
   const requestedCity = params.get("city");
   const { ds, ix, loading, error, cities: cityList } = useSpatialDataset(scope, userKey);
   const [place, setPlace] = useState<Place | null>(null);
+  const [allShown, setAllShown] = useState(false);
   const [period, setPeriod] = useState<Period>("all");
   const mine = usePlace();
   const [gate, setGate] = useState<GateState | null>(null);
@@ -415,7 +418,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       </div>}
 
       {/* ── the answers ────────────────────────────────────────────── */}
-      <div className="ib-body">
+      <div className={`ib-body${allShown ? " is-all" : ""}`}>
         {shown.length > 0 && <div className="ib-chapter"><h2>{shown.length} findings from the record</h2><p>{allIdx.length.toLocaleString("en-IN")} loaded, location-linked requests{cityRoll ? ` / ${cityRoll.cases.toLocaleString("en-IN")} citywide` : ""}. Status figures outside this sample are labelled separately.</p></div>}
         {loading && <p className="ib-state" role="status">Reading the register…</p>}
         {error && <div className="ib-unavailable" role="status">
@@ -437,6 +440,8 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
         {ds && shown.length === 0 && !loading && (
           <p className="ib-state">Nothing is recorded {isLocality ? `in ${placeName}` : `in ${cityName}`} {period !== "all" ? `in the ${periodLabel} ` : ""}yet. Choose another place or period.</p>
         )}
+        {/* Phones show the first findings; the rest open on request. */}
+        {shown.length > PHONE_FIRST && !allShown && <button type="button" className="ib-more" onClick={() => setAllShown(true)}>Show all {shown.length} findings</button>}
         {tail}
       </div>
     </div>

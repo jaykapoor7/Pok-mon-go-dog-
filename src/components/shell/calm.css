@@ -140,3 +140,38 @@
   .sx.sd .sx-main .dz2-facts .dz-fact:nth-child(-n+2) { border-top: 0; }
   .sx.sd .sx-main .ac-grid { padding: 18px 18px 0; gap: 20px 14px; }
 }
+
+/* ── the last boxes, unboxed ──────────────────────────────────────── */
+/* Empty states: quiet space on the sheet, not a card inside a card. */
+.sx.sd .sx-main .es { display: grid; justify-items: center; gap: 6px; padding: 48px 16px; text-align: center; }
+.sx.sd .sx-main .es-icon { display: grid; place-items: center; color: var(--d-mute); margin-bottom: 4px; }
+.sx.sd .sx-main .es-title { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--d-text); }
+.sx.sd .sx-main .es-text { margin: 0; max-width: 42ch; font-size: 14px; line-height: 1.5; color: var(--d-mute); }
+.sx.sd .sx-main .es-act { margin-top: 12px; }
+.sx.sd .sx-main :is(.feed-index-empty, .follow-empty, .spa-empty) { border: 0 !important; box-shadow: none !important; background: transparent !important; border-radius: 0 !important; padding-inline: 0 !important; }
+
+/* Filters: one row of text, the chosen one underlined. */
+.sx.sd .sx-main .pg-filters { display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none; }
+.sx.sd .sx-main .pg-filters::-webkit-scrollbar { display: none; }
+.sx.sd .sx-main .pg-filters button { flex: none; min-height: 40px; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 500; color: var(--d-mute); box-shadow: inset 0 -2px 0 transparent; cursor: pointer; white-space: nowrap; }
+.sx.sd .sx-main .pg-filters button[aria-pressed="true"] { color: var(--d-text); box-shadow: inset 0 -2px 0 var(--d-text); }
+
+/* Record tabs: the same underline as every other tab row. */
+.sx.sd .sx-main .dt-bar { gap: 22px !important; padding: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: inset 0 -1px 0 var(--hair) !important; justify-self: stretch; }
+.sx.sd .sx-main .dt-bar button { padding: 0 !important; border-radius: 0 !important; background: none !important; color: var(--d-mute) !important; font-weight: 500 !important; box-shadow: inset 0 -2px 0 transparent; }
+.sx.sd .sx-main .dt-bar button[aria-selected="true"] { color: var(--d-text) !important; box-shadow: inset 0 -2px 0 var(--d-text); }
+.sx.sd .sx-main .dt-panel { background: transparent !important; box-shadow: none !important; }
+
+/* Phone Insights: findings as a plain list, not a swipe deck. */
+@media (max-width: 760px) {
+  .sx.sd .sx-main .ib-body { display: grid !important; gap: 0 !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; }
+  .sx.sd .sx-main .ib-body > * { flex: none !important; max-height: none !important; overflow: visible !important; background: transparent !important; box-shadow: none !important; border-radius: 0 !important; border-top: 1px solid var(--hair) !important; padding: 20px 18px !important; color: var(--d-text) !important; }
+  .sx.sd .sx-main .ib-body > .ib-chapter { background: transparent !important; }
+  .sx.sd .sx-main .ib-body > .ib-chapter :is(h2, p) { color: var(--d-text) !important; }
+  .sx.sd .sx-main .ib-body > .ib-chapter p { color: var(--d-mute) !important; }
+}
+.sx.sd .sx-main .ib-more { display: none; }
+@media (max-width: 760px) {
+  .sx.sd .sx-main .ib-body:not(.is-all) > .ib-q ~ .ib-q ~ .ib-q { display: none !important; }
+  .sx.sd .sx-main .ib-more { display: block; margin: 0 18px 8px; min-height: 44px; border: 0; border-top: 1px solid var(--hair); background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--d-sky); text-align: left; cursor: pointer; }
+}

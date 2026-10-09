@@ -15,7 +15,7 @@ export function PublicProgrammeBrowser({programmes,initialKind="all"}:{programme
  const shown=useMemo(()=>{const q=query.trim().toLowerCase();return programmes.filter(p=>{const category=programmeCategory(p);if(filter!=="all"&&category!==filter)return false;if(!q)return true;return[p.name,p.ngo_name,p.city,p.state,p.zone,p.public_summary,p.kind].filter(Boolean).some(v=>String(v).toLowerCase().includes(q))})},[programmes,filter,query]);
  return <section>
   <div className="flex flex-col gap-3 border-y border-black/[.09] py-4 sm:flex-row sm:items-center sm:justify-between">
-   <div className="flex flex-wrap gap-2">{FILTERS.map(f=><button key={f.id} type="button" onClick={()=>setFilter(f.id)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${filter===f.id?"border-[#2457ce] bg-[#eef3ff] text-[#2457ce]":"border-black/[.1]"}`}>{f.label}</button>)}</div>
+   <div className="pg-filters" role="group" aria-label="Filter programmes">{FILTERS.map(f=><button key={f.id} type="button" onClick={()=>setFilter(f.id)} aria-pressed={filter===f.id}>{f.label}</button>)}</div>
    <label className="flex min-w-64 items-center gap-2 border border-black/[.1] bg-white px-3"><Search size={15}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search programme, organisation, place…" className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none"/></label>
   </div>
   <div className="flex items-center justify-between py-4 text-xs opacity-60"><span>{shown.length} programme{shown.length===1?"":"s"}</span>{query&&<button onClick={()=>setQuery("")} className="font-semibold">Clear search</button>}</div>
