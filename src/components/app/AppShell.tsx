@@ -24,7 +24,9 @@ import "./street-os.css";
 import "@/components/shell/shell.css";
 import "@/components/shell/dark.css";
 import "@/components/shell/paper.css";
+import "@/components/shell/record.css";
 import { FolkVignette } from "@/components/art/Folk";
+import { FolkBackdrop } from "@/components/art/FolkBackdrop";
 
 /* ════════════════════════════════════════════════════════════════════
    The StrayPaw app shell.
@@ -93,6 +95,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   return (
     <InShell.Provider value={true}>
       <div className={`sx sd spa-scope ${SX_FONTS}${flush ? " is-flush" : ""}${isReporting ? " is-reporting" : ""}`} data-space={space}>
+        <FolkBackdrop space={space} />
         <Welcome />
         <a href="#spa-main" className="sx-skip">Skip to content</a>
 

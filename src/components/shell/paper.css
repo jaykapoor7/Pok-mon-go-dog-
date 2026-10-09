@@ -442,3 +442,109 @@
 .sx.sd :is(.sa-map, .pp-map) { background: #f4efe6; }
 .sx.sd :is(.sa-map, .pp-map) :is(.maplibregl-ctrl-attrib, .maplibregl-ctrl-attrib a) { color: rgba(11, 30, 61, 0.55) !important; }
 .sx.sd .ax-cap .ax-ladder button { min-height: 40px; min-width: 40px; padding: 0 4px; margin: -4px -4px; }
+
+/* ════════════════════════════════════════════════════════════════════
+   One voice. A single typeface (DM Sans) at every size, upright, no mono
+   labels, no italic flourishes. Hierarchy comes from size and weight.
+   ════════════════════════════════════════════════════════════════════ */
+.sx.sd { --x-serif: var(--x-sans); --x-mono: var(--x-sans); --font-serif-stack: var(--x-sans); --font-mono: var(--x-sans); --font-serif: var(--x-sans); }
+.sx.sd *:not(svg):not(svg *) { font-family: var(--x-sans) !important; }
+.sx.sd :is(em, cite, .italic, [class*="italic"]) { font-style: normal !important; }
+.sx.sd :is(h1, h2, h3, .dh-title, .db-title, .x-display, .x-h1, .x-h2, .ax-title, .dz-name) em { color: inherit !important; font-weight: inherit !important; letter-spacing: inherit !important; font-size: inherit !important; }
+.sx.sd :is([class*="kicker"], [class*="eyebrow"], .sys-eyebrow, .x-label) { text-transform: none !important; letter-spacing: 0 !important; }
+.sx.sd :is(.lr-placemap, .lr-area-fallback, .lr-banner-map) { background: #f4efe6; }
+/* The ground carries the art now; the page itself stays clear above it. */
+.sx.sd { background: #f7f2ea; background-attachment: initial; }
+.sx.sd .sx-main :not(.dz2-tag):not(kbd) { text-transform: none !important; }
+
+/* ── phone "More": one screen ─────────────────────────────────────── */
+.sx.sd .sx-sheet2 { max-height: 86dvh; background: #fbf8f2; }
+.sx.sd .sx-sheet2 .sx-sheet-head { background: #fbf8f2; padding: 14px 0 8px; }
+.sx.sd .sx-sheet2 .sx-sheet-head h2 { font-size: 20px; }
+.sx.sd .sx-sheet-sp { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 14px; padding: 0 16px; }
+.sx.sd .sx-sheet-sp::-webkit-scrollbar { display: none; }
+.sx.sd .sx-sheet-sp a { flex: none; display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--d-line-2); color: var(--d-dim); font-size: 13.5px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.sx.sd .sx-sheet-sp a[aria-current] { background: var(--d-text); color: #fff; box-shadow: none; }
+.sx.sd .sx-sheet-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 6px; margin-bottom: 16px; }
+.sx.sd .sx-sheet-tiles a { display: grid; justify-items: center; gap: 6px; padding: 4px 2px; color: var(--d-text); text-decoration: none; text-align: center; font-size: 12px; font-weight: 500; line-height: 1.2; }
+.sx.sd .sx-tile-ic { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: #fff; color: var(--d-sky); box-shadow: 0 0 0 1px var(--d-line), 0 8px 18px -14px rgba(11, 30, 61, 0.4); }
+.sx.sd .sx-sheet-tiles a[aria-current] .sx-tile-ic { background: var(--d-text); color: #fff; }
+.sx.sd .sx-sheet-tiles a > span:last-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sx.sd .sx-sheet-me { display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 10px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--d-line); }
+.sx.sd .sx-me-t { flex: 1; display: grid; min-width: 0; }
+.sx.sd .sx-me-t small { color: var(--d-mute); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx.sd .sx-me-btn { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--d-panel-2); color: var(--d-text); cursor: pointer; }
+.sx.sd .sx-me-pill { flex: 1; display: grid; place-items: center; min-height: 44px; border-radius: 999px; background: var(--d-panel-2); color: var(--d-text); font-weight: 600; text-decoration: none; }
+.sx.sd .sx-me-pill.is-main { background: var(--d-flame); color: #fff; }
+.sx.sd .sx-sheet2 .sx-sheet-row { gap: 6px 18px; padding-top: 8px; border-top: 0; font-size: 13.5px; }
+.sx.sd .sx-sheet2 .sx-sheet-row a { color: var(--d-dim); text-decoration: none; min-height: 40px; display: inline-flex; align-items: center; gap: 4px; }
+
+/* ── phone sections as tabs; long lists folded ───────────────────── */
+.sx.sd .ptabs-bar { display: none; }
+.sx.sd .pfold-more { display: none; }
+@media (max-width: 760px) {
+  .sx.sd .ptabs { display: grid; gap: 12px; }
+  .sx.sd .ptabs-bar { position: sticky; top: 64px; z-index: 5; display: flex; gap: 4px; margin: 0; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.96); box-shadow: 0 0 0 1px var(--d-line), 0 10px 24px -18px rgba(11, 30, 61, 0.5); overflow-x: auto; scrollbar-width: none; backdrop-filter: blur(8px); }
+  .sx.sd .ptabs-bar::-webkit-scrollbar { display: none; }
+  .sx.sd .ptabs-bar button { flex: 1 0 auto; min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--d-dim); font: inherit; font-size: 13.5px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .sx.sd .ptabs-bar button[aria-selected="true"] { background: var(--d-text); color: #fff; }
+  .sx.sd .ptabs-panel:not([data-on]) { display: none; }
+  .sx.sd .pfold:not(.is-open)[data-count="3"] :is(ul, ol) > li:nth-child(n+4),
+  .sx.sd .pfold:not(.is-open)[data-count="4"] :is(ul, ol) > li:nth-child(n+5),
+  .sx.sd .pfold:not(.is-open)[data-count="5"] :is(ul, ol) > li:nth-child(n+6),
+  .sx.sd .pfold:not(.is-open)[data-count="6"] :is(ul, ol) > li:nth-child(n+7) { display: none; }
+  .sx.sd .pfold-more { display: flex; align-items: center; justify-content: center; width: 100%; margin: 10px 0 0; min-height: 44px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--d-line-2); color: var(--d-text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  /* Dashboards: one strip of figures, a shorter map, the lists as a swipeable deck. */
+  .sx.sd .db { gap: 14px; }
+  .sx.sd .db-art { height: 96px !important; }
+  .sx.sd .db-sub { display: none; }
+  .sx.sd .db-kpis { display: flex !important; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 calc(var(--x-gutter) * -1); padding: 2px var(--x-gutter) 4px; scrollbar-width: none; }
+  .sx.sd .db-kpis::-webkit-scrollbar { display: none; }
+  .sx.sd .db-kpi { flex: 0 0 42%; scroll-snap-align: start; padding: 10px 12px !important; }
+  .sx.sd .db-kpi dd { font-size: 24px; }
+  .sx.sd .db-kpi p { display: none; }
+  .sx.sd .db-kpi:last-child:nth-child(odd) { grid-column: auto; }
+  .sx.sd .db-map { height: 52vh !important; min-height: 340px; }
+  .sx.sd :is(.db-side, .db-more) { display: flex !important; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 calc(var(--x-gutter) * -1); padding: 2px var(--x-gutter) 6px; scrollbar-width: none; align-items: stretch; }
+  .sx.sd :is(.db-side, .db-more)::-webkit-scrollbar { display: none; }
+  .sx.sd :is(.db-side, .db-more) > * { flex: 0 0 86%; scroll-snap-align: center; max-height: 430px; overflow-y: auto; overscroll-behavior: contain; }
+  .sx.sd .db-more .db-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sx.sd .db-head-c { width: 100%; }
+  .sx.sd .db-place { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; width: 100%; }
+  .sx.sd .db-place .ps { min-width: 0; }
+}
+@media (max-width: 760px) {
+  /* Insights: the findings as a swipeable deck, one finding a card. */
+  .sx.sd .ib-body { display: flex !important; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 calc(var(--x-gutter) * -1); padding: 4px var(--x-gutter) 8px; scrollbar-width: none; align-items: stretch; }
+  .sx.sd .ib-body::-webkit-scrollbar { display: none; }
+  .sx.sd .ib-body > * { flex: 0 0 86%; scroll-snap-align: center; max-height: 520px; overflow-y: auto; padding: 16px !important; border-radius: 20px !important; background: #fff !important; box-shadow: 0 0 0 1px var(--d-line) !important; border-top: 0 !important; }
+  .sx.sd .ib-body > .ib-chapter { display: grid; align-content: center; background: var(--d-text) !important; color: #fff; }
+  .sx.sd .ib-body > .ib-chapter :is(h2, p) { color: #fff !important; }
+  .sx.sd .ib-q-index { display: none; }
+  .sx.sd .rd-contents { display: none !important; }
+  .sx.sd .rd-workspace { display: block !important; }
+}
+@media (max-width: 760px) {
+  /* Programmes: one compact line each. */
+  .sx.sd .dk-page .border-t > a { grid-template-columns: minmax(0, 1fr) auto !important; gap: 2px 12px; padding: 12px 0; align-items: center; }
+  .sx.sd .dk-page .border-t > a > span:first-child, .sx.sd .dk-page .border-t > a > svg { display: none; }
+  .sx.sd .dk-page .border-t > a small { display: -webkit-box !important; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .sx.sd .dk-page .border-t > a strong { font-size: 18px; }
+  /* Lessons: the facilitator notes stay on the lesson page itself. */
+  .sx.sd .material-list .material-note, .sx.sd .material-list [class*="facilitator"] { display: none; }
+  /* Stories: a shorter map above the story. */
+  .sx.sd .sa-map { height: 34vh !important; min-height: 220px !important; }
+}
+@media (max-width: 760px) {
+  .sx.sd .sx-sheet-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px 4px; }
+  .sx.sd .sx-tile-ic { width: 46px; height: 46px; border-radius: 14px; }
+  .sx.sd .sx-sheet-tiles a { font-size: 11px; gap: 4px; padding: 2px 0; }
+  /* Page headers: figures in one row, filter chips in one swipeable line. */
+  .sx.sd .dh-figs { display: flex !important; flex-wrap: nowrap; gap: 18px; overflow-x: auto; scrollbar-width: none; }
+  .sx.sd .dh-figs > div { flex: none; }
+  .sx.sd .dh-figs dd { font-size: 24px !important; }
+  .sx.sd :is(.dh-extra nav, .st-cities) { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; margin-right: calc(var(--x-gutter) * -1); padding-right: var(--x-gutter); }
+  .sx.sd :is(.dh-extra nav, .st-cities) > * { flex: none; }
+  .sx.sd .dh-lede { font-size: 14.5px !important; }
+}

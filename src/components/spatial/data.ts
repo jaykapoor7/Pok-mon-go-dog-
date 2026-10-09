@@ -9,6 +9,7 @@ import { getSupabase } from "@/lib/supabase";
 import { buildIndex, type Index } from "@/lib/spatial/engine";
 import { dayOf, type SpatialDataset } from "@/lib/spatial/types";
 import { CITIES } from "@/lib/geo/cities";
+import { roundRing } from "@/lib/spatial/round";
 
 export type Scope = "public" | "org";
 
@@ -102,15 +103,12 @@ export function useSpatialDataset(scope: Scope, userKey?: string | null, enabled
 
 /* ── geometry ─────────────────────────────────────────────────────── */
 
-export const ringOf = (ds: SpatialDataset, c: number): [number, number][] => {
-  const r = ds.rings[c], out: [number, number][] = [];
-  for (let i = 0; i < r.length; i += 2) out.push([r[i], r[i + 1]]);
-  return out;
-};
+/* Cells are drawn as round areas inside their hexagons (lib/spatial/round). */
+export const ringOf = (ds: SpatialDataset, c: number): [number, number][] => flatRing(ds.rings[c]);
 export const flatRing = (r: number[]): [number, number][] => {
   const out: [number, number][] = [];
   for (let i = 0; i < r.length; i += 2) out.push([r[i], r[i + 1]]);
-  return out;
+  return roundRing(out);
 };
 
 function inside(poly: [number, number][], x: number, y: number) {

@@ -11,6 +11,7 @@
    unknown.
    ════════════════════════════════════════════════════════════════════ */
 
+import { animalTitle } from "@/lib/animal-name";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -389,7 +390,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
                               {a.cover_photo ? <Image src={a.cover_photo} alt="" width={80} height={80} /> : <i aria-hidden />}
                             </span>
                             <span className="sm-insp-who">
-                              <b>{a.name?.trim() || `Dog near ${a.zone || "this cell"}`}</b>
+                              <b>{animalTitle(a)}</b>
                               <small className="sys-mono">{a.straypaw_id ?? a.code ?? ""}</small>
                             </span>
                             <span className="sm-insp-when">

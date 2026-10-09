@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { animalSubtitle, animalTitle, givenName } from "@/lib/animal-name";
 
 /* ════════════════════════════════════════════════════════════════════
    An animal, as the record knows it.
@@ -30,35 +31,25 @@ export function seenWhen(iso: string | null) {
   return `${MON[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
 }
 
-/** A generated label such as "Dog · Sanganoor · Dec 2024" is not a name. */
-export function realName(name: string | null) {
-  if (!name) return null;
-  const n = name.trim();
-  if (!n || /·/.test(n) || /^(dog|animal|puppy|unknown|unnamed)\b/i.test(n)) return null;
-  return n;
-}
+/** A given name, or null when the field holds a filing label. */
+export const realName = givenName;
 
 export function AnimalTile({ a, size = "m", state }: { a: TileAnimal; size?: "s" | "m"; state?: { label: string; tone: "hot" | "care" | "open" | "" } }) {
-  const name = realName(a.name);
-  const place = a.zone?.split(",")[0]?.trim() || null;
   const seen = seenWhen(a.last_seen);
   const hot = !!a.needs_help || a.status === "injured";
   const st = state ?? (hot ? { label: a.status === "injured" ? "Injured" : "Needs help", tone: "hot" as const } : null);
+  const title = animalTitle(a);
   return (
-    <Link href={`/dog/${a.id}`} className={`at at-${size}${a.cover_photo ? " has-photo" : ""}${hot ? " is-hot" : ""}`}>
-      {a.cover_photo ? (
-        <DogPhoto src={a.cover_photo} alt={name ?? `Dog recorded near ${place ?? "here"}`} seed={a.id} className="at-photo" width={480} />
-      ) : (
-        <span className="at-plate" aria-hidden>
-          <span className="at-id">{a.straypaw_id ?? "ID pending"}</span>
-          <span className="at-place">{name ?? place ?? "Place not recorded"}</span>
-          <span className="at-nophoto">No photograph on record</span>
-        </span>
-      )}
-      <span className="at-cap">
-        {st && <span className={`x-state ${st.tone ? `is-${st.tone}` : ""}`}>{st.label}</span>}
-        <b>{name ?? (place ? `Dog near ${place}` : "Unnamed dog")}</b>
-        <small>{[a.cover_photo || name ? a.straypaw_id : null, name && place ? place : null, seen ? `seen ${seen}` : null].filter(Boolean).join(" · ") || "On the record"}</small>
+    <Link href={`/dog/${a.id}`} className={`at2 at2-${size}${hot ? " is-hot" : ""}`}>
+      <span className="at2-media">
+        <DogPhoto src={a.cover_photo} alt={title} seed={a.id} className="at2-ph" width={480} />
+        {st && <span className={`at2-state is-${st.tone || "quiet"}`}>{st.label}</span>}
+        {!a.cover_photo && <span className="at2-ill">Illustration</span>}
+      </span>
+      <span className="at2-cap">
+        <b>{title}</b>
+        <small>{animalSubtitle(a)}</small>
+        {seen && <small className="at2-seen">Seen {seen}</small>}
       </span>
     </Link>
   );

@@ -1,3 +1,4 @@
+import { animalTag, givenName } from "./animal-name";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { LatLng } from "./types";
@@ -75,21 +76,9 @@ export function pluralize(n: number, singular: string, plural?: string) {
  * Display label for a (stray) dog. Most street dogs have no name, so we identify
  * them by area. A genuinely user-given nickname is still honoured when present.
  */
-export function dogLabel(dog: { name?: string | null; zone?: string | null }): string {
-  let name = dog.name?.trim();
-  /* Imported records arrive with a generated label, "Dog · KK Pudur · Oct
-     2024" — a filing line, not a name anyone gave the animal. */
-  const generated = name ? /^(dog|cat|animal|puppy|kitten)\s*·\s*([^·]+)/i.exec(name) : null;
-  if (generated) { name = undefined; if (!dog.zone?.trim()) dog = { ...dog, zone: generated[2].trim().replace(/[,;\s]+$/, "") }; }
-  /* Names come from whatever the reporter typed on their phone, so a good
-     share of them arrive all in lower case — the animal leading the hero
-     is recorded as "pinky". Capitalising a name that carries no capitals
-     of its own is a display nicety, not a correction: anything the
-     reporter did capitalise is left exactly as they wrote it, so
-     "McDonald" or "Kaali B" survive untouched. */
-  if (name) return name === name.toLowerCase() ? capitaliseWords(name) : name;
-  const zone = cleanPlace(dog.zone);
-  return zone ? `Dog near ${zone}` : "Street dog";
+export function dogLabel(dog: { name?: string | null; zone?: string | null; straypaw_id?: string | null; id?: string | null }): string {
+  /* A given name, else the animal's StrayPaw tag. See lib/animal-name. */
+  return givenName(dog.name) ?? (dog.straypaw_id || dog.id ? animalTag(dog) : "Unnamed");
 }
 
 /** Upper-cases the first letter of each word, leaving the rest alone. */

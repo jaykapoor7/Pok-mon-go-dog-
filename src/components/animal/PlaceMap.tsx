@@ -13,7 +13,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
-import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, groundStyle, underlay } from "@/components/map/basemap";
+import { ATLAS_PAPER as NIGHT } from "@/components/spatial/atlas-palette";
+import { roundRing } from "@/lib/spatial/round";
 import { HexPlate, type Box } from "@/components/system/HexPlate";
 
 type Cell = { key: string; ring: number[]; n: number; self: boolean };
@@ -31,7 +33,7 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
   const lats = geometry.flatMap(c => c.ring.filter((_, i) => i % 2 === 1));
   const box: Box = geometry.length ? [Math.min(...longs), Math.min(...lats), Math.max(...longs), Math.max(...lats)] : [center[0] - .005, center[1] - .005, center[0] + .005, center[1] + .005];
   const fallback = <div className="lr-area-fallback" aria-hidden={ready}>
-    <HexPlate cells={geometry.map(c => ({ key: c.key, ring: c.ring, fill: c.self ? "rgba(240,91,64,.2)" : c.n > 0 ? "rgba(79,127,224,.45)" : "transparent", stroke: c.self ? "#f7a08c" : "rgba(239,231,218,.4)", dashed: true }))} box={box} width={640} height={360} pad={64} night label={`Recorded area for ${label}${locality ? `, around ${locality}` : city ? `, ${city}` : ""}. This boundary does not show an exact location.`} />
+    <HexPlate cells={geometry.map(c => ({ key: c.key, ring: c.ring, fill: c.self ? "rgba(240,91,64,.2)" : c.n > 0 ? "rgba(79,127,224,.45)" : "transparent", stroke: c.self ? "#f05b40" : "rgba(36,87,206,.35)", dashed: false }))} box={box} width={640} height={360} pad={64} label={`Recorded area for ${label}${locality ? `, around ${locality}` : city ? `, ${city}` : ""}. This boundary does not show an exact location.`} />
   </div>;
   const credit = ready ? "Map © OpenStreetMap contributors · OpenFreeMap" : "Recorded area · StrayPaw";
 
@@ -52,23 +54,23 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
       }
       map.on("load", async () => {
         if (!map) return;
-        const ring = (c: Cell) => { const r: [number, number][] = []; for (let i = 0; i < c.ring.length; i += 2) r.push([c.ring[i], c.ring[i + 1]]); if (r.length) r.push(r[0]); return r; };
+        const ring = (c: Cell) => { const r: [number, number][] = []; for (let i = 0; i < c.ring.length; i += 2) r.push([c.ring[i], c.ring[i + 1]]); return roundRing(r); };
         const self = cells.find((c) => c.self);
         map.addSource("area", { type: "geojson", data: { type: "FeatureCollection", features: self ? [{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring(self)] } }] : [] } });
         map.addSource("heart", { type: "geojson", data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: center } } });
         if (variant === "area" || variant === "banner") {
           map.addSource("around", { type: "geojson", data: { type: "FeatureCollection", features: cells.filter((c) => !c.self).map((c) => ({ type: "Feature", properties: { n: c.n }, geometry: { type: "Polygon", coordinates: [ring(c)] } })) } });
           map.addLayer({ id: "around-fill", type: "fill", source: "around", paint: {
-            "fill-color": ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 0, "rgba(0,0,0,0)", 1, "#1b3f80", 3, "#2a5bb8", 5, "#4f7fe0", 8, "#93b1f0"],
+            "fill-color": ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 0, "rgba(0,0,0,0)", 1, "#c9d8f3", 3, "#93b1f0", 5, "#4f7fe0", 8, "#2457ce"],
             "fill-opacity": ["case", [">", ["get", "n"], 0], 0.55, 0],
           } });
-          map.addLayer({ id: "around-line", type: "line", source: "around", paint: { "line-color": "rgba(239,231,218,0.35)", "line-width": 1, "line-dasharray": [2, 2] } });
+          map.addLayer({ id: "around-line", type: "line", source: "around", paint: { "line-color": "rgba(36,87,206,0.35)", "line-width": 1 } });
         }
-        map.addLayer({ id: "area-fill", type: "fill", source: "area", paint: { "fill-color": "#f05b40", "fill-opacity": variant === "area" ? 0.35 : 0.1 } });
-        map.addLayer({ id: "area-glow", type: "line", source: "area", paint: { "line-color": "#f05b40", "line-width": 9, "line-blur": 7, "line-opacity": 0.45 } });
-        map.addLayer({ id: "area-line", type: "line", source: "area", paint: { "line-color": "#f7a08c", "line-width": 1.6, "line-dasharray": [3, 2] } });
+        map.addLayer({ id: "area-fill", type: "fill", source: "area", paint: { "fill-color": "#f05b40", "fill-opacity": variant === "area" ? 0.22 : 0.1 } });
+        map.addLayer({ id: "area-glow", type: "line", source: "area", paint: { "line-color": "#f05b40", "line-width": 9, "line-blur": 7, "line-opacity": 0.25 } });
+        map.addLayer({ id: "area-line", type: "line", source: "area", paint: { "line-color": "#f05b40", "line-width": 1.8 } });
         map.addLayer({ id: "heart-pulse", type: "circle", source: "heart", paint: { "circle-radius": 14, "circle-color": "#f05b40", "circle-opacity": 0.3, "circle-blur": 0.5 } });
-        map.addLayer({ id: "heart", type: "circle", source: "heart", paint: { "circle-radius": 6, "circle-color": "#f05b40", "circle-stroke-color": "#efe7da", "circle-stroke-width": 2 } });
+        map.addLayer({ id: "heart", type: "circle", source: "heart", paint: { "circle-radius": 6, "circle-color": "#f05b40", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 } });
         await underlay(map, { ...NIGHT, labelOpacity: 0.78 }, "area-fill").catch(() => false);
         if (!dead) setReady(true);
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;

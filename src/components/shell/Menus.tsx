@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ArrowUpRight, Check, ChevronDown, HelpCircle, KeyRound, LogOut, Repeat2, Users, X } from "lucide-react";
+import { Activity, ArrowUpRight, Binoculars, BookOpen, Bookmark, Building2, ChartColumn, Check, ChevronDown, Circle, ClipboardCheck, ClipboardList, FlaskConical, FolderKanban, GraduationCap, HandCoins, HandHeart, HelpCircle, Inbox, KeyRound, Layers, LifeBuoy, ListChecks, LogOut, Map as MapIcon, PawPrint, Repeat2, Scale, Search, Settings, ShieldCheck, Stethoscope, Syringe, Upload, UserPlus, Users, Utensils, X, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myProfile, type Profile } from "@/lib/programme";
 import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volunteer";
@@ -123,48 +123,80 @@ export function AccountMenu() {
 }
 
 /* ── everything else, on a phone ─────────────────────────────────────── */
+const TILE_ICON: [RegExp, LucideIcon][] = [
+  [/review/, ClipboardCheck], [/records/, Search], [/quality/, ShieldCheck], [/import/, Upload], [/medical/, Stethoscope],
+  [/incoming/, Inbox], [/drives/, Syringe], [/projects/, FolderKanban], [/surveys/, ListChecks], [/team/, Users],
+  [/settings/, Settings], [/volunteers/, UserPlus], [/codes/, KeyRound], [/operations/, Activity], [/fundrais/, HandCoins],
+  [/orgs|partners/, Building2], [/programmes/, Layers], [/resources/, LifeBuoy], [/feeding/, Utensils], [/help/, HandHeart],
+  [/stories/, BookOpen], [/insights|reports/, ChartColumn], [/learn/, GraduationCap], [/governance/, Scale], [/research/, FlaskConical],
+  [/map/, MapIcon], [/following/, Bookmark], [/field/, Binoculars], [/cases/, ClipboardList], [/animals/, PawPrint],
+];
+const iconFor = (href: string) => TILE_ICON.find(([re]) => re.test(href))?.[1] ?? Circle;
+
+/** The phone's "More": one screen. Spaces as a row, everything not on the
+ *  tab bar as a grid of tiles, then you, language and feedback in one line. */
 export function MoreSheet({ open, onClose, space, nav, isCurrent, more, onPick, children }: {
   open: boolean; onClose: () => void; space: Space; nav: NavItem[]; isCurrent: (href: string) => boolean;
   more: MoreGroup[]; onPick: (s: Space) => void; children?: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const who = useWho();
   useEffect(() => {
     const el = dialog.current;
     if (!el) return;
     if (open && !el.open) el.showModal();
     else if (!open && el.open) el.close();
   }, [open]);
+  const onBar = new Set(SPACES[space].phone);
+  const seen = new Set<string>();
+  const tiles = [
+    ...nav.filter((n) => !onBar.has(n.href)).map((n) => ({ href: n.href, label: n.label, Icon: n.Icon as LucideIcon })),
+    ...more.flatMap((g) => g.links.map((l) => ({ href: l.href, label: l.label, Icon: iconFor(l.href) }))),
+  ].filter((t) => (seen.has(t.href) ? false : (seen.add(t.href), true)));
   return (
-    <dialog ref={dialog} className="sx-sheet" aria-label="Everything in StrayPaw" onClose={onClose} onClick={(e) => { if (e.target === dialog.current) onClose(); }}>
+    <dialog ref={dialog} className="sx-sheet sx-sheet2" aria-label="Everything in StrayPaw" onClose={onClose} onClick={(e) => { if (e.target === dialog.current) onClose(); }}>
       <div className="sx-sheet-in">
         <header className="sx-sheet-head">
           <span className="sx-grip" aria-hidden />
-          <h2>{SPACES[space].label}</h2>
+          <h2>More</h2>
           <button type="button" className="sx-icon-btn" onClick={onClose} aria-label="Close"><X size={20} /></button>
         </header>
-        <nav className="sx-sheet-nav" aria-label={`${SPACES[space].label} destinations`}>
-          {nav.map(({ href, label, Icon }) => <Link key={href} href={href} onClick={onClose} aria-current={isCurrent(href) ? "page" : undefined}><Icon size={20} /><span>{label}</span></Link>)}
+        <nav className="sx-sheet-sp" aria-label="Switch space">
+          {SPACE_ORDER.map((s) => <Link key={s} href={SPACES[s].home} aria-current={s === space ? "true" : undefined} onClick={() => { onPick(s); onClose(); }}>{SPACES[s].label}</Link>)}
+        </nav>
+        <nav className="sx-sheet-tiles" aria-label={`${SPACES[space].label}: more`}>
+          {tiles.map(({ href, label, Icon }) => (
+            <Link key={href} href={href} onClick={onClose} aria-current={isCurrent(href) ? "page" : undefined}>
+              <span className="sx-tile-ic"><Icon size={19} aria-hidden /></span>
+              <span>{label}</span>
+            </Link>
+          ))}
         </nav>
         {children}
-        {more.map((g) => (
-          <section key={g.label} className="sx-sheet-group">
-            <h3>{g.label}</h3>
-            <div>{g.links.map((l) => <Link key={l.href} href={l.href} onClick={onClose}>{l.label}</Link>)}</div>
-          </section>
-        ))}
-        <section className="sx-sheet-group">
-          <h3>Switch space</h3>
-          <div className="sx-sheet-spaces">
-            {SPACE_ORDER.map((s) => <Link key={s} href={SPACES[s].home} aria-current={s === space ? "true" : undefined} onClick={() => { onPick(s); onClose(); }}><b>{SPACES[s].label}</b><small>{SPACES[s].blurb}</small></Link>)}
-          </div>
-        </section>
-        <section className="sx-sheet-group">
-          <h3>You</h3>
-          <AccountLinks onNavigate={onClose} />
-        </section>
+        <div className="sx-sheet-me">
+          {who.isAuthed ? (
+            <>
+              <span className="sx-avatar" aria-hidden>{who.name.slice(0, 1).toUpperCase()}</span>
+              <span className="sx-me-t"><b>{who.name}</b><small>{who.profile?.org_name ?? who.user?.email ?? ""}</small></span>
+              <button type="button" className="sx-me-btn" onClick={who.signOut} aria-label="Sign out"><LogOut size={17} /></button>
+            </>
+          ) : who.volunteer ? (
+            <>
+              <span className="sx-avatar" aria-hidden>{(who.volunteer.name || "V").slice(0, 1).toUpperCase()}</span>
+              <span className="sx-me-t"><b>{who.volunteer.name || "Volunteer"}</b><small>For {who.volunteer.orgName}</small></span>
+              <button type="button" className="sx-me-btn" onClick={() => { clearVolunteer(); who.setVolunteer(null); }} aria-label="Stop reporting for this organisation"><LogOut size={17} /></button>
+            </>
+          ) : (
+            <>
+              <Link href="/access" onClick={onClose} className="sx-me-pill is-main">Sign up</Link>
+              <Link href="/join" onClick={onClose} className="sx-me-pill">I have a code</Link>
+            </>
+          )}
+        </div>
         <div className="sx-sheet-row">
           <LanguageSwitcher />
-          <FeedbackButton label="Send feedback" />
+          <FeedbackButton label="Feedback" />
+          <Link href="/faq" onClick={onClose}>Help</Link>
           <Link href="/" onClick={onClose}>Main site <ArrowUpRight size={13} aria-hidden /></Link>
         </div>
       </div>

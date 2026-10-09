@@ -1,8 +1,7 @@
-import { AdminClient } from "@/components/admin/AdminClient";
-import { ModerationEnrichment } from "@/components/admin/ModerationEnrichment";
+import { AppShell } from "@/components/app/AppShell";
+import { ModerationQueue } from "@/components/admin/ModerationQueue";
 
-// Same moderation tool as /admin, on a fresh path. /admin can get stuck behind
-// a cached edge 404 on some hosts; this alias is guaranteed to route.
+// The focused review queue. Every other admin tool stays at /admin.
 export const metadata = {
   title: "Moderation, StrayPaw",
   robots: { index: false, follow: false },
@@ -11,5 +10,5 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default function ModeratePage() {
-  return <><AdminClient /><ModerationEnrichment /></>;
+  return <AppShell><ModerationQueue /></AppShell>;
 }

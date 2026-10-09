@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
-import { ArrowUpRight, Box, ChevronDown, Crosshair, Hexagon, Layers, Minus, Plus, SlidersHorizontal, Square, X } from "lucide-react";
+import { ArrowUpRight, Box, ChevronDown, Crosshair, CircleDashed, Layers, Minus, Plus, SlidersHorizontal, Square, X } from "lucide-react";
 import { groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
   animalVisible, breaks, cellStats, COVERAGE_TEXT, fewOr, firstDay, isSparse, monthEndDay, monthLabel, monthOfDay, NO_FILTERS, openOn, rankOf, caseStateOn, resolvedOn, resolutionUndated,
@@ -1373,7 +1373,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomOut({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom out" title="Zoom out"><Minus size={18} /></button>
         <span className="ax-tools-gap" aria-hidden />
         {!indiaOverview && <button type="button" onClick={() => setThree((v) => !v)} aria-pressed={three} aria-label={three ? "Switch to plan view" : "Switch to 3D columns"} title={three ? "Plan view" : "3D columns"}>{three ? <Square size={16} /> : <Box size={16} />}</button>}
-        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><Hexagon size={17} /></button>
+        <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><CircleDashed size={17} /></button>
         <button type="button" onClick={() => setGround((g) => (g === "night" ? "paper" : "night"))} aria-label={ground === "night" ? "Switch to the daylight ground" : "Switch to the night ground"} title={ground === "night" ? "Daylight ground" : "Night ground"}><Layers size={17} /></button>
         <button type="button" onClick={locate} aria-label="Go to where I am" title="Go to where I am"><Crosshair size={17} /></button>
       </div>

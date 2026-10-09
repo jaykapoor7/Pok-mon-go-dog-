@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
-import { realName } from "@/components/community/AnimalTile";
+import { animalTitle } from "@/lib/animal-name";
 
 type Animal = { id: string; name: string | null; cover_photo: string | null; status: string | null; needs_help: boolean | null; straypaw_id: string | null };
 
@@ -38,7 +38,7 @@ export function CellCard({ h3, title, facts, href, linkLabel, onClose, showAnima
             <ul className="db-selcard-dogs">
               {shown.map((a) => (
                 <li key={a.id} className={a.id === focus ? "is-focus" : undefined}>
-                  <Link href={`/dog/${a.id}`} title={realName(a.name) ?? a.straypaw_id ?? "Recorded animal"}>
+                  <Link href={`/dog/${a.id}`} title={animalTitle(a)}>
                     <DogPhoto src={a.cover_photo} alt="" seed={a.id} className="db-selcard-ph" />
                     {(a.needs_help || a.status === "injured") && <i aria-label="Needs help" />}
                   </Link>
@@ -48,7 +48,7 @@ export function CellCard({ h3, title, facts, href, linkLabel, onClose, showAnima
             </ul>
           ) : <p className="db-selcard-none">No published animal profile in this area.</p>
       )}
-      {lead && <Link href={`/dog/${lead.id}`} className="db-selcard-lead">Open {realName(lead.name) ?? lead.straypaw_id ?? "this dog"}&rsquo;s record →</Link>}
+      {lead && <Link href={`/dog/${lead.id}`} className="db-selcard-lead">Open {animalTitle(lead)} →</Link>}
       {href && <Link href={href} className="db-selcard-go">{linkLabel ?? "Open"} →</Link>}
     </div>
   );

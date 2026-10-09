@@ -11,4 +11,6 @@ export const sxSans = DM_Sans({ subsets: ["latin"], variable: "--sx-sans", displ
 export const sxSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--sx-serif", display: "swap" });
 export const sxMono = DM_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--sx-mono", display: "swap" });
 
-export const SX_FONTS = `${sxSans.variable} ${sxSerif.variable} ${sxMono.variable}`;
+/* One face across the app: DM Sans. The serif and mono stay loaded only
+   where something still names them outside the app shell. */
+export const SX_FONTS = `${sxSans.variable}`;

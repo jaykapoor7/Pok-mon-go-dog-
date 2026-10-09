@@ -132,3 +132,16 @@ never finer than a cell; sample-derived figures say they are loaded detail.
 - **No dark maps left in the app:** the NGO field map (`BoundedSpatialMap`), Stories map, partner footprint map, Help map and the city "lights" map all use the daylight palette. (The animal dossier's dark hero is unchanged.)
 - **Phone pass over every app route:** fixed buttons that had turned white-on-cream (tinted/quiet variants), white inputs, night-text tokens inside page headers, missing side gutters on ten pages built for the old shell, the NGO map sliding under the top bar, an empty strip above the tab bar on full-screen pages, map credits auto-expanding, 40px breadcrumb targets.
 - Verified on a production build: 41 journey checks, 7 regression scripts, tsc and eslint; phone screenshots of 41 routes scanned for edge-touching text.
+
+## Round 6 — faces, names, round areas, a living ground, phones, moderation
+
+- **One voice:** DM Sans only, upright, no mono labels or serif italics (`paper.css`, `fonts.ts`).
+- **Names** (`lib/animal-name.ts`): a name a person gave is shown as the name; filing labels ("Dog · X · date", "Jamshedpur dog 2482", "Unknown") are not names. Unnamed animals are called by their StrayPaw tag (e.g. `PK0UBR`) with "Unnamed · place" beneath. No "Dog near …" anywhere; nothing invents a name.
+- **Portraits** (`art/FolkPortrait.tsx`): an animal without a photograph gets its own folk illustration, varied from its id (pose, ears, markings, collar, ground, sky) in brand colours only. Always labelled "Illustration"; a real photo always wins.
+- **Card and profile:** new portrait-first `AnimalTile`; the profile is a light hero (portrait, tag, name, place, status, dates, actions), one row of four care facts, and tabs (History · Area · Add to record · All entries; Organisation for orgs).
+- **Round areas** (`lib/spatial/round.ts`): every H3 cell is drawn as a circle inscribed in its hexagon and inset, on every map. The unit of place is unchanged; nothing extends beyond its cell.
+- **Living ground** (`art/FolkBackdrop.tsx`): drifting clouds, a turning sun, birds, a sprig scatter and hills where a small dog trots past; the far hill changes by space. Static under reduced motion.
+- **Phones:** "More" is one screen (space row, tile grid, you, language). Sections become tabs (`shell/PhoneTabs.tsx`), long lists fold, dashboards show one swipeable figure strip and a swipeable deck of lists, insights are a deck of findings. Every app route measures ≤ 2.2 screens at 390 × 844.
+- **Moderation:** `/moderate` is a focused queue (photo, what was reported, the checks, Approve / Reject / Skip with A / R / →, approve-all-that-pass). `/admin` keeps every other tool.
+- **Automatic approval** (`lib/auto-approve.ts`, used in `/api/report`): a report goes live without review only when it has a photo, is inside India, has no phone numbers / emails / links, does not claim an existing animal, and comes from a signed-in reporter, an organisation volunteer or a reporter with trust ≥ 80. Set `AUTO_APPROVE_SIGHTINGS=off` to disable. Covered by `npm run test:auto-approve`.
+- Verified on a production build: 41 journey checks, 8 regression scripts, tsc and eslint. Not verified: the auto-approval path against the live database (no report was submitted), real moderator sign-in, real NGO member sessions.

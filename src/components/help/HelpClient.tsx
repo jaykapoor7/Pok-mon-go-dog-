@@ -1,5 +1,6 @@
 "use client";
 
+import { PhoneFold, PhoneTabs } from "@/components/shell/PhoneTabs";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { HeartHandshake, MapPin, HandHelping, Utensils, ArrowRight } from "lucide-react";
@@ -72,7 +73,8 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
           <Link href="/for-ngos" className="hp-link"><HeartHandshake size={15} aria-hidden /> For organisations <ArrowRight size={14} aria-hidden /></Link>
         </p>
       </DeskHeader>
-      {needy.length > 0 && <div className="hp-mapwrap"><HelpMap points={needy.map((d) => ({ id: d.id, lng: d.lng, lat: d.lat }))} me={coords} /></div>}
+      <PhoneTabs label="Help sections" tabs={[
+        { id: "list", label: `Who needs help · ${needy.length}`, node: needy.length > 0 ? (<PhoneFold count={5} total={Math.min(shown, needy.length)} noun="more">
 
       {needy.length > 0 && (
         <ol className="hp-list">
@@ -104,6 +106,9 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
           Show {Math.min(12, needy.length - shown)} more <span>· {needy.length - shown} not shown</span>
         </button>
       )}
+        </PhoneFold>) : null },
+        { id: "map", label: "Map", node: needy.length > 0 ? <div className="hp-mapwrap"><HelpMap points={needy.map((d) => ({ id: d.id, lng: d.lng, lat: d.lat }))} me={coords} /></div> : null },
+      ]} />
 
       <HelperForm open={formOpen} target={target} onClose={() => setFormOpen(false)} />
     </main>

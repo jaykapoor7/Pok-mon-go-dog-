@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { DeskHeader } from "@/components/app/DeskHeader";
+import { PhoneFold, PhoneTabs } from "@/components/shell/PhoneTabs";
 import { AppShell } from "@/components/app/AppShell";
 import { OrgMark } from "@/components/orgs/OrgMark";
 import { CampaignStrip } from "@/components/orgs/CampaignStrip";
@@ -42,6 +43,8 @@ export default async function OrgsPage() {
           ]}
         />
 
+        <PhoneTabs label="Partner sections" tabs={[
+          { id: "partners", label: `Partners · ${rows.length}`, node: <PhoneFold count={6} total={rows.length} noun="partners">
         <ol className="pp-dir" aria-label="Partner NGOs">
           {rows.map((o) => (
             <li key={o.id}>
@@ -57,8 +60,8 @@ export default async function OrgsPage() {
             </li>
           ))}
         </ol>
-
-        {campaigns.length > 0 && (
+          </PhoneFold> },
+          { id: "campaigns", label: "Campaigns", node: campaigns.length > 0 ? (
           <section className="pp-camps" id="campaigns" aria-labelledby="pp-camps-h">
             <header>
               <h2 id="pp-camps-h">Campaigns</h2>
@@ -66,9 +69,9 @@ export default async function OrgsPage() {
             </header>
             <CampaignStrip campaigns={campaigns} logos={logos} />
           </section>
-        )}
-
-        <section className="pp-join" aria-labelledby="pp-join-h">
+          ) : null },
+          { id: "join", label: "Join", node: (
+          <section className="pp-join" aria-labelledby="pp-join-h">
           <div>
             <h2 id="pp-join-h">Bring your field records. <em>Keep them yours.</em></h2>
             <p>Animal-welfare organisations join free. Your cases, care and animals stay under your control; you decide what the public sees.</p>
@@ -78,6 +81,8 @@ export default async function OrgsPage() {
             <Link href="/for-ngos" className="pp-link">How it works for NGOs <ArrowUpRight size={14} /></Link>
           </div>
         </section>
+          ) },
+        ]} />
       </div>
     </AppShell>
   );

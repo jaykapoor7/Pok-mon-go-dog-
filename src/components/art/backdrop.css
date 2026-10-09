@@ -1,0 +1,46 @@
+/* The living ground. Fixed behind the app, never interactive. */
+.fb { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.fb > * { position: absolute; }
+
+/* A faint scatter of sprigs and stars. */
+.fb-scatter { inset: 0; opacity: 0.55; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cpath d='M30 60 q 8 -14 18 -10 q -6 10 -18 10 Z' fill='%23f8b9a3' stroke='none'/%3E%3Cpath d='M36 64 q 8 12 18 8 q -6 -10 -18 -8 Z' fill='%238fb7ff' stroke='none' opacity='.6'/%3E%3Cpath d='M190 40 l 3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3 Z' fill='%232457ce' stroke='none' opacity='.35'/%3E%3Cpath d='M150 190 l 2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2 Z' fill='%23f05b40' stroke='none' opacity='.35'/%3E%3Ccircle cx='96' cy='150' r='2.4' fill='%232457ce' opacity='.25'/%3E%3Ccircle cx='226' cy='120' r='2' fill='%23f05b40' opacity='.3'/%3E%3Cpath d='M210 214 q 8 -14 18 -10 q -6 10 -18 10 Z' fill='%23d6e2f7' stroke='none'/%3E%3C/g%3E%3C/svg%3E"); background-size: 260px 260px; mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.4) 60%, #000 100%); }
+
+.fb-sun { top: 70px; right: 4vw; width: 130px; height: 130px; opacity: 0.5; }
+.fb-rays { transform-origin: 60px 60px; animation: fb-spin 90s linear infinite; }
+@keyframes fb-spin { to { transform: rotate(360deg); } }
+
+.fb-cloud { width: 220px; height: 80px; opacity: 0.85; filter: drop-shadow(0 6px 10px rgba(11, 30, 61, 0.05)); }
+.fb-cloud.c1 { top: 120px; left: -240px; animation: fb-drift 140s linear infinite; }
+.fb-cloud.c2 { top: 36%; left: -240px; width: 160px; height: 58px; opacity: 0.7; animation: fb-drift 190s linear infinite -70s; }
+.fb-cloud.c3 { top: 62%; left: -240px; width: 190px; height: 70px; opacity: 0.6; animation: fb-drift 230s linear infinite -150s; }
+@keyframes fb-drift { to { transform: translateX(calc(100vw + 480px)); } }
+
+.fb-birds { top: 22%; left: -100px; width: 80px; height: 30px; opacity: 0.55; animation: fb-fly 48s linear infinite 6s; }
+@keyframes fb-fly { 0% { transform: translate(0, 0); } 50% { transform: translate(55vw, -6vh); } 100% { transform: translate(115vw, 2vh); } }
+.fb-wing { transform-origin: center; animation: fb-flap 900ms ease-in-out infinite alternate; }
+.fb-wing.b2 { animation-delay: 300ms; }
+@keyframes fb-flap { to { transform: scaleY(0.55); } }
+
+.fb-hills { left: 0; right: 0; bottom: 0; width: 100%; height: 120px; opacity: 0.72; }
+.fb-walker { bottom: 18px; left: -90px; width: 64px; height: 48px; animation: fb-walk 46s linear infinite 3s; }
+.fb-walker svg { width: 100%; height: 100%; overflow: visible; }
+@keyframes fb-walk { to { transform: translateX(calc(100vw + 180px)); } }
+.fb-trot { animation: fb-bob 420ms ease-in-out infinite alternate; }
+@keyframes fb-bob { to { transform: translateY(-2px); } }
+.fb-leg { transform-box: fill-box; transform-origin: top; animation: fb-step 420ms ease-in-out infinite alternate; }
+.fb-leg.l2 { animation-direction: alternate-reverse; }
+@keyframes fb-step { from { transform: rotate(14deg); } to { transform: rotate(-14deg); } }
+
+/* The sidebar takes the left edge on desktop: the land starts after it. */
+@media (min-width: 861px) { .fb { left: var(--sd-w, 248px); } }
+@media (max-width: 860px) {
+  .fb-hills { bottom: var(--x-tabs, 64px); height: 56px; opacity: 0.4; }
+  .fb-walker { bottom: calc(var(--x-tabs, 64px) + 10px); width: 48px; height: 36px; }
+  .fb-sun { top: 64px; width: 90px; height: 90px; right: -18px; }
+  .fb-cloud.c3 { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fb *, .fb-cloud, .fb-birds, .fb-walker { animation: none !important; }
+  .fb-cloud.c1 { left: 8vw; } .fb-cloud.c2 { left: 60vw; } .fb-cloud.c3 { display: none; }
+  .fb-birds { left: 40vw; } .fb-walker { left: 70vw; }
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { animalTitle, givenName } from "@/lib/animal-name";
 import { useCallback, useEffect, useState } from "react";
 import { OrgSetup } from "@/components/admin/OrgSetup";
 import { MasterImport } from "@/components/admin/MasterImport";
@@ -1038,7 +1039,7 @@ export function AdminClient() {
                 />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">
-                    {s.nickname || (s.zone ? `Dog near ${s.zone}` : "Street dog")}
+                    {givenName(s.nickname) ?? "New animal"}
                   </p>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-bark-500">
                     {s.zone && (
@@ -1363,7 +1364,7 @@ function DogsList({
                 rel="noopener noreferrer"
                 className="block truncate text-sm font-semibold hover:text-paw-600"
               >
-                {d.name || (d.zone ? `Dog near ${d.zone}` : "Street dog")}
+                {animalTitle(d)}
               </a>
               <p className="truncate text-xs text-bark-400">
                 {d.zone} · {d.last_seen ? timeAgo(d.last_seen) : "-"}

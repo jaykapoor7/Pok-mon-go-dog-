@@ -4,6 +4,7 @@
  * individual animals are fetched only after a close-zoom move and only for
  * the visible bbox. No browser state can contain the public register. */
 
+import { roundCell } from "@/lib/spatial/round";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -41,7 +42,7 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
     const max = Math.max(1,...cells.map(c => c.animals));
     const shapes = cells.flatMap(c => {
       try {
-        const ring = cellToBoundary(c.h3_r8,true).flat();
+        const ring = roundCell(c.h3_r8).flat();
         for (let i=0;i<ring.length;i+=2) { west=Math.min(west,ring[i]);east=Math.max(east,ring[i]);south=Math.min(south,ring[i+1]);north=Math.max(north,ring[i+1]); }
         return [{ key:c.h3_r8,ring,fill:`rgba(36,87,206,${.12+.6*Math.sqrt(c.animals/max)})`,stroke:c.open_cases ? "#f05b40" : "rgba(255,255,255,.9)" }];
       } catch { return []; }
@@ -124,7 +125,7 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
     }
     const features = cells.map((cell) => ({
       type: "Feature" as const, properties: { animals: cell.animals, open: cell.open_cases, help: cell.needs_help, zone: cell.zone ?? "" },
-      geometry: { type: "Polygon" as const, coordinates: [cellToBoundary(cell.h3_r8, true)] },
+      geometry: { type: "Polygon" as const, coordinates: [roundCell(cell.h3_r8)] },
     }));
     (map.getSource("cells") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features });
     const points = cells.map((cell) => cellToLatLng(cell.h3_r8));

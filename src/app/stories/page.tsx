@@ -1,3 +1,4 @@
+import { animalTag, givenName, shortPlace } from "@/lib/animal-name";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowUpRight } from "lucide-react";
@@ -57,7 +58,7 @@ function build(cases: PublicCaseStory[], care: PublicTimelineEvent[]): Omit<Stor
     return {
       id: dogId,
       historical,
-      name: dogLabel({ name: latest.animal_name, zone: latest.zone }),
+      name: givenName(latest.animal_name) ?? shortPlace(latest.zone) ?? animalTag({ id: dogId }),
       zone: latest.zone,
       cat: /^(unknown|not recorded|other)$/i.test(cat) ? null : cat,
       reported: new Date(start).toISOString(),

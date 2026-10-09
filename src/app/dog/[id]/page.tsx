@@ -49,7 +49,7 @@ async function DogProfileContent({ id }: { id: string }) {
   const record = await buildLiving(profile, operational, identity);
 
   const { dog } = profile;
-  const label = dogLabel(dog);
+  const label = record.label;
 
   /* Structured data so a record is citable rather than merely readable: a
      search engine, a journalist or a municipal officer can see what this

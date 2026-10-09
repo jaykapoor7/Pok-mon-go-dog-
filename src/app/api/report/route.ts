@@ -1,3 +1,5 @@
+import { passesAutoApproval } from "@/lib/auto-approve";
+import { sendSightingLiveEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { getSupabaseAdmin, getSupabase } from "@/lib/supabase";
@@ -206,13 +208,31 @@ export async function POST(req: Request) {
     | { dog_id?: string; sighting_id?: string; trust_score?: number }
     | null;
 
+  /* Automatic approval: only when every check passes (lib/auto-approve).
+     Anything in doubt stays in the moderation queue for a person. */
+  let autoApproved = false;
+  if (result?.sighting_id && passesAutoApproval({
+    photoUrl, lat, lng, notes: body.notes ? String(body.notes) : null, nickname: body.nickname ? String(body.nickname) : null,
+    signedIn: !!userId, forOrganisation: !!orgCtx, claimedDogId: body.claimedDogId ? String(body.claimedDogId) : null, trust: result.trust_score ?? null,
+  })) {
+    const { data: approved, error: approveError } = await supa.rpc("approve_sighting", { p_sighting_id: result.sighting_id, p_dog_id: null });
+    if (!approveError) {
+      autoApproved = true;
+      const dogId = (approved as { dog_id?: string } | null)?.dog_id ?? result.dog_id ?? null;
+      if (result) result.dog_id = dogId ?? undefined;
+      if (body.reporterEmail && dogId) void sendSightingLiveEmail(String(body.reporterEmail), body.reporterName ? String(body.reporterName) : null, dogId).catch(() => {});
+    } else {
+      console.error("auto-approve failed; left for review:", approveError.message);
+    }
+  }
+
   // Ping the operator so the moderation queue gets looked at (best-effort).
   const who = volunteerName
     ? `${volunteerName}${orgCtx ? " (organisation volunteer)" : ""}`
     : body.reporterName
       ? String(body.reporterName)
       : "A guest";
-  notifyTelegram(
+  if (!autoApproved) notifyTelegram(
     `🐾 <b>New sighting to review</b>\n${who} reported a dog near ${String(
       body.zone ?? "India"
     )}.\nReview → ${moderateUrl}`
@@ -222,5 +242,6 @@ export async function POST(req: Request) {
     dogId: result?.dog_id ?? null,
     sightingId: result?.sighting_id ?? null,
     trust: result?.trust_score ?? 60,
+    autoApproved,
   });
 }

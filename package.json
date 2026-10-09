@@ -30,6 +30,7 @@
     "test:spatial": "node --import tsx scripts/test-spatial.ts",
     "test:record-dates": "node --import tsx scripts/test-record-dates.ts",
     "test:location-cell": "node --import tsx scripts/test-location-cell.ts",
+    "test:auto-approve": "node --import tsx scripts/test-auto-approve.ts",
     "test:no-full-register": "node --import tsx scripts/test-no-full-register-reads.ts",
     "test:v1-cleanup-chunks": "node --import tsx scripts/test-v1-cleanup-chunks.ts",
     "prebuild": "node scripts/build-info.mjs && node scripts/no-fixtures.mjs && node scripts/copy-maplibre-worker.mjs",

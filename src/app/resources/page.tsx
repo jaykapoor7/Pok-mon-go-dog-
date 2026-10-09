@@ -1,3 +1,4 @@
+import { PhoneTabs } from "@/components/shell/PhoneTabs";
 import Link from "next/link";
 import { PlatformShell } from "@/components/platform/PlatformNav";
 import { DeskHeader } from "@/components/app/DeskHeader";
@@ -62,6 +63,8 @@ export default function ResourcesPage() {
         <div className="rd-workspace"><nav className="rd-contents" aria-label="Resource sections"><p>Find the right help</p><a href="#helplines">01 / Rescue helplines</a><a href="#post-bite">02 / After a bite</a><a href="#directory">03 / Organisations</a><a href="#data">04 / Data & research</a><Link href="/report">Record an observation →</Link></nav><div className="rd-main">
 
         {/* ── Emergency helplines ── */}
+        <PhoneTabs tabs={[
+          { id: "helplines", label: "Rescue helplines", node: (
         <section id="helplines" className="mt-12 scroll-mt-40">
           <h2 className="flex items-center gap-2 font-display text-xl text-bark-900">
             <Phone className="h-5 w-5 text-paw-500" />
@@ -87,8 +90,8 @@ export default function ResourcesPage() {
             ))}
           </div>
         </section>
-
-        {/* ── Post-bite care ── */}
+          ) },
+          { id: "bite", label: "After a bite", node: (
         <section id="post-bite" className="mt-12 scroll-mt-40">
           <h2 className="font-display text-xl text-bark-900">
             What to do after a dog bite
@@ -111,6 +114,8 @@ export default function ResourcesPage() {
             ))}
           </ol>
         </section>
+          ) },
+        ]} />
 
         <ResourcesDirectory />
         </div></div>

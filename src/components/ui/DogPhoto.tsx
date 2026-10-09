@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { sized } from "@/lib/photo/src";
-import { AnimalSeal } from "@/components/system/AnimalSeal";
+import { FolkPortrait } from "@/components/art/FolkPortrait";
 
 export type PhotoTone = "urgent" | "active" | "resolved" | "neutral";
 
@@ -48,7 +48,7 @@ export function DogPhoto({
   const backdrop = sized(src, 64, 55);
 
   return (
-    <div className={cn("relative overflow-hidden bg-[#0b1e3d]", className)}>
+    <div className={cn("relative overflow-hidden bg-[#f6eee2]", className)}>
       {!failed && !missing ? (
         fit === "contain" ? (
           <>
@@ -77,7 +77,7 @@ export function DogPhoto({
         )
       ) : (
         <div className="h-full w-full" style={{ boxShadow: `inset 0 0 0 2px ${RING[tone]}` }}>
-          <AnimalSeal seed={seed ?? alt ?? ""} name={alt} label={`${alt || "Animal"}: no photograph yet`} caption />
+          <FolkPortrait seed={seed ?? alt ?? ""} className="block h-full w-full" label={`${alt || "Animal"}: illustration, no photograph on record`} />
         </div>
       )}
     </div>

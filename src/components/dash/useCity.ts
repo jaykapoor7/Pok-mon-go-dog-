@@ -1,5 +1,6 @@
 "use client";
 
+import { roundCell } from "@/lib/spatial/round";
 import { useEffect, useMemo, useState } from "react";
 import { cellToBoundary, isValidCell } from "h3-js";
 import { A, A_STRIDE, AF, type SpatialDataset } from "@/lib/spatial/types";
@@ -89,7 +90,7 @@ export function dotsInCells(items: { h3: string | null | undefined; hot?: boolea
   items.forEach((it, i) => {
     const h = it.h3; if (!h || !isValidCell(h)) return;
     const k = per.get(h) ?? 0; if (k >= cap) return; per.set(h, k + 1);
-    let r = rings.get(h); if (!r) { r = cellToBoundary(h, true) as [number, number][]; rings.set(h, r); }
+    let r = rings.get(h); if (!r) { r = roundCell(h); rings.set(h, r); }
     const [lng, lat] = pointInCell(r, i * 7 + 3);
     out.push({ lng, lat, h3: h, k: it.hot ? 1 : 0 });
   });

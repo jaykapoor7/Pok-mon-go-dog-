@@ -1,3 +1,4 @@
+import { PhoneFold, PhoneTabs } from "@/components/shell/PhoneTabs";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -53,6 +54,8 @@ export default function LearnPage() {
           </ol>
         </DeskHeader>
 
+        <PhoneTabs tabs={[
+          { id: "materials", label: "Materials", node: (
         <section className="studio-materials" aria-labelledby="materials-title">
           <header className="studio-section-head">
             <div>
@@ -65,6 +68,7 @@ export default function LearnPage() {
             </p>
           </header>
 
+          <PhoneFold count={3} total={KIND_HOUR_MATERIALS.length} noun="more materials">
           <ol className="material-list">
             {KIND_HOUR_MATERIALS.map((material, index) => (
               <li key={material.id} id={material.id}>
@@ -98,8 +102,10 @@ export default function LearnPage() {
               </li>
             ))}
           </ol>
+          </PhoneFold>
         </section>
-
+          ) },
+          { id: "lesson", label: "Make a lesson", node: (
         <section className="studio-bridge" aria-labelledby="bridge-title">
           <div className="studio-bridge-copy">
             <p className="studio-kicker">Turn material into a local lesson</p>
@@ -115,7 +121,8 @@ export default function LearnPage() {
             <Link href="/stories"><BookOpenCheck size={20} /><span><b>Follow a full story</b>From sighting to care</span><ArrowUpRight size={15} /></Link>
           </nav>
         </section>
-
+          ) },
+          { id: "guides", label: "Guides", node: (
         <section className="studio-guides" aria-labelledby="guides-title">
           <header className="studio-section-head">
             <div>
@@ -134,6 +141,8 @@ export default function LearnPage() {
             ))}
           </ol>
         </section>
+          ) },
+        ]} />
       </div>
     </AppShell>
   );

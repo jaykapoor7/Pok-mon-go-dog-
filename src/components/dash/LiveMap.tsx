@@ -14,6 +14,7 @@
    and the legend says so.
    ════════════════════════════════════════════════════════════════════ */
 
+import { roundCell } from "@/lib/spatial/round";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapGeoJSONFeature } from "maplibre-gl";
 import { cellToBoundary, cellToLatLng, isValidCell } from "h3-js";
@@ -107,7 +108,7 @@ export function LiveMap({ pin = null, cells, dots: given = [], viewport = null, 
     features: valid.map((c, i) => ({
       type: "Feature" as const, id: i,
       properties: { h3: c.h3, v: c.value, n: Math.sqrt(c.value / max), label: c.label ?? "" },
-      geometry: { type: "Polygon" as const, coordinates: [cellToBoundary(c.h3, true)] },
+      geometry: { type: "Polygon" as const, coordinates: [roundCell(c.h3)] },
     })),
   }), [valid, max]);
   const centres = useMemo(() => ({
@@ -195,7 +196,7 @@ export function LiveMap({ pin = null, cells, dots: given = [], viewport = null, 
             for (const h of batch) done.add(h);
             for (const a of rows) {
               if (seen.current.has(a.id) || !a.h3_r8 || !isValidCell(a.h3_r8)) continue;
-              let ring = rings.get(a.h3_r8); if (!ring) { ring = cellToBoundary(a.h3_r8, true) as [number, number][]; rings.set(a.h3_r8, ring); }
+              let ring = rings.get(a.h3_r8); if (!ring) { ring = roundCell(a.h3_r8); rings.set(a.h3_r8, ring); }
               const [lng, lat] = pointInCell(ring, hashOf(a.id));
               seen.current.set(a.id, { lng, lat, h3: a.h3_r8, id: a.id, k: a.needs_help || a.status === "injured" ? 1 : 0 });
             }

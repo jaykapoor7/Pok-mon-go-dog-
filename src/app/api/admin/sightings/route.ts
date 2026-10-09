@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendSightingLiveEmail } from "@/lib/email";
+import { autoApprovalOn, sightingChecks } from "@/lib/auto-approve";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export async function GET(req: Request) {
   }
   const { data, error } = await supa
     .from("sightings")
-    .select("id, reporter_name, zone, nickname, photo_url, notes, mood_tags, created_at")
+    .select("id, reporter_name, zone, nickname, photo_url, notes, mood_tags, created_at, lat, lng, claimed_dog_id, trust_score, user_id, ngo_id, volunteer_name, sterilisation_status, vaccination_status")
     .eq("status", "pending")
     .order("created_at", { ascending: true })
     .limit(200);
@@ -58,7 +59,14 @@ export async function GET(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ pending: data ?? [], count: data?.length ?? 0 });
+  /* Each pending report carries the automatic-approval checks, so the
+     reviewer sees exactly why it was left for a person. Who reported is
+     reduced to its kind; no account id leaves the server. */
+  const pending = (data ?? []).map(({ user_id, ngo_id, ...row }) => {
+    const facts = { photoUrl: row.photo_url, lat: row.lat, lng: row.lng, notes: row.notes, nickname: row.nickname, signedIn: !!user_id, forOrganisation: !!ngo_id, claimedDogId: row.claimed_dog_id, trust: row.trust_score };
+    return { ...row, reporter_kind: ngo_id ? "organisation" : user_id ? "signed-in" : "guest", checks: sightingChecks(facts), passes: sightingChecks(facts).every((c) => c.ok) };
+  });
+  return NextResponse.json({ pending, count: pending.length, autoApproval: autoApprovalOn() });
 }
 
 export async function POST(req: Request) {
@@ -78,6 +86,22 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+  /* Approve every pending report that passes all the checks, as new animals. */
+  if (body.action === "approve_passing") {
+    const { data: rows, error: listError } = await supa
+      .from("sightings")
+      .select("id, photo_url, lat, lng, notes, nickname, user_id, ngo_id, claimed_dog_id, trust_score")
+      .eq("status", "pending").limit(200);
+    if (listError) return NextResponse.json({ error: listError.message }, { status: 500 });
+    const passing = (rows ?? []).filter((r) => sightingChecks({ photoUrl: r.photo_url, lat: r.lat, lng: r.lng, notes: r.notes, nickname: r.nickname, signedIn: !!r.user_id, forOrganisation: !!r.ngo_id, claimedDogId: r.claimed_dog_id, trust: r.trust_score }).every((c) => c.ok));
+    const approved: string[] = [];
+    for (const r of passing) {
+      const { error: e } = await supa.rpc("approve_sighting", { p_sighting_id: r.id, p_dog_id: null });
+      if (!e) approved.push(r.id);
+    }
+    return NextResponse.json({ ok: true, approved });
+  }
+
   if (!body.id || (body.action !== "approve" && body.action !== "reject")) {
     return NextResponse.json(
       { error: "Provide { action: 'approve' | 'reject', id }" },

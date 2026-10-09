@@ -22,6 +22,8 @@ import type { Living, LivingEvent } from "@/lib/animal/living";
 import { RecordActions } from "./RecordActions";
 import { CommunityPanel } from "./CommunityPanel";
 import { LivingChronology } from "./LivingChronology";
+import { DossierTabs } from "./DossierTabs";
+import { givenName } from "@/lib/animal-name";
 import "./living.css";
 import "./dossier.css";
 import { placeLine as joinPlace } from "@/lib/utils";
@@ -143,7 +145,6 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
   const placeLine = joinPlace(r.locality, r.city);
   const sex = /^(m|male)$/i.test(r.sex ?? "") ? "male" : /^(f|female)$/i.test(r.sex ?? "") ? "female" : null;
   const what = [r.colour ? r.colour.toLowerCase() : null, sex, r.species === "dog" ? "street dog" : r.species].filter(Boolean).join(" ");
-  const generated = /·/.test(r.label) || /^(dog|animal) near /i.test(r.label);
   const known = stops.filter((s) => s.kind !== "missing" && !(s.key === "help"));
   const gaps = stops.filter((s) => s.kind === "missing" || s.key === "help");
   /* Group the spine by year so a decade-long record stays readable. */
@@ -154,123 +155,103 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
     if (last && last.year === y) last.items.push(s); else years.push({ year: y, items: [s] });
   }
 
-  return (
-    <article className="dz" aria-labelledby="dz-name">
-      {trail}
+  const named = !!givenName(r.label) && r.label !== r.straypawId?.split("-").pop();
+  const history = (
+    <section className="dz-sec" aria-label="History">
+      <p className="dz-lead">{r.events.length ? `${r.events.length} entr${r.events.length === 1 ? "y" : "ies"} from ${[...new Set(r.events.map((e) => SOURCE[e.source]))].join(", ")}.` : "Nothing has been recorded against this animal yet."}</p>
+      {years.length > 0 && (
+        <ol className="dz-spine">
+          {years.map((y) => (
+            <li key={y.year} className="dz-year">
+              <h3 className={/^\d{4}$/.test(y.year) ? "" : "is-undated"}>{y.year}</h3>
+              <ol>
+                {y.items.map((stop) => (
+                  <li key={stop.key} data-state={stop.kind}>
+                    <time dateTime={stop.at ?? undefined}>{stop.at ? shortDay(stop.at) : "Undated"}</time>
+                    <div><b>{stop.label}</b>{stop.detail && <p>{stop.detail}</p>}{stop.href && <a href={stop.href} className="x-link">{stop.cta ?? "Open record"} →</a>}</div>
+                  </li>
+                ))}
+              </ol>
+            </li>
+          ))}
+        </ol>
+      )}
+      {gaps.length > 0 && (
+        <div className="dz-gaps">
+          <h3>Not yet on the record</h3>
+          <ul>
+            {gaps.map((g) => (
+              <li key={g.key} className={g.key === "help" ? "is-hot" : ""}>
+                <div><b>{g.label}</b>{g.detail && <p>{g.detail}</p>}</div>
+                {g.href && <a href={g.href} className="x-btn">{g.cta ?? "Add it"}</a>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+  const area = (
+    <div className="dz-areatab">
+      {r.place ? (
+        <figure className="dz-area">
+          <PlaceMap key={`${r.id}:${r.place.cell}`} variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
+          <figcaption>The recorded area, about 0.7 km², never an exact location. <a href={mapHref} className="x-link">Open on the Atlas →</a></figcaption>
+        </figure>
+      ) : <p className="dz-lead">No area is recorded for this animal.</p>}
+      <dl className="dz-prov">
+        <div><dt>StrayPaw ID</dt><dd>{r.straypawId ?? "Pending"}</dd></div>
+        {r.sourceCode && <div><dt>Source ID</dt><dd>{r.sourceCode}</dd></div>}
+        <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
+        <div><dt>Record</dt><dd>{scope === "org" ? "Organisation record" : "Public record"}</dd></div>
+      </dl>
+      <p className="dz-fine">A documented identity, not a claim of verified uniqueness. Recorded animals, never a population.</p>
+    </div>
+  );
+  const tabs = [
+    { id: "history", label: "History", count: known.length || undefined, panel: history },
+    ...(org ? [{ id: "org", label: "Organisation", panel: <div className="dz-org">{org}</div> }] : []),
+    { id: "area", label: "Area", panel: area },
+    { id: "add", label: "Add to record", panel: <CommunityPanel id={r.id} label={r.label} needsHelp={r.known.health === "needs_help"} comments={r.comments} /> },
+    ...(chronology.length ? [{ id: "all", label: "All entries", count: chronology.length, panel: <LivingChronology entries={chronology} /> }] : []),
+  ];
 
-      <header className={`dz-hero x-night ${r.photo ? "has-photo" : "no-photo"}`}>
-        <div className="dz-hero-in">
-          <figure className="dz-portrait">
-            {r.photo ? <>
-              <DogPhoto src={r.photo} alt={r.label} seed={r.id} width={900} className="dz-photo" />
-              <figcaption>{r.photos.length > 1 ? `${r.photos.length} photographs on this record` : "Photographed for this record"}{r.photoAttribution && <> · {r.photoSourceUrl ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a> : r.photoAttribution}</>}</figcaption>
-            </> : (
-              <div className="dz-plate" role="img" aria-label={`No photograph is recorded for ${r.label}`}>
-                <span className="dz-plate-id">{r.straypawId ?? "Identity pending"}</span>
-                <span className="dz-plate-place">{r.locality ?? r.city ?? "Place not recorded"}</span>
-                <span className="dz-plate-note">No photograph on record. This animal is known through its record — there is no substitute image.</span>
-              </div>
-            )}
-          </figure>
-          <div className="dz-id">
-            <p className="dz-where">{placeLine || "Locality not recorded"}</p>
-            <h1 id="dz-name" className={`dz-name${r.label.length > 26 ? " is-long" : ""}`}>{r.label}</h1>
-            {(what || generated) && <p className="dz-what">{what ? <em>{what.replace(/^./, (c) => c.toUpperCase())}</em> : null}{generated ? <span> · a descriptive name from the source, not a given one</span> : null}</p>}
-            <p className={`x-state dz-status ${status.c}`}>{status.t}</p>
-            <dl className="dz-dates">
-              <div><dt>On the record since</dt><dd>{day(r.firstSeen)}</dd></div>
-              <div><dt>Last seen</dt><dd>{r.lastSeen ? since(r.lastSeen) : "Not recorded"}</dd></div>
-              <div><dt>Recorded by</dt><dd>{r.keeper}</dd></div>
-            </dl>
-            <div className="dz-do">
-              <a href={reportHref} className="x-btn is-flame">{r.known.health === "needs_help" ? "I can see it now" : "Report a sighting"}</a>
-              <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
-            </div>
+  return (
+    <article className="dz dz2" aria-labelledby="dz-name">
+      {trail}
+      <header className="dz2-hero">
+        <figure className="dz2-portrait">
+          <DogPhoto src={r.photo} alt={r.label} seed={r.id} width={900} className="dz2-ph" />
+          <figcaption>{r.photo ? <>{r.photos.length > 1 ? `${r.photos.length} photographs` : "Photographed for this record"}{r.photoAttribution && <> · {r.photoSourceUrl ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a> : r.photoAttribution}</>}</> : "Illustration · no photograph on record yet"}</figcaption>
+        </figure>
+        <div className="dz2-id">
+          <p className="dz2-tag">{r.straypawId ?? "ID pending"}</p>
+          <h1 id="dz-name" className="dz2-name">{r.label}</h1>
+          <p className="dz2-where">{[named ? null : "Unnamed", placeLine || "Locality not recorded"].filter(Boolean).join(" · ")}{what ? ` · ${cap(what)}` : ""}</p>
+          <p className={`dz2-status ${status.c}`}>{status.t}</p>
+        </div>
+        <div className="dz2-meta">
+          <dl className="dz2-dates">
+            <div><dt>On record since</dt><dd>{day(r.firstSeen)}</dd></div>
+            <div><dt>Last seen</dt><dd>{r.lastSeen ? since(r.lastSeen) : "Not recorded"}</dd></div>
+            <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
+          </dl>
+          <div className="dz2-do">
+            <a href={reportHref} className="x-btn is-flame">{r.known.health === "needs_help" ? "I can see it now" : "Report a sighting"}</a>
+            <RecordActions id={r.id} label={r.label} place={placeLine || null} mapHref={mapHref} rows={rows} straypawId={r.straypawId} />
           </div>
         </div>
       </header>
 
-      <div className="x-wrap dz-wrap">
-        <section className="dz-known" aria-labelledby="dz-known-h">
-          <h2 id="dz-known-h" className="sys-sr">What the record knows</h2>
-          <Fact state={r.known.ster} label="Sterilised" note={r.known.ster === "unknown" ? "Not recorded" : r.known.sterAt ? day(r.known.sterAt) : r.known.ster === "no" ? "Recorded as not" : "On the record"} />
-          <Fact state={r.known.vacc} label="Vaccinated" note={r.known.vacc === "unknown" ? "Not recorded" : r.known.boosterDue ? `Booster due · last ${since(r.known.vaccAt)}` : r.known.vaccAt ? day(r.known.vaccAt) : r.known.vacc === "no" ? "Recorded as not" : "On the record"} warn={r.known.boosterDue} />
-          <Fact state={r.known.earNotch ? "yes" : "unknown"} label="Ear notch" note={r.known.earNotch ? "Seen" : "Not noted"} />
-          <Fact state={r.known.health === "none" ? "unknown" : "flag"} label="Health" note={r.known.health === "needs_help" ? "Flagged: needs help" : r.known.health === "injured" ? "Flagged: injured" : "No concern recorded"} />
-          <p className="dz-known-note"><i aria-hidden /> Hatched means nothing is recorded. It never means no.</p>
-        </section>
+      <section className="dz2-facts" aria-label="What the record knows">
+        <Fact state={r.known.ster} label="Sterilised" note={r.known.ster === "unknown" ? "Not recorded" : r.known.sterAt ? day(r.known.sterAt) : r.known.ster === "no" ? "Recorded as not" : "On the record"} />
+        <Fact state={r.known.vacc} label="Vaccinated" note={r.known.vacc === "unknown" ? "Not recorded" : r.known.boosterDue ? `Booster due` : r.known.vaccAt ? day(r.known.vaccAt) : r.known.vacc === "no" ? "Recorded as not" : "On the record"} warn={r.known.boosterDue} />
+        <Fact state={r.known.earNotch ? "yes" : "unknown"} label="Ear notch" note={r.known.earNotch ? "Seen" : "Not noted"} />
+        <Fact state={r.known.health === "none" ? "unknown" : "flag"} label="Health" note={r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "No concern recorded"} />
+      </section>
+      <p className="dz2-note">Grey means nothing is recorded. It never means no.</p>
 
-        <div className="dz-cols">
-          <div className="dz-main">
-            <section className="dz-sec" aria-labelledby="dz-hist">
-              <header className="dz-sec-head">
-                <h2 id="dz-hist" className="x-h2">Its history</h2>
-                <p className="x-small">{r.events.length ? `${r.events.length} entr${r.events.length === 1 ? "y" : "ies"} from ${[...new Set(r.events.map((e) => SOURCE[e.source]))].join(", ")}.` : "Nothing has been recorded against this animal yet."}</p>
-              </header>
-              {years.length > 0 && (
-                <ol className="dz-spine">
-                  {years.map((y) => (
-                    <li key={y.year} className="dz-year">
-                      <h3 className={/^\d{4}$/.test(y.year) ? "" : "is-undated"}>{y.year}</h3>
-                      <ol>
-                        {y.items.map((stop) => (
-                          <li key={stop.key} data-state={stop.kind}>
-                            <time dateTime={stop.at ?? undefined}>{stop.at ? shortDay(stop.at) : "Date not recorded"}</time>
-                            <div><b>{stop.label}</b>{stop.detail && <p>{stop.detail}</p>}{stop.href && <a href={stop.href} className="x-link">{stop.cta ?? "Open record"} →</a>}</div>
-                          </li>
-                        ))}
-                      </ol>
-                    </li>
-                  ))}
-                </ol>
-              )}
-              {gaps.length > 0 && (
-                <div className="dz-gaps">
-                  <h3 className="x-h3">Not yet on the record</h3>
-                  <ul>
-                    {gaps.map((g) => (
-                      <li key={g.key} className={g.key === "help" ? "is-hot" : ""}>
-                        <div><b>{g.label}</b>{g.detail && <p>{g.detail}</p>}</div>
-                        {g.href && <a href={g.href} className="x-btn">{g.cta ?? "Add it"}</a>}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </section>
-
-            {org}
-
-            {chronology.length > 0 && (
-              <details className="dz-sec dz-full">
-                <summary><span className="x-h3">Every entry, with its source</span><span className="x-small">{chronology.length} entries, newest first</span></summary>
-                <LivingChronology entries={chronology} />
-              </details>
-            )}
-
-            <section className="dz-sec" aria-labelledby="dz-add">
-              <header className="dz-sec-head"><h2 id="dz-add" className="x-h2">Seen {generated ? "this dog" : r.label}? <em>Add to its record</em></h2></header>
-              <CommunityPanel id={r.id} label={r.label} needsHelp={r.known.health === "needs_help"} comments={r.comments} />
-            </section>
-          </div>
-
-          <aside className="dz-side" aria-label="Where and whose record">
-            {r.place && (
-              <figure className="dz-area">
-                <PlaceMap key={`${r.id}:${r.place.cell}`} variant="area" center={r.place.center} cells={r.place.cells} locality={r.locality} city={r.city} label={r.label} others={scope === "public" && r.place.here < 3 ? 0 : r.place.here} />
-                <figcaption>The recorded area — a cell of about 0.7 km², never an exact location. <a href={mapHref} className="x-link">Open on the Atlas →</a></figcaption>
-              </figure>
-            )}
-            <dl className="dz-prov">
-              <div><dt>StrayPaw ID</dt><dd className="x-mono">{r.straypawId ?? "Pending"}</dd></div>
-              {r.sourceCode && <div><dt>Source ID</dt><dd className="x-mono">{r.sourceCode}</dd></div>}
-              <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
-              <div><dt>Record</dt><dd>{scope === "org" ? "Organisation record" : "Public record"}</dd></div>
-            </dl>
-            <p className="dz-fine">A documented identity, not a claim of verified uniqueness: imported rows can describe the same animal twice. Recorded animals, never a population.</p>
-          </aside>
-        </div>
-      </div>
+      <DossierTabs tabs={tabs} />
     </article>
   );
 }

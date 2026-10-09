@@ -11,6 +11,7 @@
    the line. Places are cell centres; nothing is placed finer.
    ════════════════════════════════════════════════════════════════════ */
 
+import { PhoneFold, PhoneTabs } from "@/components/shell/PhoneTabs";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "maplibre-gl";
@@ -176,8 +177,7 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
   const d = span(s);
   const said = s.outcome.split(/\s+/).length > 3;
 
-  return (
-    <>
+  const story = (
       <div className="sa" ref={atlasRef}>
         <div className="sa-map" ref={el} role="img" aria-label={`The ${stories.length} animal records on the map, numbered as in the index below`} />
         <article className="sa-file" aria-live="polite" aria-labelledby="sa-name">
@@ -214,7 +214,8 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
           </footer>
         </article>
       </div>
-
+  );
+  const index = (
       <section className="sa-index" aria-labelledby="sa-index-title">
         <h2 id="sa-index-title" className="sa-index-h">Every record here</h2>
         <ol>
@@ -233,6 +234,6 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
           })}
         </ol>
       </section>
-    </>
   );
+  return <PhoneTabs label="Stories" tabs={[{ id: "story", label: "Story", node: story }, { id: "all", label: `All records · ${stories.length}`, node: <PhoneFold count={6} total={stories.length} noun="records">{index}</PhoneFold> }]} />;
 }

@@ -14,7 +14,8 @@ import { useCityCells, MEASURE_LABEL, ago, fmtN, type Measure } from "./useCity"
 import { CellCard } from "./CellCard";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { PlaceSearch, type PlaceOption } from "@/components/app/PlaceSearch";
-import { AnimalTile, realName } from "@/components/community/AnimalTile";
+import { AnimalTile } from "@/components/community/AnimalTile";
+import { animalSubtitle, animalTitle } from "@/lib/animal-name";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import { usePlace, kmBetween } from "@/lib/place";
 import { useFollows } from "@/lib/follows";
@@ -80,8 +81,8 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
 
   const hot = (near ?? []).filter((a) => a.needs_help || a.status === "injured");
   const attention: Item[] = hot.slice(0, 7).map((a) => ({
-    key: a.id, href: `/dog/${a.id}`, title: realName(a.name) ?? `Dog near ${a.zone?.split(",")[0] ?? "here"}`,
-    meta: [a.straypaw_id, a.last_seen ? `seen ${ago(a.last_seen)}` : null].filter(Boolean).join(" · "),
+    key: a.id, href: `/dog/${a.id}`, title: animalTitle(a),
+    meta: [animalSubtitle(a), a.last_seen ? `seen ${ago(a.last_seen)}` : null].filter(Boolean).join(" · "),
     tag: { text: a.status === "injured" ? "Injured" : "Needs help", tone: "hot" },
     thumb: a.cover_photo ? <DogPhoto src={a.cover_photo} alt="" seed={a.id} className="db-thumb" /> : undefined,
   }));
