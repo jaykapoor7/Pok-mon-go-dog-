@@ -145,3 +145,7 @@ never finer than a cell; sample-derived figures say they are loaded detail.
 - **Moderation:** `/moderate` is a focused queue (photo, what was reported, the checks, Approve / Reject / Skip with A / R / →, approve-all-that-pass). `/admin` keeps every other tool.
 - **Automatic approval** (`lib/auto-approve.ts`, used in `/api/report`): a report goes live without review only when it has a photo, is inside India, has no phone numbers / emails / links, does not claim an existing animal, and comes from a signed-in reporter, an organisation volunteer or a reporter with trust ≥ 80. Set `AUTO_APPROVE_SIGHTINGS=off` to disable. Covered by `npm run test:auto-approve`.
 - Verified on a production build: 41 journey checks, 8 regression scripts, tsc and eslint. Not verified: the auto-approval path against the live database (no report was submitted), real moderator sign-in, real NGO member sessions.
+
+## Round 7 — dashboard frame
+
+Every page is a set of bordered white cards on the living ground (`paper.css`, "Dashboard frame"): the page header (`.dh`) is a card, each section beside it is a card (one rule for any container whose child is `.dh`, using `:has()`), phone-tab panels are cards, insights' header/picker/findings are cards, and dashboards' header, figures, map and panels share the same edge (`--card-b`, `--card-sh`, `--card-r`). The sidebar and top bar carry the same border. The NGO workspace tab row and the sign-in notice are cards too. Verified on a production build: 41 journey checks; pages ≤ 2.4 screens on a phone.

@@ -548,3 +548,63 @@
   .sx.sd :is(.dh-extra nav, .st-cities) > * { flex: none; }
   .sx.sd .dh-lede { font-size: 14.5px !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   Dashboard frame. Every page is a set of bordered white cards on the
+   living ground: the page header is a card, each section beside it is a
+   card, and every panel, figure and tile shares the same edge.
+   ════════════════════════════════════════════════════════════════════ */
+.sx.sd { --card-b: rgba(11, 30, 61, 0.14); --card-sh: 0 1px 2px rgba(11, 30, 61, 0.05), 0 16px 36px -30px rgba(11, 30, 61, 0.45); --card-r: 22px; }
+.sx.sd .sd-side { border-right: 1px solid var(--card-b); }
+.sx.sd .sd-top { border-bottom: 1px solid var(--card-b); background: rgba(250, 247, 241, 0.9); }
+
+/* Pages built as header + sections. */
+.sx.sd .sx-main :is(div, main, section, article):has(> .dh),
+.sx.sd .sx-main:has(> .dh) { display: grid; gap: 16px; align-content: start; padding: 20px var(--x-gutter) 40px; max-width: 1240px; margin-inline: auto; box-sizing: border-box; width: 100%; }
+.sx.sd .sx-main .sx-page:has(> .partner-workspace-tabs) { padding-top: 16px; }
+.sx.sd .sx-main .sx-page :is(div, main, section):has(> .dh) { padding-inline: 0; }
+.sx.sd .dh { margin: 0 !important; border-radius: var(--card-r); background: #fff !important; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); overflow: hidden; }
+.sx.sd .dh .dh-in { padding-top: 26px !important; padding-bottom: 24px !important; }
+.sx.sd .sx-main :is(div, main, section, article):has(> .dh) > :not(.dh):not(.ptabs):not(script):not(style),
+.sx.sd .sx-main:has(> .dh) > :not(.dh):not(.ptabs):not(script):not(style),
+.sx.sd .ptabs-panel > * { margin: 0 !important; padding: 20px 22px !important; border-radius: var(--card-r); background: #fff; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); box-sizing: border-box; min-width: 0; }
+.sx.sd .ptabs { display: grid; gap: 16px; }
+.sx.sd .ptabs-panel { min-width: 0; }
+
+/* The NGO workspace's tab row: a bordered bar. */
+.sx.sd .partner-workspace-tabs { margin: 0 0 16px; padding: 4px 6px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px var(--card-b); }
+
+/* Insights: header, picker and each finding as cards. */
+.sx.sd .ib { display: grid; gap: 16px; padding: 20px var(--x-gutter) 40px; max-width: 1240px; margin: 0 auto; }
+.sx.sd :is(.ib-register-head, .ib-pick, .ib-q, .ib-chapter) { margin: 0 !important; padding: 20px 22px !important; border-radius: var(--card-r) !important; background: #fff !important; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh) !important; border: 0 !important; }
+.sx.sd .ib-body { display: grid; gap: 16px; }
+
+/* Dashboards: the header and everything else on the same edge. */
+.sx.sd .db { padding: 20px var(--x-gutter) 40px; gap: 16px; }
+.sx.sd .db-head { margin: 0 !important; padding: 28px 28px 22px !important; border-radius: var(--card-r); background: #fff; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); }
+.sx.sd :is(.db-kpi, .db-panel, .at2, .dz2-hero, .dz2-facts .dz-fact, .dt-panel, .dt-bar, .mq-card, .mq-empty, .mq-gate, .ptabs-bar, .sx-sheet-me) { box-shadow: 0 0 0 1px var(--card-b), var(--card-sh) !important; }
+.sx.sd .db-map { box-shadow: 0 0 0 1px var(--card-b), var(--card-sh) !important; }
+.sx.sd .db-panel { padding: 6px 20px 12px; }
+.sx.sd .sx-main > .rq-wrap { padding-top: 16px; }
+
+@media (max-width: 760px) {
+  .sx.sd { --card-r: 18px; }
+  .sx.sd .sx-main :is(div, main, section, article):has(> .dh), .sx.sd .sx-main:has(> .dh), .sx.sd .ib, .sx.sd .db { gap: 12px; padding: 12px var(--x-gutter) 24px; }
+  .sx.sd .sx-main :is(div, main, section, article):has(> .dh) > :not(.dh):not(.ptabs):not(script):not(style),
+  .sx.sd .sx-main:has(> .dh) > :not(.dh):not(.ptabs):not(script):not(style),
+  .sx.sd .ptabs-panel > *, .sx.sd :is(.ib-register-head, .ib-pick, .ib-q, .ib-chapter) { padding: 16px !important; }
+  .sx.sd .dh .dh-in { padding: 18px 16px !important; }
+  .sx.sd .db-head { padding: 0 16px 16px !important; overflow: hidden; }
+  .sx.sd .db-art { margin: 0 -16px 6px !important; width: calc(100% + 32px) !important; }
+  .sx.sd .ptabs { gap: 12px; }
+  .sx.sd .ib-body { display: flex !important; }
+}
+.sx.sd .dh .dh-in { padding-inline: 24px !important; max-width: none; }
+.sx.sd .sx-main > .relative.w-full:first-child { width: auto; margin: 16px var(--x-gutter) 0; border: 0; border-radius: var(--card-r); background: #fff; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); max-width: 1192px; }
+@media (min-width: 1290px) { .sx.sd .sx-main > .relative.w-full:first-child { margin-inline: auto; } }
+.sx.sd .ptabs-panel > .sa .sa-file { box-shadow: none !important; border: 0 !important; }
+.sx.sd .ptabs-panel > .sa { display: grid; gap: 16px; }
+@media (max-width: 760px) { .sx.sd .dh .dh-in { padding-inline: 16px !important; } }
+.sx.sd .sx-main > div.relative.w-full[role="alert"], .sx.sd .sx-main > div.relative.w-full:not(.sx-page):not(.db) { width: auto !important; margin: 16px var(--x-gutter) 0 !important; border: 0 !important; border-radius: var(--card-r); background: #fff; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); }
+@media (min-width: 1290px) { .sx.sd .sx-main > div.relative.w-full:not(.sx-page):not(.db) { max-width: 1192px; margin-inline: auto !important; } }
+@media (max-width: 760px) { .sx.sd .pp-dir .pp-tag { display: none; } .sx.sd .pp-dir a { gap: 12px; } }
