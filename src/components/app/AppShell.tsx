@@ -90,7 +90,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
 
   return (
     <InShell.Provider value={true}>
-      <div className={`sx sd spa-scope ${SX_FONTS}${flush ? " is-flush" : ""}${isReporting ? " is-reporting" : ""}`} data-space={space}>
+      <div className={`sx sd dark spa-scope ${SX_FONTS}${flush ? " is-flush" : ""}${isReporting ? " is-reporting" : ""}`} data-space={space}>
         <Welcome />
         <a href="#spa-main" className="sx-skip">Skip to content</a>
 

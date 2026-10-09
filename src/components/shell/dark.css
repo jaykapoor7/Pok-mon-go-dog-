@@ -265,3 +265,5 @@
 .sx.sd .ax .atlas-evidence-note { background: none; border-top: 1px solid var(--d-line); border-radius: 0; padding: 12px 0 0; }
 .sx.sd .dz-what em { font-family: inherit; font-style: normal; color: var(--d-dim); font-size: 16px; }
 .sx.sd .dz-name { font-weight: 500; }
+.sx.sd .ax-lenses button { min-height: 44px; min-width: 44px; padding: 0 2px; }
+.sx.sd .db-mapchips button, .sx.sd .db-filter button { min-height: 40px; }
