@@ -36,6 +36,7 @@ import { CampsSection } from "@/components/partner/CampsSection";
 import { TasksSection } from "@/components/partner/TasksSection";
 import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "@/components/dash/Dashboard";
 import { LiveMap, type MapCell } from "@/components/dash/LiveMap";
+import { dotsInCells } from "@/components/dash/useCity";
 import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
@@ -156,6 +157,7 @@ export function OpsRoom() {
   const place = workMap && workMap.name !== "all open work" ? workMap.name : org?.city ?? null;
 
   const [mapMode, setMapMode] = useState<"open" | "live" | "stale">("open");
+  const workDots = useMemo(() => dotsInCells((open ?? []).map((c) => ({ h3: c.h3_r8, hot: critical(c) }))), [open]);
   const mapCells: MapCell[] = (openCells ?? []).filter((r) => r.h3_r8 && isValidCell(r.h3_r8)).map((r) => ({
     h3: r.h3_r8, value: mapMode === "open" ? r.open_cases : mapMode === "live" ? Math.max(0, r.open_cases - r.stale_cases) : r.stale_cases,
     hot: r.critical_cases, label: (open ?? []).find((c) => c.h3_r8 === r.h3_r8)?.zone ?? r.city,
@@ -205,7 +207,7 @@ export function OpsRoom() {
         { label: "Follow-ups overdue", value: loading ? null : overdue, tone: "hot", href: "/partner/records?view=overdue" },
         { label: "Waiting on a decision", value: loading ? null : stale, tone: "blue", href: "/partner/review", note: "Open 90+ days, quiet 30+" },
       ]}
-      map={<LiveMap cells={mapCells} tone="flame" metric={mapMode === "stale" ? "older open cases" : "open cases"} label={`Open work by cell in ${place ?? "your area"}`} selected={cell} onCell={(k) => setCell((x) => (x === k ? null : k))} emptyNote={loading ? "Placing the open work…" : "No open case carries a location."}>
+      map={<LiveMap cells={mapCells} tone="flame" metric={mapMode === "stale" ? "older open cases" : "open cases"} label={`Open work by cell in ${place ?? "your area"}`} dots={workDots} dotNoun="open case" dotKeys={["Critical", "Open case"]} selected={cell} onCell={(k) => setCell((x) => (x === k ? null : k))} emptyNote={loading ? "Placing the open work…" : "No open case carries a location."}>
         <MapChips value={mapMode} options={[{ id: "open", label: "All open" }, { id: "live", label: "Live" }, { id: "stale", label: "Waiting on review" }]} onChange={setMapMode} label="Map measure" />
         <Link href="/partner/map?mode=cases" className="db-maplink">Field map <ArrowUpRight size={14} aria-hidden /></Link>
         {cell && <div className="db-selcard"><b>{(open ?? []).find((c) => c.h3_r8 === cell)?.zone ?? "Selected cell"}</b><p>The queue shows this cell only.</p><button type="button" className="x-btn" onClick={() => setCell(null)}><X size={14} aria-hidden /> Show everywhere</button></div>}

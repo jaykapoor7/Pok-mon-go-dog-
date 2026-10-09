@@ -11,6 +11,7 @@ import { ArrowUpRight, Crosshair, MapPin, Radio } from "lucide-react";
 import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "./Dashboard";
 import { LiveMap, type MapTone } from "./LiveMap";
 import { useCityCells, MEASURE_LABEL, ago, fmtN, type Measure } from "./useCity";
+import { CellCard } from "./CellCard";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { PlaceSearch, type PlaceOption } from "@/components/app/PlaceSearch";
 import { AnimalTile, realName } from "@/components/community/AnimalTile";
@@ -74,6 +75,8 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
   const L = LENSES.find((l) => l.id === lens)!;
   const mapCells = (cells ?? []).map((c) => ({ h3: c.h3_r8, value: (c[lens] as number | undefined) ?? 0, hot: c.needs_help, label: names.get(c.h3_r8) ?? null }));
   const selCell = sel ? cells?.find((c) => c.h3_r8 === sel) : null;
+  const [focus, setFocus] = useState<string | null>(null);
+  const vp = useMemo(() => (city ? { city: city } : null), [city]);
 
   const hot = (near ?? []).filter((a) => a.needs_help || a.status === "injured");
   const attention: Item[] = hot.slice(0, 7).map((a) => ({
@@ -102,10 +105,10 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
         { label: "Sterilisation recorded", value: row?.sterilised, tone: "care", note: "Unknown is not “no”" },
         { label: "You follow", value: follows?.length ?? 0, href: "/following", note: "Saved on this device" },
       ]}
-      map={<LiveMap cells={mapCells} tone={L.tone} metric={MEASURE_LABEL[lens]} label={`${city}: ${MEASURE_LABEL[lens]} by cell`} selected={sel} onCell={setSel} emptyNote={loading ? "Reading the city…" : `No ${MEASURE_LABEL[lens]} recorded here.`}>
+      map={<LiveMap cells={mapCells} tone={L.tone} metric={MEASURE_LABEL[lens]} label={`${city}: ${MEASURE_LABEL[lens]} by cell`} viewport={vp} dotFocus={lens === "needs_help" || lens === "open_cases" ? "hot" : "all"} selected={sel} onCell={(h, id) => { setSel(h); setFocus(id ?? null); }} emptyNote={loading ? "Reading the city…" : `No ${MEASURE_LABEL[lens]} recorded here.`}>
         <MapChips value={lens} options={LENSES} onChange={setLens} label="Map measure" />
         <Link href={`/map?city=${encodeURIComponent(city ?? "")}`} className="db-maplink">Open full Atlas <ArrowUpRight size={14} aria-hidden /></Link>
-        {selCell && <div className="db-selcard"><b>{names.get(selCell.h3_r8) ?? "Analysis cell"}</b><p>{fmtN(selCell.animals)} animals · {fmtN(selCell.open_cases)} open requests · {fmtN(selCell.needs_help)} flagged</p><Link href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`}>Meet the animals in this cell →</Link></div>}
+        {selCell && <CellCard h3={selCell.h3_r8} title={names.get(selCell.h3_r8) ?? "This area"} facts={`${fmtN(selCell.animals)} animals · ${fmtN(selCell.open_cases)} open requests · ${fmtN(selCell.needs_help)} flagged`} href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`} linkLabel="Open this area in the Atlas" focus={focus} onClose={() => { setSel(null); setFocus(null); }} />}
       </LiveMap>}
       side={<>
         <Panel title="Needs someone nearby" count={near ? hot.length : undefined} action={{ label: "Report", href: centre ? `/report?lat=${centre[1]}&lng=${centre[0]}` : "/report" }}>

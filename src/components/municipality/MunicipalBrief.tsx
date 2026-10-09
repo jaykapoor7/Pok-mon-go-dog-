@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "@/components/dash/Dashboard";
 import { LiveMap, type MapTone } from "@/components/dash/LiveMap";
+import { CellCard } from "@/components/dash/CellCard";
 import { useSpatialDataset, pointInCell, ringOf } from "@/components/spatial/data";
 import type { Light } from "@/components/system/LightsMap";
 import { cityEvidence, kindOf, KIND_META } from "@/components/spatial/AtlasRegister";
@@ -106,6 +107,8 @@ export function MunicipalBrief() {
   const tone: MapTone = measure === "open_cases" ? "flame" : measure === "animals" ? "blue" : "teal";
   const mapCells = (cellTotals ?? []).map((c) => ({ h3: c.h3_r8, value: (c[measure] as number | undefined) ?? 0, label: names.get(c.h3_r8) ?? null }));
   const selCell = sel ? cellTotals?.find((c) => c.h3_r8 === sel) : null;
+  const [focus, setFocus] = useState<string | null>(null);
+  const vp = useMemo(() => (city && !oneLocation ? { city: city } : null), [city, oneLocation]);
   const MEAS: Record<typeof measure, string> = { animals: "recorded animals", open_cases: "open requests", sterilised: "sterilisation records", vaccinated: "vaccination records", care_events: "care events" };
   const hotspots: Item[] = (topLoc ?? []).map((l) => ({ key: l.name, href: `/map?city=${encodeURIComponent(city ?? "")}&q=${encodeURIComponent(l.name)}`, title: l.name, meta: `${fmt(l.animals)} profiles · ${fmt(l.cases)} requests`, tag: useOpen ? { text: `${fmt(l.open)} open`, tone: "hot" } : { text: `${fmt(locMeasure(l))}`, tone: "quiet" } }));
   const notes: Item[] = detail ? [
@@ -129,10 +132,10 @@ export function MunicipalBrief() {
         { label: "Vaccination recorded", value: row?.vaccinated, tone: "care", note: row?.animals ? `${pct(row.vaccinated ?? 0, row.animals)}% of profiles` : "" },
         { label: "Cells with records", value: row?.cells, note: oneLocation ? "One shared city location" : "≈0.7 km² each · not wards" },
       ]}
-      map={<LiveMap cells={oneLocation ? [] : mapCells} tone={tone} metric={MEAS[measure]} label={`${city}: ${MEAS[measure]} by cell`} selected={sel} onCell={setSel} emptyNote={oneLocation ? `Every ${city} record shares one city location, so no street geography exists.` : loading ? "Reading the city…" : `No ${MEAS[measure]} recorded here.`}>
+      map={<LiveMap cells={oneLocation ? [] : mapCells} tone={tone} metric={MEAS[measure]} label={`${city}: ${MEAS[measure]} by cell`} viewport={vp} dotFocus={measure === "open_cases" ? "hot" : "all"} selected={sel} onCell={(h, id) => { setSel(h); setFocus(id ?? null); }} emptyNote={oneLocation ? `Every ${city} record shares one city location, so no street geography exists.` : loading ? "Reading the city…" : `No ${MEAS[measure]} recorded here.`}>
         <MapChips value={measure} options={[{ id: "animals", label: "Animals" }, { id: "open_cases", label: "Open requests" }, { id: "sterilised", label: "Sterilised" }, { id: "vaccinated", label: "Vaccinated" }, { id: "care_events", label: "Care" }]} onChange={setMeasure} label="Map measure" />
         <Link href={`/map?city=${encodeURIComponent(city ?? "")}&mode=coverage`} className="db-maplink">Open in Atlas <ArrowUpRight size={14} aria-hidden /></Link>
-        {selCell && <div className="db-selcard"><b>{names.get(selCell.h3_r8) ?? "Analysis cell"}</b><p>{fmt(selCell.animals)} profiles · {fmt(selCell.cases)} requests ({fmt(selCell.open_cases)} open) · {fmt(selCell.sterilised)} sterilised · {fmt(selCell.vaccinated)} vaccinated</p><Link href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`}>Open this cell&rsquo;s records →</Link></div>}
+        {selCell && <CellCard h3={selCell.h3_r8} title={names.get(selCell.h3_r8) ?? "This area"} facts={`${fmt(selCell.animals)} profiles · ${fmt(selCell.cases)} requests (${fmt(selCell.open_cases)} open) · ${fmt(selCell.sterilised)} sterilised · ${fmt(selCell.vaccinated)} vaccinated`} href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`} linkLabel="Open this area's records" focus={focus} onClose={() => { setSel(null); setFocus(null); }} />}
       </LiveMap>}
       side={<>
         <Panel title={`Hotspots by ${locLabel}`} action={{ label: "Atlas", href: `/map?city=${encodeURIComponent(city ?? "")}` }}>

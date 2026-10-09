@@ -208,11 +208,11 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
   /* Night by default: the same ground as the landing plate, so opening the
      Atlas continues the picture rather than switching to another product. */
-  const [ground, setGround] = useState<"night" | "paper">("night");
+  const [ground, setGround] = useState<"night" | "paper">("paper");
   const [railClosed, setRailClosed] = useState(false);
   /* 3D columns by default at city scale; the plan view stays one press away. */
   const [three, setThree] = useState(params.get("view") !== "2d");
-  useEffect(() => { try { const g = localStorage.getItem("sp.atlas.ground"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
+  useEffect(() => { try { const g = localStorage.getItem("sp.atlas.ground.v2"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
   const pal: Palette = ground === "night" ? ATLAS_NIGHT : ATLAS_PAPER;
 
   const initialMode = (MODES.find((m) => m.id === params.get("mode"))?.id ?? (surface === "municipality" ? "coverage" : "animals")) as AnyMode;
@@ -791,7 +791,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     set("sel", "line-color", pal.ink);
     set("inner", "text-color", pal.ink); set("inner", "text-halo-color", pal.bg);
     set("cities", "circle-stroke-color", ["case", ["==", ["get", "one"], 1], KIND_COLOR, pal.bg]); set("cities-l", "text-color", pal.ink); set("cities-l", "text-halo-color", pal.bg);
-    try { localStorage.setItem("sp.atlas.ground", ground); } catch { /* storage blocked */ }
+    try { localStorage.setItem("sp.atlas.ground.v2", ground); } catch { /* storage blocked */ }
   }, [ground, pal, baseReady, mode, atlasLens, layersReady, pointStyle]);
 
   /* 3D columns: applied now and after every layer rebuild (the city index

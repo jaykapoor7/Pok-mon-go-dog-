@@ -115,3 +115,12 @@ never finer than a cell; sample-derived figures say they are loaded detail.
 - **Illustration.** `src/components/art/Folk.tsx` holds hand-drawn SVG pieces in brand colours only: `FolkScene` (dashboard banner; `home` for community, `care` for NGO, `city` for municipality), `FolkVignette` (sidebar foot, empty states), `FolkSprig`. All decorative and `aria-hidden`; none carries data.
 - **Verified** on a production build: 38 journey checks pass (KPIs carry live numbers, map measure switching, clicking a column opens its cell card, desktop + phone, no page errors), tsc and eslint clean.
 - **Not verified:** real NGO member sign-in and write paths (only the signed-out workspace and the fixture harness were rendered).
+
+## Round 4 — the daylight live map
+
+- `LiveMap` is now a light paper map (cream land, blue water, street and place names) and flat by default; 3D columns stay one press away. Rotation is off in 2D so a drag never tilts the map by accident.
+- **Zoom ladder:** city level shows a choropleth of the role's measure; from z≈10.6 each area shows its count; from z≈12.6 areas fade to outlines and each recorded animal appears as a dot (coral = needs help, blue = on record; for NGOs, critical / open case). Dot size grows with zoom. A "Zoom in to see each…" button flies to the busiest area.
+- **Dots are read by area, not by coordinates:** at street level the map reads `/api/spatial/patch?cells=…` for the cells in view (4 cells per request, nearest first, each cell read once, retried on the next move after a failure). Each dot sits at a stable, illustrative spot inside its own H3 cell (seeded by the animal id); the legend says "Dots sit inside their area, not at an exact spot". No finer coordinate is drawn.
+- **Select:** hover reads an area or a dot; clicking either glides in and opens `CellCard`, which shows the area's published animals with photos. A clicked dot leads the card and offers a direct link to that animal's record. Escape or × clears it.
+- The Atlas now defaults to the daylight ground (stored preference key bumped to `sp.atlas.ground.v2` so earlier automatic "night" saves don't stick).
+- Verified on a production build: 38 journey checks, 7 regression scripts, tsc and eslint clean; interaction sequence rendered on desktop and phone (city → zoom → dots → hover → card).
