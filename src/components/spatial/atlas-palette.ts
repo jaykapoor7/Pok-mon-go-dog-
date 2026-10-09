@@ -10,9 +10,9 @@ export const ATLAS_NIGHT: Palette = {
   seq: ["#1c3a80", "#2457ce", "#4f86f0", "#8fb7ff", "#e8f0ff"],
 };
 export const ATLAS_PAPER: Palette = {
-  ...PAPER, bg: "#f4f3eb", land: "#eceee5", water: "#dae2dc", park: "#e0e7d8",
-  labelHalo: "#f4f3eb", cellEdge: "#f4f3eb", road: "rgba(11,30,61,.09)",
+  ...PAPER, bg: "#f4efe6", land: "#f2ede3", water: "#c8dbf3", park: "#dfe9d2",
+  labelHalo: "#f7f3ec", cellEdge: "#f4efe6", road: "rgba(11,30,61,.09)",
   roadMajor: "rgba(11,30,61,.24)", boundary: "rgba(11,30,61,.3)",
-  seq: ["#d6dfd1", "#a8bdb0", "#729995", "#3e717a", "#153f55"],
+  seq: ["#dbe5f8", "#a9c0ef", "#6f93e2", "#2f62d3", "#163f9a"],
   showRoadNames: false, buildings: false, labelOpacity: 0.65,
 };

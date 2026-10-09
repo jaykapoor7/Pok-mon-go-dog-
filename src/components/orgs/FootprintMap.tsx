@@ -10,7 +10,8 @@
 
 import { useEffect, useRef } from "react";
 import type { Map as MLMap, ExpressionSpecification } from "maplibre-gl";
-import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, groundStyle, underlay } from "@/components/map/basemap";
+import { ATLAS_PAPER as NIGHT } from "@/components/spatial/atlas-palette";
 
 export type FootCell = { lat: number; lng: number; records: number };
 
@@ -58,12 +59,12 @@ export function FootprintMap({ cells, label }: { cells: FootCell[]; label: strin
           "heatmap-weight": ["interpolate", ["linear"], ["sqrt", ["get", "r"]], 1, 0.25, 6, 1] as ExpressionSpecification,
           "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 10, 18, 14, 40] as ExpressionSpecification,
           "heatmap-intensity": 0.9,
-          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(36,87,206,0)", 0.2, "rgba(36,87,206,0.35)", 0.5, "rgba(79,127,224,0.6)", 0.8, "rgba(143,183,255,0.75)", 1, "rgba(219,231,255,0.9)"] as ExpressionSpecification,
+          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(36,87,206,0)", 0.2, "rgba(36,87,206,0.2)", 0.5, "rgba(36,87,206,0.4)", 0.8, "rgba(28,58,128,0.55)", 1, "rgba(22,63,154,0.7)"] as ExpressionSpecification,
           "heatmap-opacity": 0.85,
         } });
         m.addLayer({ id: "fp-pt", type: "circle", source: "fp", paint: {
           "circle-radius": ["interpolate", ["linear"], ["sqrt", ["get", "r"]], 1, 1.8, 4, 3.6, 10, 6] as ExpressionSpecification,
-          "circle-color": "#efe7da", "circle-opacity": 0.9, "circle-blur": 0.3,
+          "circle-color": "#2457ce", "circle-opacity": 0.9, "circle-blur": 0.3,
         } });
         underlay(m, NIGHT, "fp-glow").catch(() => {});
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;

@@ -10,7 +10,8 @@ import { useSearchParams } from "next/navigation";
 import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
 import { cellToBoundary, cellToLatLng } from "h3-js";
 import { RotateCw } from "lucide-react";
-import { NIGHT, groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
+import { groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
+import { ATLAS_PAPER as NIGHT } from "./atlas-palette";
 import { HexPlate, type Box } from "@/components/system/HexPlate";
 import { getSupabase } from "@/lib/supabase";
 import "./spatial.css";
@@ -42,7 +43,7 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
       try {
         const ring = cellToBoundary(c.h3_r8,true).flat();
         for (let i=0;i<ring.length;i+=2) { west=Math.min(west,ring[i]);east=Math.max(east,ring[i]);south=Math.min(south,ring[i+1]);north=Math.max(north,ring[i+1]); }
-        return [{ key:c.h3_r8,ring,fill:`rgba(147,177,240,${.15+.65*Math.sqrt(c.animals/max)})`,stroke:c.open_cases ? "#ff8a6e" : "rgba(219,231,255,.45)" }];
+        return [{ key:c.h3_r8,ring,fill:`rgba(36,87,206,${.12+.6*Math.sqrt(c.animals/max)})`,stroke:c.open_cases ? "#f05b40" : "rgba(255,255,255,.9)" }];
       } catch { return []; }
     });
     const box: Box = [west-.005,south-.005,east+.005,north+.005];
@@ -90,11 +91,11 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
       map.on("load", async () => {
         map.addSource("cells", { type: "geojson", data: EMPTY });
         map.addSource("animals", { type: "geojson", data: EMPTY });
-        map.addLayer({ id: "cells-fill", type: "fill", source: "cells", paint: { "fill-color": ["interpolate", ["linear"], ["get", "animals"], 0, "#1b3f80", 10, "#4f7fe0", 100, "#dbe7ff"], "fill-opacity": 0.52 } });
-        map.addLayer({ id: "cells-open", type: "line", source: "cells", filter: [">", ["get", "open"], 0], paint: { "line-color": "#ff8a6e", "line-width": 1.4, "line-opacity": 0.9 } });
-        map.addLayer({ id: "cells-edge", type: "line", source: "cells", paint: { "line-color": "rgba(219,231,255,0.45)", "line-width": 0.55 } });
-        map.addLayer({ id: "animal-glow", type: "heatmap", source: "animals", maxzoom: 15, paint: { "heatmap-radius": 18, "heatmap-intensity": 0.3, "heatmap-opacity": 0.7, "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(19,43,85,0)", 0.5, "rgba(79,127,224,0.55)", 1, "#dbe7ff"] } });
-        map.addLayer({ id: "animals", type: "circle", source: "animals", minzoom: 11.5, paint: { "circle-radius": 4, "circle-color": ["case", ["==", ["get", "help"], 1], "#ff8a6e", "#dbe7ff"], "circle-stroke-color": "#0b1e3d", "circle-stroke-width": 1 } });
+        map.addLayer({ id: "cells-fill", type: "fill", source: "cells", paint: { "fill-color": ["interpolate", ["linear"], ["get", "animals"], 0, "#dbe5f8", 10, "#6f93e2", 100, "#163f9a"], "fill-opacity": ["interpolate", ["linear"], ["zoom"], 10, 0.7, 13.5, 0.35, 16, 0.12] } });
+        map.addLayer({ id: "cells-open", type: "line", source: "cells", filter: [">", ["get", "open"], 0], paint: { "line-color": "#f05b40", "line-width": 1.6, "line-opacity": 0.9 } });
+        map.addLayer({ id: "cells-edge", type: "line", source: "cells", paint: { "line-color": "rgba(255,255,255,0.9)", "line-width": 0.8 } });
+        map.addLayer({ id: "animal-glow", type: "heatmap", source: "animals", maxzoom: 15, paint: { "heatmap-radius": 18, "heatmap-intensity": 0.3, "heatmap-opacity": 0.7, "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(36,87,206,0)", 0.5, "rgba(36,87,206,0.35)", 1, "rgba(36,87,206,0.7)"] } });
+        map.addLayer({ id: "animals", type: "circle", source: "animals", minzoom: 11.5, paint: { "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 11.5, 2.5, 14, 4, 17, 8], "circle-color": ["case", ["==", ["get", "help"], 1], "#f05b40", "#2457ce"], "circle-stroke-color": "#ffffff", "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 11.5, 0.6, 15, 1.6] } });
         await underlay(map, NIGHT, "cells-fill").catch(() => false);
         if (!dead) setMapReady(true);
         const loadViewport = () => {
@@ -133,9 +134,9 @@ export function BoundedSpatialMap({ scope = "public" }: { scope?: "public" | "or
     }
   }, [cells, mapReady]);
 
-  return <div className="sm sm-bounded">
+  return <div className="sm sm-bounded is-paper">
     <div className="sm-canvas" ref={el} />
-    {!mapReady && plate.shapes.length > 0 && <HexPlate className="sm-fallback-map" cells={plate.shapes} box={plate.box} width={900} height={540} pad={84} night label={`Recorded areas in ${city}. Cell shading shows animal totals; orange boundaries have open cases.`} />}
+    {!mapReady && plate.shapes.length > 0 && <HexPlate className="sm-fallback-map" cells={plate.shapes} box={plate.box} width={900} height={540} pad={84} label={`Recorded areas in ${city}. Cell shading shows animal totals; orange boundaries have open cases.`} />}
     <div className="sm-topbar">
       <SearchSelect className="sm-city-ss" icon="place" label="City" allLabel={cities[0]?.city ?? "City"} placeholder="Find a city"
         options={cities.map((item) => ({ value: item.city, hint: item.state || undefined }))}

@@ -49,8 +49,10 @@ const EMPTY = { type: "FeatureCollection" as const, features: [] };
 const VIEW_CAP = 300;
 const hashOf = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 2147483646 + 1; };
 
-export function LiveMap({ cells, dots: given = [], viewport = null, dotFocus = "all", tone = "blue", metric, dotNoun = "recorded animal", dotKeys = ["Needs help", "On record"], onCell, selected = null, box, label, height = 2400, children, emptyNote }: {
+export function LiveMap({ pin = null, cells, dots: given = [], viewport = null, dotFocus = "all", tone = "blue", metric, dotNoun = "recorded animal", dotKeys = ["Needs help", "On record"], onCell, selected = null, box, label, height = 2400, children, emptyNote }: {
   cells: MapCell[];
+  /** A card pinned above the selected cell; it follows the map as it moves. */
+  pin?: ReactNode;
   dots?: MapDot[];
   /** "hot" keeps every dot but quietens the ones that are not urgent. */
   dotFocus?: "all" | "hot";
@@ -283,11 +285,14 @@ export function LiveMap({ cells, dots: given = [], viewport = null, dotFocus = "
           const [lat, lng] = cellToLatLng(hit.h3);
           const z = Math.max(map.getZoom(), 14.4);
           /* Leave room for the card at the bottom-left. */
-          const opts = { center: [lng, lat] as [number, number], zoom: z, offset: [0, -40] as [number, number] };
+          const phoneW = map.getContainer().clientWidth < 560;
+          const opts = { center: [lng, lat] as [number, number], zoom: z, offset: [0, phoneW ? -90 : 110] as [number, number] };
           if (reduced()) map.jumpTo(opts); else map.flyTo({ ...opts, duration: 900, curve: 1.3, essential: true });
         });
 
         await underlay(map, PAL, "cells-fill").catch(() => false);
+        /* Credits stay one tap away instead of opening over the legend. */
+        map.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");
         if (!dead) { setZoom(map.getZoom()); setReady(true); }
       });
     }).catch(() => setFailed(true));
@@ -355,6 +360,18 @@ export function LiveMap({ cells, dots: given = [], viewport = null, dotFocus = "
     map.setFilter("sel-fill", f);
   }, [selected, ready]);
 
+  /* Where the selected cell is on screen, for the pinned card. */
+  const [pinAt, setPinAt] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !selected || !isValidCell(selected)) { setPinAt(null); return; }
+    const [lat, lng] = cellToLatLng(selected);
+    let raf = 0;
+    const upd = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { const p = map.project([lng, lat]); const c = map.getContainer(); setPinAt({ x: p.x, y: p.y, w: c.clientWidth, h: c.clientHeight }); }); };
+    upd(); map.on("move", upd); map.on("resize", upd);
+    return () => { cancelAnimationFrame(raf); map.off("move", upd); map.off("resize", upd); };
+  }, [selected, ready]);
+
   const step = (d: number) => { const m = mapRef.current; if (m) m.easeTo({ zoom: m.getZoom() + d, duration: reduced() ? 0 : 260 }); };
   const closer = () => {
     const m = mapRef.current; if (!m) return;
@@ -393,6 +410,16 @@ export function LiveMap({ cells, dots: given = [], viewport = null, dotFocus = "
         )}
       </div>
       {hover && <div className="lmap-hover" style={hover.x > (el.current?.clientWidth ?? 0) - 260 ? { left: hover.x - 14, top: hover.y + 14, transform: "translateX(-100%)" } : { left: hover.x + 14, top: hover.y + 14 }}><b>{hover.title}</b><span>{hover.sub}</span></div>}
+      {pin && pinAt && pinAt.x > -40 && pinAt.x < pinAt.w + 40 && pinAt.y > -40 && pinAt.y < pinAt.h + 40 && (() => {
+        const half = Math.min(170, pinAt.w / 2 - 12);
+        const left = Math.max(half + 12, Math.min(pinAt.w - half - 12, pinAt.x));
+        const below = pinAt.y < 330;
+        return (
+          <div className={`lmap-pin${below ? " is-below" : ""}`} style={{ left, top: pinAt.y, ["--tail" as string]: `${pinAt.x - left}px` }}>
+            {pin}
+          </div>
+        );
+      })()}
       {children}
     </div>
   );

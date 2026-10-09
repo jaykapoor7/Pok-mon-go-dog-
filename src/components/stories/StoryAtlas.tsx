@@ -15,7 +15,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource, ExpressionSpecification } from "maplibre-gl";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, groundStyle, underlay } from "@/components/map/basemap";
+import { ATLAS_PAPER as NIGHT } from "@/components/spatial/atlas-palette";
 import { Route, type RouteStop } from "@/components/system/Route";
 import "./stories.css";
 
@@ -30,7 +31,7 @@ export type Story = {
 const DAY = 86_400_000;
 const span = (s: Story) => (s.end ? Math.max(1, Math.round((Date.parse(s.end) - Date.parse(s.reported)) / DAY)) : null);
 const spanText = (d: number) => (d >= 60 ? `${Math.round(d / 30)} mo` : `${d} d`);
-const FLAME = "#f05b40", CREAM = "#efe7da", NIGHT_BG = "#07142b";
+const FLAME = "#f05b40", CREAM = "#2457ce", NIGHT_BG = "#ffffff";
 
 /* Two rescues in the same cell would sit on one point: fan them a little
    around it, so both can be chosen. Still inside the cell's neighbourhood. */
@@ -128,7 +129,7 @@ export function StoryAtlas({ stories }: { stories: Story[] }) {
         m.addLayer({ id: "st-n", type: "symbol", source: "st", filter: ["==", ["get", "sel"], 0], layout: numLayout(), paint: { "text-color": CREAM } });
         m.addLayer({ id: "st-halo", type: "circle", source: "st", filter: ["==", ["get", "sel"], 1], paint: { "circle-radius": 26, "circle-color": FLAME, "circle-opacity": 0.22, "circle-blur": 0.4 } });
         m.addLayer({ id: "st-sel", type: "circle", source: "st", filter: ["==", ["get", "sel"], 1], paint: pinPaint(true) });
-        m.addLayer({ id: "st-sel-n", type: "symbol", source: "st", filter: ["==", ["get", "sel"], 1], layout: numLayout(), paint: { "text-color": "#1a0d08" } });
+        m.addLayer({ id: "st-sel-n", type: "symbol", source: "st", filter: ["==", ["get", "sel"], 1], layout: numLayout(), paint: { "text-color": "#ffffff" } });
         for (const id of ["st-pin", "st-sel"]) {
           m.on("click", id, (e) => { const i = e.features?.[0]?.properties?.i; if (i !== undefined) latest.current.pick(Number(i)); });
           m.on("mouseenter", id, () => { m.getCanvas().style.cursor = "pointer"; });

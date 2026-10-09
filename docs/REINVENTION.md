@@ -124,3 +124,11 @@ never finer than a cell; sample-derived figures say they are loaded detail.
 - **Select:** hover reads an area or a dot; clicking either glides in and opens `CellCard`, which shows the area's published animals with photos. A clicked dot leads the card and offers a direct link to that animal's record. Escape or × clears it.
 - The Atlas now defaults to the daylight ground (stored preference key bumped to `sp.atlas.ground.v2` so earlier automatic "night" saves don't stick).
 - Verified on a production build: 38 journey checks, 7 regression scripts, tsc and eslint clean; interaction sequence rendered on desktop and phone (city → zoom → dots → hover → card).
+
+## Round 5 — the Atlas without a panel, and phones
+
+- **Atlas:** the standing left rail is gone. The place name is set on the map itself (large type with a paper halo, breadcrumbs above it), a floating dock at the bottom holds the four lenses, the representation select and Time & filters. The details card (`.ax-rail`, now a compact floating card on the right / a sheet on phones) appears only for a picked area or locality, or when "About this place" / "All cities" is pressed. All previous capabilities stay reachable: national index, legend, inspector, city evidence, filters, timeline.
+- **Dashboard maps:** the selection card is pinned above the clicked area with a pointer and follows the map as it pans; on phones it docks to the bottom of the map.
+- **No dark maps left in the app:** the NGO field map (`BoundedSpatialMap`), Stories map, partner footprint map, Help map and the city "lights" map all use the daylight palette. (The animal dossier's dark hero is unchanged.)
+- **Phone pass over every app route:** fixed buttons that had turned white-on-cream (tinted/quiet variants), white inputs, night-text tokens inside page headers, missing side gutters on ten pages built for the old shell, the NGO map sliding under the top bar, an empty strip above the tab bar on full-screen pages, map credits auto-expanding, 40px breadcrumb targets.
+- Verified on a production build: 41 journey checks, 7 regression scripts, tsc and eslint; phone screenshots of 41 routes scanned for edge-touching text.

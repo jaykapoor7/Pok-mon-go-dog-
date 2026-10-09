@@ -76,7 +76,14 @@
 .sx.sd :is(input, select, textarea) { color-scheme: light; }
 
 /* ── controls ─────────────────────────────────────────────────────── */
-.sx.sd :is(.x-btn.is-ink, .x-chip[aria-pressed="true"], .x-chip.is-on, .x-chip[aria-current="true"], .dk-btn, .sys-btn) { color: #fff; }
+.sx.sd :is(.x-btn.is-ink, .x-chip[aria-pressed="true"], .x-chip.is-on, .x-chip[aria-current="true"]) { color: #fff; }
+/* Filled buttons read white; tinted, quiet, plain and ghost ones read blue on paper. */
+.sx.sd :is(.dk-btn, .sys-btn):not(.is-tint):not(.is-quiet):not(.is-plain):not(.is-ghost):not(.is-line) { color: #fff; }
+.sx.sd :is(.dk-btn, .sys-btn):is(.is-tint, .is-quiet) { background: #fff; color: var(--d-sky); border-color: var(--d-line-2); }
+.sx.sd :is(.dk-btn, .sys-btn):is(.is-tint, .is-quiet):hover { background: var(--x-blue-soft); }
+.sx.sd :is(.dk-btn, .sys-btn):is(.is-plain, .is-ghost) { color: var(--d-sky); }
+.sx.sd :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { background-color: #fff; color: var(--d-text); }
+.sx.sd :is(.ps-field, [class*="search"], [class*="-find"]) input { background-color: transparent; }
 .sx.sd .x-btn { background: #fff; border-color: var(--d-line-2); color: var(--d-text); }
 .sx.sd .x-btn:hover { border-color: var(--d-text); }
 .sx.sd .x-btn.is-ink { background: var(--d-text); border-color: var(--d-text); color: #fff; }
@@ -305,3 +312,133 @@
 }
 .sx.sd .lmap .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner { display: none; }
 .sx.sd .lmap .maplibregl-ctrl-attrib.maplibregl-compact { background: rgba(255, 255, 255, 0.9) !important; }
+
+/* ════════════════════════════════════════════════════════════════════
+   The Atlas without a standing panel.
+   A caption set on the map like a printed map's title, a dock for what
+   the map shows, and a details card that appears only when asked.
+   ════════════════════════════════════════════════════════════════════ */
+.sx.sd .sm.ax { --ax-gap: 18px; --ax-ink: #0b1e3d; --ax-halo: 0 0 2px #f4f3eb, 0 0 10px rgba(244, 243, 235, 0.95), 0 0 22px rgba(244, 243, 235, 0.8); }
+.sx.sd .sm.ax.is-night { --ax-ink: #f4eee5; --ax-halo: 0 0 2px #081631, 0 0 12px rgba(8, 22, 49, 0.95), 0 0 24px rgba(8, 22, 49, 0.8); }
+.sx.sd .ax-scale, .sx.sd .ax-rail-open { display: none !important; }
+
+.sx.sd .ax-cap { position: absolute; z-index: 4; top: calc(var(--ax-gap) + 4px); left: calc(var(--ax-gap) + 10px); max-width: min(520px, calc(100% - 120px)); pointer-events: none; color: var(--ax-ink); }
+.sx.sd .ax-cap > * { pointer-events: auto; }
+.sx.sd .ax-cap .ax-ladder { display: flex; align-items: center; gap: 2px 8px; margin: 0; font-size: 13.5px; color: var(--ax-ink); text-shadow: var(--ax-halo); }
+.sx.sd .ax-cap .ax-ladder button { min-height: 32px; padding: 0 2px; margin: 0; border: 0; background: none; color: inherit; opacity: 0.7; font: inherit; font-weight: 500; cursor: pointer; text-shadow: inherit; }
+.sx.sd .ax-cap .ax-ladder button:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+.sx.sd .ax-cap .ax-ladder [aria-current] { opacity: 1; font-weight: 600; }
+.sx.sd .ax-cap .ax-title { margin: 0; font-size: clamp(40px, 5.2vw, 76px); font-weight: 600; letter-spacing: -0.05em; line-height: 0.95; color: var(--ax-ink); text-shadow: var(--ax-halo); overflow-wrap: anywhere; }
+.sx.sd .ax-cap .ax-char { margin: 10px 0 0; font-size: 14px; color: var(--ax-ink); text-shadow: var(--ax-halo); }
+.sx.sd .ax-cap .ax-char b { color: inherit; }
+.sx.sd .ax-cap-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.sx.sd .ax-cap .ax-city-find { width: 190px; }
+.sx.sd .ax-cap .ax-city-find .ps-field { height: 40px; border: 0; border-radius: 999px; background: #fff; box-shadow: 0 8px 22px -12px rgba(11, 30, 61, 0.4), 0 0 0 1px rgba(11, 30, 61, 0.1); color: #0b1e3d; }
+.sx.sd .ax-cap .ax-city-find .ps-list { left: 0; right: auto; }
+.sx.sd .ax-cap-more { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #fff; color: #0b1e3d; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 22px -12px rgba(11, 30, 61, 0.4), 0 0 0 1px rgba(11, 30, 61, 0.1); }
+.sx.sd .ax-cap-more:hover, .sx.sd .ax-cap-more[aria-expanded="true"] { background: #0b1e3d; color: #fff; }
+.sx.sd .ax-note { margin: 12px 0 0; font-size: 12.5px; color: var(--ax-ink); opacity: 0.75; text-shadow: var(--ax-halo); }
+
+.sx.sd .ax-dock { position: absolute; z-index: 5; left: 50%; bottom: calc(var(--ax-gap) + 8px); transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.96); box-shadow: 0 18px 40px -18px rgba(11, 30, 61, 0.55), 0 0 0 1px rgba(11, 30, 61, 0.08); backdrop-filter: blur(10px); max-width: calc(100% - 2 * var(--ax-gap)); }
+.sx.sd .ax-dock .ax-lenses { display: flex; gap: 2px; margin: 0; padding: 0; border: 0; background: none; }
+.sx.sd .ax-dock .ax-lenses button { min-height: 42px; min-width: 0; padding: 0 16px; margin: 0; border: 0; border-radius: 999px; background: none !important; color: #34476a !important; font: inherit; font-size: 14.5px; font-weight: 600; box-shadow: none !important; white-space: nowrap; transition: background 160ms, color 160ms; }
+.sx.sd .ax-dock .ax-lenses button:hover { background: #f2ebe0 !important; color: #0b1e3d !important; }
+.sx.sd .ax-dock .ax-lenses button[aria-pressed="true"] { background: #0b1e3d !important; color: #fff !important; border: 0; }
+.sx.sd .ax[data-lens="cases"] .ax-dock .ax-lenses button[aria-pressed="true"] { background: #f05b40 !important; }
+.sx.sd .ax[data-lens="care"] .ax-dock .ax-lenses button[aria-pressed="true"] { background: #1d8a99 !important; }
+.sx.sd .ax[data-lens="animals"] .ax-dock .ax-lenses button[aria-pressed="true"] { background: #2457ce !important; }
+.sx.sd .ax-dock-repr { display: block; padding-left: 6px; border-left: 1px solid rgba(11, 30, 61, 0.1); }
+.sx.sd .ax-dock-repr select { min-height: 42px; max-width: 190px; padding: 0 30px 0 12px; border: 0; border-radius: 999px; background-color: #f6f1e8; color: #0b1e3d; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.sx.sd .ax-dock-filter { position: relative; display: grid; place-items: center; width: 42px; height: 42px; border: 0; border-radius: 50%; background: #f6f1e8; color: #0b1e3d; cursor: pointer; }
+.sx.sd .ax-dock-filter[aria-expanded="true"], .sx.sd .ax-dock-filter.is-on { background: #0b1e3d; color: #fff; }
+.sx.sd .ax-dock-filter b { position: absolute; top: -2px; right: -2px; display: grid; place-items: center; min-width: 18px; height: 18px; border-radius: 9px; background: #f05b40; color: #fff; font-size: 11px; }
+
+/* The details card: compact, on the right, only when asked. */
+.sx.sd .sm.ax .ax-rail { top: var(--ax-gap); left: auto; right: calc(var(--ax-gap) + 58px); bottom: auto; width: 380px; max-height: calc(100% - var(--ax-gap) * 2 - 80px); border-radius: 22px; transform: none; animation: ax-card 260ms var(--x-ease, ease) both; }
+@keyframes ax-card { from { opacity: 0; transform: translateY(-8px) scale(0.985); } }
+.sx.sd .sm.ax .ax-head { padding: 18px 18px 12px; }
+.sx.sd .ax-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.sx.sd .ax-head-k { margin: 0; font-size: 12.5px; font-weight: 600; color: #c2401f; }
+.sx.sd .ax-head-t { margin: 2px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; color: #0b1e3d; }
+.sx.sd .sm.ax .ax-rail .ax-q { margin: 8px 0 0; font-size: 13.5px; color: #34476a; }
+.sx.sd .sm.ax .ax-x { flex: none; width: 40px; height: 40px; background: #f2ebe0; }
+.sx.sd .sm.ax .ax-body { padding: 4px 18px 18px; }
+
+.sx.sd .sm.ax .ax-filter { left: 50%; top: auto; bottom: calc(var(--ax-gap) + 76px); transform: translateX(-50%); width: min(380px, calc(100% - 32px)); max-height: calc(100% - 140px); animation: none; }
+.sx.sd .sm.ax .ax-state { left: 50% !important; top: auto; bottom: calc(var(--ax-gap) + 80px); }
+.sx.sd .sm.ax .ax-hint { bottom: calc(var(--ax-gap) + 80px); }
+.sx.sd .sm.ax .ax-tools { top: var(--ax-gap); right: var(--ax-gap); border-radius: 18px; }
+.sx.sd .sm.ax .ax-approach { right: calc(var(--ax-gap) + 58px); top: var(--ax-gap); }
+@media (prefers-reduced-motion: reduce) { .sx.sd .sm.ax .ax-rail { animation: none; } }
+
+@media (max-width: 1100px) { .sx.sd .sm.ax .ax-rail { width: 340px; } }
+@media (max-width: 760px) {
+  .sx.sd .sm.ax { --ax-gap: 10px; }
+  .sx.sd .ax-cap { top: 12px; left: 14px; max-width: calc(100% - 80px); }
+  .sx.sd .ax-cap .ax-title { font-size: 36px; }
+  .sx.sd .ax-cap .ax-char { margin-top: 6px; font-size: 13px; }
+  .sx.sd .ax-cap-row { margin-top: 10px; }
+  .sx.sd .ax-cap .ax-city-find { width: 150px; }
+  .sx.sd .ax-cap-more { min-height: 40px; padding: 0 14px; font-size: 13.5px; }
+  .sx.sd .ax-note { display: none; }
+  .sx.sd .ax-dock { left: 10px; right: 10px; transform: none; bottom: 10px; max-width: none; overflow-x: auto; scrollbar-width: none; border-radius: 22px; }
+  .sx.sd .ax-dock::-webkit-scrollbar { display: none; }
+  .sx.sd .ax-dock .ax-lenses button { padding: 0 13px; font-size: 14px; }
+  .sx.sd .ax-dock-repr select { max-width: 150px; }
+  .sx.sd .sm.ax .ax-rail { top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 72%; border-radius: 22px 22px 0 0; animation: ax-sheet 260ms var(--x-ease, ease) both; }
+  .sx.sd .sm.ax[data-rail="peek"] .ax-rail { max-height: 46%; }
+  .sx.sd .sm.ax[data-rail="peek"] :is(.ax-body) { display: flex; }
+  @keyframes ax-sheet { from { transform: translateY(24px); opacity: 0; } }
+  .sx.sd .sm.ax .ax-head { padding: 0 16px 10px; }
+  .sx.sd .ax-head-t { font-size: 20px; }
+  .sx.sd .sm.ax .ax-body { padding: 4px 16px 18px; }
+  .sx.sd .sm.ax .ax-filter { left: 0; right: 0; bottom: 0; transform: none; width: auto; max-height: 80%; border-radius: 22px 22px 0 0; }
+  .sx.sd .sm.ax .ax-state { bottom: 76px; }
+  .sx.sd .sm.ax .ax-approach { left: 10px; right: 64px; top: auto; bottom: 76px; width: auto; }
+}
+
+/* The selection card, pinned above its place on the map. */
+.sx.sd .lmap-pin { position: absolute; z-index: 6; width: 0; height: 0; pointer-events: none; }
+.sx.sd .lmap-pin > .db-selcard { position: absolute; left: 0; bottom: 18px; top: auto; right: auto; width: min(320px, calc(100vw - 48px)); max-height: none; transform: translateX(-50%); pointer-events: auto; animation: lmap-pop 240ms var(--x-ease, ease) both; }
+.sx.sd .lmap-pin.is-below > .db-selcard { bottom: auto; top: 18px; }
+.sx.sd .lmap-pin::after { content: ""; position: absolute; left: calc(var(--tail, 0px) - 9px); bottom: 10px; width: 18px; height: 18px; background: #fff; transform: rotate(45deg); box-shadow: 4px 4px 8px -4px rgba(11, 30, 61, 0.25); border-radius: 3px; z-index: 7; }
+.sx.sd .lmap-pin.is-below::after { bottom: auto; top: 10px; box-shadow: -3px -3px 6px -4px rgba(11, 30, 61, 0.2); }
+.sx.sd .lmap-pin > .db-selcard { margin-left: calc(var(--tail, 0px) * 0); }
+@keyframes lmap-pop { from { opacity: 0; transform: translate(-50%, 8px) scale(0.97); } }
+.sx.sd .lmap-pin.is-below > .db-selcard { animation-name: lmap-pop-b; }
+@keyframes lmap-pop-b { from { opacity: 0; transform: translate(-50%, -8px) scale(0.97); } }
+@media (prefers-reduced-motion: reduce) { .sx.sd .lmap-pin > .db-selcard { animation: none; } }
+@media (max-width: 760px) {
+  .sx.sd .lmap-pin { left: 10px !important; right: 10px; top: auto !important; bottom: 50px; width: auto; }
+  .sx.sd .lmap-pin::after { display: none; }
+  .sx.sd .lmap-pin > .db-selcard, .sx.sd .lmap-pin.is-below > .db-selcard { position: relative; left: 0; right: 0; top: auto; bottom: 0; width: auto; transform: none; animation-name: lmap-sheet; }
+  @keyframes lmap-sheet { from { opacity: 0; transform: translateY(12px); } }
+  .sx.sd .lmap:has(.lmap-pin) .lmap-tools, .sx.sd .lmap:has(.lmap-pin) .lmap-closer { display: none; }
+}
+.sx.sd .ax-dock .ax-lenses button { border-bottom: 0 !important; }
+.sx.sd.is-flush .sx-main { padding-bottom: 0; }
+.sx.sd .ax-filter-repr { display: none; }
+@media (max-width: 760px) {
+  .sx.sd .ax-dock-repr { display: none; }
+  .sx.sd .ax-filter-repr { display: grid; }
+  .sx.sd .ax-dock { justify-content: space-between; }
+}
+.sx.sd .dh { --sp-sky: #2457ce; }
+.sx.sd .hp-map { background: #f4efe6; }
+.sx.sd .hp-map-credit { color: rgba(11, 30, 61, 0.5); }
+@media (max-width: 760px) {
+  .sx.sd .lmap-pin { height: auto; display: flex; flex-direction: column; justify-content: flex-end; }
+}
+.sx.sd .sx-main { position: relative; }
+/* Page headers were night plates once; on paper their night tokens read as ink. */
+.sx.sd .dh { --sp-night-text: #0b1e3d; --sp-night-dim: #34476a; --sp-night-faint: #67758e; --sp-night-line: rgba(11, 30, 61, 0.14); }
+.sx.sd .sm-host.is-fill .sm-bounded { height: 100%; margin: 0; border: 0; border-radius: 0; }
+
+/* Pages built for the old shell expected it to pad their sections. The
+   header (.dh) carries its own gutter; everything beside it gets the same. */
+.sx.sd :is(.st, .fd, .feed-index, .studio, .hp, .pp, .dk-page, .dk-form-page, .resource-desk) > :not(.dh):not(.hp-mapwrap):not(.sm-host):not(.dz-hero),
+.sx.sd .sx-main > .fl-suggest { padding-inline: var(--x-gutter); box-sizing: border-box; }
+.sx.sd .hp > .hp-mapwrap { margin-inline: var(--x-gutter); }
+.sx.sd :is(.sa-map, .pp-map) { background: #f4efe6; }
+.sx.sd :is(.sa-map, .pp-map) :is(.maplibregl-ctrl-attrib, .maplibregl-ctrl-attrib a) { color: rgba(11, 30, 61, 0.55) !important; }
+.sx.sd .ax-cap .ax-ladder button { min-height: 40px; min-width: 40px; padding: 0 4px; margin: -4px -4px; }

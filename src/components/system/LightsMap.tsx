@@ -10,7 +10,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource } from "maplibre-gl";
-import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, groundStyle, underlay } from "@/components/map/basemap";
+import { ATLAS_PAPER as NIGHT } from "@/components/spatial/atlas-palette";
 
 export type Light = { lng: number; lat: number; help?: boolean };
 
@@ -59,15 +60,15 @@ export function LightsMap({ center, radiusKm, lights, label, zoom, credit = true
         map.addSource("centre", { type: "geojson", data: d.centre });
         map.addSource("outline", { type: "geojson", data: { type: "FeatureCollection", features: outline?.length ? [{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [outline] } }] : [] } });
         map.addLayer({ id: "outline-fill", type: "fill", source: "outline", paint: { "fill-color": "#f05b40", "fill-opacity": 0.12 } });
-        map.addLayer({ id: "outline", type: "line", source: "outline", paint: { "line-color": "#f7a08c", "line-width": 1.6 } });
-        map.addLayer({ id: "ring", type: "line", source: "ring", paint: { "line-color": "#efe7da", "line-width": 1.2, "line-opacity": 0.55, "line-dasharray": [3, 3] } });
+        map.addLayer({ id: "outline", type: "line", source: "outline", paint: { "line-color": "#f05b40", "line-width": 1.6 } });
+        map.addLayer({ id: "ring", type: "line", source: "ring", paint: { "line-color": "#0b1e3d", "line-width": 1.2, "line-opacity": 0.4, "line-dasharray": [3, 3] } });
         map.addLayer({ id: "glow", type: "heatmap", source: "lights", paint: {
           "heatmap-weight": 0.4, "heatmap-intensity": 0.25 * glow, "heatmap-radius": 18 * glow, "heatmap-opacity": 0.7,
-          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(19,43,85,0)", 0.2, "rgba(27,63,128,0.35)", 0.5, "rgba(79,127,224,0.55)", 1, "rgba(219,231,255,0.75)"],
+          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(36,87,206,0)", 0.2, "rgba(36,87,206,0.2)", 0.5, "rgba(36,87,206,0.38)", 1, "rgba(22,63,154,0.6)"],
         } });
         map.addLayer({ id: "halo", type: "circle", source: "lights", paint: { "circle-radius": 6 * Math.sqrt(glow), "circle-blur": 1, "circle-color": ["case", ["==", ["get", "h"], 1], "#f05b40", "#4f7fe0"], "circle-opacity": 0.35 } });
-        map.addLayer({ id: "dots", type: "circle", source: "lights", paint: { "circle-radius": ["case", ["==", ["get", "h"], 1], dot + 1.4, dot], "circle-color": ["case", ["==", ["get", "h"], 1], "#ff8a6e", "#dbe7ff"] } });
-        if (radiusKm) map.addLayer({ id: "centre", type: "circle", source: "centre", paint: { "circle-radius": 6, "circle-color": "#8fb7ff", "circle-stroke-color": "#efe7da", "circle-stroke-width": 2 } });
+        map.addLayer({ id: "dots", type: "circle", source: "lights", paint: { "circle-radius": ["case", ["==", ["get", "h"], 1], dot + 1.4, dot], "circle-color": ["case", ["==", ["get", "h"], 1], "#f05b40", "#2457ce"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 0.8 } });
+        if (radiusKm) map.addLayer({ id: "centre", type: "circle", source: "centre", paint: { "circle-radius": 6, "circle-color": "#2457ce", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 } });
         await underlay(map, NIGHT, "ring").catch(() => false);
         if (!dead) setReady(true);
       });

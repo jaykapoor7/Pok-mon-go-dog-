@@ -5,7 +5,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
-import { supportsWebGL2, NIGHT, groundStyle, underlay } from "@/components/map/basemap";
+import { supportsWebGL2, groundStyle, underlay } from "@/components/map/basemap";
+import { ATLAS_PAPER as NIGHT } from "@/components/spatial/atlas-palette";
 
 export function HelpMap({ points, me }: { points: { id: string; lng: number; lat: number }[]; me: { lat: number; lng: number } | null }) {
   const el = useRef<HTMLDivElement>(null);
@@ -31,8 +32,8 @@ export function HelpMap({ points, me }: { points: { id: string; lng: number; lat
         map.addSource("help", { type: "geojson", data: { type: "FeatureCollection", features: points.map((p) => ({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) } });
         map.addSource("me", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
         map.addLayer({ id: "help-glow", type: "circle", source: "help", paint: { "circle-radius": 10, "circle-color": "#f05b40", "circle-opacity": 0.25, "circle-blur": 1 } });
-        map.addLayer({ id: "help", type: "circle", source: "help", paint: { "circle-radius": 3.6, "circle-color": "#ff8a6e", "circle-stroke-color": "#07142b", "circle-stroke-width": 1 } });
-        map.addLayer({ id: "me", type: "circle", source: "me", paint: { "circle-radius": 7, "circle-color": "#8fb7ff", "circle-stroke-color": "#efe7da", "circle-stroke-width": 2 } });
+        map.addLayer({ id: "help", type: "circle", source: "help", paint: { "circle-radius": 3.6, "circle-color": "#f05b40", "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.4 } });
+        map.addLayer({ id: "me", type: "circle", source: "me", paint: { "circle-radius": 7, "circle-color": "#2457ce", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 } });
         await underlay(map, NIGHT, "help-glow").catch(() => false);
         if (!dead) setReady(true);
       });

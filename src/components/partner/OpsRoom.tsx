@@ -207,10 +207,9 @@ export function OpsRoom() {
         { label: "Follow-ups overdue", value: loading ? null : overdue, tone: "hot", href: "/partner/records?view=overdue" },
         { label: "Waiting on a decision", value: loading ? null : stale, tone: "blue", href: "/partner/review", note: "Open 90+ days, quiet 30+" },
       ]}
-      map={<LiveMap cells={mapCells} tone="flame" metric={mapMode === "stale" ? "older open cases" : "open cases"} label={`Open work by cell in ${place ?? "your area"}`} dots={workDots} dotNoun="open case" dotKeys={["Critical", "Open case"]} selected={cell} onCell={(k) => setCell((x) => (x === k ? null : k))} emptyNote={loading ? "Placing the open work…" : "No open case carries a location."}>
+      map={<LiveMap pin={cell ? <div className="db-selcard"><b>{(open ?? []).find((c) => c.h3_r8 === cell)?.zone ?? "Selected cell"}</b><p>The queue shows this cell only.</p><button type="button" className="x-btn" onClick={() => setCell(null)}><X size={14} aria-hidden /> Show everywhere</button></div> : null} cells={mapCells} tone="flame" metric={mapMode === "stale" ? "older open cases" : "open cases"} label={`Open work by cell in ${place ?? "your area"}`} dots={workDots} dotNoun="open case" dotKeys={["Critical", "Open case"]} selected={cell} onCell={(k) => setCell((x) => (x === k ? null : k))} emptyNote={loading ? "Placing the open work…" : "No open case carries a location."}>
         <MapChips value={mapMode} options={[{ id: "open", label: "All open" }, { id: "live", label: "Live" }, { id: "stale", label: "Waiting on review" }]} onChange={setMapMode} label="Map measure" />
         <Link href="/partner/map?mode=cases" className="db-maplink">Field map <ArrowUpRight size={14} aria-hidden /></Link>
-        {cell && <div className="db-selcard"><b>{(open ?? []).find((c) => c.h3_r8 === cell)?.zone ?? "Selected cell"}</b><p>The queue shows this cell only.</p><button type="button" className="x-btn" onClick={() => setCell(null)}><X size={14} aria-hidden /> Show everywhere</button></div>}
       </LiveMap>}
       side={<>
         <Panel title="Needs someone" count={loading ? undefined : filtered.length} action={{ label: "All cases", href: "/partner/cases" }}>
