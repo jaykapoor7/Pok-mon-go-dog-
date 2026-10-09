@@ -1,5 +1,6 @@
 import { passesAutoApproval } from "@/lib/auto-approve";
 import { checkSightingPhoto, photoCheckAvailable } from "@/lib/photo-check";
+import { describesInjury } from "@/lib/sensitive-photo";
 import { sendSightingLiveEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
@@ -218,13 +219,19 @@ export async function POST(req: Request) {
   });
   /* When a Claude API key is configured, the photo must also show an animal
      and nothing that identifies a person; any doubt leaves it for review. */
-  const photoPass = rulesPass && (!photoCheckAvailable() || (photoUrl ? (await checkSightingPhoto(photoUrl)).ok : false));
+  const verdict = rulesPass && photoCheckAvailable() && photoUrl ? await checkSightingPhoto(photoUrl) : null;
+  const photoPass = rulesPass && (!photoCheckAvailable() || !!verdict?.ok);
   if (result?.sighting_id && rulesPass && photoPass) {
     const { data: approved, error: approveError } = await supa.rpc("approve_sighting", { p_sighting_id: result.sighting_id, p_dog_id: null });
     if (!approveError) {
       autoApproved = true;
       const dogId = (approved as { dog_id?: string } | null)?.dog_id ?? result.dog_id ?? null;
       if (result) result.dog_id = dogId ?? undefined;
+      /* A photo that shows an injury, or a report that describes one, is
+         shown blurred until a viewer chooses to see it. */
+      if (dogId && photoUrl && (verdict?.injury || describesInjury(body.notes ? String(body.notes) : null, moods))) {
+        await supa.from("dogs").update({ photo_sensitive: true }).eq("id", dogId).eq("cover_photo", photoUrl);
+      }
       if (body.reporterEmail && dogId) void sendSightingLiveEmail(String(body.reporterEmail), body.reporterName ? String(body.reporterName) : null, dogId).catch(() => {});
     } else {
       console.error("auto-approve failed; left for review:", approveError.message);

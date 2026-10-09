@@ -7,7 +7,7 @@ import { getSupabase } from "@/lib/supabase";
 
 const CELL = /^8[0-9a-f]{14}$/i;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const FIELDS = "id,name,code,straypaw_id,cover_photo,status,needs_help,sterilisation_status,vaccination_status,ear_notch,first_seen,last_seen,zone,h3_r8,source,sex,size";
+const FIELDS = "id,name,code,straypaw_id,cover_photo,status,needs_help,sterilisation_status,vaccination_status,ear_notch,first_seen,last_seen,zone,h3_r8,source,sex,size,photo_sensitive";
 
 export async function GET(req: NextRequest) {
   const cells = (req.nextUrl.searchParams.get("cells") ?? "").split(",").map((s) => s.trim()).filter((s) => CELL.test(s)).slice(0, 80);

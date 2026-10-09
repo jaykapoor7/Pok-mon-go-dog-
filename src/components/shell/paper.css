@@ -704,3 +704,27 @@
 .sx.sd .sx-main .mk-inapp .mk-tag, .sx.sd .sx-main .ms-inapp .mk-tag { display: inline-block; text-transform: lowercase !important; letter-spacing: 0 !important; font-family: inherit; }
 .sx.sd .sx-main .mk-inapp .mk-tag::first-letter, .sx.sd .sx-main .ms-inapp .mk-tag::first-letter { text-transform: uppercase !important; }
 .sx.sd .sx-main .mk-inapp svg text, .sx.sd .sx-main .ms-inapp svg text { text-transform: lowercase !important; letter-spacing: 0 !important; font-family: inherit; }
+
+/* Art credits (/art-credits): a gallery of every work StrayPaw shows. */
+.sx.sd .ac-page { display: grid; gap: 16px; padding: 20px var(--x-gutter) 40px; max-width: 1240px; margin: 0 auto; box-sizing: border-box; }
+.sx.sd .ac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.sx.sd .ac-card { margin: 0; padding: 12px 12px 14px; border-radius: var(--card-r); background: #fff; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); display: grid; gap: 6px; align-content: start; }
+.sx.sd .ac-img { aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #f4ece0; display: grid; place-items: center; }
+.sx.sd .ac-img img { width: 100%; height: 100%; object-fit: contain; }
+.sx.sd .ac-card h2 { margin: 6px 0 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--d-text); }
+.sx.sd .ac-card p { margin: 0; font-size: 13px; color: var(--d-mute); line-height: 1.45; }
+.sx.sd .ac-card .ac-lic a { color: var(--d-blue, #2457ce); }
+@media (max-width: 760px) { .sx.sd .ac-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .sx.sd .ac-card h2 { font-size: 13px; } .sx.sd .ac-card p { font-size: 12px; } }
+
+/* A painted animal in the corner of each page header (lib/art/sources).
+   Desktop only; it sways a little and never covers the copy. */
+.sx.sd .dh { position: relative; }
+.sx.sd .dh-art { display: none; }
+@media (min-width: 1100px) {
+  .sx.sd .dh-art { display: block; position: absolute; right: 22px; bottom: 0; height: min(78%, 150px); width: auto; opacity: 0.92; pointer-events: none; transform-origin: 50% 100%; animation: dh-sway 12s ease-in-out infinite alternate; z-index: 0; }
+  .sx.sd .dh-art ~ .dh-in { position: relative; z-index: 1; }
+  .sx.sd .dh:has(.dh-figs) .dh-art, .sx.sd .dh:has(.dh-actions) .dh-art { height: min(56%, 110px); top: 14px; bottom: auto; }
+  .sx.sd .dh .dh-copy { max-width: min(62ch, calc(100% - 170px)); }
+}
+@keyframes dh-sway { from { transform: rotate(-1deg); } to { transform: rotate(1.2deg); } }
+@media (prefers-reduced-motion: reduce) { .sx.sd .dh-art { animation: none; } }

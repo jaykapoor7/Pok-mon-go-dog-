@@ -120,9 +120,20 @@ detail. Inspect limits and measure payloads.
 ## Animal records
 
 Use only the animal's real photograph and preserve attribution. When absent,
-show its `FolkPortrait`: a seeded folk illustration (smaller for puppies and
-small dogs), always labelled as an illustration, never a likeness. No stock or
-generated photographs.
+show its `FolkPortrait`: a crop of a real dog painting from the Cleveland
+Museum of Art's CC0 collection, fixed per record and a pup for puppies,
+captioned with the work and "not a likeness". Never generated images.
+
+Any art added to the product must be a real, openly licensed work recorded in
+`lib/art/sources.ts` (title, maker, source URL, licence, adapted or not) and
+shown on `/art-credits`. Prefer CC0 museum collections; for CC BY-SA keep the
+licence on adaptations. Skip photographs of paintings whose own copyright is
+unclear.
+
+Photos that may show injury start blurred behind `SensitiveVeil` ("Tap to
+view", remembered for the session). Use `isSensitivePhoto` for cover photos
+and always blur case, fundraiser, medical and incoming-report photos. Never put
+such a photo on the landing.
 
 Name it with `lib/animal-name.ts`: the given name if a person gave one, else
 the short StrayPaw tag. The subtitle describes the record from its recorded

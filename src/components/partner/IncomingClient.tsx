@@ -1,4 +1,5 @@
 "use client";
+import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
 
 import { Fragment, useEffect, useState } from "react";
 import { HeartPulse, Inbox, Loader2, MapPin } from "lucide-react";
@@ -229,7 +230,7 @@ export function IncomingClient() {
                       />
                       {r.photo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={r.photo_url} alt="" loading="lazy" />
+                        <SensitiveVeil sensitive id={r.photo_url} compact><img src={r.photo_url} alt="" loading="lazy" /></SensitiveVeil>
                       ) : (
                         <span className="inc-nophoto" aria-hidden />
                       )}

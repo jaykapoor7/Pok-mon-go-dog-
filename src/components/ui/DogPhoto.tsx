@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { sized } from "@/lib/photo/src";
 import { FolkPortrait } from "@/components/art/FolkPortrait";
+import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
 
 export type PhotoTone = "urgent" | "active" | "resolved" | "neutral";
 
@@ -33,7 +34,10 @@ export function DogPhoto({
   width = 384,
   tone = "neutral",
   size,
+  sensitive = false,
 }: {
+  /** Start blurred with a tap to view (see lib/sensitive-photo). */
+  sensitive?: boolean;
   /** Recorded size class; a puppy's illustration is drawn smaller. */
   size?: string | null;
   src: string | null | undefined;
@@ -53,6 +57,7 @@ export function DogPhoto({
   return (
     <div className={cn("relative overflow-hidden bg-[#f6eee2]", className)}>
       {!failed && !missing ? (
+        <SensitiveVeil sensitive={sensitive} id={src} compact={width < 160} className="h-full w-full">{
         fit === "contain" ? (
           <>
             <img
@@ -77,7 +82,7 @@ export function DogPhoto({
             onError={() => setFailed(true)}
             className={cn("h-full w-full object-cover", imgClassName)}
           />
-        )
+        )}</SensitiveVeil>
       ) : (
         <div className="h-full w-full" style={{ boxShadow: `inset 0 0 0 2px ${RING[tone]}` }}>
           <FolkPortrait seed={seed ?? alt ?? ""} size={size} className="block h-full w-full" label={`${alt || "Animal"}: illustration, no photograph on record`} />

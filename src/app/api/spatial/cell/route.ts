@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   if (!supa) return NextResponse.json({ animals: [] });
   const { data, error } = await supa
     .from("public_spatial_animals")
-    .select("id,name,code,straypaw_id,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,first_seen,zone,source,location_precision")
+    .select("id,name,code,straypaw_id,cover_photo,photo_sensitive,status,needs_help,sterilisation_status,vaccination_status,last_seen,first_seen,zone,source,location_precision")
     .eq("h3_r8", h)
     .order("needs_help", { ascending: false })
     .order("last_seen", { ascending: false })

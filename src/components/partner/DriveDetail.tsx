@@ -1,4 +1,6 @@
 "use client";
+import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
+import { isSensitivePhoto } from "@/lib/sensitive-photo";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -187,7 +189,7 @@ export function DriveDetail({ id }: { id: string }) {
                 <Link href={`/dog/${a.id}`}>
                   {a.cover_photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.cover_photo} alt="" loading="lazy" />
+                    <SensitiveVeil sensitive={isSensitivePhoto(a as { needs_help?: boolean | null; photo_sensitive?: boolean | null })} id={a.cover_photo} compact><img src={a.cover_photo} alt="" loading="lazy" /></SensitiveVeil>
                   ) : (
                     <span className="inc-nophoto" aria-hidden />
                   )}

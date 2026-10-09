@@ -209,7 +209,7 @@ function AnimalCard({ file }: { file: File_ }) {
   );
   return (
     <Link href={`/partner/animals/${c.dog_id}`} className="cf-animal">
-      <div className="cf-animal-ph">{animal?.photo ? <DogPhoto src={animal.photo} alt={animal.name ?? "The animal"} className="h-full w-full" /> : <span className="cf-animal-none" aria-hidden />}</div>
+      <div className="cf-animal-ph">{animal?.photo ? <DogPhoto src={animal.photo} alt={animal.name ?? "The animal"} className="h-full w-full" sensitive /> : <span className="cf-animal-none" aria-hidden />}</div>
       <div>
         <p className="cf-h3">The animal</p>
         <p className="cf-animal-n">{animal?.name || "Unnamed"}</p>
@@ -241,7 +241,7 @@ function Photos({ file, reload }: { file: File_; reload: () => Promise<void> }) 
   return (
     <div className="cf-photos">
       {shots.map((s) => (
-        <figure key={s.src}><DogPhoto src={s.src} alt={s.label} className="cf-shot" /><figcaption>{s.label}</figcaption></figure>
+        <figure key={s.src}><DogPhoto src={s.src} alt={s.label} className="cf-shot" sensitive /><figcaption>{s.label}</figcaption></figure>
       ))}
       <button type="button" className="cf-addphoto" onClick={() => ref.current?.click()} disabled={busy}>
         {busy ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}<span>{shots.length ? "Add a photo" : "No photographs yet. Add one"}</span>

@@ -27,9 +27,25 @@
 >   choropleth → counts per area → one dot per recorded animal from z 12.6
 >   (fetched per visible area from `/api/spatial/patch`). Selection is a
 >   small card pinned to the map, not a side panel.
-> * **No photograph.** `FolkPortrait` draws a seeded folk illustration per
->   animal (pose, ears, markings, sky), smaller for puppies and small dogs,
->   always labelled as an illustration. A real photograph always replaces it.
+> * **No photograph.** `FolkPortrait` shows a crop of a real Indian dog
+>   painting (Cleveland Museum of Art Open Access, CC0): the Rajasthani "Dog
+>   with pups" (c. 1780) and three 1890s dog studies. Fixed per record id,
+>   puppies get a painted pup, captions credit the work and say it is not a
+>   likeness. A real photograph always replaces it.
+> * **Sourced art.** Every image under `public/art` is a real, openly
+>   licensed artwork listed in `lib/art/sources.ts` and on `/art-credits`:
+>   CC0 museum works and Gond paintings from Wikimedia Commons (CC BY-SA /
+>   CC BY, cut out of their paper and shared under the same licence). It
+>   appears in the backdrop (animals on the hills, a hoopoe by the sun, a
+>   painted dog walking like a paper puppet, falling petals), dashboard
+>   banners, empty states and the corner of page headers on desktop. Never
+>   generated art, never a photo whose painting's own copyright is unclear.
+> * **Sensitive photos.** A photo that may show an injured animal starts
+>   blurred with "Tap to view" (`ui/SensitiveVeil`, rules in
+>   `lib/sensitive-photo.ts`): reviewed/flagged photos (`photo_sensitive`),
+>   animals needing help, and every case, fundraiser and incoming-report
+>   photo. Reports describing an injury, or a photo the photo check sees a
+>   wound in, are flagged on approval. The landing never shows one.
 > * **Names.** `lib/animal-name.ts`: a given name if a person gave one,
 >   otherwise the short StrayPaw tag; the subtitle describes the record
 >   ("Female · medium", "Male puppy") and the short place. Never "Dog near…".

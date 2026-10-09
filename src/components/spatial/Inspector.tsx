@@ -1,4 +1,6 @@
 "use client";
+import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
+import { isSensitivePhoto } from "@/lib/sensitive-photo";
 
 /* ════════════════════════════════════════════════════════════════════
    The inspector: where the numbers live.
@@ -36,7 +38,7 @@ export type Sel =
 type CellAnimal = {
   id: string; name: string | null; code: string | null; straypaw_id: string | null; cover_photo: string | null;
   status: string | null; needs_help: boolean | null; sterilisation_status: string | null; vaccination_status: string | null;
-  last_seen: string | null; zone: string | null; source?: string | null;
+  last_seen: string | null; zone: string | null; source?: string | null; photo_sensitive?: boolean | null;
 };
 
 function useCellAnimals(key: string | null, scope: Scope) {
@@ -49,7 +51,7 @@ function useCellAnimals(key: string | null, scope: Scope) {
       if (scope === "org") {
         const supa = getSupabase();
         const { data } = (await supa?.from("dogs")
-          .select("id,name,code,straypaw_id,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,zone")
+          .select("id,name,code,straypaw_id,cover_photo,photo_sensitive,status,needs_help,sterilisation_status,vaccination_status,last_seen,zone")
           .eq("h3_r8", key).order("needs_help", { ascending: false }).order("last_seen", { ascending: false }).limit(240)) ?? { data: [] };
         if (live) setRows((data ?? []) as CellAnimal[]);
       } else {
@@ -387,7 +389,7 @@ export function Inspector({ ds, ix, sel, t, scope, next, onSelect, onClose, onPi
                         <li key={a.id}>
                           <Link href={profile(a.id)}>
                             <span className="sm-insp-ph">
-                              {a.cover_photo ? <Image src={a.cover_photo} alt="" width={80} height={80} /> : <i aria-hidden />}
+                              {a.cover_photo ? <SensitiveVeil sensitive={isSensitivePhoto(a) || a.status === "injured"} id={a.cover_photo} compact><Image src={a.cover_photo} alt="" width={80} height={80} /></SensitiveVeil> : <i aria-hidden />}
                             </span>
                             <span className="sm-insp-who">
                               <b>{animalTitle(a)}</b>

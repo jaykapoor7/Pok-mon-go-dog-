@@ -275,9 +275,9 @@ async function resolveRelay(
   const recent = cases.filter((c) => c.dog_id && c.condition_class && c.h3_r8 && !VAGUE.has(c.condition_class) && dayOf(c.occurred_at) >= 0).slice(0, LANDING_LIMITS.relayCandidates);
   if (!recent.length) return null;
   const ids = [...new Set(recent.map((c) => c.dog_id as string))].slice(0, LANDING_LIMITS.relayCandidates);
-  const { data } = await supa.from("public_spatial_animals").select("id,straypaw_id,cover_photo").in("id", ids).limit(ids.length);
-  const byId = new Map<string, { straypaw_id: string | null; cover_photo: string | null }>();
-  for (const a of (data ?? []) as { id: string; straypaw_id: string | null; cover_photo: string | null }[]) byId.set(a.id, a);
+  const { data } = await supa.from("public_spatial_animals").select("id,straypaw_id,cover_photo,photo_sensitive").in("id", ids).limit(ids.length);
+  const byId = new Map<string, { straypaw_id: string | null; cover_photo: string | null; photo_sensitive?: boolean | null }>();
+  for (const a of (data ?? []) as { id: string; straypaw_id: string | null; cover_photo: string | null; photo_sensitive?: boolean | null }[]) byId.set(a.id, a);
   const built = recent
     .map((c) => {
       const a = byId.get(c.dog_id as string);
@@ -285,7 +285,8 @@ async function resolveRelay(
       return {
         date: isoOf(dayOf(c.occurred_at)), condition: c.condition_class as string, locality: cleanPlace(c.zone) || city,
         cell: c.h3_r8 as string, critical: isCritical(c.condition_class as string, c.severity),
-        straypawId: a.straypaw_id, animalId: c.dog_id as string, photo: a.cover_photo?.trim() || null,
+        /* A photo that may show the injury is never put on the landing. */
+        straypawId: a.straypaw_id, animalId: c.dog_id as string, photo: a.photo_sensitive || GRAPHIC.test(String(c.condition_class)) ? null : a.cover_photo?.trim() || null,
       };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
@@ -321,7 +322,7 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   const [cities, { data, error }] = await Promise.all([
     getPublicSpatialCities(200),
     supa.from("public_spatial_animals").select(REGISTER_COLUMNS)
-      .in("straypaw_id", Object.keys(REGISTER_FRAMES)).not("cover_photo", "is", null).neq("cover_photo", "").limit(Object.keys(REGISTER_FRAMES).length),
+      .in("straypaw_id", Object.keys(REGISTER_FRAMES)).not("cover_photo", "is", null).neq("cover_photo", "").eq("photo_sensitive", false).limit(Object.keys(REGISTER_FRAMES).length),
   ]);
   if (error) throw error;
   const total = cities.reduce((n, city) => n + Number(city.animals || 0), 0);
@@ -330,7 +331,7 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
      enough of them, fall back to the fullest photographed records. */
   if (rows.length < 12) {
     const { data: wide, error: wideError } = await supa.from("public_spatial_animals").select(REGISTER_COLUMNS)
-      .not("cover_photo", "is", null).neq("cover_photo", "").order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates);
+      .not("cover_photo", "is", null).neq("cover_photo", "").eq("photo_sensitive", false).order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates);
     if (wideError) throw wideError;
     rows = (wide ?? []) as Array<any>;
   }

@@ -1,4 +1,6 @@
 "use client";
+import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
+import { isSensitivePhoto } from "@/lib/sensitive-photo";
 
 import { EditSightingSheet } from "@/components/sighting/EditSightingSheet";
 import { DeleteSightingButton } from "@/components/sighting/DeleteSightingButton";
@@ -155,6 +157,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
                       than rows. It is the reason to follow one. */}
                   <span className="fl-photo">
                     {d.cover_photo ? (
+                      <SensitiveVeil sensitive={isSensitivePhoto(d)} id={d.cover_photo} className="h-full w-full">
                       <Image
                         src={d.cover_photo}
                         alt=""
@@ -163,6 +166,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
                         className="fl-img"
                         unoptimized
                       />
+                      </SensitiveVeil>
                     ) : (
                       <span className="fl-noimg" aria-hidden="true">
                         <FolkPortrait seed={d.id} className="fl-folk" />
@@ -216,6 +220,7 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
           <Link href={`/dog/${dog.id}`} key={dog.id} className="follow-card">
             <div className="follow-photo">
               {dog.cover_photo ? (
+                <SensitiveVeil sensitive={isSensitivePhoto(dog)} id={dog.cover_photo} className="absolute inset-0">
                 <Image
                   src={dog.cover_photo}
                   alt={dog.name ? `${dog.name}, in ${place}` : `A street dog in ${place}`}
@@ -223,8 +228,9 @@ export function FollowingClient({ suggestions: dogs }: { suggestions: Dog[] }) {
                   sizes="220px"
                   className="object-cover"
                 />
+                </SensitiveVeil>
               ) : (
-                <span className="spa-mono dim">No photo</span>
+                <FolkPortrait seed={dog.id} className="absolute inset-0" />
               )}
             </div>
             <div className="follow-body">

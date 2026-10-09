@@ -29,7 +29,7 @@ export function PartnerAnimalRecord({ id, published }: { id: string; published: 
       const { data: org, error: orgError } = await supa.rpc("my_ngo");
       if (orgError || !org) throw new Error("Organisation access required.");
       const [{ data, error }, count] = await Promise.all([
-        supa.from("dogs").select("id,straypaw_id,h3_r8,name,species,zone,city,lat,lng,status,cover_photo,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,provenance,code,intake_notes,owner_name,owner_contact,assignee_id,assignee_name").eq("id", id).eq("ngo_id", org).maybeSingle(),
+        supa.from("dogs").select("id,straypaw_id,h3_r8,name,species,zone,city,lat,lng,status,cover_photo,photo_sensitive,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,provenance,code,intake_notes,owner_name,owner_contact,assignee_id,assignee_name").eq("id", id).eq("ngo_id", org).maybeSingle(),
         supa.from("org_case_facts").select("id", { count: "exact", head: true }).eq("dog_id", id).in("status_class", ["open", "in_progress"]),
       ]);
       if (error) throw error;
@@ -59,7 +59,7 @@ export function PartnerAnimalRecord({ id, published }: { id: string; published: 
     id, label: dogLabel(dog), straypawId: null, sourceCode: dog.code ?? null,
     species: "dog", sex: null, colour: dog.color, locality: dog.zone, city: dog.city ?? null, state: null,
     keeper: "Your organisation", source: "field", firstSeen: dog.first_seen, lastSeen: dog.last_seen,
-    photo: dog.cover_photo || null, photos: dog.photos, photoAttribution: dog.photo_attribution ?? null, photoSourceUrl: dog.photo_source_url ?? null,
+    photo: dog.cover_photo || null, photos: dog.photos, size: dog.size ?? null, photoSensitive: !!dog.photo_sensitive || !!dog.needs_help || openCases > 0, photoAttribution: dog.photo_attribution ?? null, photoSourceUrl: dog.photo_source_url ?? null,
     known: { ster: dog.sterilised ? "yes" : "unknown", sterAt: null, vacc: dog.vaccinated ? "yes" : "unknown", vaccAt: null, boosterDue: false, health: dog.needs_help ? "needs_help" : "none", earNotch: !!dog.ear_notch },
     cases: [], events: [], comments: [], place: null, open: { cases: 0, followupsMissed: 0, followupsDue: 0 },
   };

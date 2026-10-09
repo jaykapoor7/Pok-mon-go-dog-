@@ -21,7 +21,7 @@ export function FundraiserCard({ f }: { f: Fundraiser }) {
     >
       <div className="relative">
         {f.cover_photo && (
-          <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="h-40 w-full" />
+          <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="h-40 w-full" sensitive />
         )}
         {f.featured && (
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-paw-500 px-2.5 py-1 text-[11.5px] font-bold text-white shadow-warm">

@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendSightingLiveEmail } from "@/lib/email";
 import { autoApprovalOn, sightingChecks } from "@/lib/auto-approve";
 import { checkSightingPhoto, photoCheckAvailable } from "@/lib/photo-check";
+import { describesInjury } from "@/lib/sensitive-photo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -134,10 +135,14 @@ export async function POST(req: Request) {
     try {
       const { data: s } = await supa
         .from("sightings")
-        .select("reporter_email, reporter_name, dog_id")
+        .select("reporter_email, reporter_name, dog_id, photo_url, notes, mood_tags")
         .eq("id", body.id)
         .single();
       const dogId = s?.dog_id ?? (data as { dog_id?: string } | null)?.dog_id ?? null;
+      /* Blur the photo for viewers when the report describes an injury. */
+      if (dogId && s?.photo_url && describesInjury(s.notes, s.mood_tags)) {
+        await supa.from("dogs").update({ photo_sensitive: true }).eq("id", dogId).eq("cover_photo", s.photo_url);
+      }
       if (s?.reporter_email && dogId) {
         void sendSightingLiveEmail(s.reporter_email, s.reporter_name ?? null, dogId);
       }

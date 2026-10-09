@@ -8,6 +8,7 @@
    decorative background fetch. Loading figures read as dashes, not zero.
    ════════════════════════════════════════════════════════════════════ */
 
+import { FOLK_CUTOUTS, type CutoutKey } from "@/lib/art/sources";
 import Link from "next/link";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
@@ -48,8 +49,15 @@ export function DeskHeader({ kicker, title, lede, figures, actions, city, ground
   const spacePlace = useContext(DeskPlace);
   const place = city === undefined ? spacePlace : city;
 
+  /* A painted animal in the corner (desktop only), fixed per page. */
+  const keys = Object.keys(FOLK_CUTOUTS).filter((k) => k !== "dogStanding") as CutoutKey[];
+  const seed = `${kicker ?? ""}${typeof title === "string" ? title : ""}`;
+  let h = 7; for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const art = FOLK_CUTOUTS[keys[h % keys.length]];
+
   return (
     <header className="dh dh-editorial">
+      <img className="dh-art" src={art.src} alt="" aria-hidden loading="lazy" decoding="async" draggable={false} />
       <div className="dh-in">
         <div className="dh-copy">
           {(kicker || (withGround && place)) && <p className="dh-kicker">{[kicker, withGround ? place : null].filter(Boolean).join(" · ")}</p>}

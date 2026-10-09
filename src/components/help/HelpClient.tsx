@@ -85,7 +85,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
             const flagged = daysSince(dog.last_seen);
             return (
               <li key={dog.id} className="hp-row">
-                <Link href={`/dog/${dog.id}`} className="hp-ph"><DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} tone="urgent" className="h-full w-full" /></Link>
+                <Link href={`/dog/${dog.id}`} className="hp-ph"><DogPhoto src={dog.cover_photo} alt={dogLabel(dog)} seed={dog.id} tone="urgent" className="h-full w-full" sensitive /></Link>
                 <div className="hp-what">
                   <Link href={`/dog/${dog.id}`} className="hp-name">{dogLabel(dog)}</Link>
                   <p className="hp-where"><MapPin size={12} /> {placeLabel(dog.zone)}{d != null ? <b> · {d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`} away</b> : null}{flagged != null ? <> · last seen {flagged === 0 ? "today" : `${flagged} days ago`}</> : null}</p>

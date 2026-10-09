@@ -157,7 +157,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
         {mode === "existing" ? (
           selectedDog ? (
             <div className="flex items-center gap-3 rounded-md border border-paw-200 bg-paw-50 p-2.5 dark:border-paw-500/30 dark:bg-paw-900/20">
-              <DogPhoto src={selectedDog.cover_photo} alt="" seed={selectedDog.id} className="h-12 w-12 rounded-md" />
+              <DogPhoto src={selectedDog.cover_photo} alt="" seed={selectedDog.id} className="h-12 w-12 rounded-md" width={96} sensitive />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{dogLabel(selectedDog)}</p><p className="truncate text-xs text-bark-400">{selectedDog.zone}</p></div>
               <button aria-label="Clear selected dog" onClick={() => setDogId(null)} className="text-bark-400 hover:text-status-injured"><X className="h-4 w-4" /></button>
             </div>
@@ -167,7 +167,7 @@ export function NewCaseForm({ presetDogId }: { presetDogId?: string }) {
               <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
                 {matches.length === 0 ? <p className="py-4 text-center text-[13px] text-bark-400">No matches. Add a new animal instead.</p> : matches.map((d) => (
                   <button key={d.id} onClick={() => setDogId(d.id)} className="flex w-full items-center gap-3 rounded-md p-2 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
-                    <DogPhoto src={d.cover_photo} alt="" seed={d.id} className="h-9 w-9 rounded-md" />
+                    <DogPhoto src={d.cover_photo} alt="" seed={d.id} className="h-9 w-9 rounded-md" width={96} sensitive />
                     <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{dogLabel(d)}</span><span className="block truncate text-xs text-bark-400">{d.zone}</span></span>
                   </button>
                 ))}

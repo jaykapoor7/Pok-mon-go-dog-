@@ -6,6 +6,8 @@
    aria-hidden and never carries information the page does not also say.
    ════════════════════════════════════════════════════════════════════ */
 
+import { FOLK_CUTOUTS, type CutoutKey } from "@/lib/art/sources";
+
 const INK = "#0b1e3d";
 const BLUE = "#2457ce";
 const SKY = "#8fb7ff";
@@ -155,6 +157,13 @@ function Settlement({ variant }: { variant: "home" | "care" | "city" }) {
   );
 }
 
+/* Real paintings placed into the drawn landscape (lib/art/sources). */
+const SCENE_ANIMAL: Record<"home" | "care" | "city", CutoutKey> = { home: "cowCalf", care: "elephantTree", city: "peacocks" };
+function Painted({ k, x, y, h }: { k: CutoutKey; x: number; y: number; h: number }) {
+  const c = FOLK_CUTOUTS[k];
+  return <image href={c.src} x={x} y={y} height={h} width={h * c.ratio} preserveAspectRatio="xMidYMax meet" />;
+}
+
 /** The wide banner behind a dashboard heading. Anchored right, so narrow
  *  screens keep the dog and the sun and lose the empty sky. */
 export function FolkScene({ variant = "home", className = "" }: { variant?: "home" | "care" | "city"; className?: string }) {
@@ -180,9 +189,9 @@ export function FolkScene({ variant = "home", className = "" }: { variant?: "hom
         <path d="M480 260 C 610 196, 760 192, 870 212 S 1060 178, 1200 206 L 1200 260 Z" fill={BLUE} />
         <path d="M480 260 C 610 196, 760 192, 870 212 S 1060 178, 1200 206 L 1200 260 Z" fill="url(#folk-dots)" />
         <Tree x={1146} y={150} kind="coral" s={0.72} />
-        <Dog x={924} y={118} s={1} />
+        <Painted k={SCENE_ANIMAL[variant]} x={1000} y={40} h={190} />
+        <Painted k="dogSitting" x={900} y={124} h={110} />
         <path d="M660 260 C 780 226, 900 222, 1010 234 S 1150 224, 1200 230 L 1200 260 Z" fill={INK} />
-        <Cat x={1060} y={180} s={0.9} fill={SKY} />
         {[[720, 254, PEACH], [760, 246, SKY], [812, 242, CORAL], [1000, 244, PEACH], [1170, 240, SKY]].map(([fx, fy, c], i) => <Flower key={i} x={fx as number} y={fy as number} c={c as string} />)}
         <g fill={CREAM} opacity="0.5">{[0, 1, 2, 3, 4].map((i) => <ellipse key={i} cx={850 + i * 30} cy={250 - (i % 2) * 4} rx="3.2" ry="2.4" />)}</g>
       </g>
@@ -199,7 +208,7 @@ export function FolkVignette({ className = "", tone = "day" }: { className?: str
       <Spark x={118} y={18} s={0.6} c={CORAL} />
       <path d="M0 130 C 40 96, 100 90, 200 104 L 200 130 Z" fill={MIST} />
       <path d="M0 130 C 60 112, 140 108, 200 118 L 200 130 Z" fill={BLUE} />
-      <Dog x={70} y={34} s={0.82} />
+      <Painted k="dogSitting" x={78} y={30} h={94} />
       <Flower x={30} y={128} c={PEACH} />
       <Flower x={170} y={126} c={CORAL} />
     </svg>

@@ -22,25 +22,67 @@
 @keyframes fb-flap { to { transform: scaleY(0.55); } }
 
 .fb-hills { left: 0; right: 0; bottom: 0; width: 100%; height: 120px; opacity: 0.72; }
-.fb-walker { bottom: 18px; left: -90px; width: 64px; height: 48px; animation: fb-walk 46s linear infinite 3s; }
-.fb-walker svg { width: 100%; height: 100%; overflow: visible; }
-@keyframes fb-walk { to { transform: translateX(calc(100vw + 180px)); } }
-.fb-trot { animation: fb-bob 420ms ease-in-out infinite alternate; }
-@keyframes fb-bob { to { transform: translateY(-2px); } }
-.fb-leg { transform-box: fill-box; transform-origin: top; animation: fb-step 420ms ease-in-out infinite alternate; }
-.fb-leg.l2 { animation-direction: alternate-reverse; }
-@keyframes fb-step { from { transform: rotate(14deg); } to { transform: rotate(-14deg); } }
+/* A painted dog (Sikari, 1890s) walks the hill like a paper puppet:
+   it glides, rocks heel to toe and bobs, as shadow puppets do. */
+.fb-walker { bottom: 26px; left: -140px; width: 92px; animation: fb-walk 70s linear infinite 4s; z-index: 2; }
+@keyframes fb-walk { to { transform: translateX(calc(100vw + 280px)); } }
+.fb-puppet { display: block; width: 100%; height: auto; transform-origin: 50% 100%; animation: fb-rock 900ms ease-in-out infinite alternate; filter: drop-shadow(0 3px 2px rgba(11, 30, 61, 0.18)); }
+@keyframes fb-rock { from { transform: scaleX(-1) rotate(-2.5deg) translateY(0); } to { transform: scaleX(-1) rotate(2.5deg) translateY(-3px); } }
+
+/* Painted animals on the hills (Gond, cut out of their paper). They sway
+   from the root, and drift a little with the page scroll for depth. */
+.fb-grove { left: 0; right: 0; bottom: 34px; height: 0; }
+.fb-cut { position: absolute; display: block; height: auto; user-select: none; }
+.fb-grove .fb-cut { bottom: 0; height: min(30vh, 250px); width: auto; transform-origin: 50% 100%; animation: fb-sway 11s ease-in-out infinite alternate; opacity: 0.94; filter: saturate(0.92); }
+.fb-grove .fb-left { left: 1.5vw; }
+.fb-grove .fb-right { right: 2vw; animation-delay: -5s; animation-duration: 13s; }
+@keyframes fb-sway { from { transform: rotate(-1.2deg); } to { transform: rotate(1.4deg); } }
+@supports (animation-timeline: scroll()) {
+  .fb-grove { animation: fb-depth linear both; animation-timeline: scroll(root); }
+  @keyframes fb-depth { from { transform: translateY(0); } to { transform: translateY(18px); } }
+}
+
+/* A Company-school hoopoe perched beside the sun, turning its head. */
+.fb-hoopoe { top: 150px; right: calc(4vw + 112px); width: 64px; transform-origin: 40% 90%; animation: fb-peck 7s ease-in-out infinite; opacity: 0.9; }
+@keyframes fb-peck { 0%, 70%, 100% { transform: rotate(0); } 76% { transform: rotate(-7deg); } 84% { transform: rotate(3deg); } }
+
+/* Petals and leaves in the brand colours, falling slowly and turning. */
+.fb-petals { inset: 0; }
+.fb-petals i { position: absolute; top: -20px; width: 9px; height: 13px; border-radius: 80% 0 80% 0; opacity: 0.55; animation: fb-fall linear infinite; }
+.fb-petals .p0 { left: 8%; background: #f8b9a3; animation-duration: 26s; }
+.fb-petals .p1 { left: 22%; background: #8fb7ff; animation-duration: 34s; animation-delay: -12s; }
+.fb-petals .p2 { left: 37%; background: #f05b40; opacity: 0.35; animation-duration: 30s; animation-delay: -4s; }
+.fb-petals .p3 { left: 51%; background: #9ccf8a; animation-duration: 38s; animation-delay: -20s; }
+.fb-petals .p4 { left: 64%; background: #f8b9a3; animation-duration: 29s; animation-delay: -9s; }
+.fb-petals .p5 { left: 76%; background: #8fb7ff; animation-duration: 36s; animation-delay: -26s; }
+.fb-petals .p6 { left: 88%; background: #9ccf8a; animation-duration: 32s; animation-delay: -15s; }
+.fb-petals .p7 { left: 30%; background: #f2c14e; opacity: 0.45; animation-duration: 41s; animation-delay: -31s; }
+.fb-petals .p8 { left: 70%; background: #f2c14e; opacity: 0.45; animation-duration: 44s; animation-delay: -6s; }
+@keyframes fb-fall {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(28px, 25vh) rotate(120deg); }
+  50% { transform: translate(-14px, 50vh) rotate(220deg); }
+  75% { transform: translate(22px, 75vh) rotate(320deg); }
+  100% { transform: translate(-6px, 105vh) rotate(420deg); }
+}
 
 /* The sidebar takes the left edge on desktop: the land starts after it. */
 @media (min-width: 861px) { .fb { left: var(--sd-w, 248px); } }
 @media (max-width: 860px) {
   .fb-hills { bottom: var(--x-tabs, 64px); height: 56px; opacity: 0.4; }
-  .fb-walker { bottom: calc(var(--x-tabs, 64px) + 10px); width: 48px; height: 36px; }
+  .fb-walker { bottom: calc(var(--x-tabs, 64px) + 12px); width: 58px; }
+  .fb-grove { bottom: calc(var(--x-tabs, 64px) + 18px); }
+  .fb-grove .fb-cut { height: 120px; opacity: 0.85; }
+  .fb-grove .fb-left { left: -14px; } .fb-grove .fb-right { right: -12px; }
+  .fb-hoopoe { top: 132px; right: 58px; width: 40px; }
+  .fb-petals .p5, .fb-petals .p6, .fb-petals .p7, .fb-petals .p8 { display: none; }
   .fb-sun { top: 64px; width: 90px; height: 90px; right: -18px; }
   .fb-cloud.c3 { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fb *, .fb-cloud, .fb-birds, .fb-walker { animation: none !important; }
+  .fb *, .fb-cloud, .fb-birds, .fb-walker, .fb-grove { animation: none !important; }
+  .fb-petals { display: none; }
+  .fb-puppet { transform: scaleX(-1); }
   .fb-cloud.c1 { left: 8vw; } .fb-cloud.c2 { left: 60vw; } .fb-cloud.c3 { display: none; }
   .fb-birds { left: 40vw; } .fb-walker { left: 70vw; }
 }

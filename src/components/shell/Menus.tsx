@@ -222,6 +222,7 @@ export function MoreSheet({ open, onClose, space, nav, isCurrent, more, onPick, 
           <LanguageSwitcher />
           <FeedbackButton label="Feedback" />
           <Link href="/faq" onClick={onClose}>Help</Link>
+          <Link href="/art-credits" onClick={onClose}>Art credits</Link>
           <Link href="/" onClick={onClose}>Main site <ArrowUpRight size={13} aria-hidden /></Link>
         </div>
       </div>

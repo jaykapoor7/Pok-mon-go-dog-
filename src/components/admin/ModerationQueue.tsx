@@ -1,4 +1,6 @@
 "use client";
+import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
+import { describesInjury } from "@/lib/sensitive-photo";
 
 /* ════════════════════════════════════════════════════════════════════
    Moderation: one report at a time.
@@ -145,7 +147,7 @@ export function ModerationQueue() {
       {cur && (
         <article className="mq-card" aria-label="Report under review">
           <figure className="mq-photo">
-            {cur.photo_url ? <img src={cur.photo_url} alt="The reported animal" /> : <div className="mq-nophoto">No photograph</div>}
+            {cur.photo_url ? <SensitiveVeil sensitive={describesInjury(cur.notes, cur.mood_tags) || (verdicts[cur.id] !== "checking" && !!verdicts[cur.id] && (verdicts[cur.id] as { injury?: boolean }).injury === true)} id={cur.photo_url} className="h-full w-full"><img src={cur.photo_url} alt="The reported animal" /></SensitiveVeil> : <div className="mq-nophoto">No photograph</div>}
           </figure>
           <div className="mq-body">
             <p className="mq-pos">{at + 1} of {items!.length}</p>

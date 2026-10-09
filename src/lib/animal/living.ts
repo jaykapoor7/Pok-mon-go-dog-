@@ -35,7 +35,7 @@ export type Living = {
   locality: string | null; city: string | null; state: string | null;
   keeper: string; source: "field" | "resident";
   firstSeen: string | null; lastSeen: string | null;
-  photo: string | null; photos: string[]; photoAttribution: string | null; photoSourceUrl: string | null;
+  photo: string | null; photos: string[]; photoSensitive: boolean; size: string | null; photoAttribution: string | null; photoSourceUrl: string | null;
   known: { ster: Known; sterAt: string | null; vacc: Known; vaccAt: string | null; boosterDue: boolean; health: "needs_help" | "injured" | "none"; earNotch: boolean };
   cases: { id: string; condition: string; statusClass: string; opened: string | null; closed: string | null; closure: string | null; firstActionDays: number | null }[];
   events: LivingEvent[];
@@ -170,6 +170,9 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
     source: sp?.source === "resident" || dog.provenance === "community_report" ? "resident" : "field",
     firstSeen: sp?.first_seen ?? dog.first_seen ?? null, lastSeen: dog.last_seen ?? null,
     photo: photos[0] ?? null, photos,
+    /* Blur when the photo was marked, the animal needs help or is injured, or it has a case on record. */
+    size: dog.size ?? null,
+    photoSensitive: !!dog.photo_sensitive || health !== "none" || facts.length > 0,
     photoAttribution: dog.photo_attribution ?? null, photoSourceUrl: dog.photo_source_url ?? null,
     known: { ster, sterAt, vacc, vaccAt, boosterDue, health, earNotch: !!dog.ear_notch && dog.ear_notch !== "unknown" },
     cases: facts.map((f) => ({

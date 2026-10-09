@@ -29,7 +29,7 @@ function coarse(v: number): number {
 /* Keep public animal reads narrow. `select("*")` made small /help and
  * /following requests materialise every public profile column and amplified
  * DB pressure after the register grew. */
-const PUBLIC_DOG_SELECT = "id,name,species,zone,city,lat,lng,status,cover_photo,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,ngo_name,provenance,code,photo_attribution,photo_source_url";
+const PUBLIC_DOG_SELECT = "id,name,species,zone,city,lat,lng,status,cover_photo,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,ngo_name,provenance,code,photo_attribution,photo_source_url,photo_sensitive";
 
 // ── Row mappers ──────────────────────────────────────────────
 

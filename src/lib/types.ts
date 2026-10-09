@@ -179,6 +179,8 @@ export interface Dog {
   owner_contact?: string | null;
   /** Credit and canonical page for a licensed external profile photo. */
   photo_attribution?: string | null;
+  /** Cover photo marked as showing injury; shown blurred until chosen. */
+  photo_sensitive?: boolean | null;
   photo_source_url?: string | null;
 }
 

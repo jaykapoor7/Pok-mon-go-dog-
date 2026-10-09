@@ -8,9 +8,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { isSensitivePhoto } from "@/lib/sensitive-photo";
 import { animalTitle } from "@/lib/animal-name";
 
-type Animal = { id: string; name: string | null; cover_photo: string | null; status: string | null; needs_help: boolean | null; straypaw_id: string | null; size?: string | null; sex?: string | null };
+type Animal = { id: string; name: string | null; cover_photo: string | null; status: string | null; needs_help: boolean | null; photo_sensitive?: boolean | null; straypaw_id: string | null; size?: string | null; sex?: string | null };
 
 export function CellCard({ h3, title, facts, href, linkLabel, onClose, showAnimals = true, focus = null }: {
   focus?: string | null;
@@ -39,7 +40,7 @@ export function CellCard({ h3, title, facts, href, linkLabel, onClose, showAnima
               {shown.map((a) => (
                 <li key={a.id} className={a.id === focus ? "is-focus" : undefined}>
                   <Link href={`/dog/${a.id}`} title={animalTitle(a)}>
-                    <DogPhoto src={a.cover_photo} alt="" seed={a.id} size={a.size} className="db-selcard-ph" />
+                    <DogPhoto src={a.cover_photo} alt="" seed={a.id} size={a.size} className="db-selcard-ph" width={200} sensitive={isSensitivePhoto(a) || a.status === "injured"} />
                     {(a.needs_help || a.status === "injured") && <i aria-label="Needs help" />}
                   </Link>
                 </li>

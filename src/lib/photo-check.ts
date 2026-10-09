@@ -12,16 +12,17 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 
-export type PhotoVerdict = { ok: boolean; reason: string; animal?: boolean; identifying?: boolean };
+export type PhotoVerdict = { ok: boolean; reason: string; animal?: boolean; identifying?: boolean; injury?: boolean };
 
 const SCHEMA = {
   type: "object",
   properties: {
     animal_present: { type: "boolean", description: "A dog, cat or other street animal is clearly visible." },
     identifying_detail: { type: "boolean", description: "A recognisable human face, a vehicle licence plate, or a readable house number or address is visible." },
+    visible_injury: { type: "boolean", description: "A wound, blood, a fracture, maggots, burns or a dead animal is visible." },
     note: { type: "string", description: "One short sentence on what the photo shows." },
   },
-  required: ["animal_present", "identifying_detail", "note"],
+  required: ["animal_present", "identifying_detail", "visible_injury", "note"],
   additionalProperties: false,
 } as const;
 
@@ -30,6 +31,8 @@ const PROMPT = `This photograph was sent to StrayPaw, a public record of street 
 animal_present: is a street animal (usually a dog, sometimes a cat or another animal) clearly visible? A blurred or tiny but recognisable animal counts; a photo of only a street, a person, a document or a screen does not.
 
 identifying_detail: is anything visible that would identify a person or a home if published: a recognisable human face, a vehicle licence plate you could read, or a readable house number or address? Hands, feet, backs of heads, distant unrecognisable people and shop signs do not count.
+
+visible_injury: is a wound, blood, a fracture, maggots, burns or a dead animal visible? Thinness, mange or a limp without visible wounds do not count. The answer only decides whether the photo is shown blurred until a viewer chooses to see it; it never stops a report.
 
 Then give one short note describing the photo.`;
 
@@ -59,12 +62,13 @@ export async function checkSightingPhoto(photoUrl: string): Promise<PhotoVerdict
     if (response.stop_reason === "refusal") return { ok: false, reason: "Photo check declined" };
     const text = response.content.find((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text")?.text;
     if (!text) return { ok: false, reason: "Photo check gave no answer" };
-    const out = JSON.parse(text) as { animal_present?: unknown; identifying_detail?: unknown };
+    const out = JSON.parse(text) as { animal_present?: unknown; identifying_detail?: unknown; visible_injury?: unknown };
     const animal = out.animal_present === true;
     const identifying = out.identifying_detail === true;
-    if (!animal) return { ok: false, reason: "No animal seen in the photo", animal, identifying };
-    if (identifying) return { ok: false, reason: "Photo may show a face, plate or address", animal, identifying };
-    return { ok: true, reason: "Animal in photo, nothing identifying", animal, identifying };
+    const injury = out.visible_injury === true;
+    if (!animal) return { ok: false, reason: "No animal seen in the photo", animal, identifying, injury };
+    if (identifying) return { ok: false, reason: "Photo may show a face, plate or address", animal, identifying, injury };
+    return { ok: true, reason: injury ? "Animal in photo, injury visible (shown blurred)" : "Animal in photo, nothing identifying", animal, identifying, injury };
   } catch (error) {
     if (error instanceof Anthropic.RateLimitError) return { ok: false, reason: "Photo check busy" };
     if (error instanceof Anthropic.APIError) return { ok: false, reason: `Photo check error ${error.status ?? ""}`.trim() };

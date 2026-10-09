@@ -226,7 +226,7 @@ export async function getPublicOrgAnimals(ngoId: string, limit = 18): Promise<Do
   if (!supa) return [];
   const { data } = await supa
     .from("public_animal_profiles")
-    .select("id, name, species, zone, status, cover_photo, external_image_url, photo_attribution, photo_source_url, size, color, is_friendly, needs_help, sterilised, vaccinated, sterilisation_status, vaccination_status, ear_notch, trust_score, sightings_count, feed_count, first_seen, last_seen, last_fed_at, created_at, ngo_id, ngo_name, provenance, code")
+    .select("id, name, species, zone, status, cover_photo, external_image_url, photo_attribution, photo_source_url, size, color, is_friendly, needs_help, sterilised, vaccinated, sterilisation_status, vaccination_status, ear_notch, trust_score, sightings_count, feed_count, first_seen, last_seen, last_fed_at, created_at, ngo_id, ngo_name, provenance, code, photo_sensitive")
     .eq("ngo_id", ngoId)
     .order("last_seen", { ascending: false })
     .limit(limit);

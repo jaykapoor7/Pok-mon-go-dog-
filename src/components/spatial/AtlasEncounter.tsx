@@ -22,7 +22,7 @@ export function AtlasEncounter({ city }: { city: string }) {
       const records = await fetch(`/api/spatial/patch?cells=${keys.join(",")}`, { signal: controller.signal });
       if (!records.ok) return;
       const data = await records.json();
-      setAnimal((data.animals ?? []).find((a: Encounter) => Boolean(a.cover_photo)) ?? null);
+      setAnimal((data.animals ?? []).find((a: Encounter & { needs_help?: boolean | null; photo_sensitive?: boolean | null }) => Boolean(a.cover_photo) && !a.needs_help && !a.photo_sensitive) ?? null);
     }
     read().catch(() => {});
     return () => controller.abort();

@@ -121,7 +121,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           <div className="sd-foot">
             <FolkVignette className="sd-art" />
             <div className="sd-foot-row"><LanguageSwitcher /><FeedbackButton label="Feedback" /></div>
-            <Link href="/" className="sd-site">Main site</Link>
+            <div className="sd-foot-row"><Link href="/" className="sd-site">Main site</Link><Link href="/art-credits" className="sd-site">Art credits</Link></div>
           </div>
         </aside>
 

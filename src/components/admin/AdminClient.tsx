@@ -31,6 +31,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { describesInjury, isSensitivePhoto } from "@/lib/sensitive-photo";
 import { haptic } from "@/lib/haptics";
 import { timeAgo } from "@/lib/utils";
 import { STATUS_META, type DogStatus } from "@/lib/types";
@@ -1036,6 +1037,8 @@ export function AdminClient() {
                   alt={s.nickname ?? "Sighting"}
                   seed={s.id}
                   className="h-24 w-24 shrink-0 rounded"
+                  width={150}
+                  sensitive={describesInjury(s.notes, s.mood_tags)}
                 />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">
@@ -1356,6 +1359,8 @@ function DogsList({
               alt=""
               seed={d.id}
               className="h-12 w-12 shrink-0 rounded"
+              width={96}
+              sensitive={isSensitivePhoto(d)}
             />
             <div className="min-w-0 flex-1">
               <a
@@ -2072,7 +2077,7 @@ function Proof({ label, url, seed }: { label: string; url: string | null; seed: 
   }
   return (
     <div className="relative overflow-hidden rounded">
-      <DogPhoto src={url} alt={label} seed={seed} className="aspect-square w-full" />
+      <DogPhoto src={url} alt={label} seed={seed} className="aspect-square w-full" sensitive />
       <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[11.5px] font-bold text-white">
         {label}
       </span>

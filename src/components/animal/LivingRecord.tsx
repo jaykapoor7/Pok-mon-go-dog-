@@ -15,6 +15,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import type { ReactNode } from "react";
+import { portraitCredit } from "@/components/art/FolkPortrait";
 import { DogPhoto } from "@/components/ui/DogPhoto";
 import type { RouteStop } from "@/components/system/Route";
 import { PlaceMap } from "./PlaceMap";
@@ -135,6 +136,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
   const reportHref = `/report?dog=${r.id}${r.place ? `&lat=${r.place.center[1]}&lng=${r.place.center[0]}` : ""}`;
   const cityQuery = r.city ? `&city=${encodeURIComponent(r.city)}` : "";
   const mapHref = r.place ? `${scope === "org" ? "/partner/map" : "/map"}?mode=animals&cell=${r.place.cell}${cityQuery}` : `/map?focus=animal:${r.id}${cityQuery}`;
+  const art = portraitCredit(r.id, r.size);
   const status = r.known.health === "needs_help" ? { t: "Needs help", c: "is-hot" }
     : r.known.health === "injured" ? { t: "Recorded injured", c: "is-hot" }
     : r.open.cases ? { t: `${r.open.cases} open request${r.open.cases === 1 ? "" : "s"}`, c: "is-open" }
@@ -221,8 +223,8 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
       {trail}
       <header className="dz2-hero">
         <figure className="dz2-portrait">
-          <DogPhoto src={r.photo} alt={r.label} seed={r.id} width={900} className="dz2-ph" />
-          <figcaption>{r.photo ? <>{r.photos.length > 1 ? `${r.photos.length} photographs` : "Photographed for this record"}{r.photoAttribution && <> · {r.photoSourceUrl ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a> : r.photoAttribution}</>}</> : "Illustration · no photograph on record yet"}</figcaption>
+          <DogPhoto src={r.photo} alt={r.label} seed={r.id} size={r.size} width={900} className="dz2-ph" sensitive={r.photoSensitive} />
+          <figcaption>{r.photo ? <>{r.photos.length > 1 ? `${r.photos.length} photographs` : "Photographed for this record"}{r.photoAttribution && <> · {r.photoSourceUrl ? <a href={r.photoSourceUrl} target="_blank" rel="noreferrer">{r.photoAttribution}</a> : r.photoAttribution}</>}</> : <>Illustration from <a href={art.url} target="_blank" rel="noreferrer">{art.title}{art.date ? `, ${art.date}` : ""}</a> · {art.source}, {art.licence} · no photograph yet</>}</figcaption>
         </figure>
         <div className="dz2-id">
           <p className="dz2-tag">{r.straypawId ?? "ID pending"}</p>

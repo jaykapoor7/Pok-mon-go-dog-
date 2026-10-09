@@ -2,14 +2,18 @@
    The living ground behind every page of the app.
 
    A quiet folk landscape: clouds that drift, a sun whose rays turn
-   slowly, a pair of birds crossing now and then, a faint scatter of
-   sprigs and stars, and low hills along the bottom where a small dog
-   trots past. What sits on the far hill changes with the space (homes,
-   a care tent, a skyline). All of it is decoration, aria-hidden, and it
-   stands still for anyone who prefers reduced motion.
+   slowly, birds crossing now and then, petals falling, and low hills
+   along the bottom. On the hills stand real paintings, cut out of their
+   paper: Gond animals by Bhaiyaji Smile 123 (CC BY-SA 4.0), different in
+   each space, swaying a little and drifting with the scroll; a Company-
+   school hoopoe perched by the sun; and a black dog from an 1890s study
+   walking the hill like a paper puppet (both Cleveland Museum of Art,
+   CC0). See lib/art/sources and /art-credits. All of it is decoration,
+   aria-hidden, and it stands still for anyone who prefers reduced motion.
    ════════════════════════════════════════════════════════════════════ */
 
 import "./backdrop.css";
+import { FOLK_CUTOUTS, type CutoutKey } from "@/lib/art/sources";
 
 const INK = "#0b1e3d", BLUE = "#2457ce", SKY = "#8fb7ff", MIST = "#d6e2f7", CORAL = "#f05b40", PEACH = "#f8b9a3", CREAM = "#fbf7f0";
 
@@ -48,7 +52,20 @@ function Far({ space }: { space: string }) {
   );
 }
 
+/* Which painted animals stand on the hills in each space. */
+const GROVE: Record<string, [CutoutKey, CutoutKey]> = {
+  community: ["cowCalf", "peacocks"],
+  ngo: ["elephantTree", "hen"],
+  city: ["elephant", "bird"],
+};
+
+function Cut({ k, className }: { k: CutoutKey; className: string }) {
+  const c = FOLK_CUTOUTS[k];
+  return <img className={`fb-cut ${className}`} src={c.src} alt="" loading="lazy" decoding="async" draggable={false} style={{ aspectRatio: String(c.ratio) }} />;
+}
+
 export function FolkBackdrop({ space = "community" }: { space?: string }) {
+  const [left, right] = GROVE[space] ?? GROVE.community;
   return (
     <div className="fb" aria-hidden>
       <div className="fb-scatter" />
@@ -66,6 +83,12 @@ export function FolkBackdrop({ space = "community" }: { space?: string }) {
         <path className="fb-wing" d="M2 14 q 7 -8 14 0 q 7 -8 14 0" fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />
         <path className="fb-wing b2" d="M40 24 q 5 -6 10 0 q 5 -6 10 0" fill="none" stroke={INK} strokeWidth="2" strokeLinecap="round" />
       </svg>
+      <div className="fb-petals">{Array.from({ length: 9 }, (_, i) => <i key={i} className={`p${i}`} />)}</div>
+      <Cut k="hoopoe" className="fb-hoopoe" />
+      <div className="fb-grove">
+        <Cut k={left} className="fb-left" />
+        <Cut k={right} className="fb-right" />
+      </div>
       <svg className="fb-hills" viewBox="0 0 1440 120" preserveAspectRatio="none" focusable="false">
         <defs>
           <pattern id="fb-dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.4" fill={CREAM} opacity="0.4" /></pattern>
@@ -76,22 +99,7 @@ export function FolkBackdrop({ space = "community" }: { space?: string }) {
         <path d="M0 120 L 0 92 C 220 70, 420 76, 640 90 S 1060 70, 1260 84 S 1400 80, 1440 86 L 1440 120 Z" fill="url(#fb-dots)" />
         <path d="M0 120 L 0 108 C 300 98, 640 100, 900 108 S 1300 102, 1440 106 L 1440 120 Z" fill="#1c3a80" opacity="0.75" />
       </svg>
-      <div className="fb-walker">
-        <svg viewBox="0 0 80 60" focusable="false">
-          <g className="fb-trot">
-            <path d="M14 30 C 4 26, 2 14, 10 12" fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />
-            <ellipse cx="34" cy="32" rx="22" ry="11" fill={INK} />
-            <path d="M50 26 C 52 16, 58 12, 64 12 L 74 20 C 72 26, 66 30, 58 30 Z" fill={INK} />
-            <path d="M56 14 L 56 2 L 64 12 Z" fill={INK} />
-            <path d="M42 24 Q 50 32 56 24" fill="none" stroke={CORAL} strokeWidth="3" strokeLinecap="round" />
-            <path className="fb-leg l1" d="M20 40 L 18 54" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
-            <path className="fb-leg l2" d="M28 40 L 30 54" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
-            <path className="fb-leg l1" d="M44 40 L 46 54" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
-            <path className="fb-leg l2" d="M50 38 L 48 54" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
-            <circle cx="62" cy="18" r="1.6" fill={CREAM} />
-          </g>
-        </svg>
-      </div>
+      <div className="fb-walker"><Cut k="dogStanding" className="fb-puppet" /></div>
     </div>
   );
 }

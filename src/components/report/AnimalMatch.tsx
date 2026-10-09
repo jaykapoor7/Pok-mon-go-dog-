@@ -1,4 +1,6 @@
 "use client";
+import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
+import { isSensitivePhoto } from "@/lib/sensitive-photo";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -104,6 +106,7 @@ export function AnimalMatch({
             >
               <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded bg-bark-100 dark:bg-white/5">
                 {a.cover_photo ? (
+                  <SensitiveVeil sensitive={isSensitivePhoto(a as { needs_help?: boolean | null; photo_sensitive?: boolean | null })} id={a.cover_photo} compact className="absolute inset-0">
                   <Image
                     src={a.cover_photo}
                     alt=""
@@ -112,6 +115,7 @@ export function AnimalMatch({
                     className="object-cover"
                     unoptimized
                   />
+                  </SensitiveVeil>
                 ) : (
                   <span className="absolute inset-0"><FolkPortrait seed={a.id} className="h-full w-full" /></span>
                 )}

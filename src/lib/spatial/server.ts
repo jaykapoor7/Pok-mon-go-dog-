@@ -163,7 +163,7 @@ export async function getPublicSpatialViewportAnimals(input: { city: string; wes
   const supa = getSupabase();
   if (!supa) return [];
   const { data, error } = await supa.from("public_spatial_animals")
-    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,sex,size")
+    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,sex,size,photo_sensitive")
     .in("city", cityVariants(city)).gte("lng", west).lte("lng", east).gte("lat", south).lte("lat", north)
     .order("needs_help", { ascending: false }).order("last_seen", { ascending: false })
     .limit(Math.max(1, Math.min(input.limit ?? MAX_ANIMALS, MAX_ANIMALS)));
@@ -180,7 +180,7 @@ async function readPublicCityDataset(city: string): Promise<SpatialDataset | nul
   const [cellSeeds, animalResult] = await Promise.all([
     getPublicSpatialCityCells(safeCity),
     supa.from("public_spatial_animals")
-      .select("id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id")
+      .select("id,h3_r8,lat,lng,city,state,zone,location_precision,source,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,photo_sensitive,first_seen,last_seen,sightings_count,ngo_id")
       .in("city", cityVariants(safeCity)).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals),
   ]);
   const { data: animalData, error: animalError } = animalResult;
@@ -249,7 +249,7 @@ export async function getOrgSpatialViewportAnimals(accessToken: string, input: {
   const city = cleanCity(input.city);
   if (!supa || !city || input.west >= input.east || input.south >= input.north || input.east - input.west > 3 || input.north - input.south > 3) return [] as SpatialAnimal[];
   const { data, error } = await supa.from("dogs")
-    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,sex,size")
+    .select("id,h3_r8,lat,lng,city,zone,cover_photo,status,needs_help,sterilisation_status,vaccination_status,last_seen,sex,size,photo_sensitive")
     .eq("city", city).gte("lng", input.west).lte("lng", input.east).gte("lat", input.south).lte("lat", input.north)
     .order("needs_help", { ascending: false }).order("last_seen", { ascending: false }).limit(MAX_ANIMALS);
   if (error) throw error;
@@ -265,12 +265,12 @@ export async function getOrgSpatialCityDataset(accessToken: string, city: string
   const [cellSeeds, animalResult] = await Promise.all([
     getOrgSpatialCityCells(accessToken, safeCity),
     supa.from("dogs")
-      .select("id,h3_r8,lat,lng,city,state,zone,location_precision,provenance,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,first_seen,last_seen,sightings_count,ngo_id")
+      .select("id,h3_r8,lat,lng,city,state,zone,location_precision,provenance,status,needs_help,sterilisation_status,vaccination_status,ear_notch,cover_photo,photo_sensitive,first_seen,last_seen,sightings_count,ngo_id")
       .eq("city", safeCity).order("last_seen", { ascending: false }).limit(DATASET_LIMITS.animals),
   ]);
   const { data: animalData, error: animalError } = animalResult;
   if (animalError) throw animalError;
-  const animals = ((animalData ?? []) as Array<AnimalRow & { provenance?: string | null }>).map((animal) => ({ ...animal, source: animal.provenance === "community_report" ? "resident" : "field" }));
+  const animals = ((animalData ?? []) as unknown as Array<AnimalRow & { provenance?: string | null }>).map((animal) => ({ ...animal, source: animal.provenance === "community_report" ? "resident" : "field" }));
   if (!animals.length) return null;
   const ids = animals.map((animal) => animal.id);
   const [caseResult, careResult] = await Promise.all([

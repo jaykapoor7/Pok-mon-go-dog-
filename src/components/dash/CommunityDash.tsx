@@ -17,6 +17,7 @@ import { PlaceSearch, type PlaceOption } from "@/components/app/PlaceSearch";
 import { AnimalTile } from "@/components/community/AnimalTile";
 import { animalSubtitle, animalTitle } from "@/lib/animal-name";
 import { DogPhoto } from "@/components/ui/DogPhoto";
+import { isSensitivePhoto } from "@/lib/sensitive-photo";
 import { usePlace, kmBetween } from "@/lib/place";
 import { useFollows } from "@/lib/follows";
 import type { PublicCaseStory } from "@/lib/community-case-stories";
@@ -84,7 +85,7 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
     key: a.id, href: `/dog/${a.id}`, title: animalTitle(a),
     meta: [animalSubtitle(a), a.last_seen ? `seen ${ago(a.last_seen)}` : null].filter(Boolean).join(" · "),
     tag: { text: a.status === "injured" ? "Injured" : "Needs help", tone: "hot" },
-    thumb: a.cover_photo ? <DogPhoto src={a.cover_photo} alt="" seed={a.id} className="db-thumb" /> : undefined,
+    thumb: a.cover_photo ? <DogPhoto src={a.cover_photo} alt="" seed={a.id} className="db-thumb" width={96} sensitive={isSensitivePhoto(a) || a.status === "injured"} /> : undefined,
   }));
   const feed: Item[] = stories.filter((s) => !city || !s.city || s.city === city).slice(0, 7).map((s) => ({
     key: s.id, href: `/dog/${s.dog_id}`,
