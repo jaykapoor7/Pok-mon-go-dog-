@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Activity, ArrowUpRight, Binoculars, BookOpen, Bookmark, Building2, ChartColumn, Check, ChevronDown, Circle, ClipboardCheck, ClipboardList, FlaskConical, FolderKanban, GraduationCap, HandCoins, HandHeart, HelpCircle, Inbox, KeyRound, Layers, LifeBuoy, ListChecks, LogOut, Map as MapIcon, PawPrint, Repeat2, Scale, Search, Settings, ShieldCheck, Stethoscope, Syringe, Upload, UserPlus, Users, Utensils, X, type LucideIcon } from "lucide-react";
+import { Activity, ArrowUpRight, ChevronRight, Binoculars, BookOpen, Bookmark, Building2, ChartColumn, Check, ChevronDown, Circle, ClipboardCheck, ClipboardList, FlaskConical, FolderKanban, GraduationCap, HandCoins, HandHeart, HelpCircle, Inbox, KeyRound, Layers, LifeBuoy, ListChecks, LogOut, Map as MapIcon, PawPrint, Repeat2, Scale, Search, Settings, ShieldCheck, Stethoscope, Syringe, Upload, UserPlus, Users, Utensils, X, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myProfile, type Profile } from "@/lib/programme";
 import { readVolunteer, clearVolunteer, type VolunteerSession } from "@/lib/volunteer";
@@ -133,66 +133,91 @@ const TILE_ICON: [RegExp, LucideIcon][] = [
 ];
 const iconFor = (href: string) => TILE_ICON.find(([re]) => re.test(href))?.[1] ?? Circle;
 
-/** The phone's "More": one screen. Spaces as a row, everything not on the
- *  tab bar as a grid of tiles, then you, language and feedback in one line. */
+/* The few pages each space reaches for most; everything else is one row away. */
+const TOP: Record<Space, string[]> = {
+  community: ["/insights", "/help", "/feeding", "/orgs", "/resources", "/fundraisers"],
+  feeder: ["/stories", "/help", "/orgs", "/resources", "/insights", "/fundraisers"],
+  educator: ["/resources", "/orgs", "/help", "/feeding", "/programmes", "/fundraisers"],
+  ngo: ["/partner/review", "/partner/incoming", "/partner/medical", "/partner/reports", "/partner/team", "/partner/settings"],
+  city: ["/stories", "/data-governance", "/research-standards", "/resources", "/programmes", "/orgs"],
+};
+
+/** The phone's "More": a short, calm list. You, the six pages your space
+ *  uses most, then "Switch space" and "All pages" as rows that open in
+ *  place, and language, feedback and help as small links. */
 export function MoreSheet({ open, onClose, space, nav, isCurrent, more, onPick, children }: {
   open: boolean; onClose: () => void; space: Space; nav: NavItem[]; isCurrent: (href: string) => boolean;
   more: MoreGroup[]; onPick: (s: Space) => void; children?: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const who = useWho();
+  const [spacesOpen, setSpacesOpen] = useState(false);
+  const [allOpen, setAllOpen] = useState(false);
   useEffect(() => {
     const el = dialog.current;
     if (!el) return;
     if (open && !el.open) el.showModal();
-    else if (!open && el.open) el.close();
+    else if (!open && el.open) { el.close(); setSpacesOpen(false); setAllOpen(false); }
   }, [open]);
   const onBar = new Set(SPACES[space].phone);
   const seen = new Set<string>();
-  const tiles = [
+  const all = [
     ...nav.filter((n) => !onBar.has(n.href)).map((n) => ({ href: n.href, label: n.label, Icon: n.Icon as LucideIcon })),
     ...more.flatMap((g) => g.links.map((l) => ({ href: l.href, label: l.label, Icon: iconFor(l.href) }))),
-  ].filter((t) => (seen.has(t.href) ? false : (seen.add(t.href), true)));
+  ].filter((t) => !onBar.has(t.href) && (seen.has(t.href) ? false : (seen.add(t.href), true)));
+  const rank = (h: string) => { const i = TOP[space].indexOf(h); return i < 0 ? 99 : i; };
+  const top = [...all].sort((x, y) => rank(x.href) - rank(y.href)).slice(0, 6);
+  const rest = all.filter((t) => !top.includes(t));
+  const row = ({ href, label, Icon }: { href: string; label: string; Icon: LucideIcon }) => (
+    <Link key={href} href={href} onClick={onClose} className="sx-row" aria-current={isCurrent(href) ? "page" : undefined}>
+      <Icon size={18} aria-hidden /><span>{label}</span><ChevronRight size={16} aria-hidden className="sx-row-go" />
+    </Link>
+  );
   return (
-    <dialog ref={dialog} className="sx-sheet sx-sheet2" aria-label="Everything in StrayPaw" onClose={onClose} onClick={(e) => { if (e.target === dialog.current) onClose(); }}>
+    <dialog ref={dialog} className="sx-sheet sx-sheet3" aria-label="More" onClose={onClose} onClick={(e) => { if (e.target === dialog.current) onClose(); }}>
       <div className="sx-sheet-in">
         <header className="sx-sheet-head">
           <span className="sx-grip" aria-hidden />
           <h2>More</h2>
           <button type="button" className="sx-icon-btn" onClick={onClose} aria-label="Close"><X size={20} /></button>
         </header>
-        <nav className="sx-sheet-sp" aria-label="Switch space">
-          {SPACE_ORDER.map((s) => <Link key={s} href={SPACES[s].home} aria-current={s === space ? "true" : undefined} onClick={() => { onPick(s); onClose(); }}>{SPACES[s].label}</Link>)}
-        </nav>
-        <nav className="sx-sheet-tiles" aria-label={`${SPACES[space].label}: more`}>
-          {tiles.map(({ href, label, Icon }) => (
-            <Link key={href} href={href} onClick={onClose} aria-current={isCurrent(href) ? "page" : undefined}>
-              <span className="sx-tile-ic"><Icon size={19} aria-hidden /></span>
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
-        {children}
-        <div className="sx-sheet-me">
-          {who.isAuthed ? (
-            <>
-              <span className="sx-avatar" aria-hidden>{who.name.slice(0, 1).toUpperCase()}</span>
-              <span className="sx-me-t"><b>{who.name}</b><small>{who.profile?.org_name ?? who.user?.email ?? ""}</small></span>
-              <button type="button" className="sx-me-btn" onClick={who.signOut} aria-label="Sign out"><LogOut size={17} /></button>
-            </>
-          ) : who.volunteer ? (
-            <>
-              <span className="sx-avatar" aria-hidden>{(who.volunteer.name || "V").slice(0, 1).toUpperCase()}</span>
-              <span className="sx-me-t"><b>{who.volunteer.name || "Volunteer"}</b><small>For {who.volunteer.orgName}</small></span>
-              <button type="button" className="sx-me-btn" onClick={() => { clearVolunteer(); who.setVolunteer(null); }} aria-label="Stop reporting for this organisation"><LogOut size={17} /></button>
-            </>
+
+        <div className="sx-group">
+          {who.isAuthed || who.volunteer ? (
+            <div className="sx-row is-me">
+              <span className="sx-avatar" aria-hidden>{(who.isAuthed ? who.name : who.volunteer?.name || "V").slice(0, 1).toUpperCase()}</span>
+              <span className="sx-me-t"><b>{who.isAuthed ? who.name : who.volunteer?.name || "Volunteer"}</b><small>{who.isAuthed ? (who.profile?.org_name ?? who.user?.email ?? "") : `For ${who.volunteer?.orgName ?? "an organisation"}`}</small></span>
+              <button type="button" className="sx-me-out" onClick={() => { if (who.isAuthed) who.signOut(); else { clearVolunteer(); who.setVolunteer(null); } }}>Sign out</button>
+            </div>
           ) : (
-            <>
-              <Link href="/access" onClick={onClose} className="sx-me-pill is-main">Sign up</Link>
-              <Link href="/join" onClick={onClose} className="sx-me-pill">I have a code</Link>
-            </>
+            <Link href="/access" onClick={onClose} className="sx-row is-me">
+              <span className="sx-avatar" aria-hidden><KeyRound size={16} /></span>
+              <span className="sx-me-t"><b>Sign in or sign up</b><small>Or use a code you were given</small></span>
+              <ChevronRight size={16} aria-hidden className="sx-row-go" />
+            </Link>
           )}
         </div>
+
+        <nav className="sx-group" aria-label={`${SPACES[space].label}: more pages`}>{top.map(row)}</nav>
+
+        <div className="sx-group">
+          <button type="button" className="sx-row" aria-expanded={spacesOpen} onClick={() => setSpacesOpen((v) => !v)}>
+            <Repeat2 size={18} aria-hidden /><span>Space</span><em>{SPACES[space].label}</em><ChevronRight size={16} aria-hidden className="sx-row-go" />
+          </button>
+          {spacesOpen && SPACE_ORDER.map((s) => (
+            <Link key={s} href={SPACES[s].home} className="sx-row is-sub" aria-current={s === space ? "true" : undefined} onClick={() => { onPick(s); onClose(); }}>
+              <span>{SPACES[s].label}</span>{s === space && <Check size={16} aria-hidden className="sx-row-go" />}
+            </Link>
+          ))}
+          {rest.length > 0 && (
+            <button type="button" className="sx-row" aria-expanded={allOpen} onClick={() => setAllOpen((v) => !v)}>
+              <Layers size={18} aria-hidden /><span>All pages</span><em>{rest.length}</em><ChevronRight size={16} aria-hidden className="sx-row-go" />
+            </button>
+          )}
+          {allOpen && rest.map((t) => <Link key={t.href} href={t.href} onClick={onClose} className="sx-row is-sub" aria-current={isCurrent(t.href) ? "page" : undefined}><span>{t.label}</span></Link>)}
+        </div>
+
+        {children}
         <div className="sx-sheet-row">
           <LanguageSwitcher />
           <FeedbackButton label="Feedback" />

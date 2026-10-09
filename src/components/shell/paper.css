@@ -608,3 +608,26 @@
 .sx.sd .sx-main > div.relative.w-full[role="alert"], .sx.sd .sx-main > div.relative.w-full:not(.sx-page):not(.db) { width: auto !important; margin: 16px var(--x-gutter) 0 !important; border: 0 !important; border-radius: var(--card-r); background: #fff; box-shadow: 0 0 0 1px var(--card-b), var(--card-sh); }
 @media (min-width: 1290px) { .sx.sd .sx-main > div.relative.w-full:not(.sx-page):not(.db) { max-width: 1192px; margin-inline: auto !important; } }
 @media (max-width: 760px) { .sx.sd .pp-dir .pp-tag { display: none; } .sx.sd .pp-dir a { gap: 12px; } }
+
+/* ── phone "More", calm: grouped rows like a settings list ───────── */
+.sx.sd .sx-sheet3 { max-height: 88dvh; background: #f6f2ec; }
+.sx.sd .sx-sheet3 .sx-sheet-in { display: grid; gap: 12px; padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+.sx.sd .sx-sheet3 .sx-sheet-head { background: #f6f2ec; padding: 14px 0 2px; }
+.sx.sd .sx-sheet3 .sx-sheet-head h2 { font-size: 22px; letter-spacing: -0.02em; }
+.sx.sd .sx-group { display: grid; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--card-b); overflow: hidden; }
+.sx.sd .sx-row { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 50px; padding: 0 14px; border: 0; background: none; color: var(--d-text); font: inherit; font-size: 15.5px; font-weight: 500; text-decoration: none; text-align: left; cursor: pointer; }
+.sx.sd .sx-row + .sx-row { box-shadow: inset 0 1px 0 var(--d-line); }
+.sx.sd .sx-row > svg:first-child { flex: none; color: var(--d-sky); }
+.sx.sd .sx-row > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx.sd .sx-row em { font-style: normal; font-size: 14px; color: var(--d-mute); }
+.sx.sd .sx-row-go { flex: none; color: var(--d-mute); transition: transform 160ms; }
+.sx.sd .sx-row[aria-expanded="true"] .sx-row-go { transform: rotate(90deg); }
+.sx.sd .sx-row:active { background: var(--d-panel-2); }
+.sx.sd .sx-row[aria-current] { color: var(--d-flame-ink); font-weight: 600; }
+.sx.sd .sx-row.is-sub { min-height: 46px; padding-left: 46px; font-size: 15px; background: #fcfaf6; }
+.sx.sd .sx-row.is-me { min-height: 62px; }
+.sx.sd .sx-row.is-me .sx-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--x-blue-soft); color: var(--d-sky); font-weight: 700; }
+.sx.sd .sx-me-out { border: 0; background: none; color: var(--d-flame-ink); font: inherit; font-size: 14px; font-weight: 600; min-height: 44px; cursor: pointer; }
+.sx.sd .sx-sheet3 .sx-sheet-row { justify-content: center; gap: 4px 20px; padding: 2px 0 0; border: 0; font-size: 13.5px; }
+.sx.sd .sx-sheet3 .sx-sheet-row a, .sx.sd .sx-sheet3 .sx-sheet-row button { color: var(--d-mute); text-decoration: none; min-height: 40px; display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; font: inherit; }
+.sx.sd .sx-row > .sx-avatar { flex: none !important; width: 36px; }
