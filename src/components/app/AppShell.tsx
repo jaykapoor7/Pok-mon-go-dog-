@@ -23,6 +23,8 @@ import "./institution.css";
 import "./street-os.css";
 import "@/components/shell/shell.css";
 import "@/components/shell/dark.css";
+import "@/components/shell/paper.css";
+import { FolkVignette } from "@/components/art/Folk";
 
 /* ════════════════════════════════════════════════════════════════════
    The StrayPaw app shell.
@@ -90,7 +92,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
 
   return (
     <InShell.Provider value={true}>
-      <div className={`sx sd dark spa-scope ${SX_FONTS}${flush ? " is-flush" : ""}${isReporting ? " is-reporting" : ""}`} data-space={space}>
+      <div className={`sx sd spa-scope ${SX_FONTS}${flush ? " is-flush" : ""}${isReporting ? " is-reporting" : ""}`} data-space={space}>
         <Welcome />
         <a href="#spa-main" className="sx-skip">Skip to content</a>
 
@@ -114,6 +116,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
             ))}
           </div>
           <div className="sd-foot">
+            <FolkVignette className="sd-art" />
             <div className="sd-foot-row"><LanguageSwitcher /><FeedbackButton label="Feedback" /></div>
             <Link href="/" className="sd-site">Main site</Link>
           </div>

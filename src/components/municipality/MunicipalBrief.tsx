@@ -116,7 +116,7 @@ export function MunicipalBrief() {
   ] : [];
 
   return (
-    <Dashboard
+    <Dashboard art="city"
       eyebrow={ev && kind ? <><i className="db-kind" style={{ background: KIND_META[kind].color }} aria-hidden /> {ev.label} · {ev.precision}{row?.latest_seen ? ` · latest record ${new Date(row.latest_seen).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}` : ""}</> : "City brief"}
       title={<>City brief · <em>{city ?? params.get("city") ?? "…"}</em></>}
       subtitle={error ? "The city record could not be read just now. Nothing has changed; try again shortly." : ev?.note}

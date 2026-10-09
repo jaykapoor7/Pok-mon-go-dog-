@@ -107,3 +107,11 @@ never finer than a cell; sample-derived figures say they are loaded detail.
 * Older stylesheets are still imported for component classes the remaining
   pages use; their `.spa`-scoped overrides no longer match anything and can be
   deleted in a follow-up once every page has been recomposed.
+
+## Round 3 — paper palette and folk illustration (supersedes the all-dark look)
+
+- **Palette.** `src/components/shell/paper.css` (loaded after `dark.css`) re-points the shared `--d-*` palette to warm cream ground (#f7f2ea), white paper, ink-navy type (#0b1e3d), StrayPaw blue (#2457ce) for data and links, and coral (#f05b40) for actions and urgency. Teal is kept only for care measures.
+- **Night windows.** Maps stay deep navy: `.db-map` and the Atlas `.sm.ax` re-declare the dark palette locally, so the 3D columns keep their glow. Column ramps now run through StrayPaw blue (`LiveMap` blue ramp, `ATLAS_NIGHT.seq`). The Atlas rail is paper over the night map.
+- **Illustration.** `src/components/art/Folk.tsx` holds hand-drawn SVG pieces in brand colours only: `FolkScene` (dashboard banner; `home` for community, `care` for NGO, `city` for municipality), `FolkVignette` (sidebar foot, empty states), `FolkSprig`. All decorative and `aria-hidden`; none carries data.
+- **Verified** on a production build: 38 journey checks pass (KPIs carry live numbers, map measure switching, clicking a column opens its cell card, desktop + phone, no page errors), tsc and eslint clean.
+- **Not verified:** real NGO member sign-in and write paths (only the signed-out workspace and the fixture harness were rendered).

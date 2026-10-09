@@ -13,6 +13,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
+import { FolkScene, FolkVignette } from "@/components/art/Folk";
 import "./dash.css";
 
 export type Kpi = { label: string; value: number | string | null | undefined; note?: string; tone?: "hot" | "care" | "blue" | "quiet"; href?: string };
@@ -20,7 +21,8 @@ export type Item = { key: string; href?: string; title: string; meta?: string; t
 
 const fmt = (v: Kpi["value"]) => (v === null || v === undefined || v === "" ? "—" : typeof v === "number" ? v.toLocaleString("en-IN") : v);
 
-export function Dashboard({ eyebrow, title, subtitle, controls, actions, kpis, map, side, children }: {
+export function Dashboard({ eyebrow, title, subtitle, controls, actions, kpis, map, side, children, art = "home" }: {
+  art?: "home" | "care" | "city";
   eyebrow?: ReactNode; title: ReactNode; subtitle?: ReactNode;
   controls?: ReactNode; actions?: ReactNode;
   kpis: Kpi[]; map: ReactNode; side: ReactNode; children?: ReactNode;
@@ -28,6 +30,7 @@ export function Dashboard({ eyebrow, title, subtitle, controls, actions, kpis, m
   return (
     <div className="db">
       <header className="db-head">
+        <FolkScene variant={art} className="db-art" />
         <div className="db-head-t">
           {eyebrow && <p className="db-eyebrow">{eyebrow}</p>}
           <h1 className="db-title">{title}</h1>
@@ -64,7 +67,7 @@ export function Panel({ title, action, count, children, className = "" }: { titl
 
 export function ItemList({ items, empty, loading }: { items: Item[]; empty: ReactNode; loading?: boolean }) {
   if (loading) return <ul className="db-items is-loading" aria-busy="true">{[0, 1, 2, 3].map((i) => <li key={i}><span className="db-skel" /></li>)}</ul>;
-  if (!items.length) return <p className="db-empty">{empty}</p>;
+  if (!items.length) return <div className="db-empty"><FolkVignette className="db-empty-art" tone="rest" /><p>{empty}</p></div>;
   return (
     <ul className="db-items">
       {items.map((it) => {

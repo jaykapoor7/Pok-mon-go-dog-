@@ -27,7 +27,7 @@ export type MapTone = "blue" | "flame" | "teal";
 
 const RAMPS: Record<MapTone, string[]> = {
   /* Monochrome by default: cool greys rising to white. */
-  blue: ["#22324f", "#3e5274", "#6f82a6", "#aebbd3", "#ffffff"],
+  blue: ["#1c3a80", "#2457ce", "#4f86f0", "#8fb7ff", "#e8f0ff"],
   flame: ["#5e2430", "#a8392b", "#e05537", "#f7a08c", "#ffe1d8"],
   teal: ["#173f4b", "#2a6474", "#4f909f", "#93c8d2", "#e6f6f8"],
 };

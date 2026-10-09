@@ -1,0 +1,213 @@
+/* ════════════════════════════════════════════════════════════════════
+   StrayPaw app — paper.
+
+   The working palette for every signed-in page: warm cream ground, white
+   paper, ink-navy type, StrayPaw blue for data and links, coral for
+   action and urgency. Maps stay a deep-night window set into the paper,
+   so the 3D columns keep their glow without making the whole app dark.
+
+   Loaded after dark.css: it re-points the same --d-* palette, so the
+   shell, dashboards and older pages all follow, then corrects the places
+   that assumed a dark ground.
+   ════════════════════════════════════════════════════════════════════ */
+
+.sx.sd {
+  --d-bg: #f7f2ea;
+  --d-side: #f1e9dc;
+  --d-panel: #ffffff;
+  --d-panel-2: #f2ebe0;
+  --d-line: rgba(11, 30, 61, 0.09);
+  --d-line-2: rgba(11, 30, 61, 0.17);
+  --d-text: #0b1e3d;
+  --d-dim: #34476a;
+  --d-mute: #67758e;
+  --d-sky: #2457ce;
+  --d-flame: #f05b40;
+  --d-flame-ink: #c2401f;
+  --d-wash: rgba(11, 30, 61, 0.045);
+
+  --x-ink: #0b1e3d;
+  --x-ink-2: #142a4f;
+  --x-ink-3: #1e3763;
+  --x-blue: #2457ce;
+  --x-blue-soft: #e3eaf9;
+  --x-flame-ink: #b4361a;
+  --x-flame-soft: #fde5df;
+  --x-teal: #127b8b;
+  --x-teal-soft: #dcf0f2;
+  --x-hatch: repeating-linear-gradient(-45deg, rgba(11, 30, 61, 0.14) 0 1.5px, transparent 1.5px 6px);
+
+  --sp-ink: #0b1e3d;
+  --sp-blue-deep: #1a3f9c;
+  --ctl-tint: rgba(36, 87, 206, 0.08);
+  --ctl-tint-hover: rgba(36, 87, 206, 0.14);
+  --ink: #0b1e3d;
+  --vermilion-ink: #b4361a;
+
+  --background: 37 46% 94%;
+  --foreground: 217 69% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 217 69% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 217 69% 14%;
+  --muted: 37 36% 91%;
+  --muted-foreground: 218 16% 48%;
+  --accent: 37 36% 91%;
+  --accent-foreground: 217 69% 14%;
+  --secondary: 37 36% 91%;
+  --secondary-foreground: 217 69% 14%;
+  --border: 30 22% 84%;
+  --input: 30 22% 84%;
+
+  color-scheme: light;
+  background:
+    radial-gradient(900px 420px at 92% -6%, rgba(248, 185, 163, 0.32), transparent 70%),
+    radial-gradient(800px 520px at -10% 110%, rgba(143, 183, 255, 0.22), transparent 70%),
+    var(--d-bg);
+  background-attachment: fixed;
+}
+.sx.sd::before {
+  /* Paper grain, a whisper of it. */
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.35; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .47 0 0 0 0 .36 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.sx.sd { isolation: isolate; }
+.sx.sd ::selection { background: rgba(240, 91, 64, 0.22); }
+.sx.sd :is(input, select, textarea) { color-scheme: light; }
+
+/* ── controls ─────────────────────────────────────────────────────── */
+.sx.sd :is(.x-btn.is-ink, .x-chip[aria-pressed="true"], .x-chip.is-on, .x-chip[aria-current="true"], .dk-btn, .sys-btn) { color: #fff; }
+.sx.sd .x-btn { background: #fff; border-color: var(--d-line-2); color: var(--d-text); }
+.sx.sd .x-btn:hover { border-color: var(--d-text); }
+.sx.sd .x-btn.is-ink { background: var(--d-text); border-color: var(--d-text); color: #fff; }
+.sx.sd .x-btn.is-flame { background: var(--d-flame); border-color: var(--d-flame); color: #fff; }
+.sx.sd .x-btn.is-flame:hover { background: #dc4628; border-color: #dc4628; }
+.sx.sd .x-btn.is-ghost { background: transparent; border-color: transparent; color: var(--d-sky); }
+.sx.sd :is(.dk-btn, .sys-btn).is-flame { background: var(--d-flame); border-color: var(--d-flame); color: #fff; }
+.sx.sd .x-night { background: #0b1e3d; color: #f4eee5; }
+.sx.sd .dh-extra nav a.is-on, .sx.sd .x-chip[aria-pressed="true"] { background: var(--d-text); color: #fff; }
+.sx.sd .ib-period button.is-on { color: var(--d-text); border-bottom-color: var(--d-flame); }
+.sx.sd :is(.text-paw-500, .text-paw-600, .text-paw-700, .text-paw-800) { color: var(--d-flame-ink); }
+
+/* ── sidebar ──────────────────────────────────────────────────────── */
+.sd-side { background: var(--d-side); border-right: 1px solid var(--d-line); }
+.sd-brand { color: var(--d-text); }
+.sd-action { background: var(--d-flame); color: #fff; box-shadow: 0 10px 22px -12px rgba(240, 91, 64, 0.8); }
+.sd-action:hover { background: #dc4628; }
+.sd-nav a { color: var(--d-dim); }
+.sd-nav a:hover { color: var(--d-text); }
+.sd-nav a[aria-current="page"] { color: var(--d-text); font-weight: 600; }
+.sd-nav a[aria-current="page"] svg { color: var(--d-sky); }
+.sd-nav a[aria-current="page"]::after { content: ""; margin-left: auto; width: 6px; height: 6px; border-radius: 50%; background: var(--d-flame); }
+.sd-more details a[aria-current="page"] { color: var(--d-text); font-weight: 600; }
+.sd-art { display: block; width: 100%; max-width: 200px; height: auto; margin: 0 auto 4px; opacity: 0.95; }
+@media (max-height: 760px) { .sd-art { display: none; } }
+
+/* ── top bar ──────────────────────────────────────────────────────── */
+.sd-top { background: rgba(247, 242, 234, 0.82); backdrop-filter: blur(10px) saturate(1.2); }
+.sd-find { background: #fff; box-shadow: inset 0 0 0 1px var(--d-line); color: var(--d-mute); }
+.sd-find:hover { box-shadow: inset 0 0 0 1px var(--d-line-2); color: var(--d-dim); }
+.sd-find kbd { background: var(--d-panel-2); color: var(--d-dim); }
+.sx.sd .sx-pop-panel, .sx.sd .sx-cmd, .sx.sd .sx-sheet { background: #fff; color: var(--d-text); box-shadow: 0 30px 70px -25px rgba(11, 30, 61, 0.35), 0 0 0 1px var(--d-line); }
+.sx.sd .sx-space-panel > a.is-on { background: var(--x-blue-soft); }
+.sx.sd .sx-sheet-nav a[aria-current="page"] { background: var(--d-text); color: #fff; }
+@media (max-width: 860px) {
+  .sx.sd .sx-tabs { background: rgba(247, 242, 234, 0.96); backdrop-filter: blur(10px); }
+  .sx.sd .sx-tabs > a[aria-current="page"] { color: var(--d-flame-ink); }
+  .sx.sd .sx-tabs-disc { box-shadow: 0 6px 18px -6px rgba(240, 91, 64, 0.7), 0 0 0 4px var(--d-bg); }
+}
+
+/* ── dashboard frame on paper ─────────────────────────────────────── */
+.sx.sd .db-head { position: relative; min-height: 210px; margin: -36px -40px 0; padding: 40px 40px 26px; overflow: hidden; align-content: end; }
+.sx.sd .db-art { position: absolute; inset: 0 0 0 auto; width: 100%; height: 100%; pointer-events: none; }
+.sx.sd .db-head-t, .sx.sd .db-head-c { position: relative; z-index: 1; }
+.sx.sd .db-head-t { max-width: min(560px, 58%); }
+.sx.sd .db-head { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; justify-content: flex-end; }
+.sx.sd .db-head-c { align-self: flex-start; }
+.sx.sd .db-place .ps-field input { background: transparent !important; box-shadow: none; }
+.sx.sd .db-eyebrow { color: var(--d-flame-ink); font-weight: 600; letter-spacing: 0.04em; }
+.sx.sd .db-title { color: var(--d-text); font-weight: 600; }
+.sx.sd .db-title em { font-family: var(--x-serif); font-style: italic; font-weight: 400; color: var(--d-sky); letter-spacing: -0.01em; }
+.sx.sd .db-sub { color: var(--d-dim); }
+
+.sx.sd .db-kpis { gap: 12px; border-top: 0; }
+.sx.sd .db-kpi { padding: 16px 18px 16px; border-radius: 16px; background: #fff !important; box-shadow: 0 1px 0 rgba(11, 30, 61, 0.04), 0 0 0 1px var(--d-line) !important; }
+.sx.sd .db-kpi.is-link:hover { box-shadow: 0 14px 30px -18px rgba(11, 30, 61, 0.35), 0 0 0 1px var(--d-line-2) !important; }
+.sx.sd .db-kpi dd { font-weight: 500; color: var(--d-text); }
+.sx.sd .db-kpi dd.is-hot { color: var(--d-flame); }
+.sx.sd .db-kpi dd.is-blue { color: var(--d-sky); }
+.sx.sd .db-kpi dd.is-care { color: var(--x-teal); }
+.sx.sd .db-kpi::before { content: ""; position: absolute; left: 18px; top: 0; width: 22px; height: 3px; border-radius: 0 0 3px 3px; background: var(--d-line-2); }
+.sx.sd .db-kpi:has(dd.is-hot)::before { background: var(--d-flame); }
+.sx.sd .db-kpi:has(dd.is-blue)::before { background: var(--d-sky); }
+.sx.sd .db-kpi:has(dd.is-care)::before { background: var(--x-teal); }
+.sx.sd .db-kpi-go { top: 14px; right: 14px; }
+
+.sx.sd .db-panel { padding: 4px 18px 10px; border-top: 0; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--d-line); }
+.sx.sd .db-panel h2 { color: var(--d-text); font-size: 14.5px; font-weight: 600; letter-spacing: -0.005em; }
+.sx.sd .db-count { color: var(--d-flame-ink); font-weight: 600; }
+.sx.sd .db-panel > header a { color: var(--d-sky); font-weight: 600; }
+.sx.sd .db-items li + li, .sx.sd .db-feed li + li { border-top: 1px solid var(--d-line); }
+.sx.sd .db-dot.is-care { background: var(--x-teal); }
+.sx.sd .db-dot.is-open { background: var(--d-sky); }
+.sx.sd .db-dot.is-hot { background: var(--d-flame); }
+.sx.sd .db-item-r em { color: var(--d-mute) !important; }
+.sx.sd .db-item-r em.is-hot { padding: 2px 9px; border-radius: 999px; background: var(--x-flame-soft) !important; color: var(--x-flame-ink) !important; font-weight: 600; }
+.sx.sd .db-empty { display: grid; justify-items: center; gap: 4px; padding: 6px 0 12px; text-align: center; }
+.sx.sd .db-empty p { margin: 0; color: var(--d-dim); font-size: 13.5px; line-height: 1.5; max-width: 34ch; }
+.sx.sd .db-empty-art { width: 150px; height: auto; }
+.sx.sd .db-skel { background: linear-gradient(90deg, var(--d-panel-2) 0, #faf6ef 50%, var(--d-panel-2) 100%) 0 0 / 200% 100%; }
+.sx.sd .db-filter button[aria-pressed="true"] { color: var(--d-text) !important; border-bottom-color: var(--d-flame); }
+.sx.sd .db-select select, .sx.sd .db-place .ps-field { background: #fff; box-shadow: inset 0 0 0 1px var(--d-line-2); }
+.sx.sd .db-place .ps-list { background: #fff; }
+.sx.sd .db-table tr.is-on { background: var(--x-blue-soft); }
+.sx.sd .db-table tbody th button { color: var(--d-sky); }
+
+/* ── the night window: maps keep the deep-blue palette ───────────── */
+.sx.sd :is(.db-map, .sm.ax) {
+  --d-bg: #07122a; --d-panel: #0b1a38; --d-panel-2: #11244a;
+  --d-line: rgba(244, 238, 229, 0.08); --d-line-2: rgba(244, 238, 229, 0.16);
+  --d-text: #f4eee5; --d-dim: #b7c3d6; --d-mute: #8292ad; --d-sky: #8fb7ff;
+  color: var(--d-text);
+}
+.sx.sd .db-map { border-radius: 22px; box-shadow: 0 30px 60px -36px rgba(11, 30, 61, 0.6), 0 0 0 1px rgba(11, 30, 61, 0.2); }
+.sx.sd .db-mapchips button[aria-pressed="true"] { color: #fff; border-bottom: 2px solid var(--d-flame); }
+@media (max-width: 760px) {
+  .sx.sd .db-head { margin: -20px -16px 0; padding: 0 16px 6px; min-height: 0; flex-direction: column; align-items: stretch; }
+  .sx.sd .db-head-t { max-width: 100%; }
+  .sx.sd .db-art { position: relative; inset: auto; height: 132px; margin: 0 -16px 4px; width: calc(100% + 32px); }
+  .sx.sd .db-kpis { gap: 8px; }
+  .sx.sd .db-kpi { padding: 12px 12px; }
+  .sx.sd .db-map { border-radius: 0; }
+}
+@media (max-width: 1180px) and (min-width: 761px) { .sx.sd .db-head-t { max-width: 66%; } }
+
+/* ── desk headers on older pages get the same ground ──────────────── */
+.sx.sd .dh, .sx.sd .ib-register-head { background: transparent !important; }
+.sx.sd .dh-title em { font-family: var(--x-serif); font-style: italic; font-weight: 400; color: var(--d-sky); }
+.sx.sd .dh-kicker { color: var(--d-flame-ink); }
+
+/* ── the Atlas: night map, paper rail ─────────────────────────────── */
+.sx.sd .sm.ax .ax-rail, .sx.sd .sm.ax.is-night .ax-rail {
+  --d-panel: #ffffff; --d-panel-2: #f2ebe0; --d-line: rgba(11, 30, 61, 0.09); --d-line-2: rgba(11, 30, 61, 0.17);
+  --d-text: #0b1e3d; --d-dim: #34476a; --d-mute: #67758e; --d-sky: #2457ce;
+  --sm-panel: rgba(255, 253, 249, 0.97); --sm-solid: #fbf8f2; --sm-line: rgba(11, 30, 61, 0.12);
+  --sm-text: #0b1e3d; --sm-dim: #34476a; --sm-faint: #67758e; --sm-chip: rgba(11, 30, 61, 0.06);
+  --sm-chip-on: #0b1e3d; --sm-chip-on-text: #f7f2ea;
+  --sm-cov-strong: rgba(11, 30, 61, 0.78); --sm-cov-partial: rgba(11, 30, 61, 0.5); --sm-cov-weak: rgba(11, 30, 61, 0.28); --sm-cov-insufficient: rgba(11, 30, 61, 0.12);
+  --x-text: #0b1e3d; --x-body: #34476a; --x-mute: #67758e; --x-line: rgba(11, 30, 61, 0.1);
+  background: rgba(251, 248, 242, 0.97); color: #0b1e3d; border-radius: 20px;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(11, 30, 61, 0.12);
+}
+.sx.sd .sm.ax .ax-lenses button[aria-pressed="true"] { color: #0b1e3d !important; border-bottom: 2px solid var(--d-flame); }
+.sx.sd .ax[data-lens="care"] .ax-lenses button[aria-pressed="true"] { border-bottom-color: #127b8b; }
+.sx.sd .ax[data-lens="cases"] .ax-lenses button[aria-pressed="true"] { border-bottom-color: #2457ce; }
+.sx.sd .sm.ax .ax-rail :is(.ax-repr select, .ax-filter-btn, .ax-city-find .ps-field) { background: #fff; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, 0.14); color: #0b1e3d; }
+.sx.sd .sm.ax .ax-rail .sm-insp .sys-btn { background: #fff; color: #0b1e3d; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, 0.14); }
+.sx.sd .sm.ax .ax-rail .sm-insp .sys-btn.is-flame { background: var(--d-flame); color: #fff; box-shadow: none; }
+.sx.sd .sm.ax .ax-rail .ax-cities button:hover { background: rgba(11, 30, 61, 0.04); }
+.sx.sd .sm.ax .ax-rail-open { background: #fbf8f2; color: #0b1e3d; }
+.sx.sd :is(.ax-city-find, .db-place) .ps-field input { background: transparent !important; box-shadow: none !important; border: 0 !important; }
+.sx.sd .db-kpi::before { background: var(--d-text); opacity: 0.85; }
+.sx.sd .db-select select { border: 0; border-radius: 999px; }
+@media (max-width: 760px) { .sx.sd .db-kpi:last-child:nth-child(odd) { grid-column: 1 / -1; } }

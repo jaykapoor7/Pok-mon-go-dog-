@@ -179,7 +179,7 @@ export function OpsRoom() {
   }));
 
   if (!loadError && (blank || signedOut)) return (
-    <Dashboard
+    <Dashboard art="care"
       eyebrow={org?.name ?? "NGO workspace"}
       title={signedOut ? <>Your organisation&apos;s <em>operations</em></> : <>Start with the records <em>you already keep</em></>}
       subtitle={signedOut ? "Cases, animals and locations load only for members of the organisation that keeps them." : "Import the workbook your team already uses, or open your first rescue case."}
@@ -194,7 +194,7 @@ export function OpsRoom() {
   );
 
   return (
-    <Dashboard
+    <Dashboard art="care"
       eyebrow={<>{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</>}
       title={<>Today in <em>{place ?? "the field"}</em></>}
       subtitle={loadError ? "The organisation record could not be read. Reload to try again — nothing has been changed." : "Live work first. Months-old cases with no activity wait in review, not in the queue."}
