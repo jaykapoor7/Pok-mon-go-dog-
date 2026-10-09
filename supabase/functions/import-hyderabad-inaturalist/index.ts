@@ -65,7 +65,11 @@ Deno.serve(async () => {
       status: "reviewing", rows_total: observations.length, rows_imported: 0, rows_needing_review: 0,
     }], "?on_conflict=id");
 
-    const dogs = observations.map(({ observation, photo, coordinates }: any) => {
+    /* Photos removed after review, never restored by a re-import: they show
+       something other than an animal (e.g. droppings). The record stays. */
+    const EXCLUDED_PHOTOS = new Set(["570048561"]);
+    const dogs = observations.map(({ observation, photo: found, coordinates }: any) => {
+      const photo = found && !EXCLUDED_PHOTOS.has(String(found.url ?? "").split("/photos/")[1]?.split("/")[0] ?? "") ? found : { url: null, attribution: null, license_code: null };
       const [rawLng, rawLat] = coordinates;
       const lat = Math.round(Number(rawLat) * 1000) / 1000;
       const lng = Math.round(Number(rawLng) * 1000) / 1000;

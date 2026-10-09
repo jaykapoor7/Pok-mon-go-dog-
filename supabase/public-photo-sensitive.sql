@@ -58,6 +58,9 @@ create or replace view public.public_spatial_animals as
   WHERE NOT COALESCE(is_demo, false);
 
 -- Reviewed on 2026-10-09: the two existing cover photos that need a blur.
+-- (f2915633… showed dog faeces, not an animal: its photo was later removed
+-- outright — cover_photo and external_image_url cleared, the old URL kept in
+-- source_metadata.removed_photo — and the iNaturalist importer skips it.)
 update public.dogs set photo_sensitive = true
  where id in ('e139dddf-52b8-4bae-8fa2-45de45c41b9b', 'f2915633-3f83-5415-8082-f2d2cd9070f4');
 
