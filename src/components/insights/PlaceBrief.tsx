@@ -398,7 +398,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       <header className="ib-register-head">
         <p className="ib-k">{scope === "org" ? "Your organisation's analysis" : "Insights"} · {periodLabel}</p>
         <h1>{placeName || "Reading the evidence"}</h1>
-        {ds && <dl className="ib-measures"><div><dt>{cityWhole && period === "all" ? "Citywide requests" : "Loaded requests"}</dt><dd>{requestsHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Open citywide" : "Open in detail"}</dt><dd>{openNowHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Citywide profiles" : "Loaded profiles"}</dt><dd>{animalsHere.toLocaleString("en-IN")}</dd></div><div><dt>Explore geography</dt><dd><Link href={mapHref("density")}>Open the map ↗</Link></dd></div></dl>}
+        {ds && <dl className="ib-measures"><div><dt>{cityWhole && period === "all" ? "Citywide case records" : "Loaded requests"}</dt><dd>{requestsHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Open citywide" : "Open in detail"}</dt><dd>{openNowHere.toLocaleString("en-IN")}</dd></div><div><dt>{cityWhole ? "Citywide profiles" : "Loaded profiles"}</dt><dd>{animalsHere.toLocaleString("en-IN")}</dd></div><div><dt>Explore geography</dt><dd><Link href={mapHref("density")}>Open the map ↗</Link></dd></div></dl>}
         <p>{isLocality ? `Loaded locality detail / ${cityName}` : "Citywide totals and bounded findings are different scopes. Period filters apply to the loaded record."}</p>
       </header>
 

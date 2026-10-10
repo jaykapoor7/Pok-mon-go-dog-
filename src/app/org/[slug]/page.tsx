@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 /* ════════════════════════════════════════════════════════════════════
    One organisation, from its own public record. Who it is, beside where
    its record reaches on the city's streets; what the record holds,
-   counted up; its campaigns on their time axis; and the animals it keeps,
+   counted up; its campaigns on their time axis; and the animals on its record,
    in a strip. Only what the record holds is drawn: an organisation whose
    data is not yet on it shows who it is and nothing invented.
    ════════════════════════════════════════════════════════════════════ */
@@ -62,8 +62,8 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
   const place = [org.city, org.state].filter(Boolean).join(", ") || org.area;
   const figures = impact ? [
     { value: impact.animalsRecorded, label: "animals on the record" },
-    { value: impact.caseRecords, label: "requests worked" },
-    { value: impact.resolvedCases, label: "closed after field work" },
+    { value: impact.caseRecords, label: "case records" },
+    { value: impact.resolvedCases, label: "cases closed" },
     { value: impact.sterilised, label: "sterilised, on record" },
     { value: impact.vaccinated, label: "vaccinated, on record" },
   ].filter((f) => f.value > 0) : [];

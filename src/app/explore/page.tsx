@@ -73,7 +73,7 @@ export default async function ExplorePage() {
             <div className="co-sec-in">
               <header className="co-sec-head">
                 <h2 id="ex-where">Where the record <em>is deepest.</em></h2>
-                <p>{fmt(cases)} requests for help sit on these animals&apos; records. A short bar is a city recorded less, not a city with fewer animals.</p>
+                <p>{fmt(cases)} case records sit on these animals&apos; records. They include imported clinic and rescue registers, so a larger count is not necessarily more requests. A short bar is a city recorded less, not a city with fewer animals.</p>
               </header>
               <div>
                 <ol className="ex-cities">
@@ -82,7 +82,7 @@ export default async function ExplorePage() {
                       <Link href={`/map?city=${encodeURIComponent(x.city)}`}>
                         <span className="ex-city"><b>{x.city}</b><small>{x.state}</small></span>
                         <span className="ex-bar" aria-hidden><i style={{ width: `${Math.max(1.5, (x.animals / max) * 100)}%` }} /></span>
-                        <span className="ex-n"><strong>{fmt(x.animals)}</strong>{x.cases > 0 ? `${fmt(x.cases)} request${x.cases === 1 ? "" : "s"}` : "no requests yet"}</span>
+                        <span className="ex-n"><strong>{fmt(x.animals)}</strong>{x.cases > 0 ? `${fmt(x.cases)} case record${x.cases === 1 ? "" : "s"}` : "no case records yet"}</span>
                       </Link>
                     </li>
                   ))}

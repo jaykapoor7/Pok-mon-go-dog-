@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { AppShell } from "@/components/app/AppShell";
 import { OrgMark } from "@/components/orgs/OrgMark";
-import { CampaignStrip, KIND_LABEL, KIND_UNIT } from "@/components/orgs/CampaignStrip";
+import { CampaignStrip, KIND_LABEL } from "@/components/orgs/CampaignStrip";
 import { PartnerFigures } from "@/components/orgs/PartnerFigures";
 import { getPublicOrgBySlug } from "@/lib/org-public";
-import { getPublicProgramme, getPublicProgrammes, programmeCategory, programmePrimaryTotal } from "@/lib/public-programmes";
+import { getPublicProgramme, getPublicProgrammes, programmeCategory, programmePrimaryTotal, programmePrimaryUnit } from "@/lib/public-programmes";
 import "@/components/orgs/partners.css";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const cat = programmeCategory(c);
   const total = programmePrimaryTotal(c);
   const figures = [
-    { value: total, label: `${KIND_UNIT[cat]}` },
+    { value: total, label: programmePrimaryUnit(c) },
     ...(c.animals_recorded && c.animals_recorded !== total ? [{ value: c.animals_recorded, label: "animals on record" }] : []),
     ...(c.sterilised_recorded && cat !== "sterilisation" ? [{ value: c.sterilised_recorded, label: "sterilised" }] : []),
     ...(c.vaccinated_recorded && cat !== "vaccination" ? [{ value: c.vaccinated_recorded, label: "vaccinated" }] : []),

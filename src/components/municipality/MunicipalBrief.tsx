@@ -127,7 +127,7 @@ export function MunicipalBrief() {
       actions={<Link className="x-btn" href={`/insights?city=${encodeURIComponent(city ?? "")}`}>Analysis</Link>}
       kpis={[
         { label: "Animal profiles", value: row?.animals, note: "Records, not a population" },
-        { label: "Requests for help", value: row?.cases, note: row?.cases ? `${fmt(row.open_cases)} open now` : "None held for this city", tone: "blue" },
+        { label: "Case records", value: row?.cases, note: row?.cases ? `${fmt(row.open_cases)} open now` : "None held for this city", tone: "blue" },
         { label: "Sterilisation recorded", value: row?.sterilised, tone: "care", note: row?.animals ? `${pct(row.sterilised ?? 0, row.animals)}% of profiles` : "" },
         { label: "Vaccination recorded", value: row?.vaccinated, tone: "care", note: row?.animals ? `${pct(row.vaccinated ?? 0, row.animals)}% of profiles` : "" },
         { label: "Cells with records", value: row?.cells, note: oneLocation ? "One shared city location" : "≈0.7 km² each · not wards" },

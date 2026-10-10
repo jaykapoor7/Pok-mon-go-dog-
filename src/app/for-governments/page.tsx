@@ -152,8 +152,8 @@ export default async function ForGovernmentsPage() {
                 label="A compact terrain of recorded places, illustrating city-level coverage."
               />
               <dl className="gv-figs is-compact">
-                <div><dt>Sterilisations (ABC)</dt><dd>{fmt(abc)}</dd></div>
-                <div><dt>Rabies vaccinations (ARV)</dt><dd>{fmt(arv)}</dd></div>
+                <div><dt>Animals recorded sterilised (ABC)</dt><dd>{fmt(abc)}</dd></div>
+                <div><dt>Animals recorded vaccinated (ARV)</dt><dd>{fmt(arv)}</dd></div>
                 <div><dt>Census figures, by area</dt><dd>{fmt(pc.areaFacts)}</dd></div>
                 <div><dt>Programmes and drives</dt><dd>{fmt(pc.programmes)}</dd></div>
               </dl>

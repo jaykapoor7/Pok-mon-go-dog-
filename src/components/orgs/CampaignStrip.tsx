@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { programmeCategory, programmePrimaryTotal, type PublicProgramme } from "@/lib/public-programmes";
+import { programmeCategory, programmePrimaryTotal, programmePrimaryUnit, type PublicProgramme } from "@/lib/public-programmes";
 import { OrgMark } from "./OrgMark";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -62,7 +62,7 @@ export function CampaignStrip({ campaigns, showOrg = true, current, logos = {} }
                 </span>
                 <span className="cs-n">
                   <b>{total.toLocaleString("en-IN")}</b>
-                  <small>{KIND_UNIT[cat]}{days ? ` · ${days >= 60 ? `${Math.round(days / 30)} months` : `${days} days`}` : ""}</small>
+                  <small>{programmePrimaryUnit(c)}{days ? ` · ${days >= 60 ? `${Math.round(days / 30)} months` : `${days} days`}` : ""}</small>
                 </span>
                 <ArrowUpRight size={15} aria-hidden className="cs-go" />
               </Link>

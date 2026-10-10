@@ -119,7 +119,7 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
           figures={[
             { label: city ? `animals with case histories in ${city}` : cityCount > 1 ? "animals with case histories across all cities" : "animals with case histories", value: totalForScope },
             ...(paged ? [{ label: "shown on this page", value: stories.length, tone: "quiet" as const }] : []),
-            ...(median != null ? [{ label: "median span to a recorded ending", value: span(median) }] : []),
+            ...(median != null ? [{ label: "median span to a recorded ending, in the stories shown", value: span(median) }] : []),
           ]}
           actions={<Link href="/report" className="dk-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>}
         >

@@ -37,6 +37,16 @@ export function programmePrimaryTotal(programme: PublicProgramme) {
   return programme.animals_recorded;
 }
 
+/** What the primary total counts. A vaccination or sterilisation programme with no
+ *  vaccination or sterilisation figure of its own shows its animal count, and says
+ *  "animals", never "vaccinated" for a number that is only how many are on the record. */
+export function programmePrimaryUnit(programme: PublicProgramme): string {
+  const category = programmeCategory(programme);
+  if (category === "vaccination") return programme.vaccinated_recorded ? "vaccinated" : "animals on record";
+  if (category === "sterilisation") return programme.sterilised_recorded ? "sterilised" : "animals on record";
+  return category === "study" ? "observed" : "records";
+}
+
 export function programmeCompletedTotal(programme: PublicProgramme) {
   const summary = programme.public_summary ?? "";
   const match = summary.match(/([\d,]+)\s+(?:carry|have)\s+(?:a\s+)?closed or resolved outcome/i);
