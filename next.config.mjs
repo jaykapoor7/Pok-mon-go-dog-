@@ -35,6 +35,8 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/research", destination: "/evidence", permanent: false },
+      /* The map was called the Atlas; keep old links working. */
+      { source: "/atlas", destination: "/map", permanent: true },
       /* Published data and research live in one place, /evidence, which says
          why the record has to exist. The pages that each held a piece of it
          send their visitors there; the register's own counts are /insights. */

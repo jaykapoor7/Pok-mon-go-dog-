@@ -108,7 +108,7 @@ export function ProjectRegisters() {
         <form onSubmit={make} className="pj-new">
           <p className="pj-h">A new project</p>
           <label>Name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="ABC drive, R.S. Puram" /></label>
-          <label className="is-wide">What each entry records<textarea rows={2} value={fieldText} onChange={(e) => setFieldText(e.target.value)} placeholder="Sterilised, vaccinated, treatment, next review — separated by commas" /></label>
+          <label className="is-wide">What each entry records<textarea rows={2} value={fieldText} onChange={(e) => setFieldText(e.target.value)} placeholder="Sterilised, vaccinated, treatment, next review, separated by commas" /></label>
           {fieldText.trim() && <p className="pj-preview is-wide">{fieldText.split(/[,\n]/).map((x) => x.trim()).filter(Boolean).map((f) => <span key={f}>{f}</span>)}</p>}
           <label className="is-wide">What it is for<input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="One line on why this is being recorded" /></label>
           <div className="pj-row is-wide">

@@ -29,7 +29,7 @@ function coarse(v: number): number {
 /* Keep public animal reads narrow. `select("*")` made small /help and
  * /following requests materialise every public profile column and amplified
  * DB pressure after the register grew. */
-const PUBLIC_DOG_SELECT = "id,name,species,zone,city,lat,lng,status,cover_photo,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,ngo_name,provenance,code,photo_attribution,photo_source_url,photo_sensitive";
+const PUBLIC_DOG_SELECT = "id,name,species,zone,city,lat,lng,status,cover_photo,external_image_url,size,color,is_friendly,needs_help,sterilised,vaccinated,sterilisation_status,vaccination_status,ear_notch,trust_score,sightings_count,feed_count,first_seen,last_seen,last_fed_at,created_at,ngo_id,ngo_name,provenance,code,photo_attribution,photo_source_url,photo_sensitive,straypaw_id";
 
 // ── Row mappers ──────────────────────────────────────────────
 
@@ -70,6 +70,8 @@ export function mapDog(row: any): Dog {
     ngo_name: row.ngo_name ?? null,
     provenance: row.provenance ?? null,
     code: row.code ?? null,
+    straypaw_id: row.straypaw_id ?? null,
+    photo_sensitive: row.photo_sensitive ?? null,
     assignee_id: row.assignee_id ?? null,
     assignee_name: row.assignee_name ?? null,
     intake_notes: row.intake_notes ?? null,

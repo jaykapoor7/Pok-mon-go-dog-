@@ -101,7 +101,7 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
 
   const sentence = open
     ? <>Reported {day(reg.occurred_at)}{intake ? <> through {intake.toLowerCase().replace(/^the /, "the ")}</> : null}. Open for <b className={stale ? "is-hot" : ""}>{span(age)}</b>{quiet > 30 ? <>; nothing recorded for <b className="is-hot">{span(quiet)}</b></> : <>; last touched {quiet === 0 ? "today" : `${span(quiet)} ago`}</>}.</>
-    : <>Reported {day(reg.occurred_at)}{intake ? <> through {intake.toLowerCase()}</> : null}. {cls === "closed" ? "Closed" : STATUS_META[cls]?.label ?? "Closed"}{closedClamped && !assumed ? <> {day(closedClamped)}{closedDays ? <>, after <b>{span(closedDays)}</b></> : null}</> : assumed ? <> — the import could not say when</> : null}.</>;
+    : <>Reported {day(reg.occurred_at)}{intake ? <> through {intake.toLowerCase()}</> : null}. {cls === "closed" ? "Closed" : STATUS_META[cls]?.label ?? "Closed"}{closedClamped && !assumed ? <> {day(closedClamped)}{closedDays ? <>, after <b>{span(closedDays)}</b></> : null}</> : assumed ? <>: the import could not say when</> : null}.</>;
 
   const dogHref = c.dog_id ? `/partner/animals/${c.dog_id}` : null;
   const cared = Boolean(reg.first_action_at) || file.updates.length > 0;

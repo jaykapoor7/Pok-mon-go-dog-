@@ -162,7 +162,7 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
 
   const photos = Array.from(new Set([dog.cover_photo, ...(dog.photos ?? []), ...profile.sightings.map((s) => s.photo_url)].filter((p): p is string => !!p && !!p.trim())));
   return {
-    id: dog.id, label: givenName(dog.name) ?? animalTag({ straypaw_id: identity?.straypaw_id ?? null, id: dog.id }), straypawId: identity?.straypaw_id ?? null,
+    id: dog.id, label: givenName(dog.name) ?? animalTag({ straypaw_id: identity?.straypaw_id ?? dog.straypaw_id ?? null, id: dog.id }), straypawId: identity?.straypaw_id ?? dog.straypaw_id ?? null,
     sourceCode: identity?.source_code || (first((r) => r.animalCode) as string | null) || dog.code || null,
     species: dog.species || "dog", sex: known(first((r) => r.sex) as string | null), colour: known((first((r) => r.colour) as string | null) || dog.color || null),
     locality: cleanPlace((first((r) => r.locality) as string | null) || dog.zone) || null, city: sp?.city ?? dog.city ?? null, state: sp?.state ?? null,

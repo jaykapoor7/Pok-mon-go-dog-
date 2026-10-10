@@ -179,7 +179,7 @@ export function AnimalsClient() {
           </button>
         )}
       </div>
-      <p className="pa-filter-note">S: sterilisation. R: rabies vaccination. “?” means not recorded—not a verified absence of care.</p></aside><section className="pa-ledger" aria-label="Animal identity register">
+      <p className="pa-filter-note">S: sterilisation. R: rabies vaccination. “?” means not recorded, not a verified absence of care.</p></aside><section className="pa-ledger" aria-label="Animal identity register">
 
       {!loading && !signedOut && (
         <p className="mb-3 text-[12.5px] text-bark-500">

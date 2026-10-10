@@ -18,6 +18,11 @@
 >   hairlines; tabs are underlined text. Only things that float (map
 >   pop-ups, sheets, menus) keep a shadow, maps keep a thin frame, and a
 >   phone swipe deck keeps light card edges. Do not add bordered cards.
+> * **No plain panels, no AI tells.** The sidebar and More sheet carry a
+>   dotted paper ground, a painted vine and "Latest on the record" (real
+>   entries, honest pulse). No serif, italics, coloured emphasis words,
+>   decorative line grounds, glows or 80%-black scrims; copy avoids em-dash
+>   asides and template phrasing.
 > * **Colour.** Ink `#0b1e3d` for text, blue `#2457ce` for selection and
 >   neutral data, flame `#f05b40` for urgency and the one primary action
 >   (Report). Dark blue grounds are kept for small accents, never whole pages.

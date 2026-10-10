@@ -175,3 +175,44 @@
   .sx.sd .sx-main .ib-body:not(.is-all) > .ib-q ~ .ib-q ~ .ib-q { display: none !important; }
   .sx.sd .sx-main .ib-more { display: block; margin: 0 18px 8px; min-height: 44px; border: 0; border-top: 1px solid var(--hair); background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--d-sky); text-align: left; cursor: pointer; }
 }
+
+/* ── one voice: no serif, no italics, no coloured emphasis words ──── */
+.sx.sd { --x-serif: var(--sx-sans), system-ui, sans-serif; }
+.sx.sd .sx-main :is(em, i, cite, q, .italic, [class*="kicker"], [class*="lede"]) { font-style: normal !important; }
+.sx.sd .sx-main :is(h1, h2, h3, .dh-title, .db-title) em { color: inherit !important; font-family: inherit !important; font-weight: inherit !important; }
+.sx.sd .sx-main .mk-inapp :is(h1, h2, h3) :is(em, span[class*="accent"], .mk-accent) { color: inherit !important; }
+html .sx.sd .sx-main .rq-kicker { font-family: inherit !important; font-style: normal !important; font-size: 17px !important; font-weight: 400; color: var(--d-mute) !important; }
+.sx.sd .sx-main .mk-inapp .mk-h2 > span { color: inherit !important; }
+
+/* ── the sidebar and More sheet: paper, a vine, the latest entry ─── */
+/* A faint dotted ground, like the rice-paste dots of a floor painting. */
+.sx.sd .sd-side, .sx.sd .sx-sheet3 {
+  background-color: #f6f1e8;
+  background-image: radial-gradient(rgba(11, 30, 61, 0.07) 1px, transparent 1.2px);
+  background-size: 14px 14px;
+}
+/* A painted vine climbing the sidebar's edge, swaying a little. */
+.sx.sd .sd-side { position: relative; isolation: isolate; }
+.sx.sd .sd-side::after {
+  content: ""; position: absolute; top: 96px; right: -11px; width: 22px; height: 320px; z-index: 1; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 320'%3E%3Cpath d='M11 0 C 4 40, 18 80, 11 120 S 4 200, 11 240 S 18 300, 11 320' fill='none' stroke='%232f6b3b' stroke-width='1.4' opacity='.55'/%3E%3Cg fill='%233f8a4c' opacity='.7'%3E%3Cpath d='M11 30 q 9 -6 10 -14 q -9 2 -10 14Z'/%3E%3Cpath d='M11 92 q -9 -6 -10 -14 q 9 2 10 14Z'/%3E%3Cpath d='M11 156 q 9 -6 10 -14 q -9 2 -10 14Z'/%3E%3Cpath d='M11 222 q -9 -6 -10 -14 q 9 2 10 14Z'/%3E%3Cpath d='M11 284 q 9 -6 10 -14 q -9 2 -10 14Z'/%3E%3C/g%3E%3Cg fill='%23f05b40' opacity='.8'%3E%3Ccircle cx='3' cy='124' r='2.4'/%3E%3Ccircle cx='19' cy='252' r='2.4'/%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain;
+  transform-origin: 50% 0; animation: sd-vine 9s ease-in-out infinite alternate;
+}
+@keyframes sd-vine { from { transform: rotate(-0.8deg); } to { transform: rotate(0.8deg); } }
+
+/* The latest entry on the record. */
+.sx.sd .lor { display: grid; gap: 4px; padding: 12px 4px 14px; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); margin-bottom: 8px; }
+.sx.sd .lor-head { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 12px; font-weight: 500; color: var(--d-mute); }
+.sx.sd .lor-head i { width: 7px; height: 7px; border-radius: 50%; background: rgba(11, 30, 61, 0.35); }
+.sx.sd .lor-head i.is-fresh { background: #f05b40; animation: lor-pulse 2.4s ease-in-out infinite; }
+@keyframes lor-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 91, 64, 0.35); } 50% { box-shadow: 0 0 0 5px rgba(240, 91, 64, 0); } }
+.sx.sd .lor-line { display: grid; gap: 1px; margin: 0; font-size: 13.5px; line-height: 1.35; animation: lor-in 420ms cubic-bezier(.23, 1, .32, 1); }
+.sx.sd .lor-line a { color: var(--d-text); text-decoration: none; font-weight: 500; }
+.sx.sd .lor-line a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sx.sd .lor-line span { font-size: 12px; color: var(--d-mute); }
+@keyframes lor-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.sx.sd .lor.is-sheet { padding-inline: 16px; margin: 4px 0 0; border-bottom: 0; }
+@media (max-height: 760px) { .sx.sd .sd-side::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sx.sd .sd-side::after, .sx.sd .lor-line, .sx.sd .lor-head i.is-fresh { animation: none; } }
+/* Site-page bands inside the app drop their decorative line grounds. */
+.sx.sd .sx-main :is(.mk-inapp, .ms-inapp, .ex-inapp) :is(.mk-band, section)::before { content: none !important; display: none !important; }

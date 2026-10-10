@@ -39,7 +39,7 @@ export function CommunityPanel({ id, label, needsHelp, comments }: {
     setBusy("help");
     try {
       const ok = await updateDogStatus(id, { status: null, needs_help: next, vaccinated: null, sterilised: null, is_friendly: null });
-      if (ok) { setHelp(next); toast(next ? `Flagged for help — rescuers can see ${label} now.` : `Help flag cleared for ${label}.`); router.refresh(); }
+      if (ok) { setHelp(next); toast(next ? `Flagged for help. Rescuers can see ${label} now.` : `Help flag cleared for ${label}.`); router.refresh(); }
       else toast("Record a sighting of this animal first, then you can flag it for help.");
     } catch { toast("Could not update right now. Please try again."); } finally { setBusy(null); }
   });
@@ -71,7 +71,7 @@ export function CommunityPanel({ id, label, needsHelp, comments }: {
               <li key={c.id}><p>{c.body}</p><small>{c.author} · {new Date(c.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</small></li>
             ))}
           </ol>
-        ) : <p className="lr-quiet">No notes yet. Anything you know — a name locals use, a habit, an injury — helps the next person who looks.</p>}
+        ) : <p className="lr-quiet">No notes yet. Anything you know (a name locals use, a habit, an injury) helps the next person who looks.</p>}
         <div className="lr-note-form">
           <label className="sys-sr" htmlFor={`note-${id}`}>Add a note</label>
           <textarea id={`note-${id}`} rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Add a note about this animal…" />

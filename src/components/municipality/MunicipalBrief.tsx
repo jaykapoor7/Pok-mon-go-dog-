@@ -112,10 +112,10 @@ export function MunicipalBrief() {
   const MEAS: Record<typeof measure, string> = { animals: "recorded animals", open_cases: "open requests", sterilised: "sterilisation records", vaccinated: "vaccination records", care_events: "care events" };
   const hotspots: Item[] = (topLoc ?? []).map((l) => ({ key: l.name, href: `/map?city=${encodeURIComponent(city ?? "")}&q=${encodeURIComponent(l.name)}`, title: l.name, meta: `${fmt(l.animals)} profiles · ${fmt(l.cases)} requests`, tag: useOpen ? { text: `${fmt(l.open)} open`, tone: "hot" } : { text: `${fmt(locMeasure(l))}`, tone: "quiet" } }));
   const notes: Item[] = detail ? [
-    { key: "ster", title: `${pct(detail.sterUnknown, detail.nA)}% without a sterilisation status`, meta: `${fmt(detail.sterUnknown)} of ${fmt(detail.nA)} loaded profiles — unknown, not “no”`, tag: { text: "", tone: "quiet" } },
+    { key: "ster", title: `${pct(detail.sterUnknown, detail.nA)}% without a sterilisation status`, meta: `${fmt(detail.sterUnknown)} of ${fmt(detail.nA)} loaded profiles. Unknown, not “no”`, tag: { text: "", tone: "quiet" } },
     { key: "vacc", title: `${pct(detail.vaccUnknown, detail.nA)}% without a vaccination status`, meta: "Campaign and NGO care registers usually settle these", tag: { text: "", tone: "quiet" } },
     { key: "prec", title: `${pct(detail.nA - detail.exact, detail.nA)}% located to a locality or city`, meta: "Precision limits street-level planning; cells stay the unit", tag: { text: "", tone: "open" } },
-    { key: "edge", title: `${fmt(detail.frontier)} unreported cells at the record's edge`, meta: "Next to recorded activity, nothing recorded — a gap, not an absence", tag: { text: "", tone: "open" } },
+    { key: "edge", title: `${fmt(detail.frontier)} unreported cells at the record's edge`, meta: "Empty next to recorded activity: a gap, not an absence", tag: { text: "", tone: "open" } },
   ] : [];
 
   return (
@@ -160,7 +160,7 @@ export function MunicipalBrief() {
           {detail && detail.conditions.length ? <ItemList items={detail.conditions.map((c) => ({ key: c.name, title: c.name, tag: c.open ? { text: `${fmt(c.open)} open`, tone: "hot" } : undefined, right: fmt(c.n) }))} empty="" /> : <p className="db-empty">{detail ? "No request records are loaded for this city." : "Reading…"}</p>}
         </Panel>
         <Panel title="What this brief cannot tell you">
-          <ul className="db-steps"><li>How many dogs live here — official estimates are separate, dated sources.</li><li>Programme coverage — it needs a population denominator.</li><li>Ward statistics — no city has matching ward boundaries and records.</li><li>Where to allocate resources — that needs cost and capacity evidence.</li></ul>
+          <ul className="db-steps"><li>How many dogs live here: official estimates are separate, dated sources.</li><li>Programme coverage: it needs a population denominator.</li><li>Ward statistics: no city has matching ward boundaries and records.</li><li>Where to allocate resources: that needs cost and capacity evidence.</li></ul>
         </Panel>
       </div>
       <Panel title="Every city register" count={cities.length}>

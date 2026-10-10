@@ -186,7 +186,7 @@ export function Welcome() {
         {step === 0 ? (
           <>
             <DialogHeader className="space-y-0 text-left">
-              <span className="spa-mono wc-kicker">Welcome to StrayPaw</span>
+              <span className="wc-kicker">Welcome to StrayPaw</span>
               <DialogTitle className="wc-title font-normal">How will you use StrayPaw?</DialogTitle>
               <DialogDescription className="wc-lede">Pick a space. You can switch at any time.</DialogDescription>
             </DialogHeader>
@@ -210,7 +210,7 @@ export function Welcome() {
         ) : card ? (
           <>
             <DialogHeader className="space-y-0 text-left">
-              <span className="spa-mono wc-kicker">{step} of {tour.length}</span>
+              <span className="wc-kicker">{step} of {tour.length}</span>
               <div className="wc-icon"><card.Icon size={22} /></div>
               <DialogTitle className="wc-title font-normal">{card.title}</DialogTitle>
               <DialogDescription className="wc-lede">{card.body}</DialogDescription>

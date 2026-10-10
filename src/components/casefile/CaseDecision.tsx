@@ -212,7 +212,7 @@ function Close({ busy, onCancel, onClose }: { busy: string | null; onCancel: () 
   const ready = kind && (kind !== "closed_no_action" || (reason && (reason !== "other" || note.trim())));
   const choices: { k: CloseKind; label: string; hint: string }[] = [
     { k: "closed_done", label: "Treatment completed / case resolved", hint: "Treated, rescued or otherwise finished in the field." },
-    { k: "closed_no_action", label: "Close without field action", hint: "Say why — this is what the reasons chart is made of." },
+    { k: "closed_no_action", label: "Close without field action", hint: "Say why. This is what the reasons chart is made of." },
     { k: "other_ngo", label: "Another organisation took it", hint: "Handed on; their outcome is theirs to record." },
   ];
   return (

@@ -89,7 +89,7 @@ export function AtlasIndex({ cities, onCity, measure, measureLabel }: {
     <div className="ax-index">
       <div className="ax-total">
         <b className="x-num">{cities.length ? number(total) : "—"}</b>
-        <span>animal profiles recorded across <b>{cities.length || "—"}</b> city registers. Records, not a population — and not one kind of record.</span>
+        <span>animal profiles recorded across <b>{cities.length || "—"}</b> city registers. Records, not a population, and not one kind of record.</span>
       </div>
       <ul className="ax-kinds" aria-label="Kinds of evidence">
         {kinds.map(({ k, n }) => <li key={k}><i style={{ background: KIND_META[k].color }} aria-hidden /><span><b>{KIND_META[k].label}</b><small>{KIND_META[k].reads} · {n} {n === 1 ? "city" : "cities"}</small></span></li>)}

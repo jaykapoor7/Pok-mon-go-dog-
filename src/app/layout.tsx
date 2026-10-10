@@ -11,6 +11,7 @@ import { themeBootScript } from "@/components/theme/ThemeProvider";
 import { StructuredData } from "@/components/seo/StructuredData";
 import { RouteEnvironment } from "@/components/embed/RouteEnvironment";
 import { Analytics } from "@vercel/analytics/next";
+import { sxSans } from "@/components/shell/fonts";
 
 import { SITE_URL } from "@/lib/site-url";
 
@@ -118,7 +119,7 @@ export default function RootLayout({
          top of <body>, where the theme script still runs before anything is
          painted and search engines read JSON-LD just the same. */}
       <head />
-      <body className="min-h-dvh font-sans">
+      <body className={`min-h-dvh font-sans ${sxSans.variable}`}>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <StructuredData siteUrl={siteUrl} />
         <RouteEnvironment>{children}</RouteEnvironment>

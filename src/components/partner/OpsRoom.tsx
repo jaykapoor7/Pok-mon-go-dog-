@@ -190,7 +190,7 @@ export function OpsRoom() {
       map={<LiveMap cells={[]} tone="flame" metric="open cases" label="Open work by cell" emptyNote={signedOut ? "Sign in with your organisation code to see where your open work is." : "Open work appears here once a case carries a location."} />}
       side={<>
         <Panel title="Needs someone"><ItemList items={[]} empty="Live cases and overdue follow-ups appear here, critical conditions first." /></Panel>
-        <Panel title="How the workspace works"><ol className="db-steps"><li><b>Queue</b> — live cases and overdue follow-ups, critical first.</li><li><b>Record</b> — every case opens into the animal, its history and care.</li><li><b>Action</b> — assign, treat, schedule a follow-up or close with a reason.</li></ol></Panel>
+        <Panel title="How the workspace works"><ol className="db-steps"><li><b>Queue</b>: live cases and overdue follow-ups, critical first.</li><li><b>Record</b>: every case opens into the animal, its history and care.</li><li><b>Action</b>: assign, treat, schedule a follow-up or close with a reason.</li></ol></Panel>
       </>}
     />
   );
@@ -199,7 +199,7 @@ export function OpsRoom() {
     <Dashboard art="care"
       eyebrow={<>{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</>}
       title={<>Today in <em>{place ?? "the field"}</em></>}
-      subtitle={loadError ? "The organisation record could not be read. Reload to try again — nothing has been changed." : "Live work first. Months-old cases with no activity wait in review, not in the queue."}
+      subtitle={loadError ? "The organisation record could not be read. Reload to try again. Nothing has been changed." : "Live work first. Months-old cases with no activity wait in review, not in the queue."}
       actions={<><Link href="/partner/records" className="x-btn"><Search size={15} aria-hidden /> Find a record</Link><Link href="/partner/import" className="x-btn">Import</Link></>}
       kpis={[
         { label: "Live cases", value: loading ? null : live, href: "/partner/cases", note: "Open, with recent activity" },
@@ -224,7 +224,7 @@ export function OpsRoom() {
       </>}
     >
       <div className="db-row3">
-        {stale > 0 && <Panel title="Decisions waiting" count={stale} action={{ label: "Review them", href: "/partner/review" }}><p className="db-empty">Open for months with nothing recorded — usually imported. A person decides what happened to each, and the queue stays about today.</p></Panel>}
+        {stale > 0 && <Panel title="Decisions waiting" count={stale} action={{ label: "Review them", href: "/partner/review" }}><p className="db-empty">Open for months with nothing recorded, usually imported. A person decides what happened to each, and the queue stays about today.</p></Panel>}
         <Panel title="Tasks"><div className="db-legacy"><TasksSection compact /></div></Panel>
         <Panel title="Camps coming up"><div className="db-legacy"><CampsSection compact /></div></Panel>
       </div>

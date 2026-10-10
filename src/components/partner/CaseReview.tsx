@@ -47,9 +47,9 @@ const BANDS = [
 ];
 const DECISION_LABEL: Record<ReviewDecision, string> = {
   still_active: "Marked still active",
-  closed_done: "Closed — the work was done",
+  closed_done: "Closed: the work was done",
   closed_no_action: "Closed without field action",
-  other_ngo: "Closed — another organisation took it",
+  other_ngo: "Closed: another organisation took it",
   set_reason: "Reason recorded",
 };
 

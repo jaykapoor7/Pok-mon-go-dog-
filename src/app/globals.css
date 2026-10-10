@@ -763,3 +763,13 @@ body:has([role="dialog"]) :is(.sp-install-prompt, .snotice) { display: none; }
   .sv-go { margin-top: 2px; padding: 4px 9px; font-size: 11px; }
 }
 @container (max-width: 72px) { .sv-go { display: none; } }
+
+/* First-visit picker (app/Welcome): the app's type and colours, no
+   spaced capitals; it opens above the page, outside the app sheet. */
+.wc-panel { font-family: var(--sx-sans, "DM Sans"), system-ui, sans-serif; border-radius: 22px !important; border: 0 !important; background: #fff !important; box-shadow: 0 0 0 1px rgba(11, 30, 61, 0.08), 0 40px 80px -40px rgba(11, 30, 61, 0.45) !important; }
+.wc-panel .wc-kicker { font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: #c4432a; }
+.wc-panel .wc-title { font-family: inherit !important; font-weight: 600 !important; letter-spacing: -0.03em; color: #0b1e3d; }
+.wc-panel .wc-roles { gap: 0; border-top: 1px solid rgba(11, 30, 61, 0.09); }
+.wc-panel .wc-role { border: 0 !important; border-radius: 0 !important; border-bottom: 1px solid rgba(11, 30, 61, 0.09) !important; background: transparent !important; box-shadow: none !important; padding-inline: 4px !important; }
+.wc-panel .wc-role:hover { background: rgba(36, 87, 206, 0.04) !important; }
+.wc-panel .wc-role svg { color: #c4432a; }

@@ -47,7 +47,7 @@ type Condition = "injured" | "hungry" | "puppies" | "fine";
 type Step = 0 | 1 | 2 | 3 | 4;
 
 const CONDITIONS: { v: Condition; label: string; note: string }[] = [
-  { v: "injured", label: "Hurt or sick", note: "Sent for review — not an emergency service" },
+  { v: "injured", label: "Hurt or sick", note: "Sent for review. Not an emergency service." },
   { v: "hungry", label: "Thin or hungry", note: "Food, and a check" },
   { v: "puppies", label: "Puppies", note: "A litter, or a mother" },
   { v: "fine", label: "Seems fine", note: "Adds to the record" },

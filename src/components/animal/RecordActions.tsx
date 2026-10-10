@@ -33,7 +33,7 @@ export function RecordActions({ id, label, place, mapHref, rows, straypawId }: {
   }, [share, exportOpen]);
 
   const url = () => `${window.location.origin}/dog/${id}`;
-  const text = `${label}${place ? `, ${place}` : ""} — on the StrayPaw register.`;
+  const text = `${label}${place ? `, ${place}` : ""} on the StrayPaw register.`;
   const nativeShare = async () => {
     haptic("light");
     if (navigator.share) { try { await navigator.share({ title: `${label} · StrayPaw`, text, url: url() }); return; } catch { /* cancelled */ } }

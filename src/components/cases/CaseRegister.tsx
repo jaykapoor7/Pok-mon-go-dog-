@@ -203,7 +203,7 @@ export function CaseRegister() {
           </button>
         ))}
         <Link className="cr-geography" href="/partner/map?mode=cases"><MapPin size={16} /> Read the field map <ArrowUpRight size={14} /></Link>
-        <p className="cr-scope">Counts describe loaded open work. Absence of an assignee or update means it is not recorded—not that nobody responded.</p>
+        <p className="cr-scope">Counts describe loaded open work. Absence of an assignee or update means it is not recorded, not that nobody responded.</p>
       </nav>
       <section className="cr-ledger" aria-label="Case register">
 
@@ -278,7 +278,7 @@ function Head({ count, review }: { count?: Record<string, number>; review?: numb
     <DeskHeader
       kicker="Cases"
       title={<>Every request, <em>triaged</em></>}
-      lede={count ? `${count.open.toLocaleString("en-IN")} open cases loaded. Choose a queue on the left, inspect a row, act from the case file.` : "Your organisation’s working record of requests for help: triage, inspect, act — with the evidence kept together."}
+      lede={count ? `${count.open.toLocaleString("en-IN")} open cases loaded. Choose a queue on the left, inspect a row, act from the case file.` : "Your organisation’s working record of requests for help: triage, inspect and act, with the evidence kept together."}
       actions={<>
         <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} /> New case</Link>
         <Link href="/partner/review" className="dk-btn is-tint">Case review{review ? ` · ${review}` : ""} <ArrowUpRight size={14} /></Link>

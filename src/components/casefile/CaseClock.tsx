@@ -99,7 +99,7 @@ export function CaseClock(p: ClockInput) {
         {/* entries in the history */}
         {hist.map((u) => (
           <line key={u.id} className={`ck-entry ${u.type === "note" ? "is-note" : ""}`} x1={x(Date.parse(u.created_at))} x2={x(Date.parse(u.created_at))} y1={yLine - 16} y2={yLine - 4}>
-            <title>{`${short(Date.parse(u.created_at))}: ${u.actor_name ?? "Someone"}${u.note ? ` — ${u.note}` : ""}`}</title>
+            <title>{`${short(Date.parse(u.created_at))}: ${u.actor_name ?? "Someone"}${u.note ? ` · ${u.note}` : ""}`}</title>
           </line>
         ))}
 
@@ -111,7 +111,7 @@ export function CaseClock(p: ClockInput) {
             <g key={f.id} className={`ck-fu ${cls}`} transform={`translate(${fx - 5} ${yLine + 12})`}>
               <rect width={10} height={10} rx={2} />
               {cls === "is-missed" && <path d="M2.5 2.5 L7.5 7.5 M7.5 2.5 L2.5 7.5" />}
-              <title>{`Follow-up ${short(t)}: ${f.status === "upcoming" && t < now ? "overdue" : f.status}${f.note ? ` — ${f.note}` : ""}`}</title>
+              <title>{`Follow-up ${short(t)}: ${f.status === "upcoming" && t < now ? "overdue" : f.status}${f.note ? ` · ${f.note}` : ""}`}</title>
             </g>
           );
         })}

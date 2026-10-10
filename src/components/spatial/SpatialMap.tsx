@@ -1164,7 +1164,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         : mode === "cases" ? `${n(value(s))} ${LENSES.find((l) => l.id === lens)!.unit}`
         : mode === "medical" ? `${n(s.medical)} injured or needing help`
         : mode === "activity" || mode === "change" ? `${n(s.recentField)} field-team records this year`
-        : (mode === "abc" || mode === "arv") && pub && isSparse(aAnimals) ? "few records — too few for a share"
+        : (mode === "abc" || mode === "arv") && pub && isSparse(aAnimals) ? "too few records for a share"
         : mode === "abc" ? `${n(aSter)} of ${n(aAnimals)} sterilised on record`
         : mode === "arv" ? `${n(aVacc)} of ${n(aAnimals)} vaccinated on record`
         : pub && isSparse(aAnimals) ? "few records"
@@ -1196,7 +1196,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     if (mode === "coverage") return (
       <ul className="sm-key">
         {(["strong", "partial", "weak", "insufficient"] as const).map((k) => <li key={k}><i className={`sm-sw is-cov-${k}`} />{COVERAGE_TEXT[k].label}</li>)}
-        <li><i className="sm-sw is-fog" />Unreported area — not a verified intervention gap</li>
+        <li><i className="sm-sw is-fog" />Unreported area, not a verified intervention gap</li>
         <li><i className="sm-sw is-next" />Map next</li>
       </ul>
     );
@@ -1205,7 +1205,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         <li><i className={`sm-dot ${mode === "arv" ? "is-arv" : "is-abc"}`} />{mode === "abc" ? "Sterilised, on record" : "Vaccinated, on record"}</li>
         {mode === "arv" && <li><i className="sm-dot is-due" />Booster due</li>}
         <li><i className="sm-dot is-ring" />{mode === "abc" ? "Recorded as not sterilised" : "Recorded as not vaccinated"}</li>
-        <li><i className="sm-dot is-unk" />Not recorded — unknown, not zero</li>
+        <li><i className="sm-dot is-unk" />Not recorded: unknown, not zero</li>
         <li>Cell numbers show profiles recorded {mode === "abc" ? "as sterilised" : "as vaccinated"}; shading shows the recorded share, not programme coverage. Hatching means no positive status recorded, not verified absence of care.</li>
       </ul>
     );
@@ -1276,7 +1276,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
 
   const LENS_DEFS = [
     { id: "animals", label: "Animals", mode: "animals", q: "Where are animals on the record?" },
-    { id: "care", label: "Care", mode: "abc", q: "Where is sterilisation and vaccination recorded — and where is it unknown?" },
+    { id: "care", label: "Care", mode: "abc", q: "Where is sterilisation and vaccination recorded, and where is it unknown?" },
     { id: "cases", label: "Cases", mode: "cases", q: "Where are requests for help open, and how long have they waited?" },
     { id: "evidence", label: "Evidence", mode: "coverage", q: "How well is each place known, and where is the record thin?" },
   ] as const;
@@ -1299,7 +1299,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const panelOpen = picked || details;
   const railState = !panelOpen ? "closed" : phone ? (sheet === "open" ? "open" : "peek") : "open";
   const closePanel = () => { setDetails(false); if (picked) stepOut(); };
-  const scaleNote = indiaOverview ? `Bubble size: ${measureLabel.toLowerCase()} · colour: kind of evidence` : (cityRow?.cells ?? 2) <= 1 ? "Every record here shares one city location — no street detail exists" : mapZoom < 13 ? "Zoom in: areas become dots, one per recorded animal" : "Dots sit inside their area (≈0.7 km²), not at an exact spot";
+  const scaleNote = indiaOverview ? `Bubble size: ${measureLabel.toLowerCase()} · colour: kind of evidence` : (cityRow?.cells ?? 2) <= 1 ? "Every record here shares one city location: no street detail exists" : mapZoom < 13 ? "Zoom in: areas become dots, one per recorded animal" : "Dots sit inside their area (≈0.7 km²), not at an exact spot";
 
   return (
     <div className={`sm ax ${indiaOverview ? "is-india" : "is-city"} ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`} data-lens={atlasLens} data-rail={railState}>

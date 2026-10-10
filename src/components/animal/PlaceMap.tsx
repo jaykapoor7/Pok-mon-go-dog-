@@ -113,7 +113,7 @@ export function PlaceMap({ center, cells, locality, city, label, others, variant
       <figcaption>
         <span className="lr-placemap-k sys-mono">No photograph yet · recorded around</span>
         <b>{locality ?? city ?? "This area"}</b>
-        <span>{city && locality ? `${city} · ` : ""}within the area marked, about 0.7 km² — the register does not publish an exact spot.{others > 1 ? ` ${others} animals are recorded in it.` : ""}</span>
+        <span>{city && locality ? `${city} · ` : ""}within the area marked, about 0.7 km². The register does not publish an exact spot.{others > 1 ? ` ${others} animals are recorded in it.` : ""}</span>
         <small className="lr-placemap-credit">{credit}</small>
       </figcaption>
     </figure>

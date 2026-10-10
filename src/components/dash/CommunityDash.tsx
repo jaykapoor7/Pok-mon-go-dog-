@@ -72,7 +72,7 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
     if (o.key.startsWith("ac:")) { const n = o.key.slice(3); if (n !== city) router.push(`/app?city=${encodeURIComponent(n)}`, { scroll: false }); return; }
     const c = Number(o.key.slice(2)); if (ds && Number.isFinite(c)) choose({ lng: ds.centers[c * 2], lat: ds.centers[c * 2 + 1], label: `${o.name}, ${o.city}` });
   };
-  const findMe = async () => { const r = await locate(); setNote(r.ok ? null : r.why === "abroad" ? "Your location is outside India." : "Location unavailable — choose a place instead."); };
+  const findMe = async () => { const r = await locate(); setNote(r.ok ? null : r.why === "abroad" ? "Your location is outside India." : "Location unavailable. Choose a place instead."); };
 
   const L = LENSES.find((l) => l.id === lens)!;
   const mapCells = (cells ?? []).map((c) => ({ h3: c.h3_r8, value: (c[lens] as number | undefined) ?? 0, hot: c.needs_help, label: names.get(c.h3_r8) ?? null }));
@@ -89,7 +89,7 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
   }));
   const feed: Item[] = stories.filter((s) => !city || !s.city || s.city === city).slice(0, 7).map((s) => ({
     key: s.id, href: `/dog/${s.dog_id}`,
-    title: s.resolved_at ? `${s.title?.split(" · ")[0] ?? "Request"} — closed` : `${s.title?.split(" · ")[0] ?? "Request"} opened`,
+    title: s.resolved_at ? `${s.title?.split(" · ")[0] ?? "Request"} closed` : `${s.title?.split(" · ")[0] ?? "Request"} opened`,
     meta: [s.zone, s.ngo_name].filter(Boolean).join(" · "), right: ago(s.resolved_at ?? s.occurred_at), tag: { text: "", tone: s.resolved_at ? "care" : "open" },
   }));
   const recent = (near ?? []).filter((a) => !(a.needs_help || a.status === "injured")).sort((a, b) => Number(!!b.cover_photo) - Number(!!a.cover_photo) || (b.last_seen ?? "").localeCompare(a.last_seen ?? "")).slice(0, 6);

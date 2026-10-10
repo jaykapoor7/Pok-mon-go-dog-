@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LatestOnRecord } from "@/components/shell/LatestOnRecord";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Activity, ArrowUpRight, ChevronRight, Binoculars, BookOpen, Bookmark, Building2, ChartColumn, Check, ChevronDown, Circle, ClipboardCheck, ClipboardList, FlaskConical, FolderKanban, GraduationCap, HandCoins, HandHeart, HelpCircle, Inbox, KeyRound, Layers, LifeBuoy, ListChecks, LogOut, Map as MapIcon, PawPrint, Repeat2, Scale, Search, Settings, ShieldCheck, Stethoscope, Syringe, Upload, UserPlus, Users, Utensils, X, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -218,6 +219,7 @@ export function MoreSheet({ open, onClose, space, nav, isCurrent, more, onPick, 
         </div>
 
         {children}
+        <LatestOnRecord className="is-sheet" />
         <div className="sx-sheet-row">
           <LanguageSwitcher />
           <FeedbackButton label="Feedback" />
