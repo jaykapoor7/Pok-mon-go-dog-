@@ -725,8 +725,14 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
+    /* Only a move the visitor made (drag, wheel, pinch, the zoom buttons)
+       may switch between India and a city; the map's own camera moves,
+       such as fitting a newly chosen city, never do. */
+    let byVisitor = false;
+    const onStart = (e: { originalEvent?: unknown; byVisitor?: boolean }) => { byVisitor = !!(e.originalEvent || e.byVisitor); };
     const readScale = () => {
       const z = map.getZoom();
+      const visitorMove = byVisitor; byVisitor = false;
       setMapZoom(z);
       const at = map.getCenter();
       /* One continuous map. Zooming out of a city returns to India at this
@@ -745,7 +751,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
          still at its initial zoom, which is not anything the visitor did. */
       const alias = (c: string) => ({ "new delhi": "delhi", secunderabad: "hyderabad" } as Record<string, string>)[c.toLowerCase()] ?? c.toLowerCase();
       const settled = alias(new URLSearchParams(window.location.search).get("city") ?? "") === alias(datasetCity ?? "");
-      if (scope === "public" && !indiaOverview && cityPins.length && started.current && settled) {
+      if (scope === "public" && !indiaOverview && cityPins.length && started.current && settled && visitorMove) {
         if (z < AUTO_EXIT_ZOOM) { autoEntered.current = null; goTo(null); return; }
         if (z >= AUTO_ENTER_ZOOM) {
           const other = cityPins.reduce((best, city) => ((city.lng - at.lng) ** 2 + (city.lat - at.lat) ** 2 < (best.lng - at.lng) ** 2 + (best.lat - at.lat) ** 2 ? city : best), cityPins[0]);
@@ -767,7 +773,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       setApproachingCity(near);
       /* Zoomed in close to a city: go straight into it, at this exact view,
          so its areas and then its animals appear without a click. */
-      if (near && z >= AUTO_ENTER_ZOOM && autoEntered.current !== near.city) {
+      if (near && visitorMove && z >= AUTO_ENTER_ZOOM && autoEntered.current !== near.city) {
         autoEntered.current = near.city;
         const url = new URL(window.location.href);
         ["cell", "q", "bbox", "focus", "m"].forEach((key) => url.searchParams.delete(key));
@@ -780,9 +786,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       }
     };
     readScale();
+    map.on("movestart", onStart);
     map.on("moveend", readScale);
-    map.on("zoomend", readScale);
-    return () => { map.off("moveend", readScale); map.off("zoomend", readScale); };
+    return () => { map.off("movestart", onStart); map.off("moveend", readScale); };
   }, [ready, indiaOverview, cityPins, router, scope, datasetCity]);
 
   /* ââ how the points are drawn in each mode âââââââââââââââââââââââââ */
@@ -1451,8 +1457,8 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       )}
 
       <div className="ax-tools" role="group" aria-label="Map tools">
-        <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomIn({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom in" title="Zoom in"><Plus size={18} /></button>
-        <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomOut({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 })} aria-label="Zoom out" title="Zoom out"><Minus size={18} /></button>
+        <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomIn({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 }, { byVisitor: true })} aria-label="Zoom in" title="Zoom in"><Plus size={18} /></button>
+        <button type="button" disabled={!ready} onClick={() => mapRef.current?.zoomOut({ duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220 }, { byVisitor: true })} aria-label="Zoom out" title="Zoom out"><Minus size={18} /></button>
         <span className="ax-tools-gap" aria-hidden />
         {!indiaOverview && <button type="button" onClick={() => setThree((v) => !v)} aria-pressed={three} aria-label={three ? "Switch to plan view" : "Switch to 3D columns"} title={three ? "Plan view" : "3D columns"}>{three ? <Square size={16} /> : <Box size={16} />}</button>}
         <button type="button" onClick={() => setGrid((v) => !v)} aria-pressed={cellsOn} aria-label="Analysis grid: show the map as cells of about 0.7 km²" title="Analysis grid"><CircleDashed size={17} /></button>
