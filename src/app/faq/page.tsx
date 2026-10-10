@@ -29,7 +29,8 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
         q: "Do I need an account to report?",
         a: (
           <>
-            No. A photo and a location is the whole thing. Go to{" "}
+            No. A location is the whole thing; a photo helps the right animal
+            be recognised, but a report without one still counts. Go to{" "}
             <Link href="/report">the reporting page</Link> and send it.
           </>
         ),
@@ -85,8 +86,10 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
         q: "What is my code?",
         a: (
           <>
-            Six letters and numbers, issued to you by name and email by
-            whoever added you. It is your sign-in. Go to{" "}
+            Six letters and numbers that arrive by email &mdash; either because
+            you <Link href="/access">asked for one yourself</Link> to follow
+            your reports, or because a team lead added you to an organisation.
+            It is your sign-in. Go to{" "}
             <Link href="/join">straypaw.org/join</Link>, type it, and you are
             in. There is no password and no account to create.
           </>
@@ -105,7 +108,8 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
         q: "I have lost my code.",
         a: (
           <>
-            Ask your team lead to add you again. That issues a new one and
+            Request a new one at <Link href="/access">straypaw.org/access</Link> with the same
+            email if it was your own, or ask your team lead to add you again. That issues a new one and
             stops the old one working.
           </>
         ),

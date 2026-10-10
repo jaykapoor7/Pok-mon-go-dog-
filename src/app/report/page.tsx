@@ -265,6 +265,7 @@ export default function ReportPage() {
                     ) : (
                       <button type="button" className="rq-skip" onClick={() => { setNoPhoto(true); answered(0); }}>I can&apos;t take one</button>
                     )}
+                    <p className="rq-note-em">StrayPaw is a shared record, not an emergency service, and cannot promise a response time. If an animal is in immediate danger, call a local animal ambulance or emergency vet.</p>
                   </>
                 )}
               </>

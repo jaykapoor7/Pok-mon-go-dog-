@@ -72,6 +72,9 @@ html .rq-wrap button.rq-opt { min-height: 68px; }
 .rq-opt.is-hot b { color: var(--sp-ember); }
 .rq-opt.is-hot.is-on { border-color: var(--sp-flame); background: rgba(240, 91, 64, 0.1); box-shadow: inset 0 0 0 1px var(--sp-flame); }
 .rq-urgent { margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--sp-radius-sm); background: rgba(240, 91, 64, 0.1); box-shadow: inset 3px 0 0 var(--sp-flame); font-size: 13.5px; line-height: 1.45; color: var(--sp-ink); }
+/* Opening-screen reminder: plain and quiet, not an alarm — the flame note
+   is kept for the condition and summary steps where urgency is real. */
+.rq-note-em { margin: var(--sp-2) 0 0; font-size: 12.5px; line-height: 1.45; color: var(--sp-mute); }
 
 /* Check and send: the four answers, each one tap from changing. */
 .rq-sum { margin: 0; padding: 0; list-style: none; display: grid; border-top: 1px solid var(--sp-ink); }

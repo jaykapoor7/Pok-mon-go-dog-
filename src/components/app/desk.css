@@ -357,9 +357,18 @@ html .spa.spa.spa-desk .spa-main .ps-field:focus-within { border-color: var(--sp
 
 @media (pointer: coarse) { .dh-figs dd a { min-height: var(--ctl-h); align-items: center; } }
 @media (max-width: 720px) {
-  .dh .st-cities { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * clamp(18px, 3vw, 34px)); padding-right: clamp(18px, 3vw, 34px); }
-  .dh .st-cities::-webkit-scrollbar { display: none; }
+  /* Wrap the city filters rather than scroll them, so every filter stays
+     visible and none is clipped mid-word at the edge. */
+  .dh .st-cities { flex-wrap: wrap; overflow: visible; margin-right: 0; padding-right: 0; }
   .dh .st-cities a { flex: none; }
+}
+@media (max-width: 600px) {
+  /* Constrain the figures to a grid so a long label can never push a figure
+     past the right edge; the headline figure keeps its own full-width row. */
+  .dh-figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-5); row-gap: var(--sp-4); }
+  .dh-figs > div { min-width: 0; }
+  .dh-figs > div:first-child { grid-column: 1 / -1; }
+  .dh-figs dt { overflow-wrap: anywhere; }
 }
 
 /* The language control in the app bar. */

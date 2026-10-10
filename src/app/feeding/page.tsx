@@ -20,7 +20,9 @@ export default async function FeedingZonesPage() {
       <DeskHeader
         kicker="Feeding · the community route book"
         title={<>Feeding spots, <em>kept in view</em></>}
-        lede="Find a regular spot, see when it was last fed, and help keep its route covered."
+        lede={zones.length === 0
+          ? "No spots are on the public record yet. Add a place the community already feeds and it becomes the first."
+          : "Find a regular spot, see when it was last fed, and help keep its route covered."}
         figures={[{ label: zones.length === 1 ? "spot on the public record" : "spots on the public record", value: zones.length }]}
         actions={<Link href="/feeding/new" className="dk-btn is-flame"><Plus size={16} /> Add a feeding spot</Link>}
       />
