@@ -6,6 +6,7 @@ export const metadata = {
   title: "Sign up for StrayPaw",
   description: "Request a six-character code by email to sign in to the community or feeder workspace. No password.",
   alternates: { canonical: "/access" },
+  robots: { index: false, follow: false },
 };
 
 export default async function AccessPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {

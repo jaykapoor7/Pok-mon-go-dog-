@@ -61,8 +61,8 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
     <main className="hp">
       <DeskHeader
         kicker={coords ? "Help · nearest first" : "Help"}
-        title={needy.length ? <>{needy.length} animals need someone{coords ? " near you" : ""}.</> : "Nobody is flagged as needing help right now."}
-        lede="Each was flagged by a resident or a field team: injured, hungry, or in trouble. Pick one you can reach. Feeding it, getting it to a vet, or checking on it and saying what you saw all count."
+        title={needy.length ? <>{needy.length} animals were reported as needing help{coords ? " near you" : ""}.</> : "Nobody is flagged as needing help right now."}
+        lede="Each was flagged by a resident or a field team. A flag is a report: it may be out of date, so check when it was last seen. Pick one you can reach. Feeding it, getting it to a vet, or checking on it and saying what you saw all count."
         actions={<>
           {!coords && <button type="button" className="dk-btn is-tint" onClick={ask}><MapPin size={15} aria-hidden /> Show the nearest first</button>}
           <button type="button" className="dk-btn is-plain" onClick={helpGeneral}><HandHelping size={15} aria-hidden /> Be on call as a volunteer</button>

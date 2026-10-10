@@ -12,7 +12,7 @@ import "./explore.css";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Explore the record, StrayPaw",
-  description: "What is recorded, and where: every place with a street animal on the record across India, and the ways into it: the live map, a brief on any place, rescue stories and the evidence behind every figure.",
+  description: "Every place with a street animal on the record across India, and the ways in: the live map, a brief on any place, stories and the evidence behind each figure.",
 };
 
 /* ════════════════════════════════════════════════════════════════════

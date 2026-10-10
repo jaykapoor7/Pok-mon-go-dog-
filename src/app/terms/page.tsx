@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Terms, StrayPaw" };
+export const metadata = { title: "Terms, StrayPaw", description: "The terms for using StrayPaw: reporting animals, sharing records and organisation workspaces." };
 
 export default function TermsPage() {
   return (

@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "./" },
   title: "StrayPaw, every street animal on the record",
   description:
-    "Shared dog records for residents, NGOs and municipalities: sightings, field work, care and documented outcomes across India.",
+    "One shared record connecting sightings, field work and outcomes for India's street animals, for residents, NGOs and municipalities.",
   keywords: [
     "street animals",
     "India",
@@ -42,12 +42,10 @@ export const metadata: Metadata = {
     "CSR",
   ],
   openGraph: {
-    title: "StrayPaw, every street animal on the record",
-    description:
-      "One shared record connecting sightings, field work and outcomes for India's street animals. One animal, one history, across every organisation that meets it.",
+    /* No title, description or url here: a page that sets none falls back to its
+       own <title>, description and canonical, so a shared /map link says "Map". */
     type: "website",
     siteName: "StrayPaw",
-    url: siteUrl,
     locale: "en_IN",
     images: [
       {
@@ -60,9 +58,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrayPaw, every street animal on the record",
-    description:
-      "One shared record connecting sightings, field work and outcomes for India's street animals. One animal, one history, across every organisation that meets it.",
     /* A real file rather than a generated route. The generated one drew a
        hand-built heart-and-dog shape that was never the logo, and Next
        emitted twitter:image:alt and :type from it without twitter:image

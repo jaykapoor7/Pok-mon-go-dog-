@@ -5,7 +5,7 @@ import { getPublicCaseStoriesPage } from "@/lib/community-case-stories";
 import { unstable_cache } from "next/cache";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Nearby, StrayPaw" };
+export const metadata = { title: "Nearby, StrayPaw", robots: { index: false, follow: false } };
 
 /* The original community home, now backed by one bounded city dataset at a
    time. The lightweight city index lets someone switch place without ever

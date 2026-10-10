@@ -8,7 +8,7 @@ import { Phone } from "lucide-react";
 
 export const dynamic = "force-static";
 export const metadata = {
-  title: "Resources - StrayPaw",
+  title: "Resources, StrayPaw",
   description:
     "Find animal welfare organisations, rescue helplines, veterinary contacts, and post-bite care guidance across India.",
 };

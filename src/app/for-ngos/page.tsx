@@ -16,7 +16,7 @@ import { PlaceGround } from "@/components/system/PlaceGround";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "For NGOs, StrayPaw",
-  description: "The Field Workspace: cases, animals, care, reports and imports for your field team on one record. Free for verified animal-welfare organisations; your records stay yours.",
+  description: "The Field Workspace: cases, animals, care, reports and imports on one record. Free for verified animal-welfare organisations; your records stay yours.",
 };
 
 /* ════════════════════════════════════════════════════════════════════

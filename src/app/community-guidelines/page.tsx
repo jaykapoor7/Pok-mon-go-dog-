@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Community Guidelines, StrayPaw" };
+export const metadata = { title: "Community Guidelines, StrayPaw", description: "What to report, how to describe an animal and its location, and what StrayPaw removes from the public record." };
 
 export default function GuidelinesPage() {
   return (

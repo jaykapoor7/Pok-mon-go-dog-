@@ -28,7 +28,6 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
 
   { path: "/for-ngos", priority: 0.8, freq: "monthly" },
   { path: "/partner-apply", priority: 0.8, freq: "monthly" },
-  { path: "/partnerships", priority: 0.6, freq: "monthly" },
 
   { path: "/for-funders", priority: 0.7, freq: "monthly" },
   { path: "/research-standards", priority: 0.5, freq: "monthly" },

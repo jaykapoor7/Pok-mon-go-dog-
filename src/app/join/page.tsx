@@ -4,7 +4,7 @@ import "./join.css";
 import { AppShell } from "@/components/app/AppShell";
 
 export const metadata: Metadata = {
-  title: "Enter your code",
+  title: "Enter your code, StrayPaw",
   description:
     "Sign in to a StrayPaw organisation with the six-character code you were given.",
   robots: { index: false, follow: false },

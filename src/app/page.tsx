@@ -46,7 +46,7 @@ const fmt = (n: number) => n.toLocaleString("en-IN");
    one thing to do at each, under the three screens. Everyone else it
    serves is in the footer's index. */
 const LEVELS = [
-  { level: "street", scale: "Resident", who: "Residents and feeders", does: "Report an animal, follow what happens to it, keep the patch you feed.", action: "Report an animal", href: "/report" },
+  { level: "street", scale: "Resident", who: "Residents and feeders", does: "Report an animal, see what gets recorded, keep the patch you feed.", action: "Report an animal", href: "/report" },
   { level: "field", scale: "NGO", who: "Rescue organisations", does: "Run cases, drives and care from one queue, on records you control.", action: "For NGOs", href: "/for-ngos" },
   { level: "city", scale: "Municipality", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "View municipal coverage", href: "/for-governments" },
 ] as const;
@@ -100,7 +100,7 @@ export default async function HomePage() {
           <section className="ld-sec ld-sec-shell" aria-labelledby="ld-relay-title">
             <header className="sys-head">
               <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
-              <p>A real request in {story.hero.city}: reported by a resident, worked by an NGO, visible to a municipality. One record the whole way.</p>
+              <p>One real request in {story.hero.city} that went the whole way: reported by a resident, worked by an NGO, visible to a municipality. One record throughout.</p>
             </header>
             <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
           </section>
@@ -114,7 +114,7 @@ export default async function HomePage() {
             box={story.hero.box}
             rings={story.hero.rings}
             events={story.hero.events}
-            note={story.record.medianFirstAction !== null ? `Among the ${fmt(story.record.requests)} recent requests sampled in ${story.hero.city}, records with a dated first action had a median response of ${story.record.medianFirstAction === 0 ? "the same day" : `${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}.` : undefined}
+            note={story.record.medianFirstAction !== null ? `Among the ${fmt(story.record.requests)} recent requests sampled in ${story.hero.city}, those with a dated first action had a median gap of ${story.record.medianFirstAction === 0 ? "under a day" : `${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`} before it. Not every request is taken on.` : undefined}
           />
         )}
 

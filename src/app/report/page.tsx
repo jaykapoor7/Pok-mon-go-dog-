@@ -48,7 +48,7 @@ type Step = 0 | 1 | 2 | 3 | 4;
 
 const CONDITIONS: { v: Condition; label: string; note: string }[] = [
   { v: "injured", label: "Hurt or sick", note: "Sent for review. Not an emergency service." },
-  { v: "hungry", label: "Thin or hungry", note: "Food, and a check" },
+  { v: "hungry", label: "Thin or hungry", note: "Added to the record" },
   { v: "puppies", label: "Puppies", note: "A litter, or a mother" },
   { v: "fine", label: "Seems fine", note: "Adds to the record" },
 ];
@@ -223,7 +223,7 @@ export default function ReportPage() {
       </header>
       <aside className="rq-context"><p>Your report</p><dl><div><dt>Entry stage</dt><dd>{String(step + 1).padStart(2, "0")} / 05</dd></div><div><dt>Place</dt><dd>{zone || (coords ? "Location selected" : "Not recorded yet")}</dd></div><div><dt>Evidence</dt><dd>{file ? "Photograph attached" : "Photograph pending"}</dd></div><div><dt>State</dt><dd>Not submitted</dd></div></dl><p className="rq-context-evidence">Record what you can see. Unknown is a valid observation, not a failed answer.</p></aside>
       {!volunteer && <div className="rq-purpose">
-        <span><HeartHandshake size={15} aria-hidden /> A shared care trail starts here</span>
+        <span><HeartHandshake size={15} aria-hidden /> Adds to the shared record</span>
         <small>About a minute · no account needed</small>
       </div>}
       {!volunteer && <p className="rq-orientation"><Link href="/">Main site</Link><span>·</span>Nothing is saved until you send.</p>}
@@ -251,8 +251,8 @@ export default function ReportPage() {
                   <PhotoStudio file={raw} onCancel={() => { setRaw(null); fileRef.current?.click(); }} onDone={(edited, url) => { setFile(edited); setPhoto(url); setRaw(null); answered(0); }} />
                 ) : (
                   <>
-                    <p className="rq-kicker">You noticed them. We can carry it forward.</p>
-                    <p className="rq-lede">A clear photo helps a care team recognise the right animal. A report without one still matters.</p>
+                    <p className="rq-kicker">You noticed them. We add it to the shared record.</p>
+                    <p className="rq-lede">Partner NGOs can see it. A clear photo helps the right animal be recognised, and a report without one still matters.</p>
                     <button type="button" className="rq-camera" onClick={() => fileRef.current?.click()}>
                       {photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -360,7 +360,7 @@ export default function ReportPage() {
                     <li><i>03</i><span>Care teams working nearby can take it into their field work.</span></li>
                   </ol>
                 </section>
-                {condition === "injured" && <p className="rq-urgent">Marked for urgent review. StrayPaw is not an emergency service and cannot promise a response time. If the dog is in immediate danger, call a local animal ambulance or emergency vet.</p>}
+                {condition === "injured" && <p className="rq-urgent">Marked as hurt or sick for the reviewer. StrayPaw is not an emergency service and cannot promise a response time. If the dog is in immediate danger, call a local animal ambulance or emergency vet.</p>}
 
                 <label className="rq-update">
                   <span><b>Get the link when this report is live</b><small>Optional. We only email you about this report.</small></span>
@@ -402,8 +402,8 @@ export default function ReportPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="rq-done-wrap">
             <motion.div initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} className="rq-done" role="dialog" aria-labelledby="rq-done-t">
               <span className="rq-done-ic"><Clock size={30} /></span>
-              <h2 id="rq-done-t">Your report is in the care trail.</h2>
-              <p>{condition === "injured" ? "It is marked for urgent review. " : ""}This device keeps your link while it is reviewed, then you can see it on the shared map.</p>
+              <h2 id="rq-done-t">Thanks. Your report is sent for review.</h2>
+              <p>{condition === "injured" ? "It is marked as hurt or sick for the reviewer. " : ""}This device keeps your link while it is reviewed, then you can see it on the shared map.</p>
               <p className="rq-done-steps">Sent <span>→</span> Reviewed <span>→</span> Shared record</p>
               <Link href="/following" className="rq-go">Follow this report <ArrowRight size={16} /></Link>
               <button type="button" className="rq-link" onClick={reset}>Report another</button>

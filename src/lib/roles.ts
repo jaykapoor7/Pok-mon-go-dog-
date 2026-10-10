@@ -26,7 +26,7 @@ export const ROLE_META: Record<
   individual: {
     label: "I want to report or follow street animals",
     short: "Community",
-    blurb: "Report an animal, follow what happens to it, and use the shared map.",
+    blurb: "Report an animal, see what gets recorded, and use the shared map.",
     home: "/app",
     priority: ["/app", "/map", "/report", "/following"],
     apply: null,

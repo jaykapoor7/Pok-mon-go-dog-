@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Saved animals, StrayPaw",
   description: "Animals you saved and reports you filed, kept together for follow-up.",
+  robots: { index: false, follow: false },
 };
 
 export default async function FollowingPage() {

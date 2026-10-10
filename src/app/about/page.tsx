@@ -13,7 +13,7 @@ import "@/components/company/company.css";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "About StrayPaw",
-  description: "StrayPaw is one shared record of India's street animals: what it is, why a shared record matters, the rules it holds to, where its records come from, who contributes, and who runs it.",
+  description: "StrayPaw is one shared record of India's street animals: why it matters, the rules it holds to, where records come from, who contributes and who runs it.",
 };
 
 /* ════════════════════════════════════════════════════════════════════

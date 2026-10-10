@@ -3,9 +3,9 @@ import { BackLink } from "@/components/app/BackLink";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Questions",
+  title: "Questions, StrayPaw",
   description:
-    "How reporting, organisation dashboards and access codes work on StrayPaw.",
+    "Answers on how reporting, review, organisation dashboards and access codes work on StrayPaw, and what a report does and does not promise.",
 };
 
 /* ════════════════════════════════════════════════════════════════════

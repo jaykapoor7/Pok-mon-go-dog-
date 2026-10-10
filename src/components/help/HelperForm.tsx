@@ -111,7 +111,7 @@ export function HelperForm({
                 <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-status-sterilised" />
                 <h2 className="font-display text-xl">Thank you 💚</h2>
                 <p className="mt-1.5 text-sm text-bark-500">
-                  We&apos;ve got your details and will reach out about how you can help.
+                  Thanks, your details are saved. Partner NGOs can see them, but we can&apos;t promise anyone will be in touch.
                 </p>
                 <button onClick={close} className="btn-ghost mt-5 w-full py-3">
                   Done
@@ -124,7 +124,7 @@ export function HelperForm({
                 </h2>
                 <p className="mt-1 text-sm text-bark-500">
                   Leave your details and how you can help. Partner NGOs can see
-                  volunteers in their area and will reach out when there&apos;s a need.
+                  volunteers in their area. We can&apos;t promise they will be in touch.
                 </p>
 
                 <form onSubmit={submit} className="mt-4 space-y-3">

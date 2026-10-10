@@ -4,8 +4,7 @@ import { SpatialMap } from "@/components/spatial/SpatialMap";
 
 export const metadata = {
   title: "Map, StrayPaw",
-  description:
-    "The register on one map: where animals are recorded, how densely, how well each place is mapped, where sterilisation and vaccination are recorded or unknown, and where work is open.",
+  description: "The register on one map: where animals are recorded, how well each place is mapped, and where sterilisation, vaccination and open work are recorded or unknown.",
 };
 
 /* The original map controls and views run on one bounded city dataset at a

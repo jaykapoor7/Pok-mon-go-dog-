@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Safety, StrayPaw" };
+export const metadata = { title: "Safety, StrayPaw", description: "Staying safe around street animals, and when to call a local organisation or helpline instead of approaching." };
 
 export default function SafetyPage() {
   return (

@@ -3,6 +3,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Offline, StrayPaw",
   description: "You are offline. Pages you have already opened are still available.",
+  robots: { index: false, follow: false },
 };
 
 /* Served by the service worker when a navigation fails and nothing for that

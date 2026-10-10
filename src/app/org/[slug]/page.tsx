@@ -21,8 +21,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!org) return { title: "Organisation not found, StrayPaw" };
   return {
     title: `${org.name}, StrayPaw`,
-    description: org.mission?.slice(0, 150) ?? `What ${org.name}'s public record on StrayPaw holds.`,
-    ...(org.logo_url ? { openGraph: { images: [org.logo_url] } } : {}),
+    description: org.mission && org.mission.length >= 50 ? org.mission.slice(0, 155) : `${org.name} on StrayPaw: ${org.mission ? org.mission.replace(/\.$/, "") + ". " : ""}What its public record holds.`.slice(0, 158),
+    alternates: { canonical: `/org/${org.slug}` },
+    /* The shared card image, not the logo: logos are often SVG, which social
+       crawlers do not render. */
+    openGraph: { title: `${org.name}, StrayPaw`, type: "website", url: `/org/${org.slug}`, images: [{ url: "/og.png", width: 1200, height: 630, alt: "StrayPaw" }] },
+    twitter: { card: "summary_large_image", title: `${org.name}, StrayPaw`, images: ["/og.png"] },
   };
 }
 

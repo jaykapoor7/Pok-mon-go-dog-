@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Privacy Policy, StrayPaw" };
+export const metadata = { title: "Privacy Policy, StrayPaw", description: "How StrayPaw collects, uses and protects personal data and animal records, and the choices you have over them." };
 
 export default function PrivacyPage() {
   return (

@@ -1,6 +1,6 @@
 import { InfoPage, H2 } from "@/components/info/InfoPage";
 
-export const metadata = { title: "Cookies, StrayPaw" };
+export const metadata = { title: "Cookies, StrayPaw", description: "The cookies and local storage StrayPaw uses, what each is for, and how to control them." };
 
 export default function CookiesPage() {
   return (

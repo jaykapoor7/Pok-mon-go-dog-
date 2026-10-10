@@ -16,7 +16,7 @@ import { HairlineFigure } from "@/components/hairline/HairlineFigure";
 export const revalidate = 300;
 export const metadata = {
   title: "For municipalities, StrayPaw",
-  description: "Coverage a municipality can audit: which localities and wards are recorded and which are not, animal to locality to ward to city, with ABC, ARV, census and programme records, and existing municipal and NGO data imported with its source.",
+  description: "Coverage a municipality can audit: which wards and localities are recorded and which are not, with ABC, ARV and census records and imported municipal and NGO data.",
 };
 /* ════════════════════════════════════════════════════════════════════
    For municipalities. Product first: the coverage of a real city, drawn the way

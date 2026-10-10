@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title: `${name}, StrayPaw`,
     description: `Recorded sightings, care, follow-ups and documented outcomes for ${name}${dog?.city ? ` in ${dog.city}` : ""}. Individual dog record ${id}.`,
     alternates: { canonical: `/dog/${id}` },
-    openGraph: { title: "Animal record, StrayPaw", type: "article", url: `/dog/${id}` },
+    openGraph: { title: `${name}, StrayPaw`, type: "article", url: `/dog/${id}`, images: [{ url: "/og.png", width: 1200, height: 630, alt: "StrayPaw" }] },
+    twitter: { card: "summary_large_image", title: `${name}, StrayPaw`, images: ["/og.png"] },
   };
 }
 

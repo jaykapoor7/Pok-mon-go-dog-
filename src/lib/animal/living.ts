@@ -166,7 +166,9 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
     sourceCode: identity?.source_code || (first((r) => r.animalCode) as string | null) || dog.code || null,
     species: dog.species || "dog", sex: known(first((r) => r.sex) as string | null), colour: known((first((r) => r.colour) as string | null) || dog.color || null),
     locality: cleanPlace((first((r) => r.locality) as string | null) || dog.zone) || null, city: sp?.city ?? dog.city ?? null, state: sp?.state ?? null,
-    keeper: reporterName ? reporterName : dog.ngo_id ? "An organisation (not published)" : "The community",
+    /* Where the record comes from: the organisation that contributed or holds it, or
+       residents' reports. Never a claim that anyone has the animal in their care. */
+    keeper: reporterName ? reporterName : dog.ngo_id ? "An organisation (name not published)" : "Community reports",
     source: sp?.source === "resident" || dog.provenance === "community_report" ? "resident" : "field",
     firstSeen: sp?.first_seen ?? dog.first_seen ?? null, lastSeen: dog.last_seen ?? null,
     photo: photos[0] ?? null, photos,

@@ -117,7 +117,7 @@ function routeOf(r: Living, scope: "public" | "org", reportHref: string): RouteS
 
   /* What nobody has recorded yet: the route carries on, dashed. */
   const gaps: RouteStop[] = [];
-  if (r.known.health === "needs_help") gaps.push({ key: "help", at: null, kind: "open", label: "Flagged as needing help", detail: "Somebody asked for help for this animal.", href: reportHref, cta: "Add what you see" });
+  if (r.known.health === "needs_help") gaps.push({ key: "help", at: null, kind: "open", label: "Help was requested", detail: "A resident or field team asked for help. Care that has been recorded is shown above.", href: reportHref, cta: "Add what you see" });
   if (r.open.followupsDue) gaps.push({ key: "due", at: null, kind: "missing", label: `${r.open.followupsDue} follow-up${r.open.followupsDue === 1 ? "" : "s"} due`, ...(scope === "org" ? { href: "#org-care", cta: "Record it" } : {}) });
   if (r.known.boosterDue) gaps.push({ key: "boost", at: null, kind: "missing", label: "Booster vaccination", detail: `The last vaccination was ${since(r.known.vaccAt)}; a booster is due.` });
   if (r.known.ster === "unknown") gaps.push({
@@ -137,7 +137,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
   const cityQuery = r.city ? `&city=${encodeURIComponent(r.city)}` : "";
   const mapHref = r.place ? `${scope === "org" ? "/partner/map" : "/map"}?mode=animals&cell=${r.place.cell}${cityQuery}` : `/map?focus=animal:${r.id}${cityQuery}`;
   const art = portraitCredit(r.id, r.size);
-  const status = r.known.health === "needs_help" ? { t: "Needs help", c: "is-hot" }
+  const status = r.known.health === "needs_help" ? { t: "Help requested", c: "is-hot" }
     : r.known.health === "injured" ? { t: "Recorded injured", c: "is-hot" }
     : r.open.cases ? { t: `${r.open.cases} open request${r.open.cases === 1 ? "" : "s"}`, c: "is-open" }
     : { t: "No open request", c: "is-done" };
@@ -204,7 +204,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
       <dl className="dz-prov">
         <div><dt>StrayPaw ID</dt><dd>{r.straypawId ?? "Pending"}</dd></div>
         {r.sourceCode && <div><dt>Source ID</dt><dd>{r.sourceCode}</dd></div>}
-        <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
+        <div><dt>Record from</dt><dd>{r.keeper}</dd></div>
         <div><dt>Record</dt><dd>{scope === "org" ? "Organisation record" : "Public record"}</dd></div>
       </dl>
       <p className="dz-fine">A documented identity, not a claim of verified uniqueness. Recorded animals, never a population.</p>
@@ -236,7 +236,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
           <dl className="dz2-dates">
             <div><dt>On record since</dt><dd>{day(r.firstSeen)}</dd></div>
             <div><dt>Last seen</dt><dd>{r.lastSeen ? since(r.lastSeen) : "Not recorded"}</dd></div>
-            <div><dt>Kept by</dt><dd>{r.keeper}</dd></div>
+            <div><dt>Record from</dt><dd>{r.keeper}</dd></div>
           </dl>
           <div className="dz2-do">
             <a href={reportHref} className="x-btn is-flame">{r.known.health === "needs_help" ? "I can see it now" : "Report a sighting"}</a>
@@ -249,7 +249,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
         <Fact state={r.known.ster} label="Sterilised" note={r.known.ster === "unknown" ? "Not recorded" : r.known.sterAt ? day(r.known.sterAt) : r.known.ster === "no" ? "Recorded as not" : "On the record"} />
         <Fact state={r.known.vacc} label="Vaccinated" note={r.known.vacc === "unknown" ? "Not recorded" : r.known.boosterDue ? `Booster due` : r.known.vaccAt ? day(r.known.vaccAt) : r.known.vacc === "no" ? "Recorded as not" : "On the record"} warn={r.known.boosterDue} />
         <Fact state={r.known.earNotch ? "yes" : "unknown"} label="Ear notch" note={r.known.earNotch ? "Seen" : "Not noted"} />
-        <Fact state={r.known.health === "none" ? "unknown" : "flag"} label="Health" note={r.known.health === "needs_help" ? "Needs help" : r.known.health === "injured" ? "Injured" : "No concern recorded"} />
+        <Fact state={r.known.health === "none" ? "unknown" : "flag"} label="Health" note={r.known.health === "needs_help" ? "Help requested" : r.known.health === "injured" ? "Recorded injured" : "No concern recorded"} />
       </section>
       <p className="dz2-note">Grey means nothing is recorded. It never means no.</p>
 
