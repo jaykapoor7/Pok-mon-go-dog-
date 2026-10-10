@@ -10,7 +10,6 @@ import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { readStoredRole } from "@/lib/roles";
 import { SX_FONTS } from "@/components/shell/fonts";
-import { LatestOnRecord } from "@/components/shell/LatestOnRecord";
 import { SPACES, currentOf, rememberSpace, rememberedSpace, spaceFor, type Space } from "@/components/shell/spaces";
 import { CommandPalette } from "@/components/shell/CommandPalette";
 import { AccountMenu, MoreSheet, SpaceMenu } from "@/components/shell/Menus";
@@ -121,10 +120,9 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
             ))}
           </div>
           <div className="sd-foot">
-            <LatestOnRecord />
             <FolkVignette className="sd-art" />
             <div className="sd-foot-row"><LanguageSwitcher /><FeedbackButton label="Feedback" /></div>
-            <div className="sd-foot-row"><Link href="/" className="sd-site">Main site</Link><Link href="/art-credits" className="sd-site">Art credits</Link></div>
+            <div className="sd-foot-row"><Link href="/" className="sd-site">Main site</Link></div>
           </div>
         </aside>
 

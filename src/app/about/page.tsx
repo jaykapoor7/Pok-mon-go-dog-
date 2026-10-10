@@ -133,7 +133,7 @@ export default async function AboutPage() {
                 </li>
               ))}
             </ol>
-            <p className="co-more"><Link href="/evidence">How each source was checked <ArrowUpRight size={14} /></Link></p>
+            <p className="co-more"><Link href="/evidence">How each source was checked <ArrowUpRight size={14} /></Link> <span aria-hidden>·</span> <Link href="/art-credits">Illustration credits <ArrowUpRight size={14} /></Link></p>
           </div>
         </section>
 

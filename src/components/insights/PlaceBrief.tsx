@@ -155,6 +155,8 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
      dataset, which is well within its cap. Public insights are city-level. */
   const cityRoll = useMemo(() => (cityName ? cityList.find((c) => c.city === cityName) ?? null : null), [cityName, cityList]);
   const cityWhole = !isLocality && !!cityRoll;
+  /* Every city on the record: the country's count, shown beside the place's own share. */
+  const indiaCare = useMemo(() => cityList.reduce((t, c) => ({ animals: t.animals + Number(c.animals || 0), sterilised: t.sterilised + Number(c.sterilised || 0), vaccinated: t.vaccinated + Number(c.vaccinated || 0) }), { animals: 0, sterilised: 0, vaccinated: 0 }), [cityList]);
   const mapBase = scope === "org" ? "/partner/map" : "/map";
   const mapHref = (mode: string, extra: Record<string, string> = {}) => {
     const q = new URLSearchParams({ mode, ...extra });
@@ -343,7 +345,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
       else out.push({
         id: "abc", q: "How many animals here are sterilised and vaccinated?",
         a: <><b>{pct(sterYes, total)}%</b> recorded as sterilised, <b>{pct(vaccYes, total)}%</b> as vaccinated.</>,
-        detail: <>Of {total.toLocaleString("en-IN")} animals on the record. The rest is not recorded as such.</>,
+        detail: <>Of {total.toLocaleString("en-IN")} animals on the record here. The rest is not recorded as such. Across India, {indiaCare.sterilised.toLocaleString("en-IN")} animals are recorded as sterilised and {indiaCare.vaccinated.toLocaleString("en-IN")} as vaccinated, of {indiaCare.animals.toLocaleString("en-IN")} on the record. <Link href="/explore#care">By city</Link>.</>,
         evidence: (
           <div className="ib-bands">
             <p>ABC</p><ShareBand height={10} legend={false} total={total} parts={[{ key: "y", n: sterYes, color: "var(--sp-blue)", label: "Sterilised" }, { key: "u", n: total - sterYes, hatch: true, label: "Not recorded as sterilised" }]} />
@@ -371,7 +373,7 @@ export function PlaceBrief({ scope, tail = null, notice = null, userKey = null }
 
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ds, ix, place, scopeSets, idx, allIdx, cityIdx, isLocality, guard, fromDay, today, cityWhole, cityRoll]);
+  }, [ds, ix, place, scopeSets, idx, allIdx, cityIdx, isLocality, guard, fromDay, today, cityWhole, cityRoll, indiaCare]);
 
   const shown = answers.filter((x): x is Extract<Answer, { a: ReactNode }> => "a" in x);
   const animalsHere = useMemo(() => (cityWhole ? cityRoll!.animals : ds && ix && scopeSets ? animalKnowledge(ds, ix, scopeSets.here, today).total : 0), [cityWhole, cityRoll, ds, ix, scopeSets, today]);

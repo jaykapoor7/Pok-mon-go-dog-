@@ -62,8 +62,8 @@ export function AccessCodeRequest({ role }: { role: "individual" | "feeder" }) {
             <p className="join-lede">
               Your code is ready, but StrayPaw could not deliver it to {email || "that address"} just
               now. Nothing is lost: asking again later sends the same code,
-              it does not make a second one. If it keeps failing, write to{" "}
-              <a href="mailto:jaykapoor7@outlook.com">jaykapoor7@outlook.com</a> and
+              it does not make a second one. If it keeps failing, use the{" "}
+              <Link href="/contact">contact form</Link> and
               we will pass it on.
             </p>
             <button type="button" className="join-go" onClick={() => setSent(false)}>Try again <ArrowRight size={16} /></button>

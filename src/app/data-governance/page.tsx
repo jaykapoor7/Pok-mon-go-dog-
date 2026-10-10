@@ -49,7 +49,7 @@ export default function DataGovernancePage() {
           items={[
             { n: "01", title: "Animal records persist", body: "The register's value is continuity: an animal's history has to outlast the people who recorded it, and corrections are appended rather than overwritten so the history stays auditable." },
             { n: "02", title: "Your own report", body: "The device that filed a sighting holds a token that lets it withdraw that sighting." },
-            { n: "03", title: "Removal requests", body: "Anyone can ask for a photograph or a record to be reviewed and taken down, including a person who appears in a photograph they did not consent to. Requests go through the report-content route and are reviewed by Jay, who builds StrayPaw." },
+            { n: "03", title: "Removal requests", body: "Anyone can ask for a photograph or a record to be reviewed and taken down, including a person who appears in a photograph they did not consent to. Requests go through the report-content route and are reviewed by the StrayPaw team." },
             { n: "04", title: "Accounts", body: "An account can be closed on request; the animal records it contributed remain, because they describe animals rather than the person who filed them." },
           ]}
         />

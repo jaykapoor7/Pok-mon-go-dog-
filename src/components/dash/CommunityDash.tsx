@@ -42,6 +42,8 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
   const [near, setNear] = useState<PAnimal[] | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const row = cities.find((c) => c.city === city) ?? null;
+  /* All cities on the record, so a city's figure is never mistaken for the country's. */
+  const india = useMemo(() => cities.reduce((a, c) => ({ animals: a.animals + Number(c.animals || 0), sterilised: a.sterilised + Number(c.sterilised || 0), vaccinated: a.vaccinated + Number(c.vaccinated || 0) }), { animals: 0, sterilised: 0, vaccinated: 0 }), [cities]);
   const loaded = ds?.cities.find((c) => c.name === city);
 
   /* The place you set, if it is in this city; otherwise the city centre. */
@@ -104,7 +106,8 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
         { label: "Animals on record", value: row?.animals, note: `${city ?? ""} · all sources`, href: `/map?city=${encodeURIComponent(city ?? "")}` },
         { label: "Flagged needing help", value: row?.needs_help, tone: "hot", note: "Injured or flagged by a reporter" },
         { label: "Open requests", value: row?.open_cases, tone: "blue", note: `of ${fmtN(row?.cases)} recorded` },
-        { label: "Sterilisation recorded", value: row?.sterilised, tone: "care", note: "Unknown is not “no”" },
+        { label: "Sterilised, all India", value: india.sterilised, tone: "care", note: `${city ?? "This city"}: ${fmtN(row?.sterilised)}`, href: "/explore#care" },
+        { label: "Vaccinated, all India", value: india.vaccinated, tone: "care", note: `${city ?? "This city"}: ${fmtN(row?.vaccinated)}`, href: "/explore#care" },
         { label: "You follow", value: follows?.length ?? 0, href: "/following", note: "Saved on this device" },
       ]}
       map={<LiveMap pin={selCell ? <CellCard h3={selCell.h3_r8} title={names.get(selCell.h3_r8) ?? "This area"} facts={`${fmtN(selCell.animals)} animals · ${fmtN(selCell.open_cases)} open requests · ${fmtN(selCell.needs_help)} flagged`} href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`} linkLabel="Open this area on the map" focus={focus} onClose={() => { setSel(null); setFocus(null); }} /> : null} cells={mapCells} tone={L.tone} metric={MEASURE_LABEL[lens]} label={`${city}: ${MEASURE_LABEL[lens]} by cell`} viewport={vp} dotFocus={lens === "needs_help" || lens === "open_cases" ? "hot" : "all"} selected={sel} onCell={(h, id) => { setSel(h); setFocus(id ?? null); }} emptyNote={loading ? "Reading the city…" : `No ${MEASURE_LABEL[lens]} recorded here.`}>

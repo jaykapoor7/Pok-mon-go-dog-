@@ -22,6 +22,11 @@ export type PublicProgramme = {
 export type PublicProgrammeCategory = "vaccination" | "sterilisation" | "treatment" | "study" | "other";
 
 export function programmeCategory(programme: PublicProgramme): PublicProgrammeCategory {
+  /* The programme's own kind is authoritative. "Jamshedpur ABC and anti-rabies programme" is a
+     sterilisation programme; matching "rabies" in its name had filed it under vaccination. */
+  const kind = (programme.kind ?? "").toLowerCase();
+  if (kind === "vaccination" || kind === "sterilisation" || kind === "treatment") return kind;
+  if (kind === "census" || kind === "study" || kind === "survey") return "study";
   const text = `${programme.kind} ${programme.name} ${programme.public_summary ?? ""}`.toLowerCase();
   if (/vaccin|rabies|\barv\b/.test(text)) return "vaccination";
   if (/sterili|\babc\b|spay|neuter/.test(text)) return "sterilisation";

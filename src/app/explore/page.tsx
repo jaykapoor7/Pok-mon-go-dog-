@@ -37,6 +37,15 @@ export default async function ExplorePage() {
     const point = CITIES.find((item) => item.name.toLowerCase() === city.city.toLowerCase());
     return point ? [{ lng: point.lng, lat: point.lat }] : [];
   });
+  /* Sterilisation and vaccination across every city on the record, from the same rollup as the
+     city list. These count animals the records say were sterilised or vaccinated; a register that
+     records a status counts even where it has no dated procedure. */
+  const sterilised = cities.reduce((sum, city) => sum + Number(city.sterilised || 0), 0);
+  const vaccinated = cities.reduce((sum, city) => sum + Number(city.vaccinated || 0), 0);
+  const careRows = cities
+    .filter((city) => Number(city.sterilised || 0) > 0 || Number(city.vaccinated || 0) > 0)
+    .sort((a, b) => Number(b.sterilised || 0) + Number(b.vaccinated || 0) - (Number(a.sterilised || 0) + Number(a.vaccinated || 0)));
+  const latestYear = (iso: string | null | undefined) => { const t = iso ? new Date(iso) : null; return t && !Number.isNaN(+t) ? String(t.getUTCFullYear()) : "not dated"; };
   const top = cities.slice(0, 10);
   const max = Math.max(1, ...top.map((x) => x.animals));
   const rest = cities.slice(10);
@@ -89,6 +98,32 @@ export default async function ExplorePage() {
                 </ol>
                 {rest.length > 0 && <p className="ex-rest">And {rest.length} more: {rest.slice(0, 8).map((x) => x.city).join(", ")}{rest.length > 8 ? "…" : ""}</p>}
               </div>
+            </div>
+          </section>
+          ) : null },
+          { id: "care", label: "Care", node: careRows.length > 0 ? (
+<section className="co-sec" id="care" aria-labelledby="ex-care">
+            <div className="co-sec-in">
+              <header className="co-sec-head">
+                <h2 id="ex-care">Sterilisation and vaccination <em>on the record.</em></h2>
+                <p>{fmt(vaccinated)} of {fmt(animals)} recorded animals are recorded as vaccinated and {fmt(sterilised)} as sterilised, across {fmt(careRows.length)} cities. That is what the records say, not how many animals are protected today: most come from a few large registers, each from the years shown. A dash is not recorded, never zero protected.</p>
+              </header>
+              <ol className="ex-care">
+                <li className="ex-care-head" aria-hidden><span>City</span><span>Animals</span><span>Sterilised</span><span>Vaccinated</span><span>Latest record</span></li>
+                {careRows.map((x) => (
+                  <li key={`${x.city}-${x.state}`}>
+                    <Link href={`/insights?city=${encodeURIComponent(x.city)}`}>
+                      <span className="ex-city"><b>{x.city}</b><small>{x.state}</small></span>
+                      <span data-l="Animals">{fmt(x.animals)}</span>
+                      <span data-l="Sterilised">{Number(x.sterilised || 0) > 0 ? fmt(Number(x.sterilised)) : "–"}</span>
+                      <span data-l="Vaccinated">{Number(x.vaccinated || 0) > 0 ? fmt(Number(x.vaccinated)) : "–"}</span>
+                      <span data-l="Latest record">{latestYear(x.latest_seen)}</span>
+                    </Link>
+                  </li>
+                ))}
+                <li className="ex-care-total"><span><b>All cities</b></span><span>{fmt(animals)}</span><span>{fmt(sterilised)}</span><span>{fmt(vaccinated)}</span><span /></li>
+              </ol>
+              <p className="ex-rest">Campaigns and drives behind these figures are listed with their dates and totals on <Link href="/programmes">the programmes page</Link>.</p>
             </div>
           </section>
           ) : null },

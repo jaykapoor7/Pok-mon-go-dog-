@@ -202,18 +202,9 @@ html .sx.sd .sx-main .rq-kicker { font-family: inherit !important; font-style: n
 
 /* The latest entry on the record. */
 .sx.sd .lor { display: grid; gap: 4px; padding: 12px 4px 14px; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); margin-bottom: 8px; }
-.sx.sd .lor-head { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 12px; font-weight: 500; color: var(--d-mute); }
-.sx.sd .lor-head i { width: 7px; height: 7px; border-radius: 50%; background: rgba(11, 30, 61, 0.35); }
-.sx.sd .lor-head i.is-fresh { background: #f05b40; animation: lor-pulse 2.4s ease-in-out infinite; }
-@keyframes lor-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 91, 64, 0.35); } 50% { box-shadow: 0 0 0 5px rgba(240, 91, 64, 0); } }
-.sx.sd .lor-line { display: grid; gap: 1px; margin: 0; font-size: 13.5px; line-height: 1.35; animation: lor-in 420ms cubic-bezier(.23, 1, .32, 1); }
-.sx.sd .lor-line a { color: var(--d-text); text-decoration: none; font-weight: 500; }
-.sx.sd .lor-line a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.sx.sd .lor-line span { font-size: 12px; color: var(--d-mute); }
-@keyframes lor-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .sx.sd .lor.is-sheet { padding-inline: 16px; margin: 4px 0 0; border-bottom: 0; }
 @media (max-height: 760px) { .sx.sd .sd-side::after { display: none; } }
-@media (prefers-reduced-motion: reduce) { .sx.sd .sd-side::after, .sx.sd .lor-line, .sx.sd .lor-head i.is-fresh { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sx.sd .sd-side::after { animation: none; } }
 /* Site-page bands inside the app drop their decorative line grounds. */
 .sx.sd .sx-main :is(.mk-inapp, .ms-inapp, .ex-inapp) :is(.mk-band, section)::before { content: none !important; display: none !important; }
 

@@ -59,3 +59,21 @@
   .ex-bar { grid-column: 1 / -1; grid-row: 2; }
 }
 @media (pointer: coarse) { .ex-go { min-height: var(--ctl-h); } }
+
+/* Sterilisation and vaccination across India: one row per city, numbers aligned. */
+.ex-care { list-style: none; margin: 18px 0 0; padding: 0; }
+.ex-care li > a, .ex-care li.ex-care-head, .ex-care li.ex-care-total { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr)); gap: 12px; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--hair, rgba(11, 30, 61, 0.1)); color: inherit; text-decoration: none; font-variant-numeric: tabular-nums; }
+.ex-care li > a:hover { background: rgba(11, 30, 61, 0.03); }
+.ex-care .ex-care-head { font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--co-mute, #5d6b7c); }
+.ex-care .ex-care-head span:not(:first-child), .ex-care li > a > span:not(.ex-city), .ex-care .ex-care-total span:not(:first-child) { text-align: right; }
+.ex-care .ex-city { display: grid; gap: 1px; }
+.ex-care .ex-city small { font-size: 12px; color: var(--co-mute, #5d6b7c); }
+.ex-care .ex-care-total { font-weight: 600; border-bottom: 0; border-top: 1px solid currentColor; }
+@media (max-width: 640px) {
+  .ex-care .ex-care-head { display: none; }
+  .ex-care li > a, .ex-care li.ex-care-total { grid-template-columns: 1fr 1fr 1fr; row-gap: 4px; }
+  .ex-care li > a > .ex-city, .ex-care .ex-care-total > span:first-child { grid-column: 1 / -1; }
+  .ex-care li > a > span[data-l]::before { content: attr(data-l); display: block; font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--co-mute, #5d6b7c); }
+  .ex-care li > a > span[data-l]:not(.ex-city) { text-align: left; }
+  .ex-care li > a > span[data-l="Latest record"] { grid-column: auto; }
+}
