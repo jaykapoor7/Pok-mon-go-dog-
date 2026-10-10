@@ -53,11 +53,14 @@ export function Dashboard({ eyebrow, title, subtitle, controls, actions, kpis, m
   );
 }
 
-export function Panel({ title, action, count, children, className = "" }: { title: string; action?: { label: string; href: string }; count?: number | string; children: ReactNode; className?: string }) {
+export function Panel({ title, action, count, note, children, className = "" }: { title: string; action?: { label: string; href: string }; count?: number | string; note?: string; children: ReactNode; className?: string }) {
   return (
     <section className={`db-panel ${className}`} aria-label={title}>
       <header>
-        <h2>{title}{count !== undefined && <span className="db-count">{typeof count === "number" ? count.toLocaleString("en-IN") : count}</span>}</h2>
+        <div className="db-panel-h">
+          <h2>{title}{count !== undefined && <span className="db-count">{typeof count === "number" ? count.toLocaleString("en-IN") : count}</span>}</h2>
+          {note && <p className="db-panel-note">{note}</p>}
+        </div>
         {action && <Link href={action.href}>{action.label} <ArrowUpRight size={14} aria-hidden /></Link>}
       </header>
       <div className="db-panel-b">{children}</div>

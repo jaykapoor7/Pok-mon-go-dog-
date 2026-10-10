@@ -14,6 +14,8 @@
    phone and only centres when there is room to spare. */
 .join-shell { min-height: 100dvh; background: var(--sp-shell, #f3ede4); }
 .join-page { min-height: calc(100dvh - 72px); padding: 20px; }
+/* Clear the floating Report action on a phone so it never overlaps the card. */
+@media (max-width: 760px) { .join-page { padding-bottom: 36px; } }
 .join-wrap {
   min-height: calc(100dvh - 100px);
   display: grid;

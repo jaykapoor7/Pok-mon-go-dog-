@@ -40,12 +40,15 @@ export function HeroPlate({ city, box, rings, events }: Props) {
   const run = useRef<() => void>(() => {});
   const n = events.length / 3;
   const lastDay = n ? events[(n - 1) * 3 + 1] : 0;
-  const finalTally = (): Tally => {
+  /* The meter shows the sample's settled totals, always. It is deliberately
+     NOT driven by the fill-in animation: the map paints in over ~9s, but the
+     numbers and month a reader (or a screenshot) sees are the final, honest
+     figures from the first frame, never a half-counted "0 care · Feb 2025". */
+  const final = ((): Tally => {
     const cells = new Set<number>(); let cases = 0, care = 0;
     for (let i = 0; i < n; i++) { cells.add(events[i * 3]); if (events[i * 3 + 2] === 0) cases++; else care++; }
     return { day: lastDay, records: n, cases, care, cells: cells.size };
-  };
-  const [t, setT] = useState<Tally>(finalTally);
+  })();
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -70,9 +73,11 @@ export function HeroPlate({ city, box, rings, events }: Props) {
       const fit = () => {
         if (!map) return;
         const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
+        /* On a phone the headline fills the upper ~two thirds, so the city is
+           dropped into the lower band where the scrim opens up and it reads. */
         const pad = w > 1100
           ? { top: 70, bottom: 150, left: Math.min(620, w * 0.44), right: 40 }
-          : w > 760 ? { top: 60, bottom: 150, left: w * 0.4, right: 24 } : { top: 20, bottom: 20, left: 12, right: 12 };
+          : w > 760 ? { top: 60, bottom: 150, left: w * 0.4, right: 24 } : { top: Math.round(h * 0.58), bottom: Math.max(56, Math.round(h * 0.08)), left: 18, right: 18 };
         if (pad.left + pad.right > w - 80 || pad.top + pad.bottom > h - 80) { pad.top = pad.bottom = 20; }
         map.fitBounds(box, { padding: pad, animate: false });
       };
@@ -141,14 +146,14 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
           const cursor = first + (lastDay - first) * e;
           step(cursor);
-          if (now - lastPaint > 140 || p === 1) { flush(cursor); lastPaint = now; setT({ day: cursor, ...tally }); }
+          if (now - lastPaint > 140 || p === 1) { flush(cursor); lastPaint = now; }
           if (p < 1) raf = requestAnimationFrame(frame);
           else finish();
         };
         /* Drawing the fill-in keeps the main thread busy. The moment someone
            reaches for anything (a link, a button, a key) the city is shown
            finished, so their click is not queued behind the animation. */
-        const interrupt = () => { if (idx < n || recent.length) { cancelAnimationFrame(raf); step(lastDay); setT({ day: lastDay, ...tally }); finish(); } };
+        const interrupt = () => { if (idx < n || recent.length) { cancelAnimationFrame(raf); step(lastDay); finish(); } };
         const listen = (on: boolean) => {
           for (const type of ["pointerdown", "keydown"] as const) {
             if (on) window.addEventListener(type, interrupt, true);
@@ -163,7 +168,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           Object.assign(tally, { records: 0, cases: 0, care: 0, cells: 0 });
           reveal(-1, true);
           if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            step(lastDay); flush(lastDay + 100, true); setT({ day: lastDay, ...tally }); setPlaying(false); return;
+            step(lastDay); flush(lastDay + 100, true); setPlaying(false); return;
           }
           setPlaying(true);
           listen(true);
@@ -207,9 +212,9 @@ export function HeroPlate({ city, box, rings, events }: Props) {
       <div className="ld-meter" aria-live="off">
         <p className="ld-meter-when">
           <span>Recent sample · {city}</span>
-          <b className="sys-mono">{monthOf(t.day)}</b>
+          <b className="sys-mono">{monthOf(final.day)}</b>
         </p>
-        <p className="ld-meter-count sys-mono"><b>{t.cases.toLocaleString("en-IN")}</b> cases · <b>{t.care.toLocaleString("en-IN")}</b> care</p>
+        <p className="ld-meter-count sys-mono"><b>{final.cases.toLocaleString("en-IN")}</b> cases · <b>{final.care.toLocaleString("en-IN")}</b> care</p>
         <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
           {playing ? "Filling in…" : "Replay"}
         </button>

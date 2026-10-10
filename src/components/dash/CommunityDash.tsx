@@ -104,8 +104,8 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
       controls={<div className="db-place"><PlaceSearch options={options} onPick={pick} label="Change place" placeholder="Change place…" /><button type="button" className="x-btn" onClick={findMe} disabled={locating}><Crosshair size={15} aria-hidden /> {locating ? "Locating…" : "Near me"}</button></div>}
       kpis={[
         { label: "Animals on record", value: row?.animals, note: `${city ?? ""} · all sources`, href: `/map?city=${encodeURIComponent(city ?? "")}` },
-        { label: "Flagged needing help", value: row?.needs_help, tone: "hot", note: "Injured or flagged by a reporter" },
-        { label: "Open requests", value: row?.open_cases, tone: "blue", note: `of ${fmtN(row?.cases)} recorded` },
+        { label: "Flagged needing help", value: row?.needs_help, tone: "hot", note: `Across ${city ?? "the city"} · injured or a reporter asked` },
+        { label: "Open requests", value: row?.open_cases, tone: "blue", note: `Across ${city ?? "the city"} · of ${fmtN(row?.cases)} case records` },
         { label: "Sterilised, all India", value: india.sterilised, tone: "care", note: `${city ?? "This city"}: ${fmtN(row?.sterilised)}`, href: "/explore#care" },
         { label: "Vaccinated, all India", value: india.vaccinated, tone: "care", note: `${city ?? "This city"}: ${fmtN(row?.vaccinated)}`, href: "/explore#care" },
         { label: "You follow", value: follows?.length ?? 0, href: "/following", note: "Saved on this device" },
@@ -115,7 +115,7 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
         <Link href={`/map?city=${encodeURIComponent(city ?? "")}`} className="db-maplink">Open full map <ArrowUpRight size={14} aria-hidden /></Link>
       </LiveMap>}
       side={<>
-        <Panel title="Needs someone nearby" count={near ? hot.length : undefined} action={{ label: "Report", href: centre ? `/report?lat=${centre[1]}&lng=${centre[0]}` : "/report" }}>
+        <Panel title="Needs someone near you" note={`Flagged animals within ${RADIUS} km`} count={near ? hot.length : undefined} action={{ label: "Report a dog", href: centre ? `/report?lat=${centre[1]}&lng=${centre[0]}` : "/report" }}>
           <ItemList items={attention} loading={near === null} empty={<>No animal within {RADIUS} km is flagged right now. That only means nobody has recorded one. <Link href="/report" className="db-inline">Report a dog <Radio size={13} aria-hidden /></Link></>} />
         </Panel>
         <Panel title="Followed through" action={{ label: "Stories", href: `/stories${city ? `?city=${encodeURIComponent(city)}` : ""}` }}>

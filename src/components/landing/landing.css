@@ -164,8 +164,12 @@
   .ld-levels a { grid-template-columns: 52px minmax(0, 1fr); column-gap: var(--sp-4); row-gap: var(--sp-3); padding: var(--sp-4) 0; }
   .ld-levels .sg { width: 52px; height: 52px; }
   .ld-lv-go { grid-column: 2; justify-self: start; }
-  .ld-plate { position: absolute; inset: 0; height: auto; min-height: 0; max-height: none; opacity: .42; }
-  .ld-stage::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(7,20,43,.97) 0%, rgba(7,20,43,.83) 66%, rgba(7,20,43,.38) 100%); }
+  /* The living map is nearly full strength on a phone; a vertical scrim keeps
+     the headline legible at the top, opens up so the city's lights read
+     clearly in the band below the copy, then darkens again so the meter sits
+     on firm ground. The map fit() in HeroPlate drops the city into that band. */
+  .ld-plate { position: absolute; inset: 0; height: auto; min-height: 0; max-height: none; opacity: .82; }
+  .ld-stage::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(7,20,43,.95) 0%, rgba(7,20,43,.9) 48%, rgba(7,20,43,.55) 64%, rgba(7,20,43,.2) 78%, rgba(7,20,43,.35) 90%, rgba(7,20,43,.82) 100%); }
   .ld-meter { left: var(--sp-gutter); right: var(--sp-gutter); bottom: var(--sp-3); z-index: 3; justify-content: space-between; gap: var(--sp-3); }
   .ld-meter-when { min-width: 0; flex-wrap: wrap; gap: 2px var(--sp-2); }
   .ld-meter-when span { font-size: 10px; letter-spacing: 0.08em; }
@@ -684,6 +688,17 @@
 .rx-card-head b { font-size: 12.5px; font-weight: 500; letter-spacing: 0.02em; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
 .rx-card-photo { position: relative; aspect-ratio: 3 / 2; overflow: hidden; border-radius: var(--sp-radius-sm); background: var(--sp-shell); }
 .rx-card-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* Intentional loading placeholder: the warm register paper with a faint paw,
+   not a bare rectangle; the photo fades in once decoded (FramedPhoto). */
+.rx-card-photo::before, .rx-tile::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background: var(--sp-shell) center / 34% no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%230b1e3d' fill-opacity='0.06'%3E%3Cellipse cx='50' cy='64' rx='19' ry='15'/%3E%3Cellipse cx='28' cy='40' rx='8' ry='11'/%3E%3Cellipse cx='44' cy='30' rx='7.5' ry='11'/%3E%3Cellipse cx='60' cy='30' rx='7.5' ry='11'/%3E%3Cellipse cx='74' cy='42' rx='8' ry='11'/%3E%3C/g%3E%3C/svg%3E");
+}
+.rx-tile::before { background-color: rgba(239, 231, 218, 0.07); background-size: 46%; }
+.rx-card-photo img, .rx-tile img { position: relative; z-index: 1; opacity: 0; transition: opacity 0.4s var(--sp-ease); }
+.rx-card-photo img[data-loaded], .rx-tile img[data-loaded] { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .rx-card-photo img, .rx-tile img { transition: none; } }
 .rx-card-body { position: relative; display: grid; gap: var(--sp-2); padding: 0 2px 2px; }
 .rx-card-body h3 { margin: 0; padding-right: 82px; font-family: var(--font-serif-stack); font-style: italic; font-weight: 400; font-size: 23px; line-height: 1.12; letter-spacing: -0.01em; color: var(--sp-ink); text-wrap: balance; }
 

@@ -19,8 +19,8 @@ const FILL = 0.88;
 /** The furthest in a photo is taken beyond a plain cover crop. */
 const MAX_ZOOM = 2.4;
 
-export function FramedPhoto({ src, alt, sid, lazy = false }: {
-  src: string; alt: string; sid: string | null | undefined; lazy?: boolean;
+export function FramedPhoto({ src, alt, sid, lazy = false, priority = false }: {
+  src: string; alt: string; sid: string | null | undefined; lazy?: boolean; priority?: boolean;
 }) {
   const ref = useRef<HTMLImageElement>(null);
 
@@ -49,13 +49,26 @@ export function FramedPhoto({ src, alt, sid, lazy = false }: {
         width: `${rw}px`, height: `${rh}px`, left: `${left}px`, top: `${top}px`,
       });
     };
-    if (img.complete) place();
-    img.addEventListener("load", place);
+    /* Fade the photo in over its placeholder once it has decoded, so the card
+       never flashes a bare beige rectangle on the way in. */
+    const reveal = () => { img.dataset.loaded = ""; };
+    if (img.complete) { place(); reveal(); }
+    const onLoad = () => { place(); reveal(); };
+    img.addEventListener("load", onLoad);
     const ro = new ResizeObserver(place);
     ro.observe(box);
-    return () => { img.removeEventListener("load", place); ro.disconnect(); };
+    return () => { img.removeEventListener("load", onLoad); ro.disconnect(); };
   }, [src, sid]);
 
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img ref={ref} src={src} alt={alt} loading={lazy ? "lazy" : undefined} decoding="async" />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      ref={ref}
+      src={src}
+      alt={alt}
+      loading={lazy ? "lazy" : "eager"}
+      fetchPriority={priority ? "high" : undefined}
+      decoding="async"
+    />
+  );
 }

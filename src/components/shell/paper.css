@@ -324,6 +324,13 @@
 
 .sx.sd .ax-cap { position: absolute; z-index: 4; top: calc(var(--ax-gap) + 4px); left: calc(var(--ax-gap) + 10px); max-width: min(520px, calc(100% - 120px)); pointer-events: none; color: var(--ax-ink); }
 .sx.sd .ax-cap > * { pointer-events: auto; }
+/* A soft scrim lifts the place heading off the basemap and its labels, so the
+   title and controls stay legible over a busy map (the text-shadow halo alone
+   is not enough against dense OSM labels, especially on a phone). */
+.sx.sd .sm.ax { --ax-scrim: rgba(244, 243, 235, 0.86); }
+.sx.sd .sm.ax.is-night { --ax-scrim: rgba(8, 22, 49, 0.82); }
+.sx.sd .ax-cap::before { content: ""; position: absolute; z-index: -1; inset: -30px -60px -22px -26px; background: radial-gradient(125% 118% at 22% 20%, var(--ax-scrim) 0%, var(--ax-scrim) 32%, transparent 74%); pointer-events: none; }
+@media (max-width: 760px) { .sx.sd .ax-cap::before { inset: -40px -40px -22px -26px; background: radial-gradient(135% 120% at 30% 24%, var(--ax-scrim) 0%, var(--ax-scrim) 44%, transparent 82%); } }
 .sx.sd .ax-cap .ax-ladder { display: flex; align-items: center; gap: 2px 8px; margin: 0; font-size: 13.5px; color: var(--ax-ink); text-shadow: var(--ax-halo); }
 .sx.sd .ax-cap .ax-ladder button { min-height: 32px; padding: 0 2px; margin: 0; border: 0; background: none; color: inherit; opacity: 0.7; font: inherit; font-weight: 500; cursor: pointer; text-shadow: inherit; }
 .sx.sd .ax-cap .ax-ladder button:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }

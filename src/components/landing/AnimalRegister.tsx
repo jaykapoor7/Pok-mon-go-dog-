@@ -80,7 +80,7 @@ function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
         <b>{c.straypaw_id ?? "On file"}</b>
       </header>
       <div className="rx-card-photo">
-        <FramedPhoto src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photographed by a resident`} sid={c.straypaw_id} />
+        <FramedPhoto src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photographed by a resident`} sid={c.straypaw_id} priority />
       </div>
       <div className="rx-card-body">
         <span className="rx-stamp" aria-hidden><small>On file</small><b>{c.city ?? "India"}</b></span>

@@ -181,6 +181,11 @@
   .sx-tabs-disc { display: grid; place-items: center; width: 44px; height: 44px; margin-top: -14px; border-radius: 50%; background: var(--x-flame); color: #fff; box-shadow: 0 6px 18px -6px rgba(240, 91, 64, 0.7), 0 0 0 4px var(--x-ink); transition: transform var(--x-fast) var(--x-ease); }
   .sx-tabs-action:active .sx-tabs-disc { transform: scale(0.94); }
   .sx-foot { padding-bottom: calc(20px + var(--x-tabs)); }
+  /* The report is a focused, self-contained flow with its own back control:
+     the app's bottom tab bar is hidden so it never clips the photo step or
+     the "I can't take one" skip, and the step gets the full screen height. */
+  .sx.sd.is-reporting .sx-tabs { display: none; }
+  .sx.sd.is-reporting .sx-main { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
 
 /* ── command palette ─────────────────────────────────────────────────── */

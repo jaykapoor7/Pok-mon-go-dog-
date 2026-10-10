@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, GeoJSONSource } from "maplibre-gl";
 import { supportsWebGL2, groundStyle, underlay } from "@/components/map/basemap";
-import { ATLAS_PAPER as NIGHT } from "@/components/spatial/atlas-palette";
+import { ATLAS_NIGHT as NIGHT } from "@/components/spatial/atlas-palette";
 
 export type Light = { lng: number; lat: number; help?: boolean };
 

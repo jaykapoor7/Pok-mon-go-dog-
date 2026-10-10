@@ -24,7 +24,7 @@ export const metadata = {
    /stories, the sources are /evidence. Recorded animals, not population.
    ════════════════════════════════════════════════════════════════════ */
 
-const INDIA: [number, number, number, number] = [68.0, 6.5, 97.5, 35.8];
+const INDIA: [number, number, number, number] = [68.0, 7.0, 92.0, 35.6];
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export default async function ExplorePage() {

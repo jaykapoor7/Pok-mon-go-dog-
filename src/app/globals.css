@@ -722,6 +722,15 @@ h1 em, h2 em, h3 em { font-style: normal; }
   .snotice { max-width: none; }
 }
 
+/* Inside the app shell the notice must clear the fixed sidebar (desktop) and the
+   bottom tab bar (phone); marketing pages keep the default bottom-left. */
+@media (min-width: 761px) {
+  body:has(.sx.sd) .snotice { left: 264px; right: auto; width: min(460px, calc(100vw - 280px)); }
+}
+@media (max-width: 760px) {
+  body:has(.sx.sd) .snotice { bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+
 /* Keep onboarding and sign-in readable without stacked install/storage prompts. */
 body:has([role="dialog"]) :is(.sp-install-prompt, .snotice) { display: none; }
 
