@@ -34,7 +34,7 @@ export default async function ForNgosPage() {
     getLandingStory().catch(() => null),
   ]);
   const ex = kh?.example ?? null;
-  const ngos = dir.filter((o) => o.kind === "Field partner" || o.kind === "Partner NGO");
+  const ngos = dir.filter((o) => o.kind === "Field partner" || o.kind === "Listed NGO");
 
   const rows = [
     { t: "Cases", d: "Community reports and your own intakes become one queue: assigned, followed up, closed with an outcome." },
@@ -136,14 +136,14 @@ export default async function ForNgosPage() {
           <section className="co-sec" aria-labelledby="co-who">
             <div className="co-sec-in is-stack">
               <header className="co-sec-head">
-                <h2 id="co-who">Already <em>on the record.</em></h2>
+                <h2 id="co-who">NGOs <em>on StrayPaw.</em></h2>
               </header>
               <ul className="ngo-marks">
                 {ngos.slice(0, 10).map((o) => (
                   <li key={o.id}><Link href={`/org/${o.slug}`}><OrgMark name={o.name} logoUrl={o.logoUrl} size={34} /><span><b>{o.name}</b><small>{[o.city, o.state].filter(Boolean).join(", ")}</small></span></Link></li>
                 ))}
               </ul>
-              <p className="co-more"><Link href="/orgs">All partner NGOs <ArrowUpRight size={14} /></Link></p>
+              <p className="co-more"><Link href="/orgs">Partners, NGOs and data sources <ArrowUpRight size={14} /></Link></p>
             </div>
           </section>
         )}

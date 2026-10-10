@@ -53,7 +53,7 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
   ]);
   const partner = partners.find((p) => p.id === org.id);
   const campaigns = allCampaigns.filter((c) => c.ngo_slug === org.slug);
-  const kind = partner ? "Field partner" : listed.members.some((m) => m.id === org.id) ? "Partner NGO" : orgKind(org.name, extra.partner_status);
+  const kind = partner ? "Field partner" : listed.sources.some((m) => m.id === org.id) ? "Data source" : orgKind(org.name, extra.partner_status);
   const since = partner ? month(partner.partneredAt ?? extra.partnered_at) : null;
   const place = [org.city, org.state].filter(Boolean).join(", ") || org.area;
   const figures = impact ? [
@@ -98,7 +98,11 @@ export default async function OrgProfilePage({ params }: { params: Promise<{ slu
 
         <p className="op-context">
           <span className="sys-mono">Public organisation record</span>
-          Identity and contact information come from the organisation listing. Figures, animals and coverage appear only where a published StrayPaw record supports them.
+          {kind === "Data source"
+            ? "StrayPaw uses records this organisation has published, under their licence. That is not a partnership, and the organisation has not necessarily reviewed how StrayPaw presents them."
+            : kind === "Listed NGO"
+              ? "Listed in the StrayPaw directory. Listing is not a partnership. Figures, animals and coverage appear only where a published StrayPaw record supports them."
+              : "Identity and contact information come from the organisation listing. Figures, animals and coverage appear only where a published StrayPaw record supports them."}
         </p>
 
         {figures.length > 0 && (

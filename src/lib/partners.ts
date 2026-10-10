@@ -47,10 +47,12 @@ export async function getOperationalPartners(): Promise<Partner[]> {
   }));
 }
 
-/* ── Everyone else on the platform ─────────────────────────────────────
-   Organisations set up on StrayPaw (the ones moderation gave an invite code
+/* ── Everyone else on the record ───────────────────────────────────────
+   Organisations listed on StrayPaw (the ones moderation gave an invite code
    or an email invite), and the organisations whose published data StrayPaw
-   has imported. Names, places and their own one-line descriptions only. */
+   has imported. Neither is a partnership: only `ngos.partner_status` of
+   operational_partner or pilot_partner is. Names, places and their own
+   one-line descriptions only. */
 export type OrgListing = {
   id: string; name: string; slug: string; city: string | null; state: string | null;
   mission: string | null; website: string | null; logoUrl: string | null;
@@ -83,22 +85,28 @@ export async function getListedOrganisations(): Promise<{ members: OrgListing[];
     if (!codes.error && !emails.error) invited = new Set([...(codes.data ?? []), ...(emails.data ?? [])].map((x: any) => x.ngo_id));
   }
   const partner = (s: string) => s === "operational_partner" || s === "pilot_partner";
+  const source = (s: string) => s === "data_source" || s === "record_contributor";
   return {
-    members: rows.filter((r) => r.partner_status !== "data_source" && !partner(r.partner_status) && (!invited || invited.has(r.id))).map(toListing),
-    sources: rows.filter((r) => r.partner_status === "data_source").map(toListing),
+    members: rows.filter((r) => !source(r.partner_status) && !partner(r.partner_status) && (!invited || invited.has(r.id))).map(toListing),
+    sources: rows.filter((r) => source(r.partner_status)).map(toListing),
   };
 }
 
 /* ── The directory: every organisation on the record, in one list ──────
-   A quiet tag says what each one is, so a municipal corporation or an open
-   data platform whose records StrayPaw draws on never reads as a partner
-   NGO. Source organisations are plainly credited as contributors rather
-   than being described by their import mechanism. */
-export type OrgKind = "Field partner" | "Partner NGO" | "NGO" | "Record contributor";
+   The kind says what StrayPaw's relationship to each one actually is, so a
+   municipal corporation or an open data platform whose published records
+   StrayPaw draws on never reads as a partner:
+     Field partner      a verified working relationship (partner_status
+                        operational_partner or pilot_partner)
+     Listed NGO         an organisation listed in the directory or invited
+                        to use StrayPaw; listing is not a partnership
+     Data source        an organisation or platform whose published data was
+                        imported under its licence; no relationship implied */
+export type OrgKind = "Field partner" | "Listed NGO" | "Data source";
 
 export function orgKind(_name: string, status: string | null | undefined): OrgKind {
   if (status === "operational_partner" || status === "pilot_partner") return "Field partner";
-  return status === "data_source" ? "Record contributor" : "NGO";
+  return status === "data_source" || status === "record_contributor" ? "Data source" : "Listed NGO";
 }
 
 export type DirectoryOrg = OrgListing & { kind: OrgKind };
@@ -111,14 +119,14 @@ export async function getPartnerDirectory(): Promise<DirectoryOrg[]> {
     if (seen.has(p.id)) continue; seen.add(p.id);
     out.push({ id: p.id, name: p.name, slug: p.slug, city: p.city, state: p.state, mission: p.mission, website: null, logoUrl: p.logoUrl, kind: "Field partner" });
   }
-  // Organisations given dashboard access (an invite code or email invite) are partner NGOs.
+  // Organisations given dashboard access (an invite code or email invite) are listed, not partners.
   for (const o of listed.members) {
     if (seen.has(o.id)) continue; seen.add(o.id);
-    out.push({ ...o, kind: "Partner NGO" });
+    out.push({ ...o, kind: "Listed NGO" });
   }
   for (const o of listed.sources) {
     if (seen.has(o.id)) continue; seen.add(o.id);
-    out.push({ ...o, kind: orgKind(o.name, "data_source") });
+    out.push({ ...o, kind: "Data source" });
   }
   return out;
 }

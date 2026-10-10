@@ -168,3 +168,8 @@
 @media (pointer: coarse) {
   .pp-link, .op-links a, .cp-by a { min-height: var(--ctl-h); }
 }
+
+/* Directory groups: field partners, listed NGOs and data sources are kept apart. */
+.pp-groups { display: grid; gap: var(--sp-6, 32px); }
+.pp-gh { margin: 0 0 4px; font-size: 18px; font-weight: 600; letter-spacing: -0.015em; color: var(--sp-ink); }
+.pp-gp { margin: 0 0 var(--sp-3, 12px); font-size: 14px; color: var(--sp-body); max-width: 62ch; }
