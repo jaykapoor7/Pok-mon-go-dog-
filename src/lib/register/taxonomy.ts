@@ -112,11 +112,11 @@ export const STATUSES = ["closed", "other_ngo", "in_progress", "open", "no_actio
 export type StatusClass = (typeof STATUSES)[number];
 
 export const STATUS_META: Record<StatusClass, { label: string; short: string; note: string; open: boolean }> = {
-  closed: { label: "Closed", short: "Closed", note: "work done and closed", open: false },
-  other_ngo: { label: "Handed to another organisation", short: "Other NGO", note: "rescued by a partner", open: false },
-  in_progress: { label: "In progress", short: "In progress", note: "being worked", open: true },
+  closed: { label: "Closed", short: "Closed", note: "closed, as recorded", open: false },
+  other_ngo: { label: "Handed to another organisation", short: "Other NGO", note: "recorded as handled by another organisation", open: false },
+  in_progress: { label: "In progress", short: "In progress", note: "open, with work recorded", open: true },
   open: { label: "Open", short: "Open", note: "not yet started", open: true },
-  no_action: { label: "Closed without field action", short: "No action", note: "closed without intervention", open: false },
+  no_action: { label: "Closed without field action", short: "No action", note: "closed with no field action recorded", open: false },
   not_attended: { label: "Not attended", short: "Not attended", note: "no one reached it", open: false },
   unknown: { label: "Status not recorded", short: "Not recorded", note: "status never entered", open: false },
 };

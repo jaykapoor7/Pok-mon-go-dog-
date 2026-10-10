@@ -357,7 +357,7 @@ export default function ReportPage() {
                   <ol>
                     <li><i>01</i><span>Your report waits for a quick review before it is public.</span></li>
                     <li><i>02</i><span>Once accepted, it becomes a shared animal record on the map.</span></li>
-                    <li><i>03</i><span>Care teams working nearby can take it into their field work.</span></li>
+                    <li><i>03</i><span>Care teams working nearby can see it. Whether one takes it on is up to them.</span></li>
                   </ol>
                 </section>
                 {condition === "injured" && <p className="rq-urgent">Marked as hurt or sick for the reviewer. StrayPaw is not an emergency service and cannot promise a response time. If the dog is in immediate danger, call a local animal ambulance or emergency vet.</p>}
