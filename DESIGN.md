@@ -28,12 +28,20 @@
 >   (Report). Dark blue grounds are kept for small accents, never whole pages.
 > * **Type.** One face: DM Sans. No italics, no serif, no spaced mono
 >   capitals. Weight and size carry hierarchy.
+> * **Space and main site are always one tap away.** The space switcher sits
+>   at the top of the sidebar and, on a phone, in the top bar; its menu also
+>   holds "Main site" and the introduction. The More sheet lists the space's
+>   own pages that do not fit on the tab bar first.
 > * **Areas are round.** H3 cells are drawn as inset circles
 >   (`lib/spatial/round.ts`: `roundRing`, `roundCell`); no hexagons anywhere
 >   in the app, including fallbacks (`HexPlate round`).
 > * **Map.** It is called the map, never "Atlas", in every label. On the
 >   India map, zooming in near a city (zoom ≥ 8.5) enters that city at the
->   same view, so its areas and then its animals appear without a click.
+>   same view, so its areas and then its animals appear without a click;
+>   zooming back out (below 6.5) returns to all of India, and panning to
+>   another city while zoomed in switches to it. One continuous map, never a
+>   locked city. The map is flat by default; 3D columns appear only when the
+>   3D button is pressed (`?view=3d`).
 >   `LiveMap` on a daylight basemap with an easy zoom ladder:
 >   choropleth → counts per area → one dot per recorded animal from z 12.6
 >   (fetched per visible area from `/api/spatial/patch`). Selection is a

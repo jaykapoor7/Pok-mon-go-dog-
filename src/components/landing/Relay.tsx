@@ -34,6 +34,7 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const waited = (d: number) => (d < 14 ? `${d} day${d === 1 ? "" : "s"}` : d < 60 ? `${Math.round(d / 7)} weeks` : `${Math.round(d / 30)} months`);
 const STEPS = ["Resident", "NGO", "Municipality"];
+const NOW = ["A resident sends it from a phone", "The NGO's queue picks it up", "It lights up on the city's map"];
 const HOLD = [2200, 1700, 2600, 3600]; // how long each moment is held, in ms
 
 export function Relay({ city, desk, report }: { city: string; desk: Desk; report: Report | null }) {
@@ -69,8 +70,10 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
   return (
     <figure ref={el} className={`rl is-s${step}`} aria-label={`One real request from ${city}, ${report.condition} in ${report.locality} on ${day(report.date)}, record ${report.straypawId}: reported by a resident, worked by an NGO and visible to the municipality.`}>
       <ol className="rl-steps" aria-hidden="true">
-        {STEPS.map((s, i) => <li key={s} className={i === screen ? "is-on" : i < screen ? "is-past" : ""}><i />{s}</li>)}
+        {STEPS.map((s, i) => <li key={s} className={i === screen ? "is-on" : i < screen ? "is-past" : ""} style={{ ["--hold" as string]: `${i === 0 ? HOLD[0] + HOLD[1] : i === 1 ? HOLD[2] : HOLD[3]}ms` }}><i />{s}<b className="rl-fill" /></li>)}
       </ol>
+      {/* On a phone, one line says what is happening on the screen shown. */}
+      <p className="rl-now" key={screen} aria-hidden="true">{NOW[screen]}</p>
 
       <div className="rl-stage" aria-hidden="true">
         <svg className="rl-wire" viewBox="0 0 1200 420" preserveAspectRatio="none">
@@ -122,26 +125,21 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
 
         {/* 3 — the municipality's ward plate */}
         <div className={`rl-screen rl-map ${screen === 2 ? "is-on" : ""}`}>
-          <p className="rl-bar"><StrayPawMark size={16} /> <b>Municipality · wards</b><span>{city}</span></p>
+          <p className="rl-bar"><StrayPawMark size={16} /> <b>Municipality · city view</b><span>{city}</span></p>
           {muni && (
             <div className={`rl-plate ${step >= 3 ? "is-lit" : ""}`}>
-              <svg viewBox={`0 0 ${PW} ${PH}`} role="img" aria-label={`Wards around ${report.locality}, shaded by open requests on the record, with the report's own area marked`}>
+              <svg viewBox={`0 0 ${PW} ${PH}`} role="img" aria-label={`Areas around ${report.locality}, sized by open requests on the record, with the report's own area marked`}>
                 <defs><clipPath id="rl-frame"><rect width={PW} height={PH} /></clipPath></defs>
                 <g clipPath="url(#rl-frame)">
-                  {muni.grat.map((g, i) => <line key={i} className="rl-grat" x1={g.x1} y1={g.y1} x2={g.x2} y2={g.y2} />)}
-                  {muni.edge.map((d, i) => <path key={i} d={d} className="rl-edge" />)}
-                  {muni.cells.filter((c) => !c.own).map((c) => <path key={c.key} d={c.d} className={`rl-ward o${Math.min(c.open, 3)}`} />)}
-                  {muni.cells.filter((c) => c.own).map((c) => <path key={c.key} d={c.d} className={`rl-ward o${Math.min(c.open, 3)} is-own`} />)}
+                  {/* Ripples from the report's area: the reach of one record. */}
+                  {[44, 78, 116, 158].map((r, i) => <circle key={r} className={`rl-ripple r${i}`} cx={muni.at[0]} cy={muni.at[1]} r={r} />)}
+                  {/* Each mapped area as a dot, larger with more open requests. */}
+                  {muni.dots.filter((c) => !c.own).map((c) => <circle key={c.key} className={`rl-dot o${Math.min(c.open, 3)}${c.crit ? " is-crit" : ""}`} cx={c.x} cy={c.y} r={c.r} />)}
+                  {muni.dots.filter((c) => c.own).map((c) => <circle key={c.key} className="rl-dot is-own" cx={c.x} cy={c.y} r={Math.max(c.r, 5)} />)}
                   {muni.labels.map((l) => <text key={l.name} x={l.x} y={l.y} className="rl-place">{l.name}</text>)}
-                  {muni.ticks.map((t, i) => <text key={i} x={t.x} y={t.y} className={`rl-tick ${t.v ? "is-v" : ""}`}>{t.t}</text>)}
                   <g className="rl-scale" transform={`translate(10 ${PH - 12})`}>
                     <path d={`M0 -4V0H${muni.scale.px.toFixed(1)}V-4`} />
                     <text x={muni.scale.px + 5} y="0">{muni.scale.label}</text>
-                  </g>
-                  <g className="rl-locator" transform={`translate(${PW - LW - 8} 8)`}>
-                    <rect width={LW} height={LH} />
-                    {muni.locator.cells.map((d, i) => <path key={i} d={d} />)}
-                    <rect className="rl-view" x={muni.locator.view[0]} y={muni.locator.view[1]} width={muni.locator.view[2]} height={muni.locator.view[3]} />
                   </g>
                 </g>
                 {step >= 3 && <>
@@ -160,7 +158,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           <div className="rl-legend">
             <span className="rl-ramp"><i className="o0" /><i className="o1" /><i className="o2" /><i className="o3" /></span>
             <span>open requests: none, 1, 2, 3+</span>
-            <span className="rl-nm"><i />not mapped</span>
+            <span className="rl-nm"><i />critical</span>
           </div>
           {muni && (
             <div className="rl-read">
@@ -244,7 +242,13 @@ function buildPlate(desk: Desk, report: Report | null) {
   const vx = clampV(vx0, LW), vy = clampV(vy0, LH);
 
   return {
-    cells: shown.map(({ c }) => ({ key: c.key, d: path(c.ring), open: c.open, own: c.key === own.key })),
+    dots: shown.map(({ c, m }) => {
+      const [x, y] = p(m.lng, m.lat);
+      const [ex, ey] = p(c.ring[0], c.ring[1]);
+      const cell = Math.hypot(ex - x, ey - y) * 0.86;
+      const r = c.open > 0 ? cell * (0.42 + 0.16 * Math.min(c.open, 3)) : Math.max(1.4, cell * 0.22);
+      return { key: c.key, x, y, r, open: c.open, crit: (c.crit ?? 0) > 0, own: c.key === own.key };
+    }),
     edge: (desk.edge ?? []).filter((r) => inside(centreOf(r))).map(path),
     labels, grat, ticks,
     scale: { px: km(pick), label: pick < 1 ? "500 m" : `${pick} km` },

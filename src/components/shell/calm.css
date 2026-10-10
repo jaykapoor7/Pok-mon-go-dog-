@@ -216,3 +216,33 @@ html .sx.sd .sx-main .rq-kicker { font-family: inherit !important; font-style: n
 @media (prefers-reduced-motion: reduce) { .sx.sd .sd-side::after, .sx.sd .lor-line, .sx.sd .lor-head i.is-fresh { animation: none; } }
 /* Site-page bands inside the app drop their decorative line grounds. */
 .sx.sd .sx-main :is(.mk-inapp, .ms-inapp, .ex-inapp) :is(.mk-band, section)::before { content: none !important; display: none !important; }
+
+/* ── the space switcher, visible ───────────────────────────────────── */
+.sx.sd .sd-space .sx-space { min-height: 40px; padding: 0 12px; border: 1px solid var(--hair-2); border-radius: 12px; background: #fff; justify-content: space-between; gap: 8px; }
+.sx.sd .sd-space .sx-space-k { display: inline; font-size: 12px; color: var(--d-mute); }
+.sx.sd .sd-space .sx-space-v { font-size: 14px; font-weight: 600; color: var(--d-text); letter-spacing: 0; margin-right: auto; }
+.sx.sd .sd-top-space { display: none; }
+@media (max-width: 860px) {
+  .sx.sd .sd-top-space { display: block; flex: none; }
+  .sx.sd .sd-top-space .sx-space { min-height: 36px; padding: 0 10px; border: 1px solid var(--hair-2); border-radius: 999px; background: #fff; gap: 4px; }
+  .sx.sd .sd-top-space .sx-space-k { display: none; }
+  .sx.sd .sd-top-space .sx-space-v { font-size: 13px; font-weight: 600; color: var(--d-text); }
+  .sx.sd .sd-top-space .sx-pop-panel { position: fixed; left: 8px; right: 8px; top: 60px; min-width: 0; z-index: 60; }
+  .sx.sd .sd-top .sd-find span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* The place search's list must sit above everything below the header. */
+.sx.sd .sx-main .db-head { overflow: visible !important; position: relative; z-index: 4; }
+.sx.sd .sx-main .db-head .db-art { overflow: hidden; }
+.sx.sd .sx-main .ps { position: relative; z-index: 5; }
+.sx.sd .sx-main .ps-list { z-index: 40 !important; background: #fff; box-shadow: 0 0 0 1px var(--hair-2), 0 18px 40px -20px rgba(11, 30, 61, 0.35); border-radius: 14px; }
+.sx.sd .sx-main .dh { position: relative; z-index: 4; }
+/* Insights on the sheet: findings in two columns split by a hairline,
+   no background showing through the gaps. */
+.sx.sd .sx-main :is(.ib, .ib-body) { background: transparent !important; }
+@media (min-width: 761px) {
+  .sx.sd .sx-main .ib-body { column-gap: 0 !important; }
+  .sx.sd .sx-main .ib-body > .ib-q { background: transparent !important; border-top: 1px solid var(--hair) !important; }
+  .sx.sd .sx-main .ib-body > .ib-q.is-lead { grid-column: 1 / -1; }
+  .sx.sd .sx-main .ib-body > .ib-q:not(.is-lead):nth-of-type(odd) { border-left: 1px solid var(--hair) !important; }
+  .sx.sd .sx-main .ib-body > .ib-chapter { grid-column: 1 / -1; }
+}

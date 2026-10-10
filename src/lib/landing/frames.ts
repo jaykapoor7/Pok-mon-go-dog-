@@ -10,13 +10,13 @@
    that box in whatever card or tile shows it and zooms until the dog fills
    it. The landing deals from these; if
    the register ever holds fewer than it needs, it falls back to the
-   fullest records as before.
+   fullest records as before. Reviewed again on 2026-10-10: no featured
+   photograph shows a wound (SP-D-W08XQS was removed for that reason).
    ════════════════════════════════════════════════════════════════════ */
 
 export type Frame = readonly [left: number, top: number, right: number, bottom: number];
 
 export const REGISTER_FRAMES: Record<string, Frame> = {
-  "SP-D-W08XQS": [5, 5, 75, 72],
   "SP-D-NIF7EA": [10, 18, 92, 80],
   "SP-D-1PSJE9": [17, 20, 64, 95],
   "SP-D-32BWO8": [14, 18, 66, 58],

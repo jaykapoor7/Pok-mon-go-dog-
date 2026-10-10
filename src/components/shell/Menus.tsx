@@ -100,8 +100,8 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
   );
   return (
     <div className="sx-acct">
-      <Link href="/access" onClick={onNavigate} className="sx-acct-entry"><KeyRound size={16} aria-hidden /><span><b>Sign up</b><small>Get a personal code by email</small></span></Link>
-      <Link href="/join" onClick={onNavigate} className="sx-acct-entry"><KeyRound size={16} aria-hidden /><span><b>I have a code</b><small>Enter the code you were given</small></span></Link>
+      <Link href="/join" onClick={onNavigate} className="sx-acct-entry"><KeyRound size={16} aria-hidden /><span><b>Sign in</b><small>With your email and code</small></span></Link>
+      <Link href="/access" onClick={onNavigate} className="sx-acct-entry"><KeyRound size={16} aria-hidden /><span><b>Email me a code</b><small>First time here, or lost yours</small></span></Link>
     </div>
   );
 }
@@ -146,27 +146,29 @@ const TOP: Record<Space, string[]> = {
 /** The phone's "More": a short, calm list. You, the six pages your space
  *  uses most, then "Switch space" and "All pages" as rows that open in
  *  place, and language, feedback and help as small links. */
-export function MoreSheet({ open, onClose, space, nav, isCurrent, more, onPick, children }: {
+export function MoreSheet({ open, onClose, space, nav, isCurrent, more, children }: {
   open: boolean; onClose: () => void; space: Space; nav: NavItem[]; isCurrent: (href: string) => boolean;
   more: MoreGroup[]; onPick: (s: Space) => void; children?: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const who = useWho();
-  const [spacesOpen, setSpacesOpen] = useState(false);
   const [allOpen, setAllOpen] = useState(false);
   useEffect(() => {
     const el = dialog.current;
     if (!el) return;
     if (open && !el.open) el.showModal();
-    else if (!open && el.open) { el.close(); setSpacesOpen(false); setAllOpen(false); }
+    else if (!open && el.open) { el.close(); setAllOpen(false); }
   }, [open]);
-  const onBar = new Set(SPACES[space].phone);
+  /* Only what the bar actually shows (three beside the action, else four). */
+  const onBar = new Set(SPACES[space].phone.slice(0, SPACES[space].action ? 3 : 4));
   const seen = new Set<string>();
   const all = [
     ...nav.filter((n) => !onBar.has(n.href)).map((n) => ({ href: n.href, label: n.label, Icon: n.Icon as LucideIcon })),
     ...more.flatMap((g) => g.links.map((l) => ({ href: l.href, label: l.label, Icon: iconFor(l.href) }))),
   ].filter((t) => !onBar.has(t.href) && (seen.has(t.href) ? false : (seen.add(t.href), true)));
-  const rank = (h: string) => { const i = TOP[space].indexOf(h); return i < 0 ? 99 : i; };
+  /* The space's own destinations that do not fit on the bar come first. */
+  const navHrefs = new Set(nav.map((n) => n.href));
+  const rank = (h: string) => { if (navHrefs.has(h)) return -1; const i = TOP[space].indexOf(h); return i < 0 ? 99 : i; };
   const top = [...all].sort((x, y) => rank(x.href) - rank(y.href)).slice(0, 6);
   const rest = all.filter((t) => !top.includes(t));
   const row = ({ href, label, Icon }: { href: string; label: string; Icon: LucideIcon }) => (
@@ -191,9 +193,9 @@ export function MoreSheet({ open, onClose, space, nav, isCurrent, more, onPick, 
               <button type="button" className="sx-me-out" onClick={() => { if (who.isAuthed) who.signOut(); else { clearVolunteer(); who.setVolunteer(null); } }}>Sign out</button>
             </div>
           ) : (
-            <Link href="/access" onClick={onClose} className="sx-row is-me">
+            <Link href="/join" onClick={onClose} className="sx-row is-me">
               <span className="sx-avatar" aria-hidden><KeyRound size={16} /></span>
-              <span className="sx-me-t"><b>Sign in or sign up</b><small>Or use a code you were given</small></span>
+              <span className="sx-me-t"><b>Sign in</b><small>With your email and code</small></span>
               <ChevronRight size={16} aria-hidden className="sx-row-go" />
             </Link>
           )}
@@ -202,14 +204,6 @@ export function MoreSheet({ open, onClose, space, nav, isCurrent, more, onPick, 
         <nav className="sx-group" aria-label={`${SPACES[space].label}: more pages`}>{top.map(row)}</nav>
 
         <div className="sx-group">
-          <button type="button" className="sx-row" aria-expanded={spacesOpen} onClick={() => setSpacesOpen((v) => !v)}>
-            <Repeat2 size={18} aria-hidden /><span>Space</span><em>{SPACES[space].label}</em><ChevronRight size={16} aria-hidden className="sx-row-go" />
-          </button>
-          {spacesOpen && SPACE_ORDER.map((s) => (
-            <Link key={s} href={SPACES[s].home} className="sx-row is-sub" aria-current={s === space ? "true" : undefined} onClick={() => { onPick(s); onClose(); }}>
-              <span>{SPACES[s].label}</span>{s === space && <Check size={16} aria-hidden className="sx-row-go" />}
-            </Link>
-          ))}
           {rest.length > 0 && (
             <button type="button" className="sx-row" aria-expanded={allOpen} onClick={() => setAllOpen((v) => !v)}>
               <Layers size={18} aria-hidden /><span>All pages</span><em>{rest.length}</em><ChevronRight size={16} aria-hidden className="sx-row-go" />

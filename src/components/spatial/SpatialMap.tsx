@@ -174,6 +174,7 @@ function lightsOf(p: Palette) {
 const heatRamp = (c: string[]) => ["interpolate", ["linear"], ["heatmap-density"], 0, c[0], 0.12, c[1], 0.3, c[2], 0.55, c[3], 0.8, c[4], 1, c[5]];
 
 const AUTO_ENTER_ZOOM = 8.5;
+const AUTO_EXIT_ZOOM = 6.5;
 
 export function SpatialMap({ scope = "public", userKey = null, surface = "community" }: { scope?: Scope; userKey?: string | null; surface?: "community" | "municipality" }) {
   const params = useSearchParams();
@@ -205,6 +206,10 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const [mapZoom, setMapZoom] = useState(4);
   const [approachingCity, setApproachingCity] = useState<(typeof cityPins)[number] | null>(null);
   const autoEntered = useRef<string | null>(null);
+  /* The exact view to keep when the map moves between India and a city by
+     zooming. Held here rather than read back from the URL, which the URL
+     sync rewrites before the new city's data has arrived. */
+  const handoff = useRef<{ city: string | null; center: [number, number]; zoom: number; at: number } | null>(null);
   /* On a phone the map remains the surface. The atlas starts as one compact
      route into city data; the city search remains available for the full list. */
   const [atlasOpen, setAtlasOpen] = useState(false);
@@ -213,8 +218,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
      Atlas continues the picture rather than switching to another product. */
   const [ground, setGround] = useState<"night" | "paper">("paper");
   const [details, setDetails] = useState(false);
-  /* 3D columns by default at city scale; the plan view stays one press away. */
-  const [three, setThree] = useState(params.get("view") !== "2d");
+  /* Flat by default, so zooming in shows the animals as dots; 3D columns
+     are one press away (or ?view=3d). */
+  const [three, setThree] = useState(params.get("view") === "3d");
   useEffect(() => { try { const g = localStorage.getItem("sp.atlas.ground.v2"); if (g === "paper" || g === "night") setGround(g); } catch { /* storage blocked */ } }, []);
   const pal: Palette = ground === "night" ? ATLAS_NIGHT : ATLAS_PAPER;
 
@@ -722,8 +728,35 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     const readScale = () => {
       const z = map.getZoom();
       setMapZoom(z);
-      if (!indiaOverview || z < 7 || !cityPins.length) { setApproachingCity(null); return; }
       const at = map.getCenter();
+      /* One continuous map. Zooming out of a city returns to India at this
+         same view; panning to another city while zoomed in switches to it. */
+      const goTo = (city: string | null) => {
+        const url = new URL(window.location.href);
+        ["cell", "q", "bbox", "focus", "m", "city"].forEach((key) => url.searchParams.delete(key));
+        if (city) url.searchParams.set("city", city);
+        url.searchParams.set("lat", at.lat.toFixed(4)); url.searchParams.set("lng", at.lng.toFixed(4)); url.searchParams.set("z", z.toFixed(1));
+        handoff.current = { city, center: [at.lng, at.lat], zoom: z, at: Date.now() };
+        setSel(null); setSheet("hidden"); setDotPick(null); setAtlasOpen(false);
+        started.current = false;
+        router.push(url.pathname + url.search, { scroll: false });
+      };
+      /* Only once the first view is in place: before that the camera is
+         still at its initial zoom, which is not anything the visitor did. */
+      const alias = (c: string) => ({ "new delhi": "delhi", secunderabad: "hyderabad" } as Record<string, string>)[c.toLowerCase()] ?? c.toLowerCase();
+      const settled = alias(new URLSearchParams(window.location.search).get("city") ?? "") === alias(datasetCity ?? "");
+      if (scope === "public" && !indiaOverview && cityPins.length && started.current && settled) {
+        if (z < AUTO_EXIT_ZOOM) { autoEntered.current = null; goTo(null); return; }
+        if (z >= AUTO_ENTER_ZOOM) {
+          const other = cityPins.reduce((best, city) => ((city.lng - at.lng) ** 2 + (city.lat - at.lat) ** 2 < (best.lng - at.lng) ** 2 + (best.lat - at.lat) ** 2 ? city : best), cityPins[0]);
+          const r = Math.min(2.5, 200 / (2 ** z));
+          const current = datasetCity?.toLowerCase();
+          if (other.city.toLowerCase() !== current && (other.lng - at.lng) ** 2 + (other.lat - at.lat) ** 2 <= r * r && autoEntered.current !== other.city) {
+            autoEntered.current = other.city; goTo(other.city); return;
+          }
+        }
+      }
+      if (!indiaOverview || z < 7 || !cityPins.length) { setApproachingCity(null); return; }
       const nearest = cityPins.reduce((best, city) => {
         const distance = (city.lng - at.lng) ** 2 + (city.lat - at.lat) ** 2;
         const bestDistance = (best.lng - at.lng) ** 2 + (best.lat - at.lat) ** 2;
@@ -740,6 +773,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
         ["cell", "q", "bbox", "focus", "m"].forEach((key) => url.searchParams.delete(key));
         url.searchParams.set("city", near.city);
         url.searchParams.set("lat", at.lat.toFixed(4)); url.searchParams.set("lng", at.lng.toFixed(4)); url.searchParams.set("z", z.toFixed(1));
+        handoff.current = { city: near.city, center: [at.lng, at.lat], zoom: z, at: Date.now() };
         setSel(null); setSheet("hidden"); setDotPick(null); setAtlasOpen(false);
         started.current = false;
         router.push(url.pathname + url.search, { scroll: false });
@@ -749,7 +783,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     map.on("moveend", readScale);
     map.on("zoomend", readScale);
     return () => { map.off("moveend", readScale); map.off("zoomend", readScale); };
-  }, [ready, indiaOverview, cityPins, router]);
+  }, [ready, indiaOverview, cityPins, router, scope, datasetCity]);
 
   /* ââ how the points are drawn in each mode âââââââââââââââââââââââââ */
   const pointStyle = useCallback(() => {
@@ -1008,6 +1042,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     ["cell", "city", "q", "lat", "lng", "z", "bbox", "focus", "m"].forEach((key) => url.searchParams.delete(key));
     if (nextCity !== "__india") url.searchParams.set("city", nextCity);
     else autoEntered.current = null;
+    handoff.current = null;
     setSel(null); setSheet("hidden"); setDotPick(null); setAtlasOpen(false); setMonth(null);
     started.current = false;
     router.push(url.pathname + url.search, { scroll: false });
@@ -1019,6 +1054,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     if (startedPlace.current !== placeKey) { started.current = false; startedPlace.current = placeKey; }
     if (requested && requested !== datasetCity && !(requested === "New Delhi" && datasetCity === "Delhi") && !(requested === "Secunderabad" && datasetCity === "Hyderabad")) return;
     if (!ds || (!mapError && (!ready || !layersReady)) || started.current) return;
+    /* A zoom handoff to a city waits until the URL names that city. */
+    const pending = handoff.current;
+    if (pending && Date.now() - pending.at < 8000 && (pending.city ?? "").toLowerCase() !== (requested ?? "").toLowerCase()) return;
     started.current = true;
     const cellKey = params.get("cell");
     const cityName = params.get("city");
@@ -1033,7 +1071,22 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     /* With no city in the URL, the map is an India overview. The bounded
        dataset still supplies the nearby detail when a visitor chooses a
        city, but we must not silently turn that fallback into a city URL. */
+    const h = handoff.current;
+    if (h && Date.now() - h.at < 8000) {
+      /* Moved here by zooming: keep the camera exactly where it is. */
+      const target = h.city ? byCity(h.city) : -1;
+      if (target >= 0) keepLinkedView.current = true;
+      setSel(target >= 0 ? { t: "city", city: target } : { t: "india" }); setSheet("hidden");
+      mapRef.current?.jumpTo({ center: h.center, zoom: h.zoom, pitch: 0, bearing: 0 });
+      return;
+    }
     let s: Sel = cityName || scope === "org" ? { t: "city", city: 0 } : { t: "india" };
+    if (s.t === "india" && Number.isFinite(lat) && Number.isFinite(lng) && params.get("z")) {
+      /* Arrived by zooming out of a city: stay exactly where the camera was. */
+      setSel(s); setSheet("hidden");
+      mapRef.current?.jumpTo({ center: [lng, lat], zoom: Math.max(3.5, Math.min(8, parseFloat(params.get("z") ?? "5"))), pitch: 0, bearing: 0 });
+      return;
+    }
     if (cellKey) {
       const ci = ds.cells.indexOf(cellKey);
       if (ci >= 0) s = { t: "cell", cell: ci };
@@ -1081,8 +1134,12 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   /* ââ keep the URL in step, without navigating ââââââââââââââââââââââ */
   useEffect(() => {
     if (!ds || !sel || !started.current) return;
+    /* For one render after a new city's data arrives the selection can still
+       index the previous dataset; the start effect replaces it next. */
+    if ((sel.t === "city" || sel.t === "locality") && !ds.cities[sel.city]) return;
+    if (sel.t === "cell" && !ds.cities[ds.cellCity[sel.cell]]) return;
     const u = new URL(window.location.href);
-    ["cell", "city", "q", "lat", "lng", "bbox", "focus"].forEach((k) => u.searchParams.delete(k));
+    ["cell", "city", "q", "lat", "lng", "z", "bbox", "focus"].forEach((k) => u.searchParams.delete(k));
     u.searchParams.set("mode", mode);
     if (mode === "cases" && lens !== "open") u.searchParams.set("lens", lens); else u.searchParams.delete("lens");
     if (month !== null && month !== mNow) u.searchParams.set("m", String(month)); else u.searchParams.delete("m");

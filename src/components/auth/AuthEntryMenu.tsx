@@ -38,8 +38,8 @@ export function AuthEntryMenu({ className = "", onNavigate }: { className?: stri
       </button>
       {open && (
         <div id={`${id}-options`} className="auth-entry-options" role="menu" aria-label="Account options">
-          <Link href="/access" role="menuitem" onClick={navigate}><b>Sign up</b><small>Get a personal code by email</small></Link>
-          <Link href="/join" role="menuitem" onClick={navigate}><b>I have a code</b><small>Enter the code you were given</small></Link>
+          <Link href="/join" role="menuitem" onClick={navigate}><b>Sign in</b><small>With your email and code</small></Link>
+          <Link href="/access" role="menuitem" onClick={navigate}><b>Email me a code</b><small>First time here, or lost yours</small></Link>
         </div>
       )}
     </div>

@@ -322,7 +322,7 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   const [cities, { data, error }] = await Promise.all([
     getPublicSpatialCities(200),
     supa.from("public_spatial_animals").select(REGISTER_COLUMNS)
-      .in("straypaw_id", Object.keys(REGISTER_FRAMES)).not("cover_photo", "is", null).neq("cover_photo", "").eq("photo_sensitive", false).limit(Object.keys(REGISTER_FRAMES).length),
+      .in("straypaw_id", Object.keys(REGISTER_FRAMES)).not("cover_photo", "is", null).neq("cover_photo", "").eq("photo_sensitive", false).eq("needs_help", false).neq("status", "injured").limit(Object.keys(REGISTER_FRAMES).length),
   ]);
   if (error) throw error;
   const total = cities.reduce((n, city) => n + Number(city.animals || 0), 0);
@@ -331,7 +331,7 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
      enough of them, fall back to the fullest photographed records. */
   if (rows.length < 12) {
     const { data: wide, error: wideError } = await supa.from("public_spatial_animals").select(REGISTER_COLUMNS)
-      .not("cover_photo", "is", null).neq("cover_photo", "").eq("photo_sensitive", false).order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates);
+      .not("cover_photo", "is", null).neq("cover_photo", "").eq("photo_sensitive", false).eq("needs_help", false).neq("status", "injured").order("last_seen", { ascending: false }).limit(LANDING_LIMITS.registerCandidates);
     if (wideError) throw wideError;
     rows = (wide ?? []) as Array<any>;
   }

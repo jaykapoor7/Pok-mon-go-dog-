@@ -132,6 +132,7 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           <header className="sd-top">
             {!isDestination && <button type="button" className="sx-back" onClick={back} aria-label="Back"><ArrowLeft size={20} /></button>}
             <Link href={def.home} className="sd-top-brand" aria-label="StrayPaw home"><StrayPawMark size={28} /></Link>
+            <div className="sd-top-space"><SpaceMenu space={space} onPick={pick} /></div>
             <button type="button" className="sd-find" onClick={() => setCmd(true)} aria-label="Search animals, places and organisations" aria-keyshortcuts="Control+K Meta+K /">
               <Search size={16} aria-hidden /><span>Search animal IDs, places, organisations…</span><kbd>⌘K</kbd>
             </button>

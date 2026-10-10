@@ -786,3 +786,44 @@
 .rl-photo.has-img { position: relative; overflow: hidden; background: var(--sp-night); padding: 0; }
 .rl-photo.has-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .rl-photo .rl-photo-tag { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 2px 6px; border-radius: var(--ctl-r); background: rgba(7, 20, 43, 0.72); color: var(--sp-night-text); font-family: var(--font-mono); font-size: 9px; font-style: normal; letter-spacing: 0.04em; }
+
+/* ── The municipality's screen, drawn like the hero map: each mapped
+   area a dot sized by open requests, critical ones in flame, ripples
+   spreading from the report's own area. ─────────────────────────── */
+.rl-dot { fill: var(--sp-sky); fill-opacity: .9; transition: fill-opacity var(--sp-slow) var(--sp-ease-io), r var(--sp-slow) var(--sp-ease-io); }
+.rl-dot.o0 { fill: var(--sp-night-text); fill-opacity: .22; }
+.rl-dot.o1 { fill-opacity: .55; }
+.rl-dot.o2 { fill-opacity: .75; }
+.rl-dot.is-crit { fill: var(--sp-flame); fill-opacity: .9; }
+.rl-dot.is-own { fill: var(--sp-night); stroke: var(--sp-flame); stroke-width: 2; }
+.rl-plate.is-lit .rl-dot.is-own { fill: var(--sp-flame); }
+.rl-ripple { fill: none; stroke: var(--sp-sky); stroke-opacity: .12; stroke-width: 1; }
+.rl-plate.is-lit .rl-ripple { animation: rl-ripple 3.2s var(--sp-ease-io) both; }
+.rl-plate.is-lit .rl-ripple.r1 { animation-delay: .25s; } .rl-plate.is-lit .rl-ripple.r2 { animation-delay: .5s; } .rl-plate.is-lit .rl-ripple.r3 { animation-delay: .75s; }
+@keyframes rl-ripple { 0% { stroke-opacity: 0; } 40% { stroke-opacity: .45; stroke: var(--sp-flame); } 100% { stroke-opacity: .12; } }
+.rl-ramp { gap: 5px; align-items: center; }
+.rl-ramp i { width: auto; height: auto; border-radius: 50%; background: var(--sp-sky) !important; }
+.rl-ramp i.o0 { width: 4px; height: 4px; opacity: .3; } .rl-ramp i.o1 { width: 7px; height: 7px; opacity: .55; }
+.rl-ramp i.o2 { width: 9px; height: 9px; opacity: .75; } .rl-ramp i.o3 { width: 11px; height: 11px; }
+.rl-nm i { width: 8px !important; height: 8px !important; border: 0 !important; border-radius: 50%; background: var(--sp-flame); }
+.rl-now { display: none; }
+@media (prefers-reduced-motion: reduce) { .rl-plate.is-lit .rl-ripple { animation: none; } }
+
+/* ── On a phone the hand-off is the story: a progress bar fills while
+   each screen holds, screens slide in, and a line says what happens. ── */
+@media (max-width: 760px) {
+  .rl-steps { gap: 6px; }
+  .rl-steps li { position: relative; display: grid; gap: 6px; padding-top: 10px; font-size: 11px; letter-spacing: 0; text-transform: none; font-family: inherit; }
+  .rl-steps li > i { display: none; }
+  .rl-steps li::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 3px; background: rgba(11, 30, 61, .12); }
+  .rl-steps li .rl-fill { position: absolute; top: 0; left: 0; height: 3px; width: 0; border-radius: 3px; background: var(--sp-flame); }
+  .rl-steps li.is-past .rl-fill { width: 100%; }
+  .rl-steps li.is-on .rl-fill { animation: rl-fill var(--hold, 3000ms) linear both; }
+  .rl-steps li.is-on { color: var(--sp-ink); font-weight: 600; }
+  .rl-now { display: block; margin: 0; min-height: 22px; font-size: 15px; font-weight: 600; color: var(--sp-ink); text-align: center; animation: rl-now-in 420ms var(--sp-ease) both; }
+  .rl-screen.is-on { animation: rl-slide 520ms var(--sp-ease) both; }
+}
+@keyframes rl-fill { from { width: 0; } to { width: 100%; } }
+@keyframes rl-slide { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+@keyframes rl-now-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .rl-steps li.is-on .rl-fill { animation: none; width: 100%; } .rl-screen.is-on, .rl-now { animation: none; } }
