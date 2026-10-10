@@ -101,7 +101,7 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="sx-acct">
       <Link href="/join" onClick={onNavigate} className="sx-acct-entry"><KeyRound size={16} aria-hidden /><span><b>Sign in</b><small>With your email and code</small></span></Link>
-      <Link href="/access" onClick={onNavigate} className="sx-acct-entry"><KeyRound size={16} aria-hidden /><span><b>Email me a code</b><small>First time here, or lost yours</small></span></Link>
+      <Link href="/access" onClick={onNavigate} className="sx-acct-entry"><KeyRound size={16} aria-hidden /><span><b>Sign up</b><small>New here? We email you a code</small></span></Link>
     </div>
   );
 }
@@ -193,11 +193,18 @@ export function MoreSheet({ open, onClose, space, nav, isCurrent, more, children
               <button type="button" className="sx-me-out" onClick={() => { if (who.isAuthed) who.signOut(); else { clearVolunteer(); who.setVolunteer(null); } }}>Sign out</button>
             </div>
           ) : (
-            <Link href="/join" onClick={onClose} className="sx-row is-me">
-              <span className="sx-avatar" aria-hidden><KeyRound size={16} /></span>
-              <span className="sx-me-t"><b>Sign in</b><small>With your email and code</small></span>
-              <ChevronRight size={16} aria-hidden className="sx-row-go" />
-            </Link>
+            <>
+              <Link href="/join" onClick={onClose} className="sx-row is-me">
+                <span className="sx-avatar" aria-hidden><KeyRound size={16} /></span>
+                <span className="sx-me-t"><b>Sign in</b><small>With your email and code</small></span>
+                <ChevronRight size={16} aria-hidden className="sx-row-go" />
+              </Link>
+              <Link href="/access" onClick={onClose} className="sx-row is-me">
+                <span className="sx-avatar" aria-hidden><UserPlus size={16} /></span>
+                <span className="sx-me-t"><b>Sign up</b><small>New here? We email you a code</small></span>
+                <ChevronRight size={16} aria-hidden className="sx-row-go" />
+              </Link>
+            </>
           )}
         </div>
 

@@ -3,7 +3,7 @@ import "../join/join.css";
 import { AppShell } from "@/components/app/AppShell";
 
 export const metadata = {
-  title: "Get your StrayPaw code",
+  title: "Sign up for StrayPaw",
   description: "Request a six-character code by email to sign in to the community or feeder workspace. No password.",
   alternates: { canonical: "/access" },
 };

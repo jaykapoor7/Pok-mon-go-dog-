@@ -210,7 +210,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         {welcome && <p role="status" className="join-welcome">{welcome}</p>}
 
         <p className="join-foot">
-          No code? Community members and feeders can <a href="/access">have one emailed to them</a>. If your organisation already uses StrayPaw, ask your team lead for one. Anyone can report a street animal without a code at{" "}
+          New here? <a href="/access">Sign up</a> and we email you a code. If your organisation already uses StrayPaw, ask your team lead for one. Anyone can report a street animal without a code at{" "}
           <a href="/report">the reporting page</a>.
         </p>
       </div>

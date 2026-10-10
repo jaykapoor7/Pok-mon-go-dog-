@@ -246,3 +246,6 @@ html .sx.sd .sx-main .rq-kicker { font-family: inherit !important; font-style: n
   .sx.sd .sx-main .ib-body > .ib-q:not(.is-lead):nth-of-type(odd) { border-left: 1px solid var(--hair) !important; }
   .sx.sd .sx-main .ib-body > .ib-chapter { grid-column: 1 / -1; }
 }
+
+/* Sign in / Sign up trigger: the second word is dropped on narrow screens. */
+@media (max-width: 520px) { .auth-entry-alt { display: none; } }

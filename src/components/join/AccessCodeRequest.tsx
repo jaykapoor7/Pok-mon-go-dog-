@@ -71,7 +71,7 @@ export function AccessCodeRequest({ role }: { role: "individual" | "feeder" }) {
         ) : (
           <>
             <span className="join-kicker">{role === "feeder" ? "Feeder workspace" : "Community workspace"}</span>
-            <h1>Get your StrayPaw code</h1>
+            <h1>Sign up for StrayPaw</h1>
             <p className="join-lede">No password to create or remember. We’ll email your personal code; use the same email and code whenever you sign in.</p>
             <form onSubmit={submit}>
               <label className="join-label" htmlFor="access-name">Your name</label>
