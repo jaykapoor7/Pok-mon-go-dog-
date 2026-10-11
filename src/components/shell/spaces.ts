@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import {
-  Binoculars, BookOpen, Bookmark, Building2, ChartColumn, ClipboardList, Compass, Database,
+  Binoculars, CalendarClock, Inbox, BookOpen, Bookmark, Building2, ChartColumn, ClipboardList, Compass, Database,
   FileText, GraduationCap, Home, Landmark, Map as MapIcon, PawPrint, Plus, Radio, Route, Utensils,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
@@ -88,13 +88,14 @@ export const SPACES: Record<Space, SpaceDef> = {
     label: "NGO workspace", blurb: "Cases, animals, field work and reporting", home: "/partner",
     nav: [
       { href: "/partner", label: "Today", Icon: Compass },
+      { href: "/partner/inbox", label: "Inbox", Icon: Inbox },
       { href: "/partner/cases", label: "Cases", Icon: ClipboardList },
+      { href: "/partner/followups", label: "Follow-ups", Icon: CalendarClock },
       { href: "/partner/animals", label: "Animals", Icon: PawPrint },
       { href: "/partner/field", label: "Field", Icon: Binoculars },
-      { href: "/partner/map", label: "Map", Icon: MapIcon },
       { href: "/partner/reports", label: "Reports", Icon: ChartColumn },
     ],
-    phone: ["/partner", "/partner/cases", "/partner/animals", "/partner/field"],
+    phone: ["/partner", "/partner/inbox", "/partner/cases", "/partner/followups"],
     action: { href: "/partner/cases/new", label: "New case", short: "New case", Icon: Plus },
     more: [
       { label: "Records", links: [
@@ -105,7 +106,7 @@ export const SPACES: Record<Space, SpaceDef> = {
         { href: "/partner/medical", label: "Medical" },
       ] },
       { label: "Field work", links: [
-        { href: "/partner/incoming", label: "Incoming reports" },
+        { href: "/partner/map", label: "Map of open work" },
         { href: "/partner/drives", label: "ABC / ARV drives" },
         { href: "/partner/projects", label: "Projects" },
         { href: "/partner/surveys", label: "Surveys" },

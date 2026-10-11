@@ -1,0 +1,56 @@
+/* CareOS workspace modules (Care Inbox, Follow-ups). Ruled rows on the
+   calm sheet: no boxed cards, one line of identity, the due state, and the
+   actions staff take most, each a full 44px target. */
+
+.sx .ws { display: grid; gap: 36px; }
+.sx .ws-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sx .ws-group { display: grid; gap: 12px; }
+.sx .ws-group > header { display: grid; gap: 4px; }
+.sx .ws-group h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--d-text); }
+.sx .ws-group > header p { margin: 0; font-size: 14px; color: var(--d-mute); }
+.sx .ws-count { display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 8px; border-radius: 12px; background: var(--d-panel-2); color: var(--d-dim); font-size: 13px; font-weight: 600; }
+.sx .ws-tag { padding: 2px 9px; border-radius: 999px; background: rgba(240, 91, 64, 0.12); color: #b5381f; font-size: 12px; font-weight: 600; }
+.sx .ws-none { margin: 0; padding: 14px 0; border-top: 1px solid var(--d-line); color: var(--d-mute); font-size: 14px; }
+
+.sx .ws-rows { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--d-text); }
+.sx .ws-rows li { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 16px; min-height: 68px; padding: 10px 0; border-bottom: 1px solid var(--d-line); transition: opacity 160ms; }
+.sx .ws-rows.is-inbox li { grid-template-columns: 52px minmax(0, 1fr) auto auto; }
+.sx .ws-rows li.is-busy { opacity: 0.55; }
+.sx .ws-what { display: grid; gap: 3px; min-width: 0; }
+.sx .ws-what b { font-size: 15px; font-weight: 600; color: var(--d-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx .ws-what small { font-size: 13px; color: var(--d-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sx .ws-due { justify-self: start; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.sx .ws-due.is-late { background: rgba(240, 91, 64, 0.14); color: #b5381f; }
+.sx .ws-due.is-today { background: rgba(36, 87, 206, 0.12); color: var(--d-sky); }
+.sx .ws-due.is-soon { background: var(--d-panel-2); color: var(--d-dim); }
+
+.sx .ws-thumb { width: 52px; height: 52px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: var(--d-panel-2); color: var(--d-mute); }
+.sx .ws-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.sx .ws-acts { display: flex; align-items: center; gap: 8px; }
+.sx .ws-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; min-width: 44px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--d-panel-2); color: var(--d-text); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background 160ms; }
+.sx .ws-btn:hover { background: var(--d-line-2, rgba(11, 30, 61, 0.12)); }
+.sx .ws-btn:focus-visible { outline: 3px solid var(--d-sky); outline-offset: 2px; }
+.sx .ws-btn:disabled { cursor: progress; }
+.sx .ws-btn.is-primary { background: var(--d-flame, #f05b40); color: #fff; }
+.sx .ws-btn.is-primary:hover { background: #d94a30; }
+.sx .ws-btn.is-quiet { background: transparent; color: var(--d-sky); padding: 0 10px; }
+.sx .ws-linkbtn { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--d-sky); text-decoration: underline; cursor: pointer; }
+
+.sx .ws-state { display: grid; gap: 6px; padding: 18px 0; border-top: 1px solid var(--d-line); font-size: 14.5px; color: var(--d-mute); }
+.sx .ws-state b { font-size: 16px; color: var(--d-text); }
+.sx .ws-state p { margin: 0; }
+.sx .ws-state a { color: var(--d-sky); font-weight: 600; }
+.sx .ws-pilot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 16px 0; border-top: 1px solid var(--d-line); color: #1f7a45; }
+.sx .ws-pilot b { display: block; margin-bottom: 4px; font-size: 15.5px; color: var(--d-text); }
+.sx .ws-pilot p { margin: 0 0 8px; max-width: 64ch; font-size: 14px; line-height: 1.55; color: var(--d-mute); }
+.sx .ws-pilot a { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; color: var(--d-sky); font-weight: 600; text-decoration: none; }
+
+@media (max-width: 760px) {
+  .sx .ws-rows li, .sx .ws-rows.is-inbox li { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .sx .ws-rows li .ws-what { grid-column: 1 / -1; grid-row: 2; }
+  .sx .ws-rows li .ws-acts { grid-column: 1 / -1; grid-row: 3; flex-wrap: wrap; }
+  .sx .ws-rows.is-inbox li .ws-thumb { grid-row: 1; }
+  .sx .ws-what b, .sx .ws-what small { white-space: normal; }
+}
