@@ -12,6 +12,7 @@ import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import type { RegisterPlateData } from "@/components/landing/RegisterPlate";
 import { Relay } from "@/components/landing/Relay";
 import { getAnimalRegister, getLandingStory } from "@/lib/landing/story";
+import { CareStory } from "@/components/landing/CareStory";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
@@ -87,6 +88,9 @@ export default async function HomePage() {
           </div>
           </div>
         </section>
+
+        {/* What StrayPaw does for the people doing the care, before the record. */}
+        <CareStory />
 
         {/* Right after the hero, the centre of the page: every animal has a
             card. It shows the hero's own count (one source); its own count

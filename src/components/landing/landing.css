@@ -842,3 +842,23 @@
 @keyframes rl-slide { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
 @keyframes rl-now-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .rl-steps li.is-on .rl-fill { animation: none; width: 100%; } .rl-screen.is-on, .rl-now { animation: none; } }
+
+/* Care story, right under the hero: four steps on one line. */
+.ld-care { gap: var(--sp-6); }
+.ld-care-line { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); position: relative; max-width: 1240px; width: 100%; }
+.ld-care-line::before { content: ""; position: absolute; top: 9px; left: 6px; right: 6px; height: 2px; background: var(--sp-ink); }
+.ld-care-line li { position: relative; display: grid; align-content: start; gap: 6px; padding: 32px var(--sp-5) 0 0; min-width: 0; }
+.ld-care-line li::before { content: ""; position: absolute; top: 3px; left: 0; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--sp-ink); background: var(--sp-bone); box-sizing: border-box; }
+.ld-care-line li:last-child::before { background: var(--sp-blue); border-color: var(--sp-blue); }
+.ld-care-k { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--sp-blue); }
+.ld-care-n { font-family: var(--font-mono); font-weight: 400; color: var(--sp-muted); }
+.ld-care-k em { font-style: normal; padding: 1px 8px; border-radius: 999px; background: rgba(240, 91, 64, 0.12); color: var(--sp-flame-ink, #b5381f); font-size: 11.5px; }
+.ld-care-line b { font-size: 19px; font-weight: 600; letter-spacing: -0.012em; color: var(--sp-ink); }
+.ld-care-line p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--sp-body); max-width: 30ch; }
+.ld-care-acts { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); }
+.ld-care-link { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-weight: 600; color: var(--sp-blue); text-decoration: none; }
+@media (max-width: 760px) {
+  .ld-care-line { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+  .ld-care-line::before { top: 6px; bottom: 6px; left: 6px; right: auto; width: 2px; height: auto; }
+  .ld-care-line li { padding: 0 0 0 32px; }
+}
