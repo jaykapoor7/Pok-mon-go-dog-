@@ -71,8 +71,12 @@ export function groundStyle(p: Palette): StyleSpecification {
   return { version: 8, glyphs: GLYPHS, sources: {}, layers: [{ id: "background", type: "background", paint: { "background-color": p.bg } }] };
 }
 
+const INDIA_MASK = "india-mask";
+const INDIA_EDGE = "india-edge";
+
 export function restyle(map: MLMap, p: Palette) {
   const set = (id: string, prop: string, v: unknown) => { try { (map.setPaintProperty as (i: string, pr: string, val: unknown) => void).call(map, id, prop, v); } catch { /* absent */ } };
+  if (map.getLayer(INDIA_MASK)) { set(INDIA_MASK, "fill-color", p.bg); set(INDIA_EDGE, "line-color", p.label); }
   const vis = (id: string, on: boolean) => { try { map.setLayoutProperty(id, "visibility", on ? "visible" : "none"); } catch { /* absent */ } };
   for (const l of map.getStyle().layers ?? []) {
     const id = l.id;
@@ -91,7 +95,7 @@ export function restyle(map: MLMap, p: Palette) {
          off India's evidence. Fade them in only as the view approaches a city,
          so evidence leads the wider map. City-scale street/place labels (zoom
          ≥ ~8) are unaffected. */
-      const isPlace = id.startsWith("place") || id.includes("country") || id.includes("state") || id.includes("continent") || id.includes("water_name") || id.includes("marine") || id.includes("ocean");
+      const isPlace = id.startsWith("label_") || id.startsWith("place") || id.includes("country") || id.includes("state") || id.includes("continent") || id.includes("water_name") || id.includes("marine") || id.includes("ocean");
       set(id, "text-opacity", isPlace ? (["interpolate", ["linear"], ["zoom"], 6.2, 0, 8.2, base] as unknown) : base);
       set(id, "icon-opacity", 0);
       continue;
@@ -139,6 +143,21 @@ export async function underlay(map: MLMap, p: Palette, beforeId?: string) {
     }
     try { map.addLayer(textLayer as never, before && map.getLayer(before) ? before : undefined); } catch { /* a layer this build cannot draw */ }
   }
+  /* India only. Everything outside India's boundary (Natural Earth, India's
+     official point of view, so Jammu & Kashmir and Ladakh are drawn whole)
+     is filled with the ground colour, above the street basemap and beneath
+     every data layer: neighbouring countries, open sea and foreign labels
+     never compete with the record. A hairline traces the border. */
+  try {
+    if (!map.getSource(INDIA_MASK)) map.addSource(INDIA_MASK, { type: "geojson", data: "/geo/india-mask.json" });
+    /* Beneath the basemap's own labels, so a coastal name ("Mumbai") is never
+       cut where it runs over the sea; foreign labels have already faded out
+       at the national scale where they would otherwise show. */
+    const firstLabel = style.layers.find((l) => l.type === "symbol" && map.getLayer(l.id))?.id;
+    const at = firstLabel ?? (before && map.getLayer(before) ? before : undefined);
+    if (!map.getLayer(INDIA_MASK)) map.addLayer({ id: INDIA_MASK, type: "fill", source: INDIA_MASK, paint: { "fill-color": p.bg, "fill-opacity": 1 } }, at);
+    if (!map.getLayer(INDIA_EDGE)) map.addLayer({ id: INDIA_EDGE, type: "line", source: INDIA_MASK, paint: { "line-color": p.label, "line-opacity": 0.32, "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.8, 8, 1.4] } }, at);
+  } catch { /* the map keeps its full basemap if the mask cannot load */ }
   restyle(map, p);
   return true;
 }
