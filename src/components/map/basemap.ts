@@ -84,7 +84,15 @@ export function restyle(map: MLMap, p: Palette) {
       vis(id, true);
       set(id, "text-color", p.label);
       set(id, "text-halo-color", p.labelHalo);
-      set(id, "text-opacity", p.labelOpacity ?? 0.8);
+      const base = p.labelOpacity ?? 0.8;
+      /* Country, state and place labels are redundant and distracting at the
+         national scale — the atlas draws its own city labels there, and the
+         basemap's foreign names (neighbouring countries, oceans) pull the eye
+         off India's evidence. Fade them in only as the view approaches a city,
+         so evidence leads the wider map. City-scale street/place labels (zoom
+         ≥ ~7) are unaffected. */
+      const isPlace = id.startsWith("place") || id.includes("country") || id.includes("state") || id.includes("continent") || id.includes("water_name") || id.includes("marine") || id.includes("ocean");
+      set(id, "text-opacity", isPlace ? (["interpolate", ["linear"], ["zoom"], 4.5, 0, 6.8, base] as unknown) : base);
       set(id, "icon-opacity", 0);
       continue;
     }
