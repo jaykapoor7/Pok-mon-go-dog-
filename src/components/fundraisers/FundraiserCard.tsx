@@ -13,56 +13,39 @@ export function FundraiserCard({ f }: { f: Fundraiser }) {
       : null;
 
   return (
-    <Link
-      href={`/fundraisers/${f.id}`}
-      className={`card card-interactive block overflow-hidden ${
-        f.featured ? "ring-1 ring-paw-300 dark:ring-paw-500/40" : ""
-      }`}
-    >
-      <div className="relative">
-        {f.cover_photo && (
-          <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} className="h-40 w-full" sensitive />
-        )}
+    <Link href={`/fundraisers/${f.id}`} className={`fr-card${f.featured ? " is-pick" : ""}`}>
+      <div className="fr-media">
+        {f.cover_photo && <DogPhoto src={f.cover_photo} alt={f.title} seed={f.id} sensitive />}
         {f.featured && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-paw-500 px-2.5 py-1 text-[11.5px] font-bold text-white shadow-warm">
-            <BadgeCheck className="h-3.5 w-3.5" /> StrayPaw pick
-          </span>
+          <span className="fr-pick"><BadgeCheck size={13} aria-hidden /> StrayPaw pick</span>
         )}
       </div>
-      <div className="p-4">
-        <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
-          <span className="chip bg-paw-100 font-semibold text-paw-700">
-            {cat.label}
-          </span>
-          {f.created_by_name && <span className="text-bark-500">{f.created_by_name}</span>}
+      <div className="fr-body">
+        <div className="fr-meta">
+          <span className="fr-chip">{cat.label}</span>
+          {f.created_by_name && <span>{f.created_by_name}</span>}
         </div>
-        <h3 className="font-display text-base leading-snug tracking-tight">{f.title}</h3>
+        <h3 className="fr-title">{f.title}</h3>
 
         {f.goal_amount != null && (
-          <div className="mt-3">
+          <>
             {pct != null && (
-              <div className="mb-1 h-2 overflow-hidden rounded-full bg-bark-100 dark:bg-bark-800">
-                <div className="h-full rounded-full bg-paw-500" style={{ width: `${pct}%` }} />
+              <div className="fr-bar" role="img" aria-label={`${pct}% of goal raised`}>
+                <div className="fr-bar-fill" style={{ width: `${pct}%` }} />
               </div>
             )}
-            <p className="text-xs text-bark-500">
-              {f.raised_reported != null && (
-                <span className="font-semibold text-bark-800 dark:text-bark-100">
-                  {formatINR(f.raised_reported)} raised
-                </span>
-              )}
+            <p className="fr-fig">
+              {f.raised_reported != null && <b>{formatINR(f.raised_reported)} raised</b>}
               {f.raised_reported != null ? " · " : ""}
               goal {formatINR(f.goal_amount)}
             </p>
-          </div>
+          </>
         )}
 
-        <div className="mt-2 flex items-center justify-between">
-          <span className="text-sm font-semibold text-paw-600">Donate →</span>
+        <div className="fr-foot">
+          <span className="fr-donate">Donate &rarr;</span>
           {f.deadline && (
-            <span className="flex items-center gap-1 text-xs text-bark-400">
-              <Clock className="h-3.5 w-3.5" /> by {timeAgo(f.deadline)}
-            </span>
+            <span className="fr-by"><Clock size={13} aria-hidden /> by {timeAgo(f.deadline)}</span>
           )}
         </div>
       </div>

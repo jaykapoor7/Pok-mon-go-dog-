@@ -5,6 +5,7 @@ import { FundraiserCard } from "@/components/fundraisers/FundraiserCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AppShell } from "@/components/app/AppShell";
 import { DeskHeader } from "@/components/app/DeskHeader";
+import "@/components/fundraisers/fundraisers.css";
 
 export const metadata = {
   title: "Fundraisers, support rescues | StrayPaw",
@@ -34,17 +35,17 @@ export default async function FundraisersPage() {
           description="Vetted rescue campaigns and partner NGO fundraisers will appear here soon."
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="fr-grid">
           {fundraisers.map((f) => (
             <FundraiserCard key={f.id} f={f} />
           ))}
         </div>
       )}
 
-      <p className="mt-8 text-center text-xs text-bark-400">
+      <p className="fr-note">
         Are you a verified partner NGO?{" "}
-        <Link href="/fundraisers/new" className="inline-flex items-center gap-1 font-semibold text-paw-600">
-          <Plus className="h-3.5 w-3.5" /> Start a fundraiser
+        <Link href="/fundraisers/new">
+          <Plus size={14} aria-hidden /> Start a fundraiser
         </Link>
       </p>
     </div>

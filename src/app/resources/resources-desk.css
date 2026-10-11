@@ -6,6 +6,10 @@
 .rd-main { min-width: 0; }
 .rd-main > section:first-child { margin-top: 0; }
 .rd-main h2 { font: 400 30px/1.2 var(--font-serif-stack); }
+/* Bring the section intros and steps onto the StrayPaw palette and readable
+   sizes, overriding the legacy utility classes left on the markup. */
+.rd-main section > p { color: var(--sp-body); font-size: 15px; line-height: 1.55; }
+.rd-main ol li { color: var(--sp-ink); font-size: 15px; line-height: 1.5; }
 .rd-main section { scroll-margin-top: 100px; }
 .rd-helplines { display: grid; margin-top: 20px; border-top: 1px solid var(--sp-ink); }
 .rd-contact { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 16px 0; border-bottom: 1px solid var(--sp-line); text-decoration: none; }
