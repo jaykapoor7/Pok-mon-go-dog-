@@ -78,7 +78,7 @@ export default async function HomePage() {
               Every stray animal in India.
               <em>Seen, tracked, cared&nbsp;for.</em>
             </h1>
-            <p className="ld-hero-sub">One shared record connecting sightings, field work and outcomes.</p>
+            <p className="ld-hero-sub">One shared record &mdash; built case by case, city by city &mdash; connecting sightings, field work and outcomes.</p>
             {story && <HeroTally animals={story.totals.animals} cases={story.totals.cases} cities={story.totals.cities} />}
             <div className="ld-hero-actions">
               <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
