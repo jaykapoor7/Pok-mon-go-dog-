@@ -67,6 +67,11 @@ const nextConfig = {
          "reported anonymously"; what changed near you lives on the
          community home now. */
       { source: "/feed", destination: "/app", permanent: false },
+      /* Stray entry URLs: "/index" is the home page, and the record never had
+         a separate changelog — what changed lives in About. Both send their
+         visitors somewhere real instead of a 404. */
+      { source: "/index", destination: "/", permanent: true },
+      { source: "/changelog", destination: "/about", permanent: false },
     ];
   },
 

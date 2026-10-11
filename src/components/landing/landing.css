@@ -684,7 +684,7 @@
 @keyframes rx-file { to { opacity: 0; transform: translate(48px, -24px) rotate(7deg) scale(0.96); } }
 
 .rx-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); padding: 0 2px; font-family: var(--font-mono); }
-.rx-card-head span { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sp-muted); }
+.rx-card-head span { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
 .rx-card-head b { font-size: 12.5px; font-weight: 500; letter-spacing: 0.02em; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
 .rx-card-photo { position: relative; aspect-ratio: 3 / 2; overflow: hidden; border-radius: var(--sp-radius-sm); background: var(--sp-shell); }
 .rx-card-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -707,7 +707,7 @@
 .rx-card dl > div { min-width: 0; display: grid; gap: 2px; padding: 7px 0; border-bottom: 1px solid var(--sp-line); }
 .rx-card dl > div.is-wide { grid-column: 1 / -1; }
 .rx-card dl > div:not(.is-wide) + div:not(.is-wide) { padding-left: var(--sp-3); border-left: 1px solid var(--sp-line); }
-.rx-card dt { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sp-muted); }
+.rx-card dt { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sp-muted); }
 .rx-card dd { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--sp-ink); font-variant-numeric: tabular-nums; }
 
 /* ABC/ARV, drawn honestly: filled done, hollow not, dotted not examined. */
