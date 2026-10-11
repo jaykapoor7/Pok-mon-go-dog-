@@ -90,9 +90,9 @@ export function restyle(map: MLMap, p: Palette) {
          basemap's foreign names (neighbouring countries, oceans) pull the eye
          off India's evidence. Fade them in only as the view approaches a city,
          so evidence leads the wider map. City-scale street/place labels (zoom
-         ≥ ~7) are unaffected. */
+         ≥ ~8) are unaffected. */
       const isPlace = id.startsWith("place") || id.includes("country") || id.includes("state") || id.includes("continent") || id.includes("water_name") || id.includes("marine") || id.includes("ocean");
-      set(id, "text-opacity", isPlace ? (["interpolate", ["linear"], ["zoom"], 5.4, 0, 7.4, base] as unknown) : base);
+      set(id, "text-opacity", isPlace ? (["interpolate", ["linear"], ["zoom"], 6.2, 0, 8.2, base] as unknown) : base);
       set(id, "icon-opacity", 0);
       continue;
     }

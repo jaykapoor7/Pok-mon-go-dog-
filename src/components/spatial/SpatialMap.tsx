@@ -720,7 +720,12 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       "circle-color": KIND_COLOR, "circle-opacity": ["case", ["==", ["get", "one"], 1], 0.14, 0.78] as ExpressionSpecification,
       "circle-stroke-color": ["case", ["==", ["get", "one"], 1], KIND_COLOR, pal.bg] as ExpressionSpecification, "circle-stroke-width": ["case", ["==", ["get", "one"], 1], 2, 1] as ExpressionSpecification,
     } });
-    map.addLayer({ id: "cities-l", type: "symbol", source: "cities", maxzoom: 10, layout: { "text-field": ["format", ["get", "name"], { "text-font": ["literal", ["Noto Sans Bold"]], "font-scale": 1 }, "\n", {}, ["number-format", ["get", "n"], { locale: "en-IN" }], { "font-scale": 0.9 }] as ExpressionSpecification, "text-font": ["Noto Sans Regular"], "text-size": 12, "text-offset": [0, 1.4], "text-anchor": "top", "text-optional": true }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.4 } });
+    map.addLayer({ id: "cities-l", type: "symbol", source: "cities", maxzoom: 10, layout: { "text-field": ["format", ["get", "name"], { "text-font": ["literal", ["Noto Sans Bold"]], "font-scale": 1 }, "\n", {}, ["number-format", ["get", "n"], { locale: "en-IN" }], { "font-scale": 0.9 }] as ExpressionSpecification, "text-font": ["Noto Sans Regular"], "text-size": 12,
+      /* Neighbouring cities (Ranchi and Jamshedpur sit ~120 km apart) used to
+         hide each other's label, leaving a large unlabelled bubble. Labels may
+         now move to any side of their bubble, and larger bubbles place first. */
+      "text-variable-anchor": ["top", "bottom", "right", "left"], "text-radial-offset": 1.25, "text-justify": "auto",
+      "symbol-sort-key": ["-", 0, ["get", "sz"]] as ExpressionSpecification, "text-optional": true }, paint: { "text-color": pal.ink, "text-halo-color": pal.bg, "text-halo-width": 1.4 } });
 
     setLayersReady(true);
     underlay(map, pal, "frontier-fill").then((ok) => { if (ok) setBaseReady(true); }).catch(() => {});
