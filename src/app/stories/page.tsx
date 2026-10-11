@@ -110,7 +110,7 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
   const paged = !!(page.next || before);
 
   return (
-    <main className="st">
+    <div className="st">
         <DeskHeader
           city={city ?? undefined}
           kicker={city ? `Stories · ${city}` : "Stories · all cities"}
@@ -142,7 +142,7 @@ async function StoriesData({ before, city }: { before: { occurredAt: string; id:
           <ol><li><b>01</b><span>Encounter</span></li><li><b>02</b><span>Care if recorded</span></li><li><b>03</b><span>Outcome if known</span></li></ol>
         </section>}
         {page.next && <p className="st-more"><Link className="sys-btn is-quiet" href={`/stories?${city ? `city=${encodeURIComponent(city)}&` : ""}beforeAt=${encodeURIComponent(page.next.occurredAt)}&beforeId=${encodeURIComponent(page.next.id)}`}>Older stories <ArrowUpRight size={15} /></Link></p>}
-    </main>
+    </div>
   );
 }
 
@@ -151,5 +151,5 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   const before = params.beforeAt && params.beforeId && Number.isFinite(Date.parse(params.beforeAt)) && /^[0-9a-f-]{36}$/i.test(params.beforeId) ? { occurredAt: new Date(params.beforeAt).toISOString(), id: params.beforeId } : null;
   const rawCity = params.city?.trim().slice(0, 100) || null;
   const city = rawCity === "New Delhi" ? "Delhi" : rawCity === "Secunderabad" ? "Hyderabad" : rawCity;
-  return <AppShell><Suspense fallback={<main className="st"><DeskHeader kicker="Stories" title={<>Animal records, <em>followed through care</em></>} lede="Loading the latest public records…" figures={[{ label: "public records", value: null }]} actions={<Link href="/report" className="dk-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>} /></main>}><StoriesData before={before} city={city} /></Suspense></AppShell>;
+  return <AppShell><Suspense fallback={<div className="st"><DeskHeader kicker="Stories" title={<>Animal records, <em>followed through care</em></>} lede="Loading the latest public records…" figures={[{ label: "public records", value: null }]} actions={<Link href="/report" className="dk-btn is-flame">Report an animal <ArrowUpRight size={15} /></Link>} /></div>}><StoriesData before={before} city={city} /></Suspense></AppShell>;
 }

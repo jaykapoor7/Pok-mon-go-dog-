@@ -58,7 +58,7 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
   const daysSince = (iso: string | null | undefined) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000)) : null);
 
   return (
-    <main className="hp">
+    <div className="hp">
       <DeskHeader
         kicker={coords ? "Help · nearest first" : "Help"}
         title={needy.length ? <>{needy.length} animals were reported as needing help{coords ? " near you" : ""}.</> : "Nobody is flagged as needing help right now."}
@@ -111,6 +111,6 @@ export function HelpClient({ dogs }: { dogs: Dog[] }) {
       ]} />
 
       <HelperForm open={formOpen} target={target} onClose={() => setFormOpen(false)} />
-    </main>
+    </div>
   );
 }

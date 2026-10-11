@@ -22,9 +22,9 @@ export default async function JoinPage({
   return (
     <AppShell>
       <div className="sp join-shell join-inapp">
-        <main className="join-page">
+        <div className="join-page">
           <JoinClient initialCode={code?.trim().toUpperCase()} />
-        </main>
+        </div>
       </div>
     </AppShell>
   );

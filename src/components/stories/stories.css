@@ -27,6 +27,9 @@
 .sa-index { display: grid; gap: var(--sp-3); }
 .sa-index-h { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--sp-muted); }
 .sa-index ol { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-7); border-top: 1px solid var(--sp-ink); }
+/* The full index can run long; keep it a bounded, scannable register that
+   scrolls within its own labelled section rather than stretching the page. */
+.sa-index ol { max-height: 420px; overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; }
 .sa-index button {
   width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 52px; gap: var(--sp-3); align-items: center; min-height: var(--ctl-h);
   padding: var(--sp-2) var(--sp-2) var(--sp-2) 0; border: 0; border-bottom: 1px solid var(--sp-line); background: none; color: var(--sp-ink); font: inherit; text-align: left; cursor: pointer;

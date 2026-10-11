@@ -16,7 +16,7 @@ export default async function FeedingZonesPage() {
   const zones = await getFeedingZones();
 
   return (
-    <main className="feed-index">
+    <div className="feed-index">
       <DeskHeader
         kicker="Feeding · the community route book"
         title={<>Feeding spots, <em>kept in view</em></>}
@@ -38,6 +38,6 @@ export default async function FeedingZonesPage() {
           </div>
         ) : <div className="feed-index-grid">{zones.map((z, index) => <FeedingZoneCard key={z.id} zone={z} index={index} />)}</div>}
       </section>
-    </main>
+    </div>
   );
 }

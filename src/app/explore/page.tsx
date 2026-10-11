@@ -60,7 +60,7 @@ export default async function ExplorePage() {
   return (
     <AppShell>
     <div className="co ex ex-inapp">
-      <main>
+      <div>
         <section className="ex-hero" aria-labelledby="ex-title">
           <div className="ex-map" aria-hidden={lights.length === 0}>
             {lights.length > 0 && <LightsMap center={[82.8, 22.6]} box={INDIA} lights={lights} dot={2.2} glow={2} label={`${fmt(cities.length)} recorded cities across India`} />}
@@ -148,7 +148,7 @@ export default async function ExplorePage() {
         </section>
           ) },
         ]} />
-      </main>
+      </div>
     </div>
     </AppShell>
   );
