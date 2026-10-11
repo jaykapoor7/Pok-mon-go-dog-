@@ -8,16 +8,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Crosshair, MapPin, Radio } from "lucide-react";
-import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "./Dashboard";
+import { Dashboard, Feed, MapChips, Panel, type Item } from "./Dashboard";
 import { LiveMap, type MapTone } from "./LiveMap";
 import { useCityCells, MEASURE_LABEL, ago, fmtN, type Measure } from "./useCity";
 import { CellCard } from "./CellCard";
 import { useSpatialDataset } from "@/components/spatial/data";
 import { PlaceSearch, type PlaceOption } from "@/components/app/PlaceSearch";
 import { AnimalTile } from "@/components/community/AnimalTile";
-import { animalSubtitle, animalTitle } from "@/lib/animal-name";
-import { DogPhoto } from "@/components/ui/DogPhoto";
-import { isSensitivePhoto } from "@/lib/sensitive-photo";
 import { usePlace, kmBetween } from "@/lib/place";
 import { useFollows } from "@/lib/follows";
 import type { PublicCaseStory } from "@/lib/community-case-stories";
@@ -83,12 +80,6 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
   const vp = useMemo(() => (city ? { city: city } : null), [city]);
 
   const hot = (near ?? []).filter((a) => a.needs_help || a.status === "injured");
-  const attention: Item[] = hot.slice(0, 7).map((a) => ({
-    key: a.id, href: `/dog/${a.id}`, title: animalTitle(a),
-    meta: [animalSubtitle(a), a.last_seen ? `seen ${ago(a.last_seen)}` : null].filter(Boolean).join(" · "),
-    tag: { text: a.status === "injured" ? "Injured" : "Needs help", tone: "hot" },
-    thumb: a.cover_photo ? <DogPhoto src={a.cover_photo} alt="" seed={a.id} className="db-thumb" width={96} sensitive={isSensitivePhoto(a) || a.status === "injured"} /> : undefined,
-  }));
   const feed: Item[] = stories.filter((s) => !city || !s.city || s.city === city).slice(0, 7).map((s) => ({
     key: s.id, href: `/dog/${s.dog_id}`,
     title: s.resolved_at ? `${s.title?.split(" · ")[0] ?? "Request"} closed` : `${s.title?.split(" · ")[0] ?? "Request"} opened`,
@@ -116,7 +107,13 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
       </LiveMap>}
       side={<>
         <Panel title="Needs someone near you" note={`Flagged animals within ${RADIUS} km`} count={near ? hot.length : undefined} action={{ label: "Report a dog", href: centre ? `/report?lat=${centre[1]}&lng=${centre[0]}` : "/report" }}>
-          <ItemList items={attention} loading={near === null} empty={<>No animal within {RADIUS} km is flagged right now. That only means nobody has recorded one. <Link href="/report" className="db-inline">Report a dog <Radio size={13} aria-hidden /></Link></>} />
+          {near === null ? (
+            <div className="db-reclist" aria-busy="true">{[0, 1, 2].map((i) => <span key={i} className="db-skel" />)}</div>
+          ) : hot.length ? (
+            <div className="db-reclist">{hot.slice(0, 6).map((a) => <AnimalTile key={a.id} a={a} size="row" />)}</div>
+          ) : (
+            <div className="db-empty"><p>No animal within {RADIUS} km is flagged right now. That only means nobody has recorded one. <Link href="/report" className="db-inline">Report a dog <Radio size={13} aria-hidden /></Link></p></div>
+          )}
         </Panel>
         <Panel title="Followed through" action={{ label: "Stories", href: `/stories${city ? `?city=${encodeURIComponent(city)}` : ""}` }}>
           <Feed items={feed} empty="No recent outcomes are published for this city." />

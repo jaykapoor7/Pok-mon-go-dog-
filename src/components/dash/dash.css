@@ -108,6 +108,9 @@
 .db-place .x-btn { min-height: 40px; border-radius: 10px; }
 .db-thumb { width: 36px; height: 36px; border-radius: 9px; flex: none; }
 .db-inline { color: var(--d-sky); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+/* A vertical register of record cards for side panels — the dog listings a
+   community member reads, each a real record card rather than a text row. */
+.db-reclist { display: grid; gap: 10px; padding: 2px 8px 8px; }
 .db-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 4px 8px 6px; }
 @media (max-width: 1180px) { .db-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .db-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

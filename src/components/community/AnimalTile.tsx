@@ -35,7 +35,7 @@ export function seenWhen(iso: string | null) {
 /** A given name, or null when the field holds a filing label. */
 export const realName = givenName;
 
-export function AnimalTile({ a, size = "m", state }: { a: TileAnimal; size?: "s" | "m"; state?: { label: string; tone: "hot" | "care" | "open" | "" } }) {
+export function AnimalTile({ a, size = "m", state }: { a: TileAnimal; size?: "s" | "m" | "row"; state?: { label: string; tone: "hot" | "care" | "open" | "" } }) {
   const seen = seenWhen(a.last_seen);
   const hot = !!a.needs_help || a.status === "injured";
   const st = state ?? (hot ? { label: a.status === "injured" ? "Injured" : "Needs help", tone: "hot" as const } : null);
