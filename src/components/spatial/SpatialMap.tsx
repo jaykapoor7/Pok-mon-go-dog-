@@ -978,7 +978,13 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       const lat = typeof c.lat === "number" ? c.lat : geo?.lat;
       if (typeof lng !== "number" || typeof lat !== "number") return [];
       const n = atlasLens === "cases" ? c.open_cases ?? 0 : atlasLens === "care" ? mode === "arv" ? c.vaccinated ?? 0 : mode === "medical" ? c.needs_help ?? 0 : c.sterilised ?? 0 : atlasLens === "evidence" ? c.cells : c.animals;
-      return [{ type: "Feature" as const, properties: { name: c.city, n, k: kindOf(c.city, c.cells), one: c.cells <= 1 ? 1 : 0 }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
+      const k = kindOf(c.city, c.cells);
+      const clin = k === "clinical" ? 1 : 0;
+      /* Only the Animals lens is distorted by a clinical register: its rows are
+         not street-level profiles. Care events (sterilised, vaccinated) are the
+         same unit everywhere, so other lenses size by their real value. */
+      const sz = clin && atlasLens === "animals" ? 60 : n;
+      return [{ type: "Feature" as const, properties: { name: c.city, n, sz, clin, k, one: c.cells <= 1 ? 1 : 0 }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
     });
     if (feats.length) src.setData({ type: "FeatureCollection", features: feats });
   }, [availableCities, ds, ready, layersReady, atlasLens, mode, indiaOverview]);

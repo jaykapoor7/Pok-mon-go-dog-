@@ -92,7 +92,7 @@ export function restyle(map: MLMap, p: Palette) {
          so evidence leads the wider map. City-scale street/place labels (zoom
          ≥ ~7) are unaffected. */
       const isPlace = id.startsWith("place") || id.includes("country") || id.includes("state") || id.includes("continent") || id.includes("water_name") || id.includes("marine") || id.includes("ocean");
-      set(id, "text-opacity", isPlace ? (["interpolate", ["linear"], ["zoom"], 4.5, 0, 6.8, base] as unknown) : base);
+      set(id, "text-opacity", isPlace ? (["interpolate", ["linear"], ["zoom"], 5.4, 0, 7.4, base] as unknown) : base);
       set(id, "icon-opacity", 0);
       continue;
     }
