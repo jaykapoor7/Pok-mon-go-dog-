@@ -64,7 +64,7 @@ function WhatsAppQueue() {
   return (
     <>
       <p className="ws-live" role="status" aria-live="polite">{said}</p>
-      <ul className="ws-rows is-inbox">
+      <ul className="ws-rows is-inbox mo-list">
         {res.data.map((m) => (
           <li key={m.id} className={busy === m.id ? "is-busy" : ""}>
             {m.media[0] ? (

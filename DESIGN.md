@@ -196,7 +196,13 @@ shows its `FolkPortrait`, labelled as an illustration.
 - Default: 160–220ms, `cubic-bezier(.23,1,.32,1)`. Map camera may be longer
   because it communicates geographic distance.
 - The folk backdrop is the one ambient motion: slow, behind content, and
-  static under reduced motion. Do not animate numbers or delay primary data. Honour `prefers-reduced-motion` by removing nonessential movement.
+  static under reduced motion. Do not delay primary data: an app figure
+  appears at its true value; it may only travel when its value *changes*
+  (`Tally`, retarget). Count-up from zero is for marketing and reels only.
+  Honour `prefers-reduced-motion` by removing nonessential movement.
+- The full system (tokens, the techniques taken from awesome-ai-motion and
+  where, what was refused, and the Instagram reel pipeline) is in
+  [docs/MOTION.md](docs/MOTION.md).
 
 ## Accessibility and trust
 

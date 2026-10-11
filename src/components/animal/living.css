@@ -104,6 +104,13 @@
 /* chronology */
 .lr-chrono { margin: 0; padding: 0; list-style: none; display: grid; border-top: 1px solid var(--sp-rule); }
 .lr-ch { display: grid; grid-template-columns: 104px 14px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--sp-line); }
+/* The life line: a hairline thread through every mark, drawn in order (LivingChronology). */
+.lr-chrono { --lr-mx: 123px; }
+.lr-ch { position: relative; }
+.lr-ch-thread { position: absolute; left: calc(var(--lr-mx) - 0.5px); top: 0; bottom: -1px; width: 1px; background: var(--sp-rule); transform-origin: top; pointer-events: none; }
+.lr-ch-thread.is-first { top: var(--lr-first, 50%); }
+.lr-ch-thread.is-last { bottom: var(--lr-last, 50%); }
+.lr-ch-mark { position: relative; z-index: 1; box-shadow: 0 0 0 3px var(--sp-paper); }
 .lr-ch-date { font-size: 12px; color: var(--sp-muted); }
 .lr-ch-mark { width: 10px; height: 10px; border-radius: 50%; align-self: center; background: var(--sp-ink); }
 .lr-ch-mark.is-open { background: var(--sp-flame); }
@@ -112,8 +119,8 @@
 .lr-ch.is-case .lr-ch-mark { border-radius: 3px; width: 14px; height: 8px; }
 .lr-ch-mark.is-ster { background: var(--sp-blue); }
 .lr-ch-mark.is-vacc { background: var(--sp-arv); }
-.lr-ch-mark.is-miss { background: transparent; box-shadow: inset 0 0 0 2px var(--sp-flame); }
-.lr-ch-mark.is-due { background: transparent; box-shadow: inset 0 0 0 1.5px var(--sp-ink); }
+.lr-ch-mark.is-miss { background: var(--sp-paper); box-shadow: inset 0 0 0 2px var(--sp-flame), 0 0 0 3px var(--sp-paper); }
+.lr-ch-mark.is-due { background: var(--sp-paper); box-shadow: inset 0 0 0 1.5px var(--sp-ink), 0 0 0 3px var(--sp-paper); }
 .lr-ch-mark.is-sight { background: #c9922e; }
 .lr-ch-what { display: grid; gap: 2px; min-width: 0; }
 .lr-ch-what b { font-size: 14px; font-weight: 600; }
@@ -209,6 +216,7 @@
   .lr-ch-date { grid-column: 2; grid-row: 2; }
   .lr-ch-mark { grid-row: 1; }
   .lr-ch-src { grid-column: 2; }
+  .lr-chrono { --lr-mx: 7px; }
   .lr-org { margin-left: -20px; margin-right: -20px; padding-left: 20px; padding-right: 20px; border-radius: 0; }
 }
 

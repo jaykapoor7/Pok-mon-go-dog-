@@ -4,15 +4,19 @@
    screens long; on wider screens every section shows, in order. Nothing
    is removed: each section is one tap away. */
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { useGlide } from "@/components/motion/useGlide";
 
 export function PhoneTabs({ tabs, label = "Sections" }: { tabs: { id: string; label: string; node: ReactNode }[]; label?: string }) {
   const list = tabs.filter((t) => t.node);
   const [on, setOn] = useState(list[0]?.id);
+  const bar = useRef<HTMLDivElement>(null);
+  useGlide(bar, '[aria-selected="true"]', on);
   if (list.length < 2) return <>{list.map((t) => <div key={t.id}>{t.node}</div>)}</>;
   return (
     <div className="ptabs">
-      <div className="ptabs-bar" role="tablist" aria-label={label}>
+      <div className="ptabs-bar" ref={bar} role="tablist" aria-label={label}>
+        <i className="mo-glide" aria-hidden />
         {list.map((t) => <button key={t.id} type="button" role="tab" aria-selected={on === t.id} onClick={() => setOn(t.id)}>{t.label}</button>)}
       </div>
       {list.map((t) => <div key={t.id} className="ptabs-panel" data-on={on === t.id ? "" : undefined}>{t.node}</div>)}

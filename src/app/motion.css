@@ -1,0 +1,92 @@
+/* ════════════════════════════════════════════════════════════════════
+   StrayPaw motion utilities.
+
+   A record being written: ink settles, lines are drawn in the order
+   things happened, a figure arrives and holds. Four utilities, each one
+   technique from the awesome-ai-motion catalogue (MIT) at StrayPaw's
+   quieter register — see docs/MOTION.md.
+
+   Everything here sits inside (prefers-reduced-motion: no-preference).
+   A reader who has asked for less motion gets the finished state, with
+   no transform, no delay and nothing hidden waiting for an animation.
+   Only transform, opacity and stroke-dashoffset move, so all of it stays
+   on the compositor and holds 60fps on a mid-range phone.
+   ════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --mo-stagger: 45ms;   /* catalogue range .04–.10s: the low end, for lists people work in */
+  --mo-rise: 10px;      /* fade-slide travel: enough to read as arrival, not as a slide */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ── stagger + fade-slide ─────────────────────────────────────────
+     <ul class="mo-list"> : each child arrives in reading order. The
+     delay is capped so a 40-row list is still fully in by ~0.6s. */
+  .mo-list > * {
+    animation: mo-rise var(--sp-slow) var(--sp-ease) both;
+    animation-delay: min(calc(var(--i, 0) * var(--mo-stagger)), 600ms);
+  }
+  .mo-list > *:nth-child(1) { --i: 0 } .mo-list > *:nth-child(2) { --i: 1 }
+  .mo-list > *:nth-child(3) { --i: 2 } .mo-list > *:nth-child(4) { --i: 3 }
+  .mo-list > *:nth-child(5) { --i: 4 } .mo-list > *:nth-child(6) { --i: 5 }
+  .mo-list > *:nth-child(7) { --i: 6 } .mo-list > *:nth-child(8) { --i: 7 }
+  .mo-list > *:nth-child(9) { --i: 8 } .mo-list > *:nth-child(10) { --i: 9 }
+  .mo-list > *:nth-child(n+11) { --i: 10 }
+  .mo-rise { animation: mo-rise var(--sp-slow) var(--sp-ease) both; }
+
+  /* ── bar-grow ─────────────────────────────────────────────────────
+     A proportion bar grows from its baseline once. scaleX, not width,
+     so it never re-lays-out the row it sits in. */
+  .mo-grow { transform-origin: left center; animation: mo-grow var(--sp-scene) var(--sp-ease) both; animation-delay: .12s; }
+
+  /* ── line-draw ────────────────────────────────────────────────────
+     An SVG path with pathLength="1" draws itself at a constant speed,
+     because the line stands for time and time does not ease. */
+  .mo-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: mo-draw 1.2s linear .15s forwards; }
+
+  /* ── confirm ──────────────────────────────────────────────────────
+     A decision recorded (a case taken, a step done): the mark presses
+     in and settles. A short overshoot is the one place the system
+     allows itself a spring — it is the moment something became true. */
+  .mo-confirm { animation: mo-confirm .42s cubic-bezier(.34, 1.4, .64, 1) both; }
+}
+
+@keyframes mo-rise { from { opacity: 0; transform: translate3d(0, var(--mo-rise), 0); } to { opacity: 1; transform: none; } }
+@keyframes mo-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes mo-draw { to { stroke-dashoffset: 0; } }
+@keyframes mo-confirm { 0% { transform: scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+/* ── active-indicator-glide (useGlide) ────────────────────────────────
+   One indicator per strip, positioned from --glide-* written by useGlide
+   and moved only by transform. Absolutely positioned, so it never takes
+   a cell in the grid or flex row it sits in. The transition is armed
+   after first placement ([data-glide=on]); the global reduced-motion
+   rule makes it a jump. */
+.mo-glide { display: none; }
+[data-glide=on] > .mo-glide { transition: transform var(--sp-base) var(--sp-ease), opacity var(--sp-fast) linear; }
+
+/* Desktop destinations: a 2px ink rule beside the current place. */
+.sx.sd .sd-nav { position: relative; }
+.sx.sd .sd-nav > .mo-glide { display: block; position: absolute; left: -10px; top: 0; width: 2px; height: 1px; border-radius: 1px; background: var(--d-text); transform-origin: top; opacity: var(--glide-o, 0); pointer-events: none;
+  transform: translateY(calc(var(--glide-y, 0px) + var(--glide-h, 0) * 0.22px)) scaleY(calc(var(--glide-h, 0) * 0.56)); }
+
+/* Section tabs on a phone: the underline travels between sections. */
+.sx.sd .sx-main .ptabs-bar > .mo-glide { display: block; position: absolute; left: 0; bottom: 0; width: 1px; height: 2px; background: var(--d-text); transform-origin: left; opacity: var(--glide-o, 0); pointer-events: none;
+  transform: translateX(var(--glide-x, 0px)) scaleX(var(--glide-w, 0)); }
+.sx.sd .sx-main .ptabs-bar[data-glide=on] button[aria-selected="true"] { box-shadow: none !important; }
+
+/* Phone bar: a short rule on the top edge, over the current destination. */
+@media (max-width: 860px) {
+  .sx.sd .sx-tabs > .mo-glide { display: block; position: absolute; left: 0; top: 0; width: 22px; height: 2px; border-radius: 0 0 2px 2px; background: var(--d-flame-ink, var(--d-text)); opacity: var(--glide-o, 0); pointer-events: none;
+    transform: translateX(calc(var(--glide-x, 0px) + var(--glide-w, 0) * 0.5px - 11px)); }
+}
+
+/* ── progress rail on the report flow ─────────────────────────────────
+   Each step's segment fills from the left as the reporter reaches it, so
+   the rail records progress rather than recolouring (report-x.css draws
+   the empty segment as li::before; the fill is li::after over it). */
+html .sx .rq-dots li { position: relative; }
+html .sx .rq-dots li.is-now::before, html .sx .rq-dots li.is-done::before { background: var(--x-line-2); }
+html .sx .rq-dots li::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; border-radius: 5px; background: var(--x-flame); transform: scaleX(0); transform-origin: left; transition: transform var(--sp-slow) var(--sp-ease), background var(--sp-base) linear; }
+html .sx .rq-dots li.is-now::after { transform: scaleX(1); }
+html .sx .rq-dots li.is-done::after { transform: scaleX(1); background: var(--x-ink); }

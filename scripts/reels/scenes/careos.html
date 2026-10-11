@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StrayPaw reel: one message, a continuing record</title>
+<link rel="stylesheet" href="../lib/reel.css">
+<style>
+  /* The homepage's own photograph, pushed in slowly (ken-burns). */
+  .photo { position: absolute; inset: 0; overflow: hidden; }
+  .photo img { position: absolute; left: 50%; top: 0; height: 1920px; width: auto; transform-origin: 50% 40%; }
+  .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(7, 20, 43, 1) 22%, rgba(7, 20, 43, .55) 55%, rgba(7, 20, 43, .15)); }
+  .hook { position: absolute; left: 0; right: 0; bottom: 40px; }
+  .hook .eyebrow { margin-bottom: 26px; }
+  .steps { position: absolute; left: 0; right: 0; top: 40px; }
+  .steps .title { font-size: 76px; margin-bottom: 70px; }
+  .line { position: absolute; left: 25px; top: 300px; width: 4px; height: 0; overflow: visible; }
+  .step { position: relative; padding: 0 0 78px 92px; }
+  .dot { position: absolute; left: 10px; top: 4px; width: 34px; height: 34px; border-radius: 50%; background: var(--bg); border: 4px solid var(--ink); }
+  .step.is-flame .dot { border-color: var(--flame); background: var(--flame); }
+  .k { display: flex; align-items: center; gap: 16px; font-size: 28px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+  .k .pill { font-size: 19px; padding: 3px 12px; color: var(--gold); }
+  .t { font-size: 66px; font-weight: 600; letter-spacing: -.035em; line-height: 1.04; }
+  .d { font-size: 34px; color: var(--dim); line-height: 1.35; margin-top: 8px; max-width: 760px; }
+  .end { position: absolute; inset: 0; display: grid; align-content: center; justify-items: start; gap: 28px; padding: 0 72px 200px; background: var(--bg); }
+  .end img { width: 120px; height: 120px; }
+  .end .title { font-size: 84px; }
+  .end .note { font-size: 24px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="photo" id="photo"><img src="/public/hero/skyline-dog-1920.jpg" alt=""></div>
+  <div class="safe">
+    <div class="hook" id="hook">
+      <p class="eyebrow" data-o id="eb">StrayPaw CareOS · for NGOs</p>
+      <h1 class="title"><span class="ln"><span>One message,</span></span><span class="ln"><span><em>a continuing record.</em></span></span></h1>
+    </div>
+    <section class="steps" id="steps" data-o>
+      <h2 class="title"><span class="ln"><span>From the first message</span></span><span class="ln"><span>to the outcome.</span></span></h2>
+      <svg class="line" width="4" height="1040" viewBox="0 0 4 1040" style="height:1040px"><path id="thread" d="M2 0V1040" stroke="rgba(239,231,218,.35)" stroke-width="3" fill="none"/></svg>
+      <div id="list"></div>
+    </section>
+  </div>
+  <section class="end" id="end" data-o>
+    <img src="/public/straypaw-symbol.svg" alt="">
+    <h2 class="title"><span class="ln"><span>Care lands on the animal,</span></span><span class="ln"><span><em>not in a chat.</em></span></span></h2>
+    <p class="cap"><b>straypaw.org/for-ngos</b> · founding NGO pilot</p>
+    <p class="note">WhatsApp intake is in pilot. Case, follow-up and animal records run today.</p>
+  </section>
+</div>
+<script type="module">
+import { timeline, E, maskLines, rise, fade, draw } from "../lib/reel.js";
+
+/* The four steps exactly as the homepage states them (CareStory.tsx). */
+const STEPS = [
+  { k: "WhatsApp", t: "A message comes in", d: "A resident sends a photo and a place, on the app they already use.", pilot: true },
+  { k: "NGO", t: "A team owns the case", d: "One person claims it, treats the animal and schedules the follow-up." },
+  { k: "Animal history", t: "Care lands on the animal", d: "Treatment joins the animal's record, so the next team sees it first." },
+  { k: "Outcome", t: "It ends in an outcome", d: "The case closes with what happened, and reports count it once.", flame: true },
+];
+const list = document.getElementById("list");
+list.innerHTML = STEPS.map((s, i) => `<div class="step${s.flame ? " is-flame" : ""}" data-o><i class="dot"></i><p class="k">${String(i + 1).padStart(2, "0")} · ${s.k}${s.pilot ? ' <span class="pill">Pilot</span>' : ""}</p><p class="t">${s.t}</p><p class="d">${s.d}</p></div>`).join("");
+
+/* The thread runs from the first mark to the last, no further. */
+await document.fonts.ready;
+const svg = document.querySelector(".line"), dots = [...list.querySelectorAll(".dot")];
+const top = dots[0].getBoundingClientRect().top + 21, bottom = dots.at(-1).getBoundingClientRect().top + 21;
+const sTop = document.getElementById("steps").getBoundingClientRect().top;
+svg.style.top = `${top - sTop}px`; svg.style.height = `${bottom - top}px`;
+svg.setAttribute("viewBox", `0 0 4 ${bottom - top}`);
+document.getElementById("thread").setAttribute("d", `M2 0V${bottom - top}`);
+
+const tl = timeline({ dur: 15, poster: 0.9 });
+
+/* 0–4s: the hook over the photograph, pushed in. */
+const img = document.querySelector("#photo img");
+tl.add(0, 4.4, (p) => { img.style.transform = `translateX(-50%) scale(${1.04 + p * 0.08})`; }, E.linear);
+fade(tl, document.getElementById("eb"), 0.2, 0.5);
+maskLines(tl, document.getElementById("hook").querySelector(".title"), 0.35, { each: 0.7, gap: 0.14 });
+fade(tl, document.getElementById("photo"), 3.7, 0.7, 1, 0, E.travel);
+fade(tl, document.getElementById("hook"), 3.6, 0.5, 1, 0);
+
+/* 4–12.4s: the steps, disclosed in order along one thread (progressive
+   disclosure + line-draw): earlier steps stay, dimmed, as the next lands. */
+const steps = document.getElementById("steps");
+fade(tl, steps, 4.0, 0.3);
+maskLines(tl, steps.querySelector(".title"), 4.05, { each: 0.6, gap: 0.12 });
+draw(tl, document.getElementById("thread"), 5.1, 5.25, E.linear);
+const nodes = [...list.children];
+nodes.forEach((n, i) => {
+  const at = 5.0 + i * 1.75;
+  rise(tl, n, at, 0.6, 26);
+  const dot = n.querySelector(".dot");
+  tl.add(at + 0.1, 0.45, (p) => { dot.style.transform = `scale(${0.3 + 0.7 * p})`; }, E.confirm);
+  if (i < nodes.length - 1) fade(tl, n, at + 1.75, 0.5, 1, 0.42);
+});
+fade(tl, steps, 12.3, 0.4, 1, 0);
+
+/* 12.5–15s: the close. */
+const end = document.getElementById("end");
+fade(tl, end, 12.5, 0.45);
+maskLines(tl, end.querySelector(".title"), 12.7, { each: 0.55, gap: 0.1 });
+
+await tl.ready();
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StrayPaw reel: the India record</title>
+<link rel="stylesheet" href="../lib/reel.css">
+<style>
+  .head { position: absolute; left: 0; right: 0; top: 0; }
+  .head .eyebrow { margin-bottom: 28px; }
+  svg.map { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
+  .outline { fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; opacity: .7; }
+  .land { fill: rgba(239, 231, 218, 0.045); stroke: none; }
+  .b { stroke: var(--bg); stroke-width: 2; }
+  .clin { fill: none; stroke: var(--sky); stroke-width: 3; stroke-dasharray: 7 7; }
+  .lbl { font: 600 30px "DM Sans"; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 8px; stroke-linejoin: round; }
+  .lbl tspan.n { font-weight: 500; fill: var(--dim); }
+  .ring { fill: none; stroke: var(--ink); stroke-width: 3; }
+  .lead { fill: none; stroke: var(--ink); stroke-width: 2; }
+  .tally { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 64px; }
+  .tally div { display: grid; gap: 6px; }
+  .tally .fig { font-size: 104px; }
+  .tally span { font-size: 28px; color: var(--dim); }
+  .call { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 10px; }
+  .call .k { font-size: 26px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .call .t { font-size: 62px; font-weight: 600; letter-spacing: -.035em; line-height: 1.02; }
+  .call .d { font-size: 32px; color: var(--dim); line-height: 1.35; max-width: 820px; }
+  .end { position: absolute; inset: 0; display: grid; align-content: center; justify-items: start; gap: 28px; padding: 0 72px 200px; background: var(--bg); }
+  .end img { width: 120px; height: 120px; }
+  .end .title { font-size: 84px; }
+  .end .src { font-size: 24px; color: var(--dim); letter-spacing: .02em; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <svg class="map" viewBox="0 0 1080 1920" aria-hidden="true">
+    <g id="india"></g>
+    <g id="bubbles"></g>
+    <g id="focus"></g>
+  </svg>
+  <div class="safe">
+    <header class="head">
+      <p class="eyebrow" data-o id="eyebrow">StrayPaw · India map</p>
+      <h1 class="title" id="hook"><span class="ln"><span>Where India's</span></span><span class="ln"><span>street dogs are</span></span><span class="ln"><span><em>on the record.</em></span></span></h1>
+    </header>
+    <div class="tally" id="tally" data-o>
+      <div><b class="fig" id="nCities">0</b><span>cities on the map</span></div>
+      <div><b class="fig" id="nProfiles">0</b><span>street-dog profiles</span></div>
+    </div>
+    <div class="call" id="call1" data-o><p class="k" style="color:var(--rescue)">Rescue &amp; care</p><p class="t" id="c1t"></p><p class="d">Requests for help, treatment and outcomes, kept on each animal.</p></div>
+    <div class="call" id="call2" data-o><p class="k" style="color:var(--teal)">Vaccination campaign</p><p class="t" id="c2t"></p><p class="d">Where a campaign worked, from its own GPS.</p></div>
+    <div class="call" id="caveat" data-o><p class="d" style="font-size:36px;color:var(--ink)">Recorded profiles, not a population estimate.</p><p class="d" id="cavd"></p></div>
+  </div>
+  <section class="end" id="end" data-o>
+    <img src="/public/straypaw-symbol.svg" alt="">
+    <h2 class="title"><span class="ln"><span>Every dog on the record</span></span><span class="ln"><span>has a place, <em>and a history.</em></span></span></h2>
+    <p class="cap"><b>straypaw.org</b> · the India map is public</p>
+    <p class="src" id="src"></p>
+  </section>
+</div>
+<script type="module">
+import { timeline, E, maskLines, rise, fade, draw, count, projector, ringPath, mix, key } from "../lib/reel.js";
+
+const snap = await (await fetch("../data/snapshot.json")).json();
+const KIND = { rescue: "#f26c52", campaign: "#66c5d5", clinical: "#93b1f0", photo: "#e3b35b", register: "#c9cfdb" };
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); parent?.appendChild(n); return n; };
+const fmt = (n) => Math.round(n).toLocaleString("en-IN");
+
+const tl = timeline({ dur: 16, poster: 7.6 });
+const proj = projector([68, 6.5, 97.5, 36], { x: 70, y: 540, w: 860, h: 840 });
+
+/* Hook */
+fade(tl, document.getElementById("eyebrow"), 0.15, 0.5);
+maskLines(tl, document.getElementById("hook"), 0.3);
+const head = document.querySelector(".head");
+fade(tl, head, 5.9, 0.6, 1, 0.35);
+
+/* India, drawn in one stroke at constant speed: the outline is the record's frame. */
+const g = document.getElementById("india");
+for (const ring of snap.india) {
+  const d = ringPath(ring, proj);
+  const land = el("path", { d, class: "land" }, g);
+  fade(tl, land, 2.6, 0.9);
+  draw(tl, el("path", { d, class: "outline" }, g), 1.25, 1.9, E.travel);
+}
+
+/* Cities settle largest-first (map-event-accumulation). The clinical
+   register is not a street count: it is ringed apart, last. */
+const street = snap.cities.filter((c) => c.kind !== "clinical");
+const clinical = snap.cities.filter((c) => c.kind === "clinical");
+const max = Math.sqrt(street[0]?.animals || 1);
+const bg = document.getElementById("bubbles");
+const bubbles = new Map();
+street.forEach((c, i) => {
+  const [x, y] = proj([c.lng, c.lat]);
+  const r = 7 + (Math.sqrt(c.animals) / max) * 52;
+  const b = el("circle", { cx: x, cy: y, r: 0, class: "b", fill: KIND[c.kind], "fill-opacity": c.cells <= 1 ? 0.5 : 0.85 }, bg);
+  bubbles.set(c.name, { b, x, y, r });
+  const at = 3.2 + Math.min(i, 16) * 0.075;
+  tl.add(at, 0.6, (p) => b.setAttribute("r", (r * p).toFixed(2)));
+});
+clinical.forEach((c) => {
+  const [x, y] = proj([c.lng, c.lat]);
+  const ring = el("circle", { cx: x, cy: y, r: 30, class: "clin", opacity: 0 }, bg);
+  tl.add(4.9, 0.6, (p) => { ring.setAttribute("opacity", p); ring.setAttribute("r", mix(18, 30, p)); });
+});
+const LABELS = ["Ranchi", "Coimbatore", "Lucknow", "Delhi", "Hyderabad"];
+LABELS.forEach((name, i) => {
+  const m = bubbles.get(name); if (!m) return;
+  const c = street.find((s) => s.name === name);
+  const left = m.x > 700;
+  const t = el("text", { x: left ? m.x - m.r - 18 : m.x + m.r + 18, y: m.y + 10, class: "lbl", "text-anchor": left ? "end" : "start", opacity: 0 }, bg);
+  t.textContent = name + " ";
+  el("tspan", { class: "n" }, t).textContent = fmt(c.animals);
+  fade(tl, t, 3.6 + i * 0.12, 0.5);
+});
+
+/* The tally arrives with the map, then gives way to the callouts. */
+const tally = document.getElementById("tally");
+rise(tl, tally, 3.3, 0.5);
+count(tl, document.getElementById("nCities"), 3.3, 1.6, snap.totals.cities);
+count(tl, document.getElementById("nProfiles"), 3.3, 1.9, snap.totals.streetProfiles);
+fade(tl, tally, 6.6, 0.35, 1, 0);
+
+/* Focus handoff: one city at a time, the rest step back. */
+function focus(name, start, len, callId, text) {
+  const m = bubbles.get(name); if (!m) return;
+  const c = street.find((s) => s.name === name);
+  document.getElementById(text).textContent = `${name} · ${fmt(c.animals)} profiles`;
+  const call = document.getElementById(callId);
+  rise(tl, call, start + 0.25, 0.5);
+  fade(tl, call, start + len - 0.35, 0.35, 1, 0);
+  const ring = el("circle", { cx: m.x, cy: m.y, r: m.r + 16, class: "ring", transform: `rotate(-90 ${m.x} ${m.y})` }, document.getElementById("focus"));
+  draw(tl, ring, start + 0.1, 0.7, E.settle);
+  fade(tl, ring, start + len - 0.35, 0.35, 1, 0);
+  tl.add(start, len, (p, t) => {
+    const into = E.settle(Math.min(1, Math.max(0, (t - start) / 0.45)));
+    const out = E.settle(Math.min(1, Math.max(0, (t - (start + len - 0.4)) / 0.4)));
+    for (const [n, o] of bubbles) o.b.style.opacity = String(n === name ? 1 : mix(1, 0.28, into * (1 - out)));
+  }, E.linear, "dim");
+}
+focus("Coimbatore", 6.8, 2.9, "call1", "c1t");
+focus("Ranchi", 9.7, 2.9, "call2", "c2t");
+
+/* The caveat is part of the figure, not small print. */
+const j = clinical[0];
+document.getElementById("cavd").textContent = j
+  ? `${j.name}'s ${fmt(j.animals)} records are one clinical register at city level, ringed apart and not counted above.`
+  : "Empty areas mean missing reporting, not an absence of dogs.";
+const cav = document.getElementById("caveat");
+rise(tl, cav, 12.7, 0.5);
+fade(tl, cav, 14.2, 0.3, 1, 0);
+
+/* End card. */
+const end = document.getElementById("end");
+fade(tl, end, 14.3, 0.45);
+maskLines(tl, end.querySelector(".title"), 14.5, { each: 0.55, gap: 0.1 });
+const d = new Date(snap.fetchedAt);
+document.getElementById("src").textContent = `Figures: StrayPaw public city index, ${d.getUTCDate()} ${d.toLocaleString("en-GB", { month: "long", timeZone: "UTC" })} ${d.getUTCFullYear()}.`;
+
+await tl.ready();
+</script>
+</body>
+</html>

@@ -211,3 +211,6 @@
 /* Take an unowned case straight from the register. */
 .cr-take { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 12px 0 0; font-size: 14px; color: var(--sp-body, #3d4a5c); }
 .cr-take .dk-btn { min-height: 44px; }
+.cr-take.is-done { color: var(--sp-ink, #0b1e3d); font-weight: 600; }
+.cr-take.is-done svg { color: var(--sp-blue, #2457ce); flex: none; }
+.cr-take.is-done .mo-draw { animation-duration: .32s; animation-delay: .18s; animation-timing-function: var(--sp-ease); }

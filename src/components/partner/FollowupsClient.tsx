@@ -91,7 +91,7 @@ export function FollowupsClient() {
     <section className="ws-group" aria-labelledby={`fu-${id}`}>
       <header><h2 id={`fu-${id}`}>{title} <span className="ws-count">{list.length}</span></h2><p>{note}</p></header>
       {list.length === 0 ? <p className="ws-none">Nothing here.</p> : (
-        <ul className="ws-rows">
+        <ul className="ws-rows mo-list">
           {list.map((f) => {
             const c = f.case_id ? cases.get(f.case_id) : undefined;
             const due = dueLabel(f.due_at, today);

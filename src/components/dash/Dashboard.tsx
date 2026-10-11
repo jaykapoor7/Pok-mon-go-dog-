@@ -14,6 +14,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { FolkScene, FolkVignette } from "@/components/art/Folk";
+import { Tally } from "@/components/motion/Tally";
 import "./dash.css";
 
 export type Kpi = { label: string; value: number | string | null | undefined; note?: string; tone?: "hot" | "care" | "blue" | "quiet"; href?: string };
@@ -40,7 +41,7 @@ export function Dashboard({ eyebrow, title, subtitle, controls, actions, kpis, m
       </header>
       <dl className="db-kpis">
         {kpis.map((k) => {
-          const inner = <><dt>{k.label}</dt><dd className={k.tone ? `is-${k.tone}` : ""}>{fmt(k.value)}</dd>{k.note && <p>{k.note}</p>}</>;
+          const inner = <><dt>{k.label}</dt><dd className={k.tone ? `is-${k.tone}` : ""}>{typeof k.value === "number" ? <Tally value={k.value} /> : fmt(k.value)}</dd>{k.note && <p>{k.note}</p>}</>;
           return k.href ? <Link key={k.label} href={k.href} className="db-kpi is-link">{inner}<ArrowUpRight size={15} className="db-kpi-go" aria-hidden /></Link> : <div key={k.label} className="db-kpi">{inner}</div>;
         })}
       </dl>

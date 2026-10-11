@@ -38,7 +38,9 @@
     "test:sql-rpc-mapping": "node --import tsx scripts/test-sql-rpc-argument-mapping.ts",
     "spatial:probe": "tsx scripts/spatial-probe.ts",
     "shoot": "node scripts/shoot.mjs",
-    "import:kind-hour": "node scripts/import-kind-hour.mjs"
+    "import:kind-hour": "node scripts/import-kind-hour.mjs",
+    "reel:snapshot": "node scripts/reels/snapshot.mjs",
+    "reel": "node scripts/reels/render.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

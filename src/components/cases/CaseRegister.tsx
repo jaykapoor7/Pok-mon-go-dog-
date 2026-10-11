@@ -283,7 +283,7 @@ export function CaseRegister() {
           </dl>
           <p className="cr-scope">This preview preserves the queue. Open the case file for source notes, care, assignment, follow-ups, costs and outcome decisions.</p>
           {!selected.assignee_name && selected.status_class !== "closed" && user && <p className="cr-take"><button type="button" className="dk-btn is-flame" onClick={() => take(selected)} disabled={taking === "busy"}>{taking === "busy" ? "Taking it…" : "Take this case"}</button><span role="status" aria-live="polite">{taking === "failed" ? "Not saved. Try again." : "Nobody owns this case yet."}</span></p>}
-          {taking === "done" && selected.assignee_name && <p className="cr-take" role="status">This case is yours now.</p>}
+          {taking === "done" && selected.assignee_name && <p className="cr-take is-done" role="status"><svg className="mo-confirm" width="22" height="22" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="11" fill="currentColor" /><path className="mo-draw" pathLength={1} d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>This case is yours now.</p>}
           <div className="cr-inspector-actions"><Link href={`/partner/cases/${selected.id}`}>Open case & actions <ArrowUpRight size={16} /></Link>{selected.dog_id && <Link href={`/partner/animals/${selected.dog_id}`}>Animal history <ArrowUpRight size={16} /></Link>}{selected.h3_r8 && <Link href={`/partner/map?cell=${selected.h3_r8}&mode=cases`}><MapPin size={16} />Recorded area</Link>}</div>
         </>}
       </DialogContent></Dialog>

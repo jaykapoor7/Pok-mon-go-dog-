@@ -27,7 +27,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, MapMouseEvent } from "maplibre-gl";
+import type { Map as MLMap, GeoJSONSource, ExpressionSpecification, LngLatBoundsLike, MapMouseEvent } from "maplibre-gl";
 import { ArrowUpRight, Box, ChevronDown, Crosshair, CircleDashed, Layers, Minus, Plus, SlidersHorizontal, Square, X } from "lucide-react";
 import { groundStyle, underlay, restyle, type Palette } from "@/components/map/basemap";
 import {
@@ -40,6 +40,7 @@ import { Portraits, type DotPick } from "./Portraits";
 import { CONDITIONS, DEFAULT_TRIAGE, STATUSES, type Condition } from "@/lib/register/taxonomy";
 import { CITIES } from "@/lib/geo/cities";
 import { getSupabase } from "@/lib/supabase";
+import { cameraDuration, tween, travel } from "@/lib/motion";
 import { useSpatialDataset, ringOf, flatRing, pointInCell, boxOfRings, INDIA_BOX, type Scope } from "./data";
 import { Inspector, type Sel } from "./Inspector";
 import { Timeline } from "./Timeline";
@@ -176,6 +177,24 @@ const heatRamp = (c: string[]) => ["interpolate", ["linear"], ["heatmap-density"
 const AUTO_ENTER_ZOOM = 8.5;
 const AUTO_EXIT_ZOOM = 6.5;
 
+
+/* ── The national overview's arrival ────────────────────────────────
+   map-event-accumulation, at StrayPaw's register: the city bubbles do not
+   pop in at once; they settle onto the map largest-first, each a beat
+   after the last, so the eye is led from where the record is deepest
+   outwards. `T` is the run's clock in seconds; null is the resting state
+   (every bubble at full size), which is also what reduced motion gets. */
+const GROW_STEP = 0.07, GROW_EACH = 0.55, GROW_RANKS = 14;
+const GROW_END = GROW_STEP * GROW_RANKS + GROW_EACH;
+const growAt = (T: number) => {
+  const p = ["min", 1, ["max", 0, ["/", ["-", T, ["*", ["min", ["get", "r"], GROW_RANKS], GROW_STEP]], GROW_EACH]]];
+  return ["-", 1, ["^", ["-", 1, p], 3]];
+};
+const scaled = (v: unknown, T: number | null) => (T === null ? v : ["*", v, growAt(T)]);
+const cityRadius = (T: number | null) => ["interpolate", ["linear"], ["zoom"], 4, scaled(["interpolate", ["linear"], ["sqrt", ["get", "sz"]], 1, 6, 48, 26], T), 10, scaled(8, T), 14, scaled(5, T)] as ExpressionSpecification;
+const clinRadius = (T: number | null) => ["interpolate", ["linear"], ["zoom"], 4, scaled(13, T), 10, scaled(12.5, T)] as ExpressionSpecification;
+const labelOpacity = (T: number | null) => (T === null ? 1 : ["^", growAt(T), 2]) as ExpressionSpecification | number;
+
 export function SpatialMap({ scope = "public", userKey = null, surface = "community" }: { scope?: Scope; userKey?: string | null; surface?: "community" | "municipality" }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -291,6 +310,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const [feeding, setFeeding] = useState<{ id: string; name: string; lat: number; lng: number }[]>([]);
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
+  const grownLens = useRef<string | null>(null);
   const layersDone = useRef(false);
 
   useEffect(() => {
@@ -711,12 +731,12 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     /* Clinical / CNVR register cities are ringed apart: a hairline halo that
        says "a register at this city", not a street-level profile count. */
     map.addLayer({ id: "cities-clin", type: "circle", source: "cities", filter: ["==", ["get", "clin"], 1], paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 13, 10, 12.5] as ExpressionSpecification,
+      "circle-radius": clinRadius(null),
       "circle-color": "rgba(0,0,0,0)",
       "circle-stroke-color": "#5b82dc", "circle-stroke-width": 1.4, "circle-stroke-opacity": 0.9,
     } });
     map.addLayer({ id: "cities", type: "circle", source: "cities", paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, ["interpolate", ["linear"], ["sqrt", ["get", "sz"]], 1, 6, 48, 26], 10, 8, 14, 5] as ExpressionSpecification,
+      "circle-radius": cityRadius(null),
       "circle-color": KIND_COLOR, "circle-opacity": ["case", ["==", ["get", "one"], 1], 0.14, 0.78] as ExpressionSpecification,
       "circle-stroke-color": ["case", ["==", ["get", "one"], 1], KIND_COLOR, pal.bg] as ExpressionSpecification, "circle-stroke-width": ["case", ["==", ["get", "one"], 1], 2, 1] as ExpressionSpecification,
     } });
@@ -991,7 +1011,20 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       const sz = clin && atlasLens === "animals" ? 60 : n;
       return [{ type: "Feature" as const, properties: { name: c.city, n, sz, clin, k, one: c.cells <= 1 ? 1 : 0 }, geometry: { type: "Point" as const, coordinates: [lng, lat] } }];
     });
+    [...feats].sort((a, b) => b.properties.sz - a.properties.sz).forEach((f, i) => { (f.properties as typeof f.properties & { r: number }).r = i; });
     if (feats.length) src.setData({ type: "FeatureCollection", features: feats });
+    /* Accumulate once per lens, and only on the national view. */
+    if (!indiaOverview || !feats.length || grownLens.current === atlasLens) return;
+    grownLens.current = atlasLens;
+    const paint = (T: number | null) => {
+      if (!map.getLayer("cities")) return;
+      map.setPaintProperty("cities", "circle-radius", cityRadius(T));
+      map.setPaintProperty("cities-clin", "circle-radius", clinRadius(T));
+      map.setPaintProperty("cities-l", "text-opacity", labelOpacity(T));
+    };
+    const stop = tween(GROW_END * 1000, (p) => paint(p >= 1 ? null : p * GROW_END), (t) => t);
+    /* Interrupted (the view changed mid-run): land every bubble at full size. */
+    return () => { stop(); paint(null); };
   }, [availableCities, ds, ready, layersReady, atlasLens, mode, indiaOverview]);
 
   const padding = useCallback(() => {
@@ -1000,12 +1033,21 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   }, []);
   const camera = useCallback((s: Sel, instant = false) => {
     const map = mapRef.current; if (!map || !ds) return;
-    const d = instant || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1000;
-    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: (el.current?.clientWidth ?? 0) > 900 ? { top: 40, bottom: 70, left: 470, right: 70 } : { top: 20, bottom: 250, left: 15, right: 15 }, duration: d });
-    else if (s.t === "city") map.fitBounds(ds.cities[s.city].box, { padding: padding(), duration: d, maxZoom: ds.cells.length <= 1 ? 10 : 13 });
-    else if (s.t === "locality") map.fitBounds(boxOfRings(selCells.map((c) => ringOf(ds, c)), 0.01), { padding: padding(), duration: d, maxZoom: 14.2 });
-    else if (s.t === "cell") map.flyTo({ center: [ds.centers[s.cell * 2], ds.centers[s.cell * 2 + 1]], zoom: Math.max(map.getZoom(), 14.2), duration: d, padding: padding() });
-    else map.flyTo({ center: s.center, zoom: Math.max(map.getZoom(), 13.8), duration: d, padding: padding() });
+    /* fly-to: travel time scales with how far the view is going — a hop
+       between neighbouring cells is quick, India to a city is a journey —
+       and the curve eases out of rest and into arrival, as a camera does. */
+    const z0 = map.getZoom();
+    const dur = (box: LngLatBoundsLike | null, z: number) => {
+      if (instant) return 0;
+      const zt = box ? map.cameraForBounds(box, { padding: padding() })?.zoom ?? z : z;
+      return cameraDuration(z0, Math.min(zt, z));
+    };
+    const ease = { easing: travel };
+    if (s.t === "india") map.fitBounds(INDIA_BOX, { padding: (el.current?.clientWidth ?? 0) > 900 ? { top: 40, bottom: 70, left: 470, right: 70 } : { top: 20, bottom: 250, left: 15, right: 15 }, duration: dur(null, 4), ...ease });
+    else if (s.t === "city") { const mz = ds.cells.length <= 1 ? 10 : 13; map.fitBounds(ds.cities[s.city].box, { padding: padding(), duration: dur(ds.cities[s.city].box, mz), maxZoom: mz, ...ease }); }
+    else if (s.t === "locality") { const b = boxOfRings(selCells.map((c) => ringOf(ds, c)), 0.01); map.fitBounds(b, { padding: padding(), duration: dur(b, 14.2), maxZoom: 14.2, ...ease }); }
+    else if (s.t === "cell") { const z = Math.max(z0, 14.2); map.flyTo({ center: [ds.centers[s.cell * 2], ds.centers[s.cell * 2 + 1]], zoom: z, duration: dur(null, z), padding: padding(), ...ease }); }
+    else { const z = Math.max(z0, 13.8); map.flyTo({ center: s.center, zoom: z, duration: dur(null, z), padding: padding(), ...ease }); }
   }, [ds, padding, selCells]);
 
   /* The inspector opens collapsed â place name and three figures â for

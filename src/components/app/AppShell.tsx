@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useGlide } from "@/components/motion/useGlide";
 import { ArrowLeft, Menu, Search } from "lucide-react";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Welcome } from "./Welcome";
@@ -75,6 +76,10 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
   useEffect(() => { setMore(false); }, [pathname]);
   const closeCmd = useCallback(() => setCmd(false), []);
   const closeMore = useCallback(() => setMore(false), []);
+  const navRef = useRef<HTMLElement>(null);
+  const tabsRef = useRef<HTMLElement>(null);
+  useGlide(navRef, 'a[aria-current="page"]', `${space}${pathname}`);
+  useGlide(tabsRef, 'a[aria-current="page"]', `${space}${pathname}`);
   const pick = useCallback((s: Space) => { rememberSpace(s); setSpace(s); }, []);
 
   if (nested) return <>{children}</>;
@@ -106,7 +111,8 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           </Link>
           <div className="sd-space"><SpaceMenu space={space} onPick={pick} /></div>
           {def.action && <Link href={def.action.href} className="sd-action"><def.action.Icon size={17} aria-hidden /><span>{def.action.label}</span></Link>}
-          <nav className="sd-nav" aria-label={`${def.label} destinations`}>
+          <nav className="sd-nav" ref={navRef} aria-label={`${def.label} destinations`}>
+            <i className="mo-glide" aria-hidden />
             {def.nav.map(({ href, label, Icon }) => (
               <Link key={href} href={href} prefetch aria-current={isCurrent(href) ? "page" : undefined}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>
             ))}
@@ -139,7 +145,8 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           <main id="spa-main" className="sx-main">{children}</main>
         </div>
 
-        <nav className="sx-tabs" aria-label={`${def.label} navigation`}>
+        <nav className="sx-tabs" ref={tabsRef} aria-label={`${def.label} navigation`}>
+          <i className="mo-glide" aria-hidden />
           {left.map(({ href, label, Icon }) => <Link key={href} href={href} aria-current={isCurrent(href) ? "page" : undefined}><Icon size={22} strokeWidth={1.8} /><span>{label}</span></Link>)}
           {def.action && !isReporting && <Link href={def.action.href} className="sx-tabs-action" aria-label={def.action.label}><span className="sx-tabs-disc"><def.action.Icon size={22} /></span><span>{def.action.short}</span></Link>}
           {def.action && isReporting && <span className="sx-tabs-gap" aria-hidden />}

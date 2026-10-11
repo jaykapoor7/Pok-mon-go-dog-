@@ -76,10 +76,10 @@ export function CityOperations({ city }: { city: string | null }) {
     ].filter((p) => p.n > 0);
     return (
       <figure className="co-ops">
-        <div className="co-ops-bar" role="img" aria-label={parts.map((p) => `${p.k}: ${fmt(p.n)}`).join(", ")}>
+        <div className="co-ops-bar mo-grow" role="img" aria-label={parts.map((p) => `${p.k}: ${fmt(p.n)}`).join(", ")}>
           {parts.map((p) => <i key={p.k} className={p.c} style={{ flexGrow: p.n }} />)}
         </div>
-        <ul>{parts.map((p) => <li key={p.k}><i className={p.c} aria-hidden /><span>{p.k}</span><b>{fmt(p.n)}</b></li>)}</ul>
+        <ul className="mo-list">{parts.map((p) => <li key={p.k}><i className={p.c} aria-hidden /><span>{p.k}</span><b>{fmt(p.n)}</b></li>)}</ul>
       </figure>
     );
   };
@@ -101,7 +101,7 @@ export function CityOperations({ city }: { city: string | null }) {
         {progs === null ? <p className="db-empty">Reading…</p>
           : progs.length === 0 ? <p className="db-empty">No organisation has published a programme for {city} yet. Drives, vet camps and registers appear here with their own totals once published.</p>
             : (
-              <ul className="co-progs">
+              <ul className="co-progs mo-list">
                 {progs.slice(0, 6).map((p) => (
                   <li key={p.id}>
                     <Link href={`/programmes/${p.id}`}>
