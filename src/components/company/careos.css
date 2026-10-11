@@ -1,0 +1,97 @@
+/* StrayPaw CareOS product page. Editorial, ruled, no card stacks: one case
+   told as a sequence, each step with a small product artefact and an honest
+   Live / Pilot state. Built on the company page (co-*) tokens. */
+
+.careos .cw-honest { margin: var(--sp-3) 0 0; max-width: 52ch; font-size: 13.5px; line-height: 1.5; color: var(--sp-night-dim); }
+.careos .cw-ill { display: block; margin-top: var(--sp-2); font-size: 13px; color: var(--sp-muted); }
+
+/* Live / Pilot */
+.cw-state { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.cw-state.is-live { background: rgba(29, 138, 153, 0.12); color: #136873; }
+.cw-state.is-pilot { background: rgba(240, 91, 64, 0.12); color: var(--sp-flame-ink, #b5381f); }
+.cw-state small { font-weight: 500; opacity: 0.85; }
+
+/* One case, end to end: a ruled sequence, six columns on a wide screen. */
+.cw-flow { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--sp-ink); }
+.cw-flow > li { display: grid; grid-template-rows: auto auto minmax(132px, auto) 1fr; align-content: start; gap: var(--sp-3); padding: var(--sp-4) var(--sp-4) var(--sp-4) 0; min-width: 0; }
+.cw-flow > li + li { padding-left: var(--sp-4); border-left: 1px solid var(--sp-line); }
+.cw-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cw-head .co-n { font-family: var(--font-mono); font-size: 12px; color: var(--sp-muted); }
+.cw-t { font-size: 17px; font-weight: 600; letter-spacing: -0.012em; color: var(--sp-ink); line-height: 1.25; }
+.cw-note { display: block; margin-top: 4px; font-size: 12px; font-weight: 500; letter-spacing: 0; color: var(--sp-flame-ink, #b5381f); }
+.cw-flow p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--sp-body); }
+
+/* Artefacts: small, quiet pieces of the product, not screenshots. */
+.cw-art { display: grid; align-content: start; gap: 6px; padding: 12px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px var(--sp-line); font-size: 12.5px; color: var(--sp-body); }
+.cw-art b { color: var(--sp-ink); font-size: 13.5px; font-weight: 600; }
+.cw-sub { color: var(--sp-muted); }
+.cw-chat { background: #e9f6ee; box-shadow: none; }
+.cw-bubble { display: grid; gap: 8px; padding: 9px 11px; border-radius: 10px 10px 10px 2px; background: #fff; color: var(--sp-ink); line-height: 1.4; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06); }
+.cw-ph { display: block; height: 52px; border-radius: 6px; background: repeating-linear-gradient(135deg, #d9e2dc 0 6px, #cfd9d2 6px 12px); filter: blur(0.5px); }
+.cw-meta { font-size: 11.5px; color: #4b6b57; }
+.cw-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.cw-pills em { font-style: normal; padding: 1px 8px; border-radius: 999px; background: rgba(36, 87, 206, 0.1); color: var(--sp-blue); font-weight: 600; font-size: 11.5px; }
+.cw-pills em.is-hot { background: rgba(240, 91, 64, 0.14); color: var(--sp-flame-ink, #b5381f); }
+.cw-tag { justify-self: start; padding: 1px 7px; border-radius: 6px; background: var(--sp-night, #07142b); color: #fff; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; }
+.cw-id ol { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.cw-id li, .cw-care > span:first-child { display: flex; align-items: center; gap: 7px; }
+.cw-art i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--sp-muted); }
+.cw-art i.is-care { background: #1d8a99; }
+.cw-art i.is-hot { background: var(--sp-flame); }
+.cw-due > span { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; }
+.cw-due > span + span { border-top: 1px solid var(--sp-line); }
+.cw-due em { font-style: normal; color: var(--sp-muted); }
+.cw-due .is-late b { color: var(--sp-flame-ink, #b5381f); }
+.cw-closed { font-weight: 600; color: #136873; }
+
+/* Continuity of care: one life line through many hands. */
+.cw-life ol { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: relative; }
+.cw-life ol::before { content: ""; position: absolute; top: 9px; left: 6px; right: 6px; height: 2px; background: var(--sp-ink); }
+.cw-life li { position: relative; display: grid; gap: 4px; padding: 30px var(--sp-3) 0 0; min-width: 0; }
+.cw-life li::before { content: ""; position: absolute; top: 3px; left: 0; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--sp-ink); background: var(--sp-shell); box-sizing: border-box; }
+.cw-life li:last-child::before { background: var(--sp-blue); border-color: var(--sp-blue); }
+.cw-who { font-size: 12.5px; color: var(--sp-muted); }
+.cw-life b { font-size: 16px; font-weight: 600; color: var(--sp-ink); }
+.cw-life small { font-size: 13px; color: var(--sp-body); }
+.cw-life-k { margin: var(--sp-5) 0 0; font-size: 13px; color: var(--sp-muted); max-width: 64ch; }
+
+/* The workspace: a ruled index of modules, each a link. */
+.cw-mods { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.cw-mods li { border-bottom: 1px solid var(--sp-line); }
+.cw-mods a { display: grid; grid-template-columns: minmax(150px, 0.7fr) minmax(0, 1.6fr) auto 20px; align-items: center; gap: var(--sp-4); min-height: 64px; padding: 12px 0; color: inherit; text-decoration: none; }
+.cw-mods a:hover b { color: var(--sp-blue); }
+.cw-mods a:focus-visible { outline: 2px solid var(--sp-blue); outline-offset: 2px; }
+.cw-mods b { font-size: 17px; font-weight: 600; color: var(--sp-ink); }
+.cw-mods span:not(.cw-state) { font-size: 14px; line-height: 1.5; color: var(--sp-body); }
+.cw-go { color: var(--sp-muted); }
+
+/* Founding pilot */
+.cw-pilot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5) var(--sp-7); }
+.cw-pilot-k { margin: 0 0 var(--sp-2); font-size: 13px; font-weight: 600; color: var(--sp-muted); }
+.cw-pilot ul:not(.ngo-terms) { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--sp-ink); }
+.cw-pilot ul:not(.ngo-terms) li { padding: 11px 0; border-bottom: 1px solid var(--sp-line); font-size: 15px; line-height: 1.45; color: var(--sp-ink); }
+.cw-pilot .cw-steps, .cw-pilot .ngo-terms { grid-column: 1 / -1; }
+
+@media (max-width: 1180px) {
+  .cw-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cw-flow > li:nth-child(4) { padding-left: 0; border-left: 0; }
+  .cw-flow > li:nth-child(n + 4) { border-top: 1px solid var(--sp-line); }
+}
+@media (max-width: 760px) {
+  /* On a phone the six steps slide sideways instead of stacking into a
+     column several screens long; each step snaps into place. */
+  .cw-flow { display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; margin-right: calc(-1 * var(--sp-gutter)); padding-right: var(--sp-gutter); }
+  .cw-flow::-webkit-scrollbar { display: none; }
+  .cw-flow > li, .cw-flow > li + li { flex: 0 0 82%; scroll-snap-align: start; padding: var(--sp-4) var(--sp-4) var(--sp-4) 0; grid-template-rows: none; border-top: 0; }
+  .cw-flow > li + li { padding-left: var(--sp-4); border-left: 1px solid var(--sp-line); }
+  .cw-flow > li:nth-child(4) { padding-left: var(--sp-4); border-left: 1px solid var(--sp-line); }
+  .cw-flow > li:nth-child(n + 4) { border-top: 0; }
+  .cw-life ol { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+  .cw-life ol::before { top: 6px; bottom: 6px; left: 6px; right: auto; width: 2px; height: auto; }
+  .cw-life li { padding: 0 0 0 30px; }
+  .cw-mods a { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 4px var(--sp-3); }
+  .cw-mods a span:not(.cw-state) { grid-column: 1; }
+  .cw-mods a .cw-state { grid-row: 1; grid-column: 2; }
+  .cw-go { display: none; }
+  .cw-pilot { grid-template-columns: minmax(0, 1fr); }
+}
