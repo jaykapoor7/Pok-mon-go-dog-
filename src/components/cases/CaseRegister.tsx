@@ -26,6 +26,7 @@ import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { closedCounts, closedRegister, openRegister, OPEN_REGISTER_LIMIT, PAGE, searchRegister, type RegisterRow } from "@/lib/case-register";
 import { CLOSURE_META, STATUS_META, triageOf, type ClosureReason, type StatusClass, type Triage } from "@/lib/register/taxonomy";
 import { downloadCsv } from "@/lib/csv";
+import { claimCase } from "@/lib/case-actions";
 import "./register.css";
 import { SearchSelect } from "@/components/app/SearchSelect";
 
@@ -76,6 +77,21 @@ export function CaseRegister() {
   const [place, setPlace] = useState("");
   const [limit, setLimit] = useState(SHOW);
   const [selected, setSelected] = useState<RegisterRow | null>(null);
+  const [taking, setTaking] = useState<"idle" | "busy" | "done" | "failed">("idle");
+  /* Taking a case from the register: one tap, then the row and the inspector
+     both show the new owner without a reload. */
+  const take = async (row: RegisterRow) => {
+    if (!user || taking === "busy") return;
+    setTaking("busy");
+    try {
+      const ok = await claimCase(row.id, { id: user.id, name: user.name });
+      if (!ok) throw new Error("refused");
+      const mine = { ...row, assignee_name: user.name };
+      setOpen((rows) => rows?.map((r) => (r.id === row.id ? mine : r)) ?? rows);
+      setSelected(mine);
+      setTaking("done");
+    } catch { setTaking("failed"); }
+  };
   const now = useMemo(() => Date.now(), []);
 
   // Arrive with ?q (the top-bar search) or ?lens.
@@ -239,7 +255,7 @@ export function CaseRegister() {
         <>
           <p className="cr-waiting-key">Waiting bars use a logarithmic scale. Exact elapsed time appears on each record.</p>
           <div className="cr-ledger-labels" aria-hidden><span>Case / animal</span><span>Locality / reported</span><span>Recorded waiting time</span><span>With</span><span>Status</span></div>
-          <ol className="cr-list">{visibleRows.map((r) => <Row key={r.id} r={r} now={now} onInspect={() => setSelected(r)} />)}</ol>
+          <ol className="cr-list">{visibleRows.map((r) => <Row key={r.id} r={r} now={now} onInspect={() => { setSelected(r); setTaking("idle"); }} />)}</ol>
           {rows.length > limit && (
             <button type="button" className="cr-more" onClick={() => setLimit((n) => n + SHOW)}>
               Show {Math.min(SHOW, rows.length - limit)} more <span className="sys-mono">· {limit.toLocaleString("en-IN")} of {rows.length.toLocaleString("en-IN")} shown</span>
@@ -252,7 +268,7 @@ export function CaseRegister() {
       )}
       </section>
       </div>
-      <Dialog open={Boolean(selected)} onOpenChange={(v) => { if (!v) setSelected(null); }}><DialogContent className="spa-scope cr-inspector">
+      <Dialog open={Boolean(selected)} onOpenChange={(v) => { if (!v) { setSelected(null); setTaking("idle"); } }}><DialogContent className="spa-scope cr-inspector">
         {selected && <>
           <p className="cr-inspector-kicker">Case register / {triage(selected)}</p>
           <DialogTitle>{cond(selected) || selected.title || "Condition not recorded"}</DialogTitle>
@@ -266,6 +282,8 @@ export function CaseRegister() {
             <div><dt>Next follow-up</dt><dd>{day(selected.next_due)}</dd></div>
           </dl>
           <p className="cr-scope">This preview preserves the queue. Open the case file for source notes, care, assignment, follow-ups, costs and outcome decisions.</p>
+          {!selected.assignee_name && selected.status_class !== "closed" && user && <p className="cr-take"><button type="button" className="dk-btn is-flame" onClick={() => take(selected)} disabled={taking === "busy"}>{taking === "busy" ? "Taking it…" : "Take this case"}</button><span role="status" aria-live="polite">{taking === "failed" ? "Not saved. Try again." : "Nobody owns this case yet."}</span></p>}
+          {taking === "done" && selected.assignee_name && <p className="cr-take" role="status">This case is yours now.</p>}
           <div className="cr-inspector-actions"><Link href={`/partner/cases/${selected.id}`}>Open case & actions <ArrowUpRight size={16} /></Link>{selected.dog_id && <Link href={`/partner/animals/${selected.dog_id}`}>Animal history <ArrowUpRight size={16} /></Link>}{selected.h3_r8 && <Link href={`/partner/map?cell=${selected.h3_r8}&mode=cases`}><MapPin size={16} />Recorded area</Link>}</div>
         </>}
       </DialogContent></Dialog>
