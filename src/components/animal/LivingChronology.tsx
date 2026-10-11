@@ -21,7 +21,7 @@ export function LivingChronology({ entries }: { entries: LivingEvent[] }) {
           <span className="lr-ch-date sys-mono">{day(entry.date)}</span>
           <i className={`lr-ch-mark is-${entry.tone}`} aria-hidden />
           <span className="lr-ch-what"><b>{entry.title}</b>{entry.note && <span>{entry.note}</span>}</span>
-          <span className="lr-ch-src">{SOURCE[entry.source]}</span>
+          <span className="lr-ch-src">{[entry.source === "field" && entry.by ? entry.by : SOURCE[entry.source], entry.source !== "field" ? entry.by : null, entry.via].filter(Boolean).join(" · ")}</span>
         </motion.li>
       ))}
     </ol>

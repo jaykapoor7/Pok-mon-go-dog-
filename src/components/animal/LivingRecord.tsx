@@ -37,6 +37,13 @@ const since = (iso: string | null) => {
   return d < 1 ? "today" : d === 1 ? "yesterday" : d < 45 ? `${d} days ago` : d < 540 ? `${Math.round(d / 30)} months ago` : `${(d / 365).toFixed(1)} years ago`;
 };
 const cap = (t: string) => t.replace(/^./, (c) => c.toUpperCase());
+/* Continuity of care, from the record: which organisations have recorded
+   cases or care for this animal, and how many times residents saw it. */
+function careHands(h: Living["hands"]): string {
+  const orgs = [...h.orgs, ...(h.unnamedOrgs ? [h.unnamedOrgs === 1 ? "an organisation that has not published its name" : `${h.unnamedOrgs} organisations that have not published their names`] : [])];
+  const who = orgs.length ? orgs.join(", ") : "No organisation has recorded care yet";
+  return h.residents ? `${who}; seen by residents ${h.residents} ${h.residents === 1 ? "time" : "times"}` : who;
+}
 const SOURCE: Record<LivingEvent["source"], string> = { field: "field record", resident: "resident", import: "imported register" };
 
 /* The route shows the shape of the record; past this many stops the middle
@@ -205,6 +212,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
         <div><dt>StrayPaw ID</dt><dd>{r.straypawId ?? "Pending"}</dd></div>
         {r.sourceCode && <div><dt>Source ID</dt><dd>{r.sourceCode}</dd></div>}
         <div><dt>Record from</dt><dd>{r.keeper}</dd></div>
+        <div><dt>Who has cared for it</dt><dd>{careHands(r.hands)}</dd></div>
         <div><dt>Record</dt><dd>{scope === "org" ? "Organisation record" : "Public record"}</dd></div>
       </dl>
       <p className="dz-fine">A documented identity, not a claim of verified uniqueness. Recorded animals, never a population.</p>
@@ -237,6 +245,7 @@ export function LivingRecord({ r, scope, org, trail }: { r: Living; scope: "publ
             <div><dt>On record since</dt><dd>{day(r.firstSeen)}</dd></div>
             <div><dt>Last seen</dt><dd>{r.lastSeen ? since(r.lastSeen) : "Not recorded"}</dd></div>
             <div><dt>Record from</dt><dd>{r.keeper}</dd></div>
+            <div><dt>Who has cared for it</dt><dd>{careHands(r.hands)}</dd></div>
           </dl>
           <div className="dz2-do">
             <a href={reportHref} className="x-btn is-flame">{r.known.health === "needs_help" ? "I can see it now" : "Report a sighting"}</a>

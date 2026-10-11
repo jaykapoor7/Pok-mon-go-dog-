@@ -26,6 +26,10 @@ export type LivingEvent = {
   id: string; lane: Lane; date: string; end?: string | null; tone: Tone;
   title: string; note?: string | null; href?: string | null;
   source: "field" | "resident" | "import";
+  /** The organisation that recorded it, when it publishes its name. */
+  by?: string | null;
+  /** How a case came in (the NGO's own line, a resident, a partner organisation). */
+  via?: string | null;
 };
 export type Known = "yes" | "no" | "unknown";
 
@@ -34,6 +38,9 @@ export type Living = {
   species: string; sex: string | null; colour: string | null;
   locality: string | null; city: string | null; state: string | null;
   keeper: string; source: "field" | "resident";
+  /** Who has had a hand in this animal's care, from the record itself:
+      named organisations, and how many resident sightings. */
+  hands: { orgs: string[]; unnamedOrgs: number; residents: number };
   firstSeen: string | null; lastSeen: string | null;
   photo: string | null; photos: string[]; photoSensitive: boolean; size: string | null; photoAttribution: string | null; photoSourceUrl: string | null;
   known: { ster: Known; sterAt: string | null; vacc: Known; vaccAt: string | null; boosterDue: boolean; health: "needs_help" | "injured" | "none"; earNotch: boolean };
@@ -67,18 +74,34 @@ type CaseFact = {
   id: string; condition_class: string | null; status_class: string | null; closure_reason: string | null; occurred_at: string | null;
   resolved_at: string | null; resolved_at_source: string | null; first_action_days: number | null; followups_missed: number | null;
   followups_upcoming: number | null; source: string | null; reviewed_at: string | null;
+  ngo_id: string | null; intake_channel: string | null;
+};
+/* How a case came in, said plainly. */
+const VIA: Record<string, string> = {
+  own_line: "came in on the organisation's own line", individual: "reported by a resident",
+  partner_org: "referred by a partner organisation", team_found: "found by the team in the field", whatsapp: "reported on WhatsApp",
 };
 
 export async function buildLiving(profile: DogProfile, operational: ProfileOperationalRecord, identity: PublicAnimalIdentity | null): Promise<Living> {
   const { dog } = profile;
   const supa = getSupabase();
   const [factsRes, careRes, spatialRes] = supa ? await Promise.all([
-    supa.from("public_case_facts").select("id,condition_class,status_class,closure_reason,occurred_at,resolved_at,resolved_at_source,first_action_days,followups_missed,followups_upcoming,source,reviewed_at").eq("dog_id", dog.id),
-    supa.from("public_care_facts").select("id,kind,event_date").eq("dog_id", dog.id),
+    supa.from("public_case_facts").select("id,condition_class,status_class,closure_reason,occurred_at,resolved_at,resolved_at_source,first_action_days,followups_missed,followups_upcoming,source,reviewed_at,ngo_id,intake_channel").eq("dog_id", dog.id),
+    supa.from("public_care_facts").select("id,kind,event_date,case_id").eq("dog_id", dog.id),
     supa.from("public_spatial_animals").select("h3_r8,city,state,source,first_seen").eq("id", dog.id).maybeSingle(),
   ]) : [{ data: [] }, { data: [] }, { data: null }];
   const facts = ((factsRes.data ?? []) as CaseFact[]).sort((a, b) => (a.occurred_at ?? "").localeCompare(b.occurred_at ?? ""));
-  const care = ((careRes.data ?? []) as { id: string; kind: string; event_date: string | null }[]).filter((c) => c.event_date);
+  const care = ((careRes.data ?? []) as { id: string; kind: string; event_date: string | null; case_id: string | null }[]).filter((c) => c.event_date);
+  /* Which organisation recorded each case (and the care under it). Names come
+     from the public contributor list, so an organisation that has not chosen
+     to publish its name stays "an organisation". */
+  const ngoIds = [...new Set(facts.map((f) => f.ngo_id).filter((x): x is string => !!x))];
+  const orgName = new Map<string, string>();
+  if (supa && ngoIds.length) {
+    const { data } = await supa.from("public_contributor_organisations").select("id,name").in("id", ngoIds);
+    for (const o of (data ?? []) as { id: string; name: string | null }[]) if (o.name) orgName.set(o.id, o.name);
+  }
+  const caseNgo = new Map(facts.map((f) => [f.id, f.ngo_id ?? null]));
   const sp = spatialRes.data as { h3_r8: string | null; city: string | null; state: string | null; source: string | null; first_seen: string | null } | null;
   /* A public profile must name the reporting organisation. The profile view
      normally supplies ngo_name; this lookup covers older public rows that
@@ -112,6 +135,8 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
       tone: open ? "open" : st === "no_action" || st === "not_attended" ? "none" : "done",
       title: `${cond} — ${STATUS_TITLE[st] ?? st}${f.closure_reason && CLOSURE_TITLE[f.closure_reason] ? `: ${CLOSURE_TITLE[f.closure_reason]}` : ""}`,
       source: f.source === "resident" ? "resident" : "field",
+      by: f.ngo_id ? orgName.get(f.ngo_id) ?? null : null,
+      via: f.intake_channel ? VIA[f.intake_channel] ?? null : null,
     });
   }
   const careSourceById = new Map(operational.medical.map((m) => [m.id, m.sourceMarker]));
@@ -121,6 +146,7 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
       id: `care-${c.id}`, lane: "care", date: c.event_date!, tone: c.kind === "sterilisation" ? "ster" : c.kind === "vaccination" ? "vacc" : "care",
       title: sourceMarker === "medical_expense_recorded" ? "Medical expense recorded" : CARE_TITLE[c.kind] ?? c.kind.replace(/_/g, " "),
       source: sourceMarker ? "import" : "field",
+      by: (() => { const n = c.case_id ? caseNgo.get(c.case_id) : null; return n ? orgName.get(n) ?? null : null; })(),
     });
   }
   for (const r of operational.imported) {
@@ -169,6 +195,11 @@ export async function buildLiving(profile: DogProfile, operational: ProfileOpera
     /* Where the record comes from: the organisation that contributed or holds it, or
        residents' reports. Never a claim that anyone has the animal in their care. */
     keeper: reporterName ? reporterName : dog.ngo_id ? "An organisation (name not published)" : "Community reports",
+    hands: {
+      orgs: [...new Set(ngoIds.map((id) => orgName.get(id)).filter((n): n is string => !!n))],
+      unnamedOrgs: ngoIds.filter((id) => !orgName.has(id)).length,
+      residents: profile.sightings.length,
+    },
     source: sp?.source === "resident" || dog.provenance === "community_report" ? "resident" : "field",
     firstSeen: sp?.first_seen ?? dog.first_seen ?? null, lastSeen: dog.last_seen ?? null,
     photo: photos[0] ?? null, photos,

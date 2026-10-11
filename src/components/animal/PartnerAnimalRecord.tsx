@@ -58,7 +58,7 @@ export function PartnerAnimalRecord({ id, published }: { id: string; published: 
   const record: Living = published ?? {
     id, label: dogLabel(dog), straypawId: null, sourceCode: dog.code ?? null,
     species: "dog", sex: null, colour: dog.color, locality: dog.zone, city: dog.city ?? null, state: null,
-    keeper: "Your organisation", source: "field", firstSeen: dog.first_seen, lastSeen: dog.last_seen,
+    keeper: "Your organisation", source: "field", hands: { orgs: [], unnamedOrgs: 1, residents: 0 }, firstSeen: dog.first_seen, lastSeen: dog.last_seen,
     photo: dog.cover_photo || null, photos: dog.photos, size: dog.size ?? null, photoSensitive: !!dog.photo_sensitive || !!dog.needs_help || openCases > 0, photoAttribution: dog.photo_attribution ?? null, photoSourceUrl: dog.photo_source_url ?? null,
     known: { ster: dog.sterilised ? "yes" : "unknown", sterAt: null, vacc: dog.vaccinated ? "yes" : "unknown", vaccAt: null, boosterDue: false, health: dog.needs_help ? "needs_help" : "none", earNotch: !!dog.ear_notch },
     cases: [], events: [], comments: [], place: null, open: { cases: 0, followupsMissed: 0, followupsDue: 0 },
