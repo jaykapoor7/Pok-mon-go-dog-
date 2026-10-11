@@ -21,6 +21,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "@/components/dash/Dashboard";
 import { LiveMap, type MapTone } from "@/components/dash/LiveMap";
 import { CellCard } from "@/components/dash/CellCard";
+import { CityOperations } from "./CityOperations";
 import { useSpatialDataset, pointInCell, ringOf } from "@/components/spatial/data";
 import type { Light } from "@/components/system/LightsMap";
 import { cityEvidence, kindOf, KIND_META } from "@/components/spatial/AtlasRegister";
@@ -145,6 +146,7 @@ export function MunicipalBrief() {
         </Panel>
       </>}
     >
+      <CityOperations city={city ?? null} />
       <div className="db-row3">
         <Panel title="When work was recorded">
           {detail && detail.series.length > 1 ? (
