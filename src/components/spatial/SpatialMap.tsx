@@ -626,7 +626,17 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     map.addSource("frontier", { type: "geojson", data: { type: "FeatureCollection", features: ds.frontier.map((f, i) => ({ type: "Feature", id: i, properties: { k: f.cell, near: f.near, city: f.city }, geometry: { type: "Polygon", coordinates: [flatRing(f.ring)] } })) } });
     ["inner", "cases", "sel", "next", "feeding"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
     ["pts", "care", "terrain", "fog"].forEach((id) => map.addSource(id, { type: "geojson", data: EMPTY }));
-    map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: cityPins.map((c, i) => ({ type: "Feature", properties: { i, n: c.animals, name: c.city, k: kindOf(c.city, c.cells), one: c.cells <= 1 ? 1 : 0 }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) } });
+    map.addSource("cities", { type: "geojson", data: { type: "FeatureCollection", features: cityPins.map((c, i) => {
+      const k = kindOf(c.city, c.cells);
+      /* Size by a comparable measure. A clinical / CNVR register (e.g.
+         Jamshedpur) is counted at a single city centroid and is not a count of
+         street-level animal profiles, so it must not be sized next to cities of
+         profiles — it is sized modestly and ringed apart, while its real
+         register total still shows in the label. */
+      const clin = k === "clinical" ? 1 : 0;
+      const sz = clin ? 60 : c.animals;
+      return { type: "Feature" as const, properties: { i, n: c.animals, sz, clin, name: c.city, k, one: c.cells <= 1 ? 1 : 0 }, geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] } };
+    }) } });
 
     const fs = (k: string, d: number | string) => ["coalesce", ["feature-state", k], d] as ExpressionSpecification;
     const Z = (a: number, b: number, c: number, d: number) => ["interpolate", ["linear"], ["zoom"], a, b, c, d] as ExpressionSpecification;
@@ -698,8 +708,15 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
     map.addLayer({ id: "next", type: "circle", source: "next", layout: { visibility: "none" }, paint: { "circle-radius": 11, "circle-color": pal.bg, "circle-stroke-color": pal.att[3], "circle-stroke-width": 2 } });
     map.addLayer({ id: "next-n", type: "symbol", source: "next", layout: { visibility: "none", "text-field": ["get", "n"], "text-font": ["Noto Sans Bold"], "text-size": 11, "text-allow-overlap": true }, paint: { "text-color": pal.ink } });
     map.addLayer({ id: "sel", type: "line", source: "sel", paint: { "line-color": pal.ink, "line-width": 2.2 } });
+    /* Clinical / CNVR register cities are ringed apart: a hairline halo that
+       says "a register at this city", not a street-level profile count. */
+    map.addLayer({ id: "cities-clin", type: "circle", source: "cities", filter: ["==", ["get", "clin"], 1], paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 13, 10, 12.5] as ExpressionSpecification,
+      "circle-color": "rgba(0,0,0,0)",
+      "circle-stroke-color": "#5b82dc", "circle-stroke-width": 1.4, "circle-stroke-opacity": 0.9,
+    } });
     map.addLayer({ id: "cities", type: "circle", source: "cities", paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 6, 48, 26], 10, 8, 14, 5] as ExpressionSpecification,
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, ["interpolate", ["linear"], ["sqrt", ["get", "sz"]], 1, 6, 48, 26], 10, 8, 14, 5] as ExpressionSpecification,
       "circle-color": KIND_COLOR, "circle-opacity": ["case", ["==", ["get", "one"], 1], 0.14, 0.78] as ExpressionSpecification,
       "circle-stroke-color": ["case", ["==", ["get", "one"], 1], KIND_COLOR, pal.bg] as ExpressionSpecification, "circle-stroke-width": ["case", ["==", ["get", "one"], 1], 2, 1] as ExpressionSpecification,
     } });
@@ -952,6 +969,9 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
       map.setLayoutProperty(id, "visibility", indiaOverview || ds.cells.length === 1 ? "visible" : "none");
       map.setFilter(id, indiaOverview ? null : ["==", ["get", "name"], ds.cities[0]?.name ?? ""]);
     });
+    /* The clinical-register ring belongs to the national overview only; keep its
+       own clin filter and toggle just its visibility. */
+    if (map.getLayer("cities-clin")) map.setLayoutProperty("cities-clin", "visibility", indiaOverview ? "visible" : "none");
     const feats = availableCities.flatMap((c) => {
       const geo = ds.cities.find((x) => x.name.toLowerCase() === c.city.toLowerCase());
       const lng = typeof c.lng === "number" ? c.lng : geo?.lng;
@@ -1362,7 +1382,7 @@ export function SpatialMap({ scope = "public", userKey = null, surface = "commun
   const panelOpen = picked || details;
   const railState = !panelOpen ? "closed" : phone ? (sheet === "open" ? "open" : "peek") : "open";
   const closePanel = () => { setDetails(false); if (picked) stepOut(); };
-  const scaleNote = indiaOverview ? `Bubble size: ${measureLabel.toLowerCase()} · colour: kind of evidence` : (cityRow?.cells ?? 2) <= 1 ? "Every record here shares one city location: no street detail exists" : mapZoom < 13 ? "Zoom in: areas become dots, one per recorded animal" : "Dots sit inside their area (≈0.7 km²), not at an exact spot";
+  const scaleNote = indiaOverview ? `Bubble size: recorded profiles · ringed = clinical register, shown apart · colour: kind of record` : (cityRow?.cells ?? 2) <= 1 ? "Every record here shares one city location: no street detail exists" : mapZoom < 13 ? "Zoom in: areas become dots, one per recorded animal" : "Dots sit inside their area (≈0.7 km²), not at an exact spot";
 
   return (
     <div className={`sm ax ${indiaOverview ? "is-india" : "is-city"} ${ground === "night" ? "is-night" : "is-paper"} ${phone ? "is-phone" : ""}`} data-lens={atlasLens} data-rail={railState}>
