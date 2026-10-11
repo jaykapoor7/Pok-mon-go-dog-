@@ -164,7 +164,7 @@
   .sx.sd { grid-template-columns: minmax(0, 1fr); --x-tabs: calc(64px + env(safe-area-inset-bottom)); }
   .sd-side { display: none; }
   .sd-top { padding: 0 10px; height: 56px; }
-  .sd-top-brand { display: inline-flex; }
+  .sd-top-brand { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; margin-left: -8px; }
   .sd-find span { font-size: 13.5px; }
   .sd-find kbd { display: none; }
   .sx.sd .sx-back { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--d-text); }
