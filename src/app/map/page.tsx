@@ -1,20 +1,20 @@
 import { Suspense } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { SpatialMap } from "@/components/spatial/SpatialMap";
+import { LivingMap } from "@/components/livingmap/LivingMap";
 
 export const metadata = {
-  title: "Map, StrayPaw",
-  description: "The register on one map: where animals are recorded, how well each place is mapped, and where sterilisation, vaccination and open work are recorded or unknown.",
+  title: "Living map, StrayPaw",
+  description: "India's community-animal record on one map: where animals are recorded, where they need attention, where care has happened, who keeps the record, and where the record is missing.",
 };
 
-/* The original map controls and views run on one bounded city dataset at a
- * time. It never asks the browser to materialise the platform register. */
+/* The Living Map: complete per-area aggregates for one city at a time,
+ * never anything finer than an H3 area. */
 export default function MapPage() {
   return (
     <AppShell flush>
-      <div className="sm-host">
+      <div className="lm-host">
         <Suspense fallback={null}>
-          <SpatialMap />
+          <LivingMap />
         </Suspense>
       </div>
     </AppShell>
