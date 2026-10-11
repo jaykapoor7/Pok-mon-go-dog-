@@ -36,16 +36,17 @@
 .db-empty { margin: 0; padding: 8px 8px 12px; color: var(--d-dim); font-size: 14px; line-height: 1.5; }
 
 .db-items, .db-feed { list-style: none; margin: 0; padding: 0; }
-.db-items li > :is(a, div), .db-feed li > :is(a, div) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 52px; padding: 8px; border-radius: 10px; color: inherit; text-decoration: none; }
-.db-items li > a:hover, .db-feed li > a:hover { background: var(--d-panel-2); }
-.db-items li + li, .db-feed li + li { border-top: 1px solid var(--d-line); }
+.db-items, .db-feed { display: grid; gap: 6px; }
+.db-items li > :is(a, div), .db-feed li > :is(a, div) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 62px; padding: 10px 12px; border-radius: 12px; color: inherit; text-decoration: none; transition: background 160ms var(--x-ease, ease), box-shadow 160ms; }
+.db-items li > a:hover, .db-feed li > a:hover { background: var(--d-panel-2); box-shadow: inset 0 0 0 1px var(--d-line); }
+.db-items li > a:focus-visible, .db-feed li > a:focus-visible { outline: 2px solid var(--d-sky); outline-offset: 1px; }
 .db-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--d-mute); }
 .db-dot.is-hot { background: #f05b40; box-shadow: 0 0 0 3px rgba(240, 91, 64, 0.22); }
 .db-dot.is-care { background: #66c5d5; }
 .db-dot.is-open { background: var(--d-sky); }
 .db-item-t, .db-feed li span { display: grid; min-width: 0; }
-.db-item-t b, .db-feed b { font-size: 14.5px; font-weight: 600; color: var(--d-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.db-item-t small, .db-feed small { font-size: 12.5px; color: var(--d-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.db-item-t b, .db-feed b { font-size: 15px; font-weight: 600; color: var(--d-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.db-item-t small, .db-feed small { font-size: 13px; color: var(--d-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .db-item-r { display: grid; justify-items: end; gap: 2px; }
 .db-item-r em { font-style: normal; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--d-panel-2); color: var(--d-dim); white-space: nowrap; }
 .db-item-r em.is-hot { background: rgba(240, 91, 64, 0.16); color: #ff9d88; }
@@ -106,7 +107,7 @@
 .db-place .ps-list li b { color: var(--d-text); }
 .db-place .ps-list li.is-on { background: var(--d-panel-2); }
 .db-place .x-btn { min-height: 40px; border-radius: 10px; }
-.db-thumb { width: 36px; height: 36px; border-radius: 9px; flex: none; }
+.db-thumb { width: 52px; height: 52px; border-radius: 12px; flex: none; object-fit: cover; }
 .db-inline { color: var(--d-sky); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
 /* A vertical register of record cards for side panels — the dog listings a
    community member reads, each a real record card rather than a text row. */
