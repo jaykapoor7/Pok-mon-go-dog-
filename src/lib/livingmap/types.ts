@@ -29,7 +29,11 @@ export type MapCell = {
   care: number; care_12m: number; care_last: string | null; care_kinds: Record<string, number>; orgs: OrgShare[];
   /** The area's centre, [lng, lat], computed on the server. */
   c: [number, number];
-  /** Organisation map only: open requests nobody holds, and who holds the rest. */
+  /** Open requests whose status is only as an imported register recorded it,
+   *  never confirmed in StrayPaw since (of open_cases / open_30). */
+  open_unconfirmed?: number; open_30_unconfirmed?: number;
+  /** Organisation map only: open requests nobody holds (created in StrayPaw, so
+   *  assignable; imported registers carried no assignee), and who holds the rest. */
   unassigned?: number; people?: { name: string; o: number }[];
 };
 
@@ -80,6 +84,7 @@ export type NationalCity = {
   city: string; state: string | null; lng?: number; lat?: number;
   animals: number; cells: number; needs_help: number; sterilised: number; ster_no: number; ster_unknown: number; vaccinated: number;
   cases: number; open_cases: number; open_30: number; status_unknown: number; care: number; treatments: number; last_activity: string | null;
+  open_unconfirmed?: number; open_30_unconfirmed?: number;
   /** Organisation map only. */
   unassigned?: number;
 };

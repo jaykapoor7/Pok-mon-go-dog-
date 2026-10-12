@@ -39,10 +39,11 @@ Work next is the first question. It is a short list of plain rules, not a score,
 
 | Rule | Means |
 |---|---|
-| Requests waiting over 30 days | An animal was reported for help and the request is still open after a month. |
-| Open requests nobody holds | Open requests with no one assigned. Organisation map only. |
+| Requests waiting over 30 days | An animal was reported for help and the request is still open after a month, by StrayPaw's own record. |
+| Open requests nobody holds | Open requests created in StrayPaw with no one assigned. Organisation map only. Imported requests are never counted here: the source registers had no assignee field. |
 | Follow-ups missed | Treatment that needed a return visit, recorded as missed. |
 | Flagged, no request open | Animals marked as needing help with no request open for them. |
+| Open status unconfirmed since import | Requests marked open in an imported register that nobody has confirmed or touched in StrayPaw since. They may be long resolved or still need help; the action is to review their status. |
 | Requests waiting to be placed | Requests whose place has no city, so they are on no map. |
 | Outcome not recorded | Requests with no status at all. |
 | Sterilisation status unknown | A well-recorded area where most animals have no recorded status. |
@@ -66,6 +67,10 @@ Members also see:
 - the "Open requests nobody holds" rule;
 - each request's code, which opens its case file;
 - **Take this case** right in the area panel.
+
+## Confirmed and unconfirmed open status
+
+A request counts as **unconfirmed** when all three hold: it came from an imported register (`provenance = 'imported_historical_record'`), its status was never reviewed (`status_reviewed_at` is null), and nothing happened to it more than a day after import. The map shows open requests as "confirmed open" and "open in an imported register, unconfirmed", never adding the second group to "waiting" or "nobody holds". The functions are `public_map_case_confidence(text[])`, `public_map_case_confidence_cities()` and `org_map_case_confidence(text[])`; the snapshots carry them as `confidence`.
 
 ## Animals without photographs
 

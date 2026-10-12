@@ -379,7 +379,7 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
     const set = (id: string, features: GeoJSON.Feature[]) => (m.getSource(id) as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features });
     if (!city || !cells.length) { for (const s of ["areas", "edge", "dots", "zones", "nums", "sel"]) set(s, []); return; }
     const byId = new Map(classes.map((k) => [k.id, k]));
-    const pattern = (id: string) => (id === "stale" || id === "revisit" ? "h-stale" : id === "status" || id === "nostatus" || id === "outcome" ? "h-amber" : id === "survey" ? "h-care" : "h-quiet");
+    const pattern = (id: string) => (id === "stale" || id === "revisit" ? "h-stale" : id === "status" || id === "nostatus" || id === "outcome" || id === "unconf" || id === "confirm" ? "h-amber" : id === "survey" ? "h-care" : "h-quiet");
     set("areas", cells.map((c, i) => {
       const k = byId.get(classOf[i]);
       return { type: "Feature", geometry: { type: "Point", coordinates: centers[i] }, properties: {

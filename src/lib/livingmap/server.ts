@@ -33,8 +33,17 @@ async function snapshot<T>(key: string): Promise<{ payload: T; built: string } |
 
 type CellRow = Omit<MapCell, "c">;
 type MonthRaw = { h3: string; m: string; opened: number; closed: number; care: number; ster: number; vacc: number; other_care: number };
-function shapeCity(name: string, rows: CellRow[], monthRows: MonthRaw[], built: string, scope: "public" | "org" = "public"): MapCity | null {
+type ConfRow = { h3: string; open_unconfirmed: number; open_30_unconfirmed: number; unassigned_native?: number };
+function shapeCity(name: string, rows: CellRow[], monthRows: MonthRaw[], built: string, scope: "public" | "org" = "public", conf: ConfRow[] = []): MapCity | null {
   if (!rows.length) return null;
+  const cf = new Map(conf.map((k) => [k.h3, k]));
+  rows = rows.map((r) => {
+    const k = cf.get(r.h3);
+    const out = { ...r, open_unconfirmed: k?.open_unconfirmed ?? 0, open_30_unconfirmed: k?.open_30_unconfirmed ?? 0 };
+    /* On an organisation's map, only requests created in StrayPaw could carry an assignee. */
+    if (scope === "org") out.unassigned = k?.unassigned_native ?? 0;
+    return out;
+  });
   const ll = (h: string): [number, number] => { const [lat, lng] = cellToLatLng(h); return [Math.round(lng * 1e5) / 1e5, Math.round(lat * 1e5) / 1e5]; };
   const cells = rows.map((c) => ({ ...c, c: ll(c.h3), first_action_median: c.first_action_median === null ? null : Number(c.first_action_median) }));
   const index = new Map(cells.map((c, i) => [c.h3, i]));
@@ -46,9 +55,22 @@ function shapeCity(name: string, rows: CellRow[], monthRows: MonthRaw[], built: 
 }
 
 async function readCity(city: string): Promise<MapCity | null> {
-  const snap = await snapshot<{ cells: CellRow[]; months: MonthRaw[] }>(`city:${canonicalCity(city)}`);
-  if (snap) return shapeCity(canonicalCity(city), snap.payload.cells ?? [], snap.payload.months ?? [], snap.built);
+  const snap = await snapshot<{ cells: CellRow[]; months: MonthRaw[]; confidence?: ConfRow[] }>(`city:${canonicalCity(city)}`);
+  if (snap) return shapeCity(canonicalCity(city), snap.payload.cells ?? [], snap.payload.months ?? [], snap.built, "public", snap.payload.confidence ?? []);
   return readCityLive(city);
+}
+
+/* Pages through an RPC that can return more than the API's 1,000 rows. */
+async function allRows<T>(call: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; from < 60_000; from += 1000) {
+    const { data, error } = await call(from, from + 999);
+    if (error) throw error;
+    const rows = (data ?? []) as T[];
+    out.push(...rows);
+    if (rows.length < 1000) break;
+  }
+  return out;
 }
 
 async function readCityLive(city: string): Promise<MapCity | null> {
@@ -56,32 +78,16 @@ async function readCityLive(city: string): Promise<MapCity | null> {
   const name = canonicalCity(city);
   if (!supa || !name) return null;
   const cities = cityVariants(name);
-  const { data: cellData, error } = await supa.rpc("public_map_cells_v2", { p_cities: cities });
+  const [{ data, error }, months, conf] = await Promise.all([
+    supa.rpc("public_map_cells_v2", { p_cities: cities }),
+    allRows<MonthRaw>((f, t) => supa.rpc("public_map_months", { p_cities: cities }).range(f, t)),
+    supa.rpc("public_map_case_confidence", { p_cities: cities }),
+  ]);
   if (error) throw error;
-  const ll = (h: string): [number, number] => { const [lat, lng] = cellToLatLng(h); return [Math.round(lng * 1e5) / 1e5, Math.round(lat * 1e5) / 1e5]; };
-  const cells = ((cellData ?? []) as Omit<MapCell, "c">[]).map((c) => ({ ...c, c: ll(c.h3), first_action_median: c.first_action_median === null ? null : Number(c.first_action_median) }));
-  if (!cells.length) return null;
-  const index = new Map(cells.map((c, i) => [c.h3, i]));
-  /* Months: the API returns at most 1,000 rows a call, so page until done. */
-  const months: MonthRow[] = [];
-  for (let from = 0; from < 60_000; from += 1000) {
-    const { data, error: mErr } = await supa.rpc("public_map_months", { p_cities: cities }).range(from, from + 999);
-    if (mErr) throw mErr;
-    for (const r of (data ?? []) as { h3: string; m: string; opened: number; closed: number; care: number; ster: number; vacc: number; other_care: number }[]) {
-      const ci = index.get(r.h3);
-      if (ci === undefined) continue;
-      months.push([ci, monthIndex(r.m), r.opened, r.closed, r.care, r.ster, r.vacc, r.other_care]);
-    }
-    if (!data || data.length < 1000) break;
-  }
-  /* The edge of reporting: areas bordering the record that hold none of it. */
-  const have = new Set(cells.map((c) => c.h3));
-  const edge = new Set<string>();
-  if (cells.length > 1) for (const c of cells) for (const n of gridDisk(c.h3, 1)) if (!have.has(n)) edge.add(n);
-  return { city: name, kind: evidenceKind(name, cells.length), built: new Date().toISOString(), cells, months, edge: [...edge].map(ll) };
+  return shapeCity(name, (data ?? []) as CellRow[], months, new Date().toISOString(), "public", (conf.data ?? []) as ConfRow[]);
 }
 
-const cachedCity = unstable_cache(readCity, ["livingmap-city-v5"], { revalidate: 300 });
+const cachedCity = unstable_cache(readCity, ["livingmap-city-v6"], { revalidate: 300 });
 export const getMapCity = (city: string) => cachedCity(canonicalCity(city));
 
 async function readArea(city: string, h3: string): Promise<MapArea | null> {
@@ -171,9 +177,11 @@ export const getUnplaced = () => cachedUnplaced();
 
 async function readCities(): Promise<NationalCity[]> {
   type SnapRow = { city: string; animals: number; needs_help: number; ster_yes: number; ster_no: number; ster_unknown: number; vacc_yes: number; cases: number; open_cases: number; open_30: number; status_unknown: number; care: number; treatments: number; areas: number; last_activity: string | null; lng?: number; lat?: number };
-  const snap = await snapshot<{ cities: SnapRow[] }>("cities");
+  const snap = await snapshot<{ cities: SnapRow[]; confidence?: { city: string; open_unconfirmed: number; open_30_unconfirmed: number }[] }>("cities");
   if (snap?.payload.cities?.length) {
     const by = new Map<string, NationalCity>();
+    const conf = new Map<string, { u: number; u30: number }>();
+    for (const k of snap.payload.confidence ?? []) { const n = canonicalCity(k.city); const x = conf.get(n) ?? { u: 0, u30: 0 }; x.u += k.open_unconfirmed; x.u30 += k.open_30_unconfirmed; conf.set(n, x); }
     for (const r of snap.payload.cities) {
       const name = canonicalCity(r.city);
       if (!name) continue;
@@ -184,6 +192,7 @@ async function readCities(): Promise<NationalCity[]> {
       if (r.last_activity && (!c.last_activity || r.last_activity > c.last_activity)) c.last_activity = r.last_activity;
       by.set(name, c);
     }
+    for (const [n, c] of by) { const k = conf.get(n); c.open_unconfirmed = k?.u ?? 0; c.open_30_unconfirmed = k?.u30 ?? 0; }
     return [...by.values()].sort((a, b) => b.animals - a.animals);
   }
   return readCitiesLive();
@@ -209,7 +218,7 @@ async function readCitiesLive(): Promise<NationalCity[]> {
   }
   return [...by.values()].sort((a, b) => b.animals - a.animals);
 }
-const cachedCities = unstable_cache(readCities, ["livingmap-cities-v4"], { revalidate: 300 });
+const cachedCities = unstable_cache(readCities, ["livingmap-cities-v5"], { revalidate: 300 });
 export const getMapCities = () => cachedCities();
 
 /* ── The organisation's own map ─────────────────────────────────────
@@ -223,31 +232,20 @@ function memberClient(token: string) {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { headers: { Authorization: `Bearer ${token}` } } });
 }
 
-const llOf = (h: string): [number, number] => { const [lat, lng] = cellToLatLng(h); return [Math.round(lng * 1e5) / 1e5, Math.round(lat * 1e5) / 1e5]; };
 
 export async function getOrgMapCity(token: string, city: string): Promise<MapCity | null> {
   const supa = memberClient(token);
   const name = canonicalCity(city);
   if (!supa || !name) return null;
   const cities = cityVariants(name);
-  const { data, error } = await supa.rpc("org_map_cells", { p_cities: cities });
+  const [{ data, error }, months, conf] = await Promise.all([
+    supa.rpc("org_map_cells", { p_cities: cities }),
+    allRows<MonthRaw>((f, t) => supa.rpc("org_map_months", { p_cities: cities }).range(f, t)),
+    supa.rpc("org_map_case_confidence", { p_cities: cities }),
+  ]);
   if (error) throw error;
-  const cells = ((data ?? []) as Omit<MapCell, "c">[]).map((c) => ({ ...c, c: llOf(c.h3), first_action_median: c.first_action_median === null ? null : Number(c.first_action_median) }));
-  if (!cells.length) return null;
-  const index = new Map(cells.map((c, i) => [c.h3, i]));
-  const months: MonthRow[] = [];
-  for (let from = 0; from < 60_000; from += 1000) {
-    const { data: rows, error: mErr } = await supa.rpc("org_map_months", { p_cities: cities }).range(from, from + 999);
-    if (mErr) throw mErr;
-    for (const r of (rows ?? []) as { h3: string; m: string; opened: number; closed: number; care: number; ster: number; vacc: number; other_care: number }[]) {
-      const ci = index.get(r.h3);
-      if (ci !== undefined) months.push([ci, monthIndex(r.m), r.opened, r.closed, r.care, r.ster, r.vacc, r.other_care]);
-    }
-    if (!rows || rows.length < 1000) break;
-  }
-  const have = new Set(cells.map((c) => c.h3)), edge = new Set<string>();
-  if (cells.length > 1) for (const c of cells) for (const n of gridDisk(c.h3, 1)) if (!have.has(n)) edge.add(n);
-  return { city: name, scope: "org", kind: evidenceKind(name, cells.length), built: new Date().toISOString(), cells, months, edge: [...edge].map(llOf) };
+  if (conf.error) throw conf.error;
+  return shapeCity(name, (data ?? []) as CellRow[], months, new Date().toISOString(), "org", (conf.data ?? []) as ConfRow[]);
 }
 
 export async function getOrgMapCities(token: string): Promise<{ cities: NationalCity[]; unplaced: Unplaced[] }> {
@@ -263,7 +261,7 @@ export async function getOrgMapCities(token: string): Promise<{ cities: National
   type Row = { city: string; animals: number; needs_help: number; ster_yes: number; ster_no: number; ster_unknown: number; vacc_yes: number; cases: number; open_cases: number; open_30: number; status_unknown: number; care: number; treatments: number; areas: number; last_activity: string | null; unassigned: number };
   const cities = ((data ?? []) as Row[]).map((r) => {
     const name = canonicalCity(r.city), at = place.get(name);
-    return { city: name, state: at?.state ?? null, lng: at?.lng, lat: at?.lat, animals: r.animals, cells: r.areas, needs_help: r.needs_help, sterilised: r.ster_yes, ster_no: r.ster_no, ster_unknown: r.ster_unknown, vaccinated: r.vacc_yes, cases: r.cases, open_cases: r.open_cases, open_30: r.open_30, status_unknown: r.status_unknown, care: r.care, treatments: r.treatments, last_activity: r.last_activity, unassigned: r.unassigned } satisfies NationalCity;
+    return { city: name, state: at?.state ?? null, lng: at?.lng, lat: at?.lat, animals: r.animals, cells: r.areas, needs_help: r.needs_help, sterilised: r.ster_yes, ster_no: r.ster_no, ster_unknown: r.ster_unknown, vaccinated: r.vacc_yes, cases: r.cases, open_cases: r.open_cases, open_30: r.open_30, status_unknown: r.status_unknown, care: r.care, treatments: r.treatments, last_activity: r.last_activity, unassigned: r.unassigned } as NationalCity;
   }).sort((a, b) => b.animals - a.animals);
   const byZone = new Map<string, Unplaced>();
   for (const c of ((loose.data ?? []) as { zone: string | null; status_class: string | null; occurred_at: string | null }[])) {
@@ -273,6 +271,14 @@ export async function getOrgMapCities(token: string): Promise<{ cities: National
     if (c.occurred_at && (!u.latest || c.occurred_at > u.latest)) u.latest = c.occurred_at;
     byZone.set(z, u);
   }
+  /* Status confidence per city, from the same rule the city view uses. */
+  await Promise.all(cities.map(async (c) => {
+    const { data: k } = await supa.rpc("org_map_case_confidence", { p_cities: cityVariants(c.city) });
+    const rows = (k ?? []) as ConfRow[];
+    c.open_unconfirmed = rows.reduce((t, r) => t + r.open_unconfirmed, 0);
+    c.open_30_unconfirmed = rows.reduce((t, r) => t + r.open_30_unconfirmed, 0);
+    c.unassigned = rows.reduce((t, r) => t + (r.unassigned_native ?? 0), 0);
+  }));
   return { cities, unplaced: [...byZone.values()].sort((a, b) => b.open_cases - a.open_cases) };
 }
 

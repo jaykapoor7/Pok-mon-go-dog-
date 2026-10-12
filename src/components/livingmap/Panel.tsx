@@ -304,7 +304,11 @@ function AreaView(p: Props) {
       <AreaWork c={c} i={p.areaIndex} city={p.city ?? ""} member={p.member} />
       <dl className="lm-figs">
         <Fig label="Animals on record" v={fmt(c.animals)} note={versus(c.animals, typical.animals)} />
-        <Fig label="Open requests" v={fmt(c.open_cases)} note={c.open_30 ? `${fmt(c.open_30)} waiting over 30 days` : c.cases ? `of ${fmt(c.cases)} recorded here` : "no requests recorded"} hot={c.open_cases > 0} />
+        {(() => {
+          const unconf = c.open_unconfirmed ?? 0, known = c.open_cases - unconf, known30 = c.open_30 - (c.open_30_unconfirmed ?? 0);
+          return <Fig label="Open requests" v={fmt(known)} hot={known > 0}
+            note={[known30 > 0 ? `${fmt(known30)} waiting over 30 days` : null, unconf ? `plus ${fmt(unconf)} marked open in an imported register, unconfirmed` : null, !c.cases ? "no requests recorded" : !known && !unconf ? `of ${fmt(c.cases)} recorded here` : null].filter(Boolean).join("; ")} />;
+        })()}
         <Fig label="Sterilised" v={fmt(c.ster_yes)} note={c.ster_unknown ? `status unknown for ${fmt(c.ster_unknown)} (${share(c.ster_unknown, c.animals)})` : c.ster_no ? `${fmt(c.ster_no)} recorded not sterilised` : "status known for all"} />
         <Fig label="Vaccinated (recorded)" v={fmt(c.vacc_yes)} note={c.vacc_unknown ? `not recorded for ${fmt(c.vacc_unknown)}` : "recorded for all"} />
         <Fig label="Treatments" v={fmt(treatments(c))} note={c.care_last ? `latest ${since(c.care_last)}` : "none recorded"} />

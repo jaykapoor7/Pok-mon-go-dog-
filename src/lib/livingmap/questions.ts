@@ -66,14 +66,14 @@ export function foldMonths(months: MonthRow[], cells: number, range: Range): Flo
 
 const share = (n: number, of: number) => (of > 0 ? n / of : 0);
 
-const WORK_ORDER: WorkKind[] = ["waiting", "unassigned", "missed", "flagged", "outcome", "survey", "revisit"];
+const WORK_ORDER: WorkKind[] = ["waiting", "unassigned", "missed", "flagged", "confirm", "outcome", "survey", "revisit"];
 
 export const QUESTIONS: Question[] = [
   {
     id: "act", label: "Work next", ask: "What needs attention here, who holds the record, and what can be done?",
     timed: () => false,
     classes: (_f, ctx) => [
-      ...WORK_ORDER.filter((k) => k !== "unassigned" || ctx.org).map((k) => ({ id: k, label: WORK_META[k].label, kind: (k === "outcome" || k === "survey" || k === "revisit" ? "unknown" : "value") as ClassKind, color: WORK_META[k].color, note: WORK_META[k].why })),
+      ...WORK_ORDER.filter((k) => k !== "unassigned" || ctx.org).map((k) => ({ id: k, label: WORK_META[k].label, kind: (k === "confirm" || k === "outcome" || k === "survey" || k === "revisit" ? "unknown" : "value") as ClassKind, color: WORK_META[k].color, note: WORK_META[k].why })),
       { id: "none", label: "Nothing flagged on the record", kind: "zero", color: C.zeroFill, note: "None of the rules applies here. That is not a guarantee all is well: it may simply be unreported." },
     ],
     measure: (c, _f, _ctx, i) => areaWork(c, i, "").length,
@@ -124,6 +124,7 @@ export const QUESTIONS: Question[] = [
         { id: "waiting", label: "Open over 30 days", kind: "value", color: "#a8230f" },
         { id: "open", label: "Open request", kind: "value", color: C.flame },
         { id: "flag", label: "Flagged needing help", kind: "value", color: C.flameSoft, note: "An animal marked as needing help, with no open request." },
+        { id: "unconf", label: "Open in an imported register, unconfirmed", kind: "unknown", color: "#b0702a", note: "Marked open when the register was imported and not confirmed in StrayPaw since: still open, or long resolved, is not known." },
         { id: "nostatus", label: "Outcome not recorded", kind: "unknown", color: C.amber, note: "Requests here carry no status: open or closed is not known." },
         { id: "clear", label: "Requests recorded, none open", kind: "zero", color: C.zeroFill },
         { id: "noreq", label: "No requests recorded", kind: "unknown", color: C.quiet, note: "No request here is not the same as no need here." },
@@ -132,7 +133,8 @@ export const QUESTIONS: Question[] = [
     measure(c, f, ctx, i) {
       if (f === "followups") return c.fu_missed + c.fu_upcoming;
       if (ctx.inRange) return ctx.inRange[i][0];
-      return c.open_cases + (c.open_cases ? 0 : c.needs_help);
+      const known = c.open_cases - (c.open_unconfirmed ?? 0);
+      return known + (known ? 0 : c.needs_help);
     },
     classify(c, f, ctx, i) {
       if (f === "followups") {
@@ -144,9 +146,11 @@ export const QUESTIONS: Question[] = [
       }
       if (!c.cases && !c.needs_help) return { k: "noreq", v: 0 };
       if (ctx.inRange) { const n = ctx.inRange[i][0]; return n ? { k: "opened", v: n } : { k: "quiet", v: 0 }; }
-      if (c.open_30) return { k: "waiting", v: c.open_cases };
-      if (c.open_cases) return { k: "open", v: c.open_cases };
+      const known = c.open_cases - (c.open_unconfirmed ?? 0), known30 = c.open_30 - (c.open_30_unconfirmed ?? 0);
+      if (known30 > 0) return { k: "waiting", v: known };
+      if (known > 0) return { k: "open", v: known };
       if (c.needs_help) return { k: "flag", v: c.needs_help };
+      if (c.open_unconfirmed) return { k: "unconf", v: c.open_unconfirmed };
       if (c.status_unknown) return { k: "nostatus", v: c.status_unknown };
       return { k: "clear", v: 0 };
     },

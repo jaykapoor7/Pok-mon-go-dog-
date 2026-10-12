@@ -179,6 +179,64 @@ drop policy if exists map_snapshots_read on public.map_snapshots;
 create policy map_snapshots_read on public.map_snapshots for select to anon, authenticated using (true);
 grant select on public.map_snapshots to anon, authenticated;
 
+-- ── Status confidence ──────────────────────────────────────────────────
+-- An open request is "unconfirmed" when its open status came from an imported
+-- register and nobody has confirmed or touched it in StrayPaw since: it was
+-- imported (provenance), never status-reviewed, and has no activity more than a
+-- day after the import. Such a request may be long resolved or may still need
+-- help; the map neither counts it as waiting nor as unassigned (the source
+-- registers have no assignee field). Coimbatore, Oct 2026: 172 open, 169
+-- unconfirmed, 167 of them older than 30 days.
+create or replace function public.public_map_case_confidence(p_cities text[])
+returns table (h3 text, open_unconfirmed int, open_30_unconfirmed int)
+language sql stable security definer set search_path = public as $$
+  select coalesce(p.h3_r8, a.h3_r8) h3,
+    count(*) filter (where p.status_class in ('open','in_progress'))::int,
+    count(*) filter (where p.status_class in ('open','in_progress') and p.occurred_at < now() - interval '30 days')::int
+  from public_case_facts p
+  join cases c on c.id = p.id
+  left join public_spatial_animals a on a.id = p.dog_id
+  where p.city = any(p_cities)
+    and c.provenance = 'imported_historical_record' and c.status_reviewed_at is null
+    and (c.last_activity_at is null or c.imported_at is null or c.last_activity_at <= c.imported_at + interval '1 day')
+  group by 1 having coalesce(p.h3_r8, a.h3_r8) is not null;
+$$;
+grant execute on function public.public_map_case_confidence(text[]) to anon, authenticated;
+
+create or replace function public.public_map_case_confidence_cities()
+returns table (city text, open_unconfirmed int, open_30_unconfirmed int)
+language sql stable security definer set search_path = public as $$
+  select p.city,
+    count(*) filter (where p.status_class in ('open','in_progress'))::int,
+    count(*) filter (where p.status_class in ('open','in_progress') and p.occurred_at < now() - interval '30 days')::int
+  from public_case_facts p join cases c on c.id = p.id
+  where p.city is not null and c.provenance = 'imported_historical_record' and c.status_reviewed_at is null
+    and (c.last_activity_at is null or c.imported_at is null or c.last_activity_at <= c.imported_at + interval '1 day')
+  group by 1;
+$$;
+grant execute on function public.public_map_case_confidence_cities() to anon, authenticated;
+
+-- The organisation's own version, adding "unassigned" only for requests that
+-- were created in StrayPaw (where an assignee could have been recorded).
+create or replace function public.org_map_case_confidence(p_cities text[])
+returns table (h3 text, open_unconfirmed int, open_30_unconfirmed int, unassigned_native int)
+language sql stable security definer set search_path = public as $$
+  with me as (select public.my_ngo() ngo_id)
+  select coalesce(c.h3_r8, d.h3_r8) h3,
+    count(*) filter (where c.status_class in ('open','in_progress') and c.provenance = 'imported_historical_record' and c.status_reviewed_at is null
+      and (c.last_activity_at is null or c.imported_at is null or c.last_activity_at <= c.imported_at + interval '1 day'))::int,
+    count(*) filter (where c.status_class in ('open','in_progress') and c.created_at < now() - interval '30 days' and c.provenance = 'imported_historical_record' and c.status_reviewed_at is null
+      and (c.last_activity_at is null or c.imported_at is null or c.last_activity_at <= c.imported_at + interval '1 day')
+      and coalesce(c.source_event_at, c.created_at) < now() - interval '30 days')::int,
+    count(*) filter (where c.status_class in ('open','in_progress') and c.provenance is distinct from 'imported_historical_record' and c.assignee_id is null and coalesce(c.assignee_name,'') = '')::int
+  from cases c left join dogs d on d.id = c.dog_id, me
+  where auth.uid() is not null and me.ngo_id is not null and c.ngo_id = me.ngo_id
+    and coalesce(nullif(btrim(c.city),''), d.city) = any(p_cities)
+  group by 1 having coalesce(c.h3_r8, d.h3_r8) is not null;
+$$;
+revoke all on function public.org_map_case_confidence(text[]) from public, anon;
+grant execute on function public.org_map_case_confidence(text[]) to authenticated;
+
 -- The public fact views filter rows themselves (they are not security_invoker),
 -- and public_contributor_organisations filters explicitly, so building the
 -- snapshot as the owner yields exactly what a visitor would read.
@@ -194,6 +252,7 @@ begin
         where a.city = c.city and a.h3_r8 = (select h3_r8 from public_spatial_animals b where b.city = c.city and b.h3_r8 is not null group by 1 order by count(*) desc limit 1)
           and a.lng is not null and a.lat is not null
       ) pt on true), '[]'::jsonb),
+    'confidence', coalesce((select jsonb_agg(to_jsonb(k)) from public_map_case_confidence_cities() k), '[]'::jsonb),
     'unplaced', coalesce((select jsonb_agg(to_jsonb(u)) from public_map_unplaced() u), '[]'::jsonb)), now()
   on conflict (key) do update set payload = excluded.payload, built_at = excluded.built_at;
   n := n + 1;
@@ -207,7 +266,8 @@ begin
     insert into map_snapshots(key, payload, built_at)
     select 'city:' || r.canon, jsonb_build_object(
       'cells', coalesce((select jsonb_agg(to_jsonb(cr)) from public_map_cells_v2(r.variants) cr), '[]'::jsonb),
-      'months', coalesce((select jsonb_agg(to_jsonb(mr)) from public_map_months(r.variants) mr), '[]'::jsonb)), now()
+      'months', coalesce((select jsonb_agg(to_jsonb(mr)) from public_map_months(r.variants) mr), '[]'::jsonb),
+      'confidence', coalesce((select jsonb_agg(to_jsonb(kr)) from public_map_case_confidence(r.variants) kr), '[]'::jsonb)), now()
     on conflict (key) do update set payload = excluded.payload, built_at = excluded.built_at;
     n := n + 1;
   end loop;
