@@ -185,9 +185,12 @@ export async function claimCase(caseId: string, actor: Actor): Promise<boolean> 
   const supa = getSupabase();
   if (!supa) return true;
   await ensureVolunteer(actor);
-  const { data, error } = await supa.rpc("claim_case", {
+  /* take_case takes an unowned report or one of the member's own
+     organisation's requests, only while nobody holds it. (claim_case took
+     unowned reports only, so "Take" failed on every request the
+     organisation already owned.) The taker is always the signed-in user. */
+  const { data, error } = await supa.rpc("take_case", {
     p_case_id: caseId,
-    p_actor_id: actor.id,
     p_actor_name: actor.name,
   });
   if (error) throw new Error(error.message);
