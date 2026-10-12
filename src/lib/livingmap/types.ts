@@ -32,6 +32,8 @@ export type MapCell = {
   /** Open requests whose status is only as an imported register recorded it,
    *  never confirmed in StrayPaw since (of open_cases / open_30). */
   open_unconfirmed?: number; open_30_unconfirmed?: number;
+  /** Missed follow-ups on requests confirmed open: current work. The rest of fu_missed is history. */
+  fu_missed_live?: number;
   /** Organisation map only: open requests nobody holds (created in StrayPaw, so
    *  assignable; imported registers carried no assignee), and who holds the rest. */
   unassigned?: number; people?: { name: string; o: number }[];
@@ -85,6 +87,8 @@ export type NationalCity = {
   animals: number; cells: number; needs_help: number; sterilised: number; ster_no: number; ster_unknown: number; vaccinated: number;
   cases: number; open_cases: number; open_30: number; status_unknown: number; care: number; treatments: number; last_activity: string | null;
   open_unconfirmed?: number; open_30_unconfirmed?: number;
+  /** Missed follow-ups on requests confirmed open: current work. The rest of fu_missed is history. */
+  fu_missed_live?: number;
   /** Organisation map only. */
   unassigned?: number;
 };

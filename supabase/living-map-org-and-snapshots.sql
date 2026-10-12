@@ -267,7 +267,8 @@ begin
     select 'city:' || r.canon, jsonb_build_object(
       'cells', coalesce((select jsonb_agg(to_jsonb(cr)) from public_map_cells_v2(r.variants) cr), '[]'::jsonb),
       'months', coalesce((select jsonb_agg(to_jsonb(mr)) from public_map_months(r.variants) mr), '[]'::jsonb),
-      'confidence', coalesce((select jsonb_agg(to_jsonb(kr)) from public_map_case_confidence(r.variants) kr), '[]'::jsonb)), now()
+      'confidence', coalesce((select jsonb_agg(to_jsonb(kr)) from public_map_case_confidence(r.variants) kr), '[]'::jsonb),
+      'followups', coalesce((select jsonb_agg(to_jsonb(fr)) from public_map_followups_live(r.variants) fr), '[]'::jsonb)), now()
     on conflict (key) do update set payload = excluded.payload, built_at = excluded.built_at;
     n := n + 1;
   end loop;
@@ -277,3 +278,37 @@ revoke all on function public.refresh_map_snapshots() from public, anon, authent
 
 -- every 15 minutes (≈12 s of database time per run)
 -- select cron.schedule('refresh-map-snapshots', '*/15 * * * *', $$select public.refresh_map_snapshots()$$);
+
+-- ── Missed follow-ups that are current work ─────────────────────────────
+-- Only on requests confirmed open in StrayPaw. All 221 missed follow-ups on
+-- record came from one import and 199 sit on requests already closed: those are
+-- care history, not attention. The snapshot carries these as 'followups'.
+create or replace function public.public_map_followups_live(p_cities text[])
+returns table (h3 text, fu_missed_live int)
+language sql stable security definer set search_path = public as $$
+  select coalesce(p.h3_r8, a.h3_r8) h3, sum(p.followups_missed)::int
+  from public_case_facts p join cases c on c.id = p.id left join public_spatial_animals a on a.id = p.dog_id
+  where p.city = any(p_cities) and p.followups_missed > 0 and p.status_class in ('open','in_progress')
+    and not (c.provenance = 'imported_historical_record' and c.status_reviewed_at is null
+      and (c.last_activity_at is null or c.imported_at is null or c.last_activity_at <= c.imported_at + interval '1 day'))
+  group by 1 having coalesce(p.h3_r8, a.h3_r8) is not null;
+$$;
+grant execute on function public.public_map_followups_live(text[]) to anon, authenticated;
+
+create or replace function public.org_map_followups_live(p_cities text[])
+returns table (h3 text, fu_missed_live int)
+language sql stable security definer set search_path = public as $$
+  with me as (select public.my_ngo() ngo_id)
+  select coalesce(c.h3_r8, d.h3_r8) h3, count(*)::int
+  from animal_followups f join cases c on c.id = f.case_id left join dogs d on d.id = c.dog_id, me
+  where auth.uid() is not null and me.ngo_id is not null and c.ngo_id = me.ngo_id and f.status = 'missed'
+    and c.status_class in ('open','in_progress')
+    and coalesce(nullif(btrim(c.city),''), d.city) = any(p_cities)
+    and not (c.provenance = 'imported_historical_record' and c.status_reviewed_at is null
+      and (c.last_activity_at is null or c.imported_at is null or c.last_activity_at <= c.imported_at + interval '1 day'))
+  group by 1 having coalesce(c.h3_r8, d.h3_r8) is not null;
+$$;
+revoke all on function public.org_map_followups_live(text[]) from public, anon;
+grant execute on function public.org_map_followups_live(text[]) to authenticated;
+-- refresh_map_snapshots() (above) also writes 'followups' into each city:X payload:
+--   'followups', coalesce((select jsonb_agg(to_jsonb(fr)) from public_map_followups_live(r.variants) fr), '[]'::jsonb)

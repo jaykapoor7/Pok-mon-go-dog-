@@ -36,8 +36,9 @@ import { KIND_META, kindOf } from "@/components/spatial/AtlasRegister";
 import { cameraDuration, travel } from "@/lib/motion";
 import { C, QUESTIONS, defaultFacet, foldMonths, orgPalette, question, type Ctx, type QuestionId, type Range } from "@/lib/livingmap/questions";
 import { headline, localities, placeName, tally } from "@/lib/livingmap/reading";
-import type { MapArea, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
-import { DISC_PX, coreBounds, hatchDisc, haversineKm, seedHead } from "./geo";
+import type { MapArea, MapCell, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
+import { DISC_PX, coreBounds, glyphImage, hatchDisc, haversineKm, seedHead } from "./geo";
+import { attentionClusters, clusterLine, glance, glyphKey, storyOf } from "@/lib/livingmap/stories";
 import { Panel } from "./Panel";
 import "./livingmap.css";
 
@@ -123,7 +124,7 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
   const [animalId, setAnimalId] = useState<string | null>(init.animal);
   const [pin, setPin] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"peek" | "half" | "full">("half");
-  const [hover, setHover] = useState<{ x: number; y: number; title: string; line: string } | null>(null);
+  const [hover, setHover] = useState<{ x: number; y: number; title: string; line: string; more?: string[] } | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [zoom, setZoom] = useState(4);
@@ -201,6 +202,8 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
   const places = useMemo(() => localities(cells, centers, q, facet, ctx), [cells, centers, q, facet, ctx]);
   const areaIndex = useMemo(() => (areaH3 ? cells.findIndex((c) => c.h3 === areaH3) : -1), [cells, areaH3]);
   const edge = useMemo(() => data?.edge ?? [], [data]);
+  const storyId = storyOf(qid);
+  const clusters = useMemo(() => attentionClusters(cells), [cells]);
 
   /* ── the map ────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -229,11 +232,24 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
         m.addImage("h-care", hatchDisc("rgba(31,111,128,0.75)", "rgba(232,242,242,0.95)", "rgba(31,111,128,0.9)"));
         m.addImage("h-stale", hatchDisc("rgba(138,106,59,0.85)", "rgba(244,236,222,0.95)", "rgba(138,106,59,0.95)"));
         m.addImage("h-edge", hatchDisc("rgba(11,30,61,0.16)", "rgba(244,239,230,0.35)", "rgba(11,30,61,0.3)", true));
+        /* Glyph images are drawn on first use: g:<sterilised>-<not>:<attention>. */
+        m.on("styleimagemissing", (e: { id: string }) => {
+          const g = /^g:(?:(\d+)-(\d+)|x):([012])$/.exec(e.id);
+          if (!g || m.hasImage(e.id)) return;
+          m.addImage(e.id, glyphImage(g[1] ? [+g[1], +g[2]] : null, +g[3] as 0 | 1 | 2));
+        });
         const empty = { type: "FeatureCollection" as const, features: [] };
-        for (const s of ["edge", "areas", "dots", "zones", "nums", "sel", "cities"]) m.addSource(s, { type: "geojson", data: empty });
+        for (const s of ["edge", "halo", "areas", "glyphs", "dots", "zones", "clusters", "nums", "sel", "cities"]) m.addSource(s, { type: "geojson", data: empty });
         /* Bordering areas with no record: faint hatched rings, the edge of reporting. */
         m.addLayer({ id: "edge", type: "symbol", source: "edge", layout: { "icon-image": "h-edge", "icon-size": iconSize(0.92), "icon-allow-overlap": true, "icon-ignore-placement": true },
           paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 12, 1, 14.5, 0.4] } });
+        /* Attention concentrations: touching areas with open or flagged work,
+           joined by a soft wash beneath them (never a heatmap: each wash is a
+           named group of real areas, listed in the panel). */
+        m.addLayer({ id: "halo", type: "circle", source: "halo", paint: {
+          "circle-radius": radius(1.9, 6), "circle-color": "#e0472b", "circle-blur": 0.55,
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.1, 12, 0.16, 14, 0.08],
+        } });
         m.addLayer({ id: "areas-fill", type: "circle", source: "areas", filter: ["!=", ["get", "kind"], "unknown"], paint: {
           "circle-radius": radius(),
           "circle-color": ["get", "color"],
@@ -248,6 +264,10 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
         m.addLayer({ id: "areas-multi", type: "circle", source: "areas", filter: ["==", ["get", "multi"], 1], paint: {
           "circle-radius": radius(1, 3), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": C.ink, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 2.2],
         } });
+        /* Every area carries all three stories: disc (documented), ring (care), pip (attention). */
+        m.addLayer({ id: "glyphs", type: "symbol", source: "glyphs", minzoom: 10.2, layout: {
+          "icon-image": ["get", "g"], "icon-size": iconSize(1.22), "icon-allow-overlap": true, "icon-ignore-placement": true,
+        }, paint: { "icon-opacity": 0 } });
         m.addLayer({ id: "dots", type: "circle", source: "dots", minzoom: AREA_ZOOM - 0.4, paint: {
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 1.6, 15, 3.6, 16.5, 5.2],
           "circle-color": ["get", "color"], "circle-opacity": ["interpolate", ["linear"], ["zoom"], AREA_ZOOM - 0.4, 0, AREA_ZOOM + 0.2, 1],
@@ -266,6 +286,11 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
           "text-letter-spacing": 0.02, "symbol-sort-key": ["get", "rank"], "text-padding": 6, "text-max-width": 9,
           "text-variable-anchor": ["center", "top", "bottom"], "text-radial-offset": 0.9,
         }, paint: { "text-color": C.ink, "text-halo-color": "#f7f3ec", "text-halo-width": 1.6, "text-opacity": ["interpolate", ["linear"], ["zoom"], 8.5, 0, 9.5, 0.95] } });
+        m.addLayer({ id: "clusters", type: "symbol", source: "clusters", minzoom: 9, maxzoom: 14.2, layout: {
+          "text-field": ["format", ["upcase", ["get", "name"]], { "font-scale": 0.92 }, "\n", {}, ["get", "line"], { "font-scale": 0.82, "text-font": ["literal", ["Noto Sans Regular"]] }],
+          "text-font": ["Noto Sans Bold"], "text-size": 12, "text-letter-spacing": 0.06, "text-allow-overlap": false, "symbol-sort-key": ["get", "rank"],
+          "text-variable-anchor": ["bottom", "top", "left", "right"], "text-radial-offset": 1.6, "text-max-width": 14,
+        }, paint: { "text-color": "#8f2412", "text-halo-color": "#fbf6ee", "text-halo-width": 2 } });
         m.addLayer({ id: "cities", type: "circle", source: "cities", paint: {
           "circle-radius": ["get", "r"], "circle-color": ["get", "color"], "circle-opacity": ["get", "op"],
           "circle-stroke-color": ["get", "stroke"], "circle-stroke-width": ["get", "sw"],
@@ -306,7 +331,7 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
     if (!c) return;
     const k = L.classes.find((x) => x.id === L.classOf[i]);
     const v = L.q.measure(c, L.facet, L.ctx, i);
-    setHover({ x: p.x, y: p.y, title: placeName(c.zone), line: `${k?.label || "—"}${v ? ` · ${v.toLocaleString("en-IN")} ${L.q.unit(L.facet)}` : ""}` });
+    setHover({ x: p.x, y: p.y, title: placeName(c.zone), line: `${k?.label || "—"}${v ? ` · ${v.toLocaleString("en-IN")} ${L.q.unit(L.facet)}` : ""}`, more: glance(c).map((g) => `${g.label}: ${g.text}`) });
   };
   const hoverCity = (f: MapGeoJSONFeature | undefined, p: { x: number; y: number }) => {
     if (!f || window.matchMedia("(hover: none)").matches) return;
@@ -387,6 +412,11 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
         dim: isolate && isolate !== classOf[i] ? 1 : 0, multi: qid === "orgs" && c.orgs.length > 1 ? 1 : 0,
       } };
     }));
+    const pt = (c: [number, number], properties: Record<string, unknown> = {}): GeoJSON.Feature => ({ type: "Feature", geometry: { type: "Point", coordinates: c }, properties });
+    set("glyphs", cells.map((c, i) => pt(centers[i], { g: glyphKey(c), dim: isolate && isolate !== classOf[i] ? 1 : 0 })));
+    const attention = storyId === "attention";
+    set("halo", attention ? clusters.flatMap((k) => k.cells.map((i) => pt(centers[i]))) : []);
+    set("clusters", attention ? clusters.slice(0, 14).map((k, r) => pt(k.center, { name: k.name, line: clusterLine(k), rank: r })) : []);
     set("edge", qid === "gaps" || zoom > 11 ? edge.map((pt) => ({ type: "Feature", geometry: { type: "Point", coordinates: pt }, properties: {} })) : []);
     /* Numbers on the discs, from the city scale up to the seed heads. */
     set("nums", cells.flatMap((c, i) => {
@@ -412,7 +442,15 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
       seedHead(centers[i], n).forEach((pt, j) => dots.push({ type: "Feature", geometry: { type: "Point", coordinates: pt }, properties: { i, color: colors[j] } }));
     });
     set("dots", dots);
-  }, [ready, city, cells, centers, classOf, classes, isolate, qid, facet, q, ctx, edge, places, zoom, orgColor]);
+  }, [ready, city, cells, centers, classOf, classes, isolate, qid, facet, q, ctx, edge, places, zoom, orgColor, storyId, clusters]);
+
+  /* The active story leads; the other two marks stay, quieter. */
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready || !m.getLayer("glyphs")) return;
+    const o = storyId === "documented" ? 0.5 : 1;
+    const dim = (v: number) => ["case", ["==", ["get", "dim"], 1], 0.1, v];
+    m.setPaintProperty("glyphs", "icon-opacity", ["interpolate", ["linear"], ["zoom"], 10.2, 0, 11, dim(o), 13.4, dim(o), 14.6, dim(o * 0.55)] as unknown as number);
+  }, [ready, storyId]);
 
   /* Selection outline. */
   useEffect(() => {
@@ -481,7 +519,7 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
     <div className={`lm is-at-${level}${loadState === "loading" ? " is-loading" : ""}`} data-sheet={sheet}>
       <div className="lm-map" ref={el} role="application" aria-label={`Map of ${city ?? "India"}: ${q.ask} The panel lists the same places and figures.`} />
       {mapError && <p className="lm-maperr" role="status">{mapError}</p>}
-      {hover && <div className="lm-tip" style={{ left: hover.x + 14, top: hover.y + 14 }} aria-hidden><b>{hover.title}</b><span>{hover.line}</span></div>}
+      {hover && <div className="lm-tip" style={{ left: hover.x + 14, top: hover.y + 14 }} aria-hidden><b>{hover.title}</b><span>{hover.line}</span>{hover.more?.map((l) => <small key={l}>{l}</small>)}</div>}
       {city && zoom >= AREA_ZOOM && <p className="lm-scale-note" aria-hidden>One dot, one recorded animal · positions inside an area are schematic</p>}
       <Panel
         level={level} cities={cities} city={city} data={data} loadState={loadState}
@@ -492,7 +530,7 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
         onCity={openCity} onIndia={goIndia} onArea={(h3) => { setAreaH3(h3); setAnimalId(null); setSheet("half"); }} onCloseArea={() => { setAreaH3(null); setAnimalId(null); }}
         onAnimal={(id) => { setAnimalId(id); setSheet("full"); }} onCloseAnimal={() => setAnimalId(null)}
         onPin={(h3) => setPin(h3)} onPlace={(c) => flyToPlace(c)} onSheet={setSheet}
-        member={member} unplaced={unplaced} citiesState={citiesState} scope={scope}
+        member={member} unplaced={unplaced} citiesState={citiesState} scope={scope} clusters={clusters}
         onPrefetch={(c) => prefetchCity(c, scope)}
         onFound={(a) => { if (a.city) { setCity(a.city); setAreaH3(a.h3); setAnimalId(a.id); setSheet("full"); } }}
       />

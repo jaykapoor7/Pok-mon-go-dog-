@@ -7,7 +7,7 @@
 
      waiting   requests open more than 30 days (confirmed in StrayPaw)
      unassigned  open requests created in StrayPaw with nobody assigned
-     missed    follow-ups recorded as missed
+     missed    follow-ups missed on requests still confirmed open
      flagged   animals flagged as needing help with no request open
      confirm   requests open only because an imported register said so,
                never confirmed in StrayPaw since
@@ -90,7 +90,10 @@ export function areaWork(c: MapCell, i: number, city: string, now = Date.now()):
   if (c.unassigned) add("unassigned", c.unassigned * 4, `${n(c.unassigned, "open request")} with nobody assigned.`, true, [
     { label: "Assign them", href: `/partner/cases?place=${enc}&lens=nobody`, audience: "member" },
   ]);
-  if (c.fu_missed) add("missed", c.fu_missed * 3, `${n(c.fu_missed, "follow-up")} recorded as missed${c.fu_upcoming ? `, ${c.fu_upcoming} more due` : ""}.`, true, [
+  /* Only rechecks missed on requests still confirmed open: one missed before a
+     request closed is history (all 221 on record came from one import). */
+  const missed = c.fu_missed_live ?? 0;
+  if (missed) add("missed", missed * 3, `${n(missed, "follow-up")} missed on ${missed === 1 ? "a request" : "requests"} still open${c.fu_upcoming ? `, ${c.fu_upcoming} more due` : ""}.`, true, [
     { label: "Plan the follow-ups", href: "/partner/followups", audience: "member" },
     report,
   ]);
@@ -131,7 +134,7 @@ export function nationalWork(cities: NationalCity[], unplaced: Unplaced[]): Work
     if (waiting > 0) items.push({ key: `waiting:${c.city}`, kind: "waiting", cell: null, city: c.city, place: c.city, score: URGENCY.waiting + Math.min(99, waiting), reason: `${n(waiting, "request")} open for more than 30 days.`, who: [], whoNote: "", actions: [] });
     if (c.unassigned) items.push({ key: `unassigned:${c.city}`, kind: "unassigned", cell: null, city: c.city, place: c.city, score: URGENCY.unassigned + Math.min(99, c.unassigned), reason: `${n(c.unassigned, "open request")} with nobody assigned.`, who: [], whoNote: "", actions: [] });
     if (c.open_unconfirmed) items.push({ key: `confirm:${c.city}`, kind: "confirm", cell: null, city: c.city, place: c.city, score: URGENCY.confirm + Math.min(99, c.open_unconfirmed), reason: `${n(c.open_unconfirmed, "request")} marked open in an imported register, not confirmed since.`, who: [], whoNote: "", actions: [] });
-    if (c.needs_help) items.push({ key: `flagged:${c.city}`, kind: "flagged", cell: null, city: c.city, place: c.city, score: URGENCY.flagged + Math.min(99, c.needs_help), reason: `${n(c.needs_help, "animal")} flagged as needing help.`, who: [], whoNote: "", actions: [] });
+    if (c.needs_help) items.push({ key: `flagged:${c.city}`, kind: "flagged", cell: null, city: c.city, place: c.city, score: URGENCY.flagged + Math.min(99, c.needs_help), reason: `${n(c.needs_help, "animal")} flagged as needing help. Open the city to see which have no request open.`, who: [], whoNote: "", actions: [] });
     if (c.status_unknown) items.push({ key: `outcome:${c.city}`, kind: "outcome", cell: null, city: c.city, place: c.city, score: URGENCY.outcome + Math.min(99, c.status_unknown), reason: `${n(c.status_unknown, "request")} with no status recorded.`, who: [], whoNote: "", actions: [] });
   }
   for (const u of unplaced.filter((x) => x.open_cases > 0)) {

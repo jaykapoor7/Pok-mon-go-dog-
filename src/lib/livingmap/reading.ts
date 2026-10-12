@@ -25,11 +25,11 @@ export function tally(cells: MapCell[], q: Question, f: Facet, ctx: Ctx): { tall
 
 export type Totals = ReturnType<typeof totals>;
 export function totals(cells: MapCell[]) {
-  const s = { areas: cells.length, animals: 0, photos: 0, residents: 0, needs: 0, cases: 0, open: 0, open30: 0, oldest: null as string | null, closed: 0, handed: 0, noAction: 0, statusUnknown: 0, unconf: 0, unconf30: 0, fuDone: 0, fuMissed: 0, fuDue: 0, sterYes: 0, sterNo: 0, sterUnknown: 0, vaccYes: 0, vaccUnknown: 0, care: 0, treat: 0, exact: 0, last: null as string | null };
+  const s = { areas: cells.length, animals: 0, photos: 0, residents: 0, needs: 0, cases: 0, open: 0, open30: 0, oldest: null as string | null, closed: 0, handed: 0, noAction: 0, statusUnknown: 0, unconf: 0, unconf30: 0, fuDone: 0, fuMissed: 0, fuLive: 0, fuDue: 0, sterYes: 0, sterNo: 0, sterUnknown: 0, vaccYes: 0, vaccUnknown: 0, care: 0, treat: 0, exact: 0, last: null as string | null };
   for (const c of cells) {
     s.animals += c.animals; s.photos += c.photos; s.residents += c.residents; s.needs += c.needs_help;
     s.cases += c.cases; s.open += c.open_cases; s.open30 += c.open_30; s.closed += c.closed_field; s.handed += c.handed_on; s.noAction += c.no_action; s.statusUnknown += c.status_unknown ?? 0; s.unconf += c.open_unconfirmed ?? 0; s.unconf30 += c.open_30_unconfirmed ?? 0;
-    s.fuDone += c.fu_done; s.fuMissed += c.fu_missed; s.fuDue += c.fu_upcoming;
+    s.fuDone += c.fu_done; s.fuMissed += c.fu_missed; s.fuLive += c.fu_missed_live ?? 0; s.fuDue += c.fu_upcoming;
     s.sterYes += c.ster_yes; s.sterNo += c.ster_no; s.sterUnknown += c.ster_unknown; s.vaccYes += c.vacc_yes; s.vaccUnknown += c.vacc_unknown;
     s.care += c.care; s.treat += treatments(c); s.exact += c.exact_loc;
     if (c.open_oldest && (!s.oldest || c.open_oldest < s.oldest)) s.oldest = c.open_oldest;
@@ -68,8 +68,8 @@ export function headline(q: Question, f: Facet, ctx: Ctx, cells: MapCell[], t: T
     }
     case "needs": {
       if (f === "followups") return {
-        lead: s.fuMissed ? `${plural(s.fuMissed, "follow-up")} missed and ${fmt(s.fuDue)} due, in ${plural(areas("missed") + areas("due"), "area")}.` : s.fuDue ? `${plural(s.fuDue, "follow-up")} due; none recorded as missed.` : "No follow-up is due or missed on the record here.",
-        qualify: `${fmt(s.fuDone)} follow-ups recorded as done. Areas without requests are shown hatched, not clear.`,
+        lead: s.fuLive || s.fuDue ? `${plural(s.fuLive, "follow-up")} missed on requests still open and ${fmt(s.fuDue)} due, in ${plural(areas("missed") + areas("due"), "area")}.` : "No follow-up is due, or missed on a request still open, on the record here.",
+        qualify: `${fmt(s.fuDone)} follow-ups recorded as done${s.fuMissed > s.fuLive ? `; ${fmt(s.fuMissed - s.fuLive)} were missed on requests that have since closed or are unconfirmed: care history, not current work` : ""}. Areas without requests are shown hatched, not clear.`,
       };
       if (ctx.range) {
         const n = ctx.inRange?.reduce((a, r) => a + r[0], 0) ?? 0;

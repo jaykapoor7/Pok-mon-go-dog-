@@ -1,6 +1,25 @@
 # The Living Map (`/map`)
 
-One map, four scales, five questions. It is designed around what the record can honestly say, not around layers.
+One map, four scales, three connected stories. It is designed around what the record can honestly say, not around layers.
+
+## Three stories
+
+| Story | Asks | Lenses | Drawn as |
+|---|---|---|---|
+| **Documented** | Where are animals on the record, and how good is that record? | Animals · Gaps | the **disc**: the area, coloured by the active lens |
+| **Cared for** | Where is care happening, and who is doing it? | Care given · Who's working | the **ring** around the disc, from twelve o'clock: sterilised (teal), recorded not sterilised (ink), not known (faint dashes) |
+| **Needs attention** | Where does the evidence say someone should look? | Work next · Needs now | the **pip** at one-thirty: solid red when StrayPaw's own record confirms work is waiting, hollow amber when the record only raises the question |
+
+Every area carries all three marks at once, so moving between stories never loses the thread. The active story leads, and the other marks stay visible but quieter. The panel opens each scale with the three stories and their figures:
+
+- **India:** each story card has a small India showing the same cities, sized by that story's own figure.
+- **Area:** the panel opens with three lines, one per story.
+
+**Where work is confirmed waiting.** Areas whose record confirms work, joined with touching areas into one named place, washed red and labelled on the map.
+
+**Where a status review would settle most.** Requests open only in an imported register, ranked by locality. These are deliberately not washed: they sit wherever the register worked, so a wash would only redraw the register's footprint. This replaces a heatmap: every wash is a named group of real areas with its reasons listed.
+
+**Sterilisation coverage by locality.** Each locality's coverage as sterilised · not · not known, so a gap in the record never reads as a gap in care.
 
 ## Scales
 
@@ -41,7 +60,7 @@ Work next is the first question. It is a short list of plain rules, not a score,
 |---|---|
 | Requests waiting over 30 days | An animal was reported for help and the request is still open after a month, by StrayPaw's own record. |
 | Open requests nobody holds | Open requests created in StrayPaw with no one assigned. Organisation map only. Imported requests are never counted here: the source registers had no assignee field. |
-| Follow-ups missed | Treatment that needed a return visit, recorded as missed. |
+| Follow-ups missed | A recheck recorded as missed on a request still confirmed open. A recheck missed before its request closed is care history and is never on the list. |
 | Flagged, no request open | Animals marked as needing help with no request open for them. |
 | Open status unconfirmed since import | Requests marked open in an imported register that nobody has confirmed or touched in StrayPaw since. They may be long resolved or still need help; the action is to review their status. |
 | Requests waiting to be placed | Requests whose place has no city, so they are on no map. |

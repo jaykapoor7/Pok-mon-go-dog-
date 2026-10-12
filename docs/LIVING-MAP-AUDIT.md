@@ -14,6 +14,7 @@ Every figure the map shows was checked against direct counts on the public views
 | Open requests | 175 placed + 4 unplaced | 179 | ✔ after fix 2 |
 | Coimbatore: animals · requests · open | 2,242 · 2,156 · 172 | 2,242 · 2,156 · 172 | ✔ national = city |
 | Coimbatore open: confirmed · imported, unconfirmed | 3 · 169 | 3 · 169 | ✔ fix 3 |
+| Coimbatore missed follow-ups: on confirmed-open requests · history | 1 · 216 | 1 · 216 | ✔ fix 4 |
 | Coimbatore timeline: opened · closed with a recorded date · dated care | 2,156 · 1,997 · 1,541 | 2,156 · 1,997 · 1,541 | ✔ no assumed closing dates, no undated care, no future dates |
 | Open requests by organisation (Coimbatore) | 172 | 172 | ✔ every open request has a responsible organisation |
 | Requests placed in an area | 2,281 | 2,281 (0 without an area) | ✔ |
@@ -24,6 +25,9 @@ Every figure the map shows was checked against direct counts on the public views
 2. **4 open requests have no city** (RS Puram ×3 and Nava India, Coimbatore localities, September 2026). They were missing from the map. They are now listed as *requests waiting to be placed* (`public_map_unplaced()`) in the national view and in Work next, because placing them is itself an action.
 
 3. **"172 open, unassigned" was an import artefact.** Of Coimbatore's 172 open requests, 169 come from one Pawsome workbook imported on 16–17 Sept 2026. That register had no assignee column, none of the 169 has been status-reviewed, and none was touched after the import day. Showing them as "172 waiting, 172 nobody holds" overstated both. They are now *open in an imported register, unconfirmed* (167 of them older than 30 days), with their own Work next rule, "Review their status". Only the 3 requests confirmed in StrayPaw count as waiting. "Nobody holds" counts only requests created in StrayPaw.
+
+4. **Missed follow-ups were history, not current work.** All 221 missed follow-ups on record came from the same September 2026 import, and 199 sit on requests already closed. Coimbatore showed 217 missed follow-ups across 72 areas as attention. Now only a recheck missed on a request confirmed open counts (`public_map_followups_live`, `org_map_followups_live`); in Coimbatore that is 1. The rest are shown as "missed before the request closed". The 27 imported "upcoming" follow-ups are due in 2024 and have no request attached, so they never reached the map.
+5. **"100% sterilised" was 100% of a tiny known share.** Coimbatore's register records sterilisation only as "yes". The care figure is now the share of all animals recorded sterilised (5%), with the share not known named beside it (95%).
 
 ## Exclusions that are deliberate
 

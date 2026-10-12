@@ -109,8 +109,9 @@ export const QUESTIONS: Question[] = [
     timed: (f) => f === "open",
     classes(f, ctx) {
       if (f === "followups") return [
-        { id: "missed", label: "Follow-up missed", kind: "value", color: C.flame },
+        { id: "missed", label: "Missed, request still open", kind: "value", color: C.flame, note: "A recheck recorded as missed on a request confirmed open: current work." },
         { id: "due", label: "Follow-up due", kind: "value", color: C.amber },
+        { id: "history", label: "Missed before the request closed", kind: "value", color: "#b9a68a", note: "A recheck missed on a request that has since closed, or whose open status is unconfirmed: care history, not current work." },
         { id: "kept", label: "All follow-ups kept", kind: "value", color: C.seq[3] },
         { id: "nofu", label: "No follow-up recorded", kind: "unknown", color: C.quiet, note: "Requests here record no follow-up either way." },
         { id: "noreq", label: "No requests recorded", kind: "unknown", color: C.quiet },
@@ -131,7 +132,7 @@ export const QUESTIONS: Question[] = [
       ];
     },
     measure(c, f, ctx, i) {
-      if (f === "followups") return c.fu_missed + c.fu_upcoming;
+      if (f === "followups") return (c.fu_missed_live ?? 0) + c.fu_upcoming;
       if (ctx.inRange) return ctx.inRange[i][0];
       const known = c.open_cases - (c.open_unconfirmed ?? 0);
       return known + (known ? 0 : c.needs_help);
@@ -139,8 +140,9 @@ export const QUESTIONS: Question[] = [
     classify(c, f, ctx, i) {
       if (f === "followups") {
         if (!c.cases) return { k: "noreq", v: 0 };
-        if (c.fu_missed) return { k: "missed", v: c.fu_missed };
+        if (c.fu_missed_live) return { k: "missed", v: c.fu_missed_live };
         if (c.fu_upcoming) return { k: "due", v: c.fu_upcoming };
+        if (c.fu_missed) return { k: "history", v: 0 };
         if (c.fu_done) return { k: "kept", v: c.fu_done };
         return { k: "nofu", v: 0 };
       }

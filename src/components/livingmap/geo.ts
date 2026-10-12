@@ -83,3 +83,36 @@ export function coreBounds(points: [number, number][], trim = 0.04, pad = 0.015)
   const lo = Math.floor(points.length * trim), hi = Math.ceil(points.length * (1 - trim)) - 1;
   return [[xs[lo] - pad, ys[lo] - pad], [xs[hi] + pad, ys[hi] + pad]];
 }
+
+/** An area's glyph, drawn around its disc: the care ring and the attention pip.
+ *  Ring, from twelve o'clock: sterilised (teal), recorded not sterilised (ink),
+ *  then the share whose status is not known (a faint dashed arc, never drawn
+ *  as "not sterilised"). Pip at one-thirty: solid when the record confirms work
+ *  is waiting, hollow when the record only raises the question. */
+export function glyphImage(ring: [number, number] | null, att: 0 | 1 | 2) {
+  const s = DISC_PX, c = document.createElement("canvas");
+  c.width = c.height = s;
+  const x = c.getContext("2d")!;
+  const cx = s / 2, r = s / 2 - 9, a0 = -Math.PI / 2, step = (Math.PI * 2) / 12;
+  if (ring) {
+    const [yes, no] = ring;
+    x.lineCap = "butt";
+    const arc = (from: number, n: number, color: string, w: number, dash: number[] = []) => {
+      if (n <= 0) return;
+      x.beginPath(); x.setLineDash(dash); x.strokeStyle = color; x.lineWidth = w;
+      x.arc(cx, cx, r, a0 + from * step, a0 + (from + n) * step); x.stroke();
+    };
+    arc(yes + no, 12 - yes - no, "rgba(11,30,61,0.32)", 3, [4, 4]);
+    arc(0, yes, "#1f6f80", 7);
+    arc(yes, no, "#0b1e3d", 7);
+  }
+  if (att) {
+    const px = cx + r * Math.cos(-Math.PI / 4), py = cx + r * Math.sin(-Math.PI / 4);
+    x.setLineDash([]);
+    x.beginPath(); x.arc(px, py, 10, 0, Math.PI * 2);
+    x.fillStyle = att === 2 ? "#d23a1e" : "#fffaf0"; x.fill();
+    x.lineWidth = att === 2 ? 2.5 : 3.5; x.strokeStyle = att === 2 ? "#fffaf0" : "#b0702a"; x.stroke();
+  }
+  const d = x.getImageData(0, 0, s, s);
+  return { width: s, height: s, data: new Uint8Array(d.data.buffer) };
+}

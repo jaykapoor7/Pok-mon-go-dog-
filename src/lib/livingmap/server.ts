@@ -34,12 +34,15 @@ async function snapshot<T>(key: string): Promise<{ payload: T; built: string } |
 type CellRow = Omit<MapCell, "c">;
 type MonthRaw = { h3: string; m: string; opened: number; closed: number; care: number; ster: number; vacc: number; other_care: number };
 type ConfRow = { h3: string; open_unconfirmed: number; open_30_unconfirmed: number; unassigned_native?: number };
-function shapeCity(name: string, rows: CellRow[], monthRows: MonthRaw[], built: string, scope: "public" | "org" = "public", conf: ConfRow[] = []): MapCity | null {
+type LiveRow = { h3: string; fu_missed_live: number };
+function shapeCity(name: string, rows: CellRow[], monthRows: MonthRaw[], built: string, scope: "public" | "org" = "public", conf: ConfRow[] = [], live: LiveRow[] = []): MapCity | null {
   if (!rows.length) return null;
   const cf = new Map(conf.map((k) => [k.h3, k]));
+  const lv = new Map(live.map((k) => [k.h3, k.fu_missed_live]));
   rows = rows.map((r) => {
     const k = cf.get(r.h3);
-    const out = { ...r, open_unconfirmed: k?.open_unconfirmed ?? 0, open_30_unconfirmed: k?.open_30_unconfirmed ?? 0 };
+    /* Missed follow-ups are current work only on requests confirmed open; the rest are care history. */
+    const out = { ...r, open_unconfirmed: k?.open_unconfirmed ?? 0, open_30_unconfirmed: k?.open_30_unconfirmed ?? 0, fu_missed_live: lv.get(r.h3) ?? 0 };
     /* On an organisation's map, only requests created in StrayPaw could carry an assignee. */
     if (scope === "org") out.unassigned = k?.unassigned_native ?? 0;
     return out;
@@ -55,8 +58,13 @@ function shapeCity(name: string, rows: CellRow[], monthRows: MonthRaw[], built: 
 }
 
 async function readCity(city: string): Promise<MapCity | null> {
-  const snap = await snapshot<{ cells: CellRow[]; months: MonthRaw[]; confidence?: ConfRow[] }>(`city:${canonicalCity(city)}`);
-  if (snap) return shapeCity(canonicalCity(city), snap.payload.cells ?? [], snap.payload.months ?? [], snap.built, "public", snap.payload.confidence ?? []);
+  const snap = await snapshot<{ cells: CellRow[]; months: MonthRaw[]; confidence?: ConfRow[]; followups?: LiveRow[] }>(`city:${canonicalCity(city)}`);
+  if (snap) {
+    let live = snap.payload.followups;
+    /* A snapshot built before follow-ups were split reads them live (one small query). */
+    if (!live) { const { data } = (await getSupabase()?.rpc("public_map_followups_live", { p_cities: cityVariants(canonicalCity(city)) })) ?? { data: null }; live = (data ?? []) as LiveRow[]; }
+    return shapeCity(canonicalCity(city), snap.payload.cells ?? [], snap.payload.months ?? [], snap.built, "public", snap.payload.confidence ?? [], live);
+  }
   return readCityLive(city);
 }
 
@@ -84,10 +92,11 @@ async function readCityLive(city: string): Promise<MapCity | null> {
     supa.rpc("public_map_case_confidence", { p_cities: cities }),
   ]);
   if (error) throw error;
-  return shapeCity(name, (data ?? []) as CellRow[], months, new Date().toISOString(), "public", (conf.data ?? []) as ConfRow[]);
+  const live = await supa.rpc("public_map_followups_live", { p_cities: cities });
+  return shapeCity(name, (data ?? []) as CellRow[], months, new Date().toISOString(), "public", (conf.data ?? []) as ConfRow[], (live.data ?? []) as LiveRow[]);
 }
 
-const cachedCity = unstable_cache(readCity, ["livingmap-city-v6"], { revalidate: 300 });
+const cachedCity = unstable_cache(readCity, ["livingmap-city-v7"], { revalidate: 300 });
 export const getMapCity = (city: string) => cachedCity(canonicalCity(city));
 
 async function readArea(city: string, h3: string): Promise<MapArea | null> {
@@ -238,14 +247,15 @@ export async function getOrgMapCity(token: string, city: string): Promise<MapCit
   const name = canonicalCity(city);
   if (!supa || !name) return null;
   const cities = cityVariants(name);
-  const [{ data, error }, months, conf] = await Promise.all([
+  const [{ data, error }, months, conf, live] = await Promise.all([
     supa.rpc("org_map_cells", { p_cities: cities }),
     allRows<MonthRaw>((f, t) => supa.rpc("org_map_months", { p_cities: cities }).range(f, t)),
     supa.rpc("org_map_case_confidence", { p_cities: cities }),
+    supa.rpc("org_map_followups_live", { p_cities: cities }),
   ]);
   if (error) throw error;
   if (conf.error) throw conf.error;
-  return shapeCity(name, (data ?? []) as CellRow[], months, new Date().toISOString(), "org", (conf.data ?? []) as ConfRow[]);
+  return shapeCity(name, (data ?? []) as CellRow[], months, new Date().toISOString(), "org", (conf.data ?? []) as ConfRow[], (live.data ?? []) as LiveRow[]);
 }
 
 export async function getOrgMapCities(token: string): Promise<{ cities: NationalCity[]; unplaced: Unplaced[] }> {

@@ -21,6 +21,8 @@ import { MapSearch } from "./Search";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { claimCase } from "@/lib/case-actions";
 import { Timeline } from "./Timeline";
+import { INDIA_PATH, INDIA_VIEW, indiaXY } from "./india-path";
+import { STORIES, clusterLine, nationalStoryFigures, story, storyFigures, storyOf, unconfirmedByLocality, glance, type Cluster, type StoryId } from "@/lib/livingmap/stories";
 import type { Level } from "./LivingMap";
 
 type Props = {
@@ -38,6 +40,8 @@ type Props = {
   onCity: (c: string) => void; onIndia: () => void; onArea: (h3: string) => void; onCloseArea: () => void;
   onAnimal: (id: string) => void; onCloseAnimal: () => void; onPin: (h3: string | null) => void; onPlace: (c: [number, number]) => void;
   onSheet: (s: "peek" | "half" | "full") => void; onFound: (a: FoundAnimal) => void;
+  /** Touching areas with open or flagged work, joined and named. */
+  clusters: Cluster[];
 };
 
 const STATUS: Record<string, string> = {
@@ -81,7 +85,7 @@ export function Panel(p: Props) {
         <h1 className="lm-title">{title}</h1>
         {p.level === "animal" ? <AnimalView {...p} /> : p.level === "area" ? <AreaView {...p} /> : (
           <>
-            <Questions {...p} />
+            <Stories {...p} />
             {p.level === "india" ? <IndiaView {...p} /> : <CityView {...p} />}
           </>
         )}
@@ -105,21 +109,138 @@ function Ladder(p: Props) {
   );
 }
 
-function Questions(p: Props) {
+/* The three stories, each with its figure; under the active one, its lenses. */
+function Stories(p: Props) {
+  const figs = useMemo(() => (p.level === "india" ? nationalStoryFigures(p.cities) : storyFigures(p.cells)), [p.level, p.cities, p.cells]);
+  const cur = storyOf(p.q.id);
+  const offAtIndia = (id: string) => p.level === "india" && (id === "orgs" || id === "gaps");
+  const lenses = story(cur).lenses.map((id) => p.questions.find((q) => q.id === id)).filter((q): q is Question => !!q);
+  const pick = (id: StoryId) => { const first = story(id).lenses.find((l) => p.questions.some((q) => q.id === l) && !offAtIndia(l)); if (first && id !== cur) p.onQuestion(first); };
   return (
     <section className="lm-qs" aria-label="Read the map for">
-      <div className="lm-q-row" role="radiogroup" aria-label="Question">
-        {p.questions.map((q) => (
-          <button key={q.id} type="button" role="radio" aria-checked={p.q.id === q.id} className={p.q.id === q.id ? "is-on" : ""} onClick={() => p.onQuestion(q.id)}
-            disabled={p.level === "india" && (q.id === "orgs" || q.id === "gaps")} title={p.level === "india" && (q.id === "orgs" || q.id === "gaps") ? "Open a city to read this" : undefined}>{q.label}</button>
+      <div className="lm-stories" role="radiogroup" aria-label="Story">
+        {STORIES.map((st) => (
+          <button key={st.id} type="button" role="radio" aria-checked={cur === st.id} className={`lm-story is-${st.id}${cur === st.id ? " is-on" : ""}`} onClick={() => pick(st.id)}>
+            {p.level === "india" && <MiniIndia cities={p.cities} id={st.id} />}
+            <span className="lm-story-l">{st.label}</span>
+            <b className="lm-story-n">{figs[st.id].big}</b>
+            <small>{figs[st.id].small}</small>
+          </button>
         ))}
       </div>
-      <p className="lm-ask">{p.q.ask}</p>
+      <p className="lm-ask">{story(cur).ask}</p>
+      {lenses.length > 1 && (
+        <div className="lm-q-row" role="radiogroup" aria-label="Read it as">
+          {lenses.map((q) => (
+            <button key={q.id} type="button" role="radio" aria-checked={p.q.id === q.id} className={p.q.id === q.id ? "is-on" : ""} onClick={() => p.onQuestion(q.id)}
+              disabled={offAtIndia(q.id)} title={offAtIndia(q.id) ? "Open a city to read this" : undefined}>{q.label}</button>
+          ))}
+        </div>
+      )}
       {p.q.facets && (
         <div className="lm-facets" role="radiogroup" aria-label={`${p.q.label}: which`}>
           {p.q.facets.map((f) => <button key={f.id} type="button" role="radio" aria-checked={p.facet === f.id} onClick={() => p.onFacet(f.id)}>{f.label}</button>)}
         </div>
       )}
+    </section>
+  );
+}
+
+/* A small India for each story: the same cities, sized by that story's own figure. */
+function MiniIndia({ cities, id }: { cities: NationalCity[]; id: StoryId }) {
+  const v = (c: NationalCity) => (id === "documented" ? (kindOf(c.city, c.cells) === "clinical" ? 0 : c.animals) : id === "care" ? (kindOf(c.city, c.cells) === "clinical" ? 0 : c.sterilised) : c.open_cases - (c.open_unconfirmed ?? 0) + c.needs_help);
+  const max = Math.sqrt(Math.max(1, ...cities.map(v)));
+  return (
+    <svg className="lm-mini" viewBox={`-2 -2 ${INDIA_VIEW.w + 4} ${INDIA_VIEW.h + 4}`} aria-hidden>
+      <path d={INDIA_PATH} />
+      {cities.filter((c) => typeof c.lng === "number").map((c) => {
+        const [x, y] = indiaXY(c.lng!, c.lat!), n = v(c);
+        return n > 0 ? <circle key={c.city} cx={x} cy={y} r={1.4 + (Math.sqrt(n) / max) * 7} /> : <circle key={c.city} cx={x} cy={y} r={1.1} className="is-none" />;
+      })}
+    </svg>
+  );
+}
+
+/* How to read one area: the disc, the ring and the pip, which carry the three stories at once. */
+function GlyphKey({ active }: { active: StoryId }) {
+  return (
+    <figure className="lm-gkey" aria-label="How to read an area">
+      <svg viewBox="0 0 64 64" aria-hidden>
+        <circle cx="32" cy="32" r="19" fill="#5b82dc" opacity="0.9" />
+        <path d="M32 7 A25 25 0 1 1 9.4 42.6" stroke="#1f6f80" strokeWidth="5" fill="none" />
+        <path d="M9.4 42.6 A25 25 0 0 1 14.3 14.3" stroke="#0b1e3d" strokeWidth="5" fill="none" />
+        <path d="M14.3 14.3 A25 25 0 0 1 32 7" stroke="rgba(11,30,61,0.4)" strokeWidth="2" strokeDasharray="3 3" fill="none" />
+        <circle cx="49.7" cy="14.3" r="6" fill="#d23a1e" stroke="#fffaf0" strokeWidth="2" />
+      </svg>
+      <figcaption>
+        <span className={active === "documented" ? "is-on" : ""}><b>Disc</b> the area and what is documented in it</span>
+        <span className={active === "care" ? "is-on" : ""}><b>Ring</b> sterilised · <i className="k-ink" />recorded not · <i className="k-dash" />not known</span>
+        <span className={active === "attention" ? "is-on" : ""}><b>Pip</b> work confirmed waiting · hollow: the record only raises the question</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+/* Where the record confirms work is waiting, by place; then where only a
+   status review would tell (imported, unconfirmed), by locality. */
+function Concentrations({ p }: { p: Props }) {
+  const review = useMemo(() => unconfirmedByLocality(p.cells), [p.cells]);
+  const total = review.reduce((t, r) => t + r.n, 0);
+  return (
+    <>
+      <section className="lm-sec" aria-labelledby="lm-cl-h">
+        <h2 id="lm-cl-h">Where work is confirmed waiting <span>{p.clusters.length}</span></h2>
+        {p.clusters.length === 0 ? <p className="lm-note">Nowhere here does StrayPaw&rsquo;s own record confirm an animal waiting. That is not proof none is: see below for what is unconfirmed.</p> : (
+          <ol className="lm-clusters">
+            {p.clusters.slice(0, 8).map((k) => (
+              <li key={`${k.name}:${k.cells[0]}`}>
+                <button type="button" onClick={() => { const best = [...k.cells].sort((a, b) => p.cells[b].open_cases + p.cells[b].needs_help - p.cells[a].open_cases - p.cells[a].needs_help)[0]; p.onArea(p.cells[best].h3); }}>
+                  <b>{k.name}</b><span>{clusterLine(k)}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+        <p className="lm-note">Open by StrayPaw&rsquo;s own record, a recheck missed on an open request, or an animal flagged with no request. Touching areas are joined into one place and washed red on the map.</p>
+      </section>
+      {total > 0 && (
+        <section className="lm-sec" aria-labelledby="lm-rv-h">
+          <h2 id="lm-rv-h">Where a status review would settle most <span>{fmt(total)}</span></h2>
+          <ol className="lm-review">
+            {review.slice(0, 6).map((r) => (
+              <li key={r.name}><button type="button" onClick={() => p.onArea(p.cells[r.first].h3)}><b>{r.name}</b><span>{fmt(r.n)} open only in an imported register · {r.areas} {r.areas === 1 ? "area" : "areas"}</span></button></li>
+            ))}
+          </ol>
+          <p className="lm-note">Marked open when a register was imported and not confirmed in StrayPaw since. Hollow pips on the map. Some may be long resolved; some may still need help.</p>
+        </section>
+      )}
+    </>
+  );
+}
+
+/* Care coverage by locality: sterilised, recorded not sterilised, and not known, side by side. */
+function CareCoverage({ p }: { p: Props }) {
+  const rows = useMemo(() => p.places.map((l) => {
+    let y = 0, n = 0, u = 0;
+    for (const i of l.cells) { y += p.cells[i].ster_yes; n += p.cells[i].ster_no; u += p.cells[i].ster_unknown; }
+    return { l, y, n, u, t: y + n + u };
+  }).filter((r) => r.t >= 5).sort((a, b) => b.t - a.t).slice(0, 14), [p.places, p.cells]);
+  if (!rows.length) return null;
+  const pc = (x: number, t: number) => `${(x / t) * 100}%`;
+  return (
+    <section className="lm-sec" aria-labelledby="lm-cov-h">
+      <h2 id="lm-cov-h">Sterilisation coverage by locality <span>{rows.length}</span></h2>
+      <ol className="lm-cov">
+        {rows.map(({ l, y, n, u, t }) => (
+          <li key={l.name}>
+            <button type="button" onClick={() => p.onArea(p.cells[l.cells[0]].h3)}>
+              <span className="lm-cov-name"><b>{l.name}</b><small>{fmt(t)} animals · {y + n ? `${Math.round((y / (y + n)) * 100)}% of known` : "status not known"}{u ? ` · ${Math.round((u / t) * 100)}% not known` : ""}</small></span>
+              <span className="lm-cov-bar" aria-hidden><i className="is-y" style={{ width: pc(y, t) }} /><i className="is-n" style={{ width: pc(n, t) }} /><i className="is-u" style={{ width: pc(u, t) }} /></span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p className="lm-note">Teal sterilised, ink recorded not sterilised, hatched not known. An unknown share is a gap in the record, not a share left unsterilised.</p>
     </section>
   );
 }
@@ -219,6 +340,9 @@ function CityView(p: Props) {
         </div>
       )}
       <Legend {...p} />
+      <GlyphKey active={storyOf(p.q.id)} />
+      {storyOf(p.q.id) === "attention" && <Concentrations p={p} />}
+      {p.q.id === "care" && p.facet === "ster" && <CareCoverage p={p} />}
       {p.timedActive && p.data.months.length > 0 && (
         <section className="lm-sec" aria-label="Over time">
           <Timeline months={p.data.months} range={p.range} onRange={p.onRange} careLabel={p.q.id === "care" ? "Dated care" : "Dated care"} />
@@ -301,6 +425,9 @@ function AreaView(p: Props) {
   return (
     <>
       <p className="lm-kind">Area of about 0.74 km² in {p.city} · {c.exact_loc ? `${fmt(c.exact_loc)} placed from a map point` : "placed by locality name"}</p>
+      <ul className="lm-glance" aria-label="The three stories here">
+        {glance(c).map((g) => <li key={g.id} className={`is-${g.id}${storyOf(p.q.id) === g.id ? " is-on" : ""}${g.tone === 2 ? " is-hot" : g.tone === 1 ? " is-q" : ""}`}><b>{g.label}</b><span>{g.text}</span></li>)}
+      </ul>
       {k && <p className="lm-areaclass"><Swatch k={k} />{p.q.label}: <b>{k.label || "—"}</b></p>}
       <AreaWork c={c} i={p.areaIndex} city={p.city ?? ""} member={p.member} />
       <dl className="lm-figs">
@@ -313,8 +440,10 @@ function AreaView(p: Props) {
         <Fig label="Sterilised" v={fmt(c.ster_yes)} note={c.ster_unknown ? `status unknown for ${fmt(c.ster_unknown)} (${share(c.ster_unknown, c.animals)})` : c.ster_no ? `${fmt(c.ster_no)} recorded not sterilised` : "status known for all"} />
         <Fig label="Vaccinated (recorded)" v={fmt(c.vacc_yes)} note={c.vacc_unknown ? `not recorded for ${fmt(c.vacc_unknown)}` : "recorded for all"} />
         <Fig label="Treatments" v={fmt(treatments(c))} note={c.care_last ? `latest ${since(c.care_last)}` : "none recorded"} />
-        {c.fu_missed > 0
-          ? <Fig label="Follow-ups missed" v={fmt(c.fu_missed)} note={`${fmt(c.fu_done)} kept · ${fmt(c.fu_upcoming)} due`} hot />
+        {(c.fu_missed_live ?? 0) > 0
+          ? <Fig label="Follow-ups missed" v={fmt(c.fu_missed_live ?? 0)} note={`on requests still open · ${fmt(c.fu_done)} kept · ${fmt(c.fu_upcoming)} due${c.fu_missed > (c.fu_missed_live ?? 0) ? ` · ${fmt(c.fu_missed - (c.fu_missed_live ?? 0))} missed before closing` : ""}`} hot />
+          : c.fu_missed > 0
+          ? <Fig label="Follow-ups kept" v={fmt(c.fu_done)} note={`${fmt(c.fu_missed)} missed before the request closed (history)${c.fu_upcoming ? ` · ${fmt(c.fu_upcoming)} due` : ""}`} />
           : <Fig label="Follow-ups kept" v={fmt(c.fu_done)} note={c.fu_upcoming ? `${fmt(c.fu_upcoming)} due` : c.cases ? "none missed or due" : "no requests recorded"} />}
       </dl>
       {p.data && p.data.months.some((r) => r[0] === p.areaIndex) && (
@@ -375,7 +504,7 @@ function Fig({ label, v, note, hot }: { label: string; v: string; note?: string 
 function Compare({ a, b, typical }: { a: MapCell; b: MapCell; typical: { animals: number; cases: number } }) {
   const rows: [string, (c: MapCell) => number][] = [
     ["Animals", (c) => c.animals], ["Open requests", (c) => c.open_cases], ["Requests ever", (c) => c.cases],
-    ["Sterilised", (c) => c.ster_yes], ["Status unknown", (c) => c.ster_unknown], ["Vaccinated", (c) => c.vacc_yes], ["Follow-ups missed", (c) => c.fu_missed],
+    ["Sterilised", (c) => c.ster_yes], ["Status unknown", (c) => c.ster_unknown], ["Vaccinated", (c) => c.vacc_yes], ["Follow-ups missed (open)", (c) => c.fu_missed_live ?? 0],
   ];
   return (
     <section className="lm-sec" aria-labelledby="lm-cmp-h">
