@@ -102,6 +102,8 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
     animal: params.get("animal"),
     t: params.get("t"),
     lat: Number(params.get("lat")), lng: Number(params.get("lng")),
+    /* A locality by name (the municipal brief's hotspots, a shared ward link). */
+    place: params.get("place"),
   }).current;
 
   const [cities, setCities] = useState<NationalCity[]>(initialCities ?? []);
@@ -154,6 +156,24 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
     read(2);
     return () => { live = false; };
   }, [scope, hasInitial]);
+
+  /* ?place=<locality>: once the city is read, open that locality's busiest area. */
+  const pendingPlace = useRef(init.place);
+  useEffect(() => {
+    const want = pendingPlace.current?.trim().toLowerCase();
+    if (!want || !data) return;
+    pendingPlace.current = null;
+    const hits = data.cells.map((c, i) => ({ c, i })).filter(({ c }) => placeName(c.zone).toLowerCase() === want || (c.zone ?? "").toLowerCase() === want);
+    const best = hits.sort((a, b) => b.c.animals + b.c.cases - (a.c.animals + a.c.cases))[0];
+    if (best && !areaH3) setAreaH3(best.c.h3);
+  }, [data, areaH3]);
+
+  /* …and a place given without a city opens the city with the most on the record (an organisation's usual one). */
+  useEffect(() => {
+    if (!pendingPlace.current || city || !cities.length) return;
+    const top = cities.filter((c) => kindOf(c.city, c.cells) !== "clinical").sort((a, b) => b.animals + b.cases - (a.animals + a.cases))[0];
+    if (top) setCity(top.city);
+  }, [cities, city]);
 
   /* A shared location (?lat&lng) opens the nearest city and its area. */
   useEffect(() => {

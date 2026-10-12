@@ -111,7 +111,7 @@ export function MunicipalBrief() {
   const [focus, setFocus] = useState<string | null>(null);
   const vp = useMemo(() => (city && !oneLocation ? { city: city } : null), [city, oneLocation]);
   const MEAS: Record<typeof measure, string> = { animals: "recorded animals", open_cases: "open requests", sterilised: "sterilisation records", vaccinated: "vaccination records", care_events: "care events" };
-  const hotspots: Item[] = (topLoc ?? []).map((l) => ({ key: l.name, href: `/map?city=${encodeURIComponent(city ?? "")}&q=${encodeURIComponent(l.name)}`, title: l.name, meta: `${fmt(l.animals)} profiles · ${fmt(l.cases)} requests`, tag: useOpen ? { text: `${fmt(l.open)} open`, tone: "hot" } : { text: `${fmt(locMeasure(l))}`, tone: "quiet" } }));
+  const hotspots: Item[] = (topLoc ?? []).map((l) => ({ key: l.name, href: `/map?city=${encodeURIComponent(city ?? "")}&place=${encodeURIComponent(l.name)}`, title: l.name, meta: `${fmt(l.animals)} profiles · ${fmt(l.cases)} requests`, tag: useOpen ? { text: `${fmt(l.open)} open`, tone: "hot" } : { text: `${fmt(locMeasure(l))}`, tone: "quiet" } }));
   const notes: Item[] = detail ? [
     { key: "ster", title: `${pct(detail.sterUnknown, detail.nA)}% without a sterilisation status`, meta: `${fmt(detail.sterUnknown)} of ${fmt(detail.nA)} loaded profiles. Unknown, not “no”`, tag: { text: "", tone: "quiet" } },
     { key: "vacc", title: `${pct(detail.vaccUnknown, detail.nA)}% without a vaccination status`, meta: "Campaign and NGO care registers usually settle these", tag: { text: "", tone: "quiet" } },

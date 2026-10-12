@@ -197,7 +197,7 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
             <div className="rec-inspector-actions">
               <Link href={destination(selected)}>Open working record <ArrowUpRight size={16} /></Link>
               {selected.animalId && <Link href={`/partner/animals/${selected.animalId}`}>Animal history <ArrowUpRight size={16} /></Link>}
-              {selected.locality && <Link href={`/partner/map?q=${encodeURIComponent(selected.locality)}&mode=cases`}><MapPin size={16} />Locality on the field map</Link>}
+              {selected.locality && <Link href={`/partner/map?place=${encodeURIComponent(selected.locality)}&q=needs`}><MapPin size={16} />Locality on the field map</Link>}
             </div>
           </>}
         </DialogContent>
