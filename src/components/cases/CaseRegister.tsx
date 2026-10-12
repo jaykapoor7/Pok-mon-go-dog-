@@ -94,11 +94,14 @@ export function CaseRegister() {
   };
   const now = useMemo(() => Date.now(), []);
 
-  // Arrive with ?q (the top-bar search) or ?lens.
+  // Arrive with ?q (the top-bar search) or ?lens, and from the Living Map's
+  // Work next with ?place (a locality) and ?sort (oldest first).
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
-    const q0 = p.get("q"), l0 = p.get("lens") as Lens | null;
+    const q0 = p.get("q"), l0 = p.get("lens") as Lens | null, place0 = p.get("place"), sort0 = p.get("sort");
     if (q0) { setQ(q0); setLens("search"); } else if (l0 && l0 in LENS_LABEL) setLens(l0);
+    if (place0) setPlace(place0);
+    if (sort0 === "oldest" || sort0 === "newest" || sort0 === "quiet") setSort(sort0);
   }, []);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -162,7 +165,9 @@ export function CaseRegister() {
       list = [...list].sort((a, b) => sort === "newest" ? (b.occurred_at ?? "").localeCompare(a.occurred_at ?? "")
         : sort === "quiet" ? quietDays(b, now) - quietDays(a, now) : (a.occurred_at ?? "").localeCompare(b.occurred_at ?? ""));
     }
-    return place ? list.filter((r) => (r.zone ?? "") === place) : list;
+    /* A locality from the map is the first part of a recorded place
+       ("Kovilmedu" for "Kovilmedu, Velandipalayam"); match either. */
+    return place ? list.filter((r) => { const z = r.zone ?? ""; return z === place || z.split(",")[0].trim().replace(/\b(\w+)\s+\1\b/gi, "$1") === place; }) : list;
   }, [lens, found, closed, openRows, cell, sort, now, place]);
 
   /* Every place on the loaded cases, busiest first, for the place search. */

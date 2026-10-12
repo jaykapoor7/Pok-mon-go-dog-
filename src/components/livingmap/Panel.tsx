@@ -10,12 +10,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowUpRight, ChevronRight, GitCompare, Link2 } from "lucide-react";
 import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
+import { FolkPortrait, portraitCredit } from "@/components/art/FolkPortrait";
 import { KIND_META, cityEvidence, kindOf } from "@/components/spatial/AtlasRegister";
 import { lastActivity, treatments, type Ctx, type Klass, type Question, type QuestionId, type Range } from "@/lib/livingmap/questions";
 import { fmt, placeName, totals, type Locality, type Tally } from "@/lib/livingmap/reading";
 import type { FoundAnimal } from "@/lib/livingmap/server";
-import type { AreaAnimal, MapArea, MapCell, MapCity, NationalCity } from "@/lib/livingmap/types";
+import type { AreaAnimal, MapArea, MapCell, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
+import { WORK_META, areaWork, cityWork, nationalWork, workCsv, type WorkItem } from "@/lib/livingmap/work";
 import { MapSearch } from "./Search";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { claimCase } from "@/lib/case-actions";
 import { Timeline } from "./Timeline";
 import type { Level } from "./LivingMap";
 
@@ -25,6 +29,11 @@ type Props = {
   places: Locality[]; cells: MapCell[]; classOf: string[]; ctx: Ctx; range: Range; timedActive: boolean;
   area: MapArea | null | "loading" | "error"; areaIndex: number; animalId: string | null; pin: string | null; sheet: "peek" | "half" | "full";
   nationalMeasure: (c: NationalCity) => number;
+  /** A signed-in member of an organisation: sees the workspace actions. */
+  member: boolean; unplaced: Unplaced[];
+  /** Start reading a city before it is chosen (pointer rests on it, or it takes focus). */
+  onPrefetch: (city: string) => void;
+  citiesState: "ready" | "loading" | "auth" | "error"; scope: "public" | "org";
   onQuestion: (id: QuestionId) => void; onFacet: (f: string) => void; onIsolate: (k: string) => void; onRange: (r: Range) => void;
   onCity: (c: string) => void; onIndia: () => void; onArea: (h3: string) => void; onCloseArea: () => void;
   onAnimal: (id: string) => void; onCloseAnimal: () => void; onPin: (h3: string | null) => void; onPlace: (c: [number, number]) => void;
@@ -117,11 +126,38 @@ function Questions(p: Props) {
 
 /* ── INDIA ───────────────────────────────────────────────────────── */
 function IndiaView(p: Props) {
+  if (p.citiesState !== "ready" || (!p.cities.length && p.scope === "org")) return <NationalState {...p} />;
+  return <IndiaReading {...p} />;
+}
+
+/* Never a zero for a record that could not be read. */
+function NationalState(p: Props) {
+  const { openSignIn } = useAuth();
+  if (p.citiesState === "loading") return <p className="lm-status" role="status">Reading the record…</p>;
+  if (p.citiesState === "auth") return <p className="lm-status" role="status">Sign in with your organisation to see its own map: its records, who holds each request and what to do next. <button type="button" onClick={openSignIn}>Sign in</button></p>;
+  if (p.citiesState === "error") return <p className="lm-status" role="status">The record could not be read just now. Reload to try again.</p>;
+  return <p className="lm-status" role="status">Your organisation has no mapped records yet. Records appear here once they carry a place.</p>;
+}
+
+function IndiaReading(p: Props) {
   const rows = useMemo(() => [...p.cities].sort((a, b) => p.nationalMeasure(b) - p.nationalMeasure(a) || b.animals - a.animals), [p]);
   const street = p.cities.filter((c) => kindOf(c.city, c.cells) !== "clinical");
   const clinical = p.cities.filter((c) => kindOf(c.city, c.cells) === "clinical");
   const sum = (list: NationalCity[], f: (c: NationalCity) => number) => list.reduce((s, c) => s + f(c), 0);
   const max = Math.max(1, ...street.map(p.nationalMeasure));
+  const work = useMemo(() => (p.q.id === "act" ? nationalWork(p.cities, p.unplaced) : []), [p.q.id, p.cities, p.unplaced]);
+  if (p.q.id === "act") {
+    const waiting = p.cities.reduce((s, c) => s + c.open_30, 0), placeless = p.unplaced.reduce((s, u) => s + u.open_cases, 0);
+    return (
+      <>
+        <div className="lm-reading">
+          <p className="lm-lead">{fmt(waiting)} requests for help open more than 30 days{placeless ? `, and ${fmt(placeless)} open requests waiting to be placed on the map` : ""}.</p>
+          <p className="lm-qualify">Open a city to see each place, why it is listed, who holds the record and what can be done.</p>
+        </div>
+        <WorkList items={work} member={p.member} onPick={(w) => w.city && p.onCity(w.city)} cityLabel />
+      </>
+    );
+  }
   const lead = p.q.id === "needs"
     ? `${fmt(sum(p.cities, (c) => c.open_cases ?? 0))} requests for help open on the record, across ${fmt(p.cities.filter((c) => (c.open_cases ?? 0) > 0).length)} cities.`
     : p.q.id === "care"
@@ -141,7 +177,7 @@ function IndiaView(p: Props) {
             const k = kindOf(c.city, c.cells), v = p.nationalMeasure(c);
             return (
               <li key={c.city}>
-                <button type="button" onClick={() => p.onCity(c.city)}>
+                <button type="button" onClick={() => p.onCity(c.city)} onPointerEnter={() => p.onPrefetch(c.city)} onFocus={() => p.onPrefetch(c.city)}>
                   <span className="lm-rank-name"><i style={{ background: k === "clinical" ? "transparent" : KIND_META[k].color, borderColor: KIND_META[k].color }} aria-hidden /><b>{c.city}</b><small>{KIND_META[k].label} · {cityEvidence(c.city, c.cells).precision}</small></span>
                   <span className="lm-rank-v"><b>{v ? fmt(v) : "—"}</b>{k !== "clinical" && <i style={{ width: `${(v / max) * 100}%` }} aria-hidden />}</span>
                 </button>
@@ -188,7 +224,8 @@ function CityView(p: Props) {
         </section>
       )}
       {p.timedActive && p.data.months.length === 0 && <p className="lm-note">No dates on this city’s record, so it cannot be read over time.</p>}
-      <section className="lm-sec" aria-labelledby="lm-places-h">
+      {p.q.id === "act" && <WorkList items={cityWork(p.cells, p.data.city)} member={p.member} onPick={(w) => w.cell !== null && p.onArea(p.cells[w.cell].h3)} csvName={`${p.data.city}-work-next`} />}
+      {p.q.id !== "act" && <section className="lm-sec" aria-labelledby="lm-places-h">
         <h2 id="lm-places-h">Localities, by {p.q.unit(p.facet)} <span>{p.places.length}</span></h2>
         <ol className="lm-rank">
           {p.places.slice(0, 12).map((l) => (
@@ -200,7 +237,7 @@ function CityView(p: Props) {
             </li>
           ))}
         </ol>
-      </section>
+      </section>}
       <DataNote data={p.data} cells={p.cells} />
     </>
   );
@@ -264,6 +301,7 @@ function AreaView(p: Props) {
     <>
       <p className="lm-kind">Area of about 0.74 km² in {p.city} · {c.exact_loc ? `${fmt(c.exact_loc)} placed from a map point` : "placed by locality name"}</p>
       {k && <p className="lm-areaclass"><Swatch k={k} />{p.q.label}: <b>{k.label || "—"}</b></p>}
+      <AreaWork c={c} i={p.areaIndex} city={p.city ?? ""} member={p.member} />
       <dl className="lm-figs">
         <Fig label="Animals on record" v={fmt(c.animals)} note={versus(c.animals, typical.animals)} />
         <Fig label="Open requests" v={fmt(c.open_cases)} note={c.open_30 ? `${fmt(c.open_30)} waiting over 30 days` : c.cases ? `of ${fmt(c.cases)} recorded here` : "no requests recorded"} hot={c.open_cases > 0} />
@@ -283,8 +321,8 @@ function AreaView(p: Props) {
         {p.area === "error" && <p className="lm-status" role="status">The animals here could not be read just now.</p>}
         {a && (
           <>
-            <ul className="lm-animals">
-              {shown.map((x) => <li key={x.id}><AnimalTile a={x} onOpen={() => p.onAnimal(x.id)} /></li>)}
+            <ul className="lm-reg">
+              {shown.map((x) => <li key={x.id}><AnimalRow a={x} onOpen={() => p.onAnimal(x.id)} /></li>)}
             </ul>
             {a.animals.length > 12 && !all && <button type="button" className="lm-more" onClick={() => setAll(true)}>Show {a.animals.length - 12} more</button>}
             {a.animalTotal > a.animals.length && (all || a.animals.length <= 12) && <p className="lm-note">Showing the {fmt(a.animals.length)} most relevant of {fmt(a.animalTotal)}: needing help first, then those with photos, then the most recently seen.</p>}
@@ -300,6 +338,7 @@ function AreaView(p: Props) {
                 <b>{x.condition && x.condition !== "Not recorded" ? x.condition : "Condition not recorded"}</b>
                 <span>{STATUS[x.status ?? ""] ?? "Status not recorded"} · {day(x.occurred)}{typeof x.first_action_days === "number" && x.first_action_days >= 0 ? ` · first action ${x.first_action_days === 0 ? "same day" : `after ${x.first_action_days} d`}` : ""}</span>
                 <small>{[x.org, x.animal ? `animal ${x.animal}` : null, x.fu_missed ? `${x.fu_missed} follow-up missed` : x.fu_upcoming ? `${x.fu_upcoming} follow-up due` : null].filter(Boolean).join(" · ")}</small>
+                {x.id && <CaseActs id={x.id} code={x.code ?? null} assignee={x.assignee ?? null} open={x.status === "open" || x.status === "in_progress"} />}
               </li>
             ))}
           </ol>
@@ -345,14 +384,35 @@ function Compare({ a, b, typical }: { a: MapCell; b: MapCell; typical: { animals
   );
 }
 
-function AnimalTile({ a, onOpen }: { a: AreaAnimal; onOpen: () => void }) {
+/* An animal's line in the area's register: a portrait (its photograph, or a
+   labelled painting when it has none, as 99.6% do), what it is, and its own
+   record of care, so a record means something without a picture. */
+const span = (a: string | null, b: string | null) => {
+  if (!a || !b) return null;
+  const y = (Date.parse(b) - Date.parse(a)) / (365 * 86_400_000);
+  return y >= 1 ? `on the record ${y.toFixed(1).replace(/\.0$/, "")} years` : null;
+};
+function careLine(a: AreaAnimal): string {
+  const f = a.facts;
+  const bits = [
+    f?.open ? `${f.open} open request${f.open > 1 ? "s" : ""}` : f?.cases ? `${f.cases} request${f.cases > 1 ? "s" : ""}` : null,
+    f?.care ? `${f.care} care record${f.care > 1 ? "s" : ""}` : null,
+    a.ster === "sterilised" ? "sterilised" : a.ster === "not_sterilised" ? "not sterilised" : null,
+    span(a.first_seen, a.last_seen),
+  ].filter(Boolean);
+  return bits.length ? bits.join(" · ") : "One sighting on the record";
+}
+function AnimalRow({ a, onOpen }: { a: AreaAnimal; onOpen: () => void }) {
   return (
-    <button type="button" className={`lm-tile${a.needs_help ? " is-help" : ""}`} onClick={onOpen} aria-label={`${a.title}${a.describe ? `, ${a.describe}` : ""}${a.needs_help ? ", needs help" : ""}`}>
-      <span className="lm-tile-ph">
-        {a.photo ? <SensitiveVeil sensitive={a.sensitive} id={a.photo} compact><img src={a.photo} alt="" loading="lazy" /></SensitiveVeil> : <span className="lm-tile-mono" aria-hidden>{a.title.slice(0, 2)}</span>}
+    <button type="button" className={`lm-reg-row${a.needs_help ? " is-help" : ""}`} onClick={onOpen}>
+      <span className="lm-reg-ph">
+        {a.photo ? <SensitiveVeil sensitive={a.sensitive} id={a.photo} compact><img src={a.photo} alt="" loading="lazy" /></SensitiveVeil> : <FolkPortrait seed={a.id} size={a.size} label="" />}
       </span>
-      <b>{a.title}</b>
-      <small>{a.needs_help ? "Needs help" : a.ster === "sterilised" ? "Sterilised" : a.describe ?? "Recorded"}</small>
+      <span className="lm-reg-t">
+        <b>{a.title}{a.needs_help && <em>Needs help</em>}</b>
+        <small>{[a.describe, `seen ${since(a.last_seen)}`].filter(Boolean).join(" · ")}</small>
+        <span>{careLine(a)}</span>
+      </span>
     </button>
   );
 }
@@ -379,11 +439,14 @@ function AnimalView(p: Props) {
     <div className="lm-animal">
       <button type="button" className="lm-back" onClick={p.onCloseAnimal}><ArrowLeft size={15} aria-hidden />Back to {zoneName(p.cells[p.areaIndex]?.zone)}</button>
       <div className="lm-animal-ph">
-        {a.photo ? <SensitiveVeil sensitive={a.sensitive} id={a.photo}><img src={a.photo} alt={`Photograph of ${a.title}`} /></SensitiveVeil> : <span className="lm-tile-mono is-big" aria-hidden>{a.title.slice(0, 2)}</span>}
+        {a.photo ? <SensitiveVeil sensitive={a.sensitive} id={a.photo}><img src={a.photo} alt={`Photograph of ${a.title}`} /></SensitiveVeil> : <FolkPortrait seed={a.id} size={a.size} className="is-big" />}
       </div>
+      {!a.photo && (() => { const cr = portraitCredit(a.id, a.size); return <p className="lm-note lm-portrait-credit">No photograph yet. Illustration from “{cr.title}” ({cr.date}), {cr.source}: not this animal.</p>; })()}
       <p className="lm-animal-sub">{[a.describe, zoneName(a.zone)].filter(Boolean).join(" · ")}</p>
       <ul className="lm-chips">{chips.map((c) => <li key={c.t} className={c.hot ? "is-hot" : c.quiet ? "is-quiet" : ""}>{c.t}</li>)}</ul>
       <dl className="lm-figs is-two">
+        <Fig label="Requests for help" v={fmt(a.facts?.cases ?? 0)} note={a.facts?.open ? `${a.facts.open} still open` : a.facts?.cases ? "none open" : "none recorded"} hot={!!a.facts?.open} />
+        <Fig label="Care records" v={fmt(a.facts?.care ?? 0)} note={a.facts?.lastCare ? `latest ${day(a.facts.lastCare)}` : "none recorded"} />
         <Fig label="Last seen" v={since(a.last_seen)} note={day(a.last_seen)} />
         <Fig label="On the record since" v={day(a.first_seen)} />
         <Fig label="Kept by" v={a.org ?? (a.source === "resident" ? "A resident's report" : "Not published")} note={!a.org && a.source !== "resident" ? "The organisation has not published its name" : null} />
@@ -391,5 +454,98 @@ function AnimalView(p: Props) {
       <Link className="lm-btn is-flame" href={`/dog/${a.id}`}>Open its full history <ArrowUpRight size={14} aria-hidden /></Link>
       <p className="lm-note">The map places this animal in its area only. Its record holds the photographs, care and every organisation that has met it.</p>
     </div>
+  );
+}
+
+/* ── WORK NEXT ───────────────────────────────────────────────────── */
+function WorkList({ items, member, onPick, cityLabel = false, csvName }: { items: WorkItem[]; member: boolean; onPick: (w: WorkItem) => void; cityLabel?: boolean; csvName?: string }) {
+  const [all, setAll] = useState(false);
+  const shown = all ? items : items.slice(0, 12);
+  const download = () => {
+    const blob = new Blob([workCsv(items)], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `${(csvName ?? "work-next").replace(/\s+/g, "-").toLowerCase()}.csv`; a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  return (
+    <section className="lm-sec" aria-labelledby="lm-work-h">
+      <h2 id="lm-work-h">Work next <span>{fmt(items.length)}</span></h2>
+      {items.length === 0 ? <p className="lm-note">None of the rules applies anywhere here. That is not proof all is well: it may simply be unreported.</p> : (
+        <ol className="lm-work">
+          {shown.map((w, n) => (
+            <li key={w.key}>
+              <button type="button" className="lm-work-go" onClick={() => onPick(w)} disabled={!w.city && w.cell === null}>
+                <span className="lm-work-n">{n + 1}</span>
+                <span className="lm-work-t">
+                  <span className="lm-work-k"><i style={{ background: WORK_META[w.kind].color }} aria-hidden />{WORK_META[w.kind].short}</span>
+                  <b>{cityLabel && w.city && w.place !== w.city ? `${w.place}, ${w.city}` : w.place}</b>
+                  <span>{w.reason}</span>
+                  {(w.who.length > 0 || w.whoNote) && <small>Held by {[...w.who, w.whoNote].filter(Boolean).join(" · ")}</small>}
+                </span>
+              </button>
+              {member && w.actions.filter((a) => a.audience === "member" && a.href).slice(0, 1).map((a) => <Link key={a.label} className="lm-work-act" href={a.href!}>{a.label}<ArrowUpRight size={13} aria-hidden /></Link>)}
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="lm-actions is-tight">
+        {items.length > 12 && !all && <button type="button" className="lm-more" onClick={() => setAll(true)}>Show all {fmt(items.length)}</button>}
+        {items.length > 0 && <button type="button" className="lm-more" onClick={download}>Download the list (CSV)</button>}
+      </div>
+      <p className="lm-note">Listed by rule, not by a score: animals waiting on someone first, then gaps in the record. Each rule is in the legend above.</p>
+    </section>
+  );
+}
+
+function AreaWork({ c, i, city, member }: { c: MapCell; i: number; city: string; member: boolean }) {
+  const items = areaWork(c, i, city);
+  /* Each item keeps its own workspace action; the actions open to anyone
+     are gathered once at the end rather than repeated under every item. */
+  const shared = [...new Map(items.flatMap((w) => w.actions.filter((a) => a.audience === "all")).map((a) => [a.label, a])).values()];
+  const memberOnly = items.some((w) => w.actions.some((a) => a.audience === "member"));
+  return (
+    <section className="lm-sec lm-areawork" aria-labelledby="lm-aw-h">
+      <h2 id="lm-aw-h">What needs doing here</h2>
+      {items.length === 0 ? <p className="lm-note">Nothing here meets a Work-next rule. That is not proof all is well: it may simply be unreported.</p> : (
+        <>
+          <ul>
+            {items.map((w) => (
+              <li key={w.key}>
+                <p className="lm-work-k"><i style={{ background: WORK_META[w.kind].color }} aria-hidden />{WORK_META[w.kind].label}</p>
+                <p>{w.reason}</p>
+                <p className="lm-aw-who">{w.who.length || w.whoNote ? <>Held by <b>{[...w.who, w.whoNote].filter(Boolean).join(" · ")}</b></> : "No organisation holds this record yet."}</p>
+                {member && w.actions.filter((a) => a.audience === "member" && a.href).map((a) => <Link key={a.label} href={a.href!} className="lm-btn is-sm is-ink">{a.label}<ArrowUpRight size={13} aria-hidden /></Link>)}
+              </li>
+            ))}
+          </ul>
+          <div className="lm-aw-acts">
+            {shared.map((a) => a.copy
+              ? <button key={a.label} type="button" className="lm-btn is-sm" onClick={() => { void navigator.clipboard?.writeText(window.location.href); }}>{a.label}</button>
+              : <Link key={a.label} href={a.href!} className="lm-btn is-sm">{a.label}<ArrowUpRight size={13} aria-hidden /></Link>)}
+          </div>
+          {!member && memberOnly && <p className="lm-note">The organisations working here can act on these from their StrayPaw workspace.</p>}
+        </>
+      )}
+    </section>
+  );
+}
+
+/** Organisation map: the case itself, who holds it, and taking it on the spot. */
+function CaseActs({ id, code, assignee, open }: { id: string; code: string | null; assignee: string | null; open: boolean }) {
+  const { user } = useAuth();
+  const [held, setHeld] = useState(assignee);
+  const [state, setState] = useState<"idle" | "busy" | "failed">("idle");
+  const take = async () => {
+    if (!user || state === "busy") return;
+    setState("busy");
+    try { const ok = await claimCase(id, { id: user.id, name: user.name }); if (ok) { setHeld(user.name); setState("idle"); } else setState("failed"); }
+    catch { setState("failed"); }
+  };
+  return (
+    <span className="lm-case-acts">
+      <Link href={`/partner/cases/${id}`}>{code ? `Open ${code}` : "Open the case"}<ArrowUpRight size={12} aria-hidden /></Link>
+      {held ? <span className="lm-case-who">Held by {held}</span> : open && user ? <button type="button" onClick={take} disabled={state === "busy"}>{state === "busy" ? "Taking…" : "Take this case"}</button> : open ? <span className="lm-case-who is-none">Nobody assigned</span> : null}
+      {state === "failed" && <span className="lm-case-who is-none" role="status">Not saved. Try again.</span>}
+    </span>
   );
 }

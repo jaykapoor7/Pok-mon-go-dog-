@@ -15,7 +15,8 @@
                   no record of the place at all)
    ════════════════════════════════════════════════════════════════════ */
 
-export type OrgShare = { id: string; name: string | null; a: number; c: number };
+/** An organisation's share of an area: animals it keeps, requests it holds, and how many of those are open. */
+export type OrgShare = { id: string; name: string | null; a: number; c: number; o?: number };
 
 export type MapCell = {
   h3: string; zone: string | null;
@@ -23,11 +24,13 @@ export type MapCell = {
   ster_yes: number; ster_no: number; ster_unknown: number; vacc_yes: number; vacc_unknown: number;
   first_seen: string | null; last_seen: string | null;
   cases: number; open_cases: number; open_30: number; open_oldest: string | null;
-  closed_field: number; handed_on: number; no_action: number; in_progress: number;
+  closed_field: number; handed_on: number; no_action: number; in_progress: number; status_unknown: number;
   first_action_median: number | null; fu_done: number; fu_missed: number; fu_upcoming: number; last_case: string | null;
   care: number; care_12m: number; care_last: string | null; care_kinds: Record<string, number>; orgs: OrgShare[];
   /** The area's centre, [lng, lat], computed on the server. */
   c: [number, number];
+  /** Organisation map only: open requests nobody holds, and who holds the rest. */
+  unassigned?: number; people?: { name: string; o: number }[];
 };
 
 /** [cellIndex, monthIndex, opened, closed, care, sterilisation, vaccination, otherCare].
@@ -37,6 +40,7 @@ export const MR = { cell: 0, m: 1, opened: 2, closed: 3, care: 4, ster: 5, vacc:
 
 export type MapCity = {
   city: string;
+  scope?: "public" | "org";
   /** What kind of record this city holds (AtlasRegister.cityEvidence). */
   kind: EvidenceKind;
   built: string;
@@ -53,11 +57,16 @@ export type AreaAnimal = {
   photo: string | null; sensitive: boolean;
   status: string | null; needs_help: boolean; ster: string | null; vacc: string | null;
   last_seen: string | null; first_seen: string | null; source: string | null; org: string | null;
+  /** Recorded size (a puppy gets a painted pup) and the animal's own record of care. */
+  size?: string | null;
+  facts?: { cases: number; open: number; care: number; ster: number; lastCare: string | null };
 };
 export type AreaCase = {
   condition: string | null; status: string | null; occurred: string | null; resolved: string | null;
   first_action_days: number | null; intake: string | null; org: string | null; animal: string | null;
   fu_done: number; fu_missed: number; fu_upcoming: number;
+  /** Organisation map only: the case itself, and who holds it. */
+  id?: string; code?: string | null; assignee?: string | null;
 };
 export type MapArea = { h3: string; city: string; animals: AreaAnimal[]; animalTotal: number; cases: AreaCase[]; caseTotal: number };
 
@@ -70,5 +79,10 @@ export const monthName = (m: number, long = false) => `${MON[((m % 12) + 12) % 1
 export type NationalCity = {
   city: string; state: string | null; lng?: number; lat?: number;
   animals: number; cells: number; needs_help: number; sterilised: number; ster_no: number; ster_unknown: number; vaccinated: number;
-  cases: number; open_cases: number; open_30: number; care: number; treatments: number; last_activity: string | null;
+  cases: number; open_cases: number; open_30: number; status_unknown: number; care: number; treatments: number; last_activity: string | null;
+  /** Organisation map only. */
+  unassigned?: number;
 };
+
+/** Requests whose recorded place has no city, so no area: listed, never dropped. */
+export type Unplaced = { zone: string; district: string | null; open_cases: number; cases: number; latest: string | null };

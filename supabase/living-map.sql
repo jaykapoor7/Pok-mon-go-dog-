@@ -6,15 +6,20 @@
 -- an H3 r8 area. One set of definitions serves the national view and
 -- every city view, so they always agree.
 -- ════════════════════════════════════════════════════════════════════
+--
+-- v2 (2026-10-12): adds status_unknown (requests with no status class are
+-- never counted as closed) and open requests per organisation; the v1
+-- functions public_map_cells / public_map_cities remain for the build that
+-- preceded them and can be dropped once it is retired.
 
-create or replace function public.public_map_cells(p_cities text[])
+create or replace function public.public_map_cells_v2(p_cities text[])
 returns table (
   h3 text, zone text,
   animals int, exact_loc int, photos int, needs_help int, injured int, residents int,
   ster_yes int, ster_no int, ster_unknown int, vacc_yes int, vacc_unknown int,
   first_seen timestamptz, last_seen timestamptz,
   cases int, open_cases int, open_30 int, open_oldest timestamptz,
-  closed_field int, handed_on int, no_action int, in_progress int,
+  closed_field int, handed_on int, no_action int, in_progress int, status_unknown int,
   first_action_median numeric, fu_done int, fu_missed int, fu_upcoming int, last_case timestamptz,
   care int, care_12m int, care_last date, care_kinds jsonb, orgs jsonb
 )
@@ -54,6 +59,7 @@ language sql stable security invoker set search_path = public as $$
       count(*) filter (where status_class = 'other_ngo')::int handed_on,
       count(*) filter (where status_class in ('no_action','not_attended'))::int no_action,
       count(*) filter (where status_class = 'in_progress')::int in_progress,
+      count(*) filter (where status_class is null)::int status_unknown,
       (percentile_cont(0.5) within group (order by first_action_days) filter (where first_action_days >= 0))::numeric first_action_median,
       coalesce(sum(followups_done),0)::int fu_done, coalesce(sum(followups_missed),0)::int fu_missed, coalesce(sum(followups_upcoming),0)::int fu_upcoming,
       max(occurred_at) last_case
@@ -69,11 +75,11 @@ language sql stable security invoker set search_path = public as $$
     group by 1
   ),
   og as (
-    select h3, jsonb_agg(jsonb_build_object('id', ngo_id, 'name', o.name, 'a', na, 'c', nc) order by na + nc desc) orgs
+    select h3, jsonb_agg(jsonb_build_object('id', ngo_id, 'name', o.name, 'a', na, 'c', nc, 'o', no) order by na + nc desc) orgs
     from (
-      select h3, ngo_id, sum(na)::int na, sum(nc)::int nc from (
-        select h3_r8 h3, ngo_id, 1 na, 0 nc from a where ngo_id is not null
-        union all select h3, ngo_id, 0, 1 from k where ngo_id is not null and h3 is not null
+      select h3, ngo_id, sum(na)::int na, sum(nc)::int nc, sum(no)::int no from (
+        select h3_r8 h3, ngo_id, 1 na, 0 nc, 0 no from a where ngo_id is not null
+        union all select h3, ngo_id, 0, 1, (status_class in ('open','in_progress'))::int from k where ngo_id is not null and h3 is not null
       ) u group by 1, 2
     ) g left join public_contributor_organisations o on o.id = g.ngo_id
     group by 1
@@ -84,7 +90,7 @@ language sql stable security invoker set search_path = public as $$
     coalesce(ac.ster_yes,0), coalesce(ac.ster_no,0), coalesce(ac.ster_unknown,0), coalesce(ac.vacc_yes,0), coalesce(ac.vacc_unknown,0),
     ac.first_seen, ac.last_seen,
     coalesce(kc.cases,0), coalesce(kc.open_cases,0), coalesce(kc.open_30,0), kc.open_oldest,
-    coalesce(kc.closed_field,0), coalesce(kc.handed_on,0), coalesce(kc.no_action,0), coalesce(kc.in_progress,0),
+    coalesce(kc.closed_field,0), coalesce(kc.handed_on,0), coalesce(kc.no_action,0), coalesce(kc.in_progress,0), coalesce(kc.status_unknown,0),
     kc.first_action_median, coalesce(kc.fu_done,0), coalesce(kc.fu_missed,0), coalesce(kc.fu_upcoming,0), kc.last_case,
     coalesce(crc.care,0), coalesce(crc.care_12m,0), crc.care_last, coalesce(crc.care_kinds,'{}'::jsonb), coalesce(og.orgs,'[]'::jsonb)
   from cells
@@ -118,9 +124,9 @@ language sql stable security invoker set search_path = public as $$
 $$;
 
 -- National totals per city, with exactly the definitions above.
-create or replace function public.public_map_cities()
+create or replace function public.public_map_cities_v2()
 returns table (city text, animals int, needs_help int, ster_yes int, ster_no int, ster_unknown int, vacc_yes int,
-  cases int, open_cases int, open_30 int, care int, treatments int, areas int, last_activity timestamptz)
+  cases int, open_cases int, open_30 int, status_unknown int, care int, treatments int, areas int, last_activity timestamptz)
 language sql stable security invoker set search_path = public as $$
   with a as (
     select city, count(*)::int animals, count(*) filter (where needs_help)::int needs_help,
@@ -135,6 +141,7 @@ language sql stable security invoker set search_path = public as $$
     select city, count(*)::int cases,
       count(*) filter (where status_class in ('open','in_progress'))::int open_cases,
       count(*) filter (where status_class in ('open','in_progress') and occurred_at < now() - interval '30 days')::int open_30,
+      count(*) filter (where status_class is null)::int status_unknown,
       max(occurred_at) last_case
     from public_case_facts where city is not null group by 1
   ),
@@ -143,11 +150,21 @@ language sql stable security invoker set search_path = public as $$
     from public_care_facts f join public_spatial_animals an on an.id = f.dog_id where an.city is not null group by 1
   )
   select a.city, a.animals, a.needs_help, a.ster_yes, a.ster_no, a.ster_unknown, a.vacc_yes,
-    coalesce(k.cases,0), coalesce(k.open_cases,0), coalesce(k.open_30,0), coalesce(c.care,0), coalesce(c.treatments,0), a.areas,
+    coalesce(k.cases,0), coalesce(k.open_cases,0), coalesce(k.open_30,0), coalesce(k.status_unknown,0), coalesce(c.care,0), coalesce(c.treatments,0), a.areas,
     greatest(a.last_seen, k.last_case, c.last_care)
   from a left join k on k.city = a.city left join c on c.city = a.city;
 $$;
 
-grant execute on function public.public_map_cells(text[]) to anon, authenticated;
+grant execute on function public.public_map_cells_v2(text[]) to anon, authenticated;
 grant execute on function public.public_map_months(text[]) to anon, authenticated;
-grant execute on function public.public_map_cities() to anon, authenticated;
+grant execute on function public.public_map_cities_v2() to anon, authenticated;
+
+-- Requests whose place has no city: listed, never silently off the map.
+create or replace function public.public_map_unplaced()
+returns table (zone text, district text, open_cases int, cases int, latest timestamptz)
+language sql stable security invoker set search_path = public as $$
+  select coalesce(nullif(btrim(zone),''), 'Place not recorded'), district,
+    count(*) filter (where status_class in ('open','in_progress'))::int, count(*)::int, max(occurred_at)
+  from public_case_facts where city is null group by 1, 2 order by 3 desc, 4 desc;
+$$;
+grant execute on function public.public_map_unplaced() to anon, authenticated;

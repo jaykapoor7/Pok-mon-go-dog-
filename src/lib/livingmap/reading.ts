@@ -25,10 +25,10 @@ export function tally(cells: MapCell[], q: Question, f: Facet, ctx: Ctx): { tall
 
 export type Totals = ReturnType<typeof totals>;
 export function totals(cells: MapCell[]) {
-  const s = { areas: cells.length, animals: 0, photos: 0, residents: 0, needs: 0, cases: 0, open: 0, open30: 0, oldest: null as string | null, closed: 0, handed: 0, noAction: 0, fuDone: 0, fuMissed: 0, fuDue: 0, sterYes: 0, sterNo: 0, sterUnknown: 0, vaccYes: 0, vaccUnknown: 0, care: 0, treat: 0, exact: 0, last: null as string | null };
+  const s = { areas: cells.length, animals: 0, photos: 0, residents: 0, needs: 0, cases: 0, open: 0, open30: 0, oldest: null as string | null, closed: 0, handed: 0, noAction: 0, statusUnknown: 0, fuDone: 0, fuMissed: 0, fuDue: 0, sterYes: 0, sterNo: 0, sterUnknown: 0, vaccYes: 0, vaccUnknown: 0, care: 0, treat: 0, exact: 0, last: null as string | null };
   for (const c of cells) {
     s.animals += c.animals; s.photos += c.photos; s.residents += c.residents; s.needs += c.needs_help;
-    s.cases += c.cases; s.open += c.open_cases; s.open30 += c.open_30; s.closed += c.closed_field; s.handed += c.handed_on; s.noAction += c.no_action;
+    s.cases += c.cases; s.open += c.open_cases; s.open30 += c.open_30; s.closed += c.closed_field; s.handed += c.handed_on; s.noAction += c.no_action; s.statusUnknown += c.status_unknown ?? 0;
     s.fuDone += c.fu_done; s.fuMissed += c.fu_missed; s.fuDue += c.fu_upcoming;
     s.sterYes += c.ster_yes; s.sterNo += c.ster_no; s.sterUnknown += c.ster_unknown; s.vaccYes += c.vacc_yes; s.vaccUnknown += c.vacc_unknown;
     s.care += c.care; s.treat += treatments(c); s.exact += c.exact_loc;
@@ -50,6 +50,14 @@ export function headline(q: Question, f: Facet, ctx: Ctx, cells: MapCell[], t: T
   const areas = (k: string) => t.get(k)?.areas ?? 0;
   const rng = ctx.range ? " in this period" : "";
   switch (q.id) {
+    case "act": {
+      const urgent = areas("waiting") + areas("missed") + areas("flagged");
+      const records = areas("outcome") + areas("survey") + areas("revisit");
+      return {
+        lead: urgent ? `${plural(urgent, "place")} where animals are waiting on someone: open requests past 30 days, missed follow-ups or flagged animals with no request.` : "No place here has an animal recorded as waiting on someone.",
+        qualify: `${plural(records, "more place")} where the record itself needs work: an outcome, a status survey or a revisit. Each item below says why, and who holds the record.`,
+      };
+    }
     case "animals": {
       const v = f === "photos" ? s.photos : f === "residents" ? s.residents : s.animals;
       const where = cells.length - areas("none");
@@ -68,7 +76,9 @@ export function headline(q: Question, f: Facet, ctx: Ctx, cells: MapCell[], t: T
         return { lead: `${plural(n, "request")} for help opened${rng}, in ${plural(areas("opened"), "area")}.`, qualify: "Opened in the period, whatever became of them since." };
       }
       return {
-        lead: s.open ? `${plural(s.open, "request")} open in ${plural(areas("waiting") + areas("open"), "area")}${s.open30 ? `; ${fmt(s.open30)} waiting over 30 days` : ""}.` : s.needs ? `No open requests; ${plural(s.needs, "animal")} flagged as needing help.` : "No open request on the record here.",
+        lead: s.open ? `${plural(s.open, "request")} open in ${plural(areas("waiting") + areas("open"), "area")}${s.open30 ? `; ${fmt(s.open30)} waiting over 30 days` : ""}.`
+          : s.statusUnknown ? `No request is recorded as open, but ${plural(s.statusUnknown, "request")} ${s.statusUnknown === 1 ? "has" : "have"} no status at all: whether ${s.statusUnknown === 1 ? "it is" : "they are"} still open is not known.`
+          : s.needs ? `No open requests; ${plural(s.needs, "animal")} flagged as needing help.` : "No open request on the record here.",
         qualify: s.oldest ? `The longest open was reported ${ago(s.oldest, ctx.today)} ago. Hatched areas have no requests on record, which is not the same as no need.` : "Hatched areas have no requests on record, which is not the same as no need.",
       };
     }

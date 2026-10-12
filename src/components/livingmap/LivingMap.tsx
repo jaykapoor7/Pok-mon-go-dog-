@@ -24,6 +24,9 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { getSupabase } from "@/lib/supabase";
+import { isNgoMember } from "@/lib/actions";
 import { useSearchParams } from "next/navigation";
 import type { GeoJSONSource, Map as MLMap, MapGeoJSONFeature } from "maplibre-gl";
 import { groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
@@ -33,7 +36,7 @@ import { KIND_META, kindOf } from "@/components/spatial/AtlasRegister";
 import { cameraDuration, travel } from "@/lib/motion";
 import { C, QUESTIONS, defaultFacet, foldMonths, orgPalette, question, type Ctx, type QuestionId, type Range } from "@/lib/livingmap/questions";
 import { headline, localities, placeName, tally } from "@/lib/livingmap/reading";
-import type { MapArea, MapCity, NationalCity } from "@/lib/livingmap/types";
+import type { MapArea, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
 import { DISC_PX, coreBounds, hatchDisc, haversineKm, seedHead } from "./geo";
 import { Panel } from "./Panel";
 import "./livingmap.css";
@@ -60,11 +63,39 @@ const MODE_MAP: Record<string, [QuestionId, string?]> = {
   abc: ["care", "ster"], arv: ["care", "vacc"], medical: ["care", "treat"], needs: ["needs"], care: ["care"], gaps: ["gaps"], orgs: ["orgs"],
 };
 
-export function LivingMap() {
+/* Every read goes through one helper: an organisation's map carries the
+   member's session, so the server reads its own records under its rules. */
+async function api(path: string, scope: "public" | "org"): Promise<Response> {
+  if (scope === "public") return fetch(path);
+  const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
+  const token = data.session?.access_token;
+  if (!token) return new Response(JSON.stringify({ error: "Sign in with your organisation to see its map." }), { status: 401 });
+  return fetch(`${path}${path.includes("?") ? "&" : "?"}scope=org`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+}
+
+/* Cities already read in this visit, and reads in flight: returning to a
+   city, or opening one the pointer has rested on, is instant. */
+const cityCache = new Map<string, Promise<MapCity | null>>();
+function readCity(city: string, scope: "public" | "org"): Promise<MapCity | null> {
+  const key = `${scope}:${city}`;
+  const hit = cityCache.get(key);
+  if (hit) return hit;
+  const p = api(`/api/livingmap?city=${encodeURIComponent(city)}`, scope).then(async (r) => {
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error("unavailable");
+    return r.json() as Promise<MapCity>;
+  });
+  cityCache.set(key, p);
+  p.catch(() => cityCache.delete(key));
+  return p;
+}
+export const prefetchCity = (city: string, scope: "public" | "org" = "public") => { void readCity(city, scope).catch(() => {}); };
+
+export function LivingMap({ scope = "public", defaultQ = "animals", initialCities, initialUnplaced }: { scope?: "public" | "org"; defaultQ?: QuestionId; initialCities?: NationalCity[]; initialUnplaced?: Unplaced[] } = {}) {
   const params = useSearchParams();
   const init = useRef({
     city: params.get("city"),
-    q: (params.get("q") ?? MODE_MAP[params.get("mode") ?? ""]?.[0] ?? "animals") as QuestionId,
+    q: (params.get("q") ?? MODE_MAP[params.get("mode") ?? ""]?.[0] ?? defaultQ) as QuestionId,
     f: params.get("f") ?? MODE_MAP[params.get("mode") ?? ""]?.[1] ?? null,
     area: params.get("area") ?? params.get("cell"),
     animal: params.get("animal"),
@@ -72,7 +103,14 @@ export function LivingMap() {
     lat: Number(params.get("lat")), lng: Number(params.get("lng")),
   }).current;
 
-  const [cities, setCities] = useState<NationalCity[]>([]);
+  const [cities, setCities] = useState<NationalCity[]>(initialCities ?? []);
+  const hasInitial = !!initialCities?.length;
+  /* Whether the national read worked: an empty list must never read as "zero". */
+  const [citiesState, setCitiesState] = useState<"ready" | "loading" | "auth" | "error">(hasInitial ? "ready" : "loading");
+  const [unplaced, setUnplaced] = useState<Unplaced[]>(initialUnplaced ?? []);
+  const { user } = useAuth();
+  const [member, setMember] = useState(scope === "org");
+  useEffect(() => { if (scope === "org") return; if (!user) { setMember(false); return; } isNgoMember().then(setMember).catch(() => setMember(false)); }, [user, scope]);
   const [city, setCity] = useState<string | null>(init.city);
   const [data, setData] = useState<MapCity | null>(null);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "error" | "missing">("idle");
@@ -94,6 +132,7 @@ export function LivingMap() {
   const mapRef = useRef<MLMap | null>(null);
   const userMove = useRef(false);
   const pendingPoint = useRef<[number, number] | null>(null);
+  const scopeRef = useRef(scope);
   const lastCamera = useRef<string>("");
 
   const q = question(qid);
@@ -102,14 +141,18 @@ export function LivingMap() {
   /* ── data ───────────────────────────────────────────────────────── */
   useEffect(() => {
     /* A cold aggregate can time out once; the second read is served warm. */
+    if (hasInitial) return;
     let live = true;
     const read = (left: number): void => {
-      fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : Promise.reject())).then((j) => { if (live) setCities((j.cities ?? []) as NationalCity[]); })
-        .catch(() => { if (live && left > 0) window.setTimeout(() => read(left - 1), 1200); });
+      api("/api/livingmap?kind=cities", scope).then((r) => {
+        if (r.status === 401) { if (live) setCitiesState("auth"); return null; }
+        return r.ok ? r.json() : Promise.reject();
+      }).then((j) => { if (live && j) { setCities((j.cities ?? []) as NationalCity[]); setUnplaced((j.unplaced ?? []) as Unplaced[]); setCitiesState("ready"); } })
+        .catch(() => { if (!live) return; if (left > 0) window.setTimeout(() => read(left - 1), 1200); else setCitiesState("error"); });
     };
     read(2);
     return () => { live = false; };
-  }, []);
+  }, [scope, hasInitial]);
 
   /* A shared location (?lat&lng) opens the nearest city and its area. */
   useEffect(() => {
@@ -130,21 +173,17 @@ export function LivingMap() {
     if (!city) { setData(null); setLoadState("idle"); return; }
     let live = true;
     setLoadState("loading");
-    fetch(`/api/livingmap?city=${encodeURIComponent(city)}`).then(async (r) => {
-      if (r.status === 404) return null;
-      if (!r.ok) throw new Error("unavailable");
-      return r.json() as Promise<MapCity>;
-    }).then((d) => { if (live) { setData(d); setLoadState(d ? "idle" : "missing"); } }).catch(() => { if (live) { setData(null); setLoadState("error"); } });
+    readCity(city, scope).then((d) => { if (live) { setData(d); setLoadState(d ? "idle" : "missing"); } }).catch(() => { if (live) { setData(null); setLoadState("error"); } });
     return () => { live = false; };
-  }, [city]);
+  }, [city, scope]);
 
   useEffect(() => {
     if (!city || !areaH3) { setArea(null); return; }
     let live = true;
     setArea("loading");
-    fetch(`/api/livingmap?kind=area&city=${encodeURIComponent(city)}&h3=${areaH3}`).then((r) => (r.ok ? r.json() : Promise.reject())).then((a: MapArea) => { if (live) setArea(a); }).catch(() => { if (live) setArea("error"); });
+    api(`/api/livingmap?kind=area&city=${encodeURIComponent(city)}&h3=${areaH3}`, scope).then((r) => (r.ok ? r.json() : Promise.reject())).then((a: MapArea) => { if (live) setArea(a); }).catch(() => { if (live) setArea("error"); });
     return () => { live = false; };
-  }, [city, areaH3]);
+  }, [city, areaH3, scope]);
 
   /* ── the reading ────────────────────────────────────────────────── */
   const cells = useMemo(() => data?.cells ?? [], [data]);
@@ -154,8 +193,8 @@ export function LivingMap() {
   const ctx: Ctx = useMemo(() => ({
     range: timed ? range : null,
     inRange: timed && data ? foldMonths(data.months, cells.length, range) : null,
-    orgColor, today: Date.now(),
-  }), [timed, range, data, cells.length, orgColor]);
+    orgColor, today: Date.now(), org: scope === "org",
+  }), [timed, range, data, cells.length, orgColor, scope]);
   const classes = useMemo(() => q.classes(facet, ctx), [q, facet, ctx]);
   const { tally: counts, classOf } = useMemo(() => tally(cells, q, facet, ctx), [cells, q, facet, ctx]);
   const reading = useMemo(() => (cells.length ? headline(q, facet, ctx, cells, counts) : null), [q, facet, ctx, cells, counts]);
@@ -187,6 +226,7 @@ export function LivingMap() {
         const m = map!;
         m.addImage("h-quiet", hatchDisc("rgba(11,30,61,0.4)", "rgba(244,239,230,0.92)", "rgba(11,30,61,0.45)"));
         m.addImage("h-amber", hatchDisc("rgba(168,116,15,0.8)", "rgba(250,240,220,0.95)", "rgba(168,116,15,0.9)"));
+        m.addImage("h-care", hatchDisc("rgba(31,111,128,0.75)", "rgba(232,242,242,0.95)", "rgba(31,111,128,0.9)"));
         m.addImage("h-stale", hatchDisc("rgba(138,106,59,0.85)", "rgba(244,236,222,0.95)", "rgba(138,106,59,0.95)"));
         m.addImage("h-edge", hatchDisc("rgba(11,30,61,0.16)", "rgba(244,239,230,0.35)", "rgba(11,30,61,0.3)", true));
         const empty = { type: "FeatureCollection" as const, features: [] };
@@ -219,7 +259,10 @@ export function LivingMap() {
           "visibility": "visible",
         }, paint: { "text-color": ["get", "ink"], "text-opacity": ["interpolate", ["linear"], ["zoom"], AREA_ZOOM - 0.4, 1, AREA_ZOOM + 0.2, 0] } });
         m.addLayer({ id: "zones", type: "symbol", source: "zones", maxzoom: 15.5, layout: {
-          "text-field": ["get", "name"], "text-font": ["Noto Sans Regular"], "text-size": ["interpolate", ["linear"], ["zoom"], 9, 11, 14, 14],
+          /* Hierarchy: the localities that matter most for the question are set
+             larger and bold; the rest stay small and recede. */
+          "text-field": ["get", "name"], "text-font": ["case", ["<", ["get", "rank"], 8], ["literal", ["Noto Sans Bold"]], ["literal", ["Noto Sans Regular"]]],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 9, ["case", ["<", ["get", "rank"], 8], 12.5, 10.5], 14, ["case", ["<", ["get", "rank"], 8], 15, 13]],
           "text-letter-spacing": 0.02, "symbol-sort-key": ["get", "rank"], "text-padding": 6, "text-max-width": 9,
           "text-variable-anchor": ["center", "top", "bottom"], "text-radial-offset": 0.9,
         }, paint: { "text-color": C.ink, "text-halo-color": "#f7f3ec", "text-halo-width": 1.6, "text-opacity": ["interpolate", ["linear"], ["zoom"], 8.5, 0, 9.5, 0.95] } });
@@ -268,6 +311,7 @@ export function LivingMap() {
   const hoverCity = (f: MapGeoJSONFeature | undefined, p: { x: number; y: number }) => {
     if (!f || window.matchMedia("(hover: none)").matches) return;
     setHover({ x: p.x, y: p.y, title: String(f.properties?.name), line: String(f.properties?.tip ?? "") });
+    prefetchCity(String(f.properties?.name), scopeRef.current);
   };
   const clickMap = (m: MLMap, p: { x: number; y: number }) => {
     const hit = m.queryRenderedFeatures([[p.x - 4, p.y - 4], [p.x + 4, p.y + 4]], { layers: ["cities", "areas-fill", "areas-unknown", "dots"].filter((l) => m.getLayer(l)) });
@@ -333,7 +377,7 @@ export function LivingMap() {
     const set = (id: string, features: GeoJSON.Feature[]) => (m.getSource(id) as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features });
     if (!city || !cells.length) { for (const s of ["areas", "edge", "dots", "zones", "nums", "sel"]) set(s, []); return; }
     const byId = new Map(classes.map((k) => [k.id, k]));
-    const pattern = (id: string) => (id === "stale" ? "h-stale" : id === "status" ? "h-amber" : "h-quiet");
+    const pattern = (id: string) => (id === "stale" || id === "revisit" ? "h-stale" : id === "status" || id === "nostatus" || id === "outcome" ? "h-amber" : id === "survey" ? "h-care" : "h-quiet");
     set("areas", cells.map((c, i) => {
       const k = byId.get(classOf[i]);
       return { type: "Feature", geometry: { type: "Point", coordinates: centers[i] }, properties: {
@@ -411,7 +455,7 @@ export function LivingMap() {
     if (animalId) p.set("animal", animalId);
     if (range) p.set("t", `${range.from}-${range.to}`);
     const s = p.toString();
-    window.history.replaceState(window.history.state, "", s ? `/map?${s}` : "/map");
+    window.history.replaceState(window.history.state, "", s ? `${window.location.pathname}?${s}` : window.location.pathname);
   }, [city, qid, facet, areaH3, animalId, range, q]);
 
   /* Escape goes up one scale. */
@@ -432,20 +476,22 @@ export function LivingMap() {
   };
 
   return (
-    <div className={`lm lm-${level}${loadState === "loading" ? " is-loading" : ""}`} data-sheet={sheet}>
+    <div className={`lm is-at-${level}${loadState === "loading" ? " is-loading" : ""}`} data-sheet={sheet}>
       <div className="lm-map" ref={el} role="application" aria-label={`Map of ${city ?? "India"}: ${q.ask} The panel lists the same places and figures.`} />
       {mapError && <p className="lm-maperr" role="status">{mapError}</p>}
       {hover && <div className="lm-tip" style={{ left: hover.x + 14, top: hover.y + 14 }} aria-hidden><b>{hover.title}</b><span>{hover.line}</span></div>}
       {city && zoom >= AREA_ZOOM && <p className="lm-scale-note" aria-hidden>One dot, one recorded animal · positions inside an area are schematic</p>}
       <Panel
         level={level} cities={cities} city={city} data={data} loadState={loadState}
-        q={q} questions={QUESTIONS} facet={facet} classes={classes} counts={counts} reading={reading} isolate={isolate}
+        q={q} questions={scope === "org" ? QUESTIONS.filter((x) => x.id !== "orgs") : QUESTIONS} facet={facet} classes={classes} counts={counts} reading={reading} isolate={isolate}
         places={places} cells={cells} classOf={classOf} ctx={ctx} range={range} timedActive={q.timed(facet)}
         area={area} areaIndex={areaIndex} animalId={animalId} pin={pin} sheet={sheet} nationalMeasure={nationalMeasure}
         onQuestion={chooseQuestion} onFacet={chooseFacet} onIsolate={(k) => setIsolate((x) => (x === k ? null : k))} onRange={setRange}
         onCity={openCity} onIndia={goIndia} onArea={(h3) => { setAreaH3(h3); setAnimalId(null); setSheet("half"); }} onCloseArea={() => { setAreaH3(null); setAnimalId(null); }}
         onAnimal={(id) => { setAnimalId(id); setSheet("full"); }} onCloseAnimal={() => setAnimalId(null)}
         onPin={(h3) => setPin(h3)} onPlace={(c) => flyToPlace(c)} onSheet={setSheet}
+        member={member} unplaced={unplaced} citiesState={citiesState} scope={scope}
+        onPrefetch={(c) => prefetchCity(c, scope)}
         onFound={(a) => { if (a.city) { setCity(a.city); setAreaH3(a.h3); setAnimalId(a.id); setSheet("full"); } }}
       />
     </div>
