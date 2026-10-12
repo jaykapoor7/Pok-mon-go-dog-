@@ -43,6 +43,13 @@ export type ReviewCase = {
   followups_done: number | null;
   followups_missed: number | null;
   provenance: string | null;
+  source_status?: string | null;
+  city?: string | null;
+  evidence_score?: number | null;
+  medical_count?: number | null;
+  evidence_count?: number | null;
+  has_treatment_note?: boolean | null;
+  has_review_note?: boolean | null;
 };
 
 const FIELDS = "id,case_code,title,condition_class,status_class,closure_reason,occurred_at,last_activity_at,severity,assignee_name,animal_name,straypaw_id,zone,h3_r8,followups_done,followups_missed,provenance";
@@ -57,12 +64,22 @@ export async function staleCases(days = 90): Promise<ReviewCase[]> {
   for (let from = 0; ; from += 500) {
     const { data, error } = await supa.from("org_case_facts").select(FIELDS)
       .in("status_class", ["open", "in_progress"]).lt("occurred_at", opened)
+      .or("provenance.is.null,provenance.neq.imported_historical_record")
       .or(`last_activity_at.is.null,last_activity_at.lt.${quiet}`)
       .order("occurred_at", { ascending: true }).range(from, from + 499);
     if (error) throw new Error(error.message);
     out.push(...((data ?? []) as ReviewCase[]));
     if (!data || data.length < 500) return out;
   }
+}
+
+/** Imported rows whose historical open status has never been confirmed. */
+export async function historicalReviewCases(): Promise<ReviewCase[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.rpc("org_historical_review_queue");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ReviewCase[];
 }
 
 /** Cases closed without field action whose reason nobody recorded. */

@@ -3,13 +3,10 @@
 /* ════════════════════════════════════════════════════════════════════
    Case review: old work, decided by a person.
 
-   A case open for months is usually finished work nobody closed, and it
-   makes every open-work figure wrong. This screen puts those cases in
-   front of someone who knows, oldest first, and asks one question of
-   each: what happened? The answers — still active, done, closed without
-   action and why, handed on — are written into each case's history under
-   the reviewer's name. Nothing is closed by a timer, and every close asks
-   for a second tap.
+   Imported open statuses are questions until a person confirms them.
+   Locality, age and available evidence make the queue easier to compare;
+   none of them changes a status. Every decision is written into the case
+   history under the reviewer’s name. Nothing is closed by a timer.
 
    The second tab does the same for requests that closed without field
    action but never said why: "could not find the animal" and "could not
@@ -23,11 +20,13 @@ import { ArrowUpRight, Check, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
 import { DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
-import { REVIEW_REASONS, reasonlessCases, reviewCase, staleCases, type ReviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
+import { REVIEW_REASONS, historicalReviewCases, reasonlessCases, reviewCase, staleCases, type ReviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
 import "./review.css";
 import { DeskHeader } from "@/components/app/DeskHeader";
 
-type Tab = "stale" | "reasons";
+type Tab = "historical" | "stale" | "reasons";
+type EvidenceFilter = "all" | "strong" | "some" | "source";
+type HistoricalSort = "locality" | "oldest" | "evidence";
 type Done = { label: string; ok: boolean };
 
 const DAY = 86_400_000;
@@ -53,40 +52,61 @@ const DECISION_LABEL: Record<ReviewDecision, string> = {
   set_reason: "Reason recorded",
 };
 
-export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
+export function CaseReview({ initialTab = "historical" }: { initialTab?: Tab }) {
   const { user, ready } = useAuth();
   const { member, ready: accessReady } = usePartnerAccess();
   const [tab, setTab] = useState<Tab>(initialTab);
-  const [minAge, setMinAge] = useState(90);
+  const [minAge, setMinAge] = useState(0);
+  const [historical, setHistorical] = useState<ReviewCase[] | null>(null);
   const [stale, setStale] = useState<ReviewCase[] | null>(null);
   const [reasonless, setReasonless] = useState<ReviewCase[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cond, setCond] = useState("");
+  const [locality, setLocality] = useState("");
+  const [evidence, setEvidence] = useState<EvidenceFilter>("all");
+  const [historicalSort, setHistoricalSort] = useState<HistoricalSort>("locality");
   const [q, setQ] = useState("");
   const [done, setDone] = useState<Record<string, Done>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!ready || !accessReady) return;
-    if (!user || !member) { setStale([]); setReasonless([]); return; }
+    if (!user || !member) { setHistorical([]); setStale([]); setReasonless([]); return; }
     let live = true;
-    Promise.all([staleCases(90), reasonlessCases()])
-      .then(([a, b]) => { if (live) { setStale(a); setReasonless(b); } })
-      .catch((e: Error) => { if (live) { setError(e.message); setStale([]); setReasonless([]); } });
+    Promise.all([historicalReviewCases(), staleCases(90), reasonlessCases()])
+      .then(([h, a, b]) => { if (live) { setHistorical(h); setStale(a); setReasonless(b); } })
+      .catch((e: Error) => { if (live) { setError(e.message); setHistorical([]); setStale([]); setReasonless([]); } });
     return () => { live = false; };
   }, [ready, accessReady, user, member]);
 
-  const rows = tab === "stale" ? stale : reasonless;
+  const rows = tab === "historical" ? historical : tab === "stale" ? stale : reasonless;
   const shown = useMemo(() => (rows ?? []).filter((c) => {
-    if (tab === "stale" && ageOf(c.occurred_at) < minAge) return false;
+    if (tab !== "reasons" && ageOf(c.occurred_at) < minAge) return false;
     if (cond && c.condition_class !== cond) return false;
+    if (tab === "historical" && locality && (c.zone?.trim() || "Locality not recorded") !== locality) return false;
+    if (tab === "historical" && evidence !== "all") {
+      const score = c.evidence_score ?? 0;
+      if (evidence === "strong" && score < 2) return false;
+      if (evidence === "some" && score !== 1) return false;
+      if (evidence === "source" && score !== 0) return false;
+    }
     if (q) {
       const hay = `${c.case_code ?? ""} ${c.title ?? ""} ${c.animal_name ?? ""} ${c.zone ?? ""} ${c.straypaw_id ?? ""}`.toLowerCase();
       if (!hay.includes(q.toLowerCase())) return false;
     }
     return true;
-  }), [rows, tab, minAge, cond, q]);
+  }).sort((a, b) => tab !== "historical" ? 0
+    : historicalSort === "oldest" ? Date.parse(a.occurred_at ?? "9999") - Date.parse(b.occurred_at ?? "9999")
+      : historicalSort === "evidence" ? (b.evidence_score ?? 0) - (a.evidence_score ?? 0) || Date.parse(a.occurred_at ?? "9999") - Date.parse(b.occurred_at ?? "9999")
+        : (a.zone?.trim() || "Locality not recorded").localeCompare(b.zone?.trim() || "Locality not recorded") || (b.evidence_score ?? 0) - (a.evidence_score ?? 0) || Date.parse(a.occurred_at ?? "9999") - Date.parse(b.occurred_at ?? "9999")), [rows, tab, minAge, cond, locality, evidence, historicalSort, q]);
   const conditions = useMemo(() => [...new Set((rows ?? []).map((c) => c.condition_class).filter(Boolean) as string[])].sort(), [rows]);
+  const localities = useMemo(() => [...new Set((historical ?? []).map((c) => c.zone?.trim() || "Locality not recorded"))].sort(), [historical]);
+  const groups = useMemo(() => {
+    if (tab !== "historical" || historicalSort !== "locality") return [];
+    const by = new Map<string, ReviewCase[]>();
+    shown.forEach((c) => { const k = c.zone?.trim() || "Locality not recorded"; by.set(k, [...(by.get(k) ?? []), c]); });
+    return [...by.entries()];
+  }, [shown, tab, historicalSort]);
   const pending = shown.filter((c) => !done[c.id]);
   const decided = Object.values(done).filter((d) => d.ok).length;
 
@@ -100,20 +120,23 @@ export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
   if (!ready || !accessReady || rows === null) return <main className="rv"><p className="rv-state"><Loader2 size={16} className="animate-spin" /> Reading your organisation&rsquo;s cases…</p></main>;
   if (!user || !member) return (
     <main className="rv">
-      <Header count={0} />
+      <Header count={0} historical />
       <p className="rv-state">Reviewing cases needs a member of the organisation that holds them. Sign in with your organisation to see its cases here.</p>
     </main>
   );
 
   return (
     <main className="rv">
-      <Header count={stale?.length ?? 0} />
+      <Header count={tab === "historical" ? historical?.length ?? 0 : stale?.length ?? 0} historical={tab === "historical"} />
 
-      {tab === "stale" && (stale?.length ?? 0) > 0 && <AgeStrip cases={stale!} done={done} />}
+      {tab !== "reasons" && (rows?.length ?? 0) > 0 && <AgeStrip cases={rows!} done={done} />}
 
       <div className="rv-tabs" role="group" aria-label="What to review">
+        <button type="button" aria-pressed={tab === "historical"} className={tab === "historical" ? "is-on" : ""} onClick={() => { setTab("historical"); setSelected(new Set()); }}>
+          Imported history <b className="sys-mono">{(historical ?? []).filter((c) => !done[c.id]).length}</b>
+        </button>
         <button type="button" aria-pressed={tab === "stale"} className={tab === "stale" ? "is-on" : ""} onClick={() => { setTab("stale"); setSelected(new Set()); }}>
-          Open too long <b className="sys-mono">{(stale ?? []).filter((c) => !done[c.id]).length}</b>
+          Live cases quiet <b className="sys-mono">{(stale ?? []).filter((c) => !done[c.id]).length}</b>
         </button>
         <button type="button" aria-pressed={tab === "reasons"} className={tab === "reasons" ? "is-on" : ""} onClick={() => { setTab("reasons"); setSelected(new Set()); }}>
           Closed without a reason <b className="sys-mono">{(reasonless ?? []).filter((c) => !done[c.id]).length}</b>
@@ -121,11 +144,16 @@ export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
       </div>
 
       <div className="rv-filters">
-        {tab === "stale" && (
+        {tab !== "reasons" && (
           <div className="rv-seg" role="group" aria-label="Open for at least">
-            {[90, 180, 365].map((d) => <button key={d} type="button" aria-pressed={minAge === d} className={minAge === d ? "is-on" : ""} onClick={() => setMinAge(d)}>{d === 365 ? "A year+" : `${d / 30} months+`}</button>)}
+            {[0, 180, 365, 730].map((d) => <button key={d} type="button" aria-pressed={minAge === d} className={minAge === d ? "is-on" : ""} onClick={() => setMinAge(d)}>{d === 0 ? "Any age" : d === 365 ? "1 year+" : d === 730 ? "2 years+" : "6 months+"}</button>)}
           </div>
         )}
+        {tab === "historical" && <>
+          <label><span className="sys-sr">Locality</span><select value={locality} onChange={(e) => setLocality(e.target.value)}><option value="">Every locality</option>{localities.map((l) => <option key={l} value={l}>{l}</option>)}</select></label>
+          <label><span className="sys-sr">Evidence</span><select value={evidence} onChange={(e) => setEvidence(e.target.value as EvidenceFilter)}><option value="all">Any evidence</option><option value="strong">Strong evidence</option><option value="some">Some evidence</option><option value="source">Source row only</option></select></label>
+          <label><span className="sys-sr">Order</span><select value={historicalSort} onChange={(e) => setHistoricalSort(e.target.value as HistoricalSort)}><option value="locality">Locality first</option><option value="oldest">Oldest first</option><option value="evidence">Evidence first</option></select></label>
+        </>}
         <label><span className="sys-sr">Condition</span>
           <select value={cond} onChange={(e) => setCond(e.target.value)}>
             <option value="">Every condition</option>
@@ -140,10 +168,15 @@ export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
 
       {error && <p className="rv-state">{error}</p>}
       {shown.length === 0 && !error && (
-        <p className="rv-state">{tab === "stale" ? "Nothing has been open this long without activity. This is the state you want." : "Every request that closed without field action says why."}</p>
+        <p className="rv-state">{tab === "historical" ? "No imported requests match these filters." : tab === "stale" ? "Nothing has been open this long without activity. This is the state you want." : "Every request that closed without field action says why."}</p>
       )}
 
-      {tab === "stale" ? BANDS.map((b, bi) => {
+      {tab === "historical" ? (historicalSort === "locality" ? groups.map(([name, cases]) => (
+        <section key={name} className="rv-band rv-locality" aria-label={name}>
+          <h2><span>{name}</span><span className="rv-group-tools"><b className="sys-mono">{cases.filter((c) => !done[c.id]).length}</b><button type="button" onClick={() => setSelected((s) => { const n = new Set(s); cases.filter((c) => !done[c.id]).forEach((c) => n.add(c.id)); return n; })}>Select locality</button></span></h2>
+          <ol className="rv-list">{cases.map((c) => <StaleRow key={c.id} c={c} historical done={done[c.id]} checked={selected.has(c.id)} onCheck={(v) => setSelected((s) => { const n = new Set(s); if (v) n.add(c.id); else n.delete(c.id); return n; })} onDecide={decide} />)}</ol>
+        </section>
+      )) : <ol className="rv-list">{shown.map((c) => <StaleRow key={c.id} c={c} historical done={done[c.id]} checked={selected.has(c.id)} onCheck={(v) => setSelected((s) => { const n = new Set(s); if (v) n.add(c.id); else n.delete(c.id); return n; })} onDecide={decide} />)}</ol>) : tab === "stale" ? BANDS.map((b, bi) => {
         const inBand = shown.filter((c) => { const a = ageOf(c.occurred_at); return a >= b.min && (bi === 0 || a < BANDS[bi - 1].min); });
         if (!inBand.length) return null;
         return (
@@ -160,7 +193,7 @@ export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
         </ol>
       )}
 
-      {tab === "stale" && selected.size > 0 && (
+      {tab !== "reasons" && selected.size > 0 && (
         <BulkBar n={selected.size} onApply={async (decision, reason, note) => {
           const list = pending.filter((c) => selected.has(c.id));
           for (const c of list) await decide(c, decision, reason, note);
@@ -170,13 +203,13 @@ export function CaseReview({ initialTab = "stale" }: { initialTab?: Tab }) {
   );
 }
 
-function Header({ count }: { count: number }) {
+function Header({ count, historical = false }: { count: number; historical?: boolean }) {
   return (
     <DeskHeader
       kicker="Records · case review"
-      title={<>Decide what happened to old&nbsp;cases</>}
-      lede="Open for more than ninety days, nothing recorded for thirty. Most are finished work nobody closed; some are still going. Nothing closes by itself: each decision is yours, written into the case’s history under your name."
-      figures={[{ label: "cases waiting for a decision", value: count, tone: count ? "attention" : undefined }]}
+      title={historical ? <>Confirm the imported&nbsp;history</> : <>Decide what happened to quiet&nbsp;cases</>}
+      lede={historical ? "These requests were marked open in an earlier register. Locality, age and available evidence put the most useful comparisons together; none of them decides the status. Every confirmation or closure is a person’s recorded decision." : "These live cases have been open without recent activity. Nothing closes by itself: each decision is yours, written into the case’s history under your name."}
+      figures={[{ label: historical ? "imported requests to confirm" : "cases waiting for a decision", value: count, tone: count ? "attention" : undefined }]}
       actions={<Link href="/partner/reports#response" className="dk-btn is-tint">How this affects the figures <ArrowUpRight size={13} /></Link>}
     />
   );
@@ -187,10 +220,10 @@ function AgeStrip({ cases, done }: { cases: ReviewCase[]; done: Record<string, D
   const ages = cases.map((c) => ageOf(c.occurred_at));
   const max = Math.max(365, ...ages);
   const W = 1000, H = 54;
-  const x = (a: number) => 8 + ((a - 90) / Math.max(1, max - 90)) * (W - 16);
+  const x = (a: number) => 8 + (a / Math.max(1, max)) * (W - 16);
   return (
     <figure className="rv-strip">
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`${cases.length} cases, open from ninety days to ${ageLabel(max)}`}>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`${cases.length} cases, dated up to ${ageLabel(max)} ago`}>
         {[90, 180, 365, 730].filter((a) => a <= max).map((a) => (
           <g key={a}><line x1={x(a)} x2={x(a)} y1={4} y2={H - 16} className="rv-strip-grid" /><text x={x(a) + 4} y={H - 3} className="rv-strip-lab">{a === 90 ? "90 days" : a === 180 ? "6 months" : a === 365 ? "1 year" : "2 years"}</text></g>
         ))}
@@ -204,8 +237,8 @@ function AgeStrip({ cases, done }: { cases: ReviewCase[]; done: Record<string, D
   );
 }
 
-function StaleRow({ c, done, checked, onCheck, onDecide }: {
-  c: ReviewCase; done?: Done; checked: boolean; onCheck: (v: boolean) => void;
+function StaleRow({ c, historical = false, done, checked, onCheck, onDecide }: {
+  c: ReviewCase; historical?: boolean; done?: Done; checked: boolean; onCheck: (v: boolean) => void;
   onDecide: (c: ReviewCase, d: ReviewDecision, r?: ReviewReason | null, note?: string) => Promise<boolean>;
 }) {
   const [step, setStep] = useState<null | "done" | "noaction" | "other_ngo">(null);
@@ -221,10 +254,11 @@ function StaleRow({ c, done, checked, onCheck, onDecide }: {
       <div className="rv-what">
         <Link href={`/partner/cases/${c.id}`} className="rv-name">{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Case"}</Link>
         <small>{who(c)}</small>
+        {historical && <span className={`rv-evidence is-${(c.evidence_score ?? 0) >= 2 ? "strong" : (c.evidence_score ?? 0) === 1 ? "some" : "source"}`}>{(c.evidence_score ?? 0) >= 2 ? "Strong evidence" : (c.evidence_score ?? 0) === 1 ? "Some evidence" : "Source row only"}{c.medical_count ? ` · ${c.medical_count} care ${c.medical_count === 1 ? "entry" : "entries"}` : ""}</span>}
       </div>
       <div className="rv-when">
         <b className="sys-mono">{ageLabel(age)}</b>
-        <small>opened {fmtDate(c.occurred_at)}{c.followups_missed ? ` · ${c.followups_missed} follow-up${c.followups_missed === 1 ? "" : "s"} missed` : ""}</small>
+        <small>{historical ? `source says ${c.source_status || "open"} · ` : "opened "}{fmtDate(c.occurred_at)}{c.followups_missed ? ` · ${c.followups_missed} follow-up${c.followups_missed === 1 ? "" : "s"} missed` : ""}</small>
       </div>
       <div className="rv-acts">
         {done ? <p className={`rv-result ${done.ok ? "" : "is-err"}`}>{done.ok ? <Check size={14} /> : null}{done.label}</p>

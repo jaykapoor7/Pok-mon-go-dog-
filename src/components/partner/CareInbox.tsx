@@ -53,9 +53,9 @@ function WhatsAppQueue() {
         <div>
           <b>{res.reason === "not_deployed" ? "WhatsApp is not connected for your team yet." : "WhatsApp messages could not load just now."}</b>
           <p>{res.reason === "not_deployed"
-            ? "WhatsApp intake is in pilot with founding NGOs. When it opens for your team, residents' messages, photos and locations will arrive here, ready to own, turn into a case or attach to an animal."
+            ? "WhatsApp intake is planned, but its backend is not deployed or tested yet. Use the live resident-report queue below today."
             : "Nothing was changed. Resident reports below are unaffected."}</p>
-          {res.reason === "not_deployed" ? <Link href="/for-ngos#pilot">About the founding pilot <ArrowUpRight size={13} aria-hidden /></Link> : <button type="button" className="ws-linkbtn" onClick={load}>Try again</button>}
+          {res.reason === "not_deployed" ? <Link href="/for-ngos#availability">What is live today <ArrowUpRight size={13} aria-hidden /></Link> : <button type="button" className="ws-linkbtn" onClick={load}>Try again</button>}
         </div>
       </div>
     );
@@ -98,7 +98,7 @@ export function CareInbox({ children }: { children: ReactNode }) {
   return (
     <div className="ws">
       <section className="ws-group" aria-labelledby="ib-wa">
-        <header><h2 id="ib-wa">WhatsApp <span className="ws-tag">Pilot</span></h2><p>Messages, photos and locations from residents.</p></header>
+        <header><h2 id="ib-wa">WhatsApp <span className="ws-tag">Planned</span></h2><p>Not connected. The backend must be deployed and tested before this opens.</p></header>
         <WhatsAppQueue />
       </section>
       <section className="ws-group" aria-labelledby="ib-web">

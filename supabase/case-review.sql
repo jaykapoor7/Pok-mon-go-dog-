@@ -163,7 +163,89 @@ left join lateral (
 revoke all on public.org_case_facts from anon, authenticated;
 grant select on public.org_case_facts to authenticated, service_role;
 
--- ── 3. The review itself ─────────────────────────────────────────────
+-- ── 3. Imported-history review queue ─────────────────────────────────
+-- This is the same confidence boundary used by the public atlas: the
+-- workbook says open, nobody has reviewed it in StrayPaw, and there is no
+-- post-import activity. Age and evidence order the work; neither decides it.
+drop function if exists public.org_historical_review_queue();
+create function public.org_historical_review_queue()
+returns table (
+  id uuid,
+  case_code text,
+  title text,
+  condition_class text,
+  status_class text,
+  source_status text,
+  occurred_at timestamptz,
+  last_activity_at timestamptz,
+  severity text,
+  animal_name text,
+  straypaw_id text,
+  zone text,
+  city text,
+  h3_r8 text,
+  evidence_score integer,
+  medical_count integer,
+  evidence_count integer,
+  has_treatment_note boolean,
+  has_review_note boolean
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    c.id,
+    c.case_code,
+    c.title,
+    c.condition_class,
+    p.status_class,
+    nullif(btrim(c.source_metadata -> 'normalized' ->> 'status'), ''),
+    p.occurred_at,
+    c.last_activity_at,
+    c.severity::text,
+    d.name,
+    d.straypaw_id,
+    c.zone,
+    p.city,
+    p.h3_r8,
+    case
+      when coalesce(m.n, 0) > 0 or coalesce(e.n, 0) > 0 then 3
+      when nullif(btrim(c.source_metadata -> 'normalized' ->> 'treatment_update'), '') is not null
+        or nullif(btrim(c.source_metadata -> 'normalized' ->> 'review'), '') is not null then 2
+      when nullif(btrim(c.source_metadata -> 'normalized' ->> 'rescue_plan'), '') is not null
+        or nullif(btrim(c.source_metadata -> 'normalized' ->> 'case_detail'), '') is not null then 1
+      else 0
+    end,
+    coalesce(m.n, 0),
+    coalesce(e.n, 0),
+    nullif(btrim(c.source_metadata -> 'normalized' ->> 'treatment_update'), '') is not null,
+    nullif(btrim(c.source_metadata -> 'normalized' ->> 'review'), '') is not null
+  from public.public_case_facts p
+  join public.cases c on c.id = p.id
+  join public.ngos n on n.id = c.ngo_id
+  left join public.dogs d on d.id = c.dog_id
+  left join lateral (
+    select count(*)::integer n from public.medical_events me where me.case_id = c.id
+  ) m on true
+  left join lateral (
+    select count(*)::integer n from public.evidence_items ei where ei.case_id = c.id
+  ) e on true
+  where auth.uid() is not null
+    and c.ngo_id = public.my_ngo()
+    and c.provenance = 'imported_historical_record'
+    and c.status_reviewed_at is null
+    and p.status_class in ('open', 'in_progress')
+    and p.city = n.city
+    and (c.last_activity_at is null or c.imported_at is null or c.last_activity_at <= c.imported_at + interval '1 day')
+  order by coalesce(nullif(btrim(c.zone), ''), 'Locality not recorded'), evidence_score desc, p.occurred_at asc;
+$$;
+
+revoke all on function public.org_historical_review_queue() from public, anon;
+grant execute on function public.org_historical_review_queue() to authenticated;
+
+-- ── 4. The review itself ─────────────────────────────────────────────
 create or replace function public.review_case(
   p_case_id uuid,
   p_decision text,
@@ -221,7 +303,7 @@ begin
     || coalesce('. ' || nullif(btrim(coalesce(p_note, '')), ''), '');
 
   if p_decision = 'still_active' then
-    update cases set last_activity_at = now(), updated_at = now() where id = c.id;
+    update cases set status_reviewed_at = now(), last_activity_at = now(), updated_at = now() where id = c.id;
     insert into case_updates (case_id, actor_id, actor_name, type, note)
       values (c.id, auth.uid(), nullif(btrim(p_actor_name), ''), 'note', v_label);
   elsif p_decision = 'set_reason' then
@@ -249,7 +331,7 @@ end $$;
 revoke all on function public.review_case(uuid, text, text, text, text) from public, anon;
 grant execute on function public.review_case(uuid, text, text, text, text) to authenticated;
 
--- ── 4. A status a person sets outranks the workbook too ─────────────
+-- ── 5. A status a person sets outranks the workbook too ─────────────
 -- An imported case keeps the workbook's status in source_metadata, and
 -- the facts trigger reads it until status_reviewed_at is set. Without
 -- this, a member who resolved an imported "in progress" case through the

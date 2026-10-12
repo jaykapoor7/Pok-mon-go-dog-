@@ -58,11 +58,11 @@ export function CareStory() {
   return (
     <section className="ld-sec ld-sec-bone ld-wa ld-wa-v2" aria-labelledby="ld-wa-title">
       <header className="ld-wa-copy">
-        <p className="ld-wa-state"><i aria-hidden />StrayPaw on WhatsApp</p>
+        <p className="ld-wa-state"><i aria-hidden />WhatsApp concept</p>
         <h2 id="ld-wa-title">Send a photo.<span>See what happens.</span></h2>
-        <p className="ld-wa-lede">One message becomes a case—and a clear trail of the care that follows.</p>
+        <p className="ld-wa-lede">A preview of the planned flow: one message could become a case and a clear trail of care.</p>
         <p className="ld-wa-acts">
-          <Link href="/report" className="sys-btn is-flame">Report a stray animal <ArrowUpRight size={15} /></Link>
+          <Link href="/report" className="sys-btn is-flame">Report on the web <ArrowUpRight size={15} /></Link>
           <Link href="/for-ngos" className="ld-wa-link">For NGOs <ArrowUpRight size={14} /></Link>
         </p>
       </header>
@@ -138,7 +138,7 @@ export function CareStory() {
             </div>
           </div>
         </div>
-        <figcaption><LockKeyhole size={12} aria-hidden /> Illustrative flow. Contact details stay private.</figcaption>
+        <figcaption><LockKeyhole size={12} aria-hidden /> Concept only: WhatsApp intake is not live. Web reporting works today.</figcaption>
       </figure>
     </section>
   );

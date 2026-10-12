@@ -125,7 +125,7 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
   const [area, setArea] = useState<MapArea | null | "loading" | "error">(null);
   const [animalId, setAnimalId] = useState<string | null>(init.animal);
   const [pin, setPin] = useState<string | null>(null);
-  const [sheet, setSheet] = useState<"peek" | "half" | "full">("half");
+  const [sheet, setSheet] = useState<"peek" | "half" | "full">("peek");
   const [hover, setHover] = useState<{ x: number; y: number; title: string; line: string; more?: string[] } | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);

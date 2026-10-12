@@ -63,7 +63,8 @@ export function Panel(p: Props) {
   const view = `${p.level}:${p.city}:${p.areaIndex}:${p.animalId}`;
   useEffect(() => { body.current?.scrollTo({ top: 0 }); }, [view]);
   const animal = p.level === "animal" && p.area && typeof p.area === "object" ? p.area.animals.find((a) => a.id === p.animalId) : null;
-  const title = p.level === "india" ? "India" : p.level === "city" ? p.city : animal ? animal.title : p.level === "animal" ? "Animal" : p.areaIndex >= 0 ? zoneName(p.cells[p.areaIndex]?.zone) : p.city;
+  const title = p.level === "india" ? (p.scope === "org" ? "Your map" : "India") : p.level === "city" ? p.city : animal ? animal.title : p.level === "animal" ? "Animal" : p.areaIndex >= 0 ? zoneName(p.cells[p.areaIndex]?.zone) : p.city;
+  const nationalReady = p.citiesState === "ready" && (p.scope !== "org" || p.cities.length > 0);
   return (
     <aside className="lm-panel" aria-label="Map reading">
       <button type="button" className="lm-grip" aria-label={p.sheet === "full" ? "Show more map" : "Show more of the panel"} aria-expanded={p.sheet !== "peek"}
@@ -85,7 +86,7 @@ export function Panel(p: Props) {
         <h1 className="lm-title">{title}</h1>
         {p.level === "animal" ? <AnimalView {...p} /> : p.level === "area" ? <AreaView {...p} /> : (
           <>
-            <Stories {...p} />
+            {p.level !== "india" || nationalReady ? <Stories {...p} /> : null}
             {p.level === "india" ? <IndiaView {...p} /> : <CityView {...p} />}
           </>
         )}

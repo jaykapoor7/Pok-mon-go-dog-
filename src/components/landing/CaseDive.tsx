@@ -3,13 +3,9 @@
 /* ════════════════════════════════════════════════════════════════════
    One request, followed to the end: a dive from the city into one street.
 
-   The section holds still while it scrolls. It opens on the city as the
-   hero draws it, every record a point of light on the night streets; then
-   the camera flies down into the street a real request came from, and the
-   request is told by its own dates: a day counter runs from the report to
-   the close, each step is written in on its day, and the request's light
-   changes with it (flame when reported and while a team is on it, blue
-   with care, cream when closed).
+   A complete case, shown at street scale without taking over several
+   screens of the landing page. The compact composition keeps the useful
+   map and chronology visible at once.
 
    The condition, the locality, the days are the record's own, and the
    light sits in the request's cell, the finest place the public record
@@ -94,14 +90,17 @@ export function CaseDive({ j, city, box, rings, events, note }: {
   const pathEls = useRef<(SVGPathElement | null)[]>([]);
   const ringEl = useRef<SVGCircleElement>(null);
   const actEl = useRef<HTMLDivElement>(null);
-  const [calm, setCalm] = useState(false);
-  const [t, setT] = useState({ step: 0, day: 0, arrived: false });
+  const [calm, setCalm] = useState(true);
+  const [t, setT] = useState({ step: steps.length - 1, day: j.days, arrived: true });
   const hasCare = steps.some((x) => x.key === "c");
   const careWords = j.care.kinds.map((k) => CARE_WORD[k] ?? k.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) { setCalm(true); setT({ step: steps.length - 1, day: j.days, arrived: true }); }
+    /* Keep the full story composed in one viewport. The former scroll-led
+       version created several screens of dead space between sections. */
+    const reduce = true;
+    setCalm(true);
+    setT({ step: steps.length - 1, day: j.days, arrived: true });
     let map: MLMap | null = null, dead = false, raf = 0;
     let from: { center: [number, number]; zoom: number } | null = null;
     const padOf = () => {
