@@ -41,6 +41,20 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
   const el = useRef<HTMLElement>(null);
   const [step, setStep] = useState(3);
   const [live, setLive] = useState(false);
+  /* Phone layout: which of the three stacked steps has come into view. */
+  const stackRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const [seen, setSeen] = useState([true, true, true]);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const nodes = stackRefs.current.filter(Boolean) as HTMLLIElement[];
+    if (!nodes.length || !window.matchMedia("(max-width: 760px)").matches) return;
+    setSeen([false, false, false]);
+    const io = new IntersectionObserver((es) => {
+      for (const e of es) if (e.isIntersecting) { const i = nodes.indexOf(e.target as HTMLLIElement); setSeen((s) => s.map((v, k) => v || k === i)); }
+    }, { rootMargin: "0px 0px -35% 0px", threshold: 0.2 });
+    nodes.forEach((n) => io.observe(n));
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -118,7 +132,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
               </li>
             ))}
           </ul>
-          <p className="rl-desk-foot"><b>{desk.live}</b> open in {city}{desk.critical ? <> · <b className="is-hot">{desk.critical}</b> critical</> : null}</p>
+          <p className="rl-desk-foot"><b>{desk.live}</b> marked open in {city} in the last 90 days{desk.critical ? <> · <b className="is-hot">{desk.critical}</b> critical</> : null}</p>
         </div>
 
         <span className={`rl-link ${step === 3 ? "is-go" : ""}`}><b>{report.straypawId}</b><i /></span>
@@ -127,33 +141,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
         <div className={`rl-screen rl-map ${screen === 2 ? "is-on" : ""}`}>
           <p className="rl-bar"><StrayPawMark size={16} /> <b>Municipality · city view</b><span>{city}</span></p>
           {muni && (
-            <div className={`rl-plate ${step >= 3 ? "is-lit" : ""}`}>
-              <svg viewBox={`0 0 ${PW} ${PH}`} role="img" aria-label={`Areas around ${report.locality}, sized by open requests on the record, with the report's own area marked`}>
-                <defs><clipPath id="rl-frame"><rect width={PW} height={PH} /></clipPath></defs>
-                <g clipPath="url(#rl-frame)">
-                  {/* Ripples from the report's area: the reach of one record. */}
-                  {[44, 78, 116, 158].map((r, i) => <circle key={r} className={`rl-ripple r${i}`} cx={muni.at[0]} cy={muni.at[1]} r={r} />)}
-                  {/* Each mapped area as a dot, larger with more open requests. */}
-                  {muni.dots.filter((c) => !c.own).map((c) => <circle key={c.key} className={`rl-dot o${Math.min(c.open, 3)}${c.crit ? " is-crit" : ""}`} cx={c.x} cy={c.y} r={c.r} />)}
-                  {muni.dots.filter((c) => c.own).map((c) => <circle key={c.key} className="rl-dot is-own" cx={c.x} cy={c.y} r={Math.max(c.r, 5)} />)}
-                  {muni.labels.map((l) => <text key={l.name} x={l.x} y={l.y} className="rl-place">{l.name}</text>)}
-                  <g className="rl-scale" transform={`translate(10 ${PH - 12})`}>
-                    <path d={`M0 -4V0H${muni.scale.px.toFixed(1)}V-4`} />
-                    <text x={muni.scale.px + 5} y="0">{muni.scale.label}</text>
-                  </g>
-                </g>
-                {step >= 3 && <>
-                  <circle className="rl-pulse" cx={muni.at[0]} cy={muni.at[1]} r="9" />
-                  <circle className="rl-pin" cx={muni.at[0]} cy={muni.at[1]} r="3" />
-                  <path className="rl-leader" d={`M${muni.at[0]} ${muni.at[1]}L${muni.call.x} ${muni.call.y}`} />
-                </>}
-              </svg>
-              <p className={`rl-call ${muni.call.left ? "is-left" : ""}`} style={{ left: `${(muni.call.x / PW) * 100}%`, top: `${(muni.call.y / PH) * 100}%` }}>
-                <small>New · {report.straypawId}</small>
-                <b>{report.condition}</b>
-                <span>{report.locality}</span>
-              </p>
-            </div>
+            <Plate muni={muni} report={report} lit={step >= 3} />
           )}
           <div className="rl-legend">
             <span className="rl-ramp"><i className="o0" /><i className="o1" /><i className="o2" /><i className="o3" /></span>
@@ -163,7 +151,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           {muni && (
             <div className="rl-read">
               <p className="rl-share">
-                <span>Open work in <b>{muni.withWork}</b> of {muni.total} mapped areas</span>
+                <span>Marked open in <b>{muni.withWork}</b> of {muni.total} mapped areas</span>
                 <i><em style={{ width: `${Math.max(2, (muni.withWork / Math.max(1, muni.total)) * 100)}%` }} /></i>
               </p>
               {muni.first && (
@@ -174,11 +162,73 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
         </div>
       </div>
 
+      {/* On a phone: the same three moments as one scroll, top to bottom. Nothing
+          waits on a timer; each step lights as it comes into view. */}
+      <ol className="rl-stack" aria-hidden="true">
+        <li ref={(n) => { stackRefs.current[0] = n; }} className={seen[0] ? "is-seen" : ""}>
+          <p className="rl-sk-h"><span className="rl-sk-n">1</span><b>Resident</b><span>sends it from a phone</span></p>
+          <div className="rl-sk-card rl-sk-report">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={report.photo ? sized(report.photo, 240) : "/pinky-bengaluru.jpg"} alt="" loading="lazy" />
+            <span><small>What you see</small><b className={report.critical ? "is-hot" : ""}>{report.condition}</b><small><MapPin size={11} /> {report.locality}</small></span>
+            <em><Check size={12} /> Sent</em>
+            {!report.photo && <i className="rl-sk-tag">Example photo</i>}
+          </div>
+        </li>
+        <li ref={(n) => { stackRefs.current[1] = n; }} className={seen[1] ? "is-seen" : ""}>
+          <p className="rl-sk-h"><span className="rl-sk-n">2</span><b>NGO</b><span>finds it at the top of the queue</span></p>
+          <div className="rl-sk-card rl-sk-queue">
+            <p className="rl-sk-new"><i className="is-hot" /><span><b>{report.condition}</b><small>{report.locality}</small></span><em>New</em></p>
+            {desk.queue.slice(0, 2).map((q, i) => <p key={i}><i className={q.critical ? "is-hot" : ""} /><span><b>{q.condition}</b><small>{q.locality}</small></span><small>{waited(q.days)}</small></p>)}
+            <p className="rl-sk-foot"><b>{desk.live}</b> marked open in the last 90 days</p>
+          </div>
+        </li>
+        <li ref={(n) => { stackRefs.current[2] = n; }} className={seen[2] ? "is-seen" : ""}>
+          <p className="rl-sk-h"><span className="rl-sk-n">3</span><b>Municipality</b><span>sees it on the city&apos;s map</span></p>
+          <div className="rl-sk-card rl-sk-map">{muni ? <Plate muni={muni} report={report} lit={seen[2]} /> : null}</div>
+        </li>
+      </ol>
+
       <figcaption className="rl-cap">
         <span className="sys-mono">A real request · {day(report.date)}</span>
         <span>The same record, <a href={`/dog/${report.animalId}`}>{report.straypawId}</a>, reported by a resident, worked by an NGO and available in municipal coverage.</span>
       </figcaption>
     </figure>
+  );
+}
+
+
+/* The municipality's ward plate, shared by the desktop relay and the phone's stacked steps. */
+type Muni = NonNullable<ReturnType<typeof buildPlate>>;
+function Plate({ muni, report, lit }: { muni: Muni; report: Report; lit: boolean }) {
+  return (
+    <div className={`rl-plate ${lit ? "is-lit" : ""}`}>
+      <svg viewBox={`0 0 ${PW} ${PH}`} role="img" aria-label={`Areas around ${report.locality}, sized by open requests on the record, with the report's own area marked`}>
+        <defs><clipPath id="rl-frame"><rect width={PW} height={PH} /></clipPath></defs>
+        <g clipPath="url(#rl-frame)">
+          {/* Ripples from the report's area: the reach of one record. */}
+          {[44, 78, 116, 158].map((r, i) => <circle key={r} className={`rl-ripple r${i}`} cx={muni.at[0]} cy={muni.at[1]} r={r} />)}
+          {/* Each mapped area as a dot, larger with more open requests. */}
+          {muni.dots.filter((c) => !c.own).map((c) => <circle key={c.key} className={`rl-dot o${Math.min(c.open, 3)}${c.crit ? " is-crit" : ""}`} cx={c.x} cy={c.y} r={c.r} />)}
+          {muni.dots.filter((c) => c.own).map((c) => <circle key={c.key} className="rl-dot is-own" cx={c.x} cy={c.y} r={Math.max(c.r, 5)} />)}
+          {muni.labels.map((l) => <text key={l.name} x={l.x} y={l.y} className="rl-place">{l.name}</text>)}
+          <g className="rl-scale" transform={`translate(10 ${PH - 12})`}>
+            <path d={`M0 -4V0H${muni.scale.px.toFixed(1)}V-4`} />
+            <text x={muni.scale.px + 5} y="0">{muni.scale.label}</text>
+          </g>
+        </g>
+        {lit && <>
+          <circle className="rl-pulse" cx={muni.at[0]} cy={muni.at[1]} r="9" />
+          <circle className="rl-pin" cx={muni.at[0]} cy={muni.at[1]} r="3" />
+          <path className="rl-leader" d={`M${muni.at[0]} ${muni.at[1]}L${muni.call.x} ${muni.call.y}`} />
+        </>}
+      </svg>
+      <p className={`rl-call ${muni.call.left ? "is-left" : ""}`} style={{ left: `${(muni.call.x / PW) * 100}%`, top: `${(muni.call.y / PH) * 100}%` }}>
+        <small>New · {report.straypawId}</small>
+        <b>{report.condition}</b>
+        <span>{report.locality}</span>
+      </p>
+    </div>
   );
 }
 

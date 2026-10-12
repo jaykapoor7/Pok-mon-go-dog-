@@ -89,8 +89,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* What StrayPaw does for the people doing the care, before the record. */}
-        <CareStory />
+        {/* Reporting on WhatsApp (founding pilot, in development), around the same real request as the relay. */}
+        <CareStory report={story?.relay ?? null} city={story?.hero.city ?? null} />
 
         {/* Right after the hero, the centre of the page: every animal has a
             card. It shows the hero's own count (one source); its own count
