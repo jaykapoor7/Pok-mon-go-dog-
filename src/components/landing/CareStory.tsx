@@ -1,39 +1,48 @@
 "use client";
 
-/* ════════════════════════════════════════════════════════════════════
-   Report on WhatsApp, hear what happened.
-
-   WhatsApp intake is being built for the founding NGO pilot and is not
-   live (docs/CAREOS-INTEGRATION.md: nothing presents it as live until
-   careos_health() says connected). So this section shows the flow as an
-   illustration, labelled as one, built around a real request from the
-   sample city (its condition, locality, date and StrayPaw ID). Every
-   reply in the thread is one of the five notices the backend contract
-   allows (received · team assigned · treated · follow-up · closed): the
-   reporter never gets free text, and NGOs never see their number. The
-   live way to report today is the web form, and the primary action says so.
-
-   The thread fills in once as the phone comes into view. Every message is
-   in the page from the start, so nothing is hidden behind a timer, and
-   under reduced motion it is simply all there.
-   ════════════════════════════════════════════════════════════════════ */
+/* A self-contained product story for StrayPaw's WhatsApp reporting flow.
+   The conversation is built from the same bounded landing-page record as
+   the rest of the page. Motion only explains the order of events: every
+   message remains in the document and is immediately visible when reduced
+   motion is preferred. */
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Check, CheckCheck, MapPin, PhoneOff, Siren, BellRing } from "lucide-react";
+import {
+  ArrowUpRight,
+  BellRing,
+  Camera,
+  Check,
+  CheckCheck,
+  ChevronLeft,
+  LockKeyhole,
+  MapPin,
+  Mic,
+  MoreVertical,
+  Paperclip,
+  Phone,
+  ShieldCheck,
+  Siren,
+  Video,
+} from "lucide-react";
 import { sized } from "@/lib/photo/src";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 
 type Report = { date: string; condition: string; locality: string; straypawId: string; photo?: string | null };
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const at = (iso: string, addDays = 0) => { const d = new Date(Date.parse(iso) + addDays * 86_400_000); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`; };
+const at = (iso: string, addDays = 0) => {
+  const d = new Date(Date.parse(iso) + addDays * 86_400_000);
+  return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`;
+};
 
 const FACTS = [
-  { icon: PhoneOff, t: "Your number stays private", d: "The NGO sees your photo, place and words. Never your phone number." },
-  { icon: Siren, t: "Not an emergency line", d: "The first reply gives local helplines for an animal in danger right now." },
-  { icon: BellRing, t: "Updates only when something happens", d: "Taken on, treated, recheck booked, closed. Nothing else, ever." },
+  { icon: ShieldCheck, t: "Private by design", d: "Partner teams receive the report, not your phone number." },
+  { icon: Siren, t: "Urgency is clear", d: "Safety guidance appears first when an animal may be in danger." },
+  { icon: BellRing, t: "The loop gets closed", d: "You hear when a team takes it on, treats and follows up." },
 ];
+
+const MESSAGE_STEPS = 7;
 
 export function CareStory({ report, city }: { report: Report | null; city: string | null }) {
   const phone = useRef<HTMLDivElement>(null);
@@ -41,76 +50,138 @@ export function CareStory({ report, city }: { report: Report | null; city: strin
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const node = phone.current; if (!node) return;
+    const node = phone.current;
+    if (!node) return;
     setShown(0);
     let timer = 0;
-    const io = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
       io.disconnect();
-      let n = 0;
-      const next = () => { n += 1; setShown(n); if (n < 5) timer = window.setTimeout(next, n === 1 ? 700 : 900); };
-      timer = window.setTimeout(next, 250);
-    }, { threshold: 0.3 });
+      let nextStep = 0;
+      const reveal = () => {
+        nextStep += 1;
+        setShown(nextStep);
+        if (nextStep < MESSAGE_STEPS) {
+          const pause = nextStep === 2 || nextStep === 4 ? 720 : 520;
+          timer = window.setTimeout(reveal, pause);
+        }
+      };
+      timer = window.setTimeout(reveal, 300);
+    }, { threshold: 0.22 });
     io.observe(node);
-    return () => { io.disconnect(); window.clearTimeout(timer); };
+    return () => {
+      io.disconnect();
+      window.clearTimeout(timer);
+    };
   }, []);
 
-  const r = report ?? { date: new Date().toISOString(), condition: "Injured paw", locality: "the market", straypawId: "SP-D-…", photo: null };
+  const r = report ?? {
+    date: new Date().toISOString(),
+    condition: "Injured paw",
+    locality: "the market",
+    straypawId: "SP-D-…",
+    photo: null,
+  };
   const place = [r.locality, city].filter(Boolean).join(", ");
-  const msg = (i: number) => `wa-msg${shown >= i ? " is-in" : ""}`;
+  const message = (step: number, classes: string) => `wa-msg ${classes}${shown >= step ? " is-in" : ""}`;
 
   return (
     <section className="ld-sec ld-sec-bone ld-wa" aria-labelledby="ld-wa-title">
+      <div className="ld-wa-glow" aria-hidden />
       <div className="ld-wa-grid">
         <div className="ld-wa-copy sys-head">
-          <p className="ld-wa-state"><i aria-hidden />WhatsApp · founding NGO pilot · in development</p>
-          <h2 id="ld-wa-title">Report on WhatsApp. <em>Hear what happened.</em></h2>
-          <p className="ld-wa-lede">Send a photo and a place to a partner NGO. Your message becomes a case one person owns, the care is written onto the animal&apos;s StrayPaw record, and you get a short update when it is treated. Not silence.</p>
+          <p className="ld-wa-state"><i aria-hidden />StrayPaw on WhatsApp</p>
+          <h2 id="ld-wa-title">One message. <em>Care in motion.</em></h2>
+          <p className="ld-wa-lede">Share a photo and location in the chat you already use. StrayPaw turns it into a case, routes it to a partner NGO and keeps you with the story until the animal is cared for.</p>
           <ul className="ld-wa-facts">
-            {FACTS.map(({ icon: Icon, t, d }) => <li key={t}><Icon size={18} aria-hidden /><span><b>{t}</b>{d}</span></li>)}
+            {FACTS.map(({ icon: Icon, t, d }, index) => (
+              <li key={t} style={{ ["--fact" as string]: index }}>
+                <span className="ld-wa-fact-icon"><Icon size={18} aria-hidden /></span>
+                <span><b>{t}</b>{d}</span>
+              </li>
+            ))}
           </ul>
           <p className="ld-wa-acts">
-            <Link href="/report" className="sys-btn is-flame">Report on the web today <ArrowUpRight size={15} /></Link>
-            <Link href="/for-ngos" className="ld-wa-link">Bring your NGO into the pilot <ArrowUpRight size={14} /></Link>
+            <Link href="/report" className="sys-btn is-flame">Report a stray animal <ArrowUpRight size={15} /></Link>
+            <Link href="/for-ngos" className="ld-wa-link">Connect your NGO <ArrowUpRight size={14} /></Link>
           </p>
+          <p className="ld-wa-note"><LockKeyhole size={13} aria-hidden /> A report becomes a StrayPaw record. Contact details stay private.</p>
         </div>
 
         <figure className="ld-wa-fig">
+          <div className="wa-orbit" aria-hidden>
+            <span className="wa-orbit-dot is-one" />
+            <span className="wa-orbit-dot is-two" />
+            <span className="wa-orbit-label is-top"><b>01</b> Report received</span>
+            <span className="wa-orbit-label is-bottom"><b>03</b> Care recorded</span>
+          </div>
           <div className="wa-phone" ref={phone} aria-hidden>
-            <div className="wa-top">
-              <span className="wa-av"><StrayPawMark size={18} /></span>
-              <span className="wa-who"><b>StrayPaw · partner NGO</b><small>replies with record updates</small></span>
-            </div>
-            <div className="wa-thread">
-              <p className="wa-day">{at(r.date)}</p>
-              <div className={`${msg(1)} is-out`}>
-                <span className="wa-photo">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={r.photo ? sized(r.photo, 480) : "/pinky-bengaluru.jpg"} alt="" loading="lazy" />
-                </span>
-                <span className="wa-text">{r.condition} near {r.locality}. Still there this morning.</span>
-                <span className="wa-meta">09:12 <CheckCheck size={13} /></span>
+            <span className="wa-button is-silent" />
+            <span className="wa-button is-volume-up" />
+            <span className="wa-button is-volume-down" />
+            <span className="wa-button is-power" />
+            <div className="wa-screen">
+              <div className="wa-status">
+                <span>9:41</span>
+                <span className="wa-island" />
+                <span className="wa-status-icons"><i className="is-signal" /><i className="is-wifi" /><i className="is-battery" /></span>
               </div>
-              <div className={`${msg(2)} is-out is-pin`}>
-                <span className="wa-pin"><MapPin size={15} /><span><b>Location</b>{place}</span></span>
-                <span className="wa-meta">09:12 <CheckCheck size={13} /></span>
+              <div className="wa-top">
+                <ChevronLeft className="wa-back" size={24} />
+                <span className="wa-av"><StrayPawMark size={18} /></span>
+                <span className="wa-who"><b>StrayPaw Care</b><small>with a partner NGO</small></span>
+                <Video size={19} />
+                <Phone size={18} />
+                <MoreVertical size={19} />
               </div>
-              <div className={`${msg(3)} is-in-msg`}>
-                <span className="wa-text">Received: record <b className="wa-id">{r.straypawId}</b>. Not an emergency service; if the animal is in danger now, call a local helpline.</span>
-                <span className="wa-meta">09:12</span>
+              <div className="wa-thread">
+                <p className="wa-encrypted"><LockKeyhole size={9} /> Messages are private and securely routed</p>
+                <p className="wa-day is-first">{at(r.date)}</p>
+                <div className={message(1, "is-out is-photo")}>
+                  <span className="wa-photo">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={r.photo ? sized(r.photo, 480) : "/pinky-bengaluru.jpg"} alt="" loading="lazy" />
+                    <span className="wa-photo-scan" />
+                  </span>
+                  <span className="wa-text">{r.condition} near {r.locality}. Still there this morning.</span>
+                  <span className="wa-meta">09:12 <CheckCheck size={13} /></span>
+                </div>
+                <div className={message(2, "is-out is-pin")}>
+                  <span className="wa-pin">
+                    <span className="wa-pin-map"><i /><MapPin size={16} /></span>
+                    <span><b>Current location</b>{place}</span>
+                  </span>
+                  <span className="wa-meta">09:12 <CheckCheck size={13} /></span>
+                </div>
+                <div className={message(3, "is-in-msg is-received")}>
+                  <span className="wa-kicker"><Check size={11} /> REPORT RECEIVED</span>
+                  <span className="wa-text">We&apos;ve opened record <b className="wa-id">{r.straypawId}</b>. If the animal is in immediate danger, call a local emergency helpline.</span>
+                  <span className="wa-meta">09:13</span>
+                </div>
+                <div className={message(4, "is-in-msg is-assigned")}>
+                  <span className="wa-assignee"><i>RK</i><span><b>A rescue team has taken this on</b><small>One person now owns the case</small></span></span>
+                  <span className="wa-meta">10:40</span>
+                </div>
+                <p className={`wa-day${shown >= 5 ? " is-in" : ""}`}>{at(r.date, 1)}</p>
+                <div className={message(6, "is-in-msg is-good")}>
+                  <span className="wa-good-icon"><Check size={14} /></span>
+                  <span className="wa-text"><b>Treated today.</b> Care is now on the animal&apos;s record. Recheck booked for {at(r.date, 4)}.</span>
+                  <span className="wa-meta">16:05</span>
+                </div>
+                <div className={message(7, "is-in-msg is-followup")}>
+                  <span className="wa-text"><b>Follow-up complete.</b> Recovering well in the same location. Thanks for helping us find them.</span>
+                  <span className="wa-meta">11:26</span>
+                  <span className="wa-heart">♥</span>
+                </div>
               </div>
-              <div className={`${msg(4)} is-in-msg`}>
-                <span className="wa-text">A team has taken this on. One person owns the case.</span>
-                <span className="wa-meta">10:40</span>
+              <div className="wa-compose">
+                <span className="wa-compose-field"><span>Message</span><Paperclip size={17} /><Camera size={17} /></span>
+                <span className="wa-mic"><Mic size={17} /></span>
               </div>
-              <p className={`wa-day${shown >= 5 ? " is-in" : ""}`}>{at(r.date, 1)}</p>
-              <div className={`${msg(5)} is-in-msg is-good`}>
-                <span className="wa-text"><Check size={14} aria-hidden /> Treated today, and on the animal&apos;s record. Recheck booked for {at(r.date, 4)}.</span>
-                <span className="wa-meta">16:05</span>
-              </div>
+              <span className="wa-home" />
             </div>
           </div>
-          <figcaption>Illustration of the pilot&apos;s message flow, around a real {city ?? ""} request ({r.straypawId}). Replies are the only five updates a reporter can receive.</figcaption>
+          <figcaption>A sample StrayPaw conversation based on record {r.straypawId}. The report, ownership and outcome stay connected.</figcaption>
         </figure>
       </div>
     </section>

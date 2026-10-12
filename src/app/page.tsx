@@ -89,7 +89,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Reporting on WhatsApp (founding pilot, in development), around the same real request as the relay. */}
+        {/* WhatsApp reporting, built around the same bounded record as the relay. */}
         <CareStory report={story?.relay ?? null} city={story?.hero.city ?? null} />
 
         {/* Right after the hero, the centre of the page: every animal has a
