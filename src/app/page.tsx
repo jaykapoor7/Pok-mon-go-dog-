@@ -90,7 +90,7 @@ export default async function HomePage() {
         </section>
 
         {/* WhatsApp reporting, built around the same bounded record as the relay. */}
-        <CareStory report={story?.relay ?? null} city={story?.hero.city ?? null} />
+        <CareStory />
 
         {/* Right after the hero, the centre of the page: every animal has a
             card. It shows the hero's own count (one source); its own count

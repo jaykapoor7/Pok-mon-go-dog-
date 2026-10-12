@@ -103,7 +103,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
               as the example it is. */}
           <span className="rl-photo has-img">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={report.photo ? sized(report.photo, 480) : "/pinky-bengaluru.jpg"} alt="" loading="lazy" />
+            <img src={report.photo ? sized(report.photo, 480) : "/seed-dogs/dog3.jpg"} alt="" loading="lazy" />
             {!report.photo && <em className="rl-photo-tag">Example photo</em>}
           </span>
           <p className="rl-field"><small>What you see</small><b className={report.critical ? "is-hot" : ""}>{report.condition}</b></p>
@@ -169,7 +169,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           <p className="rl-sk-h"><span className="rl-sk-n">1</span><b>Resident</b><span>sends it from a phone</span></p>
           <div className="rl-sk-card rl-sk-report">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={report.photo ? sized(report.photo, 240) : "/pinky-bengaluru.jpg"} alt="" loading="lazy" />
+            <img src={report.photo ? sized(report.photo, 240) : "/seed-dogs/dog3.jpg"} alt="" loading="lazy" />
             <span><small>What you see</small><b className={report.critical ? "is-hot" : ""}>{report.condition}</b><small><MapPin size={11} /> {report.locality}</small></span>
             <em><Check size={12} /> Sent</em>
             {!report.photo && <i className="rl-sk-tag">Example photo</i>}
