@@ -39,3 +39,22 @@ Every figure the map shows was checked against direct counts on the public views
 ## Classification guarantees
 
 Each question assigns every area to exactly one class, and the legend counts are those assignments. The headline sentences read the same totals. The city reading's area counts therefore always sum to the city's number of recorded areas (254 in Coimbatore).
+
+## Signed-in organisation map and persona tests (production, 12 Oct 2026)
+
+These ran on www.straypaw.org. The organisation tests used a temporary member login on the "StrayPaw Production QA Demo" organisation, which is in demo mode, with four demo animals and four requests in RS Puram, Coimbatore. Demo rows never reach the public views: public totals stayed at 30,288 · 2,285 · 179 throughout. The login and fixtures were deleted afterwards.
+
+| Check | Result |
+|---|---|
+| Org reads: no token · bad token · member token | 401 · 401 · 200 `private, no-store` |
+| Another organisation's member sees the QA records | No (0 rows); anonymous `org_map_*` is permission denied |
+| Take this case (own organisation's request) | **Was broken:** `claim_case` only took unowned reports. Fixed with `take_case` (own or unowned, only while nobody holds it, always as the signed-in user). Verified on desktop and phone. |
+| Case link from the map | Opens the case file, now showing who holds it |
+| Follow-ups link | Lists the demo dressing change due this week |
+
+| Persona | Task | Result |
+|---|---|---|
+| Resident (phone) | What is happening near me, and how do I help? | Story figures in 1–2 s. **Was broken:** searching a neighbourhood from India found nothing. Localities are now searched nationally, and one search opens the area with all three stories and "Report an animal here". |
+| Municipal official (desktop) | Which wards need attention or coverage? A list for a meeting? | **Was broken:** hotspot links passed the ward as `?q=` and it was dropped. `?place=` now opens the ward's area (1.5 s). Sterilisation coverage by locality, confirmed places, status-review list and CSV download all work. |
+| NGO manager (desktop) | What is unassigned, and who holds what? | Work next in about 3 s, with holders named. "Assign them" opens the register filtered to that locality's unassigned requests. |
+| NGO field worker (phone) | What is next, and can I take it now? | Work next, then area, then Take; the request shows "Held by" at once. |
