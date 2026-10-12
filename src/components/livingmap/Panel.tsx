@@ -147,12 +147,13 @@ function IndiaReading(p: Props) {
   const max = Math.max(1, ...street.map(p.nationalMeasure));
   const work = useMemo(() => (p.q.id === "act" ? nationalWork(p.cities, p.unplaced) : []), [p.q.id, p.cities, p.unplaced]);
   if (p.q.id === "act") {
-    const waiting = p.cities.reduce((s, c) => s + c.open_30, 0), placeless = p.unplaced.reduce((s, u) => s + u.open_cases, 0);
+    const waiting = p.cities.reduce((s, c) => s + c.open_30 - (c.open_30_unconfirmed ?? 0), 0), placeless = p.unplaced.reduce((s, u) => s + u.open_cases, 0);
+    const unconf = p.cities.reduce((s, c) => s + (c.open_unconfirmed ?? 0), 0);
     return (
       <>
         <div className="lm-reading">
-          <p className="lm-lead">{fmt(waiting)} requests for help open more than 30 days{placeless ? `, and ${fmt(placeless)} open requests waiting to be placed on the map` : ""}.</p>
-          <p className="lm-qualify">Open a city to see each place, why it is listed, who holds the record and what can be done.</p>
+          <p className="lm-lead">{fmt(waiting)} {waiting === 1 ? "request" : "requests"} for help confirmed open more than 30 days{placeless ? `, and ${fmt(placeless)} open requests waiting to be placed on the map` : ""}.</p>
+          <p className="lm-qualify">{unconf ? `${fmt(unconf)} more are marked open only in an imported register and have not been confirmed since: reviewing them is on the list. ` : ""}Open a city to see each place, why it is listed, who holds the record and what can be done.</p>
         </div>
         <WorkList items={work} member={p.member} onPick={(w) => w.city && p.onCity(w.city)} cityLabel />
       </>

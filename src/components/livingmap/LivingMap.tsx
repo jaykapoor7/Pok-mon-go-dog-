@@ -346,7 +346,7 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
   /* ── paint: national ────────────────────────────────────────────── */
   const nationalMeasure = useCallback((c: NationalCity) => {
     /* Work next, nationally: what is waiting on someone (the same rules as each city's list). */
-    if (qid === "act") return c.open_30 + c.needs_help + c.status_unknown + (c.unassigned ?? 0);
+    if (qid === "act") return c.open_30 - (c.open_30_unconfirmed ?? 0) + (c.open_unconfirmed ?? 0) + c.needs_help + c.status_unknown + (c.unassigned ?? 0);
     if (qid === "needs") return facet === "followups" ? 0 : c.open_cases;
     if (qid === "care") return facet === "vacc" ? c.vaccinated : facet === "treat" ? c.treatments : c.sterilised;
     return c.animals;
