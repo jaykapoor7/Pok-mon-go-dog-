@@ -103,7 +103,7 @@ export function storyFigures(cells: MapCell[]): Record<StoryId, { big: string; s
   }
   const known = ster + sterNo;
   return {
-    documented: { big: f(animals), small: `animals in ${f(cells.length)} areas · ${animals ? Math.round((exact / animals) * 100) : 0}% placed from a map point` },
+    documented: { big: f(animals), small: `animals in ${f(cells.length)} area${cells.length === 1 ? "" : "s"} · ${animals ? Math.round((exact / animals) * 100) : 0}% placed from a map point` },
     /* Of all animals, the share recorded sterilised; the share not known is named, never counted as "not". */
     care: { big: animals ? `${Math.round((ster / animals) * 100)}%` : "—", small: animals ? `recorded sterilised · ${Math.round((sterUnk / animals) * 100)}% not known${sterNo ? ` · ${f(sterNo)} recorded not` : ""}${care12 ? ` · ${f(care12)} care record${care12 === 1 ? "" : "s"} this year` : ""}` : "no animals on the record" },
     attention: { big: f(confirmed + flagged + missed), small: `confirmed open, flagged or missed${unconf ? ` · ${f(unconf)} more unconfirmed` : ""}` },

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { findAnimals, getMapArea, getMapCities, getMapCity, getOrgMapArea, getOrgMapCities, getOrgMapCity, getUnplaced } from "@/lib/livingmap/server";
+import { findAnimals, findPlaces, getMapArea, getMapCities, getMapCity, getOrgMapArea, getOrgMapCities, getOrgMapCity, getUnplaced } from "@/lib/livingmap/server";
 
 /* The Living Map's public reads: one city's complete area aggregates, or
  * one area's animals and requests. Never anything finer than an H3 area. */
@@ -29,8 +29,11 @@ export async function GET(req: NextRequest) {
     }
   }
   if (q.get("kind") === "find") {
-    try { return NextResponse.json({ animals: await findAnimals(q.get("q") ?? "") }, { headers: { "Cache-Control": "public, s-maxage=120" } }); }
-    catch (error) { console.error("livingmap find failed", error); return NextResponse.json({ animals: [] }, { status: 503 }); }
+    try {
+      const [animals, places] = await Promise.all([findAnimals(q.get("q") ?? ""), findPlaces(q.get("q") ?? "")]);
+      return NextResponse.json({ animals, places }, { headers: { "Cache-Control": "public, s-maxage=120" } });
+    }
+    catch (error) { console.error("livingmap find failed", error); return NextResponse.json({ animals: [], places: [] }, { status: 503 }); }
   }
   if (q.get("kind") === "cities") {
     try { const [cities, unplaced] = await Promise.all([getMapCities(), getUnplaced()]); return NextResponse.json({ cities, unplaced }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400" } }); }

@@ -163,9 +163,8 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
     const want = pendingPlace.current?.trim().toLowerCase();
     if (!want || !data) return;
     pendingPlace.current = null;
-    const hits = data.cells.map((c, i) => ({ c, i })).filter(({ c }) => placeName(c.zone).toLowerCase() === want || (c.zone ?? "").toLowerCase() === want);
-    const best = hits.sort((a, b) => b.c.animals + b.c.cases - (a.c.animals + a.c.cases))[0];
-    if (best && !areaH3) setAreaH3(best.c.h3);
+    const best = bestAreaFor(data.cells, want);
+    if (best && !areaH3) setAreaH3(best);
   }, [data, areaH3]);
 
   /* …and a place given without a city opens the city with the most on the record (an organisation's usual one). */
@@ -552,6 +551,11 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
         onPin={(h3) => setPin(h3)} onPlace={(c) => flyToPlace(c)} onSheet={setSheet}
         member={member} unplaced={unplaced} citiesState={citiesState} scope={scope} clusters={clusters}
         onPrefetch={(c) => prefetchCity(c, scope)}
+        onFoundPlace={(fp) => {
+          if (fp.city === city && data) { const h = bestAreaFor(data.cells, fp.name); if (h) { setAreaH3(h); setAnimalId(null); } }
+          else { pendingPlace.current = fp.name; openCity(fp.city); }
+          setSheet("half");
+        }}
         onFound={(a) => { if (a.city) { setCity(a.city); setAreaH3(a.h3); setAnimalId(a.id); setSheet("full"); } }}
       />
     </div>
@@ -562,6 +566,13 @@ export function LivingMap({ scope = "public", defaultQ = "animals", initialCitie
    not padding: padding given to flyTo stays on the map and would be added
    again to every later fitBounds, framing each city looser than the last. */
 const offsetFor = (p: { top: number; bottom: number; left: number; right: number }): [number, number] => [(p.left - p.right) / 2, (p.top - p.bottom) / 2];
+
+/** A locality's busiest recorded area, by name. */
+function bestAreaFor(cells: MapCell[], name: string): string | null {
+  const want = name.trim().toLowerCase();
+  const hits = cells.filter((c) => placeName(c.zone).toLowerCase() === want || (c.zone ?? "").toLowerCase() === want);
+  return hits.sort((a, b) => b.animals + b.cases - (a.animals + a.cases))[0]?.h3 ?? null;
+}
 
 /** How an area's dots divide, for the question being asked: [count, colour] in centre-out order. */
 function dotParts(c: MapCity["cells"][number], qid: QuestionId, facet: string, orgColor: Map<string, string>): [number, string][] {

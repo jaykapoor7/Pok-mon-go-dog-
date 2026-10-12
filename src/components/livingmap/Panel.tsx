@@ -14,7 +14,7 @@ import { FolkPortrait, portraitCredit } from "@/components/art/FolkPortrait";
 import { KIND_META, cityEvidence, kindOf } from "@/components/spatial/AtlasRegister";
 import { lastActivity, treatments, type Ctx, type Klass, type Question, type QuestionId, type Range } from "@/lib/livingmap/questions";
 import { fmt, placeName, totals, type Locality, type Tally } from "@/lib/livingmap/reading";
-import type { FoundAnimal } from "@/lib/livingmap/server";
+import type { FoundAnimal, FoundPlace } from "@/lib/livingmap/server";
 import type { AreaAnimal, MapArea, MapCell, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
 import { WORK_META, areaWork, cityWork, nationalWork, workCsv, type WorkItem } from "@/lib/livingmap/work";
 import { MapSearch } from "./Search";
@@ -39,7 +39,7 @@ type Props = {
   onQuestion: (id: QuestionId) => void; onFacet: (f: string) => void; onIsolate: (k: string) => void; onRange: (r: Range) => void;
   onCity: (c: string) => void; onIndia: () => void; onArea: (h3: string) => void; onCloseArea: () => void;
   onAnimal: (id: string) => void; onCloseAnimal: () => void; onPin: (h3: string | null) => void; onPlace: (c: [number, number]) => void;
-  onSheet: (s: "peek" | "half" | "full") => void; onFound: (a: FoundAnimal) => void;
+  onSheet: (s: "peek" | "half" | "full") => void; onFound: (a: FoundAnimal) => void; onFoundPlace: (p: FoundPlace) => void;
   /** Touching areas with open or flagged work, joined and named. */
   clusters: Cluster[];
 };
@@ -79,7 +79,7 @@ export function Panel(p: Props) {
 ><i aria-hidden /></button>
       <div className="lm-panel-top">
         <Ladder {...p} />
-        <MapSearch cities={p.cities} places={p.places} city={p.city} onCity={p.onCity} onPlace={(pl) => { const best = pl.cells[0]; if (best !== undefined) p.onArea(p.cells[best].h3); }} onFound={p.onFound} />
+        <MapSearch cities={p.cities} places={p.places} city={p.city} onCity={p.onCity} onPlace={(pl) => { const best = pl.cells[0]; if (best !== undefined) p.onArea(p.cells[best].h3); }} onFound={p.onFound} onFoundPlace={p.onFoundPlace} />
       </div>
       <div className="lm-panel-body" ref={body}>
         <h1 className="lm-title">{title}</h1>
@@ -234,7 +234,7 @@ function CareCoverage({ p }: { p: Props }) {
         {rows.map(({ l, y, n, u, t }) => (
           <li key={l.name}>
             <button type="button" onClick={() => p.onArea(p.cells[l.cells[0]].h3)}>
-              <span className="lm-cov-name"><b>{l.name}</b><small>{fmt(t)} animals · {y + n ? `${Math.round((y / (y + n)) * 100)}% of known` : "status not known"}{u ? ` · ${Math.round((u / t) * 100)}% not known` : ""}</small></span>
+              <span className="lm-cov-name"><b>{l.name}</b><small>{fmt(t)} animals · {Math.round((y / t) * 100)}% recorded sterilised{n ? ` · ${Math.round((n / t) * 100)}% recorded not` : ""}{u ? ` · ${Math.round((u / t) * 100)}% not known` : ""}</small></span>
               <span className="lm-cov-bar" aria-hidden><i className="is-y" style={{ width: pc(y, t) }} /><i className="is-n" style={{ width: pc(n, t) }} /><i className="is-u" style={{ width: pc(u, t) }} /></span>
             </button>
           </li>

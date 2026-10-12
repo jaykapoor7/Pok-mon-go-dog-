@@ -4,28 +4,31 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Search as SearchIcon, MapPin, PawPrint, Building2 } from "lucide-react";
 import type { Locality } from "@/lib/livingmap/reading";
 import type { NationalCity } from "@/lib/livingmap/types";
-import type { FoundAnimal } from "@/lib/livingmap/server";
+import type { FoundAnimal, FoundPlace } from "@/lib/livingmap/server";
 
 type Hit = { key: string; kind: "city" | "place" | "animal"; label: string; sub: string; go: () => void };
 
 /* One search for the whole map: cities, the open city's localities, and
  * animals by StrayPaw tag or given name. Arrow keys move, Enter opens. */
-export function MapSearch({ cities, places, city, onCity, onPlace, onFound }: {
+export function MapSearch({ cities, places, city, onCity, onPlace, onFound, onFoundPlace }: {
   cities: NationalCity[]; places: Locality[]; city: string | null;
   onCity: (c: string) => void; onPlace: (p: Locality) => void; onFound: (a: FoundAnimal) => void;
+  /** A locality in any city (from the national search). */
+  onFoundPlace: (p: FoundPlace) => void;
 }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [found, setFound] = useState<FoundAnimal[]>([]);
+  const [foundPlaces, setFoundPlaces] = useState<FoundPlace[]>([]);
   const [at, setAt] = useState(0);
   const list = useId();
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = q.trim();
-    if (t.length < 3) { setFound([]); return; }
+    if (t.length < 3) { setFound([]); setFoundPlaces([]); return; }
     const id = window.setTimeout(() => {
-      fetch(`/api/livingmap?kind=find&q=${encodeURIComponent(t)}`).then((r) => r.json()).then((j) => setFound(j.animals ?? [])).catch(() => setFound([]));
+      fetch(`/api/livingmap?kind=find&q=${encodeURIComponent(t)}`).then((r) => r.json()).then((j) => { setFound(j.animals ?? []); setFoundPlaces(j.places ?? []); }).catch(() => { setFound([]); setFoundPlaces([]); });
     }, 220);
     return () => window.clearTimeout(id);
   }, [q]);
@@ -36,9 +39,11 @@ export function MapSearch({ cities, places, city, onCity, onPlace, onFound }: {
     const out: Hit[] = [];
     for (const c of cities) if (c.city.toLowerCase().includes(t)) out.push({ key: `c:${c.city}`, kind: "city", label: c.city, sub: `${c.animals.toLocaleString("en-IN")} records${c.state ? ` · ${c.state}` : ""}`, go: () => onCity(c.city) });
     for (const p of places) if (p.name.toLowerCase().includes(t)) out.push({ key: `p:${p.name}`, kind: "place", label: p.name, sub: `${city} · ${p.animals.toLocaleString("en-IN")} animals`, go: () => onPlace(p) });
+    /* Localities in other cities (the open city's are listed above, from its own record). */
+    for (const p of foundPlaces) if (!(p.city === city && places.some((l) => l.name === p.name))) out.push({ key: `fp:${p.city}:${p.name}`, kind: "place", label: p.name, sub: `${p.city} · ${p.animals.toLocaleString("en-IN")} animals`, go: () => onFoundPlace(p) });
     for (const a of found) out.push({ key: `a:${a.id}`, kind: "animal", label: a.title, sub: [a.zone?.split(",")[0], a.city].filter(Boolean).join(" · "), go: () => onFound(a) });
     return out.slice(0, 12);
-  }, [q, cities, places, found, city, onCity, onPlace, onFound]);
+  }, [q, cities, places, found, foundPlaces, city, onCity, onPlace, onFound, onFoundPlace]);
 
   useEffect(() => setAt(0), [q]);
   useEffect(() => {

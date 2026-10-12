@@ -8,6 +8,7 @@ import { getSupabase } from "@/lib/supabase";
 import { animalTitle, describeAnimal } from "@/lib/animal-name";
 import { isSensitivePhoto } from "@/lib/sensitive-photo";
 import { canonicalCity, cityVariants, getPublicSpatialCities } from "@/lib/spatial/server";
+import { placeName } from "./reading";
 import { monthIndex, type NationalCity, type Unplaced, type AreaAnimal, type AreaCase, type EvidenceKind, type MapArea, type MapCell, type MapCity, type MonthRow } from "./types";
 
 /** The atlas's evidence kinds (kept in step with AtlasRegister.cityEvidence). */
@@ -170,6 +171,25 @@ export async function findAnimals(query: string): Promise<FoundAnimal[]> {
   if (error) throw error;
   return ((data ?? []) as { id: string; name: string | null; straypaw_id: string | null; city: string | null; zone: string | null; h3_r8: string | null }[])
     .map((a) => ({ id: a.id, title: animalTitle(a), city: a.city ? canonicalCity(a.city) : null, zone: a.zone, h3: a.h3_r8 }));
+}
+
+export type FoundPlace = { city: string; name: string; animals: number };
+/** Localities anywhere on the public record whose name matches: a resident can
+ *  search their neighbourhood without knowing which city register holds it. */
+export async function findPlaces(query: string): Promise<FoundPlace[]> {
+  const supa = getSupabase();
+  const q = query.trim().replace(/[%,()*]/g, "").slice(0, 40);
+  if (!supa || q.length < 3) return [];
+  const { data, error } = await supa.from("public_spatial_animals").select("city,zone").ilike("zone", `%${q}%`).not("h3_r8", "is", null).limit(1000);
+  if (error) throw error;
+  const by = new Map<string, FoundPlace>();
+  for (const r of (data ?? []) as { city: string | null; zone: string | null }[]) {
+    const name = placeName(r.zone), city = r.city ? canonicalCity(r.city) : null;
+    if (!name || !city || !name.toLowerCase().includes(q.toLowerCase())) continue;
+    const k = `${city}:${name}`, x = by.get(k) ?? { city, name, animals: 0 };
+    x.animals += 1; by.set(k, x);
+  }
+  return [...by.values()].sort((a, b) => b.animals - a.animals).slice(0, 6);
 }
 
 async function readUnplaced(): Promise<Unplaced[]> {
