@@ -13,6 +13,7 @@ import type { RegisterPlateData } from "@/components/landing/RegisterPlate";
 import { Relay } from "@/components/landing/Relay";
 import { getAnimalRegister, getLandingStory } from "@/lib/landing/story";
 import { CareStory } from "@/components/landing/CareStory";
+import { LandingMotion } from "@/components/landing/LandingMotion";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
@@ -69,6 +70,7 @@ export default async function HomePage() {
   return (
     <div className="sp field-site product-site ld">
       <PageView name="landing_view" />
+      <LandingMotion />
       <SiteHeader tone="night" />
       <main>
         <section className="ld-hero" aria-labelledby="hero-title">
@@ -99,7 +101,7 @@ export default async function HomePage() {
         {/* 3. One report, three screens — the system, one record the whole way. */}
         {story?.relay && (
           <section className="ld-sec ld-sec-shell" aria-labelledby="ld-relay-title">
-            <header className="sys-head">
+            <header className="sys-head" data-ld-reveal="head">
               <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
               <p>A real request in {story.hero.city} moves from resident report to NGO queue to municipal view without losing its identity.</p>
             </header>
@@ -119,20 +121,19 @@ export default async function HomePage() {
           />
         )}
 
-        {/* WhatsApp is the access layer for the same record. Its feature
-            story and messaging are intentionally preserved as-is. */}
+        {/* WhatsApp is the live access layer for the same record. */}
         <CareStory />
 
         {/* 5. Resident / NGO / Municipality — who the record serves. */}
         <section className="ld-sec ld-sec-shell ld-audience" aria-labelledby="ld-audience-title">
           <div className="ld-scale">
-            <header className="sys-head">
+            <header className="sys-head" data-ld-reveal="head">
               <p className="ld-section-kicker sys-mono">One shared record</p>
               <h2 id="ld-audience-title">Useful at <em>every scale.</em></h2>
             </header>
             <ol className="ld-levels">
               {LEVELS.map((l, i) => (
-                <li key={l.level} style={{ ["--i" as string]: i }}>
+                <li key={l.level} data-ld-reveal="item" style={{ ["--i" as string]: i }}>
                   <Link href={l.href}>
                     <ScaleGlyph level={l.level} />
                     <span className="ld-lv-text">

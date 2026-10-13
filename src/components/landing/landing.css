@@ -232,6 +232,43 @@
 
 }
 
+/* Persistent reveals for the chapters between the hero and close. These
+   are triggered once by LandingMotion, rather than tied to a view timeline,
+   so a section can never return to an invisible pre-entry frame. */
+@media (prefers-reduced-motion: no-preference) {
+  .ld.ld-motion-ready [data-ld-reveal] {
+    transition:
+      opacity .8s var(--sp-ease),
+      transform .9s var(--sp-ease),
+      clip-path .9s var(--sp-ease),
+      filter .9s var(--sp-ease);
+  }
+  .ld.ld-motion-ready [data-ld-reveal="head"]:not(.is-revealed) {
+    opacity: .22;
+    transform: translateY(34px);
+    clip-path: inset(0 0 72% 0);
+  }
+  .ld.ld-motion-ready [data-ld-reveal="stage"]:not(.is-revealed) {
+    opacity: .48;
+    transform: perspective(1400px) translateY(48px) rotateX(5deg) scale(.965);
+    filter: saturate(.72);
+  }
+  .ld.ld-motion-ready [data-ld-reveal="rail"]:not(.is-revealed) {
+    opacity: .35;
+    transform: translateX(-34px);
+  }
+  .ld.ld-motion-ready [data-ld-reveal="item"]:not(.is-revealed) {
+    opacity: .2;
+    transform: translateY(24px);
+    /* Keep part of the box in the observer's intersection area; a fully
+       clipped element cannot trigger its own reveal in Chromium. */
+    clip-path: inset(0 72% 0 0);
+  }
+  .ld.ld-motion-ready [data-ld-reveal="item"] {
+    transition-delay: calc(var(--i, 0) * 110ms);
+  }
+}
+
 @keyframes ld-lift { to { transform: translateY(-18vh); opacity: 0; } }
 @keyframes ld-recede { to { transform: scale(1.08); opacity: 0.35; } }
 @keyframes ld-fade-out { to { opacity: 0; } }
@@ -258,7 +295,7 @@
 /* ── One request, followed to the end: the dive ────────────────────
    The section is tall and its stage holds still while it scrolls; the
    plate is drawn night, like the hero it continues from. */
-.ld-dive { position: relative; height: 420svh; background: var(--sp-night); color: var(--sp-night-text); }
+.ld-dive { position: relative; height: 360svh; background: var(--sp-night); color: var(--sp-night-text); }
 .ld-dive-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
 
 .ld-dive-panel { position: absolute; left: var(--sp-gutter); top: 50%; transform: translateY(-50%); width: min(440px, 40vw); display: grid; gap: var(--sp-4); }
@@ -287,7 +324,7 @@
 .ld-dive-note { margin: 0; padding-top: var(--sp-3); border-top: 1px solid var(--sp-night-line); font-size: 13px; line-height: 1.5; color: var(--sp-night-dim); }
 
 @media (max-width: 760px) {
-  .ld-dive { height: 380svh; }
+  .ld-dive { height: 320svh; }
   .ld-dive-panel { left: var(--sp-4); right: var(--sp-4); top: auto; bottom: var(--sp-4); transform: none; width: auto; gap: var(--sp-3); padding-top: var(--sp-4); background: var(--sp-night); }
   .ld-dive h2 { font-size: 22px; }
   .ld-dive-day b { font-size: 48px; }
@@ -974,7 +1011,7 @@ html .ld .ld-wa::before { display: none; }
 
 /* Every event has its own motion: send, scan, locate, route, assign, treat, close. */
 @media (prefers-reduced-motion: no-preference) {
-  .wa-phone { animation: wa-device-in .85s var(--sp-ease) both, wa-device-float 6s ease-in-out 1.2s infinite; }
+  .ld-wa-fig.is-revealed .wa-phone { animation: wa-device-in .85s var(--sp-ease) both, wa-device-float 6s ease-in-out 1.2s infinite; }
   .wa-msg:not(.is-in), .wa-day:not(.is-in):not(.is-first) { opacity: 0; transform: translateY(9px) scale(.96); }
   .wa-msg.is-out.is-in { animation: wa-send .48s cubic-bezier(.18, .85, .24, 1.2) both; }
   .wa-msg.is-in-msg.is-in { animation: wa-reply .46s cubic-bezier(.2, .8, .2, 1) both; }

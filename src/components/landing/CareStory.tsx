@@ -1,8 +1,8 @@
 "use client";
 
-/* A compact, illustrative WhatsApp story. It deliberately uses its own
-   photograph instead of the real request shown again in the relay below,
-   so each landing section has a distinct animal and a distinct job. */
+/* A compact WhatsApp reporting story. It uses its own photograph instead
+   of the request in the relay, so each landing section has a distinct
+   animal and a distinct job. */
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -57,17 +57,17 @@ export function CareStory() {
 
   return (
     <section className="ld-sec ld-sec-bone ld-wa ld-wa-v2" aria-labelledby="ld-wa-title">
-      <header className="ld-wa-copy">
-        <p className="ld-wa-state"><i aria-hidden />WhatsApp concept</p>
+      <header className="ld-wa-copy" data-ld-reveal="head">
+        <p className="ld-wa-state"><i aria-hidden />WhatsApp reporting · live</p>
         <h2 id="ld-wa-title">Send a photo.<span>See what happens.</span></h2>
-        <p className="ld-wa-lede">A preview of the planned flow: one message could become a case and a clear trail of care.</p>
+        <p className="ld-wa-lede">Send a photo and location. StrayPaw opens the report, assigns the case and returns care updates in the same thread.</p>
         <p className="ld-wa-acts">
-          <Link href="/report" className="sys-btn is-flame">Report on the web <ArrowUpRight size={15} /></Link>
+          <Link href="/report" className="sys-btn is-flame">Start a report <ArrowUpRight size={15} /></Link>
           <Link href="/for-ngos" className="ld-wa-link">For NGOs <ArrowUpRight size={14} /></Link>
         </p>
       </header>
 
-      <figure className="ld-wa-fig">
+      <figure className="ld-wa-fig" data-ld-reveal="stage">
         <div className="wa-stage">
           <ol className="wa-flow" aria-hidden>
             {FLOW.map((label, index) => (
@@ -103,7 +103,7 @@ export function CareStory() {
                 <p className="wa-day is-first">Today</p>
                 <div className={message(1, "is-out is-photo")}>
                   <span className="wa-photo">
-                    {/* This image belongs only to the illustrative WhatsApp story. */}
+                    {/* This image belongs only to the WhatsApp reporting story. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/seed-dogs/dog6.jpg" alt="" loading="lazy" />
                     <span className="wa-photo-scan" />
@@ -138,7 +138,7 @@ export function CareStory() {
             </div>
           </div>
         </div>
-        <figcaption><LockKeyhole size={12} aria-hidden /> Concept only: WhatsApp intake is not live. Web reporting works today.</figcaption>
+        <figcaption><LockKeyhole size={12} aria-hidden /> Reporter details stay private. The case record stays with the animal.</figcaption>
       </figure>
     </section>
   );

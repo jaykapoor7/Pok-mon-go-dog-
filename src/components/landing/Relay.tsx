@@ -82,7 +82,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
   const sent = step >= 1;
 
   return (
-    <figure ref={el} className={`rl is-s${step}`} aria-label={`One real request from ${city}, ${report.condition} in ${report.locality} on ${day(report.date)}, record ${report.straypawId}: reported by a resident, worked by an NGO and visible to the municipality.`}>
+    <figure ref={el} className={`rl is-s${step}`} data-ld-reveal="stage" aria-label={`One real request from ${city}, ${report.condition} in ${report.locality} on ${day(report.date)}, record ${report.straypawId}: reported by a resident, worked by an NGO and visible to the municipality.`}>
       <ol className="rl-steps" aria-hidden="true">
         {STEPS.map((s, i) => <li key={s} className={i === screen ? "is-on" : i < screen ? "is-past" : ""} style={{ ["--hold" as string]: `${i === 0 ? HOLD[0] + HOLD[1] : i === 1 ? HOLD[2] : HOLD[3]}ms` }}><i />{s}<b className="rl-fill" /></li>)}
       </ol>

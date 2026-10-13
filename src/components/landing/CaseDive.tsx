@@ -90,17 +90,19 @@ export function CaseDive({ j, city, box, rings, events, note }: {
   const pathEls = useRef<(SVGPathElement | null)[]>([]);
   const ringEl = useRef<SVGCircleElement>(null);
   const actEl = useRef<HTMLDivElement>(null);
-  const [calm, setCalm] = useState(true);
-  const [t, setT] = useState({ step: steps.length - 1, day: j.days, arrived: true });
+  const [calm, setCalm] = useState(false);
+  const [t, setT] = useState({ step: 0, day: 0, arrived: false });
   const hasCare = steps.some((x) => x.key === "c");
   const careWords = j.care.kinds.map((k) => CARE_WORD[k] ?? k.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
 
   useEffect(() => {
-    /* Keep the full story composed in one viewport. The former scroll-led
-       version created several screens of dead space between sections. */
-    const reduce = true;
-    setCalm(true);
-    setT({ step: steps.length - 1, day: j.days, arrived: true });
+    /* The map dive and case timeline follow the reader's scroll. People who
+       request reduced motion get the complete final record in one frame. */
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setCalm(true);
+      setT({ step: steps.length - 1, day: j.days, arrived: true });
+    }
     let map: MLMap | null = null, dead = false, raf = 0;
     let from: { center: [number, number]; zoom: number } | null = null;
     const padOf = () => {

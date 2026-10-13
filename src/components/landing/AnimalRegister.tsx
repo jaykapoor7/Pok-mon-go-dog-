@@ -199,13 +199,13 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
   return (
     <section ref={setEl} className={`rx${calm ? " is-calm" : ""}`} aria-labelledby="rx-title">
       {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
-      <div className="rx-rail">
+      <div className="rx-rail" data-ld-reveal="rail">
         <p className="rx-kicker sys-mono">The register<span className="rx-live" aria-hidden /></p>
         <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs on file. <span className="rx-lbl">Every one gets a profile like&nbsp;this.</span></h2>
         <Link href="/map" className="rx-cta">Live map <ArrowUpRight size={14} aria-hidden /></Link>
       </div>
 
-      <div className="rx-stage">
+      <div className="rx-stage" data-ld-reveal="stage">
         <div className="rx-crowd" role="group" aria-label={`More of the ${fmt(total)} dogs on the register`}>
           <Band cards={bands[0]} depth="mid" dir="r" featId={cur.id} />
           <Band cards={bands[1]} depth="front" dir="l" featId={cur.id} />
