@@ -52,6 +52,8 @@ export function AnimalsClient() {
   const [animals, setAnimals] = useState<OrgAnimal[]>([]);
   const [zones, setZones] = useState<{ zone: string; n: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [zonesError, setZonesError] = useState(false);
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
   const [page, setPage] = useState(0);
@@ -94,6 +96,7 @@ export function AnimalsClient() {
   };
   const load = () => {
     setLoading(true);
+    setLoadError(null);
     return orgAnimals({
       search: q,
       ster: (ster || null) as OrgAnimal["sterilisation_status"] | null,
@@ -107,6 +110,7 @@ export function AnimalsClient() {
       offset: page * PAGE_SIZE,
     })
       .then(setAnimals)
+      .catch((e: unknown) => { setAnimals([]); setLoadError(e instanceof Error ? e.message : "The animal register could not be loaded."); })
       .finally(() => setLoading(false));
   };
 
@@ -117,7 +121,7 @@ export function AnimalsClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, ster, vacc, zone, from, to, needsOnly, page, ready, isAuthed]);
 
-  useEffect(() => { if (isAuthed) orgZones().then(setZones).catch(() => undefined); }, [isAuthed]);
+  useEffect(() => { if (isAuthed) orgZones().then((data) => { setZones(data); setZonesError(false); }).catch(() => { setZones([]); setZonesError(true); }); }, [isAuthed]);
   useEffect(() => { setPage(0); }, [q, ster, vacc, zone, from, to, needsOnly]);
 
   const rows = animals;
@@ -134,9 +138,9 @@ export function AnimalsClient() {
         title="The identity register."
         lede="Documented profiles, source identities and longitudinal care. A StrayPaw ID identifies this record; imported profiles are not proof of unique animals."
         figures={[
-          { label: filtered ? "profiles match these filters" : "profiles on your record", value: loading && !animals.length ? null : total },
+          { label: filtered ? "profiles match these filters" : "profiles on your record", value: loading || loadError ? null : total },
           /* The locality list is read up to 1,000 names; past that, say so. */
-          { label: "localities", value: zones.length >= 1000 ? "1,000+" : zones.length || null, tone: "quiet" },
+          { label: "localities", value: zonesError ? null : zones.length >= 1000 ? "1,000+" : zones.length || null, tone: "quiet" },
         ]}
         actions={<>
           <button type="button" onClick={() => setCreating((v) => !v)} className="dk-btn"><Plus size={16} /> New animal</button>
@@ -179,7 +183,7 @@ export function AnimalsClient() {
           </button>
         )}
       </div>
-      <p className="pa-filter-note">S: sterilisation. R: rabies vaccination. “?” means not recorded, not a verified absence of care.</p></aside><section className="pa-ledger" aria-label="Animal identity register">
+      <p className="pa-filter-note">S: sterilisation. R: rabies vaccination. “?” means not recorded, not a verified absence of care.{zonesError ? " The locality filter could not load; no locality total is shown." : ""}</p></aside><section className="pa-ledger" aria-label="Animal identity register">
 
       {!loading && !signedOut && (
         <p className="mb-3 text-[12.5px] text-bark-500">
@@ -190,7 +194,9 @@ export function AnimalsClient() {
         </p>
       )}
 
-      {signedOut ? (
+      {loadError ? (
+        <div className="ws-state" role="alert"><b>Animals could not load.</b><p>No failed query has been shown as an empty register. <button type="button" className="ws-linkbtn" onClick={load}>Try again</button></p></div>
+      ) : signedOut ? (
         <p className="rounded-lg border border-dashed border-black/[0.1] py-16 text-center text-[14px] text-bark-400">Animals load once you sign in with your organisation&apos;s code.</p>
       ) : loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-5 w-5 animate-spin text-paw-500" /></div>

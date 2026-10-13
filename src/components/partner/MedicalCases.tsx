@@ -22,12 +22,15 @@ const isMedical = (c: Case) =>
 
 export function MedicalCases() {
   const [cases, setCases] = useState<Case[] | null>(null);
+  const [error, setError] = useState(false);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
+    setCases(null); setError(false);
     getPartnerCases()
       .then((c) => setCases(c))
-      .catch(() => setCases([]));
-  }, []);
+      .catch(() => { setError(true); setCases([]); });
+  }, [reload]);
 
   const medical = (cases ?? [])
     .filter(isMedical)
@@ -43,6 +46,8 @@ export function MedicalCases() {
       </div>
     );
   }
+
+  if (error) return <div className="ws-state" role="alert"><b>Medical cases could not load.</b><p>No failed query has been shown as an empty list. <button type="button" className="ws-linkbtn" onClick={() => setReload((n) => n + 1)}>Try again</button></p></div>;
 
   if (medical.length === 0) {
     return (

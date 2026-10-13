@@ -3,11 +3,12 @@
 /* ════════════════════════════════════════════════════════════════════
    Care Inbox. Everything waiting for a decision, in one place.
 
-   WhatsApp messages arrive through the CareOS backend (built separately;
+   Resident reports are live work and appear first. WhatsApp messages arrive
+   through the CareOS backend (built separately;
    see docs/CAREOS-INTEGRATION.md). Until its RPCs exist the inbox says
    plainly that WhatsApp is not connected; it never shows an empty list as
    if nothing were waiting. Resident reports from the web (live today) sit
-   below, through the existing Incoming queue.
+   in their own channel, through the existing Incoming queue.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
@@ -97,13 +98,13 @@ export function CareInbox({ children }: { children: ReactNode }) {
   if (!user || !member) return <div className="ws-state"><b>The Care Inbox belongs to an organisation.</b><p>Sign in as a member of your NGO to see what is waiting for your team. <Link href="/join">Sign in with your code</Link></p></div>;
   return (
     <div className="ws">
-      <section className="ws-group" aria-labelledby="ib-wa">
-        <header><h2 id="ib-wa">WhatsApp <span className="ws-tag">Planned</span></h2><p>Not connected. The backend must be deployed and tested before this opens.</p></header>
-        <WhatsAppQueue />
-      </section>
       <section className="ws-group" aria-labelledby="ib-web">
         <header><h2 id="ib-web">Resident reports</h2><p>Reports sent through StrayPaw, waiting for your team to decide.</p></header>
         {children}
+      </section>
+      <section className="ws-group" aria-labelledby="ib-wa">
+        <header><h2 id="ib-wa">WhatsApp <span className="ws-tag">Planned</span></h2><p>A separate intake channel for messages once the CareOS backend is connected and tested.</p></header>
+        <WhatsAppQueue />
       </section>
     </div>
   );

@@ -48,16 +48,18 @@ function careNeed(tags: string[] | null) {
 }
 
 export function IncomingClient() {
-  const [source, setSource] = useState<"ours" | "community">("ours");
+  const [source, setSource] = useState<"ours" | "community">("community");
   const [rows, setRows] = useState<Incoming[] | null>(null);
   const [drives, setDrives] = useState<CampaignStats[]>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [driveId, setDriveId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
   async function load() {
+    setLoadError(null);
     const [r, d] = await Promise.all([orgIncoming(source), orgCampaigns(false)]);
     setRows(r);
     setDrives(d);
@@ -67,7 +69,7 @@ export function IncomingClient() {
 
   useEffect(() => {
     setRows(null);
-    load().catch(() => setRows([]));
+    load().catch((e) => { setLoadError(e instanceof Error ? e.message : "The report queue could not be loaded."); setRows([]); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
 
@@ -144,7 +146,9 @@ export function IncomingClient() {
           : "Reports from people on the street. Take one on only when your team can own the next step; filing it starts a traceable record in the right drive."}
       </p>
 
-      {source === "community" && rows !== null && (
+      {loadError && <div className="ws-state" role="alert"><b>Resident reports could not load.</b><p>No failed query has been shown as an empty queue. <button type="button" className="ws-linkbtn" onClick={() => { setRows(null); load().catch((e) => { setLoadError(e instanceof Error ? e.message : "The report queue could not be loaded."); setRows([]); }); }}>Try again</button></p></div>}
+
+      {!loadError && source === "community" && rows !== null && (
         <section className="inc-intake" aria-label="Community report overview">
           <div><HeartPulse size={18} aria-hidden /><span>Needs a first look</span></div>
           <b>{careRows.length}</b>
@@ -152,7 +156,7 @@ export function IncomingClient() {
         </section>
       )}
 
-      {drives.length === 0 ? (
+      {!loadError && (drives.length === 0 ? (
         <div className="spa-empty">
           <Inbox size={40} strokeWidth={1.25} />
           <h2>Make a drive first</h2>
@@ -185,12 +189,12 @@ export function IncomingClient() {
             {drive ? ` into ${drive.name}` : ""}
           </button>
         </div>
-      )}
+      ))}
 
       {error && <p className="res-error">{error}</p>}
       {note && <p className="inc-note">{note}</p>}
 
-      {rows === null ? (
+      {!loadError && (rows === null ? (
         <div className="spa-empty">
           <Loader2 size={26} className="imp-spin" />
           <p>Loading…</p>
@@ -262,7 +266,7 @@ export function IncomingClient() {
             })}
           </ul>
         </>
-      )}
+      ))}
     </>
   );
 }

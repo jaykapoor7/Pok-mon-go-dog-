@@ -58,12 +58,14 @@ export function InviteCodesClient() {
     emailed: boolean;
   } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
 
   async function load() {
     const [t, p, v] = await Promise.all([
       orgTeamCodes(),
       myProfile(),
-      orgReportingVolunteers().catch(() => []),
+      orgReportingVolunteers(),
     ]);
     setRows(t);
     setProfile(p);
@@ -71,8 +73,9 @@ export function InviteCodesClient() {
   }
 
   useEffect(() => {
-    load().catch(() => setRows([]));
-  }, []);
+    setRows(null); setLoadError(false);
+    load().catch(() => { setLoadError(true); setRows([]); });
+  }, [reload]);
 
   async function add() {
     if (!name.trim() || !email.trim()) return;
@@ -112,6 +115,8 @@ export function InviteCodesClient() {
   }
 
   const canAddStaff = profile?.is_lead !== false;
+
+  if (loadError) return <div className="ws-state" role="alert"><b>Team access could not load.</b><p>No failed query has been shown as an empty team. <button type="button" className="ws-linkbtn" onClick={() => setReload((n) => n + 1)}>Try again</button></p></div>;
 
   return (
     <>

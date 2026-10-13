@@ -47,8 +47,10 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
   const [query, setQuery] = useState(""), [filter, setFilter] = useState(initialFilter), [locality, setLocality] = useState(""), [year, setYear] = useState(""), [status, setStatus] = useState(""), [subtype, setSubtype] = useState(""), [sort, setSort] = useState("newest"), [page, setPage] = useState(1);
   const [asking, setAsking] = useState<string | null>(null), [busy, setBusy] = useState<string | null>(null), [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [selected, setSelected] = useState<PartnerRecordRow | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
 
-  useEffect(() => { getPartnerRecordRows().then(setRows).catch(() => setRows([])); myProfile().then((p) => setLead(Boolean(p.is_lead))).catch(() => {}); }, []);
+  useEffect(() => { setRows(null); setLoadError(false); getPartnerRecordRows().then(setRows).catch(() => { setLoadError(true); setRows([]); }); myProfile().then((p) => setLead(Boolean(p.is_lead))).catch(() => {}); }, [reload]);
 
   const options = useMemo(() => {
     const r = rows ?? [];
@@ -98,6 +100,8 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
     } finally { setBusy(null); setAsking(null); }
   }
 
+  if (loadError) return <section className="rec"><div className="ws-state" role="alert"><b>Source records could not load.</b><p>No failed query has been shown as an empty register. <button type="button" className="ws-linkbtn" onClick={() => setReload((n) => n + 1)}>Try again</button></p></div></section>;
+
   return (
     <section className="rec">
       <div className="rec-find">
@@ -146,7 +150,6 @@ export function PartnerRecordExplorer({ initialFilter = "all" }: { initialFilter
       </div>
 
       {notice && <p className={`rec-notice ${notice.ok ? "is-ok" : "is-bad"}`} role="status">{notice.text}</p>}
-
       <div className="rec-list">
         <div className="rec-head" aria-hidden="true"><span>Date</span><span>Record</span><span>Animal and detail</span><span>Location</span><span>Status</span><span /></div>
         {rows !== null && visible.length === 0 ? (

@@ -38,7 +38,9 @@ export function StorageNotice() {
   const [show, setShow] = useState(false);
   /* Not over a report being written: on a phone it would sit on the send
      bar. It shows on the next page instead. */
-  const reporting = (usePathname() ?? "").startsWith("/report");
+  const pathname = usePathname() ?? "";
+  const reporting = pathname.startsWith("/report");
+  const inApp = pathname === "/app" || pathname === "/map" || pathname === "/insights" || pathname === "/stories" || pathname === "/following" || pathname === "/join" || pathname === "/partner-apply" || pathname.startsWith("/partner");
 
   useEffect(() => {
     /* Every storage read is wrapped: it throws in private mode and under
@@ -65,11 +67,9 @@ export function StorageNotice() {
   if (!show || reporting) return null;
 
   return (
-    <aside className="snotice" role="region" aria-label="How this site stores data">
+    <aside className={`snotice${inApp ? " is-app" : ""}`} role="region" aria-label="How this site stores data">
       <p>
-        StrayPaw stores one random ID in your browser so return visits are not
-        counted twice. It does not use tracking cookies or track you across
-        other sites, and nothing is shared with anyone else. <Link href="/cookies">What is stored</Link>.
+        {inApp ? <>StrayPaw stores one random browser ID to avoid double-counting visits. No tracking cookies, cross-site tracking or data sharing. <Link href="/cookies">Details</Link>.</> : <>StrayPaw stores one random ID in your browser so return visits are not counted twice. It does not use tracking cookies or track you across other sites, and nothing is shared with anyone else. <Link href="/cookies">What is stored</Link>.</>}
       </p>
       <div className="snotice-actions">
         <button type="button" className="snotice-ok" onClick={() => close(false)}>

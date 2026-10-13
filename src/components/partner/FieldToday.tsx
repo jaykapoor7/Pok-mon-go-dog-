@@ -131,12 +131,12 @@ export function FieldToday() {
           {due.length ? (
             <>
               {current.length ? <ol className="ft-list">{current.slice(0, 10).map(item)}</ol> : <p className="ft-quiet">Nothing due this week, and nothing late from the last three months.</p>}
-              {current.length > 10 && <Link href="/partner/records?view=overdue" className="ft-more">All {current.length} in the register <ArrowUpRight size={14} /></Link>}
+              {current.length > 10 && <Link href="/partner/followups?view=all" className="ft-more">All {current.length} scheduled follow-ups <ArrowUpRight size={14} /></Link>}
               {historical.length > 0 && (
                 <details className="ft-fold">
                   <summary><b>{historical.length}</b> imported follow-up date{historical.length === 1 ? "" : "s"} · source history, not today&rsquo;s queue</summary>
                   <ol className="ft-list">{historical.slice(0, 8).map((f) => <li key={f.id}><Link href={f.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/followups"}><time className="sys-mono">{day(f.due_at)}</time><span><b>{f.animal_name || f.straypaw_id || "Animal identity not recorded"}</b><small>{[f.zone, "Historical import · review source date"].filter(Boolean).join(" · ")}</small></span><ArrowUpRight size={14} /></Link></li>)}</ol>
-                  <Link href="/partner/followups" className="ft-more">Review historical dates separately <ArrowUpRight size={14} /></Link>
+                  <Link href="/partner/followups?view=historical" className="ft-more">Review historical dates separately <ArrowUpRight size={14} /></Link>
                 </details>
               )}
             </>

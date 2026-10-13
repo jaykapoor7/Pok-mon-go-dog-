@@ -12,7 +12,8 @@ const DAY=86400000;
 export function DataQualityClient(){
  const [animals,setAnimals]=useState<Awaited<ReturnType<typeof getMyAnimals>>|null>(null);
  const [records,setRecords]=useState<PartnerRecordRow[]|null>(null);
- useEffect(()=>{Promise.all([getMyAnimals(),getPartnerRecordRows()]).then(([a,r])=>{setAnimals(a);setRecords(r)}).catch(()=>{setAnimals([]);setRecords([])})},[]);
+ const [error,setError]=useState(false),[reload,setReload]=useState(0);
+ useEffect(()=>{setError(false);setAnimals(null);setRecords(null);Promise.all([getMyAnimals(),getPartnerRecordRows()]).then(([a,r])=>{setAnimals(a);setRecords(r)}).catch(()=>{setError(true);setAnimals([]);setRecords([])})},[reload]);
  const issues=useMemo(()=>{
   if(!animals||!records)return null;
   const now=Date.now(),outcomeByCase=new Set(records.filter(r=>r.kind==="outcome"&&r.caseId).map(r=>r.caseId!));
@@ -30,6 +31,7 @@ export function DataQualityClient(){
   return {missingPermanentId,missingSourceCode,missingLocality,staleOpen,completedNoOutcome,careNoFollow,suspiciousDates};
  },[animals,records]);
  if(!issues)return <div className="flex justify-center py-20"><Loader2 className="h-5 w-5 animate-spin"/></div>;
+ if(error)return <div className="ws-state" role="alert"><b>Data quality queues could not load.</b><p>No failed query has been shown as zero issues. <button type="button" className="ws-linkbtn" onClick={()=>setReload(n=>n+1)}>Try again</button></p></div>;
  const rows=[
   {title:"Animals missing StrayPaw ID",count:issues.missingPermanentId.length,detail:"Permanent identity is missing. Run the rollout migration before relying on cross-register search or exports.",href:"/partner/animals"},
   {title:"Animals missing source ID",count:issues.missingSourceCode.length,detail:"The StrayPaw profile still exists, but this record cannot be matched cleanly back to an NGO spreadsheet, clinic register or tag.",href:"/partner/animals"},

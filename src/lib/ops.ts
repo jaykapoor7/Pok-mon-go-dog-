@@ -25,6 +25,20 @@ export type DueFollowup = {
   case_code: string | null; case_title: string | null; condition_class: string | null; assignee_name: string | null;
   animal_name: string | null; straypaw_id: string | null; zone: string | null; city: string | null;
 };
+type FollowupProvenance = Pick<DueFollowup, "case_id" | "kind" | "import_batch_id" | "import_source_key"> & {
+  case_provenance?: string | null;
+  animal_provenance?: string | null;
+};
+
+/** One definition used by every visible follow-up cohort. A historical source
+ * date remains reviewable, but can never become current scheduled work. */
+export const isHistoricalFollowup = (f: FollowupProvenance) => Boolean(
+  f.import_batch_id
+  || f.import_source_key
+  || /^imported(?:$|[\s_-])/i.test(f.kind ?? "")
+  || f.case_provenance === "imported_historical_record"
+  || (!f.case_id && f.animal_provenance === "imported_historical_record")
+);
 export type Change = { id: string; title: string | null; condition_class: string | null; status_class: string | null; closure_reason: string | null; animal_name: string | null; zone: string | null; last_activity_at: string | null };
 
 export async function openCases(): Promise<OpenCase[]> {
@@ -61,7 +75,7 @@ export async function dueFollowups(): Promise<DueFollowup[]> {
   return base.map((f) => {
     const c = f.case_id ? cases.get(f.case_id) : null;
     const a = f.dog_id ? animals.get(f.dog_id) : c?.dog_id ? animals.get(c.dog_id) : null;
-    const historical = Boolean(f.import_batch_id || f.import_source_key || /^imported\b/i.test(f.kind ?? "") || c?.provenance === "imported_historical_record" || (!f.case_id && a?.provenance === "imported_historical_record"));
+    const historical = isHistoricalFollowup({ ...f, case_provenance: c?.provenance, animal_provenance: a?.provenance });
     return {
       ...f,
       source: historical ? "historical_import" : "scheduled",
@@ -80,32 +94,34 @@ export async function dueFollowups(): Promise<DueFollowup[]> {
 /** Exact organisation totals for the dashboard tiles. The queue above lists a
  * bounded page of rows; these counts are authoritative (head-only, RLS-scoped),
  * so a tile never reports the 800-row page cap as the organisation's total. */
-export type OpsCounts = { currentOpen: number; liveWork: number; quiet: number; historicalOpen: number; historicalReview: number; overdueScheduled: number; critical: number };
+export type OpsCounts = { currentOpen: number; liveWork: number; quiet: number; historicalOpen: number; historicalReview: number; overdueScheduled: number; dueWeekScheduled: number; historicalFollowups: number; critical: number };
 export async function opsCounts(): Promise<OpsCounts | null> {
   const supa = getSupabase();
   if (!supa) return null;
   const now = Date.now();
   const ninety = new Date(now - 90 * DAY).toISOString();
   const thirty = new Date(now - 30 * DAY).toISOString();
-  const nowIso = new Date(now).toISOString();
   const criticalConditions = ["Road accident", "Maggot wound", "Human abuse", "Dog bite", "Entrapment", "Suspected rabies"];
   const current = "provenance.is.null,provenance.neq.imported_historical_record,reviewed_at.not.is.null";
-  const [openRes, quietRes, historicalRes, historicalReviewRes, overdueRes, criticalRes] = await Promise.all([
+  const [openRes, quietRes, historicalRes, historicalReviewRes, followupRes, criticalRes] = await Promise.all([
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current),
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current).lt("occurred_at", ninety).or(`last_activity_at.is.null,last_activity_at.lt.${thirty}`),
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).eq("provenance", "imported_historical_record").is("reviewed_at", null),
     supa.rpc("org_historical_review_queue", undefined, { count: "exact", head: true }),
-    supa.from("animal_followups").select("id", { count: "exact", head: true }).eq("status", "upcoming").not("case_id", "is", null).lt("due_at", nowIso),
+    supa.rpc("org_followup_scope_counts").maybeSingle(),
     supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current).in("condition_class", criticalConditions),
   ]);
-  if ([openRes, quietRes, historicalRes, historicalReviewRes, overdueRes, criticalRes].some((r) => r.error)) throw new Error("Organisation workload counts could not be read.");
+  if ([openRes, quietRes, historicalRes, historicalReviewRes, followupRes, criticalRes].some((r) => r.error)) throw new Error("Organisation workload counts could not be read.");
+  const followupCounts = followupRes.data as { scheduled_overdue?: number | string; scheduled_due_week?: number | string; historical_upcoming?: number | string } | null;
   const currentOpen = openRes.count ?? 0, quiet = quietRes.count ?? 0;
   return {
     currentOpen,
     quiet,
     historicalOpen: historicalRes.count ?? 0,
     historicalReview: historicalReviewRes.count ?? 0,
-    overdueScheduled: overdueRes.count ?? 0,
+    overdueScheduled: Number(followupCounts?.scheduled_overdue ?? 0),
+    dueWeekScheduled: Number(followupCounts?.scheduled_due_week ?? 0),
+    historicalFollowups: Number(followupCounts?.historical_upcoming ?? 0),
     critical: criticalRes.count ?? 0,
     liveWork: Math.max(0, currentOpen - quiet),
   };

@@ -217,7 +217,7 @@ export function CaseRegister() {
 
   return (
     <main className="cr">
-      <Head count={lensCount} historical={scope?.historicalOpen ?? historicalRows.length} review={(scope?.historicalReview ?? historicalRows.length) + (scope?.currentQuiet ?? lensCount.quiet) + (counts?.reasonless ?? 0)} />
+      <Head count={lensCount} historical={scope?.historicalOpen ?? historicalRows.length} historicalReview={scope?.historicalReview ?? historicalRows.length} />
       {error && <p className="cr-note" role="alert">Some case records could not be loaded. No missing result has been shown as zero. Refresh to try again.</p>}
       {loadedOpenRows.length >= OPEN_REGISTER_LIMIT && <p className="cr-note">The board and lists show the {OPEN_REGISTER_LIMIT} oldest loaded records. Lens totals are exact across the organisation; search checks the whole register.</p>}
 
@@ -311,7 +311,7 @@ export function CaseRegister() {
   );
 }
 
-function Head({ count, historical, review }: { count?: Record<string, number>; historical?: number; review?: number }) {
+function Head({ count, historical, historicalReview }: { count?: Record<string, number>; historical?: number; historicalReview?: number }) {
   return (
     <DeskHeader
       kicker="Cases"
@@ -319,7 +319,7 @@ function Head({ count, historical, review }: { count?: Record<string, number>; h
       lede={count ? `${count.open.toLocaleString("en-IN")} current open cases. ${historical?.toLocaleString("en-IN") ?? "—"} imported open statuses stay in review until a person confirms them.` : "Your organisation’s working record of requests for help: triage, inspect and act, with the evidence kept together."}
       actions={<>
         <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} /> New case</Link>
-        <Link href="/partner/review" className="dk-btn is-tint">Case review{review ? ` · ${review}` : ""} <ArrowUpRight size={14} /></Link>
+        <Link href="/partner/review?tab=historical" className="dk-btn is-tint">Imported decisions{historicalReview ? ` · ${historicalReview}` : ""} <ArrowUpRight size={14} /></Link>
       </>}
     />
   );

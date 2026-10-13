@@ -63,6 +63,8 @@ export function ResourcesClient() {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
 
   const [kind, setKind] = useState<DocumentKind>("register_page");
   const [editing, setEditing] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export function ResourcesClient() {
     const [d, a, c] = await Promise.all([
       orgDocuments(),
       getMyAnimals(),
-      getPartnerCases().catch(() => [] as Case[]),
+      getPartnerCases(),
     ]);
     setDocs(d);
     setAnimals(a);
@@ -80,12 +82,13 @@ export function ResourcesClient() {
 
   useEffect(() => {
     let live = true;
-    load().catch(() => live && setDocs([]));
+    setDocs(null); setLoadError(false);
+    load().catch(() => { if (live) { setLoadError(true); setDocs([]); } });
     return () => {
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [reload]);
 
   async function onFiles(files: FileList | null) {
     if (!files?.length || busy) return;
@@ -138,6 +141,8 @@ export function ResourcesClient() {
   }, [docs, q, byId, caseById]);
 
   const unfiled = docs?.filter((d) => !d.dog_id && !d.case_id).length ?? 0;
+
+  if (loadError) return <div className="ws-state" role="alert"><b>Resources could not load.</b><p>No failed query has been shown as an empty library. <button type="button" className="ws-linkbtn" onClick={() => setReload((n) => n + 1)}>Try again</button></p></div>;
 
   return (
     <>

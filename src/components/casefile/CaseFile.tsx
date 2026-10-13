@@ -14,7 +14,6 @@
 
 import { DeskHeader } from "@/components/app/DeskHeader";
 import { CASE_CATEGORY_META } from "@/lib/types";
-import { WorkTrail, type TrailStep } from "@/components/partner/WorkTrail";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Camera, Check, ExternalLink, Loader2, LogIn, MapPin, Send } from "lucide-react";
@@ -103,19 +102,9 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
     ? <>Reported {day(reg.occurred_at)}{intake ? <> through {intake.toLowerCase().replace(/^the /, "the ")}</> : null}. Open for <b className={stale ? "is-hot" : ""}>{span(age)}</b>{quiet > 30 ? <>; nothing recorded for <b className="is-hot">{span(quiet)}</b></> : <>; last touched {quiet === 0 ? "today" : `${span(quiet)} ago`}</>}.</>
     : <>Reported {day(reg.occurred_at)}{intake ? <> through {intake.toLowerCase()}</> : null}. {cls === "closed" ? "Closed" : STATUS_META[cls]?.label ?? "Closed"}{closedClamped && !assumed ? <> {day(closedClamped)}{closedDays ? <>, after <b>{span(closedDays)}</b></> : null}</> : assumed ? <>: the import could not say when</> : null}.</>;
 
-  const dogHref = c.dog_id ? `/partner/animals/${c.dog_id}` : null;
-  const cared = Boolean(reg.first_action_at) || file.updates.length > 0;
-  const done: TrailStep[] = ["dashboard", ...(dogHref ? ["animal" as const] : []), ...(cared ? ["care" as const] : []), ...(!open ? ["outcome" as const] : [])];
-  const trailNext = !dogHref ? { label: "Link the animal", href: "/partner/animals" }
-    : open && !cared ? { label: "Record care on the animal", href: `${dogHref}#org-care` }
-    : open ? { label: "Decide the outcome", href: "#cf-next" }
-    : null;
-
   return (
     <main className="cf">
-      <WorkTrail at="case" done={done} next={trailNext}
-        links={{ dashboard: "/partner", animal: dogHref ?? "/partner/animals", care: dogHref ? `${dogHref}#org-care` : undefined, outcome: "#cf-next" }} />
-      <nav className="cf-desk-nav" aria-label="Case workspace"><Link href="/partner/cases">← Case desk</Link><div><a href="#cf-section-01">Record</a><a href="#cf-section-02">Care</a><a href="#cf-section-03">History</a><a href="#cf-section-04">Place</a><a className="cf-decision-jump" href="#cf-next">Next decision <ArrowUpRight size={14} /></a></div></nav>
+      <nav className="cf-desk-nav" aria-label="Case workspace"><Link href="/partner/cases">← Case desk</Link><div><a href="#cf-section-01">Record</a><a href="#cf-section-02">Care</a><a href="#cf-section-03">Timeline</a><a href="#cf-section-04">Place</a><a className="cf-decision-jump" href="#cf-next">Next decision <ArrowUpRight size={14} /></a></div></nav>
       <header className="cf-mast">
         <div className="cf-id">
           <p className="cf-kicker">
@@ -132,17 +121,17 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
         <AnimalCard file={file} />
       </header>
 
-      <CaseClock opened={reg.occurred_at} firstAction={reg.first_action_at} lastActivity={c.last_activity_at} open={open}
-        closedAt={closedClamped} closedHow={closedHow}
-        closeLabel={closedHow === "assumed" ? "Closed · date not recorded" : `Closed ${closedClamped ? day(closedClamped) : ""}`}
-        updates={file.updates} followups={file.followups} />
-
       <dl className="cf-known">
         <Fact t="First action" v={reg.first_action_at ? (() => { const d = Math.max(0, Math.round((Date.parse(reg.first_action_at) - Date.parse(reg.occurred_at)) / DAY)); return d === 0 ? "Same day" : `After ${span(d)}`; })() : null} w={reg.first_action_at ? day(reg.first_action_at) : "No first action recorded"} />
         <Fact t="With" v={c.assignee_name} w={c.assignee_name ? (c.assignee_id ? "Assigned in StrayPaw" : "") : open ? "Nobody has taken it" : ""} hot={open && !c.assignee_name} />
         <Fact t="Follow-ups" v={file.followups.length ? `${file.followups.filter((f) => f.status === "done").length} of ${file.followups.length} done` : null} w={(() => { const m = file.followups.filter((f) => f.status === "missed" || (f.status === "upcoming" && Date.parse(f.due_at) < now)).length; return m ? `${m} missed or overdue` : file.followups.length ? "None missed" : "None planned"; })()} hot={file.followups.some((f) => f.status === "missed" || (f.status === "upcoming" && Date.parse(f.due_at) < now))} />
         <Fact t="Care" v={reg.hospital || (c.resolution ? c.resolution[0].toUpperCase() + c.resolution.slice(1) : null)} w={reg.hospital ? "Hospital or clinic" : c.resolution ? "Resolution" : ""} />
       </dl>
+
+      <CaseClock opened={reg.occurred_at} firstAction={reg.first_action_at} lastActivity={c.last_activity_at} open={open}
+        closedAt={closedClamped} closedHow={closedHow}
+        closeLabel={closedHow === "assumed" ? "Closed · date not recorded" : `Closed ${closedClamped ? day(closedClamped) : ""}`}
+        updates={file.updates} followups={file.followups} />
 
       <div className="cf-body">
         <aside className="cf-side">
@@ -165,7 +154,7 @@ function Loaded({ file, reload }: { file: File_; reload: () => Promise<void> }) 
             <Medical file={file} reload={reload} />
           </Section>
 
-          <Section n="03" title="History" lede={file.updates.length ? `${file.updates.length} ${file.updates.length === 1 ? "entry" : "entries"} since the case was opened in StrayPaw.` : "Nothing has been written into this case since it arrived."}>
+          <Section n="03" title="Timeline" lede="Report, action, care, follow-up and outcome in one chronology.">
             <History file={file} closedAt={closedClamped} assumed={assumed} />
           </Section>
 
@@ -306,6 +295,7 @@ function History({ file, closedAt, assumed }: { file: File_; closedAt: string | 
     const what = u.type === "status_changed" ? `moved it from ${STATUS_WORD[u.from_status ?? ""] ?? "—"} to ${STATUS_WORD[u.to_status ?? ""] ?? "—"}` : u.type === "assigned" ? (u.note ?? "reassigned the case").replace(/^Assigned/, "assigned it") : VERB[u.type] ?? u.type;
     rows.push({ k: u.id, at: Date.parse(u.created_at), who: u.actor_name ?? "Someone", what, note: u.type === "note" || u.type === "status_changed" ? u.note : null, tone: /closed/.test(u.note ?? "") || u.to_status === "closed" ? "hot" : undefined });
   }
+  for (const m of file.medical) rows.push({ k: `m${m.id}`, at: Date.parse(m.event_date), who: m.performed_by, what: `${m.kind.replace(/_/g, " ")} recorded`, note: m.notes, tone: "blue" });
   for (const f of file.followups) if (f.status === "done" || f.status === "missed") rows.push({ k: `f${f.id}`, at: Date.parse(f.completed_at ?? f.due_at), who: null, what: f.status === "done" ? "Follow-up done" : "Follow-up missed", note: f.note, tone: f.status === "missed" ? "hot" : "blue" });
   if (closedAt && !file.updates.some((u) => u.to_status === "closed" || u.to_status === "resolved")) {
     rows.push({ k: "close", at: Date.parse(closedAt), who: null, what: assumed ? "Closed (the import could not say when; drawn at the report date)" : "Closed on the register", note: reg.closure_reason && reg.closure_reason !== "unspecified" ? CLOSURE_META[reg.closure_reason as ClosureReason]?.label : null });

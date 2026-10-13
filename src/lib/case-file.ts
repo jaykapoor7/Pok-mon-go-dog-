@@ -38,12 +38,13 @@ export type CaseRegister = {
 };
 export type CaseAnimal = { name: string | null; straypaw_id: string | null; photo: string | null };
 export type CaseFollowupRow = { id: string; due_at: string; status: string; kind: string | null; note: string | null; completed_at: string | null };
+export type CaseMedicalRow = { id: string; kind: string; event_date: string; notes: string | null; performed_by: string | null; created_at: string };
 export type Neighbour = {
   id: string; case_code: string | null; title: string | null; condition_class: string | null; status_class: string | null;
   closure_reason: string | null; occurred_at: string | null; animal_name: string | null; dog_id: string | null;
 };
 export type CaseFile = {
-  c: Case; reg: CaseRegister; animal: CaseAnimal | null; updates: CaseUpdate[]; followups: CaseFollowupRow[];
+  c: Case; reg: CaseRegister; animal: CaseAnimal | null; updates: CaseUpdate[]; followups: CaseFollowupRow[]; medical: CaseMedicalRow[];
   neighbours: Neighbour[]; sameAnimal: Neighbour[];
 };
 
@@ -52,13 +53,16 @@ const NFIELDS = "id,case_code,title,condition_class,status_class,closure_reason,
 export async function loadCaseFile(id: string): Promise<CaseFile | null> {
   const supa = getSupabase();
   if (!supa) return null;
-  const [{ data: row, error }, { data: ups }, { data: fus }, { data: facts }] = await Promise.all([
+  const [caseRes, updatesRes, followupsRes, factsRes, medicalRes] = await Promise.all([
     supa.from("cases").select(COLS).eq("id", id).maybeSingle(),
     supa.from("case_updates").select("id,case_id,actor_id,actor_name,type,from_status,to_status,note,created_at").eq("case_id", id).order("created_at", { ascending: false }).limit(200),
     supa.from("animal_followups").select("id,due_at,status,kind,note,completed_at").eq("case_id", id).order("due_at", { ascending: false }).limit(100),
     supa.from("org_case_facts").select("occurred_at,animal_name,straypaw_id,cover_photo").eq("id", id).maybeSingle(),
+    supa.from("medical_events").select("id,kind,event_date,notes,performed_by,created_at").eq("case_id", id).order("event_date", { ascending: false }).limit(200),
   ]);
-  if (error) throw new Error(error.message);
+  const failed = [caseRes, updatesRes, followupsRes, factsRes, medicalRes].find((result) => result.error);
+  if (failed?.error) throw new Error(failed.error.message);
+  const { data: row } = caseRes, { data: ups } = updatesRes, { data: fus } = followupsRes, { data: facts } = factsRes, { data: medical } = medicalRes;
   if (!row) return null;
   const r = row as unknown as Record<string, unknown>;
   const f = (facts ?? null) as { occurred_at: string | null; animal_name: string | null; straypaw_id: string | null; cover_photo: string | null } | null;
@@ -75,17 +79,19 @@ export async function loadCaseFile(id: string): Promise<CaseFile | null> {
   const [near, same] = await Promise.all([
     reg.h3_r8
       ? supa.from("org_case_facts").select(NFIELDS).eq("h3_r8", reg.h3_r8).neq("id", id).order("occurred_at", { ascending: false }).limit(60)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
     c.dog_id
       ? supa.from("org_case_facts").select(NFIELDS).eq("dog_id", c.dog_id).neq("id", id).order("occurred_at", { ascending: false }).limit(20)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
   ]);
+  if (near.error || same.error) throw new Error(near.error?.message ?? same.error?.message ?? "Related cases could not be read.");
 
   return {
     c, reg,
     animal: c.dog_id ? { name: f?.animal_name ?? null, straypaw_id: f?.straypaw_id ?? null, photo: f?.cover_photo ?? null } : null,
     updates: (ups ?? []).reverse().map(mapUpdate),
     followups: (fus ?? []).reverse() as CaseFollowupRow[],
+    medical: (medical ?? []).reverse() as CaseMedicalRow[],
     neighbours: (near.data ?? []) as Neighbour[],
     sameAnimal: (same.data ?? []) as Neighbour[],
   };

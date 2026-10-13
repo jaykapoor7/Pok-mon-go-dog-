@@ -21,13 +21,17 @@ export function MedicalClient() {
 function CareLedger() {
   const [events, setEvents] = useState<PartnerMedicalEvent[] | null>(null);
   const [filter, setFilter] = useState("all");
+  const [error, setError] = useState(false);
+  const [reload, setReload] = useState(0);
 
-  useEffect(() => { getPartnerMedicalEvents().then(setEvents).catch(() => setEvents([])); }, []);
+  useEffect(() => { setEvents(null); setError(false); getPartnerMedicalEvents().then(setEvents).catch(() => { setError(true); setEvents([]); }); }, [reload]);
 
   const kinds = useMemo(() => Array.from(new Set((events ?? []).map((event) => event.kind))), [events]);
   const visible = filter === "all" ? (events ?? []) : (events ?? []).filter((event) => event.kind === filter);
 
   if (events === null) return <div className="spa-empty"><Loader2 size={26} className="imp-spin" /><p>Loading…</p></div>;
+
+  if (error) return <div className="ws-state" role="alert"><b>Care history could not load.</b><p>No failed query has been shown as an empty ledger. <button type="button" className="ws-linkbtn" onClick={() => setReload((n) => n + 1)}>Try again</button></p></div>;
 
   if (events.length === 0) {
     return <div className="spa-empty"><Stethoscope size={40} strokeWidth={1.25} /><h2>No care events recorded yet</h2><p>Log treatment, vaccination or sterilisation from an animal record. Only your organisation&apos;s work appears here.</p></div>;

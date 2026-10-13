@@ -717,6 +717,9 @@ h1 em, h2 em, h3 em { font-style: normal; }
 .snotice-ok { background: var(--sp-ink); color: var(--sp-bone); }
 .snotice-off { background: var(--ctl-tint); color: #1f4bb8; }
 .snotice-off:hover { background: var(--ctl-tint-hover); }
+.snotice.is-app { padding: 12px 14px; border-radius: 14px; box-shadow: 0 10px 30px -20px rgba(11, 30, 61, 0.35); }
+.snotice.is-app p { margin-bottom: 10px; font-size: 12.5px; line-height: 1.45; }
+.snotice.is-app .snotice-actions button { min-height: 36px; padding-inline: 14px; }
 
 @media (max-width: 900px) {
   .snotice { max-width: none; }
@@ -728,7 +731,7 @@ h1 em, h2 em, h3 em { font-style: normal; }
   body:has(.sx.sd) .snotice { left: 264px; right: auto; width: min(460px, calc(100vw - 280px)); }
 }
 @media (max-width: 760px) {
-  body:has(.sx.sd) .snotice { bottom: calc(80px + env(safe-area-inset-bottom)); }
+  body:has(.sx.sd) .snotice { left: 8px; right: 8px; bottom: calc(70px + env(safe-area-inset-bottom)); }
 }
 
 /* Keep onboarding and sign-in readable without stacked install/storage prompts. */

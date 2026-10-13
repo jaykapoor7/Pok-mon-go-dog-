@@ -28,15 +28,17 @@ const LENSES: { id: Measure; label: string; tone: MapTone }[] = [
   { id: "sterilised", label: "Care", tone: "teal" },
 ];
 
-export function CommunityDash({ stories, availableCities = [], defaultCity = null }: { stories: PublicCaseStory[]; availableCities?: { city: string; state: string | null }[]; defaultCity?: string | null }) {
+export function CommunityDash({ stories, storiesError = null, availableCities = [], defaultCity = null }: { stories: PublicCaseStory[]; storiesError?: string | null; availableCities?: { city: string; state: string | null }[]; defaultCity?: string | null }) {
   const router = useRouter();
-  const { ds, city, cities, loading } = useSpatialDataset("public");
-  const { cells, names } = useCityCells(city, ds);
+  const { ds, city, cities, loading, error: spatialError } = useSpatialDataset("public");
+  const { cells, names, error: cellsError, retry: retryCells } = useCityCells(city, ds);
   const { place, locating, choose, locate } = usePlace();
   const { ids: follows } = useFollows();
   const [lens, setLens] = useState<Measure>("animals");
   const [sel, setSel] = useState<string | null>(null);
   const [near, setNear] = useState<PAnimal[] | null>(null);
+  const [nearError, setNearError] = useState<string | null>(null);
+  const [nearReload, setNearReload] = useState(0);
   const [note, setNote] = useState<string | null>(null);
   const row = cities.find((c) => c.city === city) ?? null;
   /* All cities on the record, so a city's figure is never mistaken for the country's. */
@@ -55,10 +57,10 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
     const keys: string[] = [];
     for (let i = 0; i < ds.cells.length; i++) if (kmBetween(centre, [ds.centers[i * 2], ds.centers[i * 2 + 1]]) <= RADIUS) keys.push(ds.cells[i]);
     if (!keys.length) { setNear([]); return; }
-    let live = true; setNear(null);
-    fetch(`/api/spatial/patch?cells=${keys.slice(0, 80).join(",")}`).then((r) => (r.ok ? r.json() : { animals: [] })).then((j) => { if (live) setNear(j.animals ?? []); }).catch(() => { if (live) setNear([]); });
+    let live = true; setNear(null); setNearError(null);
+    fetch(`/api/spatial/patch?cells=${keys.slice(0, 80).join(",")}`).then(async (r) => { if (!r.ok) throw new Error((await r.json().catch(() => null))?.error ?? "Could not load nearby records."); return r.json(); }).then((j) => { if (live) setNear(j.animals ?? []); }).catch((e: Error) => { if (live) { setNearError(e.message); setNear([]); } });
     return () => { live = false; };
-  }, [ds, centre]);
+  }, [ds, centre, nearReload]);
 
   const options = useMemo<PlaceOption[]>(() => {
     const out: PlaceOption[] = [];
@@ -91,7 +93,7 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
     <Dashboard
       eyebrow={<><MapPin size={14} aria-hidden /> {place ? "Your place" : `Most recently active city${defaultCity ? "" : ""}`} · {row?.state ?? ""}</>}
       title={<>Around <em>{placeLabel ?? "…"}</em></>}
-      subtitle={note ?? "Recorded animals, requests and care around you. Counts are records, never a population."}
+      subtitle={note ?? spatialError ?? "Recorded animals, requests and care around you. Counts are records, never a population."}
       controls={<div className="db-place"><PlaceSearch options={options} onPick={pick} label="Change place" placeholder="Change place…" /><button type="button" className="x-btn" onClick={findMe} disabled={locating}><Crosshair size={15} aria-hidden /> {locating ? "Locating…" : "Near me"}</button></div>}
       kpis={[
         { label: "Animals on record", value: row?.animals, note: `${city ?? ""} · all sources`, href: `/map?city=${encodeURIComponent(city ?? "")}` },
@@ -101,13 +103,15 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
         { label: "Vaccinated, all India", value: india.vaccinated, tone: "care", note: `${city ?? "This city"}: ${fmtN(row?.vaccinated)}`, href: "/explore#care" },
         { label: "You follow", value: follows?.length ?? 0, href: "/following", note: "Saved on this device" },
       ]}
-      map={<LiveMap pin={selCell ? <CellCard h3={selCell.h3_r8} title={names.get(selCell.h3_r8) ?? "This area"} facts={`${fmtN(selCell.animals)} animals · ${fmtN(selCell.open_cases)} open requests · ${fmtN(selCell.needs_help)} flagged`} href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`} linkLabel="Open this area on the map" focus={focus} onClose={() => { setSel(null); setFocus(null); }} /> : null} cells={mapCells} tone={L.tone} metric={MEASURE_LABEL[lens]} label={`${city}: ${MEASURE_LABEL[lens]} by cell`} viewport={vp} dotFocus={lens === "needs_help" || lens === "open_cases" ? "hot" : "all"} selected={sel} onCell={(h, id) => { setSel(h); setFocus(id ?? null); }} emptyNote={loading ? "Reading the city…" : `No ${MEASURE_LABEL[lens]} recorded here.`}>
+      map={<LiveMap pin={selCell ? <CellCard h3={selCell.h3_r8} title={names.get(selCell.h3_r8) ?? "This area"} facts={`${fmtN(selCell.animals)} animals · ${fmtN(selCell.open_cases)} open requests · ${fmtN(selCell.needs_help)} flagged`} href={`/map?city=${encodeURIComponent(city ?? "")}&cell=${selCell.h3_r8}`} linkLabel="Open this area on the map" focus={focus} onClose={() => { setSel(null); setFocus(null); }} /> : cellsError ? <div className="db-selcard" role="alert"><b>Map cells could not load.</b><p>No failed query is shown as zero.</p><button type="button" className="x-btn" onClick={retryCells}>Try again</button></div> : null} cells={mapCells} tone={L.tone} metric={MEASURE_LABEL[lens]} label={`${city}: ${MEASURE_LABEL[lens]} by cell`} viewport={vp} dotFocus={lens === "needs_help" || lens === "open_cases" ? "hot" : "all"} selected={sel} onCell={(h, id) => { setSel(h); setFocus(id ?? null); }} emptyNote={loading ? "Reading the city…" : cellsError ? "Map data could not be read." : `No ${MEASURE_LABEL[lens]} recorded here.`}>
         <MapChips value={lens} options={LENSES} onChange={setLens} label="Map measure" />
         <Link href={`/map?city=${encodeURIComponent(city ?? "")}`} className="db-maplink">Open full map <ArrowUpRight size={14} aria-hidden /></Link>
       </LiveMap>}
       side={<>
         <Panel title="Needs someone near you" note={`Flagged animals within ${RADIUS} km`} count={near ? hot.length : undefined} action={{ label: "Report a dog", href: centre ? `/report?lat=${centre[1]}&lng=${centre[0]}` : "/report" }}>
-          {near === null ? (
+          {nearError ? (
+            <div className="db-empty" role="alert"><p>Nearby records could not load. No failed query is shown as an empty area. <button type="button" className="ws-linkbtn" onClick={() => setNearReload((n) => n + 1)}>Try again</button></p></div>
+          ) : near === null ? (
             <div className="db-reclist" aria-busy="true">{[0, 1, 2].map((i) => <span key={i} className="db-skel" />)}</div>
           ) : hot.length ? (
             <div className="db-reclist">{hot.slice(0, 6).map((a) => <AnimalTile key={a.id} a={a} size="row" />)}</div>
@@ -116,7 +120,7 @@ export function CommunityDash({ stories, availableCities = [], defaultCity = nul
           )}
         </Panel>
         <Panel title="Followed through" action={{ label: "Stories", href: `/stories${city ? `?city=${encodeURIComponent(city)}` : ""}` }}>
-          <Feed items={feed} empty="No recent outcomes are published for this city." />
+          {storiesError ? <div className="db-empty" role="alert"><p>Recent outcomes could not load. No failed query is shown as an empty history. <button type="button" className="ws-linkbtn" onClick={() => router.refresh()}>Try again</button></p></div> : <Feed items={feed} empty="No recent outcomes are published for this city." />}
         </Panel>
       </>}
     >

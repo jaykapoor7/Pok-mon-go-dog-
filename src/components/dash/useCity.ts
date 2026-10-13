@@ -14,23 +14,26 @@ export type Measure = "animals" | "needs_help" | "open_cases" | "sterilised" | "
  *  sample), named by the loaded geometry's recorded localities. */
 export function useCityCells(city: string | null, ds: SpatialDataset | null, scopeHeaders?: HeadersInit, scope: "public" | "org" = "public") {
   const [cells, setCells] = useState<CityCell[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
   useEffect(() => {
-    if (!city) { setCells(null); return; }
+    if (!city) { setCells(null); setError(null); return; }
     let live = true;
     setCells(null);
+    setError(null);
     fetch(`/api/spatial?kind=cells&city=${encodeURIComponent(city)}${scope === "org" ? "&scope=org" : ""}&v=3`, { headers: scopeHeaders })
-      .then((r) => (r.ok ? r.json() : { cells: [] }))
+      .then(async (r) => { if (!r.ok) throw new Error((await r.json().catch(() => null))?.error ?? "Could not load the map cells."); return r.json(); })
       .then((j) => { if (live) setCells(j.cells ?? []); })
-      .catch(() => { if (live) setCells([]); });
+      .catch((e: Error) => { if (live) { setError(e.message); setCells([]); } });
     return () => { live = false; };
-  }, [city, scope, scopeHeaders]);
+  }, [city, scope, scopeHeaders, reload]);
   const names = useMemo(() => {
     const m = new Map<string, string>();
     if (!ds) return m;
     ds.cells.forEach((c, i) => { const l = ds.cellLocality[i]; if (l >= 0) m.set(c, ds.localities[l]); });
     return m;
   }, [ds]);
-  return { cells, names };
+  return { cells, names, error, retry: () => setReload((n) => n + 1) };
 }
 
 export const MEASURE_LABEL: Record<Measure, string> = {

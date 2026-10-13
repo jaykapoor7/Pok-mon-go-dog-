@@ -37,16 +37,21 @@ export function DriveDetail({ id }: { id: string }) {
   const [animals, setAnimals] = useState<CampaignAnimal[]>([]);
   const [filter, setFilter] = useState<string | null>(null);
   const [vacc, setVacc] = useState<string | null>(null);
+  const [statsError, setStatsError] = useState(false);
+  const [animalsError, setAnimalsError] = useState(false);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
+    setStats("loading"); setStatsError(false);
     campaignStats(id)
       .then((s) => setStats(s))
-      .catch(() => setStats(null));
-  }, [id]);
+      .catch(() => { setStatsError(true); setStats(null); });
+  }, [id, reload]);
 
   useEffect(() => {
-    campaignAnimals(id, filter, vacc).then(setAnimals).catch(() => setAnimals([]));
-  }, [id, filter, vacc]);
+    setAnimalsError(false);
+    campaignAnimals(id, filter, vacc).then(setAnimals).catch(() => { setAnimalsError(true); setAnimals([]); });
+  }, [id, filter, vacc, reload]);
 
   if (stats === "loading") {
     return (
@@ -56,6 +61,8 @@ export function DriveDetail({ id }: { id: string }) {
       </div>
     );
   }
+
+  if (statsError) return <div className="ws-state" role="alert"><b>The drive could not load.</b><p>No failed query has been shown as missing data. <button type="button" className="ws-linkbtn" onClick={() => setReload((n) => n + 1)}>Try again</button></p></div>;
 
   if (!stats) {
     return (
@@ -177,7 +184,9 @@ export function DriveDetail({ id }: { id: string }) {
           ))}
         </div>
 
-        {animals.length === 0 ? (
+        {animalsError ? (
+          <div className="ws-state" role="alert"><b>Animals in this drive could not load.</b><p>No failed query has been shown as an empty drive. <button type="button" className="ws-linkbtn" onClick={() => setReload((n) => n + 1)}>Try again</button></p></div>
+        ) : animals.length === 0 ? (
           <p className="dr-none">
             No animals match. File observations into this drive from{" "}
             <Link href="/partner/incoming">Incoming</Link>.

@@ -29,6 +29,7 @@
     "test:public-map-footprint": "node --import tsx scripts/test-public-map-footprint.ts",
     "test:spatial": "node --import tsx scripts/test-spatial.ts",
     "test:record-dates": "node --import tsx scripts/test-record-dates.ts",
+    "test:operational-cohorts": "node --import tsx scripts/test-operational-cohorts.ts",
     "test:location-cell": "node --import tsx scripts/test-location-cell.ts",
     "test:auto-approve": "node --import tsx scripts/test-auto-approve.ts",
     "test:no-full-register": "node --import tsx scripts/test-no-full-register-reads.ts",

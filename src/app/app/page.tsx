@@ -42,6 +42,7 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
     <AppShell>
       <CommunityDash
         stories={storyPage.rows}
+        storiesError={storyPage.error}
         availableCities={cities.map((item) => ({ city: item.city, state: item.state }))}
         defaultCity={city}
       />

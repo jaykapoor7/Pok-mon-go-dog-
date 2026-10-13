@@ -240,3 +240,55 @@ html .sx.sd .sx-main .rq-kicker { font-family: inherit !important; font-style: n
 
 /* Sign in / Sign up trigger: the second word is dropped on narrow screens. */
 @media (max-width: 520px) { .auth-entry-alt { display: none; } }
+
+/* ── NGO operations: one flat working canvas ────────────────────────
+   Community keeps its illustrated atlas character. The operational space
+   trades the surrounding presentation layer for density, continuity and a
+   single hierarchy: sidebar, context bar, canvas. */
+.sx.sd[data-space="ngo"] { --sd-w: 216px; --x-bar: 56px; background: #f5f5f2; }
+.sx.sd[data-space="ngo"] > .fb { display: none; }
+.sx.sd[data-space="ngo"] .sd-body { background: #fff; }
+.sx.sd[data-space="ngo"] .sd-side {
+  gap: 14px; padding: 14px 12px 12px; background: #f7f7f4; background-image: none;
+  border-right-color: var(--hair); box-shadow: none;
+}
+.sx.sd[data-space="ngo"] .sd-side::after, .sx.sd[data-space="ngo"] .sd-art { display: none; }
+.sx.sd[data-space="ngo"] .sd-brand { min-height: 36px; }
+.sx.sd[data-space="ngo"] .sd-action { min-height: 38px; border-radius: 9px; box-shadow: none; }
+.sx.sd[data-space="ngo"] .sd-nav a { min-height: 36px; }
+.sx.sd[data-space="ngo"] .sd-more summary { min-height: 32px; }
+.sx.sd[data-space="ngo"] .sd-more details a { min-height: 31px; }
+.sx.sd[data-space="ngo"] .sd-top { padding-inline: 20px; background: rgba(255, 255, 255, 0.92); border-bottom: 1px solid var(--hair); }
+.sx.sd[data-space="ngo"]:not(.is-flush) .sx-main {
+  width: 100%; max-width: none; min-height: calc(100dvh - var(--x-bar)); margin: 0;
+  border-radius: 0; background: #fff; box-shadow: none;
+}
+.sx.sd[data-space="ngo"] .sx-main :is(.dh-art, .db-art) { display: none !important; }
+.sx.sd[data-space="ngo"] .sx-main .dh .dh-in { padding: 24px 28px 20px !important; }
+.sx.sd[data-space="ngo"] .sx-main .dh-title { font-size: clamp(28px, 3vw, 42px); line-height: 1.02; }
+.sx.sd[data-space="ngo"] .sx-main .dh-lede { max-width: 68ch; }
+.sx.sd[data-space="ngo"] .sx-main .db { padding: 0 28px 24px !important; }
+.sx.sd[data-space="ngo"] .sx-main .db-head {
+  min-height: 0; margin: 0 -28px !important; padding: 22px 28px 18px !important;
+  align-content: initial; justify-content: flex-start;
+}
+.sx.sd[data-space="ngo"] .sx-main .db-head-t { max-width: 720px; }
+.sx.sd[data-space="ngo"] .sx-main .db-title { font-size: clamp(28px, 3vw, 40px); }
+.sx.sd[data-space="ngo"] .sx-main .db-kpis { padding-block: 16px !important; }
+.sx.sd[data-space="ngo"] .sx-main .db-map { margin-top: 18px !important; }
+.sx.sd[data-space="ngo"] .sx-main .pa-ledger > .overflow-hidden {
+  border-left: 0 !important; border-right: 0 !important; border-radius: 0 !important;
+}
+
+@media (max-width: 860px) {
+  .sx.sd[data-space="ngo"]:not(.is-flush) .sx-main {
+    width: 100%; margin: 0 0 var(--x-tabs); border-radius: 0; min-height: calc(100dvh - 56px - var(--x-tabs));
+  }
+  .sx.sd[data-space="ngo"] .sd-top { padding-inline: 10px; }
+  .sx.sd[data-space="ngo"] .sx-main .dh .dh-in { padding: 18px 16px 16px !important; }
+  .sx.sd[data-space="ngo"] .sx-main .dh-title { font-size: 29px; }
+  .sx.sd[data-space="ngo"] .sx-main .db { padding: 0 16px 18px !important; }
+  .sx.sd[data-space="ngo"] .sx-main .db-head { margin: 0 -16px !important; padding: 16px 16px 14px !important; }
+  .sx.sd[data-space="ngo"] .sx-main .db-title { font-size: 29px; }
+  .sx.sd[data-space="ngo"] .sx-main .db-kpis { margin: 0 -16px !important; padding: 12px 16px !important; }
+}

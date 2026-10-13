@@ -9,6 +9,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Check, Clock } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -32,6 +33,7 @@ function dueLabel(dueAt: string, today: number) {
 }
 
 export function FollowupsClient() {
+  const params = useSearchParams();
   const { user, ready } = useAuth();
   const { member, ready: accessReady } = usePartnerAccess();
   const isMember = Boolean(user && member);
@@ -86,6 +88,8 @@ export function FollowupsClient() {
   if (error) return <div className="ws-state"><b>Follow-ups could not load.</b><p>Nothing was changed. <button type="button" className="ws-linkbtn" onClick={load}>Try again</button></p></div>;
 
   const scheduledTotal = groups.late.length + groups.today.length + groups.week.length;
+  const requested = params.get("view");
+  const view = requested === "overdue" || requested === "today" || requested === "week" || requested === "historical" || requested === "all" ? requested : "overview";
   const identity = (f: DueFollowup) => f.animal_name || f.straypaw_id || f.case_title || f.case_code || "Animal identity not recorded";
   const place = (f: DueFollowup) => [f.zone, f.city && f.city !== f.zone ? f.city : null].filter(Boolean).join(", ") || "Locality not recorded";
   const recordHref = (f: DueFollowup) => f.case_id ? `/partner/cases/${f.case_id}` : f.dog_id ? `/partner/animals/${f.dog_id}` : null;
@@ -124,16 +128,25 @@ export function FollowupsClient() {
   return (
     <div className="ws">
       <p className="ws-live" role="status" aria-live="polite">{said}</p>
-      {scheduledTotal === 0 ? (
+      <nav className="ws-scope" aria-label="Follow-up cohort">
+        {[
+          ["all", "Scheduled", scheduledTotal],
+          ["overdue", "Overdue", groups.late.length],
+          ["today", "Today", groups.today.length],
+          ["week", "Next 7 days", groups.week.length],
+          ["historical", "Historical imports", groups.historical.length],
+        ].map(([id, label, count]) => <Link key={String(id)} href={`/partner/followups?view=${id}`} aria-current={view === id ? "page" : undefined}>{label} <span>{count}</span></Link>)}
+      </nav>
+      {view !== "historical" && scheduledTotal === 0 ? (
         <div className="ws-state"><b>No follow-ups due this week.</b><p>Rechecks you schedule on a case appear here, overdue ones first. <Link href="/partner/cases">Open cases</Link></p></div>
       ) : (
         <>
-          <Section id="late" title="Overdue" list={groups.late} note="Past their date. Do these first, or move them to a day you can." />
-          <Section id="today" title="Today" list={groups.today} note="Due today." />
-          <Section id="week" title="This week" list={groups.week} note="Coming up in the next seven days." />
+          {(view === "overview" || view === "all" || view === "overdue") && <Section id="late" title="Overdue" list={groups.late} note="Past their date. Do these first, or move them to a day you can." />}
+          {(view === "overview" || view === "all" || view === "today") && <Section id="today" title="Today" list={groups.today} note="Due today." />}
+          {(view === "overview" || view === "all" || view === "week") && <Section id="week" title="Next 7 days" list={groups.week} note="Scheduled after today and within seven days." />}
         </>
       )}
-      <section className="ws-group is-history" aria-labelledby="fu-history">
+      {(view === "overview" || view === "historical") && <section className="ws-group is-history" aria-labelledby="fu-history">
         <header><h2 id="fu-history">Historical import dates <span className="ws-count">{groups.historical.length}</span></h2><p>Source dates from earlier registers. They are not current scheduled work and cannot be completed or postponed here.</p></header>
         {groups.historical.length === 0 ? <p className="ws-none">No historical follow-up dates are waiting for review.</p> : (
           <ul className="ws-rows">
@@ -148,7 +161,7 @@ export function FollowupsClient() {
             })}
           </ul>
         )}
-      </section>
+      </section>}
     </div>
   );
 }

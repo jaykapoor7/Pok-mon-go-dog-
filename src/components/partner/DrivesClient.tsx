@@ -79,6 +79,7 @@ export function DrivesClient() {
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const [name, setName] = useState("");
   const [kind, setKind] = useState<CampaignKind>("sterilisation");
@@ -87,11 +88,13 @@ export function DrivesClient() {
   const [zone, setZone] = useState("");
 
   async function load() {
+    setLoadError(false);
     setRows(await orgCampaigns(showArchived));
   }
 
   useEffect(() => {
-    load().catch(() => setRows([]));
+    setRows(null);
+    load().catch(() => { setLoadError(true); setRows([]); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showArchived]);
 
@@ -224,7 +227,9 @@ export function DrivesClient() {
 
       {error && <p className="res-error">{error}</p>}
 
-      {rows === null ? (
+      {loadError ? (
+        <div className="ws-state" role="alert"><b>Drives could not load.</b><p>No failed query has been shown as an empty list. <button type="button" className="ws-linkbtn" onClick={() => { setRows(null); load().catch(() => { setLoadError(true); setRows([]); }); }}>Try again</button></p></div>
+      ) : rows === null ? (
         <div className="spa-empty">
           <Loader2 size={26} className="imp-spin" />
           <p>Loading…</p>
