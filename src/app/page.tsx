@@ -20,8 +20,8 @@ import "@/components/landing/landing.css";
 
 export const revalidate = 300;
 export const metadata = {
-  title: "StrayPaw, every street animal on the record",
-  description: "One shared record connecting sightings, field work and outcomes for India's street animals.",
+  title: "StrayPaw. Every street animal on the record.",
+  description: "One record for every sighting, case and outcome.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -48,9 +48,9 @@ const fmt = (n: number) => n.toLocaleString("en-IN");
    one thing to do at each, under the three screens. Everyone else it
    serves is in the footer's index. */
 const LEVELS = [
-  { level: "street", scale: "Resident", who: "Residents and feeders", does: "Report an animal, see what gets recorded, keep the patch you feed.", action: "Report an animal", href: "/report" },
-  { level: "field", scale: "NGO", who: "Rescue organisations", does: "Run cases, drives and care from one queue, on records you control.", action: "For NGOs", href: "/for-ngos" },
-  { level: "city", scale: "Municipality", who: "Municipalities and funders", does: "See which wards are covered, and check outcomes against the record.", action: "View municipal coverage", href: "/for-governments" },
+  { level: "street", scale: "Resident", who: "Residents and feeders", does: "Report what you see. Follow what happens.", action: "Report now", href: "/report" },
+  { level: "field", scale: "NGO", who: "Rescue organisations", does: "Run cases, field work and care in one place.", action: "For NGOs", href: "/for-ngos" },
+  { level: "city", scale: "Municipality", who: "Municipalities and funders", does: "See coverage, gaps and outcomes.", action: "View coverage", href: "/for-governments" },
 ] as const;
 
 const EMPTY_REGISTER = { total: 0, cards: [] };
@@ -61,8 +61,8 @@ async function LandingAnimalRegister({ plate }: { plate: RegisterPlateData | nul
 }
 
 export default async function HomePage() {
-  /* The landing's narrative — hero plate, three-screen relay, one-request
-     walkthrough — is computed from ONE sample city and cached (lib/landing/
+  /* The landing's narrative, hero plate, three-screen relay and one-request
+     walkthrough, is computed from one sample city and cached (lib/landing/
      story.ts). It is bounded by design and never reads the register; if it
      is unavailable the page still renders every section that does not need
      it. The animal register is streamed separately in its own Suspense. */
@@ -79,9 +79,9 @@ export default async function HomePage() {
           <div className="ld-hero-copy">
             <h1 id="hero-title">
               Every stray animal in India.
-              <em>Seen, tracked, cared&nbsp;for.</em>
+              <em>Seen. Tracked. Cared&nbsp;for.</em>
             </h1>
-            <p className="ld-hero-sub">One shared record &mdash; built case by case, city by city &mdash; connecting sightings, field work and outcomes.</p>
+            <p className="ld-hero-sub">One shared record for every sighting, case and outcome.</p>
             {story && <HeroTally animals={story.totals.animals} cases={story.totals.cases} cities={story.totals.cities} />}
             <div className="ld-hero-actions">
               <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
@@ -98,18 +98,18 @@ export default async function HomePage() {
           <LandingAnimalRegister plate={story ? { city: story.hero.city, box: story.hero.box, rings: story.hero.rings, events: story.hero.events } : null} />
         </Suspense>
 
-        {/* 3. One report, three screens — the system, one record the whole way. */}
+        {/* 3. One report, three screens. One record throughout. */}
         {story?.relay && (
           <section className="ld-sec ld-sec-shell" aria-labelledby="ld-relay-title">
             <header className="sys-head" data-ld-reveal="head">
-              <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
-              <p>A real request in {story.hero.city} moves from resident report to NGO queue to municipal view without losing its identity.</p>
+              <h2 id="ld-relay-title">One report. <em>Three views.</em></h2>
+              <p>Resident. Rescue team. City. The same record throughout.</p>
             </header>
             <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
           </section>
         )}
 
-        {/* 4. One request → field action → care → outcome — the proof. */}
+        {/* 4. One request, from field action to outcome. */}
         {story?.journey && (
           <CaseDive
             j={story.journey}
@@ -117,19 +117,19 @@ export default async function HomePage() {
             box={story.hero.box}
             rings={story.hero.rings}
             events={story.hero.events}
-            note={story.record.medianFirstAction !== null ? `Among the ${fmt(story.record.requests)} recent requests sampled in ${story.hero.city}, those with a dated first action had a median gap of ${story.record.medianFirstAction === 0 ? "under a day" : `${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`} before it. Not every request is taken on.` : undefined}
+            note={story.record.medianFirstAction !== null ? `Across ${fmt(story.record.requests)} recent requests in ${story.hero.city}, the median wait to a dated first action was ${story.record.medianFirstAction === 0 ? "under a day" : `${story.record.medianFirstAction} day${story.record.medianFirstAction === 1 ? "" : "s"}`}. Not every request was accepted.` : undefined}
           />
         )}
 
         {/* WhatsApp is the live access layer for the same record. */}
         <CareStory />
 
-        {/* 5. Resident / NGO / Municipality — who the record serves. */}
+        {/* 5. One record for residents, NGOs and municipalities. */}
         <section className="ld-sec ld-sec-shell ld-audience" aria-labelledby="ld-audience-title">
           <div className="ld-scale">
             <header className="sys-head" data-ld-reveal="head">
-              <p className="ld-section-kicker sys-mono">One shared record</p>
-              <h2 id="ld-audience-title">Useful at <em>every scale.</em></h2>
+              <p className="ld-section-kicker sys-mono">One record</p>
+              <h2 id="ld-audience-title">Every street. <em>Every scale.</em></h2>
             </header>
             <ol className="ld-levels">
               {LEVELS.map((l, i) => (
@@ -152,18 +152,18 @@ export default async function HomePage() {
         {/* 6. Final CTA. */}
         <section className="ld-close">
           <div className="ld-close-copy">
-            <p className="sys-mono">The record starts on a street</p>
-            <h2>Know a dog? <em>Report it.</em></h2>
+            <p className="sys-mono">Start with what you see</p>
+            <h2>See a dog? <em>Report it.</em></h2>
           </div>
           <div className="ld-close-action">
-            <p><b>A photo. A place. What you can see.</b><span>No account needed. Leave anything uncertain unknown.</span></p>
+            <p><b>A photo. A place. What you see.</b><span>No account. No guesswork.</span></p>
             <Link href="/report" className="sys-btn is-flame is-lg">Report a sighting <ArrowUpRight size={18} /></Link>
           </div>
         </section>
       </main>
       <footer className="ld-foot">
         <div className="ld-foot-top">
-          <Link href="/" className="ld-foot-brand">StrayPaw<span>One shared record, from sighting to outcome.</span></Link>
+          <Link href="/" className="ld-foot-brand">StrayPaw<span>From sighting to outcome. One shared record.</span></Link>
           <FooterIndex />
         </div>
         <p className="ld-foot-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>Built with care, in India.</span></p>

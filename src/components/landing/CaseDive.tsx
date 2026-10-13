@@ -63,9 +63,9 @@ export function CaseDive({ j, city, box, rings, events, note }: {
     const day = (iso: string) => Math.max(0, Math.round((Date.parse(iso) - start) / DAY));
     return [
       { key: "r", day: 0, at: j.reported, what: "Reported", detail: `${j.condition}, ${j.locality}` },
-      { key: "a", day: day(j.acted), at: j.acted, what: "Field team on site", detail: j.actedAfter === 0 ? "The same day as the report" : `${plural(j.actedAfter, "day")} after the report` },
+      { key: "a", day: day(j.acted), at: j.acted, what: "Team arrived", detail: j.actedAfter === 0 ? "Same day" : `${plural(j.actedAfter, "day")} later` },
       ...(j.care.count && j.care.first ? [{ key: "c", day: day(j.care.first), at: j.care.first, what: "Care recorded", detail: `${j.care.kinds.map((k) => k.replace(/_/g, " ")).join(", ").replace(/^./, (c) => c.toUpperCase())} · ${j.care.count === 1 ? "1 entry" : `${j.care.count} entries`}` }] : []),
-      { key: "e", day: j.days, at: j.closed, what: j.closure === "recovered" ? "Recovered, case closed" : "Closed after field work", detail: `${plural(j.days, "day")} from the first report` },
+      { key: "e", day: j.days, at: j.closed, what: j.closure === "recovered" ? "Recovered" : "Case closed", detail: `${plural(j.days, "day")} after the report` },
     ];
   }, [j]);
   const spans = useMemo(() => {
@@ -266,12 +266,12 @@ export function CaseDive({ j, city, box, rings, events, note }: {
           )}
           <div ref={teamEl} className="ld-dive-team"><span><Truck size={13} aria-hidden /> Field team</span></div>
           <div ref={markEl} className={`ld-dive-mark is-${state} ${t.arrived ? "is-here" : ""}`}><i /><i /><b /></div>
-          <p className="ld-dive-illus sys-mono">Routes illustrative · dates and care from the record</p>
+          <p className="ld-dive-illus sys-mono">Illustrative routes · recorded dates and care</p>
         </div>
 
         <div className="ld-dive-panel">
-          <p className="ld-dive-kicker sys-mono">A real request · {j.locality}, {city}</p>
-          <h2 id="ld-dive-title">One request, <em>followed to the&nbsp;end.</em></h2>
+          <p className="ld-dive-kicker sys-mono">Real case · {j.locality}, {city}</p>
+          <h2 id="ld-dive-title">One case. <em>Every step.</em></h2>
           <p className="ld-dive-day" aria-hidden="true"><span>Day</span> <b>{t.day}</b></p>
           <ol className="ld-dive-steps" aria-label={`The request, from report to close, over ${plural(j.days, "day")}`}>
             {steps.map((s, i) => (

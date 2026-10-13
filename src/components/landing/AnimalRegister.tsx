@@ -64,7 +64,7 @@ function headline(c: RegisterFocus): string {
   const name = c.name?.trim();
   if (name && !PLACEHOLDER_NAME.test(name) && name !== c.straypaw_id) return name;
   const place = cleanPlace(c.zone);
-  return place ? `The dog at ${place}` : "A resident-reported dog";
+  return place ? `Dog near ${place}` : "Resident report";
 }
 
 function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
@@ -87,8 +87,8 @@ function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
         <h3>{headline(c)}</h3>
         <dl>
           {where && <div className="is-wide"><dt>Locality</dt><dd>{where}</dd></div>}
-          {since && <div><dt>On register since</dt><dd>{since}</dd></div>}
-          {c.sightings > 0 && <div><dt>Seen</dt><dd>{fmt(c.sightings)} {c.sightings === 1 ? "time" : "times"}</dd></div>}
+          {since && <div><dt>Registered</dt><dd>{since}</dd></div>}
+          {c.sightings > 0 && <div><dt>Sightings</dt><dd>{fmt(c.sightings)}</dd></div>}
           <div className="is-wide">
             <dt>ABC · ARV</dt>
             <dd className="rx-card-marks">
@@ -98,7 +98,7 @@ function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
           </div>
           {care.length > 0 && (
             <div className="is-wide">
-              <dt>Care on record</dt>
+              <dt>Care</dt>
               <dd className="rx-care">
                 <span>
                   {care.map((e, i) => {
@@ -147,8 +147,7 @@ function Band({ cards, depth, dir, featId }: { cards: RegisterFocus[]; depth: "f
 export function AnimalRegister({ data, total, plate }: { data: Data; total: number; plate?: RegisterPlateData | null }) {
   const cards = data.cards;
   const n = cards.length;
-  /* A callback ref, so the observer attaches whenever the section actually
-     mounts — never to a ref that was still empty when an effect ran. */
+  /* A callback ref lets the observer attach whenever the section mounts. */
   const [el, setEl] = useState<HTMLElement | null>(null);
   const [calm, setCalm] = useState(false);
   const [seen, setSeen] = useState(false);
@@ -200,8 +199,8 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
     <section ref={setEl} className={`rx${calm ? " is-calm" : ""}`} aria-labelledby="rx-title">
       {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
       <div className="rx-rail" data-ld-reveal="rail">
-        <p className="rx-kicker sys-mono">The register<span className="rx-live" aria-hidden /></p>
-        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs on file. <span className="rx-lbl">Every one gets a profile like&nbsp;this.</span></h2>
+        <p className="rx-kicker sys-mono">Live register<span className="rx-live" aria-hidden /></p>
+        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs. <span className="rx-lbl">One profile each.</span></h2>
         <Link href="/map" className="rx-cta">Live map <ArrowUpRight size={14} aria-hidden /></Link>
       </div>
 

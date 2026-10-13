@@ -6,7 +6,7 @@
    Every field record in the sample city lands where and when it was made,
    as a point of light inside its cell; where records gather the city
    glows, and a new case flares in flame for a moment. The streets
-   underneath are OpenStreetMap, repainted to the night ground — the same
+   underneath are OpenStreetMap, repainted to the night ground. The same
    lights the live map draws.
 
    It plays once, on arrival, and can be replayed. Under reduced motion it
@@ -211,12 +211,12 @@ export function HeroPlate({ city, box, rings, events }: Props) {
       <div className={`ld-plate ${ready ? "is-ready" : ""}`} ref={el} aria-hidden />
       <div className="ld-meter" aria-live="off">
         <p className="ld-meter-when">
-          <span>Recent sample · {city}</span>
+          <span>Recent records · {city}</span>
           <b className="sys-mono">{monthOf(final.day)}</b>
         </p>
         <p className="ld-meter-count sys-mono"><b>{final.cases.toLocaleString("en-IN")}</b> cases · <b>{final.care.toLocaleString("en-IN")}</b> care</p>
         <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
-          {playing ? "Filling in…" : "Replay"}
+          {playing ? "Replaying…" : "Replay"}
         </button>
       </div>
     </>

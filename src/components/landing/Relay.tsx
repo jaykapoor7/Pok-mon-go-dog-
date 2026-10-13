@@ -34,7 +34,7 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const waited = (d: number) => (d < 14 ? `${d} day${d === 1 ? "" : "s"}` : d < 60 ? `${Math.round(d / 7)} weeks` : `${Math.round(d / 30)} months`);
 const STEPS = ["Resident", "NGO", "Municipality"];
-const NOW = ["A resident sends it from a phone", "The NGO's queue picks it up", "It lights up on the city's map"];
+const NOW = ["Sent by a resident", "In the rescue queue", "On the city map"];
 const HOLD = [2200, 1700, 2600, 3600]; // how long each moment is held, in ms
 
 export function Relay({ city, desk, report }: { city: string; desk: Desk; report: Report | null }) {
@@ -75,7 +75,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
      the record (sequential blue), the ring past the last record is dashed
      (not mapped), a few localities are named, and a locator shows where in
      the city the plate sits. The report's own cell takes the one flame mark
-     when it arrives — never finer than the cell. */
+     when it arrives, never finer than the cell. */
   const muni = useMemo(() => buildPlate(desk, report), [desk, report]);
   if (!report) return null;
   const screen = step <= 1 ? 0 : step === 2 ? 1 : 2; // which screen holds the report now
@@ -94,7 +94,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           <path d="M150 210 C280 210 292 92 430 92 H760 C902 92 905 258 1050 258" />
           <path className="is-echo" d="M150 226 C280 226 302 110 438 110 H752 C890 110 918 274 1050 274" />
         </svg>
-        {/* 1 — the resident's phone */}
+        {/* 1. The resident's phone. */}
         <div className={`rl-screen rl-phone ${screen === 0 ? "is-on" : ""}`}>
           <span className="rl-notch" />
           <p className="rl-app"><StrayPawMark size={16} /> Resident report</p>
@@ -114,10 +114,10 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
 
         <span className={`rl-link ${step === 1 ? "is-go" : step > 1 ? "is-done" : ""}`}><b>{report.straypawId}</b><i /></span>
 
-        {/* 2 — the field team's queue */}
+        {/* 2. The field team's queue. */}
         <div className={`rl-screen rl-desk ${screen === 1 ? "is-on" : ""}`}>
           <p className="rl-bar"><StrayPawMark size={16} /> <b>NGO · Field Workspace</b><span>{city}</span></p>
-          <p className="rl-desk-h">What needs attention</p>
+          <p className="rl-desk-h">Needs attention</p>
           <ul className="rl-queue">
             <li className={`rl-new ${step >= 2 ? "is-in" : ""}`}>
               <i className="is-hot" />
@@ -137,7 +137,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
 
         <span className={`rl-link ${step === 3 ? "is-go" : ""}`}><b>{report.straypawId}</b><i /></span>
 
-        {/* 3 — the municipality's ward plate */}
+        {/* 3. The municipality's city view. */}
         <div className={`rl-screen rl-map ${screen === 2 ? "is-on" : ""}`}>
           <p className="rl-bar"><StrayPawMark size={16} /> <b>Municipality · city view</b><span>{city}</span></p>
           {muni && (
@@ -151,11 +151,11 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           {muni && (
             <div className="rl-read">
               <p className="rl-share">
-                <span>Marked open in <b>{muni.withWork}</b> of {muni.total} mapped areas</span>
+                <span>Open in <b>{muni.withWork}</b> of {muni.total} mapped areas</span>
                 <i><em style={{ width: `${Math.max(2, (muni.withWork / Math.max(1, muni.total)) * 100)}%` }} /></i>
               </p>
               {muni.first && (
-                <p className="rl-first"><small>Act first</small><b>{muni.first.name}</b><span className="sys-mono">{muni.first.open} open{muni.first.crit ? ` · ${muni.first.crit} critical` : ""}</span></p>
+                <p className="rl-first"><small>Priority</small><b>{muni.first.name}</b><span className="sys-mono">{muni.first.open} open{muni.first.crit ? ` · ${muni.first.crit} critical` : ""}</span></p>
               )}
             </div>
           )}
@@ -166,7 +166,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           waits on a timer; each step lights as it comes into view. */}
       <ol className="rl-stack" aria-hidden="true">
         <li ref={(n) => { stackRefs.current[0] = n; }} className={seen[0] ? "is-seen" : ""}>
-          <p className="rl-sk-h"><span className="rl-sk-n">1</span><b>Resident</b><span>sends it from a phone</span></p>
+          <p className="rl-sk-h"><span className="rl-sk-n">1</span><b>Resident</b><span>sends the report</span></p>
           <div className="rl-sk-card rl-sk-report">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={report.photo ? sized(report.photo, 240) : "/seed-dogs/dog3.jpg"} alt="" loading="lazy" />
@@ -176,7 +176,7 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           </div>
         </li>
         <li ref={(n) => { stackRefs.current[1] = n; }} className={seen[1] ? "is-seen" : ""}>
-          <p className="rl-sk-h"><span className="rl-sk-n">2</span><b>NGO</b><span>finds it at the top of the queue</span></p>
+          <p className="rl-sk-h"><span className="rl-sk-n">2</span><b>NGO</b><span>takes the case</span></p>
           <div className="rl-sk-card rl-sk-queue">
             <p className="rl-sk-new"><i className="is-hot" /><span><b>{report.condition}</b><small>{report.locality}</small></span><em>New</em></p>
             {desk.queue.slice(0, 2).map((q, i) => <p key={i}><i className={q.critical ? "is-hot" : ""} /><span><b>{q.condition}</b><small>{q.locality}</small></span><small>{waited(q.days)}</small></p>)}
@@ -184,14 +184,14 @@ export function Relay({ city, desk, report }: { city: string; desk: Desk; report
           </div>
         </li>
         <li ref={(n) => { stackRefs.current[2] = n; }} className={seen[2] ? "is-seen" : ""}>
-          <p className="rl-sk-h"><span className="rl-sk-n">3</span><b>Municipality</b><span>sees it on the city&apos;s map</span></p>
+          <p className="rl-sk-h"><span className="rl-sk-n">3</span><b>Municipality</b><span>sees the pattern</span></p>
           <div className="rl-sk-card rl-sk-map">{muni ? <Plate muni={muni} report={report} lit={seen[2]} /> : null}</div>
         </li>
       </ol>
 
       <figcaption className="rl-cap">
-        <span className="sys-mono">A real request · {day(report.date)}</span>
-        <span>The same record, <a href={`/dog/${report.animalId}`}>{report.straypawId}</a>, reported by a resident, worked by an NGO and available in municipal coverage.</span>
+        <span className="sys-mono">Real request · {day(report.date)}</span>
+        <span>Record <a href={`/dog/${report.animalId}`}>{report.straypawId}</a>. One identity from report to field work to city view.</span>
       </figcaption>
     </figure>
   );

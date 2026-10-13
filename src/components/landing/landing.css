@@ -49,7 +49,7 @@
 .ld-hero-sub { margin: calc(-1 * var(--sp-2)) 0 0; max-width: 34ch; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.45; color: var(--sp-night-dim); text-wrap: balance; }
 .ld-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-6); margin-top: var(--sp-2); }
 
-/* The plate's caption: which city, which month, and replay. No panel —
+/* The plate's caption: which city, which month, and replay. No panel.
    a line of type in the corner, like the legend of a printed map. */
 .ld-meter {
   position: absolute; z-index: 2; right: var(--sp-gutter); bottom: var(--sp-6);
@@ -189,7 +189,7 @@
 
 /* ════════════════════════════════════════════════════════════════════
    The landing scrolls differently from the rest of the site, and each
-   section moves in its own way — driven by scroll position alone (no
+   section moves in its own way, driven by scroll position alone (no
    script, nothing on a timer), and only where the reader has not asked
    for reduced motion and the browser can do it. Everywhere else the page
    is the same page, still.
