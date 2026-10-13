@@ -69,14 +69,14 @@ export function StorageNotice() {
   return (
     <aside className={`snotice${inApp ? " is-app" : ""}`} role="region" aria-label="How this site stores data">
       <p>
-        {inApp ? <>StrayPaw stores one random browser ID to avoid double-counting visits. No tracking cookies, cross-site tracking or data sharing. <Link href="/cookies">Details</Link>.</> : <>StrayPaw stores one random ID in your browser so return visits are not counted twice. It does not use tracking cookies or track you across other sites, and nothing is shared with anyone else. <Link href="/cookies">What is stored</Link>.</>}
+        {inApp ? <>Private visit count. No cookies, tracking or sharing. <Link href="/cookies">Details</Link>.</> : <>StrayPaw stores one random ID in your browser so return visits are not counted twice. It does not use tracking cookies or track you across other sites, and nothing is shared with anyone else. <Link href="/cookies">What is stored</Link>.</>}
       </p>
       <div className="snotice-actions">
         <button type="button" className="snotice-ok" onClick={() => close(false)}>
           Got it
         </button>
         <button type="button" className="snotice-off" onClick={() => close(true)}>
-          Don&apos;t count my visits
+          {inApp ? "Don’t count me" : "Don’t count my visits"}
         </button>
       </div>
     </aside>

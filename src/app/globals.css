@@ -717,9 +717,10 @@ h1 em, h2 em, h3 em { font-style: normal; }
 .snotice-ok { background: var(--sp-ink); color: var(--sp-bone); }
 .snotice-off { background: var(--ctl-tint); color: #1f4bb8; }
 .snotice-off:hover { background: var(--ctl-tint-hover); }
-.snotice.is-app { padding: 12px 14px; border-radius: 14px; box-shadow: 0 10px 30px -20px rgba(11, 30, 61, 0.35); }
-.snotice.is-app p { margin-bottom: 10px; font-size: 12.5px; line-height: 1.45; }
-.snotice.is-app .snotice-actions button { min-height: 36px; padding-inline: 14px; }
+.snotice.is-app { display: flex; align-items: center; gap: 12px; padding: 9px 10px 9px 12px; border-radius: 14px; box-shadow: 0 10px 30px -20px rgba(11, 30, 61, 0.35); }
+.snotice.is-app p { flex: 1; margin: 0; font-size: 11.5px; line-height: 1.35; }
+.snotice.is-app .snotice-actions { flex: none; flex-wrap: nowrap; }
+.snotice.is-app .snotice-actions button { min-height: 32px; padding-inline: 10px; font-size: 11.5px; }
 
 @media (max-width: 900px) {
   .snotice { max-width: none; }
@@ -732,6 +733,8 @@ h1 em, h2 em, h3 em { font-style: normal; }
 }
 @media (max-width: 760px) {
   body:has(.sx.sd) .snotice { left: 8px; right: 8px; bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .snotice.is-app { gap: 8px; }
+  .snotice.is-app .snotice-actions { gap: 4px; }
 }
 
 /* Keep onboarding and sign-in readable without stacked install/storage prompts. */
