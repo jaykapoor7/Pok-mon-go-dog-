@@ -75,6 +75,9 @@
 .ld-sec-night { background: var(--sp-night); color: var(--sp-night-text); }
 .ld-sec-tight { padding-top: var(--sp-8); padding-bottom: var(--sp-8); }
 .ld-sec .sys-head h2 { font-size: clamp(32px, 4.6vw, 58px); letter-spacing: -0.008em; line-height: 1.02; }
+.ld-sec .sys-head { max-width: 760px; }
+.ld-section-kicker { margin: 0 0 var(--sp-3); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; color: var(--sp-muted); }
+.ld-sec .sys-head h2 { margin: 0; }
 
 /* ── One request, followed to the end ─────────────────────────────
    A route line with a stop for each step the record holds; the last stop,
@@ -127,6 +130,7 @@
 /* The levels read left to right on a wide screen, street to city, each
    column one reader and one action; on a phone they stack as a ledger. */
 .ld-scale { display: grid; gap: var(--sp-7); }
+.ld-audience { padding-top: clamp(68px, 8vw, 112px); padding-bottom: clamp(68px, 8vw, 112px); }
 @media (min-width: 900px) {
   .ld-scale .ld-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ld-scale .ld-levels > li + li { border-top: 0; border-left: 1px solid var(--sp-line); }
@@ -158,6 +162,9 @@
   .ld-hero { height: calc(100svh - 58px); min-height: 0; }
   .ld-stage { height: 100%; min-height: 0; padding: 0; }
   .ld-hero-copy { padding: clamp(28px, 6vh, 46px) var(--sp-gutter) 76px; max-width: none; }
+  .ld-sec { padding-block: clamp(58px, 15vw, 76px); gap: var(--sp-6); }
+  .ld-sec .sys-head h2 { font-size: clamp(31px, 10vw, 42px); }
+  .ld-audience { padding-block: 64px; }
   /* On a phone the desk shows its queue; the city is drawn in cells a few
      sections up. */
   .ld-hero-tally { gap: var(--sp-3) var(--sp-5); }
@@ -217,12 +224,6 @@
 
 
 
-
-    /* Who reads the record: the headline wipes in from the left, then each
-       level is written in after the one above it. The desk lifts beside it. */
-    .ld .ld-scale .sys-head { animation: ld-wipe linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
-    .ld .ld-levels { view-timeline: --ld-levels block; }
-    .ld .ld-levels > li { animation: ld-wipe linear both; animation-timeline: --ld-levels; animation-range: entry calc(var(--i) * 10%) cover calc(12% + var(--i) * 6%); }
 
     /* The close: the line grows into place and the button rises after it. */
     .ld .ld-close .sys-btn { animation: ld-stop linear both; animation-timeline: view(); animation-range: entry 20% cover 35%; }

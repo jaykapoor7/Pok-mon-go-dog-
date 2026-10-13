@@ -23,7 +23,7 @@ import { ArrowUpRight, Download, Loader2, Plus, Search, PanelRightOpen, MapPin }
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
-import { closedCounts, closedRegister, openRegister, OPEN_REGISTER_LIMIT, PAGE, searchRegister, type RegisterRow } from "@/lib/case-register";
+import { caseScopeCounts, closedCounts, closedRegister, openRegister, OPEN_REGISTER_LIMIT, PAGE, searchRegister, type CaseScopeCounts, type RegisterRow } from "@/lib/case-register";
 import { CLOSURE_META, STATUS_META, triageOf, type ClosureReason, type StatusClass, type Triage } from "@/lib/register/taxonomy";
 import { downloadCsv } from "@/lib/csv";
 import { claimCase } from "@/lib/case-actions";
@@ -34,10 +34,10 @@ import { SearchSelect } from "@/components/app/SearchSelect";
 const SHOW = 30;
 
 const DAY = 86_400_000;
-type Lens = "open" | "quiet" | "critical" | "nobody" | "overdue" | "closed" | "reasonless" | "search";
-const OPEN_LENSES: Lens[] = ["open", "quiet", "critical", "nobody", "overdue"];
+type Lens = "open" | "live" | "quiet" | "critical" | "nobody" | "overdue" | "closed" | "reasonless" | "search";
+const OPEN_LENSES: Lens[] = ["open", "live", "quiet", "critical", "nobody", "overdue"];
 const LENS_LABEL: Record<Lens, string> = {
-  open: "All open", quiet: "Quiet a month", critical: "Critical", nobody: "Nobody on it", overdue: "Follow-up overdue",
+  open: "All current", live: "Live work", quiet: "Quiet, needs review", critical: "Critical", nobody: "Nobody on it", overdue: "Cases flagged overdue",
   closed: "Closed", reasonless: "Closed, no reason", search: "Search",
 };
 const TRIAGE_ROWS: { id: Triage; label: string }[] = [
@@ -55,7 +55,8 @@ const cond = (r: RegisterRow) => (r.condition_class && r.condition_class !== "No
 const triage = (r: RegisterRow): Triage => (r.severity === "critical" ? "Critical" : cond(r) ? triageOf(cond(r)) : "Unclassified");
 const isOpen = (r: RegisterRow) => r.status_class === "open" || r.status_class === "in_progress";
 const quietDays = (r: RegisterRow, now: number) => daysSince(r.last_activity_at && Date.parse(r.last_activity_at) <= now ? r.last_activity_at : r.occurred_at, now);
-const isQuiet = (r: RegisterRow, now: number) => quietDays(r, now) > 30;
+const isInactive = (r: RegisterRow, now: number) => quietDays(r, now) > 30;
+const isQuiet = (r: RegisterRow, now: number) => daysSince(r.occurred_at, now) > 90 && isInactive(r, now);
 const band = (days: number) => BANDS.findIndex((b) => days <= b.max);
 const shortCode = (c: string | null) => (!c ? null : c.length > 14 ? c.slice(0, 12) : c);
 /** The close, and how it is known (an assumed import date is not a date). */
@@ -66,6 +67,7 @@ export function CaseRegister() {
   const { member, ready: accessReady } = usePartnerAccess();
   const [open, setOpen] = useState<RegisterRow[] | null>(null);
   const [counts, setCounts] = useState<{ closed: number; reasonless: number } | null>(null);
+  const [scope, setScope] = useState<CaseScopeCounts | null>(null);
   const [lens, setLens] = useState<Lens>("open");
   const [cell, setCell] = useState<{ t: Triage; b: number } | null>(null);
   const [q, setQ] = useState("");
@@ -115,8 +117,10 @@ export function CaseRegister() {
     if (!ready || !accessReady) return;
     if (!user || !member) { setOpen([]); return; }
     let live = true;
-    openRegister().then((r) => live && setOpen(r)).catch((e: Error) => { if (live) { setError(e.message); setOpen([]); } });
-    closedCounts().then((c) => live && setCounts(c)).catch(() => {});
+    setError(null);
+    Promise.all([openRegister(), closedCounts(), caseScopeCounts()])
+      .then(([rows, closedTotals, scopeTotals]) => { if (live) { setOpen(rows); setCounts(closedTotals); setScope(scopeTotals); } })
+      .catch((e: Error) => { if (live) { setError(e.message); setOpen([]); setCounts(null); setScope(null); } });
     return () => { live = false; };
   }, [ready, accessReady, user, member]);
 
@@ -144,14 +148,17 @@ export function CaseRegister() {
     return () => { live = false; clearTimeout(h); };
   }, [q, lens, member]);
 
-  const openRows = useMemo(() => open ?? [], [open]);
+  const loadedOpenRows = useMemo(() => open ?? [], [open]);
+  const historicalRows = useMemo(() => loadedOpenRows.filter((r) => r.provenance === "imported_historical_record" && !r.reviewed_at), [loadedOpenRows]);
+  const openRows = useMemo(() => loadedOpenRows.filter((r) => r.provenance !== "imported_historical_record" || Boolean(r.reviewed_at)), [loadedOpenRows]);
   const lensCount = useMemo(() => ({
-    open: openRows.length,
-    quiet: openRows.filter((r) => isQuiet(r, now)).length,
-    critical: openRows.filter((r) => triage(r) === "Critical").length,
-    nobody: openRows.filter((r) => !r.assignee_name).length,
-    overdue: openRows.filter((r) => r.next_due && Date.parse(r.next_due) < now).length,
-  }), [openRows, now]);
+    open: scope?.currentOpen ?? openRows.length,
+    live: scope ? Math.max(0, scope.currentOpen - scope.currentQuiet) : openRows.filter((r) => !isQuiet(r, now)).length,
+    quiet: scope?.currentQuiet ?? openRows.filter((r) => isQuiet(r, now)).length,
+    critical: scope?.critical ?? openRows.filter((r) => triage(r) === "Critical").length,
+    nobody: scope?.unassigned ?? openRows.filter((r) => !r.assignee_name).length,
+    overdue: scope?.flaggedOverdue ?? openRows.filter((r) => r.next_due && Date.parse(r.next_due) < now).length,
+  }), [openRows, scope, now]);
 
   const rows = useMemo(() => {
     let list: RegisterRow[];
@@ -159,7 +166,7 @@ export function CaseRegister() {
     else if (lens === "closed" || lens === "reasonless") list = closed?.lens === lens ? closed.rows : [];
     else {
       list = openRows.filter((r) =>
-        lens === "quiet" ? isQuiet(r, now) : lens === "critical" ? triage(r) === "Critical" : lens === "nobody" ? !r.assignee_name
+        lens === "live" ? !isQuiet(r, now) : lens === "quiet" ? isQuiet(r, now) : lens === "critical" ? triage(r) === "Critical" : lens === "nobody" ? !r.assignee_name
           : lens === "overdue" ? !!r.next_due && Date.parse(r.next_due) < now : true);
       if (cell) list = list.filter((r) => triage(r) === cell.t && band(daysSince(r.occurred_at, now)) === cell.b);
       list = [...list].sort((a, b) => sort === "newest" ? (b.occurred_at ?? "").localeCompare(a.occurred_at ?? "")
@@ -201,11 +208,18 @@ export function CaseRegister() {
       <p className="cr-state">Cases load once you sign in with an organisation account, and each organisation sees only its own. They hold what callers said and where an animal was found, so nothing is shown before that.</p>
     </main>
   );
+  if (error && scope === null && counts === null) return (
+    <main className="cr">
+      <Head />
+      <p className="cr-state is-err" role="alert"><b>Cases could not be loaded.</b><br />No failed query has been shown as zero. Refresh to try again.</p>
+    </main>
+  );
 
   return (
     <main className="cr">
-      <Head count={lensCount} review={counts?.reasonless} />
-      {openRows.length >= OPEN_REGISTER_LIMIT && <p className="cr-note">The board and open-case lenses show the {OPEN_REGISTER_LIMIT} oldest loaded open cases. These counts describe that slice. Search checks the whole register.</p>}
+      <Head count={lensCount} historical={scope?.historicalOpen ?? historicalRows.length} review={(scope?.historicalReview ?? historicalRows.length) + (scope?.currentQuiet ?? lensCount.quiet) + (counts?.reasonless ?? 0)} />
+      {error && <p className="cr-note" role="alert">Some case records could not be loaded. No missing result has been shown as zero. Refresh to try again.</p>}
+      {loadedOpenRows.length >= OPEN_REGISTER_LIMIT && <p className="cr-note">The board and lists show the {OPEN_REGISTER_LIMIT} oldest loaded records. Lens totals are exact across the organisation; search checks the whole register.</p>}
 
       {openRows.length > 0 && <details className="cr-analysis"><summary>Read the triage × waiting-time matrix <span>Filter by urgency and age</span></summary><Board rows={openRows} now={now} cell={cell} onCell={(c) => { setCell(c); setLens((l) => (OPEN_LENSES.includes(l) ? l : "open")); }} /></details>}
 
@@ -217,6 +231,7 @@ export function CaseRegister() {
             {LENS_LABEL[l]} <b className="sys-mono">{lensCount[l as keyof typeof lensCount]}</b>
           </button>
         ))}
+        <Link className="cr-geography" href="/partner/review?tab=historical">Imported decisions <b className="sys-mono">{scope ? scope.historicalReview.toLocaleString("en-IN") : "—"}</b> <ArrowUpRight size={14} /></Link>
         <span className="cr-lens-gap" aria-hidden />
         {(["closed", "reasonless"] as Lens[]).map((l) => (
           <button key={l} type="button" aria-pressed={lens === l} className={lens === l ? "is-on" : ""} onClick={() => { setLens(l); setCell(null); setQ(""); }}>
@@ -224,7 +239,7 @@ export function CaseRegister() {
           </button>
         ))}
         <Link className="cr-geography" href="/partner/map?mode=cases"><MapPin size={16} /> Read the field map <ArrowUpRight size={14} /></Link>
-        <p className="cr-scope">Counts describe loaded open work. Absence of an assignee or update means it is not recorded, not that nobody responded.</p>
+        <p className="cr-scope">Current cases exclude unconfirmed import statuses. “Quiet” compares incident age with the last recorded activity. “Cases flagged overdue” counts cases whose next-due flag has passed; scheduled follow-ups are listed separately.</p>
       </nav>
       <section className="cr-ledger" aria-label="Case register">
 
@@ -259,7 +274,7 @@ export function CaseRegister() {
       {rows.length ? (
         <>
           <p className="cr-waiting-key">Waiting bars use a logarithmic scale. Exact elapsed time appears on each record.</p>
-          <div className="cr-ledger-labels" aria-hidden><span>Case / animal</span><span>Locality / reported</span><span>Recorded waiting time</span><span>With</span><span>Status</span></div>
+          <div className="cr-ledger-labels" aria-hidden><span>Case / animal</span><span>Locality / incident date</span><span>Incident age / last activity</span><span>With</span><span>Status</span></div>
           <ol className="cr-list">{visibleRows.map((r) => <Row key={r.id} r={r} now={now} onInspect={() => { setSelected(r); setTaking("idle"); }} />)}</ol>
           {rows.length > limit && (
             <button type="button" className="cr-more" onClick={() => setLimit((n) => n + SHOW)}>
@@ -296,12 +311,12 @@ export function CaseRegister() {
   );
 }
 
-function Head({ count, review }: { count?: Record<string, number>; review?: number }) {
+function Head({ count, historical, review }: { count?: Record<string, number>; historical?: number; review?: number }) {
   return (
     <DeskHeader
       kicker="Cases"
       title={<>Every request, <em>triaged</em></>}
-      lede={count ? `${count.open.toLocaleString("en-IN")} open cases loaded. Choose a queue on the left, inspect a row, act from the case file.` : "Your organisation’s working record of requests for help: triage, inspect and act, with the evidence kept together."}
+      lede={count ? `${count.open.toLocaleString("en-IN")} current open cases. ${historical?.toLocaleString("en-IN") ?? "—"} imported open statuses stay in review until a person confirms them.` : "Your organisation’s working record of requests for help: triage, inspect and act, with the evidence kept together."}
       actions={<>
         <Link href="/partner/cases/new" className="dk-btn is-flame"><Plus size={16} /> New case</Link>
         <Link href="/partner/review" className="dk-btn is-tint">Case review{review ? ` · ${review}` : ""} <ArrowUpRight size={14} /></Link>
@@ -331,13 +346,13 @@ function Board({ rows, now, cell, onCell }: { rows: RegisterRow[]; now: number; 
               {BANDS.map((b) => {
                 const list = grid.get(`${t.id}|${b.id}`) ?? [];
                 const on = cell?.t === t.id && cell.b === b.id;
-                const quiet = list.filter((r) => isQuiet(r, now)).length;
+                const quiet = list.filter((r) => isInactive(r, now)).length;
                 return (
                   <button key={b.id} type="button" className={`cr-cell ${on ? "is-on" : ""} ${list.length ? "" : "is-empty"}`} disabled={!list.length}
                     aria-pressed={on} aria-label={`${t.label}, ${b.label.toLowerCase()}: ${list.length} open, ${quiet} quiet`}
                     onClick={() => onCell(on ? null : { t: t.id, b: b.id })}>
                     <span className="cr-units">
-                      {list.slice(0, 60).map((r) => <i key={r.id} className={isQuiet(r, now) ? "is-quiet" : ""} />)}
+                      {list.slice(0, 60).map((r) => <i key={r.id} className={isInactive(r, now) ? "is-quiet" : ""} />)}
                       {list.length > 60 && <em>+{list.length - 60}</em>}
                     </span>
                     {list.length > 0 && <b className="sys-mono">{list.length}</b>}

@@ -45,52 +45,58 @@ export function FieldToday() {
   }, [ready, accessReady, user, member]);
 
   const now = Date.now();
-  const byId = useMemo(() => new Map((open ?? []).map((r) => [r.id, r])), [open]);
-  const nobody = useMemo(() => (open ?? []).filter((r) => !r.assignee_name).sort((a, b) => RANK[triage(a)] - RANK[triage(b)] || (a.occurred_at ?? "").localeCompare(b.occurred_at ?? "")), [open]);
+  const allOpen = useMemo(() => open ?? [], [open]);
+  const currentOpen = useMemo(() => allOpen.filter((r) => r.provenance !== "imported_historical_record" || Boolean(r.reviewed_at)), [allOpen]);
+  const liveOpen = useMemo(() => currentOpen.filter((r) => {
+    const incidentOld = Boolean(r.occurred_at) && now - Date.parse(r.occurred_at!) > 90 * DAY;
+    const activityQuiet = !r.last_activity_at || now - Date.parse(r.last_activity_at) > 30 * DAY;
+    return !(incidentOld && activityQuiet);
+  }), [currentOpen, now]);
+  const quietCount = currentOpen.length - liveOpen.length;
+  const byId = useMemo(() => new Map(liveOpen.map((r) => [r.id, r])), [liveOpen]);
+  const nobody = useMemo(() => liveOpen.filter((r) => !r.assignee_name).sort((a, b) => RANK[triage(a)] - RANK[triage(b)] || (a.occurred_at ?? "").localeCompare(b.occurred_at ?? "")), [liveOpen]);
   const holders = useMemo(() => {
     const m = new Map<string, number>();
-    for (const r of open ?? []) if (r.assignee_name) m.set(r.assignee_name, (m.get(r.assignee_name) ?? 0) + 1);
+    for (const r of liveOpen) if (r.assignee_name) m.set(r.assignee_name, (m.get(r.assignee_name) ?? 0) + 1);
     return [...m].sort((a, b) => b[1] - a[1]);
-  }, [open]);
+  }, [liveOpen]);
   const places = useMemo(() => {
     const m = new Map<string, { n: number; crit: number }>();
-    for (const r of open ?? []) {
+    for (const r of liveOpen) {
       const z = (r.zone ?? "").trim() || "Place not recorded";
       const v = m.get(z) ?? { n: 0, crit: 0 };
       v.n++; if (triage(r) === "Critical") v.crit++;
       m.set(z, v);
     }
     return [...m].sort((a, b) => b[1].crit * 2 + b[1].n - (a[1].crit * 2 + a[1].n)).slice(0, 10);
-  }, [open]);
+  }, [liveOpen]);
 
   if (!ready || !accessReady || open === null) return <p className="ft-state"><Loader2 size={16} className="animate-spin" /> Reading today&rsquo;s work…</p>;
   if (!user || !member) return <p className="ft-state">Field work loads once you sign in with an organisation account.</p>;
   if (loadError) return <p className="ft-state" role="alert">Field work could not be loaded. Please refresh to try again.</p>;
 
-  const overdue = due.filter((f) => Date.parse(f.due_at) < now).length;
-  const dueSoon = due.length - overdue;
+  const scheduled = due.filter((f) => f.source === "scheduled");
+  const historical = due.filter((f) => f.source === "historical_import");
+  const overdue = scheduled.filter((f) => Date.parse(f.due_at) < now).length;
+  const dueSoon = scheduled.length - overdue;
   const maxPlace = Math.max(1, ...places.map(([, v]) => v.n));
-  // Follow-ups more than three months late are almost all from imported
-  // registers; they sit in their own fold so this week's work stays on top.
-  const BACKLOG = 90 * 86400000;
-  const current = due.filter((f) => now - Date.parse(f.due_at) <= BACKLOG).sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at));
-  const backlog = due.filter((f) => now - Date.parse(f.due_at) > BACKLOG);
+  const current = [...scheduled].sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at));
   const item = (f: DueFollowup) => {
     const c = f.case_id ? byId.get(f.case_id) : null;
     const late = Date.parse(f.due_at) < now;
-    const href = f.case_id ? `/partner/cases/${f.case_id}` : f.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/records?view=overdue";
+    const href = f.case_id ? `/partner/cases/${f.case_id}` : f.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/followups";
     return (
       <li key={f.id} className={late ? "is-late" : ""}>
         <Link href={href}>
           <time className="sys-mono">{day(f.due_at)}</time>
-          <span><b>{c ? cond(c) ?? "A case" : f.kind && !/^imported/i.test(f.kind) ? f.kind.replace(/_/g, " ") : "Follow-up from the imported register"}</b><small>{c ? [c.animal_name, c.zone].filter(Boolean).join(" · ") : late ? "Overdue" : "Due"}</small></span>
+          <span><b>{c ? cond(c) ?? "A case" : f.kind ? f.kind.replace(/_/g, " ") : "Scheduled follow-up"}</b><small>{[f.animal_name || f.straypaw_id, f.zone, f.assignee_name ? `Owner · ${f.assignee_name}` : "Owner · unassigned"].filter(Boolean).join(" · ")}</small></span>
           <i>{late ? lateBy(now - Date.parse(f.due_at)) : "due"}</i>
         </Link>
       </li>
     );
   };
 
-  const curRows = Math.min(10, current.length) + (backlog.length ? 2 : 0);
+  const curRows = Math.min(10, current.length) + (historical.length ? 2 : 0);
   const nobodyRows = Math.max(4, Math.min(10, curRows + 2));
   const whoLeft = curRows + 2 <= Math.min(nobody.length, nobodyRows);
   const whoSec = (
@@ -108,11 +114,12 @@ export function FieldToday() {
 
   return (
     <div className="ft">
-      {(open.length >= 300 || due.length >= 200) && <p className="ft-quiet">This view uses up to 300 loaded open cases and 200 follow-ups. Counts and assignments below describe that loaded slice; search the case register for other records.</p>}
+      {(allOpen.length >= 300 || due.length >= 200) && <p className="ft-quiet">This view names up to 300 loaded cases and 200 follow-ups. Current-work totals are kept separate from unconfirmed import history; use the exact linked registers for the full cohorts.</p>}
       <p className="ft-line">
         <b>{dueSoon}</b> follow-up{dueSoon === 1 ? "" : "s"} due in the next seven days{overdue ? <>, <em>{overdue} overdue</em></> : null}.{" "}
         <b>{nobody.length}</b> open case{nobody.length === 1 ? "" : "s"} with nobody on {nobody.length === 1 ? "it" : "them"}.
       </p>
+      {quietCount > 0 && <p className="ft-quiet">{quietCount} older current case{quietCount === 1 ? " is" : "s are"} quiet and held outside today&rsquo;s field queue. <Link href="/partner/cases?lens=quiet">Review quiet cases</Link>.</p>}
 
       <div className="ft-grid">
         {/* Two columns that keep level: "Nobody on it" lists about as many
@@ -125,11 +132,11 @@ export function FieldToday() {
             <>
               {current.length ? <ol className="ft-list">{current.slice(0, 10).map(item)}</ol> : <p className="ft-quiet">Nothing due this week, and nothing late from the last three months.</p>}
               {current.length > 10 && <Link href="/partner/records?view=overdue" className="ft-more">All {current.length} in the register <ArrowUpRight size={14} /></Link>}
-              {backlog.length > 0 && (
+              {historical.length > 0 && (
                 <details className="ft-fold">
-                  <summary><b>{backlog.length}</b> older follow-up{backlog.length === 1 ? "" : "s"}, more than three months late</summary>
-                  <ol className="ft-list">{backlog.slice(0, 8).map(item)}</ol>
-                  <Link href="/partner/records?view=overdue" className="ft-more">Review or close them in Records <ArrowUpRight size={14} /></Link>
+                  <summary><b>{historical.length}</b> imported follow-up date{historical.length === 1 ? "" : "s"} · source history, not today&rsquo;s queue</summary>
+                  <ol className="ft-list">{historical.slice(0, 8).map((f) => <li key={f.id}><Link href={f.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/followups"}><time className="sys-mono">{day(f.due_at)}</time><span><b>{f.animal_name || f.straypaw_id || "Animal identity not recorded"}</b><small>{[f.zone, "Historical import · review source date"].filter(Boolean).join(" · ")}</small></span><ArrowUpRight size={14} /></Link></li>)}</ol>
+                  <Link href="/partner/followups" className="ft-more">Review historical dates separately <ArrowUpRight size={14} /></Link>
                 </details>
               )}
             </>

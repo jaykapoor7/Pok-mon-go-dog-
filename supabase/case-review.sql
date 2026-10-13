@@ -217,7 +217,7 @@ as $$
       when nullif(btrim(c.source_metadata -> 'normalized' ->> 'rescue_plan'), '') is not null
         or nullif(btrim(c.source_metadata -> 'normalized' ->> 'case_detail'), '') is not null then 1
       else 0
-    end,
+    end as evidence_score,
     coalesce(m.n, 0),
     coalesce(e.n, 0),
     nullif(btrim(c.source_metadata -> 'normalized' ->> 'treatment_update'), '') is not null,

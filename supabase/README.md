@@ -19,6 +19,7 @@ Sets are defined in [`../scripts/db-migrate.mjs`](../scripts/db-migrate.mjs):
 | `register` | `register-intelligence.sql`, `case-review.sql` |
 | `wards` | `ward-density.sql`, districts, `wards-chennai.sql`, `map-search.sql` |
 | `personal` | `personal-access-codes.sql` |
+| `phase1` | Phase 1 review-queue repair and current/historical work-cell scopes |
 | `all` | `RUN-ALL-MIGRATIONS.sql` + the pilot tail |
 
 The GitHub Action **Apply Supabase migration** runs the same script with the

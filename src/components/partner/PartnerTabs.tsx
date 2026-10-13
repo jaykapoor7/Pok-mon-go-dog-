@@ -33,6 +33,7 @@ export const CONSOLE_GROUPS: {
     root: "/partner/field",
     tabs: [
       { href: "/partner/field", label: "Today" },
+      { href: "/partner/followups", label: "Follow-ups" },
       { href: "/partner/incoming", label: "Incoming" },
       { href: "/partner/drives", label: "Drives" },
       { href: "/partner/projects", label: "Projects" },

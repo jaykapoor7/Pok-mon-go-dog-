@@ -9,7 +9,7 @@ export default function PartnerFollowupsPage() {
     <ConsolePage
       kicker="CareOS · Follow-ups"
       title="Rechecks that keep care going"
-      lede="Every recheck your team has scheduled, overdue first. Mark one done or move it in a tap; the case and the animal's history update with it."
+      lede="Current rechecks your team scheduled on a case come first. Historical import dates stay separate for source review and cannot be completed by mistake."
     >
       <FollowupsClient />
     </ConsolePage>

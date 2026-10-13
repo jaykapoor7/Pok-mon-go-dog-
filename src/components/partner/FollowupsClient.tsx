@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Check, Clock } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePartnerAccess } from "@/components/partner/PartnerGate";
-import { dueFollowups, openCases, type DueFollowup, type OpenCase } from "@/lib/ops";
+import { dueFollowups, type DueFollowup } from "@/lib/ops";
 import { updateCaseFollowupStatus } from "@/lib/case-actions";
 import "./careos-ws.css";
 
@@ -36,17 +36,15 @@ export function FollowupsClient() {
   const { member, ready: accessReady } = usePartnerAccess();
   const isMember = Boolean(user && member);
   const [rows, setRows] = useState<DueFollowup[] | null>(null);
-  const [cases, setCases] = useState<Map<string, OpenCase>>(new Map());
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [said, setSaid] = useState("");
   const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     setError(false);
+    setRows(null);
     try {
-      const [f, c] = await Promise.all([dueFollowups(), openCases().catch(() => [] as OpenCase[])]);
-      setRows(f);
-      setCases(new Map(c.map((x) => [x.id, x])));
+      setRows(await dueFollowups());
     } catch { setError(true); setRows([]); }
   }, []);
 
@@ -54,8 +52,9 @@ export function FollowupsClient() {
 
   const today = startOfDay();
   const groups = useMemo(() => {
-    const g = { late: [] as DueFollowup[], today: [] as DueFollowup[], week: [] as DueFollowup[] };
+    const g = { late: [] as DueFollowup[], today: [] as DueFollowup[], week: [] as DueFollowup[], historical: [] as DueFollowup[] };
     for (const f of rows ?? []) {
+      if (f.source === "historical_import") { g.historical.push(f); continue; }
       const d = startOfDay(new Date(f.due_at));
       if (d < today) g.late.push(f); else if (d === today) g.today.push(f); else g.week.push(f);
     }
@@ -86,27 +85,33 @@ export function FollowupsClient() {
   if (rows === null) return <div className="ws-state" aria-busy="true">Loading follow-ups…</div>;
   if (error) return <div className="ws-state"><b>Follow-ups could not load.</b><p>Nothing was changed. <button type="button" className="ws-linkbtn" onClick={load}>Try again</button></p></div>;
 
-  const total = rows.length;
+  const scheduledTotal = groups.late.length + groups.today.length + groups.week.length;
+  const identity = (f: DueFollowup) => f.animal_name || f.straypaw_id || f.case_title || f.case_code || "Animal identity not recorded";
+  const place = (f: DueFollowup) => [f.zone, f.city && f.city !== f.zone ? f.city : null].filter(Boolean).join(", ") || "Locality not recorded";
+  const recordHref = (f: DueFollowup) => f.case_id ? `/partner/cases/${f.case_id}` : f.dog_id ? `/partner/animals/${f.dog_id}` : null;
   const Section = ({ id, title, list, note }: { id: string; title: string; list: DueFollowup[]; note: string }) => (
     <section className="ws-group" aria-labelledby={`fu-${id}`}>
       <header><h2 id={`fu-${id}`}>{title} <span className="ws-count">{list.length}</span></h2><p>{note}</p></header>
       {list.length === 0 ? <p className="ws-none">Nothing here.</p> : (
         <ul className="ws-rows mo-list">
           {list.map((f) => {
-            const c = f.case_id ? cases.get(f.case_id) : undefined;
             const due = dueLabel(f.due_at, today);
-            const title = c?.animal_name || c?.title || "Follow-up";
+            const title = identity(f);
+            const href = recordHref(f);
+            const expected = KIND[f.kind ?? ""] ?? (f.kind ? f.kind.replace(/_/g, " ") : "Recheck");
             return (
               <li key={f.id} className={busy.has(f.id) ? "is-busy" : ""}>
                 <span className={`ws-due is-${due.tone}`}>{due.text}</span>
                 <span className="ws-what">
-                  <b>{KIND[f.kind ?? ""] ?? "Follow-up"} · {title}</b>
-                  <small>{[c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : null, c?.zone, c?.assignee_name ? `Owner · ${c.assignee_name}` : "No owner yet"].filter(Boolean).join(" · ")}</small>
+                  <b>{title} · {expected}</b>
+                  <small>{[place(f), f.condition_class && f.condition_class !== "Not recorded" ? f.condition_class : null, f.assignee_name ? `Owner · ${f.assignee_name}` : "Owner · unassigned", f.case_code ? `Case · ${f.case_code}` : null, "Source · scheduled on case"].filter(Boolean).join(" · ")}</small>
                 </span>
                 <span className="ws-acts">
-                  <button type="button" className="ws-btn is-primary" onClick={() => act(f, "done")} disabled={busy.has(f.id)}><Check size={15} aria-hidden /> Done</button>
-                  <button type="button" className="ws-btn" onClick={() => act(f, "later")} disabled={busy.has(f.id)}><Clock size={15} aria-hidden /> +2 days</button>
-                  {f.case_id && <Link className="ws-btn is-quiet" href={`/partner/cases/${f.case_id}`} aria-label={`Open the case for ${title}`}>Case <ArrowUpRight size={14} aria-hidden /></Link>}
+                  {f.case_id ? <>
+                    <button type="button" className="ws-btn is-primary" onClick={() => act(f, "done")} disabled={busy.has(f.id)}><Check size={15} aria-hidden /> Complete recheck</button>
+                    <button type="button" className="ws-btn" onClick={() => act(f, "later")} disabled={busy.has(f.id)}><Clock size={15} aria-hidden /> Reschedule +2 days</button>
+                  </> : <span className="ws-source-note">No case linked — schedule from the animal record.</span>}
+                  {href && <Link className="ws-btn is-quiet" href={href} aria-label={`Open the record for ${title}`}>Open record <ArrowUpRight size={14} aria-hidden /></Link>}
                 </span>
               </li>
             );
@@ -119,7 +124,7 @@ export function FollowupsClient() {
   return (
     <div className="ws">
       <p className="ws-live" role="status" aria-live="polite">{said}</p>
-      {total === 0 ? (
+      {scheduledTotal === 0 ? (
         <div className="ws-state"><b>No follow-ups due this week.</b><p>Rechecks you schedule on a case appear here, overdue ones first. <Link href="/partner/cases">Open cases</Link></p></div>
       ) : (
         <>
@@ -128,6 +133,22 @@ export function FollowupsClient() {
           <Section id="week" title="This week" list={groups.week} note="Coming up in the next seven days." />
         </>
       )}
+      <section className="ws-group is-history" aria-labelledby="fu-history">
+        <header><h2 id="fu-history">Historical import dates <span className="ws-count">{groups.historical.length}</span></h2><p>Source dates from earlier registers. They are not current scheduled work and cannot be completed or postponed here.</p></header>
+        {groups.historical.length === 0 ? <p className="ws-none">No historical follow-up dates are waiting for review.</p> : (
+          <ul className="ws-rows">
+            {groups.historical.map((f) => {
+              const href = recordHref(f);
+              const title = identity(f);
+              return <li key={f.id}>
+                <span className="ws-due is-history">{new Date(f.due_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                <span className="ws-what"><b>{title} · imported follow-up date</b><small>{[place(f), f.straypaw_id ? `Animal · ${f.straypaw_id}` : null, "Expected action · review the source date", "Owner · not assigned", "Source · historical import"].filter(Boolean).join(" · ")}</small></span>
+                <span className="ws-acts">{href ? <Link className="ws-btn is-quiet" href={href}>Open animal record <ArrowUpRight size={14} aria-hidden /></Link> : <span className="ws-source-note">No linked record</span>}</span>
+              </li>;
+            })}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

@@ -89,9 +89,6 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* WhatsApp reporting, built around the same bounded record as the relay. */}
-        <CareStory />
-
         {/* Right after the hero, the centre of the page: every animal has a
             card. It shows the hero's own count (one source); its own count
             is only a fallback for a visit where the story could not load. */}
@@ -104,7 +101,7 @@ export default async function HomePage() {
           <section className="ld-sec ld-sec-shell" aria-labelledby="ld-relay-title">
             <header className="sys-head">
               <h2 id="ld-relay-title">One report, <em>three screens.</em></h2>
-              <p>One real request in {story.hero.city} that went the whole way: reported by a resident, worked by an NGO, visible to a municipality. One record throughout.</p>
+              <p>A real request in {story.hero.city} moves from resident report to NGO queue to municipal view without losing its identity.</p>
             </header>
             <Relay city={story.hero.city} desk={story.desk} report={story.relay} />
           </section>
@@ -122,9 +119,17 @@ export default async function HomePage() {
           />
         )}
 
+        {/* WhatsApp is the access layer for the same record. Its feature
+            story and messaging are intentionally preserved as-is. */}
+        <CareStory />
+
         {/* 5. Resident / NGO / Municipality — who the record serves. */}
-        <section className="ld-sec ld-sec-shell" aria-label="Who reads the record">
+        <section className="ld-sec ld-sec-shell ld-audience" aria-labelledby="ld-audience-title">
           <div className="ld-scale">
+            <header className="sys-head">
+              <p className="ld-section-kicker sys-mono">One shared record</p>
+              <h2 id="ld-audience-title">Useful at <em>every scale.</em></h2>
+            </header>
             <ol className="ld-levels">
               {LEVELS.map((l, i) => (
                 <li key={l.level} style={{ ["--i" as string]: i }}>

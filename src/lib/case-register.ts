@@ -18,9 +18,10 @@ export type RegisterRow = {
   resolved_at_source: string | null; reviewed_at: string | null; severity: string | null; assignee_name: string | null;
   animal_name: string | null; straypaw_id: string | null; dog_id: string | null; zone: string | null; h3_r8: string | null;
   next_due: string | null; followups_done: number | null; followups_missed: number | null; intake_channel: string | null;
+  provenance: string | null;
 };
 
-const FIELDS = "id,case_code,title,condition_class,status_class,closure_reason,occurred_at,last_activity_at,resolved_at,resolved_at_source,reviewed_at,severity,assignee_name,animal_name,straypaw_id,dog_id,zone,h3_r8,next_due,followups_done,followups_missed,intake_channel";
+const FIELDS = "id,case_code,title,condition_class,status_class,closure_reason,occurred_at,last_activity_at,resolved_at,resolved_at_source,reviewed_at,severity,assignee_name,animal_name,straypaw_id,dog_id,zone,h3_r8,next_due,followups_done,followups_missed,intake_channel,provenance";
 export const PAGE = 150;
 export const OPEN_REGISTER_LIMIT = 300;
 
@@ -70,4 +71,29 @@ export async function closedCounts(): Promise<{ closed: number; reasonless: numb
   ]);
   if (a.error || b.error) throw new Error("Case totals could not be loaded.");
   return { closed: a.count ?? 0, reasonless: b.count ?? 0 };
+}
+
+export type CaseScopeCounts = { currentOpen: number; historicalOpen: number; historicalReview: number; currentQuiet: number; critical: number; unassigned: number; flaggedOverdue: number };
+
+/** Exact cohorts shared by Today, Cases and the operations room. Imported
+ * source statuses are review work, not current field cases. */
+export async function caseScopeCounts(): Promise<CaseScopeCounts> {
+  const supa = getSupabase();
+  if (!supa) return { currentOpen: 0, historicalOpen: 0, historicalReview: 0, currentQuiet: 0, critical: 0, unassigned: 0, flaggedOverdue: 0 };
+  const now = Date.now();
+  const ninety = new Date(now - 90 * 86_400_000).toISOString();
+  const thirty = new Date(now - 30 * 86_400_000).toISOString();
+  const current = "provenance.is.null,provenance.neq.imported_historical_record,reviewed_at.not.is.null";
+  const criticalConditions = ["Road accident", "Maggot wound", "Human abuse", "Dog bite", "Entrapment", "Suspected rabies"];
+  const [a, b, review, c, d, e, f] = await Promise.all([
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).eq("provenance", "imported_historical_record").is("reviewed_at", null),
+    supa.rpc("org_historical_review_queue", undefined, { count: "exact", head: true }),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current).lt("occurred_at", ninety).or(`last_activity_at.is.null,last_activity_at.lt.${thirty}`),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current).in("condition_class", criticalConditions),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current).is("assignee_name", null),
+    supa.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).or(current).not("next_due", "is", null).lt("next_due", new Date(now).toISOString()),
+  ]);
+  if (a.error || b.error || review.error || c.error || d.error || e.error || f.error) throw new Error("Case scope totals could not be loaded.");
+  return { currentOpen: a.count ?? 0, historicalOpen: b.count ?? 0, historicalReview: review.count ?? 0, currentQuiet: c.count ?? 0, critical: d.count ?? 0, unassigned: e.count ?? 0, flaggedOverdue: f.count ?? 0 };
 }

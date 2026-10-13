@@ -38,7 +38,7 @@ import { Dashboard, Feed, ItemList, MapChips, Panel, type Item } from "@/compone
 import { LiveMap, type MapCell } from "@/components/dash/LiveMap";
 import { dotsInCells } from "@/components/dash/useCity";
 import { getMyOrg } from "@/lib/actions";
-import { dueFollowups, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
+import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
 import type { NGO } from "@/lib/types";
 import "./ops.css";
@@ -91,7 +91,7 @@ export function OpsRoom() {
     /* Signed out, or not yet a member, is a real state: the empty workspace. */
     if (!isMember) { setOpen([]); setDue([]); setChanges([]); setCounts(null); setOpenCells([]); setOrg(null); return; }
     let live = true; setLoadError(false);
-    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null), opsCounts(), orgOpenWorkCells().catch(() => [])])
+    Promise.all([openCases(), dueFollowups(), recentChanges(), getMyOrg().catch(() => null), opsCounts(), orgOpenWorkCells()])
       .then(([o, d, ch, g, c, cells]) => { if (!live) return; setOpen(o); setDue(d); setChanges(ch); setOrg(g); setCounts(c); setOpenCells(cells); })
       .catch(() => { if (live) { setLoadError(true); setOpen([]); setDue([]); setChanges([]); setCounts(null); setOpenCells([]); } });
     return () => { live = false; };
@@ -99,14 +99,18 @@ export function OpsRoom() {
 
   /* ── the day's numbers ─────────────────────────────────────────────── */
   const s = useMemo(() => {
-    const all = open ?? [];
+    const loaded = open ?? [];
     const now = Date.now();
+    const historical = loaded.filter(isHistoricalCase);
+    const all = loaded.filter((c) => !isHistoricalCase(c));
     const stale = all.filter((c) => isStale(c, now));
     const liveWork = all.filter((c) => !isStale(c, now));
-    const overdue = due.filter((f) => Date.parse(f.due_at) < now);
-    const week = due.filter((f) => Date.parse(f.due_at) >= now);
+    const scheduled = due.filter((f) => f.source === "scheduled");
+    const importedDates = due.filter((f) => f.source === "historical_import");
+    const overdue = scheduled.filter((f) => Date.parse(f.due_at) < now);
+    const week = scheduled.filter((f) => Date.parse(f.due_at) >= now);
     const crit = liveWork.filter(critical);
-    return { all, stale, liveWork, overdue, week, crit };
+    return { all, historical, stale, liveWork, overdue, week, importedDates, crit };
   }, [open, due]);
 
 
@@ -128,7 +132,7 @@ export function OpsRoom() {
      the queue's 800-row safety cap. */
   const workMap = useMemo(() => {
     if (!isMember || !openCells?.length) return null;
-    const rows = openCells.filter((row) => row.h3_r8 && isValidCell(row.h3_r8) && row.open_cases > 0);
+    const rows = openCells.filter((row) => row.h3_r8 && isValidCell(row.h3_r8) && row.open_cases + row.historical_cases > 0);
     if (!rows.length) return null;
     const spots: { key: string; lat: number; lng: number; live: number; stale: number }[] = rows.map((row) => {
       const [lat, lng] = cellToLatLng(row.h3_r8);
@@ -147,19 +151,20 @@ export function OpsRoom() {
   }, [isMember, openCells]);
 
   const loading = open === null || !ready || !accessReady;
-  const blank = !loading && isMember && (counts ? counts.open === 0 : s.all.length === 0);
+  const blank = !loading && !loadError && isMember && (counts ? counts.currentOpen === 0 && counts.historicalOpen === 0 : s.all.length === 0 && s.historical.length === 0);
   const signedOut = !loading && !isMember;
   const live = counts?.liveWork ?? s.liveWork.length;
   const crit = counts?.critical ?? s.crit.length;
-  const overdue = counts?.overdue ?? s.overdue.length;
-  const stale = counts?.stale ?? s.stale.length;
+  const overdue = counts?.overdueScheduled ?? s.overdue.length;
+  const quiet = counts?.quiet ?? s.stale.length;
+  const historicalReview = counts?.historicalReview ?? s.historical.length;
   const working = isMember && !blank && !loading;
   const place = workMap && workMap.name !== "all open work" ? workMap.name : org?.city ?? null;
 
-  const [mapMode, setMapMode] = useState<"open" | "live" | "stale">("open");
+  const [mapMode, setMapMode] = useState<"open" | "live" | "quiet" | "historical">("open");
   const workDots = useMemo(() => dotsInCells((open ?? []).map((c) => ({ h3: c.h3_r8, hot: critical(c) }))), [open]);
   const mapCells: MapCell[] = (openCells ?? []).filter((r) => r.h3_r8 && isValidCell(r.h3_r8)).map((r) => ({
-    h3: r.h3_r8, value: mapMode === "open" ? r.open_cases : mapMode === "live" ? Math.max(0, r.open_cases - r.stale_cases) : r.stale_cases,
+    h3: r.h3_r8, value: mapMode === "open" ? r.open_cases : mapMode === "live" ? Math.max(0, r.open_cases - r.stale_cases) : mapMode === "quiet" ? r.stale_cases : r.historical_cases,
     hot: r.critical_cases, label: (open ?? []).find((c) => c.h3_r8 === r.h3_r8)?.zone ?? r.city,
   }));
   const filtered = shown.filter((q) => focus === "all" ? true : focus === "critical" ? q.crit : q.kind === "followup");
@@ -168,7 +173,7 @@ export function OpsRoom() {
     return {
       key: q.key, href: c ? `/partner/cases/${c.id}` : f?.dog_id ? `/partner/animals/${f.dog_id}` : "/partner/records?view=overdue",
       title: q.kind === "followup" ? "Follow-up overdue" : c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c?.title || "Open case",
-      meta: who(c) || (f?.kind ? f.kind.replace(/_/g, " ") : "From the imported register"),
+      meta: who(c) || [f?.animal_name || f?.straypaw_id, f?.zone, f?.kind ? f.kind.replace(/_/g, " ") : null].filter(Boolean).join(" · ") || "Identity not recorded",
       tag: { text: q.kind === "followup" ? "Overdue" : q.crit ? "Critical" : STATUS_META[(c?.status_class ?? "open") as StatusClass]?.short ?? "Open", tone: q.crit || q.kind === "followup" ? "hot" : "open" },
       right: q.kind === "followup" ? `${ago(f!.due_at)} late` : `${ago(c?.occurred_at ?? null)} waiting`,
     };
@@ -199,16 +204,16 @@ export function OpsRoom() {
     <Dashboard art="care"
       eyebrow={<>{org?.name ?? "Organisation workspace"}{today ? ` · ${today}` : ""}</>}
       title={<>Today in <em>{place ?? "the field"}</em></>}
-      subtitle={loadError ? "The organisation record could not be read. Reload to try again. Nothing has been changed." : "Live work first. Months-old cases with no activity wait in review, not in the queue."}
+      subtitle={loadError ? "The organisation record could not be read. No failed query is being shown as zero; reload to try again. Nothing has been changed." : "Current work first. Quiet live cases and unconfirmed import statuses wait in separate review cohorts."}
       actions={<><Link href="/partner/records" className="x-btn"><Search size={15} aria-hidden /> Find a record</Link><Link href="/partner/import" className="x-btn">Import</Link></>}
       kpis={[
-        { label: "Live cases", value: loading ? null : live, href: "/partner/cases", note: "Open, with recent activity" },
-        { label: "Critical", value: loading ? null : crit, tone: "hot", note: "Accident, maggots, abuse, bite…" },
-        { label: "Follow-ups overdue", value: loading ? null : overdue, tone: "hot", href: "/partner/records?view=overdue" },
-        { label: "Waiting on a decision", value: loading ? null : stale, tone: "blue", href: "/partner/review", note: "Open 90+ days, quiet 30+" },
+        { label: "Live current cases", value: loading || loadError ? null : live, href: "/partner/cases?lens=live", note: "Current incidents, recent activity" },
+        { label: "Critical current cases", value: loading || loadError ? null : crit, tone: "hot", href: "/partner/cases?lens=critical", note: "Current cohort only" },
+        { label: "Scheduled follow-ups overdue", value: loading || loadError ? null : overdue, tone: "hot", href: "/partner/followups", note: "Case schedules, not flags or imports" },
+        { label: "Review decisions", value: loading || loadError ? null : quiet + historicalReview, tone: "blue", href: "/partner/review", note: `${historicalReview} imported · ${quiet} current quiet` },
       ]}
-      map={<LiveMap pin={cell ? <div className="db-selcard"><b>{(open ?? []).find((c) => c.h3_r8 === cell)?.zone ?? "Selected cell"}</b><p>The queue shows this cell only.</p><button type="button" className="x-btn" onClick={() => setCell(null)}><X size={14} aria-hidden /> Show everywhere</button></div> : null} cells={mapCells} tone="flame" metric={mapMode === "stale" ? "older open cases" : "open cases"} label={`Open work by cell in ${place ?? "your area"}`} dots={workDots} dotNoun="open case" dotKeys={["Critical", "Open case"]} selected={cell} onCell={(k) => setCell((x) => (x === k ? null : k))} emptyNote={loading ? "Placing the open work…" : "No open case carries a location."}>
-        <MapChips value={mapMode} options={[{ id: "open", label: "All open" }, { id: "live", label: "Live" }, { id: "stale", label: "Waiting on review" }]} onChange={setMapMode} label="Map measure" />
+      map={<LiveMap pin={cell ? <div className="db-selcard"><b>{(open ?? []).find((c) => c.h3_r8 === cell)?.zone ?? "Selected cell"}</b><p>The queue shows this cell only.</p><button type="button" className="x-btn" onClick={() => setCell(null)}><X size={14} aria-hidden /> Show everywhere</button></div> : null} cells={mapCells} tone="flame" metric={mapMode === "historical" ? "unconfirmed imported cases" : mapMode === "quiet" ? "quiet current cases" : "current open cases"} label={`Open work by cell in ${place ?? "your area"}`} dots={workDots} dotNoun="current open case" dotKeys={["Critical", "Current open"]} selected={cell} onCell={(k) => setCell((x) => (x === k ? null : k))} emptyNote={loading ? "Placing the open work…" : "No case in this cohort carries a location."}>
+        <MapChips value={mapMode} options={[{ id: "open", label: "Current open" }, { id: "live", label: "Live now" }, { id: "quiet", label: "Current quiet" }, { id: "historical", label: "Imports" }]} onChange={setMapMode} label="Map measure" />
         <Link href="/partner/map?mode=cases" className="db-maplink">Field map <ArrowUpRight size={14} aria-hidden /></Link>
       </LiveMap>}
       side={<>
@@ -224,7 +229,7 @@ export function OpsRoom() {
       </>}
     >
       <div className="db-row3">
-        {stale > 0 && <Panel title="Decisions waiting" count={stale} action={{ label: "Review them", href: "/partner/review" }}><p className="db-empty">Open for months with nothing recorded, usually imported. A person decides what happened to each, and the queue stays about today.</p></Panel>}
+        {quiet + historicalReview > 0 && <Panel title="Decisions waiting" count={quiet + historicalReview} action={{ label: "Review them", href: "/partner/review" }}><p className="db-empty"><b>{historicalReview}</b> imported open statuses need confirmation; <b>{quiet}</b> current cases are older than 90 days with no activity for 30. Nothing closes automatically.</p></Panel>}
         <Panel title="Tasks"><div className="db-legacy"><TasksSection compact /></div></Panel>
         <Panel title="Camps coming up"><div className="db-legacy"><CampsSection compact /></div></Panel>
       </div>

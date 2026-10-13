@@ -68,16 +68,18 @@ export function CaseReview({ initialTab = "historical" }: { initialTab?: Tab }) 
   const [q, setQ] = useState("");
   const [done, setDone] = useState<Record<string, Done>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     if (!ready || !accessReady) return;
     if (!user || !member) { setHistorical([]); setStale([]); setReasonless([]); return; }
     let live = true;
+    setError(null); setHistorical(null); setStale(null); setReasonless(null);
     Promise.all([historicalReviewCases(), staleCases(90), reasonlessCases()])
       .then(([h, a, b]) => { if (live) { setHistorical(h); setStale(a); setReasonless(b); } })
-      .catch((e: Error) => { if (live) { setError(e.message); setHistorical([]); setStale([]); setReasonless([]); } });
+      .catch((e: Error) => { if (live) setError(e.message); });
     return () => { live = false; };
-  }, [ready, accessReady, user, member]);
+  }, [ready, accessReady, user, member, reload]);
 
   const rows = tab === "historical" ? historical : tab === "stale" ? stale : reasonless;
   const shown = useMemo(() => (rows ?? []).filter((c) => {
@@ -117,17 +119,18 @@ export function CaseReview({ initialTab = "historical" }: { initialTab?: Tab }) 
     return r.ok;
   };
 
-  if (!ready || !accessReady || rows === null) return <main className="rv"><p className="rv-state"><Loader2 size={16} className="animate-spin" /> Reading your organisation&rsquo;s cases…</p></main>;
+  if (error) return <main className="rv"><Header count={null} historical={tab === "historical"} tab={tab} /><p className="rv-state" role="alert"><b>Case review could not load.</b><br />{error} No failed query has been shown as zero. <button type="button" onClick={() => setReload((n) => n + 1)}>Try again</button></p></main>;
+  if (!ready || !accessReady || rows === null) return <main className="rv"><p className="rv-state" aria-busy="true"><Loader2 size={16} className="animate-spin" /> Reading your organisation&rsquo;s cases…</p></main>;
   if (!user || !member) return (
     <main className="rv">
-      <Header count={0} historical />
+      <Header count={null} historical tab="historical" />
       <p className="rv-state">Reviewing cases needs a member of the organisation that holds them. Sign in with your organisation to see its cases here.</p>
     </main>
   );
 
   return (
     <main className="rv">
-      <Header count={tab === "historical" ? historical?.length ?? 0 : stale?.length ?? 0} historical={tab === "historical"} />
+      <Header count={tab === "historical" ? historical?.length ?? 0 : tab === "stale" ? stale?.length ?? 0 : reasonless?.length ?? 0} historical={tab === "historical"} tab={tab} />
 
       {tab !== "reasons" && (rows?.length ?? 0) > 0 && <AgeStrip cases={rows!} done={done} />}
 
@@ -166,8 +169,7 @@ export function CaseReview({ initialTab = "historical" }: { initialTab?: Tab }) 
         {decided > 0 && <p className="rv-tally"><Check size={14} /> {decided} decided this session</p>}
       </div>
 
-      {error && <p className="rv-state">{error}</p>}
-      {shown.length === 0 && !error && (
+      {shown.length === 0 && (
         <p className="rv-state">{tab === "historical" ? "No imported requests match these filters." : tab === "stale" ? "Nothing has been open this long without activity. This is the state you want." : "Every request that closed without field action says why."}</p>
       )}
 
@@ -203,13 +205,13 @@ export function CaseReview({ initialTab = "historical" }: { initialTab?: Tab }) 
   );
 }
 
-function Header({ count, historical = false }: { count: number; historical?: boolean }) {
+function Header({ count, historical = false, tab }: { count: number | null; historical?: boolean; tab: Tab }) {
   return (
     <DeskHeader
       kicker="Records · case review"
-      title={historical ? <>Confirm the imported&nbsp;history</> : <>Decide what happened to quiet&nbsp;cases</>}
-      lede={historical ? "These requests were marked open in an earlier register. Locality, age and available evidence put the most useful comparisons together; none of them decides the status. Every confirmation or closure is a person’s recorded decision." : "These live cases have been open without recent activity. Nothing closes by itself: each decision is yours, written into the case’s history under your name."}
-      figures={[{ label: historical ? "imported requests to confirm" : "cases waiting for a decision", value: count, tone: count ? "attention" : undefined }]}
+      title={historical ? <>Confirm the imported&nbsp;history</> : tab === "stale" ? <>Decide what happened to quiet&nbsp;cases</> : <>Record why field action did not&nbsp;happen</>}
+      lede={historical ? "These requests were marked open in an earlier register. Locality, age and available evidence put the most useful comparisons together; none of them decides the status. Every confirmation or closure is a person’s recorded decision." : tab === "stale" ? "These current cases have been open for 90 days or more with no recorded activity for 30. Incident age and last activity are separate facts; nothing closes by itself." : "These cases already closed without field action. Record the missing reason without changing their source history or close date."}
+      figures={[{ label: historical ? "imported requests to confirm" : tab === "stale" ? "current quiet cases to decide" : "closures missing a reason", value: count, tone: typeof count === "number" && count > 0 ? "attention" : undefined, href: `/partner/review?tab=${tab}` }]}
       actions={<Link href="/partner/reports#response" className="dk-btn is-tint">How this affects the figures <ArrowUpRight size={13} /></Link>}
     />
   );

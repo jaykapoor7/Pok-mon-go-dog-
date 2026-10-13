@@ -107,7 +107,7 @@ const STAGES: Stage[] = [
 const MODULES: { t: string; d: string; href: string; state: "live" | "pilot" }[] = [
   { t: "Care Inbox", d: "Everything that needs a decision from live web reports. WhatsApp intake is planned, not connected.", href: "/partner/incoming", state: "live" },
   { t: "Active cases", d: "Owned, prioritised, critical first. Assign, update, close with a reason.", href: "/partner/cases", state: "live" },
-  { t: "Follow-ups", d: "Rechecks and post-operative checks with due dates; overdue rises to the top.", href: "/partner/operations", state: "live" },
+  { t: "Follow-ups", d: "Rechecks and post-operative checks with due dates; overdue rises to the top.", href: "/partner/followups", state: "live" },
   { t: "Animal records", d: "One StrayPaw ID per animal, with its place, cases, care and outcomes.", href: "/partner/animals", state: "live" },
   { t: "Field operations", d: "Drives, vet camps and volunteers, with the areas you cover on the map.", href: "/partner/field", state: "live" },
   { t: "Reports", d: "Monthly and programme reports, evidence workbooks and exports.", href: "/partner/reports", state: "live" },

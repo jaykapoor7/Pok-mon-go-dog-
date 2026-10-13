@@ -222,9 +222,9 @@ update public.spatial_city_cells s
 -- Exact open-work geography for the NGO operations-room map. The queue may
 -- remain a bounded list of named cases; the map never derives its totals from
 -- that list.
-create or replace function public.list_org_open_work_cells()
+create or replace function public.list_org_open_work_cells_v2()
 returns table(
-  city text, h3_r8 text, open_cases bigint, stale_cases bigint, critical_cases bigint
+  city text, h3_r8 text, open_cases bigint, stale_cases bigint, historical_cases bigint, critical_cases bigint
 )
 language sql
 stable
@@ -242,7 +242,8 @@ as $$
       c.status_class,
       c.condition_class,
       coalesce(c.source_event_at, c.created_at) as occurred_at,
-      c.last_activity_at
+      c.last_activity_at,
+      c.provenance = 'imported_historical_record' and c.status_reviewed_at is null as is_historical
     from public.cases c
     left join public.dogs d on d.id = c.dog_id
     cross join me
@@ -252,21 +253,24 @@ as $$
       and not coalesce(c.is_demo, false)
   )
   select city, h3_r8,
-         count(*)::bigint as open_cases,
+         count(*) filter (where not is_historical)::bigint as open_cases,
          count(*) filter (
-           where occurred_at < now() - interval '90 days'
+           where not is_historical
+             and occurred_at < now() - interval '90 days'
              and (last_activity_at is null or last_activity_at < now() - interval '30 days')
          )::bigint as stale_cases,
+         count(*) filter (where is_historical)::bigint as historical_cases,
          count(*) filter (
-           where condition_class in ('Road accident','Maggot wound','Human abuse','Dog bite','Entrapment','Suspected rabies')
+           where not is_historical
+             and condition_class in ('Road accident','Maggot wound','Human abuse','Dog bite','Entrapment','Suspected rabies')
          )::bigint as critical_cases
     from scoped
    where status_class in ('open','in_progress')
      and city is not null and h3_r8 is not null
    group by city, h3_r8
-   order by count(*) desc, city, h3_r8;
+   order by count(*) filter (where not is_historical) desc, city, h3_r8;
 $$;
 
-revoke all on function public.list_org_open_work_cells() from public, anon;
-grant execute on function public.list_org_open_work_cells() to authenticated, service_role;
+revoke all on function public.list_org_open_work_cells_v2() from public, anon;
+grant execute on function public.list_org_open_work_cells_v2() to authenticated, service_role;
 

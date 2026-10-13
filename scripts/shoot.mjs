@@ -17,7 +17,15 @@ for (const spec of routes) {
   const [route, w] = spec.split("@");
   const widths = w ? w.split(",").map(Number) : [390, 1280];
   for (const width of widths) {
-    const ctx = await browser.newContext({ viewport: { width, height: width < 700 ? 844 : 860 }, deviceScaleFactor: 1, reducedMotion: process.env.MOTION === "on" ? "no-preference" : "reduce" });
+    const ctx = await browser.newContext({
+      viewport: { width, height: width < 700 ? 844 : 860 },
+      deviceScaleFactor: 1,
+      reducedMotion: process.env.MOTION === "on" ? "no-preference" : "reduce",
+      /* The managed QA proxy presents its own trusted tunnel certificate to
+         Chromium. Node trusts the workspace CA, while a system Chromium may
+         not; relax TLS only for that proxied screenshot context. */
+      ignoreHTTPSErrors: Boolean(proxy),
+    });
     /* LS='{"key":"value"}' seeds extra localStorage, e.g. the map's paper ground. */
     await ctx.addInitScript((extra) => { try { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("straypaw.analytics.optout", "1"); if (!location.search.includes("tour")) localStorage.setItem("straypaw.tour.v2", "1"); for (const [k, v] of Object.entries(extra)) localStorage.setItem(k, v); } catch {} }, JSON.parse(process.env.LS || "{}"));
     const page = await ctx.newPage();
