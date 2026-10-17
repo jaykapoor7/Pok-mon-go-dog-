@@ -18,18 +18,20 @@ import { PAPER, type Palette } from "@/components/map/basemap";
 import regions from "./india-regions.json";
 export const FIELD: Palette = {
   ...PAPER,
-  bg: "#f6efe3", land: "#f6efe3", water: "#b9cfe6", park: "#d6e3c3", building: "#ece0cf",
-  road: "rgba(11,30,61,0.11)", roadMajor: "rgba(184,112,58,0.55)", rail: "rgba(11,30,61,0.3)",
-  boundary: "rgba(11,30,61,0.32)", label: "#0b1e3d", labelHalo: "#f8f2e7", labelOpacity: 0.62,
+  /* Night print: the city on the same indigo sheet as the sea, streets in paper ink. */
+  bg: "#1f2a5c", land: "#1f2a5c", water: "#34508f", park: "#264a46", building: "#27346c",
+  road: "rgba(246,239,227,0.2)", roadMajor: "rgba(246,239,227,0.55)", rail: "rgba(246,239,227,0.3)",
+  boundary: "rgba(246,239,227,0.3)", label: "#f6efe3", labelHalo: "#1f2a5c", labelOpacity: 0.72,
   showRoadNames: false, buildings: false,
-  cellEdge: "#f6efe3",
+  cellEdge: "#1f2a5c",
   seq: ["#dbe5f8", "#a9c0ef", "#6f93e2", "#2f62d3", "#163f9a"],
 };
 
 /** Sea wash outside India, and the inks used by fieldInks. */
 const FI = {
-  sea: "#1f2a5c", seaFar: "#e9e0cf", seaInk: "#e8dfcb", waterInk: "#2f3d8f", waterEcho: "#5e93c9", hatch: "#4b7f4f", wood: "#cbdcb4",
-  residential: "#f4e3cf", motorway: "#c0603c", rail: "#0b1e3d", state: "#0b1e3d", border: "#0b1e3d", borderEcho: "#f05b40",
+  sea: "#1f2a5c", seaFar: "#141c44", seaInk: "#e8dfcb", waterInk: "#c9d3ee", waterEcho: "#6f9ee0", hatch: "#7cc36a", wood: "#24493f",
+  residential: "#24306a", motorway: "#c0603c", rail: "#f6efe3", state: "#f6efe3", border: "#f6efe3", borderEcho: "#f05b40",
+  paper: "#f6efe3",
 };
 
 function hatchImage(color: string, size = 12): { width: number; height: number; data: Uint8ClampedArray } {
@@ -67,22 +69,28 @@ export function fieldInks(map: MLMap, beforeId?: string) {
   if (!map.hasImage("fa-hatch")) map.addImage("fa-hatch", hatchImage(FI.hatch));
   if (!map.hasImage("fa-wave")) map.addImage("fa-wave", waveImage("#c9d3ee"));
 
+  /* Land: paper at national scale (India as a cut-out on the indigo sea), night print by the city. */
+  const NIGHTFALL = (paper: string, night: string) => ["interpolate", ["linear"], ["zoom"], 6.4, paper, 8.2, night];
+  for (const l of map.getStyle().layers ?? []) if (l.type === "background") set(l.id, "background-color", NIGHTFALL(FI.paper, "#1f2a5c"));
   /* Land tints. */
-  set("landuse_residential", "fill-color", FI.residential);
+  set("landuse_residential", "fill-color", NIGHTFALL("#f4e3cf", FI.residential));
   set("landuse_residential", "fill-opacity", ["interpolate", ["linear"], ["zoom"], 9, 0, 11, 0.85]);
-  set("landcover_wood", "fill-color", FI.wood);
+  set("landcover_wood", "fill-color", NIGHTFALL("#cbdcb4", FI.wood));
   /* Roads drawn as an engraver would: paper lines cased in ink, highways in marigold cased in terracotta. */
   for (const id of ["highway_motorway_inner", "highway_motorway_bridge_inner"]) set(id, "line-color", "#f3d39a");
   for (const id of ["highway_motorway_casing", "highway_motorway_bridge_casing"]) set(id, "line-color", "#b65a3a");
   set("highway_motorway_subtle", "line-color", "rgba(182,90,58,0.55)");
-  set("highway_major_inner", "line-color", "#fbf3e3");
-  set("highway_major_casing", "line-color", "rgba(11,30,61,0.5)");
-  set("highway_major_subtle", "line-color", "rgba(182,90,58,0.38)");
-  set("highway_minor", "line-color", "rgba(11,30,61,0.2)");
-  set("highway_path", "line-color", "rgba(11,30,61,0.16)");
+  set("highway_major_inner", "line-color", "rgba(233,220,192,0.62)");
+  set("highway_major_casing", "line-color", "rgba(10,15,45,0)");
+  set("highway_major_subtle", "line-color", "rgba(240,180,90,0.45)");
+  set("highway_minor", "line-color", "rgba(246,239,227,0.22)");
+  set("highway_path", "line-color", "rgba(246,239,227,0.14)");
+  for (const id of ["water", "water_intermittent"]) set(id, "fill-color", NIGHTFALL("#b9cfe6", "#34508f"));
+  for (const id of ["park", "landcover_grass", "landcover_park"]) set(id, "fill-color", NIGHTFALL("#d6e3c3", "#264a46"));
   /* Beyond India, an indigo printed ground: India reads as a paper cut-out on the sheet.
      Past the national scale it fades back to paper, so a border city is never framed in dark. */
   if (map.getLayer("india-mask")) set("india-mask", "fill-color", ["interpolate", ["linear"], ["zoom"], 6.5, FI.sea, 8.5, FI.seaFar]);
+  if (map.getLayer("india-edge")) set("india-edge", "line-color", NIGHTFALL("#0b1e3d", "#f0b45a"));
 
   const omt = map.getSource("openmaptiles") ? "openmaptiles" : null;
   if (omt) {

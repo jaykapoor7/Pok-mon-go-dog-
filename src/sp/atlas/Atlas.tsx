@@ -232,11 +232,11 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       map.on("error", (e) => { if (/webgl|context/i.test(e.error?.message ?? "")) setMapError("This browser cannot draw the interactive map. The panel lists every place and figure."); });
       map.on("load", () => {
         const m = map!;
-        m.addImage("h-quiet", hatchDisc("rgba(11,30,61,0.4)", "rgba(246,239,227,0.92)", "rgba(11,30,61,0.45)"));
+        m.addImage("h-quiet", hatchDisc("rgba(246,239,227,0.6)", "rgba(31,42,92,0.85)", "rgba(246,239,227,0.6)"));
         m.addImage("h-amber", hatchDisc("rgba(168,116,15,0.8)", "rgba(250,240,220,0.95)", "rgba(168,116,15,0.9)"));
         m.addImage("h-care", hatchDisc("rgba(31,111,128,0.75)", "rgba(232,242,242,0.95)", "rgba(31,111,128,0.9)"));
         m.addImage("h-stale", hatchDisc("rgba(138,106,59,0.85)", "rgba(244,236,222,0.95)", "rgba(138,106,59,0.95)"));
-        m.addImage("h-edge", hatchDisc("rgba(11,30,61,0.16)", "rgba(246,239,227,0.35)", "rgba(11,30,61,0.3)", true));
+        m.addImage("h-edge", hatchDisc("rgba(246,239,227,0.22)", "rgba(31,42,92,0.3)", "rgba(246,239,227,0.32)", true));
         m.on("styleimagemissing", (e: { id: string }) => {
           const pm = /^p:(\d+)-(\d+)$/.exec(e.id);
           if (pm && !m.hasImage(e.id)) { m.addImage(e.id, pieImage(+pm[1], +pm[2])); return; }
@@ -261,7 +261,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         m.addLayer({ id: "areas", type: "circle", source: "areas", filter: ["all", ["!=", ["get", "kind"], "unknown"], ["!=", ["get", "pie"], 1]], paint: {
           "circle-radius": radiusK(), "circle-color": ["get", "color"],
           "circle-opacity": ["interpolate", ["linear"], ["zoom"], 12.4, ["case", ["==", ["get", "dim"], 1], 0.1, 0.9], 14, ["case", ["==", ["get", "dim"], 1], 0.06, 0.2]],
-          "circle-stroke-color": ["case", ["==", ["get", "kind"], "zero"], "rgba(11,30,61,0.4)", "rgba(11,30,61,0.55)"],
+          "circle-stroke-color": ["case", ["==", ["get", "kind"], "zero"], "rgba(246,239,227,0.35)", "rgba(246,239,227,0.75)"],
           "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 12, 0.8, 15, 1.4], "circle-stroke-opacity": ["case", ["==", ["get", "dim"], 1], 0.15, 0.9],
         } });
         m.addLayer({ id: "areas-unknown", type: "symbol", source: "areas", filter: ["==", ["get", "kind"], "unknown"], layout: { "icon-image": ["get", "pattern"], "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...R_STOPS.flatMap(([z, r]) => [z, ["*", ["coalesce", ["get", "k"], 1], (r * 2) / DISC_PX]])] as unknown as number, "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 12.4, ["case", ["==", ["get", "dim"], 1], 0.18, 1], 14, ["case", ["==", ["get", "dim"], 1], 0.12, 0.55]] } });
@@ -270,7 +270,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
           "icon-image": ["get", "pi"], "icon-allow-overlap": true, "icon-ignore-placement": true,
           "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...R_STOPS.flatMap(([z, r]) => [z, ["*", ["get", "k"], (r * 3.1) / DISC_PX]])] as unknown as number,
         }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 12.6, ["case", ["==", ["get", "dim"], 1], 0.12, 1], 14, ["case", ["==", ["get", "dim"], 1], 0.06, 0.25]] } });
-        m.addLayer({ id: "multi", type: "circle", source: "areas", filter: ["==", ["get", "multi"], 1], paint: { "circle-radius": radius(1, 3), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": C.ink, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 2.2] } });
+        m.addLayer({ id: "multi", type: "circle", source: "areas", filter: ["==", ["get", "multi"], 1], paint: { "circle-radius": radius(1, 3), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f6efe3", "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 2.2] } });
         m.addLayer({ id: "glyphs", type: "symbol", source: "glyphs", minzoom: 10.2, layout: { "icon-image": ["get", "g"], "icon-size": iconSize(1.22), "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 10.2, 0, 11, ["case", ["==", ["get", "dim"], 1], 0.1, 0.9], 14.6, ["case", ["==", ["get", "dim"], 1], 0.05, 0.45]] } });
         m.addLayer({ id: "dots", type: "circle", source: "dots", minzoom: AREA_ZOOM - 0.4, paint: {
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 1.7, 15, 3.8, 16.5, 5.4], "circle-color": ["get", "color"],
@@ -280,14 +280,14 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         m.addLayer({ id: "cmp", type: "circle", source: "cmp", paint: { "circle-radius": radius(1.2, 6), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.2, "circle-stroke-opacity": 0.9 } });
         m.addLayer({ id: "cmp-n", type: "symbol", source: "cmp", layout: { "text-field": ["get", "n"], "text-font": ["Noto Sans Bold"], "text-size": 12, "text-offset": [1.6, -1.6], "text-allow-overlap": true }, paint: { "text-color": "#fff", "text-halo-color": "#2457ce", "text-halo-width": 3 } });
         m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": radius(1.15, 5), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f0b45a", "circle-stroke-width": 2.4 } });
-        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": radius(1.12, 4), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": C.ink, "circle-stroke-width": 2.4 } });
+        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": radius(1.12, 4), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f6efe3", "circle-stroke-width": 2.4 } });
         m.addLayer({ id: "sel-echo", type: "circle", source: "sel", paint: { "circle-radius": radius(1.12, 6), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f05b40", "circle-stroke-width": 1.4, "circle-translate": [2, -2], "circle-stroke-opacity": 0.8 } });
         m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.6, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.6, 10, 14, 13], "text-padding": 1 }, paint: { "text-color": ["get", "ink"], "text-opacity": ["interpolate", ["linear"], ["zoom"], AREA_ZOOM - 0.4, 1, AREA_ZOOM + 0.2, 0] } });
         m.addLayer({ id: "zones", type: "symbol", source: "zones", maxzoom: 15.5, layout: {
           "text-field": ["get", "name"], "text-font": ["case", ["<", ["get", "rank"], 8], ["literal", ["Noto Sans Bold"]], ["literal", ["Noto Sans Regular"]]],
           "text-size": ["interpolate", ["linear"], ["zoom"], 9, ["case", ["<", ["get", "rank"], 8], 12.5, 10.5], 14, ["case", ["<", ["get", "rank"], 8], 15, 13]],
           "symbol-sort-key": ["get", "rank"], "text-padding": 6, "text-max-width": 9, "text-variable-anchor": ["center", "top", "bottom"], "text-radial-offset": 0.9,
-        }, paint: { "text-color": C.ink, "text-halo-color": "#f8f2e7", "text-halo-width": 1.7, "text-opacity": ["interpolate", ["linear"], ["zoom"], 8.5, 0, 9.5, 0.95] } });
+        }, paint: { "text-color": "#f6efe3", "text-halo-color": "#1f2a5c", "text-halo-width": 1.8, "text-opacity": ["interpolate", ["linear"], ["zoom"], 8.5, 0, 9.5, 0.95] } });
         /* India's recorded areas: one inked dot per area, coloured by when it was last recorded. */
         m.addLayer({ id: "national-echo", type: "circle", source: "national", paint: { "circle-radius": ["get", "r"], "circle-color": "rgba(0,0,0,0)", "circle-translate": [1.4, -1.1], "circle-stroke-color": ["get", "color"], "circle-stroke-width": 0.8, "circle-stroke-opacity": 0.5 } });
         m.addLayer({ id: "national", type: "circle", source: "national", paint: { "circle-radius": ["get", "r"], "circle-color": ["get", "color"], "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.25, 0.88], "circle-stroke-color": ["case", ["==", ["get", "u"], 1], "rgba(11,30,61,0.55)", "#fbf6ee"], "circle-stroke-width": 0.6 } });
@@ -349,7 +349,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     const m = mapRef.current; if (!m || !ready) return;
     setRegionsVisible(m, !plain);
     for (const id of ["fa-waves", "fa-sea-names", "fa-border-echo", "fa-ripple-0", "fa-ripple-1", "fa-ripple-2", "fa-ripple-3", "fa-park-hatch", "fa-water-echo", "graticule", "graticule-l", "areas-echo", "national-echo", "cities-echo", "sel-echo"]) if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", plain ? "none" : "visible");
-    if (m.getLayer("india-mask")) m.setPaintProperty("india-mask", "fill-color", plain ? "#ece5d8" : ["interpolate", ["linear"], ["zoom"], 6.5, "#1f2a5c", 8.5, "#e9e0cf"]);
+    if (m.getLayer("india-mask")) m.setPaintProperty("india-mask", "fill-color", ["interpolate", ["linear"], ["zoom"], 6.5, "#1f2a5c", 8.5, "#141c44"]);
   }, [plain, ready, inked]);
   useEffect(() => {
     for (const { el: e, major } of labelEls.current) {
@@ -455,7 +455,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     set("nums", cells.flatMap((c, i) => {
       const v = q.measure(c, facet, ctx, i); if (!v || recent || (isolate && isolate !== classOf[i])) return [];
       const k = byId.get(classOf[i]); const dark = k?.kind === "value" && /^(#16398f|#2457ce|#1f6f80|#3c98a8|#a8230f|#e0472b|#0b1e3d)$/i.test(k.color);
-      return [pt(centers[i], { t: v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v), ink: dark && zoom < 12.5 ? "#ffffff" : C.ink })];
+      return [pt(centers[i], { t: v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v), ink: dark && zoom < 12.5 ? "#ffffff" : "#f6efe3" })];
     }));
     set("zones", places.slice(0, 60).map((p, r) => pt(p.center, { name: p.name, rank: r })));
     const dots: GeoJSON.Feature[] = [];
