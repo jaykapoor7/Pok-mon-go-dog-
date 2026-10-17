@@ -6,7 +6,8 @@ const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium", a
 const pub = [
   ["atlas-india", "/community", 12000], ["atlas-city", "/community?city=Coimbatore", 12000], ["atlas-area", "/community?city=Coimbatore&place=Ganapathy", 14000],
   ["atlas-plain", "/community?view=plain", 10000],
-  ["atlas-animal", "/community?city=Coimbatore&place=Ganapathy", 14000, [".insp-animals button"]],
+  ["atlas-animal", "/community?city=Coimbatore&place=Ganapathy", 14000, [".insp-animals button"], "desktop"],
+  ["atlas-animal", "/community?city=Coimbatore&place=Ganapathy", 14000, [".atlas-peek", ".atlas-peek", ".insp-animals button"], "phone"],
   ["atlas-sheet-half", "/community?city=Coimbatore", 12000, [".atlas-peek"], "phone"],
   ["atlas-sheet-area", "/community?city=Coimbatore&place=Ganapathy", 14000, [".atlas-peek", ".atlas-peek"], "phone"],
   ["animal", "/animal/d7aef187-f038-4798-bac0-f068b01a4515", 5000], ["report", "/community/report", 4000], ["activity", "/community/activity", 3000],

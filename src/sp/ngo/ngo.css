@@ -397,7 +397,7 @@
 .sp .wk-ribbon .is-r1 { background: var(--turmeric); color: var(--ink); }
 .sp .wk-ribbon .is-r2 { background: var(--sheet-2); box-shadow: inset 0 0 0 1px rgba(246, 239, 227, 0.2); }
 .sp .wk-ribbon .is-r3 { background: var(--terracotta); }
-.sp .wk-chain { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 4px 0 6px; padding: 0; list-style: none; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; min-height: max-content; }
+.sp .wk-chain { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); margin: 4px 0 6px; padding: 0; list-style: none; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; min-height: max-content; }
 .sp .wk-chain li { position: relative; display: grid; gap: 2px; padding: 8px 10px 9px 14px; min-width: 0; background: var(--paper); }
 .sp .wk-chain li + li { border-left: 1px solid var(--line); }
 .sp .wk-chain li + li::before { content: ""; position: absolute; left: -5px; top: 50%; width: 8px; height: 8px; border-top: 1px solid var(--line-2); border-right: 1px solid var(--line-2); background: var(--paper); transform: translateY(-50%) rotate(45deg); }
@@ -429,7 +429,7 @@
 .sp .wk-row .wk-main b { font-size: 15px; }
 .sp .wk-row .wk-main small { color: var(--mute); }
 .sp .wk-row:nth-child(even of .wk-row):not(.is-on) { background: rgba(11, 30, 61, 0.018); }
-.sp .wk-next { margin: 2px 0 4px; border-radius: 10px; box-shadow: 0 0 0 2px var(--sheet), 0 14px 30px -20px rgba(31, 42, 92, 0.6); overflow: hidden; }
+.sp .wk-next { min-height: max-content; margin: 2px 0 4px; border-radius: 10px; box-shadow: 0 0 0 2px var(--sheet), 0 14px 30px -20px rgba(31, 42, 92, 0.6); overflow: hidden; }
 .sp .wk-next #next-h { margin: -14px -16px 4px; padding: 9px 16px; background: var(--sheet); color: var(--marigold); font: 500 11.5px/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
 .sp .wk-next > * { border-radius: 0 !important; box-shadow: none !important; margin: 0 !important; }
 .sp .wk-mapsel { display: grid; gap: 4px; justify-items: start; margin-top: 10px; padding: 12px 14px; border-radius: 8px; background: var(--sheet); color: var(--sheet-ink); animation: wk-in 220ms var(--ease) both; }
@@ -437,3 +437,6 @@
 .sp .wk-mapsel .small { color: var(--sheet-mute); }
 .sp .wk-mapsel b { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.05; }
 .sp .wk-mapsel .btn { margin-top: 6px; background: var(--marigold); color: var(--ink); }
+
+.sp .wk-chain li + li::before { display: none; }
+.sp .wk-chain li { border-top: 1px solid var(--line); }
