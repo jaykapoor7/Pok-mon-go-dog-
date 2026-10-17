@@ -253,7 +253,7 @@
 /* National scale on the indigo sheet: the page heading is printed in paper ink. */
 .sp .atlas.is-india:not(.is-plain) .atlas-place h1 { color: #f6efe3; text-shadow: none; }
 .sp .atlas.is-india:not(.is-plain) .atlas-place .atlas-kicker { color: #c9d3ee; }
-.sp .atlas-hiname { margin-top: 4px; font-size: clamp(22px, 2.4vw, 32px); line-height: 1.2; color: #f0b45a; }
+.sp .atlas-hiname { display: block; margin-top: 6px; font-size: clamp(22px, 2.4vw, 32px); line-height: 1.2; letter-spacing: 0; color: #f0b45a; }
 .sp .atlas.is-plain .atlas-hiname { color: var(--ink-2); }
 
 /* Findings read in place. */
@@ -269,3 +269,8 @@
 .sp .insp-fm { font-size: 11px; color: var(--mute); }
 .sp .insp-findings li.is-on { background: linear-gradient(90deg, rgba(240, 180, 90, 0.18), transparent); box-shadow: inset 3px 0 0 #f0b45a; padding-left: 10px; }
 .sp .insp-findings .btn[aria-pressed="true"] { background: var(--ink); color: #fbf6ee; }
+@media (max-width: 720px) {
+  .sp .atlas-art { display: none; }
+  .sp .atlas.is-india .atlas-kicker { display: none; }
+  .sp .atlas-hiname { display: inline; margin: 0 0 0 8px; font-size: 22px; }
+}

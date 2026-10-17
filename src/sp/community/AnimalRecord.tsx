@@ -73,7 +73,7 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
       <section className="ar-ledger page" aria-labelledby="ar-ledger-h">
         <h2 id="ar-ledger-h" className="k">What the record says</h2>
         <dl className="ar-facts">
-          {facts.map((f) => <div key={f.label} className={`is-${f.tone}`}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
+          {facts.map((f, i) => <div key={f.label} className={`is-${f.tone}`} style={{ ["--i" as string]: i }}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
         </dl>
         <p className="small">Hatched means the record does not say. Not recorded is never counted as no. Identity: one StrayPaw ID across every organisation that records it; matches are made by people, reviewable and reversible, and a likeness alone never merges two animals.</p>
       </section>

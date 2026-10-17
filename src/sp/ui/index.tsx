@@ -3,12 +3,14 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import type { ReactNode } from "react";
-import { ART_SLOTS } from "./slots";
+import { ART_SLOTS, INTERIM } from "./slots";
+import { FOLK_CUTOUTS, FOLK_PANELS, WORKS, type CutoutKey } from "@/lib/art/sources";
 
 /* ── art slots ───────────────────────────────────────────────────────
    A commissioned artwork belongs here. Until a named artist's licensed
-   work exists, the slot is an honest two-ink geometric plate (no folk
-   motif, nothing imitated) that says so. Never carries data. */
+   commission exists, the slot shows an openly licensed existing artwork,
+   credited (see INTERIM), or else an honest two-ink geometric plate that
+   says it awaits a commission. Never carries data. */
 const PLATES: Record<string, (k: number) => ReactNode> = {
   sun: () => (<><circle cx="78" cy="38" r="22" fill="var(--flame)" opacity=".86" /><path d="M0 70 Q30 52 60 66 T120 62 V90 H0Z" fill="var(--indigo)" opacity=".78" /><path d="M0 78 Q34 64 68 76 T120 74" stroke="var(--ink)" strokeWidth=".7" fill="none" opacity=".5" /></>),
   field: () => (<><rect x="10" y="18" width="62" height="54" rx="2" fill="var(--turmeric)" opacity=".8" /><circle cx="78" cy="48" r="24" fill="var(--blue)" opacity=".7" style={{ mixBlendMode: "multiply" }} /><path d="M10 80 H110" stroke="var(--ink)" strokeWidth=".7" opacity=".5" /></>),
@@ -16,7 +18,7 @@ const PLATES: Record<string, (k: number) => ReactNode> = {
   page: () => (<><rect x="18" y="12" width="84" height="66" rx="2" fill="none" stroke="var(--ink)" strokeWidth=".8" opacity=".5" /><rect x="26" y="20" width="40" height="30" fill="var(--terracotta)" opacity=".8" /><path d="M26 58 H94 M26 64 H84 M26 70 H70" stroke="var(--ink)" strokeWidth=".8" opacity=".55" /></>),
 };
 
-export function ArtSlot({ id, caption = true, plate, className = "" }: { id: string; caption?: boolean; plate?: keyof typeof PLATES; className?: string }) {
+export function ArtSlot({ id, caption = true, plate, className = "", variant = 0 }: { id: string; caption?: boolean; plate?: keyof typeof PLATES; className?: string; variant?: number }) {
   const s = ART_SLOTS.find((x) => x.id === id);
   if (!s) return null;
   if (s.commission) {
@@ -24,6 +26,21 @@ export function ArtSlot({ id, caption = true, plate, className = "" }: { id: str
       <figure className={`art ${className}`} data-slot={s.id}>
         <div className="art-frame" style={{ aspectRatio: String(s.ratio) }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={s.commission.src} alt={s.alt ?? ""} /></div>
         {caption && <figcaption>{s.commission.credit}</figcaption>}
+      </figure>
+    );
+  }
+  const it = INTERIM[s.id];
+  if (it) {
+    const key = it.keys[variant % it.keys.length], ground = it.grounds[variant % it.grounds.length];
+    const art = it.kind === "panel" ? FOLK_PANELS[Number(key) % FOLK_PANELS.length] : FOLK_CUTOUTS[key as CutoutKey];
+    const w = WORKS[art.work];
+    return (
+      <figure className={`art is-interim is-${it.kind} ${className}`} data-slot={s.id}>
+        <div className="art-frame" style={{ aspectRatio: String(s.ratio), background: ground }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={art.src} alt="" loading="lazy" decoding="async" draggable={false} />
+        </div>
+        <figcaption>{caption ? <>{w.title}{w.maker ? ` · ${w.maker}` : ""} · {w.licence}{w.adapted ? ", adapted" : ""} · <a className="link" href="/art-credits">credits</a></> : <span className="sr-only">Artwork: {w.title}, {w.maker}, {w.licence}</span>}</figcaption>
       </figure>
     );
   }

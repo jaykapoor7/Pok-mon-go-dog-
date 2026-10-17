@@ -19,6 +19,21 @@ export type ArtSlotDef = {
   commission: null | { artist: string; work: string; licenceScope: string; credit: string; agreementRef: string; src: string };
 };
 
+/* Until a commission exists, a slot may show an existing, openly licensed
+   artwork from lib/art/sources (CC0 museum paintings, CC-licensed Gond
+   works), credited in place and on /art-credits. It is labelled as an
+   interim licensed work, never as a commission, and the slot stays open. */
+export type Interim = { kind: "cutout" | "panel"; keys: string[]; grounds: string[] };
+export const INTERIM: Record<string, Interim> = {
+  "report-receipt": { kind: "cutout", keys: ["bird"], grounds: ["#f3d9a4"] },
+  "activity-empty": { kind: "cutout", keys: ["cowCalf"], grounds: ["#dfe8cf"] },
+  "ngo-empty": { kind: "cutout", keys: ["dogSitting", "hoopoe", "bird"], grounds: ["#e8dcc6", "#dfe6ee", "#efe0cc"] },
+  "academy-cover": { kind: "cutout", keys: ["peacocks", "elephantTree", "cowCalf", "hen", "bird", "elephant"], grounds: ["#f0c86a", "#e98c6f", "#9fc7b4", "#c9d3ee", "#f3d9a4", "#e6b8c4"] },
+  "workshop-scenes": { kind: "cutout", keys: ["hen", "peacocks", "elephantTree"], grounds: ["#f0c86a", "#9fc7b4", "#e98c6f"] },
+  "city-report-cover": { kind: "panel", keys: ["0", "1", "2"], grounds: ["#f3ede4"] },
+  "atlas-city": { kind: "cutout", keys: ["elephantTree"], grounds: ["#1f2a5c"] },
+};
+
 export const ART_SLOTS: ArtSlotDef[] = [
   { id: "atlas-city", surface: "Atlas", title: "City introduction plate", plate: "sun",
     brief: "A wide plate that opens a city on the map: its streets, animals and people in the artist's idiom, with no claim about where any recorded animal is.",

@@ -582,8 +582,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         {variant === "city" && <p className="atlas-kicker k">City evidence · {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>}
         {variant === "ngo" && <p className="atlas-kicker k">Your organisation&rsquo;s open work</p>}
         {level === "india" && variant === "community" && <p className="atlas-kicker k">The Living Field Atlas · street animals on the record</p>}
-        <h1 className="serif">{place}</h1>
-        {level === "india" && scope === "public" && <p className="atlas-hiname hi" lang="hi">भारत</p>}
+        <h1 className="serif">{place}{level === "india" && scope === "public" && <span className="atlas-hiname hi" lang="hi"> भारत</span>}</h1>
         {ev && <p className="atlas-ev"><i style={{ background: KINDS[ev.kind].ink }} aria-hidden />{KINDS[ev.kind].label} · {ev.precision}</p>}
         {cityState === "loading" && <p className="atlas-ev" role="status">Reading {city}&rsquo;s areas…</p>}
         {cityState === "error" && <p className="atlas-ev is-err" role="alert">{city} could not be read. That is not the same as no records. <button type="button" className="link" onClick={() => { const c = city; setCity(null); window.setTimeout(() => setCity(c), 0); }}>Retry</button></p>}

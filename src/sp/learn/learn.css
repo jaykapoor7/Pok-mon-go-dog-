@@ -184,3 +184,16 @@
   .sp .ac-cover .art { display: none; }
   .sp .ws-sec { break-inside: avoid; }
 }
+
+/* ── Academy, 2.0 visual reset: indigo cover, a painted cover per course ── */
+.sp .ac-cover.sheet { background: var(--sheet); border-bottom: 0; }
+.sp .ac-cover.sheet .display { color: var(--sheet-ink); }
+.sp .ac-cover.sheet .btn:not(.is-ink) { background: transparent; color: var(--sheet-ink); box-shadow: inset 0 0 0 1px rgba(246, 239, 227, 0.4); }
+.sp .ac-cover.sheet .btn.is-ink { background: var(--marigold); color: var(--ink); }
+.sp .ac-cover.sheet .ac-progress b { color: var(--sheet-ink); }
+.sp .ac-cover.sheet .art figcaption { color: var(--sheet-mute); }
+.sp .ac-cover.sheet .art figcaption .link { color: var(--marigold); }
+.sp .ac-cover.sheet .art-frame { border-radius: 4px; box-shadow: 0 0 0 8px var(--sheet-2), 0 0 0 9px rgba(240, 180, 90, 0.5); }
+.sp .ac-art { margin: -6px 0 6px; }
+.sp .ac-art .art-frame { aspect-ratio: 4 / 3 !important; border-radius: 4px; box-shadow: inset 0 -3px 0 var(--ink); }
+.sp .ac-course .ac-num { position: absolute; top: 34px; left: 32px; z-index: 1; font-size: 56px; line-height: 1; color: var(--ink); text-shadow: 0 2px 0 rgba(255, 255, 255, 0.4); }

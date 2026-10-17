@@ -168,3 +168,16 @@
 }
 @media (max-width: 420px) { .sp .ar-span dd { font-size: 19px; } .sp .ar-desc b { font-size: 21px; } }
 @media (max-width: 720px) { .sp .ar-sheet .ar-photo .portrait.is-l { aspect-ratio: 4 / 3; } }
+
+/* Record reveal: the plate prints in from the foot, then the identity sets. Purposeful, once, interruptible by scroll. */
+@media (prefers-reduced-motion: no-preference) {
+  .sp .ar-sheet .ar-photo .portrait { animation: ar-print 760ms var(--ease) both; }
+  .sp .ar-sheet .ar-id > * { animation: ar-set 520ms var(--ease) both; }
+  .sp .ar-sheet .ar-id > :nth-child(2) { animation-delay: 80ms; }
+  .sp .ar-sheet .ar-id > :nth-child(3) { animation-delay: 140ms; }
+  .sp .ar-sheet .ar-id > :nth-child(4) { animation-delay: 200ms; }
+  .sp .ar-sheet .ar-id > :nth-child(5) { animation-delay: 260ms; }
+  .sp .ar-ledger .ar-facts > div { animation: ar-set 420ms var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms + 300ms); }
+}
+@keyframes ar-print { from { clip-path: inset(100% 0 0 0); transform: translateY(14px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+@keyframes ar-set { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

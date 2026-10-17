@@ -320,3 +320,29 @@
 .sp .portrait.is-art figcaption.portrait-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 7px 12px; border-radius: 0; background: rgba(11, 30, 61, 0.78); color: #f3ede4; font-family: var(--mono); font-size: 10.5px; line-height: 1.35; }
 .sp .portrait.is-m .portrait-none b { font-size: 20px; }
 
+
+/* Interim licensed artwork in an open slot: the painting on a coloured ground, credited. */
+.sp .art.is-interim .art-frame { display: grid; place-items: center; box-shadow: none; }
+.sp .art.is-interim .art-frame { position: relative; }
+.sp .art.is-interim.is-cutout .art-frame img { position: absolute; inset: 7% 11%; width: 78%; height: 86%; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(11, 30, 61, 0.18)); transition: transform 600ms var(--ease); }
+.sp .art.is-interim.is-panel .art-frame img { width: 100%; height: 100%; object-fit: cover; }
+.sp .art.is-interim:hover .art-frame img { transform: translateY(-3px) rotate(-0.6deg); }
+.sp .art.is-interim figcaption { font-size: 10.5px; line-height: 1.35; }
+.sp .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .sp .art.is-interim .art-frame img { transition: none; } .sp .art.is-interim:hover .art-frame img { transform: none; } }
+
+/* ── Page heads on the indigo sheet (2.0 visual reset) ──────────────
+   Every workspace page opens on the same printed ground as the atlas sea
+   and the record head; the working surface below stays paper. */
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) { background: var(--sheet); color: var(--sheet-ink); border-bottom: 0; box-shadow: 0 12px 0 -6px transparent; position: relative; }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 12px; background: var(--selvedge) repeat-x center / 28px 12px; pointer-events: none; z-index: 1; }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(h1, h2, .display, .h1, .serif) { color: var(--sheet-ink); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(.k, .small, .lede, p, small, dd, dt) { color: var(--sheet-mute); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) b { color: var(--sheet-ink); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(.btn, .chip) { background: transparent; color: var(--sheet-ink); border-color: transparent; box-shadow: inset 0 0 0 1px rgba(246, 239, 227, 0.4); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(.btn.is-ink, .btn.is-flame, .chip[aria-pressed="true"]) { background: var(--marigold); color: var(--ink); box-shadow: none; }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(a.link, .link) { color: var(--marigold); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) .method { border-color: rgba(246, 239, 227, 0.2); color: var(--sheet-mute); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) .pill { background: rgba(246, 239, 227, 0.12); color: var(--sheet-ink); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(input, select) { background: rgba(246, 239, 227, 0.08); color: var(--sheet-ink); border-color: rgba(246, 239, 227, 0.35); }
+.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) option { color: var(--ink); background: #fff; }
