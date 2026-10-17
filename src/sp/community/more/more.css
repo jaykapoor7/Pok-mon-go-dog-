@@ -84,7 +84,7 @@
 .sp .se-h { font-size: clamp(40px, 5vw, 64px); }
 .sp .se-form { display: flex; gap: 10px; max-width: 760px; }
 .sp .se-field { flex: 1; min-height: 56px; font-size: 18px; }
-.sp .se-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px 40px; padding: 24px 28px 40px; }
+.sp .se-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 24px 40px; padding: 24px 28px 40px; }
 .sp .se-k { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mute); margin-bottom: 6px; }
 .sp .se-groups a { display: grid; gap: 2px; padding: 10px 0; border-top: 1px solid var(--line); }
 .sp .se-groups a:hover b { color: var(--blue); }

@@ -12,12 +12,4 @@
 .sp .picker-err { position: absolute; inset: auto 12px 12px; padding: 8px 12px; border-radius: 10px; background: var(--paper); font-size: 13px; }
 .sp .picker-label { font-size: 14px; color: var(--ink-2); }
 
-@media (max-width: 960px) {
-  .sp .rp { grid-template-columns: 1fr; gap: 24px; padding-top: 16px; }
-  .sp .rp-draft { position: static; order: -1; display: none; }
-  .sp .rp-doors, .sp .rp-problems { grid-template-columns: 1fr; }
-  .sp .rp-door { min-height: 0; padding: 20px; }
-  .sp .rp-door b { font-size: 30px; }
-  .sp .picker-map { height: 300px; }
-}
-
+@media (max-width: 960px) { .sp .picker-map { height: 300px; } }

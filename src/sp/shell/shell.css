@@ -134,3 +134,10 @@
 @media (max-width: 860px) {
   html:has(.sp-tabs) { scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
+
+/* The smallest phones (≤ 360px): give the bar back a few pixels. */
+@media (max-width: 360px) {
+  .sp-bar { gap: 6px; padding: 0 6px 0 10px; }
+  .sp-ws-btn { padding: 0 8px 0 8px; gap: 6px; }
+  .sp-acct.is-out { padding: 0 10px; font-size: 13px; }
+}

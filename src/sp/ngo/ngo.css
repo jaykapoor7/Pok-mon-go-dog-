@@ -13,7 +13,7 @@
 .sp .wk-sum { max-width: 72ch; font-size: 15.5px; color: var(--ink-2); padding-bottom: 6px; }
 .sp .wk-sum b { font-variant-numeric: tabular-nums; color: var(--ink); }
 .sp .wk-sum .is-err { color: var(--flame-ink); }
-.sp .wk-head-act { display: flex; gap: 8px; padding-bottom: 4px; }
+.sp .wk-head-act { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 4px; }
 
 .sp .wk-grid { display: grid; grid-template-columns: minmax(0, 1fr) var(--side); min-height: 0; }
 .sp .wk-queue { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--line-2); }
