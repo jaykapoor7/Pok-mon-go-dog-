@@ -354,3 +354,5 @@
   .sp .atlas .maplibregl-ctrl-bottom-right { bottom: 196px; }
 }
 @media (max-width: 860px) and (prefers-reduced-motion: reduce) { .sp .atlas .atlas-dock { transition: none; } }
+.sp .insp-findings .insp-spot li { display: block; padding: 0; border: 0; }
+.sp .insp-findings .insp-spot ol { gap: 0; margin: 0; }

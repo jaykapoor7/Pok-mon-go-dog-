@@ -440,3 +440,6 @@
 
 .sp .wk-chain li + li::before { display: none; }
 .sp .wk-chain li { border-top: 1px solid var(--line); }
+/* The inspector stacks; it never squeezes its blocks to fit the scroll box. */
+.sp .wk-insp { display: flex; flex-direction: column; gap: 14px; }
+.sp .wk-insp > * { flex: none; }
