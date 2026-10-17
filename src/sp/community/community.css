@@ -181,3 +181,24 @@
 }
 @keyframes ar-print { from { clip-path: inset(100% 0 0 0); transform: translateY(14px); } to { clip-path: inset(0 0 0 0); transform: none; } }
 @keyframes ar-set { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Next on this record, last known activity, care history. */
+.sp .ar-next { display: grid; gap: 4px; justify-items: start; padding: 14px 16px; border-left: 3px solid var(--marigold); background: rgba(246, 239, 227, 0.06); }
+.sp .ar-next.is-urgent { border-left-color: var(--flame); background: rgba(240, 91, 64, 0.12); }
+.sp .ar-next .k { color: var(--marigold); }
+.sp .ar-next b { font-family: var(--serif); font-weight: 400; font-size: 26px; line-height: 1.05; color: var(--sheet-ink); }
+.sp .ar-next span { font-size: 14.5px; color: var(--sheet-mute); max-width: 52ch; }
+.sp .ar-next .btn { margin-top: 6px; background: var(--marigold) !important; color: var(--ink) !important; box-shadow: none !important; }
+.sp .ar-next.is-urgent .btn { background: var(--flame) !important; color: #fff !important; }
+.sp .ar-latest { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding-bottom: 18px; color: var(--sheet-ink); }
+.sp .ar-latest .k { color: var(--marigold); }
+.sp .ar-latest time { color: var(--sheet-mute); }
+.sp .ar-latest b { font-family: var(--serif); font-weight: 400; font-size: 22px; }
+.sp .ar-latest small { color: var(--sheet-mute); }
+.sp .ar-care { display: grid; gap: 8px; padding: 16px 0 4px; }
+.sp .ar-care ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 0; margin: 0; padding: 0; list-style: none; border-top: 2px solid var(--teal); }
+.sp .ar-care li { display: grid; gap: 2px; padding: 10px 14px 10px 0; border-bottom: 1px solid var(--line); }
+.sp .ar-care time { font-size: 12px; color: var(--teal); }
+.sp .ar-care b { font-family: var(--serif); font-weight: 400; font-size: 21px; line-height: 1.1; }
+.sp .ar-care small { font-size: 12.5px; color: var(--mute); }
+.sp .ar-care-none { margin: 0; padding: 12px 14px; background: var(--hatch); color: var(--ink-3); border-radius: 4px; }

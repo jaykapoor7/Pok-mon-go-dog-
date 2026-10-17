@@ -421,3 +421,19 @@
   .sp .wk-chain li + li::before { display: none; }
   .sp .wk-chain li { border-top: 1px solid var(--line); border-left: 0 !important; }
 }
+
+/* Work polish: unmistakable selection, the next step first, the selection pinned under the map. */
+.sp .wk-row.is-on { background: linear-gradient(90deg, rgba(31, 42, 92, 0.1), rgba(31, 42, 92, 0.03)); box-shadow: inset 0 1px 0 rgba(31, 42, 92, 0.25), inset 0 -1px 0 rgba(31, 42, 92, 0.25); }
+.sp .wk-row.is-on::after { width: 4px; background: var(--sheet); }
+.sp .wk-row.is-on .wk-main b { color: var(--sheet); }
+.sp .wk-row .wk-main b { font-size: 15px; }
+.sp .wk-row .wk-main small { color: var(--mute); }
+.sp .wk-row:nth-child(even of .wk-row):not(.is-on) { background: rgba(11, 30, 61, 0.018); }
+.sp .wk-next { margin: 2px 0 4px; border-radius: 10px; box-shadow: 0 0 0 2px var(--sheet), 0 14px 30px -20px rgba(31, 42, 92, 0.6); overflow: hidden; }
+.sp .wk-next #next-h { margin: -14px -16px 4px; padding: 9px 16px; background: var(--sheet); color: var(--marigold); font: 500 11.5px/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.sp .wk-next > * { border-radius: 0 !important; box-shadow: none !important; margin: 0 !important; }
+.sp .wk-mapsel { display: grid; gap: 4px; justify-items: start; margin-top: 10px; padding: 12px 14px; border-radius: 8px; background: var(--sheet); color: var(--sheet-ink); animation: wk-in 220ms var(--ease) both; }
+.sp .wk-mapsel .k { color: var(--marigold); }
+.sp .wk-mapsel .small { color: var(--sheet-mute); }
+.sp .wk-mapsel b { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.05; }
+.sp .wk-mapsel .btn { margin-top: 6px; background: var(--marigold); color: var(--ink); }

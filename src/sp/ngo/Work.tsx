@@ -228,6 +228,14 @@ export function Work() {
             <div className="wk-map">
               <AreaMap cells={areaCells} selected={cell ?? selRow?.cell ?? null} onPick={(h) => { setCell(h); setSel(null); }} label="Open work by area" ink="#1f6f80" empty={loading ? "Placing the open work…" : "No case in this cohort carries a location."} />
               <p className="small">Discs are areas (≈0.74 km²), not addresses; a flame core marks critical work. Choose one to narrow the queue. <Link className="link" href="/ngo/map">Full map</Link></p>
+              {selRow && (
+                <div className="wk-mapsel" aria-live="polite">
+                  <p className="k">Selected · {selRow.c?.case_code ?? selRow.f?.case_code ?? "follow-up"}</p>
+                  <b>{selRow.kind === "followup" ? `Follow-up · ${(selRow.f?.kind ?? "recheck").replace(/_/g, " ")}` : selRow.c?.condition_class && selRow.c.condition_class !== "Not recorded" ? selRow.c.condition_class : selRow.c?.title ?? "Open case"}</b>
+                  <span className="small">{[selRow.c?.zone ?? selRow.f?.zone, selRow.c?.assignee_name ?? selRow.f?.assignee_name ?? "Nobody holds it"].filter(Boolean).join(" · ")}{selRow.cell ? "" : " · no location: not on the map"}</span>
+                  <button type="button" className="btn is-ink is-s" onClick={() => setPane("inspector")}>Open the next step</button>
+                </div>
+              )}
             </div>
           ) : selRow ? <Inspector row={selRow} cohort={cohort} onChanged={load} /> : (
             <div className="wk-hint">
@@ -322,6 +330,9 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
         { k: "Held by", v: c.assignee_name ?? "Nobody", tone: c.assignee_name ? undefined : "urgent" },
         { k: "Next", v: reg.next_action ?? "See below", tone: "next" },
       ]} />
+      <div className="wk-next" aria-label="Next step">
+        <NextStep file={file} cohort={cohort} onChanged={reloadAll} />
+      </div>
       {reg.condition_text && <p className="body">{reg.condition_text}</p>}
       <dl className="ledger">
         <div><dt>Animal</dt><dd>{c.dog_id ? <Link className="link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</Link> : <span className="pill is-unknown">Not linked</span>}</dd></div>
@@ -332,7 +343,6 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
         {reg.hospital && <div><dt>Clinic</dt><dd>{reg.hospital}</dd></div>}
       </dl>
 
-      <NextStep file={file} cohort={cohort} onChanged={reloadAll} />
 
       <section className="wk-sec">
         <h3>Follow-ups <span className="mono">{followups.length}</span></h3>

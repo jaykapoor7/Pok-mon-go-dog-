@@ -38,7 +38,7 @@ type Props = {
   cmp: string[]; isolate: string | null; sheet: "peek" | "half" | "full"; evidence: { kind: EvidenceKind; precision: string; note: string } | null;
   onCity: (c: string) => void; onIndia: () => void; onArea: (h3: string) => void; onCloseArea: () => void; onAnimal: (id: string) => void; onCloseAnimal: () => void;
   onIsolate: (k: string) => void; onPlace: (c: [number, number]) => void; onSheet: (s: "peek" | "half" | "full") => void; onCompare: (h3: string) => void; onClearCompare: () => void;
-  onOpenRecord: (id: string) => void; nationalMeasure: (c: NationalCity) => number;
+  onOpenRecord: (id: string, from?: HTMLElement | null) => void; nationalMeasure: (c: NationalCity) => number;
   spot: string | null; onSpot: (id: string | null, cells: string[]) => void;
   by: "recent" | "ster"; onBy: (b: "recent" | "ster") => void; national: NationalCell[]; plain: boolean;
 };
@@ -62,10 +62,25 @@ export function Inspector(p: Props) {
           p.onSheet(e.clientY < from ? (p.sheet === "peek" ? "half" : "full") : (p.sheet === "full" ? "half" : "peek"));
         }}
         onClick={(e) => { if (e.detail === 0) p.onSheet(next); }}><i aria-hidden /></button>
+      <Peek {...p} onOpen={() => p.onSheet(p.sheet === "peek" ? "half" : p.sheet)} />
       <div className="atlas-insp-body" ref={body}>
         {p.level === "animal" ? <AnimalView {...p} /> : p.level === "area" ? <AreaView {...p} /> : p.level === "city" ? <CityView {...p} /> : <IndiaView {...p} />}
       </div>
     </aside>
+  );
+}
+
+/* The sheet's peek, on phones: one line that says where you are and what a tap does next. */
+function Peek(p: Props & { onOpen: () => void }) {
+  let head = "", line = "";
+  if (p.level === "india") { const n = p.cities.filter((c) => kindOf(c.city, c.cells) !== "clinical").reduce((s, c) => s + c.animals, 0); head = `${f(n)} animals on the record`; line = `${f(p.cities.length)} city registers · tap a city on the map`; }
+  else if (p.level === "city") { const n = p.cells.reduce((s, c) => s + c.animals, 0); head = `${p.city}: ${f(n)} animals`; line = `${f(p.cells.length)} areas · tap one to see its animals`; }
+  else if (p.level === "area") { const c = p.cells[p.areaIndex]; head = c ? placeName(c.zone) : "Area"; line = c ? `${f(c.animals)} animals recorded · the list is below` : ""; }
+  else { const a = p.area && typeof p.area === "object" ? p.area.animals.find((x) => x.id === p.animalId) : null; head = a?.title ?? "Animal"; line = "Preview · open the full record below"; }
+  return (
+    <button type="button" className="atlas-peek" onClick={p.onOpen} aria-label={`${head}. ${line}`}>
+      <b>{head}</b><span>{line}</span>
+    </button>
   );
 }
 
@@ -187,12 +202,33 @@ function Findings(p: Props) {
               <p className="insp-fl">{x.lead}</p>
               <p className="small">{x.detail}</p>
               <p className="insp-fm mono">{x.method}</p>
+              {p.spot === x.id && <SpotAreas ids={x.cells} {...p} />}
               {x.cells.length > 0 && <button type="button" className="btn is-s" aria-pressed={p.spot === x.id} onClick={() => p.onSpot(p.spot === x.id ? null : x.id, x.cells)}>{p.spot === x.id ? "Show every area" : x.cells.length === 1 ? "Show this area on the map" : `Show these ${f(x.cells.length)} areas on the map`}</button>}
             </div>
           </li>
         ))}
       </ol>
     </section>
+  );
+}
+
+/* The areas a lit finding rests on, largest record first: each opens its own records. */
+function SpotAreas(p: Props & { ids: string[] }) {
+  const set = new Set(p.ids);
+  const rows = p.cells.filter((c) => set.has(c.h3)).sort((a, b) => b.animals - a.animals);
+  return (
+    <div className="insp-spot">
+      <p className="insp-fm mono">{f(rows.length)} area{rows.length === 1 ? "" : "s"} · ringed in marigold on the map · approximate localities stay areas, never points</p>
+      <ol>
+        {rows.slice(0, 8).map((c) => (
+          <li key={c.h3}><button type="button" onClick={() => p.onArea(c.h3)}>
+            <b>{placeName(c.zone)}</b>
+            <span className="mono">{f(c.animals)} animals · {f(c.open_cases - (c.open_unconfirmed ?? 0))} open · care {f(c.care_12m)}</span>
+          </button></li>
+        ))}
+      </ol>
+      {rows.length > 8 && <p className="small">And {f(rows.length - 8)} more on the map.</p>}
+    </div>
   );
 }
 
@@ -343,7 +379,9 @@ function AnimalView(p: Props) {
   return (
     <section className="insp-sec insp-animal">
       <div className="insp-back"><button type="button" className="btn is-ghost is-s" onClick={p.onCloseAnimal}><ArrowLeft size={14} aria-hidden /> {placeName(a.zone)}</button><button type="button" className="icon-btn" onClick={p.onCloseAnimal} aria-label="Close"><X size={16} /></button></div>
-      <Portrait src={a.photo} tag={a.title} sensitive={a.sensitive} size="l" />
+      <div className="insp-plate" data-handoff>
+        <Portrait src={a.photo} tag={a.title} sensitive={a.sensitive} size="l" />
+      </div>
       <p className="k">Preview · one animal on the record</p>
       <h2 className="serif insp-h">{a.title}</h2>
       <p className="body">{a.describe ?? "Sex, size and appearance not recorded."}</p>
@@ -360,7 +398,7 @@ function AnimalView(p: Props) {
         {a.facts && <div><dt>On record</dt><dd>{f(a.facts.cases)} request{a.facts.cases === 1 ? "" : "s"} · {f(a.facts.care)} care record{a.facts.care === 1 ? "" : "s"}</dd></div>}
       </dl>
       <div className="row">
-        <button type="button" className="btn is-ink" onClick={() => p.onOpenRecord(a.id)}>Open the full record <ArrowUpRight size={15} aria-hidden /></button>
+        <button type="button" className="btn is-ink" onClick={(e) => p.onOpenRecord(a.id, (e.currentTarget.closest(".insp-animal")?.querySelector("[data-handoff]") as HTMLElement | null))}>Open the full record <ArrowUpRight size={15} aria-hidden /></button>
         <Link className="btn" href={`/community/report?animal=${a.id}`}>Report an update</Link>
       </div>
       <p className="small">Its dot on the map is a schematic position inside the area. The full record keeps this map exactly as you left it.</p>

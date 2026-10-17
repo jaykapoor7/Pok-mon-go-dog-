@@ -44,6 +44,16 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
 
   const sightings = r.events.filter((e) => e.lane === "sight").length, careN = r.events.filter((e) => e.lane === "care").length, casesN = r.events.filter((e) => e.lane === "case").length;
   const place = publicLocality(r.locality);
+  const latest = r.events[r.events.length - 1] ?? null;
+  const care = r.events.filter((e) => e.lane === "care").slice(-4).reverse();
+  const quietDays = r.lastSeen ? (Date.now() - Date.parse(r.lastSeen)) / 86_400_000 : null;
+  /* The one next action the record itself suggests. Nothing here is a promise of rescue. */
+  const next = k.health !== "none"
+    ? { t: "Flagged as needing help", a: "If you can see this animal, say where and how it is, from a safe distance. Organisations review reports; this is not an emergency line.", href: `/community/report?animal=${r.id}&help=1`, cta: "Report how it is now", urgent: true }
+    : !r.photo ? { t: "No photograph on the record", a: "One clear photo, taken from a safe distance, helps the right animal be recognised.", href: `/community/report?animal=${r.id}`, cta: "Add a sighting with a photo", urgent: false }
+    : k.ster === "unknown" ? { t: "Sterilisation not recorded", a: "A V-notched ear is a sign, not proof. Note it in a sighting if you see one.", href: `/community/report?animal=${r.id}`, cta: "Add a sighting", urgent: false }
+    : quietDays !== null && quietDays > 180 ? { t: "Not seen for over six months", a: "A quiet record is not a missing animal. If you have seen it, a sighting dates the record.", href: `/community/report?animal=${r.id}`, cta: "Add a sighting", urgent: false }
+    : { t: "The record is current", a: "Follow it to keep it in My Activity on this device.", href: null, cta: null, urgent: false };
   return (
     <article className="ar">
       {/* The record's head, printed on the indigo sheet like the atlas it was opened from. */}
@@ -63,9 +73,23 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
               <div><dt>Last recorded</dt><dd className="serif">{day(r.lastSeen)}</dd></div>
               <div><dt>Entries</dt><dd className="serif tnum">{r.events.length}</dd><small>{sightings} sighting{sightings === 1 ? "" : "s"} · {careN} care · {casesN} request{casesN === 1 ? "" : "s"}</small></div>
             </dl>
+            <div className={`ar-next${next.urgent ? " is-urgent" : ""}`}>
+              <p className="k">Next on this record</p>
+              <b>{next.t}</b>
+              <span>{next.a}</span>
+              {next.href && <Link className="btn" href={next.href}>{next.cta}</Link>}
+            </div>
             <RecordActions id={r.id} label={r.label} />
           </div>
         </div>
+        {latest && (
+          <div className="ar-latest page" aria-label="Last known activity">
+            <span className="k">Last known activity</span>
+            <time className="mono">{day(latest.date)}</time>
+            <b>{latest.title}</b>
+            <small>{LANE[latest.lane]} · {latest.by ? `recorded by ${latest.by}` : SOURCE[latest.source]}</small>
+          </div>
+        )}
         <div className="selvedge" aria-hidden />
       </header>
 
@@ -75,6 +99,11 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
         <dl className="ar-facts">
           {facts.map((f, i) => <div key={f.label} className={`is-${f.tone}`} style={{ ["--i" as string]: i }}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
         </dl>
+        <div className="ar-care" aria-label="Care on the record">
+          <p className="k">Care on the record</p>
+          {care.length ? <ol>{care.map((e) => <li key={e.id}><time className="mono">{day(e.date)}</time><b>{e.title}</b><small>{e.by ? e.by : SOURCE[e.source]}</small></li>)}</ol>
+            : <p className="ar-care-none">No dated care event is recorded. That is unknown, not proof that no care was given.</p>}
+        </div>
         <p className="small">Hatched means the record does not say. Not recorded is never counted as no. Identity: one StrayPaw ID across every organisation that records it; matches are made by people, reviewable and reversible, and a likeness alone never merges two animals.</p>
       </section>
 

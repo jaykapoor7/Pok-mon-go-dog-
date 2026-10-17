@@ -35,7 +35,8 @@ import type { MapArea, MapCell, MapCity, NationalCity, Unplaced } from "@/lib/li
 import type { NationalCell } from "@/lib/livingmap/types";
 import { MR, MON } from "@/lib/livingmap/types";
 import { FIELD, fieldInks, regionInks, regionLabels, setRegionsVisible } from "./cartography";
-import { bucketOf, lastRecorded } from "./recency";
+import { RECENCY, bucketOf, lastRecorded } from "./recency";
+import { WORKS } from "@/lib/art/sources";
 import { DISC_PX, PIE_INK, coreBounds, glyphImage, hatchDisc, haversineKm, pieImage, seedHead } from "./geo";
 import { KINDS, cityEvidence, kindOf } from "./evidence";
 import { LENSES, MORE_LENSES, PUBLIC_LENSES, lensFigure, nationalMeasure, type LensId } from "./lenses";
@@ -47,12 +48,6 @@ export type Scope = "public" | "org";
 export type Variant = "community" | "ngo" | "city";
 
 const PAL = { ...FIELD, labelOpacity: 0.48 };
-/* Licensed paintings for the open sea at national scale (see lib/art/sources). */
-const SEA_ART = [
-  { src: "/art/folk/gond-elephant-tree.webp", at: [65.0, 15.8] as [number, number], w: 118 },
-  { src: "/art/folk/gond-peacocks.webp", at: [90.6, 12.6] as [number, number], w: 104 },
-  { src: "/art/folk/gond-bird.webp", at: [66.4, 23.4] as [number, number], w: 70 },
-];
 const INDIA_BOX: [[number, number], [number, number]] = [[67.5, 6.2], [97.8, 35.8]];
 const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, AREA_ZOOM = 13.2, MAX_DOTS = 140;
 const R_STOPS: [number, number][] = [[6, 2.6], [8, 3.4], [10, 5], [12, 11.5], [13, 23], [16, 184]];
@@ -140,7 +135,6 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   const lastCam = useRef("");
   const pendingPlace = useRef(init.place);
   const labelEls = useRef<{ el: HTMLElement; major: boolean }[]>([]);
-  const artEls = useRef<HTMLElement[]>([]);
 
   /* ── reads ─────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -225,7 +219,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       map = new ml.Map({ container: el.current, style: groundStyle(PAL), bounds: INDIA_BOX, fitBoundsOptions: { padding: 40 },
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3 · Sea paintings: Gond art by Bhaiyaji Smile 123, CC BY-SA 4.0, adapted (<a href=\"/art-credits\">credits</a>)" }, dragRotate: false, pitchWithRotate: false, maxZoom: 16.5, minZoom: 3 });
+        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, dragRotate: false, pitchWithRotate: false, maxZoom: 16.5, minZoom: 3 });
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __atlas?: MLMap }).__atlas = map;
       map.touchZoomRotate.disableRotation();
@@ -322,16 +316,6 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
           new ml.Marker({ element: e, anchor: "center" }).setLngLat(r.at).addTo(m);
           return { el: e, major: r.major };
         });
-        /* Openly licensed Gond paintings set in the open sea, as an atlas sets creatures in its margins.
-           Never on land, never near a record: they fade before any city opens. Credited in the map's attribution. */
-        artEls.current = SEA_ART.map((a) => {
-          const e = document.createElement("figure");
-          e.className = "atlas-art"; e.setAttribute("aria-hidden", "true");
-          e.style.setProperty("--w", `${a.w}px`);
-          e.innerHTML = `<img alt="" src="${a.src}" draggable="false" />`;
-          new ml.Marker({ element: e, anchor: "center" }).setLngLat(a.at).addTo(m);
-          return e;
-        });
         setZoom(m.getZoom());
         setReady(true);
       });
@@ -356,7 +340,6 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       const on = !plain && level === "india" && zoom < 7 && (major || zoom >= 6);
       e.classList.toggle("is-on", on);
     }
-    for (const e of artEls.current) e.classList.toggle("is-on", !plain && level === "india" && zoom < 6.6);
   }, [plain, level, zoom, ready]);
 
   const live = useRef({ cells, city, comparing, cmp });
@@ -457,7 +440,9 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       const k = byId.get(classOf[i]); const dark = k?.kind === "value" && /^(#16398f|#2457ce|#1f6f80|#3c98a8|#a8230f|#e0472b|#0b1e3d)$/i.test(k.color);
       return [pt(centers[i], { t: v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v), ink: dark && zoom < 12.5 ? "#ffffff" : "#f6efe3" })];
     }));
-    set("zones", places.slice(0, 60).map((p, r) => pt(p.center, { name: p.name, rank: r })));
+    /* A lit finding names only its own localities; the rest of the lettering steps back. */
+    const named = spot ? places.filter((pl) => pl.cells.some((ci) => spot.cells.has(cells[ci].h3))) : places;
+    set("zones", named.slice(0, 60).map((p, r) => pt(p.center, { name: p.name, rank: r })));
     const dots: GeoJSON.Feature[] = [];
     cells.forEach((c, i) => {
       const rb = recent ? bucketOf(lastRecorded(c), now) : null;
@@ -588,6 +573,22 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         {cityState === "error" && <p className="atlas-ev is-err" role="alert">{city} could not be read. That is not the same as no records. <button type="button" className="link" onClick={() => { const c = city; setCity(null); window.setTimeout(() => setCity(c), 0); }}>Retry</button></p>}
       </header>
 
+      {/* The cartouche: the atlas's title piece, as old atlases set one in open sea. It frames an
+          openly licensed painting (credited, never a recorded animal) around the map's own key. */}
+      {level === "india" && !plain && variant === "community" && (
+        <aside className="atlas-cartouche" aria-label="Map key">
+          <figure>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/art/folk/gond-elephant-tree.webp" alt="" />
+            <figcaption>{WORKS.gondElephantTree.title} · {WORKS.gondElephantTree.maker} · {WORKS.gondElephantTree.licence}, adapted · <a href="/art-credits">credits</a></figcaption>
+          </figure>
+          <p className="atlas-cart-h serif">Street animals on the record</p>
+          <p className="atlas-cart-s">Each mark is one recorded area (≈0.74 km²), coloured by when anything was last recorded there.</p>
+          <ul>{RECENCY.map((b) => <li key={b.id}><i style={{ background: b.color }} aria-hidden />{b.short}</li>)}<li><i className="is-unknown" aria-hidden />undated</li></ul>
+          <svg className="atlas-compass" viewBox="0 0 40 40" aria-hidden><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" strokeWidth=".8" strokeDasharray="1 3" /><path d="M20 4 L24 20 L20 36 L16 20 Z" fill="none" stroke="currentColor" strokeWidth="1" /><path d="M20 4 L24 20 L16 20 Z" fill="currentColor" /><text x="20" y="3" textAnchor="middle" fontSize="6" fill="currentColor">N</text></svg>
+        </aside>
+      )}
+
       {/* The four lenses: always visible, each with its live figure. */}
       <div className="atlas-dock" role="radiogroup" aria-label={variant === "city" ? "Evidence layers" : "Lens"}>
         {variant === "city" && <p className="atlas-dock-h k">Layers</p>}
@@ -662,13 +663,41 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         onCity={openCity} onIndia={goIndia} onArea={(h) => { setAreaH3(h); setAnimalId(null); setSheet("half"); }} onCloseArea={() => { setAreaH3(null); setAnimalId(null); }}
         onAnimal={(id) => { setAnimalId(id); setSheet("full"); }} onCloseAnimal={() => setAnimalId(null)} onIsolate={(k) => setIsolate((x) => (x === k ? null : k))}
         onPlace={flyTo} onSheet={setSheet} onCompare={toggleCompare} onClearCompare={() => setCmp([])}
-        onOpenRecord={(id) => router.push(`/animal/${id}?from=${encodeURIComponent(window.location.pathname + window.location.search)}`)}
+        onOpenRecord={(id, from) => handoff(from, () => router.push(`/animal/${id}?from=${encodeURIComponent(window.location.pathname + window.location.search)}`))}
         nationalMeasure={(c) => nationalMeasure(lens, c)}
         spot={spot?.id ?? null} onSpot={(id, list) => setSpot(id ? { id, cells: new Set(list) } : null)}
         by={by} onBy={(b) => { setBy(b); setIsolate(null); }} national={showNational ? national : []} plain={plain}
       />
     </div>
   );
+}
+
+/* From evidence to identity: the preview plate lifts out of the inspector and opens into
+   the record's indigo band, where the record page takes over (it prints its plate in place).
+   A cut under reduced motion; the navigation never waits more than the transition. */
+function handoff(from: HTMLElement | null | undefined, go: () => void) {
+  if (!from || reduced() || typeof document === "undefined") { go(); return; }
+  const r = from.getBoundingClientRect();
+  const bar = document.querySelector(".sp")?.getBoundingClientRect().top ?? 0;
+  const top = Math.max(58, bar);
+  const veil = document.createElement("div");
+  veil.className = "atlas-handoff";
+  veil.style.cssText = `position:fixed;z-index:80;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:14px;overflow:hidden;background:#1f2a5c;pointer-events:none`;
+  const plate = from.cloneNode(true) as HTMLElement;
+  plate.style.cssText = "position:absolute;inset:0;transition:none";
+  veil.appendChild(plate);
+  document.body.appendChild(veil);
+  const W = window.innerWidth, H = window.innerHeight, wide = W > 900;
+  const target = wide ? { left: Math.max(24, (W - 1320) / 2 + 60), top: top + 70, width: Math.min(620, W * 0.46), height: Math.min(620, W * 0.46) * 0.8 } : { left: 12, top: top + 64, width: W - 24, height: (W - 24) * 0.75 };
+  veil.animate([{ borderRadius: "14px" }, { borderRadius: "0px", left: "0px", top: `${top}px`, width: `${W}px`, height: `${H - top}px` }], { duration: 420, easing: "cubic-bezier(0.23,1,0.32,1)", fill: "forwards" });
+  plate.animate([{ left: "0px", top: "0px", width: `${r.width}px`, height: `${r.height}px` }, { left: `${target.left}px`, top: `${target.top - top}px`, width: `${target.width}px`, height: `${target.height}px` }], { duration: 420, easing: "cubic-bezier(0.23,1,0.32,1)", fill: "forwards" });
+  window.setTimeout(go, 300);
+  /* The record page paints over it; remove the veil once it has. */
+  let done = false;
+  const lift = () => { if (done) return; done = true; obs.disconnect(); veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 280, fill: "forwards" }).finished.then(() => veil.remove()).catch(() => veil.remove()); };
+  const obs = new MutationObserver(() => { if (document.querySelector(".ar-sheet")) window.setTimeout(lift, 120); });
+  obs.observe(document.body, { childList: true, subtree: true });
+  window.setTimeout(lift, 5000);
 }
 
 /** How an area's dots divide for the active lens: [count, colour], centre out. */
