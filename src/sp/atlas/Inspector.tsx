@@ -20,6 +20,7 @@ import type { Ctx, Klass, Question } from "@/lib/livingmap/questions";
 import { placeName, type Locality, type Tally } from "@/lib/livingmap/reading";
 import type { AreaAnimal, MapArea, MapCell, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
 import { Portrait } from "../ui/Portrait";
+import { publicLocality } from "../ui/place";
 import { KINDS, kindOf, type EvidenceKind } from "./evidence";
 import { PIE_INK } from "./geo";
 import { EvidenceDrawer } from "./Evidence";
@@ -213,7 +214,7 @@ function AreaView(p: Props) {
       <section className="insp-sec">
         <div className="insp-back"><button type="button" className="btn is-ghost is-s" onClick={p.onCloseArea}><ArrowLeft size={14} aria-hidden /> {p.city}</button>
           <button type="button" className={`btn is-s${p.cmp.includes(c.h3) ? " is-ink" : ""}`} onClick={() => p.onCompare(c.h3)}><GitCompare size={14} aria-hidden /> {p.cmp.includes(c.h3) ? "Comparing" : "Compare"}</button></div>
-        <p className="k">{c.zone ?? "Recorded area"} · H3 area, not a ward</p>
+        <p className="k">{publicLocality(c.zone) ?? "Recorded area"} · H3 area, not a ward</p>
         <dl className="insp-figs">
           <div><dt>Animals recorded</dt><dd className="serif">{f(c.animals)}</dd><small>{c.exact_loc ? `${f(c.exact_loc)} placed from a map point` : "placed by locality name"}</small></div>
           <div><dt>Open requests</dt><dd className="serif">{f(known)}</dd><small>{c.open_unconfirmed ? `+ ${f(c.open_unconfirmed)} unconfirmed` : "confirmed in StrayPaw"}</small></div>
@@ -278,7 +279,7 @@ function AnimalView(p: Props) {
       <dl className="insp-facts">
         <div><dt>Last seen</dt><dd>{day(a.last_seen)}</dd></div>
         <div><dt>First recorded</dt><dd>{day(a.first_seen)}</dd></div>
-        <div><dt>Place</dt><dd>{a.zone ?? "not recorded"} <small>· area level</small></dd></div>
+        <div><dt>Place</dt><dd>{publicLocality(a.zone) ?? "Locality not published"} <small>· area level</small></dd></div>
         <div><dt>Source</dt><dd>{a.org ?? (a.source ? a.source.replace(/_/g, " ") : "community report")}</dd></div>
         {a.facts && <div><dt>On record</dt><dd>{f(a.facts.cases)} request{a.facts.cases === 1 ? "" : "s"} · {f(a.facts.care)} care record{a.facts.care === 1 ? "" : "s"}</dd></div>}
       </dl>
