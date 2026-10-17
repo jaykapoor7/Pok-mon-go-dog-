@@ -77,6 +77,12 @@ export function Work() {
   const [sheet, setSheet] = useState(false);
   const [limit, setLimit] = useState(80);
   const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const f = q.get("focus"), c = q.get("cohort");
+    if (f && ["mine", "unowned", "critical", "followup"].includes(f)) setFocus(f as Focus);
+    if (c === "decide" || c === "history") setCohort(c);
+  }, []);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {

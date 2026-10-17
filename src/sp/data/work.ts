@@ -13,10 +13,11 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { getSupabase } from "@/lib/supabase";
-import { ngoSetDogCare } from "@/lib/actions";
+import { ngoSetDogCare, updateMyOrg, type OrgProfilePatch } from "@/lib/actions";
 import { addMedicalEvent } from "@/lib/animal-actions";
 import { archiveCampaign, createCampaign, fileToCampaign, type CampaignKind } from "@/lib/campaigns";
 import { addOrgMember, removeOrgMember, setMemberRole } from "@/lib/team-actions";
+import { createTeamCode, revokeTeamCode } from "@/lib/programme";
 import { addCaseFollowup, assignCase, claimCase, createCase, updateCaseFollowupStatus, updateCaseStatus, type Actor, type CreateCaseInput } from "@/lib/case-actions";
 import { reviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
 import { spatialChanged } from "@/lib/spatial/refresh";
@@ -87,3 +88,10 @@ export const archiveDrive = (id: string, archived: boolean) => run(`arch:${id}`,
 export const changeRole = (userId: string, role: string) => run(`role:${userId}`, "Role changed", () => setMemberRole(userId, role));
 export const addMember = (email: string, role: string) => run(`add:${email}`, `${email} added`, async () => { await addOrgMember(email, role); return true; });
 export const removeMember = (userId: string) => run(`rm:${userId}`, "Removed from the organisation", () => removeOrgMember(userId));
+export const inviteTeam = (email: string, name: string, role: "lead" | "member" | "volunteer") => {
+  let got: { code: string; emailed: boolean } | null = null;
+  return run(`team:${email}`, "Added", async () => { got = await createTeamCode(email, name, role); return !!got?.code; })
+    .then((r) => { const g = got as { code: string; emailed: boolean } | null; return r.ok && g ? { ...r, what: `Added. Their code is ${g.code}${g.emailed ? "; it was emailed to them." : "; the email could not be sent, so give it to them yourself."}`, code: g.code } : r; });
+};
+export const revokeCode = (id: string) => run(`revoke:${id}`, "Code revoked", () => revokeTeamCode(id));
+export const saveOrgProfile = (patch: OrgProfilePatch) => run("org-profile", "Profile saved", () => updateMyOrg(patch));
