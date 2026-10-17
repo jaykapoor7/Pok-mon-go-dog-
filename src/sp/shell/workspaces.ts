@@ -66,25 +66,27 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
         { href: "/ngo/review", label: "Historical review", note: "Imported statuses, never today's work" },
         { href: "/ngo/field", label: "Field mode", note: "Phone, one hand" },
       ] },
-      { label: "Records", links: [
+      { label: "Registers & reporting", links: [
         { href: "/ngo/import", label: "Import a workbook", note: "Map, review, release" },
         { href: "/ngo/programmes", label: "Programmes", note: "ABC / ARV drives, surveys" },
         { href: "/ngo/proof", label: "Reports & proof", note: "Evidence on demand" },
       ] },
+      { label: "Records", links: [
+        { href: "/ngo/care", label: "Care ledger", note: "Every care record, across animals" },
+        { href: "/ngo/quality", label: "Data quality", note: "Gaps and checks in the register" },
+        { href: "/ngo/evidence", label: "Evidence files", note: "Register pages, ledgers, threads" },
+      ] },
+      { label: "Outreach", links: [
+        { href: "/ngo/stories", label: "Publish case stories" },
+        { href: "/ngo/fundraising", label: "Fundraising" },
+        { href: "/ngo/volunteers", label: "Volunteer sign-ups" },
+        { href: "/ngo/feeding", label: "Feeding spots" },
+        { href: "/ngo/projects", label: "Projects" },
+        { href: "/ngo/surveys", label: "Surveys & census" },
+      ] },
       { label: "Organisation", links: [
         { href: "/ngo/team", label: "Team & access", note: "Members, roles, invitations" },
         { href: "/ngo/settings", label: "Settings" },
-      ] },
-      /* Working 1.0 tools with no 2.0 screen yet: kept, labelled, not hidden. */
-      { label: "Not yet redesigned", links: [
-        { href: "/partner/medical", label: "Care ledger", note: "Every care record, across animals" },
-        { href: "/partner/quality", label: "Data quality", note: "Gaps and checks in the register" },
-        { href: "/partner/volunteers", label: "Volunteer sign-ups" },
-        { href: "/partner/stories", label: "Publish case stories" },
-        { href: "/partner/resources", label: "Evidence files" },
-        { href: "/partner/fundraising", label: "Fundraising" },
-        { href: "/partner/surveys", label: "Surveys & projects" },
-        { href: "/partner/feeding", label: "Organisation feeding spots" },
       ] },
     ],
   },

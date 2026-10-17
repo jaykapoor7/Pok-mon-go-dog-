@@ -72,6 +72,10 @@ const nextConfig = {
         ["/partner/reports", "/ngo/proof"],
         ["/partner/team", "/ngo/team"], ["/partner/codes", "/ngo/team"],
         ["/partner/settings", "/ngo/settings"],
+        ["/partner/medical", "/ngo/care"], ["/partner/quality", "/ngo/quality"], ["/partner/volunteers", "/ngo/volunteers"],
+        ["/partner/stories", "/ngo/stories"], ["/partner/resources", "/ngo/evidence"], ["/partner/fundraising", "/ngo/fundraising"],
+        ["/partner/fundraisers/new", "/ngo/fundraising/new"], ["/partner/surveys", "/ngo/surveys"], ["/partner/projects", "/ngo/projects"],
+        ["/partner/feeding", "/ngo/feeding"],
         /* Site pages that predate 2.0 */
         ["/research", "/evidence"], ["/changelog", "/about"],
       ]),

@@ -3,7 +3,7 @@
 Drives StrayPaw 2.0 NGO screens as a **synthetic** organisation member without
 touching any real database. `harness.mjs` fakes the session and answers every
 Supabase call with records coded `TEST-…`; writes are captured, and any write
-it does not answer is blocked (403). Import and export routes are answered
+it does not answer is blocked (403). Unmocked reads are refused too (503): nothing reaches the real Supabase project. Public map reads go to the local server, which reads public views anonymously like any visitor. Import and export routes are answered
 locally too.
 
     node e2e/harness/page.mjs <outdir> <name> <route>        # screenshot + overflow + captured writes

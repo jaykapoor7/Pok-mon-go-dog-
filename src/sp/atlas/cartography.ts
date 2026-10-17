@@ -71,8 +71,15 @@ export function fieldInks(map: MLMap, beforeId?: string) {
   set("landuse_residential", "fill-color", FI.residential);
   set("landuse_residential", "fill-opacity", ["interpolate", ["linear"], ["zoom"], 9, 0, 11, 0.85]);
   set("landcover_wood", "fill-color", FI.wood);
-  for (const id of ["highway_motorway_inner", "highway_motorway_subtle", "highway_motorway_bridge_inner"]) set(id, "line-color", FI.motorway);
-  for (const id of ["highway_major_inner", "highway_major_subtle"]) set(id, "line-color", "rgba(201,140,70,0.7)");
+  /* Roads drawn as an engraver would: paper lines cased in ink, highways in marigold cased in terracotta. */
+  for (const id of ["highway_motorway_inner", "highway_motorway_bridge_inner"]) set(id, "line-color", "#f3d39a");
+  for (const id of ["highway_motorway_casing", "highway_motorway_bridge_casing"]) set(id, "line-color", "#b65a3a");
+  set("highway_motorway_subtle", "line-color", "rgba(182,90,58,0.55)");
+  set("highway_major_inner", "line-color", "#fbf3e3");
+  set("highway_major_casing", "line-color", "rgba(11,30,61,0.5)");
+  set("highway_major_subtle", "line-color", "rgba(182,90,58,0.38)");
+  set("highway_minor", "line-color", "rgba(11,30,61,0.2)");
+  set("highway_path", "line-color", "rgba(11,30,61,0.16)");
   /* Beyond India, an indigo printed ground: India reads as a paper cut-out on the sheet.
      Past the national scale it fades back to paper, so a border city is never framed in dark. */
   if (map.getLayer("india-mask")) set("india-mask", "fill-color", ["interpolate", ["linear"], ["zoom"], 6.5, FI.sea, 8.5, FI.seaFar]);
