@@ -33,45 +33,59 @@ const nextConfig = {
      states how we design a study, two different things, one word. The index
      is now /sources; the old path keeps working. */
   async redirects() {
+    /* StrayPaw 2.0 replaced every post-app screen. Each old URL lands on
+       its new home, query strings carried, so links in the world, emails
+       and bookmarks keep working. Temporary (307) on purpose: a rollback
+       to 1.0 must not be fought by browsers caching permanent redirects. */
+    const to = (pairs) => pairs.map(([source, destination]) => ({ source, destination, permanent: false }));
     return [
-      { source: "/research", destination: "/evidence", permanent: false },
-      /* The map was called the Atlas; keep old links working. */
-      { source: "/atlas", destination: "/map", permanent: true },
-      /* Published data and research live in one place, /evidence, which says
-         why the record has to exist. The pages that each held a piece of it
-         send their visitors there; the register's own counts are /insights. */
+      ...to([
+        /* Community */
+        ["/app", "/community"], ["/map", "/community"], ["/explore", "/community"], ["/atlas", "/community"], ["/feed", "/community"],
+        ["/report", "/community/report"], ["/following", "/community/activity"], ["/account", "/community/activity"],
+        ["/dog/:id", "/animal/:id"],
+        ["/stories", "/community/stories"], ["/journey", "/community/stories"], ["/timeline", "/community/stories"], ["/outcomes", "/community/stories"], ["/rescues", "/community/stories"], ["/care", "/community/stories"],
+        ["/orgs", "/community/organisations"], ["/adopt", "/community/organisations"], ["/org/:slug", "/community/organisations/:slug"],
+        ["/help", "/community/help"],
+        ["/feeding", "/community/feeding"], ["/feeding/new", "/community/feeding"], ["/feeding/:id", "/community/feeding/:id"], ["/feeder", "/community/feeding"],
+        /* Municipality */
+        ["/municipality", "/city"], ["/insights", "/city/insights"], ["/transparency", "/city/insights"],
+        ["/programmes", "/city/programmes"], ["/programmes/:id", "/city/programmes/:id"], ["/interventions", "/city/programmes"], ["/studies", "/city/programmes"],
+        /* Education */
+        ["/resources", "/learn/resources"],
+        /* Trust */
+        ["/moderate", "/trust"], ["/admin", "/trust/console"],
+        /* NGO: every /partner screen with a 2.0 home. Parked features
+           (fundraising, surveys, projects, organisation feeding spots, care
+           ledger, data quality, volunteer sign-ups, story publishing and
+           evidence files) keep their 1.0 pages until they are redesigned. */
+        ["/dashboard", "/ngo"], ["/partner", "/ngo"], ["/partner/operations", "/ngo"],
+        ["/partner/followups", "/ngo?focus=followup"],
+        ["/partner/cases", "/ngo"], ["/cases", "/ngo"],
+        ["/partner/animals", "/ngo/animals"], ["/partner/records", "/ngo/animals"],
+        ["/partner/animals/:id", "/ngo/animals/:id"],
+        ["/partner/map", "/ngo/map"],
+        ["/partner/inbox", "/ngo/inbox"], ["/partner/incoming", "/ngo/inbox"],
+        ["/partner/review", "/ngo/review"],
+        ["/partner/field", "/ngo/field"], ["/partner/import", "/ngo/import"],
+        ["/partner/drives", "/ngo/programmes"], ["/partner/drives/:id", "/ngo/programmes/:id"],
+        ["/partner/reports", "/ngo/proof"],
+        ["/partner/team", "/ngo/team"], ["/partner/codes", "/ngo/team"],
+        ["/partner/settings", "/ngo/settings"],
+        /* Site pages that predate 2.0 */
+        ["/research", "/evidence"], ["/changelog", "/about"],
+      ]),
       ...["/why-straypaw", "/the-data", "/gaps", "/needs", "/wards", "/data", "/sources", "/take-action", "/what-would-it-take", "/news"]
         .map((source) => ({ source, destination: "/evidence", permanent: false })),
-      { source: "/transparency", destination: "/insights", permanent: false },
-      /* About is the one page for what StrayPaw is and how it is run. The
-         old journey URL now points to the living record stories rather than
-         duplicating About under a misleading title. */
       ...["/mission", "/what-we-do"].map((source) => ({ source, destination: "/about", permanent: true })),
-      { source: "/journey", destination: "/stories", permanent: true },
-      /* Two pages answered "the animals I care about" and only one of them
-         was reachable: nothing on the site linked to /account, and Following
-         is the entry in the console's nav. A permanent redirect rather than
-         a deletion, so any link out in the world still lands somewhere. */
-      { source: "/account", destination: "/following", permanent: true },
-      /* /dashboard was already a client-side redirect component. Doing it
-         here is one hop instead of two, and search engines see it. */
-      { source: "/dashboard", destination: "/partner", permanent: true },
-      /* Cases live in the organisation workspace. /cases was a second copy of
-         the register whose server reads had no session and so always came
-         back empty; old links and the query they carry (?q, ?dog) still land. */
-      { source: "/cases", destination: "/partner/cases", permanent: true },
-      { source: "/cases/new", has: [{ type: "query", key: "dog", value: "(?<dog>.+)" }], destination: "/partner/cases/new?dogId=:dog", permanent: true },
-      { source: "/cases/new", destination: "/partner/cases/new", permanent: true },
-      { source: "/cases/:id", destination: "/partner/cases/:id", permanent: true },
-      /* The feed listed imported historical records one by one as
-         "reported anonymously"; what changed near you lives on the
-         community home now. */
-      { source: "/feed", destination: "/app", permanent: false },
-      /* Stray entry URLs: "/index" is the home page, and the record never had
-         a separate changelog — what changed lives in About. Both send their
-         visitors somewhere real instead of a 404. */
+      /* A case opened from an animal: the old ?dog / ?dogId become ?dog. */
+      { source: "/partner/cases/new", has: [{ type: "query", key: "dogId", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },
+      { source: "/cases/new", has: [{ type: "query", key: "dog", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },
+      { source: "/partner/cases/new", destination: "/ngo/cases/new", permanent: false },
+      { source: "/cases/new", destination: "/ngo/cases/new", permanent: false },
+      { source: "/partner/cases/:id", destination: "/ngo/cases/:id", permanent: false },
+      { source: "/cases/:id", destination: "/ngo/cases/:id", permanent: false },
       { source: "/index", destination: "/", permanent: true },
-      { source: "/changelog", destination: "/about", permanent: false },
     ];
   },
 

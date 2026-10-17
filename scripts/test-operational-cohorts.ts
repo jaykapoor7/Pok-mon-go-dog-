@@ -12,10 +12,13 @@ assert.equal(isHistoricalFollowup({ ...base, case_provenance: "imported_historic
 assert.equal(isHistoricalFollowup({ ...base, case_id: null, animal_provenance: "imported_historical_record" }), true, "an unlinked imported animal date is historical");
 assert.equal(isHistoricalFollowup({ ...base, animal_provenance: "imported_historical_record" }), false, "a current linked case remains authoritative");
 
-const today = readFileSync(new URL("../src/components/partner/OpsRoom.tsx", import.meta.url), "utf8");
-const field = readFileSync(new URL("../src/components/partner/FieldToday.tsx", import.meta.url), "utf8");
-assert.match(today, /\/partner\/followups\?view=overdue/, "Today's overdue metric links to its exact scheduled cohort");
-assert.match(today, /\/partner\/review\?tab=historical/, "Today's imported decisions link to their exact review cohort");
-assert.match(field, /\/partner\/followups\?view=historical/, "Field keeps historical dates separate");
+/* StrayPaw 2.0: the same cohort separation, asserted on the screens that replaced Today and Field. */
+const work = readFileSync(new URL("../src/sp/ngo/Work.tsx", import.meta.url), "utf8");
+const field = readFileSync(new URL("../src/sp/ngo/Field.tsx", import.meta.url), "utf8");
+const imp = readFileSync(new URL("../src/sp/ngo/Import.tsx", import.meta.url), "utf8");
+assert.match(work, /f\.source === "scheduled" && Date\.parse\(f\.due_at\) < now/, "Work's overdue follow-ups are scheduled ones only");
+assert.match(work, /isHistoricalCase/, "Work keeps imported, unconfirmed cases in their own cohort");
+assert.match(field, /f\.source === "scheduled"/, "Field keeps historical dates separate");
+assert.match(imp, /\/ngo\/review\?cohort=history/, "An import's receipt links to its exact review cohort");
 
 console.log("Operational follow-up cohorts and exact links passed.");

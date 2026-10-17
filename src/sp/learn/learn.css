@@ -144,6 +144,17 @@
 .sp .rs-card p:last-child { font-size: 17px; line-height: 1.45; }
 .sp .lp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 28px; }
 
+.sp .dr { display: grid; gap: 14px; }
+.sp .dr-tools { --g: 10px; align-items: center; }
+.sp .dr-tools .search { flex: 1 1 260px; }
+.sp .dr-tools .select { width: auto; }
+.sp .dr-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0 32px; }
+.sp .dr-list li { display: grid; gap: 4px; align-content: start; padding: 14px 0; border-top: 1px solid var(--line); }
+.sp .dr-list b { font-size: 16px; }
+.sp .dr-list small { display: block; font-size: 12.5px; color: var(--mute); }
+.sp .dr-list p { font-size: 14px; color: var(--ink-2); }
+.sp .dr-list a { justify-self: start; }
+
 @media (max-width: 1100px) {
   .sp .ac-spread { grid-template-columns: 1fr 1fr; }
   .sp .ac-course:nth-child(2) { border-right: 0; }

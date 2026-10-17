@@ -10,6 +10,7 @@ import { ExternalLink, Phone } from "lucide-react";
 import { EDUCATION_PARTNERS } from "@/lib/platform/education";
 import { COURSES, HELPLINES, POST_BITE_STEPS } from "./content";
 import { PrintButton } from "./PrintButton";
+import { Directory } from "./Directory";
 import "./learn.css";
 
 const CARDS = [["on-the-street", "a-calm-encounter"], ["on-the-street", "after-a-bite"], ["on-the-street", "observe-dont-assume"]].map(([c, l]) => COURSES.find((x) => x.id === c)!.lessons.find((x) => x.id === l)!);
@@ -37,6 +38,10 @@ export function Resources() {
           <p className="small">Not medical advice: a doctor decides the schedule. <Link className="link" href="/learn/courses/on-the-street/after-a-bite">The lesson</Link></p>
         </section>
       </div>
+      <section className="ws-sec" id="directory">
+        <h2 className="h2">Animal-welfare organisations across India <small className="small">a directory, not an endorsement; StrayPaw partners are under <Link className="link" href="/community/organisations">Organisations</Link></small></h2>
+        <Directory />
+      </section>
       <section className="ws-sec">
         <h2 className="h2">Education partners</h2>
         <ul className="rs-partners">{EDUCATION_PARTNERS.map((p) => <li key={p.id}><p className="k">{p.city}</p><h3 className="serif">{p.fullName}</h3><p>{p.summary}</p><ul>{p.programmes.map((x) => <li key={x}>{x}</li>)}</ul><a className="link" href={p.url} target="_blank" rel="noreferrer">{p.source} <ExternalLink size={12} aria-hidden /></a></li>)}</ul>

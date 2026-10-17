@@ -1,8 +1,0 @@
-/* Before a place is chosen: one plate, the two ways to set a place, and
-   reporting, which never waits. No city stands behind it. */
-.pg { max-width: 1240px; margin: 0 auto; display: grid; gap: var(--sp-4); }
-.pg > .dh { margin-bottom: 0; }
-.pg > .dh .dh-in { min-height: 300px; }
-.pg-search { max-width: 520px; }
-.pg-foot { margin: 0; font-size: 13.5px; color: var(--sp-muted); }
-.pg-foot a { color: var(--sp-blue); font-weight: 600; }

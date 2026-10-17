@@ -75,6 +75,17 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
         { href: "/ngo/team", label: "Team & access", note: "Members, roles, invitations" },
         { href: "/ngo/settings", label: "Settings" },
       ] },
+      /* Working 1.0 tools with no 2.0 screen yet: kept, labelled, not hidden. */
+      { label: "Not yet redesigned", links: [
+        { href: "/partner/medical", label: "Care ledger", note: "Every care record, across animals" },
+        { href: "/partner/quality", label: "Data quality", note: "Gaps and checks in the register" },
+        { href: "/partner/volunteers", label: "Volunteer sign-ups" },
+        { href: "/partner/stories", label: "Publish case stories" },
+        { href: "/partner/resources", label: "Evidence files" },
+        { href: "/partner/fundraising", label: "Fundraising" },
+        { href: "/partner/surveys", label: "Surveys & projects" },
+        { href: "/partner/feeding", label: "Organisation feeding spots" },
+      ] },
     ],
   },
   city: {
