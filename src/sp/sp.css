@@ -60,6 +60,7 @@
   --sans: var(--sp-sans-f), "DM Sans", system-ui, -apple-system, sans-serif;
   --serif: var(--sp-serif-f), "Instrument Serif", Georgia, serif;
   --mono: var(--sp-mono-f), "DM Mono", ui-monospace, monospace;
+  --deva: var(--sp-deva-f), "Tiro Devanagari Hindi", "Noto Serif Devanagari", serif;
 
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -106,6 +107,7 @@
 
 /* ── type ──────────────────────────────────────────────────────────── */
 .sp .serif { font-family: var(--serif); font-weight: 400; letter-spacing: -0.012em; }
+.sp .hi, .sp :lang(hi) { font-family: var(--deva); font-weight: 400; letter-spacing: 0; }
 .sp .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .sp .tnum { font-variant-numeric: tabular-nums; }
 .sp .k { font-family: var(--mono); font-size: 12px; line-height: 1.4; color: var(--mute); }

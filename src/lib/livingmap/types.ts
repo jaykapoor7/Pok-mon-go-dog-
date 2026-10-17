@@ -95,3 +95,6 @@ export type NationalCity = {
 
 /** Requests whose recorded place has no city, so no area: listed, never dropped. */
 export type Unplaced = { zone: string; district: string | null; open_cases: number; cases: number; latest: string | null };
+
+/** One recorded area at national scale: centre, animals, and the latest date anything was recorded there. */
+export type NationalCell = [lng: number, lat: number, animals: number, lastRecorded: string | null];

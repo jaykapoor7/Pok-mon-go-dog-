@@ -1,0 +1,91 @@
+/* NGO record tools: care ledger, data quality, volunteers, stories.
+   Structural only: colour, type and surfaces come from the shared
+   tokens and primitives in sp.css and ngo.css. */
+
+.sp .rc-tabs { padding: 0 28px; }
+.sp .rc-body { display: grid; gap: 18px; padding: 18px 28px 40px; min-width: 0; }
+.sp .rc-stack { display: grid; gap: 14px; min-width: 0; }
+.sp .rc-skel { display: grid; gap: 10px; }
+.sp .rc-skel .skel { height: 52px; }
+.sp .rc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.sp .rc-chips .chip { min-height: 44px; }
+.sp .rc-pre { white-space: pre-line; overflow-wrap: anywhere; }
+.sp .rc-left { justify-self: start; }
+
+/* Tables: stable columns; a wide table scrolls inside its own region. */
+.sp .rc-scroll { overflow-x: auto; min-width: 0; border-top: 1px solid var(--line-2); }
+.sp .rc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sp .rc-table th { text-align: left; padding: 8px 10px; font-size: 12px; font-weight: 650; color: var(--mute); border-bottom: 1px solid var(--line-2); }
+.sp .rc-table td { padding: 10px; border-top: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
+.sp .rc-table tr.rc-month th { padding: 18px 10px 6px; border-bottom: 0; color: var(--ink); }
+.sp .rc-table tr.rc-month .serif { font-size: 22px; font-weight: 400; }
+.sp .rc-date { white-space: nowrap; font-size: 12.5px; }
+.sp .rc-who { display: grid; gap: 2px; min-width: 160px; }
+.sp .rc-who b { color: var(--ink); font-weight: 600; }
+.sp .rc-who small { font-size: 12px; color: var(--mute); }
+.sp .rc-note { min-width: 200px; max-width: 46ch; overflow-wrap: anywhere; }
+.sp .rc-by { min-width: 120px; }
+.sp .rc-open { text-align: right; white-space: nowrap; }
+.sp .rc-open .btn { min-height: 44px; }
+.sp .rc-contact { max-width: 22ch; overflow: hidden; text-overflow: ellipsis; }
+
+/* Data quality queues. */
+.sp .rc-queues { display: grid; border-top: 1px solid var(--line-2); }
+.sp .rc-queues > li { border-bottom: 1px solid var(--line); }
+.sp .rc-q-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; }
+.sp .rc-q-n { font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.sp .rc-queues > li.is-clear .rc-q-n { color: var(--mute); }
+.sp .rc-q-main { display: grid; gap: 3px; min-width: 0; }
+.sp .rc-q-main small { font-size: 13px; color: var(--mute); max-width: 70ch; }
+.sp .rc-q-act { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.sp .rc-q-act .btn { min-height: 44px; }
+.sp .rc-q-list { display: grid; margin: 0 0 14px 112px; border-top: 1px solid var(--line); }
+.sp .rc-q-list > li { border-bottom: 1px solid var(--line); }
+.sp .rc-q-list a, .sp .rc-q-list span { display: grid; gap: 1px; min-height: 44px; padding: 8px 0; align-content: center; }
+.sp .rc-q-list a:hover b { color: var(--blue); }
+.sp .rc-q-list small { font-size: 11.5px; color: var(--mute); overflow-wrap: anywhere; }
+.sp .rc-q-list > li.small { padding: 10px 0; }
+
+/* Stories: the form beside its public preview and the published list. */
+.sp .rc-story { grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; align-items: start; }
+.sp .rc-form { display: grid; gap: 16px; min-width: 0; max-width: 720px; }
+.sp .rc-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sp .rc-stages { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.sp .rc-stages legend { margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+.sp .rc-stage { display: grid; grid-template-columns: minmax(0, 1fr) 160px auto; gap: 8px; align-items: center; }
+.sp .rc-stage .btn { min-height: 44px; }
+.sp .rc-stages .hint { font-size: 13px; color: var(--mute); }
+.sp .rc-send { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.sp .rc-side { display: grid; gap: 24px; align-content: start; min-width: 0; }
+.sp .rc-preview { display: grid; gap: 8px; padding-top: 12px; border-top: 2px solid var(--ink); }
+.sp .rc-pv-title { font-size: 30px; line-height: 1.05; overflow-wrap: anywhere; }
+.sp .rc-preview .chrono { margin-top: 6px; }
+.sp .rc-published { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+.sp .rc-published .chrono li { gap: 2px; }
+
+@media (max-width: 1000px) { .sp .rc-story { grid-template-columns: 1fr; } }
+@media (max-width: 860px) {
+  .sp .rc-tabs { padding: 0 12px; }
+  .sp .rc-body { padding: 14px 16px 32px; }
+  .sp .rc-q-row { grid-template-columns: 64px minmax(0, 1fr); gap: 10px 12px; }
+  .sp .rc-q-n { font-size: 32px; }
+  .sp .rc-q-act { grid-column: 2; justify-content: flex-start; }
+  .sp .rc-q-list { margin-left: 0; }
+}
+/* Phones: table rows become stacked records; no sideways page scroll. */
+@media (max-width: 640px) {
+  .sp .rc-scroll { overflow-x: visible; }
+  .sp .rc-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+  .sp .rc-table, .sp .rc-table tbody { display: block; }
+  .sp .rc-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .sp .rc-table tr.rc-month { display: block; padding: 0; border: 0; }
+  .sp .rc-table tr.rc-month th { display: block; padding: 16px 0 4px; }
+  .sp .rc-table td { display: block; padding: 0; border: 0; min-width: 0; max-width: none; }
+  .sp .rc-table td.rc-open { grid-column: 2; grid-row: 1 / span 2; align-self: start; }
+  .sp .rc-table td:not(.rc-open) { grid-column: 1; }
+  .sp .rc-who, .sp .rc-note, .sp .rc-by { min-width: 0; }
+  .sp .rc-two { grid-template-columns: 1fr; }
+  .sp .rc-stage { grid-template-columns: minmax(0, 1fr) 110px; }
+  .sp .rc-stage .btn { grid-column: 1 / -1; justify-self: start; }
+  .sp .rc-vol td.rc-open { grid-column: 1; grid-row: auto; }
+}

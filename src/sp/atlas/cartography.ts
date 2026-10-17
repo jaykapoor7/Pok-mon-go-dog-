@@ -15,6 +15,7 @@
 
 import type { Map as MLMap } from "maplibre-gl";
 import { PAPER, type Palette } from "@/components/map/basemap";
+import regions from "./india-regions.json";
 export const FIELD: Palette = {
   ...PAPER,
   bg: "#f6efe3", land: "#f6efe3", water: "#b9cfe6", park: "#d6e3c3", building: "#ece0cf",
@@ -96,4 +97,114 @@ export function fieldInks(map: MLMap, beforeId?: string) {
   }
   add({ id: "fa-waves", type: "symbol", source: "fa-seas", maxzoom: 7.5, filter: ["==", ["get", "kind"], "wave"], layout: { "icon-image": "fa-wave", "icon-size": ["interpolate", ["linear"], ["zoom"], 3, 0.8, 6, 1.2], "icon-allow-overlap": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 6, 1, 7.5, 0] } });
   add({ id: "fa-sea-names", type: "symbol", source: "fa-seas", maxzoom: 7.5, filter: ["==", ["get", "kind"], "name"], layout: { "text-field": ["get", "name"], "text-font": ["Noto Sans Italic"], "text-size": ["interpolate", ["linear"], ["zoom"], 3, 12, 6, 16], "text-letter-spacing": 0.32, "text-max-width": 6 }, paint: { "text-color": FI.waterInk, "text-opacity": ["interpolate", ["linear"], ["zoom"], 6, 0.62, 7.5, 0], "text-halo-color": FI.sea, "text-halo-width": 1.2 } });
+}
+
+/* ── India's physical regions, painted as a printed relief key ──────────
+   Natural Earth physical regions (public domain), simplified. They are
+   orientation, not data: they sit under the mask (so they stop at India's
+   border), fade out before a city opens, and the legend says so. Each kind
+   of land has its own mark, drawn by hand-feeling pen strokes:
+     range      staggered peaks with a shaded flank   lac / terracotta
+     plateau    stipple                              turmeric
+     plain      grass ticks                          leaf
+     desert     dune arcs and grains                 ochre
+     delta, coast  ripples                           sky                */
+
+
+export type RegionKind = "range" | "plain" | "plateau" | "desert" | "delta" | "coast" | "peninsula";
+export const REGION_INK: Record<RegionKind, { wash: string; ink: string; label: string }> = {
+  range: { wash: "#ecc7b0", ink: "#9b3149", label: "Hills and ranges" },
+  plateau: { wash: "#f2dca6", ink: "#b57d10", label: "Plateau" },
+  plain: { wash: "#dce8c6", ink: "#4b7f4f", label: "Plains" },
+  desert: { wash: "#f0d6a0", ink: "#a8741f", label: "Desert" },
+  delta: { wash: "#cfe2ea", ink: "#2f6f9a", label: "Delta" },
+  coast: { wash: "#d5e6e6", ink: "#1f6f80", label: "Coast" },
+  peninsula: { wash: "#ecdcbc", ink: "#a8741f", label: "Peninsula" },
+};
+
+type Img = { width: number; height: number; data: Uint8ClampedArray };
+/** A deterministic wobble, so marks feel drawn but every render is identical. */
+const jit = (i: number, k = 1) => (Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1;
+function tile(w: number, h: number, draw: (g: CanvasRenderingContext2D) => void): Img {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d")!; g.lineCap = "round"; g.lineJoin = "round"; draw(g);
+  return { width: w, height: h, data: g.getImageData(0, 0, w, h).data };
+}
+function markImage(kind: RegionKind): Img {
+  const ink = REGION_INK[kind].ink;
+  switch (kind) {
+    case "range": return tile(36, 30, (g) => {
+      g.strokeStyle = ink; g.lineWidth = 1.25; g.globalAlpha = 0.78;
+      for (const [x, y, s] of [[9, 12, 1], [27, 27, 0.85]] as const) {
+        g.beginPath(); g.moveTo(x - 6 * s, y); g.lineTo(x + jit(x) * 1.2, y - 7 * s); g.lineTo(x + 6 * s, y); g.stroke();
+        g.globalAlpha = 0.42; g.lineWidth = 0.9;
+        for (let k = 1; k <= 3; k++) { g.beginPath(); g.moveTo(x + k * 1.6 * s, y - 7 * s + k * 2.2 * s); g.lineTo(x + k * 1.6 * s - 1.4, y); g.stroke(); }
+        g.globalAlpha = 0.78; g.lineWidth = 1.25;
+      }
+    });
+    case "plateau": return tile(22, 22, (g) => {
+      g.fillStyle = ink; g.globalAlpha = 0.6;
+      for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(Math.abs(jit(i, 1)) * 22, Math.abs(jit(i, 2)) * 22, 0.75 + Math.abs(jit(i, 3)) * 0.5, 0, Math.PI * 2); g.fill(); }
+    });
+    case "plain": return tile(30, 24, (g) => {
+      g.strokeStyle = ink; g.lineWidth = 1; g.globalAlpha = 0.6;
+      for (const [x, y] of [[6, 8], [21, 19]] as const) { g.beginPath(); g.moveTo(x - 3, y - 3); g.lineTo(x, y); g.lineTo(x + 3, y - 3.5); g.moveTo(x, y); g.lineTo(x + 0.3, y - 4.5); g.stroke(); }
+    });
+    case "desert": return tile(34, 26, (g) => {
+      g.strokeStyle = ink; g.fillStyle = ink; g.lineWidth = 1; g.globalAlpha = 0.6;
+      g.beginPath(); g.arc(10, 14, 7, Math.PI * 1.15, Math.PI * 1.85); g.stroke();
+      g.beginPath(); g.arc(26, 25, 6, Math.PI * 1.15, Math.PI * 1.85); g.stroke();
+      for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(Math.abs(jit(i, 4)) * 34, Math.abs(jit(i, 5)) * 26, 0.6, 0, Math.PI * 2); g.fill(); }
+    });
+    default: return tile(32, 18, (g) => {
+      g.strokeStyle = ink; g.lineWidth = 1; g.globalAlpha = 0.55;
+      for (const [y, x0] of [[6, 2], [14, 17]] as const) { g.beginPath(); for (let x = x0; x <= x0 + 13; x++) { const yy = y + Math.sin((x - x0) / 2.1) * 1.4; if (x === x0) g.moveTo(x, yy); else g.lineTo(x, yy); } g.stroke(); }
+    });
+  }
+}
+
+export const REGIONS = regions as GeoJSON.FeatureCollection<GeoJSON.MultiPolygon, { name: string; hi: string; kind: RegionKind }>;
+/** Fades every region out before the city scale. */
+const REGION_FADE = (peak: number) => ["interpolate", ["linear"], ["zoom"], 3, peak, 6, peak * 0.75, 7.6, 0] as unknown as number;
+
+/** Physical regions as washes and marks, beneath the India mask. Idempotent. */
+export function regionInks(map: MLMap) {
+  const at = map.getLayer("india-mask") ? "india-mask" : undefined;
+  if (!map.getSource("fa-regions")) map.addSource("fa-regions", { type: "geojson", data: REGIONS as GeoJSON.FeatureCollection });
+  const kinds = Object.keys(REGION_INK) as RegionKind[];
+  for (const k of kinds) if (!map.hasImage(`fa-r-${k}`)) map.addImage(`fa-r-${k}`, markImage(k), { pixelRatio: 1.6 });
+  /* Plains first, ranges last: a range printed over a plain stays legible. */
+  const order: RegionKind[] = ["plain", "peninsula", "coast", "delta", "desert", "plateau", "range"];
+  for (const k of order) {
+    const id = `fa-region-${k}`;
+    if (map.getLayer(id)) continue;
+    try {
+      map.addLayer({ id: `${id}-wash`, type: "fill", source: "fa-regions", maxzoom: 8, filter: ["==", ["get", "kind"], k], paint: { "fill-color": REGION_INK[k].wash, "fill-opacity": REGION_FADE(k === "range" ? 0.55 : 0.6) } }, at);
+      map.addLayer({ id, type: "fill", source: "fa-regions", maxzoom: 8, filter: ["==", ["get", "kind"], k], paint: { "fill-pattern": `fa-r-${k}`, "fill-opacity": REGION_FADE(0.9) } }, at);
+    } catch { /* absent */ }
+  }
+  setRegionsVisible(map, true);
+}
+
+/** Restrained mode and city scale hide the relief; the evidence stays. */
+export function setRegionsVisible(map: MLMap, on: boolean) {
+  for (const k of Object.keys(REGION_INK)) for (const id of [`fa-region-${k}`, `fa-region-${k}-wash`]) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+}
+
+/** Where to letter each region, and at what angle: the mass centre of its
+    largest polygon, turned along a long range so the name follows the hills. */
+export type RegionLabel = { name: string; hi: string; kind: RegionKind; at: [number, number]; angle: number; major: boolean };
+const MAJOR = new Set(["Himalaya", "Indo-Gangetic Plain", "Deccan Plateau", "Thar Desert", "Western Ghats", "Eastern Ghats", "Ganges Delta"]);
+export function regionLabels(): RegionLabel[] {
+  return REGIONS.features.map((f) => {
+    const ring = f.geometry.coordinates.map((p) => p[0]).sort((a, b) => b.length - a.length)[0];
+    const n = ring.length, mx = ring.reduce((s, p) => s + p[0], 0) / n, my = ring.reduce((s, p) => s + p[1], 0) / n;
+    let sxx = 0, syy = 0, sxy = 0;
+    for (const [x, y] of ring) { sxx += (x - mx) ** 2; syy += (y - my) ** 2; sxy += (x - mx) * (y - my); }
+    const theta = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+    const l1 = (sxx + syy) / 2 + Math.sqrt(((sxx - syy) / 2) ** 2 + sxy ** 2), l2 = (sxx + syy) / 2 - Math.sqrt(((sxx - syy) / 2) ** 2 + sxy ** 2);
+    let angle = l2 > 0 && l1 / l2 > 6 && f.properties.kind !== "plain" ? -(theta * 180) / Math.PI : 0;
+    if (angle > 90) angle -= 180; if (angle < -90) angle += 180;
+    return { name: f.properties.name, hi: f.properties.hi, kind: f.properties.kind, at: [mx, my] as [number, number], angle: Math.round(angle), major: MAJOR.has(f.properties.name) };
+  });
 }

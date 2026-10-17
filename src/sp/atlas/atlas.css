@@ -213,3 +213,32 @@
   .sp .v-city .atlas-lens { display: flex; }
   .sp .v-city .atlas-lens.is-on .atlas-lens-l, .sp .v-city .atlas-lens.is-on b { color: #fff; }
 }
+
+/* ── Physical-region lettering (HTML: Devanagari needs real shaping) ── */
+.sp .atlas-region { pointer-events: none; opacity: 0; transition: opacity 420ms var(--ease); }
+.sp .atlas-region.is-on { opacity: 1; }
+.sp .atlas-region > span { display: flex; flex-direction: column; align-items: center; line-height: 1; white-space: nowrap; }
+.sp .atlas-region b { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 13px; letter-spacing: 0.06em; color: var(--rc, #6b4a2f); text-shadow: 0 0 3px #f6efe3, 0 0 6px #f6efe3; }
+.sp .atlas-region i { font-style: normal; font-size: 11px; margin-top: 2px; color: var(--rc, #6b4a2f); opacity: 0.85; text-shadow: 0 0 3px #f6efe3; }
+.sp .atlas-region.is-major b { font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; }
+.sp .atlas-region.is-major i { font-size: 13px; }
+.sp .atlas-region.is-range { --rc: #7d2a3c; }
+.sp .atlas-region.is-plateau { --rc: #86600f; }
+.sp .atlas-region.is-plain { --rc: #3d6a40; }
+.sp .atlas-region.is-desert { --rc: #8a5e18; }
+.sp .atlas-region.is-delta, .sp .atlas-region.is-coast { --rc: #245a7e; }
+@media (max-width: 720px) { .sp .atlas-region:not(.is-major) { display: none; } .sp .atlas-region.is-major b { font-size: 12px; } .sp .atlas-region.is-major i { font-size: 10.5px; } }
+@media (prefers-reduced-motion: reduce) { .sp .atlas-region { transition: none; } }
+
+/* ── Colour-by toggle, recency ramp, relief key ── */
+.sp .insp-by { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 14px; }
+.sp .insp-by .k { margin-right: 4px; }
+.sp .insp-by button { min-height: 36px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 13.5px; color: var(--ink-2); }
+.sp .insp-by button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fbf6ee; }
+.sp .insp-ramp { display: flex; height: 12px; border-radius: 3px; overflow: hidden; margin: 10px 0 14px; box-shadow: 0 0 0 1px rgba(11, 30, 61, 0.12); }
+.sp .insp-ramp i { display: block; min-width: 4px; }
+.sp .insp-ramp i.is-unknown, .sp .insp-legend i.is-unknown { background: repeating-linear-gradient(135deg, rgba(11, 30, 61, 0.45) 0 1.2px, #f6efe3 1.2px 4px); }
+.sp .insp-relief { margin: 12px 0 4px; padding: 12px 0 0; border-top: 1px dashed var(--line); }
+.sp .insp-relief ul { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0 0 6px; padding: 0; font-size: 13px; color: var(--ink-2); }
+.sp .insp-relief li { display: flex; align-items: center; gap: 6px; }
+.sp .insp-relief i { width: 16px; height: 11px; border-radius: 2px; border: 1px solid; }

@@ -26,14 +26,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { GeoJSONSource, Map as MLMap, MapGeoJSONFeature } from "maplibre-gl";
-import { Pause, Play, Plus, Minus, Locate, X, GitCompare, SlidersHorizontal, ChevronRight } from "lucide-react";
+import { Pause, Play, Plus, Minus, Locate, X, GitCompare, SlidersHorizontal, ChevronRight, Layers } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
 import { C, QUESTIONS, foldMonths, orgPalette, question, type Ctx, type Range } from "@/lib/livingmap/questions";
 import { headline, localities, placeName, tally } from "@/lib/livingmap/reading";
 import type { MapArea, MapCell, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
+import type { NationalCell } from "@/lib/livingmap/types";
 import { MR, MON } from "@/lib/livingmap/types";
-import { FIELD, fieldInks } from "./cartography";
+import { FIELD, fieldInks, regionInks, regionLabels, setRegionsVisible } from "./cartography";
+import { bucketOf, lastRecorded } from "./recency";
 import { DISC_PX, PIE_INK, coreBounds, glyphImage, hatchDisc, haversineKm, pieImage, seedHead } from "./geo";
 import { KINDS, cityEvidence, kindOf } from "./evidence";
 import { LENSES, MORE_LENSES, PUBLIC_LENSES, lensFigure, nationalMeasure, type LensId } from "./lenses";
@@ -49,6 +51,8 @@ const INDIA_BOX: [[number, number], [number, number]] = [[67.5, 6.2], [97.8, 35.
 const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, AREA_ZOOM = 13.2, MAX_DOTS = 140;
 const R_STOPS: [number, number][] = [[6, 2.6], [8, 3.4], [10, 5], [12, 11.5], [13, 23], [16, 184]];
 const radius = (k = 1, add = 0) => ["interpolate", ["exponential", 2], ["zoom"], ...R_STOPS.flatMap(([z, r]) => [z, r * k + add])] as unknown as number;
+/** Radius scaled per feature by its `k` (areas sized by their animals). */
+const radiusK = (add = 0) => ["interpolate", ["exponential", 2], ["zoom"], ...R_STOPS.flatMap(([z, r]) => [z, ["+", ["*", ["coalesce", ["get", "k"], 1], r], add]])] as unknown as number;
 const iconSize = (k = 1) => ["interpolate", ["exponential", 2], ["zoom"], ...R_STOPS.flatMap(([z, r]) => [z, (r * 2 * k) / DISC_PX])] as unknown as number;
 
 /** Dots in the Animals lens: each animal's recorded sterilisation status, which partitions every animal exactly. */
@@ -85,7 +89,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   const params = useSearchParams();
   const init = useRef({
     city: params.get("city"), lens: (params.get("lens") as LensId | null), area: params.get("area"), animal: params.get("animal"),
-    t: params.get("t"), cmp: params.get("cmp"), place: params.get("place"),
+    t: params.get("t"), cmp: params.get("cmp"), place: params.get("place"), by: params.get("by"), view: params.get("view"),
   }).current;
 
   /* ── state ─────────────────────────────────────────────────────── */
@@ -111,6 +115,11 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   const [playing, setPlaying] = useState(false);
   const [filters, setFilters] = useState(false);
   const [recentre, setRecentre] = useState(0);
+  /* Animals lens colour: when each area was last recorded (default), or its recorded sterilisation. */
+  const [by, setBy] = useState<"recent" | "ster">(init.by === "ster" ? "ster" : "recent");
+  /* Restrained map: the evidence on a quiet ground, without the painted relief and printer's flourishes. */
+  const [plain, setPlain] = useState(init.view === "plain");
+  const [national, setNational] = useState<NationalCell[]>([]);
 
   const L = LENSES[lens];
   const q = question(L.q);
@@ -122,6 +131,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   const userMove = useRef(false);
   const lastCam = useRef("");
   const pendingPlace = useRef(init.place);
+  const labelEls = useRef<{ el: HTMLElement; major: boolean }[]>([]);
 
   /* ── reads ─────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -137,6 +147,14 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     read(2);
     return () => { live = false; };
   }, [scope, initialCities]);
+
+  /* India's recorded areas, slimmed (public scope only; an organisation's map stays its own). */
+  useEffect(() => {
+    if (scope !== "public") return;
+    let live = true;
+    fetch("/api/livingmap?kind=national").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.cells) setNational(j.cells); }).catch(() => {});
+    return () => { live = false; };
+  }, [scope]);
 
   useEffect(() => {
     if (!city) { setData(null); setCityState("idle"); return; }
@@ -198,7 +216,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       map = new ml.Map({ container: el.current, style: groundStyle(PAL), bounds: INDIA_BOX, fitBoundsOptions: { padding: 40 },
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · H3" }, dragRotate: false, pitchWithRotate: false, maxZoom: 16.5, minZoom: 3 });
+        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, dragRotate: false, pitchWithRotate: false, maxZoom: 16.5, minZoom: 3 });
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __atlas?: MLMap }).__atlas = map;
       map.touchZoomRotate.disableRotation();
@@ -218,19 +236,26 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
           m.addImage(e.id, glyphImage(g[1] ? [+g[1], +g[2]] : null, +g[3] as 0 | 1 | 2));
         });
         const empty = { type: "FeatureCollection" as const, features: [] };
-        for (const s of ["edge", "areas", "glyphs", "dots", "zones", "nums", "sel", "cmp", "cities"]) m.addSource(s, { type: "geojson", data: empty });
+        for (const s of ["edge", "areas", "glyphs", "dots", "zones", "nums", "sel", "cmp", "cities", "national"]) m.addSource(s, { type: "geojson", data: empty });
+        /* A printed graticule every 5°, lettered at the edge: geography, not decoration. */
+        const grat: GeoJSON.Feature[] = [];
+        for (let lng = 65; lng <= 100; lng += 5) grat.push({ type: "Feature", geometry: { type: "LineString", coordinates: [[lng, 2], [lng, 38]] }, properties: { t: `${lng}°E` } });
+        for (let lat = 5; lat <= 35; lat += 5) grat.push({ type: "Feature", geometry: { type: "LineString", coordinates: [[60, lat], [102, lat]] }, properties: { t: `${lat}°N` } });
+        m.addSource("graticule", { type: "geojson", data: { type: "FeatureCollection", features: grat } });
+        m.addLayer({ id: "graticule", type: "line", source: "graticule", maxzoom: 7.5, paint: { "line-color": "#0b1e3d", "line-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.16, 7.5, 0], "line-width": 0.7, "line-dasharray": [1, 3] } });
+        m.addLayer({ id: "graticule-l", type: "symbol", source: "graticule", maxzoom: 7.5, layout: { "symbol-placement": "line", "symbol-spacing": 420, "text-field": ["get", "t"], "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-letter-spacing": 0.08, "text-keep-upright": true }, paint: { "text-color": "#0b1e3d", "text-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.42, 7.5, 0], "text-halo-color": "#f6efe3", "text-halo-width": 1.4 } });
         m.addLayer({ id: "edge", type: "symbol", source: "edge", layout: { "icon-image": "h-edge", "icon-size": iconSize(0.92), "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 12, 1, 14.5, 0.4] } });
         m.addLayer({ id: "areas-echo", type: "circle", source: "areas", filter: ["all", ["!=", ["get", "kind"], "unknown"], ["!=", ["get", "pie"], 1]], paint: {
-          "circle-radius": radius(1, 0.5), "circle-color": "rgba(0,0,0,0)", "circle-translate": [1.6, -1.2],
+          "circle-radius": radiusK(0.5), "circle-color": "rgba(0,0,0,0)", "circle-translate": [1.6, -1.2],
           "circle-stroke-color": ["get", "color"], "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 9, 0, 11, 0.8, 14, 1.2], "circle-stroke-opacity": ["case", ["==", ["get", "dim"], 1], 0, 0.55],
         } });
         m.addLayer({ id: "areas", type: "circle", source: "areas", filter: ["all", ["!=", ["get", "kind"], "unknown"], ["!=", ["get", "pie"], 1]], paint: {
-          "circle-radius": radius(), "circle-color": ["get", "color"],
+          "circle-radius": radiusK(), "circle-color": ["get", "color"],
           "circle-opacity": ["interpolate", ["linear"], ["zoom"], 12.4, ["case", ["==", ["get", "dim"], 1], 0.1, 0.9], 14, ["case", ["==", ["get", "dim"], 1], 0.06, 0.2]],
           "circle-stroke-color": ["case", ["==", ["get", "kind"], "zero"], "rgba(11,30,61,0.4)", "rgba(11,30,61,0.55)"],
           "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 12, 0.8, 15, 1.4], "circle-stroke-opacity": ["case", ["==", ["get", "dim"], 1], 0.15, 0.9],
         } });
-        m.addLayer({ id: "areas-unknown", type: "symbol", source: "areas", filter: ["==", ["get", "kind"], "unknown"], layout: { "icon-image": ["get", "pattern"], "icon-size": iconSize(), "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 12.4, ["case", ["==", ["get", "dim"], 1], 0.18, 1], 14, ["case", ["==", ["get", "dim"], 1], 0.12, 0.55]] } });
+        m.addLayer({ id: "areas-unknown", type: "symbol", source: "areas", filter: ["==", ["get", "kind"], "unknown"], layout: { "icon-image": ["get", "pattern"], "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...R_STOPS.flatMap(([z, r]) => [z, ["*", ["coalesce", ["get", "k"], 1], (r * 2) / DISC_PX]])] as unknown as number, "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 12.4, ["case", ["==", ["get", "dim"], 1], 0.18, 1], 14, ["case", ["==", ["get", "dim"], 1], 0.12, 0.55]] } });
         /* Animals lens: each area a printed pie of recorded sterilisation status, sized by count. */
         m.addLayer({ id: "pies", type: "symbol", source: "areas", filter: ["==", ["get", "pie"], 1], layout: {
           "icon-image": ["get", "pi"], "icon-allow-overlap": true, "icon-ignore-placement": true,
@@ -253,6 +278,9 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
           "text-size": ["interpolate", ["linear"], ["zoom"], 9, ["case", ["<", ["get", "rank"], 8], 12.5, 10.5], 14, ["case", ["<", ["get", "rank"], 8], 15, 13]],
           "symbol-sort-key": ["get", "rank"], "text-padding": 6, "text-max-width": 9, "text-variable-anchor": ["center", "top", "bottom"], "text-radial-offset": 0.9,
         }, paint: { "text-color": C.ink, "text-halo-color": "#f8f2e7", "text-halo-width": 1.7, "text-opacity": ["interpolate", ["linear"], ["zoom"], 8.5, 0, 9.5, 0.95] } });
+        /* India's recorded areas: one inked dot per area, coloured by when it was last recorded. */
+        m.addLayer({ id: "national-echo", type: "circle", source: "national", paint: { "circle-radius": ["get", "r"], "circle-color": "rgba(0,0,0,0)", "circle-translate": [1.4, -1.1], "circle-stroke-color": ["get", "color"], "circle-stroke-width": 0.8, "circle-stroke-opacity": 0.5 } });
+        m.addLayer({ id: "national", type: "circle", source: "national", paint: { "circle-radius": ["get", "r"], "circle-color": ["get", "color"], "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.25, 0.88], "circle-stroke-color": ["case", ["==", ["get", "u"], 1], "rgba(11,30,61,0.55)", "#fbf6ee"], "circle-stroke-width": 0.6 } });
         m.addLayer({ id: "cities-echo", type: "circle", source: "cities", paint: { "circle-radius": ["+", ["get", "r"], 1.5], "circle-color": "rgba(0,0,0,0)", "circle-translate": [2.5, -2], "circle-stroke-color": ["get", "echo"], "circle-stroke-width": 1.2, "circle-stroke-opacity": ["get", "eop"] } });
         m.addLayer({ id: "cities", type: "circle", source: "cities", paint: { "circle-radius": ["get", "r"], "circle-color": ["get", "color"], "circle-opacity": ["get", "op"], "circle-stroke-color": ["get", "stroke"], "circle-stroke-width": ["get", "sw"] } });
         m.addLayer({ id: "cities-l", type: "symbol", source: "cities", filter: ["==", ["get", "label"], 1], layout: {
@@ -273,7 +301,17 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         m.on("click", (e) => onMapClick(m, e.point, (e.originalEvent as MouseEvent)?.shiftKey));
         m.on("movestart", (e) => { userMove.current = !!(e as { originalEvent?: unknown }).originalEvent; });
         m.on("moveend", () => setZoom(m.getZoom()));
-        underlay(m, PAL, "edge").then((ok) => { if (ok) fieldInks(m, "edge"); }).catch(() => {});
+        underlay(m, PAL, "graticule").then((ok) => { if (!ok) return; fieldInks(m, "graticule"); regionInks(m); setRegionsVisible(m, !plainRef.current); setInked((n) => n + 1); }).catch(() => {});
+        /* Region names are lettered in HTML: the map's own text engine cannot shape Devanagari. */
+        labelEls.current = regionLabels().map((r) => {
+          const e = document.createElement("div");
+          e.className = `atlas-region is-${r.kind}${r.major ? " is-major" : ""}`;
+          e.setAttribute("aria-hidden", "true");
+          e.innerHTML = `<span style="transform:rotate(${r.angle}deg)"><b></b><i class="hi" lang="hi"></i></span>`;
+          e.querySelector("b")!.textContent = r.name; e.querySelector("i")!.textContent = r.hi;
+          new ml.Marker({ element: e, anchor: "center" }).setLngLat(r.at).addTo(m);
+          return { el: e, major: r.major };
+        });
         setZoom(m.getZoom());
         setReady(true);
       });
@@ -282,6 +320,22 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     // Built once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const plainRef = useRef(plain);
+  plainRef.current = plain;
+  const [inked, setInked] = useState(0);
+  /* Restrained map: hide the painted relief, sea waves and printer's echoes; keep every evidence layer. */
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready) return;
+    setRegionsVisible(m, !plain);
+    for (const id of ["fa-waves", "fa-sea-names", "fa-border-echo", "fa-park-hatch", "fa-water-echo", "graticule", "graticule-l", "areas-echo", "national-echo", "cities-echo", "sel-echo"]) if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", plain ? "none" : "visible");
+  }, [plain, ready, inked]);
+  useEffect(() => {
+    for (const { el: e, major } of labelEls.current) {
+      const on = !plain && level === "india" && zoom < 7 && (major || zoom >= 4.7);
+      e.classList.toggle("is-on", on);
+    }
+  }, [plain, level, zoom, ready]);
 
   const live = useRef({ cells, city, comparing, cmp });
   live.current = { cells, city, comparing, cmp };
@@ -316,6 +370,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     }
   }, [zoom, ready, city, cities, goIndia, openCity]);
 
+  const showNational = level === "india" && lens === "animals" && national.length > 0;
   /* ── paint: India ───────────────────────────────────────────────── */
   useEffect(() => {
     const m = mapRef.current; if (!m || !ready) return;
@@ -329,12 +384,22 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       const k = kindOf(c.city, c.cells), K = KINDS[k], clinical = k === "clinical", v = vals[i];
       const r = clinical ? 15 : v ? 4.5 + (Math.sqrt(v) / max) * 30 : 3.5;
       return [{ type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] }, properties: {
-        name: c.city, r, color: K.ink, op: clinical ? 0 : v ? 0.86 : 0.25, stroke: clinical ? K.ink : "#fbf6ee", sw: clinical ? 2.4 : 1, echo: K.echo, eop: v || clinical ? 0.7 : 0,
+        name: c.city, r, color: K.ink, op: clinical || showNational ? 0 : v ? 0.86 : 0.25, stroke: clinical || showNational ? K.ink : "#fbf6ee", sw: clinical ? 2.4 : showNational ? 1.1 : 1, echo: K.echo, eop: showNational ? 0 : v || clinical ? 0.7 : 0,
         fig: clinical ? `${c.animals.toLocaleString("en-IN")} · register` : v ? v.toLocaleString("en-IN") : "", rank: ranked.indexOf(c.city) + (v ? 0 : 1000), off: r / 12 + 0.5, label: v || clinical ? 1 : 0,
         title: c.city, line: `${K.label} · ${clinical ? "city-level register, no areas" : `${v.toLocaleString("en-IN")} ${LENSES[lens].unit}`}`,
       } }];
     }) : [] });
-  }, [cities, ready, level, lens]);
+  }, [cities, ready, level, lens, showNational]);
+
+  /* India's areas: shown under the Animals lens, where the measure is the same (animals recorded). */
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready) return;
+    const now = Date.now();
+    (m.getSource("national") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: showNational ? national.map(([lng, lat, a, last]) => {
+      const b = bucketOf(last, now);
+      return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [lng, lat] }, properties: { r: 1.6 + Math.min(5.5, Math.sqrt(a) * 0.55), color: by === "ster" ? "#2457ce" : b?.color ?? "#f6efe3", u: by === "recent" && !b ? 1 : 0 } };
+    }) : [] });
+  }, [ready, showNational, national, by]);
 
   /* ── paint: city ────────────────────────────────────────────────── */
   useEffect(() => {
@@ -344,15 +409,20 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     const byId = new Map(classes.map((k) => [k.id, k]));
     const pattern = (id: string) => (id === "stale" || id === "revisit" ? "h-stale" : ["status", "nostatus", "outcome", "unconf", "confirm"].includes(id) ? "h-amber" : id === "survey" ? "h-care" : "h-quiet");
     const pt = (c: [number, number], properties: Record<string, unknown> = {}): GeoJSON.Feature => ({ type: "Feature", geometry: { type: "Point", coordinates: c }, properties });
-    const pies = L.q === "animals" && facet === "all";
+    const animalsAll = L.q === "animals" && facet === "all";
+    const pies = animalsAll && by === "ster", recent = animalsAll && by === "recent";
+    const now = Date.now();
     const maxA = Math.sqrt(Math.max(1, ...cells.map((c) => c.animals)));
     set("areas", cells.map((c, i) => {
       const k = byId.get(classOf[i]); const v = q.measure(c, facet, ctx, i);
       const yes = c.animals ? Math.round((c.ster_yes / c.animals) * 12) : 0, no = c.animals ? Math.min(12 - yes, Math.round((c.ster_no / c.animals) * 12)) : 0;
-      return pt(centers[i], { pie: pies && c.animals ? 1 : 0, pi: `p:${yes}-${no}`, k: 0.62 + (Math.sqrt(c.animals) / maxA) * 0.75, i, kind: k?.kind ?? "zero", color: k?.color ?? C.zeroFill, pattern: pattern(classOf[i]), dim: isolate && isolate !== classOf[i] ? 1 : 0, multi: L.q === "orgs" && c.orgs.length > 1 ? 1 : 0,
+      const rb = recent ? bucketOf(lastRecorded(c), now) : null;
+      if (recent) return pt(centers[i], { pie: 0, k: 0.55 + (Math.sqrt(c.animals) / maxA) * 0.85, i, kind: rb ? "value" : "unknown", color: rb?.color ?? C.zeroFill, pattern: "h-quiet", dim: isolate && isolate !== (rb?.id ?? "rx") ? 1 : 0, multi: 0,
+        title: placeName(c.zone), line: `${c.animals.toLocaleString("en-IN")} animals · last recorded ${rb ? rb.label.toLowerCase() : "on no recorded date"}` });
+      return pt(centers[i], { pie: pies && c.animals ? 1 : 0, pi: `p:${yes}-${no}`, k: pies ? 0.62 + (Math.sqrt(c.animals) / maxA) * 0.75 : 1, i, kind: k?.kind ?? "zero", color: k?.color ?? C.zeroFill, pattern: pattern(classOf[i]), dim: isolate && isolate !== classOf[i] ? 1 : 0, multi: L.q === "orgs" && c.orgs.length > 1 ? 1 : 0,
         title: placeName(c.zone), line: pies ? `${c.animals.toLocaleString("en-IN")} animals · ${c.ster_yes} sterilised, ${c.ster_no} recorded not, ${Math.max(0, c.animals - c.ster_yes - c.ster_no)} not recorded` : `${k?.label ?? ""}${v ? ` · ${v.toLocaleString("en-IN")} ${q.unit(facet)}` : ""}` });
     }));
-    set("glyphs", pies ? [] : cells.map((c, i) => {
+    set("glyphs", animalsAll ? [] : cells.map((c, i) => {
       const r = c.animals ? [Math.min(12, Math.round((c.ster_yes / c.animals) * 12)), Math.round((c.ster_no / c.animals) * 12)] : null;
       const waiting = c.open_30 - (c.open_30_unconfirmed ?? 0), known = c.open_cases - (c.open_unconfirmed ?? 0);
       const att = waiting > 0 || (c.fu_missed_live ?? 0) > 0 || (c.needs_help > 0 && !c.open_cases) || known > 0 ? 2 : (c.open_unconfirmed ?? 0) > 0 || c.status_unknown > 0 ? 1 : 0;
@@ -360,23 +430,24 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     }));
     set("edge", L.q === "gaps" || zoom > 11 ? (data?.edge ?? []).map((e) => pt(e)) : []);
     set("nums", cells.flatMap((c, i) => {
-      const v = q.measure(c, facet, ctx, i); if (!v || (isolate && isolate !== classOf[i])) return [];
+      const v = q.measure(c, facet, ctx, i); if (!v || recent || (isolate && isolate !== classOf[i])) return [];
       const k = byId.get(classOf[i]); const dark = k?.kind === "value" && /^(#16398f|#2457ce|#1f6f80|#3c98a8|#a8230f|#e0472b|#0b1e3d)$/i.test(k.color);
       return [pt(centers[i], { t: v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v), ink: dark && zoom < 12.5 ? "#ffffff" : C.ink })];
     }));
     set("zones", places.slice(0, 60).map((p, r) => pt(p.center, { name: p.name, rank: r })));
     const dots: GeoJSON.Feature[] = [];
     cells.forEach((c, i) => {
-      if (isolate && isolate !== classOf[i]) return;
+      const rb = recent ? bucketOf(lastRecorded(c), now) : null;
+      if (isolate && isolate !== (recent ? rb?.id ?? "rx" : classOf[i])) return;
       const nAll = Math.min(c.animals, MAX_DOTS); if (!nAll) return;
-      const parts = dotParts(c, L.q, facet, orgColor);
+      const parts: [number, string][] = recent ? [[c.animals, rb?.color ?? "rgba(11,30,61,0.3)"]] : dotParts(c, L.q, facet, orgColor);
       const colors: string[] = [];
       for (const [count, col] of parts) for (let j = 0; j < count && colors.length < nAll; j++) colors.push(col);
       while (colors.length < nAll) colors.push("rgba(11,30,61,0.3)");
       seedHead(centers[i], nAll).forEach((p, j) => dots.push(pt(p, { i, color: colors[j] })));
     });
     set("dots", dots);
-  }, [ready, city, cells, centers, classOf, classes, isolate, L.q, facet, q, ctx, data, places, zoom, orgColor]);
+  }, [ready, city, cells, centers, classOf, classes, isolate, L.q, facet, q, ctx, data, places, zoom, orgColor, by]);
 
   /* Selection and comparison rings. */
   useEffect(() => {
@@ -423,9 +494,11 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     if (animalId) p.set("animal", animalId);
     if (range) p.set("t", `${range.from}-${range.to}`);
     if (cmp.length) p.set("cmp", cmp.join(","));
+    if (by === "ster") p.set("by", "ster");
+    if (plain) p.set("view", "plain");
     const s = p.toString();
     window.history.replaceState(window.history.state, "", s ? `${window.location.pathname}?${s}` : window.location.pathname);
-  }, [city, lens, areaH3, animalId, range, cmp, defaultLens]);
+  }, [city, lens, areaH3, animalId, range, cmp, defaultLens, by, plain]);
 
   /* Escape climbs one scale. */
   useEffect(() => {
@@ -522,13 +595,15 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         <button type="button" className="icon-btn" onClick={() => zoomBy(1)} aria-label="Zoom in"><Plus size={16} /></button>
         <button type="button" className="icon-btn" onClick={() => zoomBy(-1)} aria-label="Zoom out"><Minus size={16} /></button>
         <button type="button" className="icon-btn" onClick={() => setRecentre((n) => n + 1)} aria-label="Re-centre on the selection"><Locate size={16} /></button>
+        <button type="button" className={`icon-btn${plain ? " is-on" : ""}`} aria-pressed={plain} onClick={() => setPlain((v) => !v)} aria-label="Plain map: evidence only, without the painted relief" title={plain ? "Show the painted atlas" : "Plain map: evidence only"}><Layers size={16} /></button>
         {level !== "india" && cells.length > 0 && <button type="button" className={`icon-btn${comparing ? " is-on" : ""}`} aria-pressed={comparing} onClick={() => setComparing((v) => !v)} aria-label="Compare areas" title="Compare areas"><GitCompare size={16} /></button>}
       </div>
 
       {city && zoom >= AREA_ZOOM && (
         <p className="atlas-note float" aria-hidden>
           One dot, one recorded animal. Positions inside an area are schematic, never a location.
-          {L.q === "animals" && facet === "all" && <span className="atlas-dotkey">{DOT_KEY.map((d) => <span key={d.label}><i style={{ background: d.color }} />{d.label}</span>)}</span>}
+          {L.q === "animals" && facet === "all" && by === "recent" && <span className="atlas-dotkey"><span>Dots take their area&rsquo;s colour: when it was last recorded.</span></span>}
+          {L.q === "animals" && facet === "all" && by === "ster" && <span className="atlas-dotkey">{DOT_KEY.map((d) => <span key={d.label}><i style={{ background: d.color }} />{d.label}</span>)}</span>}
         </p>
       )}
 
@@ -556,6 +631,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         onPlace={flyTo} onSheet={setSheet} onCompare={toggleCompare} onClearCompare={() => setCmp([])}
         onOpenRecord={(id) => router.push(`/animal/${id}?from=${encodeURIComponent(window.location.pathname + window.location.search)}`)}
         nationalMeasure={(c) => nationalMeasure(lens, c)}
+        by={by} onBy={(b) => { setBy(b); setIsolate(null); }} national={showNational ? national : []} plain={plain}
       />
     </div>
   );

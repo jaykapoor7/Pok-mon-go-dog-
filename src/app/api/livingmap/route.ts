@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { findAnimals, findPlaces, getMapArea, getMapCities, getMapCity, getOrgMapArea, getOrgMapCities, getOrgMapCity, getUnplaced } from "@/lib/livingmap/server";
+import { findAnimals, findPlaces, getMapArea, getMapCities, getMapCity, getNationalCells, getOrgMapArea, getOrgMapCities, getOrgMapCity, getUnplaced } from "@/lib/livingmap/server";
 
 /* The Living Map's public reads: one city's complete area aggregates, or
  * one area's animals and requests. Never anything finer than an H3 area. */
@@ -38,6 +38,11 @@ export async function GET(req: NextRequest) {
   if (q.get("kind") === "cities") {
     try { const [cities, unplaced] = await Promise.all([getMapCities(), getUnplaced()]); return NextResponse.json({ cities, unplaced }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400" } }); }
     catch (error) { console.error("livingmap cities failed", error); return NextResponse.json({ error: "The map data is temporarily unavailable." }, { status: 503 }); }
+  }
+  /* Every recorded area in India, slimmed: centre, animals, last recorded. */
+  if (q.get("kind") === "national") {
+    try { return NextResponse.json(await getNationalCells(), { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400" } }); }
+    catch (error) { console.error("livingmap national failed", error); return NextResponse.json({ error: "The map data is temporarily unavailable." }, { status: 503 }); }
   }
   const city = q.get("city")?.trim() ?? "";
   if (!city) return NextResponse.json({ error: "Choose a city." }, { status: 400 });

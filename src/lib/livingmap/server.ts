@@ -9,7 +9,7 @@ import { animalTitle, describeAnimal } from "@/lib/animal-name";
 import { isSensitivePhoto } from "@/lib/sensitive-photo";
 import { canonicalCity, cityVariants, getPublicSpatialCities } from "@/lib/spatial/server";
 import { placeName } from "./reading";
-import { monthIndex, type NationalCity, type Unplaced, type AreaAnimal, type AreaCase, type EvidenceKind, type MapArea, type MapCell, type MapCity, type MonthRow } from "./types";
+import { monthIndex, type NationalCity, type Unplaced, type AreaAnimal, type AreaCase, type EvidenceKind, type MapArea, type MapCell, type MapCity, type MonthRow, type NationalCell } from "./types";
 
 /** The atlas's evidence kinds (kept in step with AtlasRegister.cityEvidence). */
 export function evidenceKind(city: string, cells: number): EvidenceKind {
@@ -349,3 +349,19 @@ export async function getOrgMapArea(token: string, city: string, h3: string): Pr
   }));
   return { h3, city: name, animals, animalTotal: animalRes.count ?? animals.length, cases, caseTotal: caseRes.count ?? cases.length };
 }
+
+/* Every recorded area in India, slimmed for the national atlas: centre,
+   animals, and when anything was last recorded there (an animal seen, a
+   request opened, care given). Built from the cached city reads, so it is
+   bounded by the number of areas (a few hundred), never by animals. The
+   clinical register is left out: it has one city location and no areas. */
+async function readNationalCells(): Promise<{ cells: NationalCell[]; built: string }> {
+  const cities = (await getMapCities()).filter((c) => evidenceKind(c.city, c.cells) !== "clinical");
+  const reads = await Promise.all(cities.map((c) => getMapCity(c.city).catch(() => null)));
+  const latest = (...d: (string | null | undefined)[]) => d.filter((x): x is string => !!x).sort().pop() ?? null;
+  const cells: NationalCell[] = [];
+  for (const city of reads) for (const c of city?.cells ?? []) cells.push([+c.c[0].toFixed(4), +c.c[1].toFixed(4), c.animals, latest(c.last_seen, c.last_case, c.care_last)?.slice(0, 10) ?? null]);
+  return { cells, built: new Date().toISOString() };
+}
+const cachedNational = unstable_cache(readNationalCells, ["livingmap-national-v1"], { revalidate: 300 });
+export const getNationalCells = () => cachedNational();

@@ -27,7 +27,7 @@ import type { CaseResolution, FeedingDay } from "@/lib/types";
 export type Receipt = { ok: true; at: string; what: string } | { ok: false; error: string };
 
 const inflight = new Set<string>();
-async function run(key: string, what: string, fn: () => Promise<boolean | { ok: boolean; error?: string } | string | null | void>): Promise<Receipt> {
+export async function run(key: string, what: string, fn: () => Promise<boolean | { ok: boolean; error?: string } | string | null | void>): Promise<Receipt> {
   if (!getSupabase()) return { ok: false, error: "Not connected to the record. Nothing was saved." };
   if (inflight.has(key)) return { ok: false, error: "Already sending this. Wait for the answer." };
   inflight.add(key);

@@ -23,6 +23,9 @@ import { Portrait } from "../ui/Portrait";
 import { publicLocality } from "../ui/place";
 import { KINDS, kindOf, type EvidenceKind } from "./evidence";
 import { PIE_INK } from "./geo";
+import { RECENCY, UNDATED, lastRecorded, recencyTally } from "./recency";
+import { REGION_INK, type RegionKind } from "./cartography";
+import type { NationalCell } from "@/lib/livingmap/types";
 import { EvidenceDrawer } from "./Evidence";
 import { LENSES, type LensId } from "./lenses";
 import type { Level, Scope, Variant } from "./Atlas";
@@ -35,6 +38,7 @@ type Props = {
   onCity: (c: string) => void; onIndia: () => void; onArea: (h3: string) => void; onCloseArea: () => void; onAnimal: (id: string) => void; onCloseAnimal: () => void;
   onIsolate: (k: string) => void; onPlace: (c: [number, number]) => void; onSheet: (s: "peek" | "half" | "full") => void; onCompare: (h3: string) => void; onClearCompare: () => void;
   onOpenRecord: (id: string) => void; nationalMeasure: (c: NationalCity) => number;
+  by: "recent" | "ster"; onBy: (b: "recent" | "ster") => void; national: NationalCell[]; plain: boolean;
 };
 
 const f = (n: number) => n.toLocaleString("en-IN");
@@ -76,6 +80,8 @@ function IndiaView(p: Props) {
       <section className="insp-sec">
         <p className="k">{L.label} · all India</p>
         <p className="insp-lead">{L.define}</p>
+        {p.lens === "animals" && p.national.length > 0 && <RecencyKey rows={p.national.map(([, , a, last]) => ({ animals: a, last }))} by={p.by} onBy={p.onBy} unit="areas across India" />}
+        {!p.plain && <RegionKey />}
         <ul className="insp-kinds" aria-label="How cities are drawn">
           {kinds.map(({ k, n }) => <li key={k}><i className={k === "clinical" ? "is-hollow" : undefined} style={{ ["--ki" as string]: KINDS[k].ink, ["--ke" as string]: KINDS[k].echo }} aria-hidden /><span><b>{KINDS[k].label}</b> {KINDS[k].reads}</span><em className="mono">{n}</em></li>)}
         </ul>
@@ -130,7 +136,7 @@ function CityView(p: Props) {
         {p.reading && <><p className="insp-lead">{p.reading.lead}</p><p className="small">{p.reading.qualify}</p></>}
       </section>
       {p.variant === "city" && p.city && <EvidenceDrawer lens={p.lens} city={p.city} data={p.data} cells={p.cells} evidence={p.evidence} ranged={!!p.ctx.range} />}
-      {p.lens === "animals" && p.facet === "all" ? <PieKey cells={p.cells} /> : <section className="insp-sec">
+      {p.lens === "animals" && p.facet === "all" ? (p.by === "recent" ? <RecencyKey rows={p.cells.map((c) => ({ animals: c.animals, last: lastRecorded(c) }))} by={p.by} onBy={p.onBy} unit={`areas in ${p.city}`} isolate={p.isolate} onIsolate={p.onIsolate} /> : <><ByToggle by={p.by} onBy={p.onBy} /><PieKey cells={p.cells} /></>) : <section className="insp-sec">
         <h2 className="insp-sh">{L.label} <span className="mono">by area</span></h2>
         <ul className="insp-legend" aria-label="Legend: choose a class to show only its areas">
           {k.map((x) => (
@@ -160,6 +166,49 @@ function CityView(p: Props) {
         <p className="small">{p.evidence?.note}</p>
       </section>
     </>
+  );
+}
+
+/* Colour by: when last recorded (default) or recorded sterilisation. */
+function ByToggle({ by, onBy }: { by: "recent" | "ster"; onBy: (b: "recent" | "ster") => void }) {
+  return (
+    <div className="insp-by" role="group" aria-label="Colour areas by">
+      <span className="k">Colour by</span>
+      <button type="button" aria-pressed={by === "recent"} onClick={() => onBy("recent")}>When last recorded</button>
+      <button type="button" aria-pressed={by === "ster"} onClick={() => onBy("ster")}>Sterilisation</button>
+    </div>
+  );
+}
+
+/* The recency key: five printed inks from fresh to old, undated hatched. */
+function RecencyKey({ rows, by, onBy, unit, isolate, onIsolate }: { rows: { animals: number; last: string | null }[]; by: "recent" | "ster"; onBy: (b: "recent" | "ster") => void; unit: string; isolate?: string | null; onIsolate?: (k: string) => void }) {
+  const t = recencyTally(rows);
+  const all = [...RECENCY.map((b) => ({ id: b.id, label: b.label, color: b.color as string | null })), { id: UNDATED.id, label: UNDATED.label, color: null }];
+  return (
+    <section className="insp-sec insp-recency">
+      <ByToggle by={by} onBy={onBy} />
+      <h2 className="insp-sh">When each area was last recorded <span className="mono">{f(rows.length)} {unit}</span></h2>
+      <div className="insp-ramp" aria-hidden>{RECENCY.map((b) => <i key={b.id} style={{ background: b.color, flex: Math.max(1, t.get(b.id)?.areas ?? 0) }} />)}{(t.get(UNDATED.id)?.areas ?? 0) > 0 && <i className="is-unknown" style={{ flex: t.get(UNDATED.id)!.areas }} />}</div>
+      <ul className="insp-legend" aria-label="Legend">
+        {all.map((r) => {
+          const x = t.get(r.id); if (!x) return null;
+          const body = <><i className={r.color ? undefined : "is-unknown"} style={r.color ? { background: r.color } : undefined} aria-hidden /><span>{r.label}<small>{f(x.animals)} animals</small></span><em className="mono">{f(x.areas)}</em></>;
+          return <li key={r.id}>{onIsolate ? <button type="button" aria-pressed={isolate === r.id} onClick={() => onIsolate(r.id)}>{body}</button> : <span className="insp-legend-row">{body}</span>}</li>;
+        })}
+      </ul>
+      <p className="small">The latest of an animal seen, a request opened or care given in the area. A record that has gone quiet is not an animal gone: it means nobody has recorded there since. Size grows with animals recorded.</p>
+    </section>
+  );
+}
+
+/* The painted relief: orientation, not data. */
+function RegionKey() {
+  const kinds: RegionKind[] = ["range", "plateau", "plain", "desert", "delta"];
+  return (
+    <div className="insp-relief">
+      <ul aria-label="Physical regions on the map">{kinds.map((k) => <li key={k}><i style={{ background: REGION_INK[k].wash, borderColor: REGION_INK[k].ink }} aria-hidden />{REGION_INK[k].label}</li>)}</ul>
+      <p className="small">Physical regions from Natural Earth (public domain), painted for orientation. They are not data and say nothing about animals.</p>
+    </div>
   );
 }
 
