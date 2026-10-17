@@ -42,7 +42,8 @@ export function Portrait({ src, tag, sensitive = false, credit, size = "m", alt,
       <figure className={`portrait is-none is-art is-${size}${art.ground === "#5d6560" ? " is-dark" : ""}`} style={{ ["--pg" as string]: art.ground }}>
         <div className="portrait-art" data-flip={art.flip ? "" : undefined}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={art.src} alt="" loading="lazy" decoding="async" draggable={false} />
+          <img className="portrait-art-bg" src={art.src} alt="" loading="lazy" decoding="async" draggable={false} />
+          <img className="portrait-art-fg" src={art.src} alt="" loading="lazy" decoding="async" draggable={false} />
         </div>
         <div className="portrait-none" role="img" aria-label={`No photograph recorded for ${tag}. Shown instead: an illustration from the painting ${w.title}, not this animal.`}>
           <b>No photograph recorded</b>

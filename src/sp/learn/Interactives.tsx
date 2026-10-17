@@ -39,6 +39,11 @@ function UnknownLedger({ onDone }: P) {
   return (
     <div className="ex ex-ledger">
       <p className="ex-hint">Tap each animal to read its record. {all ? "All read." : `${STREET.length - seen.size} left.`}</p>
+      <p className="ex-tally mono" aria-live="polite">
+        <span className="is-yes">✓ {[...seen].filter((i) => STREET[i] === "yes").length} sterilised</span>
+        <span className="is-no">✕ {[...seen].filter((i) => STREET[i] === "no").length} not</span>
+        <span className="is-unknown">? {[...seen].filter((i) => STREET[i] === "unk").length} not recorded</span>
+      </p>
       <div className="ex-dogs" role="group" aria-label="Twenty animals on one street">
         {STREET.map((s, i) => (
           <button key={i} type="button" className={`ex-dog is-${seen.has(i) ? s : "closed"}`} onClick={() => reveal(i)} aria-label={seen.has(i) ? `Animal ${i + 1}: ${s === "yes" ? "sterilised" : s === "no" ? "not sterilised" : "not recorded"}` : `Animal ${i + 1}, tap to read`}>
@@ -52,6 +57,12 @@ function UnknownLedger({ onDone }: P) {
             <button type="button" aria-pressed={mode === "asno"} onClick={() => setMode("asno")}>Blanks as “no”</button>
             <button type="button" aria-pressed={mode === "known"} onClick={() => setMode("known")}>Only the known</button>
             <button type="button" aria-pressed={mode === "honest"} onClick={() => setMode("honest")}>Say all three</button>
+          </div>
+          {/* The same twenty records, drawn three ways: watch what the blanks become. */}
+          <div className={`ex-bar is-${mode}`} aria-hidden>
+            <i className="is-yes" style={{ flexGrow: y }} />
+            <i className="is-no" style={{ flexGrow: n }} />
+            <i className="is-unknown" style={{ flexGrow: mode === "known" ? 0.0001 : u }} />
           </div>
           <p className="ex-big serif">{mode === "asno" ? `${Math.round((y / STREET.length) * 100)}% sterilised` : mode === "known" ? `${Math.round((y / (y + n)) * 100)}% of those recorded` : `${y} sterilised · ${n} not · ${u} not recorded`}</p>
           <p className="ex-fb">{mode === "asno" ? "Misleading: twelve animals nobody checked are counted as unsterilised. The programme looks like it failed." : mode === "known" ? "True, but only about eight animals. Without saying so, it sounds like the whole street." : "Honest: the reader can see how much is known before trusting the share."}</p>

@@ -17,7 +17,7 @@ import type { PartnerMedicalEvent } from "@/lib/animal-actions";
 import { MEDICAL_KINDS, speciesLabel, type Case } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useMembership } from "../../shell/Shell";
-import { Method, State, n, since } from "../../ui";
+import { Method, State, n, since, PageBrief } from "../../ui";
 import { NgoGate } from "../Gate";
 import { CARE_LIMIT, readCare } from "./read";
 import "../ngo.css";
@@ -40,6 +40,7 @@ export function CareLedger() {
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">Care ledger</h1></div>
           <p className="ngo-sum">Treatment, vaccination and field care in date order, each attached to the animal it was given to. Only your organisation&rsquo;s work appears. Care is added from an animal&rsquo;s record.</p>
         </header>
+        <PageBrief items={[["For", "Every treatment, vaccination and sterilisation your organisation recorded, attached to its animal."], ["Watch", "Care with no clinician named, and medical cases still open."], ["Next", "Open the animal to add or correct care."], ["After", "The event appears here and on the animal’s record, dated."]]} />
         <div className="tabs rc-tabs" role="tablist" aria-label="Care ledger view">
           <button type="button" role="tab" id="rc-t-ev" aria-controls="rc-p" aria-selected={view === "events"} onClick={() => setView("events")}>Animal care history</button>
           <button type="button" role="tab" id="rc-t-cs" aria-controls="rc-p" aria-selected={view === "cases"} onClick={() => setView("cases")}>Medical cases</button>

@@ -309,12 +309,15 @@
 /* No-photograph plate with a licensed painting crop. */
 .sp .portrait.is-art { display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--pg); }
 .sp .portrait.is-art .portrait-art { position: absolute; inset: 0; }
-.sp .portrait.is-art .portrait-art img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; }
-.sp .portrait.is-art .portrait-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--pg) 0%, color-mix(in srgb, var(--pg) 70%, transparent) 30%, transparent 55%); }
-.sp .portrait.is-art .portrait-art[data-flip] img { transform: scaleX(-1); }
+.sp .portrait.is-art .portrait-art img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sp .portrait.is-art .portrait-art-bg { object-fit: cover; filter: blur(28px) saturate(0.9); transform: scale(1.25); opacity: 0.9; }
+.sp .portrait.is-art .portrait-art-fg { object-fit: contain; object-position: 85% 60%; padding: 6% 4% 12% 30%; filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.35)); }
+.sp .portrait.is-art .portrait-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 28, 68, 0.55) 0%, transparent 45%); }
+.sp .portrait.is-art .portrait-art[data-flip] .portrait-art-fg { transform: scaleX(-1); }
 .sp .portrait-none { position: absolute; z-index: 1; left: 16px; top: 16px; display: grid; gap: 6px; max-width: 46%; }
 .sp .portrait-none b { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 2.6vw, 38px); line-height: 0.98; color: #fbf6ee; text-shadow: 0 1px 0 rgba(0,0,0,0.25); }
-.sp .portrait.is-art:not(.is-dark) .portrait-none b { color: var(--ink); text-shadow: none; }
+.sp .portrait.is-art .portrait-none b { color: #fbf6ee; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4); }
+.sp .portrait.is-art .portrait-none .mono { color: #fbf6ee; }
 .sp .portrait.is-art.is-dark .portrait-none .mono { color: #f3ede4; }
 .sp .portrait-none .mono { font-size: 12px; letter-spacing: 0.08em; color: inherit; opacity: 0.8; }
 .sp .portrait.is-art figcaption.portrait-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 7px 12px; border-radius: 0; background: rgba(11, 30, 61, 0.78); color: #f3ede4; font-family: var(--mono); font-size: 10.5px; line-height: 1.35; }
@@ -346,3 +349,12 @@
 .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) .pill { background: rgba(246, 239, 227, 0.12); color: var(--sheet-ink); }
 .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(input, select) { background: rgba(246, 239, 227, 0.08); color: var(--sheet-ink); border-color: rgba(246, 239, 227, 0.35); }
 .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) option { color: var(--ink); background: #fff; }
+
+/* Page brief: four short answers under a working page's head. */
+.sp .brief { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0; padding: 0 28px; background: var(--shell); border-bottom: 1px solid var(--line-2); }
+.sp .brief > div { display: grid; gap: 2px; align-content: start; padding: 14px 16px 14px 0; }
+.sp .brief > div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.sp .brief dt { font: 500 11px/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--flame-ink); }
+.sp .brief dd { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink-2); }
+@media (max-width: 900px) { .sp .brief { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px; } .sp .brief > div:nth-child(3) { padding-left: 0; border-left: 0; } }
+@media (max-width: 420px) { .sp .brief dd { font-size: 12.5px; } .sp .brief > div { padding-block: 10px; } }

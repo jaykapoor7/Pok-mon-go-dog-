@@ -197,3 +197,14 @@
 .sp .ac-art { margin: -6px 0 6px; }
 .sp .ac-art .art-frame { aspect-ratio: 4 / 3 !important; border-radius: 4px; box-shadow: inset 0 -3px 0 var(--ink); }
 .sp .ac-course .ac-num { position: absolute; top: 34px; left: 32px; z-index: 1; font-size: 56px; line-height: 1; color: var(--ink); text-shadow: 0 2px 0 rgba(255, 255, 255, 0.4); }
+
+/* Unknown is not zero: live tally and a bar that changes with the counting rule. */
+.sp .ex-tally { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; font-size: 13px; }
+.sp .ex-tally .is-yes { color: var(--teal); } .sp .ex-tally .is-no { color: var(--flame-ink); } .sp .ex-tally .is-unknown { color: var(--ink-3); }
+.sp .ex-bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line-2); }
+.sp .ex-bar i { display: block; flex-basis: 0; transition: flex-grow 600ms var(--ease), background 400ms var(--ease); }
+.sp .ex-bar .is-yes { background: var(--teal); }
+.sp .ex-bar .is-no { background: var(--flame); }
+.sp .ex-bar .is-unknown { background: repeating-linear-gradient(135deg, rgba(11, 30, 61, 0.35) 0 1.5px, var(--shell) 1.5px 6px); }
+.sp .ex-bar.is-asno .is-unknown { background: var(--flame); opacity: 0.8; }
+@media (prefers-reduced-motion: reduce) { .sp .ex-bar i { transition: none; } }

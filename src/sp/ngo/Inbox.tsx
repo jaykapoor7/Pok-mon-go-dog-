@@ -19,7 +19,7 @@ import { MessageCircle } from "lucide-react";
 import { orgCampaigns, orgIncoming, KIND_LABEL, type CampaignStats, type Incoming } from "@/lib/campaigns";
 import { useMembership } from "../shell/Shell";
 import { Portrait } from "../ui/Portrait";
-import { Ack, State, n, since } from "../ui";
+import { Ack, State, n, since, PageBrief } from "../ui";
 import { fileReports, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
@@ -67,6 +67,7 @@ export function Inbox() {
           <p className="ngo-sum">A person decides what each report becomes: a case, an animal filed into a drive, or nothing yet. Nothing turns into work on its own.</p>
           <div className="row"><Link className="btn is-s" href="/ngo">Back to Work</Link></div>
         </header>
+        <PageBrief items={[["For", "Reports waiting for a person: sent to you, and community reports near you."], ["Watch", "Injured or unwell first."], ["Next", "File into a drive, or open a case."], ["After", "It leaves the inbox; the reporter’s receipt still says received, not accepted."]]} />
         <div className="ib-grid">
           <nav className="ib-channels" aria-label="Channels">
             <p className="k">Channels</p>

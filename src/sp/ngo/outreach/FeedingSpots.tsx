@@ -18,7 +18,7 @@ import { Camera, Crosshair, Plus } from "lucide-react";
 import type { OrgFeedingZone } from "@/lib/feeding-zones";
 import { useMembership } from "../../shell/Shell";
 import { AreaMap } from "../../atlas/AreaMap";
-import { Ack, Method, State, day, n, since } from "../../ui";
+import { Ack, Method, State, day, n, since, PageBrief } from "../../ui";
 import { readOrgFeedingSpots, startOrgFeedingSpot } from "../../data/work-outreach";
 import type { Receipt } from "../../data/work";
 import { NgoGate } from "../Gate";
@@ -60,6 +60,7 @@ export function FeedingSpots() {
             <Link className="btn" href="/community/feeding">The public map</Link>
           </div>
         </header>
+        <PageBrief items={[["For", "The places your team feeds, and who offered to help there."], ["Watch", "Spots not fed in 7 days, or never recorded as fed."], ["Next", "Add a spot on site: the location is captured from your phone."], ["After", "It appears on the public feeding map, where volunteers can sign up."]]} />
 
         {adding && <AddSpot onDone={async (ok) => { if (ok) { setAdding(false); await read(); } }} />}
 

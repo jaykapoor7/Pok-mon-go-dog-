@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { WifiOff } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, openCases, type DueFollowup, type OpenCase } from "@/lib/ops";
-import { Ack, State, day, since } from "../ui";
+import { Ack, State, day, since, PageBrief } from "../ui";
 import { addNote, setFollowup, startWork, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
@@ -79,6 +79,7 @@ export function Field() {
             </div>
           )}
         </header>
+        <PageBrief items={[["For", "The cases you hold, on your phone, one hand."], ["Watch", "Late follow-ups first."], ["Next", "Done, Missed, Start or a note: one tap each."], ["After", "Saved means the database answered; offline notes wait and send themselves."]]} />
         {failed && <State kind="error" title="Not read" action={<button type="button" className="btn" onClick={() => void load()}>Try again</button>}>Your cases could not be read. If you are offline, drafts still work.</State>}
         {myFus.length > 0 && <h2 className="fd-h">Due</h2>}
         <ul className="fd-cards">

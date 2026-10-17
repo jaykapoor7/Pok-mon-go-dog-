@@ -14,7 +14,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Phone, Mail } from "lucide-react";
 import type { Volunteer } from "@/lib/team-actions";
 import { useMembership } from "../../shell/Shell";
-import { Method, State, day, n, since } from "../../ui";
+import { Method, State, day, n, since, PageBrief } from "../../ui";
 import { NgoGate } from "../Gate";
 import { readVolunteers } from "./read";
 import "../ngo.css";
@@ -39,6 +39,7 @@ export function Volunteers() {
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · volunteers</p><h1 className="serif">Volunteer sign-ups</h1></div>
           <p className="ngo-sum">{d.state === "read" ? <><b>{n(d.rows.length)}</b> sign-up{d.rows.length === 1 ? "" : "s"}. </> : d.state === "failed" ? "Not read. " : "Reading sign-ups… "}They are not on your team and see nothing. To have someone report for you, add them on <Link className="link" href="/ngo/team">Team</Link>.</p>
         </header>
+        <PageBrief items={[["For", "People who offered to help through the StrayPaw sign-up form."], ["Watch", "The newest offers; they are not yet on your team."], ["Next", "Contact them, then add them on Team with a personal code."], ["After", "They can report for your organisation, and see nothing private."]]} />
         <div className="rc-body">
           {d.state === "loading" && <div className="rc-skel" aria-label="Reading sign-ups"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
           {d.state === "failed" && <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Sign-ups could not be read ({d.error}). This is not the same as no sign-ups.</State>}

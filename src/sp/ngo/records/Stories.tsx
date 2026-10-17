@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getPartnerCasesPage } from "@/lib/cases";
 import type { Case } from "@/lib/types";
 import { useMembership } from "../../shell/Shell";
-import { Ack, State, day, n } from "../../ui";
+import { Ack, State, day, n, PageBrief } from "../../ui";
 import { publishStory, type StoryStage } from "../../data/work-records";
 import type { Receipt } from "../../data/work";
 import { NgoGate } from "../Gate";
@@ -72,6 +72,7 @@ export function Stories() {
           <p className="ngo-sum">Turn a completed case into a short public story for your page, reports and posts. Only what you write below is public: never intake notes, contacts, staff details or import rows.</p>
           <div className="row"><Link className="btn is-s" href="/community/stories">Public story feed</Link></div>
         </header>
+        <PageBrief items={[["For", "Turning a closed case into a short public story."], ["Watch", "Only what you write below is public; never intake notes or contacts."], ["Next", "Pick a resolved case, check the preview, publish."], ["After", "It appears on Stories at once; it cannot be withdrawn from here yet."]]} />
         <div className="rc-body rc-story">
           <form className="rc-form" onSubmit={(e) => { e.preventDefault(); void publish(); }}>
             <h2 className="h3">Feature a resolved case</h2>
