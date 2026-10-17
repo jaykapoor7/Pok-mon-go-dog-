@@ -39,14 +39,14 @@ export function Volunteers() {
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · volunteers</p><h1 className="serif">Volunteer sign-ups</h1></div>
           <p className="ngo-sum">{d.state === "read" ? <><b>{n(d.rows.length)}</b> sign-up{d.rows.length === 1 ? "" : "s"}. </> : d.state === "failed" ? "Not read. " : "Reading sign-ups… "}They are not on your team and see nothing. To have someone report for you, add them on <Link className="link" href="/ngo/team">Team</Link>.</p>
         </header>
-        <PageBrief items={[["For", "People who offered to help through the StrayPaw sign-up form."], ["Watch", "The newest offers; they are not yet on your team."], ["Next", "Contact them, then add them on Team with a personal code."], ["After", "They can report for your organisation, and see nothing private."]]} />
+        <PageBrief items={[["For", "People who offered to help an animal your organisation keeps, and sign-ups StrayPaw shared with you. No other organisation sees them."], ["Watch", "The newest offers; they are not yet on your team."], ["Next", "Contact them, then add them on Team with a personal code."], ["After", "They can report for your organisation, and see nothing private."]]} />
         <div className="rc-body">
           {d.state === "loading" && <div className="rc-skel" aria-label="Reading sign-ups"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
           {d.state === "failed" && <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Sign-ups could not be read ({d.error}). This is not the same as no sign-ups.</State>}
           {d.state === "read" && !d.rows.length && <State art="ngo-empty" title="No sign-ups yet" action={<Link className="btn is-ink" href="/ngo/team">Add someone to your team</Link>}>People who offer to help on StrayPaw appear here with how to reach them. Someone you already know can be added to your team with a personal code instead.</State>}
           {d.state === "read" && d.rows.length > 0 && (
             <div className="rc-stack">
-              <Method items={[["Source", "StrayPaw sign-up form"], ["Order", "newest first"], ["Shown", `up to 300, ${n(d.rows.length)} read`]]} />
+              <Method items={[["Source", "offers about your animals, and sign-ups shared with you"], ["Order", "newest first"], ["Shown", `up to 300, ${n(d.rows.length)} read`]]} />
               <div className="rc-scroll" role="region" aria-label="Volunteer sign-ups" tabIndex={0}>
                 <table className="rc-table rc-vol">
                   <thead><tr><th scope="col">Name</th><th scope="col">Locality</th><th scope="col">Message</th><th scope="col">Signed up</th><th scope="col">Contact</th></tr></thead>

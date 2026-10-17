@@ -48,6 +48,8 @@ export const ORDER = [
   "public-animal-appearance.sql", "public-photo-sensitive.sql", "final-site-recovery.sql",
   "post-recovery-hardening.sql", "living-map.sql", "living-map-org-and-snapshots.sql", "take-case.sql",
   "phase2-operational-foundation.sql",
+  // D — StrayPaw 2.0 release set (scripts/db-migrate.mjs "release-2-0")
+  "release-2-0-volunteer-isolation.sql",
 ];
 // Deliberately NOT applied: historical one-offs (supabase/README.md), seed files,
 // and care-register-records.sql ("PROPOSED, NOT APPLIED" in its header).

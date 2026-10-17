@@ -1,0 +1,452 @@
+{
+  "ranAt": "2026-10-17T11:49:10.737Z",
+  "pass": 52,
+  "total": 63,
+  "preFixReproduction": {
+    "leaked": 2,
+    "rows": 4
+  },
+  "tests": [
+    {
+      "area": "volunteers",
+      "test": "Org A member sees only offers about Org A's animals",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "volunteers",
+      "test": "Org A lead sees the same, nothing from Org B",
+      "as": "leadA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "volunteers",
+      "test": "Org B member sees Org B's offer and the sign-up routed to B",
+      "as": "memberB",
+      "pass": true,
+      "result": "ok, 2 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "Org B lead sees the same",
+      "as": "leadB",
+      "pass": true,
+      "result": "ok, 2 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "Org A volunteer-role member sees no one's contact details",
+      "as": "volunteerA",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "Signed-in resident with no organisation sees nothing",
+      "as": "resident",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "Anonymous visitor cannot call it at all",
+      "as": "anon",
+      "pass": true,
+      "result": "error: 42501 permission denied for function org_volunteers"
+    },
+    {
+      "area": "volunteers",
+      "test": "No member sees the general sign-up nobody routed",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "No member sees NGO registrations",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "Members cannot read the helpers table directly",
+      "as": "memberB",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "Anonymous cannot read the helpers table directly",
+      "as": "anon",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "A member cannot route a sign-up to their own organisation",
+      "as": "leadA",
+      "pass": true,
+      "result": "error: 42501 permission denied for function route_helper"
+    },
+    {
+      "area": "volunteers",
+      "test": "Operators (service role) read every sign-up",
+      "as": "service",
+      "pass": true,
+      "result": "ok, 5 rows"
+    },
+    {
+      "area": "volunteers",
+      "test": "Operators can route a sign-up, and it then appears for that organisation only",
+      "as": "service",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "membership",
+      "test": "my_ngo() names Org A for an Org A member",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "membership",
+      "test": "my_ngo() is empty for a resident",
+      "as": "resident",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "membership",
+      "test": "Org A team list holds only Org A people",
+      "as": "leadA",
+      "pass": true,
+      "result": "ok, 3 rows"
+    },
+    {
+      "area": "membership",
+      "test": "Org B lead cannot see Org A's members through the table",
+      "as": "leadB",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "membership",
+      "test": "Org A lead can change an Org A member's role",
+      "as": "leadA",
+      "pass": false,
+      "result": "error: P0001 Invalid role"
+    },
+    {
+      "area": "membership",
+      "test": "An Org A member (not lead) cannot change roles",
+      "as": "memberA",
+      "pass": true,
+      "result": "error: P0001 Invalid role"
+    },
+    {
+      "area": "membership",
+      "test": "Org B lead cannot change an Org A member's role",
+      "as": "leadB",
+      "pass": true,
+      "result": "error: P0001 Invalid role"
+    },
+    {
+      "area": "membership",
+      "test": "Org B lead cannot remove an Org A member",
+      "as": "leadB",
+      "pass": false,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "membership",
+      "test": "A resident cannot add themselves to an organisation",
+      "as": "resident",
+      "pass": true,
+      "result": "error: 42501 new row violates row-level security policy for table \"ngo_members\""
+    },
+    {
+      "area": "cases",
+      "test": "Org A member reads Org A's case",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "cases",
+      "test": "Org B member reads Org A's case only as the public record allows",
+      "as": "memberB",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "cases",
+      "test": "Org A member takes Org A's case",
+      "as": "memberA",
+      "pass": false,
+      "result": "error: 23503 insert or update on table \"cases\" violates foreign key constraint \"cases_assignee_id_fkey\""
+    },
+    {
+      "area": "cases",
+      "test": "Org B member cannot take Org A's case",
+      "as": "memberB",
+      "pass": false,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "cases",
+      "test": "A resident cannot take a case",
+      "as": "resident",
+      "pass": false,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "cases",
+      "test": "Org A lead assigns Org A's case to an Org A member",
+      "as": "leadA",
+      "pass": false,
+      "result": "error: 23503 insert or update on table \"cases\" violates foreign key constraint \"cases_assignee_id_fkey\""
+    },
+    {
+      "area": "cases",
+      "test": "Org B lead cannot assign Org A's case",
+      "as": "leadB",
+      "pass": true,
+      "result": "error: P0001 Case is not in your organisation"
+    },
+    {
+      "area": "cases",
+      "test": "Org A member adds a note to Org A's case",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "cases",
+      "test": "Org B member cannot add a note to Org A's case",
+      "as": "memberB",
+      "pass": true,
+      "result": "error: P0001 Case is not in your organisation"
+    },
+    {
+      "area": "cases",
+      "test": "Org A member schedules a follow-up on Org A's case",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "cases",
+      "test": "Org B member cannot schedule a follow-up on Org A's case",
+      "as": "memberB",
+      "pass": true,
+      "result": "error: P0001 That case is not in your organisation"
+    },
+    {
+      "area": "cases",
+      "test": "Org B member cannot review (close) Org A's case",
+      "as": "memberB",
+      "pass": false,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "cases",
+      "test": "Org A member opens a new case; it belongs to Org A",
+      "as": "memberA",
+      "pass": false,
+      "result": "error: 23503 insert or update on table \"cases\" violates foreign key constraint \"cases_assignee_id_fkey\""
+    },
+    {
+      "area": "cases",
+      "test": "A resident cannot open a case through the organisation RPC",
+      "as": "resident",
+      "pass": true,
+      "result": "error: P0001 Organisation access required"
+    },
+    {
+      "area": "cases",
+      "test": "Org B member cannot read Org A's case history (case_updates)",
+      "as": "memberB",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "care",
+      "test": "Org A member records care on Org A's animal",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "care",
+      "test": "Org B member cannot record care on Org A's animal",
+      "as": "memberB",
+      "pass": true,
+      "result": "error: P0001 That animal is not in your organisation"
+    },
+    {
+      "area": "care",
+      "test": "A resident cannot record care",
+      "as": "resident",
+      "pass": true,
+      "result": "error: P0001 Only partner NGOs can log medical events"
+    },
+    {
+      "area": "care",
+      "test": "Org B member cannot read Org A's clinical notes",
+      "as": "memberB",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "care",
+      "test": "Org A member reads Org A's clinical notes",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "care",
+      "test": "Org B member cannot change Org A's animal's recorded care status",
+      "as": "memberB",
+      "pass": false,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "care",
+      "test": "Org A member sets Org A's animal's recorded care status",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "animals",
+      "test": "Org A register lists Org A's animals only",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "animals",
+      "test": "Org B register lists Org B's animals only",
+      "as": "memberB",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "animals",
+      "test": "A resident's register call returns nothing",
+      "as": "resident",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "imports",
+      "test": "Org A member sees Org A's import batch",
+      "as": "memberA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "imports",
+      "test": "Org B member cannot see Org A's import batch",
+      "as": "memberB",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "imports",
+      "test": "A resident sees no import batch",
+      "as": "resident",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "imports",
+      "test": "A member cannot write an import batch directly (server route only)",
+      "as": "memberA",
+      "pass": true,
+      "result": "error: 42501 new row violates row-level security policy for table \"import_batches\""
+    },
+    {
+      "area": "reports",
+      "test": "Anonymous cannot call report_sighting directly (server route only)",
+      "as": "anon",
+      "pass": true,
+      "result": "error: 42725 function public.report_sighting(unknown, numeric, numeric, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown) is "
+    },
+    {
+      "area": "reports",
+      "test": "Signed-in user cannot call report_sighting directly",
+      "as": "resident",
+      "pass": true,
+      "result": "error: 42725 function public.report_sighting(unknown, numeric, numeric, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown) is "
+    },
+    {
+      "area": "reports",
+      "test": "The server (service role) files a report",
+      "as": "service",
+      "pass": false,
+      "result": "error: 42725 function public.report_sighting(unknown, numeric, numeric, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown) is "
+    },
+    {
+      "area": "reports",
+      "test": "Anonymous cannot submit a volunteer sign-up directly (server route only)",
+      "as": "anon",
+      "pass": true,
+      "result": "error: 42501 permission denied for function submit_helper"
+    },
+    {
+      "area": "orgs",
+      "test": "Org A lead updates Org A's profile; Org B is untouched",
+      "as": "leadA",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "orgs",
+      "test": "A resident cannot update any profile",
+      "as": "resident",
+      "pass": true,
+      "result": "ok, 1 row"
+    },
+    {
+      "area": "feeding",
+      "test": "Org A member adds a feeding spot; it belongs to Org A",
+      "as": "memberA",
+      "pass": false,
+      "result": "error: 42501 permission denied for table feeding_zones"
+    },
+    {
+      "area": "feeding",
+      "test": "A resident cannot add an organisation feeding spot",
+      "as": "resident",
+      "pass": true,
+      "result": "error: P0001 Only partner organisations can add org feeding zones."
+    },
+    {
+      "area": "public",
+      "test": "Anonymous reads the public map cells",
+      "as": "anon",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "public",
+      "test": "Public map cells carry no exact coordinates or private fields",
+      "as": "anon",
+      "pass": true,
+      "result": "ok, 0 rows"
+    },
+    {
+      "area": "public",
+      "test": "Anonymous cannot read organisation membership",
+      "as": "anon",
+      "pass": true,
+      "result": "ok, 0 rows"
+    }
+  ]
+}

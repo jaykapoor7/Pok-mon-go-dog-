@@ -35,7 +35,7 @@ export type Fundraiser = {
   created_by_id: string | null; created_by_name: string | null; status: string; featured: boolean; created_at: string;
 };
 
-export type Helper = { id: string; name: string; contact: string; message: string | null; is_ngo: boolean; ngo_name: string | null; dog_id: string | null; zone: string | null; created_at: string; acknowledged: boolean };
+export type Helper = { id: string; name: string; contact: string; message: string | null; is_ngo: boolean; ngo_name: string | null; dog_id: string | null; zone: string | null; created_at: string; acknowledged: boolean; routed_ngo_id?: string | null };
 export type HelpersRead = { volunteers: Helper[]; ngos: Helper[] };
 
 export type Invite = { id: string; email: string; name: string | null; role: string; code: string | null; accepted: boolean; last_used_at?: string | null; revoked: boolean; uses: number; by_org: boolean };

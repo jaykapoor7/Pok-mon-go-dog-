@@ -162,7 +162,7 @@ export function Console() {
           {sec === "dogs" && <Dogs {...P} empty={empty("No animal records")} />}
           {sec === "feeding" && <Feeding {...P} empty={empty("No feeding spots")} />}
           {sec === "fundraisers" && <Fundraisers {...P} empty={empty("No fundraisers")} />}
-          {sec === "volunteers" && <Helpers {...P} read={(read as Read<HelpersRead> | undefined) && mapHelpers(read as Read<HelpersRead>, "volunteers")} empty={empty("No volunteer offers")} kind="volunteer" />}
+          {sec === "volunteers" && <Helpers {...P} read={(read as Read<HelpersRead> | undefined) && mapHelpers(read as Read<HelpersRead>, "volunteers")} empty={empty("No volunteer offers")} kind="volunteer" orgs={reads.orgs?.state === "read" ? (reads.orgs.data as { id: string; name: string }[]).map((o) => ({ id: o.id, name: o.name })) : []} />}
           {sec === "ngos" && <Helpers {...P} read={(read as Read<HelpersRead> | undefined) && mapHelpers(read as Read<HelpersRead>, "ngos")} empty={empty("No NGO offers")} kind="ngo" />}
           {sec === "orgs" && <Orgs {...P} empty={empty("No organisations yet")} />}
           {sec === "imports" && <Carried title="Master imports"><MasterImport secret={secret} /></Carried>}
