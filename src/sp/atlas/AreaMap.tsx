@@ -13,6 +13,7 @@ import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
 import { cellToLatLng, isValidCell } from "h3-js";
 import { groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
 import { FIELD, fieldInks } from "./cartography";
+import "./areamap.css";
 
 export type AreaPoint = { h3: string; value: number; hot: number; label: string | null; second?: number };
 

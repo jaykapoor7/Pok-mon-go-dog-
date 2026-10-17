@@ -87,6 +87,9 @@ export function Report() {
     if (a && /^[0-9a-f-]{36}$/i.test(a)) setClaimed(a);
     const lat = Number(q.get("lat")), lng = Number(q.get("lng"));
     if (looksIndian(lat, lng)) { set({ coords: { lat, lng }, zone: nearestCity(lat, lng) }); reverseGeocode(lat, lng).then((z) => set({ zone: z })).catch(() => {}); }
+    /* ?help=1 (from "If an animal needs help") opens the help door, unless a draft was restored. */
+    let drafted = false; try { drafted = !!localStorage.getItem(DRAFT); } catch { /* storage blocked */ }
+    if (q.get("help") === "1" && !drafted) { set({ door: "help" }); setStep(FLOW.help[0]); }
     setVolunteer(readVolunteer());
   }, [set]);
   useEffect(() => { if (state === "sent") return; try { if (d.door) localStorage.setItem(DRAFT, JSON.stringify(d)); } catch { /* storage blocked */ } }, [d, state]);

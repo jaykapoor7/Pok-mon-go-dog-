@@ -18,10 +18,11 @@ import { addMedicalEvent } from "@/lib/animal-actions";
 import { archiveCampaign, createCampaign, fileToCampaign, type CampaignKind } from "@/lib/campaigns";
 import { addOrgMember, removeOrgMember, setMemberRole } from "@/lib/team-actions";
 import { createTeamCode, revokeTeamCode } from "@/lib/programme";
+import { checkinFeedingZone, createFeedingZone, volunteerForZone, withdrawFeedingVolunteer } from "@/lib/feeding-actions";
 import { addCaseFollowup, assignCase, claimCase, createCase, updateCaseFollowupStatus, updateCaseStatus, type Actor, type CreateCaseInput } from "@/lib/case-actions";
 import { reviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
 import { spatialChanged } from "@/lib/spatial/refresh";
-import type { CaseResolution } from "@/lib/types";
+import type { CaseResolution, FeedingDay } from "@/lib/types";
 
 export type Receipt = { ok: true; at: string; what: string } | { ok: false; error: string };
 
@@ -95,3 +96,12 @@ export const inviteTeam = (email: string, name: string, role: "lead" | "member" 
 };
 export const revokeCode = (id: string) => run(`revoke:${id}`, "Code revoked", () => revokeTeamCode(id));
 export const saveOrgProfile = (patch: OrgProfilePatch) => run("org-profile", "Profile saved", () => updateMyOrg(patch));
+
+/* Feeding spots (the SECURITY DEFINER feeding-zone functions). */
+export const startFeedingSpot = (v: { name: string; description: string; zone: string | null; lat: number; lng: number }, actor: Actor) => {
+  let id: string | null = null;
+  return run(`fz:${v.name}`, "Feeding spot added", async () => { id = await createFeedingZone(v, actor); return !!id && id !== "demo-zone"; }).then((r) => (r.ok && id ? { ...r, id: id as string } : r));
+};
+export const feedHere = (zoneId: string, actor: Actor, days: FeedingDay[], contact: string) => run(`fv:${zoneId}`, "You are listed as a feeder here", () => volunteerForZone(zoneId, actor, days, contact));
+export const stopFeeding = (zoneId: string, actor: Actor) => run(`fw:${zoneId}`, "You are no longer listed here", () => withdrawFeedingVolunteer(zoneId, actor));
+export const fedToday = (zoneId: string, actor: Actor | null, note: string) => run(`fc:${zoneId}`, "Recorded: fed today", async () => { await checkinFeedingZone(zoneId, actor, note); return true; });

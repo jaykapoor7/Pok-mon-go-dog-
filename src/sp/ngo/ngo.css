@@ -91,10 +91,6 @@
 .sp .wk-explain p { color: var(--ink-2); }
 
 /* Area map (shared with the municipality and NGO map). */
-.sp .areamap { position: relative; min-height: 320px; border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px var(--line-2); }
-.sp .areamap-canvas { position: absolute; inset: 0; }
-.sp .areamap-canvas::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: var(--fibre); opacity: 0.5; mix-blend-mode: multiply; }
-.sp .areamap-note { position: absolute; z-index: 2; left: 12px; right: 12px; bottom: 12px; padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 
 @media (max-width: 1200px) { .sp .wk { --side: 400px; } .sp .wk-row { grid-template-columns: 4px 80px minmax(0, 1fr) auto 52px; } .sp .wk-owner { display: none; } .sp .wk-head { grid-template-columns: auto 1fr; } .sp .wk-head-act { grid-column: 1 / -1; } }
 @media (max-width: 860px) {

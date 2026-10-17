@@ -230,7 +230,7 @@
 @media (prefers-reduced-motion: reduce) { .sp .skel { animation: none; } }
 
 /* ── honest states ─────────────────────────────────────────────────── */
-.sp .state { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 28px 0; }
+.sp .state { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 28px clamp(16px, 2vw, 28px); }
 .sp .state.has-art { grid-template-columns: 180px minmax(0, 1fr); gap: 24px; align-items: center; }
 .sp .state h3 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.05; letter-spacing: -0.01em; }
 .sp .state p { color: var(--ink-2); max-width: 56ch; }
