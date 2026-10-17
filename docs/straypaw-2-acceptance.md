@@ -1,5 +1,24 @@
 # StrayPaw 2.0 — acceptance
 
+## Visual reset (latest)
+
+The visual reset replaced the restrained look:
+- **Printed identity.** An indigo printed sheet and an original selvedge ornament.
+- **Atlas.** India as a paper cut-out on an indigo sea, with physical regions painted and lettered in English and Hindi. Areas are coloured by when they were last recorded, with a plain view for analysis.
+- **Art.** Openly licensed Indian paintings, credited, in the open art slots and the no-photo plate.
+- **Records and work.** A documentary record head; the Work triage ribbon and case chain.
+- **Municipality.** Findings lit on the map.
+- **Academy.** A painted cover per course.
+
+The nine parked 1.0 tools are rebuilt in 2.0:
+- `/ngo/care`, `/ngo/quality`, `/ngo/volunteers`, `/ngo/stories`
+- `/ngo/evidence`, `/ngo/fundraising` (and `/new`), `/ngo/projects`, `/ngo/surveys`, `/ngo/feeding`
+- `/trust/console`
+
+Every `/partner/*` URL and `/admin` redirects; the 1.0 components are deleted.
+
+Visual acceptance gallery (private artifact): https://claude.ai/artifact/B3jZ9zFmNVfgtYUBJWHTtz. The reference-by-reference map is in `docs/straypaw-2/CREATIVE_MATRIX.md`. Current checks: production build passes; e2e 78/78; 58 gallery captures (1440 and 390) with 0 px overflow and no page errors (`e2e/harness/capture.mjs`). The harness no longer lets any unmocked request reach the real Supabase project.
+
 Release candidate on branch `claude/friendly-noether-u1c7u4`. Nothing was
 deployed, merged, migrated or written to production.
 

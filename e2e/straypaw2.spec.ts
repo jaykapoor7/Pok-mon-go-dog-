@@ -23,6 +23,10 @@ test.describe("old addresses land on their 2.0 homes", () => {
     ["/insights?city=Coimbatore", /\/city\/insights\?city=Coimbatore$/], ["/municipality", /\/city$/], ["/programmes", /\/city\/programmes$/],
     ["/partner", /\/ngo$/], ["/partner/cases/new?dogId=abc", /\/ngo\/cases\/new\?(.*&)?dog=abc(&|$)/], ["/partner/review", /\/ngo\/review$/],
     ["/resources", /\/learn\/resources$/], ["/moderate", /\/trust$/], ["/orgs", /\/community\/organisations$/],
+    ["/partner/medical", /\/ngo\/care$/], ["/partner/quality", /\/ngo\/quality$/], ["/partner/volunteers", /\/ngo\/volunteers$/],
+    ["/partner/stories", /\/ngo\/stories$/], ["/partner/resources", /\/ngo\/evidence$/], ["/partner/fundraising", /\/ngo\/fundraising$/],
+    ["/partner/fundraisers/new", /\/ngo\/fundraising\/new$/], ["/partner/surveys", /\/ngo\/surveys$/], ["/partner/projects", /\/ngo\/projects$/],
+    ["/partner/feeding", /\/ngo\/feeding$/], ["/admin", /\/trust\/console$/],
   ];
   for (const [from, to] of cases) test(from, async ({ request }) => {
     const r = await request.get(from, { maxRedirects: 0 });

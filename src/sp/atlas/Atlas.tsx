@@ -353,7 +353,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   }, [plain, ready, inked]);
   useEffect(() => {
     for (const { el: e, major } of labelEls.current) {
-      const on = !plain && level === "india" && zoom < 7 && (major || zoom >= 5.4);
+      const on = !plain && level === "india" && zoom < 7 && (major || zoom >= 6);
       e.classList.toggle("is-on", on);
     }
     for (const e of artEls.current) e.classList.toggle("is-on", !plain && level === "india" && zoom < 6.6);
