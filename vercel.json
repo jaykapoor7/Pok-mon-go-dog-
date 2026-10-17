@@ -5,7 +5,8 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "dev": false
+      "dev": false,
+      "claude/friendly-noether-u1c7u4": false
     }
   },
   "crons": [
