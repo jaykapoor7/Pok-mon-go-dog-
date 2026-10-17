@@ -33,15 +33,18 @@ const CATS: { id: CaseCategory; label: string; note: string }[] = [
 ];
 const SEV: { id: CaseSeverity; label: string }[] = [{ id: "critical", label: "Critical, act today" }, { id: "high", label: "High" }, { id: "normal", label: "Normal" }, { id: "low", label: "Low" }];
 
-export function NewCase({ dogId }: { dogId: string | null }) {
+export type Prefill = { dog: string | null; lat: number | null; lng: number | null; zone: string | null; title: string | null; note: string | null };
+
+export function NewCase({ pre }: { pre: Prefill }) {
+  const dogId = pre.dog;
   const { user } = useAuth();
   const router = useRouter();
   const [cat, setCat] = useState<CaseCategory>("injury");
   const [sev, setSev] = useState<CaseSeverity>("normal");
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
+  const [title, setTitle] = useState(pre.title ?? "");
+  const [desc, setDesc] = useState(pre.note ?? "");
   const [city, setCity] = useState("");
-  const [where, setWhere] = useState<{ lat: number; lng: number; zone: string } | null>(null);
+  const [where, setWhere] = useState<{ lat: number; lng: number; zone: string } | null>(pre.lat !== null && pre.lng !== null ? { lat: pre.lat, lng: pre.lng, zone: pre.zone ?? "" } : null);
   const [informer, setInformer] = useState("");
   const [animal, setAnimal] = useState<{ id: string; label: string; zone: string | null; lat: number | null; lng: number | null } | null>(null);
   const [state, setState] = useState<"idle" | "pending">("idle");
@@ -84,7 +87,7 @@ export function NewCase({ dogId }: { dogId: string | null }) {
             <div className="field"><label htmlFor="nc-t">In a few words</label><input id="nc-t" className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Limping, deep wound on the left hind leg" required minLength={3} /></div>
             <div className="field"><label htmlFor="nc-d">What you know <span className="small">optional</span></label><textarea id="nc-d" className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What was seen, by whom, and when. Say what is not known." /></div>
             <fieldset className="field"><legend>How urgent</legend>
-              <div className="seg nc-sev" role="radiogroup">{SEV.map((s) => <button key={s.id} type="button" role="radio" aria-checked={sev === s.id} aria-pressed={sev === s.id} onClick={() => setSev(s.id)}>{s.label}</button>)}</div>
+              <div className="seg nc-sev" role="group" aria-label="How urgent">{SEV.map((s) => <button key={s.id} type="button" aria-pressed={sev === s.id} onClick={() => setSev(s.id)}>{s.label}</button>)}</div>
             </fieldset>
             <div className="field"><label htmlFor="nc-i">Informer&rsquo;s contact <span className="small">optional, private to your organisation</span></label><input id="nc-i" className="input" value={informer} onChange={(e) => setInformer(e.target.value)} inputMode="tel" /></div>
           </div>

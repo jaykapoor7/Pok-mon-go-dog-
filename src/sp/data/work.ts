@@ -15,6 +15,8 @@
 import { getSupabase } from "@/lib/supabase";
 import { ngoSetDogCare } from "@/lib/actions";
 import { addMedicalEvent } from "@/lib/animal-actions";
+import { archiveCampaign, createCampaign, fileToCampaign, type CampaignKind } from "@/lib/campaigns";
+import { addOrgMember, removeOrgMember, setMemberRole } from "@/lib/team-actions";
 import { addCaseFollowup, assignCase, claimCase, createCase, updateCaseFollowupStatus, updateCaseStatus, type Actor, type CreateCaseInput } from "@/lib/case-actions";
 import { reviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
 import { spatialChanged } from "@/lib/spatial/refresh";
@@ -69,3 +71,19 @@ export async function openCase(input: CreateCaseInput, actor: Actor): Promise<Re
   const r = await run(`new:${input.title}:${input.dogId ?? ""}`, "Case opened", async () => { id = await createCase(input, actor); return !!id && id !== "demo-case"; });
   return r.ok && id ? { ...r, id } : r;
 }
+
+/** File chosen reports into a drive. The receipt says how many the database filed. */
+export async function fileReports(ids: string[], campaignId: string, claim: boolean): Promise<Receipt> {
+  let res: { filed: number; registered: number } | null = null;
+  const r = await run(`file:${campaignId}:${ids.join(",")}`, "Filed", async () => { res = await fileToCampaign(ids, campaignId, claim); return !!res; });
+  const got = res as { filed: number; registered: number } | null;
+  return r.ok && got ? { ...r, what: `Filed ${got.filed} report${got.filed === 1 ? "" : "s"}${got.registered ? `, ${got.registered} new animal${got.registered === 1 ? "" : "s"} registered` : ""}` } : r;
+}
+export const startDrive = (v: { name: string; kind: CampaignKind; startsOn: string | null; endsOn: string | null; zone: string | null; notes: string | null }) => {
+  let id: string | null = null;
+  return run(`drive:${v.name}`, "Drive created", async () => { id = await createCampaign(v); return !!id; }).then((r) => (r.ok && id ? { ...r, id: id as string } : r));
+};
+export const archiveDrive = (id: string, archived: boolean) => run(`arch:${id}`, archived ? "Drive archived" : "Drive restored", async () => { await archiveCampaign(id, archived); return true; });
+export const changeRole = (userId: string, role: string) => run(`role:${userId}`, "Role changed", () => setMemberRole(userId, role));
+export const addMember = (email: string, role: string) => run(`add:${email}`, `${email} added`, async () => { await addOrgMember(email, role); return true; });
+export const removeMember = (userId: string) => run(`rm:${userId}`, "Removed from the organisation", () => removeOrgMember(userId));
