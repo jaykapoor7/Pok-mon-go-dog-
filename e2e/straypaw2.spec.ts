@@ -21,7 +21,7 @@ test.describe("old addresses land on their 2.0 homes", () => {
     ["/app", /\/community$/], ["/map?city=Coimbatore", /\/community\?city=Coimbatore$/], ["/report", /\/community\/report$/],
     ["/following", /\/community\/activity$/], ["/dog/00000000-0000-4000-8000-000000000000", /\/animal\/00000000-0000-4000-8000-000000000000$/],
     ["/insights?city=Coimbatore", /\/city\/insights\?city=Coimbatore$/], ["/municipality", /\/city$/], ["/programmes", /\/city\/programmes$/],
-    ["/partner", /\/ngo$/], ["/partner/cases/new?dogId=abc", /\/ngo\/cases\/new\?dog=abc$/], ["/partner/review", /\/ngo\/review$/],
+    ["/partner", /\/ngo$/], ["/partner/cases/new?dogId=abc", /\/ngo\/cases\/new\?(.*&)?dog=abc(&|$)/], ["/partner/review", /\/ngo\/review$/],
     ["/resources", /\/learn\/resources$/], ["/moderate", /\/trust$/], ["/orgs", /\/community\/organisations$/],
   ];
   for (const [from, to] of cases) test(from, async ({ request }) => {

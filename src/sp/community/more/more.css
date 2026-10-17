@@ -81,6 +81,7 @@
 .sp .fs-rule { border: 0; border-top: 1px solid var(--line-2); margin: 4px 0; }
 
 /* ── Search ───────────────────────────────────────────────────────── */
+.sp .se-h { font-size: clamp(40px, 5vw, 64px); }
 .sp .se-form { display: flex; gap: 10px; max-width: 760px; }
 .sp .se-field { flex: 1; min-height: 56px; font-size: 18px; }
 .sp .se-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px 40px; padding: 24px 28px 40px; }
@@ -106,5 +107,6 @@
   .sp .st-body h3 { font-size: 26px; }
   .sp .hp-steps { grid-template-columns: 1fr; }
   .sp .og-figs b { font-size: 40px; }
-  .sp .se-form { flex-direction: column; }
+  .sp .se-h { font-size: clamp(40px, 5vw, 64px); }
+.sp .se-form { flex-direction: column; }
 }

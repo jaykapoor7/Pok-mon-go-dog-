@@ -128,3 +128,9 @@
 }
 @keyframes sp-rise { from { transform: translateY(40px); opacity: 0.6; } }
 @media (prefers-reduced-motion: reduce) { .sp-index[open], .sp-finder[open] { animation: none; } }
+
+/* The thumb bar is fixed over the page: anything scrolled to or focused
+   (keyboard, form errors, "scroll into view") stops above it, not under it. */
+@media (max-width: 860px) {
+  html:has(.sp-tabs) { scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+}

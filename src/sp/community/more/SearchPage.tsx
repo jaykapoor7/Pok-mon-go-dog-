@@ -16,7 +16,7 @@ export function SearchPage({ q, groups }: { q: string; groups: { kind: string; h
   return (
     <div className="mo">
       <header className="mo-head">
-        <p className="k">Search</p>
+        <h1 className="display se-h">Search</h1>
         <form action="/search" className="se-form" role="search">
           <label className="search se-field"><Search size={18} aria-hidden /><input name="q" defaultValue={q} placeholder="A city, a neighbourhood, a StrayPaw tag, an organisation" aria-label="Search" autoFocus={!q} /></label>
           <button type="submit" className="btn is-ink">Search</button>

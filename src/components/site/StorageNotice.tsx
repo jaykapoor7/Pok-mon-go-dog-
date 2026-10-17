@@ -39,8 +39,10 @@ export function StorageNotice() {
   /* Not over a report being written: on a phone it would sit on the send
      bar. It shows on the next page instead. */
   const pathname = usePathname() ?? "";
-  const reporting = pathname.startsWith("/report");
-  const inApp = pathname === "/app" || pathname === "/map" || pathname === "/insights" || pathname === "/stories" || pathname === "/following" || pathname === "/join" || pathname === "/partner-apply" || pathname.startsWith("/partner");
+  const reporting = pathname.startsWith("/report") || pathname.startsWith("/community/report");
+  /* StrayPaw 2.0 workspaces use the compact form, placed by globals.css above the phone thumb bar. */
+  const sp2 = /^\/(community|ngo|city|learn|animal|search|trust)(\/|$)/.test(pathname);
+  const inApp = sp2 || pathname === "/app" || pathname === "/map" || pathname === "/insights" || pathname === "/stories" || pathname === "/following" || pathname === "/join" || pathname === "/partner-apply" || pathname.startsWith("/partner");
 
   useEffect(() => {
     /* Every storage read is wrapped: it throws in private mode and under

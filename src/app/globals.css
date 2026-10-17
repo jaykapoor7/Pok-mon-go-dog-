@@ -737,6 +737,15 @@ h1 em, h2 em, h3 em { font-style: normal; }
   .snotice.is-app .snotice-actions { gap: 4px; }
 }
 
+/* StrayPaw 2.0 shell (.sp): compact, out of the way of the work. Above the
+   phone thumb bar; bottom-right on wider screens, clear of map controls. */
+@media (max-width: 860px) {
+  body:has(.sp) .snotice { left: 8px; right: 8px; bottom: calc(78px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 861px) {
+  body:has(.sp) .snotice { left: auto; right: 16px; bottom: 16px; width: min(460px, calc(100vw - 32px)); }
+}
+
 /* Keep onboarding and sign-in readable without stacked install/storage prompts. */
 body:has([role="dialog"]) :is(.sp-install-prompt, .snotice) { display: none; }
 
