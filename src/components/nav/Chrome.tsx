@@ -71,9 +71,13 @@ const SELF_SHELLED = new Set<string>([
   "/orgs",
 ]);
 
+/** StrayPaw 2.0 routes mount their own shell (src/sp/shell/Shell). */
+const SP2 = /^\/(community|ngo|city|learn|animal|search|trust)(\/|$)/;
+
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const segments = useSelectedLayoutSegments();
+  if (SP2.test(pathname)) return <>{children}</>;
   // Marketing and profile routes have their own main landmark.
   // ISR can render the root through an internal pathname. The route tree
   // identifies the landing page consistently during regeneration and in the
