@@ -28,7 +28,7 @@ export const FIELD: Palette = {
 
 /** Sea wash outside India, and the inks used by fieldInks. */
 const FI = {
-  sea: "#e6dccb", waterInk: "#2f3d8f", waterEcho: "#5e93c9", hatch: "#4b7f4f", wood: "#cbdcb4",
+  sea: "#1f2a5c", seaFar: "#e9e0cf", seaInk: "#e8dfcb", waterInk: "#2f3d8f", waterEcho: "#5e93c9", hatch: "#4b7f4f", wood: "#cbdcb4",
   residential: "#f4e3cf", motorway: "#c0603c", rail: "#0b1e3d", state: "#0b1e3d", border: "#0b1e3d", borderEcho: "#f05b40",
 };
 
@@ -65,7 +65,7 @@ export function fieldInks(map: MLMap, beforeId?: string) {
   const add = (layer: Parameters<MLMap["addLayer"]>[0], at = before) => { if (map.getLayer(layer.id)) return; try { map.addLayer(layer, at); } catch { /* a source this build lacks */ } };
   const set = (id: string, prop: string, v: unknown) => { try { (map.setPaintProperty as (i: string, pr: string, val: unknown) => void).call(map, id, prop, v); } catch { /* absent */ } };
   if (!map.hasImage("fa-hatch")) map.addImage("fa-hatch", hatchImage(FI.hatch));
-  if (!map.hasImage("fa-wave")) map.addImage("fa-wave", waveImage(FI.waterInk));
+  if (!map.hasImage("fa-wave")) map.addImage("fa-wave", waveImage("#c9d3ee"));
 
   /* Land tints. */
   set("landuse_residential", "fill-color", FI.residential);
@@ -73,7 +73,9 @@ export function fieldInks(map: MLMap, beforeId?: string) {
   set("landcover_wood", "fill-color", FI.wood);
   for (const id of ["highway_motorway_inner", "highway_motorway_subtle", "highway_motorway_bridge_inner"]) set(id, "line-color", FI.motorway);
   for (const id of ["highway_major_inner", "highway_major_subtle"]) set(id, "line-color", "rgba(201,140,70,0.7)");
-  if (map.getLayer("india-mask")) set("india-mask", "fill-color", FI.sea);
+  /* Beyond India, an indigo printed ground: India reads as a paper cut-out on the sheet.
+     Past the national scale it fades back to paper, so a border city is never framed in dark. */
+  if (map.getLayer("india-mask")) set("india-mask", "fill-color", ["interpolate", ["linear"], ["zoom"], 6.5, FI.sea, 8.5, FI.seaFar]);
 
   const omt = map.getSource("openmaptiles") ? "openmaptiles" : null;
   if (omt) {
@@ -88,6 +90,11 @@ export function fieldInks(map: MLMap, beforeId?: string) {
   if (map.getSource("india-mask")) {
     add({ id: "fa-border-echo", type: "line", source: "india-mask", maxzoom: 9, paint: { "line-color": FI.borderEcho, "line-opacity": 0.55, "line-width": ["interpolate", ["linear"], ["zoom"], 3, 1.2, 8, 2], "line-translate": [2.5, 2] } }, under);
   }
+  /* Water-lines: the coast echoed three times outward, the old engraver's way of drawing the sea. */
+  if (map.getSource("india-mask")) {
+    [[3, 0.55], [8, 0.34], [14, 0.2], [22, 0.1]].forEach(([off, op], i) => add({ id: `fa-ripple-${i}`, type: "line", source: "india-mask", maxzoom: 7.5,
+      paint: { "line-color": "#d9e1f5", "line-opacity": ["interpolate", ["linear"], ["zoom"], 3, op, 7.5, 0], "line-width": 0.9, "line-offset": -off } }, under));
+  }
   /* Seas: names and a few pen waves, only at the national scale. */
   if (!map.getSource("fa-seas")) {
     map.addSource("fa-seas", { type: "geojson", data: { type: "FeatureCollection", features: [
@@ -96,7 +103,7 @@ export function fieldInks(map: MLMap, beforeId?: string) {
     ] } });
   }
   add({ id: "fa-waves", type: "symbol", source: "fa-seas", maxzoom: 7.5, filter: ["==", ["get", "kind"], "wave"], layout: { "icon-image": "fa-wave", "icon-size": ["interpolate", ["linear"], ["zoom"], 3, 0.8, 6, 1.2], "icon-allow-overlap": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 6, 1, 7.5, 0] } });
-  add({ id: "fa-sea-names", type: "symbol", source: "fa-seas", maxzoom: 7.5, filter: ["==", ["get", "kind"], "name"], layout: { "text-field": ["get", "name"], "text-font": ["Noto Sans Italic"], "text-size": ["interpolate", ["linear"], ["zoom"], 3, 12, 6, 16], "text-letter-spacing": 0.32, "text-max-width": 6 }, paint: { "text-color": FI.waterInk, "text-opacity": ["interpolate", ["linear"], ["zoom"], 6, 0.62, 7.5, 0], "text-halo-color": FI.sea, "text-halo-width": 1.2 } });
+  add({ id: "fa-sea-names", type: "symbol", source: "fa-seas", maxzoom: 7.5, filter: ["==", ["get", "kind"], "name"], layout: { "text-field": ["get", "name"], "text-font": ["Noto Sans Italic"], "text-size": ["interpolate", ["linear"], ["zoom"], 3, 12, 6, 16], "text-letter-spacing": 0.32, "text-max-width": 6 }, paint: { "text-color": FI.seaInk, "text-opacity": ["interpolate", ["linear"], ["zoom"], 6, 0.8, 7.5, 0] } });
 }
 
 /* ── India's physical regions, painted as a printed relief key ──────────
@@ -194,7 +201,9 @@ export function setRegionsVisible(map: MLMap, on: boolean) {
 /** Where to letter each region, and at what angle: the mass centre of its
     largest polygon, turned along a long range so the name follows the hills. */
 export type RegionLabel = { name: string; hi: string; kind: RegionKind; at: [number, number]; angle: number; major: boolean };
-const MAJOR = new Set(["Himalaya", "Indo-Gangetic Plain", "Deccan Plateau", "Thar Desert", "Western Ghats", "Eastern Ghats", "Ganges Delta"]);
+/* Where the mass centre falls on a neighbour's name, the letterer moves it, as an atlas would. */
+const ANCHOR: Record<string, [number, number]> = { "Indo-Gangetic Plain": [83.4, 26.9], "Deccan Plateau": [75.3, 18.1], "Ganges Delta": [89.4, 22.4], "Thar Desert": [72.6, 27.3], "Himalaya": [79.4, 31.2], "Vindhya Range": [77.6, 23.2], "Satpura Range": [76.6, 21.9] };
+const MAJOR = new Set(["Himalaya", "Indo-Gangetic Plain", "Deccan Plateau", "Thar Desert", "Western Ghats", "Eastern Ghats"]);
 export function regionLabels(): RegionLabel[] {
   return REGIONS.features.map((f) => {
     const ring = f.geometry.coordinates.map((p) => p[0]).sort((a, b) => b.length - a.length)[0];
@@ -205,6 +214,6 @@ export function regionLabels(): RegionLabel[] {
     const l1 = (sxx + syy) / 2 + Math.sqrt(((sxx - syy) / 2) ** 2 + sxy ** 2), l2 = (sxx + syy) / 2 - Math.sqrt(((sxx - syy) / 2) ** 2 + sxy ** 2);
     let angle = l2 > 0 && l1 / l2 > 6 && f.properties.kind !== "plain" ? -(theta * 180) / Math.PI : 0;
     if (angle > 90) angle -= 180; if (angle < -90) angle += 180;
-    return { name: f.properties.name, hi: f.properties.hi, kind: f.properties.kind, at: [mx, my] as [number, number], angle: Math.round(angle), major: MAJOR.has(f.properties.name) };
+    return { name: f.properties.name, hi: f.properties.hi, kind: f.properties.kind, at: ANCHOR[f.properties.name] ?? ([mx, my] as [number, number]), angle: Math.round(angle), major: MAJOR.has(f.properties.name) };
   });
 }

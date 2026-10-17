@@ -290,3 +290,33 @@
 .sp .portrait.is-l .portrait-plate .mono { font-size: 30px; }
 .sp .portrait.is-l .portrait-plate em { font-size: 14px; }
 
+
+/* ── The printed sheet (2.0 visual reset) ─────────────────────────────
+   Indigo is StrayPaw's second print ground: the atlas sea, record and
+   chapter heads. Paper ink on indigo, marigold for Hindi and accents.
+   The selvedge is an original StrayPaw ornament (running stitch and
+   small lozenges), not a traditional motif; artworks are separate,
+   licensed and credited. */
+.sp { --sheet: #1f2a5c; --sheet-2: #283670; --sheet-ink: #f6efe3; --sheet-mute: #c9d3ee; --marigold: #f0b45a;
+  --selvedge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='12'%3E%3Cpath d='M0 6h6M10 6h8M22 6h6' stroke='%23f0b45a' stroke-width='1.4' stroke-linecap='round'/%3E%3Cpath d='M14 2.5l3 3.5-3 3.5-3-3.5z' fill='%23f05b40'/%3E%3C/svg%3E"); }
+.sp .sheet { position: relative; background: var(--sheet); color: var(--sheet-ink); isolation: isolate; }
+.sp .sheet::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--fibre); opacity: 0.55; mix-blend-mode: screen; pointer-events: none; }
+.sp .sheet .k, .sp .sheet .small, .sp .sheet .lede { color: var(--sheet-mute); }
+.sp .sheet a.link, .sp .sheet .link { color: var(--marigold); }
+.sp .selvedge { height: 12px; background: var(--selvedge) repeat-x center / 28px 12px; }
+.sp .sheet .hi, .sp .hi.is-mari { color: var(--marigold); }
+
+/* No-photograph plate with a licensed painting crop. */
+.sp .portrait.is-art { display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--pg); }
+.sp .portrait.is-art .portrait-art { position: absolute; inset: 0; }
+.sp .portrait.is-art .portrait-art img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; }
+.sp .portrait.is-art .portrait-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--pg) 0%, color-mix(in srgb, var(--pg) 70%, transparent) 30%, transparent 55%); }
+.sp .portrait.is-art .portrait-art[data-flip] img { transform: scaleX(-1); }
+.sp .portrait-none { position: absolute; z-index: 1; left: 16px; top: 16px; display: grid; gap: 6px; max-width: 46%; }
+.sp .portrait-none b { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 2.6vw, 38px); line-height: 0.98; color: #fbf6ee; text-shadow: 0 1px 0 rgba(0,0,0,0.25); }
+.sp .portrait.is-art:not(.is-dark) .portrait-none b { color: var(--ink); text-shadow: none; }
+.sp .portrait.is-art.is-dark .portrait-none .mono { color: #f3ede4; }
+.sp .portrait-none .mono { font-size: 12px; letter-spacing: 0.08em; color: inherit; opacity: 0.8; }
+.sp .portrait.is-art figcaption.portrait-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 7px 12px; border-radius: 0; background: rgba(11, 30, 61, 0.78); color: #f3ede4; font-family: var(--mono); font-size: 10.5px; line-height: 1.35; }
+.sp .portrait.is-m .portrait-none b { font-size: 20px; }
+

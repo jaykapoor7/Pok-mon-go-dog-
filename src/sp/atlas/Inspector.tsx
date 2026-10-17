@@ -27,6 +27,7 @@ import { RECENCY, UNDATED, lastRecorded, recencyTally } from "./recency";
 import { REGION_INK, type RegionKind } from "./cartography";
 import type { NationalCell } from "@/lib/livingmap/types";
 import { EvidenceDrawer } from "./Evidence";
+import { cityFindings } from "./cityFindings";
 import { LENSES, type LensId } from "./lenses";
 import type { Level, Scope, Variant } from "./Atlas";
 
@@ -38,6 +39,7 @@ type Props = {
   onCity: (c: string) => void; onIndia: () => void; onArea: (h3: string) => void; onCloseArea: () => void; onAnimal: (id: string) => void; onCloseAnimal: () => void;
   onIsolate: (k: string) => void; onPlace: (c: [number, number]) => void; onSheet: (s: "peek" | "half" | "full") => void; onCompare: (h3: string) => void; onClearCompare: () => void;
   onOpenRecord: (id: string) => void; nationalMeasure: (c: NationalCity) => number;
+  spot: string | null; onSpot: (id: string | null, cells: string[]) => void;
   by: "recent" | "ster"; onBy: (b: "recent" | "ster") => void; national: NationalCell[]; plain: boolean;
 };
 
@@ -135,6 +137,7 @@ function CityView(p: Props) {
         <p className="method"><span>Unit <b>H3 area ≈0.74 km²</b></span><span>Areas <b>{f(p.cells.length)}</b></span><span>Precision <b>{p.evidence?.precision}</b></span><span>Period <b>{p.ctx.range ? "selected months" : "all recorded time"}</b></span></p>
         {p.reading && <><p className="insp-lead">{p.reading.lead}</p><p className="small">{p.reading.qualify}</p></>}
       </section>
+      {p.variant === "city" && <Findings {...p} />}
       {p.variant === "city" && p.city && <EvidenceDrawer lens={p.lens} city={p.city} data={p.data} cells={p.cells} evidence={p.evidence} ranged={!!p.ctx.range} />}
       {p.lens === "animals" && p.facet === "all" ? (p.by === "recent" ? <RecencyKey rows={p.cells.map((c) => ({ animals: c.animals, last: lastRecorded(c) }))} by={p.by} onBy={p.onBy} unit={`areas in ${p.city}`} isolate={p.isolate} onIsolate={p.onIsolate} /> : <><ByToggle by={p.by} onBy={p.onBy} /><PieKey cells={p.cells} /></>) : <section className="insp-sec">
         <h2 className="insp-sh">{L.label} <span className="mono">by area</span></h2>
@@ -166,6 +169,30 @@ function CityView(p: Props) {
         <p className="small">{p.evidence?.note}</p>
       </section>
     </>
+  );
+}
+
+/* Findings in place: each lights only the areas it rests on. */
+function Findings(p: Props) {
+  const list = useMemo(() => cityFindings(p.cells), [p.cells]);
+  if (!list.length) return null;
+  return (
+    <section className="insp-sec insp-findings" aria-label="Findings in this city">
+      <h2 className="insp-sh">Findings <span className="mono">from the complete area record</span></h2>
+      <ol>
+        {list.map((x, i) => (
+          <li key={x.id} className={`is-${x.tone}${p.spot === x.id ? " is-on" : ""}`}>
+            <span className="insp-fn serif">{i + 1}</span>
+            <div>
+              <p className="insp-fl">{x.lead}</p>
+              <p className="small">{x.detail}</p>
+              <p className="insp-fm mono">{x.method}</p>
+              {x.cells.length > 0 && <button type="button" className="btn is-s" aria-pressed={p.spot === x.id} onClick={() => p.onSpot(p.spot === x.id ? null : x.id, x.cells)}>{p.spot === x.id ? "Show every area" : x.cells.length === 1 ? "Show this area on the map" : `Show these ${f(x.cells.length)} areas on the map`}</button>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

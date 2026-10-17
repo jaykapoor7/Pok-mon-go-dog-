@@ -377,3 +377,47 @@
 .sp .st-links small { font-size: 12.5px; color: var(--mute); }
 @media (max-width: 1100px) { .sp .st-grid { grid-template-columns: 1fr 1fr; } .sp .st-links { grid-column: 1 / -1; } }
 @media (max-width: 760px) { .sp .st-grid { grid-template-columns: 1fr; padding: 16px; } }
+
+/* ── Work, 2.0 visual reset: the field desk on the indigo sheet ───── */
+.sp .wk-head.sheet { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title sum act" "ribbon ribbon ribbon"; border-bottom: 0; background: var(--sheet); row-gap: 16px; }
+.sp .wk-head.sheet .wk-title { grid-area: title; }
+.sp .wk-head.sheet .wk-sum { grid-area: sum; color: var(--sheet-mute); }
+.sp .wk-head.sheet .wk-sum b { color: var(--sheet-ink); }
+.sp .wk-head.sheet .wk-head-act { grid-area: act; }
+.sp .wk-head.sheet h1 { color: var(--sheet-ink); }
+.sp .wk-head.sheet .btn { background: transparent; color: var(--sheet-ink); box-shadow: inset 0 0 0 1px rgba(246, 239, 227, 0.4); border-color: transparent; }
+.sp .wk-ribbon { grid-area: ribbon; display: flex; gap: 3px; min-height: 58px; }
+.sp .wk-ribbon button { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 8px 14px; border: 0; border-radius: 4px; text-align: left; color: #fff; overflow: hidden; transition: filter var(--quick), transform var(--quick) var(--ease); }
+.sp .wk-ribbon button:hover { filter: brightness(1.08); }
+.sp .wk-ribbon button:active { transform: scale(0.985); }
+.sp .wk-ribbon button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--sheet-ink), 0 0 0 2px var(--marigold); }
+.sp .wk-ribbon b { font-size: 30px; line-height: 1; }
+.sp .wk-ribbon span { font-size: 13px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp .wk-ribbon .is-r0 { background: var(--flame); }
+.sp .wk-ribbon .is-r1 { background: var(--turmeric); color: var(--ink); }
+.sp .wk-ribbon .is-r2 { background: var(--sheet-2); box-shadow: inset 0 0 0 1px rgba(246, 239, 227, 0.2); }
+.sp .wk-ribbon .is-r3 { background: var(--terracotta); }
+.sp .wk-chain { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 4px 0 6px; padding: 0; list-style: none; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; min-height: max-content; }
+.sp .wk-chain li { position: relative; display: grid; gap: 2px; padding: 8px 10px 9px 14px; min-width: 0; background: var(--paper); }
+.sp .wk-chain li + li { border-left: 1px solid var(--line); }
+.sp .wk-chain li + li::before { content: ""; position: absolute; left: -5px; top: 50%; width: 8px; height: 8px; border-top: 1px solid var(--line-2); border-right: 1px solid var(--line-2); background: var(--paper); transform: translateY(-50%) rotate(45deg); }
+.sp .wk-chain small { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+.sp .wk-chain span { font-size: 13.5px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.sp .wk-chain .is-urgent { background: var(--flame-soft); }
+.sp .wk-chain .is-urgent span { color: var(--flame-ink); }
+.sp .wk-chain .is-unknown { background: var(--hatch), var(--paper); }
+.sp .wk-chain .is-unknown span { color: var(--ink-3); font-weight: 500; }
+.sp .wk-chain .is-next { background: var(--sheet); }
+.sp .wk-chain .is-next small { color: var(--marigold); }
+.sp .wk-chain .is-next span { color: var(--sheet-ink); }
+.sp .wk-insp { animation: wk-in 220ms var(--ease) both; }
+@keyframes wk-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sp .wk-insp { animation: none; } }
+@media (max-width: 900px) {
+  .sp .wk-head.sheet { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "sum" "ribbon" "act"; }
+  .sp .wk-ribbon { overflow-x: auto; scrollbar-width: none; }
+  .sp .wk-ribbon button { flex: 0 0 auto !important; }
+  .sp .wk-chain { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sp .wk-chain li + li::before { display: none; }
+  .sp .wk-chain li { border-top: 1px solid var(--line); border-left: 0 !important; }
+}

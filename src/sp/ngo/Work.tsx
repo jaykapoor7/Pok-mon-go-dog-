@@ -73,7 +73,7 @@ export function Work() {
   const [text, setText] = useState("");
   const [cell, setCell] = useState<string | null>(null);
   const [sel, setSel] = useState<string | null>(null);
-  const [pane, setPane] = useState<"inspector" | "map">("inspector");
+  const [pane, setPane] = useState<"inspector" | "map">("map");
   const [sheet, setSheet] = useState(false);
   const [limit, setLimit] = useState(80);
   const listRef = useRef<HTMLDivElement>(null);
@@ -163,7 +163,7 @@ export function Work() {
 
   return (
     <div className={`wk${sheet ? " is-sheet" : ""}`}>
-      <header className="wk-head">
+      <header className="wk-head sheet">
         <div className="wk-title">
           <p className="k">{org?.name ?? "Your organisation"} · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
           <h1 className="serif">Work</h1>
@@ -173,6 +173,7 @@ export function Work() {
             <><b>{n(co.live.filter((r) => r.crit && r.kind === "case").length)}</b> critical · <b>{n(co.overdue.length)}</b> follow-ups overdue · <b>{n(co.live.filter((r) => r.kind === "case" && !(r.c?.assignee_name)).length)}</b> live cases nobody holds · <b>{n(co.live.filter((r) => r.kind === "case").length)}</b> live in all.</>
           )}
         </p>
+        {!loading && !failed && cohort === "live" && <Ribbon rows={co.live} focus={focus} onFocus={(f) => { setFocus(f); setSel(null); }} />}
         <div className="wk-head-act">
           <Link href="/ngo/inbox" className="btn is-s">Inbox &amp; triage</Link>
           <Link href="/ngo/field" className="btn is-s">Field mode</Link>
@@ -241,6 +242,27 @@ export function Work() {
   );
 }
 
+/* The triage ribbon: today's live work as one printed strip, divided by priority. Each band filters the queue. */
+function Ribbon({ rows, focus, onFocus }: { rows: Row[]; focus: Focus; onFocus: (f: Focus) => void }) {
+  const by = RANKS.map((g) => ({ ...g, n: rows.filter((r) => queueRank(r) === g.rank).length }));
+  const total = Math.max(1, rows.length);
+  const target: Record<number, Focus> = { 0: "critical", 1: "followup", 2: "all", 3: "followup" };
+  return (
+    <div className="wk-ribbon" role="group" aria-label="Live work by priority">
+      {by.map((g) => g.n > 0 && (
+        <button key={g.rank} type="button" className={`is-r${g.rank}`} style={{ flexGrow: Math.max(g.n / total, 0.08) }} aria-pressed={focus === target[g.rank] && g.rank !== 2} onClick={() => onFocus(focus === target[g.rank] ? "all" : target[g.rank])} title={g.note}>
+          <b className="serif tnum">{n(g.n)}</b><span>{g.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* Priority → place → animal → case → next action: the chain a staff member reads before acting. */
+function Chain({ steps }: { steps: { k: string; v: React.ReactNode; tone?: string }[] }) {
+  return <ol className="wk-chain" aria-label="This case at a glance">{steps.map((s) => <li key={s.k} className={s.tone ? `is-${s.tone}` : undefined}><small>{s.k}</small><span>{s.v}</span></li>)}</ol>;
+}
+
 function QueueRow({ r, on, me, onPick }: { r: Row; on: boolean; me: string; onPick: () => void }) {
   const c = r.c, f = r.f;
   const title = r.kind === "followup" ? `Follow-up · ${(f?.kind ?? "recheck").replace(/_/g, " ")}` : c?.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c?.title || "Open case";
@@ -293,6 +315,13 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
     <div className="wk-insp">
       <p className="k">{reg.case_code ?? "Case"} · {STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported record" : ""}</p>
       <h2 className="serif">{reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title}</h2>
+      <Chain steps={[
+        { k: "Priority", v: row.kind === "followup" ? "Follow-up overdue" : row.crit ? "Critical" : cohort === "live" ? "Open" : cohort === "decide" ? "Needs a decision" : "Historical review", tone: row.crit || row.kind === "followup" ? "urgent" : undefined },
+        { k: "Place", v: c.zone ?? reg.city ?? "Not recorded", tone: c.zone || reg.city ? undefined : "unknown" },
+        { k: "Animal", v: realName(animal?.name) ?? animal?.straypaw_id ?? (c.dog_id ? "Linked" : "Not linked"), tone: c.dog_id ? undefined : "unknown" },
+        { k: "Held by", v: c.assignee_name ?? "Nobody", tone: c.assignee_name ? undefined : "urgent" },
+        { k: "Next", v: reg.next_action ?? "See below", tone: "next" },
+      ]} />
       {reg.condition_text && <p className="body">{reg.condition_text}</p>}
       <dl className="ledger">
         <div><dt>Animal</dt><dd>{c.dog_id ? <Link className="link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</Link> : <span className="pill is-unknown">Not linked</span>}</dd></div>

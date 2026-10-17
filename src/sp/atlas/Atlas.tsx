@@ -47,6 +47,12 @@ export type Scope = "public" | "org";
 export type Variant = "community" | "ngo" | "city";
 
 const PAL = { ...FIELD, labelOpacity: 0.48 };
+/* Licensed paintings for the open sea at national scale (see lib/art/sources). */
+const SEA_ART = [
+  { src: "/art/folk/gond-elephant-tree.webp", at: [65.0, 15.8] as [number, number], w: 118 },
+  { src: "/art/folk/gond-peacocks.webp", at: [90.6, 12.6] as [number, number], w: 104 },
+  { src: "/art/folk/gond-bird.webp", at: [66.4, 23.4] as [number, number], w: 70 },
+];
 const INDIA_BOX: [[number, number], [number, number]] = [[67.5, 6.2], [97.8, 35.8]];
 const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, AREA_ZOOM = 13.2, MAX_DOTS = 140;
 const R_STOPS: [number, number][] = [[6, 2.6], [8, 3.4], [10, 5], [12, 11.5], [13, 23], [16, 184]];
@@ -120,6 +126,8 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   /* Restrained map: the evidence on a quiet ground, without the painted relief and printer's flourishes. */
   const [plain, setPlain] = useState(init.view === "plain");
   const [national, setNational] = useState<NationalCell[]>([]);
+  /* A municipal finding lit on the map: only its areas stay in full colour. */
+  const [spot, setSpot] = useState<{ id: string; cells: Set<string> } | null>(null);
 
   const L = LENSES[lens];
   const q = question(L.q);
@@ -132,6 +140,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   const lastCam = useRef("");
   const pendingPlace = useRef(init.place);
   const labelEls = useRef<{ el: HTMLElement; major: boolean }[]>([]);
+  const artEls = useRef<HTMLElement[]>([]);
 
   /* ── reads ─────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -216,7 +225,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       map = new ml.Map({ container: el.current, style: groundStyle(PAL), bounds: INDIA_BOX, fitBoundsOptions: { padding: 40 },
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, dragRotate: false, pitchWithRotate: false, maxZoom: 16.5, minZoom: 3 });
+        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3 · Sea paintings: Gond art by Bhaiyaji Smile 123, CC BY-SA 4.0, adapted (<a href=\"/art-credits\">credits</a>)" }, dragRotate: false, pitchWithRotate: false, maxZoom: 16.5, minZoom: 3 });
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __atlas?: MLMap }).__atlas = map;
       map.touchZoomRotate.disableRotation();
@@ -236,14 +245,14 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
           m.addImage(e.id, glyphImage(g[1] ? [+g[1], +g[2]] : null, +g[3] as 0 | 1 | 2));
         });
         const empty = { type: "FeatureCollection" as const, features: [] };
-        for (const s of ["edge", "areas", "glyphs", "dots", "zones", "nums", "sel", "cmp", "cities", "national"]) m.addSource(s, { type: "geojson", data: empty });
+        for (const s of ["edge", "areas", "glyphs", "dots", "zones", "nums", "sel", "cmp", "cities", "national", "spot"]) m.addSource(s, { type: "geojson", data: empty });
         /* A printed graticule every 5°, lettered at the edge: geography, not decoration. */
         const grat: GeoJSON.Feature[] = [];
         for (let lng = 65; lng <= 100; lng += 5) grat.push({ type: "Feature", geometry: { type: "LineString", coordinates: [[lng, 2], [lng, 38]] }, properties: { t: `${lng}°E` } });
         for (let lat = 5; lat <= 35; lat += 5) grat.push({ type: "Feature", geometry: { type: "LineString", coordinates: [[60, lat], [102, lat]] }, properties: { t: `${lat}°N` } });
         m.addSource("graticule", { type: "geojson", data: { type: "FeatureCollection", features: grat } });
-        m.addLayer({ id: "graticule", type: "line", source: "graticule", maxzoom: 7.5, paint: { "line-color": "#0b1e3d", "line-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.16, 7.5, 0], "line-width": 0.7, "line-dasharray": [1, 3] } });
-        m.addLayer({ id: "graticule-l", type: "symbol", source: "graticule", maxzoom: 7.5, layout: { "symbol-placement": "line", "symbol-spacing": 420, "text-field": ["get", "t"], "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-letter-spacing": 0.08, "text-keep-upright": true }, paint: { "text-color": "#0b1e3d", "text-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.42, 7.5, 0], "text-halo-color": "#f6efe3", "text-halo-width": 1.4 } });
+        m.addLayer({ id: "graticule", type: "line", source: "graticule", maxzoom: 7.5, paint: { "line-color": "#c9d3ee", "line-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.22, 7.5, 0], "line-width": 0.7, "line-dasharray": [1, 3] } });
+        m.addLayer({ id: "graticule-l", type: "symbol", source: "graticule", maxzoom: 7.5, layout: { "symbol-placement": "line", "symbol-spacing": 420, "text-field": ["get", "t"], "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-letter-spacing": 0.08, "text-keep-upright": true }, paint: { "text-color": "#c9d3ee", "text-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.7, 7.5, 0] } });
         m.addLayer({ id: "edge", type: "symbol", source: "edge", layout: { "icon-image": "h-edge", "icon-size": iconSize(0.92), "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 12, 1, 14.5, 0.4] } });
         m.addLayer({ id: "areas-echo", type: "circle", source: "areas", filter: ["all", ["!=", ["get", "kind"], "unknown"], ["!=", ["get", "pie"], 1]], paint: {
           "circle-radius": radiusK(0.5), "circle-color": "rgba(0,0,0,0)", "circle-translate": [1.6, -1.2],
@@ -270,6 +279,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         } });
         m.addLayer({ id: "cmp", type: "circle", source: "cmp", paint: { "circle-radius": radius(1.2, 6), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.2, "circle-stroke-opacity": 0.9 } });
         m.addLayer({ id: "cmp-n", type: "symbol", source: "cmp", layout: { "text-field": ["get", "n"], "text-font": ["Noto Sans Bold"], "text-size": 12, "text-offset": [1.6, -1.6], "text-allow-overlap": true }, paint: { "text-color": "#fff", "text-halo-color": "#2457ce", "text-halo-width": 3 } });
+        m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": radius(1.15, 5), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f0b45a", "circle-stroke-width": 2.4 } });
         m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": radius(1.12, 4), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": C.ink, "circle-stroke-width": 2.4 } });
         m.addLayer({ id: "sel-echo", type: "circle", source: "sel", paint: { "circle-radius": radius(1.12, 6), "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f05b40", "circle-stroke-width": 1.4, "circle-translate": [2, -2], "circle-stroke-opacity": 0.8 } });
         m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.6, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.6, 10, 14, 13], "text-padding": 1 }, paint: { "text-color": ["get", "ink"], "text-opacity": ["interpolate", ["linear"], ["zoom"], AREA_ZOOM - 0.4, 1, AREA_ZOOM + 0.2, 0] } });
@@ -312,6 +322,16 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
           new ml.Marker({ element: e, anchor: "center" }).setLngLat(r.at).addTo(m);
           return { el: e, major: r.major };
         });
+        /* Openly licensed Gond paintings set in the open sea, as an atlas sets creatures in its margins.
+           Never on land, never near a record: they fade before any city opens. Credited in the map's attribution. */
+        artEls.current = SEA_ART.map((a) => {
+          const e = document.createElement("figure");
+          e.className = "atlas-art"; e.setAttribute("aria-hidden", "true");
+          e.style.setProperty("--w", `${a.w}px`);
+          e.innerHTML = `<img alt="" src="${a.src}" draggable="false" />`;
+          new ml.Marker({ element: e, anchor: "center" }).setLngLat(a.at).addTo(m);
+          return e;
+        });
         setZoom(m.getZoom());
         setReady(true);
       });
@@ -328,13 +348,15 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   useEffect(() => {
     const m = mapRef.current; if (!m || !ready) return;
     setRegionsVisible(m, !plain);
-    for (const id of ["fa-waves", "fa-sea-names", "fa-border-echo", "fa-park-hatch", "fa-water-echo", "graticule", "graticule-l", "areas-echo", "national-echo", "cities-echo", "sel-echo"]) if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", plain ? "none" : "visible");
+    for (const id of ["fa-waves", "fa-sea-names", "fa-border-echo", "fa-ripple-0", "fa-ripple-1", "fa-ripple-2", "fa-ripple-3", "fa-park-hatch", "fa-water-echo", "graticule", "graticule-l", "areas-echo", "national-echo", "cities-echo", "sel-echo"]) if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", plain ? "none" : "visible");
+    if (m.getLayer("india-mask")) m.setPaintProperty("india-mask", "fill-color", plain ? "#ece5d8" : ["interpolate", ["linear"], ["zoom"], 6.5, "#1f2a5c", 8.5, "#e9e0cf"]);
   }, [plain, ready, inked]);
   useEffect(() => {
     for (const { el: e, major } of labelEls.current) {
-      const on = !plain && level === "india" && zoom < 7 && (major || zoom >= 4.7);
+      const on = !plain && level === "india" && zoom < 7 && (major || zoom >= 5.4);
       e.classList.toggle("is-on", on);
     }
+    for (const e of artEls.current) e.classList.toggle("is-on", !plain && level === "india" && zoom < 6.6);
   }, [plain, level, zoom, ready]);
 
   const live = useRef({ cells, city, comparing, cmp });
@@ -355,8 +377,8 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   };
   const toggleCompare = useCallback((h3: string) => { setCmp((x) => (x.includes(h3) ? x.filter((y) => y !== h3) : [...x, h3].slice(-3))); }, []);
 
-  const openCity = useCallback((name: string) => { setCity(name); setAreaH3(null); setAnimalId(null); setIsolate(null); setRange(null); setCmp([]); setSheet("half"); }, []);
-  const goIndia = useCallback(() => { setCity(null); setAreaH3(null); setAnimalId(null); setIsolate(null); setRange(null); setCmp([]); setComparing(false); }, []);
+  const openCity = useCallback((name: string) => { setSpot(null); setCity(name); setAreaH3(null); setAnimalId(null); setIsolate(null); setRange(null); setCmp([]); setSheet("half"); }, []);
+  const goIndia = useCallback(() => { setSpot(null); setCity(null); setAreaH3(null); setAnimalId(null); setIsolate(null); setRange(null); setCmp([]); setComparing(false); }, []);
 
   /* Zoom is navigation: out past a city returns to India; in near a city opens it. */
   useEffect(() => {
@@ -397,7 +419,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     const now = Date.now();
     (m.getSource("national") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: showNational ? national.map(([lng, lat, a, last]) => {
       const b = bucketOf(last, now);
-      return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [lng, lat] }, properties: { r: 1.6 + Math.min(5.5, Math.sqrt(a) * 0.55), color: by === "ster" ? "#2457ce" : b?.color ?? "#f6efe3", u: by === "recent" && !b ? 1 : 0 } };
+      return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [lng, lat] }, properties: { r: 2.4 + Math.min(7, Math.sqrt(a) * 0.7), color: by === "ster" ? "#2457ce" : b?.color ?? "#f6efe3", u: by === "recent" && !b ? 1 : 0 } };
     }) : [] });
   }, [ready, showNational, national, by]);
 
@@ -413,13 +435,14 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     const pies = animalsAll && by === "ster", recent = animalsAll && by === "recent";
     const now = Date.now();
     const maxA = Math.sqrt(Math.max(1, ...cells.map((c) => c.animals)));
+    const dimOf = (c: MapCell, key: string) => (spot ? (spot.cells.has(c.h3) ? 0 : 1) : isolate && isolate !== key ? 1 : 0);
     set("areas", cells.map((c, i) => {
       const k = byId.get(classOf[i]); const v = q.measure(c, facet, ctx, i);
       const yes = c.animals ? Math.round((c.ster_yes / c.animals) * 12) : 0, no = c.animals ? Math.min(12 - yes, Math.round((c.ster_no / c.animals) * 12)) : 0;
       const rb = recent ? bucketOf(lastRecorded(c), now) : null;
-      if (recent) return pt(centers[i], { pie: 0, k: 0.55 + (Math.sqrt(c.animals) / maxA) * 0.85, i, kind: rb ? "value" : "unknown", color: rb?.color ?? C.zeroFill, pattern: "h-quiet", dim: isolate && isolate !== (rb?.id ?? "rx") ? 1 : 0, multi: 0,
+      if (recent) return pt(centers[i], { pie: 0, k: 0.55 + (Math.sqrt(c.animals) / maxA) * 0.85, i, kind: rb ? "value" : "unknown", color: rb?.color ?? C.zeroFill, pattern: "h-quiet", dim: dimOf(c, rb?.id ?? "rx"), multi: 0,
         title: placeName(c.zone), line: `${c.animals.toLocaleString("en-IN")} animals · last recorded ${rb ? rb.label.toLowerCase() : "on no recorded date"}` });
-      return pt(centers[i], { pie: pies && c.animals ? 1 : 0, pi: `p:${yes}-${no}`, k: pies ? 0.62 + (Math.sqrt(c.animals) / maxA) * 0.75 : 1, i, kind: k?.kind ?? "zero", color: k?.color ?? C.zeroFill, pattern: pattern(classOf[i]), dim: isolate && isolate !== classOf[i] ? 1 : 0, multi: L.q === "orgs" && c.orgs.length > 1 ? 1 : 0,
+      return pt(centers[i], { pie: pies && c.animals ? 1 : 0, pi: `p:${yes}-${no}`, k: pies ? 0.62 + (Math.sqrt(c.animals) / maxA) * 0.75 : 1, i, kind: k?.kind ?? "zero", color: k?.color ?? C.zeroFill, pattern: pattern(classOf[i]), dim: dimOf(c, classOf[i]), multi: L.q === "orgs" && c.orgs.length > 1 ? 1 : 0,
         title: placeName(c.zone), line: pies ? `${c.animals.toLocaleString("en-IN")} animals · ${c.ster_yes} sterilised, ${c.ster_no} recorded not, ${Math.max(0, c.animals - c.ster_yes - c.ster_no)} not recorded` : `${k?.label ?? ""}${v ? ` · ${v.toLocaleString("en-IN")} ${q.unit(facet)}` : ""}` });
     }));
     set("glyphs", animalsAll ? [] : cells.map((c, i) => {
@@ -447,7 +470,8 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
       seedHead(centers[i], nAll).forEach((p, j) => dots.push(pt(p, { i, color: colors[j] })));
     });
     set("dots", dots);
-  }, [ready, city, cells, centers, classOf, classes, isolate, L.q, facet, q, ctx, data, places, zoom, orgColor, by]);
+    (m.getSource("spot") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: spot ? cells.flatMap((c, i) => (spot.cells.has(c.h3) ? [pt(centers[i])] : [])) : [] });
+  }, [ready, city, cells, centers, classOf, classes, isolate, L.q, facet, q, ctx, data, places, zoom, orgColor, by, spot]);
 
   /* Selection and comparison rings. */
   useEffect(() => {
@@ -463,6 +487,14 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     const w = el.current?.clientWidth ?? 1200, h = el.current?.clientHeight ?? 800;
     return w > 900 ? { top: 150, bottom: 120, left: 60, right: 460 } : { top: 130, bottom: Math.round(h * 0.42), left: 16, right: 16 };
   }, []);
+  /* Lighting a finding moves the camera to the areas it rests on. */
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready || !spot) return;
+    const pts = cells.flatMap((c, i) => (spot.cells.has(c.h3) ? [centers[i]] : []));
+    if (!pts.length) return;
+    const b = coreBounds(pts);
+    m.fitBounds(b, { padding: pad(), maxZoom: 13, duration: reduced() ? 0 : 1100, easing: travel });
+  }, [spot, ready, cells, centers, pad]);
   useEffect(() => {
     const m = mapRef.current; if (!m || !ready) return;
     const key = `${level}:${city}:${areaH3}:${cells.length}:${level === "india" ? cities.length : 0}:${recentre}`;
@@ -535,7 +567,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   const monthMax = Math.max(1, ...months.map((x) => (L.q === "needs" ? x.opened : x.care)));
 
   return (
-    <div className={`atlas is-${level} v-${variant}`} data-sheet={sheet}>
+    <div className={`atlas is-${level} v-${variant}${plain ? " is-plain" : ""}`} data-sheet={sheet}>
       <div className="atlas-map" ref={el} role="application" aria-label={`Map of ${place}. ${L.define} The panel lists the same places and figures.`} />
       {mapError && <p className="atlas-err float" role="status">{mapError}</p>}
       {hover && <div className="atlas-tip" style={{ left: hover.x + 14, top: hover.y + 14 }} aria-hidden><b>{hover.title}</b><span>{hover.line}</span></div>}
@@ -549,7 +581,9 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         </nav>
         {variant === "city" && <p className="atlas-kicker k">City evidence · {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>}
         {variant === "ngo" && <p className="atlas-kicker k">Your organisation&rsquo;s open work</p>}
+        {level === "india" && variant === "community" && <p className="atlas-kicker k">The Living Field Atlas · street animals on the record</p>}
         <h1 className="serif">{place}</h1>
+        {level === "india" && scope === "public" && <p className="atlas-hiname hi" lang="hi">भारत</p>}
         {ev && <p className="atlas-ev"><i style={{ background: KINDS[ev.kind].ink }} aria-hidden />{KINDS[ev.kind].label} · {ev.precision}</p>}
         {cityState === "loading" && <p className="atlas-ev" role="status">Reading {city}&rsquo;s areas…</p>}
         {cityState === "error" && <p className="atlas-ev is-err" role="alert">{city} could not be read. That is not the same as no records. <button type="button" className="link" onClick={() => { const c = city; setCity(null); window.setTimeout(() => setCity(c), 0); }}>Retry</button></p>}
@@ -631,6 +665,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         onPlace={flyTo} onSheet={setSheet} onCompare={toggleCompare} onClearCompare={() => setCmp([])}
         onOpenRecord={(id) => router.push(`/animal/${id}?from=${encodeURIComponent(window.location.pathname + window.location.search)}`)}
         nationalMeasure={(c) => nationalMeasure(lens, c)}
+        spot={spot?.id ?? null} onSpot={(id, list) => setSpot(id ? { id, cells: new Set(list) } : null)}
         by={by} onBy={(b) => { setBy(b); setIsolate(null); }} national={showNational ? national : []} plain={plain}
       />
     </div>

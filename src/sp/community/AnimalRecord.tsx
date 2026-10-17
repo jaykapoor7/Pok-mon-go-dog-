@@ -21,6 +21,7 @@ import { RecordActions, BackToMap, CasefileLink } from "./RecordActions";
 import "./community.css";
 
 const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }) : "date not recorded");
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 const LANE: Record<LivingEvent["lane"], string> = { case: "Request", care: "Care", follow: "Follow-up", sight: "Sighting" };
 const SOURCE: Record<LivingEvent["source"], string> = { field: "recorded by an organisation", resident: "reported by a resident", import: "from an imported register" };
 
@@ -41,35 +42,51 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
   ].filter(Boolean) as { t: string; a: string }[];
   const describe = [r.species === "dog" ? "Street dog" : r.species, r.sex, r.size, r.colour].filter(Boolean).join(" · ");
 
+  const sightings = r.events.filter((e) => e.lane === "sight").length, careN = r.events.filter((e) => e.lane === "care").length, casesN = r.events.filter((e) => e.lane === "case").length;
+  const place = publicLocality(r.locality);
   return (
     <article className="ar">
-      <div className="ar-bar page"><BackToMap /><CasefileLink id={r.id} ngoId={ngoId} /></div>
-      <header className="ar-hero page">
-        <div className="ar-photo">
-          <Portrait src={r.photo} tag={r.straypawId ?? r.label} sensitive={r.photoSensitive} credit={r.photoAttribution} size="l" alt={`Photograph of ${r.label}`} />
-          {r.photos.length > 1 && <p className="k">{r.photos.length} photographs on the record</p>}
+      {/* The record's head, printed on the indigo sheet like the atlas it was opened from. */}
+      <header className="ar-sheet sheet">
+        <div className="ar-bar page"><BackToMap /><CasefileLink id={r.id} ngoId={ngoId} /></div>
+        <div className="ar-hero page">
+          <div className="ar-photo">
+            <Portrait src={r.photo} tag={r.straypawId ?? r.label} sensitive={r.photoSensitive} credit={r.photoAttribution} size="l" alt={`Photograph of ${r.label}`} puppy={r.size === "puppy"} />
+            {r.photos.length > 1 && <p className="k">{r.photos.length} photographs on the record</p>}
+          </div>
+          <div className="ar-id">
+            <p className="ar-strip mono"><span>StrayPaw ID</span>{r.straypawId ?? "pending"}{r.sourceCode ? <><span>Source</span>{r.sourceCode}</> : null}</p>
+            <h1 className="ar-name serif">{r.label}</h1>
+            <p className="ar-desc">{describe || "Description not recorded"}{place ? <> · recorded in <b className="serif">{place}</b>{r.city ? `, ${r.city}` : ""}</> : r.city ? <> · {r.city}</> : null}</p>
+            <dl className="ar-span">
+              <div><dt>On the record since</dt><dd className="serif">{day(r.firstSeen)}</dd></div>
+              <div><dt>Last recorded</dt><dd className="serif">{day(r.lastSeen)}</dd></div>
+              <div><dt>Entries</dt><dd className="serif tnum">{r.events.length}</dd><small>{sightings} sighting{sightings === 1 ? "" : "s"} · {careN} care · {casesN} request{casesN === 1 ? "" : "s"}</small></div>
+            </dl>
+            <RecordActions id={r.id} label={r.label} />
+          </div>
         </div>
-        <div className="ar-id">
-          <p className="ar-strip mono">{r.straypawId ?? "StrayPaw ID pending"}{r.sourceCode ? <> · source {r.sourceCode}</> : null}</p>
-          <h1 className="display">{r.label}</h1>
-          <p className="lede">{describe || "Description not recorded"}</p>
-          <p className="ar-where"><span className="serif">{publicLocality(r.locality) ?? "Locality not published"}</span>{r.city ? <>, {r.city}</> : null}<small> · shown by area, never the exact spot</small></p>
-          <dl className="ar-facts">
-            {facts.map((f) => <div key={f.label}><dt>{f.label}</dt><dd><span className={`pill ${f.tone === "care" ? "is-care" : f.tone === "urgent" ? "is-urgent" : f.tone === "unknown" ? "is-unknown" : "is-plain"}`}>{f.value}</span></dd></div>)}
-          </dl>
-          <RecordActions id={r.id} label={r.label} />
-          <p className="small">Identity: one StrayPaw ID across every organisation that records it. Matches between records are made by people, reviewable and reversible; a likeness alone never merges two animals.</p>
-        </div>
+        <div className="selvedge" aria-hidden />
       </header>
+
+      {/* What the record says, and what it does not: four facts, each with its own state. */}
+      <section className="ar-ledger page" aria-labelledby="ar-ledger-h">
+        <h2 id="ar-ledger-h" className="k">What the record says</h2>
+        <dl className="ar-facts">
+          {facts.map((f) => <div key={f.label} className={`is-${f.tone}`}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
+        </dl>
+        <p className="small">Hatched means the record does not say. Not recorded is never counted as no. Identity: one StrayPaw ID across every organisation that records it; matches are made by people, reviewable and reversible, and a likeness alone never merges two animals.</p>
+      </section>
 
       <div className="ar-body page">
         <section className="ar-life" aria-labelledby="ar-life-h">
-          <h2 id="ar-life-h" className="h2">On the record</h2>
-          <p className="small">First recorded {day(r.firstSeen)} · last seen {day(r.lastSeen)}. Each line says where it came from. Gaps in time are gaps in reporting, not a quiet life or a missing animal.</p>
+          <p className="k">A life on the record</p>
+          <h2 id="ar-life-h" className="h2">Chapters, by year</h2>
+          <p className="small">Each line says where it came from. Gaps in time are gaps in reporting, not a quiet life or a missing animal.</p>
           {r.events.length === 0 && <p className="body">Nothing dated yet beyond the profile itself.</p>}
-          {[...years.entries()].map(([y, list]) => (
+          {[...years.entries()].map(([y, list], ci) => (
             <section key={y} className="ar-year">
-              <h3 className="ar-y serif">{y}</h3>
+              <h3 className="ar-y"><small className="mono">Chapter {ROMAN[ci] ?? ci + 1}</small><span className="serif">{y}</span></h3>
               <ol className="chrono">
                 {list.map((e) => (
                   <li key={e.id} className={`is-${e.lane === "case" ? (e.tone === "open" ? "urgent" : "report") : e.lane === "care" ? "care" : e.lane === "follow" ? "followup" : "sight"}`}>

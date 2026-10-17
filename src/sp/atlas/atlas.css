@@ -218,8 +218,8 @@
 .sp .atlas-region { pointer-events: none; opacity: 0; transition: opacity 420ms var(--ease); }
 .sp .atlas-region.is-on { opacity: 1; }
 .sp .atlas-region > span { display: flex; flex-direction: column; align-items: center; line-height: 1; white-space: nowrap; }
-.sp .atlas-region b { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 13px; letter-spacing: 0.06em; color: var(--rc, #6b4a2f); text-shadow: 0 0 3px #f6efe3, 0 0 6px #f6efe3; }
-.sp .atlas-region i { font-style: normal; font-size: 11px; margin-top: 2px; color: var(--rc, #6b4a2f); opacity: 0.85; text-shadow: 0 0 3px #f6efe3; }
+.sp .atlas-region b { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 13px; letter-spacing: 0.06em; color: var(--rc, #6b4a2f); text-shadow: 0 0 2px #f6efe3, 0 0 2px #f6efe3; }
+.sp .atlas-region i { font-style: normal; font-size: 11px; margin-top: 2px; color: var(--rc, #6b4a2f); opacity: 0.85; text-shadow: 0 0 2px #f6efe3; }
 .sp .atlas-region.is-major b { font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; }
 .sp .atlas-region.is-major i { font-size: 13px; }
 .sp .atlas-region.is-range { --rc: #7d2a3c; }
@@ -242,3 +242,30 @@
 .sp .insp-relief ul { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0 0 6px; padding: 0; font-size: 13px; color: var(--ink-2); }
 .sp .insp-relief li { display: flex; align-items: center; gap: 6px; }
 .sp .insp-relief i { width: 16px; height: 11px; border-radius: 2px; border: 1px solid; }
+
+/* Licensed sea paintings: margin art at national scale only. */
+.sp .atlas-art { margin: 0; pointer-events: none; opacity: 0; transform: translateY(6px) scale(0.96); transition: opacity 600ms var(--ease), transform 900ms var(--ease); }
+.sp .atlas-art.is-on { opacity: 0.94; transform: none; }
+.sp .atlas-art img { display: block; width: var(--w); height: auto; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25)); }
+@media (max-width: 720px) { .sp .atlas-art img { width: calc(var(--w) * 0.55); } }
+@media (prefers-reduced-motion: reduce) { .sp .atlas-art { transition: none; transform: none; } }
+
+/* National scale on the indigo sheet: the page heading is printed in paper ink. */
+.sp .atlas.is-india:not(.is-plain) .atlas-place h1 { color: #f6efe3; text-shadow: none; }
+.sp .atlas.is-india:not(.is-plain) .atlas-place .atlas-kicker { color: #c9d3ee; }
+.sp .atlas-hiname { margin-top: 4px; font-size: clamp(22px, 2.4vw, 32px); line-height: 1.2; color: #f0b45a; }
+.sp .atlas.is-plain .atlas-hiname { color: var(--ink-2); }
+
+/* Findings read in place. */
+.sp .insp-findings ol { display: grid; gap: 0; margin: 8px 0 0; padding: 0; list-style: none; }
+.sp .insp-findings li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 14px 0; border-top: 1px solid var(--line); }
+.sp .insp-fn { font-size: 34px; line-height: 0.9; color: var(--ink-3); }
+.sp .insp-findings li.is-act .insp-fn { color: var(--flame-ink); }
+.sp .insp-findings li.is-gap .insp-fn { color: var(--amber); }
+.sp .insp-findings li.is-care .insp-fn { color: var(--teal); }
+.sp .insp-findings li.is-quiet .insp-fn { color: var(--lac); }
+.sp .insp-findings li > div { display: grid; gap: 6px; justify-items: start; }
+.sp .insp-fl { font-family: var(--serif); font-size: 21px; line-height: 1.15; color: var(--ink); }
+.sp .insp-fm { font-size: 11px; color: var(--mute); }
+.sp .insp-findings li.is-on { background: linear-gradient(90deg, rgba(240, 180, 90, 0.18), transparent); box-shadow: inset 3px 0 0 #f0b45a; padding-left: 10px; }
+.sp .insp-findings .btn[aria-pressed="true"] { background: var(--ink); color: #fbf6ee; }
