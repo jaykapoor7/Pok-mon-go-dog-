@@ -1,6 +1,21 @@
 # StrayPaw 2.0 — acceptance
 
-## Visual reset (latest)
+## Final visual quality pass
+
+Gallery refreshed from a production build of commit b6d268e: 63 captures, 0 px overflow, no page errors, e2e 78/78.
+
+What changed in this pass:
+- **Atlas.** Night print at every scale below India. A cartouche replaces the sea paintings. The preview grows into the record band when you open a record.
+- **Municipality.** Lit findings list their areas and quiet unrelated labels.
+- **Phone.** A contextual sheet peek; lenses in thumb reach.
+- **Animal record.** Leads with next action, last activity and care history.
+- **NGO Work.** The next step comes first, selection is stronger, and the selected case is pinned under the map.
+- **Pages.** Briefs on secondary operational pages.
+- **Academy.** Lesson tally and a counting-rule bar.
+
+**Release blocker.** `org_volunteers()` returns sign-ups from all of StrayPaw to any NGO member. The release is blocked until backend isolation is verified.
+
+## Visual reset
 
 The visual reset replaced the restrained look:
 - **Printed identity.** An indigo printed sheet and an original selvedge ornament.
