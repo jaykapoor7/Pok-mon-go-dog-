@@ -13,7 +13,9 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { getSupabase } from "@/lib/supabase";
-import { addCaseFollowup, assignCase, claimCase, updateCaseFollowupStatus, updateCaseStatus, type Actor } from "@/lib/case-actions";
+import { ngoSetDogCare } from "@/lib/actions";
+import { addMedicalEvent } from "@/lib/animal-actions";
+import { addCaseFollowup, assignCase, claimCase, createCase, updateCaseFollowupStatus, updateCaseStatus, type Actor, type CreateCaseInput } from "@/lib/case-actions";
 import { reviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
 import { spatialChanged } from "@/lib/spatial/refresh";
 import type { CaseResolution } from "@/lib/types";
@@ -55,3 +57,15 @@ export const addNote = (id: string, actor: Actor, note: string) => run(`note:${i
   spatialChanged();
   return true;
 });
+
+/** A care event on an animal: a recorded claim by the organisation, never a clinician's sign-off. */
+export const recordCare = (dogId: string, v: { kind: string; date: string | null; notes: string; by: string }) =>
+  run(`care:${dogId}`, "Care event added to the history", async () => { const id = await addMedicalEvent({ dogId, kind: v.kind, eventDate: v.date, notes: v.notes || undefined, performedBy: v.by || undefined }); return !!id && id !== "demo-event"; });
+export const setNeedsHelp = (dogId: string, on: boolean) => run(`help:${dogId}`, on ? "Flagged as needing help" : "Flag cleared", () => ngoSetDogCare(dogId, { needs_help: on }));
+
+/** Open a case. The receipt carries the new id only when the database returned one. */
+export async function openCase(input: CreateCaseInput, actor: Actor): Promise<Receipt & { id?: string }> {
+  let id: string | null = null;
+  const r = await run(`new:${input.title}:${input.dogId ?? ""}`, "Case opened", async () => { id = await createCase(input, actor); return !!id && id !== "demo-case"; });
+  return r.ok && id ? { ...r, id } : r;
+}

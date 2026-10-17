@@ -51,29 +51,6 @@
 .sp .rp-track li.is-on i { background: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft); }
 .sp .rp-track small { font-family: var(--mono); font-size: 11px; color: var(--teal); }
 
-/* ── place picker ──────────────────────────────────────────────────── */
-.sp .picker { position: relative; display: grid; gap: 10px; }
-.sp .picker-tools { display: flex; gap: 8px; flex-wrap: wrap; }
-.sp .picker-tools .search { flex: 1 1 240px; }
-.sp .picker-hits { position: absolute; z-index: 5; top: 50px; left: 0; right: 0; max-height: 240px; overflow-y: auto; padding: 6px; }
-.sp .picker-hits button { display: block; width: 100%; padding: 10px; border: 0; border-radius: 8px; background: none; text-align: left; font-size: 14px; }
-.sp .picker-hits button:hover { background: var(--blue-soft); }
-.sp .picker-map { position: relative; height: 360px; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px var(--line-2); background: #efe6d6; }
-.sp .picker-canvas { position: absolute; inset: 0; }
-.sp .picker-pin { position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -100%); color: var(--flame); filter: drop-shadow(0 4px 6px rgba(11, 30, 61, 0.35)); pointer-events: none; }
-.sp .picker-pin svg { fill: rgba(240, 91, 64, 0.2); }
-.sp .picker-err { position: absolute; inset: auto 12px 12px; padding: 8px 12px; border-radius: 10px; background: var(--paper); font-size: 13px; }
-.sp .picker-label { font-size: 14px; color: var(--ink-2); }
-
-@media (max-width: 960px) {
-  .sp .rp { grid-template-columns: 1fr; gap: 24px; padding-top: 16px; }
-  .sp .rp-draft { position: static; order: -1; display: none; }
-  .sp .rp-doors, .sp .rp-problems { grid-template-columns: 1fr; }
-  .sp .rp-door { min-height: 0; padding: 20px; }
-  .sp .rp-door b { font-size: 30px; }
-  .sp .picker-map { height: 300px; }
-}
-
 /* ── my activity ───────────────────────────────────────────────────── */
 .sp .act { display: grid; gap: 22px; padding-top: 32px; padding-bottom: 64px; max-width: 980px; }
 .sp .act-head { display: grid; gap: 12px; }

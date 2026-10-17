@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
+import "./picker.css";
 import { Crosshair, MapPin, Search } from "lucide-react";
 import { groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
 import { reverseGeocode, nearestCity } from "@/lib/delhi";
