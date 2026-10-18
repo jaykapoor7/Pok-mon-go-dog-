@@ -22,6 +22,9 @@
 -- The helpers table still has no SELECT policy for anon or
 -- authenticated: org_volunteers() is the only read path for members.
 -- Idempotent; additive (one nullable column, one index); safe to re-run.
+-- Not wired into scripts/db-migrate.mjs on purpose: a change to that file on
+-- main triggers rollout-migrate.yml against production. Apply this file only
+-- with the owner's approval (Supabase SQL editor, or register a set then).
 -- Depends on: helpers.sql, helpers-acknowledge.sql, ngo_members, dogs.ngo_id.
 -- ════════════════════════════════════════════════════════════════
 

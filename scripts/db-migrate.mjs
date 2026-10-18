@@ -26,8 +26,6 @@ const SETS = {
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   personal: ["personal-access-codes.sql"],
   delhi: ["seed-delhi-photographs.sql"],
-  /* StrayPaw 2.0 release: database changes the 2.0 code depends on. Additive, idempotent. */
-  "release-2-0": ["release-2-0-volunteer-isolation.sql"],
 };
 
 function districts() {
