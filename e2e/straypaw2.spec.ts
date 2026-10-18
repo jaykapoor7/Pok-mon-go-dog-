@@ -42,12 +42,31 @@ test("the landing page still renders its hero", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("the atlas opens on India and names its unit", async ({ page }) => {
+test("the Map opens on India with its lenses and search", async ({ page }) => {
   const errors = errorsOf(page);
   await page.goto("/community");
-  await expect(page.locator("canvas").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator(".fm-map canvas").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("India");
+  for (const name of ["Animals", "Needs help", "Open requests", "Sterilisation records"]) await expect(page.getByRole("button", { name, exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Needs help", exact: true }).click();
+  await expect(page).toHaveURL(/lens=help/);
   await noOverflow(page);
   expect(errors).toEqual([]);
+});
+
+test("the Municipality map opens on its evidence layers", async ({ page }) => {
+  const errors = errorsOf(page);
+  await page.goto("/city");
+  await expect(page.locator(".fm-map canvas").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: "ABC · sterilisation" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /Report here|Open a case here/ })).toHaveCount(0);
+  await noOverflow(page);
+  expect(errors).toEqual([]);
+});
+
+test("the NGO map explains itself when signed out", async ({ page }) => {
+  await page.goto("/ngo/map");
+  await expect(page.getByText(/only for members of an organisation/)).toBeVisible();
 });
 
 test.describe("reporting", () => {
