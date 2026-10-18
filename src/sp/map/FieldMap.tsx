@@ -32,7 +32,7 @@ import { RECENCY, bucketOf, lastRecorded } from "../atlas/recency";
 import { coreBounds, haversineKm, seedHead } from "../atlas/geo";
 import { KINDS, cityEvidence, kindOf } from "../atlas/evidence";
 import { LENSES, lensFigure, nationalMeasure, type LensId } from "../atlas/lenses";
-import { GLYPHS, ORNAMENT, drawGround, groundStyle, regionLabels } from "./ground";
+import { GLYPHS, ORNAMENT, collapseAttribution, drawGround, groundStyle, regionLabels } from "./ground";
 import { BLOOM_PX, MARK, PAW_PX, ROSETTE_PX, bloom, edgeRing, paw, rosette, sterPetals } from "./marks";
 import { Chrome, type Face, type Level } from "./Chrome";
 import { MAP_LENSES, type MapLens } from "./lens";
@@ -217,6 +217,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
         m.on("movestart", (e) => { userMove.current = !!(e as { originalEvent?: unknown }).originalEvent; setHover(null); setMoving(true); });
         m.on("moveend", () => { setZoom(m.getZoom()); const c = m.getCenter(); setCenter([c.lng, c.lat]); setMoved((n) => n + 1); setMoving(false); });
         drawGround(m, "nat").then(() => setInked((n) => n + 1)).catch(() => {});
+        collapseAttribution(m);
         /* Regions lettered in HTML in Kalam and Tiro Devanagari: the map's own text engine cannot shape Devanagari. */
         htmlEls.current.regions = regionLabels().map((r) => {
           const e = document.createElement("div");

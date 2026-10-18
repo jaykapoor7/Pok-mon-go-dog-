@@ -1,0 +1,83 @@
+"use client";
+
+/* ════════════════════════════════════════════════════════════════════
+   The Map under a report. The same illustrated ground as the Map, with
+   a vermilion pin where the animal is. While choosing the place the map
+   is the picker: drag it under the fixed pin, search a street, or use
+   where you are. Otherwise it is the scene the report belongs to.
+
+   The exact point is seen only by reviewers and organisations; the
+   public record only ever shows its area (≈0.74 km²).
+   ════════════════════════════════════════════════════════════════════ */
+
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import type { Map as MLMap, Marker } from "maplibre-gl";
+import { supportsWebGL2 } from "@/components/map/basemap";
+import { reverseGeocode, nearestCity } from "@/lib/delhi";
+import { looksIndian } from "@/lib/exif";
+import { GLYPHS, collapseAttribution, drawGround, groundStyle } from "./ground";
+
+export type Picked = { lat: number; lng: number; zone: string };
+export type StageHandle = { fly: (lat: number, lng: number, z?: number) => void };
+
+const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng: number } | null; picking: boolean; onPick: (p: Picked) => void; onLabel?: (s: string | null) => void }>(
+  function ReportStage({ coords, picking, onPick, onLabel }, ref) {
+    const el = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<MLMap | null>(null);
+    const pin = useRef<Marker | null>(null);
+    const cb = useRef({ onPick, onLabel, picking }); cb.current = { onPick, onLabel, picking };
+    const start = useRef(coords);
+    const [failed, setFailed] = useState(false);
+    const [ready, setReady] = useState(false);
+
+    useImperativeHandle(ref, () => ({ fly: (lat, lng, z = 17) => mapRef.current?.flyTo({ center: [lng, lat], zoom: z, duration: reduced() ? 0 : 1100 }) }), []);
+
+    useEffect(() => {
+      if (!el.current) return;
+      if (!supportsWebGL2()) { setFailed(true); return; }
+      let dead = false, map: MLMap | null = null, t: number | undefined;
+      import("maplibre-gl").then((ml) => {
+        if (dead || !el.current) return;
+        ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
+        const s = start.current;
+        map = new ml.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, center: s ? [s.lng, s.lat] : [80.2, 22.4], zoom: s ? 15.5 : 4,
+          attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth" }, dragRotate: false, pitchWithRotate: false, maxZoom: 18 });
+        mapRef.current = map;
+        map.touchZoomRotate.disableRotation();
+        map.on("load", () => { drawGround(map!).catch(() => {}); collapseAttribution(map!); setReady(true); });
+        const e = document.createElement("div"); e.className = "rs-pin"; e.innerHTML = "<i></i>";
+        pin.current = new ml.Marker({ element: e, anchor: "bottom" }).setLngLat(s ? [s.lng, s.lat] : [80.2, 22.4]);
+        if (s) pin.current.addTo(map);
+        map.on("moveend", () => {
+          if (!cb.current.picking) return;
+          const c = map!.getCenter();
+          if (map!.getZoom() < 12) { cb.current.onLabel?.(null); return; }
+          window.clearTimeout(t);
+          t = window.setTimeout(() => {
+            if (!looksIndian(c.lat, c.lng)) { cb.current.onLabel?.("Outside India"); return; }
+            const near = nearestCity(c.lat, c.lng);
+            cb.current.onPick({ lat: c.lat, lng: c.lng, zone: near });
+            reverseGeocode(c.lat, c.lng).then((z) => cb.current.onPick({ lat: c.lat, lng: c.lng, zone: z })).catch(() => {});
+          }, 250);
+        });
+      }).catch(() => setFailed(true));
+      return () => { dead = true; window.clearTimeout(t); map?.remove(); mapRef.current = null; };
+    }, []);
+
+    /* Outside the picker the map follows the report's place; inside it, the place follows the map. */
+    useEffect(() => {
+      const m = mapRef.current; if (!m) return;
+      if (picking) { pin.current?.remove(); m.dragPan.enable(); m.scrollZoom.enable(); if (!coords) m.flyTo({ center: m.getCenter(), zoom: Math.max(m.getZoom(), 4.4), duration: 0 }); return; }
+      if (coords) { pin.current?.setLngLat([coords.lng, coords.lat]).addTo(m); m.flyTo({ center: [coords.lng, coords.lat], zoom: Math.max(15.5, Math.min(m.getZoom(), 17)), duration: reduced() ? 0 : 1000 }); }
+    }, [coords, picking, ready]);
+
+    return (
+      <div className={`rs${picking ? " is-picking" : ""}`}>
+        <div ref={el} className="rs-map" aria-hidden={!picking} />
+        {picking && <span className="rs-fixed" aria-hidden><i /></span>}
+        {failed && <p className="rs-err">This browser cannot draw the map. Search for the place instead.</p>}
+      </div>
+    );
+  });

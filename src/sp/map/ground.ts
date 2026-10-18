@@ -212,3 +212,9 @@ export async function drawGround(map: MLMap, beforeId?: string): Promise<boolean
 
 /** Layers that are national ornament: hidden in the quiet view. */
 export const ORNAMENT = ["g-coast-0", "g-coast-1", "g-coast-2", "g-border-echo", ...Object.keys(RELIEF).flatMap((k) => [`g-r-${k}`, `g-r-${k}-wash`])];
+
+/** MapLibre opens its compact attribution expanded; on a small screen it covers the map. Start it folded. */
+export function collapseAttribution(map: MLMap) {
+  const a = map.getContainer().querySelector(".maplibregl-ctrl-attrib");
+  if (a && map.getContainer().clientWidth < 900) a.classList.remove("maplibregl-compact-show");
+}

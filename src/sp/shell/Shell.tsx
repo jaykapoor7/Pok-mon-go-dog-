@@ -77,11 +77,11 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
   const visible = ORDER.filter((id) => !WORKSPACES[id].members || mem.member || ws === id);
   const reporting = path.startsWith("/community/report");
   /* Map destinations own the whole screen beneath the bar. */
-  const isFlush = flush || path === "/community" || path === "/ngo/map" || path === "/city";
+  const isFlush = flush || path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city";
 
   return (
     <Membership.Provider value={mem}>
-      <div className={`sp ${spFonts}${isFlush ? " is-flush" : ""}${path === "/community" ? " is-map" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
+      <div className={`sp ${spFonts}${isFlush ? " is-flush" : ""}${path === "/community" || path === "/community/report" ? " is-map" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
         <a href="#sp-main" className="sp-skip">Skip to content</a>
         <header className="sp-bar">
           <Link href={def.home} className="sp-mark" aria-label={`StrayPaw, ${def.label} home`}>
