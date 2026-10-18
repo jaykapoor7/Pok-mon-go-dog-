@@ -110,16 +110,16 @@
 .sp .portrait-veil { background: rgba(11, 30, 61, 0.38); }
 
 /* ── page heads: paper, a strong title, a hairline; the folk band carries the colour ── */
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) { background: var(--shell); color: var(--ink); border-bottom: 1px solid var(--line-2); }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head)::after { display: none; }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(h1, h2, .display, .h1, .serif) { color: var(--ink); font-family: var(--sans); font-weight: 650; letter-spacing: -0.035em; }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(.k, .small, .lede, p, small, dd, dt) { color: var(--mute); }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) b { color: var(--ink); }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(.btn, .chip) { background: var(--paper); color: var(--ink); border: 1px solid var(--line-2); box-shadow: var(--sh-s); }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(.btn.is-ink, .chip[aria-pressed="true"]) { background: var(--blue); border-color: var(--blue); color: #fff; }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) .btn.is-flame { background: var(--flame); border-color: var(--flame); color: #fff; }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(a.link, .link) { color: var(--blue); }
-.sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) .method { border-color: var(--line); color: var(--mute); }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) { background: var(--shell); color: var(--ink); border-bottom: 1px solid var(--line-2); }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head)::after { display: none; }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) :is(h1, h2, .display, .h1, .serif) { color: var(--ink); font-family: var(--sans); font-weight: 650; letter-spacing: -0.035em; }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) :is(.k, .small, .lede, p, small, dd, dt) { color: var(--mute); }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) b { color: var(--ink); }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) :is(.btn, .chip) { background: var(--paper); color: var(--ink); border: 1px solid var(--line-2); box-shadow: var(--sh-s); }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) :is(.btn.is-ink, .chip[aria-pressed="true"]) { background: var(--blue); border-color: var(--blue); color: #fff; }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) .btn.is-flame { background: var(--flame); border-color: var(--flame); color: #fff; }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) :is(a.link, .link) { color: var(--blue); }
+html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-slim, .cs-head, .cf-head) .method { border-color: var(--line); color: var(--mute); }
 .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) .pill { background: var(--shell-2); color: var(--ink-2); }
 .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover.is-slim, .cs-head, .cf-head) :is(input, select) { background: var(--paper); color: var(--ink); border-color: var(--line-2); }
 

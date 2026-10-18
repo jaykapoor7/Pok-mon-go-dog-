@@ -9,8 +9,8 @@ export default function NotFound() {
   return (
     <main className="nf" data-not-found-recovery>
       <section className="nf-body">
-        <p className="nf-k sys-mono"><b>404</b> · Record not found</p>
-        <h1>This trail <em>ends&nbsp;here.</em></h1>
+        <p className="nf-k"><b>404</b> · Not found</p>
+        <h1>This record isn&rsquo;t here.</h1>
         <p className="nf-lede">
           The page may have moved, the link may be old, or the record may no longer be public. Go back home, open the live map, or report an animal. No account needed.
         </p>

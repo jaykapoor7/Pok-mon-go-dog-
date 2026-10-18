@@ -56,8 +56,8 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
     : { t: "The record is current", a: "Follow it to keep it in My Activity on this device.", href: null, cta: null, urgent: false };
   return (
     <article className="ar">
-      {/* The record's head, printed on the indigo sheet like the atlas it was opened from. */}
-      <header className="ar-sheet sheet">
+      {/* The record's head: identity, place, span and the next useful step. */}
+      <header className="ar-sheet">
         <div className="ar-bar page"><BackToMap /><CasefileLink id={r.id} ngoId={ngoId} /></div>
         <div className="ar-hero page">
           <div className="ar-photo">
@@ -66,12 +66,12 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
           </div>
           <div className="ar-id">
             <p className="ar-strip mono"><span>StrayPaw ID</span>{r.straypawId ?? "pending"}{r.sourceCode ? <><span>Source</span>{r.sourceCode}</> : null}</p>
-            <h1 className="ar-name serif">{r.label}</h1>
-            <p className="ar-desc">{describe || "Description not recorded"}{place ? <> · recorded in <b className="serif">{place}</b>{r.city ? `, ${r.city}` : ""}</> : r.city ? <> · {r.city}</> : null}</p>
+            <h1 className="ar-name">{r.label}</h1>
+            <p className="ar-desc">{describe || "Description not recorded"}{place ? <> · recorded in <b>{place}</b>{r.city ? `, ${r.city}` : ""}</> : r.city ? <> · {r.city}</> : null}</p>
             <dl className="ar-span">
-              <div><dt>On the record since</dt><dd className="serif">{day(r.firstSeen)}</dd></div>
-              <div><dt>Last recorded</dt><dd className="serif">{day(r.lastSeen)}</dd></div>
-              <div><dt>Entries</dt><dd className="serif tnum">{r.events.length}</dd><small>{sightings} sighting{sightings === 1 ? "" : "s"} · {careN} care · {casesN} request{casesN === 1 ? "" : "s"}</small></div>
+              <div><dt>On the record since</dt><dd>{day(r.firstSeen)}</dd></div>
+              <div><dt>Last recorded</dt><dd>{day(r.lastSeen)}</dd></div>
+              <div><dt>Entries</dt><dd className="tnum">{r.events.length}</dd><small>{sightings} sighting{sightings === 1 ? "" : "s"} · {careN} care · {casesN} request{casesN === 1 ? "" : "s"}</small></div>
             </dl>
             <div className={`ar-next${next.urgent ? " is-urgent" : ""}`}>
               <p className="k">Next on this record</p>
@@ -90,7 +90,6 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
             <small>{LANE[latest.lane]} · {latest.by ? `recorded by ${latest.by}` : SOURCE[latest.source]}</small>
           </div>
         )}
-        <div className="selvedge" aria-hidden />
       </header>
 
       {/* What the record says, and what it does not: four facts, each with its own state. */}
@@ -115,7 +114,7 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
           {r.events.length === 0 && <p className="body">Nothing dated yet beyond the profile itself.</p>}
           {[...years.entries()].map(([y, list], ci) => (
             <section key={y} className="ar-year">
-              <h3 className="ar-y"><small className="mono">Chapter {ROMAN[ci] ?? ci + 1}</small><span className="serif">{y}</span></h3>
+              <h3 className="ar-y"><small className="mono">Chapter {ROMAN[ci] ?? ci + 1}</small><span>{y}</span></h3>
               <ol className="chrono">
                 {list.map((e) => (
                   <li key={e.id} className={`is-${e.lane === "case" ? (e.tone === "open" ? "urgent" : "report") : e.lane === "care" ? "care" : e.lane === "follow" ? "followup" : "sight"}`}>

@@ -23,7 +23,7 @@ export function Academy() {
   const n = COURSES.reduce((a, c) => a + c.lessons.filter((l) => has(`${c.id}/${l.id}`)).length, 0);
   return (
     <div className="ac">
-      <header className="ac-cover sheet">
+      <header className="ac-cover">
         <div className="ac-title">
           <p className="k">Education · StrayPaw Learning Academy</p>
           <h1 className="display">Learn to read the street, and the record</h1>
@@ -37,7 +37,6 @@ export function Academy() {
         <ArtSlot id="academy-cover" />
       </header>
 
-      <div className="selvedge" aria-hidden />
       <section className="ac-spread" aria-label="Courses">
         {COURSES.map((c, ci) => {
           const d = c.lessons.filter((l) => has(`${c.id}/${l.id}`)).length;
