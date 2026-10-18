@@ -17,9 +17,9 @@ import { buildLiving, type Living } from "@/lib/animal/living";
 import { dogArtFor, WORKS } from "@/lib/art/sources";
 import { IndiaStrings, type HomeCity, type HomeFace } from "@/components/home/IndiaStrings";
 import { LivingMap, type CityFacts } from "@/components/home/LivingMap";
-import { CareFlow } from "@/components/home/CareFlow";
+import { CareFlow, CARE_STEPS } from "@/components/home/CareFlow";
+import { Scene } from "@/components/home/Scene";
 import { WorkDemo } from "@/components/home/WorkDemo";
-import { Tone } from "@/components/home/Tone";
 import { Motion } from "@/components/home/Motion";
 import { Folk } from "@/components/home/Folk";
 import "@/components/site/site.css";
@@ -97,78 +97,64 @@ export default async function HomePage() {
   return (
     <div className="sp field-site product-site ld home3">
       <PageView name="landing_view" />
-      <Tone target=".home3" from=".h-hero" span=".h-turn" />
       <Motion />
       <SiteHeader tone="night" />
       <main>
-        {/* 1. The living world. */}
-        <section className="h-hero" aria-labelledby="h-title">
-          <div className="h-hero-copy" data-rv="up">
-            <p className="h-k is-night">For rescue organisations, residents and cities in India</p>
+        {/* 1. The living world turns into the working system: India tilts away into depth,
+               the night turns cream, and the workspace rises with real open requests. */}
+        <Scene className="s-hero" screens={2.3} label="StrayPaw">
+          <div className="hx-copy">
             <h1 id="h-title">Animal rescue shouldn&rsquo;t run on scattered messages.</h1>
-            <p className="h-lede">StrayPaw connects community reporting, NGO operations and municipal intelligence in one shared system. From the first report to the recorded outcome.</p>
+            <p className="h-lede">One shared system for residents, rescue organisations and cities. From the first report to the recorded outcome.</p>
             <div className="h-acts">
-              <Link href="/partner-apply" className="h-btn is-flame is-lg">Get StrayPaw for your NGO <ArrowUpRight size={18} aria-hidden /></Link>
-              <Link href="/explore" className="h-btn is-ghost is-lg">Explore the live Map</Link>
+              <Link href="/partner-apply" className="h-btn is-flame is-lg" data-mag>Get StrayPaw for your NGO <ArrowUpRight size={18} aria-hidden /></Link>
+              <Link href="/explore" className="h-btn is-ghost is-lg" data-mag>Explore the live Map</Link>
             </div>
           </div>
-          <IndiaStrings cities={cities} faces={faces} tone="night" max={6} className="h-hero-map" />
-        </section>
-
-        {/* 2. The turn: night into the app's cream, and the software appears. */}
-        <section className="h-turn" aria-labelledby="h-turn-title">
-          <Folk k="elephantTree" className="h-folk-turn" w={200} par={0.08} />
-          <header className="h-head" data-rv="up">
-            <p className="h-k">From scattered observations to organised work</p>
-            <h2 id="h-turn-title">Every report becomes work someone owns.</h2>
-          </header>
-          {story && (
-            <div data-rv="scale" className="h-app" aria-label={`Open requests on the public record in ${story.hero.city}`}>
-              <div className="h-app-bar"><b>StrayPaw</b><span>NGO</span><nav><i aria-current="page">Work</i><i>Animals</i><i>Map</i></nav></div>
-              <div className="h-app-body">
-                <div className="h-app-day"><b>Today&rsquo;s work</b><span>{fmt(story.desk.live)} open · {fmt(story.desk.critical)} critical · {story.hero.city}</span></div>
-                <ol>{story.desk.queue.slice(0, 5).map((q, i) => (
-                  <li key={i} className={q.critical ? "is-crit" : ""}><b>{q.condition}</b><span>{q.locality}</span><em>{q.days === 0 ? "today" : `${q.days}d waiting`}</em></li>
-                ))}</ol>
-                <p className="h-app-note">Real open requests on {story.hero.city}&rsquo;s public record. No organisation is named.</p>
+          <div className="hx-world" data-tilt="8"><IndiaStrings cities={cities} faces={faces} tone="night" max={6} className="hx-map" /></div>
+          <div className="hx-app">
+            <p className="hx-app-k">Every report becomes work someone owns.</p>
+            {story && (
+              <div className="h-app" aria-label={`Open requests on the public record in ${story.hero.city}`}>
+                <div className="h-app-bar"><b>StrayPaw</b><span>NGO</span><nav><i aria-current="page">Work</i><i>Animals</i><i>Map</i></nav></div>
+                <div className="h-app-body">
+                  <div className="h-app-day"><b>Today&rsquo;s work</b><span>{fmt(story.desk.live)} open · {fmt(story.desk.critical)} critical · {story.hero.city}</span></div>
+                  <ol>{story.desk.queue.slice(0, 4).map((q, i) => (
+                    <li key={i} className={q.critical ? "is-crit" : ""} style={{ ["--i" as string]: i }}><b>{q.condition}</b><span>{q.locality}</span><em>{q.days === 0 ? "today" : `${q.days}d waiting`}</em></li>
+                  ))}</ol>
+                  <p className="h-app-note">Real open requests on {story.hero.city}&rsquo;s public record.</p>
+                </div>
               </div>
-            </div>
-          )}
-        </section>
+            )}
+          </div>
+        </Scene>
 
-        {/* 3. How information enters. */}
-        <section className="h-sec" aria-labelledby="h-wa">
-          <Folk k="bird" className="h-folk-wa" w={130} par={0.1} flip />
-          <header className="h-head" data-rv="left">
-            <p className="h-k">WhatsApp and the web, into one inbox</p>
-            <h2 id="h-wa">From a message to a case.</h2>
-            <p>Rescue lines already run on WhatsApp. StrayPaw turns each conversation into work.</p>
-          </header>
-          <div data-rv="right"><CareFlow /></div>
-        </section>
+        {/* 2. How it enters: scrolling plays a WhatsApp report into the workspace. */}
+        <Scene className="s-wa" screens={3.6} steps={CARE_STEPS} label="From a message to a case">
+          <Folk k="bird" className="h-folk-wa" w={120} par={0.05} flip />
+          <header className="sx-head"><p className="h-k">WhatsApp → StrayPaw</p><h2>From a message to a case.</h2></header>
+          <CareFlow />
+        </Scene>
 
-        {/* 4. The same record, three views (preserved from the original landing). */}
+        {/* 3. One record, three views (the original relay). */}
         {story?.relay && (
           <section className="h-sec h-relay" aria-labelledby="h-relay">
-            <Folk k="cowCalf" className="h-folk-relay" w={170} par={0.07} />
-            <header className="h-head" data-rv="right">
-              <p className="h-k">One record</p>
+            <Folk k="cowCalf" className="h-folk-relay" w={160} par={0.07} />
+            <header className="h-head" data-rv="up">
               <h2 id="h-relay">One request. Three views.</h2>
-              <p>Resident, rescue team, city. One StrayPaw ID throughout.</p>
+              <p>Resident, rescue team, city. One StrayPaw ID.</p>
             </header>
-            <div data-rv="up"><Relay city={story.hero.city} desk={story.desk} report={story.relay} /></div>
+            <div data-rv="tilt"><Relay city={story.hero.city} desk={story.desk} report={story.relay} /></div>
           </section>
         )}
 
-        {/* 5. The lives behind the data: the register, and one animal's continuing history. */}
+        {/* 4. The lives behind the records. */}
         <section className="h-sec h-lives" aria-labelledby="h-lives">
-          <Folk k="dogSitting" className="h-folk-lives" w={150} par={0.09} />
+          <Folk k="dogSitting" className="h-folk-lives" w={140} par={0.09} />
           <header className="h-head" data-rv="up">
-            <p className="h-k">The register</p>
-            <h2 id="h-lives">One animal. One continuing history.</h2>
-            <p>Every animal has a profile. Whoever helps it next sees what came before.</p>
+            <h2 id="h-lives">Every animal, one continuing history.</h2>
           </header>
-          <div data-rv="scale"><AnimalRegister data={register} total={story?.totals.animals ?? register.total} plate={null} /></div>
+          <div data-rv="right"><AnimalRegister data={register} total={story?.totals.animals ?? register.total} plate={null} /></div>
           {life && life.events.length > 1 ? (() => {
             const art = dogArtFor(life.id, life.size);
             const photo = life.photo && !life.photoSensitive ? life.photo : null;
@@ -197,69 +183,61 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* 6. What connected records make possible geographically. */}
-        <section className="h-sec h-maps" aria-labelledby="h-map">
-          <Folk k="peacocks" className="h-folk-map" w={190} par={0.06} />
-          <header className="h-head" data-rv="left">
-            <p className="h-k">The Living Map</p>
-            <h2 id="h-map">India, city by city, animal by animal.</h2>
-            <p>Every record adds to the picture. Areas, never addresses.</p>
-          </header>
-          <div data-rv="up"><LivingMap cities={cities} faces={faces} facts={facts} sample={sample} plate={null} /></div>
-        </section>
+        {/* 5. The Living Map: the plate tips up out of the page as it arrives. */}
+        <Scene className="s-map" screens={1.7} label="The Living Map">
+          <Folk k="peacocks" className="h-folk-map" w={170} par={0.05} />
+          <header className="sx-head"><p className="h-k">The Living Map</p><h2>India, city by city, animal by animal.</h2></header>
+          <div className="sx-map"><LivingMap cities={cities} faces={faces} facts={facts} sample={sample} plate={null} /></div>
+        </Scene>
 
-        {/* 7. The software rescue organisations work in. */}
-        <section className="h-sec h-work" aria-labelledby="h-ngo">
-          <Folk k="elephant" className="h-folk-work" w={200} par={0.07} flip />
-          <header className="h-head" data-rv="right">
-            <p className="h-k">For NGOs</p>
-            <h2 id="h-ngo">Work. Animals. Map.</h2>
-            <p>Triage, assign, treat, follow up. Bring your spreadsheets on day one.</p>
-          </header>
-          <div data-rv="left"><WorkDemo /></div>
-          <div className="h-acts is-center"><Link href="/partner-apply" className="h-btn is-flame">Get StrayPaw for your NGO <ArrowUpRight size={16} aria-hidden /></Link><Link href="/for-ngos" className="h-btn is-quiet">How it works for NGOs</Link></div>
-        </section>
-
-        {/* 8. The institutional layer. */}
-        {city && (
-          <section className="h-sec h-city" aria-labelledby="h-muni">
-            <div className="h-city-copy" data-rv="left">
-              <p className="h-k">For municipalities</p>
-              <h2 id="h-muni">The same records, read as a city.</h2>
-              <p>Coverage, gaps and programmes, by area. Every figure with its source and its limits.</p>
-              <Link href={`/city?city=${encodeURIComponent(city.city)}`} className="h-btn is-quiet">See {city.city} as a municipality <ArrowUpRight size={16} aria-hidden /></Link>
+        {/* 6. The product, travelling sideways: Work, Animals, Map. */}
+        <Scene className="s-rail" screens={3} label="The NGO workspace">
+          <Folk k="elephant" className="h-folk-work" w={190} par={0.04} flip />
+          <header className="sx-head is-left"><p className="h-k">For NGOs</p><h2>Work. Animals. Map.</h2><p>Triage, assign, treat, follow up. Bring your spreadsheets on day one.</p></header>
+          <div className="rail">
+            {(["Work", "Animals", "Map"] as const).map((t, i) => (
+              <div key={t} className="rail-card" style={{ ["--i" as string]: i }} data-tilt="4"><WorkDemo start={t} /></div>
+            ))}
+            <div className="rail-card is-cta" style={{ ["--i" as string]: 3 }}>
+              <h3>Your team, in one workspace.</h3>
+              <Link href="/partner-apply" className="h-btn is-flame is-lg" data-mag>Get StrayPaw for your NGO <ArrowUpRight size={18} aria-hidden /></Link>
+              <Link href="/for-ngos" className="h-btn is-quiet">How it works</Link>
             </div>
-            <figure className="h-city-fig" data-rv="right">
+          </div>
+        </Scene>
+
+        {/* 7. The institutional layer, and what is on the record today. */}
+        <section className="h-sec h-city" aria-labelledby="h-muni">
+          <div className="h-city-copy" data-rv="left">
+            <p className="h-k">For municipalities</p>
+            <h2 id="h-muni">The same records, read as a city.</h2>
+            {city && <Link href={`/city?city=${encodeURIComponent(city.city)}`} className="h-btn is-quiet">See {city.city} as a city <ArrowUpRight size={16} aria-hidden /></Link>}
+          </div>
+          {city && (
+            <figure className="h-city-fig" data-rv="right" data-tilt="5">
               <figcaption><b>{city.city}</b> · sterilisation as recorded, {fmt(city.animals)} animals</figcaption>
               <div className="h-bar" role="img" aria-label={`${ster}% recorded sterilised, ${unk}% not recorded, the rest recorded not sterilised`}>
                 <i className="is-yes" style={{ width: `${ster}%` }} /><i className="is-no" style={{ width: `${Math.max(0, 100 - ster - unk)}%` }} /><i className="is-unk" style={{ width: `${unk}%` }} />
               </div>
-              <ul className="h-bar-key"><li><i className="is-yes" />Recorded sterilised {ster}%</li><li><i className="is-no" />Recorded not</li><li><i className="is-unk" />Not recorded {unk}%</li></ul>
-              <p className="h-fine">Recorded activity, not population coverage. Unknown is shown as unknown, never as no.</p>
+              <ul className="h-bar-key"><li><i className="is-yes" />Sterilised {ster}%</li><li><i className="is-no" />Not</li><li><i className="is-unk" />Not recorded {unk}%</li></ul>
+              <p className="h-fine">Recorded activity, not population coverage.</p>
             </figure>
-          </section>
-        )}
+          )}
+          {story && (
+            <div className="h-proof" data-rv="up">
+              <HeroTally animals={story.totals.animals} cases={story.totals.cases} cities={story.totals.cities} />
+              <p className="h-fine is-center">Records on the public register, including imported historical registers.</p>
+              <p className="h-partner">Field partner: <b>The Pawsome People Project</b>, Coimbatore.</p>
+            </div>
+          )}
+        </section>
 
-        {/* 9. What has actually happened. */}
-        {story && (
-          <section className="h-sec h-proof" aria-labelledby="h-proof">
-            <header className="h-head" data-rv="up">
-              <p className="h-k">On the record today</p>
-              <h2 id="h-proof">Real records, from real organisations.</h2>
-            </header>
-            <div data-rv="scale"><HeroTally animals={story.totals.animals} cases={story.totals.cases} cities={story.totals.cities} /></div>
-            <p className="h-fine is-center">Animal profiles, requests for help and cities on the public record, including historical registers organisations imported. Counts of records, not of animals in a city.</p>
-            <p className="h-partner">Field partner: <b>The Pawsome People Project</b>, Coimbatore, runs its rescue cases in StrayPaw. <Link href="/community/organisations">Who keeps the record</Link></p>
-          </section>
-        )}
-
-        {/* 10. The invitation. */}
+        {/* 8. The invitation. */}
         <section className="h-close" aria-labelledby="h-close">
-          <Folk k="tiger" className="h-folk-close" w={170} par={0.05} />
+          <Folk k="tiger" className="h-folk-close" w={160} par={0.05} />
           <h2 id="h-close" data-rv="up">Your rescue work deserves a better system.</h2>
-          <p>Bring reports, cases, care and animal histories into one connected workspace.</p>
-          <div className="h-acts is-center">
-            <Link href="/partner-apply" className="h-btn is-flame is-lg">Get StrayPaw for your NGO <ArrowUpRight size={18} aria-hidden /></Link>
+          <div className="h-acts is-center" data-rv="up">
+            <Link href="/partner-apply" className="h-btn is-flame is-lg" data-mag>Get StrayPaw for your NGO <ArrowUpRight size={18} aria-hidden /></Link>
             <Link href="/explore" className="h-btn is-quiet is-lg">Explore the live Map</Link>
           </div>
         </section>

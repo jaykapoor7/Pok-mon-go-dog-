@@ -23,8 +23,9 @@ const ANIMALS = [
 ];
 const TABS = ["Work", "Animals", "Map"] as const;
 
-export function WorkDemo() {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Work");
+export type WorkTab = (typeof TABS)[number];
+export function WorkDemo({ start = "Work" }: { start?: WorkTab }) {
+  const [tab, setTab] = useState<WorkTab>(start);
   const [rows, setRows] = useState(START);
   const [sel, setSel] = useState(0);
   const r = rows[sel];

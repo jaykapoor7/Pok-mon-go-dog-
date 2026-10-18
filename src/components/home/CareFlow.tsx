@@ -11,35 +11,32 @@
    real person, no real case); the workspace states are the product's own.
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, CheckCheck, MapPin, Camera } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { CheckCheck, MapPin, Camera } from "lucide-react";
+import { useSceneStep } from "./Scene";
 
 type Msg = { from: "them" | "us"; text?: string; photo?: boolean; place?: string; at: string };
 const STEPS: { msgs: Msg[]; title: string; note: string }[] = [
-  { msgs: [{ from: "them", text: "Hi, there is a brown dog near the bus stand. Its back leg is bleeding.", at: "8:42" }], title: "A message arrives", note: "It lands in the organisation's inbox, not in someone's personal phone." },
-  { msgs: [{ from: "them", photo: true, at: "8:43" }, { from: "them", place: "Gandhipuram bus stand", at: "8:43" }], title: "Photo and place attach", note: "The photo starts veiled. The place is kept as an area, never shown publicly as an address." },
-  { msgs: [{ from: "them", text: "It can't put weight on the leg. It has been here since morning.", at: "8:45" }], title: "Triage", note: "A coordinator marks it urgent and opens a case. One record, from here on." },
-  { msgs: [{ from: "us", text: "Thank you. A team from the rescue is on the way.", at: "8:51" }], title: "Assigned", note: "The case has an owner. The reporter hears back without anyone sharing a number." },
-  { msgs: [{ from: "us", text: "The dog is being treated. We'll check on it again on Friday.", at: "13:10" }], title: "Care recorded, follow-up set", note: "Wound care is recorded on the animal. A recheck is scheduled and shows up when it is due." },
-  { msgs: [], title: "A continuing record", note: "The animal's history now carries the report, the case, the care and the next visit, for whoever helps it next." },
+  { msgs: [{ from: "them", text: "Hi, there is a brown dog near the bus stand. Its back leg is bleeding.", at: "8:42" }], title: "A message arrives", note: "Into the organisation's inbox." },
+  { msgs: [{ from: "them", photo: true, at: "8:43" }, { from: "them", place: "Gandhipuram bus stand", at: "8:43" }], title: "Photo and place", note: "Attached to the report." },
+  { msgs: [{ from: "them", text: "It can't put weight on the leg. It has been here since morning.", at: "8:45" }], title: "Triage", note: "Urgent. A case is opened." },
+  { msgs: [{ from: "us", text: "Thank you. A team from the rescue is on the way.", at: "8:51" }], title: "Assigned", note: "The case has an owner." },
+  { msgs: [{ from: "us", text: "The dog is being treated. We'll check on it again on Friday.", at: "13:10" }], title: "Treated", note: "Care recorded. Follow-up set." },
+  { msgs: [], title: "On the record", note: "For whoever helps it next." },
 ];
 
+export const CARE_STEPS = STEPS.length;
+
+/* The step comes from the scroll scene around it: reading down the page plays the story. */
 export function CareFlow() {
-  const [step, setStep] = useState(0);
-  const [view, setView] = useState<"chat" | "work">("chat");
+  const step = useSceneStep();
   const chat = useRef<HTMLOListElement>(null);
   const shown = STEPS.slice(0, step + 1).flatMap((s) => s.msgs);
   useEffect(() => { const c = chat.current; if (c) c.scrollTop = c.scrollHeight; }, [step]);
-  const go = (d: number) => setStep((s) => Math.max(0, Math.min(STEPS.length - 1, s + d)));
 
   return (
     <div className="cf">
-      <div className="cf-tabs" role="tablist" aria-label="Show">
-        <button type="button" role="tab" aria-selected={view === "chat"} onClick={() => setView("chat")}>WhatsApp</button>
-        <button type="button" role="tab" aria-selected={view === "work"} onClick={() => setView("work")}>StrayPaw</button>
-      </div>
-      <div className={`cf-stage show-${view}`}>
+      <div className="cf-stage" data-step={step}>
         <section className="cf-phone" aria-label="WhatsApp conversation, an example">
           <header><i aria-hidden>SP</i><span><b>StrayPaw · Rescue line</b><small>Example conversation</small></span></header>
           <ol ref={chat} aria-live="polite">
@@ -78,15 +75,10 @@ export function CareFlow() {
         </section>
       </div>
 
-      <div className="cf-ctl">
-        <button type="button" className="h-btn is-quiet" onClick={() => go(-1)} disabled={step === 0} aria-label="Previous step"><ArrowLeft size={16} aria-hidden /></button>
-        <ol className="cf-dots" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
-          {STEPS.map((s, i) => <li key={s.title}><button type="button" aria-current={i === step ? "step" : undefined} onClick={() => setStep(i)} aria-label={s.title} /></li>)}
-        </ol>
-        <button type="button" className="h-btn" onClick={() => go(1)} disabled={step === STEPS.length - 1}>Next <ArrowRight size={16} aria-hidden /></button>
-      </div>
+      <ol className="cf-dots" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
+        {STEPS.map((x, i) => <li key={x.title} aria-current={i === step ? "step" : undefined}><span>{x.title}</span></li>)}
+      </ol>
       <p className="cf-note" aria-live="polite"><b>{STEPS[step].title}.</b> {STEPS[step].note}</p>
-      <p className="cf-status">Residents report on WhatsApp or on the web. Both land in the same inbox. <Link href="/partner-apply">Get StrayPaw for your NGO</Link></p>
     </div>
   );
 }

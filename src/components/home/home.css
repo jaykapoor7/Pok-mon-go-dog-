@@ -362,3 +362,118 @@
 @media (max-width: 960px) { .home3 .lm-map { height: auto; } }
 .home3 .h-life-id img.is-art { object-fit: contain; mix-blend-mode: multiply; }
 .home3 .h-life-art { font-size: 11.5px; color: var(--mute); }
+
+/* ════════════════ Scenes: sticky stages driven by --p (0 → 1) ════════════════ */
+.home3 .sc { position: relative; height: calc(var(--screens, 2) * 100svh); --p: 0; }
+.home3 .sc-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.home3 .sx-head { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; padding-top: clamp(84px, 11svh, 120px); text-align: center; }
+.home3 .sx-head h2 { margin: 0; font-size: clamp(34px, 4.4vw, 64px); line-height: 1; font-weight: 650; letter-spacing: -0.045em; }
+.home3 .sx-head p:not(.h-k) { margin: 14px 0 0; font-size: 17px; line-height: 1.5; opacity: 0.85; }
+.home3 .sx-head.is-left { margin: 0; padding-left: 6vw; text-align: left; max-width: 560px; }
+
+/* 1 · hero: the world tips into depth, night turns cream, the app rises */
+.home3 .s-hero { --a: clamp(0, calc(var(--p) * 2.4), 1); --d: clamp(0, calc((var(--p) - 0.22) * 2.2), 1); --k: clamp(0, calc((var(--p) - 0.3) * 1.9), 1); }
+.home3 .s-hero .sc-stage { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr); align-items: center; gap: 24px; padding: 64px clamp(20px, 5vw, 72px) 0;
+  background: radial-gradient(110% 80% at 72% 40%, color-mix(in srgb, #1d2733 calc((1 - var(--d)) * 100%), var(--cream)) 0%, color-mix(in srgb, var(--night) calc((1 - var(--d)) * 100%), var(--cream)) 65%); color: #f3ede4; }
+.home3 .hx-copy { position: relative; z-index: 3; max-width: 600px; transform: translateY(calc(var(--a) * -140px)); opacity: calc(1 - var(--a) * 1.3); }
+.home3 .hx-copy h1 { margin: 0; font-size: clamp(42px, 5.6vw, 84px); line-height: 0.96; font-weight: 650; letter-spacing: -0.05em; color: #fffdf9; text-wrap: balance; }
+.home3 .hx-world { position: relative; height: min(720px, 78svh); perspective: 1400px; transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.home3 .hx-map { height: 100%; transform-origin: 50% 85%; transform: rotateX(calc(var(--a) * 58deg)) translateZ(calc(var(--a) * -220px)) translateY(calc(var(--a) * -40px)); opacity: calc(1 - var(--k) * 0.9); will-change: transform; }
+.home3 .hx-map .ix-card { transform: translate(-50%, -50%) translateZ(calc(var(--a) * 160px)); }
+.home3 .hx-app { position: absolute; z-index: 4; left: 50%; bottom: 0; width: min(980px, 92vw); transform: translate(-50%, calc((1 - var(--k)) * 82svh)) perspective(1200px) rotateX(calc((1 - var(--k)) * 32deg)); transform-origin: 50% 100%; }
+.home3 .hx-app-k { margin: 0 0 18px; text-align: center; font-size: clamp(28px, 3.6vw, 52px); font-weight: 650; letter-spacing: -0.045em; line-height: 1; color: var(--ink); opacity: var(--k); }
+.home3 .hx-app .h-app { margin: 0; border-radius: 22px 22px 0 0; border-bottom: 0; opacity: 1; transform: none; }
+.home3 .hx-app .h-app li { opacity: clamp(0, calc((var(--k) - 0.55 - var(--i) * 0.08) * 6), 1); transform: translateX(calc((1 - clamp(0, calc((var(--k) - 0.55 - var(--i) * 0.08) * 6), 1)) * 40px)); }
+.home3.is-day .sp-header.is-night { --hd-bg: rgba(255, 253, 249, 0.86); --hd-bg-scrolled: rgba(255, 253, 249, 0.92); --hd-ink: var(--ink); --hd-dim: var(--ink-2); --hd-rule: rgba(11, 30, 61, 0.1); --hd-hover: rgba(11, 30, 61, 0.06); }
+
+/* 2 · WhatsApp: a flame iris opens; phone and workspace swing to face you as the story plays */
+.home3 .s-wa { background: var(--cream); --io: clamp(0, calc(var(--p) * 7), 1); }
+.home3 .s-wa .sc-stage { background: var(--flame); color: #fffdf9; clip-path: circle(calc(var(--io) * 120% + 4%) at 50% 55%); }
+.home3 .s-wa .h-k { color: #ffe1d8; }
+.home3 .s-wa .cf { max-width: 1080px; margin: 28px auto 0; padding: 0 20px; perspective: 1600px; }
+.home3 .s-wa .cf-phone { transform: rotateY(calc(18deg - var(--p) * 18deg)) translateZ(calc(var(--p) * 20px)); transform-origin: 100% 50%; box-shadow: 0 30px 60px -30px rgba(80, 20, 0, 0.6); }
+.home3 .s-wa .cf-work { transform: rotateY(calc(-16deg + var(--p) * 16deg)); transform-origin: 0% 50%; box-shadow: 0 30px 60px -30px rgba(80, 20, 0, 0.6); }
+.home3 .s-wa .cf-phone, .home3 .s-wa .cf-work { transition: transform 0.2s linear; height: min(440px, 52svh); }
+.home3 .s-wa .cf-work { overflow: hidden; }
+.home3 .s-wa .cf-dots { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 22px auto 0; padding: 0; }
+.home3 .s-wa .cf-dots li { padding: 6px 12px; border-radius: 999px; background: rgba(255, 253, 249, 0.16); font-size: 12.5px; font-weight: 600; color: rgba(255, 253, 249, 0.75); transition: background 0.3s, color 0.3s; }
+.home3 .s-wa .cf-dots li[aria-current] { background: #fffdf9; color: var(--flame-ink); }
+.home3 .s-wa .cf-note { color: #fffdf9; min-height: 0; margin-top: 12px; }
+
+/* 3 · relay swings up out of the page */
+.rv-on .home3 [data-rv="tilt"] { transform-origin: 50% 100%; }
+.rv-on .home3 [data-rv="tilt"]:not(.is-in) { transform: perspective(1400px) rotateX(24deg) translateY(80px); }
+
+/* 5 · map: a blue scene; the map plate tips up from the table */
+.home3 .s-map { --m: clamp(0, calc(var(--p) * 1.8), 1); }
+.home3 .s-map .sc-stage { background: var(--blue); color: #fffdf9; }
+.home3 .s-map .h-k { color: #cfdcfb; }
+.home3 .sx-map { max-width: 1240px; margin: 28px auto 0; padding: 0 20px; perspective: 1600px; }
+.home3 .sx-map .lm { transform: rotateX(calc((1 - var(--m)) * 42deg)) scale(calc(0.88 + var(--m) * 0.12)) translateY(calc((1 - var(--m)) * 60px)); transform-origin: 50% 0%; }
+.home3 .sx-map .lm-map { height: min(600px, 62svh); background: #fbf6ee; }
+.home3 .sx-map .lm-map .ix { height: calc(min(600px, 62svh) - 40px); }
+.home3 .sx-map .lm-panel { color: var(--ink); max-height: min(600px, 62svh); overflow: auto; }
+
+/* 6 · rail: the product travels sideways, each panel swinging as it passes */
+.home3 .s-rail .sc-stage { background: var(--teal); color: #fffdf9; display: grid; grid-template-rows: auto 1fr; }
+.home3 .s-rail .h-k { color: #bfe3e8; }
+.home3 .s-rail { --cw: min(860px, 80vw); }
+.home3 .rail { display: flex; align-items: center; gap: 48px; width: max-content; padding: 0 6vw; perspective: 1800px;
+  transform: translateX(calc(var(--p) * -1 * (4 * var(--cw) + 144px + 12vw - 100vw))); will-change: transform; }
+.home3 .rail-card { width: var(--cw); flex: none; transform: rotateY(calc(clamp(-1, calc(var(--i) / 3 - var(--p)) * 2.4, 1) * -22deg + var(--ry, 0deg))) rotateX(var(--rx, 0deg)); transition: transform 0.25s ease-out; }
+.home3 .rail-card .wd { margin: 0; color: var(--ink); }
+.home3 .rail-card.is-cta { position: relative; display: grid; justify-items: start; gap: 16px; padding: 48px; border-radius: 24px; background: var(--cream); color: var(--ink); min-height: 380px; align-content: center; }
+.home3 .rail-card.is-cta h3 { margin: 0; font-size: clamp(30px, 3.4vw, 48px); line-height: 1; font-weight: 650; letter-spacing: -0.04em; max-width: 12ch; }
+.home3 .h-folk-rail { right: 28px; bottom: 20px; left: auto; top: auto; }
+
+/* 7 · city and proof, one cream page */
+.home3 .h-city { grid-template-rows: auto auto; }
+.home3 .h-city .h-proof { grid-column: 1 / -1; margin-top: 56px; padding-top: 48px; border-top: 1px solid var(--line-2); background: none; text-align: center; }
+
+/* not only scroll: pointer tilt and magnetic buttons */
+.home3 .h-city-fig[data-tilt].is-in, .home3 .h-city-fig[data-tilt] { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.home3 [data-mag] { translate: var(--mx, 0px) var(--my, 0px); transition: translate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s, border-color 0.15s; }
+
+/* still (reduced motion) and small screens: scenes unpin and read top to bottom */
+.home3 .sc.is-still { height: auto; }
+.home3 .sc.is-still .sc-stage { position: relative; height: auto; min-height: 100svh; padding-bottom: 64px; clip-path: none; }
+.home3 .sc.is-still .hx-app { position: relative; left: auto; transform: none; margin: 40px auto 0; grid-column: 1 / -1; }
+.home3 .sc.is-still .rail { transform: none; flex-wrap: wrap; width: auto; justify-content: center; }
+.home3 .sc.is-still .rail-card { transform: none; }
+@media (max-width: 760px) {
+  .home3 .s-hero .sc-stage { grid-template-columns: 1fr; align-content: start; padding-top: 32px; }
+  .home3 .hx-world { height: 40svh; }
+  .home3 .hx-app { width: 94vw; }
+  .home3 .hx-app .h-app li span { display: none; }
+  .home3 .s-wa .cf-stage { grid-template-columns: 1fr; gap: 10px; }
+  .home3 .s-wa .cf-phone { height: 30svh; transform: none; }
+  .home3 .s-wa .cf-work { height: auto; transform: none; }
+  .home3 .s-wa .cf-history, .home3 .s-wa .cf-facts div:nth-child(n+3) { display: none; }
+  .home3 .s-wa .cf-dots li span { display: none; }
+  .home3 .s-wa .cf-dots li { width: 8px; height: 8px; padding: 0; }
+  .home3 .s-map, .home3 .s-rail { height: auto; }
+  .home3 .s-map .sc-stage, .home3 .s-rail .sc-stage { position: relative; height: auto; padding-bottom: 56px; }
+  .home3 .sx-map .lm { transform: none; }
+  .home3 .sx-map .lm-map, .home3 .sx-map .lm-panel { height: auto; max-height: none; }
+  .home3 .rail { transform: none; flex-direction: column; width: auto; padding: 24px 16px 0; gap: 20px; }
+  .home3 .rail-card { width: 100%; transform: none; }
+  .home3 .rail-card.is-cta { padding: 28px; min-height: 0; }
+}
+
+/* hero, revised: the night stays night; a cream sheet rises over it like a curtain, carrying the app */
+.home3 .s-hero .sc-stage { background: radial-gradient(110% 80% at 72% 40%, #1d2733 0%, var(--night) 65%); }
+.home3 .s-hero { --k: clamp(0, calc((var(--p) - 0.28) * 1.8), 1); }
+.home3 .hx-map { opacity: 1; }
+.home3 .hx-app { left: 0; width: 100%; height: 100svh; bottom: 0; display: grid; align-content: end; justify-items: center; padding: 0 20px; background: var(--cream);
+  border-radius: calc((1 - var(--k)) * 48px) calc((1 - var(--k)) * 48px) 0 0; box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.35);
+  transform: translateY(calc((1 - var(--k)) * 100svh)); }
+.home3 .hx-app .h-app { width: min(980px, 100%); transform: perspective(1200px) rotateX(calc((1 - var(--k)) * 24deg)) translateY(calc((1 - var(--k)) * 80px)); transform-origin: 50% 100%; }
+.home3 .hx-app-k { margin-bottom: 22px; }
+.home3 .sc.is-still .hx-app { height: auto; padding: 48px 20px 0; border-radius: 0; box-shadow: none; }
+.home3 .s-wa .cf-phone, .home3 .s-wa .cf-work { color: var(--ink); }
+.home3 .h-folk-close { left: 4vw; margin-left: 0; bottom: 0; }
+@media (max-width: 760px) { .home3 .h-folk-close { display: none; } }
+.home3 .hx-app { align-content: center; padding-top: 72px; }
+.home3 .hx-app .h-app { border-radius: 22px; border-bottom: 1px solid var(--line-2); }
+.home3 .s-wa .sc-stage { clip-path: circle(calc(var(--io) * 120%) at 50% 55%); }
+.home3 .sc.is-still .sc-stage, .home3 .s-wa.is-still .sc-stage { clip-path: none; }

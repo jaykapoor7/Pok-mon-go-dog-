@@ -32,8 +32,11 @@ export function Motion() {
 
     const par = [...document.querySelectorAll<HTMLElement>("[data-par]")];
     let raf = 0;
+    const page = document.querySelector<HTMLElement>(".home3");
     const tick = () => {
       raf = 0;
+      /* The header follows the ground: night over the hero, paper once the page has turned. */
+      page?.classList.toggle("is-day", window.scrollY > window.innerHeight * 1.2);
       const vh = window.innerHeight;
       for (const n of par) {
         const r = n.getBoundingClientRect();
@@ -46,7 +49,27 @@ export function Motion() {
     tick();
     window.addEventListener("scroll", on, { passive: true });
     window.addEventListener("resize", on);
-    return () => { io.disconnect(); window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); root.classList.remove("rv-on"); };
+    /* Not only scroll: [data-tilt] leans toward the pointer in 3D, [data-mag] buttons drift toward it. */
+    const offs: (() => void)[] = [];
+    if (window.matchMedia("(pointer: fine)").matches) {
+      const bind = (sel: string, move: (n: HTMLElement, e: PointerEvent) => void, rest: (n: HTMLElement) => void) =>
+        document.querySelectorAll<HTMLElement>(sel).forEach((n) => {
+          const mv = (e: PointerEvent) => move(n, e), lv = () => rest(n);
+          n.addEventListener("pointermove", mv); n.addEventListener("pointerleave", lv);
+          offs.push(() => { n.removeEventListener("pointermove", mv); n.removeEventListener("pointerleave", lv); });
+        });
+      bind("[data-tilt]", (n, e) => {
+        const r = n.getBoundingClientRect(), k = Number(n.dataset.tilt) || 6;
+        n.style.setProperty("--rx", `${(-((e.clientY - r.top) / r.height - 0.5) * k).toFixed(2)}deg`);
+        n.style.setProperty("--ry", `${(((e.clientX - r.left) / r.width - 0.5) * k).toFixed(2)}deg`);
+      }, (n) => { n.style.setProperty("--rx", "0deg"); n.style.setProperty("--ry", "0deg"); });
+      bind("[data-mag]", (n, e) => {
+        const r = n.getBoundingClientRect();
+        n.style.setProperty("--mx", `${((e.clientX - r.left - r.width / 2) * 0.18).toFixed(1)}px`);
+        n.style.setProperty("--my", `${((e.clientY - r.top - r.height / 2) * 0.28).toFixed(1)}px`);
+      }, (n) => { n.style.setProperty("--mx", "0px"); n.style.setProperty("--my", "0px"); });
+    }
+    return () => { offs.forEach((f) => f()); io.disconnect(); window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); root.classList.remove("rv-on"); };
   }, []);
   return null;
 }
