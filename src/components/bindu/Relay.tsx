@@ -17,14 +17,14 @@ import { Camera, CheckCheck, MapPin } from "lucide-react";
 import { useStage } from "./stage";
 
 const STEPS = [
-  { t: "Message", n: "A resident writes to the rescue line on WhatsApp. It lands as a report, not a lost chat." },
-  { t: "Photo", n: "The photo goes on the report. A picture that may show an injury stays veiled." },
-  { t: "Place", n: "The pin becomes an area, never a home address." },
-  { t: "Case", n: "Triage makes it a case: urgent, with a code, one record from here on." },
-  { t: "Owner", n: "Someone holds it. The resident hears back on the same chat." },
-  { t: "Care", n: "Treatment is recorded, a recheck is scheduled, and the resident is told." },
-  { t: "History", n: "The care stays with the animal, for whoever helps it next." },
-  { t: "Area", n: "And it counts where it happened, so the city can see where help is needed." },
+  { t: "Message" },
+  { t: "Photo" },
+  { t: "Place" },
+  { t: "Case" },
+  { t: "Owner" },
+  { t: "Care" },
+  { t: "History" },
+  { t: "Area" },
 ];
 export const RELAY_STEPS = STEPS.length;
 
@@ -96,8 +96,8 @@ export function Relay() {
             <div className={on(1)} data-k="f-photo"><dt>Photo</dt><dd>1, veiled</dd></div>
             <div className={on(2)} data-k="f-place"><dt>Place</dt><dd>Gandhipuram · area</dd></div>
             <div className={on(4)} data-k="f-held"><dt>Held by</dt><dd>{step >= 4 ? "Field team" : "Nobody yet"}</dd></div>
-            <div className={on(5)} data-k="f-care"><dt>Care</dt><dd>{step >= 5 ? "Wound cleaned, dressed" : "—"}</dd></div>
-            <div className={`is-wide${on(5)}`}><dt>Next</dt><dd>{step >= 5 ? "Recheck, Friday" : "—"}</dd></div>
+            <div className={on(5)} data-k="f-care"><dt>Care</dt><dd>{step >= 5 ? "Wound cleaned, dressed" : "Not yet"}</dd></div>
+            <div className={`is-wide${on(5)}`}><dt>Next</dt><dd>{step >= 5 ? "Recheck, Friday" : "Not yet"}</dd></div>
           </dl>
           <p className="mx-stamp" aria-hidden>Case</p>
         </article>
@@ -123,10 +123,9 @@ export function Relay() {
       </div>
 
       <div className="mx-rail">
-        <ol aria-label={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step].t}`}>
+        <ol aria-label={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step].t}`} aria-live="polite">
           {STEPS.map((s, i) => <li key={s.t} className={i < step ? "is-done" : i === step ? "is-now" : ""}>{s.t}</li>)}
         </ol>
-        <p aria-live="polite">{STEPS[step].n}</p>
       </div>
     </div>
   );

@@ -5,8 +5,8 @@ import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { FooterIndex } from "@/components/site/FooterIndex";
 import { getAnimalRegister, getLandingStory, type RegisterFocus } from "@/lib/landing/story";
-import { getFaces, getMapCities, getNationalCells } from "@/lib/livingmap/server";
-import { kindOf } from "@/sp/atlas/evidence";
+import { getFaces, getMapCities, getMapCity, getNationalCells } from "@/lib/livingmap/server";
+import { placeName } from "@/lib/livingmap/reading";
 import { getDogProfile } from "@/lib/data";
 import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
 import { getPublicAnimalIdentity } from "@/lib/animal-identity";
@@ -14,16 +14,16 @@ import { buildLiving, type Living } from "@/lib/animal/living";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { sxSerif } from "@/components/shell/fonts";
 import { Stage } from "@/components/bindu/stage";
-import { Bindu, type Cell, type CityPin } from "@/components/bindu/Bindu";
 import { ToneWatch, Split } from "@/components/bindu/Tone";
+import { Flight, type Focus, type Pin } from "@/components/bindu/Flight";
+import { Explore, type CityFacts } from "@/components/bindu/Explore";
 import { Relay, RELAY_STEPS } from "@/components/bindu/Relay";
 import { Identity, type IdCard } from "@/components/bindu/Identity";
 import { Lifeline, type LifeCard, type LifeEvent } from "@/components/bindu/Lifeline";
-import { Circle, type AnimalRow } from "@/components/bindu/Circle";
-import { Atlas, type CityFacts } from "@/components/bindu/Atlas";
-import { Tree, type Branch } from "@/components/bindu/Tree";
+import { Workspace, type AnimalRow } from "@/components/bindu/Workspace";
+import { Words, type Word } from "@/components/bindu/Words";
 import { Rail } from "@/components/bindu/Rail";
-import type { HomeCity, HomeFace } from "@/components/bindu/IndiaStrings";
+import type { Cell } from "@/components/bindu/mapkit";
 import { dogArtFor, WORKS } from "@/lib/art/sources";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
@@ -32,27 +32,26 @@ import "@/components/bindu/bindu.css";
 
 export const revalidate = 300;
 export const metadata = {
-  title: "StrayPaw. Infrastructure for street-animal care in India.",
-  description: "StrayPaw connects community reporting on WhatsApp, rescue case management, lasting animal histories and a living map of India in one system for residents, NGOs and cities.",
+  title: "StrayPaw. Every street animal, on one map.",
+  description: "StrayPaw connects WhatsApp reports, rescue cases, animal histories and a live 3D map of India in one system for residents, NGOs and cities.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   Bindu, the dot. In Gond painting a creature is made of dots; on
-   StrayPaw every dot is a place on the record. The page follows one dot:
-   it is a painted dog, then a recorded area of India, then one message,
-   a case, an animal's history, a team's work, a city's map, and at the
-   end every dot gathers back into the painting.
-
-   Every figure, place, photograph and queue row is read live from the
-   public record. The WhatsApp conversation and its case are an example,
-   and say so. The folk drawings are original artwork made for StrayPaw.
+   The landing, map first. The camera falls from the Earth at night to
+   one locality in Coimbatore over columns of real records; the dot it
+   lands on opens into a WhatsApp message; the message becomes a case;
+   real animals keep their identities; one life runs corner to corner;
+   the workspace rises off the table; the map is handed to you; and the
+   page ends on what StrayPaw is for. Few words; the record does the
+   talking. Every figure, place, photo and queue row is live; the
+   WhatsApp exchange is an example and says so.
    ════════════════════════════════════════════════════════════════════ */
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const month = (iso: string | null) => { if (!iso) return null; const d = new Date(iso); return Number.isFinite(d.getTime()) ? `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}` : null; };
-const CHAPTERS = [["b-hero", "The dot"], ["b-relay", "One message"], ["b-id", "Identity"], ["b-life", "One life"], ["b-circle", "The work"], ["b-atlas", "The map"], ["b-tree", "What we built"], ["b-end", "Join"]] as const;
+const CHAPTERS = [["b-hero", "India"], ["b-relay", "Report"], ["b-id", "Identity"], ["b-life", "History"], ["b-work", "Workspace"], ["b-map", "Map"], ["b-words", "Product"], ["b-end", "Join"]] as const;
 
 async function readLife(id: string | null | undefined): Promise<Living | null> {
   if (!id) return null;
@@ -74,9 +73,10 @@ const recentReports = unstable_cache(async (): Promise<number | null> => {
 const RICH = ["c3ffa160-ba51-42e6-8e69-a87d8ea1f2aa", "acf85c40-f5c7-4527-af44-f34c252878d4"];
 const pickLife = unstable_cache(async (ids: string[]): Promise<Living | null> => {
   const lives = (await Promise.all(ids.map(readLife))).filter((l): l is Living => !!l);
-  const score = (l: Living) => l.events.length + l.cases.length * 3 + l.events.filter((e) => e.lane === "care").length * 2;
+  /* a real photograph first, then the fullest history */
+  const score = (l: Living) => (l.photo && !l.photoSensitive && l.events.length >= 4 ? 1000 : 0) + l.events.length + l.cases.length * 3 + l.events.filter((e) => e.lane === "care").length * 2;
   return lives.sort((a, b) => score(b) - score(a))[0] ?? null;
-}, ["landing-life-v5"], { revalidate: 3600 });
+}, ["landing-life-v7"], { revalidate: 3600 });
 
 export default async function HomePage() {
   const [story, register, rawCities, rawFaces, national] = await Promise.all([
@@ -87,47 +87,52 @@ export default async function HomePage() {
     getNationalCells().catch(() => null),
   ]);
   const cells: Cell[] = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n]);
-  const pins: CityPin[] = rawCities.filter((c) => c.lng != null && c.lat != null && c.animals > 0).map((c) => ({ city: c.city, lng: c.lng!, lat: c.lat!, animals: c.animals }));
+  const placed = rawCities.filter((c) => c.lng != null && c.lat != null && c.animals > 0);
+  const pins: Pin[] = [...placed].sort((a, b) => b.animals - a.animals).slice(0, 10).map((c) => ({ city: c.city, c: [c.lng!, c.lat!] }));
   const sample = story?.hero.city ?? null;
-  const focusCity = rawCities.find((c) => c.city === sample) ?? null;
-  const focusAt: [number, number] | null = focusCity?.lng != null && focusCity?.lat != null ? [focusCity.lng, focusCity.lat] : null;
+  const sampleCity = rawCities.find((c) => c.city === sample) ?? null;
   const totals = story?.totals ?? null;
-  const [reports, life] = await Promise.all([
+  const [reports, life, cityRead] = await Promise.all([
     recentReports().catch(() => null),
     pickLife([...RICH, ...rawFaces.map((f) => f.id), story?.relay?.animalId ?? ""].filter(Boolean).slice(0, 8)),
+    sample ? getMapCity(sample).catch(() => null) : Promise.resolve(null),
   ]);
-  const cities: HomeCity[] = rawCities.filter((c) => c.lng != null && c.lat != null && c.animals > 0)
-    .map((c) => ({ city: c.city, lng: c.lng!, lat: c.lat!, animals: c.animals, hollow: kindOf(c.city, c.cells) === "clinical" }));
-  const faces: HomeFace[] = rawFaces.map((f) => ({ id: f.id, title: f.title, describe: f.describe, photo: f.photo, city: f.city, lng: f.c[0], lat: f.c[1] }));
-  const facts: CityFacts[] = [...rawCities].sort((a, b) => b.animals - a.animals)
-    .map((c) => ({ city: c.city, state: c.state, animals: c.animals, cells: c.cells, sterilised: c.sterilised, ster_unknown: c.ster_unknown, cases: c.cases, hollow: kindOf(c.city, c.cells) === "clinical" }));
 
-  /* Identity: the register's photographed animals first, then the Map's; never the life we unroll next. */
+  /* Where the camera lands: the sample city's fullest locality, read from the same areas the Map draws. */
+  const place = (() => {
+    const by = new Map<string, { animals: number; h3s: string[]; best: { a: number; c: [number, number] } }>();
+    for (const q of cityRead?.cells ?? []) {
+      const n = placeName(q.zone); if (n === "Unnamed area") continue;
+      const g = by.get(n) ?? { animals: 0, h3s: [], best: { a: -1, c: q.c } };
+      g.animals += q.animals; g.h3s.push(q.h3); if (q.animals > g.best.a) g.best = { a: q.animals, c: q.c };
+      by.set(n, g);
+    }
+    const top = [...by.entries()].sort((a, b) => b[1].animals - a[1].animals)[0];
+    return top ? { name: top[0], animals: top[1].animals, c: top[1].best.c, h3s: top[1].h3s } : null;
+  })();
+  const focus: Focus = sampleCity?.lng != null && sampleCity?.lat != null ? { city: { name: sampleCity.city, c: [sampleCity.lng, sampleCity.lat] }, place: place ? { name: place.name, c: place.c, h3s: place.h3s } : null } : null;
+  const facts: CityFacts[] = [...rawCities].sort((a, b) => b.animals - a.animals).map((c) => ({ city: c.city, c: c.lng != null && c.lat != null ? [c.lng, c.lat] : null, animals: c.animals, cells: c.cells, sterilised: c.sterilised, cases: c.cases }));
+
   const seen = new Set<string>(life ? [life.id] : []);
   const idCards: IdCard[] = [
     ...register.cards.filter((c) => c.cover_photo).map((c) => ({ id: c.id, name: c.name ?? c.straypaw_id ?? "On the record", place: [c.zone, c.city].filter(Boolean).join(", "), photo: c.cover_photo, sid: c.straypaw_id, since: month(c.first_seen) })),
-    ...faces.map((f) => ({ id: f.id, name: f.title, place: f.city, photo: f.photo, sid: null, since: null })),
+    ...rawFaces.map((f) => ({ id: f.id, name: f.title, place: f.city, photo: f.photo, sid: null, since: null })),
   ].filter((c) => !seen.has(c.id) && !!seen.add(c.id)).slice(0, 7);
   const animalRows: AnimalRow[] = register.cards.filter((c) => c.cover_photo).map((c) => ({ id: c.id, name: c.name ?? c.straypaw_id ?? "On the record", place: [c.zone, c.city].filter(Boolean).join(", "), photo: c.cover_photo, ster: c.sterilisation, seen: month(c.last_seen) }));
-
-  /* One life: its recorded events in order, the photograph only if it is safe to show. */
   const lifeCard: LifeCard | null = life ? (() => {
     const art = dogArtFor(life.id, life.size);
-    const events: LifeEvent[] = life.events.slice(-9).map((e) => ({ id: e.id, date: day(e.date), title: e.title, lane: e.lane === "case" ? "case" : e.lane === "care" ? "care" : "seen" }));
+    const events: LifeEvent[] = life.events.slice(-8).map((e) => ({ id: e.id, date: day(e.date), title: e.title.replace(/\s*[—–]\s*/g, ", "), lane: e.lane === "case" ? "case" : e.lane === "care" ? "care" : "seen" }));
     return { id: life.id, label: life.label, sid: life.straypawId, place: [life.locality, life.city].filter(Boolean).join(", "), photo: life.photo && !life.photoSensitive ? life.photo : null, art: { src: art.src, ground: art.ground, title: WORKS[art.work].title }, events };
   })() : null;
-
-  const branches: Branch[] = [
-    { title: "Reporting on WhatsApp", body: "Residents send a photo and a place; it lands as a report", href: "/community/report" },
-    { title: "Rescue cases", body: "Triage, an owner, treatment and follow-ups", href: "/for-ngos" },
-    { title: "Animal identities", body: "One ID and a lasting history for every animal", href: lifeCard ? `/animal/${lifeCard.id}` : "/explore" },
-    { title: "NGO workspace", body: "The queue, the register, the team", href: "/for-ngos" },
-    { title: "The living map", body: "Every recorded area in India, down to the locality", href: "/explore" },
-    { title: "City intelligence", body: "Coverage, sterilisation and gaps, with their limits", href: "/for-governments" },
-    { title: "Evidence of work", body: "Reports partners and funders can check", href: "/for-funders" },
-    { title: "Learning", body: "Courses and guides for carers and teams", href: "/learn" },
+  const words: Word[] = [
+    { w: "Reports", sub: "on WhatsApp", href: "/community/report" },
+    { w: "Cases", sub: "for rescue teams", href: "/for-ngos" },
+    { w: "Identities", sub: "for every animal", href: "/explore" },
+    { w: "Workspaces", sub: "for NGOs", href: "/partner-apply" },
+    { w: "Maps", sub: "for every city", href: "/for-governments" },
+    { w: "Evidence", sub: "for partners", href: "/for-funders" },
   ];
-  const city = story?.hero.city ?? "the sample city";
+  const city = sample ?? "the city";
 
   return (
     <div className={`sp field-site product-site ld bindu is-night ${sxSerif.variable}`}>
@@ -136,110 +141,88 @@ export default async function HomePage() {
       <SiteHeader tone="night" />
       <Rail chapters={CHAPTERS.map(([id, label]) => ({ id, label }))} />
       <main>
-        {/* I · The painting, the map, the dot, the message. */}
-        <Stage id="b-hero" className="b-hero" screens={4.2} still={0} tone="night" label="StrayPaw">
-          <Bindu cells={cells} cities={pins} focusAt={focusAt} mode="hero" />
-          <div className="bh-copy">
-            <p className="bh-k">StrayPaw · India</p>
-            <h1><Split text="The infrastructure for" /> <em><Split text="street-animal care." /></em></h1>
-            <p className="bh-lede">A report on WhatsApp becomes a rescue case, an animal&rsquo;s lasting history and a living map of India: one system for residents, rescue teams and cities.</p>
+        {/* From the Earth at night to one locality, over columns of real records. */}
+        <Stage id="b-hero" className="b-hero" screens={6} still={0.5} tone="night" label="StrayPaw">
+          <Flight cells={cells} pins={pins} focus={focus} />
+          <div className="fl-shade" aria-hidden />
+          <div className="fl-beat is-0">
+            <h1><Split text="Every street animal." /> <em><Split text="On one map." /></em></h1>
             <div className="b-acts">
               <Link href="/explore" className="b-btn is-flame">Explore the live map <ArrowUpRight size={17} aria-hidden /></Link>
-              <Link href="/partner-apply" className="b-btn is-ghost">Get StrayPaw for your NGO</Link>
-              <Link href="/community/report" className="b-link">Report an animal</Link>
+              <Link href="/partner-apply" className="b-btn is-ghost">For NGOs</Link>
             </div>
           </div>
-          <p className="bh-cue" aria-hidden><i />Scroll: every dot is a place</p>
-          <div className="bh-cap" style={{ ["--a" as string]: 0.3, ["--b" as string]: 0.52 }}>
-            <b>Every dot is a place.</b>
-            <span>{fmt(cells.length)} recorded areas{totals ? ` in ${fmt(totals.cities)} cities` : ""}. Where more animals are on the record, the dot is larger. An empty place is unrecorded, not empty.</span>
-          </div>
-          <div className="bh-cap" style={{ ["--a" as string]: 0.5, ["--b" as string]: 0.64 }}>
-            <b>{totals ? `${fmt(totals.animals)} animal records.` : "Animal records."}</b>
-            <span>Most are historical registers that organisations brought with them. A record is not a census: one animal can be seen, treated and recorded many times.</span>
-          </div>
-          <div className="bh-cap" style={{ ["--a" as string]: 0.66, ["--b" as string]: 0.86 }}>
-            <b>One of them is in {sample ?? "a city"}.</b>
-            <span>Every rescue there starts the same way.</span>
-          </div>
-          <div className="bh-door" aria-hidden>
-            <div className="bh-msg"><p>Hi, there&rsquo;s a brown dog near the bus stand. Its back leg is bleeding.</p><small>8:42</small></div>
-            <p className="bh-door-k">It starts with one message.</p>
+          {totals && <p className="fl-beat is-1" style={{ ["--a" as string]: 0.17, ["--b" as string]: 0.38 }}><b>{fmt(totals.animals)}</b><span>animal records. {fmt(totals.cities)} cities. {fmt(cells.length)} areas.</span></p>}
+          {sampleCity && <p className="fl-beat is-2" style={{ ["--a" as string]: 0.43, ["--b" as string]: 0.62 }}><b>{sampleCity.city}</b><span>{fmt(sampleCity.animals)} animals. {fmt(sampleCity.cells)} areas.</span></p>}
+          {place && <p className="fl-beat is-3" style={{ ["--a" as string]: 0.69, ["--b" as string]: 0.87 }}><b>{place.name}</b><span>{fmt(place.animals)} animals on the record.</span></p>}
+          <div className="fl-door" aria-hidden>
+            <div className="fl-msg"><p>Hi, there&rsquo;s a brown dog near the bus stand. Its back leg is bleeding.</p><small>8:42</small></div>
           </div>
         </Stage>
 
-        {/* II · One message becomes one record: the bubbles fly into the case, the replies fly back. */}
-        <Stage id="b-relay" className="b-relay" screens={5.2} steps={RELAY_STEPS} tone="day" label="From WhatsApp to a case">
-          <header className="b-head"><p className="b-k">Reporting on WhatsApp</p><h2>One message. <em>One record, for good.</em></h2></header>
+        {/* The message becomes the case: its parts fly into the record, the replies fly back. */}
+        <Stage id="b-relay" className="b-relay" screens={5} steps={RELAY_STEPS} tone="day" label="From WhatsApp to a case">
+          <header className="b-head"><h2>Report on WhatsApp. <em>It becomes a case.</em></h2></header>
           <Relay />
         </Stage>
 
-        {/* III · Drawn, photographed, on the record. */}
         {idCards.length > 2 && (
-          <Stage id="b-id" className="b-id" screens={3.4} tone="day" label="Every animal keeps its identity">
-            <header className="b-head is-left"><p className="b-k">{totals ? `${fmt(totals.animals)} animal records` : "Animal records"}</p><h2>Drawn. Photographed. <em>On the record.</em></h2><p>Every animal keeps one identity: its StrayPaw ID, its places, and every sighting, case and treatment in order. These are real animals; open any of them.</p></header>
+          <Stage id="b-id" className="b-id" screens={3.4} tone="night" label="Every animal keeps its identity">
+            <header className="b-head is-left"><h2>Every animal. <em>One identity.</em></h2></header>
             <Identity cards={idCards} />
           </Stage>
         )}
 
-        {/* IV · One life, unrolled corner to corner as a river. */}
         {lifeCard && lifeCard.events.length > 1 && (
           <Stage id="b-life" className="b-life" screens={3.2} tone="day" label="One animal's recorded history">
-            <header className="b-head is-corner"><h2>One life, <em>as the record keeps it.</em></h2></header>
+            <header className="b-head is-corner"><h2>One life. <em>Every step.</em></h2></header>
             <Lifeline life={lifeCard} />
           </Stage>
         )}
 
-        {/* V · The circle of people unrolls into the workspace they share. */}
         {story && (
-          <Stage id="b-circle" className="b-circle" screens={3.6} tone="night" label="The NGO workspace">
-            <Circle city={city} live={story.desk.live} critical={story.desk.critical} queue={story.desk.queue} animals={animalRows} cells={story.desk.cells} box={story.desk.box}
-              facts={focusCity ? { city: focusCity.city, animals: focusCity.animals, cases: focusCity.cases, sterilised: focusCity.sterilised, ster_unknown: focusCity.ster_unknown, cells: focusCity.cells } : null} />
+          <Stage id="b-work" className="b-work" screens={2.6} tone="day" label="The NGO workspace">
+            <header className="b-head"><h2>One workspace. <em>The whole team.</em></h2></header>
+            <Workspace city={city} live={story.desk.live} critical={story.desk.critical} queue={story.desk.queue} animals={animalRows} cells={story.desk.cells} box={story.desk.box}
+              facts={sampleCity ? { city: sampleCity.city, animals: sampleCity.animals, cases: sampleCity.cases, sterilised: sampleCity.sterilised, ster_unknown: sampleCity.ster_unknown, cells: sampleCity.cells } : null} />
           </Stage>
         )}
 
-        {/* VI · The living map, at night, to explore. */}
-        <section id="b-atlas" className="b-atlas" data-tone="night" aria-labelledby="b-atlas-t">
-          <header className="b-head is-left"><p className="b-k">The living map</p><h2 id="b-atlas-t">India, city by city. <em>Animal by animal.</em></h2><p>Choose a city. Each point of light is a recorded area; a hollow mark is a city-level register, never a street.</p></header>
-          <Atlas cities={cities} faces={faces} facts={facts} sample={sample} sky={cells} />
+        {/* The map, handed over. */}
+        <section id="b-map" className="b-map" data-tone="night" aria-labelledby="b-map-t">
+          <header className="b-head"><h2 id="b-map-t">India, live. <em>Fly it.</em></h2></header>
+          <Explore cells={cells} facts={facts} sample={sample} />
         </section>
 
-        {/* VII · What we have built: the tree. */}
-        <Stage id="b-tree" className="b-tree" screens={2.4} tone="day" label="What StrayPaw has built">
-          <header className="b-head"><p className="b-k">Why we exist</p><h2>Street-animal care runs on scattered messages. <em>We are building the record it never had.</em></h2>
-            <p>Our mission is to make street-animal care more coordinated, accountable and informed, with technology anyone can use. One trunk, the shared record; a branch for every part of the work.</p></header>
-          <Tree items={branches} />
+        <Stage id="b-words" className="b-words" screens={2.6} tone="day" label="What StrayPaw is">
+          <Words words={words} />
         </Stage>
 
-        {/* VIII · Every dot gathers back into the painting; the invitation. */}
-        <Stage id="b-end" className="b-end" screens={2.6} still={1} tone="night" label="Join StrayPaw">
-          <Bindu cells={cells} cities={pins} focusAt={null} mode="finale" />
-          <div className="be-copy">
-            <p className="b-k">Where we are going</p>
-            <h2>The information and coordination layer for India&rsquo;s street animals: <em>a city that remembers every animal.</em></h2>
-            {totals && (
-              <dl className="be-pf">
-                <div><dt>Animal records</dt><dd>{fmt(totals.animals)}</dd><small>mostly imported registers</small></div>
-                <div><dt>Cities</dt><dd>{fmt(totals.cities)}</dd><small>street areas to city level</small></div>
-                <div><dt>Requests for help</dt><dd>{fmt(totals.cases)}</dd><small>open and closed</small></div>
-                {reports !== null && <div><dt>Community reports</dt><dd>{fmt(reports)}</dd><small>through StrayPaw, last 90 days</small></div>}
-              </dl>
-            )}
-            <div className="b-acts is-center">
-              <Link href="/explore" className="b-btn is-flame">Explore the live map <ArrowUpRight size={17} aria-hidden /></Link>
-              <Link href="/partner-apply" className="b-btn is-ghost">Get StrayPaw for your NGO</Link>
-              <Link href="/community/report" className="b-btn is-ghost">Report an animal</Link>
-            </div>
-            <p className="be-alt"><Link href="/for-governments">For cities</Link><Link href="/for-funders">For funders and partners</Link><Link href="/learn">Learn</Link><Link href="/contact">Contact us</Link></p>
+        <section id="b-end" className="b-end" data-tone="night" aria-labelledby="b-end-t">
+          <h2 id="b-end-t" className="be-say"><span>Every animal.</span><span>Every rescue.</span><em>One record.</em></h2>
+          {totals && (
+            <dl className="be-pf">
+              <div><dd>{fmt(totals.animals)}</dd><dt>animal records</dt></div>
+              <div><dd>{fmt(totals.cities)}</dd><dt>cities</dt></div>
+              <div><dd>{fmt(totals.cases)}</dd><dt>requests for help</dt></div>
+              {reports !== null && <div><dd>{fmt(reports)}</dd><dt>reports in 90 days</dt></div>}
+            </dl>
+          )}
+          <div className="b-acts is-center">
+            <Link href="/explore" className="b-btn is-flame">Explore the live map <ArrowUpRight size={17} aria-hidden /></Link>
+            <Link href="/partner-apply" className="b-btn is-ghost">Get StrayPaw for your NGO</Link>
+            <Link href="/community/report" className="b-btn is-ghost">Report an animal</Link>
           </div>
-        </Stage>
+          <p className="be-alt"><Link href="/for-governments">Cities</Link><Link href="/for-funders">Partners</Link><Link href="/learn">Learn</Link><Link href="/contact">Contact</Link></p>
+          <p className="be-fine">Records, not a census. Most are registers organisations brought with them; one animal can be recorded many times.</p>
+        </section>
       </main>
       <footer className="ld-foot b-foot" data-tone="night">
         <div className="ld-foot-top">
           <Link href="/" className="ld-foot-brand">StrayPaw<span>From the first report to the recorded outcome.</span></Link>
           <FooterIndex />
         </div>
-        <p className="ld-foot-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>The dog, the circle, the tree and the borders on this page are original drawings made for StrayPaw in the manner of Gond, Warli and Madhubani painting; they are not the work of those traditions&rsquo; artists. Museum and Gond works elsewhere: <Link href="/art-credits">Art credits</Link></span></p>
+        <p className="ld-foot-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>Map data © OpenStreetMap contributors, OpenFreeMap. <Link href="/art-credits">Art credits</Link></span></p>
       </footer>
     </div>
   );
