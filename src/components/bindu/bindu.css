@@ -102,7 +102,7 @@
 .bindu .mx-rec.is-case .mx-stamp { transform: rotate(-9deg) scale(1); opacity: 1; }
 .bindu .mx-ghost { position: absolute; left: 0; top: 0; z-index: 30; padding: 9px 13px; border-radius: 12px; background: #fff; color: var(--ink); font-size: 14px; font-weight: 600; white-space: nowrap; box-shadow: inset 3px 0 0 var(--flame), 0 18px 34px -14px rgba(11, 30, 61, 0.55); pointer-events: none; will-change: transform; }
 .bindu .mx-life header { display: flex; gap: 14px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-.bindu .mx-plate { width: 58px; height: 58px; border-radius: 14px; background: url(/art/folk/dog-sikari.webp) center / cover, #e9dcc6; }
+.bindu .mx-plate { width: 58px; height: 58px; border-radius: 14px; background: radial-gradient(120% 100% at 20% 0%, #2457ce 0%, #0b1e3d 75%); }
 .bindu .mx-life b { display: block; font-family: var(--mono); font-size: 15px; }
 .bindu .mx-life small { font-size: 13px; color: var(--mute); }
 .bindu .mx-life ol { list-style: none; margin: 0; padding: 0; }
@@ -408,3 +408,6 @@
   .bindu .wd b { font-size: clamp(64px, 20vw, 110px); }
   .bindu .be-pf { gap: 18px 28px; }
 }
+
+.bindu .ll-noimg { display: block; width: 64px; height: 64px; border-radius: 14px; background: radial-gradient(120% 100% at 20% 0%, #2457ce 0%, #0b1e3d 75%); }
+@media (max-width: 760px) { .bindu .ll-noimg { width: 44px; height: 44px; } }

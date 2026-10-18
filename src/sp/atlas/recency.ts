@@ -12,11 +12,11 @@ import type { MapCell } from "@/lib/livingmap/types";
 
 export type Bucket = { id: string; label: string; short: string; color: string; maxDays: number };
 export const RECENCY: Bucket[] = [
-  { id: "r0", label: "In the last 3 months", short: "< 3 mo", color: "#2bb3c4", maxDays: 92 },
-  { id: "r1", label: "3 to 12 months ago", short: "3–12 mo", color: "#6fbf5c", maxDays: 366 },
-  { id: "r2", label: "1 to 2 years ago", short: "1–2 yr", color: "#f2b437", maxDays: 731 },
-  { id: "r3", label: "2 to 5 years ago", short: "2–5 yr", color: "#ef7346", maxDays: 1827 },
-  { id: "r4", label: "More than 5 years ago", short: "5 yr +", color: "#e04f7a", maxDays: Infinity },
+  { id: "r0", label: "In the last 3 months", short: "< 3 mo", color: "#ff6f52", maxDays: 92 },
+  { id: "r1", label: "3 to 12 months ago", short: "3–12 mo", color: "#a9c4ff", maxDays: 366 },
+  { id: "r2", label: "1 to 2 years ago", short: "1–2 yr", color: "#6f9bf5", maxDays: 731 },
+  { id: "r3", label: "2 to 5 years ago", short: "2–5 yr", color: "#3d6ad6", maxDays: 1827 },
+  { id: "r4", label: "More than 5 years ago", short: "5 yr +", color: "#2a4a9e", maxDays: Infinity },
 ];
 export const UNDATED = { id: "rx", label: "Date not recorded", short: "undated" };
 

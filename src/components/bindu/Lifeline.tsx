@@ -93,10 +93,10 @@ export function Lifeline({ life }: { life: LifeCard }) {
         <p className="ll-k">On the record</p>
         <div className="ll-who">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={life.photo ?? life.art.src} alt={life.photo ? `${life.label}, as photographed` : ""} className={life.photo ? "" : "is-art"} style={life.photo ? undefined : { background: life.art.ground }} />
+          {life.photo ? <img src={life.photo} alt={`${life.label}, as photographed`} /> : <span className="ll-noimg" role="img" aria-label="No photograph recorded" />}
           <div><h3>{life.label}</h3><small>{life.place}{life.sid && life.sid !== life.label ? ` · ${life.sid}` : ""}</small></div>
         </div>
-        {!life.photo && <small className="ll-art">No photograph on the record. Illustration, not this animal: {life.art.title}.</small>}
+        {!life.photo && <small className="ll-art">No photograph on the record.</small>}
         <Link className="b-btn is-ink" href={`/animal/${life.id}`}>Read the full record <ArrowUpRight size={15} aria-hidden /></Link>
       </aside>
     </div>

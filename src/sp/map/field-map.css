@@ -274,3 +274,27 @@
 @media (prefers-reduced-motion: reduce) { .fm *, .fm *::before { animation: none !important; transition: none !important; } }
 .fm.is-india .fm-sub { display: block; }
 .fm.is-india .fm-sub b { margin-right: 4px; }
+
+/* ════════════════════════════════════════════════════════════════════
+   Night. The ground is India at night in StrayPaw's blues; what floats
+   over it is lettered light, and the cards stay paper for reading.
+   ════════════════════════════════════════════════════════════════════ */
+.fm { background: #07142b; }
+.fm-map .maplibregl-ctrl-attrib { background: rgba(7, 20, 43, 0.6) !important; color: rgba(219, 230, 255, 0.55); }
+.fm-map .maplibregl-ctrl-attrib a { color: rgba(219, 230, 255, 0.6) !important; }
+.fm-title { color: #eef3ff; text-shadow: 0 2px 24px rgba(7, 20, 43, 0.9); }
+.fm-hi { color: #ff9f86; }
+.fm-ladder, .fm-ladder button { color: rgba(219, 230, 255, 0.7); text-shadow: none; }
+.fm-ladder button:hover, .fm-ladder button[aria-current="page"] { color: #eef3ff; }
+.fm-city b { color: #eef3ff; text-shadow: 0 0 6px #07142b, 0 0 12px #07142b; }
+.fm-city:hover b { color: #a9c4ff; }
+.fm-city small { background: rgba(7, 20, 43, 0.72); color: rgba(219, 230, 255, 0.85); box-shadow: inset 0 0 0 1px rgba(219, 230, 255, 0.16); backdrop-filter: blur(6px); }
+.fm-place { color: #eef3ff; text-shadow: 0 0 4px #07142b, 0 0 10px #07142b; }
+.fm-region { display: none; }
+.fm-stamp { transform: none !important; }
+.fm-threads path { stroke: rgba(143, 176, 255, 0.45) !important; }
+.fm-threads circle { fill: #a9c4ff !important; }
+.fm-sw.is-city { width: 12px; height: 12px; background: #5b8cf0; box-shadow: 0 0 0 2px rgba(91, 140, 240, 0.3), inset 0 0 0 1px #eef3ff; }
+.fm-plate { background: radial-gradient(120% 100% at 20% 0%, #1b3f80 0%, #0b1e3d 70%); }
+.fm-plate p { left: 16px; top: auto; bottom: 16px; background: none; box-shadow: none; padding: 0; color: #eef3ff; }
+.fm-plate p span { color: rgba(219, 230, 255, 0.7); }

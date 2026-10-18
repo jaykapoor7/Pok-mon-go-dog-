@@ -358,3 +358,9 @@
 .sp .brief dd { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink-2); }
 @media (max-width: 900px) { .sp .brief { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px; } .sp .brief > div:nth-child(3) { padding-left: 0; border-left: 0; } }
 @media (max-width: 420px) { .sp .brief dd { font-size: 12.5px; } .sp .brief > div { padding-block: 10px; } }
+
+/* No photograph: a quiet blue plate that says so, in type. Nothing stands in for the animal. */
+.sp .portrait.is-none:not(.is-s) { background: radial-gradient(120% 100% at 20% 0%, #1b3f80 0%, #0b1e3d 70%); }
+.sp .portrait.is-none:not(.is-s) .portrait-none { position: absolute; inset: 0; display: grid; align-content: end; gap: 3px; padding: 16px; color: #eef3ff; }
+.sp .portrait.is-none:not(.is-s) .portrait-none b { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+.sp .portrait.is-none:not(.is-s) .portrait-none .mono { font-size: 12px; letter-spacing: 0.04em; color: rgba(219, 230, 255, 0.7); }

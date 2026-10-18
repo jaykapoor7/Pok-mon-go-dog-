@@ -3,16 +3,19 @@
 /* ════════════════════════════════════════════════════════════════════
    The Map: India's street animals, from the whole country to one dog.
 
-   One continuous world on an illustrated ground (ground.ts):
-     INDIA         each city a folk rosette sized by the lens's live count;
-                   every recorded area a seed; a few photographed animals
-                   pinned as stamps. A city-level register is drawn hollow.
-     CITY          every recorded area (H3 r8, ≈0.74 km²) a scalloped bloom
-                   in the lens's colour, lettered by locality.
-     NEIGHBOURHOOD the blooms open into paws, one per recorded animal,
-                   ARRANGED inside their area (never a location). Tap a paw.
-     ANIMAL        a field-guide entry: photograph or honest plate, what is
-                   recorded, the thread of its care, and the next action.
+   One continuous world at night, in StrayPaw's blues and flame:
+     INDIA         a globe in an electric-blue atmosphere; each city a
+                   point of light sized by the lens's live count; every
+                   recorded area a glow coloured by when it was last
+                   recorded. A city-level register is drawn hollow.
+     CITY          every recorded area (H3 r8, ≈0.74 km²) a round column,
+                   as tall as its animals on the record, coloured by the
+                   lens. Drag to tilt and turn.
+     NEIGHBOURHOOD the columns settle and open into dots, one per recorded
+                   animal, ARRANGED inside their area (never a location).
+     ANIMAL        the record: photograph or a plain plate that says no
+                   photograph exists, what is recorded, its care, the next
+                   action.
 
    No permanent panel: the place is lettered on the map, the lenses and
    search float, and what you choose opens in a card (desktop) or a sheet
@@ -23,7 +26,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { GeoJSONSource, Map as MLMap, MapGeoJSONFeature } from "maplibre-gl";
-import { supportsWebGL2 } from "@/components/map/basemap";
+import { supportsWebGL2, groundStyle as nightGround, underlay, NIGHT } from "@/components/map/basemap";
+import { setNight, edgeGlow, heightExpr } from "@/components/bindu/mapkit";
+import { roundCell } from "@/lib/spatial/round";
 import { foldMonths, orgPalette, question, type Ctx } from "@/lib/livingmap/questions";
 import { headline, localities, placeName, tally } from "@/lib/livingmap/reading";
 import type { MapArea, MapCity, NationalCell, NationalCity, Unplaced } from "@/lib/livingmap/types";
@@ -32,8 +37,8 @@ import { RECENCY, bucketOf, lastRecorded } from "../atlas/recency";
 import { coreBounds, haversineKm, seedHead } from "../atlas/geo";
 import { KINDS, cityEvidence, kindOf } from "../atlas/evidence";
 import { LENSES, lensFigure, nationalMeasure, type LensId } from "../atlas/lenses";
-import { GLYPHS, ORNAMENT, collapseAttribution, drawGround, groundStyle, regionLabels } from "./ground";
-import { BLOOM_PX, MARK, PAW_PX, ROSETTE_PX, bloom, edgeRing, paw, rosette, sterPetals } from "./marks";
+import { GLYPHS, ORNAMENT, collapseAttribution } from "./ground";
+import { MARK } from "./marks";
 import { Chrome, type Face, type Level } from "./Chrome";
 import { MAP_LENSES, unitFor, type MapScope, type MapVariant } from "./lens";
 import { getSupabase } from "@/lib/supabase";
@@ -42,6 +47,9 @@ import "./field-map.css";
 
 const INDIA_BOX: [[number, number], [number, number]] = [[68.2, 6.4], [97.4, 35.6]];
 const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, PAW_ZOOM = 13.2, MAX_PAWS = 140;
+/* Night inks: an undated area, and the dots of sterilisation as the record has them. */
+const UNDATED_INK = "#53627f";
+const DOT = { yes: "#4fc3d4", no: "#f05b40", unknown: "#9aa9c4" };
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const travel = (t: number) => 1 - Math.pow(1 - t, 3);
 const dur = (from: number, to: number) => (reduced() ? 0 : Math.min(1800, 600 + Math.abs(from - to) * 150));
@@ -187,40 +195,43 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       if (dead || !el.current) return;
       ml.current = lib;
       lib.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
-      map = new lib.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, bounds: INDIA_BOX, fitBoundsOptions: { padding: 24 },
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, dragRotate: false, pitchWithRotate: false, maxZoom: 17, minZoom: 3 });
+      map = new lib.Map({ container: el.current, style: { ...nightGround(NIGHT), glyphs: GLYPHS }, bounds: INDIA_BOX, fitBoundsOptions: { padding: 24 },
+        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, maxPitch: 72, maxZoom: 17, minZoom: 2 });
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __map?: MLMap }).__map = map;
       map.touchZoomRotate.disableRotation();
       map.on("error", (e) => { if (/webgl|context/i.test(e.error?.message ?? "")) setMapError("This browser cannot draw the interactive map. Search and the city list still work."); });
       map.on("load", () => {
         const m = map!;
-        /* Marks are drawn when first needed: a rosette, bloom or paw per colour combination. */
-        m.setMissingStyleImageResolver((id: string) => {
-          if (m.hasImage(id)) return;
-          const [k, a, b, c] = id.split("|");
-          if (k === "ro") m.addImage(id, rosette(a === "x" ? [[12, b]] : a.split(",").map((p) => { const [n, col] = p.split(":"); return [+n, col] as [number, string]; }), c === "1"), { pixelRatio: 2 });
-          else if (k === "bl") m.addImage(id, bloom(a), { pixelRatio: 2 });
-          else if (k === "pw") m.addImage(id, paw(a, b === "1", c === "1"), { pixelRatio: 2 });
-        });
-        m.addImage("edge", edgeRing(), { pixelRatio: 2 });
+        setNight(m);
         const empty = { type: "FeatureCollection" as const, features: [] };
-        for (const s of ["nat", "cities", "edge", "areas", "paws", "sel", "spot", "nums"]) m.addSource(s, { type: "geojson", data: empty });
-        m.addLayer({ id: "nat", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], 0.75], 7, ["*", ["get", "r"], 1.5]], "circle-color": ["get", "color"], "circle-stroke-color": MARK.ink, "circle-stroke-width": 0.9, "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.35, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.7, 8, 0.4] } });
-        m.addLayer({ id: "edge", type: "symbol", source: "edge", minzoom: 10.5, layout: { "icon-image": "edge", "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, (px * 0.9) / 32])] as never, "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 10.5, 0, 11.5, 0.9, 14, 0.3] } });
-        m.addLayer({ id: "areas", type: "symbol", source: "areas", layout: {
-          "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
-          "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], px / (BLOOM_PX / 2)]])] as never,
-        }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, ["case", ["==", ["get", "dim"], 1], 0.25, 1], PAW_ZOOM + 0.6, ["case", ["==", ["get", "dim"], 1], 0.08, 0.22]] } });
+        for (const s of ["nat", "cities", "edge", "areas", "areas3d", "paws", "sel", "spot", "nums"]) m.addSource(s, { type: "geojson", data: empty });
+        const zr = (k: number) => ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], (px / 2) * k]])] as never;
+        /* India: every recorded area a glow, every city a point of light. */
+        m.addLayer({ id: "nat-glow", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, ["*", ["get", "r"], 2.2], 7, ["*", ["get", "r"], 4]], "circle-color": ["get", "color"], "circle-blur": 1, "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.12, 0.45], "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "nat", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], 0.6], 7, ["*", ["get", "r"], 1.2]], "circle-color": ["get", "color"], "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.35, 1], "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "edge", type: "circle", source: "edge", minzoom: 10.5, paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, px * 0.42])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "rgba(219,230,255,0.22)", "circle-stroke-width": 1, "circle-pitch-alignment": "map" } });
+        /* City: round columns of light, as tall as their animals, in the lens's colour. */
+        m.addLayer({ id: "areas3d", type: "fill-extrusion", source: "areas3d", paint: {
+          "fill-extrusion-color": ["get", "color"], "fill-extrusion-height": heightExpr(0.42), "fill-extrusion-base": 0, "fill-extrusion-vertical-gradient": true,
+          /* the columns settle away as the dots of each animal arrive */
+          "fill-extrusion-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 1, 0.92, PAW_ZOOM - 0.1, 0],
+        } });
+        /* The areas themselves, for touch and hover: a faint disc on the ground under each column. */
+        m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["get", "color"], "circle-blur": 0.6, "circle-pitch-alignment": "map",
+          "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.3, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.5, PAW_ZOOM, 0.18]] } });
         /* A lit finding rings the areas it rests on, in turmeric; nothing else changes meaning. */
-        m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#d99b1c", "circle-stroke-width": 2.2 } });
-        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95 } });
-        m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.4, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.4, 10, 13, 13], "text-allow-overlap": false, "text-padding": 1 }, paint: { "text-color": MARK.ink, "text-halo-color": "#fff8e8", "text-halo-width": 2, "text-opacity": ["interpolate", ["linear"], ["zoom"], 11.4, 0, 11.8, 1, PAW_ZOOM - 0.3, 1, PAW_ZOOM + 0.2, 0] } });
-        m.addLayer({ id: "paws", type: "symbol", source: "paws", minzoom: PAW_ZOOM - 0.6, layout: { "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
-          "icon-size": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 0.55], 15, ["*", ["get", "s"], 1], 17, ["*", ["get", "s"], 1.5]] as never },
-          paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1] } });
-        m.addLayer({ id: "cities", type: "symbol", source: "cities", layout: { "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "s"], ["get", "g"], 0.85], 6, ["*", ["get", "s"], ["get", "g"], 1.1], 8, ["*", ["get", "s"], ["get", "g"], 1.3]] as never } });
+        m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f2b632", "circle-stroke-width": 2.2, "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(143,176,255,0.12)", "circle-stroke-color": "#a9c4ff", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95, "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.4, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.4, 10, 13, 13], "text-allow-overlap": false, "text-padding": 1 }, paint: { "text-color": "#eef3ff", "text-halo-color": "#07142b", "text-halo-width": 1.6, "text-opacity": ["interpolate", ["linear"], ["zoom"], 11.4, 0, 11.8, 1, PAW_ZOOM - 0.3, 1, PAW_ZOOM + 0.2, 0] } });
+        /* Neighbourhood: one dot per recorded animal, arranged in its area. A photographed animal is ringed in white. */
+        m.addLayer({ id: "paws", type: "circle", source: "paws", minzoom: PAW_ZOOM - 0.6, paint: {
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 3.4], 15, ["*", ["get", "s"], 6.5], 17, ["*", ["get", "s"], 10]],
+          "circle-color": ["get", "col"], "circle-stroke-color": ["case", ["==", ["get", "ph"], 1], "#ffffff", "rgba(7,20,43,0.9)"], "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3, ["==", ["get", "ph"], 1], 1.8, 1],
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1] } });
+        m.addLayer({ id: "cities-glow", type: "circle", source: "cities", paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 1.5], 8, ["*", ["get", "r"], ["get", "g"], 2.2]], "circle-color": ["get", "col"], "circle-blur": 1, "circle-opacity": ["case", ["==", ["get", "hol"], 1], 0.08, 0.4] } });
+        m.addLayer({ id: "cities", type: "circle", source: "cities", paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 0.42], 8, ["*", ["get", "r"], ["get", "g"], 0.62]],
+          "circle-color": ["case", ["==", ["get", "hol"], 1], "rgba(0,0,0,0)", ["get", "col"]], "circle-stroke-color": "#eef3ff", "circle-stroke-width": ["case", ["==", ["get", "hol"], 1], 1.5, 1.2], "circle-stroke-opacity": 0.85 } });
 
         const tip = (e: { features?: MapGeoJSONFeature[]; point: { x: number; y: number } }) => {
           if (window.matchMedia("(hover: none)").matches) return;
@@ -235,19 +246,8 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         m.on("click", (e) => onMapClick(m, e.point));
         m.on("movestart", (e) => { userMove.current = !!(e as { originalEvent?: unknown }).originalEvent; setHover(null); setMoving(true); });
         m.on("moveend", () => { setZoom(m.getZoom()); const c = m.getCenter(); setCenter([c.lng, c.lat]); setMoved((n) => n + 1); setMoving(false); });
-        drawGround(m, "nat").then(() => setInked((n) => n + 1)).catch(() => {});
+        underlay(m, NIGHT, "nat-glow").then(() => { edgeGlow(m); setInked((n) => n + 1); }).catch(() => {});
         collapseAttribution(m);
-        /* Regions lettered in HTML in Kalam and Tiro Devanagari: the map's own text engine cannot shape Devanagari. */
-        htmlEls.current.regions = regionLabels().map((r) => {
-          const e = document.createElement("div");
-          e.className = `fm-region is-${r.kind}${r.major ? " is-major" : ""}`;
-          e.setAttribute("aria-hidden", "true");
-          e.innerHTML = `<span style="transform:rotate(${r.angle}deg)"><b></b><i lang="hi"></i></span>`;
-          e.querySelector("b")!.textContent = r.name; e.querySelector("i")!.textContent = r.hi;
-          const root = document.createElement("div"); root.className = "fm-mk"; root.appendChild(e);
-          new lib.Marker({ element: root, anchor: "center" }).setLngLat(r.at).addTo(m);
-          return e;
-        });
         setZoom(m.getZoom());
         setReady(true);
       });
@@ -330,11 +330,10 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       if (!v && !hollow) return [];
       const rank = order.indexOf(c.city) / Math.max(1, cities.length);
       const d = rosetteD(hollow ? 0 : v, max, hollow);
-      const petals = lens === "animals" && !hollow ? sterPetals(c.sterilised, c.ster_no, c.ster_unknown).map(([n, col]) => `${n}:${col}`).join(",") : null;
-      const img = petals ? `ro|${petals}||${hollow ? 1 : 0}` : `ro|x|${hollow ? KINDS.clinical.ink : L.ink}|${hollow ? 1 : 0}`;
+      const col = lens === "animals" ? "#5b8cf0" : L.ink;
       const fig = v.toLocaleString("en-IN");
       return [{ type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] }, properties: {
-        name: c.city, img, s: d / (ROSETTE_PX / 2), g: Math.max(0, Math.min(1, g * 1.5 - rank * 0.5)), sort: -v,
+        name: c.city, col, hol: hollow ? 1 : 0, r: d / 2, g: Math.max(0, Math.min(1, g * 1.5 - rank * 0.5)), sort: -v,
         title: c.city, line: hollow ? `${fig} animals in a city-level clinical register · not mapped by street` : `${fig} ${unitFor(lens, v)} · ${KINDS[k].label.toLowerCase()}`,
       } }];
     }) : [] });
@@ -348,7 +347,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     const now = Date.now();
     (m.getSource("nat") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: level === "india" && lens === "animals" ? national.map(([lng, lat, a, last]) => {
       const b = bucketOf(last, now);
-      return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [lng, lat] }, properties: { r: 1.8 + Math.min(4.2, Math.sqrt(a) * 0.45), color: b?.color ?? "#fbf3e2", u: b ? 0 : 1 } };
+      return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [lng, lat] }, properties: { r: 1.8 + Math.min(4.2, Math.sqrt(a) * 0.45), color: b?.color ?? "#9aa9c4", u: b ? 0 : 1 } };
     }) : [] });
   }, [ready, national, level, lens]);
 
@@ -356,7 +355,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const areaFeatures = useCallback(() => {
     const m = mapRef.current; if (!m) return;
     const set = (id: string, features: GeoJSON.Feature[]) => (m.getSource(id) as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features });
-    if (!city || !cells.length) { for (const s of ["areas", "edge", "paws", "nums"]) set(s, []); return; }
+    if (!city || !cells.length) { for (const s of ["areas", "areas3d", "edge", "paws", "nums"]) set(s, []); return; }
     const byId = new Map(classes.map((k) => [k.id, k]));
     const now = Date.now(), maxA = Math.sqrt(Math.max(1, ...cells.map((c) => c.animals)));
     const mid = centers.reduce((a, c) => [a[0] + c[0] / centers.length, a[1] + c[1] / centers.length], [0, 0]);
@@ -369,13 +368,21 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       const k = 0.55 + (Math.sqrt(c.animals) / maxA) * 0.75;
       if (animalsRecency) {
         const rb = bucketOf(lastRecorded(c), now);
-        return pt(centers[i], { i, k, g, img: `bl|${rb ? rb.color : "hatch"}`, sort: -c.animals, dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
+        return pt(centers[i], { i, k, g, color: rb ? rb.color : UNDATED_INK, n: Math.sqrt(c.animals) / maxA, sort: -c.animals, dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
           title: placeName(c.zone), line: `${c.animals.toLocaleString("en-IN")} animals · last recorded ${rb ? rb.label.toLowerCase() : "on no recorded date"}` });
       }
       const kl = byId.get(classOf[i]); const v = q.measure(c, facet, ctx, i);
-      const fill = kl?.kind === "unknown" ? "hatch" : kl?.kind === "zero" ? "#efe3cb" : kl?.color ?? "#efe3cb";
-      return pt(centers[i], { i, k: kl?.kind === "value" ? k : k * 0.7, g, img: `bl|${fill}`, sort: -(v || 0), dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
+      const fill = kl?.kind === "unknown" ? UNDATED_INK : kl?.kind === "zero" ? "#2a3b5c" : kl?.color ?? "#2a3b5c";
+      return pt(centers[i], { i, k: kl?.kind === "value" ? k : k * 0.7, g, color: fill, n: Math.sqrt(c.animals) / maxA, sort: -(v || 0), dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
         title: placeName(c.zone), line: `${kl?.label ?? ""}${v ? ` · ${v.toLocaleString("en-IN")} ${q.unit(facet)}` : ""}` });
+    }));
+    /* the columns: each area's round footprint, carrying the colour and dimming its disc carries */
+    set("areas3d", cells.map((c, i) => {
+      const dim = (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3));
+      let color = UNDATED_INK;
+      if (animalsRecency) { const rb = bucketOf(lastRecorded(c), now); color = rb ? rb.color : UNDATED_INK; }
+      else { const kl = byId.get(classOf[i]); color = kl?.kind === "unknown" ? UNDATED_INK : kl?.kind === "zero" ? "#2a3b5c" : kl?.color ?? "#2a3b5c"; }
+      return { type: "Feature" as const, geometry: { type: "Polygon" as const, coordinates: [roundCell(c.h3, 0.86)] }, properties: { color: dim ? "#1d2b47" : color, n: (Math.sqrt(c.animals) / maxA) * growRef.current.areas } };
     }));
     set("nums", cells.flatMap((c, i) => {
       const v = animalsRecency ? c.animals : q.measure(c, facet, ctx, i); if (!v) return [];
@@ -392,9 +399,9 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       const real = sel && sel.h3 === c.h3 ? sel.animals : null;
       seedHead(centers[i], n).forEach((p, j) => {
         const a = real?.[j];
-        const col = a ? (a.ster === "sterilised" ? MARK.ster.yes : a.ster === "not_sterilised" ? MARK.ster.no : "#c9bba5") : j < yes ? MARK.ster.yes : j < yes + no ? MARK.ster.no : "#c9bba5";
+        const col = a ? (a.ster === "sterilised" ? DOT.yes : a.ster === "not_sterilised" ? DOT.no : DOT.unknown) : j < yes ? DOT.yes : j < yes + no ? DOT.no : DOT.unknown;
         const chosen = !!a && a.id === animalId;
-        paws.push(pt(p, { i, j, id: a?.id ?? null, img: `pw|${col}|${a?.photo ? 1 : 0}|${chosen ? 1 : 0}`, s: (chosen ? 1.6 : a?.photo ? 1.25 : 1) * (PAW_PX / 64), sort: chosen ? 2 : a?.photo ? 1 : 0,
+        paws.push(pt(p, { i, j, id: a?.id ?? null, col, ph: a?.photo ? 1 : 0, ch: chosen ? 1 : 0, s: chosen ? 1.6 : a?.photo ? 1.25 : 1, sort: chosen ? 2 : a?.photo ? 1 : 0,
           title: a ? a.title : placeName(c.zone), line: a ? [a.describe, a.ster === "sterilised" ? "recorded sterilised" : a.ster === "not_sterilised" ? "recorded not sterilised" : "sterilisation not recorded"].filter(Boolean).join(" · ") : "Tap to read this area's animals" }));
       });
     });
@@ -546,17 +553,19 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     const key = `${level === "animal" ? "area" : level}:${city}:${areaH3}:${cells.length}:${clinical}`;
     if (key === lastCam.current) return;
     lastCam.current = key; userMove.current = false;
-    if (level === "india") { m.fitBounds(INDIA_BOX, { padding: pad(), duration: dur(m.getZoom(), 4.2), easing: travel }); return; }
+    if (level === "india") { const cam = m.cameraForBounds(INDIA_BOX, { padding: pad() }); m.flyTo({ ...cam, pitch: 0, bearing: 0, duration: dur(m.getZoom(), 4.2), easing: travel }); return; }
     if (clinical) { const c = cities.find((x) => x.city === city); if (c?.lng) m.flyTo({ center: [c.lng, c.lat!], zoom: 10, duration: dur(m.getZoom(), 10), easing: travel, padding: pad() }); return; }
     if (!cells.length) return;
     if ((level === "area" || level === "animal") && areaIndex >= 0) {
       const zz = Math.max(14.6, Math.min(m.getZoom(), 15.6));
-      m.flyTo({ center: centers[areaIndex], zoom: zz, padding: pad(), duration: dur(m.getZoom(), zz), easing: travel });
+      m.flyTo({ center: centers[areaIndex], zoom: zz, pitch: 58, padding: pad(), duration: dur(m.getZoom(), zz), easing: travel });
       return;
     }
     const b = coreBounds(centers);
-    const zz = m.cameraForBounds(b, { padding: pad(), maxZoom: 12.6 })?.zoom ?? 11;
-    m.fitBounds(b, { padding: pad(), maxZoom: 12.6, duration: dur(m.getZoom(), zz), easing: travel });
+    /* a city opens tilted, so its columns stand up */
+    const cam = m.cameraForBounds(b, { padding: pad(), maxZoom: 12.4 });
+    const zz = cam?.zoom ?? 11;
+    m.flyTo({ ...cam, zoom: zz, pitch: 52, bearing: -14, duration: dur(m.getZoom(), zz), easing: travel });
   }, [ready, level, city, areaH3, areaIndex, cells.length, centers, pad, cities, clinical]);
 
   const flyTo = useCallback((c: [number, number], zz = 14.6) => { const m = mapRef.current; if (!m) return; userMove.current = false; m.flyTo({ center: c, zoom: zz, padding: pad(), duration: dur(m.getZoom(), zz), easing: travel }); }, [pad]);

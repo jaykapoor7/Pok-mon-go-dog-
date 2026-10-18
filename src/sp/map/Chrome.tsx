@@ -19,7 +19,6 @@ import { monthName } from "@/lib/livingmap/types";
 import type { Locality } from "@/lib/livingmap/reading";
 import { placeName } from "@/lib/livingmap/reading";
 import { Portrait } from "../ui/Portrait";
-import { dogArtFor, WORKS } from "@/lib/art/sources";
 import type { Bucket } from "../atlas/recency";
 import { KINDS, kindOf, type EvidenceKind } from "../atlas/evidence";
 import { LENSES } from "../atlas/lenses";
@@ -173,7 +172,7 @@ function IndiaCard({ cities, street, unplaced, faces, fig, onCity }: { cities: N
           ))}</ul>
         </>
       )}
-      <p className="fm-note">Each flower is a city, sized by what it holds. Its twelve petals are its animals&rsquo; recorded sterilisation. {clinical.length ? `${clinical.map((c) => c.city).join(", ")} keeps a clinical register at city level only, so it is drawn hollow and never opens into streets. ` : ""}Empty land means nothing was reported there, not that there are no animals.</p>
+      <p className="fm-note">Each light is a city, sized by what it holds. {clinical.length ? `${clinical.map((c) => c.city).join(", ")} keeps a clinical register at city level only, so it is drawn hollow and never opens into streets. ` : ""}Empty land means nothing was reported there, not that there are no animals.</p>
       <p className="fm-k">Cities on the record · {street.length + cities.length - street.length}</p>
       <ol className="fm-cities">{ranked.map((c) => {
         const k = kindOf(c.city, c.cells);
@@ -375,15 +374,11 @@ const sterInk = (s: string | null) => (s === "sterilised" ? MARK.ster.yes : s ==
 function Paw({ color }: { color: string }) {
   return <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden><circle cx="12" cy="12" r="7" fill={color} stroke="#fffdf9" strokeWidth="2" /><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(11,30,61,0.18)" strokeWidth="1" /></svg>;
 }
-/* No photograph: said first, in type, beside a crop of a real, openly licensed Indian dog painting captioned as not this animal. */
-function Plate({ tag, puppy }: { tag: string; puppy: boolean }) {
-  const art = dogArtFor(tag, puppy ? "puppy" : null), w = WORKS[art.work];
+/* No photograph: said plainly, on a quiet plate. Nothing stands in for the animal. */
+function Plate({ tag }: { tag: string; puppy: boolean }) {
   return (
-    <figure className="fm-plate" style={{ ["--pg" as string]: art.ground }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={art.src} alt="" className={art.flip ? "is-flip" : undefined} loading="lazy" />
-      <p role="img" aria-label={`No photograph recorded for ${tag}. Shown instead: an illustration from the painting ${w.title}, not this animal.`}><b>No photograph recorded</b><span>{tag}</span></p>
-      <figcaption>Illustration, not this animal · {w.title}{w.date ? `, ${w.date}` : ""} · {w.source.replace(", Open Access", "")} ({w.licence})</figcaption>
+    <figure className="fm-plate">
+      <p role="img" aria-label={`No photograph recorded for ${tag}`}><b>No photograph recorded</b><span>{tag}</span></p>
     </figure>
   );
 }
@@ -397,18 +392,17 @@ function Key({ level, lens, recency, zoom }: { level: Level; lens: LensId; recen
       <p className="fm-k">{lensLabel(lens)}</p>
       {level === "india" ? (
         <ul className="fm-keyl">
-          <li><span className="fm-sw is-rosette" aria-hidden />A city, sized by {lens === "animals" ? "animals on the record" : L.unit}</li>
-          {lens === "animals" && <li><span className="fm-sw" style={{ background: MARK.ster.yes }} aria-hidden /><span className="fm-sw" style={{ background: MARK.ster.no }} aria-hidden /><span className="fm-sw" style={{ background: MARK.ster.unknown }} aria-hidden />Petals: sterilised · not · not recorded</li>}
+          <li><span className="fm-sw is-city" aria-hidden />A city, sized by {lens === "animals" ? "animals on the record" : L.unit}</li>
           <li><span className="fm-sw is-hollow" aria-hidden />City-level register: no streets</li>
-          {lens === "animals" && <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Seeds: recorded areas, by when last recorded</small></li>}
+          {lens === "animals" && <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Glows: recorded areas, by when last recorded</small></li>}
         </ul>
       ) : (
         <ul className="fm-keyl">
-          {lens === "animals" ? <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Each bloom an area, by when last recorded</small></li>
+          {lens === "animals" ? <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Each column an area, as tall as its animals, coloured by when last recorded</small></li>
             : <li><span className="fm-sw" style={{ background: L.ink }} aria-hidden />{L.define.split(".")[0]}.</li>}
           <li><span className="fm-sw is-hatch" aria-hidden />No date or status recorded</li>
           <li><span className="fm-sw is-edge" aria-hidden />Edge of the record: nothing reported yet</li>
-          {zoom > 12.6 && <li><span className="fm-sw" style={{ background: MARK.ster.yes }} aria-hidden />Dots: one per animal, arranged in its area, not located</li>}
+          {zoom > 12.6 && <li><span className="fm-sw" style={{ background: "#4fc3d4" }} aria-hidden /><span className="fm-sw" style={{ background: "#f05b40" }} aria-hidden />Dots: one per animal, sterilised or not, arranged in its area, not located</li>}
         </ul>
       )}
     </>
