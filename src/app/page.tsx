@@ -4,9 +4,6 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { FooterIndex } from "@/components/site/FooterIndex";
-import { HeroTally } from "@/components/landing/HeroTally";
-import { AnimalRegister } from "@/components/landing/AnimalRegister";
-import { Relay } from "@/components/landing/Relay";
 import { getAnimalRegister, getLandingStory, type RegisterFocus } from "@/lib/landing/story";
 import { getFaces, getMapCities } from "@/lib/livingmap/server";
 import { kindOf } from "@/sp/atlas/evidence";
@@ -18,10 +15,9 @@ import { dogArtFor, WORKS } from "@/lib/art/sources";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { sxSerif } from "@/components/shell/fonts";
 import { IndiaStrings, type HomeCity, type HomeFace } from "@/components/home/IndiaStrings";
-import { LivingMap, type CityFacts } from "@/components/home/LivingMap";
 import { CareFlow, CARE_STEPS } from "@/components/home/CareFlow";
+import { LivingMap, type CityFacts } from "@/components/home/LivingMap";
 import { Scene } from "@/components/home/Scene";
-import { WorkDemo } from "@/components/home/WorkDemo";
 import { Motion } from "@/components/home/Motion";
 import { Folk } from "@/components/home/Folk";
 import "@/components/site/site.css";
@@ -46,7 +42,6 @@ export const metadata = {
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const day = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
-const CARE: Record<string, string> = { sterilisation: "Sterilised", vaccination: "Vaccinated", treatment: "Treated", surgery: "Surgery", wound_care: "Wound care", deworming: "Dewormed", rescue: "Rescued" };
 
 /* One real animal's public record, read exactly as its profile page reads it. */
 async function readLife(id: string | null | undefined): Promise<Living | null> {
@@ -92,34 +87,28 @@ export default async function HomePage() {
   const facts: CityFacts[] = [...rawCities].sort((a, b) => b.animals - a.animals)
     .map((c) => ({ city: c.city, state: c.state, animals: c.animals, cells: c.cells, sterilised: c.sterilised, ster_unknown: c.ster_unknown, cases: c.cases, care: c.care, hollow: kindOf(c.city, c.cells) === "clinical" }));
   const sample = story?.hero.city ?? null;
-  const SIGHTINGS_90D = await recentReports().catch(() => null);
+  const reports = await recentReports().catch(() => null);
   const life = await pickLife([...RICH, ...rawFaces.map((f) => f.id), story?.relay?.animalId ?? ""].filter(Boolean).slice(0, 8));
-  const city = facts.find((c) => c.city === sample) ?? facts.find((c) => !c.hollow) ?? null;
-  /* One animal: the fullest record in the register, its own history in order. */
-  const lead = [...register.cards].sort((a, b) => (b.requests.length + b.care.length) - (a.requests.length + a.care.length))[0] ?? null;
-  const history = lead ? [
-    ...(lead.first_seen ? [{ at: lead.first_seen, t: "First on the record", k: "seen" }] : []),
-    ...lead.requests.map((r) => ({ at: r.at, t: `Request for help: ${r.condition ?? "condition not recorded"}${r.closed ? ", closed" : ", open"}`, k: "case" })),
-    ...lead.care.map((c) => ({ at: c.at, t: CARE[c.kind] ?? c.kind.replace(/_/g, " "), k: "care" })),
-    ...(lead.last_seen ? [{ at: lead.last_seen, t: "Last recorded", k: "seen" }] : []),
-  ].sort((a, b) => a.at.localeCompare(b.at)) : [];
-  const ster = city ? Math.round((city.sterilised / Math.max(1, city.animals)) * 100) : 0;
-  const unk = city ? Math.round((city.ster_unknown / Math.max(1, city.animals)) * 100) : 0;
+  /* The register's real photographed animals, for the sideways reel. */
+  const reel = register.cards.filter((c) => c.cover_photo).slice(0, 7);
+  const n = reel.length + (life ? 1 : 0);
+  const words = ["The", "operating", "system", "for", "street-animal", "welfare."];
 
   return (
-    <div className={`sp field-site product-site ld home3 ${sxSerif.variable}`}>
+    <div className={`sp field-site product-site ld home3 home4 ${sxSerif.variable}`}>
       <PageView name="landing_view" />
       <Motion />
       <SiteHeader tone="night" />
       <main>
-        {/* A. The company, the product and the country in one opening frame. The workspace is
-               visible from the first second; as the reader scrolls, India's strings and animals
-               converge into it and the night opens into the app's cream. */}
-        <Scene className="s-hero" screens={2.3} label="StrayPaw">
+        {/* 1 · The statement, then the dive: the words tear apart sideways, the camera falls
+               into India down to one city, and that city opens into the working app. */}
+        <Scene className="s-hero s-dive" screens={2.2} label="StrayPaw">
           <div className="hx-copy">
-            <p className="hx-eyebrow">StrayPaw · for rescue organisations and cities in India</p>
-            <h1 id="h-title">The operating system for <em>street-animal welfare.</em></h1>
-            <p className="h-lede">Report an animal on WhatsApp. Run the rescue as a case. Keep its care history for good. See the whole city. One connected system.</p>
+            <p className="hx-eyebrow">StrayPaw</p>
+            <h1 id="h-title" aria-label="The operating system for street-animal welfare.">
+              {words.map((w, i) => <span key={i} className="w" style={{ ["--w" as string]: i, ["--side" as string]: i % 2 ? 1 : -1 }} aria-hidden><span>{i >= 4 ? <em>{w}</em> : w}</span></span>)}
+            </h1>
+            <p className="h-lede">Report on WhatsApp. Run the rescue as a case. Keep every animal&rsquo;s history. See the whole city.</p>
             <div className="h-acts">
               <Link href="/partner-apply" className="h-btn is-flame is-lg" data-mag>Get StrayPaw for your NGO <ArrowUpRight size={18} aria-hidden /></Link>
               <Link href="/explore" className="h-btn is-ghost is-lg" data-mag>Explore the live map</Link>
@@ -143,137 +132,68 @@ export default async function HomePage() {
           </div>
         </Scene>
 
-        {/* B. The product: one continuous system, played by scrolling. */}
+        {/* 2 · One record, played by scrolling: message → case → care → history → city. */}
         <Scene className="s-wa" screens={4} steps={CARE_STEPS} label="One continuous system">
           <Folk k="bird" className="h-folk-wa" w={120} par={0.05} flip />
-          <header className="sx-head"><p className="h-k">The product</p><h2>Message → case → care → <em>history</em> → city.</h2></header>
+          <header className="sx-head"><h2>One message. <em>One record, for good.</em></h2></header>
           <CareFlow />
         </Scene>
 
-        {/* B2. The same record, three readers (preserved relay). */}
-        {story?.relay && (
-          <section className="h-sec h-relay" aria-labelledby="h-relay">
-            <Folk k="cowCalf" className="h-folk-relay" w={160} par={0.07} />
-            <header className="h-head" data-rv="up">
-              <h2 id="h-relay">One request. <em>Three views.</em></h2>
-              <p>The resident who sent it, the team that works it, the city that plans around it.</p>
-            </header>
-            <div data-rv="tilt"><Relay city={story.hero.city} desk={story.desk} report={story.relay} /></div>
-          </section>
+        {/* 3 · The animals: real register animals travel sideways in depth; the reel ends on one real history. */}
+        {n > 0 && (
+          <Scene className="s-reel" screens={2.8} label="The animals on the record">
+            <header className="sx-head is-left"><p className="h-k">{fmt(story?.totals.animals ?? register.total)} animals on the record</p><h2>Every animal keeps <em>its own history.</em></h2></header>
+            <div className="reel" style={{ ["--n" as string]: n }}>
+              {reel.map((c, i) => (
+                <Link key={c.id} href={`/animal/${c.id}`} className="reel-card" style={{ ["--i" as string]: i }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.cover_photo} alt={`${c.name ?? c.straypaw_id ?? "An animal"}, as photographed`} loading="lazy" referrerPolicy="no-referrer" />
+                  <span className="reel-id"><b>{c.name ?? c.straypaw_id}</b><small>{[c.zone, c.city].filter(Boolean).join(", ")}</small><small className="mono">{c.straypaw_id}{c.first_seen ? ` · since ${day(c.first_seen).slice(-8)}` : ""}</small></span>
+                </Link>
+              ))}
+              {life && (() => {
+                const art = dogArtFor(life.id, life.size);
+                const photo = life.photo && !life.photoSensitive ? life.photo : null;
+                return (
+                  <article className="reel-card is-life" style={{ ["--i" as string]: reel.length }}>
+                    <div className="reel-life-id">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo ?? art.src} alt={photo ? `${life.label}, as photographed` : ""} className={photo ? "" : "is-art"} style={photo ? undefined : { background: art.ground }} />
+                      <div><b>{life.label}</b><small>{[life.locality, life.city].filter(Boolean).join(", ")}</small>{!photo && <small>No photograph. Illustration, not this animal: {WORKS[art.work].title}.</small>}</div>
+                    </div>
+                    <ol className="h-life-line">{life.events.slice(-6).map((e) => <li key={e.id} className={`is-${e.lane === "case" ? "case" : e.lane === "care" ? "care" : "seen"}`}><time>{day(e.date)}</time><span>{e.title}</span></li>)}</ol>
+                    <Link className="h-btn is-quiet" href={`/animal/${life.id}`}>The full record <ArrowUpRight size={15} aria-hidden /></Link>
+                  </article>
+                );
+              })()}
+            </div>
+          </Scene>
         )}
 
-        {/* C. The living atlas: India → city → locality → animal, on the live record. */}
+        {/* 4 · The atlas tips up off the table: India → city → locality → animal, live. */}
         <Scene className="s-map" screens={1.7} label="The living atlas">
           <Folk k="peacocks" className="h-folk-map" w={170} par={0.05} />
-          <header className="sx-head"><p className="h-k">The living atlas</p><h2>India, city by city, <em>animal by animal.</em></h2></header>
+          <header className="sx-head"><h2>India, city by city, <em>animal by animal.</em></h2></header>
           <div className="sx-map"><LivingMap cities={cities} faces={faces} facts={facts} sample={sample} plate={null} /></div>
         </Scene>
 
-        {/* D. The individuals behind the records. */}
-        <section className="h-sec h-lives" aria-labelledby="h-lives">
-          <Folk k="dogSitting" className="h-folk-lives" w={140} par={0.09} />
-          <header className="h-head" data-rv="up"><h2 id="h-lives">Every animal keeps <em>its own history.</em></h2><p>A permanent record means the next person to help knows what already happened.</p></header>
-          <div data-rv="right"><AnimalRegister data={register} total={story?.totals.animals ?? register.total} plate={null} /></div>
-          {life && life.events.length > 1 ? (() => {
-            const art = dogArtFor(life.id, life.size);
-            const photo = life.photo && !life.photoSensitive ? life.photo : null;
-            return (
-              <article className="h-life" data-rv="left">
-                <div className="h-life-id">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo ?? art.src} alt={photo ? `${life.label}, as photographed` : ""} loading="lazy" referrerPolicy="no-referrer" className={photo ? "" : "is-art"} style={photo ? undefined : { background: art.ground }} />
-                  {!photo && <small className="h-life-art">No photograph on the record. Illustration, not this animal: {WORKS[art.work].title}.</small>}
-                  <div><b>{life.label}</b><small>{[life.locality, life.city].filter(Boolean).join(", ")}{life.hands.orgs.length ? ` · ${life.hands.orgs.join(", ")}` : ""}</small></div>
-                </div>
-                <ol className="h-life-line">{life.events.slice(-7).map((e) => <li key={e.id} className={`is-${e.lane === "case" ? "case" : e.lane === "care" ? "care" : "seen"}`}><time>{day(e.date)}</time><span>{e.title}</span></li>)}</ol>
-                <Link className="h-btn is-quiet" href={`/animal/${life.id}`}>Read the full record <ArrowUpRight size={16} aria-hidden /></Link>
-              </article>
-            );
-          })() : lead && history.length > 1 && (
-            <article className="h-life" data-rv="left">
-              <div className="h-life-id">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={lead.cover_photo} alt={`${lead.name ?? lead.straypaw_id ?? "This animal"}, as photographed`} loading="lazy" referrerPolicy="no-referrer" />
-                <div><b>{lead.name ?? lead.straypaw_id}</b><small>{[lead.zone, lead.city].filter(Boolean).join(", ")}{lead.org ? ` · kept by ${lead.org}` : ""}</small></div>
-              </div>
-              <ol className="h-life-line">{history.map((h, i) => <li key={i} className={`is-${h.k}`}><time>{day(h.at)}</time><span>{h.t}</span></li>)}</ol>
-              <Link className="h-btn is-quiet" href={`/animal/${lead.id}`}>Read the full record <ArrowUpRight size={16} aria-hidden /></Link>
-            </article>
-          )}
-        </section>
-
-        {/* E. What each organisation gets, travelling sideways. NGOs first. */}
-        <Scene className="s-rail" screens={3.2} label="What organisations get">
-          <header className="sx-head is-left"><p className="h-k">What you get</p><h2>Built for the people <em>doing the work.</em></h2></header>
-          <div className="rail">
-            <article className="rail-card is-ngo" style={{ ["--i" as string]: 0 }} data-tilt="4">
-              <header className="rail-h"><b>NGOs</b><span>Intake, triage, assignment, treatment, follow-ups, reporting.</span><Link href="/partner-apply">Get StrayPaw →</Link></header>
-              <WorkDemo start="Work" />
-            </article>
-            <article className="rail-card is-muni" style={{ ["--i" as string]: 1 }} data-tilt="4">
-              <header className="rail-h"><b>Municipalities</b><span>Geographic registers, ABC and ARV evidence, patterns by area.</span><Link href="/for-governments">For cities →</Link></header>
-              {city && (
-                <figure className="h-city-fig">
-                  <figcaption><b>{city.city}</b> · sterilisation as recorded · {fmt(city.animals)} animals</figcaption>
-                  <div className="h-bar" role="img" aria-label={`${ster}% recorded sterilised, ${unk}% not recorded, the rest recorded not sterilised`}>
-                    <i className="is-yes" style={{ width: `${ster}%` }} /><i className="is-no" style={{ width: `${Math.max(0, 100 - ster - unk)}%` }} /><i className="is-unk" style={{ width: `${unk}%` }} />
-                  </div>
-                  <ul className="h-bar-key"><li><i className="is-yes" />Sterilised {ster}%</li><li><i className="is-no" />Recorded not</li><li><i className="is-unk" />Not recorded {unk}%</li></ul>
-                  <p className="h-fine">Recorded activity, not population coverage. Unknown is never counted as no.</p>
-                  <Link className="h-btn is-quiet" href={`/city?city=${encodeURIComponent(city.city)}`}>Open {city.city} as a city <ArrowUpRight size={15} aria-hidden /></Link>
-                </figure>
-              )}
-            </article>
-            <article className="rail-card is-comm" style={{ ["--i" as string]: 2 }} data-tilt="4">
-              <header className="rail-h"><b>Communities</b><span>Report an animal, follow what happens, add a sighting.</span><Link href="/community/report">Report now →</Link></header>
-              <ol className="rail-steps"><li><b>01</b>A photo, if it is safe</li><li><b>02</b>Where, as an area</li><li><b>03</b>What you saw</li><li><b>04</b>Received, and followed on your phone</li></ol>
-              {SIGHTINGS_90D !== null && <p className="h-fine">{fmt(SIGHTINGS_90D)} community reports through StrayPaw in the last 90 days.</p>}
-            </article>
-            <article className="rail-card is-fund" style={{ ["--i" as string]: 3 }} data-tilt="4">
-              <header className="rail-h"><b>Funders and partners</b><span>Traceable records, documented activity, evidence you can check.</span><Link href="/for-funders">For funders →</Link></header>
-              <ul className="rail-files"><li><b>Evidence workbook</b><span>Every case, animal and care event, with source</span></li><li><b>Government submission</b><span>Cases and care by area, with method</span></li><li><b>Report to print</b><span>Headline figures and limits, for a board</span></li></ul>
-            </article>
-          </div>
-        </Scene>
-
-        {/* F. Proof, with what each number is and is not. */}
-        {story && (
-          <section className="h-sec h-proof" aria-labelledby="h-proof">
-            <header className="h-head" data-rv="up"><p className="h-k">On the record today</p><h2 id="h-proof">Real records. <em>Honest numbers.</em></h2></header>
+        {/* 5 · What is real today, and the invitation. */}
+        <section className="h-end" aria-labelledby="h-close">
+          <Folk k="elephantTree" className="h-folk-end" w={200} par={0.06} />
+          {story && (
             <dl className="pf" data-rv="up">
               <div><dt>Animal records</dt><dd>{fmt(story.totals.animals)}</dd><small>Mostly historical registers organisations imported</small></div>
-              <div><dt>Cities</dt><dd>{fmt(story.totals.cities)}</dd><small>Precision varies: street areas to city level</small></div>
-              <div><dt>Requests for help</dt><dd>{fmt(story.totals.cases)}</dd><small>Cases on the record, open and closed</small></div>
-              {SIGHTINGS_90D !== null && <div><dt>Community reports</dt><dd>{fmt(SIGHTINGS_90D)}</dd><small>Sent through StrayPaw in the last 90 days</small></div>}
+              <div><dt>Cities</dt><dd>{fmt(story.totals.cities)}</dd><small>From street areas to city level</small></div>
+              <div><dt>Requests for help</dt><dd>{fmt(story.totals.cases)}</dd><small>On the record, open and closed</small></div>
+              {reports !== null && <div><dt>Community reports</dt><dd>{fmt(reports)}</dd><small>Through StrayPaw, last 90 days</small></div>}
             </dl>
-            <p className="h-partner" data-rv="up">Field partner: <b>The Pawsome People Project</b>, Coimbatore, runs its rescue cases in StrayPaw. <Link href="/community/organisations">Every organisation on the record</Link></p>
-          </section>
-        )}
-
-        {/* G. The vision, earned by what came before. */}
-        <section className="h-vision" aria-labelledby="h-vision">
-          <Folk k="elephantTree" className="h-folk-vision" w={210} par={0.06} />
-          <div className="vz" data-rv="up">
-            <p className="h-k">Where this goes</p>
-            <h2 id="h-vision">Today, StrayPaw helps organisations coordinate care. <em>Over time, connected records become a city&rsquo;s memory.</em></h2>
-            <ol className="vz-steps">
-              <li><b>Now</b>Reports, cases and care in one workspace for every rescue team.</li>
-              <li><b>Next</b>Shared records across organisations, so no animal starts again from zero.</li>
-              <li><b>Then</b>Geographic intelligence cities can plan with, and funders can trust.</li>
-            </ol>
-          </div>
-        </section>
-
-        {/* H. The invitation. */}
-        <section className="h-close" aria-labelledby="h-close">
-          <Folk k="tiger" className="h-folk-close" w={160} par={0.05} />
-          <h2 id="h-close" data-rv="up">Run your rescue work <em>on StrayPaw.</em></h2>
-          <p data-rv="up">Bring your spreadsheets. StrayPaw imports them into one record.</p>
+          )}
+          <h2 id="h-close" data-rv="up">Today, rescue teams coordinate care on StrayPaw. <em>Tomorrow, a city remembers every animal.</em></h2>
           <div className="h-acts is-center" data-rv="up">
             <Link href="/partner-apply" className="h-btn is-flame is-lg" data-mag>Get StrayPaw for your NGO <ArrowUpRight size={18} aria-hidden /></Link>
-            <Link href="/explore" className="h-btn is-quiet is-lg" data-mag>Explore the live map</Link>
+            <Link href="/explore" className="h-btn is-ghost is-lg" data-mag>Explore the live map</Link>
           </div>
-          <p className="h-close-alt">Municipality or partner? <Link href="/for-governments">For cities</Link> · <Link href="/for-funders">For funders</Link> · <Link href="/contact">Talk to us</Link></p>
+          <p className="h-close-alt">Field partner: The Pawsome People Project, Coimbatore · <Link href="/for-governments">For cities</Link> · <Link href="/for-funders">For funders</Link> · <Link href="/contact">Talk to us</Link></p>
         </section>
       </main>
       <footer className="ld-foot h-foot">

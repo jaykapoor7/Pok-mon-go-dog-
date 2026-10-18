@@ -600,3 +600,72 @@
 .home3 .h-foot a:hover { color: var(--ink); }
 .home3 .h-foot .fx-h { color: var(--mute); }
 .home3 .h-foot .fx a { color: var(--ink-2); }
+
+/* ════════════════ v5 · five beats ════════════════ */
+/* 1 · the statement rises word by word on arrival … */
+.home4 .hx-copy h1 .w { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: 0.08em; margin-right: 0.22em; }
+.home4 .hx-copy h1 .w > span { display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  .home4 .hx-copy h1 .w > span { animation: w-rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(120ms + var(--w) * 90ms); }
+  .home4 .hx-eyebrow, .home4 .hx-copy .h-lede, .home4 .hx-copy .h-acts { animation: w-fade 0.9s ease both; animation-delay: 700ms; }
+}
+@keyframes w-rise { from { transform: translateY(115%) rotate(4deg); } }
+@keyframes w-fade { from { opacity: 0; transform: translateY(14px); } }
+/* … then tears apart sideways as the camera dives into India, down to one city */
+.home4 .hx-copy { transform: none; opacity: 1; }
+.home4 .hx-copy h1 .w { transform: translateX(calc(var(--a) * var(--side) * (22vw + var(--w) * 4vw))) rotate(calc(var(--a) * var(--side) * 8deg)); opacity: calc(1 - var(--a) * 1.15); }
+.home4 .hx-copy :is(.hx-eyebrow, .h-lede, .h-acts) { opacity: calc(1 - var(--a) * 2.4); transform: translateY(calc(var(--a) * 40px)); }
+.home4 .hx-world { overflow: visible; }
+.home4 .hx-map { transform-origin: 33% 89%; transform: scale(calc(1 + var(--a) * var(--a) * 6)); opacity: calc(1 - var(--k) * 1.2); }
+.home4 .hx-map .ix-card { opacity: calc(1 - var(--a) * 2.2); transform: translate(-50%, -50%); }
+.home4 .hx-map .ix-string { opacity: calc(1 - var(--a) * 2.2); }
+.home4 .hx-map .ix-land { fill: rgba(243, 237, 228, calc(0.05 + var(--a) * 0.1)); }
+
+/* 2 · the record scene keeps its flame iris; the two halves arrive from opposite sides */
+.home4 .s-wa .cf-phone { transform: translateX(calc((1 - clamp(0, calc(var(--p) * 6), 1)) * -30vw)) rotateY(calc(18deg - var(--p) * 18deg)); }
+.home4 .s-wa .cf-work { transform: translateX(calc((1 - clamp(0, calc(var(--p) * 6), 1)) * 30vw)) rotateY(calc(-16deg + var(--p) * 16deg)); }
+
+/* 3 · the reel: real animals glide sideways through depth, a coverflow driven by scroll */
+.home4 .s-reel .sc-stage { background: radial-gradient(80% 70% at 50% 60%, #1a3466 0%, var(--navy) 70%); color: #f3ede4; display: grid; grid-template-rows: auto 1fr; }
+.home4 .s-reel .h-k { color: #ff8a6f; }
+.home4 .reel { position: relative; perspective: 1700px; transform-style: preserve-3d; }
+.home4 .reel-card { --o: calc(var(--i) - var(--p) * (var(--n) - 1)); --ao: max(var(--o), calc(var(--o) * -1));
+  position: absolute; left: 50%; top: 46%; width: min(340px, 68vw); display: grid; border-radius: 22px; overflow: hidden; background: var(--paper); color: var(--ink); text-decoration: none;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.7);
+  transform: translate(-50%, -50%) translateX(calc(var(--o) * min(330px, 60vw))) translateZ(calc(var(--ao) * -260px)) rotateY(calc(clamp(-1, var(--o), 1) * -34deg));
+  opacity: clamp(0, calc(1.2 - var(--ao) * 0.3), 1); will-change: transform; }
+.home4 .reel-card img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
+.home4 .reel-id { display: grid; gap: 2px; padding: 14px 16px 16px; }
+.home4 .reel-id b { font-family: var(--serif); font-weight: 400; font-size: 26px; letter-spacing: -0.01em; }
+.home4 .reel-id small { font-size: 13px; color: var(--mute); }
+.home4 .reel-id .mono { font-family: var(--sp-mono-f, ui-monospace, monospace); font-size: 11.5px; }
+.home4 .reel-card.is-life { width: min(560px, 88vw); padding: 20px; gap: 14px; }
+.home4 .reel-life-id { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: center; }
+.home4 .reel-life-id img { aspect-ratio: 1; border-radius: 14px; }
+.home4 .reel-life-id img.is-art { object-fit: contain; mix-blend-mode: multiply; }
+.home4 .reel-life-id b { display: block; font-family: var(--serif); font-weight: 400; font-size: 30px; }
+.home4 .reel-life-id small { display: block; font-size: 12.5px; color: var(--mute); }
+.home4 .reel-card.is-life .h-life-line li { padding: 7px 0 7px 18px; font-size: 13.5px; grid-template-columns: 96px 1fr; }
+.home4 .reel-card.is-life .h-btn { justify-self: start; }
+
+/* 5 · the end: what is real today, one sentence of vision, one invitation */
+.home4 .h-end { position: relative; overflow: hidden; padding: 120px clamp(20px, 6vw, 96px) 110px; background: var(--cream); text-align: center; }
+.home4 .h-end .pf { margin-bottom: 72px; }
+.home4 .h-end h2 { margin: 0 auto; max-width: 20ch; font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 4.6vw, 70px); line-height: 1.04; letter-spacing: -0.02em; }
+.home4 .h-end h2 em { color: var(--flame-ink); }
+.home4 .h-end .h-btn.is-ghost { background: transparent; border-color: var(--line-2); color: var(--ink); }
+.home4 .h-folk-end { left: 3vw; bottom: 24px; }
+.home4 .sc.is-still .reel { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; padding: 24px; }
+.home4 .sc.is-still .reel-card { position: relative; left: auto; top: auto; transform: none; opacity: 1; }
+@media (max-width: 760px) {
+  .home4 .hx-copy h1 .w { margin-right: 0.18em; }
+  .home4 .hx-map { transform-origin: 33% 89%; }
+  .home4 .reel-card { top: 50%; }
+  .home4 .reel-card.is-life { padding: 14px; }
+  .home4 .reel-life-id { grid-template-columns: 80px 1fr; }
+  .home4 .h-folk-end { display: none; }
+}
+.home4 .s-wa { --io: clamp(0, calc(var(--p) * 14), 1); }
+.home4 .s-wa .sc-stage { clip-path: circle(calc(32% + var(--io) * 95%) at 50% 50%); }
+.home4 .hx-map .ix-card { scale: calc(1 / (1 + var(--a) * var(--a) * 6)); }
+@media (max-width: 760px) { .home4 .reel-card:not(.is-life) { width: 58vw; } .home4 .reel-card img { aspect-ratio: 1; } .home4 .sx-head h2 { font-size: clamp(30px, 8vw, 40px); } }
